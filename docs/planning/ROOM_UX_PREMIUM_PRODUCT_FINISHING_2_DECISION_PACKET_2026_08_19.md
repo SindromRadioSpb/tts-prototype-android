@@ -5,9 +5,9 @@ Mode: `RESEARCH_THEN_EXPLICIT_OWNER_GATE`
 Program: `ROOM_UX_PREMIUM_PRODUCT_FINISHING_2`
 Predecessor: `VISUAL_FINISHING_VF0_VF5_CLOSED`
 Implementation authority: `OWNER_APPROVED_EXACT_PPF2_CONTRAST_ALLOWLIST_ONLY`
-Current status: `OWNER_ADDENDUM_APPLIED_LOCAL_GATES_GREEN_SCOPED_COMMIT_CREATED`
+Current status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
 
-Owner supplied the exact P1–P8 approval block and the four-file version-pin allowlist addendum on `2026-08-19`. The historical research gate remains below for provenance. Local implementation, dedicated matrix, post-addendum regression suite and exact commit allowlist are green; push/deploy remain pending.
+Owner supplied the exact P1–P8 approval block and the four-file version-pin allowlist addendum on `2026-08-19`. The historical research gate remains below for provenance. The scoped implementation is pushed, production and the updated actual owner client are green, and the program is stopped at the required explicit owner-acceptance gate.
 
 ## Evidence passport
 

@@ -63,3 +63,40 @@ The final `tab_detail` first returned the baseline `#room=mytexts`, while the im
 ## Evidence boundary
 
 The baseline owner tab proves current version and real-volume/mixed-title composition; before/after log counts prove no review write. The route discrepancy limits any stronger continuity claim. It does not prove HE/RTL, 380px, forced colors, reduced motion, offline/reconnect, physical device or AT speech. Those remain isolated automation or `NOT_RUN`.
+
+## Post-deploy production and owner-client evidence
+
+Evidence time: `2026-08-19`; implementation commit `0a0ffb13ec547d2f7b33b28abd290e2174a69556`.
+
+```text
+ORIGIN_MAIN=0a0ffb13ec547d2f7b33b28abd290e2174a69556
+API=3.11.404
+STUDIO=3.11.404
+ROOM=3.11.404
+SW=3.11.404
+HEALTH=GREEN
+DB=READY
+MIGRATIONS=READY
+DISK=65_PERCENT_NO_WARNING
+ROOM_SHELL_INTEGRITY=MATCH
+```
+
+A transient split read showed Studio/SW `3.11.404` and API/Room `3.11.403`. The gate remained open until all four returned `3.11.404`. The final served Room SHA-256 matches the API shell-integrity value.
+
+The existing actual owner tab was preserved at `https://linguistpro.kolosei.com/library.html#room=hub`. Before update it was RU/LTR, scroll `0,0`, focus `BODY`, shell `3.11.403`, controlled by the prior worker with the new worker waiting, and `review_log=7420`. A standard reload retained the old controlled shell as designed. The product-owned visible Update control was then invoked. No Reader was open; the guarded safe point therefore performed no progress flush, activated the waiting worker and reloaded the same route.
+
+Final actual-owner-client read-only smoke:
+
+| Check | Result |
+|---|---:|
+| shell / served SW | `3.11.404 / 3.11.404` |
+| URL | unchanged `#room=hub` |
+| locale / direction | `ru / ltr` |
+| focus / scroll | `BODY / 0,0` |
+| waiting worker | none |
+| horizontal overflow | none |
+| unnamed visible controls | `0` |
+| Journey secondary-text contrast | `6.9046:1` |
+| review_log before / after | `7420 / 7420` |
+
+A selector-local Kapture screenshot of the real Journey component was visually inspected and showed the unchanged editorial hierarchy, geometry and controls with readable secondary copy. It was intentionally not persisted because real owner counters were visible. This is `OWNER_CLIENT_READ_ONLY` evidence from desktop Chrome, not physical-device or assistive-technology evidence. Explicit owner acceptance remains pending.

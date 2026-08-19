@@ -1,7 +1,7 @@
 # ROOM-UX-PPF2 implementation evidence
 
 Date: `2026-08-19`
-Status: `LOCAL_GATES_GREEN_SCOPED_COMMIT_CREATED_PUSH_PENDING`
+Status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
 Target release: `3.11.404`
 
 ## Evidence passport
@@ -9,10 +9,10 @@ Target release: `3.11.404`
 - Source/branch: `main@3a1e2c934b30106708d24afaa8533f0bc5ea2ac5` before the scoped commit.
 - Relationship at implementation start: `HEAD == refs/remotes/origin/main == git ls-remote origin main`.
 - Dirty state: 34 unrelated pre-existing entries remain preserved; only PPF2 paths and approved runtime targets have been touched by this program.
-- Production/owner client remain `3.11.403` until commit/push/deploy; local candidate is `3.11.404`.
-- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=BASELINE_ONLY`, `OWNER_CLIENT_READ_ONLY=BASELINE_ONLY`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=APPROVAL_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=PRODUCTION_AND_FINAL_OWNER_ACCEPTANCE_PENDING`.
+- Production API/Studio/Room/SW and the updated actual owner client are `3.11.404`.
+- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=APPROVAL_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=FINAL_OWNER_ACCEPTANCE_PENDING`.
 - Limitations: screenshots and browser gates are isolated automation, not production, owner-live, physical-device or AT evidence.
-- Owner-data safety: no owner-client navigation/click/write, provider call, content/progress/list/review/settings/cache mutation or cleanup was invoked during implementation. Production owner `review_log` baseline remains `7420`; final read-back is pending deployment.
+- Owner-data safety: no owner-client navigation, provider call, content/progress/list/review/settings/cache mutation or cleanup was invoked. The only owner-client click was the product-owned guarded Update action after production convergence; no Reader was open, so its safe point performed no progress flush. Production owner `review_log` remained `7420 -> 7420`.
 
 ## Authority and diff
 
@@ -73,9 +73,17 @@ Post-addendum rerun: PASS `72/72` across VF4 residual a11y, Visual Foundations, 
 
 ## Pending gates
 
-1. Push the exact scoped commit.
-2. Production API/Studio/Room/SW and `/healthz` convergence.
-3. Actual owner-client update and read-only production smoke with `review_log` unchanged.
-4. Explicit owner acceptance.
+1. Explicit owner acceptance.
 
 No slice completion is claimed.
+
+## Production and actual owner-client result
+
+- Scoped implementation commit: `0a0ffb13ec547d2f7b33b28abd290e2174a69556`, pushed to `origin/main`.
+- A transitional observation found Studio/SW `3.11.404` while API/Room remained `3.11.403`; no completion was claimed during that split window. The next read converged API/Studio/Room/SW on `3.11.404`.
+- `/healthz`: `ok=true`; DB and migrations ready; disk `65%`; warning false.
+- Remote head equals the scoped commit. Served `/library.html` SHA-256 equals the API shell-integrity value `9c763cb0c65612e5b16cfa1dcd173b56112bf791572acf7fe7069c17e2cbaf16`.
+- Actual owner Chrome before update: existing `#room=hub`, RU/LTR, scroll `0,0`, focus `BODY`, shell `3.11.403`, waiting `3.11.404` worker, `review_log=7420`.
+- Standard reload intentionally did not bypass the active old worker. The visible product Update control was then used; it reached the non-Reader safe point, activated the waiting worker and reloaded the same route.
+- Actual owner Chrome after update: `#room=hub`, shell `3.11.404`, active controller, no waiting worker, scroll `0,0`, focus `BODY`, no horizontal overflow, zero unnamed visible controls and `review_log=7420`.
+- The live Journey secondary text resolves to `rgb(71, 85, 105)` on its warm surface and measures `6.9046:1`. A selector-local Kapture screenshot was visually inspected; it was not persisted because it included real owner counters.

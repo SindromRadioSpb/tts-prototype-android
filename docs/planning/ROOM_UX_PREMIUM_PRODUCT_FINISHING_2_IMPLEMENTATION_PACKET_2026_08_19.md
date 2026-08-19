@@ -1,7 +1,7 @@
 # ROOM-UX-PPF2 — contrast-only implementation packet
 
 Date: `2026-08-19`
-Status: `SCOPED_COMMIT_CREATED_PUSH_PENDING`
+Status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
 Approved slice: `PPF2-01..04`
 Target release: `3.11.404`
 
@@ -96,3 +96,5 @@ Stop for renewed owner direction if any global token, `!important`, JS behavior,
 The static release set is Studio `index.html`, Room `library.html` and `sw.js`. Old/new combinations must remain safe because there is no persisted/API format change. Rollback restores the `3.11.403` versions of those three files and redeploys; no DB/data/cache deletion is authorized.
 
 Completion requires green code/browser gates, visual inspection, scoped commit/push, production API/Studio/Room/SW convergence, updated actual owner client, read-only production smoke and explicit owner acceptance.
+
+The scoped implementation commit `0a0ffb13ec547d2f7b33b28abd290e2174a69556` was pushed to `origin/main`. Production API/Studio/Room/SW converged on `3.11.404`; health, DB, migrations and Room shell integrity are green. The actual owner client was updated through the product's guarded update control and passed the read-only production smoke with `review_log 7420 -> 7420`. Only explicit owner acceptance remains.
