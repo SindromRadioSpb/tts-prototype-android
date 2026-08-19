@@ -6943,8 +6943,9 @@ body:not(.theme-light) .v3-notes-template-banner {
   opacity: 1 !important;
 }
 .v3-tcs-advanced { margin-top: 12px; border-top: 1px solid var(--theme-border-soft, #e2e8f0); padding-top: 8px; }
-.v3-tcs-advanced summary { cursor: pointer; color: var(--theme-text-secondary, #475569); font-size: 12px; font-weight: 650; }
-.v3-tcs-advanced button { margin-top: 8px; width: auto; }
+.v3-tcs-advanced summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--theme-text-secondary, #475569); font-size: 12px; font-weight: 650; }
+.v3-tcs-advanced button { min-height: 44px; margin-top: 8px; width: auto; }
+#v3TextCardShareModal .v3-modal-header button { min-height: 44px; }
 .v3-tcs-status, .v3-tci-status {
   font-size: 12.5px;
   color: var(--theme-text-secondary, #64748b);
@@ -13487,7 +13488,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.406";
+    window.APP_VERSION = "3.11.408";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -43274,6 +43275,35 @@ let v3TcsPreparedArtifact = null; // exact ZIP bytes reused by Share and Save
 let v3TcsPrepareController = null;
 let v3TcsShareSession = 0;
 let v3TcsFocusReturn = null;
+let v3TcsBackgroundA11y = [];
+
+function v3TcsSuspendBackground(modal) {
+  v3TcsRestoreBackground();
+  if (!modal || !document.body) return;
+  v3TcsBackgroundA11y = Array.from(document.body.children)
+    .filter((node) => node !== modal && !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(node.tagName))
+    .map((node) => ({
+      node,
+      inert: node.getAttribute('inert'),
+      ariaHidden: node.getAttribute('aria-hidden'),
+    }));
+  for (const state of v3TcsBackgroundA11y) {
+    try { state.node.setAttribute('inert', ''); state.node.setAttribute('aria-hidden', 'true'); } catch (_) {}
+  }
+}
+
+function v3TcsRestoreBackground() {
+  for (const state of v3TcsBackgroundA11y) {
+    if (!state.node || !state.node.isConnected) continue;
+    try {
+      if (state.inert == null) state.node.removeAttribute('inert');
+      else state.node.setAttribute('inert', state.inert);
+      if (state.ariaHidden == null) state.node.removeAttribute('aria-hidden');
+      else state.node.setAttribute('aria-hidden', state.ariaHidden);
+    } catch (_) {}
+  }
+  v3TcsBackgroundA11y = [];
+}
 
 function v3TcsKeyHandler(event) {
   const modal = document.getElementById('v3TextCardShareModal');
@@ -43281,11 +43311,15 @@ function v3TcsKeyHandler(event) {
   if (event.key === 'Escape') { event.preventDefault(); v3TextCardShareClose(); return; }
   if (event.key !== 'Tab') return;
   const nodes = Array.from(modal.querySelectorAll('button:not([disabled]):not([hidden]), summary, [href], [tabindex]:not([tabindex="-1"])'))
-    .filter((node) => node.getClientRects().length);
+    .filter((node) => {
+      const closedDetails = node.closest('details:not([open])');
+      return node.getClientRects().length && (!closedDetails || node.tagName === 'SUMMARY');
+    });
   if (!nodes.length) return;
   const first = nodes[0], last = nodes[nodes.length - 1];
-  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || !modal.contains(active))) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && (active === last || !modal.contains(active))) { event.preventDefault(); first.focus(); }
 }
 function v3TcsFocusGuard(event) {
   const modal = document.getElementById('v3TextCardShareModal');
@@ -43466,6 +43500,7 @@ async function v3TextCardShareOpen(textId) {
     if (preview) preview.innerHTML = '<div style="color:#b91c1c;">' + v3EscapeHtml(String(e.message || e)) + '</div>';
   }
 
+  v3TcsSuspendBackground(modal);
   modal.classList.remove('hidden');
   document.removeEventListener('keydown', v3TcsKeyHandler, true);
   document.addEventListener('keydown', v3TcsKeyHandler, true);
@@ -43482,6 +43517,7 @@ function v3TextCardShareClose() {
   v3TcsResetPackage();
   const modal = document.getElementById('v3TextCardShareModal');
   if (modal) modal.classList.add('hidden');
+  v3TcsRestoreBackground();
   document.removeEventListener('keydown', v3TcsKeyHandler, true);
   document.removeEventListener('focusin', v3TcsFocusGuard, true);
   const portableSection = document.getElementById('v3TcsPortableSection');

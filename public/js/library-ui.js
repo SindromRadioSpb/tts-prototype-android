@@ -8661,6 +8661,27 @@ function roomShareSlug(value) {
     .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
   return clean.slice(0, 72) || 'text';
 }
+function roomSuspendBackground(overlay) {
+  if (!overlay || !document.body) return [];
+  const states = Array.from(document.body.children)
+    .filter((node) => node !== overlay && !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(node.tagName))
+    .map((node) => ({ node, inert: node.getAttribute('inert'), ariaHidden: node.getAttribute('aria-hidden') }));
+  for (const state of states) {
+    try { state.node.setAttribute('inert', ''); state.node.setAttribute('aria-hidden', 'true'); } catch (_) {}
+  }
+  return states;
+}
+function roomRestoreBackground(states) {
+  for (const state of (states || [])) {
+    if (!state.node || !state.node.isConnected) continue;
+    try {
+      if (state.inert == null) state.node.removeAttribute('inert');
+      else state.node.setAttribute('inert', state.inert);
+      if (state.ariaHidden == null) state.node.removeAttribute('aria-hidden');
+      else state.node.setAttribute('aria-hidden', state.ariaHidden);
+    } catch (_) {}
+  }
+}
 function openMyTextShare(item, returnFocus) {
   const service = window.ShareService;
   const trigger = returnFocus || document.activeElement;
@@ -8695,6 +8716,7 @@ function openMyTextShare(item, returnFocus) {
   const saveBtn = el('button', { class: 'room-share-action', attrs: { type: 'button', disabled: 'disabled' }, text: tt('tcs.btnSaveZip', 'Сохранить ZIP') });
   actions.appendChild(shareBtn); actions.appendChild(saveBtn); box.appendChild(actions);
   ov.appendChild(box); document.body.appendChild(ov);
+  const backgroundA11y = roomSuspendBackground(ov);
 
   let artifact = null;
   let closed = false;
@@ -8709,6 +8731,7 @@ function openMyTextShare(item, returnFocus) {
     if (controller) controller.abort();
     document.removeEventListener('keydown', onKeydown);
     ov.remove();
+    roomRestoreBackground(backgroundA11y);
     try { if (trigger && trigger.isConnected && trigger.focus) trigger.focus(); else roomFocusRestore(); } catch (_) {}
   };
   const onKeydown = (event) => {

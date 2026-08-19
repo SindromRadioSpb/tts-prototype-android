@@ -62,6 +62,19 @@ test("Studio keeps the canonical learning ZIP usable when optional portable hist
   assert.match(studio, /tcs\.portableHistoryUnavailable/);
 });
 
+test("Send or save dialogs isolate their background and keep touch targets accessible", () => {
+  const studio = read("public/index.html");
+  const room = read("public/js/library-ui.js");
+  assert.match(studio, /function v3TcsSuspendBackground/);
+  assert.match(studio, /setAttribute\('inert', ''\)/);
+  assert.match(studio, /setAttribute\('aria-hidden', 'true'\)/);
+  assert.match(studio, /#v3TextCardShareModal \.v3-modal-header button \{ min-height: 44px; \}/);
+  assert.match(studio, /\.v3-tcs-advanced summary \{[^}]*min-height: 44px;/);
+  assert.match(studio, /closest\('details:not\(\[open\]\)'\)/);
+  assert.match(room, /function roomSuspendBackground/);
+  assert.match(room, /roomRestoreBackground\(backgroundA11y\)/);
+});
+
 test("Reading Room reuses the shared service for protected links and My Texts ZIP", () => {
   const room = read("public/js/library-ui.js");
   assert.match(room, /ShareService\.shareLink/);
