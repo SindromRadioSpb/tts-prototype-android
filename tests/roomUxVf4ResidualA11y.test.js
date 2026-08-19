@@ -118,10 +118,10 @@ test("RU EN HE carry exact row-audio action and state keys", () => {
   }
 });
 
-test("3.11.403 release lock cache-busts changed Room, media host and locale assets exactly", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.403"/);
-  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.403</);
-  assert.match(sw, /const CACHE_VERSION = "v3\.11\.403"/);
+test("3.11.404 release lock cache-busts changed Room, media host and locale assets exactly", () => {
+  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.404"/);
+  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.404</);
+  assert.match(sw, /const CACHE_VERSION = "v3\.11\.404"/);
   assert.match(studio, /\/js\/media-host\.js\?v=403/);
   assert.match(roomHtml, /\/js\/media-host\.js\?v=403/);
   assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
