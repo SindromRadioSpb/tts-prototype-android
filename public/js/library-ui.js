@@ -8821,7 +8821,10 @@ function openMyTextShare(item, returnFocus) {
     if (result.code === 'SHARE_SHEET_COMPLETED') setStatus(tt('tcs.shareCompleted', 'Системное меню отправки закрыто. Доставка получателю зависит от выбранного приложения.'), 'ready');
     else if (result.code === 'SHARE_CANCELLED') setStatus(tt('tcs.shareCancelled', 'Отправка отменена. Архив остаётся готовым.'), artifact.facts.partial ? 'partial' : 'ready');
     else if (result.code === 'FILE_SHARE_UNSUPPORTED') { shareBtn.hidden = true; saveBtn.classList.add('primary'); setStatus(tt('tcs.shareUnsupported', 'Этот браузер не отправляет файлы через системное меню. Сохраните ZIP и прикрепите его вручную.'), 'partial'); }
-    else setStatus(tt('tcs.shareFailed', 'Не удалось открыть системное меню. Архив остаётся готовым — его можно сохранить.'), 'error');
+    else {
+      console.warn('[room-share] native file share failed', result && result.message || result && result.code || 'SHARE_FAILED');
+      setStatus(tt('tcs.shareFailed', 'Не удалось открыть системное меню. Архив остаётся готовым — его можно сохранить.'), 'error');
+    }
     shareBtn.disabled = shareBtn.hidden;
   });
   saveBtn.addEventListener('click', () => {

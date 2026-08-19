@@ -129,6 +129,8 @@ test("shareFile distinguishes unsupported, cancelled, handed-off and failed", as
   });
   assert.deepEqual(handedOff, { status: "handed-off", code: "SHARE_SHEET_COMPLETED" });
   assert.equal(payload.files[0], file);
+  assert.equal(payload.title, undefined);
+  assert.equal(payload.text, undefined);
   assert.equal(payload.url, undefined);
 
   const failed = await ShareService.shareFile({

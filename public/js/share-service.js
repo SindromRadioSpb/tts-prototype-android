@@ -250,7 +250,10 @@
       return { status: "unsupported", code: "FILE_SHARE_UNSUPPORTED" };
     }
     try {
-      await nav.share({ title: opts.title || "", text: opts.text || "", files: [opts.file] });
+      // Keep capability detection and the actual native payload identical.
+      // Some share implementations accept {files} but reject a mixed
+      // {title,text,files} payload before opening the system sheet.
+      await nav.share({ files: [opts.file] });
       return { status: "handed-off", code: "SHARE_SHEET_COMPLETED" };
     } catch (error) {
       if (error && error.name === "AbortError") return { status: "cancelled", code: "SHARE_CANCELLED" };
