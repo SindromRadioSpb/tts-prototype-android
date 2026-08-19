@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · I3 LOCAL IMPLEMENTATION COMPLETE · 12/14 IMPLEMENTATION CHECKS RED`
+Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · I3 PRODUCTION · I5 LOCAL IMPLEMENTATION COMPLETE · 10/14 IMPLEMENTATION CHECKS RED`
 
 Branch: `mass-access-p0-design-red-tests` (`NON-DEPLOY`)
 
@@ -315,10 +315,11 @@ IMPLEMENTATION=RED
 EXIT=1
 ```
 
-Successor I3 execution on `mass-access-i3-share-implementation` intentionally turns
-`P0-R11` and `P0-R12` green without weakening the contract. The expected post-I3
-result is therefore `implemented=2/14`, `pending=12`, exit `1`. See
-[the I3 implementation record](LINGUISTPRO_MASS_ACCESS_I3_SHARE_IMPLEMENTATION_2026_08_19.md).
+Successor I3 and I5 execution on `mass-access-i3-share-implementation` intentionally
+turns `P0-R11` through `P0-R14` green without weakening the contract. The current
+result is therefore `implemented=4/14`, `pending=10`, exit `1`. See the
+[I3 implementation record](LINGUISTPRO_MASS_ACCESS_I3_SHARE_IMPLEMENTATION_2026_08_19.md)
+and [I5 implementation record](LINGUISTPRO_MASS_ACCESS_I5_MENTOR_CONNECTION_IMPLEMENTATION_2026_08_19.md).
 
 The test is not in `npm test`, CI or deploy gates. Exit `2` is a guard failure and
 invalidates the design baseline.
@@ -347,8 +348,9 @@ invalidates the design baseline.
 
 ## 15. Later implementation slices
 
-I3 was subsequently authorized as an isolated non-deploy slice. I1, I2, I4 and I5
-remain unauthorized by that successor authority.
+I3 was subsequently authorized, implemented and deployed. I5 was then authorized as
+a separate no-migration production slice. I1, I2 and I4 remain unauthorized by those
+successor authorities.
 
 ### I1 — domain/schema/repository
 
@@ -366,8 +368,8 @@ Pure package/share service, Studio then Room integration. Can be authorized sepa
 without the publication migration, but physical receiving-app proof remains a release
 gate.
 
-Execution status: local implementation and automated/browser evidence complete on a
-non-deploy branch; physical Telegram/WhatsApp/Files receipt remains pending.
+Execution status: deployed as runtime `3.11.413`; automated and production browser
+evidence are complete. Physical Telegram/WhatsApp/Files receipt remains pending.
 
 ### I4 — anonymous Room adapter and public pilot
 
@@ -377,6 +379,10 @@ authority. Start with a bounded cleared pilot, then Study Songs.
 ### I5 — account + Mentor connection
 
 Separate provider/recovery/identity threat model and Telegram live/device evidence.
+
+Execution status: local implementation and automated/browser evidence complete for
+runtime `3.11.414`; production verification and physical Telegram/device evidence
+remain pending. See the [I5 implementation record](LINGUISTPRO_MASS_ACCESS_I5_MENTOR_CONNECTION_IMPLEMENTATION_2026_08_19.md).
 
 ## 16. Proposed future implementation allowlist
 
