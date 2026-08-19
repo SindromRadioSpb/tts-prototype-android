@@ -2182,6 +2182,16 @@
     .corpus-switch-menu { max-height: min(60vh, 420px); overflow-y: auto; }
     .corpus-shell-head { margin: 0 0 10px; padding: 3px 2px 8px; border-bottom: 1px solid var(--border-soft); }
     .corpus-shell-identity { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .room-copyright-notice { margin-top: 10px; border-top: 1px solid var(--border-soft); color: var(--text-secondary); }
+    .room-copyright-notice > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+    .room-copyright-panel { display: grid; gap: 8px; padding: 2px 0 12px; font-size: 12px; line-height: 1.55; }
+    .room-copyright-panel h3, .room-copyright-panel p { margin: 0; }
+    .room-copyright-panel h3 { color: var(--text-primary); font-size: 14px; }
+    .room-copyright-local { padding: 9px 10px; border-inline-start: 3px solid var(--accent); border-radius: 8px; background: var(--bg-muted); color: var(--text-primary); }
+    .room-copyright-contact { display: inline-flex; align-items: center; width: fit-content; min-height: 44px; color: var(--accent); font-weight: 700; overflow-wrap: anywhere; }
+    .reader-copyright { margin: 16px 16px 6px; padding-top: 2px; }
+    .room-about-copyright { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+    .room-about-copyright h3, .room-about-copyright p { margin: 0 0 8px; }
     .corpus-shell-title { min-width: 0; margin: 0; display: flex; align-items: center; gap: 9px; color: var(--text-primary); font: 760 25px/1.18 Georgia, "Times New Roman", serif; letter-spacing: -.014em; }
     .corpus-shell-icon { flex: none; font: 20px/1 sans-serif; }
     .corpus-shell-count { flex: none; color: var(--text-secondary); font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; }
@@ -2673,6 +2683,7 @@
     <div id="roomMediaYtMount" hidden></div>
   </div>
   <div id="roomReaderTable" class="reader-table-wrap"></div>
+  <div id="readerCopyright" class="reader-copyright"></div>
   <!-- Epic-2 #3 — honest provenance: translation AND vocalization are machine-made (R9). -->
   <p id="readerProvNote" class="reader-prov-note" dir="auto" data-i18n="room.prov.note">Перевод и огласовка — машинные, не вычитаны.</p>
 </section>
@@ -2713,8 +2724,9 @@
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
+    <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.408</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.409</button>
   </div>
 </footer>
 
@@ -2728,6 +2740,11 @@
     <p data-i18n="room.about.source">—</p>
     <p data-i18n="room.about.offline">—</p>
     <p data-i18n="room.about.diagnostics">Диагностика производительности хранится только локально и выгружается лишь по вашему действию.</p>
+    <section class="room-about-copyright" aria-labelledby="roomAboutCopyrightTitle">
+      <h3 id="roomAboutCopyrightTitle" data-i18n="room.copyright.title">О проекте и авторских правах</h3>
+      <p data-i18n="room.copyright.body">LinguistPro — некоммерческий образовательный проект. Материалы размещаются прежде всего для изучения языков. Если вы считаете, что какой-либо материал нарушает авторские права, напишите на peter@kolosei.com и укажите ссылку на материал и, по возможности, сведения о правообладателе. Мы рассмотрим обращение и удалим материал, нарушающий права, либо ограничим доступ к нему.</p>
+      <a class="room-copyright-contact" href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
+    </section>
     <button id="roomDiagnosticExport" class="room-diagnostic-export" type="button" data-i18n="room.about.exportDiagnostics">Экспортировать локальную диагностику</button>
     <div class="room-about-version">
       <span data-i18n="room.about.versionLabel">Версия</span>&nbsp;<strong id="roomAboutVersion">—</strong>
@@ -2897,9 +2914,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=171"></script>
-<script src="/i18n/locales/en.js?v=171"></script>
-<script src="/i18n/locales/he.js?v=171"></script>
+<script src="/i18n/locales/ru.js?v=172"></script>
+<script src="/i18n/locales/en.js?v=172"></script>
+<script src="/i18n/locales/he.js?v=172"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -2972,6 +2989,6 @@
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
-<script type="module" src="/js/library-ui.js?v=408"></script>
+<script type="module" src="/js/library-ui.js?v=409"></script>
 </body>
 </html>

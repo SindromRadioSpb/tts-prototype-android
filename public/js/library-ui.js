@@ -7199,6 +7199,7 @@ async function openReader(textId, title, opts) {
     if (HEBREW_RE.test(title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
   }
   setReaderSubtitle(null);   // Epic-6 W1-a — clear any prior byline until res arrives (no stale flash)
+  roomRenderReaderCopyright(null);
   try { window.scrollTo(0, 0); } catch (_) {}
   const mount = $('roomReaderTable');
   const res = await readerCore.openText(textId, {
@@ -7240,6 +7241,7 @@ async function openReader(textId, title, opts) {
     }
   } catch (_) { readerIsOwnText = !!readerTextKey; }
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
+  roomRenderReaderCopyright({ localPrivate: readerIsOwnText });
   if (res && res.ok) {
     let calibrationSource = null;
     if (readerIsOwnText) {
@@ -7363,6 +7365,7 @@ async function closeReader(options) {
   try { roomMediaTeardown(); } catch (_) {}   // media player: stop + revoke URL + скрыть бар
   clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; _roomReaderPresentationReadOnly = false; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
+  roomRenderReaderCopyright(null);
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
@@ -9908,6 +9911,39 @@ function authorizedCorpusOptions() {
 function authorizedCorpusById(id) {
   return authorizedCorpusOptions().find((corpus) => corpus.id === id) || null;
 }
+function roomCopyrightNotice(options) {
+  const opts = options || {};
+  const details = el('details', { class: 'room-copyright-notice' + (opts.compact ? ' room-copyright-compact' : '') });
+  details.appendChild(el('summary', {
+    text: opts.compact
+      ? tt('room.copyright.summary', 'Некоммерческий образовательный проект · сообщить о нарушении')
+      : tt('room.copyright.aboutMaterial', 'Об этом материале'),
+  }));
+  const panel = el('div', { class: 'room-copyright-panel' });
+  if (opts.localPrivate) {
+    panel.appendChild(el('p', {
+      class: 'room-copyright-local',
+      text: tt('room.copyright.localPrivateNote', 'Ваши тексты хранятся на этом устройстве и не публикуются без отдельного действия. Уведомление ниже относится к материалам, опубликованным LinguistPro.'),
+    }));
+  }
+  panel.appendChild(el('h3', { text: tt('room.copyright.title', 'О проекте и авторских правах') }));
+  panel.appendChild(el('p', {
+    text: tt('room.copyright.body', 'LinguistPro — некоммерческий образовательный проект. Материалы размещаются прежде всего для изучения языков. Если вы считаете, что какой-либо материал нарушает авторские права, напишите на peter@kolosei.com и укажите ссылку на материал и, по возможности, сведения о правообладателе. Мы рассмотрим обращение и удалим материал, нарушающий права, либо ограничим доступ к нему.'),
+  }));
+  panel.appendChild(el('a', {
+    class: 'room-copyright-contact',
+    attrs: { href: 'mailto:peter@kolosei.com' },
+    text: tt('room.copyright.contactLabel', 'Сообщить о нарушении авторских прав'),
+  }));
+  details.appendChild(panel);
+  return details;
+}
+function roomRenderReaderCopyright(options) {
+  const host = $('readerCopyright');
+  if (!host) return;
+  host.replaceChildren();
+  if (options) host.appendChild(roomCopyrightNotice({ localPrivate: !!options.localPrivate }));
+}
 function corpusShellHeader(corpus, options) {
   const opts = options || {};
   const head = el('header', { class: 'corpus-shell-head' });
@@ -9935,6 +9971,7 @@ function corpusShellHeader(corpus, options) {
     trust.appendChild(disclosure);
   }
   if (trust.children.length) head.appendChild(trust);
+  head.appendChild(roomCopyrightNotice({ compact: true, localPrivate: corpus && corpus.id === 'mytexts' }));
   return head;
 }
 function corpusSecondaryDisclosure(label, description) {

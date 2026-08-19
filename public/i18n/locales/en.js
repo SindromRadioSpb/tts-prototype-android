@@ -3947,3 +3947,11 @@ Object.assign(window.I18N_LOCALES.en.studio.importCenter, {
   deviceGateMismatchNext: "Next action: select the exact media file required by the package and run the test again.",
   deviceGateRetryNext: "Next action: keep this card unchanged, reselect the exact file and retry the playback test."
 });
+window.I18N_LOCALES.en.room.copyright = {
+  title: "About this project and copyright",
+  summary: "Non-commercial educational project · report a copyright concern",
+  body: "LinguistPro is a non-commercial educational project. Materials are provided primarily for language learning. If you believe that any material infringes copyright, email peter@kolosei.com and include the material URL and, if possible, information identifying the rightsholder. We will review the notice and remove infringing material or restrict access to it.",
+  contactLabel: "Report a copyright concern",
+  localPrivateNote: "Your texts are stored on this device and are not published without a separate action. The notice below applies to materials published by LinguistPro.",
+  aboutMaterial: "About this material"
+};

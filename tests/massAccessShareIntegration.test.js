@@ -116,6 +116,25 @@ test("Studio library cards name the new Send or save action in every locale", ()
   }
 });
 
+test("RU EN HE copyright copy matches the frozen contract and is placed on corpus and reader surfaces", () => {
+  const contract = JSON.parse(read("scripts/premium/fixtures/mass-access-p0/contract-v1.json"));
+  for (const locale of ["ru", "en", "he"]) {
+    const source = read(`public/i18n/locales/${locale}.js`);
+    for (const [key, value] of Object.entries(contract.i18n[locale])) {
+      assert.ok(source.includes(value), `${locale} missing frozen copyright ${key}`);
+    }
+  }
+  const room = read("public/js/library-ui.js");
+  const shell = read("public/library.html");
+  assert.match(room, /head\.appendChild\(roomCopyrightNotice\(\{ compact: true/);
+  assert.match(room, /roomRenderReaderCopyright\(\{ localPrivate: readerIsOwnText \}\)/);
+  assert.match(room, /room\.copyright\.localPrivateNote/);
+  assert.match(room, /href: 'mailto:peter@kolosei\.com'/);
+  assert.match(shell, /id="readerCopyright"/);
+  assert.match(shell, /class="room-about-copyright"/);
+  assert.match(shell, /href="mailto:peter@kolosei\.com" data-i18n="room\.copyright\.contactLabel"/);
+});
+
 test("I3 does not add migration, public-corpus writer or B9 entities", () => {
   const migrations = fs.readdirSync(path.join(root, "migrations")).filter((name) => name.endsWith(".sql")).join("\n");
   assert.doesNotMatch(migrations, /published_corpora|curated_paths|path_assignments/i);
