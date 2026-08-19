@@ -2414,6 +2414,20 @@ window.I18N_LOCALES.he = {
       textMissing: "הטקסט לא נמצא במכשיר הזה — סנכרנו את «הטקסטים שלי» ב-☁.",
       corpusTextMissing: "היצירה לא נמצאה במכשיר — פתחו אותה בלשונית «קורפוס».",
       histWord: "מילה",
+      connection: {
+        connectionTitle: "חיבור המנטור",
+        intro: "מחברים יכולות שלב אחר שלב. הקריאה המקומית פועלת ללא חשבון; החיבור ל־Telegram והשימוש ב־AI נשארים לבחירתכם.",
+        accountTitle: "חשבון", accountHint: "היכנסו לחשבון הקיים — הקריאה המקומית נשארת זמינה גם ללא כניסה.",
+        syncTitle: "סנכרון", syncHint: "סנכרנו את זיכרון המילים ואת הנתונים שבחרתם בין המכשירים שלכם.",
+        telegramTitle: "Telegram", telegramHint: "חברו את הבוט ואשרו את הקישור ב־Telegram.",
+        aiTitle: "יכולות AI", aiHint: "לא חובה: אשרו בנפרד למנטור לעבוד עם קטעים שבחרתם מתוך הטקסטים שלכם.",
+        complete: "מוכן", current: "השלב הבא", pending: "ממתין לאישור", optional: "לא חובה",
+        locked: "לאחר השלב הקודם", optionalLocked: "לא חובה · בהמשך", error: "דורש טיפול",
+        openAccount: "פתיחת הכניסה", syncNow: "סנכרון עכשיו", connectTelegram: "חיבור Telegram",
+        openTelegram: "פתיחת Telegram", reviewAi: "הגדרת גישת AI", syncing: "מתבצע סנכרון…",
+        syncDone: "הסנכרון הושלם.", syncFailed: "הסנכרון נכשל. פתחו את הגדרות החשבון ובדקו את החיבור.",
+        unavailable: "לא ניתן לטעון את תהליך חיבור המנטור. רעננו את הדף.",
+      },
       // PAS-D4 — הגדרות המנטור
       settings: {
         title: "⚙ מנטור",
@@ -2466,6 +2480,7 @@ window.I18N_LOCALES.he = {
       unlink: "ניתוק Telegram",
       consent: "משלוח דרך Telegram עשוי לכלול מילים, ביטויים, הסברים, משימות ותזכורות ללימוד. ההודעות מועברות דרך התשתית של Telegram. אפשר לנתק את הערוץ בכל עת.",
       open: "פתחו את הקישור ואשרו בבוט (/confirm):",
+      openBot: "פתיחת הבוט ושליחת /confirm",
     },
     tabs: {
       accessible: "נגיש",

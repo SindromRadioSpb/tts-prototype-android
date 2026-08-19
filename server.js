@@ -1050,18 +1050,19 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=403",
+  "/js/library-ui.js?v=414",
   "/js/room-b6-core.js",
   "/db/local-db.js",
-  "/js/mentor-home.js?v=394",
+  "/js/mentor-connection-core.js?v=414",
+  "/js/mentor-home.js?v=414",
   "/js/reader-core.js?v=399",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
-  "/i18n/locales/ru.js?v=169",
-  "/i18n/locales/en.js?v=169",
-  "/i18n/locales/he.js?v=169",
+  "/i18n/locales/ru.js?v=174",
+  "/i18n/locales/en.js?v=174",
+  "/i18n/locales/he.js?v=174",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3177,14 +3178,16 @@ app.post("/api/agent/telegram/pair", rlTelegramPair, async (req, res) => {
 app.get("/api/agent/telegram/status", rlTelegramPair, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try {
+    const uname = process.env.TELEGRAM_BOT_USERNAME || "LinguistProMentorBot";
+    const botUrl = `https://t.me/${uname}`;
     const link = await channelLinkRepo.getLinkForUser(auth.user.id);
     const consents = await identityRepo.listConsents(auth.user.id);
     const _tgc = consents.current && consents.current[channelLinkRepo.TELEGRAM_CONSENT_KEY];
     const tgConsent = !!(_tgc && _tgc.granted);   // current[key] = {granted,version,at}, не булев
-    if (!link) return res.json({ ok: true, linked: false, pending: false, consent: tgConsent });
+    if (!link) return res.json({ ok: true, linked: false, pending: false, consent: tgConsent, bot_url: botUrl });
     const mask = link.telegram_user_id ? String(link.telegram_user_id).slice(0, 3) + "···" : null;
     res.json({ ok: true, linked: link.status === "active", pending: link.status === "pending",
-      telegram_user_masked: mask, consent: tgConsent, since: link.confirmed_at || link.created_at });
+      telegram_user_masked: mask, consent: tgConsent, since: link.confirmed_at || link.created_at, bot_url: botUrl });
   } catch (e) { res.status(500).json({ ok: false, error: "TELEGRAM_STATUS_FAILED", message: e.message }); }
 });
 

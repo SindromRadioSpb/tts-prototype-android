@@ -4229,8 +4229,15 @@ function roomCloudInit() {
   };
   window.addEventListener('hashchange', openCloudByHash);
   openCloudByHash();
-  els.modal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-cloud-close') === '1') els.modal.hidden = true; });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !els.modal.hidden) els.modal.hidden = true; });
+  const refreshMentorConnection = () => {
+    try { const view = $('roomMentorView'); if (view && !view.hidden && window.MentorHome) window.MentorHome.refresh(); } catch (_) {}
+  };
+  els.modal.addEventListener('click', (e) => {
+    if (e.target && e.target.getAttribute && e.target.getAttribute('data-cloud-close') === '1') { els.modal.hidden = true; refreshMentorConnection(); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !els.modal.hidden) { els.modal.hidden = true; refreshMentorConnection(); }
+  });
   if (els.loginBtn) els.loginBtn.addEventListener('click', async () => {
     const CS = window.CloudSync; if (!CS) return;
     const secret = (els.secret && els.secret.value) || '';
@@ -4242,7 +4249,8 @@ function roomCloudInit() {
     if (r && r.ok) {
       if (els.secret) els.secret.value = '';
       await _cloudRender();
-      _cloudRunSync(false);   // первый синк сразу после входа (cutover + backfill пометок)
+      await _cloudRunSync(false);   // первый синк сразу после входа (cutover + backfill пометок)
+      refreshMentorConnection();
     } else {
       const code = (r && r.error) || '?';
       const msg = code === 'BAD_SECRET' ? tt('room.cloud.badSecret', 'Неверный секрет')
@@ -4509,6 +4517,26 @@ function _mentorHost() {
     icon: (symbol, fallback, className) => roomIcon(symbol, fallback, className),
     language: () => String(document.documentElement.lang || 'ru').toLowerCase(),
     csrf: () => { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } },
+    mentorConnectionState: async () => {
+      let session = null;
+      try { session = window.CloudSync ? await window.CloudSync.me() : null; } catch (_) {}
+      const binding = session && session.user ? roomCloudAccountBinding(session.user.id, false) : { ok:true };
+      let lastSyncAt = null;
+      if (session && binding.ok) { try { lastSyncAt = await localDb.getSyncState('last_sync_at'); } catch (_) {} }
+      return {
+        account: { connected: !!session, profileMismatch: !!session && !binding.ok },
+        sync: { ready: !!lastSyncAt },
+      };
+    },
+    openAccountSync: async () => {
+      const els = _cloudEls(); if (!els.modal) return { ok:false };
+      els.modal.hidden = false;
+      await _cloudRender();
+      const target = !els.loginBox.hidden ? els.secret : els.syncBtn;
+      try { if (target) target.focus(); } catch (_) {}
+      return { ok:true };
+    },
+    runMentorSync: async () => _cloudRunSync(false),
     runTrainer: (itemKeys, channel) => { try { startPlanSectionTraining(itemKeys, channel); } catch (_) {} },
     openReading: () => closeMentorView(),
     openLessonStudio: () => openLessonStudio(),

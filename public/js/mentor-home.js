@@ -31,7 +31,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var S = { mount: null, host: null, session: null, statusCache: null, memoryAvailable: false };
+  var S = { mount: null, host: null, session: null, statusCache: null, memoryAvailable: false, connectionNotice: null };
 
   function t(key, fb) {
     try {
@@ -88,6 +88,121 @@
     target.appendChild(visualIcon(symbol, fallback));
     target.appendChild(el("span", "mentor-vf2-icon-copy", actionLabel(value)));
     return target;
+  }
+
+  function connectionCopy(code) {
+    var copy = {
+      ACCOUNT: ["accountTitle", "Аккаунт", "accountHint", "Войдите в существующий аккаунт — локальное чтение доступно и без входа."],
+      SYNC: ["syncTitle", "Синхронизация", "syncHint", "Синхронизируйте память слов и выбранные данные между своими устройствами."],
+      TELEGRAM: ["telegramTitle", "Telegram", "telegramHint", "Подключите бота и подтвердите связь в Telegram."],
+      AI_CONSENT: ["aiTitle", "AI-возможности", "aiHint", "Необязательно: отдельно разрешите Наставнику работать с выбранными фрагментами ваших текстов."],
+    }[code];
+    return { title: t("room.mentor.connection." + copy[0], copy[1]), hint: t("room.mentor.connection." + copy[2], copy[3]) };
+  }
+
+  function connectionStateLabel(state, optional) {
+    var labels = {
+      COMPLETE: ["complete", "Готово"], CURRENT: ["current", "Следующий шаг"],
+      PENDING: ["pending", "Ждёт подтверждения"], OPTIONAL: ["optional", "Необязательно"],
+      LOCKED: ["locked", "После предыдущего шага"], ERROR: ["error", "Требует внимания"],
+    };
+    var item = labels[state] || labels.LOCKED;
+    if (optional && state === "LOCKED") item = ["optionalLocked", "Необязательно · позже"];
+    return t("room.mentor.connection." + item[0], item[1]);
+  }
+
+  function focusConnectionTarget(kind) {
+    var box = kind === "telegram" ? S.els && S.els.telegram : S.els && S.els.status;
+    if (!box) return;
+    try { box.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
+    var target = kind === "telegram" ? box.querySelector(".mentor-tg-link, button") : box.querySelector("input[type='checkbox']");
+    try { if (target) target.focus(); } catch (_) {}
+  }
+
+  async function renderConnectionJourney(session) {
+    var section = blockNode("room.mentor.connection.connectionTitle", "Подключение Наставника");
+    section.classList.add("mentor-connection");
+    section.appendChild(el("p", "mentor-connection-intro", t("room.mentor.connection.intro",
+      "Подключайте возможности по очереди. Локальное чтение работает без аккаунта; Telegram и AI остаются вашим выбором.")));
+    var facts = { account: { connected: !!session }, sync: { ready: false }, telegram: {}, ai: { granted: false } };
+    try {
+      if (S.host && typeof S.host.mentorConnectionState === "function") {
+        var hostFacts = await S.host.mentorConnectionState();
+        if (hostFacts && typeof hostFacts === "object") facts = Object.assign(facts, hostFacts);
+      }
+    } catch (_) {}
+    if (session) {
+      try {
+        var tg = await jget("/api/agent/telegram/status");
+        if (tg.status === 200 && tg.json && tg.json.ok) facts.telegram = {
+          linked: tg.json.linked === true, pending: tg.json.pending === true, botUrl: tg.json.bot_url || null,
+        };
+      } catch (_) {}
+      var consents = session.consents || {};
+      facts.ai = { granted: !!((consents.agent_read_texts && consents.agent_read_texts.granted)
+        || (consents.agent_read_texts_digest && consents.agent_read_texts_digest.granted)) };
+    }
+    var journey = window.MentorConnection.deriveJourney(facts);
+    var list = el("ol", "mentor-connection-list");
+    journey.steps.forEach(function (model, index) {
+      var copy = connectionCopy(model.code);
+      var item = el("li", "mentor-connection-step is-" + model.state.toLowerCase());
+      if (["CURRENT", "PENDING", "OPTIONAL", "ERROR"].indexOf(model.state) >= 0) item.setAttribute("aria-current", "step");
+      item.appendChild(el("span", "mentor-connection-number", model.state === "COMPLETE" ? "✓" : String(index + 1)));
+      var body = el("div", "mentor-connection-body");
+      var head = el("div", "mentor-connection-head");
+      head.appendChild(el("strong", null, copy.title));
+      head.appendChild(el("span", "mentor-connection-badge", connectionStateLabel(model.state, model.optional)));
+      body.appendChild(head);
+      body.appendChild(el("div", "mentor-hint", copy.hint));
+      if (model.action) {
+        var actions = {
+          OPEN_ACCOUNT: ["openAccount", "Открыть вход"], RUN_SYNC: ["syncNow", "Синхронизировать"],
+          CONNECT_TELEGRAM: ["connectTelegram", "Подключить Telegram"], OPEN_TELEGRAM: ["openTelegram", "Открыть Telegram"],
+          REVIEW_AI_CONSENT: ["reviewAi", "Настроить AI-доступ"],
+        };
+        var a = actions[model.action];
+        var button = el("button", "mentor-connection-action", t("room.mentor.connection." + a[0], a[1]));
+        button.type = "button";
+        button.addEventListener("click", async function () {
+          if (model.action === "OPEN_ACCOUNT") {
+            if (S.host && typeof S.host.openAccountSync === "function") await S.host.openAccountSync();
+            return;
+          }
+          if (model.action === "RUN_SYNC") {
+            button.disabled = true;
+            S.connectionNotice = { kind: "progress", text: t("room.mentor.connection.syncing", "Синхронизация…") };
+            try {
+              var result = S.host && typeof S.host.runMentorSync === "function" ? await S.host.runMentorSync() : { ok: false };
+              S.connectionNotice = result && result.ok
+                ? { kind: "success", text: t("room.mentor.connection.syncDone", "Синхронизация завершена.") }
+                : { kind: "error", text: t("room.mentor.connection.syncFailed", "Не удалось синхронизировать. Откройте настройки аккаунта и проверьте подключение.") };
+            } catch (_) { S.connectionNotice = { kind: "error", text: t("room.mentor.connection.syncFailed", "Не удалось синхронизировать. Откройте настройки аккаунта и проверьте подключение.") }; }
+            await render();
+            return;
+          }
+          if (model.action === "OPEN_TELEGRAM" && facts.telegram.botUrl) {
+            try { window.open(facts.telegram.botUrl, "_blank", "noopener"); } catch (_) {}
+            focusConnectionTarget("telegram");
+            return;
+          }
+          focusConnectionTarget(model.action === "REVIEW_AI_CONSENT" ? "ai" : "telegram");
+        });
+        body.appendChild(button);
+      }
+      item.appendChild(body);
+      list.appendChild(item);
+    });
+    section.appendChild(list);
+    var status = el("div", "mentor-connection-status");
+    status.setAttribute("aria-live", "polite");
+    status.setAttribute("role", "status");
+    if (S.connectionNotice) {
+      status.textContent = S.connectionNotice.text;
+      status.setAttribute("data-kind", S.connectionNotice.kind);
+    }
+    section.appendChild(status);
+    return section;
   }
 
   function revealMemoryLaterButtons() {
@@ -254,6 +369,11 @@
     var msg = el("div", "mentor-hint mentor-tg-msg"); msg.hidden = true;
 
     if (st.linked || st.pending) {
+      if (st.pending && st.bot_url) {
+        var bot = el("a", "mentor-tg-link", t("room.tg.openBot", "Открыть бот и отправить /confirm"));
+        bot.setAttribute("href", st.bot_url); bot.setAttribute("target", "_blank"); bot.setAttribute("rel", "noopener");
+        box.appendChild(bot);
+      }
       var unbtn = el("button", "mentor-plan-btn", t("room.tg.unlink", "Отключить Telegram"));
       unbtn.type = "button";
       unbtn.addEventListener("click", async function () {
@@ -1247,15 +1367,15 @@
     var session = null;
     try { var r = await jget("/api/auth/me"); if (r.status === 200 && r.json && r.json.ok) session = r.json; } catch (_) {}
     S.session = session;
+    if (!window.MentorConnection || typeof window.MentorConnection.deriveJourney !== "function") {
+      var unavailable = el("section", "mentor-block mentor-tier1");
+      unavailable.appendChild(el("div", null, t("room.mentor.connection.unavailable", "Не удалось загрузить подключение Наставника. Обновите страницу.")));
+      m.appendChild(unavailable);
+      S.els = {};
+      return;
+    }
+    m.appendChild(await renderConnectionJourney(session));
     if (!session) {
-      // Tier 1 — честная заглушка (R11/R4: не прячемся и не притворяемся; сказано, что сделать)
-      var stub = el("section", "mentor-block mentor-tier1");
-      var tierIcon = el("div", "mentor-tier1-icon");
-      tierIcon.appendChild(visualIcon("lp-mark-mentor", "🤖"));
-      stub.appendChild(tierIcon);
-      stub.appendChild(el("div", null, t("room.mentor.needCloud", "Наставнику нужен облачный аккаунт.")));
-      stub.appendChild(el("div", "mentor-hint", t("room.mentor.needCloudHint", "Откройте ☁ в шапке, войдите и синхронизируйтесь — здесь появятся план на сегодня, история объяснений и ваши слабые места.")));
-      m.appendChild(stub);
       S.els = {};
       return;
     }

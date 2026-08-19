@@ -1386,6 +1386,23 @@
     .mentor-hint[hidden], .mentor-plan-box[hidden], .mentor-hist-more[hidden] { display: none; }
     .mentor-tier1 { text-align: center; padding: 28px 14px; font-size: 14px; color: var(--text-primary); }
     .mentor-tier1-icon { font-size: 34px; margin-bottom: 8px; }
+    .mentor-connection { background: color-mix(in srgb, var(--accent) 4%, var(--bg-card)); }
+    .mentor-connection-intro { margin: 0 0 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+    .mentor-connection-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .mentor-connection-step { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 10px; padding: 10px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); }
+    .mentor-connection-step.is-current, .mentor-connection-step.is-pending, .mentor-connection-step.is-optional { border-color: var(--accent); background: color-mix(in srgb,var(--accent) 7%,var(--bg-muted)); }
+    .mentor-connection-step.is-error { border-color: var(--danger,#b42318); }
+    .mentor-connection-step.is-locked { opacity: .72; }
+    .mentor-connection-number { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: var(--bg-card); color: var(--text-secondary); font-size: 12px; font-weight: 800; }
+    .mentor-connection-step.is-complete .mentor-connection-number { background: var(--success-bg,#e8f7ee); color: var(--success,#137a40); }
+    .mentor-connection-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .mentor-connection-badge { color: var(--text-secondary); font-size: 11px; font-weight: 700; }
+    .mentor-connection-action { min-height: 44px; margin-top: 8px; padding: 8px 13px; border: 1px solid var(--accent); border-radius: 9px; background: var(--accent); color: var(--accent-contrast,#fff); font: inherit; font-weight: 700; cursor: pointer; }
+    .mentor-connection-action:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 45%,transparent); }
+    .mentor-connection-action:disabled { cursor: wait; opacity: .65; }
+    .mentor-connection-status[aria-live="polite"] { min-height: 18px; margin-top: 8px; color: var(--text-secondary); font-size: 12px; }
+    .mentor-connection-status[data-kind="success"] { color: var(--success,#137a40); }
+    .mentor-connection-status[data-kind="error"] { color: var(--danger,#b42318); }
     .mentor-plan-btn { background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
     .mentor-plan-btn[disabled] { opacity: .6; cursor: default; }
     /* PAS-C2 — «Практика письма» */
@@ -2737,7 +2754,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.413</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.414</button>
   </div>
 </footer>
 
@@ -2925,9 +2942,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=173"></script>
-<script src="/i18n/locales/en.js?v=173"></script>
-<script src="/i18n/locales/he.js?v=173"></script>
+<script src="/i18n/locales/ru.js?v=174"></script>
+<script src="/i18n/locales/en.js?v=174"></script>
+<script src="/i18n/locales/he.js?v=174"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -2948,11 +2965,12 @@
      рецептивно-сильном слове → Hard(2), не Again. Pure, общий с сервером; применяется на записи. -->
 <script src="/js/grade-policy.js"></script>
 <!-- CLG-P3 — Cloud Sync engine (dormant until explicit login+sync; local-first Tier 1 untouched) -->
-<script src="/js/cloud-sync.js"></script>
-<!-- CLG-P9 — «Дом наставника»: API-only модуль (скелет Mini App P8); данные только из cloud API,
-     действия через host-adapter Зала. Ничего не делает до explicit-открытия вида (🤖). -->
-<script src="/js/lesson-artifact.js"></script>
-<script src="/js/mentor-home.js?v=394"></script>
+    <script src="/js/cloud-sync.js"></script>
+    <!-- CLG-P9 — «Дом наставника»: API-only модуль (скелет Mini App P8); данные только из cloud API,
+         действия через host-adapter Зала. Ничего не делает до explicit-открытия вида (🤖). -->
+    <script src="/js/lesson-artifact.js"></script>
+    <script src="/js/mentor-connection-core.js?v=414"></script>
+    <script src="/js/mentor-home.js?v=414"></script>
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>
 <script src="/js/function-usage.js"></script>
@@ -2996,10 +3014,10 @@
 <script src="/js/studio-portable-learning-package.js"></script>
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
-<script src="/js/morph-host.js?v=413"></script>
+<script src="/js/morph-host.js?v=414"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
-<script type="module" src="/js/library-ui.js?v=413"></script>
+<script type="module" src="/js/library-ui.js?v=414"></script>
 </body>
 </html>

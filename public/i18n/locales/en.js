@@ -2404,6 +2404,20 @@ window.I18N_LOCALES.en = {
       textMissing: "Text not found on this device — sync “My Texts” in ☁.",
       corpusTextMissing: "Work not found on this device — open it in the Corpus tab.",
       histWord: "word",
+      connection: {
+        connectionTitle: "Connect your Mentor",
+        intro: "Add capabilities one step at a time. Local reading works without an account; Telegram and AI remain your choice.",
+        accountTitle: "Account", accountHint: "Sign in to your existing account — local reading remains available without signing in.",
+        syncTitle: "Sync", syncHint: "Sync word memory and the data you choose across your devices.",
+        telegramTitle: "Telegram", telegramHint: "Connect the bot and confirm the link in Telegram.",
+        aiTitle: "AI capabilities", aiHint: "Optional: separately allow the Mentor to use selected excerpts from your texts.",
+        complete: "Ready", current: "Next step", pending: "Awaiting confirmation", optional: "Optional",
+        locked: "After the previous step", optionalLocked: "Optional · later", error: "Needs attention",
+        openAccount: "Open sign-in", syncNow: "Sync now", connectTelegram: "Connect Telegram",
+        openTelegram: "Open Telegram", reviewAi: "Review AI access", syncing: "Syncing…",
+        syncDone: "Sync completed.", syncFailed: "Sync failed. Open account settings and check the connection.",
+        unavailable: "The Mentor connection flow could not be loaded. Refresh the page.",
+      },
       // PAS-D4 — mentor settings
       settings: {
         title: "⚙ Mentor",
@@ -2456,6 +2470,7 @@ window.I18N_LOCALES.en = {
       unlink: "Disconnect Telegram",
       consent: "Telegram delivery may include study words, phrases, explanations, tasks and reminders. These messages are transmitted through Telegram’s infrastructure. You can disconnect the channel at any time.",
       open: "Open the link and confirm in the bot (/confirm):",
+      openBot: "Open the bot and send /confirm",
     },
     tabs: {
       accessible: "Accessible",
