@@ -1141,6 +1141,8 @@ window.I18N_LOCALES.en = {
     shareCompleted: "The share sheet closed. Check the file in the selected app.",
     shareCancelled: "Sharing was cancelled. The ZIP is still ready.",
     shareUnsupported: "File sharing is unavailable here. Save the ZIP and send it from the app you need.",
+    shareFallbackSaveStarted: "The system share sheet did not open, so the browser started saving the ZIP. Check Downloads or Files, then attach it in Telegram, WhatsApp, or another app.",
+    shareFallbackSaveFailed: "The system share sheet and automatic save both failed. Select Save ZIP to try again.",
     saveStarted: "Saving started. Check Downloads or Files.",
     saveFailed: "Could not start saving the file.",
     jsonDownloaded: "JSON saving started.",

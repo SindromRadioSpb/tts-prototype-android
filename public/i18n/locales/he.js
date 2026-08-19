@@ -1149,6 +1149,8 @@ window.I18N_LOCALES.he = {
     shareCompleted: "חלון השיתוף נסגר. בדקו את הקובץ ביישום שנבחר.",
     shareCancelled: "השיתוף בוטל. קובץ ה־ZIP עדיין מוכן.",
     shareUnsupported: "שיתוף קבצים אינו זמין כאן. שמרו את ה־ZIP ושלחו אותו מהיישום הרצוי.",
+    shareFallbackSaveStarted: "תפריט השיתוף של המערכת לא נפתח, ולכן הדפדפן התחיל לשמור את קובץ ה־ZIP. בדקו את ההורדות או את Files, ולאחר מכן צרפו אותו ב־Telegram, ב־WhatsApp או ביישום אחר.",
+    shareFallbackSaveFailed: "תפריט השיתוף והשמירה האוטומטית נכשלו. בחרו „שמירת ZIP” כדי לנסות שוב.",
     saveStarted: "השמירה התחילה. בדקו את ההורדות או את Files.",
     saveFailed: "לא ניתן להתחיל את שמירת הקובץ.",
     jsonDownloaded: "שמירת ה־JSON התחילה.",

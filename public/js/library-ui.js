@@ -8817,8 +8817,10 @@ function openMyTextShare(item, returnFocus) {
   shareBtn.addEventListener('click', async () => {
     if (!artifact || !artifact.file) return;
     shareBtn.disabled = true;
-    const result = await service.shareFile({
+    const result = await service.shareFileOrSave({
       file: artifact.file,
+      blob: artifact.blob,
+      filename: artifact.filename,
       navigator,
       title: String(item.title || ''),
       text: tt('tcs.shareMsgPrefix', 'Учебный материал LinguistPro'),
@@ -8826,10 +8828,17 @@ function openMyTextShare(item, returnFocus) {
     if (closed) return;
     if (result.code === 'SHARE_SHEET_COMPLETED') setStatus(tt('tcs.shareCompleted', 'Системное меню отправки закрыто. Доставка получателю зависит от выбранного приложения.'), 'ready');
     else if (result.code === 'SHARE_CANCELLED') setStatus(tt('tcs.shareCancelled', 'Отправка отменена. Архив остаётся готовым.'), artifact.facts.partial ? 'partial' : 'ready');
-    else if (result.code === 'FILE_SHARE_UNSUPPORTED') { shareBtn.hidden = true; saveBtn.classList.add('primary'); setStatus(tt('tcs.shareUnsupported', 'Этот браузер не отправляет файлы через системное меню. Сохраните ZIP и прикрепите его вручную.'), 'partial'); }
+    else if (result.code === 'SHARE_FALLBACK_SAVE_STARTED') {
+      shareBtn.hidden = true;
+      saveBtn.classList.add('primary');
+      console.warn('[room-share] native file share unavailable; ZIP save fallback started', result.share && result.share.message || result.share && result.share.code || 'SHARE_FAILED');
+      setStatus(tt('tcs.shareFallbackSaveStarted', 'Системное меню не открылось, поэтому браузер начал сохранять ZIP. Проверьте Загрузки или Files, затем прикрепите файл в Telegram, WhatsApp или другом приложении.'), 'ready');
+    }
     else {
-      console.warn('[room-share] native file share failed', result && result.message || result && result.code || 'SHARE_FAILED');
-      setStatus(tt('tcs.shareFailed', 'Не удалось открыть системное меню. Архив остаётся готовым — его можно сохранить.'), 'error');
+      shareBtn.hidden = true;
+      saveBtn.classList.add('primary');
+      console.warn('[room-share] native file share and save fallback failed', result.share && result.share.message || result && result.code || 'SHARE_FALLBACK_SAVE_FAILED');
+      setStatus(tt('tcs.shareFallbackSaveFailed', 'Не удалось открыть системное меню или начать сохранение. Нажмите «Сохранить ZIP».'), 'error');
     }
     shareBtn.disabled = shareBtn.hidden;
   });

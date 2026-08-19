@@ -3,6 +3,7 @@
 // The service deliberately separates four outcomes:
 //   buildLearningPackage -> reusable bytes + exact audio facts
 //   shareFile            -> OS hand-off attempt under a fresh user activation
+//   shareFileOrSave      -> native hand-off with a same-artifact save fallback
 //   saveFile             -> browser save started (not proof that the file was kept)
 //   shareLink            -> link hand-off (never confused with file sharing)
 //
@@ -293,6 +294,35 @@
     return { status: "save-started", code: "SAVE_STARTED" };
   }
 
+  async function shareFileOrSave(options) {
+    var opts = options || {};
+    var shareResult = await shareFile(opts);
+    if (shareResult.code === "SHARE_SHEET_COMPLETED" || shareResult.code === "SHARE_CANCELLED") {
+      return shareResult;
+    }
+    var saveResult = saveFile({
+      blob: opts.blob,
+      filename: opts.filename,
+      document: opts.document,
+      urlApi: opts.urlApi,
+      schedule: opts.schedule,
+    });
+    if (saveResult.code === "SAVE_STARTED") {
+      return {
+        status: "save-started",
+        code: "SHARE_FALLBACK_SAVE_STARTED",
+        share: shareResult,
+        save: saveResult,
+      };
+    }
+    return {
+      status: "failed",
+      code: "SHARE_FALLBACK_SAVE_FAILED",
+      share: shareResult,
+      save: saveResult,
+    };
+  }
+
   var API = {
     DOMAINS: DOMAINS,
     resolveSharePlan: resolveSharePlan,
@@ -302,6 +332,7 @@
     fileFromArtifact: fileFromArtifact,
     canShareFile: canShareFile,
     shareFile: shareFile,
+    shareFileOrSave: shareFileOrSave,
     shareLink: shareLink,
     saveFile: saveFile,
   };

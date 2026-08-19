@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.412";
+const CACHE_VERSION = "v3.11.413";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -83,7 +83,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=412",
+  "/js/library-ui.js?v=413",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -124,7 +124,7 @@ const PRECACHE_URLS = [
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/reader-morph.js",
-  "/js/morph-host.js?v=412",
+  "/js/morph-host.js?v=413",
   "/js/studio-morph.js",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -213,9 +213,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=172",
-  "/i18n/locales/en.js?v=172",
-  "/i18n/locales/he.js?v=172",
+  "/i18n/locales/ru.js?v=173",
+  "/i18n/locales/en.js?v=173",
+  "/i18n/locales/he.js?v=173",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

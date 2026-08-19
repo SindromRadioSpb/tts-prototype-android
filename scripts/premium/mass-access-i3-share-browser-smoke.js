@@ -11,7 +11,10 @@ const { chromium } = require("playwright");
 const ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3326;
 const BASE = `http://127.0.0.1:${PORT}`;
-const OUT = path.join(ROOT, "docs", "research", "mass-access-i3-share", "2026-08-19", "screenshots");
+const outArg = process.argv.find((arg) => arg.startsWith("--out="));
+const OUT = outArg
+  ? path.resolve(ROOT, outArg.slice("--out=".length))
+  : path.join(ROOT, "docs", "research", "mass-access-i3-share", "2026-08-19", "screenshots");
 const failures = [];
 let checks = 0;
 const check = (condition, message) => { checks += 1; if (!condition) failures.push(message); };
@@ -67,6 +70,10 @@ async function studioGate(browser) {
     localStorage.setItem("app.locale", "ru");
     localStorage.setItem("phase6FirstOpenSeen", "declined");
     localStorage.setItem("localMode", "1");
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+    Object.defineProperty(navigator, "share", { configurable: true, value: async () => {
+      throw new DOMException("Permission denied", "NotAllowedError");
+    } });
   });
   await page.goto(BASE + "/index.html", { waitUntil: "load", timeout: 60000 });
   console.log("[I3] Studio: shell loaded");
@@ -103,6 +110,7 @@ async function studioGate(browser) {
       panelInside: panel.left >= 0 && panel.right <= innerWidth,
       overflow: document.documentElement.scrollWidth - innerWidth,
       minAction: Math.min(save.getBoundingClientRect().height, share.hidden ? 999 : share.getBoundingClientRect().height),
+      shareStyle: { hidden: share.hidden, background: getComputedStyle(share).backgroundColor, color: getComputedStyle(share).color, className: share.className },
       saveStyle: { background: getComputedStyle(save).backgroundColor, color: getComputedStyle(save).color, disabled: save.disabled, disabledAttribute: save.hasAttribute('disabled'), disabledPseudo: save.matches(':disabled'), className: save.className },
     };
   });
@@ -110,11 +118,29 @@ async function studioGate(browser) {
   check(state.role === "dialog" && state.labelled === "v3TcsDialogTitle", "Studio dialog has a programmatic name");
   check(state.activeInside, "Studio focus enters the dialog");
   check(state.saveEnabled && state.shareReady, "Studio exposes a ready Save or native Share action");
-  check(state.saveStyle.background === "rgb(37, 99, 235)" && state.saveStyle.color === "rgb(255, 255, 255)", "Studio fallback Save is visibly primary after enablement");
+  check(!state.shareStyle.hidden && state.shareStyle.background === "rgb(37, 99, 235)" && state.shareStyle.color === "rgb(255, 255, 255)", "Studio native Share is visibly primary before the platform attempt");
   check(state.advancedClosed, "Studio keeps JSON compatibility controls secondary");
   check(state.facts.join(",") === "0,0,0", "Studio reports exact zero-audio package facts");
   check(state.panelInside && state.overflow <= 0, "Studio share dialog fits 380px without horizontal overflow");
   check(state.minAction >= 44, "Studio share actions meet the 44px target floor");
+  const studioDownloadPromise = page.waitForEvent("download", { timeout: 10000 });
+  await page.click("#v3TcsBtnNative");
+  const studioDownload = await studioDownloadPromise;
+  const studioDownloadPath = await studioDownload.path();
+  const studioZip = fs.readFileSync(studioDownloadPath);
+  const studioFallback = await page.evaluate(() => {
+    const share = document.getElementById("v3TcsBtnNative");
+    const save = document.getElementById("v3TcsBtnZip");
+    return {
+      shareHidden: share.hidden,
+      saveEnabled: !save.disabled,
+      savePrimary: save.classList.contains("btn-primary"),
+      status: document.getElementById("v3TcsStatus").textContent.trim(),
+    };
+  });
+  check(studioDownload.suggestedFilename().endsWith("-learning.zip") && studioZip[0] === 0x50 && studioZip[1] === 0x4b, "Studio platform failure physically downloads the prepared ZIP fallback");
+  check(studioFallback.shareHidden && studioFallback.saveEnabled && studioFallback.savePrimary, "Studio retires the failed Share action and promotes Save");
+  check(studioFallback.status.includes("браузер начал сохранять ZIP"), "Studio announces the actionable save fallback in Russian");
   await page.screenshot({ path: path.join(OUT, "studio-send-or-save-380-ru.png") });
   for (let i = 0; i < 12; i += 1) await page.keyboard.press("Tab");
   const studioFocus = await page.evaluate(() => ({
@@ -136,13 +162,25 @@ async function roomGate(browser) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(String(error.message || error)));
-  await page.addInitScript(() => localStorage.setItem("app.locale", "he"));
-  await page.goto(BASE + "/library.html", { waitUntil: "load", timeout: 60000 });
+  await page.addInitScript(() => {
+    localStorage.setItem("app.locale", "he");
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+    Object.defineProperty(navigator, "share", { configurable: true, value: async () => {
+      throw new DOMException("Permission denied", "NotAllowedError");
+    } });
+  });
+  await page.goto(BASE + "/library.html#room=hub", { waitUntil: "load", timeout: 60000 });
   console.log("[I3] Room: shell loaded");
   await page.waitForFunction(() => window.__roomReady === true && document.getElementById("tabCorpus"), { timeout: 30000 });
   await seedOwnText(page, "mass-access-i3-room", "שיר לימודי — fixture");
   console.log("[I3] Room: fixture seeded");
-  await page.click("#tabCorpus");
+  // This gate owns only the My Texts adapter. Enter the Library track directly
+  // so a transient Ben-Yehuda root fetch cannot relabel a Share regression as a
+  // corpus-catalog failure in the isolated profile.
+  await page.evaluate(() => {
+    const tab = document.getElementById("tabCorpus");
+    if (tab) { tab.hidden = false; tab.click(); }
+  });
   await page.waitForSelector('.learning-corpus-entry[data-corpus="mytexts"]', { timeout: 20000 });
   await page.click('.learning-corpus-entry[data-corpus="mytexts"]');
   await page.waitForSelector(".mytexts-grid .mytext-card-v", { timeout: 20000 });
@@ -181,6 +219,24 @@ async function roomGate(browser) {
   check(state.facts.join(",") === "0,0,0", "Room reports exact zero-audio package facts");
   check(state.saveEnabled && state.minAction >= 44, "Room exposes an enabled 44px Save action");
   check(state.panelInside && state.overflow <= 0 && state.overlayPresent, "Room share sheet fits 380px without horizontal overflow");
+  const roomDownloadPromise = page.waitForEvent("download", { timeout: 10000 });
+  await page.click(".room-share-action.primary");
+  const roomDownload = await roomDownloadPromise;
+  const roomDownloadPath = await roomDownload.path();
+  const roomZip = fs.readFileSync(roomDownloadPath);
+  const roomFallback = await page.evaluate(() => {
+    const dialog = document.querySelector(".room-share-sheet");
+    const buttons = dialog.querySelectorAll(".room-share-action");
+    return {
+      shareHidden: buttons[0].hidden,
+      saveEnabled: !buttons[1].disabled,
+      savePrimary: buttons[1].classList.contains("primary"),
+      status: dialog.querySelector(".room-share-status").textContent.trim(),
+    };
+  });
+  check(roomDownload.suggestedFilename().endsWith("-learning.zip") && roomZip[0] === 0x50 && roomZip[1] === 0x4b, "Room platform failure physically downloads the prepared ZIP fallback");
+  check(roomFallback.shareHidden && roomFallback.saveEnabled && roomFallback.savePrimary, "Room retires the failed Share action and promotes Save");
+  check(roomFallback.status.includes("הדפדפן התחיל לשמור"), "Room announces the actionable save fallback in Hebrew");
   await page.screenshot({ path: path.join(OUT, "room-send-or-save-380-he-rtl.png") });
   for (let i = 0; i < 10; i += 1) await page.keyboard.press("Tab");
   check(await page.evaluate(() => document.querySelector(".room-share-sheet").contains(document.activeElement)), "Room Tab focus stays in the dialog");

@@ -13313,9 +13313,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=172"></script>
-    <script src="/i18n/locales/en.js?v=172"></script>
-    <script src="/i18n/locales/he.js?v=172"></script>
+    <script src="/i18n/locales/ru.js?v=173"></script>
+    <script src="/i18n/locales/en.js?v=173"></script>
+    <script src="/i18n/locales/he.js?v=173"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13434,7 +13434,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-host.js?v=403"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
-<script src="/js/morph-host.js?v=412"></script>
+<script src="/js/morph-host.js?v=413"></script>
 <script src="/js/studio-morph.js"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
@@ -13488,7 +13488,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.412";
+    window.APP_VERSION = "3.11.413";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -43645,25 +43645,30 @@ async function v3TextCardShareNative() {
   const save = document.getElementById('v3TcsBtnZip');
   if (share) share.disabled = true;
   if (save) save.disabled = true;
-  const result = await window.ShareService.shareFile({
+  const result = await window.ShareService.shareFileOrSave({
     file: artifact.file,
+    blob: artifact.blob,
+    filename: artifact.filename,
     title: v3TcsCurrentCard && v3TcsCurrentCard.card.title || 'LinguistPro',
     text: v3NotesT('tcs.shareMsgPrefix', 'Учебный ZIP из LinguistPro:') + ' ' + (v3TcsCurrentCard && v3TcsCurrentCard.card.title || ''),
     navigator,
   });
-  if (share) share.disabled = result.code === 'FILE_SHARE_UNSUPPORTED';
+  if (share) share.disabled = false;
   if (save) save.disabled = false;
   if (result.code === 'SHARE_SHEET_COMPLETED') {
     v3TcsSetStatus('tcs.shareCompleted', 'Меню отправки закрыто. Проверьте файл в выбранном приложении.', 'ok');
   } else if (result.code === 'SHARE_CANCELLED') {
     v3TcsSetStatus('tcs.shareCancelled', 'Отправка отменена. ZIP остаётся готовым.', '');
-  } else if (result.code === 'FILE_SHARE_UNSUPPORTED') {
+  } else if (result.code === 'SHARE_FALLBACK_SAVE_STARTED') {
     if (share) share.hidden = true;
     if (save) save.className = 'btn-primary';
-    v3TcsSetStatus('tcs.shareUnsupported', 'Отправка файлов здесь недоступна — сохраните ZIP и отправьте его из нужного приложения.', '');
+    console.warn('[tcs] native file share unavailable; ZIP save fallback started', result.share && result.share.message || result.share && result.share.code || 'SHARE_FAILED');
+    v3TcsSetStatus('tcs.shareFallbackSaveStarted', 'Системное меню не открылось, поэтому браузер начал сохранять ZIP. Проверьте Загрузки или Files, затем прикрепите файл в Telegram, WhatsApp или другом приложении.', 'ok');
   } else {
-    console.warn('[tcs] native file share failed', result && result.message || result && result.code || 'SHARE_FAILED');
-    v3TcsSetStatus('tcs.shareFailed', 'Не удалось открыть меню отправки. Сохраните ZIP и отправьте его из нужного приложения.', 'error');
+    if (share) share.hidden = true;
+    if (save) save.className = 'btn-primary';
+    console.warn('[tcs] native file share and save fallback failed', result.share && result.share.message || result && result.code || 'SHARE_FALLBACK_SAVE_FAILED');
+    v3TcsSetStatus('tcs.shareFallbackSaveFailed', 'Не удалось открыть системное меню или начать сохранение. Нажмите «Сохранить ZIP».', 'error');
   }
 }
 window.v3TextCardShareNative = v3TextCardShareNative;

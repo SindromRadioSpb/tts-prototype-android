@@ -175,6 +175,68 @@ test("saveFile starts a browser save without claiming a completed write", () => 
   assert.deepEqual(revoked, ["blob:learning"]);
 });
 
+test("shareFileOrSave falls back to the same ZIP after a platform share failure", async () => {
+  const file = { name: "lesson.zip", type: "application/zip" };
+  const blob = Buffer.from("zip");
+  const clicks = [];
+  const anchor = {
+    click: () => clicks.push("click"),
+    remove: () => {},
+    set href(value) { this._href = value; },
+    set download(value) { this._download = value; },
+  };
+  const document = {
+    createElement: () => anchor,
+    body: { appendChild: () => {} },
+  };
+  const urlApi = {
+    createObjectURL: () => "blob:learning",
+    revokeObjectURL: () => {},
+  };
+
+  const result = await ShareService.shareFileOrSave({
+    file,
+    blob,
+    filename: "lesson.zip",
+    navigator: {
+      canShare: () => true,
+      share: async () => { const error = new Error("Permission denied"); error.name = "NotAllowedError"; throw error; },
+    },
+    document,
+    urlApi,
+    schedule: (fn) => fn(),
+  });
+
+  assert.equal(result.status, "save-started");
+  assert.equal(result.code, "SHARE_FALLBACK_SAVE_STARTED");
+  assert.equal(result.share.code, "SHARE_FAILED");
+  assert.equal(result.save.code, "SAVE_STARTED");
+  assert.equal(anchor._download, "lesson.zip");
+  assert.deepEqual(clicks, ["click"]);
+});
+
+test("shareFileOrSave does not download after an intentional share cancellation", async () => {
+  const file = { name: "lesson.zip", type: "application/zip" };
+  let saveAttempted = false;
+  const result = await ShareService.shareFileOrSave({
+    file,
+    blob: Buffer.from("zip"),
+    filename: "lesson.zip",
+    navigator: {
+      canShare: () => true,
+      share: async () => { const error = new Error("cancel"); error.name = "AbortError"; throw error; },
+    },
+    document: {
+      createElement: () => { saveAttempted = true; return {}; },
+      body: { appendChild: () => {} },
+    },
+    urlApi: { createObjectURL: () => "blob:never" },
+  });
+
+  assert.deepEqual(result, { status: "cancelled", code: "SHARE_CANCELLED" });
+  assert.equal(saveAttempted, false);
+});
+
 test("shareLink preserves protected-access copy and falls back without swallowing errors", async () => {
   let shared = null;
   const result = await ShareService.shareLink({
