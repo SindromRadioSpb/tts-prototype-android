@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `RESEARCH COMPLETE · DECISION REQUIRED · NO IMPLEMENTATION`
+Status: `D1–D6 OWNER-APPROVED · P0 DESIGN FROZEN · IMPLEMENTATION RED`
 
 Branch: `main`
 
@@ -28,6 +28,7 @@ Reading Room share action, and in-context account + Telegram + Mentor onboarding
 - [Current state and evidence](CURRENT_STATE_AND_GAPS.md)
 - [Access and capability matrix](CAPABILITY_ACCESS_MATRIX.md)
 - [Canonical decision packet](../../../planning/LINGUISTPRO_MASS_ACCESS_PUBLIC_CORPORA_DECISION_PACKET_2026_08_19.md)
+- [P0 detailed design and red tests](p0-detailed-design/README.md)
 
 ## Authority and boundaries
 

@@ -1,0 +1,103 @@
+{
+  "contract_version": "mass-access-p0.1.0.0",
+  "owner_approval_date": "2026-08-19",
+  "authority": {
+    "next": "DETAILED_DESIGN_AND_RED_TESTS_ONLY",
+    "migration": false,
+    "owner_data_writes": false,
+    "deploy": false,
+    "b9": "KEEP_FROZEN"
+  },
+  "domains": [
+    "PUBLIC_PUBLISHED",
+    "PRIVATE_LOCAL",
+    "GROUP_RESTRICTED",
+    "BAKED_PUBLIC"
+  ],
+  "publication": {
+    "writer": "ONE_SERVER_WRITER",
+    "source_operation_default": "PUBLISH_COPY",
+    "states": [
+      "DRAFT",
+      "READY_FOR_REVIEW",
+      "PUBLISHED",
+      "SUPERSEDED",
+      "WITHDRAWN",
+      "ARCHIVED"
+    ],
+    "edition_is_immutable": true,
+    "stable_url_points_to_current_edition": true,
+    "source_delete_in_publish_transaction": false
+  },
+  "rights": {
+    "review_states": [
+      "REVIEW_REQUIRED",
+      "CLEARED",
+      "REJECTED",
+      "WITHDRAWN"
+    ],
+    "separate_permissions": [
+      "PUBLIC_READ",
+      "PUBLIC_STREAM",
+      "PACKAGE_DOWNLOAD"
+    ],
+    "study_songs_release_gate": "EVERY_SELECTED_ITEM_CLEARED",
+    "takedown_email": "peter@kolosei.com"
+  },
+  "sharing": {
+    "interaction_name": "SEND_OR_SAVE",
+    "public_default": "STABLE_LINK",
+    "private_local_default": "LEARNING_ZIP",
+    "group_restricted_default": "PROTECTED_LINK",
+    "json_location": "ADVANCED_COMPATIBILITY",
+    "native_file_share_requires_can_share": true,
+    "complete_audio_label_requires_missing_zero": true
+  },
+  "mentor_connection": {
+    "ordered_steps": [
+      "ACCOUNT",
+      "SYNC",
+      "TELEGRAM",
+      "AI_CONSENT"
+    ],
+    "telegram_states": [
+      "NOT_LINKED",
+      "PENDING",
+      "LINKED",
+      "EXPIRED",
+      "ERROR"
+    ],
+    "two_sided_confirmation": true,
+    "manual_confirm_command_required": false
+  },
+  "i18n": {
+    "keys": [
+      "room.copyright.title",
+      "room.copyright.summary",
+      "room.copyright.body",
+      "room.copyright.contactLabel",
+      "room.copyright.localPrivateNote"
+    ],
+    "ru": {
+      "title": "О проекте и авторских правах",
+      "summary": "Некоммерческий образовательный проект · сообщить о нарушении",
+      "body": "LinguistPro — некоммерческий образовательный проект. Материалы размещаются прежде всего для изучения языков. Если вы считаете, что какой-либо материал нарушает авторские права, напишите на peter@kolosei.com и укажите ссылку на материал и, по возможности, сведения о правообладателе. Мы рассмотрим обращение и удалим материал, нарушающий права, либо ограничим доступ к нему.",
+      "contactLabel": "Сообщить о нарушении авторских прав",
+      "localPrivateNote": "Ваши тексты хранятся на этом устройстве и не публикуются без отдельного действия. Уведомление ниже относится к материалам, опубликованным LinguistPro."
+    },
+    "en": {
+      "title": "About this project and copyright",
+      "summary": "Non-commercial educational project · report a copyright concern",
+      "body": "LinguistPro is a non-commercial educational project. Materials are provided primarily for language learning. If you believe that any material infringes copyright, email peter@kolosei.com and include the material URL and, if possible, information identifying the rightsholder. We will review the notice and remove infringing material or restrict access to it.",
+      "contactLabel": "Report a copyright concern",
+      "localPrivateNote": "Your texts are stored on this device and are not published without a separate action. The notice below applies to materials published by LinguistPro."
+    },
+    "he": {
+      "title": "על המיזם וזכויות יוצרים",
+      "summary": "מיזם חינוכי לא־מסחרי · דיווח על חשש להפרת זכויות יוצרים",
+      "body": "LinguistPro הוא מיזם חינוכי לא־מסחרי. החומרים מוצגים בראש ובראשונה לצורך לימוד שפות. אם לדעתכם חומר כלשהו מפר זכויות יוצרים, אנא כתבו ל־peter@kolosei.com וציינו את הקישור לחומר, ואם אפשר, פרטים המזהים את בעל הזכויות. אנו נבדוק את הפנייה ונסיר חומר מפר או נגביל את הגישה אליו.",
+      "contactLabel": "דיווח על חשש להפרת זכויות יוצרים",
+      "localPrivateNote": "הטקסטים שלכם נשמרים במכשיר הזה ואינם מתפרסמים ללא פעולה נפרדת. ההודעה שלהלן חלה על חומרים שפורסמו ב־LinguistPro."
+    }
+  }
+}

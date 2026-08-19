@@ -25,6 +25,7 @@
     "smoke:room-b6": "node --test tests/roomB6ScaleResilience.test.js tests/roomUxMaturity.test.js && node scripts/premium/room-b6-scale-resilience-smoke.js",
     "smoke:room-b7": "node --test tests/learningCompass.test.js tests/roomB6ScaleResilience.test.js tests/roomUxMaturity.test.js && node scripts/premium/room-b7-learning-compass-smoke.js",
     "smoke:room-b8": "node --test tests/roomB8ReadingJourney.test.js tests/roomB6ScaleResilience.test.js tests/roomUxMaturity.test.js && node scripts/premium/room-b8-reading-journey-smoke.js",
+    "smoke:mass-access:p0:red": "node scripts/premium/mass-access-p0-contract-red.js",
     "smoke:studio-room-srs": "node scripts/premium/studio-room-srs-smoke.js",
     "smoke:room-training-premium": "node scripts/premium/room-training-premium-smoke.js",
     "smoke:studio-table-resume": "node --test tests/tableChunks.test.js tests/tableJob.test.js tests/studioTableJobUi.test.js && node scripts/premium/studio-table-resume-browser-smoke.js",

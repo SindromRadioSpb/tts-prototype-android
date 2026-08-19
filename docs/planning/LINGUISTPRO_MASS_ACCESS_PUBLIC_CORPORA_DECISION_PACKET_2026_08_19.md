@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `RESEARCH COMPLETE · OWNER DECISION REQUIRED · NO CODE/MIGRATION/DEPLOY`
+Status: `D1–D6 OWNER-APPROVED · SUCCESSOR P0 DESIGN/RED TEST CONTRACT CREATED`
 
 Branch: `main`
 
@@ -10,6 +10,18 @@ Source commit at recon start: `e80f2aef74f7c070101e55bd421051320d25f4be`
 
 Production reference: `https://linguistpro.kolosei.com/library.html`, read-only
 version `3.11.404`.
+
+Owner approval, 2026-08-19: the exact D1–D6 recommendation was accepted with
+`NEXT=DETAILED_DESIGN_AND_RED_TESTS_ONLY`, `B9=KEEP_FROZEN`, `MIGRATION=NO`,
+`OWNER_DATA_WRITES=NO`, `DEPLOY=NO`, `COMMIT=YES`, `PUSH=YES`.
+
+The owner also requested a polished RU/EN/HE copyright contact/takedown notice for
+every corpus, naming `peter@kolosei.com` and the project's non-commercial educational
+purpose. Exact copy, placement, legal-honesty boundary and executable red contract
+are frozen in the successor:
+
+- [MASS-ACCESS P0 detailed design and red-test contract](LINGUISTPRO_MASS_ACCESS_P0_DETAILED_DESIGN_AND_RED_TEST_CONTRACT_2026_08_19.md)
+- [P0 artifact passport](../research/mass-access-public-corpora/2026-08-19/p0-detailed-design/README.md)
 
 ## Executive decision
 
