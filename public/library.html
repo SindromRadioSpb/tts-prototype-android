@@ -2294,7 +2294,10 @@
       .mytexts-filter-controls > .room-field { flex: none; }
       .mytexts-smart, .mytexts-facets, .group-corpus-smart, .group-corpus-tags { width: 100%; min-width: 0; max-width: 100%; max-height: 118px; box-sizing: border-box; overflow-x: hidden; overflow-y: auto; }
       .mytexts-smart, .mytexts-facets .corpus-sort, .group-corpus-controls .corpus-sort, .group-corpus-smart, .group-corpus-tags { flex-wrap: wrap; border-radius: 12px; }
-      .room-material-row .learning-compass, .room-material-row .work-card-difficulty { height: auto; min-height: 24px; flex-wrap: wrap; overflow: visible; }
+      .room-material-row .learning-compass, .room-material-row .work-card-difficulty {
+        height: auto; min-height: 24px; flex-wrap: nowrap;
+        overflow-x: auto; overflow-y: visible;
+      }
       .reading-list-material-row { grid-template-columns: minmax(0,1fr) auto; }
       .reading-list-material-row .corpus-work-cta { display: none; }
       .reading-list-remove { max-width: 124px; }
@@ -2311,7 +2314,9 @@
     }
     .learning-compass[hidden] { display: none; }
     .learning-compass::-webkit-scrollbar { display: none; }
-    .room-material-row .learning-compass { flex-wrap: wrap; overflow: visible; }
+    .room-material-row .learning-compass {
+      flex-wrap: nowrap; overflow-x: auto; overflow-y: visible;
+    }
     .learning-signal, .learner-state-chip, .learning-media, .learning-tag, .learning-caveat {
       flex: none; min-height: 24px; box-sizing: border-box; display: inline-flex; align-items: center;
       padding: 2px 7px; border: 1px solid var(--border-soft); border-radius: 999px;
@@ -2384,16 +2389,16 @@
     .mytext-card .learning-compass:has(.learning-compass-details[open]),
     .group-work-card .learning-compass:has(.learning-compass-details[open]) { overflow: visible; }
     @media (max-width: 760px) {
-      /* B7 production read-back: never hide the beginning of a long localized
-         signal merely to keep one visual row. Anchor the popup to the whole
-         compass so LTR and RTL both stay inside the card. */
+      /* Keep the beginning of every localized signal visible and make the rest
+         horizontally reachable without turning compact browse rows into cards.
+         Anchor the popup to the whole compass so LTR and RTL stay in-view. */
       .mytext-card .learning-compass,
       .group-work-card .learning-compass {
-        flex-wrap: wrap; overflow: visible;
+        flex-wrap: nowrap; overflow-x: auto; overflow-y: visible;
       }
       .mytext-card .learning-signal,
       .group-work-card .learning-signal {
-        max-width: 100%; white-space: normal;
+        max-width: none; white-space: nowrap;
       }
       /* Continue is already the primary row action; exact media remains in
          Compass details. Keep the phone scan to the two B7 facts that vary. */
@@ -2409,6 +2414,12 @@
       .group-work-card .learning-compass-details { position: static; }
       .mytext-card .learning-compass-panel,
       .group-work-card .learning-compass-panel { inset-inline-start: 0; }
+      .corpus-ready .learning-familiar,
+      .learning-home-ready-list .learning-familiar { order: -2; }
+      .corpus-ready .learning-compass-details,
+      .learning-home-ready-list .learning-compass-details {
+        order: -1; position: sticky; inset-inline-end: 0; background: var(--bg-card);
+      }
     }
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) .learning-familiar.coverage-available { color: var(--text-primary); background: color-mix(in srgb, var(--accent) 12%, var(--bg-card)); }
@@ -2726,7 +2737,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.410</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.411</button>
   </div>
 </footer>
 

@@ -8250,7 +8250,10 @@ async function enhanceCardWithCoverage(node, card) {
     caveats, progress, savedState: isInAnyList(card.id) ? 'reading-list' : null,
   });
   const learnRow = _cardLearnRow(node); if (!learnRow) return;
-  paintLearningCompass(learnRow, view, { showMedia: true, showDetails: true });
+  // Ben-Yehuda's ready rail has one constant media fact (no bundled audio).
+  // Keep the varying familiarity signal visible on narrow rows; the corpus
+  // header already states the catalog-wide media/provenance boundary.
+  paintLearningCompass(learnRow, view, { showMedia: false, showDetails: true });
   const primary = node.querySelector('.room-text-primary');
   if (primary) primary.textContent = view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать');
 }
@@ -10483,8 +10486,6 @@ async function renderCorpusHub(token) {
   lead.appendChild(learningHomeFeature(continueRow, nextPicks));
   lead.appendChild(learningHomeToday(ready));
   wrap.appendChild(lead);
-  wrap.appendChild(learningHomeJourney(journeySummary));
-  wrap.appendChild(learningHomeReadingLists());
 
   if (readyCards.length) {
     const shelf = el('section', { class: 'learning-home-ready', attrs: { 'aria-labelledby': 'learningHomeReadyTitle' } });
@@ -10498,6 +10499,12 @@ async function renderCorpusHub(token) {
     for (const card of readyCards) list.appendChild(renderCorpusWorkRow(card, true, { compact: true, showAuthor: true, materialKind: 'ready' }));
     shelf.appendChild(list); wrap.appendChild(shelf);
   }
+
+  // Keep the first study-ready shelf in the first mobile viewport. Reading
+  // history and named lists remain one section away, but must not displace the
+  // material that the learner can open now.
+  wrap.appendChild(learningHomeJourney(journeySummary));
+  wrap.appendChild(learningHomeReadingLists());
 
   const corpora = el('section', { class: 'learning-home-corpora', attrs: { 'aria-labelledby': 'learningHomeCorporaTitle' } });
   const corporaHead = el('div', { class: 'learning-home-section-head' });
