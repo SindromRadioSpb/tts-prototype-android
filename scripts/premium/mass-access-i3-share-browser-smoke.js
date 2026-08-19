@@ -70,6 +70,7 @@ async function studioGate(browser) {
     localStorage.setItem("app.locale", "ru");
     localStorage.setItem("phase6FirstOpenSeen", "declined");
     localStorage.setItem("localMode", "1");
+    localStorage.setItem("v3.byokOnboardingDismissed", "1");
     Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
     Object.defineProperty(navigator, "share", { configurable: true, value: async () => {
       throw new DOMException("Permission denied", "NotAllowedError");
@@ -78,7 +79,7 @@ async function studioGate(browser) {
   await page.goto(BASE + "/index.html", { waitUntil: "load", timeout: 60000 });
   console.log("[I3] Studio: shell loaded");
   await page.evaluate(() => {
-    for (const id of ["v3OnboardingModal", "v3Phase6Modal"]) { const node = document.getElementById(id); if (node) node.remove(); }
+    for (const id of ["v3OnboardingModal", "v3Phase6Modal", "byokOnboardingModal"]) { const node = document.getElementById(id); if (node) node.remove(); }
   });
   await seedOwnText(page, "mass-access-i3-studio", "Учебный диалог — fixture");
   console.log("[I3] Studio: fixture seeded");
