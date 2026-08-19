@@ -1,7 +1,7 @@
 # ROOM-UX-PPF2 — contrast-only implementation packet
 
 Date: `2026-08-19`
-Status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
+Status: `CLOSED_OWNER_ACCEPTED_PRODUCTION_3.11.404`
 Approved slice: `PPF2-01..04`
 Target release: `3.11.404`
 
@@ -40,7 +40,7 @@ This adds only mechanical `3.11.403` to `3.11.404` release-pin maintenance in th
 - Relationship: `HEAD == refs/remotes/origin/main == git ls-remote origin main` at approval start.
 - Dirty state: 34 unrelated pre-existing entries preserved; PPF2 research/decision documents were the only prior session additions.
 - Production/client baseline: API/Studio/Room/SW/actual owner Chrome `3.11.403`; `/healthz` green, DB/migrations ready, disk 64%, `disk_warn=false`.
-- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=APPROVAL_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
+- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=PROTOCOL_PASS`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
 - Limitations: physical-device and AT speech evidence remain separate and unclaimed.
 - Owner-data safety: owner client remains read-only; no TTS/ASR/MT/LLM, content, progress, review, list, group, setting, provider or cache write is permitted. `review_log` must remain unchanged.
 
@@ -97,4 +97,13 @@ The static release set is Studio `index.html`, Room `library.html` and `sw.js`. 
 
 Completion requires green code/browser gates, visual inspection, scoped commit/push, production API/Studio/Room/SW convergence, updated actual owner client, read-only production smoke and explicit owner acceptance.
 
-The scoped implementation commit `0a0ffb13ec547d2f7b33b28abd290e2174a69556` was pushed to `origin/main`. Production API/Studio/Room/SW converged on `3.11.404`; health, DB, migrations and Room shell integrity are green. The actual owner client was updated through the product's guarded update control and passed the read-only production smoke with `review_log 7420 -> 7420`. Only explicit owner acceptance remains.
+The scoped implementation commit `0a0ffb13ec547d2f7b33b28abd290e2174a69556` was pushed to `origin/main`. Production API/Studio/Room/SW converged on `3.11.404`; health, DB, migrations and Room shell integrity are green. The actual owner client was updated through the product's guarded update control and passed the read-only production smoke with `review_log 7420 -> 7420`.
+
+Owner acceptance received verbatim on `2026-08-19`:
+
+```text
+ACCEPT ROOM-UX-PPF2-01:
+PRODUCTION_3.11.404_OWNER_CLIENT_PASS;
+```
+
+`PPF2-01..04` are closed. `PPF2-05` and `PPF2-06` remain backlog without implementation authority.

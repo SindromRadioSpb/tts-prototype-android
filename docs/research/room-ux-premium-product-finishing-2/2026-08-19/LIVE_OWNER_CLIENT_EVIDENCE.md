@@ -2,7 +2,7 @@
 
 ## Evidence passport
 
-- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN_OUTSIDE_OWNER_TAB`, `OWNER_REPORTED=PREDECESSOR_CLOSURE_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
+- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN_OUTSIDE_OWNER_TAB`, `OWNER_REPORTED=PROTOCOL_PASS`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
 
 - Date/source: `2026-08-19`, `main@3a1e2c934b30106708d24afaa8533f0bc5ea2ac5`; `HEAD == refs/remotes/origin/main == git ls-remote origin main`.
 - Dirty: 34 unrelated entries preserved; no runtime target modified.
@@ -99,4 +99,13 @@ Final actual-owner-client read-only smoke:
 | Journey secondary-text contrast | `6.9046:1` |
 | review_log before / after | `7420 / 7420` |
 
-A selector-local Kapture screenshot of the real Journey component was visually inspected and showed the unchanged editorial hierarchy, geometry and controls with readable secondary copy. It was intentionally not persisted because real owner counters were visible. This is `OWNER_CLIENT_READ_ONLY` evidence from desktop Chrome, not physical-device or assistive-technology evidence. Explicit owner acceptance remains pending.
+A selector-local Kapture screenshot of the real Journey component was visually inspected and showed the unchanged editorial hierarchy, geometry and controls with readable secondary copy. It was intentionally not persisted because real owner counters were visible. This is `OWNER_CLIENT_READ_ONLY` evidence from desktop Chrome, not physical-device or assistive-technology evidence.
+
+The owner subsequently reported the prescribed production protocol PASS verbatim:
+
+```text
+ACCEPT ROOM-UX-PPF2-01:
+PRODUCTION_3.11.404_OWNER_CLIENT_PASS;
+```
+
+Evidence classification is `OWNER_REPORTED_PROTOCOL_PASS`; physical-device and assistive-technology rows remain `NOT_RUN`.

@@ -5,13 +5,13 @@ Mode: `RESEARCH_THEN_EXPLICIT_OWNER_GATE`
 Program: `ROOM_UX_PREMIUM_PRODUCT_FINISHING_2`
 Predecessor: `VISUAL_FINISHING_VF0_VF5_CLOSED`
 Implementation authority: `OWNER_APPROVED_EXACT_PPF2_CONTRAST_ALLOWLIST_ONLY`
-Current status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
+Current status: `CLOSED_OWNER_ACCEPTED_PRODUCTION_3.11.404`
 
-Owner supplied the exact P1–P8 approval block and the four-file version-pin allowlist addendum on `2026-08-19`. The historical research gate remains below for provenance. The scoped implementation is pushed, production and the updated actual owner client are green, and the program is stopped at the required explicit owner-acceptance gate.
+Owner supplied the exact P1–P8 approval block, the four-file version-pin allowlist addendum and final `PRODUCTION_3.11.404_OWNER_CLIENT_PASS` acceptance on `2026-08-19`. The historical research gate remains below for provenance. The bounded accessibility slice is closed; no further premium-finishing scope is implied.
 
 ## Evidence passport
 
-- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=PREDECESSOR_CLOSURE_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
+- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=PROTOCOL_PASS`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
 
 - Source: `main@3a1e2c934b30106708d24afaa8533f0bc5ea2ac5`.
 - Relationship: `HEAD == refs/remotes/origin/main == git ls-remote origin main`.

@@ -1,7 +1,7 @@
 # ROOM-UX-PPF2 implementation evidence
 
 Date: `2026-08-19`
-Status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
+Status: `CLOSED_OWNER_ACCEPTED_PRODUCTION_3.11.404`
 Target release: `3.11.404`
 
 ## Evidence passport
@@ -10,7 +10,7 @@ Target release: `3.11.404`
 - Relationship at implementation start: `HEAD == refs/remotes/origin/main == git ls-remote origin main`.
 - Dirty state: 34 unrelated pre-existing entries remain preserved; only PPF2 paths and approved runtime targets have been touched by this program.
 - Production API/Studio/Room/SW and the updated actual owner client are `3.11.404`.
-- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=APPROVAL_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=FINAL_OWNER_ACCEPTANCE_PENDING`.
+- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=PROTOCOL_PASS`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=PHYSICAL_DEVICE_AND_ASSISTIVE_TECHNOLOGY`.
 - Limitations: screenshots and browser gates are isolated automation, not production, owner-live, physical-device or AT evidence.
 - Owner-data safety: no owner-client navigation, provider call, content/progress/list/review/settings/cache mutation or cleanup was invoked. The only owner-client click was the product-owned guarded Update action after production convergence; no Reader was open, so its safe point performed no progress flush. Production owner `review_log` remained `7420 -> 7420`.
 
@@ -71,11 +71,16 @@ Those are verification-contract updates required by approved `P7=TARGET_3_11_404
 
 Post-addendum rerun: PASS `72/72` across VF4 residual a11y, Visual Foundations, Room/Studio/Learning-Surfaces Visual Finishing and media-host contracts. PPF2 static contract rerun: PASS `5/5`.
 
-## Pending gates
+## Owner acceptance and completion
 
-1. Explicit owner acceptance.
+Owner acceptance received verbatim on `2026-08-19`:
 
-No slice completion is claimed.
+```text
+ACCEPT ROOM-UX-PPF2-01:
+PRODUCTION_3.11.404_OWNER_CLIENT_PASS;
+```
+
+This is recorded as `OWNER_REPORTED_PROTOCOL_PASS`. It closes `PPF2-01..04` without manufacturing physical-device or assistive-technology PASS claims. There are no pending gates for the approved slice.
 
 ## Production and actual owner-client result
 

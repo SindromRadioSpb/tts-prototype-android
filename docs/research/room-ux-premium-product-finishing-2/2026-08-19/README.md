@@ -2,11 +2,11 @@
 
 Date: `2026-08-19`
 Mode: `RESEARCH_THEN_EXPLICIT_OWNER_GATE`
-Status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
+Status: `CLOSED_OWNER_ACCEPTED_PRODUCTION_3.11.404`
 
 ## Evidence passport
 
-- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=PREDECESSOR_CLOSURE_ONLY`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
+- Evidence-class ledger: `CODE_CURRENT=RUN`, `PRODUCTION_CURRENT=RUN`, `OWNER_CLIENT_READ_ONLY=RUN`, `OWNER_SUPPLIED_SCREENSHOT=NOT_RUN`, `ISOLATED_AUTOMATION=RUN`, `OWNER_REPORTED=PROTOCOL_PASS`, `PHYSICAL_DEVICE=NOT_RUN`, `ASSISTIVE_TECHNOLOGY=NOT_RUN`, `NOT_RUN=EXPLICIT_WHERE_LISTED`.
 
 - Source: `main@3a1e2c934b30106708d24afaa8533f0bc5ea2ac5`.
 - Relationship: `HEAD == refs/remotes/origin/main == git ls-remote origin main`.
@@ -21,6 +21,17 @@ Status: `PRODUCTION_AND_OWNER_CLIENT_GREEN_AWAITING_OWNER_ACCEPTANCE`
 Recommendation: `ACCESSIBILITY_NECESSITY_ONLY`.
 
 One current, measurable family crosses the gate: insufficient light-mode contrast for secondary informational text in Library/L0 and Studio. The exact observed ratios are `4.34:1`, `4.37:1`, `2.56:1` and `2.36:1`, below WCAG AA `4.5:1` for normal text. The smallest coherent correction is selector-local color reassignment to existing semantic secondary-text roles; it is not a palette, theme or design-system rewrite.
+
+## Closure
+
+The approved `PPF2-01..04` contrast slice shipped as production `3.11.404` and received explicit owner acceptance:
+
+```text
+ACCEPT ROOM-UX-PPF2-01:
+PRODUCTION_3.11.404_OWNER_CLIENT_PASS;
+```
+
+`PPF2-05` and `PPF2-06` remain backlog. No next slice, design-system rewrite or renewed Visual Finishing campaign is authorized by this closure.
 
 The shared table's Russian note/edit/resize names under EN/HE are real current copy debt, but no AT/owner-live harm was established and the behavior spans the Reader/Studio parity builder plus locale/SW compatibility. It remains explicit `BACKLOG`, not hidden implementation scope.
 
