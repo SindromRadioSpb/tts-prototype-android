@@ -415,6 +415,17 @@ test("B5 exposes one release version across Studio, Room and service worker", ()
   assert.ok(app && room && worker, "all three public release stamps must exist");
   assert.equal(room[1], app[1], "Room footer must not advertise a stale release");
   assert.equal(worker[1], app[1], "service-worker cache and document release must match");
+  const assetRevision = app[1].split(".").at(-1);
+  assert.match(indexHtml, new RegExp(`/js/morph-host\\.js\\?v=${assetRevision}`),
+    "Studio must cache-bust MorphHost with the current release revision");
+  assert.match(libraryHtml, new RegExp(`/js/morph-host\\.js\\?v=${assetRevision}`),
+    "Room must not pair a fresh shell with a stale MorphHost");
+  assert.match(libraryHtml, new RegExp(`/js/library-ui\\.js\\?v=${assetRevision}`),
+    "Room module URL must change with its release");
+  assert.match(serviceWorker, new RegExp(`"/js/morph-host\\.js\\?v=${assetRevision}"`));
+  assert.match(serviceWorker, new RegExp(`"/js/library-ui\\.js\\?v=${assetRevision}"`));
+  assert.match(libraryUi, /typeof morphHost\.peekWordStates === 'function'/,
+    "an activating service worker may not make an optional MorphHost cache peek fatal");
 });
 
 module.exports = { TARGETS, VIEW_MODEL_FIXTURES };

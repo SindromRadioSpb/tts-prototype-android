@@ -2222,7 +2222,10 @@ async function _allSurfaceStudyDays() {
 }
 async function refreshDueBadge() {
   if (!window.ReaderMorph || typeof window.ReaderMorph.dueCounts !== 'function') return;
-  let states = morphHost.peekWordStates(), schedule = {};
+  // A controlled PWA can briefly pair a new Room module with the previous
+  // MorphHost while the replacement service worker activates. Treat the
+  // optional cache peek as a performance hint, never a boot requirement.
+  let states = typeof morphHost.peekWordStates === 'function' ? morphHost.peekWordStates() : null, schedule = {};
   try { if (!states) states = (await ensureWordStates()) || {}; } catch (_) { states = states || {}; }
   try { schedule = (await localDb.getSrsSchedule()) || {}; } catch (_) { schedule = {}; }
   _dueCounts = window.ReaderMorph.dueCounts(states || {}, schedule, Date.now());
