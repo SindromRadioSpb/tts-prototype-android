@@ -53,6 +53,15 @@ test("Studio package build is separate from share/save and exposes exact audio f
   assert.match(studio, /SHARE_CANCELLED/);
 });
 
+test("Studio keeps the canonical learning ZIP usable when optional portable history is unavailable", () => {
+  const studio = read("public/index.html");
+  assert.match(studio, /optional portable material lookup unavailable/);
+  assert.match(studio, /optional portable ZIP extension unavailable/);
+  assert.match(studio, /portable_learning_packages_complete = false/);
+  assert.match(studio, /portable_learning_packages_unavailable_reason/);
+  assert.match(studio, /tcs\.portableHistoryUnavailable/);
+});
+
 test("Reading Room reuses the shared service for protected links and My Texts ZIP", () => {
   const room = read("public/js/library-ui.js");
   assert.match(room, /ShareService\.shareLink/);
@@ -62,6 +71,8 @@ test("Reading Room reuses the shared service for protected links and My Texts ZI
   assert.match(room, /service\.shareFile/);
   assert.match(room, /service\.saveFile/);
   assert.match(room, /room\.share\.open/);
+  assert.match(room, /optional portable ZIP extension unavailable/);
+  assert.match(room, /tcs\.portableHistoryUnavailable/);
 });
 
 test("RU EN HE expose the same Send or save state vocabulary", () => {
@@ -69,7 +80,7 @@ test("RU EN HE expose the same Send or save state vocabulary", () => {
     const source = read(`public/i18n/locales/${locale}.js`);
     for (const key of [
       "sendOrSave", "btnShareZip", "btnSaveZip", "advanced", "packagePreparing",
-      "packageReady", "packagePartial", "shareCompleted", "shareCancelled",
+      "packageReady", "packagePartial", "portableHistoryUnavailable", "shareCompleted", "shareCancelled",
       "shareUnsupported", "saveStarted", "expectedAudio", "includedAudio", "missingAudio",
     ]) {
       assert.match(source, new RegExp(`\\b${key}\\s*:`), `${locale} missing tcs.${key}`);
@@ -77,6 +88,18 @@ test("RU EN HE expose the same Send or save state vocabulary", () => {
     for (const key of ["open", "title", "protectedAccess", "preparing", "ready", "partial"]) {
       assert.match(source, new RegExp(`\\b${key}\\s*:`), `${locale} missing room.share.${key}`);
     }
+  }
+});
+
+test("Studio library cards name the new Send or save action in every locale", () => {
+  const expected = {
+    ru: "Отправить или сохранить",
+    en: "Send or save",
+    he: "שליחה או שמירה",
+  };
+  for (const [locale, label] of Object.entries(expected)) {
+    const source = read(`public/i18n/locales/${locale}.js`);
+    assert.match(source, new RegExp(`share:\\s*"↗ ${label}"`));
   }
 });
 

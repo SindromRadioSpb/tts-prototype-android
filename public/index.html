@@ -13312,9 +13312,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=170"></script>
-    <script src="/i18n/locales/en.js?v=170"></script>
-    <script src="/i18n/locales/he.js?v=170"></script>
+    <script src="/i18n/locales/ru.js?v=171"></script>
+    <script src="/i18n/locales/en.js?v=171"></script>
+    <script src="/i18n/locales/he.js?v=171"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13487,7 +13487,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.405";
+    window.APP_VERSION = "3.11.406";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -43430,26 +43430,34 @@ async function v3TextCardShareOpen(textId) {
     if (preview) preview.innerHTML = html;
 
     if (portableSection && window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.materialForText === 'function') {
-      const portableMaterial = await window.StudioPortableLearningPackage.materialForText(textId);
-      const portableTitle = document.getElementById('v3TcsPortableTitle');
-      const portableHelp = document.getElementById('v3TcsPortableHelp');
-      const portableBtn = document.getElementById('v3TcsPortableBtn');
-      const linked = !!portableMaterial;
-      portableSection.hidden = false;
-      portableSection.dataset.state = linked ? 'linked' : 'legacy';
-      if (portableTitle) portableTitle.textContent = linked ? t('studio.portable.shareMaterialTitle') : t('studio.portable.shareLegacyTitle');
-      if (portableHelp) portableHelp.textContent = linked ? t('studio.portable.shareMaterialHelp') : t('studio.portable.shareLegacyHelp');
-      if (portableBtn) {
-        portableBtn.textContent = linked ? t('studio.portable.openMaterialTransfer') : t('studio.portable.openTransferHelp');
-        const portableTextId = String(textId);
-        portableBtn.onclick = () => {
-          // Only one modal owns focus at a time. Close Send or save before the
-          // richer portability workspace takes over, preserving the text id locally.
-          v3TextCardShareClose();
-          return linked
-            ? StudioPortableLearningPackage.openForText(portableTextId)
-            : StudioPortableLearningPackage.open({ view: 'material', textId: portableTextId, help: true });
-        };
+      try {
+        const portableMaterial = await window.StudioPortableLearningPackage.materialForText(textId);
+        const portableTitle = document.getElementById('v3TcsPortableTitle');
+        const portableHelp = document.getElementById('v3TcsPortableHelp');
+        const portableBtn = document.getElementById('v3TcsPortableBtn');
+        const linked = !!portableMaterial;
+        portableSection.hidden = false;
+        portableSection.dataset.state = linked ? 'linked' : 'legacy';
+        if (portableTitle) portableTitle.textContent = linked ? t('studio.portable.shareMaterialTitle') : t('studio.portable.shareLegacyTitle');
+        if (portableHelp) portableHelp.textContent = linked ? t('studio.portable.shareMaterialHelp') : t('studio.portable.shareLegacyHelp');
+        if (portableBtn) {
+          portableBtn.textContent = linked ? t('studio.portable.openMaterialTransfer') : t('studio.portable.openTransferHelp');
+          const portableTextId = String(textId);
+          portableBtn.onclick = () => {
+            // Only one modal owns focus at a time. Close Send or save before the
+            // richer portability workspace takes over, preserving the text id locally.
+            v3TextCardShareClose();
+            return linked
+              ? StudioPortableLearningPackage.openForText(portableTextId)
+              : StudioPortableLearningPackage.open({ view: 'material', textId: portableTextId, help: true });
+          };
+        }
+      } catch (portableLookupError) {
+        // Portable material history is an optional extension of the canonical
+        // text-card package. Old browser profiles may not have its tables yet;
+        // that must not erase the already-built card preview or block its ZIP.
+        portableSection.hidden = true;
+        console.warn('[tcs] optional portable material lookup unavailable', portableLookupError);
       }
     }
 
@@ -43511,7 +43519,20 @@ async function v3TextCardBuildZipArtifact(signal, onProgress) {
     }),
     augmentZip: async (zip, manifest) => {
       if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
-        await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, v3TcsCurrentTextId);
+        try {
+          await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, v3TcsCurrentTextId);
+        } catch (portableAugmentError) {
+          // The learning ZIP (table, provenance passport and available audio)
+          // is canonical. Portable revision history is an optional extension:
+          // name its absence in the manifest instead of failing the whole ZIP.
+          manifest.portable_learning_packages_count = 0;
+          manifest.portable_learning_packages_complete = false;
+          manifest.portable_learning_packages_skipped = 0;
+          manifest.portable_learning_packages_unavailable_reason = String(
+            portableAugmentError && portableAugmentError.code || 'OPTIONAL_PORTABLE_AUGMENT_FAILED'
+          ).slice(0, 80);
+          console.warn('[tcs] optional portable ZIP extension unavailable', portableAugmentError);
+        }
       }
     },
     onProgress,
@@ -43558,7 +43579,12 @@ async function v3TextCardPrepareZip(shareSession) {
     const canShare = !!artifact.file && window.ShareService.canShareFile(artifact.file, navigator);
     if (share) { share.disabled = !canShare; share.hidden = !canShare; share.className = 'btn-primary'; }
     if (save) { save.disabled = false; save.className = canShare ? 'btn-secondary' : 'btn-primary'; }
-    if (canShare) {
+    if (artifact.manifest.portable_learning_packages_complete === false && artifact.manifest.portable_learning_packages_unavailable_reason) {
+      v3TcsSetStatus(
+        'tcs.portableHistoryUnavailable',
+        'ZIP готов: таблица, паспорт и доступное аудио включены, но расширенная история материала недоступна на этом профиле.',
+        '');
+    } else if (canShare) {
       v3TcsSetStatus(
         artifact.facts.partial ? 'tcs.packagePartial' : 'tcs.packageReady',
         artifact.facts.partial ? 'ZIP готов не полностью — отсутствующее аудио перечислено внутри' : 'Учебный ZIP готов',

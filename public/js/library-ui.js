@@ -8735,7 +8735,19 @@ function openMyTextShare(item, returnFocus) {
       onProgress: paintFacts,
       augmentZip: async (zip, manifest) => {
         if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
-          await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, item.id);
+          try {
+            await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, item.id);
+          } catch (portableAugmentError) {
+            // The Room learning ZIP remains canonical even when an older local
+            // profile cannot expose Studio's optional revision-history tables.
+            manifest.portable_learning_packages_count = 0;
+            manifest.portable_learning_packages_complete = false;
+            manifest.portable_learning_packages_skipped = 0;
+            manifest.portable_learning_packages_unavailable_reason = String(
+              portableAugmentError && portableAugmentError.code || 'OPTIONAL_PORTABLE_AUGMENT_FAILED'
+            ).slice(0, 80);
+            console.warn('[room-share] optional portable ZIP extension unavailable', portableAugmentError);
+          }
         }
       },
     });
@@ -8748,11 +8760,13 @@ function openMyTextShare(item, returnFocus) {
     saveBtn.disabled = false;
     saveBtn.classList.toggle('primary', !canShare);
     setStatus(
-      artifact.facts.partial
+      artifact.manifest.portable_learning_packages_complete === false && artifact.manifest.portable_learning_packages_unavailable_reason
+        ? tt('tcs.portableHistoryUnavailable', 'ZIP готов: таблица, паспорт и доступное аудио включены, но расширенная история материала недоступна на этом профиле.')
+        : artifact.facts.partial
         ? tt('room.share.partial', 'Архив готов частично: {included} из {expected} аудиофайлов. Недоступные файлы перечислены внутри ZIP.')
           .replace('{included}', artifact.facts.includedAudio).replace('{expected}', artifact.facts.expectedAudio)
         : tt('room.share.ready', 'Архив готов: текст и всё доступное аудио включены.'),
-      artifact.facts.partial ? 'partial' : 'ready'
+      artifact.facts.partial || artifact.manifest.portable_learning_packages_complete === false ? 'partial' : 'ready'
     );
     try {
       if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.recordBackupGenerated === 'function') {
