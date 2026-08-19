@@ -6909,12 +6909,42 @@ body:not(.theme-light) .v3-notes-template-banner {
   margin-bottom: 14px;
   line-height: 1.5;
 }
+.v3-tcs-package {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+  gap: 8px 14px;
+  align-items: center;
+  margin: 12px 0;
+  padding: 11px 12px;
+  border: 1px solid var(--theme-border-soft, #e2e8f0);
+  border-inline-start: 4px solid var(--theme-accent, #2563eb);
+  border-radius: 10px;
+  background: var(--theme-bg-card, #fff);
+}
+.v3-tcs-package[data-state="partial"] { border-inline-start-color: var(--theme-warning, #d97706); }
+.v3-tcs-package[data-state="ready"] { border-inline-start-color: var(--theme-success, #16a34a); }
+.v3-tcs-package-title { min-width: 0; font-size: 13px; font-weight: 700; color: var(--theme-text-primary, #0f172a); }
+.v3-tcs-package-fact { display: grid; gap: 1px; min-width: 58px; text-align: end; }
+.v3-tcs-package-fact span { font-size: 10.5px; color: var(--theme-text-muted, #64748b); }
+.v3-tcs-package-fact b { font-size: 14px; color: var(--theme-text-primary, #0f172a); }
 .v3-tcs-actions, .v3-tci-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 10px;
 }
+.v3-tcs-actions button { min-height: 44px; }
+/* The global legacy disabled palette uses !important. When capability detection
+   promotes Save to the primary fallback, keep the enabled state visibly actionable. */
+#v3TcsBtnNative.btn-primary:not(:disabled), #v3TcsBtnZip.btn-primary:not(:disabled) {
+  background: var(--theme-accent, #2563eb) !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
+.v3-tcs-advanced { margin-top: 12px; border-top: 1px solid var(--theme-border-soft, #e2e8f0); padding-top: 8px; }
+.v3-tcs-advanced summary { cursor: pointer; color: var(--theme-text-secondary, #475569); font-size: 12px; font-weight: 650; }
+.v3-tcs-advanced button { margin-top: 8px; width: auto; }
 .v3-tcs-status, .v3-tci-status {
   font-size: 12.5px;
   color: var(--theme-text-secondary, #64748b);
@@ -6925,6 +6955,13 @@ body:not(.theme-light) .v3-notes-template-banner {
 .v3-tci-status.v3-tci-status-error { color: #b91c1c; }
 .v3-tcs-status.v3-tcs-status-ok,
 .v3-tci-status.v3-tci-status-ok    { color: #15803d; }
+@media (max-width: 600px) {
+  .v3-tcs-package { grid-template-columns: repeat(3, 1fr); }
+  .v3-tcs-package-title { grid-column: 1 / -1; }
+  .v3-tcs-package-fact { text-align: start; }
+  .v3-tcs-actions { display: grid; grid-template-columns: 1fr; }
+  .v3-tcs-actions button { width: 100%; }
+}
 .v3-tci-preload {
   display: flex;
   align-items: center;
@@ -12170,11 +12207,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- Direction 10 Mode B — Text-card share modal -->
-<div id="v3TextCardShareModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Поделиться text-card">
+<div id="v3TextCardShareModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3TcsDialogTitle">
   <div class="v3-modal-backdrop" onclick="v3TextCardShareClose()" aria-hidden="true"></div>
   <div class="v3-modal-panel v3-tcs-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title" data-i18n="tcs.title">🔗 Поделиться text-card</div>
+      <div id="v3TcsDialogTitle" class="v3-modal-title" data-i18n="tcs.sendOrSave">Отправить или сохранить</div>
       <button class="btn-secondary" onclick="v3TextCardShareClose()" data-i18n="tcs.close">Закрыть</button>
     </div>
     <div class="v3-modal-body">
@@ -12186,17 +12223,24 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         <p id="v3TcsPortableHelp">Для этого текста есть неизменяемые версии транскрипта, таблицы и точные связи. ZIP карточки также включит portable archive.</p>
         <button type="button" id="v3TcsPortableBtn" class="btn-secondary">Открыть перенос материала</button>
       </section>
-      <!-- E1: прежний текст обещал «10–50 KB» — это было верно для v1 (только таблица).
-           v2 везёт ещё и паспорт источника, а он на длинном медиа доходит до сотен КБ. -->
       <div class="v3-tcs-info" data-i18n="tcs.audioInfo">
-        JSON везёт таблицу и паспорт источника (сегменты, тайминг, провенанс) — от ~10 КБ до нескольких сотен КБ на длинном медиа. Построчное аудио восстановится у получателя из общего content-addressed кэша при первом воспроизведении. Если получатель offline или подключён к другому серверу — выберите «Скачать ZIP с аудио».
+        Основной файл — учебный ZIP: таблица, паспорт источника и доступное аудио. JSON оставлен ниже только для совместимости.
+      </div>
+      <div id="v3TcsPackageFacts" class="v3-tcs-package" data-state="preparing" role="status" aria-live="polite">
+        <div id="v3TcsPackageTitle" class="v3-tcs-package-title" data-i18n="tcs.packagePreparing">Готовим учебный ZIP…</div>
+        <div class="v3-tcs-package-fact"><span data-i18n="tcs.expectedAudio">Ожидается</span><b id="v3TcsExpectedAudio">—</b></div>
+        <div class="v3-tcs-package-fact"><span data-i18n="tcs.includedAudio">Включено</span><b id="v3TcsIncludedAudio">—</b></div>
+        <div class="v3-tcs-package-fact"><span data-i18n="tcs.missingAudio">Не найдено</span><b id="v3TcsMissingAudio">—</b></div>
       </div>
       <div class="v3-tcs-actions">
-        <button id="v3TcsBtnNative"  class="btn-primary"   onclick="v3TextCardShareNative()"  data-i18n="tcs.btnNative">📤 Поделиться</button>
-        <button id="v3TcsBtnJson"    class="btn-secondary" onclick="v3TextCardShareDownloadJson()" data-i18n="tcs.btnJson">📥 Скачать JSON</button>
-        <button id="v3TcsBtnZip"     class="btn-secondary" onclick="v3TextCardShareDownloadZip()"  data-i18n="tcs.btnZip">📦 Скачать ZIP с аудио</button>
+        <button id="v3TcsBtnNative" class="btn-primary" onclick="v3TextCardShareNative()" data-i18n="tcs.btnShareZip" disabled>Поделиться ZIP</button>
+        <button id="v3TcsBtnZip" class="btn-secondary" onclick="v3TextCardShareDownloadZip()" data-i18n="tcs.btnSaveZip" disabled>Сохранить ZIP</button>
       </div>
       <div id="v3TcsStatus" class="v3-tcs-status" aria-live="polite"></div>
+      <details class="v3-tcs-advanced">
+        <summary data-i18n="tcs.advanced">Совместимость и диагностика</summary>
+        <button id="v3TcsBtnJson" class="btn-secondary" onclick="v3TextCardShareDownloadJson()" data-i18n="tcs.btnJson">Сохранить JSON без аудио</button>
+      </details>
     </div>
   </div>
 </div>
@@ -13268,9 +13312,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=169"></script>
-    <script src="/i18n/locales/en.js?v=169"></script>
-    <script src="/i18n/locales/he.js?v=169"></script>
+    <script src="/i18n/locales/ru.js?v=170"></script>
+    <script src="/i18n/locales/en.js?v=170"></script>
+    <script src="/i18n/locales/he.js?v=170"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13382,6 +13426,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- E1 — ядро формата «карточка текста» v1/v2 (build/detect/adapt). Чистые функции,
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
 <script src="/js/text-card-format.js"></script>
+<script src="/js/share-service.js"></script>
 <script src="/js/studio-media-karaoke.js"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
@@ -13442,7 +13487,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.404";
+    window.APP_VERSION = "3.11.405";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -43207,10 +43252,9 @@ window.v3TextCardBuilderDownloadZip = v3TextCardBuilderDownloadZip;
 // Plan: docs/TEXT_CARD_PLAN_v3_2.md §4
 // ─────────────────────────────────────────────────────────────────────────
 //
-// Sender flow: clicks 🔗 on a library card → share modal → picks one of
-//   • 📤 native share-sheet (mobile) — passes a generated `.json` file
-//   • 📥 download lightweight JSON
-//   • 📦 download full ZIP with audio
+// Sender flow: clicks Share on a library card → the modal prepares ONE learning
+// ZIP in the background → a fresh user tap either hands that exact File to the
+// OS share sheet or saves the same bytes. JSON is compatibility-only.
 //
 // Receiver flow: drops/opens `.json` or `.zip` file → existing Library
 // import handler detects format → if `linguistpro-text-card-v1`, opens
@@ -43226,6 +43270,29 @@ const V3_TCS_APP_TAG = 'linguist-pro-web/3.2.0';
 
 let v3TcsCurrentTextId = null;
 let v3TcsCurrentCard = null;     // exported card payload, cached for share actions
+let v3TcsPreparedArtifact = null; // exact ZIP bytes reused by Share and Save
+let v3TcsPrepareController = null;
+let v3TcsShareSession = 0;
+let v3TcsFocusReturn = null;
+
+function v3TcsKeyHandler(event) {
+  const modal = document.getElementById('v3TextCardShareModal');
+  if (!modal || modal.classList.contains('hidden')) return;
+  if (event.key === 'Escape') { event.preventDefault(); v3TextCardShareClose(); return; }
+  if (event.key !== 'Tab') return;
+  const nodes = Array.from(modal.querySelectorAll('button:not([disabled]):not([hidden]), summary, [href], [tabindex]:not([tabindex="-1"])'))
+    .filter((node) => node.getClientRects().length);
+  if (!nodes.length) return;
+  const first = nodes[0], last = nodes[nodes.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+}
+function v3TcsFocusGuard(event) {
+  const modal = document.getElementById('v3TextCardShareModal');
+  if (!modal || modal.classList.contains('hidden') || modal.contains(event.target)) return;
+  const first = modal.querySelector('.v3-modal-header button');
+  if (first && first.focus) first.focus();
+}
 
 let v3TciPendingPayload = null;  // parsed card awaiting user confirm
 
@@ -43236,6 +43303,44 @@ function v3TcsSlugify(s) {
     .replace(/[^\p{L}\p{N}-]+/gu, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 64) || 'card';
+}
+
+function v3TcsSetStatus(key, fallback, kind) {
+  const status = document.getElementById('v3TcsStatus');
+  if (!status) return;
+  status.textContent = v3NotesT(key, fallback);
+  status.className = 'v3-tcs-status' + (kind ? ' v3-tcs-status-' + kind : '');
+}
+
+function v3TcsPaintPackage(facts, state) {
+  const host = document.getElementById('v3TcsPackageFacts');
+  const title = document.getElementById('v3TcsPackageTitle');
+  const expected = document.getElementById('v3TcsExpectedAudio');
+  const included = document.getElementById('v3TcsIncludedAudio');
+  const missing = document.getElementById('v3TcsMissingAudio');
+  if (host) host.dataset.state = state || 'preparing';
+  if (expected) expected.textContent = facts ? String(facts.expectedAudio) : '—';
+  if (included) included.textContent = facts ? String(facts.includedAudio) : '—';
+  if (missing) missing.textContent = facts ? String(facts.missingAudio) : '—';
+  if (title) {
+    if (state === 'ready') title.textContent = v3NotesT('tcs.packageReady', 'Учебный ZIP готов');
+    else if (state === 'partial') title.textContent = v3NotesT('tcs.packagePartial', 'ZIP готов не полностью — отсутствующее аудио перечислено внутри');
+    else if (state === 'error') title.textContent = v3NotesT('tcs.packageFailed', 'Не удалось подготовить ZIP');
+    else title.textContent = v3NotesT('tcs.packagePreparing', 'Готовим учебный ZIP…');
+  }
+}
+
+function v3TcsResetPackage() {
+  if (v3TcsPrepareController) {
+    try { v3TcsPrepareController.abort(); } catch (_) {}
+  }
+  v3TcsPrepareController = null;
+  v3TcsPreparedArtifact = null;
+  const share = document.getElementById('v3TcsBtnNative');
+  const save = document.getElementById('v3TcsBtnZip');
+  if (share) { share.disabled = true; share.hidden = false; share.className = 'btn-primary'; }
+  if (save) { save.disabled = true; save.className = 'btn-secondary'; }
+  v3TcsPaintPackage(null, 'preparing');
 }
 
 // Build the `text-card-v2` payload from a library text id (OPFS read).
@@ -43295,11 +43400,14 @@ function v3TcsMediaNoteHtml(card, forImport) {
 async function v3TextCardShareOpen(textId) {
   const modal = document.getElementById('v3TextCardShareModal');
   if (!modal) return;
+  v3TcsFocusReturn = document.activeElement;
   const preview = document.getElementById('v3TcsPreview');
   const status = document.getElementById('v3TcsStatus');
   const portableSection = document.getElementById('v3TcsPortableSection');
   if (status) { status.textContent = ''; status.className = 'v3-tcs-status'; }
   if (portableSection) portableSection.hidden = true;
+  v3TcsResetPackage();
+  const shareSession = ++v3TcsShareSession;
   v3TcsCurrentTextId = String(textId || '');
   v3TcsCurrentCard = null;
 
@@ -43333,32 +43441,47 @@ async function v3TextCardShareOpen(textId) {
       if (portableHelp) portableHelp.textContent = linked ? t('studio.portable.shareMaterialHelp') : t('studio.portable.shareLegacyHelp');
       if (portableBtn) {
         portableBtn.textContent = linked ? t('studio.portable.openMaterialTransfer') : t('studio.portable.openTransferHelp');
-        portableBtn.onclick = () => linked
-          ? StudioPortableLearningPackage.openForText(v3TcsCurrentTextId)
-          : StudioPortableLearningPackage.open({ view: 'material', textId: v3TcsCurrentTextId, help: true });
+        const portableTextId = String(textId);
+        portableBtn.onclick = () => {
+          // Only one modal owns focus at a time. Close Send or save before the
+          // richer portability workspace takes over, preserving the text id locally.
+          v3TextCardShareClose();
+          return linked
+            ? StudioPortableLearningPackage.openForText(portableTextId)
+            : StudioPortableLearningPackage.open({ view: 'material', textId: portableTextId, help: true });
+        };
       }
     }
 
-    // Hide native share btn on desktop where navigator.share + files isn't supported.
-    const nativeBtn = document.getElementById('v3TcsBtnNative');
-    const canShareFiles = !!(navigator.share && navigator.canShare);
-    if (nativeBtn) nativeBtn.style.display = canShareFiles ? '' : 'none';
   } catch (e) {
     console.warn('[tcs] build payload failed', e);
     if (preview) preview.innerHTML = '<div style="color:#b91c1c;">' + v3EscapeHtml(String(e.message || e)) + '</div>';
   }
 
   modal.classList.remove('hidden');
+  document.removeEventListener('keydown', v3TcsKeyHandler, true);
+  document.addEventListener('keydown', v3TcsKeyHandler, true);
+  document.removeEventListener('focusin', v3TcsFocusGuard, true);
+  document.addEventListener('focusin', v3TcsFocusGuard, true);
+  const closeButton = modal.querySelector('.v3-modal-header button');
+  if (closeButton) closeButton.focus();
+  if (v3TcsCurrentCard && shareSession === v3TcsShareSession) v3TextCardPrepareZip(shareSession);
 }
 window.v3TextCardShareOpen = v3TextCardShareOpen;
 
 function v3TextCardShareClose() {
+  v3TcsShareSession += 1;
+  v3TcsResetPackage();
   const modal = document.getElementById('v3TextCardShareModal');
   if (modal) modal.classList.add('hidden');
+  document.removeEventListener('keydown', v3TcsKeyHandler, true);
+  document.removeEventListener('focusin', v3TcsFocusGuard, true);
   const portableSection = document.getElementById('v3TcsPortableSection');
   if (portableSection) portableSection.hidden = true;
   v3TcsCurrentTextId = null;
   v3TcsCurrentCard = null;
+  try { if (v3TcsFocusReturn && v3TcsFocusReturn.isConnected && v3TcsFocusReturn.focus) v3TcsFocusReturn.focus(); } catch (_) {}
+  v3TcsFocusReturn = null;
 }
 window.v3TextCardShareClose = v3TextCardShareClose;
 
@@ -43368,28 +43491,116 @@ function _v3TcsJsonBlob() {
   return { blob: new Blob([json], { type: 'application/json' }), filename: 'text-card-' + v3TcsSlugify(v3TcsCurrentCard.card.title) + '.json' };
 }
 
-async function v3TextCardShareNative() {
-  const out = _v3TcsJsonBlob();
-  if (!out) return;
+async function v3TextCardBuildZipArtifact(signal, onProgress) {
+  if (!v3TcsCurrentTextId || !LOCAL_MODE) throw new Error('ZIP_PACKAGE_UNAVAILABLE');
+  if (!window.ShareService) throw new Error('SHARE_SERVICE_UNAVAILABLE');
+  const JSZip = await v3LoadJSZip();
+  const ldb = await ensureLocalDB();
+  const bundle = await ldb.exportBundle({ includeArchived: true, textIds: [v3TcsCurrentTextId] });
+  const slug = v3TcsSlugify(v3TcsCurrentCard ? v3TcsCurrentCard.card.title : 'card');
+  const artifact = await window.ShareService.buildLearningPackage({
+    JSZip,
+    bundle,
+    filename: 'text-card-' + slug + '-learning.zip',
+    generator: 'text-card-send-or-save',
+    signal,
+    concurrency: 6,
+    fetchAudio: (key, options) => window.ShareService.fetchAudioAsset(key, {
+      signal: options && options.signal,
+      timeoutMs: 8000,
+    }),
+    augmentZip: async (zip, manifest) => {
+      if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
+        await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, v3TcsCurrentTextId);
+      }
+    },
+    onProgress,
+  });
+
+  // A generated-receipt is optional bookkeeping after canonical ZIP bytes exist.
+  // Its failure must not tell the learner to rebuild an already valid artifact.
   try {
-    const file = new File([out.blob], out.filename, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: v3TcsCurrentCard.card.title || 'text-card',
-        text: v3NotesT('tcs.shareMsgPrefix', 'Учебная карточка из LinguistPro:') + ' ' + (v3TcsCurrentCard.card.title || ''),
-        files: [file],
-      });
-      const status = document.getElementById('v3TcsStatus');
-      if (status) { status.textContent = v3NotesT('tcs.shareSent', 'Отправлено.'); status.className = 'v3-tcs-status v3-tcs-status-ok'; }
+    if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.recordBackupGenerated === 'function') {
+      await window.StudioPortableLearningPackage.recordBackupGenerated(
+        artifact.blob, 'text_card', v3TcsCurrentTextId, 'text_zip', {
+          audio_included: artifact.facts.includedAudio > 0,
+          material_count: artifact.manifest.portable_learning_packages_count || 0,
+        });
+    }
+  } catch (receiptError) {
+    console.warn('[tcs] optional generated receipt failed', receiptError);
+  }
+  return artifact;
+}
+
+async function v3TextCardPrepareZip(shareSession) {
+  if (!v3TcsCurrentTextId || !v3TcsCurrentCard) return;
+  if (!LOCAL_MODE) {
+    v3TcsPaintPackage(null, 'error');
+    v3TcsSetStatus('toast.tcbZipLocalOnly', 'ZIP доступен только в локальном режиме.', 'error');
+    return;
+  }
+  const controller = new AbortController();
+  v3TcsPrepareController = controller;
+  v3TcsSetStatus('tcs.packagePreparing', 'Готовим учебный ZIP…', '');
+  try {
+    const artifact = await v3TextCardBuildZipArtifact(controller.signal, (nextFacts) => {
+      if (shareSession === v3TcsShareSession) v3TcsPaintPackage(nextFacts, 'preparing');
+    });
+    if (controller.signal.aborted || shareSession !== v3TcsShareSession) return;
+    try { artifact.file = window.ShareService.fileFromArtifact(artifact); } catch (_) { artifact.file = null; }
+    v3TcsPreparedArtifact = artifact;
+    v3TcsPrepareController = null;
+    v3TcsPaintPackage(artifact.facts, artifact.facts.partial ? 'partial' : 'ready');
+
+    const share = document.getElementById('v3TcsBtnNative');
+    const save = document.getElementById('v3TcsBtnZip');
+    const canShare = !!artifact.file && window.ShareService.canShareFile(artifact.file, navigator);
+    if (share) { share.disabled = !canShare; share.hidden = !canShare; share.className = 'btn-primary'; }
+    if (save) { save.disabled = false; save.className = canShare ? 'btn-secondary' : 'btn-primary'; }
+    if (canShare) {
+      v3TcsSetStatus(
+        artifact.facts.partial ? 'tcs.packagePartial' : 'tcs.packageReady',
+        artifact.facts.partial ? 'ZIP готов не полностью — отсутствующее аудио перечислено внутри' : 'Учебный ZIP готов',
+        artifact.facts.partial ? '' : 'ok');
     } else {
-      // Fallback to download.
-      v3TextCardShareDownloadJson();
+      v3TcsSetStatus('tcs.shareUnsupported', 'Отправка файлов здесь недоступна — сохраните ZIP и отправьте его из нужного приложения.', '');
     }
   } catch (e) {
-    if (e && String(e.name) === 'AbortError') return;
-    console.warn('[tcs] native share failed', e);
-    const status = document.getElementById('v3TcsStatus');
-    if (status) { status.textContent = v3NotesT('tcs.shareFailed', 'Не удалось поделиться'); status.className = 'v3-tcs-status v3-tcs-status-error'; }
+    if (e && e.name === 'AbortError') return;
+    console.warn('[tcs] ZIP prepare failed', e);
+    if (shareSession !== v3TcsShareSession) return;
+    v3TcsPrepareController = null;
+    v3TcsPaintPackage(null, 'error');
+    v3TcsSetStatus('tcs.packageFailed', 'Не удалось подготовить ZIP. JSON остаётся доступен в разделе совместимости.', 'error');
+  }
+}
+
+async function v3TextCardShareNative() {
+  const artifact = v3TcsPreparedArtifact;
+  if (!artifact || !artifact.file || !window.ShareService) return;
+  const share = document.getElementById('v3TcsBtnNative');
+  const save = document.getElementById('v3TcsBtnZip');
+  if (share) share.disabled = true;
+  if (save) save.disabled = true;
+  const result = await window.ShareService.shareFile({
+    file: artifact.file,
+    title: v3TcsCurrentCard && v3TcsCurrentCard.card.title || 'LinguistPro',
+    text: v3NotesT('tcs.shareMsgPrefix', 'Учебный ZIP из LinguistPro:') + ' ' + (v3TcsCurrentCard && v3TcsCurrentCard.card.title || ''),
+    navigator,
+  });
+  if (share) share.disabled = result.code === 'FILE_SHARE_UNSUPPORTED';
+  if (save) save.disabled = false;
+  if (result.code === 'SHARE_SHEET_COMPLETED') {
+    v3TcsSetStatus('tcs.shareCompleted', 'Меню отправки закрыто. Проверьте файл в выбранном приложении.', 'ok');
+  } else if (result.code === 'SHARE_CANCELLED') {
+    v3TcsSetStatus('tcs.shareCancelled', 'Отправка отменена. ZIP остаётся готовым.', '');
+  } else if (result.code === 'FILE_SHARE_UNSUPPORTED') {
+    if (share) share.hidden = true;
+    if (save) save.className = 'btn-primary';
+    v3TcsSetStatus('tcs.shareUnsupported', 'Отправка файлов здесь недоступна — сохраните ZIP и отправьте его из нужного приложения.', '');
+  } else {
+    v3TcsSetStatus('tcs.shareFailed', 'Не удалось открыть меню отправки. Сохраните ZIP и отправьте его из нужного приложения.', 'error');
   }
 }
 window.v3TextCardShareNative = v3TextCardShareNative;
@@ -43402,90 +43613,18 @@ function v3TextCardShareDownloadJson() {
   a.href = url; a.download = out.filename;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  const status = document.getElementById('v3TcsStatus');
-  if (status) { status.textContent = v3NotesT('tcs.jsonDownloaded', 'JSON скачан.'); status.className = 'v3-tcs-status v3-tcs-status-ok'; }
+  v3TcsSetStatus('tcs.jsonDownloaded', 'Сохранение JSON начато.', 'ok');
 }
 window.v3TextCardShareDownloadJson = v3TextCardShareDownloadJson;
 
-async function v3TextCardShareDownloadZip() {
-  if (!v3TcsCurrentTextId) return;
-  if (!LOCAL_MODE) {
-    const status = document.getElementById('v3TcsStatus');
-    if (status) { status.textContent = v3NotesT('toast.tcbZipLocalOnly', 'ZIP-экспорт доступен только в локальном режиме.'); status.className = 'v3-tcs-status v3-tcs-status-error'; }
-    return;
-  }
-  const status = document.getElementById('v3TcsStatus');
-  if (status) { status.textContent = v3NotesT('tcs.zipBuilding', 'Готовим ZIP с аудио…'); status.className = 'v3-tcs-status'; }
-  try {
-    const JSZip = await v3LoadJSZip();
-    const ldb = await ensureLocalDB();
-    const bundle = await ldb.exportBundle({ includeArchived: true, textIds: [v3TcsCurrentTextId] });
-    const allKeys = new Set();
-    for (const t of (bundle.library.texts || [])) {
-      for (const r of (t.rows || [])) {
-        const k = String(r.audio_asset_key || '').trim();
-        if (k) allKeys.add(k);
-      }
-    }
-    const zip = new JSZip();
-    const audioFolder = zip.folder('audio');
-    const missing = [];
-    const keys = Array.from(allKeys);
-    const CONCURRENCY = 6;
-    let cursor = 0;
-    const worker = async () => {
-      while (cursor < keys.length) {
-        const i = cursor++;
-        const key = keys[i];
-        try {
-          const r = await fetch('/api/audio/' + encodeURIComponent(key));
-          if (!r.ok) { missing.push({ asset_key: key, reason: 'not_in_cache' }); continue; }
-          const ab = await r.arrayBuffer();
-          audioFolder.file(key + '.mp3', ab);
-          const aa = (bundle.library.audio_assets || []).find(x => x.asset_key === key);
-          if (aa) aa.size_bytes = ab.byteLength;
-        } catch (_) { missing.push({ asset_key: key, reason: 'fetch_error' }); }
-      }
-    };
-    const workers = [];
-    for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
-    await Promise.all(workers);
-    zip.file('library/library.json', JSON.stringify(bundle.library, null, 2));
-    const manifest = {
-      format: 'linguistpro-bundle',
-      schema_version: 1,
-      generated_at: new Date().toISOString(),
-      generator: 'text-card-share',
-      text_count: 1,
-      audio_count: keys.length - missing.length,
-      missing_audio: missing.length,
-    };
-    if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
-      await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, v3TcsCurrentTextId);
-    }
-    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
-    if (missing.length) zip.file('metadata/missing_audio.json', JSON.stringify(missing, null, 2));
-
-    const blob = await zip.generateAsync({ type: 'blob' });
-    if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.recordBackupGenerated === 'function') {
-      await window.StudioPortableLearningPackage.recordBackupGenerated(blob, 'text_card', v3TcsCurrentTextId, 'text_zip', { audio_included: keys.length - missing.length > 0, material_count: manifest.portable_learning_packages_count || 0 });
-    }
-    const slug = v3TcsSlugify(v3TcsCurrentCard ? v3TcsCurrentCard.card.title : 'card');
-    const filename = 'text-card-' + slug + '-with-audio.zip';
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    if (status) {
-      status.textContent = v3NotesT('tcs.zipReady', 'ZIP скачан ({a} аудио{m})')
-        .replace('{a}', String(keys.length - missing.length))
-        .replace('{m}', missing.length ? ', ' + missing.length + ' missing' : '');
-      status.className = 'v3-tcs-status v3-tcs-status-ok';
-    }
-  } catch (e) {
-    console.warn('[tcs] zip download failed', e);
-    if (status) { status.textContent = v3NotesT('toast.tcbZipFailed', 'Не удалось сделать ZIP.'); status.className = 'v3-tcs-status v3-tcs-status-error'; }
+function v3TextCardShareDownloadZip() {
+  const artifact = v3TcsPreparedArtifact;
+  if (!artifact || !window.ShareService) return;
+  const result = window.ShareService.saveFile({ blob: artifact.blob, filename: artifact.filename });
+  if (result.code === 'SAVE_STARTED') {
+    v3TcsSetStatus('tcs.saveStarted', 'Сохранение начато. Проверьте Загрузки или Files.', 'ok');
+  } else {
+    v3TcsSetStatus('tcs.saveFailed', 'Не удалось начать сохранение файла.', 'error');
   }
 }
 window.v3TextCardShareDownloadZip = v3TextCardShareDownloadZip;

@@ -8656,6 +8656,142 @@ async function addMachineNiqqud(item, button) {
     else roomToast(tt('room.nakdan.failed', 'Не удалось добавить никуд: {code}').replace('{code}', code));
   }
 }
+function roomShareSlug(value) {
+  const clean = String(value || '').trim().toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+  return clean.slice(0, 72) || 'text';
+}
+function openMyTextShare(item, returnFocus) {
+  const service = window.ShareService;
+  const trigger = returnFocus || document.activeElement;
+  const controller = typeof AbortController === 'function' ? new AbortController() : null;
+  const ov = el('div', { class: 'list-picker-ov room-share-ov' });
+  const titleId = 'roomShareTitle' + Date.now();
+  const box = el('div', { class: 'list-picker room-share-sheet', attrs: {
+    role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId, dir: uiDirRoom(), tabindex: '-1',
+  } });
+  const head = el('div', { class: 'room-share-head' });
+  const titleWrap = el('div', { class: 'room-share-title-wrap' });
+  titleWrap.appendChild(el('div', { class: 'list-picker-title', attrs: { id: titleId }, text: tt('room.share.title', 'Отправить или сохранить') }));
+  titleWrap.appendChild(el('p', { class: 'room-share-material', text: String(item && item.title || tt('room.work.untitled', 'Без названия')) }));
+  const closeBtn = el('button', { class: 'room-share-close', attrs: { type: 'button', 'aria-label': tt('room.share.close', 'Закрыть') }, text: '×' });
+  head.appendChild(titleWrap); head.appendChild(closeBtn); box.appendChild(head);
+  box.appendChild(el('p', { class: 'room-share-note', text: tt('room.share.description', 'Учебный ZIP содержит текст, паспорт материала и доступное аудио. Если часть аудио недоступна, это будет явно указано до отправки.') }));
+
+  const facts = el('div', { class: 'room-share-facts', attrs: { 'aria-label': tt('room.share.packageFacts', 'Состав архива') } });
+  const fact = (key, labelKey, fallback) => {
+    const node = el('div', { class: 'room-share-fact' });
+    const number = el('strong', { text: '—' }); number.setAttribute('data-share-fact', key);
+    node.appendChild(number); node.appendChild(el('span', { text: tt(labelKey, fallback) })); facts.appendChild(node);
+  };
+  fact('expected', 'tcs.expectedAudio', 'Ожидалось аудио');
+  fact('included', 'tcs.includedAudio', 'Включено аудио');
+  fact('missing', 'tcs.missingAudio', 'Недоступно аудио');
+  box.appendChild(facts);
+  const status = el('p', { class: 'room-share-status', attrs: { role: 'status', 'aria-live': 'polite', 'data-state': 'working' }, text: tt('room.share.preparing', 'Готовим учебный ZIP…') });
+  box.appendChild(status);
+  const actions = el('div', { class: 'room-share-actions' });
+  const shareBtn = el('button', { class: 'room-share-action primary', attrs: { type: 'button', disabled: 'disabled' }, text: tt('tcs.btnShareZip', 'Отправить ZIP') });
+  const saveBtn = el('button', { class: 'room-share-action', attrs: { type: 'button', disabled: 'disabled' }, text: tt('tcs.btnSaveZip', 'Сохранить ZIP') });
+  actions.appendChild(shareBtn); actions.appendChild(saveBtn); box.appendChild(actions);
+  ov.appendChild(box); document.body.appendChild(ov);
+
+  let artifact = null;
+  let closed = false;
+  const setStatus = (message, state) => { status.textContent = message; status.setAttribute('data-state', state || 'working'); };
+  const paintFacts = (value) => {
+    const next = value || {};
+    const set = (key, valueToSet) => { const node = facts.querySelector('[data-share-fact="' + key + '"]'); if (node) node.textContent = String(Math.max(0, Number(valueToSet) || 0)); };
+    set('expected', next.expectedAudio); set('included', next.includedAudio); set('missing', next.missingAudio);
+  };
+  const close = () => {
+    if (closed) return; closed = true;
+    if (controller) controller.abort();
+    document.removeEventListener('keydown', onKeydown);
+    ov.remove();
+    try { if (trigger && trigger.isConnected && trigger.focus) trigger.focus(); else roomFocusRestore(); } catch (_) {}
+  };
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+    if (event.key === 'Tab') roomFocusTrap(event, box);
+  };
+  closeBtn.addEventListener('click', close);
+  ov.addEventListener('click', (event) => { if (event.target === ov) close(); });
+  document.addEventListener('keydown', onKeydown);
+  roomFocusInto(box);
+
+  const failCopy = () => tt('room.share.failed', 'Не удалось подготовить архив. Текст и данные в приложении не изменены.');
+  (async () => {
+    if (!service || typeof service.buildLearningPackage !== 'function') throw new Error('SHARE_SERVICE_UNAVAILABLE');
+    const bundle = await localDb.exportBundle({ includeArchived: true, textIds: [String(item.id)] });
+    artifact = await service.buildLearningPackage({
+      JSZip: window.JSZip,
+      bundle,
+      filename: 'text-card-' + roomShareSlug(item.title) + '-learning.zip',
+      generator: 'room-mytext-send-or-save',
+      signal: controller ? controller.signal : null,
+      concurrency: 6,
+      fetchAudio: (assetKey, context) => service.fetchAudioAsset(assetKey, { signal: context.signal, timeoutMs: 8000 }),
+      onProgress: paintFacts,
+      augmentZip: async (zip, manifest) => {
+        if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
+          await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, item.id);
+        }
+      },
+    });
+    if (closed) return;
+    paintFacts(artifact.facts);
+    try { artifact.file = service.fileFromArtifact(artifact); } catch (_) { artifact.file = null; }
+    const canShare = !!(artifact.file && service.canShareFile(artifact.file, navigator));
+    shareBtn.hidden = !canShare;
+    shareBtn.disabled = !canShare;
+    saveBtn.disabled = false;
+    saveBtn.classList.toggle('primary', !canShare);
+    setStatus(
+      artifact.facts.partial
+        ? tt('room.share.partial', 'Архив готов частично: {included} из {expected} аудиофайлов. Недоступные файлы перечислены внутри ZIP.')
+          .replace('{included}', artifact.facts.includedAudio).replace('{expected}', artifact.facts.expectedAudio)
+        : tt('room.share.ready', 'Архив готов: текст и всё доступное аудио включены.'),
+      artifact.facts.partial ? 'partial' : 'ready'
+    );
+    try {
+      if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.recordBackupGenerated === 'function') {
+        await window.StudioPortableLearningPackage.recordBackupGenerated(artifact.blob, 'text', String(item.id), 'learning_zip', {
+          material_count: artifact.manifest && artifact.manifest.portable_learning_packages_count || 0,
+          audio_included: artifact.facts.includedAudio > 0,
+        });
+      }
+    } catch (_) { /* optional audit cache cannot invalidate a completed package */ }
+  })().catch((error) => {
+    if (closed || (error && error.name === 'AbortError')) return;
+    artifact = null; shareBtn.disabled = true; saveBtn.disabled = true;
+    setStatus(failCopy(), 'error');
+  });
+
+  shareBtn.addEventListener('click', async () => {
+    if (!artifact || !artifact.file) return;
+    shareBtn.disabled = true;
+    const result = await service.shareFile({
+      file: artifact.file,
+      navigator,
+      title: String(item.title || ''),
+      text: tt('tcs.shareMsgPrefix', 'Учебный материал LinguistPro'),
+    });
+    if (closed) return;
+    if (result.code === 'SHARE_SHEET_COMPLETED') setStatus(tt('tcs.shareCompleted', 'Системное меню отправки закрыто. Доставка получателю зависит от выбранного приложения.'), 'ready');
+    else if (result.code === 'SHARE_CANCELLED') setStatus(tt('tcs.shareCancelled', 'Отправка отменена. Архив остаётся готовым.'), artifact.facts.partial ? 'partial' : 'ready');
+    else if (result.code === 'FILE_SHARE_UNSUPPORTED') { shareBtn.hidden = true; saveBtn.classList.add('primary'); setStatus(tt('tcs.shareUnsupported', 'Этот браузер не отправляет файлы через системное меню. Сохраните ZIP и прикрепите его вручную.'), 'partial'); }
+    else setStatus(tt('tcs.shareFailed', 'Не удалось открыть системное меню. Архив остаётся готовым — его можно сохранить.'), 'error');
+    shareBtn.disabled = shareBtn.hidden;
+  });
+  saveBtn.addEventListener('click', () => {
+    if (!artifact) return;
+    const result = service.saveFile({ blob: artifact.blob, filename: artifact.filename });
+    setStatus(result.code === 'SAVE_STARTED'
+      ? tt('tcs.saveStarted', 'Браузер начал сохранение. Проверьте папку загрузок или выбранное место.')
+      : tt('tcs.saveFailed', 'Не удалось начать сохранение. Попробуйте другой браузер.'), result.code === 'SAVE_STARTED' ? 'ready' : 'error');
+  });
+}
 function renderMyTextCard(item, vertical) {
   const node = el('article', { class: 'corpus-work-row room-text-row room-material-row mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { 'data-material-kind': 'mytext', 'data-continuity-key': continuityKey('mytexts', item.id) } });
   const col = el('div', { class: 'corpus-work-col' });
@@ -8693,9 +8829,13 @@ function renderMyTextCard(item, vertical) {
   // B3: enrichment is useful, but it is not the reading action. Keep it in a per-row
   // disclosure so a scan remains title/progress-first and the consent boundary is unchanged.
   const secondary = el('details', { class: 'mytext-secondary' });
-  secondary.appendChild(el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' }));
+  const secondarySummary = el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' });
+  secondary.appendChild(secondarySummary);
   const secondaryPanel = el('div', { class: 'mytext-secondary-panel' });
   if (view.provenanceSummary) secondaryPanel.appendChild(el('p', { class: 'room-item-provenance', text: view.provenanceSummary }));
+  const share = el('button', { class: 'mytext-share', attrs: { type: 'button' }, text: '↗ ' + tt('room.share.open', 'Отправить или сохранить') });
+  share.addEventListener('click', () => { secondary.open = false; openMyTextShare(item, secondarySummary); });
+  secondaryPanel.appendChild(share);
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
   nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
   secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);
@@ -9628,11 +9768,14 @@ async function renderGroupCorpus(corpusId, token) {
   attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, moreWrap], 'group:' + corpusId + ':materials');
   groupCatalogRegion.appendChild(listSection);
   wrap.appendChild(groupCatalogRegion);wrap.appendChild(management);main.appendChild(wrap);
-  function shareWork(work) {
+  async function shareWork(work) {
     const u=new URL(location.href); u.search=''; u.hash=''; u.searchParams.set('group_corpus',corpusId); u.searchParams.set('group_work',work.work_id);
-    const data={title:work.title||'',text:tt('room.groupCorpus.shareText','Текст из закрытого учебного корпуса'),url:u.toString()};
-    if (navigator.share) navigator.share(data).catch(()=>{});
-    else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data.url).then(()=>roomToast(tt('room.groupCorpus.linkCopied','Защищённая ссылка скопирована'))).catch(()=>roomToast(data.url));
+    const service=window.ShareService;
+    const plan=service&&service.resolveSharePlan?service.resolveSharePlan({domain:'GROUP_RESTRICTED',url:u.toString()}):{kind:'PROTECTED_LINK',url:u.toString(),recipientAccessRequired:true};
+    const data={title:work.title||'',text:tt('room.share.protectedAccess','Защищённый учебный материал. Получателю потребуется доступ к корпусу.'),url:plan.url};
+    const result=window.ShareService&&window.ShareService.shareLink?await window.ShareService.shareLink({navigator,title:data.title,text:data.text,url:data.url}):{code:'LINK_SHARE_UNSUPPORTED'};
+    if(result.code==='SHARE_SHEET_COMPLETED'||result.code==='SHARE_CANCELLED')return;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data.url).then(()=>roomToast(tt('room.groupCorpus.linkCopied','Защищённая ссылка скопирована'))).catch(()=>roomToast(data.url));
     else roomToast(data.url);
   }
   function renderCard(work) {

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.404";
+const CACHE_VERSION = "v3.11.405";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -83,7 +83,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=403",
+  "/js/library-ui.js?v=405",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -174,6 +174,9 @@ const PRECACHE_URLS = [
   // E1 — формат «карточки текста» v1/v2 (share/import). Без него inline-код шаринга
   // молча деградировал бы до v1 (потеря паспорта), а импорт — до generic-бандла.
   "/js/text-card-format.js",
+  // MASS-ACCESS I3 — one Send or save contract for Studio and Reading Room.
+  // Package bytes, file hand-off and browser save remain separate outcomes.
+  "/js/share-service.js",
   "/js/studio-media-karaoke.js",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
@@ -210,9 +213,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=169",
-  "/i18n/locales/en.js?v=169",
-  "/i18n/locales/he.js?v=169",
+  "/i18n/locales/ru.js?v=170",
+  "/i18n/locales/en.js?v=170",
+  "/i18n/locales/he.js?v=170",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

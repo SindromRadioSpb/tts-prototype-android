@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · IMPLEMENTATION RED`
+Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · I3 LOCAL IMPLEMENTATION COMPLETE · 12/14 IMPLEMENTATION CHECKS RED`
 
 Branch: `mass-access-p0-design-red-tests` (`NON-DEPLOY`)
 
@@ -307,13 +307,18 @@ cover schema, editions/events, rights, repository, public/writer APIs, Room adap
 Publication Center, Studio/Room entrances, share service, primary ZIP behavior,
 Mentor connection core and exact RU/EN/HE runtime copy.
 
-Expected now:
+Original P0 baseline:
 
 ```text
 GREEN_GUARDS=8/8
 IMPLEMENTATION=RED
 EXIT=1
 ```
+
+Successor I3 execution on `mass-access-i3-share-implementation` intentionally turns
+`P0-R11` and `P0-R12` green without weakening the contract. The expected post-I3
+result is therefore `implemented=2/14`, `pending=12`, exit `1`. See
+[the I3 implementation record](LINGUISTPRO_MASS_ACCESS_I3_SHARE_IMPLEMENTATION_2026_08_19.md).
 
 The test is not in `npm test`, CI or deploy gates. Exit `2` is a guard failure and
 invalidates the design baseline.
@@ -342,7 +347,8 @@ invalidates the design baseline.
 
 ## 15. Later implementation slices
 
-None are authorized now.
+I3 was subsequently authorized as an isolated non-deploy slice. I1, I2, I4 and I5
+remain unauthorized by that successor authority.
 
 ### I1 — domain/schema/repository
 
@@ -359,6 +365,9 @@ Requires I1 green and exact UI allowlist; no production release bundled.
 Pure package/share service, Studio then Room integration. Can be authorized separately
 without the publication migration, but physical receiving-app proof remains a release
 gate.
+
+Execution status: local implementation and automated/browser evidence complete on a
+non-deploy branch; physical Telegram/WhatsApp/Files receipt remains pending.
 
 ### I4 — anonymous Room adapter and public pilot
 

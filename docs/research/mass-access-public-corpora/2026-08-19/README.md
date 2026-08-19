@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `D1–D6 OWNER-APPROVED · P0 DESIGN FROZEN · IMPLEMENTATION RED`
+Status: `D1–D6 OWNER-APPROVED · P0 DESIGN FROZEN · I3 SHARE IMPLEMENTED ON NON-DEPLOY BRANCH`
 
 Branch: `main`
 
@@ -29,6 +29,7 @@ Reading Room share action, and in-context account + Telegram + Mentor onboarding
 - [Access and capability matrix](CAPABILITY_ACCESS_MATRIX.md)
 - [Canonical decision packet](../../../planning/LINGUISTPRO_MASS_ACCESS_PUBLIC_CORPORA_DECISION_PACKET_2026_08_19.md)
 - [P0 detailed design and red tests](p0-detailed-design/README.md)
+- [I3 Send or save implementation evidence](../../mass-access-i3-share/2026-08-19/README.md)
 
 ## Authority and boundaries
 

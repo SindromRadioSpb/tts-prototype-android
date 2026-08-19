@@ -551,6 +551,31 @@
     .list-picker-input:focus { outline: none; border-color: var(--accent); }
     .list-picker-add { width: auto; flex: none; appearance: none; cursor: pointer; background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 10px; padding: 9px 14px; font-size: 16px; font-weight: 700; }
     .list-picker-done { width: 100%; margin-top: 12px; appearance: none; cursor: pointer; background: var(--bg-muted); color: var(--accent); border: 1px solid var(--border-soft); border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 600; }
+    /* MASS-ACCESS I3 — Room-owned adapter over the shared Send or save contract. */
+    .room-share-sheet { max-width: 480px; display: grid; gap: 12px; }
+    .room-share-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+    .room-share-title-wrap { min-width: 0; }
+    .room-share-title-wrap .list-picker-title { margin: 2px 0 4px; font: 760 18px/1.3 Georgia, "Times New Roman", serif; }
+    .room-share-material { margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+    .room-share-close { flex: none; width: 44px; height: 44px; border: 1px solid var(--border-soft); border-radius: 10px; background: transparent; color: var(--text-secondary); font: 700 22px/1 inherit; cursor: pointer; }
+    .room-share-close:hover, .room-share-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; color: var(--text-primary); }
+    .room-share-note { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+    .room-share-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .room-share-fact { min-width: 0; padding: 9px 8px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); text-align: center; }
+    .room-share-fact strong { display: block; color: var(--text-primary); font-size: 16px; line-height: 1.15; }
+    .room-share-fact span { display: block; margin-top: 3px; color: var(--text-secondary); font-size: 10.5px; line-height: 1.25; }
+    .room-share-status { min-height: 42px; margin: 0; padding: 10px 11px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 8%, var(--bg-muted)); color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+    .room-share-status[data-state="ready"] { color: var(--text-primary); }
+    .room-share-status[data-state="partial"], .room-share-status[data-state="error"] { border-inline-start: 3px solid #c47a20; }
+    .room-share-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .room-share-action { min-height: 44px; appearance: none; cursor: pointer; border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 12px; background: var(--bg-muted); color: var(--text-primary); font: 700 13px/1.25 inherit; }
+    .room-share-action.primary { border-color: var(--accent); background: var(--accent); color: var(--accent-contrast); }
+    .room-share-action:hover:not(:disabled), .room-share-action:focus-visible:not(:disabled) { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .room-share-action:disabled { cursor: wait; opacity: .48; }
+    @media (max-width: 480px) {
+      .room-share-sheet { max-height: min(92vh, 700px); overflow-y: auto; }
+      .room-share-actions { grid-template-columns: 1fr; }
+    }
     .reading-list-dialog { max-width: 680px; max-height: min(88vh, 760px); display: flex; flex-direction: column; overflow: hidden; }
     .reading-list-dialog-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
     .reading-list-dialog-head .list-picker-title { min-width: 0; margin: 5px 0 10px; font: 760 18px/1.3 Georgia, "Times New Roman", serif; }
@@ -2215,7 +2240,7 @@
     .room-row-more::-webkit-details-marker { display: none; }
     .room-row-more:hover, .room-row-more:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); }
     .mytext-secondary-panel { position: absolute; z-index: 12; inset-block-start: calc(100% + 5px); inset-inline-end: 0; width: max-content; padding: 6px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); box-shadow: 0 10px 28px rgba(15,23,42,.16); }
-    .mytext-secondary-panel .mytext-nakdan { white-space: nowrap; }
+    .mytext-secondary-panel .mytext-nakdan, .mytext-secondary-panel .mytext-share { white-space: nowrap; }
     .corpus-management { margin: 18px 0 0; border-top: 1px solid var(--border-soft); }
     .corpus-management > summary { min-height: 44px; display: flex; align-items: center; color: var(--text-secondary); font-size: 13px; font-weight: 750; cursor: pointer; }
     .corpus-management-panel { padding: 2px 0 10px; }
@@ -2689,7 +2714,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.404</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.405</button>
   </div>
 </footer>
 
@@ -2872,13 +2897,15 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=169"></script>
-<script src="/i18n/locales/en.js?v=169"></script>
-<script src="/i18n/locales/he.js?v=169"></script>
+<script src="/i18n/locales/ru.js?v=170"></script>
+<script src="/i18n/locales/en.js?v=170"></script>
+<script src="/i18n/locales/he.js?v=170"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
 <script src="/db/jszip.min.js"></script>
+<!-- MASS-ACCESS I3 — shared ZIP/link hand-off contract; UI remains Room-owned. -->
+<script src="/js/share-service.js"></script>
 <!-- Morphology-on-tap (BRR-P1-011): offline resolver engine + light card. These define
      window.NotesAutoGen / InflectionDict / PealimFunctionLinks / ReaderMorph but do NO
      heavy work at load — the 3.3 MB Pealim dataset is fetched lazily on the first word tap. -->
@@ -2933,12 +2960,18 @@
 <script src="/js/media-package-core.js"></script>
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/studio-media-package.js"></script>
+<!-- The same portable-learning-package fidelity layer Studio uses for per-text backups.
+     Loaded before the Room adapter; repository access stays lazy until an owner action. -->
+<script src="/js/portable-learning-package-core.js"></script>
+<script src="/js/import-center-core.js"></script>
+<script src="/js/portable-learning-package-repository.js"></script>
+<script src="/js/studio-portable-learning-package.js"></script>
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
 <script src="/js/morph-host.js"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
-<script type="module" src="/js/library-ui.js?v=403"></script>
+<script type="module" src="/js/library-ui.js?v=405"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · IMPLEMENTATION RED`
+Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · I3 IMPLEMENTED LOCALLY · 12/14 CHECKS RED`
 
 Branch: `mass-access-p0-design-red-tests`
 
@@ -26,6 +26,7 @@ PUSH=YES
 - [Domain, API and security contract](DOMAIN_API_SECURITY_SPEC.md)
 - [Red-test matrix and expected baseline](RED_TEST_MATRIX.md)
 - [Canonical P0 design packet](../../../../planning/LINGUISTPRO_MASS_ACCESS_P0_DETAILED_DESIGN_AND_RED_TEST_CONTRACT_2026_08_19.md)
+- [I3 Send or save implementation record](../../../../planning/LINGUISTPRO_MASS_ACCESS_I3_SHARE_IMPLEMENTATION_2026_08_19.md)
 - Machine-readable frozen fixture:
   `scripts/premium/fixtures/mass-access-p0/contract-v1.json`
 - Executable red contract:
@@ -44,8 +45,9 @@ Run the intentionally isolated contract with:
 npm run smoke:mass-access:p0:red
 ```
 
-Expected P0 result is non-zero exit `1`, all green guards passing, and future
-implementation checks reported as `RED`. The script is deliberately excluded from
+After the separately authorized I3 successor, expected P0 result remains non-zero
+exit `1`: all green guards pass, `P0-R11` and `P0-R12` report `IMPLEMENTED`, and the
+other 12 implementation checks remain `RED`. The script is deliberately excluded from
 `npm test` and production gates until implementation is separately authorized.
 
 ## Legal/product limitation
