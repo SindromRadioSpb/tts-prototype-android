@@ -11,7 +11,9 @@ const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3334;
-const BASE = `http://127.0.0.1:${PORT}`;
+const baseArg = process.argv.find((arg) => arg.startsWith("--base-url="));
+const BASE = baseArg ? baseArg.slice(11).replace(/\/$/, "") : `http://127.0.0.1:${PORT}`;
+const LIVE = !!baseArg;
 const outArg = process.argv.find((arg) => arg.startsWith("--out="));
 const OUT = outArg ? path.resolve(ROOT, outArg.slice(6)) : path.join(ROOT, ".tmp", "mass-access-i5-mentor");
 const failures = [];
@@ -69,6 +71,7 @@ async function guestGate(browser) {
   check(await page.getByRole("button", { name: "Открыть вход" }).isVisible(), "guest has a clear account action");
   await page.getByRole("button", { name: "Открыть вход" }).click();
   check(await page.locator("#roomCloudModal").isVisible(), "account action opens the canonical Cloud Sync writer");
+  await page.waitForFunction(() => document.activeElement && document.activeElement.id === "roomCloudSecret", null, { timeout: 5000 }).catch(() => {});
   check(await page.locator("#roomCloudSecret").evaluate((node) => node === document.activeElement), "account writer receives focus");
   await page.keyboard.press("Escape");
   await page.waitForSelector(".mentor-connection");
@@ -120,8 +123,8 @@ async function connectedGate(browser) {
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "lp-i5-mentor-"));
-  const server = startServer(scratch);
+  const scratch = LIVE ? null : fs.mkdtempSync(path.join(os.tmpdir(), "lp-i5-mentor-"));
+  const server = LIVE ? { child: null, logs: [] } : startServer(scratch);
   let browser;
   try {
     if (!(await ready(server))) throw new Error("server failed: " + server.logs.join("").slice(-2000));
@@ -131,7 +134,7 @@ async function connectedGate(browser) {
   } finally {
     if (browser) await browser.close();
     await stopServer(server.child);
-    try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
+    if (scratch) { try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {} }
   }
   if (failures.length) {
     console.error(`MASS_ACCESS_I5_MENTOR_BROWSER FAIL (${failures.length}/${checks})`);
