@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `LOCAL IMPLEMENTATION COMPLETE · PRODUCTION DEPLOY AUTHORIZED · PRODUCTION VERIFICATION PENDING`
+Status: `PRODUCTION COMPLETE v3.11.414 · AUTOMATED/LIVE BROWSER PASS · PHYSICAL DEVICE/AT ACCEPTANCE PENDING`
 
 Branch: `mass-access-i3-share-implementation`
 
@@ -104,10 +104,25 @@ owner profile and does not grant consent, pair Telegram or execute sync.
 
 Target runtime: `3.11.414`.
 
-Production acceptance requires consecutive stable `/healthz` responses, matching
-served app/service-worker/assets, and the same isolated browser journey against the
-production origin. Rollback is the previous production runtime commit; no database
-rollback is required because this slice has no migration.
+Production acceptance completed at 2026-08-19 17:49 UTC:
+
+```text
+served client version                         3.11.414
+consecutive stable health responses                5/5
+database ready                                      yes
+migrations ready                                    yes
+served shell/core/home/host assets                  match
+production browser RU/EN/HE + RTL + keyboard      14/14 PASS
+production disk usage                               89% WARN
+```
+
+One transient `502` occurred during the expected rolling cutover from `3.11.413` to
+`3.11.414`; it was followed by five consecutive healthy responses from the new
+runtime. The disk warning is recorded but no cleanup was performed without separate
+authority.
+
+Rollback is the previous production runtime commit; no database rollback is required
+because this slice has no migration.
 
 Physical receiving-app and assistive-technology rows remain owner/device acceptance
 work after production automation is green.

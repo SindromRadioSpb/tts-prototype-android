@@ -2,7 +2,7 @@
 
 Date: 2026-08-19
 
-Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · I3 PRODUCTION · I5 LOCAL IMPLEMENTATION COMPLETE · 10/14 IMPLEMENTATION CHECKS RED`
+Status: `OWNER-APPROVED D1–D6 · DESIGN FROZEN · I3 + I5 PRODUCTION · 10/14 IMPLEMENTATION CHECKS RED`
 
 Branch: `mass-access-p0-design-red-tests` (`NON-DEPLOY`)
 
@@ -380,8 +380,8 @@ authority. Start with a bounded cleared pilot, then Study Songs.
 
 Separate provider/recovery/identity threat model and Telegram live/device evidence.
 
-Execution status: local implementation and automated/browser evidence complete for
-runtime `3.11.414`; production verification and physical Telegram/device evidence
+Execution status: deployed as runtime `3.11.414`; automated and production browser
+evidence are complete. Physical Telegram/device and assistive-technology evidence
 remain pending. See the [I5 implementation record](LINGUISTPRO_MASS_ACCESS_I5_MENTOR_CONNECTION_IMPLEMENTATION_2026_08_19.md).
 
 ## 16. Proposed future implementation allowlist
