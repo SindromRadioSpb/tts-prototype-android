@@ -436,6 +436,7 @@ function createPublicationRepo(options = {}) {
       const finalAbs = publicationPath(finalRel);
       const manifestItems = [];
       const stagedAssets = [];
+      const stagedAssetByKey = new Map();
       await fs.promises.mkdir(stageAbs, { recursive: true });
       try {
         for (const checkedItem of checked.items) {
@@ -449,13 +450,22 @@ function createPublicationRepo(options = {}) {
           if (streamAllowed || downloadAllowed) {
             for (const asset of checkedItem.available_assets) {
               const fileName = asset.asset_key + ".mp3";
-              const staged = path.join(stageAbs, "audio", fileName);
-              await fs.promises.mkdir(path.dirname(staged), { recursive: true });
-              await fs.promises.copyFile(asset.absolute_path, staged, fs.constants.COPYFILE_EXCL);
-              if ((await fileHash(staged)) !== asset.sha256 || (await fs.promises.stat(staged)).size !== Number(asset.bytes)) fail("EDITION_HASH_MISMATCH", 500);
-              const storagePath = path.posix.join(finalRel, "audio", fileName);
-              const record = { edition_asset_id: id("ea_"), edition_item_id: editionItemId, asset_key: asset.asset_key, storage_path: storagePath, bytes: Number(asset.bytes), sha256: asset.sha256, mime: asset.mime, public_stream_allowed: streamAllowed ? 1 : 0, package_download_allowed: downloadAllowed ? 1 : 0 };
-              stagedAssets.push(record); assets.push({ asset_key: asset.asset_key, bytes: Number(asset.bytes), sha256: asset.sha256, stream: streamAllowed, download: downloadAllowed });
+              let record = stagedAssetByKey.get(asset.asset_key);
+              if (!record) {
+                const staged = path.join(stageAbs, "audio", fileName);
+                await fs.promises.mkdir(path.dirname(staged), { recursive: true });
+                await fs.promises.copyFile(asset.absolute_path, staged, fs.constants.COPYFILE_EXCL);
+                if ((await fileHash(staged)) !== asset.sha256 || (await fs.promises.stat(staged)).size !== Number(asset.bytes)) fail("EDITION_HASH_MISMATCH", 500);
+                const storagePath = path.posix.join(finalRel, "audio", fileName);
+                record = { edition_asset_id: id("ea_"), edition_item_id: editionItemId, asset_key: asset.asset_key, storage_path: storagePath, bytes: Number(asset.bytes), sha256: asset.sha256, mime: asset.mime, public_stream_allowed: streamAllowed ? 1 : 0, package_download_allowed: downloadAllowed ? 1 : 0 };
+                stagedAssetByKey.set(asset.asset_key, record);
+                stagedAssets.push(record);
+              } else {
+                if (record.sha256 !== asset.sha256 || record.bytes !== Number(asset.bytes) || record.mime !== asset.mime) fail("ASSET_KEY_COLLISION", 500);
+                record.public_stream_allowed = record.public_stream_allowed || (streamAllowed ? 1 : 0);
+                record.package_download_allowed = record.package_download_allowed || (downloadAllowed ? 1 : 0);
+              }
+              assets.push({ asset_key: asset.asset_key, bytes: Number(asset.bytes), sha256: asset.sha256, stream: streamAllowed, download: downloadAllowed });
             }
           }
           manifestItems.push({
@@ -572,9 +582,21 @@ function createPublicationRepo(options = {}) {
     const published = await getPublicCorpus(slug);
     const item = await dbGet(database, `SELECT * FROM published_corpus_edition_items WHERE edition_id=? AND public_work_id=? AND public_read_allowed=1`, [published.edition.edition_id, cleanId(workId, "CORPUS_NOT_FOUND")]);
     if (!item) fail("CORPUS_NOT_FOUND", 404);
-    const assets = await dbAll(database, `SELECT asset_key,bytes,sha256,mime,public_stream_allowed,package_download_allowed FROM published_corpus_assets
-      WHERE edition_item_id=? AND public_stream_allowed=1 ORDER BY asset_key`, [item.edition_item_id]);
-    return { ...published, item: { ...item, snapshot: parseJson(item.snapshot_json), snapshot_json: undefined }, assets };
+    const snapshot = parseJson(item.snapshot_json);
+    const referenced = new Set();
+    (function collect(value) {
+      if (!value || typeof value !== "object") return;
+      if (typeof value.audio_asset_key === "string" && /^[0-9a-f]{64}$/.test(value.audio_asset_key)) referenced.add(value.audio_asset_key);
+      if (Array.isArray(value)) value.forEach(collect);
+      else Object.values(value).forEach(collect);
+    })(snapshot);
+    let assets = [];
+    if (item.public_stream_allowed === 1 && referenced.size) {
+      const keys = [...referenced].sort();
+      assets = await dbAll(database, `SELECT asset_key,bytes,sha256,mime,public_stream_allowed,package_download_allowed FROM published_corpus_assets
+        WHERE edition_id=? AND public_stream_allowed=1 AND asset_key IN (${keys.map(() => "?").join(",")}) ORDER BY asset_key`, [published.edition.edition_id, ...keys]);
+    }
+    return { ...published, item: { ...item, snapshot, snapshot_json: undefined }, assets };
   }
   async function getPublicAsset(slug, assetKey, purpose = "stream") {
     const published = await getPublicCorpus(slug);

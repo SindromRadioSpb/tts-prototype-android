@@ -33,7 +33,7 @@ function writeExact(file, bytes) {
   return { bytes: bytes.length, sha256: sha256(bytes) };
 }
 
-async function buildFixture({ missingSecondAudio = false } = {}) {
+async function buildFixture({ missingSecondAudio = false, sharedAudio = false } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "lp-publication-domain-"));
   const dataDir = path.join(root, "data");
   fs.mkdirSync(dataDir, { recursive: true });
@@ -56,7 +56,7 @@ async function buildFixture({ missingSecondAudio = false } = {}) {
   const works = [];
   for (let index = 1; index <= 2; index += 1) {
     const workId = `song-${index}`;
-    const audioKey = sha256(`audio-${index}`);
+    const audioKey = sha256(sharedAudio ? "audio-shared" : `audio-${index}`);
     const bundle = {
       group_corpus_schema_version: 1,
       corpus_id: "study-songs-pilot",
@@ -71,7 +71,7 @@ async function buildFixture({ missingSecondAudio = false } = {}) {
     const bundleBytes = Buffer.from(JSON.stringify(bundle), "utf8");
     const bundleRel = `group-corpora/study-songs-pilot/v1/works/${workId}.json`;
     const bundleFact = writeExact(path.join(dataDir, bundleRel), bundleBytes);
-    const audioBytes = Buffer.from(`fixture-mp3-${index}`);
+    const audioBytes = Buffer.from(sharedAudio ? "fixture-mp3-shared" : `fixture-mp3-${index}`);
     const audioRel = `group-corpora/study-songs-pilot/v1/audio/${audioKey}.mp3`;
     const audioFact = missingSecondAudio && index === 2 ? { bytes: audioBytes.length, sha256: sha256(audioBytes) } : writeExact(path.join(dataDir, audioRel), audioBytes);
     await run(db, `INSERT INTO group_corpus_works(corpus_id,work_id,text_key,position_no,title,artist,source_url,rights_status,bundle_path,bundle_sha256,rows_count,audio_count,notes_count,morph_count,source_updated_at,created_at,updated_at,audio_revision,tags_json)
@@ -192,6 +192,24 @@ test("publish is idempotent, immutable, hash-read-back verified and pointer/even
     const restored = await fixture.repo.restore(fixture.owner, prepared.created.corpus_id, { editionId: receipt.edition_id }, { idempotencyKey: "restore-study-songs" });
     assert.equal(restored.edition_id, receipt.edition_id);
     assert.equal((await fixture.repo.getPublicCorpus("study-songs")).edition.edition_id, receipt.edition_id);
+  } finally { await close(fixture.db); fs.rmSync(fixture.root, { recursive: true, force: true }); }
+});
+
+test("content-addressed audio shared by multiple works is stored once and remains visible in every work", async () => {
+  const fixture = await buildFixture({ sharedAudio: true });
+  try {
+    const prepared = await prepareDraft(fixture);
+    const receipt = await fixture.repo.publish(fixture.owner, prepared.created.corpus_id, {
+      expectedVersion: prepared.rights.draft_version,
+    }, { idempotencyKey: "publish-shared-audio" });
+    assert.equal(receipt.asset_count, 1);
+    const publicCorpus = await fixture.repo.getPublicCorpus("study-songs");
+    for (const item of publicCorpus.items) {
+      const work = await fixture.repo.getPublicWork("study-songs", item.public_work_id);
+      assert.deepEqual(work.assets.map(asset => asset.asset_key), [fixture.works[0].audioKey]);
+    }
+    const archive = new AdmZip((await fixture.repo.getPublicPackage("study-songs")).absolute_path);
+    assert.equal(archive.getEntries().filter(entry => entry.entryName.startsWith("audio/")).length, 1);
   } finally { await close(fixture.db); fs.rmSync(fixture.root, { recursive: true, force: true }); }
 });
 
