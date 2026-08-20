@@ -7,6 +7,7 @@ const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const sqlite3 = require("sqlite3");
+const AdmZip = require("adm-zip");
 
 const ROOT = path.resolve(__dirname, "..");
 const UP = path.join(ROOT, "migrations", "063_publication_domain.sql");
@@ -176,6 +177,11 @@ test("publish is idempotent, immutable, hash-read-back verified and pointer/even
     const publicRead = await fixture.repo.getPublicCorpus("study-songs");
     assert.equal(publicRead.edition.edition_id, receipt.edition_id);
     assert.equal(publicRead.edition.manifest_sha256, receipt.manifest_sha256);
+    const packageRead = await fixture.repo.getPublicPackage("study-songs");
+    assert.equal(packageRead.edition.package_sha256, receipt.package_sha256);
+    const archive = new AdmZip(packageRead.absolute_path);
+    assert.ok(archive.getEntry("manifest.json"));
+    assert.equal(archive.getEntries().filter(entry => entry.entryName.startsWith("audio/")).length, 2);
     await assert.rejects(run(fixture.db, "UPDATE published_corpus_edition_items SET title='mutated' WHERE edition_id=?", [receipt.edition_id]), /IMMUTABLE/);
     await assert.rejects(run(fixture.db, "DELETE FROM publication_events WHERE corpus_id=?", [prepared.created.corpus_id]), /APPEND_ONLY/);
     const events = await all(fixture.db, "SELECT event_type FROM publication_events WHERE corpus_id=? ORDER BY event_seq", [prepared.created.corpus_id]);
@@ -201,6 +207,25 @@ test("missing audio stays a technical exception and cannot be represented as a c
     assert.equal(receipt.package_complete, false);
     const items = await all(fixture.db, "SELECT asset_missing,package_complete FROM published_corpus_edition_items WHERE edition_id=? ORDER BY position_no", [receipt.edition_id]);
     assert.deepEqual(items, [{ asset_missing: 0, package_complete: 1 }, { asset_missing: 1, package_complete: 0 }]);
+  } finally { await close(fixture.db); fs.rmSync(fixture.root, { recursive: true, force: true }); }
+});
+
+test("faults before and after pointer switch roll back both canonical rows and public visibility", async () => {
+  const fixture = await buildFixture();
+  try {
+    const prepared = await prepareDraft(fixture);
+    for (const faultAt of ["BEFORE_POINTER", "AFTER_POINTER"]) {
+      await assert.rejects(fixture.repo.publish(fixture.owner, prepared.created.corpus_id, {
+        expectedVersion: prepared.rights.draft_version,
+      }, { idempotencyKey: `fault-${faultAt.toLowerCase()}`, faultAt }), new RegExp(`FAULT_${faultAt}`));
+      assert.equal(Number((await get(fixture.db, "SELECT COUNT(*) n FROM published_corpus_editions WHERE corpus_id=?", [prepared.created.corpus_id])).n), 0);
+      assert.deepEqual(await get(fixture.db, "SELECT current_edition_id,status FROM published_corpora WHERE corpus_id=?", [prepared.created.corpus_id]), { current_edition_id: null, status: "DRAFT_ACTIVE" });
+      await assert.rejects(fixture.repo.getPublicCorpus("study-songs"), error => error && error.code === "CORPUS_NOT_FOUND");
+    }
+    const receipt = await fixture.repo.publish(fixture.owner, prepared.created.corpus_id, {
+      expectedVersion: prepared.rights.draft_version,
+    }, { idempotencyKey: "publish-after-faults" });
+    assert.equal((await fixture.repo.getPublicCorpus("study-songs")).edition.edition_id, receipt.edition_id);
   } finally { await close(fixture.db); fs.rmSync(fixture.root, { recursive: true, force: true }); }
 });
 

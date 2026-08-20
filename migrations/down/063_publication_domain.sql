@@ -1,0 +1,24 @@
+DROP TRIGGER IF EXISTS trg_published_assets_no_delete;
+DROP TRIGGER IF EXISTS trg_published_assets_no_update;
+DROP TRIGGER IF EXISTS trg_published_edition_items_no_delete;
+DROP TRIGGER IF EXISTS trg_published_edition_items_no_update;
+DROP TRIGGER IF EXISTS trg_published_editions_no_delete;
+DROP TRIGGER IF EXISTS trg_published_editions_no_update;
+DROP TRIGGER IF EXISTS trg_publication_events_no_delete;
+DROP TRIGGER IF EXISTS trg_publication_events_no_update;
+DROP TRIGGER IF EXISTS trg_publication_rights_facts_no_delete;
+DROP TRIGGER IF EXISTS trg_publication_rights_facts_no_update;
+DROP TRIGGER IF EXISTS trg_published_corpora_pointer_same_corpus_update;
+DROP TRIGGER IF EXISTS trg_published_corpora_pointer_same_corpus_insert;
+
+DROP TABLE IF EXISTS publication_idempotency;
+DROP TABLE IF EXISTS publication_events;
+DROP TABLE IF EXISTS published_corpus_assets;
+DROP TABLE IF EXISTS published_corpus_edition_items;
+DROP TABLE IF EXISTS published_corpus_editions;
+DROP TABLE IF EXISTS publication_rights_facts;
+DROP TABLE IF EXISTS publication_draft_items;
+DROP TABLE IF EXISTS publication_drafts;
+DROP TABLE IF EXISTS publication_corpus_publishers;
+DROP TABLE IF EXISTS published_corpora;
+DROP TABLE IF EXISTS publication_publishers;
