@@ -45,7 +45,7 @@
     finally { state.busy = false; render(); }
   }
   function currentCorpus() { return state.corpora.find(corpus => corpus.corpus_id === state.selectedId) || null; }
-  function publicUrl(corpus) { return location.origin + "/library.html#public=" + encodeURIComponent(corpus.slug); }
+  function publicUrl(corpus) { return location.origin + "/library.html?public_corpus=" + encodeURIComponent(corpus.slug); }
 
   async function refreshList(preferredId) {
     const payload = await api("/api/publication/corpora");

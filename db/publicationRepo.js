@@ -62,10 +62,22 @@ function sanitizeSnapshot(value, depth = 0) {
   const out = {};
   for (const [key, child] of Object.entries(value)) {
     const normalized = String(key).toLowerCase();
-    if (FORBIDDEN_KEYS.has(normalized) || normalized.startsWith("srs_") || normalized.includes("private_key")) continue;
+    if (FORBIDDEN_KEYS.has(normalized) || normalized === "group_corpus" || normalized === "group_corpus_schema_version" || normalized.startsWith("srs_") || normalized.includes("private_key")) continue;
+    if (normalized === "source_meta_json" && typeof child === "string") {
+      try { out[key] = canonicalJson(sanitizeSnapshot(JSON.parse(child), depth + 1)); } catch (_) { out[key] = "{}"; }
+      continue;
+    }
     out[key] = sanitizeSnapshot(child, depth + 1);
   }
   return out;
+}
+function sanitizeGroupSnapshot(value) {
+  const snapshot = sanitizeSnapshot(value);
+  if (snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)) {
+    delete snapshot.corpus_id;
+    delete snapshot.work_id;
+  }
+  return snapshot;
 }
 function parseJson(text, code = "SOURCE_SNAPSHOT_INVALID") {
   try { return JSON.parse(String(text)); } catch (_) { fail(code, 400); }
@@ -291,7 +303,7 @@ function createPublicationRepo(options = {}) {
       const absolute = sourcePath(row.bundle_path);
       const raw = await fs.promises.readFile(absolute).catch(() => fail("SOURCE_SNAPSHOT_INVALID", 400));
       if (sha256(raw) !== row.bundle_sha256) fail("SOURCE_CHANGED", 409);
-      const snapshot = sanitizeSnapshot(parseJson(raw.toString("utf8")));
+      const snapshot = sanitizeGroupSnapshot(parseJson(raw.toString("utf8")));
       const snapshotJson = canonicalJson(snapshot);
       if (Buffer.byteLength(snapshotJson, "utf8") > 12 * 1024 * 1024) fail("SOURCE_SNAPSHOT_INVALID", 413);
       prepared.push({ row, snapshotJson, snapshotSha256: sha256(Buffer.from(snapshotJson, "utf8")) });
@@ -443,7 +455,7 @@ function createPublicationRepo(options = {}) {
               if ((await fileHash(staged)) !== asset.sha256 || (await fs.promises.stat(staged)).size !== Number(asset.bytes)) fail("EDITION_HASH_MISMATCH", 500);
               const storagePath = path.posix.join(finalRel, "audio", fileName);
               const record = { edition_asset_id: id("ea_"), edition_item_id: editionItemId, asset_key: asset.asset_key, storage_path: storagePath, bytes: Number(asset.bytes), sha256: asset.sha256, mime: asset.mime, public_stream_allowed: streamAllowed ? 1 : 0, package_download_allowed: downloadAllowed ? 1 : 0 };
-              stagedAssets.push(record); assets.push({ asset_key: asset.asset_key, bytes: Number(asset.bytes), sha256: asset.sha256, stream: true, download: downloadAllowed });
+              stagedAssets.push(record); assets.push({ asset_key: asset.asset_key, bytes: Number(asset.bytes), sha256: asset.sha256, stream: streamAllowed, download: downloadAllowed });
             }
           }
           manifestItems.push({

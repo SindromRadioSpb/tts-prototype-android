@@ -32,6 +32,7 @@ const CACHE_VERSION = "v3.11.415";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
+const PUBLIC_CORPUS_CACHE = `linguistpro-public-corpus-${CACHE_VERSION}`;
 // Workstream A1 Phase 2 — opt-in extended morphology dict. Held in its
 // own bucket so the ~5 MB gzipped full-tier blob (~75 MB after browser-
 // side decompression) can be evicted independently of the app shell when
@@ -120,6 +121,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
+  "/js/public-corpus-adapter.js?v=415",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
@@ -216,9 +218,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=175",
-  "/i18n/locales/en.js?v=175",
-  "/i18n/locales/he.js?v=175",
+  "/i18n/locales/ru.js?v=176",
+  "/i18n/locales/en.js?v=176",
+  "/i18n/locales/he.js?v=176",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
@@ -319,7 +321,7 @@ self.addEventListener("install", (event) => {
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE]);
+    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, PUBLIC_CORPUS_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE]);
     const names = await caches.keys();
     await Promise.all(
       names
@@ -369,6 +371,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // MASS-ACCESS I4: public publication reads are the sole API exception.
+  // Pointer/catalog reads are network-first with an offline fallback; immutable
+  // work snapshots and content-hash audio are cache-first after first access.
+  // Corpus ZIPs remain network-only to avoid silently retaining a large archive.
+  if (req.method === "GET" && url.pathname.startsWith("/api/public-corpora")) {
+    if (url.pathname.endsWith("/package")) return;
+    const immutable = /\/works\/[^/]+$/.test(url.pathname) || /\/assets\/[0-9a-f]{64}$/.test(url.pathname);
+    event.respondWith(immutable ? publicCorpusCacheFirst(req) : networkFirst(req, PUBLIC_CORPUS_CACHE, NETWORK_FIRST_TIMEOUT_MS));
+    return;
+  }
+
   // All other /api/* — network-only. Don't cache responses (would mask
   // quota/state/upload semantics).
   if (url.pathname.startsWith("/api/")) return;
@@ -409,7 +422,8 @@ async function staleWhileRevalidate(req) {
   // Try precache first, then runtime cache, then network.
   const precache = await caches.open(PRECACHE);
   const runtime = await caches.open(RUNTIME);
-  const cached = (await precache.match(req)) || (await runtime.match(req));
+  const navigationShell = req.mode === "navigate" ? await precache.match(new URL(req.url).pathname) : null;
+  const cached = (await precache.match(req)) || (await runtime.match(req)) || navigationShell;
 
   const fetchPromise = fetch(req).then((res) => {
     // Only cache successful, basic (same-origin), non-opaque responses.
@@ -437,6 +451,15 @@ async function staleWhileRevalidate(req) {
 
   // Return cached immediately if available; otherwise wait for network.
   return cached || fetchPromise;
+}
+
+async function publicCorpusCacheFirst(req) {
+  const cache = await caches.open(PUBLIC_CORPUS_CACHE);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  const response = await fetch(req);
+  if (response && response.ok && response.type === "basic") await cache.put(req, response.clone());
+  return response;
 }
 
 // Knowledge Graph chunk strategy — stale-while-revalidate against the

@@ -1053,6 +1053,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/library-ui.js?v=415",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
+  "/js/public-corpus-adapter.js?v=415",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
@@ -1062,9 +1063,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/reader-morph.css?v=394",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
-  "/i18n/locales/ru.js?v=175",
-  "/i18n/locales/en.js?v=175",
-  "/i18n/locales/he.js?v=175",
+  "/i18n/locales/ru.js?v=176",
+  "/i18n/locales/en.js?v=176",
+  "/i18n/locales/he.js?v=176",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3846,6 +3847,80 @@ app.post("/api/publication/corpora/:corpusId\\:rollback", rlPublicationWrite, re
   (repo, actor, opts) => repo.rollback(actor, req.params.corpusId, req.body || {}, opts)));
 app.post("/api/publication/corpora/:corpusId/draft\\:new-revision", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "revision_draft_created",
   (repo, actor, opts) => repo.createRevisionDraft(actor, req.params.corpusId, opts), true));
+
+// MASS_ACCESS_I4_PUBLIC_READ_BEGIN
+// Anonymous public-corpus reads are a separate namespace and projection. They
+// intentionally have no session, CSRF, audit or publication-write middleware.
+const rlPublicCorpusRead = makeRateLimiter({ windowMs: 60_000, max: 300, name: "public-corpus-read" });
+function publicCorpusNotFound(res) {
+  res.set("Cache-Control", "public, max-age=30, must-revalidate");
+  return res.status(404).json({ ok: false, error: "PUBLIC_MATERIAL_NOT_FOUND" });
+}
+async function publicCorpusRead(res, action) {
+  try { return await action(getPublicationRepo()); }
+  catch (error) {
+    if (error && (error.code === "CORPUS_NOT_FOUND" || error.code === "PUBLICATION_INPUT_INVALID")) return publicCorpusNotFound(res);
+    console.error("[public-corpus] read failed:", error && error.message);
+    return res.status(500).json({ ok: false, error: "PUBLIC_MATERIAL_UNAVAILABLE" });
+  }
+}
+function publicCorpusEtag(res, hash) {
+  const value = String(hash || "").toLowerCase();
+  if (/^[0-9a-f]{64}$/.test(value)) res.set("ETag", '"' + value + '"');
+}
+
+app.get("/api/public-corpora", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const corpora = await repo.listPublicCorpora();
+  res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+  return res.json({ ok: true, schema_version: "public_corpora.1.0.0", corpora });
+}));
+app.get("/api/public-corpora/:slug", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const published = await repo.getPublicCorpus(req.params.slug);
+  publicCorpusEtag(res, published.edition.manifest_sha256);
+  res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+  return res.json({ ok: true, schema_version: "public_corpus.1.0.0", ...published });
+}));
+app.get("/api/public-corpora/:slug/works", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const published = await repo.getPublicCorpus(req.params.slug);
+  const limit = Math.max(1, Math.min(100, Number.parseInt(req.query.limit, 10) || 60));
+  const cursor = Math.max(0, Number.parseInt(req.query.cursor, 10) || 0);
+  const query = String(req.query.q || "").trim().toLocaleLowerCase().slice(0, 200);
+  const audio = String(req.query.facet || "").toLowerCase();
+  const sort = String(req.query.sort || "position").toLowerCase();
+  let items = published.items.filter(item => !query || String(item.title + " " + (item.creator || "")).toLocaleLowerCase().includes(query));
+  if (audio === "complete") items = items.filter(item => !!item.package_complete);
+  else if (audio === "missing") items = items.filter(item => Number(item.asset_missing) > 0);
+  if (sort === "title") items.sort((a, b) => String(a.title).localeCompare(String(b.title)) || Number(a.position_no) - Number(b.position_no));
+  const page = items.slice(cursor, cursor + limit);
+  publicCorpusEtag(res, published.edition.manifest_sha256);
+  res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+  return res.json({ ok: true, schema_version: "public_corpus_works.1.0.0", corpus: published.corpus, edition: published.edition,
+    items: page, matched_total: items.length, next_cursor: cursor + page.length < items.length ? String(cursor + page.length) : null });
+}));
+app.get("/api/public-corpora/:slug/works/:workId", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const published = await repo.getPublicWork(req.params.slug, req.params.workId);
+  publicCorpusEtag(res, published.item.snapshot_sha256);
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  return res.json({ ok: true, schema_version: "public_corpus_work.1.0.0", ...published });
+}));
+app.get("/api/public-corpora/:slug/assets/:assetKey", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const found = await repo.getPublicAsset(req.params.slug, req.params.assetKey, "stream");
+  publicCorpusEtag(res, found.asset.sha256);
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.type(found.asset.mime || "audio/mpeg");
+  return res.sendFile(found.absolute_path);
+}));
+app.get("/api/public-corpora/:slug/package", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const found = await repo.getPublicPackage(req.params.slug);
+  publicCorpusEtag(res, found.edition.package_sha256);
+  res.set("Cache-Control", "public, max-age=30, must-revalidate");
+  res.set("X-Publication-Package-Complete", found.edition.package_complete ? "true" : "false");
+  res.set("X-Publication-Asset-Missing", String(Number(found.edition.asset_missing) || 0));
+  res.type("application/zip");
+  res.attachment(String(req.params.slug || "public-corpus") + ".zip");
+  return res.sendFile(found.absolute_path);
+}));
+// MASS_ACCESS_I4_PUBLIC_READ_END
 
 // ============================================================================
 // GROUP_SONG_CORPUS_P0 — restricted group corpus. Unlike Ben-Yehuda, no work

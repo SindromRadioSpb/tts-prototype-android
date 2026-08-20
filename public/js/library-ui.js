@@ -53,10 +53,13 @@ let corpusNav = { corpus: 'hub', level: 'home', era: null, author: null }; // dr
 let corpusReveal = 0;           // incremental-reveal cursor for the active long list
 let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
+let publicCorpora = [];         // anonymous published-corpus pointers; never membership-derived
+const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
 const groupCorpusStates = new Map(); // per-corpus view state; never learner truth
 let readerGroupCorpusId = null; // selects protected audio transport for the open work
+let readerPublicCorpusSlug = null; // selects anonymous content-hash audio transport
 const CORPUS_PAGE = 60;         // native Ben-Yehuda author/result page size
 const ROOM_PREVIEW = 12;        // hard shelf/ready-preview DOM bound (Option B)
 const ROOM_PROFILE_FIT_PREVIEW = 4; // quiet, actionable alternatives before the corpus catalog
@@ -4803,12 +4806,16 @@ function attachReaderAudio() {
     onRowChange: onKaraokeRowChange,          // idx>=0 → auto-scroll; idx<0 → karaoke ended
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
-    audioUrlForAssetKey: readerGroupCorpusId
+    audioUrlForAssetKey: readerPublicCorpusSlug
+      ? (key) => '/api/public-corpora/' + encodeURIComponent(readerPublicCorpusSlug) + '/assets/' + encodeURIComponent(key)
+      : readerGroupCorpusId
       ? (key, row) => row && row._roomPublicAudioAssetKey === key
         ? '/api/audio/' + encodeURIComponent(key)
         : '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key)
       : undefined,
-    timingUrlForAssetKey: readerGroupCorpusId
+    timingUrlForAssetKey: readerPublicCorpusSlug
+      ? undefined
+      : readerGroupCorpusId
       ? (key, row) => row && row._roomPublicAudioAssetKey === key
         ? '/api/audio/' + encodeURIComponent(key) + '/timing'
         : '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key) + '/timing'
@@ -7256,11 +7263,14 @@ async function openReader(textId, title, opts) {
   readerIsOwnText = false;
   readerCorpusWorkId = null; readerCorpusExplainOk = false;   // безусловный сброс (singleton-reset)
   readerGroupCorpusId = null;
+  readerPublicCorpusSlug = null;
   try {
     const meta = res && res.text && res.text.source_meta_json ? JSON.parse(res.text.source_meta_json) : null;
     const groupMeta = meta && meta.group_corpus;
+    const publicMeta = meta && meta.public_corpus;
     readerGroupCorpusId = groupMeta && groupMeta.corpus_id ? String(groupMeta.corpus_id) : null;
-    readerIsOwnText = !!readerTextKey && !(meta && (meta.corpus || meta.group_corpus));
+    readerPublicCorpusSlug = publicMeta && publicMeta.slug ? String(publicMeta.slug) : null;
+    readerIsOwnText = !!readerTextKey && !(meta && (meta.corpus || meta.group_corpus || meta.public_corpus));
     // PAS-A1 — id работы: та же фолбэк-цепочка, что loadProcliticOverlay (ранние импорты
     // могли не иметь поля в source_meta_json)
     if (!readerIsOwnText && !readerGroupCorpusId && readerTextKey) {
@@ -7279,6 +7289,11 @@ async function openReader(textId, title, opts) {
       const cacheDescriptor = myCompassDescriptor({ ...res.text, id: textId });
       calibrationSource = { text_id: textId, source_class: 'mytext', source_key: String(readerTextKey || textId),
         content_revision: String((res.text && res.text.updated_at) || 'unknown'), cache_descriptor: cacheDescriptor };
+    } else if (readerPublicCorpusSlug) {
+      const publicCatalog = publicCatalogs.get(readerPublicCorpusSlug);
+      const publicWork = publicCatalog && publicCatalog.items && publicCatalog.items.find((work) => String(work.public_work_id) === String((res.text && JSON.parse(res.text.source_meta_json || '{}').public_corpus || {}).public_work_id));
+      calibrationSource = { text_id: textId, source_class: 'public', source_key: String(readerTextKey || textId),
+        content_revision: String(publicWork && publicWork.snapshot_sha256 || 'unknown'), cache_descriptor: null };
     } else if (readerGroupCorpusId) {
       const groupCatalog = groupCatalogs.get(String(readerGroupCorpusId));
       const groupWork = groupCatalog && groupCatalog.works && groupCatalog.works.find((work) => String(work.text_key) === String(readerTextKey));
@@ -7294,7 +7309,7 @@ async function openReader(textId, title, opts) {
     attachReaderAudio();
     Promise.resolve(roomMediaSetup(res.text, textId)).catch(() => {});   // saved passport + canonical exact Studio binding
     try { roomUpdateTheadTop(); setTimeout(() => { try { roomUpdateTheadTop(); } catch (_) {} }, 600); } catch (_) {}   // sticky-шапка: бар мог дорасти (cov-chip)
-    if (!readerGroupCorpusId) {
+    if (!readerGroupCorpusId && !readerPublicCorpusSlug) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
       try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
     }
@@ -7397,7 +7412,7 @@ async function closeReader(options) {
   clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; _roomReaderPresentationReadOnly = false; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   roomRenderReaderCopyright(null);
-  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
+  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null; readerPublicCorpusSlug = null;   // singleton-reset
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -7581,6 +7596,57 @@ async function openCorpusWork(card, openOpts) {
     corpusImporting = false;
     invalidatePersonalSets();   // a work may have just materialized → personal chips see it fresh
   }
+}
+
+// MASS-ACCESS I4 — public publication pointers load before authenticated group
+// memberships and remain usable without an account. Materialisation is local,
+// immutable-edition keyed and never writes learner state to the server.
+async function loadPublicCorpora() {
+  publicCorpora = [];
+  try {
+    const response = await fetch('/api/public-corpora', { cache: 'no-cache' });
+    if (!response.ok) return { ok: false };
+    const payload = await response.json();
+    publicCorpora = payload && Array.isArray(payload.corpora) ? payload.corpora.filter(item => item && item.slug) : [];
+    return { ok: true };
+  } catch (_) { return { ok: false }; }
+}
+
+async function ensurePublicCatalog(slug) {
+  const key = String(slug || '');
+  if (publicCatalogs.has(key)) return publicCatalogs.get(key);
+  const response = await fetch('/api/public-corpora/' + encodeURIComponent(key), { cache: 'no-cache' });
+  if (!response.ok) throw new Error('public catalog ' + response.status);
+  const payload = await response.json();
+  if (!window.PublicCorpusAdapter) throw new Error('public corpus adapter unavailable');
+  const catalog = window.PublicCorpusAdapter.normalizeCorpus(payload);
+  publicCatalogs.set(key, catalog);
+  return catalog;
+}
+
+async function openPublicCorpusWork(slug, card, openOpts = {}) {
+  if (!card || corpusImporting || !window.PublicCorpusAdapter) return;
+  const openEpoch = ++readerOpenEpoch;
+  corpusImporting = true;
+  try {
+    const textKey = window.PublicCorpusAdapter.localTextKey(slug, card.public_work_id, card.snapshot_sha256);
+    let localId = await resolveLocalIdByKey(textKey);
+    if (!localId) {
+      const response = await fetch('/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(card.public_work_id), { cache: 'force-cache' });
+      if (!response.ok) throw new Error('public work ' + response.status);
+      const payload = await response.json();
+      const bundle = window.PublicCorpusAdapter.prepareImportBundle(payload);
+      await localDb.importBundle(bundle, { mode: 'skip' });
+      localId = await resolveLocalIdByKey(textKey);
+    }
+    if (!localId) throw new Error('public work not resolvable after import');
+    if (openEpoch !== readerOpenEpoch) return;
+    await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch }));
+  } catch (error) {
+    if (openEpoch !== readerOpenEpoch) return;
+    try { console.warn('[room] open public corpus work failed:', error); } catch (_) {}
+    roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
+  } finally { corpusImporting = false; invalidatePersonalSets(); }
 }
 
 // Restricted group corpus uses the same OPFS reader model, but its transport is
@@ -9644,6 +9710,7 @@ async function renderCorpus() {
   const token = ++corpusRenderToken;
   if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
+  if (String(corpusNav.corpus || '').startsWith('public:')) return renderPublicCorpus(String(corpusNav.corpus).slice(7), token);
   if (String(corpusNav.corpus || '').startsWith('group:')) return renderGroupCorpus(String(corpusNav.corpus).slice(6), token);
   if (!corpusRoot) { showState('room.shelf.emptyTrack', '📚'); return; }
   if (!corpusIndex) {
@@ -9688,6 +9755,124 @@ async function paintGroupProfileFit(host, token, corpusId, catalog, heroWorkId, 
   }).slice(0, ROOM_PROFILE_FIT_PREVIEW).map(renderRow);
   const section = buildProfileFitSection('group-' + corpusId, rows);
   if (section) host.replaceChildren(section);
+}
+
+function publicCorpusStableUrl(slug, workId) {
+  return location.origin + window.PublicCorpusAdapter.deepLink(slug, workId || '');
+}
+
+function openPublicShare(catalog, work, returnFocus) {
+  const service = window.ShareService;
+  const trigger = returnFocus || document.activeElement;
+  const overlay = el('div', { class: 'list-picker-ov room-share-ov' });
+  const titleId = 'publicShareTitle' + Date.now();
+  const box = el('div', { class: 'list-picker room-share-sheet', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': titleId, dir: uiDirRoom(), tabindex: '-1' } });
+  const head = el('div', { class: 'room-share-head' });
+  const titleWrap = el('div', { class: 'room-share-title-wrap' });
+  titleWrap.appendChild(el('div', { class: 'list-picker-title', attrs: { id: titleId }, text: tt('room.share.title', 'Отправить или сохранить') }));
+  titleWrap.appendChild(el('p', { class: 'room-share-material', text: work ? work.title : catalog.title }));
+  const closeButton = el('button', { class: 'room-share-close', attrs: { type: 'button', 'aria-label': tt('room.share.close', 'Закрыть') }, text: '×' });
+  head.appendChild(titleWrap); head.appendChild(closeButton); box.appendChild(head);
+  const expected = work ? work.expected_audio_count : catalog.edition.asset_count;
+  const included = work ? work.included_audio_count : Math.max(0, catalog.edition.asset_count - catalog.edition.asset_missing);
+  const missing = work ? work.asset_missing : catalog.edition.asset_missing;
+  box.appendChild(el('p', { class: 'room-share-note', text: missing
+    ? tt('room.publicCorpus.packagePartial', 'ZIP содержит текст и доступное оригинальное аудио; {n} аудиофайл(а) технически недоступно.').replace('{n}', String(missing))
+    : tt('room.publicCorpus.packageComplete', 'ZIP содержит опубликованный текст и разрешённое оригинальное аудио.') }));
+  const facts = el('div', { class: 'room-share-facts', attrs: { 'aria-label': tt('room.share.packageFacts', 'Состав архива') } });
+  for (const [value, key, fallback] of [[expected, 'tcs.expectedAudio', 'Ожидалось аудио'], [included, 'tcs.includedAudio', 'Включено аудио'], [missing, 'tcs.missingAudio', 'Недоступно аудио']]) {
+    const node = el('div', { class: 'room-share-fact' }); node.appendChild(el('strong', { text: String(value) })); node.appendChild(el('span', { text: tt(key, fallback) })); facts.appendChild(node);
+  }
+  box.appendChild(facts);
+  const status = el('p', { class: 'room-share-status', attrs: { role: 'status', 'aria-live': 'polite', 'data-state': 'ready' }, text: tt('room.publicCorpus.stableLink', 'Стабильная публичная ссылка не требует аккаунта.') });
+  box.appendChild(status);
+  const actions = el('div', { class: 'room-share-actions' });
+  const linkButton = el('button', { class: 'room-share-action primary', attrs: { type: 'button' }, text: tt('room.publicCorpus.sendLink', 'Отправить ссылку') });
+  const shareZip = el('button', { class: 'room-share-action', attrs: { type: 'button' }, text: tt('tcs.btnShareZip', 'Отправить ZIP') });
+  const saveZip = el('button', { class: 'room-share-action', attrs: { type: 'button' }, text: tt('tcs.btnSaveZip', 'Сохранить ZIP') });
+  actions.appendChild(linkButton); actions.appendChild(shareZip); actions.appendChild(saveZip); box.appendChild(actions);
+  overlay.appendChild(box); document.body.appendChild(overlay);
+  const background = roomSuspendBackground(overlay);
+  let closed = false;
+  const close = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
+  const keydown = event => { if (event.key === 'Escape') { event.preventDefault(); close(); } else if (event.key === 'Tab') roomFocusTrap(event, box); };
+  closeButton.addEventListener('click', close); overlay.addEventListener('click', event => { if (event.target === overlay) close(); }); document.addEventListener('keydown', keydown); roomFocusInto(box);
+  const link = publicCorpusStableUrl(catalog.slug, work && work.public_work_id);
+  linkButton.addEventListener('click', async () => {
+    const result = service && service.shareLink ? await service.shareLink({ navigator, title: work ? work.title : catalog.title, text: catalog.description || catalog.title, url: link }) : { code: 'LINK_SHARE_UNSUPPORTED' };
+    if (result.code === 'SHARE_SHEET_COMPLETED' || result.code === 'SHARE_CANCELLED') return;
+    try { await navigator.clipboard.writeText(link); status.textContent = tt('room.publicCorpus.linkCopied', 'Публичная ссылка скопирована.'); }
+    catch (_) { status.textContent = link; }
+  });
+  async function packageArtifact() {
+    status.textContent = tt('room.publicCorpus.packageLoading', 'Загружаем опубликованный ZIP…');
+    const response = await fetch('/api/public-corpora/' + encodeURIComponent(catalog.slug) + '/package');
+    if (!response.ok) throw new Error('package ' + response.status);
+    const blob = await response.blob();
+    const filename = roomShareSlug(catalog.slug) + '-edition-' + catalog.edition.edition_number + '.zip';
+    return { blob, filename, file: new File([blob], filename, { type: 'application/zip' }) };
+  }
+  shareZip.addEventListener('click', async () => {
+    shareZip.disabled = true;
+    try { const artifact = await packageArtifact(); const result = await service.shareFileOrSave({ file: artifact.file, blob: artifact.blob, filename: artifact.filename, navigator, document }); status.textContent = result.code === 'SHARE_SHEET_COMPLETED' ? tt('room.publicCorpus.handedOff', 'ZIP передан системному меню.') : tt('room.publicCorpus.saveStarted', 'Сохранение ZIP начато.'); }
+    catch (_) { status.textContent = tt('room.publicCorpus.packageFailed', 'ZIP сейчас недоступен; публичная ссылка продолжает работать.'); status.setAttribute('data-state', 'error'); }
+    finally { shareZip.disabled = false; }
+  });
+  saveZip.addEventListener('click', async () => {
+    saveZip.disabled = true;
+    try { const artifact = await packageArtifact(); service.saveFile({ blob: artifact.blob, filename: artifact.filename, document }); status.textContent = tt('room.publicCorpus.saveStarted', 'Сохранение ZIP начато.'); }
+    catch (_) { status.textContent = tt('room.publicCorpus.packageFailed', 'ZIP сейчас недоступен; публичная ссылка продолжает работать.'); status.setAttribute('data-state', 'error'); }
+    finally { saveZip.disabled = false; }
+  });
+}
+
+async function renderPublicCorpus(slug, token) {
+  const main = $('roomContent'); if (!main || token !== corpusRenderToken) return;
+  showState('room.state.loading', '⏳');
+  let catalog;
+  try { catalog = await ensurePublicCatalog(slug); }
+  catch (_) { if (token === corpusRenderToken) showState(navigator.onLine ? 'room.state.error' : 'room.connection.offlinePartial', navigator.onLine ? '⚠️' : '↯'); return; }
+  if (token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const descriptor = authorizedCorpusById('public:' + slug) || { id: 'public:' + slug, icon: '♫', title: { key: '', fb: catalog.title }, desc: { key: '', fb: catalog.description } };
+  const localizedDescription = slug === 'study-songs' ? tt('room.publicCorpus.studySongsDescription', catalog.description) : catalog.description;
+  const wrap = el('div', { class: 'corpus-nav group-corpus public-corpus', attrs: { 'data-public-corpus': slug } });
+  wrap.appendChild(corpusSwitcherBar('public:' + slug));
+  wrap.appendChild(corpusShellHeader(descriptor, {
+    countText: catalog.items.length + ' ' + tt('room.hub.textsN', 'текст(ов)'), description: localizedDescription,
+    authority: '● ' + tt('room.publicCorpus.publicTrust', 'Публичная неизменяемая редакция · без аккаунта'),
+    capabilityText: tt('room.publicCorpus.capabilities', 'Чтение, перевод, транслитерация, морфология и доступное оригинальное аудио · прогресс хранится на этом устройстве'),
+  }));
+  const guest = el('aside', { class: 'public-corpus-guest', attrs: { role: 'note' } });
+  const guestCopy = el('div'); guestCopy.appendChild(el('strong', { text: tt('room.publicCorpus.guestTitle', 'Можно начать сразу') })); guestCopy.appendChild(el('p', { text: tt('room.publicCorpus.guestCopy', 'Аккаунт нужен только для синхронизации и долговременной персонализации между устройствами.') }));
+  const connect = el('button', { class: 'group-action quiet', attrs: { type: 'button' }, text: tt('room.publicCorpus.connectOptional', 'Подключить синхронизацию — необязательно') }); connect.addEventListener('click', () => openMentorView());
+  guest.appendChild(guestCopy); guest.appendChild(connect); wrap.appendChild(guest);
+  const topActions = el('div', { class: 'public-corpus-actions' });
+  const shareAll = el('button', { class: 'group-action primary', attrs: { type: 'button' }, text: tt('room.share.title', 'Отправить или сохранить') }); shareAll.addEventListener('click', () => openPublicShare(catalog, null, shareAll)); topActions.appendChild(shareAll); wrap.appendChild(topActions);
+  const controls = el('div', { class: 'group-corpus-controls' });
+  const search = el('input', { class: 'room-search group-corpus-search', attrs: { type: 'search', placeholder: tt('room.publicCorpus.search', 'Найти песню или автора'), 'aria-label': tt('room.publicCorpus.search', 'Найти песню или автора') } }); controls.appendChild(search); wrap.appendChild(controls);
+  const resultLine = el('div', { class: 'group-corpus-results room-browse-summary', attrs: { role: 'status', 'aria-live': 'polite' } }); wrap.appendChild(resultLine);
+  const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); wrap.appendChild(grid); main.appendChild(wrap);
+  const paint = () => {
+    const query = String(search.value || '').trim().toLocaleLowerCase();
+    const found = catalog.items.filter(item => !query || String(item.title + ' ' + item.creator).toLocaleLowerCase().includes(query));
+    resultLine.textContent = found.length + ' ' + tt('room.hub.textsN', 'текст(ов)'); grid.replaceChildren();
+    for (const item of found) {
+      const card = el('article', { class: 'group-work-card room-text-row room-material-row', attrs: { 'data-public-work': item.public_work_id } });
+      card.appendChild(el('span', { class: 'group-work-position', text: String(item.position_no) }));
+      const identity = el('div', { class: 'group-work-identity corpus-work-col' });
+      const open = el('a', { class: 'room-text-title-link group-action primary', attrs: { href: window.PublicCorpusAdapter.deepLink(slug, item.public_work_id) } });
+      const titleCopy = el('span', { class: 'room-item-title-copy' }); const title = el('span', { class: 'group-work-title', text: item.title }); if (HEBREW_RE.test(item.title)) title.setAttribute('dir', 'rtl'); titleCopy.appendChild(title);
+      if (item.creator) { const creator = el('span', { class: 'group-work-artist item-secondary-identity', text: item.creator }); if (HEBREW_RE.test(item.creator)) creator.setAttribute('dir', 'rtl'); titleCopy.appendChild(creator); }
+      open.appendChild(titleCopy); open.appendChild(el('span', { class: 'room-text-primary', text: tt('room.mytexts.read', 'Читать') })); open.addEventListener('click', event => { event.preventDefault(); openPublicCorpusWork(slug, item, { resume: true }); }); identity.appendChild(open);
+      identity.appendChild(el('span', { class: 'public-corpus-audio-fact', text: item.asset_missing
+        ? tt('room.publicCorpus.audioMissing', 'Аудио технически недоступно: {n}').replace('{n}', String(item.asset_missing))
+        : tt('room.publicCorpus.audioReady', 'Оригинальное аудио: {n}').replace('{n}', String(item.included_audio_count)) })); card.appendChild(identity);
+      const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
+    }
+  };
+  let searchTimer = null; search.addEventListener('input', () => { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(paint, 100); }); paint();
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
 async function renderGroupCorpus(corpusId, token) {
@@ -9944,6 +10129,15 @@ async function renderGroupCorpus(corpusId, token) {
 function corpusTitleOf(c) { return tt(c.title.key, c.title.fb); }
 function authorizedCorpusOptions() {
   const options = CORPORA.slice();
+  for (const published of publicCorpora) {
+    if (!published || !published.slug) continue;
+    options.push({
+      id: 'public:' + String(published.slug), icon: '♫', kind: 'public-published',
+      title: { key: String(published.slug) === 'study-songs' ? 'room.publicCorpus.studySongsTitle' : '', fb: String(published.title || published.slug) },
+      desc: { key: 'room.publicCorpus.hubDesc', fb: 'Публичный учебный корпус · аккаунт не требуется' },
+      edition: published.edition_number,
+    });
+  }
   for (const group of groupCorpora) {
     if (!group || group.corpus_id == null) continue;
     options.push({
@@ -10558,6 +10752,15 @@ async function renderCorpusHub(token) {
       const total = Number(corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
       count = roomNumber(ready.length) + ' ' + tt('room.hub.ready', 'готово') + (total ? ' · ' + roomNumber(total) + ' ' + tt('room.hub.total', 'всего') : '');
     } else if (corpus.id === 'mytexts' && ownCount != null) count = ownCount + ' ' + tt('room.hub.textsN', 'текст(ов)');
+    list.appendChild(learningHomeCorpusEntry(corpus, count));
+  }
+  for (const published of publicCorpora) {
+    const corpus = {
+      id: 'public:' + published.slug, icon: '♫',
+      title: { key: String(published.slug) === 'study-songs' ? 'room.publicCorpus.studySongsTitle' : '', fb: String(published.title || published.slug) },
+      desc: { key: 'room.publicCorpus.hubDesc', fb: 'Публичный учебный корпус · аккаунт не требуется' },
+    };
+    const count = Number(published.item_count || 0) + ' ' + tt('room.hub.textsN', 'текст(ов)') + ' · ' + tt('room.publicCorpus.noAccount', 'без аккаунта');
     list.appendChild(learningHomeCorpusEntry(corpus, count));
   }
   for (const group of groupCorpora) {
@@ -12346,6 +12549,7 @@ async function boot() {
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
+    await loadPublicCorpora(); // anonymous publication pointers load before protected memberships
     await loadGroupCorpora();  // authenticated; silently absent for signed-out/non-members
     // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
     // canon with morphology-on-tap now leads. Fall back to the on-ramp tracks only if the corpus
@@ -12370,6 +12574,26 @@ async function boot() {
     roomCommitPresentation('replace');
     if (_roomHistoryFallbackNotice) roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
     const dueReviewHandoff = consumeDueReviewHandoff();
+    // Anonymous public-corpus deep link. The current pointer resolves to an
+    // immutable edition; no account or group entitlement is consulted.
+    try {
+      const qp = new URLSearchParams(location.search);
+      const publicSlug = qp.get('public_corpus');
+      const publicWorkId = qp.get('public_work');
+      if (publicSlug) {
+        const allowed = publicCorpora.some(item => String(item.slug) === String(publicSlug));
+        if (!allowed) roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
+        else {
+          activeTrack = 'corpus'; await setActiveTrack(activeTrack); corpusNavToCorpus('public:' + publicSlug);
+          if (publicWorkId) {
+            const publicCatalog = await ensurePublicCatalog(publicSlug);
+            const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
+            if (publicWork) await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
+            else roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
+          }
+        }
+      }
+    } catch (_) {}
     // Protected group-corpus deep link. The URL carries identifiers only; both
     // catalog and bundle requests still require a live session + ACTIVE group
     // membership. Unknown/inaccessible ids deliberately collapse to one generic

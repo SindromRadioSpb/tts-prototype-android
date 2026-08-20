@@ -3982,6 +3982,10 @@ window.I18N_LOCALES.he.room.copyright = {
   aboutMaterial: "על החומר הזה"
 };
 window.I18N_LOCALES.he.room.publication = { manage: "ניהול הפרסום" };
+window.I18N_LOCALES.he.room.publicCorpus = {
+  hubDesc:"קורפוס לימודי ציבורי · ללא צורך בחשבון",noAccount:"ללא חשבון",unavailable:"החומר הציבורי אינו זמין כעת",publicTrust:"מהדורה ציבורית בלתי־ניתנת לשינוי · ללא חשבון",capabilities:"קריאה, תרגום, תעתיק, מורפולוגיה ושמע מקורי זמין · ההתקדמות נשמרת במכשיר הזה",guestTitle:"אפשר להתחיל מיד",guestCopy:"חשבון מוצע רק לסנכרון ולהתאמה אישית ארוכת טווח בין מכשירים.",connectOptional:"חיבור סנכרון — לא חובה",search:"חיפוש שיר או יוצר",audioMissing:"השמע אינו זמין מסיבה טכנית: {n}",audioReady:"שמע מקורי: {n}",packagePartial:"קובץ ה־ZIP כולל טקסט ושמע מקורי זמין; קבצים שאינם זמינים טכנית: {n}.",packageComplete:"קובץ ה־ZIP כולל את הטקסט שפורסם ואת השמע המקורי המותר.",stableLink:"הקישור הציבורי היציב אינו דורש חשבון.",sendLink:"שליחת קישור",linkCopied:"הקישור הציבורי הועתק.",packageLoading:"טוענים את קובץ ה־ZIP שפורסם…",handedOff:"קובץ ה־ZIP הועבר לתפריט השיתוף של המערכת.",saveStarted:"שמירת קובץ ה־ZIP החלה.",packageFailed:"קובץ ה־ZIP אינו זמין כעת; הקישור הציבורי ממשיך לפעול."
+};
+Object.assign(window.I18N_LOCALES.he.room.publicCorpus, { studySongsTitle:"שירי לימוד", studySongsDescription:"שירים ללימוד שפה עם טקסט, תרגום ושמע מקורי." });
 window.I18N_LOCALES.he.publication = {
   kicker:"שולחן הוצאה לאור",title:"מרכז הפרסום",spineCopy:"הכנת מהדורות ציבוריות בלתי־ניתנות לשינוי בלי לשנות את מקורותיהן הפרטיים.",open:"פרסום",newCorpus:"קורפוס ציבורי חדש",editionDesk:"שולחן המהדורה",addSelected:"הוספה לקורפוס ציבורי",corporaNav:"קורפוסים ציבוריים",close:"סגירה",
   fields:{title:"שם הקורפוס",slug:"כתובת ציבורית",description:"תיאור"},studySongsTitle:"שירי לימוד",studySongsDescription:"שירים ללימוד שפה עם טקסט, תרגום ושמע מקורי.",create:"יצירת קורפוס",created:"הקורפוס נוצר.",createHelp:"צרו את הכתובת הציבורית ואת הטיוטה הפרטית הראשונה.",ownerOnly:"מרכז הפרסום זמין לבעלים בלבד.",loading:"טוענים רשומות פרסום…",working:"הפעולה מתבצעת…",errorGeneric:"לא ניתן להשלים את הפעולה.",
