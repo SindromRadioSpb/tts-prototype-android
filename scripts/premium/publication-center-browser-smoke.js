@@ -15,7 +15,9 @@ const PORT = 3318, BASE = `http://127.0.0.1:${PORT}`;
 const secret = "publication-browser-smoke-secret";
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "lp-publication-browser-"));
 const data = path.join(tmp, "data"), dbPath = path.join(data, "app.db");
-const shots = path.join(ROOT, "docs", "research", "mass-access-public-corpora", "2026-08-20", "implementation", "screenshots");
+const shots = process.env.PUBLICATION_SMOKE_SCREENSHOT_DIR
+  ? path.resolve(process.env.PUBLICATION_SMOKE_SCREENSHOT_DIR)
+  : path.join(ROOT, "docs", "research", "mass-access-public-corpora", "2026-08-20", "implementation", "screenshots");
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const sha = value => crypto.createHash("sha256").update(value).digest("hex");
 const openDb = file => new Promise((resolve, reject) => { const db = new sqlite3.Database(file, error => error ? reject(error) : resolve(db)); });
@@ -111,29 +113,61 @@ async function capture(page, file) {
 
     guestContext = await browser.newContext({ serviceWorkers: 'allow', viewport: { width: 1280, height: 820 }, locale: 'ru-RU', acceptDownloads: true });
     await guestContext.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
-    const guest = await guestContext.newPage(), guestErrors = [], guestFailed = [], assetResponses = [], audioRequests = [];
+    const guest = await guestContext.newPage(), guestErrors = [], guestConsoleErrors = [], guestFailed = [], assetResponses = [], audioRequests = [];
     guest.on('pageerror', error => guestErrors.push(String(error)));
+    guest.on('console', message => { if (message.type() === 'error') guestConsoleErrors.push(message.text()); });
     guest.on('response', response => {
       if (/\/api\/public-corpora\/.+\/assets\//.test(response.url())) assetResponses.push(response.status());
       if (response.status() >= 400 && /\/api\/public-corpora/.test(response.url())) guestFailed.push(response.status() + ' ' + response.url());
     });
     guest.on('request', request => { if (/\/api\/(?:public-corpora\/.+\/assets|audio)\//.test(request.url())) audioRequests.push(request.url()); });
     await guest.addInitScript(() => { localStorage.setItem('localMode', '1'); localStorage.setItem('v3OnboardingSeenV1', '1'); localStorage.setItem('onboardingSeen_v1', '1'); });
-    await guest.goto(BASE + '/library.html?public_corpus=study-songs', { waitUntil: 'domcontentloaded' });
-    await guest.locator('[data-public-corpus="study-songs"]').waitFor({ timeout: 30000 });
+    const publicUrl = BASE + '/library.html?public_corpus=study-songs&cb=' + Date.now();
+    await guest.goto(publicUrl, { waitUntil: 'domcontentloaded' });
+    try { await guest.locator('[data-public-corpus="study-songs"]').waitFor({ state: 'attached', timeout: 8000 }); }
+    catch (_) { await guest.reload({ waitUntil: 'domcontentloaded' }); }
+    try { await guest.locator('[data-public-corpus="study-songs"]').waitFor({ timeout: 30000 }); }
+    catch (error) {
+      const publicProbe = await guest.evaluate(async () => {
+        const response = await fetch('/api/public-corpora/study-songs', { cache: 'no-store' });
+        const root = document.querySelector('[data-public-corpus="study-songs"]');
+        const chain = []; for (let node = root; node && chain.length < 6; node = node.parentElement) chain.push({ tag: node.tagName, id: node.id, className: node.className, hidden: node.hidden, display: getComputedStyle(node).display, visibility: getComputedStyle(node).visibility, rect: node.getBoundingClientRect().toJSON() });
+        return { status: response.status, body: (await response.text()).slice(0, 500), url: location.href, root_count: document.querySelectorAll('[data-public-corpus="study-songs"]').length, chain };
+      }).catch(probeError => ({ error: String(probeError), url: guest.url() }));
+      console.error(JSON.stringify({ guest_errors: guestErrors, guest_console_errors: guestConsoleErrors, guest_failed: guestFailed, public_probe: publicProbe, body: (await guest.locator('body').textContent()).slice(0, 1200), server_logs: logs.slice(-2400) }, null, 2));
+      throw error;
+    }
     const capturePublic = async (name) => {
       const report = await guest.evaluate(() => {
         const root = document.querySelector('[data-public-corpus]');
-        const controls = Array.from(root.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled)')).filter(node => node.getClientRects().length > 0);
+        const controls = Array.from(root.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled)')).filter(node => node.getClientRects().length > 0);
         return { dir: document.documentElement.dir, lang: document.documentElement.lang,
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           tinyTargets: controls.filter(node => { const rect = node.getBoundingClientRect(); return rect.width < 44 || rect.height < 44; }).map(node => node.getAttribute('aria-label') || node.textContent.trim().slice(0, 30)),
+          catalog: !!root.querySelector('.corpus-catalog-region'),
+          resultCount: root.querySelectorAll('[data-public-work]').length,
           publicTrust: root.textContent.includes('без аккаунта') || root.textContent.includes('ללא חשבון') || root.textContent.includes('ללא צורך בחשבון'),
           takedown: document.body.textContent.includes('peter@kolosei.com') };
       });
       await guest.screenshot({ path: path.join(shots, name), fullPage: false }); return report;
     };
     const publicDesktop = await capturePublic('public-study-songs-desktop-ru.png');
+    assert.ok(publicDesktop.catalog && publicDesktop.resultCount === 1, JSON.stringify(publicDesktop));
+    const publicSearch = guest.locator('#roomPublicCorpusSearch');
+    const publicScope = guest.locator('#roomPublicCorpusScope');
+    const publicAudio = guest.locator('#roomPublicCorpusAudio');
+    const publicSort = guest.locator('#roomPublicCorpusSort');
+    await publicScope.selectOption('title'); await publicSearch.fill('מחבר לדוגמה'); await guest.waitForTimeout(180);
+    assert.strictEqual(await guest.locator('[data-public-work]').count(), 0, 'title-only search leaked creator matches');
+    await publicScope.selectOption('creator'); await guest.waitForTimeout(180);
+    assert.strictEqual(await guest.locator('[data-public-work]').count(), 1, 'creator-only search missed creator');
+    await publicSearch.fill(''); await publicAudio.locator('[data-audio=missing]').click(); await guest.waitForTimeout(180);
+    assert.strictEqual(await guest.locator('[data-public-work]').count(), 0, 'missing-audio filter included a complete package');
+    await publicAudio.locator('[data-audio=complete]').click(); await publicSort.selectOption('title_desc'); await guest.waitForTimeout(180);
+    assert.strictEqual(await guest.locator('[data-public-work]').count(), 1, 'complete-audio filter lost the complete package');
+    assert.strictEqual(await guest.locator('.public-corpus-page-prev').count(), 1);
+    assert.strictEqual(await guest.locator('.public-corpus-page-next').count(), 1);
+    await publicScope.selectOption('all'); await publicAudio.locator('[data-audio=complete]').click(); await publicSort.selectOption('position'); await guest.waitForTimeout(180);
     await guest.setViewportSize({ width: 380, height: 844 });
     const publicMobileRu = await capturePublic('public-study-songs-380-ru.png');
     await guest.evaluate(() => window.appSetLocale('he'));

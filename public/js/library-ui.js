@@ -55,6 +55,7 @@ let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
 let publicCorpora = [];         // anonymous published-corpus pointers; never membership-derived
 const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
+const publicCorpusBrowseStates = new Map(); // per-public-corpus discovery state; never learner truth
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
 const groupCorpusStates = new Map(); // per-corpus view state; never learner truth
@@ -9849,15 +9850,104 @@ async function renderPublicCorpus(slug, token) {
   guest.appendChild(guestCopy); guest.appendChild(connect); wrap.appendChild(guest);
   const topActions = el('div', { class: 'public-corpus-actions' });
   const shareAll = el('button', { class: 'group-action primary', attrs: { type: 'button' }, text: tt('room.share.title', 'Отправить или сохранить') }); shareAll.addEventListener('click', () => openPublicShare(catalog, null, shareAll)); topActions.appendChild(shareAll); wrap.appendChild(topActions);
-  const controls = el('div', { class: 'group-corpus-controls' });
-  const search = el('input', { class: 'room-search group-corpus-search', attrs: { type: 'search', placeholder: tt('room.publicCorpus.search', 'Найти песню или автора'), 'aria-label': tt('room.publicCorpus.search', 'Найти песню или автора') } }); controls.appendChild(search); wrap.appendChild(controls);
-  const resultLine = el('div', { class: 'group-corpus-results room-browse-summary', attrs: { role: 'status', 'aria-live': 'polite' } }); wrap.appendChild(resultLine);
-  const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); wrap.appendChild(grid); main.appendChild(wrap);
+
+  const browseState = publicCorpusBrowseStates.get(slug) || { q: '', scope: 'all', audio: 'all', sort: 'position', start: 0 };
+  publicCorpusBrowseStates.set(slug, browseState);
+  const catalogRegion = corpusCatalogRegion('public-' + slug);
+  let filterChrome = null;
+  const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomPublicCorpusSearch' } });
+  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
+  const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: {
+    id: 'roomPublicCorpusSearch', name: 'room-public-corpus-search', type: 'search',
+    placeholder: tt('room.publicCorpus.search', 'Найти песню или исполнителя'),
+    'aria-label': tt('room.publicCorpus.search', 'Найти песню или исполнителя'),
+  } });
+  search.value = browseState.q; searchField.appendChild(search);
+  const makeSelect = (id, options, value, label, onChange) => {
+    const field = el('label', { class: 'room-field', attrs: { for: id } });
+    field.appendChild(el('span', { class: 'room-field-label', text: label }));
+    const select = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': label } });
+    for (const [optionValue, key, fallback] of options) {
+      const option = document.createElement('option'); option.value = optionValue; option.textContent = tt(key, fallback); select.appendChild(option);
+    }
+    select.value = value;
+    select.addEventListener('change', () => { onChange(select.value); filterChrome && filterChrome.refresh(); });
+    field.appendChild(select); return field;
+  };
+  const filterControls = el('div', { class: 'group-corpus-controls public-corpus-filter-controls' });
+  filterControls.appendChild(makeSelect('roomPublicCorpusScope', [
+    ['all', 'room.publicCorpus.scopeAll', 'Название и исполнитель'],
+    ['title', 'room.publicCorpus.scopeTitle', 'Только название'],
+    ['creator', 'room.publicCorpus.scopeCreator', 'Только исполнитель'],
+  ], browseState.scope, tt('room.publicCorpus.scopeLabel', 'Область поиска'), value => { browseState.scope = value; schedulePaint(); }));
+  const audioFilters = el('div', { class: 'corpus-facets group-corpus-smart public-corpus-audio-filter', attrs: { id: 'roomPublicCorpusAudio', 'aria-label': tt('room.publicCorpus.audioFilterLabel', 'Оригинальное аудио') } });
+  const buildAudioFilters = () => {
+    audioFilters.replaceChildren();
+    for (const [value, key, fallback] of [
+      ['complete', 'room.publicCorpus.audioComplete', 'Полный аудиопакет'],
+      ['missing', 'room.publicCorpus.audioMissingOnly', 'Есть технические исключения'],
+    ]) {
+      const active = browseState.audio === value;
+      const button = el('button', { class: 'corpus-facet-chip' + (active ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(active), 'data-audio': value }, text: tt(key, fallback) });
+      button.addEventListener('click', () => {
+        browseState.audio = active ? 'all' : value;
+        buildAudioFilters(); schedulePaint(); filterChrome && filterChrome.refresh();
+      });
+      audioFilters.appendChild(button);
+    }
+  };
+  filterControls.appendChild(audioFilters);
+  const sortField = makeSelect('roomPublicCorpusSort', [
+    ['position', 'room.publicCorpus.sortPosition', 'Порядок корпуса'],
+    ['title_asc', 'room.publicCorpus.sortTitleAZ', 'Название А–Я'],
+    ['title_desc', 'room.publicCorpus.sortTitleZA', 'Название Я–А'],
+    ['creator_asc', 'room.publicCorpus.sortCreator', 'Исполнитель А–Я'],
+  ], browseState.sort, tt('room.corpus.sort.label', 'Сортировка'), value => { browseState.sort = value; schedulePaint(); });
+  filterChrome = corpusFilterChrome('roomPublicCorpus', searchField, filterControls, sortField, () => {
+    const labels = [];
+    if (browseState.scope === 'title') labels.push(tt('room.publicCorpus.scopeTitle', 'Только название'));
+    else if (browseState.scope === 'creator') labels.push(tt('room.publicCorpus.scopeCreator', 'Только исполнитель'));
+    if (browseState.audio === 'complete') labels.push(tt('room.publicCorpus.audioComplete', 'Полный аудиопакет'));
+    else if (browseState.audio === 'missing') labels.push(tt('room.publicCorpus.audioMissingOnly', 'Есть технические исключения'));
+    return { count: labels.length, labels };
+  });
+  catalogRegion.appendChild(filterChrome.node);
+
+  const listSection = el('section', { class: 'room-primary-list public-corpus-list-section' });
+  const listHead = el('div', { class: 'corpus-list-head' });
+  listHead.appendChild(el('h2', { class: 'corpus-list-count', text: tt('room.publicCorpus.materials', 'Учебные материалы') }));
+  listSection.appendChild(listHead);
+  const resultLine = el('div', { class: 'group-corpus-results room-browse-summary', attrs: { role: 'status', 'aria-live': 'polite' } });
+  const grid = el('div', { class: 'group-corpus-grid corpus-work-list' });
+  const pager = el('nav', { class: 'corpus-more public-corpus-pager', attrs: { 'aria-label': tt('room.publicCorpus.pagination', 'Страницы публичного корпуса') } });
+  listSection.appendChild(resultLine); listSection.appendChild(grid); listSection.appendChild(pager);
+  attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, pager], 'public:' + slug + ':materials');
+  catalogRegion.appendChild(listSection); wrap.appendChild(catalogRegion); main.appendChild(wrap);
   const paint = () => {
-    const query = String(search.value || '').trim().toLocaleLowerCase();
-    const found = catalog.items.filter(item => !query || String(item.title + ' ' + item.creator).toLocaleLowerCase().includes(query));
-    resultLine.textContent = found.length + ' ' + tt('room.hub.textsN', 'текст(ов)'); grid.replaceChildren();
-    for (const item of found) {
+    const query = String(browseState.q || '').trim().toLocaleLowerCase();
+    const found = catalog.items.filter(item => {
+      const searchable = browseState.scope === 'title' ? String(item.title || '')
+        : browseState.scope === 'creator' ? String(item.creator || '')
+          : String((item.title || '') + ' ' + (item.creator || ''));
+      if (query && !searchable.toLocaleLowerCase().includes(query)) return false;
+      if (browseState.audio === 'complete' && !item.package_complete) return false;
+      if (browseState.audio === 'missing' && Number(item.asset_missing || 0) <= 0) return false;
+      return true;
+    });
+    const compareText = (left, right) => String(left || '').localeCompare(String(right || ''), undefined, { sensitivity: 'base' });
+    found.sort((a, b) => {
+      if (browseState.sort === 'title_asc') return compareText(a.title, b.title) || Number(a.position_no) - Number(b.position_no);
+      if (browseState.sort === 'title_desc') return compareText(b.title, a.title) || Number(a.position_no) - Number(b.position_no);
+      if (browseState.sort === 'creator_asc') return compareText(a.creator, b.creator) || compareText(a.title, b.title) || Number(a.position_no) - Number(b.position_no);
+      return Number(a.position_no) - Number(b.position_no);
+    });
+    if (browseState.start >= found.length) browseState.start = 0;
+    const page = found.slice(browseState.start, browseState.start + ROOM_BROWSE_PAGE);
+    const first = page.length ? browseState.start + 1 : 0;
+    const last = browseState.start + page.length;
+    resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + roomNumber(first) + '–' + roomNumber(last) + ' / ' + roomNumber(found.length);
+    grid.replaceChildren();
+    for (const item of page) {
       const card = el('article', { class: 'group-work-card room-text-row room-material-row', attrs: { 'data-public-work': item.public_work_id } });
       card.appendChild(el('span', { class: 'group-work-position', text: String(item.position_no) }));
       const identity = el('div', { class: 'group-work-identity corpus-work-col' });
@@ -9870,8 +9960,24 @@ async function renderPublicCorpus(slug, token) {
         : tt('room.publicCorpus.audioReady', 'Оригинальное аудио: {n}').replace('{n}', String(item.included_audio_count)) })); card.appendChild(identity);
       const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
     }
+    if (!page.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.publicCorpus.empty', 'Ничего не найдено') }));
+    pager.replaceChildren();
+    const previous = el('button', { class: 'corpus-more-btn public-corpus-page-prev', attrs: { type: 'button' }, text: '← ' + tt('room.publicCorpus.previousPage', 'Предыдущие') });
+    previous.disabled = browseState.start <= 0 || !page.length;
+    previous.addEventListener('click', () => { browseState.start = Math.max(0, browseState.start - ROOM_BROWSE_PAGE); paint(); });
+    const next = el('button', { class: 'corpus-more-btn public-corpus-page-next', attrs: { type: 'button' }, text: tt('room.publicCorpus.nextPage', 'Следующие') + ' →' });
+    next.disabled = browseState.start + page.length >= found.length;
+    next.addEventListener('click', () => { browseState.start += page.length; paint(); });
+    pager.appendChild(previous); pager.appendChild(next);
   };
-  let searchTimer = null; search.addEventListener('input', () => { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(paint, 100); }); paint();
+  let searchTimer = null;
+  function schedulePaint() {
+    browseState.start = 0;
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(paint, 120);
+  }
+  search.addEventListener('input', () => { browseState.q = search.value || ''; schedulePaint(); });
+  buildAudioFilters(); filterChrome.refresh(); paint();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 

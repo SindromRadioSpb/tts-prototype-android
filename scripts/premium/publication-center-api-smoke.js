@@ -68,8 +68,8 @@ async function removeTemp() {
     const cookie = String(response.headers.get("set-cookie") || "").split(";")[0];
     const authHeaders = { Cookie: cookie, "Content-Type": "application/json", "X-LP-CSRF": login.csrf, Origin: BASE };
 
-    const bundle = Buffer.from(JSON.stringify({ library: { texts: [{ text_key: "study-song-1", title: "Fixture song", rows: [{ order_index: 0, hebrew_plain: "שלום עולם", hebrew_niqqud: "שָׁלוֹם עוֹלָם", transliteration: "shalom olam", russian: "Привет, мир" }] }], audio_assets: [] }, notes_advanced: {} }));
     const audio = Buffer.from("publication-smoke-original-audio");
+    const bundle = Buffer.from(JSON.stringify({ library: { texts: [{ text_key: "study-song-1", title: "Fixture song", rows: [{ order_index: 0, hebrew_plain: "שלום עולם", hebrew_niqqud: "שָׁלוֹם עוֹלָם", transliteration: "shalom olam", russian: "Привет, мир", audio_asset_key: sha(audio) }] }], audio_assets: [{ asset_key: sha(audio), mime: "audio/mpeg" }] }, notes_advanced: {} }));
     const workRel = "group-corpora/study-songs/v1/works/song-1.json";
     const audioRel = "group-corpora/study-songs/v1/audio/" + sha(audio) + ".mp3";
     fs.mkdirSync(path.dirname(path.join(data, workRel)), { recursive: true });

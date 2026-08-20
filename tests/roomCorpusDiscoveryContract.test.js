@@ -42,6 +42,19 @@ test("every corpus places optional profile fit before an explicit catalog region
   assert.match(shell, /\.corpus-catalog-region\b/);
 });
 
+test("public corpora use the shared catalog search filter sort and bounded-page contract", () => {
+  assert.match(ui, /const publicCorpusBrowseStates = new Map\(\)/);
+  assert.match(ui, /corpusCatalogRegion\(['"]public-/);
+  assert.match(ui, /corpusFilterChrome\(['"]roomPublicCorpus/);
+  assert.match(ui, /roomPublicCorpusSearch/);
+  assert.match(ui, /roomPublicCorpusScope/);
+  assert.match(ui, /roomPublicCorpusAudio/);
+  assert.match(ui, /roomPublicCorpusSort/);
+  assert.match(ui, /ROOM_BROWSE_PAGE/);
+  assert.match(ui, /public-corpus-page-prev/);
+  assert.match(ui, /public-corpus-page-next/);
+});
+
 test("RU EN HE copy names recorded profile fit and rejects comprehension claims", () => {
   for (const [locale, source] of [["ru", ru], ["en", en], ["he", he]]) {
     assert.match(source, /profileFitTitle\s*:/, `${locale}: profileFitTitle missing`);
@@ -52,4 +65,12 @@ test("RU EN HE copy names recorded profile fit and rejects comprehension claims"
   assert.match(ru, /не оценка понимания текста/);
   assert.match(en, /not a comprehension estimate/i);
   assert.match(he, /אינה הערכה של הבנת הנקרא/);
+});
+
+test("RU EN HE public corpus copy names source-specific search filter and sort controls", () => {
+  for (const [locale, source] of [["ru", ru], ["en", en], ["he", he]]) {
+    for (const key of ["scopeLabel", "scopeAll", "scopeTitle", "scopeCreator", "audioFilterLabel", "audioAll", "audioComplete", "audioMissingOnly", "sortPosition", "sortTitleAZ", "sortTitleZA", "sortCreator", "materials", "empty", "previousPage", "nextPage"]) {
+      assert.match(source, new RegExp(key + "\\s*:"), `${locale}: ${key} missing`);
+    }
+  }
 });
