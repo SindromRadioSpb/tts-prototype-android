@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.416";
+const CACHE_VERSION = "v3.11.417";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -377,8 +377,9 @@ self.addEventListener("fetch", (event) => {
   // Corpus ZIPs remain network-only to avoid silently retaining a large archive.
   if (req.method === "GET" && url.pathname.startsWith("/api/public-corpora")) {
     if (url.pathname.endsWith("/package")) return;
-    const immutable = /\/works\/[^/]+$/.test(url.pathname) || /\/assets\/[0-9a-f]{64}$/.test(url.pathname);
-    event.respondWith(immutable ? publicCorpusCacheFirst(req) : networkFirst(req, PUBLIC_CORPUS_CACHE, NETWORK_FIRST_TIMEOUT_MS));
+    const asset = /\/assets\/[0-9a-f]{64}$/.test(url.pathname);
+    const immutable = /\/works\/[^/]+$/.test(url.pathname) || asset;
+    event.respondWith(asset ? publicCorpusAsset(req) : immutable ? publicCorpusCacheFirst(req) : networkFirst(req, PUBLIC_CORPUS_CACHE, NETWORK_FIRST_TIMEOUT_MS));
     return;
   }
 
@@ -460,6 +461,34 @@ async function publicCorpusCacheFirst(req) {
   const response = await fetch(req);
   if (response && response.ok && response.type === "basic") await cache.put(req, response.clone());
   return response;
+}
+
+async function publicCorpusAsset(req) {
+  const range = req.headers.get("range");
+  if (!range) return publicCorpusCacheFirst(req);
+  const cache = await caches.open(PUBLIC_CORPUS_CACHE);
+  const fullRequest = new Request(req.url, { method: "GET", credentials: req.credentials, mode: req.mode, redirect: req.redirect });
+  let fullResponse = await cache.match(fullRequest);
+  if (!fullResponse) {
+    fullResponse = await fetch(fullRequest);
+    if (!fullResponse || !fullResponse.ok) return fullResponse;
+    if (fullResponse.type === "basic") await cache.put(fullRequest, fullResponse.clone());
+  }
+  const bytes = await fullResponse.arrayBuffer();
+  const total = bytes.byteLength;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
+  let start = match && match[1] ? Number(match[1]) : null;
+  let end = match && match[2] ? Number(match[2]) : null;
+  if (match && start == null && end != null) { start = Math.max(0, total - end); end = total - 1; }
+  else { if (start == null) start = 0; if (end == null || end >= total) end = total - 1; }
+  if (!match || !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || start > end || start >= total) {
+    return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${total}` } });
+  }
+  const headers = new Headers(fullResponse.headers);
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Range", `bytes ${start}-${end}/${total}`);
+  headers.set("Content-Length", String(end - start + 1));
+  return new Response(bytes.slice(start, end + 1), { status: 206, statusText: "Partial Content", headers });
 }
 
 // Knowledge Graph chunk strategy — stale-while-revalidate against the

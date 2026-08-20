@@ -166,11 +166,13 @@ async function capture(page, file) {
     const cacheEvidence = await guest.evaluate(async () => { const names = await caches.keys(); const name = names.find(value => value.includes('public-corpus')); const keys = name ? await (await caches.open(name)).keys() : []; return { name: name || '', urls: keys.map(request => request.url) }; });
     assert.ok(cacheEvidence.urls.some(url => url.endsWith('/api/public-corpora')), JSON.stringify(cacheEvidence));
     assert.ok(cacheEvidence.urls.some(url => url.includes('/works/')), JSON.stringify(cacheEvidence));
+    const rangeOnline = await guest.evaluate(async id => { const work = await (await fetch('/api/public-corpora/study-songs/works/' + id)).json(); const key = work.assets[0].asset_key; const response = await fetch('/api/public-corpora/study-songs/assets/' + key, { headers: { Range: 'bytes=0-3' } }); return { key, status: response.status, range: response.headers.get('content-range'), bytes: (await response.arrayBuffer()).byteLength }; }, publicWorkId);
+    assert.strictEqual(rangeOnline.status, 206); assert.strictEqual(rangeOnline.bytes, 4); assert.match(rangeOnline.range, /^bytes 0-3\//);
     await guestContext.setOffline(true);
     await guest.reload({ waitUntil: 'domcontentloaded' });
     await guest.locator('#roomReader:not([hidden])').waitFor({ timeout: 30000 });
     assert.match(await guest.locator('#roomReader').textContent(), /שלום עולם/);
-    const offline = await guest.evaluate(() => ({ online: navigator.onLine, textVisible: document.getElementById('roomReader').textContent.includes('שלום עולם') }));
+    const offline = await guest.evaluate(async key => { const response = await fetch('/api/public-corpora/study-songs/assets/' + key, { headers: { Range: 'bytes=1-2' } }); return { online: navigator.onLine, textVisible: document.getElementById('roomReader').textContent.includes('שלום עולם'), audio_status: response.status, audio_bytes: (await response.arrayBuffer()).byteLength }; }, rangeOnline.key);
     await guestContext.setOffline(false);
     await guest.reload({ waitUntil: 'domcontentloaded' });
     await guest.locator('#roomReader:not([hidden])').waitFor({ timeout: 30000 });
@@ -178,9 +180,9 @@ async function capture(page, file) {
     for (const result of [publicDesktop, publicMobileRu, publicMobileHe]) { assert.strictEqual(result.overflow, false, JSON.stringify(result)); assert.deepStrictEqual(result.tinyTargets, [], JSON.stringify(result)); assert.ok(result.publicTrust && result.takedown, JSON.stringify(result)); }
     assert.strictEqual(publicDesktop.dir, 'ltr'); assert.strictEqual(publicMobileRu.dir, 'ltr'); assert.strictEqual(publicMobileHe.dir, 'rtl');
     assert.ok(publicKeyboard.inside && publicKeyboard.focusVisible, JSON.stringify(publicKeyboard)); assert.ok(assetResponses.includes(200) || assetResponses.includes(206), JSON.stringify(assetResponses));
-    assert.ok(!offline.online && offline.textVisible, JSON.stringify(offline)); assert.ok(reconnect.online && reconnect.textVisible, JSON.stringify(reconnect));
+    assert.ok(!offline.online && offline.textVisible && offline.audio_status === 206 && offline.audio_bytes === 2, JSON.stringify(offline)); assert.ok(reconnect.online && reconnect.textVisible, JSON.stringify(reconnect));
     assert.deepStrictEqual(guestErrors, []); assert.deepStrictEqual(guestFailed, []);
-    console.log(JSON.stringify({ gate: "PUBLICATION_CENTER_AND_PUBLIC_ROOM_BROWSER", publication_center: { desktop, mobile_ru: mobileRu, mobile_he: mobileHe, zoom_200: zoom, keyboard }, public_room: { work_id: publicWorkId, desktop_ru: publicDesktop, mobile_ru: publicMobileRu, mobile_he: publicMobileHe, keyboard: publicKeyboard, audio_http: assetResponses, zip_download: download.suggestedFilename(), cache: cacheEvidence, offline, reconnect }, page_errors: pageErrors.length + guestErrors.length, failed_public_responses: guestFailed.length, screenshots: ["publication-center-desktop-ru.png", "publication-center-380-ru.png", "publication-center-380-he-rtl.png", "publication-center-380-he-rtl-200pct.png", "public-study-songs-desktop-ru.png", "public-study-songs-380-ru.png", "public-study-songs-380-he-rtl.png", "public-study-songs-reader-380-ru.png"] }, null, 2));
+    console.log(JSON.stringify({ gate: "PUBLICATION_CENTER_AND_PUBLIC_ROOM_BROWSER", publication_center: { desktop, mobile_ru: mobileRu, mobile_he: mobileHe, zoom_200: zoom, keyboard }, public_room: { work_id: publicWorkId, desktop_ru: publicDesktop, mobile_ru: publicMobileRu, mobile_he: publicMobileHe, keyboard: publicKeyboard, audio_http: assetResponses, audio_range_online: rangeOnline, zip_download: download.suggestedFilename(), cache: cacheEvidence, offline, reconnect }, page_errors: pageErrors.length + guestErrors.length, failed_public_responses: guestFailed.length, screenshots: ["publication-center-desktop-ru.png", "publication-center-380-ru.png", "publication-center-380-he-rtl.png", "publication-center-380-he-rtl-200pct.png", "public-study-songs-desktop-ru.png", "public-study-songs-380-ru.png", "public-study-songs-380-he-rtl.png", "public-study-songs-reader-380-ru.png"] }, null, 2));
     await guestContext.close(); guestContext = null;
     await context.close();
   } finally {

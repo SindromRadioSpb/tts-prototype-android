@@ -50,3 +50,12 @@ test("Room loads public corpora before protected memberships and uses the public
   assert.match(room, /\/api\/public-corpora\/.*\/assets\//);
   assert.match(html, /public-corpus-adapter\.js/);
 });
+
+test("service worker answers audio Range requests from a cached full immutable asset", () => {
+  const worker = source("public/sw.js");
+  assert.match(worker, /req\.headers\.get\("range"\)/);
+  assert.match(worker, /fetch\(fullRequest\)/);
+  assert.match(worker, /cache\.put\(fullRequest, fullResponse\.clone\(\)\)/);
+  assert.match(worker, /status:\s*206/);
+  assert.match(worker, /Content-Range/);
+});
