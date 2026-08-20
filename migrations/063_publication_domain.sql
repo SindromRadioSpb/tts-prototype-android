@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS publication_events (
   corpus_id        TEXT NOT NULL REFERENCES published_corpora(corpus_id) ON DELETE RESTRICT,
   edition_id       TEXT REFERENCES published_corpus_editions(edition_id) ON DELETE RESTRICT,
   actor_user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-  event_type       TEXT NOT NULL CHECK(event_type IN ('DRAFT_CREATED','ITEMS_COPIED','RIGHTS_PRESET_APPLIED','PUBLISHED','POINTER_ROLLED_BACK','WITHDRAWN','RESTORED')),
+  event_type       TEXT NOT NULL CHECK(event_type IN ('DRAFT_CREATED','ITEMS_COPIED','DRAFT_REORDERED','RIGHTS_PRESET_APPLIED','PUBLISHED','POINTER_ROLLED_BACK','WITHDRAWN','RESTORED')),
   idempotency_key  TEXT,
   reason_code      TEXT,
   detail_json      TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(detail_json)),

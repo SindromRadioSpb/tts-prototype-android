@@ -9731,6 +9731,7 @@ async function renderGroupCorpus(corpusId, token) {
     const download=(kind)=>{const a=document.createElement('a');a.href='/api/group-corpora/'+encodeURIComponent(corpusId)+'/export/'+kind;a.download='';document.body.appendChild(a);a.click();a.remove();};
     const adminBtn=(label,fn)=>{const b=el('button',{class:'group-admin-action',attrs:{type:'button'},text:label});b.addEventListener('click',fn);return b;};
     admin.appendChild(adminBtn('👥 '+tt('room.groupAccess.manage','Участники и приглашения'),()=>openGroupAccess(corpusId)));
+    admin.appendChild(adminBtn('◈ '+tt('room.publication.manage','Управлять публикацией'),()=>{ location.href='/index.html#publication-center'; }));
     admin.appendChild(adminBtn('📤 '+tt('room.groupCorpus.exportJson','Экспорт JSON'),()=>download('catalog')));
     admin.appendChild(adminBtn('📤 '+tt('room.groupCorpus.exportZip','Экспорт ZIP (с аудио)'),()=>download('backup')));
     const fileInput=el('input',{attrs:{type:'file',hidden:'',accept:'.json,.zip,application/json,application/zip'}});

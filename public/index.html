@@ -37,6 +37,7 @@
     <!-- ROOM-UX-VF/VF0: additive primitives load before the complete legacy
          surface stylesheet below, preserving old/new SW compatibility. -->
     <link rel="stylesheet" href="/css/visual-foundations.css">
+    <link rel="stylesheet" href="/css/publication-center.css?v=415">
 
     <style>
     /* ── App-wide theming (Direction 2, Premium Release v3.1.0) ─────────
@@ -11978,6 +11979,36 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
+    <!-- MASS-ACCESS I2: one owner-only publication writer. Room management
+         deep-links to this exact dialog; it never carries a second writer. -->
+    <dialog id="publicationCenterDialog" class="publication-center" aria-labelledby="pcContextTitle" aria-describedby="pcContextSubtitle">
+      <div class="pc-shell">
+        <aside class="pc-spine">
+          <p class="pc-kicker" data-i18n="publication.kicker">Publication desk</p>
+          <h2 data-i18n="publication.title">Publication Center</h2>
+          <p class="pc-spine-copy" data-i18n="publication.spineCopy">Prepare immutable public editions without changing their private sources.</p>
+          <nav id="pcCorpusList" class="pc-corpus-list" aria-label="Публичные корпуса" data-i18n-aria-label="publication.corporaNav"></nav>
+          <button id="pcNewCorpus" class="pc-new" type="button" data-i18n="publication.newCorpus">New public corpus</button>
+        </aside>
+        <section class="pc-main">
+          <header class="pc-head">
+            <div class="pc-head-copy">
+              <p class="pc-kicker" data-i18n="publication.editionDesk">Edition desk</p>
+              <h3 id="pcContextTitle">Publication Center</h3>
+              <p id="pcContextSubtitle" class="pc-subtitle"></p>
+            </div>
+            <button id="publicationCenterClose" class="pc-close" type="button" aria-label="Закрыть" data-i18n-aria-label="publication.close">×</button>
+          </header>
+          <p id="pcStatus" class="pc-status" aria-live="polite" aria-atomic="true"></p>
+          <div id="pcBody" class="pc-body"></div>
+          <div class="pc-footer pc-copyright">
+            <span data-i18n="room.copyright.body">LinguistPro is a non-commercial educational project. If you believe that any material infringes copyright, email peter@kolosei.com.</span>
+            <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Report a copyright concern</a>
+          </div>
+        </section>
+      </div>
+    </dialog>
+
     <!-- Шит «Строка таблицы» удалён (спека 2026-08-05): тап по слову → морф-карточка (studio-morph.js). -->
 
     <!-- V3: Library Modal (P0) -->
@@ -11991,6 +12022,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
     <button class="btn-secondary" onclick="v3FeedbackOpen('cardrequest')" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
     <button id="v3PortabilityHubBtn" class="btn-primary" onclick="StudioPortableLearningPackage.open({view:'overview',intent:'backup'})" data-i18n="studio.importCenter.hub">Импорт-центр</button>
+    <button id="publicationCenterEntry" class="btn-secondary" type="button" hidden data-i18n="publication.open">Публикация</button>
     <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
     <button id="v3LibraryWipeAllBtn" class="btn-secondary" onclick="v3LibraryWipeAllConfirm()" style="display:none; color:#b91c1c; border-color:#fecaca; background:#fef2f2;" title="Удалить ВСЁ из локальной библиотеки. Полный сброс OPFS. Действие необратимо.">⚠ Сбросить локальную библиотеку</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()" data-i18n="library.refresh">Обновить</button>
@@ -12119,6 +12151,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkSelectAll()">Выбрать все на экране</button>
 	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkClear()">Снять выбор</button>
 	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkArchive()">📦 Архивировать</button>
+	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkPublish()" data-i18n="publication.addSelected">Добавить в публичный корпус</button>
 	    <button class="btn-secondary" style="background:#dc2626; color:#fff; border-color:#dc2626; min-height:36px; font-weight:600;" onclick="v3LibraryBulkDelete()">🗑 Удалить выбранные</button>
 	  </div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
@@ -13313,9 +13346,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=174"></script>
-    <script src="/i18n/locales/en.js?v=174"></script>
-    <script src="/i18n/locales/he.js?v=174"></script>
+    <script src="/i18n/locales/ru.js?v=175"></script>
+    <script src="/i18n/locales/en.js?v=175"></script>
+    <script src="/i18n/locales/he.js?v=175"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13461,6 +13494,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      паттерн studio-karaoke; room-mode = читальный вид, инъекция скипается).
      cloud-sync.js — dormant UMD (нужен CS.me()/consents; ничего не вызывает сам). -->
 <script src="/js/cloud-sync.js"></script>
+<script src="/js/publication-center.js?v=415"></script>
 <!-- Wave 2 C3a — shared browser-owned voice -> editable draft controller. -->
 <script src="/js/voice-draft.js"></script>
 <script src="/js/studio-agent.js"></script>
@@ -13488,7 +13522,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.414";
+    window.APP_VERSION = "3.11.415";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -30413,6 +30447,11 @@ function v3LibraryBulkClear() {
   v3LibraryUpdateBulkBar();
 }
 
+function v3LibraryBulkPublish() {
+  if (!window.PublicationCenter) return;
+  window.PublicationCenter.open({ myTextIds: Array.from(v3LibSelected) });
+}
+
 async function v3LibraryBulkDelete() {
   const ids = Array.from(v3LibSelected);
   if (!ids.length) return;
@@ -43403,6 +43442,28 @@ async function v3TcsBuildCardPayload(textId) {
     text, sentences, notesBySentenceId, appTag: V3_TCS_APP_TAG,
   });
 }
+
+// MASS-ACCESS I2 bridge: Publication Center receives explicit snapshots of
+// selected My Texts. It never receives a mutable OPFS handle and never removes
+// or edits the source. Audio references become expected-asset counts only;
+// unavailable server bytes remain honest technical exceptions.
+window.v3PublicationBuildSelectedItems = async function (ids) {
+  const out = [];
+  for (const rawId of (Array.isArray(ids) ? ids : [])) {
+    const sourceWorkId = String(rawId || "");
+    const snapshot = await v3TcsBuildCardPayload(sourceWorkId);
+    const card = snapshot && snapshot.card || {};
+    const audio = new Set((card.rows || []).map(row => String(row && row.audio_asset_key || "")).filter(Boolean));
+    out.push({
+      sourceWorkId,
+      title: String(card.title || sourceWorkId),
+      creator: String(card.author || card.creator || ""),
+      expectedAudioCount: audio.size,
+      snapshot,
+    });
+  }
+  return out;
+};
 
 // E1 (R11) — честная строка про паспорт/медиа в обоих превью (шаринг и импорт).
 // Правило: аудио-БАЙТЫ в JSON не едут никогда; едет паспорт (сегменты/тайминг/asr)

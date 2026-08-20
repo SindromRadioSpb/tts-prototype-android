@@ -1050,7 +1050,9 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=414",
+  "/js/library-ui.js?v=415",
+  "/css/publication-center.css?v=415",
+  "/js/publication-center.js?v=415",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
@@ -1060,9 +1062,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/reader-morph.css?v=394",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
-  "/i18n/locales/ru.js?v=174",
-  "/i18n/locales/en.js?v=174",
-  "/i18n/locales/he.js?v=174",
+  "/i18n/locales/ru.js?v=175",
+  "/i18n/locales/en.js?v=175",
+  "/i18n/locales/he.js?v=175",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3769,6 +3771,81 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
     res.json(out);
   } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_DELETE_FAILED", message: e.message }); }
 });
+
+// ============================================================================
+// MASS_ACCESS_I2 — the authenticated Publication Center is the only HTTP
+// writer for public corpora. The Reading Room can deep-link here, but exposes
+// no publication mutation of its own. Every canonical write delegates to the
+// single publication repository and is protected by session, CSRF, strict
+// same-origin JSON and an idempotency key.
+// ============================================================================
+const { getPublicationRepo } = require("./db/publicationRepo");
+const rlPublicationRead = makeRateLimiter({ windowMs: 60_000, max: 180, name: "publication-read" });
+const rlPublicationWrite = makeRateLimiter({ windowMs: 60_000, max: 90, name: "publication-write" });
+
+function publicationError(res, error) {
+  const code = String((error && (error.code || error.message)) || "PUBLICATION_FAILED");
+  const safe = new Set([
+    "UNAUTHENTICATED", "BAD_CSRF", "BAD_ORIGIN", "UNSUPPORTED_MEDIA_TYPE",
+    "PUBLISHER_FORBIDDEN", "CORPUS_NOT_FOUND", "DRAFT_NOT_FOUND",
+    "DRAFT_VERSION_CONFLICT", "PUBLICATION_INPUT_INVALID", "SOURCE_SNAPSHOT_INVALID",
+    "SOURCE_CHANGED", "SOURCE_ALREADY_COPIED", "RIGHTS_PRESET_INVALID",
+    "RIGHTS_REVIEW_REQUIRED", "PUBLIC_READ_NOT_ALLOWED", "IDEMPOTENCY_KEY_REQUIRED",
+    "IDEMPOTENCY_CONFLICT", "EDITION_HASH_MISMATCH", "PUBLICATION_ASSET_INVALID",
+  ]);
+  const status = Number(error && error.status) || (code === "PUBLISHER_FORBIDDEN" ? 403 : 500);
+  return res.status(status).json({ ok: false, error: safe.has(code) ? code : "PUBLICATION_FAILED" });
+}
+function publicationActor(auth) {
+  return { id: auth.user.id, role: auth.user.role };
+}
+function publicationIdempotency(req) {
+  return { idempotencyKey: String(req.get("X-Idempotency-Key") || "").trim() };
+}
+async function publicationRead(req, res, action) {
+  const auth = await requireUser(req, res); if (!auth) return;
+  res.set("Cache-Control", "private, no-store, max-age=0");
+  try { return res.json({ ok: true, ...(await action(getPublicationRepo(), publicationActor(auth))) }); }
+  catch (error) { return publicationError(res, error); }
+}
+async function publicationWrite(req, res, operation, action, created = false) {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const result = await action(getPublicationRepo(), publicationActor(auth), publicationIdempotency(req));
+    identityRepo.audit("publication_" + operation, auth.user.id,
+      { corpus_id: result && result.corpus_id || null, edition_id: result && result.edition_id || null }, req.ip);
+    return res.status(created ? 201 : 200).json({ ok: true, ...result });
+  } catch (error) { return publicationError(res, error); }
+}
+
+app.get("/api/publication/corpora", rlPublicationRead, (req, res) => publicationRead(req, res,
+  async (repo, actor) => ({ schema_version: "publication_center.1.0.0", corpora: await repo.listPublisherCorpora(actor) })));
+app.get("/api/publication/corpora/:corpusId", rlPublicationRead, (req, res) => publicationRead(req, res,
+  async (repo, actor) => ({ schema_version: "publication_center_detail.1.0.0", corpus: await repo.getPublisherCorpus(actor, req.params.corpusId) })));
+
+app.post("/api/publication/corpora", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "corpus_created",
+  (repo, actor, opts) => repo.createCorpus(actor, req.body || {}, opts), true));
+app.post("/api/publication/corpora/:corpusId/draft/items\\:copy", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "items_copied",
+  (repo, actor, opts) => String(req.body && req.body.sourceDomain || "").toUpperCase() === "GROUP_CORPUS"
+    ? repo.copyGroupCorpusItems(actor, req.params.corpusId, req.body || {}, opts)
+    : repo.copyMyTextItems(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId/draft/items\\:reorder", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "draft_reordered",
+  (repo, actor, opts) => repo.reorderDraftItems(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId/draft/rights\\:apply-study-songs-preset", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "rights_preset_applied",
+  (repo, actor, opts) => repo.applyRightsPreset(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId/draft\\:validate", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "draft_validated",
+  (repo, actor) => repo.validateDraft(actor, req.params.corpusId, req.body && req.body.expectedVersion)));
+app.post("/api/publication/corpora/:corpusId\\:publish", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "published",
+  (repo, actor, opts) => repo.publish(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId\\:withdraw", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "withdrawn",
+  (repo, actor, opts) => repo.withdraw(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId\\:restore", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "restored",
+  (repo, actor, opts) => repo.restore(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId\\:rollback", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "pointer_rolled_back",
+  (repo, actor, opts) => repo.rollback(actor, req.params.corpusId, req.body || {}, opts)));
+app.post("/api/publication/corpora/:corpusId/draft\\:new-revision", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "revision_draft_created",
+  (repo, actor, opts) => repo.createRevisionDraft(actor, req.params.corpusId, opts), true));
 
 // ============================================================================
 // GROUP_SONG_CORPUS_P0 — restricted group corpus. Unlike Ben-Yehuda, no work

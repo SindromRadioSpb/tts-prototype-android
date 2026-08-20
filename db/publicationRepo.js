@@ -351,6 +351,28 @@ function createPublicationRepo(options = {}) {
     });
   }
 
+  async function reorderDraftItems(actor, corpusId, input, opts) {
+    const itemIds = Array.isArray(input && input.itemIds)
+      ? input.itemIds.map(value => cleanId(value, "PUBLICATION_INPUT_INVALID")) : [];
+    if (!itemIds.length || itemIds.length > 1000 || new Set(itemIds).size !== itemIds.length)
+      fail("PUBLICATION_INPUT_INVALID", 400);
+    const expectedVersion = Number(input && input.expectedVersion);
+    const request = { corpusId, itemIds, expectedVersion };
+    return withIdempotency(actor, "REORDER_DRAFT_ITEMS", opts, request, async key => {
+      const { draft } = await activeDraft(actor, corpusId, expectedVersion);
+      const existing = await dbAll(database, "SELECT item_id FROM publication_draft_items WHERE draft_id=? ORDER BY position_no,item_id", [draft.draft_id]);
+      if (existing.length !== itemIds.length || existing.some(row => !itemIds.includes(row.item_id)))
+        fail("DRAFT_VERSION_CONFLICT", 409);
+      for (let index = 0; index < itemIds.length; index += 1) {
+        await dbRun(database, "UPDATE publication_draft_items SET position_no=? WHERE draft_id=? AND item_id=?", [index + 1, draft.draft_id, itemIds[index]]);
+      }
+      const nextVersion = Number(draft.version) + 1;
+      await dbRun(database, "UPDATE publication_drafts SET version=?,updated_by=?,updated_at=? WHERE draft_id=?", [nextVersion, actorId(actor), now(), draft.draft_id]);
+      await appendEvent(actor, corpusId, "DRAFT_REORDERED", { idempotencyKey: key, detail: { count: itemIds.length } });
+      return { corpus_id: corpusId, draft_id: draft.draft_id, draft_version: nextVersion, item_ids: itemIds };
+    });
+  }
+
   async function applyRightsPreset(actor, corpusId, input, opts) {
     if (String(actor && actor.role).toLowerCase() !== "owner") fail("PUBLISHER_FORBIDDEN", 403);
     const itemIds = Array.isArray(input && input.itemIds) ? [...new Set(input.itemIds.map(value => cleanId(value, "PUBLICATION_INPUT_INVALID")))] : [];
@@ -506,7 +528,11 @@ function createPublicationRepo(options = {}) {
     const items = draft ? await dbAll(database, "SELECT * FROM publication_draft_items WHERE draft_id=? ORDER BY position_no", [draft.draft_id]) : [];
     const enriched = [];
     for (const item of items) enriched.push({ ...item, rights: await latestRights(item.item_id) });
-    return { ...corpus, draft: draft || null, items: enriched };
+    const editions = await dbAll(database, `SELECT edition_id,edition_number,manifest_sha256,item_count,asset_count,asset_missing,package_complete,package_bytes,package_sha256,published_by,published_at
+      FROM published_corpus_editions WHERE corpus_id=? ORDER BY edition_number DESC`, [corpus.corpus_id]);
+    const events = await dbAll(database, `SELECT event_id,edition_id,actor_user_id,event_type,reason_code,detail_json,occurred_at
+      FROM publication_events WHERE corpus_id=? ORDER BY occurred_at DESC,event_id DESC LIMIT 200`, [corpus.corpus_id]);
+    return { ...corpus, draft: draft || null, items: enriched, editions, events: events.map(event => ({ ...event, detail: parseJson(event.detail_json, "PUBLICATION_EVENT_INVALID"), detail_json: undefined })) };
   }
   async function listPublisherCorpora(actor) {
     await assertPublisher(actor);
@@ -611,7 +637,7 @@ function createPublicationRepo(options = {}) {
   }
 
   return {
-    grantPublisher, createCorpus, copyGroupCorpusItems, copyMyTextItems, applyRightsPreset,
+    grantPublisher, createCorpus, copyGroupCorpusItems, copyMyTextItems, reorderDraftItems, applyRightsPreset,
     validateDraft, publish, createRevisionDraft, getPublisherCorpus, listPublisherCorpora,
     listPublicCorpora, getPublicCorpus, getPublicWork, getPublicAsset, getPublicPackage,
     withdraw, restore, rollback,
