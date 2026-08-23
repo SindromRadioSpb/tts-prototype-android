@@ -11,7 +11,7 @@
 import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js?v=399';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
-import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, learningSignals } from '/js/corpus-item-presenter.js';
+import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js';
 import * as roomB6 from '/js/room-b6-core.js';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
@@ -90,6 +90,8 @@ let _compassProgressTimer = null;
 let _personalCompassSweep = null;
 const _groupLearningIndexes = new Map();
 const _groupLearningIndexLoading = new Map();
+const _publicLearningIndexes = new Map();
+const _publicLearningIndexLoading = new Map();
 const _learningIndexStates = new Map();
 let _benFamiliarityScores = null;
 let _benFamiliarityLoading = null;
@@ -270,6 +272,17 @@ function groupCompassDescriptor(corpusId, work, localRow) {
     content_revision: String(work.bundle_sha256), content_sha256: '',
     entitlement_revision: String(work.bundle_sha256), resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
     local_id: localRow && edition === String(work.bundle_sha256) ? String(localRow.id) : null,
+  };
+}
+
+function publicCompassDescriptor(slug, work, localRow) {
+  if (!work || !work.snapshot_sha256 || !work.manifest_sha256) return null;
+  return {
+    cache_key: 'public:' + String(slug) + ':' + String(work.public_work_id), source_class: 'public',
+    source_key: 'public:' + String(slug) + ':' + String(work.public_work_id),
+    content_revision: String(work.snapshot_sha256), content_sha256: '',
+    entitlement_revision: String(work.manifest_sha256), resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
+    local_id: localRow ? String(localRow.id) : null,
   };
 }
 
@@ -7705,7 +7718,7 @@ async function evaluateFamiliarityItems(items, projection, ingredientFor) {
   const list = Array.isArray(items) ? items : [];
   for (let index = 0; index < list.length; index += 1) {
     const item = list[index], ingredients = ingredientFor(item);
-    if (ingredients) scores.set(String(item.work_id != null ? item.work_id : item.id), contextFromIngredients(ingredients, projection).compass);
+    if (ingredients) scores.set(String(item.public_work_id != null ? item.public_work_id : item.work_id != null ? item.work_id : item.id), contextFromIngredients(ingredients, projection).compass);
     if (index && index % 16 === 0) await yieldLearningIndexWork();
   }
   return scores;
@@ -7777,6 +7790,75 @@ async function ensureGroupLearningIndex(corpusId, catalog) {
     throw error;
   }).finally(() => _groupLearningIndexLoading.delete(id));
   _groupLearningIndexLoading.set(id, job);
+  return job;
+}
+
+async function ensurePublicLearningIndex(slug, catalog) {
+  const id = String(slug || '');
+  if (_publicLearningIndexes.has(id)) return _publicLearningIndexes.get(id);
+  if (_publicLearningIndexLoading.has(id)) return _publicLearningIndexLoading.get(id);
+  const scope = 'public:' + id;
+  const total = Array.isArray(catalog && catalog.items) ? catalog.items.length : 0;
+  paintCorpusLearningIndexState(scope, { state: 'preparing', prepared: 0, total });
+  const job = (async () => {
+    const projection = await ensureLearningCompassProjection();
+    const byId = new Map((catalog.items || []).map(item => [String(item.public_work_id), item]));
+    const items = [], seen = new Set(), cursors = new Set();
+    let cursor = null, indexRevision = null, successfulSeen = 0, unsupportedSeen = 0, pageCount = 0;
+    do {
+      const cursorKey = cursor || '__first__';
+      if (cursors.has(cursorKey) || ++pageCount > total + 1) throw new Error('public learning index cursor loop');
+      cursors.add(cursorKey);
+      const query = new URLSearchParams({ limit: '16' }); if (cursor) query.set('cursor', cursor);
+      const response = await fetch('/api/public-corpora/' + encodeURIComponent(id) + '/learning-index?' + query.toString(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('public learning index ' + response.status);
+      const rawPacket = await response.text();
+      if (new TextEncoder().encode(rawPacket).byteLength > 256 * 1024) throw new Error('public learning index packet limit');
+      const packet = JSON.parse(rawPacket);
+      if (!packet || !packet.ok || packet.schema_version !== 'public_learning_index.1.0.0'
+          || packet.resolver_version !== learningCompass.RESOLVER_VERSION || !Array.isArray(packet.items)
+          || Number(packet.matched_total) !== total || String(packet.edition_id) !== String(catalog.edition.edition_id)
+          || String(packet.manifest_sha256) !== String(catalog.edition.manifest_sha256)) throw new Error('malformed public learning index');
+      if (indexRevision && indexRevision !== String(packet.index_revision)) throw new Error('public learning index changed during read');
+      indexRevision = String(packet.index_revision || '');
+      const writes = [];
+      for (const item of packet.items) {
+        const work = item && byId.get(String(item.public_work_id));
+        if (!work || seen.has(String(item.public_work_id)) || String(item.snapshot_sha256) !== String(work.snapshot_sha256))
+          throw new Error('public learning index mismatch');
+        seen.add(String(item.public_work_id)); items.push(item);
+        const descriptor = publicCompassDescriptor(id, work, null);
+        if (item.status === 'PREPARED' && item.ingredients && descriptor) {
+          successfulSeen += 1;
+          writes.push({ ...descriptor, ingredients: item.ingredients, content_sha256: String(item.ingredients.content_sha256 || '') });
+          _compassPage.set(descriptor.cache_key, contextFromIngredients(item.ingredients, projection));
+        } else {
+          unsupportedSeen += 1;
+          if (descriptor) _compassPage.set(descriptor.cache_key, compassStatusContext('UNSUPPORTED', String(item.reason_code || 'PUBLIC_INDEX_UNSUPPORTED')));
+        }
+      }
+      if (writes.length) {
+        try {
+          if (typeof localDb.putLearningCompassIngredientsBatch === 'function') await localDb.putLearningCompassIngredientsBatch(writes);
+          else for (const write of writes) await localDb.putLearningCompassIngredients(write);
+        } catch (_) {}
+      }
+      paintCorpusLearningIndexState(scope, { state: 'preparing', prepared: successfulSeen, total, unsupported: unsupportedSeen });
+      cursor = packet.next_cursor || null;
+      if (cursor && !packet.items.length) throw new Error('public learning index empty page');
+    } while (cursor && items.length <= total);
+    if (seen.size !== total || items.length !== total) throw new Error('incomplete public learning index');
+    const fits = await evaluateFamiliarityItems(items.filter(item => item.status === 'PREPARED'), projection, item => item.ingredients);
+    const ready = { index_revision: indexRevision, items, fits, prepared: successfulSeen, unsupported: unsupportedSeen, total };
+    _publicLearningIndexes.set(id, ready);
+    paintCorpusLearningIndexState(scope, { state: 'ready', prepared: successfulSeen, total, unsupported: unsupportedSeen });
+    for (const work of (catalog.items || [])) repaintPreparedCompass('public:' + id + ':' + String(work.public_work_id));
+    return ready;
+  })().catch(error => {
+    paintCorpusLearningIndexState(scope, { state: 'error', prepared: 0, total });
+    throw error;
+  }).finally(() => _publicLearningIndexLoading.delete(id));
+  _publicLearningIndexLoading.set(id, job);
   return job;
 }
 
@@ -9835,6 +9917,15 @@ async function renderPublicCorpus(slug, token) {
   catch (_) { if (token === corpusRenderToken) showState(navigator.onLine ? 'room.state.error' : 'room.connection.offlinePartial', navigator.onLine ? '⚠️' : '↯'); return; }
   if (token !== corpusRenderToken) return;
   main.innerHTML = '';
+  let local = [];
+  try {
+    local = await localDb.dbQuery(`SELECT t.id,t.text_key,t.last_opened_at,t.created_at,t.updated_at,
+      tp.last_row_idx,tp.finished_at,(SELECT COUNT(*) FROM sentences s WHERE s.text_id=t.id) AS n_rows
+      FROM texts t LEFT JOIN text_progress tp ON tp.text_id=t.id WHERE t.is_archived=0`);
+  } catch (_) { local = []; }
+  if (token !== corpusRenderToken) return;
+  const localByKey = new Map((local || []).filter(row => row && row.text_key).map(row => [String(row.text_key), row]));
+  const localKeyFor = item => window.PublicCorpusAdapter.localTextKey(slug, item.public_work_id, item.snapshot_sha256);
   const descriptor = authorizedCorpusById('public:' + slug) || { id: 'public:' + slug, icon: '♫', title: { key: '', fb: catalog.title }, desc: { key: '', fb: catalog.description } };
   const localizedDescription = slug === 'study-songs' ? tt('room.publicCorpus.studySongsDescription', catalog.description) : catalog.description;
   const wrap = el('div', { class: 'corpus-nav group-corpus public-corpus', attrs: { 'data-public-corpus': slug } });
@@ -9871,7 +9962,7 @@ async function renderPublicCorpus(slug, token) {
       const option = document.createElement('option'); option.value = optionValue; option.textContent = tt(key, fallback); select.appendChild(option);
     }
     select.value = value;
-    select.addEventListener('change', () => { onChange(select.value); filterChrome && filterChrome.refresh(); });
+    select.addEventListener('change', () => { onChange(select.value, select); filterChrome && filterChrome.refresh(); });
     field.appendChild(select); return field;
   };
   const filterControls = el('div', { class: 'group-corpus-controls public-corpus-filter-controls' });
@@ -9902,7 +9993,22 @@ async function renderPublicCorpus(slug, token) {
     ['title_asc', 'room.publicCorpus.sortTitleAZ', 'Название А–Я'],
     ['title_desc', 'room.publicCorpus.sortTitleZA', 'Название Я–А'],
     ['creator_asc', 'room.publicCorpus.sortCreator', 'Исполнитель А–Я'],
-  ], browseState.sort, tt('room.corpus.sort.label', 'Сортировка'), value => { browseState.sort = value; schedulePaint(); });
+    ['familiar_desc', 'room.compass.sortFamiliar', 'Сначала достоверно знакомые'],
+  ], browseState.sort, tt('room.corpus.sort.label', 'Сортировка'), async (value, select) => {
+    if (value === 'familiar_desc' && !await familiaritySortProfileAvailable()) { select.value = browseState.sort; return; }
+    if (value === 'familiar_desc') {
+      try {
+        const ready = await ensurePublicLearningIndex(slug, catalog);
+        if (!reliableFamiliarityCount(ready && ready.fits && ready.fits.values())) {
+          select.value = browseState.sort; explainNoReliableFamiliaritySort(); return;
+        }
+      } catch (_) {
+        select.value = browseState.sort;
+        roomToast(tt('room.compass.corpusUnavailable', 'Подбор по знакомости временно недоступен')); return;
+      }
+    }
+    browseState.sort = value; schedulePaint();
+  });
   filterChrome = corpusFilterChrome('roomPublicCorpus', searchField, filterControls, sortField, () => {
     const labels = [];
     if (browseState.scope === 'title') labels.push(tt('room.publicCorpus.scopeTitle', 'Только название'));
@@ -9912,6 +10018,7 @@ async function renderPublicCorpus(slug, token) {
     return { count: labels.length, labels };
   });
   catalogRegion.appendChild(filterChrome.node);
+  catalogRegion.appendChild(corpusLearningIndexStatusNode('public:' + slug, catalog.items.length));
 
   const listSection = el('section', { class: 'room-primary-list public-corpus-list-section' });
   const listHead = el('div', { class: 'corpus-list-head' });
@@ -9935,7 +10042,18 @@ async function renderPublicCorpus(slug, token) {
       return true;
     });
     const compareText = (left, right) => String(left || '').localeCompare(String(right || ''), undefined, { sensitivity: 'base' });
+    const publicIndex = _publicLearningIndexes.get(slug);
+    const familiarity = item => publicIndex && publicIndex.fits && publicIndex.fits.get(String(item.public_work_id));
     found.sort((a, b) => {
+      if (browseState.sort === 'familiar_desc') {
+        const af = familiarity(a), bf = familiarity(b);
+        const ar = !!(af && af.status === 'AVAILABLE' && af.rank_eligible), br = !!(bf && bf.status === 'AVAILABLE' && bf.rank_eligible);
+        if (ar !== br) return ar ? -1 : 1;
+        if (ar && br) {
+          const delta = Number(bf.recorded_familiar_pct_lower_bound || 0) - Number(af.recorded_familiar_pct_lower_bound || 0);
+          if (delta) return delta;
+        }
+      }
       if (browseState.sort === 'title_asc') return compareText(a.title, b.title) || Number(a.position_no) - Number(b.position_no);
       if (browseState.sort === 'title_desc') return compareText(b.title, a.title) || Number(a.position_no) - Number(b.position_no);
       if (browseState.sort === 'creator_asc') return compareText(a.creator, b.creator) || compareText(a.title, b.title) || Number(a.position_no) - Number(b.position_no);
@@ -9948,16 +10066,29 @@ async function renderPublicCorpus(slug, token) {
     resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + roomNumber(first) + '–' + roomNumber(last) + ' / ' + roomNumber(found.length);
     grid.replaceChildren();
     for (const item of page) {
-      const card = el('article', { class: 'group-work-card room-text-row room-material-row', attrs: { 'data-public-work': item.public_work_id } });
+      const progress = localByKey.get(localKeyFor(item));
+      const compassDescriptor = publicCompassDescriptor(slug, item, progress);
+      const makeView = () => adaptPublicCorpusItem(item, {
+        slug, progress, textKey: localKeyFor(item), copy: corpusItemCopy(), manifestSha256: catalog.edition.manifest_sha256,
+        ...learningCompassContext(compassDescriptor && compassDescriptor.cache_key, {
+          continue_reading: progress && Number(progress.last_row_idx) > 0,
+          audio_or_length: Number(item.included_audio_count) > 0,
+        }),
+      });
+      let view = makeView();
+      const card = el('article', { class: 'group-work-card room-text-row room-material-row', attrs: { 'data-public-work': item.public_work_id, 'data-state': view.learnerState.state } });
       card.appendChild(el('span', { class: 'group-work-position', text: String(item.position_no) }));
       const identity = el('div', { class: 'group-work-identity corpus-work-col' });
       const open = el('a', { class: 'room-text-title-link group-action primary', attrs: { href: window.PublicCorpusAdapter.deepLink(slug, item.public_work_id) } });
       const titleCopy = el('span', { class: 'room-item-title-copy' }); const title = el('span', { class: 'group-work-title', text: item.title }); if (HEBREW_RE.test(item.title)) title.setAttribute('dir', 'rtl'); titleCopy.appendChild(title);
       if (item.creator) { const creator = el('span', { class: 'group-work-artist item-secondary-identity', text: item.creator }); if (HEBREW_RE.test(item.creator)) creator.setAttribute('dir', 'rtl'); titleCopy.appendChild(creator); }
-      open.appendChild(titleCopy); open.appendChild(el('span', { class: 'room-text-primary', text: tt('room.mytexts.read', 'Читать') })); open.addEventListener('click', event => { event.preventDefault(); openPublicCorpusWork(slug, item, { resume: true }); }); identity.appendChild(open);
-      identity.appendChild(el('span', { class: 'public-corpus-audio-fact', text: item.asset_missing
-        ? tt('room.publicCorpus.audioMissing', 'Аудио технически недоступно: {n}').replace('{n}', String(item.asset_missing))
-        : tt('room.publicCorpus.audioReady', 'Оригинальное аудио: {n}').replace('{n}', String(item.included_audio_count)) })); card.appendChild(identity);
+      open.appendChild(titleCopy); open.appendChild(el('span', { class: 'room-text-primary', text: view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') })); open.addEventListener('click', event => { event.preventDefault(); openPublicCorpusWork(slug, item, { resume: true }); }); identity.appendChild(open);
+      const compassRow = renderLearningCompass(view, { showMedia: true, showDetails: true });
+      if (compassDescriptor) {
+        compassRow.setAttribute('data-compass-key', compassDescriptor.cache_key);
+        compassRow.__compassRepaint = () => { view = makeView(); paintLearningCompass(compassRow, view, { showMedia: true, showDetails: true }); };
+      }
+      identity.appendChild(compassRow); card.appendChild(identity);
       const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
     }
     if (!page.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.publicCorpus.empty', 'Ничего не найдено') }));
@@ -9978,6 +10109,7 @@ async function renderPublicCorpus(slug, token) {
   }
   search.addEventListener('input', () => { browseState.q = search.value || ''; schedulePaint(); });
   buildAudioFilters(); filterChrome.refresh(); paint();
+  ensurePublicLearningIndex(slug, catalog).then(() => { if (token === corpusRenderToken) paint(); }).catch(() => {});
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 

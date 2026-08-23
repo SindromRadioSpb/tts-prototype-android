@@ -177,6 +177,14 @@ test("publish is idempotent, immutable, hash-read-back verified and pointer/even
     const publicRead = await fixture.repo.getPublicCorpus("study-songs");
     assert.equal(publicRead.edition.edition_id, receipt.edition_id);
     assert.equal(publicRead.edition.manifest_sha256, receipt.manifest_sha256);
+    const learning = await fixture.repo.getPublicLearningIndex("study-songs");
+    assert.equal(learning.index.schema_version, "public_learning_index.1.0.0");
+    assert.equal(learning.index.edition_id, receipt.edition_id);
+    assert.equal(learning.index.manifest_sha256, receipt.manifest_sha256);
+    assert.equal(learning.index.matched_total, 2);
+    assert.equal(learning.index.prepared_total, 2);
+    assert.ok(learning.index.items.every(item => item.status === "PREPARED" && item.ingredients && item.ingredients.total_token_count > 0));
+    assert.doesNotMatch(JSON.stringify(learning.index), /שיר|שלום|Привет|Artist|"(?:title|creator|russian|hebrew(?:_plain|_niqqud))"\s*:/i);
     const packageRead = await fixture.repo.getPublicPackage("study-songs");
     assert.equal(packageRead.edition.package_sha256, receipt.package_sha256);
     const archive = new AdmZip(packageRead.absolute_path);

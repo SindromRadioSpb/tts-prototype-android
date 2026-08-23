@@ -28,7 +28,8 @@ async function stop(child) { if (!child || child.exitCode != null) return; child
 async function seed(ownerId) {
   const audio = fs.readFileSync(path.join(ROOT, "scripts", "premium", "fixtures", "ingest", "audio", "he-sample.mp3"));
   const audioKey = sha(audio);
-  const bundle = Buffer.from(JSON.stringify({ library: { texts: [{ text_key: "browser-song", title: "שיר לדוגמה", source_meta_json: JSON.stringify({ group_corpus: { corpus_id: "browser-source" } }), rows: [{ order_index: 0, hebrew_plain: "שלום עולם", hebrew_niqqud: "שָׁלוֹם עוֹלָם", transliteration: "shalom olam", russian: "Привет, мир", audio_asset_key: audioKey }] }], audio_assets: [{ asset_key: audioKey, mime: "audio/mpeg" }] }, notes_advanced: {} }));
+  const hebrewPlain = "שלום עולם " + Array(40).fill("לכתוב").join(" ");
+  const bundle = Buffer.from(JSON.stringify({ library: { texts: [{ text_key: "browser-song", title: "שיר לדוגמה", source_meta_json: JSON.stringify({ group_corpus: { corpus_id: "browser-source" } }), rows: [{ order_index: 0, hebrew_plain: hebrewPlain, hebrew_niqqud: hebrewPlain, transliteration: "shalom olam", russian: "Привет, мир", audio_asset_key: audioKey }] }], audio_assets: [{ asset_key: audioKey, mime: "audio/mpeg" }] }, notes_advanced: {} }));
   const now = new Date().toISOString();
   const workRel = "group-corpora/browser-study/v1/works/song.json", audioRel = "group-corpora/browser-study/v1/audio/" + audioKey + ".mp3";
   fs.mkdirSync(path.dirname(path.join(data, workRel)), { recursive: true }); fs.mkdirSync(path.dirname(path.join(data, audioRel)), { recursive: true });
@@ -122,7 +123,7 @@ async function capture(page, file) {
     });
     guest.on('request', request => { if (/\/api\/(?:public-corpora\/.+\/assets|audio)\//.test(request.url())) audioRequests.push(request.url()); });
     await guest.addInitScript(() => { localStorage.setItem('localMode', '1'); localStorage.setItem('v3OnboardingSeenV1', '1'); localStorage.setItem('onboardingSeen_v1', '1'); });
-    const publicUrl = BASE + '/library.html?public_corpus=study-songs&cb=' + Date.now();
+    const publicUrl = BASE + '/library.html?canon=skip&public_corpus=study-songs&cb=' + Date.now();
     await guest.goto(publicUrl, { waitUntil: 'domcontentloaded' });
     try { await guest.locator('[data-public-corpus="study-songs"]').waitFor({ state: 'attached', timeout: 8000 }); }
     catch (_) { await guest.reload({ waitUntil: 'domcontentloaded' }); }
@@ -137,6 +138,16 @@ async function capture(page, file) {
       console.error(JSON.stringify({ guest_errors: guestErrors, guest_console_errors: guestConsoleErrors, guest_failed: guestFailed, public_probe: publicProbe, body: (await guest.locator('body').textContent()).slice(0, 1200), server_logs: logs.slice(-2400) }, null, 2));
       throw error;
     }
+    await guest.waitForFunction(() => document.querySelector('[data-learning-index-status="public:study-songs"]')?.getAttribute('data-state') === 'ready', null, { timeout: 30000 });
+    const familiarityKey = await guest.evaluate(async () => {
+      const packet = await (await fetch('/api/public-corpora/study-songs/learning-index?limit=1', { cache: 'no-store' })).json();
+      return packet.items?.[0]?.ingredients?.key_frequencies?.[0]?.[0] || null;
+    });
+    assert.ok(familiarityKey, 'public learning index has no resolvable fixture key');
+    await guest.evaluate(async key => { const db = await import('/db/local-db.js'); await db.applyWordStatusFromSync(key, 'known'); }, familiarityKey);
+    await guest.reload({ waitUntil: 'domcontentloaded' });
+    await guest.locator('[data-public-corpus="study-songs"]').waitFor({ timeout: 30000 });
+    await guest.waitForFunction(() => document.querySelector('[data-learning-index-status="public:study-songs"]')?.getAttribute('data-state') === 'ready', null, { timeout: 30000 });
     const capturePublic = async (name) => {
       const report = await guest.evaluate(() => {
         const root = document.querySelector('[data-public-corpus]');
@@ -144,15 +155,19 @@ async function capture(page, file) {
         return { dir: document.documentElement.dir, lang: document.documentElement.lang,
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           tinyTargets: controls.filter(node => { const rect = node.getBoundingClientRect(); return rect.width < 44 || rect.height < 44; }).map(node => node.getAttribute('aria-label') || node.textContent.trim().slice(0, 30)),
-          catalog: !!root.querySelector('.corpus-catalog-region'),
+          catalog: !!root.querySelector('.corpus-catalog-region'), title: root.querySelector('.corpus-shell-title')?.textContent?.trim() || '',
           resultCount: root.querySelectorAll('[data-public-work]').length,
+          familiarityBadges: root.querySelectorAll('.learning-familiar').length,
+          familiarityCopy: root.querySelector('.learning-familiar')?.textContent?.trim() || '',
           publicTrust: root.textContent.includes('без аккаунта') || root.textContent.includes('ללא חשבון') || root.textContent.includes('ללא צורך בחשבון'),
           takedown: document.body.textContent.includes('peter@kolosei.com') };
       });
-      await guest.screenshot({ path: path.join(shots, name), fullPage: false }); return report;
+      await guest.screenshot({ path: path.join(shots, name), fullPage: true }); return report;
     };
     const publicDesktop = await capturePublic('public-study-songs-desktop-ru.png');
-    assert.ok(publicDesktop.catalog && publicDesktop.resultCount === 1, JSON.stringify(publicDesktop));
+    assert.ok(publicDesktop.catalog && publicDesktop.resultCount === 1 && publicDesktop.familiarityBadges === 1, JSON.stringify(publicDesktop));
+    assert.ok(publicDesktop.title.includes('Публичные учебные песни'), JSON.stringify(publicDesktop));
+    assert.match(publicDesktop.familiarityCopy, /Не менее \d+% знакомы/, JSON.stringify(publicDesktop));
     const publicSearch = guest.locator('#roomPublicCorpusSearch');
     const publicScope = guest.locator('#roomPublicCorpusScope');
     const publicAudio = guest.locator('#roomPublicCorpusAudio');
@@ -165,6 +180,8 @@ async function capture(page, file) {
     assert.strictEqual(await guest.locator('[data-public-work]').count(), 0, 'missing-audio filter included a complete package');
     await publicAudio.locator('[data-audio=complete]').click(); await publicSort.selectOption('title_desc'); await guest.waitForTimeout(180);
     assert.strictEqual(await guest.locator('[data-public-work]').count(), 1, 'complete-audio filter lost the complete package');
+    await publicSort.selectOption('familiar_desc'); await guest.waitForTimeout(180);
+    assert.strictEqual(await publicSort.inputValue(), 'familiar_desc', 'public reliable-familiarity sort was rejected');
     assert.strictEqual(await guest.locator('.public-corpus-page-prev').count(), 1);
     assert.strictEqual(await guest.locator('.public-corpus-page-next').count(), 1);
     await publicScope.selectOption('all'); await publicAudio.locator('[data-audio=complete]').click(); await publicSort.selectOption('position'); await guest.waitForTimeout(180);

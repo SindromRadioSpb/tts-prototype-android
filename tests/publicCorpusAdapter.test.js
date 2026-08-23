@@ -35,9 +35,18 @@ test("anonymous route source has no session, CSRF, audit or write call", () => {
   const end = server.indexOf("// MASS_ACCESS_I4_PUBLIC_READ_END");
   assert.ok(start >= 0 && end > start);
   const block = server.slice(start, end);
-  for (const route of ["/api/public-corpora", "/works", "/assets/", "/package"]) assert.ok(block.includes(route), route);
+  for (const route of ["/api/public-corpora", "/learning-index", "/works", "/assets/", "/package"]) assert.ok(block.includes(route), route);
   assert.doesNotMatch(block, /requireUser|requireCsrf|identityRepo\.audit|\.(?:run|exec)\s*\(|\b(?:INSERT|UPDATE|DELETE)\b/i);
-  assert.match(block, /getPublicCorpus|getPublicWork|getPublicAsset|getPublicPackage/);
+  assert.match(block, /getPublicCorpus|getPublicLearningIndex|getPublicWork|getPublicAsset|getPublicPackage/);
+});
+
+test("public Study Songs has an unambiguous localized display name without changing its slug", () => {
+  for (const [locale, title] of [["ru", "Публичные учебные песни"], ["en", "Public Study Songs"], ["he", "שירי לימוד ציבוריים"]]) {
+    const dictionary = source(`public/i18n/locales/${locale}.js`);
+    assert.ok(dictionary.includes(`studySongsTitle:"${title}"`), `${locale} public title`);
+  }
+  const room = source("public/js/library-ui.js");
+  assert.match(room, /authorizedCorpusById\('public:' \+ slug\)/);
 });
 
 test("Room loads public corpora before protected memberships and uses the public audio transport", () => {

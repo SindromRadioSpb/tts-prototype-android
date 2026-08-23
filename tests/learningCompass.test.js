@@ -180,6 +180,7 @@ test("all corpus presenters expose one honest audio coverage contract", async ()
   const personal = presenter.adaptMyTextItem({ id: "m1", text_key: "m1", title: "Текст" }, {
     media: { kind: "audio", coverage: "full", countLabel: "42/42", videoAvailable: true },
   });
+  const published = presenter.adaptPublicCorpusItem({ public_work_id: "p1", title: "שיר", expected_audio_count: 3, included_audio_count: 2, asset_missing: 1, manifest_sha256: "a".repeat(64) }, { slug: "study-songs" });
 
   assert.deepEqual(partial.readiness.caveats, []);
   assert.deepEqual({ kind: partial.media.kind, coverage: partial.media.coverage, countLabel: partial.media.countLabel },
@@ -188,6 +189,8 @@ test("all corpus presenters expose one honest audio coverage contract", async ()
     { kind: "audio", coverage: "none", countLabel: null });
   assert.deepEqual({ kind: personal.media.kind, coverage: personal.media.coverage, countLabel: personal.media.countLabel, videoAvailable: personal.media.videoAvailable },
     { kind: "audio", coverage: "full", countLabel: "42/42", videoAvailable: true });
+  assert.deepEqual({ kind: published.media.kind, coverage: published.media.coverage, countLabel: published.media.countLabel, humanOrTts: published.media.humanOrTts },
+    { kind: "audio", coverage: "partial", countLabel: "2/3", humanOrTts: null });
 });
 
 test("unmaterialized group familiarity is actionable and never claims a derived value", async () => {
@@ -327,7 +330,7 @@ test("local cache is additive, revision-keyed, page-batched and content-free by 
   assert.match(localDb, /_COMPASS_CACHE_MAX_BYTES = 64 \* 1024 \* 1024/);
 });
 
-test("all three readable corpora fully prepare and expose the same familiarity sort", () => {
+test("all four readable corpora fully prepare and expose the same familiarity sort", () => {
   const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
   const shell = fs.readFileSync(path.join(__dirname, "../public/library.html"), "utf8");
   assert.match(ui, /COMPASS_FULL_CATALOG_MAX = 5000/);
@@ -335,16 +338,19 @@ test("all three readable corpora fully prepare and expose the same familiarity s
   assert.match(ui, /startPersonalCompassSweep\(\)/);
   assert.match(ui, /loadPersonalFamiliarityRanking\(/);
   assert.match(ui, /ensureGroupLearningIndex\(/);
+  assert.match(ui, /ensurePublicLearningIndex\(/);
   assert.match(ui, /ensureBenFamiliarityScores\(/);
   assert.match(ui, /reliableFamiliarityCount/);
   assert.match(ui, /sortNoReliable/);
   assert.match(ui, /\['familiar_desc',\s*'room\.compass\.sortFamiliar'/);
   assert.match(ui, /roomGroupSort[\s\S]*?familiar_desc/);
   assert.match(ui, /roomCorpusSort[\s\S]*?familiar_desc/);
+  assert.match(ui, /roomPublicCorpusSort[\s\S]*?familiar_desc/);
+  assert.match(ui, /publicCompassDescriptor\(/);
   assert.doesNotMatch(ui, /function groupCompassDescriptor\([^)]*\) \{\s*if \(!work \|\| !localRow/);
   assert.doesNotMatch(ui, /filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/);
   assert.doesNotMatch(ui, /familiar_desc[\s\S]{0,240}(?:70|90|95|98)/);
-  assert.match(ui, /paintLearningCompass\(learnRow, view, \{ showMedia: true, showDetails: true \}\)/);
+  assert.match(ui, /paintLearningCompass\([^,]+,\s*view,\s*\{\s*showMedia:\s*true[\s\S]{0,80}showDetails:\s*true/);
   assert.doesNotMatch(shell, /\.work-card \.learning-compass-details \{ display: none; \}/);
   assert.match(ui, /learning-compass-details\[open\]/);
   assert.match(ui, /event\.key !== 'Escape'/);

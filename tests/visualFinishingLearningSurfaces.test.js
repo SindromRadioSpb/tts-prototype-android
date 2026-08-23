@@ -70,14 +70,14 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(studioHtml, /\/css\/reader-morph\.css\?v=394/);
   assert.match(roomHtml, /\/js\/mentor-connection-core\.js\?v=414/);
   assert.match(roomHtml, /\/js\/mentor-home\.js\?v=414/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=415/);
+  assert.match(roomHtml, /\/js\/library-ui\.js\?v=417/);
   for (const url of [
     "/js/reader-core.js?v=399",
     "/css/reader-core.css?v=399",
     "/css/reader-morph.css?v=394",
     "/js/mentor-connection-core.js?v=414",
     "/js/mentor-home.js?v=414",
-    "/js/library-ui.js?v=415",
+    "/js/library-ui.js?v=417",
   ]) {
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
@@ -85,7 +85,7 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(server, /new URL\(url, "http:\/\/linguistpro\.local"\)\.pathname/,
     "cache-bust queries must not become part of the filesystem path used for hashing");
   for (const locale of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${locale}.js?v=175`;
+    const url = `/i18n/locales/${locale}.js?v=178`;
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
   }

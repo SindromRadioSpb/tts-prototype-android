@@ -244,6 +244,32 @@ export function adaptGroupCorpusItem(work, context = {}) {
   });
 }
 
+export function adaptPublicCorpusItem(work, context = {}) {
+  const source = work || {};
+  const copy = context.copy || {};
+  const expected = Math.max(0, finite(source.expected_audio_count) || 0);
+  const included = Math.max(0, finite(source.included_audio_count) || 0);
+  const missing = Math.max(0, finite(source.asset_missing) || 0);
+  const coverage = included <= 0 ? "none" : expected > 0 && included >= expected && missing === 0 ? "full" : "partial";
+  const state = learnerState(context.progress, { copy, allowPercentage: false, newProgressZero: true });
+  const audioSignal = typedSignal("audio", { coverage, kind: null },
+    "asserted", "public-immutable-edition", source.manifest_sha256 || context.manifestSha256 || null,
+    coverage === "partial" ? ["partial"] : []);
+  return baseItem({
+    corpusId: `public:${String(context.slug || "")}`, itemId: source.public_work_id, textKey: context.textKey,
+    title: source.title || copyValue(copy, "untitled", "Untitled"), creator: source.creator,
+    secondaryIdentity: copyValue(copy, "publicEdition", "Public immutable edition"),
+    languageDirection: "rtl", kind: "public-study-song", artwork: null,
+    learnerState: state,
+    readiness: { levelLabel: null, familiarityPct: null, confidence: "unknown", caveats: [], reason: null },
+    media: { kind: "audio", coverage, humanOrTts: null, countLabel: expected > 0 ? `${included}/${expected}` : null, revision: null },
+    savedState: null, tags: [], primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",
+    secondaryActions: ["share", "details"],
+    provenanceSummary: copyValue(copy, "publicProvenance", "Public immutable edition"),
+    signals: compassSignals(context, null, audioSignal), primaryReason: context.primaryReason,
+  });
+}
+
 export function learningSignals(item) {
   if (item && Array.isArray(item.signals) && item.signals.length) {
     const priority = { familiarity: 1, "reading-time": 2, level: 3, audio: 4 };

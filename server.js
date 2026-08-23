@@ -1050,7 +1050,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=416",
+  "/js/library-ui.js?v=417",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
   "/js/public-corpus-adapter.js?v=415",
@@ -1063,9 +1063,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/reader-morph.css?v=394",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
-  "/i18n/locales/ru.js?v=177",
-  "/i18n/locales/en.js?v=177",
-  "/i18n/locales/he.js?v=177",
+  "/i18n/locales/ru.js?v=178",
+  "/i18n/locales/en.js?v=178",
+  "/i18n/locales/he.js?v=178",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -1365,6 +1365,13 @@ initDb(DB_PATH)
       if (warm.failures.length) console.warn("[b7] protected learning index failures:", warm.failures);
     } catch (e) {
       console.warn("[b7] protected learning index prewarm failed (request fallback remains):", e && e.message);
+    }
+    try {
+      const warm = await require("./db/publicationRepo").getPublicationRepo().prewarmPublicLearningIndexes();
+      console.log(`[b7] public learning indexes: ${warm.prepared}/${warm.corpora} corpora · ${warm.works} works`);
+      if (warm.failures.length) console.warn("[b7] public learning index failures:", warm.failures);
+    } catch (e) {
+      console.warn("[b7] public learning index prewarm failed (request fallback remains):", e && e.message);
     }
   })
   .catch((e) => {
@@ -3879,6 +3886,58 @@ app.get("/api/public-corpora/:slug", rlPublicCorpusRead, (req, res) => publicCor
   publicCorpusEtag(res, published.edition.manifest_sha256);
   res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
   return res.json({ ok: true, schema_version: "public_corpus.1.0.0", ...published });
+}));
+const PUBLIC_LEARNING_INDEX_PACKET_MAX = 256 * 1024;
+function encodePublicLearningCursor(signature, offset) {
+  return Buffer.from(JSON.stringify({ v: 1, s: String(signature), o: Number(offset) }), "utf8").toString("base64url");
+}
+function decodePublicLearningCursor(value, signature) {
+  if (!value) return 0;
+  try {
+    const parsed = JSON.parse(Buffer.from(String(value), "base64url").toString("utf8"));
+    if (!parsed || parsed.v !== 1 || parsed.s !== String(signature) || !Number.isInteger(parsed.o) || parsed.o < 0) return null;
+    return parsed.o;
+  } catch (_) { return null; }
+}
+app.get("/api/public-corpora/:slug/learning-index", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const published = await repo.getPublicLearningIndex(req.params.slug);
+  const index = published.index;
+  const offset = decodePublicLearningCursor(req.query.cursor, index.index_signature);
+  if (offset == null || offset > index.items.length) return res.status(400).json({ ok: false, error: "BAD_CURSOR" });
+  const requested = Math.max(1, Math.min(48, Math.trunc(Number(req.query.limit) || 16)));
+  const items = [];
+  for (let i = offset; i < index.items.length && items.length < requested; i += 1) {
+    const candidate = items.concat(index.items[i]);
+    const probe = {
+      ok: true, schema_version: "public_learning_index.1.0.0", index_revision: index.index_signature,
+      edition_id: index.edition_id, manifest_sha256: index.manifest_sha256,
+      resolver_version: index.resolver_version, matched_total: index.matched_total,
+      prepared_total: index.prepared_total, unsupported_total: index.unsupported_total,
+      items: candidate,
+      next_cursor: offset + candidate.length < index.items.length
+        ? encodePublicLearningCursor(index.index_signature, offset + candidate.length) : null,
+    };
+    if (Buffer.byteLength(JSON.stringify(probe), "utf8") > PUBLIC_LEARNING_INDEX_PACKET_MAX) break;
+    items.push(index.items[i]);
+  }
+  if (offset < index.items.length && !items.length)
+    return res.status(413).json({ ok: false, error: "PUBLIC_LEARNING_INDEX_ITEM_TOO_LARGE" });
+  const nextOffset = offset + items.length;
+  const body = {
+    ok: true, schema_version: "public_learning_index.1.0.0", index_revision: index.index_signature,
+    edition_id: index.edition_id, manifest_sha256: index.manifest_sha256,
+    resolver_version: index.resolver_version, matched_total: index.matched_total,
+    prepared_total: index.prepared_total, unsupported_total: index.unsupported_total,
+    items,
+    next_cursor: nextOffset < index.items.length ? encodePublicLearningCursor(index.index_signature, nextOffset) : null,
+  };
+  if (Buffer.byteLength(JSON.stringify(body), "utf8") > PUBLIC_LEARNING_INDEX_PACKET_MAX)
+    throw new Error("PUBLIC_CORPUS_LEARNING_INDEX_PACKET_LIMIT");
+  publicCorpusEtag(res, index.index_signature);
+  res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+  res.set("Cross-Origin-Resource-Policy", "same-origin");
+  res.set("X-Content-Type-Options", "nosniff");
+  return res.json(body);
 }));
 app.get("/api/public-corpora/:slug/works", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
   const published = await repo.getPublicCorpus(req.params.slug);

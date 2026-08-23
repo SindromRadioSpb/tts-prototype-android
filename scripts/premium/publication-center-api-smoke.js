@@ -120,6 +120,9 @@ async function removeTemp() {
     assert.strictEqual(response.status, 200); assert.match(response.headers.get("etag"), /^[\"].{64}[\"]$/);
     const catalog = await response.json(); assert.strictEqual(catalog.items.length, 1); assert.strictEqual(catalog.items[0].public_read_allowed, 1); assert.strictEqual(catalog.items[0].public_stream_allowed, 1); assert.strictEqual(catalog.items[0].package_download_allowed, 1);
     const publicWorkId = catalog.items[0].public_work_id;
+    response = await fetch(BASE + "/api/public-corpora/study-songs/learning-index?limit=1");
+    const learningIndexText = await response.text(); assert.strictEqual(response.status, 200, learningIndexText); assert.match(response.headers.get("cache-control"), /public/);
+    const learningIndex = JSON.parse(learningIndexText); assert.strictEqual(learningIndex.schema_version, "public_learning_index.1.0.0"); assert.strictEqual(learningIndex.matched_total, 1); assert.strictEqual(learningIndex.prepared_total, 1); assert.strictEqual(learningIndex.items[0].public_work_id, publicWorkId); assert.strictEqual(learningIndex.items[0].snapshot_sha256, catalog.items[0].snapshot_sha256); assert.ok(Array.isArray(learningIndex.items[0].ingredients.key_frequencies)); assert.ok(Buffer.byteLength(learningIndexText) <= 256 * 1024); assert.doesNotMatch(learningIndexText, /Fixture song|Привет|שלום עולם|"(?:title|creator|russian|hebrew(?:_plain|_niqqud))"\s*:/i);
     response = await fetch(BASE + "/api/public-corpora/study-songs/works?limit=1&q=fixture&sort=title&facet=complete");
     const page = await response.json(); assert.strictEqual(response.status, 200); assert.strictEqual(page.items.length, 1); assert.strictEqual(page.next_cursor, null);
     response = await fetch(BASE + "/api/public-corpora/study-songs/works/" + encodeURIComponent(publicWorkId));
@@ -151,7 +154,7 @@ async function removeTemp() {
     assert.deepStrictEqual(sourceAfter, sourceBefore); assert.strictEqual(sourceHashAfter, sourceHashBefore); assert.strictEqual(reviewAfter, reviewBefore);
     assert.deepStrictEqual({ n: facts.n, allowed: facts.allowed, permissions: facts.permissions, basis: facts.basis, asserted_at: facts.asserted_at }, { n: 3, allowed: 3, permissions: 3, basis: "OWNER_ATTESTATION_2026_08_20", asserted_at: "2026-08-20" });
     assert.strictEqual(editions, 1);
-    console.log("publication-center-api-smoke: PASS (writer isolation + anonymous catalog/work/Range-audio/ZIP + generic withdrawal + GET source/learner/review/audit unchanged)");
+    console.log("publication-center-api-smoke: PASS (writer isolation + anonymous catalog/content-free learning index/work/Range-audio/ZIP + generic withdrawal + GET source/learner/review/audit unchanged)");
   } finally {
     await stop(server);
     try { await removeTemp(); } catch (error) { console.warn(error.message); }

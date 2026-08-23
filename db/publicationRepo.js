@@ -8,8 +8,10 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const AdmZip = require("adm-zip");
+const { Worker } = require("worker_threads");
 const { getDb } = require("./sqlite");
 const { DATA_DIR } = require("../storage");
+const IngredientCore = require("../public/js/learning-compass-ingredients.js");
 
 const PERMISSIONS = Object.freeze([
   ["PUBLIC_READ", "public_read_allowed"],
@@ -90,6 +92,7 @@ function dbExec(db, sql) { return new Promise((resolve, reject) => db.exec(sql, 
 function createPublicationRepo(options = {}) {
   const database = options.db || getDb();
   const dataDir = path.resolve(options.dataDir || DATA_DIR);
+  const learningIndexJobs = new Map();
   const now = typeof options.now === "function" ? options.now : () => new Date().toISOString();
   if (!database) fail("DB_NOT_AVAILABLE", 503);
   let writeQueue = Promise.resolve();
@@ -578,6 +581,89 @@ function createPublicationRepo(options = {}) {
       FROM published_corpus_edition_items WHERE edition_id=? AND public_read_allowed=1 ORDER BY position_no`, [corpus.edition_id]);
     return { corpus: { corpus_id: corpus.corpus_id, slug: corpus.slug, title: corpus.title, description: corpus.description }, edition: { edition_id: corpus.edition_id, edition_number: Number(corpus.edition_number), manifest_sha256: corpus.manifest_sha256, item_count: Number(corpus.item_count), asset_count: Number(corpus.asset_count), asset_missing: Number(corpus.asset_missing), package_complete: !!corpus.package_complete, published_at: corpus.published_at }, items };
   }
+  function publicLearningIndexSignature(published, items) {
+    return sha256(Buffer.from(JSON.stringify({
+      schema_version: "public_learning_index.1.0.0",
+      corpus_id: String(published.corpus.corpus_id), slug: String(published.corpus.slug),
+      edition_id: String(published.edition.edition_id), manifest_sha256: String(published.edition.manifest_sha256),
+      resolver_version: IngredientCore.RESOLVER_VERSION,
+      items: items.map(item => [String(item.public_work_id), String(item.snapshot_sha256)]),
+    }), "utf8"));
+  }
+  function validatePublicLearningIndex(index, published, items, signature) {
+    if (!index || index.schema_version !== "public_learning_index.1.0.0" || index.index_signature !== signature
+        || String(index.corpus_id) !== String(published.corpus.corpus_id) || String(index.slug) !== String(published.corpus.slug)
+        || String(index.edition_id) !== String(published.edition.edition_id)
+        || String(index.manifest_sha256) !== String(published.edition.manifest_sha256)
+        || index.resolver_version !== IngredientCore.RESOLVER_VERSION || !Array.isArray(index.items)
+        || index.items.length !== items.length || Number(index.matched_total) !== items.length) return false;
+    const expected = new Map(items.map(item => [String(item.public_work_id), item]));
+    const seen = new Set();
+    for (const item of index.items) {
+      const source = item && expected.get(String(item.public_work_id));
+      if (!source || seen.has(String(item.public_work_id)) || String(item.snapshot_sha256) !== String(source.snapshot_sha256)
+          || (item.status !== "PREPARED" && item.status !== "UNSUPPORTED")) return false;
+      if (item.status === "PREPARED" && (!item.ingredients || item.ingredients.schema_version !== IngredientCore.INGREDIENTS_SCHEMA
+          || item.ingredients.resolver_version !== IngredientCore.RESOLVER_VERSION)) return false;
+      if (item.status === "UNSUPPORTED" && item.ingredients != null) return false;
+      seen.add(String(item.public_work_id));
+    }
+    return seen.size === items.length;
+  }
+  function runPublicLearningIndexWorker(payload) {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(path.join(__dirname, "publicCorpusLearningIndexWorker.js"), { workerData: payload });
+      let settled = false;
+      worker.once("message", message => {
+        settled = true;
+        if (message && message.ok) resolve(message.index);
+        else reject(new Error(message && message.error || "PUBLIC_CORPUS_LEARNING_INDEX_FAILED"));
+      });
+      worker.once("error", error => { if (!settled) reject(error); });
+      worker.once("exit", code => { if (!settled && code !== 0) reject(new Error("PUBLIC_CORPUS_LEARNING_INDEX_WORKER_EXIT_" + code)); });
+    });
+  }
+  async function buildPublicLearningIndex(published) {
+    const items = await dbAll(database, `SELECT public_work_id,snapshot_json,snapshot_sha256
+      FROM published_corpus_edition_items WHERE edition_id=? AND public_read_allowed=1 ORDER BY position_no,public_work_id`, [published.edition.edition_id]);
+    if (items.length !== Number(published.edition.item_count)
+        || items.some(item => !/^[a-f0-9]{64}$/i.test(String(item.snapshot_sha256)))) fail("EDITION_HASH_MISMATCH", 500);
+    const signature = publicLearningIndexSignature(published, items);
+    const relative = path.posix.join("published-corpora", String(published.corpus.corpus_id), String(published.edition.edition_id), "learning-index-v1-" + signature + ".json");
+    const outputPath = publicationPath(relative);
+    try {
+      const cached = JSON.parse(await fs.promises.readFile(outputPath, "utf8"));
+      if (validatePublicLearningIndex(cached, published, items, signature)) return { ...published, index: cached };
+    } catch (_) {}
+    let job = learningIndexJobs.get(signature);
+    if (!job) {
+      job = runPublicLearningIndexWorker({
+        corpus_id: published.corpus.corpus_id, slug: published.corpus.slug,
+        edition_id: published.edition.edition_id, manifest_sha256: published.edition.manifest_sha256,
+        signature, output_path: outputPath, items,
+      }).finally(() => learningIndexJobs.delete(signature));
+      learningIndexJobs.set(signature, job);
+    }
+    const index = await job;
+    if (!validatePublicLearningIndex(index, published, items, signature)) fail("EDITION_HASH_MISMATCH", 500);
+    return { ...published, index };
+  }
+  async function getPublicLearningIndex(slug) {
+    return buildPublicLearningIndex(await getPublicCorpus(slug));
+  }
+  async function prewarmPublicLearningIndexes() {
+    const corpora = await listPublicCorpora();
+    const result = { corpora: corpora.length, prepared: 0, works: 0, failures: [] };
+    for (const corpus of corpora) {
+      try {
+        const out = await getPublicLearningIndex(corpus.slug);
+        result.prepared += 1; result.works += Number(out.index.matched_total) || 0;
+      } catch (error) {
+        result.failures.push({ slug: String(corpus.slug), code: String(error && (error.code || error.message) || "FAILED").slice(0, 80) });
+      }
+    }
+    return result;
+  }
   async function getPublicWork(slug, workId) {
     const published = await getPublicCorpus(slug);
     const item = await dbGet(database, `SELECT * FROM published_corpus_edition_items WHERE edition_id=? AND public_work_id=? AND public_read_allowed=1`, [published.edition.edition_id, cleanId(workId, "CORPUS_NOT_FOUND")]);
@@ -673,7 +759,7 @@ function createPublicationRepo(options = {}) {
   return {
     grantPublisher, createCorpus, copyGroupCorpusItems, copyMyTextItems, reorderDraftItems, applyRightsPreset,
     validateDraft, publish, createRevisionDraft, getPublisherCorpus, listPublisherCorpora,
-    listPublicCorpora, getPublicCorpus, getPublicWork, getPublicAsset, getPublicPackage,
+    listPublicCorpora, getPublicCorpus, getPublicLearningIndex, prewarmPublicLearningIndexes, getPublicWork, getPublicAsset, getPublicPackage,
     withdraw, restore, rollback,
   };
 }
