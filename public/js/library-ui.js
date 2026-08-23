@@ -11,7 +11,7 @@
 import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js?v=399';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
-import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js';
+import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room

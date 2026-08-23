@@ -21,6 +21,7 @@ The browser combines those content-free aggregates with the existing local learn
 - `node tests/i18n.smoke.js`
 - Browser matrix: 1280px Russian, 380px Russian, 380px Hebrew RTL, keyboard focus, no horizontal overflow or undersized controls.
 - API smoke proves anonymous learning-index reads leave source corpus, learner, review, and audit fingerprints unchanged.
+- The presenter module is cache-busted at both its import and precache/integrity keys; this prevents a rolling deploy from combining the new catalog UI with a stale presenter export.
 
 ## Visual evidence
 
