@@ -1,0 +1,722 @@
+{
+  "schema": "linguistpro.physics.gold-legacy-comparison.1",
+  "legacy": {
+    "path": "docs\\research\\physics-corpus\\2026-08-24\\legacy-reference.json",
+    "sha256": "38376c8d118463ae4d7ca328960088385dcb5884ae20175e3e55cad56675d72b"
+  },
+  "gold": {
+    "path": "docs\\research\\physics-corpus\\2026-08-24\\live-gold-page05-rendered-evidence.json",
+    "sha256": "6e582c2cb6d3cbe9ec08ae84d42e08888a5e86417aa7081b6e317e81acf5ac13"
+  },
+  "summary": {
+    "gold_task_count": 2,
+    "compared_task_count": 2,
+    "missing_in_legacy": []
+  },
+  "tasks": [
+    {
+      "task_number": "1.1",
+      "status": "compared",
+      "legacy_row_count": 12,
+      "gold_row_count": 8,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.958569,
+          "legacy_chars": 526,
+          "gold_chars": 536,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "הנקודה",
+              "gold": "הצומת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שוות-תאוצה,",
+              "gold": "שווה-תאוצה,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "וחוצה",
+              "gold": "החותך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "זו עוזב",
+              "gold": "n מאיץ הנהג את"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חוצה",
+              "gold": "חותך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "10-שניות",
+              "gold": "ב-10 שניות"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מה",
+              "gold": "מהי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "-",
+              "gold": "ו-"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.941402,
+          "legacy_chars": 825,
+          "gold_chars": 847,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הנקודה",
+              "gold": "הצמת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שוות-תאוצה,",
+              "gold": "שות-תאוצה,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מהנקודה",
+              "gold": "מהנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "וחוצה",
+              "gold": "החותך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה זו עוזב",
+              "gold": "בנקדה n מאיץ הנהג את"
+            },
+            {
+              "operation": "replace",
+              "legacy": "במהירות שוות-תאוצה.",
+              "gold": "בתנועה שות-תאוצה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "חוצה",
+              "gold": "חותך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "10-שניות",
+              "gold": "ב-10 שניות"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מה",
+              "gold": "מהי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הנקודות",
+              "gold": "הנקדות"
+            },
+            {
+              "operation": "replace",
+              "legacy": "- n",
+              "gold": "ו-n"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.877816,
+          "legacy_chars": 705,
+          "gold_chars": 760,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "bimheirut",
+              "gold": "bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "110 km\"sh. benekuda",
+              "gold": "me'a ve-eser kamash. binekuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mitkadémet",
+              "gold": "mitkademet"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanekuda",
+              "gold": "hatsomet"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shavot-te'utsa,",
+              "gold": "shvat-te'utsa,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shebemerhák 0.8",
+              "gold": "shebemerkhak efes nekuda shmoneh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehirutah",
+              "gold": "mehiruta"
+            },
+            {
+              "operation": "replace",
+              "legacy": "l-80 km\"sh.",
+              "gold": "le-shmonim kamash."
+            },
+            {
+              "operation": "replace",
+              "legacy": "bakvish vekhotse",
+              "gold": "bikhvish hakhotech"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimheirut",
+              "gold": "bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40 km\"sh.",
+              "gold": "arba'im kamash."
+            },
+            {
+              "operation": "replace",
+              "legacy": "nimtse'et banekuda",
+              "gold": "nimtset binekuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "banekuda",
+              "gold": "binekuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "banekuda zo ozev",
+              "gold": "binekuda n me'its hanahag et"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mitkadém",
+              "gold": "mitkadem"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hatzomet",
+              "gold": "hatsomet"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimheirut shavot-te'utsa. khashév",
+              "gold": "bitnu'a shvat-te'utsa. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "khotse",
+              "gold": "khotech"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hatzomet",
+              "gold": "hatsomet"
+            },
+            {
+              "operation": "replace",
+              "legacy": "10-shaniyot lifnei",
+              "gold": "be-eser shniyot lifney"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma",
+              "gold": "mahi"
+            },
+            {
+              "operation": "replace",
+              "legacy": "batzomet c! merhakéi",
+              "gold": "batsomet c ! merkhakey"
+            },
+            {
+              "operation": "replace",
+              "legacy": "- n mehatzomet",
+              "gold": "ve-n mehatsomet"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.828514,
+          "legacy_chars": 735,
+          "gold_chars": 752,
+          "token_changes": [
+            {
+              "operation": "delete",
+              "legacy": "приводит в действие",
+              "gold": ""
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "задействует"
+            },
+            {
+              "operation": "replace",
+              "legacy": "продвигается",
+              "gold": "движется"
+            },
+            {
+              "operation": "replace",
+              "legacy": "точке",
+              "gold": "перекрёстку"
+            },
+            {
+              "operation": "replace",
+              "legacy": "в движении равноускоренном, так",
+              "gold": "с равнопеременным ускорением так,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "едет",
+              "gold": "движется"
+            },
+            {
+              "operation": "replace",
+              "legacy": "дороге и пересекает путь поезда",
+              "gold": "дороге, пересекающей железнодорожные пути,"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "тот"
+            },
+            {
+              "operation": "delete",
+              "legacy": "этой",
+              "gold": ""
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "n водитель ускоряет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "автомобиль покидает (её)",
+              "gold": "автомобиль,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "он продвигается",
+              "gold": "тот движется"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равноускоренной скоростью. вычисли",
+              "gold": "постоянным ускорением. рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "за 10-секунд до",
+              "gold": "на 10 секунд раньше"
+            },
+            {
+              "operation": "delete",
+              "legacy": "его",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "(легкового автомобиля)",
+              "gold": "легкового автомобиля"
+            },
+            {
+              "operation": "replace",
+              "legacy": "c !",
+              "gold": "c!"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "от"
+            },
+            {
+              "operation": "replace",
+              "legacy": "-",
+              "gold": "и"
+            },
+            {
+              "operation": "replace",
+              "legacy": "от",
+              "gold": "до"
+            },
+            {
+              "operation": "replace",
+              "legacy": "даны",
+              "gold": "приведены"
+            },
+            {
+              "operation": "replace",
+              "legacy": "чертеже.",
+              "gold": "схеме."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "1.2",
+      "status": "compared",
+      "legacy_row_count": 11,
+      "gold_row_count": 5,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.966942,
+          "legacy_chars": 474,
+          "gold_chars": 494,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "שווה",
+              "gold": "בתחילת העקיפה קבועה ושווה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec^2 ותאוצתו",
+              "gold": "sec² ותאוטתו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec^2.",
+              "gold": "sec² ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "תאוצה.",
+              "gold": "תאוטה."
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.961257,
+          "legacy_chars": 731,
+          "gold_chars": 767,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ואופקי",
+              "gold": "ואפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המתואר",
+              "gold": "המתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לעקוף",
+              "gold": "לעקף"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(כמתואר",
+              "gold": "(כמתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שוה",
+              "gold": "בתחלת העקיפה קבועה ושוה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec^2 ותאוצתו",
+              "gold": "sec² ותאוטתו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec^2.",
+              "gold": "sec² ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "תאוצה.",
+              "gold": "תאוטה."
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.904762,
+          "legacy_chars": 597,
+          "gold_chars": 663,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ofno'a",
+              "gold": "ofano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimheirut",
+              "gold": "bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "72",
+              "gold": "shiv'im ushtayim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hametuar",
+              "gold": "hameto'ar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(kesheha'ofno'a",
+              "gold": "(ksheha'ofano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "banekuda",
+              "gold": "binekuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha'ofno'a",
+              "gold": "ha'ofano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "banekuda",
+              "gold": "binekuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimheirut",
+              "gold": "bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "72",
+              "gold": "shiv'im ushtayim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "uvemerhak 20",
+              "gold": "uvemerkhak esrim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "lifnei",
+              "gold": "lifney"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(kametuar",
+              "gold": "(kameto'ar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha'ofno'a shava",
+              "gold": "ha'ofano'a bitkhilat ha'akifa kvu'a veshava"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec^2 vete'utsato",
+              "gold": "sec² ute'utato"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec^2. khashév",
+              "gold": "sec² . khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "haminimalí",
+              "gold": "haminimali"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha'ofno'a bitnai",
+              "gold": "ha'ofano'a bitnay"
+            },
+            {
+              "operation": "replace",
+              "legacy": "90km/h.",
+              "gold": "tish'im km/h."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha'ofno'a",
+              "gold": "ha'ofano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "te'utsa.",
+              "gold": "te'uta."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.823263,
+          "legacy_chars": 640,
+          "gold_chars": 684,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "едут",
+              "gold": "движутся"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "прямой горизонтальной"
+            },
+            {
+              "operation": "delete",
+              "legacy": "прямой и горизонтальной",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "km/h",
+              "gold": "км/ч"
+            },
+            {
+              "operation": "replace",
+              "legacy": "состоянии, описанном",
+              "gold": "ситуации, показанной"
+            },
+            {
+              "operation": "replace",
+              "legacy": "чертеже",
+              "gold": "схеме"
+            },
+            {
+              "operation": "replace",
+              "legacy": "a) мотоцикл",
+              "gold": "a), мотоциклист"
+            },
+            {
+              "operation": "replace",
+              "legacy": "автомобиль,",
+              "gold": "автомобиль"
+            },
+            {
+              "operation": "replace",
+              "legacy": "закончить",
+              "gold": "завершить"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b,",
+              "gold": "b"
+            },
+            {
+              "operation": "replace",
+              "legacy": "km/h",
+              "gold": "км/ч"
+            },
+            {
+              "operation": "replace",
+              "legacy": "перед автомобилем",
+              "gold": "впереди автомобиля"
+            },
+            {
+              "operation": "replace",
+              "legacy": "описано",
+              "gold": "показано"
+            },
+            {
+              "operation": "replace",
+              "legacy": "чертеже).",
+              "gold": "схеме)."
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "в начале обгона постоянно и"
+            },
+            {
+              "operation": "replace",
+              "legacy": "1.25m / sec^2,",
+              "gold": "1.25 м/с²,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ускорение",
+              "gold": "замедление"
+            },
+            {
+              "operation": "replace",
+              "legacy": "2.5m / sec^2. вычисли",
+              "gold": "2.5 м/с². рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "мотоцикла",
+              "gold": "мотоциклом"
+            },
+            {
+              "operation": "replace",
+              "legacy": "он",
+              "gold": "его скорость"
+            },
+            {
+              "operation": "replace",
+              "legacy": "скорость 90km/h.",
+              "gold": "90 км/ч."
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "в себя"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ещё один",
+              "gold": "дополнительный"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ускорения.",
+              "gold": "замедления."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

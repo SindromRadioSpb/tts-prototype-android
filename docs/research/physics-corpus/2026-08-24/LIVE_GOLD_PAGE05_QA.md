@@ -1,0 +1,52 @@
+# Live gold QA — page 05
+
+Date: 2026-08-24
+
+Source: `для оцифровки учебника_2_Страница_05_Изображение_0001.png`
+
+Source SHA-256: `dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10`
+
+Provider/model: Google Gemini / `gemini-3.7-flash`
+
+Tasks on page: 1.1, 1.2
+
+## Verdict
+
+The new OCR and Russian translation are materially better than the legacy tables, but the first generated niqqud column is not acceptable as batch gold. A corrected prompt, consonantal-drift guard, exact Hebrew source-coverage guard, and deterministic learner-Latin transliteration must pass one page-05 retry before the three prepared PDFs are sent.
+
+## OCR checked against the source image
+
+Correct improvements over legacy data include `הצומת C`, `החותך`, `בנקודה N מאיץ הנהג`, `חותך`, `מהי`, and `M ו-N`. In task 1.2 the source image supports `תאוצת ... בתחילת העקיפה`, `ותאוטתו`, and the final `קטע נוסף של תאוטה`.
+
+One new OCR defect remains: the first body occurrence `שווה-תאוצה` must be `שוות-תאוצה`, as printed in the image.
+
+## Translation comparison
+
+The most consequential legacy error was corrected: legacy `בנקודה זו עוזב...` led to a Russian statement that the vehicle “leaves”, while the new OCR has `בנקודה N מאיץ הנהג...` and the new Russian correctly says that the driver accelerates the vehicle. Task 1.2 now also distinguishes acceleration (`תאוצה`) from deceleration (`תאוטה`).
+
+Similarity is diagnostic, not an acceptance score:
+
+| Task | Hebrew plain | Hebrew niqqud | Translit | Russian | Legacy rows | Gold rows |
+|---|---:|---:|---:|---:|---:|---:|
+| 1.1 | 0.958569 | 0.941402 | 0.877816 | 0.828514 | 12 | 8 |
+| 1.2 | 0.966942 | 0.961257 | 0.904762 | 0.823263 | 11 | 5 |
+
+The lower Russian similarity mostly reflects corrected meaning and improved sentence segmentation, not degradation.
+
+## Niqudd defects in the first live table
+
+- `אֶופַנּוֹעַ` is incorrect; the Hebrew Language Academy entry is [`אוֹפַנּוֹעַ`](https://terms.hebrew-academy.org.il/munnah/19129_1/%D7%90%D7%95%D6%B9%D7%A4%D6%B7%D7%A0%D6%BC%D7%95%D6%B9%D7%A2%D6%B7).
+- The generated `אׇפְקִי` does not match the Academy entry [`אָפְקִי`](https://terms.hebrew-academy.org.il/munnah?kodErekhIvrit=1621).
+- Some model rows changed spelling or morphology while adding niqqud. Full-to-defective spelling involving matres may be legitimate (`שתיים` / `שְׁתַּיִם`), but consonantal or lexical drift such as `שווה` / `שְׁוַת` is rejected.
+
+## Approved transliteration profile
+
+The corpus uses deterministic, ASCII learner Latin matching the existing tables and the approved example:
+
+`Perek 1: be'ayot bitkhum tnu'a shvat te'utsa`
+
+This is generated locally from `he_niqqud`; it does not consume another Gemini request. SBL Academic and Russian-phonetic profiles remain available separately.
+
+## Evidence boundary
+
+The exact rendered rows and OCR text are preserved in `live-gold-page05-rendered-evidence.json`; the automated legacy comparison is in `live-gold-page05-comparison.json`. The browser exposed native JSON download buttons, but its extension did not retain the Blob downloads, so the evidence is explicitly a rendered-DOM capture and does not claim to be a native export.

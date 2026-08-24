@@ -6,6 +6,64 @@
 // finding — see the inline comment at the fix site for details).
 "use strict";
 
+const HEBREW_MARKS_RE = /[\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7]/g;
+
+function comparableHebrewBase(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(HEBREW_MARKS_RE, "")
+    .normalize("NFC")
+    .replace(/[־–—]/g, "-")
+    .replace(/״/g, '"')
+    .replace(/׳/g, "'")
+    .replace(/\s+/g, "")
+    .trim();
+}
+
+// Fully vocalized Hebrew is normally written in ktiv haser while the source
+// OCR is often ktiv male. Removing matres lectionis gives us a conservative
+// consonantal guard: שתיים/שְׁתַּיִם and ואופקי/וְאָפְקִי pass, but a lexical
+// rewrite such as שווה/שְׁוַת still fails because it introduces ת.
+function comparableHebrewConsonantalSkeleton(value) {
+  return comparableHebrewBase(value).replace(/[אהוי]/g, "");
+}
+
+function semanticError(code, message, details) {
+  const error = new Error(message);
+  error.code = code;
+  error.details = details || null;
+  return error;
+}
+
+function validateNiqqudBase(rows) {
+  rows.forEach((row, index) => {
+    const plain = comparableHebrewBase(row && row.he);
+    const niqqud = comparableHebrewBase(row && row.he_niqqud);
+    if (!niqqud) {
+      throw semanticError("HE_NIQQUD_MISSING", `Row ${index} has no vocalized Hebrew`, { index });
+    }
+    if (plain !== niqqud
+        && comparableHebrewConsonantalSkeleton(plain) !== comparableHebrewConsonantalSkeleton(niqqud)) {
+      throw semanticError("HE_NIQQUD_CONSONANT_MISMATCH", `Row ${index} changes Hebrew consonants while adding niqqud`, {
+        index,
+        he: row && row.he,
+        he_niqqud: row && row.he_niqqud,
+      });
+    }
+  });
+}
+
+function validateHebrewSourceCoverage(rows, sourceText) {
+  const source = comparableHebrewBase(sourceText);
+  const rendered = comparableHebrewBase((rows || []).map((row) => row && row.he || "").join(""));
+  if (source !== rendered) {
+    throw semanticError("HE_SOURCE_COVERAGE_MISMATCH", "Gemini rows do not preserve the complete source Hebrew", {
+      sourceLength: source.length,
+      renderedLength: rendered.length,
+    });
+  }
+}
+
 function buildRowsFromGeminiPayload(parsed, options, opts) {
   opts = opts || {};
   if (!parsed || typeof parsed !== "object") {
@@ -97,6 +155,8 @@ function buildRowsFromGeminiPayload(parsed, options, opts) {
       return true;
     });
 
+  validateNiqqudBase(preparedRows);
+
   if (droppedEmptyHe > 0) {
     console.warn(
       `translate-table any-he: dropped ${droppedEmptyHe} row(s) with empty he (no fallback to source-language segments, R11)`
@@ -106,4 +166,10 @@ function buildRowsFromGeminiPayload(parsed, options, opts) {
   return preparedRows;
 }
 
-module.exports = { buildRowsFromGeminiPayload };
+module.exports = {
+  buildRowsFromGeminiPayload,
+  comparableHebrewBase,
+  comparableHebrewConsonantalSkeleton,
+  validateNiqqudBase,
+  validateHebrewSourceCoverage,
+};

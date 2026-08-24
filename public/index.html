@@ -11728,7 +11728,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 			                            <option value="google-free">Google Translate</option>
 			                            <option value="gcp">GCP Translate (API)</option>
 			                            <option value="madlad">MADLAD (local)</option>
-			                            <option value="gemini">Gemini (legacy)</option>
+			                            <option value="gemini">Gemini</option>
 		                            </select>
                                     <div id="localMtProviderStatus" class="v3-import-hint" aria-live="polite"></div>
                                     <button id="localMtCancelTranslation" type="button" class="btn-secondary" data-i18n="studio.localMt.cancelTranslation" hidden>Cancel local translation</button>
@@ -11737,7 +11737,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <div class="field-group">
                                     <label for="translitProfileSelect" class="input-label" data-i18n="classic.translitProfile">Профиль транслитерации</label>
                                     <select id="translitProfileSelect" class="provider-select" title="Профиль транслитерации иврита">
-			                            <option value="sbl" selected>Транслит: SBL Academic</option>
+			                            <option value="learner-latin" selected>Транслит: учебная латиница</option>
+			                            <option value="sbl">Транслит: SBL Academic</option>
 			                            <option value="ru-phonetic">Транслит: Русская фонетика</option>
 		                            </select>
                                 </div>
@@ -13347,9 +13348,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=179"></script>
-    <script src="/i18n/locales/en.js?v=179"></script>
-    <script src="/i18n/locales/he.js?v=179"></script>
+    <script src="/i18n/locales/ru.js?v=180"></script>
+    <script src="/i18n/locales/en.js?v=180"></script>
+    <script src="/i18n/locales/he.js?v=180"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13523,7 +13524,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.423";
+    window.APP_VERSION = "3.11.424";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -33698,8 +33699,10 @@ function v3UpdateTranslationCardStatus() {
   if (translit && translit.options) {
     const sbl = [...translit.options].find((option) => option.value === "sbl");
     const ruPhonetic = [...translit.options].find((option) => option.value === "ru-phonetic");
+    const learnerLatin = [...translit.options].find((option) => option.value === "learner-latin");
     if (sbl) sbl.textContent = t("classic.translitSbl");
     if (ruPhonetic) ruPhonetic.textContent = t("classic.translitRuPhonetic");
+    if (learnerLatin) learnerLatin.textContent = t("classic.translitLearnerLatin");
   }
   // Provider — always shown.
   const provTxt = _v3OptText(provider);
@@ -35788,7 +35791,7 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         const usePremium = provider === "gcp" || provider === "google-free";
         const endpoint = usePremium ? "/api/translate-table-v2" : "/api/translate-table";
         const translitProfileEl = document.getElementById("translitProfileSelect");
-        const translit_profile = translitProfileEl ? (translitProfileEl.value || "sbl") : "sbl";
+        const translit_profile = translitProfileEl ? (translitProfileEl.value || "learner-latin") : "learner-latin";
 
         // W2-S12: long table → chunk-cycle. setLoading(true)/skeleton/isGeminiLocked/premium-block
         // above already ran; v3TranslateTableChunked owns its own finally(setLoading(false)).
@@ -35863,7 +35866,7 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
             : (() => {
                 const segs = v3AudioSegmentsForRequest();
                 segModeSent = !!segs; // тайминг доверяет segment_index ТОЛЬКО когда мы САМИ послали segments
-                return { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection(),
+                return { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection(), translit_profile,
                          ...(segs ? { segments: segs } : {}) };
               })();
 
@@ -35906,6 +35909,8 @@ try {
       cacheKey: res.cacheKey || null,
       fromCache: (res.fromCache === true),
       provider: "gemini",
+      translitProfile: res.translitProfile || translit_profile,
+      translitProfileVersion: res.translitProfileVersion || null,
       generatedAt: new Date().toISOString()
     };
     v3AttachImportSource();
@@ -36677,32 +36682,17 @@ try {
 
     function getSelectedTranslitProfile() {
         const el = document.getElementById("translitProfileSelect");
-        if (!el) return "sbl";
-        return el.value || "sbl";
+        if (!el) return "learner-latin";
+        return el.value || "learner-latin";
     }
 
     // Sync the translit profile <select> enabled/disabled state based on the chosen provider.
-    // Gemini Legacy generates its own Latin-only transliteration — the profile selector
-    // has no effect and must be visually disabled to avoid confusion.
+    // Every current table provider honors the deterministic profile.
     function syncTranslitSelectEnabled() {
         const trEl = document.getElementById("translitProfileSelect");
         if (!trEl) return;
-
-        if (currentTableHasRuTranslit) {
-            // Loaded table has dual-translit data — enable regardless of provider dropdown.
-            trEl.disabled = false;
-            trEl.title = "Профиль транслитерации иврита";
-            return;
-        }
-
-        // No table loaded, or the loaded table is Gemini-only (Latin translit).
-        // Fall back to provider selection to decide state for the *next* translation.
-        const provEl = document.getElementById("providerSelect");
-        const isGemini = !provEl || provEl.value === "gemini";
-        trEl.disabled = isGemini;
-        trEl.title = isGemini
-            ? "Gemini Legacy формирует транслит самостоятельно (только латиница). Выбор профиля недоступен."
-            : "Профиль транслитерации иврита";
+        trEl.disabled = false;
+        trEl.title = "Профиль транслитерации иврита";
     }
 
     // ----------------------------
@@ -37260,7 +37250,7 @@ try {
         if (!el) return;
         try {
             const saved = localStorage.getItem(TRANSLIT_PROFILE_LS_KEY);
-            if (saved && ["sbl", "ru-phonetic"].includes(saved)) {
+            if (saved && ["sbl", "ru-phonetic", "learner-latin"].includes(saved)) {
                 el.value = saved;
             }
         } catch (_) {}
@@ -37712,15 +37702,15 @@ try {
         //     hasn't been re-translated with that profile.
         const _selectedProfile = (typeof getSelectedTranslitProfile === "function")
             ? getSelectedTranslitProfile()
-            : "sbl";
-        const _tProfile = _hasRuTranslit && _selectedProfile === "ru-phonetic" ? "ru-phonetic" : "sbl";
+            : "learner-latin";
+        const _tProfile = _hasRuTranslit && _selectedProfile === "ru-phonetic"
+            ? "ru-phonetic"
+            : (_selectedProfile === "learner-latin" ? "learner-latin" : "sbl");
         // Header reflects the dropdown choice when data is available, OR a
         // friendlier label than generic "Latin" when only sbl-style data exists.
-        const _tTitle = _hasRuTranslit
-            ? (_tProfile === "ru-phonetic" ? t("table.colTranslitRu") : t("table.colTranslitSbl"))
-            : (_selectedProfile === "ru-phonetic"
-                ? t("table.colTranslitRu") + " (нет данных)"
-                : t("table.colTranslitSbl"));
+        const _tTitle = _tProfile === "ru-phonetic"
+            ? t("table.colTranslitRu")
+            : (_tProfile === "learner-latin" ? t("table.colTranslitLearnerLatin") : t("table.colTranslitSbl"));
         // One-time hint when user picks ru-phonetic on an sbl-only table.
         try {
           if (_selectedProfile === "ru-phonetic" && !_hasRuTranslit
@@ -43192,7 +43182,7 @@ async function v3TcbProcessJob(job) {
     const usePremium = provider === 'gcp' || provider === 'google-free';
     const endpoint = usePremium ? '/api/translate-table-v2' : '/api/translate-table';
     const translitEl = document.getElementById('translitProfileSelect');
-    const translitProfile = translitEl ? (translitEl.value || 'sbl') : 'sbl';
+    const translitProfile = translitEl ? (translitEl.value || 'learner-latin') : 'learner-latin';
     const payload = usePremium
       ? {
           text: job.sourceText,

@@ -37,6 +37,7 @@ TASK:
 Rules:
 - Preserve the original order; "segment_index" values must be non-decreasing, starting at 0.
 - Do NOT invent, drop or reorder content; do NOT translate the Hebrew column.
+- In every row, "he_niqqud" MUST preserve the same lexical Hebrew and consonants as "he". Standard full-to-defective spelling changes involving matres א/ה/ו/י are allowed only where required by vocalized Hebrew. Never change morphology, expand abbreviations, or change digits/punctuation.
 - The input is a speech transcript and may contain fillers or "[…]" for unclear regions — keep them as-is.
 Output ONLY JSON, no markdown fences:
 {"segments":[{"index":0,"he":"..."}],"rows":[{"segment_index":0,"he":"...","he_niqqud":"...","translit":"...","ru":"..."}]}

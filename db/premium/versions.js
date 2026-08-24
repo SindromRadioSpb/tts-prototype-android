@@ -20,6 +20,7 @@ const TRANSLIT_PROFILE  = "sbl-v5-dagesh"; // default; also the cache-key string
 const TRANSLIT_PROFILE_VERSIONS = {
   "sbl":         "sbl-v5-dagesh",     // v5: DAGESH_CHAZAQ enabled (gemination)
   "ru-phonetic": "ru-phonetic-v1",
+  "learner-latin": "learner-latin-v1",
 };
 
 function translitProfileVersion(profile) {

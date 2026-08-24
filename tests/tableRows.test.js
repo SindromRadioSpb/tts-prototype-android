@@ -10,7 +10,10 @@
 //   (b) byte-identical legacy behavior (1-based, segMap fallback) with no opts.
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { buildRowsFromGeminiPayload } = require("../ingest/tableRows.js");
+const {
+  buildRowsFromGeminiPayload,
+  validateHebrewSourceCoverage,
+} = require("../ingest/tableRows.js");
 
 test("seg-mode (opts.keepSegmentIndex): row 0 gets its OWN segment's he, not segment 1's (reviewer's repro)", () => {
   const parsed = {
@@ -76,4 +79,36 @@ test("legacy mode (no opts): byte-identical to the pre-fix behavior — 1-based 
   // segmentId (internal, pre-existing) still reflects the 1-based segment_index.
   assert.equal(rows[0].segmentId, 1);
   assert.equal(rows[1].segmentId, 2);
+});
+
+test("niqqud allows full/defective spelling but may not change the consonantal word", () => {
+  const good = {
+    segments: [{ index: 1, he: 'אופנוע נוסע 72 קמ"ש.' }],
+    rows: [{ segment_index: 1, he: 'אופנוע נוסע 72 קמ"ש.', he_niqqud: 'אוֹפַנּוֹעַ נוֹסֵעַ 72 קמ"ש.', translit: "ofanua", ru: "мотоцикл" }],
+  };
+  const rows = buildRowsFromGeminiPayload(good, { direction: "he-ru" });
+  assert.equal(rows.length, 1);
+  validateHebrewSourceCoverage(rows, 'אופנוע נוסע 72 קמ"ש.');
+
+  const defectiveSpelling = {
+    segments: [{ index: 1, he: 'שתיים ואופקי' }],
+    rows: [{ segment_index: 1, he: 'שתיים ואופקי', he_niqqud: 'שְׁתַּיִם וְאָפְקִי', translit: "shtayim ve-ofki", ru: "два и горизонтальный" }],
+  };
+  assert.equal(buildRowsFromGeminiPayload(defectiveSpelling, { direction: "he-ru" }).length, 1);
+
+  const changedConsonant = {
+    segments: [{ index: 1, he: 'שווה תאוצה' }],
+    rows: [{ segment_index: 1, he: 'שווה תאוצה', he_niqqud: 'שְׁוַת תְּאוּצָה', translit: "shvat te'utsa", ru: "равноускоренное" }],
+  };
+  assert.throws(
+    () => buildRowsFromGeminiPayload(changedConsonant, { direction: "he-ru" }),
+    (error) => error && error.code === "HE_NIQQUD_CONSONANT_MISMATCH",
+  );
+});
+
+test("source coverage rejects dropped or rewritten Hebrew before cache publication", () => {
+  assert.throws(
+    () => validateHebrewSourceCoverage([{ he: "בנקודה N עוזב הרכב" }], "בנקודה N מאיץ הנהג את הרכב"),
+    (error) => error && error.code === "HE_SOURCE_COVERAGE_MISMATCH",
+  );
 });

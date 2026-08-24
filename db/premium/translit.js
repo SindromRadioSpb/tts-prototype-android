@@ -19,7 +19,7 @@
 // whenever either schema changes, so segment-cache rows are invalidated.
 
 const { transliterate: _lib, Schema } = require("hebrew-transliteration");
-const { sblAcademicSpirantization }   = require("hebrew-transliteration/schemas");
+const { sblAcademicSpirantization, sblSimple } = require("hebrew-transliteration/schemas");
 
 // ── SBL Academic (spirantized) ──────────────────────────────────────────────
 // Overrides vs library defaults:
@@ -117,7 +117,44 @@ const RU_SCHEMA = new Schema({
   holemHaser:     "remove",
 });
 
-const SCHEMAS = { "sbl": SBL_SCHEMA, "ru-phonetic": RU_SCHEMA };
+// ── Learner Latin ──────────────────────────────────────────────────────────
+// Plain, keyboard-friendly Israeli-Hebrew transliteration used by the owner's
+// existing physics tables: kh/sh/ts, ASCII apostrophe for א/ע, no diacritics.
+// A private-use marker lets us render modern spoken sheva consistently:
+// prefix וְ- keeps "ve-", a sheva before א/ע is "e", other initial clusters
+// are compact (tnu'a, shvat). This stays deterministic and needs no model call.
+const LEARNER_SHEVA = "\uE000";
+const LEARNER_LATIN_SCHEMA = new Schema({
+  ...sblSimple,
+  ALEF: "'",
+  AYIN: "'",
+  QOF: "k",
+  HE: "h",
+  QAMATS_HE: "a",
+  SEGOL_HE: "e",
+  TSERE_HE: "e",
+  VOCAL_SHEVA: LEARNER_SHEVA,
+  DAGESH_CHAZAQ: false,
+});
+
+const SCHEMAS = {
+  "sbl": SBL_SCHEMA,
+  "ru-phonetic": RU_SCHEMA,
+  "learner-latin": LEARNER_LATIN_SCHEMA,
+};
+
+function _finishLearnerLatin(value) {
+  return value
+    .replace(new RegExp(`\\bv${LEARNER_SHEVA}`, "g"), "ve")
+    .replace(new RegExp(`${LEARNER_SHEVA}(?=')`, "g"), "e")
+    .replaceAll(LEARNER_SHEVA, "")
+    // A word-initial glottal carrier is silent; internal א/ע stays visible.
+    .replace(/(^|[\s([])'(?=[a-z])/g, "$1")
+    // The library emits furtive patah before final ע as a'; learner spelling
+    // places the separator before the vowel: nose'a, ofno'a, poge'a.
+    .replace(/a'(?=$|[\s.,!?;:)\]])/g, "'a")
+    .replace(/(^|[.!?]\s+)([a-z])/g, (_match, before, letter) => before + letter.toUpperCase());
+}
 
 function _run(text, schema) {
   if (typeof text !== "string") return "";
@@ -137,7 +174,8 @@ function transliterate(heWithNiqqud) {
 
 // Profile-aware entry point used by the pipeline.
 function transliterateWithProfile(heWithNiqqud, profile) {
-  return _run(heWithNiqqud, SCHEMAS[profile] || SBL_SCHEMA);
+  const result = _run(heWithNiqqud, SCHEMAS[profile] || SBL_SCHEMA);
+  return profile === "learner-latin" ? _finishLearnerLatin(result) : result;
 }
 
 module.exports = { transliterate, transliterateWithProfile };

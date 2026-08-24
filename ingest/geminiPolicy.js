@@ -15,19 +15,19 @@ const SCENARIOS = Object.freeze({
   "table-he-ru": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "he-ru-table-v2",
+    promptId: "he-ru-table-v3",
     schemaId: "studio-table-rows-schema-v1",
   }),
   "table-any-he": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "any-he-table-v2",
+    promptId: "any-he-table-v3",
     schemaId: "studio-table-rows-schema-v1",
   }),
   "table-seg-he-ru": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "he-ru-table-seg-v2",
+    promptId: "he-ru-table-seg-v3",
     schemaId: "studio-table-rows-schema-v1",
   }),
   retell: Object.freeze({

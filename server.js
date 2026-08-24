@@ -24,7 +24,10 @@ const {
 
 const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
 const segTable = require("./ingest/segTable.js");
-const { buildRowsFromGeminiPayload } = require("./ingest/tableRows.js");
+const {
+  buildRowsFromGeminiPayload,
+  validateHebrewSourceCoverage,
+} = require("./ingest/tableRows.js");
 const { buildGeminiTableResponseSchema } = require("./ingest/geminiTableSchema.js");
 const { generateGeminiContent } = require("./ingest/geminiClient.js");
 const {
@@ -6392,7 +6395,7 @@ app.post("/api/audio/prefetch/cancel", async (req, res) => {
 // the server itself produces in computeAssetKey — that's the contract that
 // keeps cross-device URL stability. We DO NOT verify the MP3's actual hash
 // POST /api/transliterate — stateless wrapper around transliterateWithProfile.
-// Body: { items: [{ id, he_niqqud }], profile: 'sbl'|'ru-phonetic'|'both' }
+// Body: { items: [{ id, he_niqqud }], profile: 'sbl'|'ru-phonetic'|'learner-latin'|'both' }
 // Returns: { items: [{ id, translit?, translit_ru? }] } where the keys present
 // match the requested profile ('both' returns both).
 //
@@ -6405,7 +6408,7 @@ app.post("/api/transliterate", requireSameOriginJson, rlTransliterate, async (re
     const { transliterateWithProfile } = require("./db/premium/translit");
     const body = (req.body && typeof req.body === "object") ? req.body : {};
     const profile = String(body.profile || "both").trim().toLowerCase();
-    if (!["sbl", "ru-phonetic", "both"].includes(profile)) {
+    if (!["sbl", "ru-phonetic", "learner-latin", "both"].includes(profile)) {
       return res.status(400).json({ ok: false, error: "BAD_PROFILE", got: profile });
     }
     const items = Array.isArray(body.items) ? body.items : [];
@@ -6418,11 +6421,13 @@ app.post("/api/transliterate", requireSameOriginJson, rlTransliterate, async (re
       const r = { id };
       if (!he) {
         // No niqqud → empty results (deterministic, idempotent).
-        if (profile === "sbl"  || profile === "both") r.translit    = "";
+        if (profile === "sbl" || profile === "learner-latin" || profile === "both") r.translit = "";
         if (profile === "ru-phonetic" || profile === "both") r.translit_ru = "";
         return r;
       }
-      if (profile === "sbl"  || profile === "both") r.translit    = transliterateWithProfile(he, "sbl")         || "";
+      if (profile === "sbl" || profile === "learner-latin" || profile === "both") {
+        r.translit = transliterateWithProfile(he, profile === "learner-latin" ? "learner-latin" : "sbl") || "";
+      }
       if (profile === "ru-phonetic" || profile === "both") r.translit_ru = transliterateWithProfile(he, "ru-phonetic") || "";
       return r;
     });
@@ -6717,6 +6722,8 @@ Rules:
 - Preserve the original order of sentences.
 - Do NOT merge semantically different sentences into a single row.
 - If the input contains line breaks, you MAY use them as additional hints for segmentation.
+- Copy every "he" segment from the input without changing, correcting or paraphrasing its base characters.
+- In every row, "he_niqqud" MUST preserve the same lexical Hebrew and consonants as "he". Standard full-to-defective spelling changes involving matres א/ה/ו/י are allowed only where required by vocalized Hebrew. Never change morphology, expand abbreviations, or change digits/punctuation.
 - Always return ALL data inside a single JSON object exactly in the format above.
 `;
 
@@ -6756,7 +6763,7 @@ Strict output format (JSON only, no comments, no markdown):
 
 Field rules for "rows":
 - "he": the HEBREW TRANSLATION of the segment, without niqqud.
-- "he_niqqud": the same Hebrew translation, fully vocalized with niqqud.
+- "he_niqqud": the same Hebrew translation, fully vocalized with niqqud. Preserve the same lexical Hebrew and consonants. Standard full-to-defective spelling changes involving matres א/ה/ו/י are allowed only where required by vocalized Hebrew; never change morphology, expand abbreviations, or change digits/punctuation.
 - "translit": transliteration of the Hebrew translation (Latin letters).
 - "ru": the ORIGINAL segment if it is Russian; otherwise a Russian translation of it.
 - In "segments", the "he" field holds the ORIGINAL segment text (kept for schema compatibility).
@@ -6808,10 +6815,15 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
     const cleanText = segMode ? segTable.buildSegInput(req.body.segments) : text.trim();
+    const translitProfile = ["sbl", "ru-phonetic", "learner-latin"].includes(String(req.body.translit_profile || ""))
+      ? String(req.body.translit_profile)
+      : "learner-latin";
 
     const scenarioName = segMode ? "table-seg-he-ru" : (direction === "any-he" ? "table-any-he" : "table-he-ru");
     const scenario = getGeminiScenario(scenarioName);
-    const contentSha256 = crypto.createHash("sha256").update(cleanText).digest("hex");
+    const contentSha256 = crypto.createHash("sha256")
+      .update(`${cleanText}\n\u0000translit_profile=${translitProfile}`)
+      .digest("hex");
     const hashKey = buildGeminiCacheKey({ ...scenario, contentSha256 });
     const cacheFile = path.join(geminiCacheDir, `table-v2-${hashKey}.json`);
 
@@ -6831,6 +6843,8 @@ app.post("/api/translate-table", async (req, res) => {
             cacheKey: hashKey,
             cachedAt: cached.createdAt || null,
             warnings: Array.isArray(cached.warnings) ? cached.warnings : [],
+            translitProfile: cached.translitProfile || translitProfile,
+            translitProfileVersion: cached.translitProfileVersion || null,
           });
         }
       } catch (e) {
@@ -6880,14 +6894,34 @@ app.post("/api/translate-table", async (req, res) => {
     let preparedRows;
     try {
       preparedRows = buildRowsFromGeminiPayload(parsed, { direction }, { keepSegmentIndex: segMode });
+      if (!segMode && direction === "he-ru") {
+        validateHebrewSourceCoverage(preparedRows, text.trim());
+      }
     } catch (e) {
       console.error("Gemini payload error:", e);
       return res.status(500).json({
         error: "Неверный формат данных от Gemini",
         raw: rawText,
         details: e.message,
+        error_code: e.code || "GEMINI_SEMANTIC_INVALID",
       });
     }
+
+    const { transliterateWithProfile } = require("./db/premium/translit");
+    const { translitProfileVersion } = require("./db/premium/versions");
+    const resolvedTranslitProfile = translitProfileVersion(translitProfile);
+    preparedRows.forEach((row) => {
+      row.translit = transliterateWithProfile(row.he_niqqud, translitProfile) || "";
+      row.translation_provider = `gemini:${scenario.model}`;
+      row.translation_meta_json = JSON.stringify({
+        provider: "gemini",
+        model: scenario.model,
+        modelVersion: generated.modelVersion || null,
+        promptId: scenario.promptId,
+        schemaId: scenario.schemaId,
+        translitProfile: resolvedTranslitProfile,
+      });
+    });
 
     let warnings = [];
     if (segMode) {
@@ -6911,6 +6945,8 @@ app.post("/api/translate-table", async (req, res) => {
       modelVersion: generated.modelVersion,
       promptId: scenario.promptId,
       schemaId: scenario.schemaId,
+      translitProfile,
+      translitProfileVersion: resolvedTranslitProfile,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -6932,6 +6968,8 @@ app.post("/api/translate-table", async (req, res) => {
       cacheKey: hashKey,
       cachedAt: cachePayload.createdAt,
       warnings,
+      translitProfile,
+      translitProfileVersion: resolvedTranslitProfile,
     });
   } catch (error) {
     // Sanitize: log only flat scalars, never the raw error object (it can

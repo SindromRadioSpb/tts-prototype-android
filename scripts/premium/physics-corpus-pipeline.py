@@ -10,6 +10,7 @@ the owner's XLSX/DOCX files without installing Office or extra packages.
 from __future__ import annotations
 
 import argparse
+import difflib
 import hashlib
 import json
 import re
@@ -338,6 +339,105 @@ def legacy_audit(args: argparse.Namespace) -> int:
     return 0
 
 
+def _comparison_text(value: str) -> str:
+    value = strip_hebrew_marks(value or "")
+    value = value.replace("־", "-").replace("–", "-").replace("—", "-")
+    value = value.replace("״", '"').replace("׳", "'")
+    return re.sub(r"\s+", " ", value).strip().lower()
+
+
+def _joined_rows(rows: list[dict[str, object]], column: str) -> str:
+    return " ".join(str(row.get(column) or "").strip() for row in rows if str(row.get(column) or "").strip())
+
+
+def _token_diff(old_text: str, new_text: str, limit: int = 24) -> list[dict[str, object]]:
+    old_tokens = _comparison_text(old_text).split()
+    new_tokens = _comparison_text(new_text).split()
+    matcher = difflib.SequenceMatcher(a=old_tokens, b=new_tokens, autojunk=False)
+    changes: list[dict[str, object]] = []
+    for tag, old_start, old_end, new_start, new_end in matcher.get_opcodes():
+        if tag == "equal":
+            continue
+        changes.append({
+            "operation": tag,
+            "legacy": " ".join(old_tokens[old_start:old_end]),
+            "gold": " ".join(new_tokens[new_start:new_end]),
+        })
+        if len(changes) >= limit:
+            break
+    return changes
+
+
+def _split_gold_tasks(rows: list[dict[str, object]]) -> dict[str, list[dict[str, object]]]:
+    tasks: dict[str, list[dict[str, object]]] = {}
+    current: str | None = None
+    for row in rows:
+        plain = strip_hebrew_marks(str(row.get("he_plain") or "")).strip()
+        match = re.match(r"^שאלה\s+(\d+\.\d+)\s*:?$", plain)
+        if match:
+            current = match.group(1)
+            tasks.setdefault(current, [])
+            continue
+        if current is not None and str(row.get("kind") or "") != "chapter_header":
+            tasks[current].append(row)
+    return tasks
+
+
+def compare_gold(args: argparse.Namespace) -> int:
+    legacy_path = Path(args.legacy)
+    gold_path = Path(args.gold)
+    if not legacy_path.is_file() or not gold_path.is_file():
+        print(json.dumps({"error": "comparison input missing", "legacy": str(legacy_path), "gold": str(gold_path)}, ensure_ascii=False), file=sys.stderr)
+        return 2
+    legacy = json.loads(legacy_path.read_text(encoding="utf-8"))
+    gold = json.loads(gold_path.read_text(encoding="utf-8"))
+    legacy_tasks = {str(task.get("task_number")): task for task in legacy.get("tasks", [])}
+    gold_tasks = _split_gold_tasks(gold.get("rows", []))
+    task_reports: list[dict[str, object]] = []
+    for number, gold_rows in gold_tasks.items():
+        legacy_task = legacy_tasks.get(number)
+        if not legacy_task:
+            task_reports.append({"task_number": number, "status": "missing_in_legacy", "gold_row_count": len(gold_rows)})
+            continue
+        legacy_rows = legacy_task.get("rows", [])
+        columns: dict[str, object] = {}
+        for column in ("he_plain", "he_niqqud", "translit", "ru"):
+            old_text = _joined_rows(legacy_rows, column)
+            new_text = _joined_rows(gold_rows, column)
+            old_normalized = _comparison_text(old_text)
+            new_normalized = _comparison_text(new_text)
+            columns[column] = {
+                "similarity": round(difflib.SequenceMatcher(a=old_normalized, b=new_normalized, autojunk=False).ratio(), 6),
+                "legacy_chars": len(old_text),
+                "gold_chars": len(new_text),
+                "token_changes": _token_diff(old_text, new_text),
+            }
+        task_reports.append({
+            "task_number": number,
+            "status": "compared",
+            "legacy_row_count": len(legacy_rows),
+            "gold_row_count": len(gold_rows),
+            "segmentation_changed": len(legacy_rows) != len(gold_rows),
+            "columns": columns,
+        })
+    payload = {
+        "schema": "linguistpro.physics.gold-legacy-comparison.1",
+        "legacy": {"path": str(legacy_path), "sha256": sha256_file(legacy_path)},
+        "gold": {"path": str(gold_path), "sha256": sha256_file(gold_path)},
+        "summary": {
+            "gold_task_count": len(gold_tasks),
+            "compared_task_count": sum(1 for task in task_reports if task["status"] == "compared"),
+            "missing_in_legacy": [task["task_number"] for task in task_reports if task["status"] == "missing_in_legacy"],
+        },
+        "tasks": task_reports,
+    }
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"output": str(output), **payload["summary"], "tasks": task_reports}, ensure_ascii=False, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -349,6 +449,11 @@ def build_parser() -> argparse.ArgumentParser:
     normalize.add_argument("--root", required=True, help="Physics source directory")
     normalize.add_argument("--output", required=True, help="Output JSON path")
     normalize.set_defaults(func=normalize_legacy)
+    compare = sub.add_parser("compare-gold", help="Compare a rendered Gemini gold record with the normalized legacy reference")
+    compare.add_argument("--legacy", required=True, help="Normalized legacy reference JSON")
+    compare.add_argument("--gold", required=True, help="Rendered live-gold evidence JSON")
+    compare.add_argument("--output", required=True, help="Output comparison JSON path")
+    compare.set_defaults(func=compare_gold)
     return parser
 
 
