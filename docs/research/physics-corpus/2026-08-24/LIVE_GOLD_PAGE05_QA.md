@@ -50,3 +50,19 @@ This is generated locally from `he_niqqud`; it does not consume another Gemini r
 ## Evidence boundary
 
 The exact rendered rows and OCR text are preserved in `live-gold-page05-rendered-evidence.json`; the automated legacy comparison is in `live-gold-page05-comparison.json`. The browser exposed native JSON download buttons, but its extension did not retain the Blob downloads, so the evidence is explicitly a rendered-DOM capture and does not claim to be a native export.
+
+## Owner-approved corrected-text retry — application 3.11.427
+
+The owner approved exactly one local correction, `שווה-תאוצה` → `שוות-תאוצה`, and exactly one corrected-text request to Google Gemini 3.7 Flash. The 1,097-character source then contained zero wrong occurrences and two correct occurrences; its corrected-text SHA-256 is `05c232cf922ba0d243a6f2abedcf417af513860554824af6b65071b78d62b0d8`.
+
+The request succeeded and rendered 16 rows. The UI identified the result as generated through the Gemini API, advanced usage to total 76 and `Сегодня: 2 / 50`, and exposed `Обновить таблицу` after completion. No second request was sent. The approved learner-Latin heading is exact:
+
+`Perek 1: be'ayot bitkhum tnu'a shvat te'utsa`
+
+The corrected source removed the prior row-3 consonant mismatch, but the returned niqqud is still not acceptable as batch gold:
+
+- row 11 generated `אֶוֹפַנּוֹעַ`, while the Academy form is `אוֹפַנּוֹעַ`;
+- row 11 generated `אֹפְקִי`, while the Academy form is `אָפְקִי`;
+- the malformed motorcycle niqqud propagated into learner transliteration as `Evofano'a` / `ha'evofano'a`, rather than the required `Ofno'a` / `ha'ofno'a` family.
+
+Therefore the corrected retry validates the forced-regeneration workflow, source correction, request accounting, source coverage, and the exact approved chapter transliteration, but it does **not** approve the current Gemini niqqud output for the three-PDF batch. The exact retry rows are in `live-gold-page05-retry-02-rendered-evidence.json`; the refreshed legacy comparison is in `live-gold-page05-retry-02-comparison.json`.

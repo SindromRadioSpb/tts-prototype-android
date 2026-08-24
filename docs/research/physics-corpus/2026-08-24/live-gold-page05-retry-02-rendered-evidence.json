@@ -1,0 +1,194 @@
+{
+  "format": "linguistpro-rendered-gold-evidence-v1",
+  "captured_at": "2026-08-24T22:02:00.308Z",
+  "capture_method": "rendered DOM after the single owner-approved corrected-text Gemini request",
+  "capture_limitations": [
+    "Server cache key and provider response model version are not exposed in the rendered DOM.",
+    "Row kind is inferred from rendered Hebrew header and note prefixes.",
+    "This artifact is a rendered-DOM audit record, not the native Blob JSON download."
+  ],
+  "application": {
+    "version": "3.11.427",
+    "commit": "4a2e6835"
+  },
+  "source": {
+    "filename": "для оцифровки учебника_2_Страница_05_Изображение_0001.png",
+    "image_sha256": "dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10",
+    "corrected_ocr_text_chars": 1097,
+    "corrected_ocr_text_sha256": "05c232cf922ba0d243a6f2abedcf417af513860554824af6b65071b78d62b0d8",
+    "approved_correction": {
+      "from": "שווה-תאוצה",
+      "to": "שוות-תאוצה",
+      "replacements": 1,
+      "wrong_occurrences_after_edit": 0,
+      "correct_occurrences_after_edit": 2
+    }
+  },
+  "request": {
+    "provider": "gemini",
+    "requested_model": "gemini-3.7-flash",
+    "prompt_id": "he-ru-table-v3",
+    "translit_profile": "learner-latin",
+    "translit_profile_version": "learner-latin-v1",
+    "owner_approved_provider_calls": 1,
+    "provider_calls_sent": 1
+  },
+  "result": {
+    "status": "rendered_success",
+    "row_count": 16,
+    "displayed_provider": "Google Gemini",
+    "displayed_source": "сгенерирована через Gemini API",
+    "button_after_result": "Обновить таблицу",
+    "usage_total_after": 76,
+    "usage_today_after": "2 / 50",
+    "server_cache_hit": false
+  },
+  "quality_findings": {
+    "approved_header_translit_exact": true,
+    "approved_header_translit": "Perek 1: be'ayot bitkhum tnu'a shvat te'utsa",
+    "corrected_equal_acceleration_form_present": true,
+    "niqqud_batch_gold_status": "rejected_pending_correction",
+    "niqqud_defects": [
+      {
+        "row": 11,
+        "generated": "אֶוֹפַנּוֹעַ",
+        "expected": "אוֹפַנּוֹעַ"
+      },
+      {
+        "row": 11,
+        "generated": "אֹפְקִי",
+        "expected": "אָפְקִי"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "order_index": 0,
+      "kind": "chapter_header",
+      "he_plain": "פרק 1: בעיות בתחום תנועה שוות תאוצה",
+      "he_niqqud": "פֶּרֶק 1: בְּעָיוֹת בִּתְחוּם תְּנוּעָה שְׁוַת תְּאוּצָה",
+      "translit": "Perek 1: be'ayot bitkhum tnu'a shvat te'utsa",
+      "ru": "Глава 1: Задачи на равноускоренное движение"
+    },
+    {
+      "order_index": 1,
+      "kind": "task_header",
+      "he_plain": "שאלה 1.1:",
+      "he_niqqud": "שְׁאֵלָה 1.1:",
+      "translit": "She'ela 1.1:",
+      "ru": "Вопрос 1.1:"
+    },
+    {
+      "order_index": 2,
+      "kind": "body",
+      "he_plain": "רכבת נוסעת במהירות של 110 קמ\"ש.",
+      "he_niqqud": "רַכֶּבֶת נוֹסַעַת בִּמְהִירוּת שֶׁל 110 קמ\"ש.",
+      "translit": "Rakevet nosa'at bimhirut shel 110 kmsh\".",
+      "ru": "Поезд движется со скоростью 110 км/ч."
+    },
+    {
+      "order_index": 3,
+      "kind": "body",
+      "he_plain": "בנקודה M של המסלול מפעיל נהג הרכבת את הבלמים והרכבת מתקדמת אל הצומת C בתנועה שוות-תאוצה, כך שבמרחק 0.8 ק\"מ מהנקודה M יורדת מהירותה של הרכבת עד ל-80 קמ\"ש.",
+      "he_niqqud": "בִּנְקֻדָּה M שֶׁל הַמַּסְלוּל מַפְעִיל נַהַג הָרַכֶּבֶת אֶת הַבְּלָמִים וְהָרַכֶּבֶת מִתְקַדֶּמֶת אֶל הַצֹּמֶת C בִּתְנוּעָה שְׁוַת-תְּאוּצָה, כָּךְ שֶׁבְּמֶרְחָק 0.8 ק\"מ מֵהַנְּקֻדָּה M יוֹרֶדֶת מְהִירוּתָהּ שֶׁל הָרַכֶּבֶת עַד לְ-80 קמ\"ש.",
+      "translit": "Binkuda M shel hamaslul maf'il nahag harakevet et hablamim veharakevet mitkademet el hatsomet C bitnu'a shvat-te'utsa, kakh shebmerkhak 0.8 km\" mehankuda M yoredet mhirutah shel harakevet ad l-80 kmsh\".",
+      "ru": "В точке M трассы машинист поезда задействует тормоза, и поезд движется к перекрёстку C с постоянным ускорением так, что на расстоянии 0.8 км от точки M скорость поезда снижается до 80 км/ч."
+    },
+    {
+      "order_index": 4,
+      "kind": "body",
+      "he_plain": "רכב פרטי נוסע בכביש החותך את מסלול הרכבת במהירות של 40 קמ\"ש.",
+      "he_niqqud": "רֶכֶב פְּרָטִי נוֹסֵעַ בַּכְּבִישׁ הַחוֹתֵךְ אֶת מַסְלוּל הָרַכֶּבֶת בִּמְהִירוּת שֶׁל 40 קמ\"ש.",
+      "translit": "Rekhev prati nose'a bakvish hakhotekh et maslul harakevet bimhirut shel 40 kmsh\".",
+      "ru": "Легковой автомобиль едет по дороге, пересекающей железнодорожные пути, со скоростью 40 км/ч."
+    },
+    {
+      "order_index": 5,
+      "kind": "body",
+      "he_plain": "ברגע שהרכבת נמצאת בנקודה M נמצא הרכב הפרטי בנקודה N.",
+      "he_niqqud": "בָּרֶגַע שֶׁהָרַכֶּבֶת נִמְצֵאת בִּנְקֻדָּה M נִמְצָא הָרֶכֶב הַפְּרָטִי בִּנְקֻדָּה N.",
+      "translit": "Bareg'a sheharakevet nimtse't binkuda M nimts'a harekhev haprati binkuda N.",
+      "ru": "В момент, когда поезд находится в точке M, легковой автомобиль находится в точке N."
+    },
+    {
+      "order_index": 6,
+      "kind": "body",
+      "he_plain": "בנקודה N מאיץ הנהג את הרכב הפרטי והוא מתקדם אל הצומת C במהירות שוות-תאוצה.",
+      "he_niqqud": "בִּנְקֻדָּה N מֵאִיץ הַנַּהָג אֶת הָרֶכֶב הַפְּרָטִי וְהוּא מִתְקַדֵּם אֶל הַצֹּמֶת C בִּמְהִירוּת שְׁוַת-תְּאוּצָה.",
+      "translit": "Binkuda N me'its hanahag et harekhev haprati vehu' mitkadem el hatsomet C bimhirut shvat-te'utsa.",
+      "ru": "В точке N водитель ускоряет легковой автомобиль, и тот движется к перекрёстку C с постоянным ускорением."
+    },
+    {
+      "order_index": 7,
+      "kind": "body",
+      "he_plain": "חשב את שיעור התאוצה של הרכב הפרטי, אם הוא חותך את הצומת C ב-10 שניות לפני הרכבת.",
+      "he_niqqud": "חַשֵּׁב אֶת שִׁיעוּר הַתְּאוּצָה שֶׁל הָרֶכֶב הַפְּרָטִי, אִם הוּא חוֹתֵךְ אֶת הַצֹּמֶת C בְּ-10 שְׁנִיּוֹת לִפְנֵי הָרַכֶּבֶת.",
+      "translit": "Khashev et shi'ur hate'utsa shel harekhev haprati, im hu' khotekh et hatsomet C b-10 shniyot lifne harakevet.",
+      "ru": "Рассчитайте величину ускорения легкового автомобиля, если он пересекает перекрёсток C на 10 секунд раньше поезда."
+    },
+    {
+      "order_index": 8,
+      "kind": "body",
+      "he_plain": "מהי מהירותו של הרכב הפרטי בצומת C !",
+      "he_niqqud": "מַהִי מְהִירוּתוֹ שֶׁל הָרֶכֶב הַפְּרָטִי בַּצֹּמֶת C !",
+      "translit": "Mahi mhiruto shel harekhev haprati batsomet C !",
+      "ru": "Какова скорость легкового автомобиля на перекрёстке C!"
+    },
+    {
+      "order_index": 9,
+      "kind": "body",
+      "he_plain": "מרחקי הנקודות M ו- N מהצומת C נתונים בתרשים.",
+      "he_niqqud": "מֶרְחֲקֵי הַנְּקֻדּוֹת M וְ- N מֵהַצֹּמֶת C נְתוּנִים בַּתַּרְשִׁים.",
+      "translit": "Merkhake hankudot M v- N mehatsomet C ntunim batarshim.",
+      "ru": "Расстояния от точек M и N до перекрёстка C приведены на схеме."
+    },
+    {
+      "order_index": 10,
+      "kind": "task_header",
+      "he_plain": "שאלה 1.2:",
+      "he_niqqud": "שְׁאֵלָה 1.2:",
+      "translit": "She'ela 1.2:",
+      "ru": "Вопрос 1.2:"
+    },
+    {
+      "order_index": 11,
+      "kind": "body",
+      "he_plain": "אופנוע ומכונית נוסעים על כביש ישר ואופקי במהירות קבועה של 72 km/h כל אחד.",
+      "he_niqqud": "אֶוֹפַנּוֹעַ וּמְכוֹנִית נוֹסְעִים עַל כְּבִישׁ יָשָׁר וְאֹפְקִי בִּמְהִירוּת קְבוּעָה שֶׁל 72 km/h כָּל אֶחָד.",
+      "translit": "Evofano'a umkhonit nose'im al kvish yashar ve'ofki bimhirut kvu'a shel 72 km/h kol ekhad.",
+      "ru": "Мотоцикл и автомобиль едут по прямой горизонтальной дороге с постоянной скоростью 72 км/ч каждый."
+    },
+    {
+      "order_index": 12,
+      "kind": "body",
+      "he_plain": "במצב המתואר בתרשים (כשהאופנוע נמצא בנקודה A) החליט האופנוע לעקוף את המכונית, ולסיים את העקיפה בנקודה B, במהירות של 72 km/h ובמרחק 20 מטר לפני המכונית (כמתואר בתרשים).",
+      "he_niqqud": "בַּמַּצָּב הַמְּתֹאָר בַּתַּרְשִׁים (כְּשֶׁהָאֶוֹפַנּוֹעַ נִמְצָא בִּנְקֻדָּה A) הֶחְלִיט הָאֶוֹפַנּוֹעַ לַעֲקֹף אֶת הַמְּכוֹנִית, וּלְסַיֵּם אֶת הָעֲקִיפָה בִּנְקֻדָּה B, בִּמְהִירוּת שֶׁל 72 km/h וּבְמֶרְחָק 20 מֶטֶר לִפְנֵי הַמְּכוֹנִית (כַּמְּתֹאָר בַּתַּרְשִׁים).",
+      "translit": "Bamatsav hamto'ar batarshim (ksheha'evofano'a nimts'a binkuda A) hekhlit ha'evofano'a la'akof et hamkhonit, ulsayem et ha'akifa binkuda B, bimhirut shel 72 km/h uvmerkhak 20 meter lifne hamkhonit (kamto'ar batarshim).",
+      "ru": "В ситуации, показанной на схеме (когда мотоцикл находится в точке A), мотоциклист решил обогнать автомобиль и завершить обгон в точке B со скоростью 72 км/ч и на расстоянии 20 метров перед автомобилем (как показано на схеме)."
+    },
+    {
+      "order_index": 13,
+      "kind": "body",
+      "he_plain": "תאוצת האופנוע בתחילת העקיפה קבועה ושווה 1.25m / sec² ותאוטתו בגמר העקיפה קבועה ושווה 2.5m / sec² .",
+      "he_niqqud": "תְּאוּצַת הָאֶוֹפַנּוֹעַ בִּתְחִלַּת הָעֲקִיפָה קְבוּעָה וְשָׁוָה 1.25m / sec² וּתְאוּטָתוֹ בִּגְמַר הָעֲקִיפָה קְבוּעָה וְשָׁוָה 2.5m / sec² .",
+      "translit": "Te'utsat ha'evofano'a bitkhilat ha'akifa kvu'a veshava 1.25m / sec2 ute'utato bigmar ha'akifa kvu'a veshava 2.5m / sec2 .",
+      "ru": "Ускорение мотоцикла в начале обгона постоянно и равно 1.25 м/с², а его замедление в конце обгона постоянно и равно 2.5 м/с²."
+    },
+    {
+      "order_index": 14,
+      "kind": "body",
+      "he_plain": "חשב את זמן העקיפה המינימאלי של האופנוע בתנאי שאינו עובר את המהירות 90km/h.",
+      "he_niqqud": "חַשֵּׁב אֶת זְמַן הָעֲקִיפָה הַמִּינִימָאלִי שֶׁל הָאֶוֹפַנּוֹעַ בִּתְנַאי שֶׁאֵינוֹ עוֹבֵר אֶת הַמְּהִירוּת 90km/h.",
+      "translit": "Khashev et zman ha'akifa haminima'li shel ha'evofano'a bitna'y she'eno over et hamhirut 90km/h.",
+      "ru": "Рассчитайте минимальное время обгона мотоцикла при условии, что его скорость не превышает 90 км/ч."
+    },
+    {
+      "order_index": 15,
+      "kind": "note",
+      "he_plain": "הערה: תנועת האופנוע כוללת קטע של תאוצה, קטע של מהירות קבועה וקטע נוסף של תאוטה.",
+      "he_niqqud": "הֶעָרָה: תְּנוּעַת הָאֶוֹפַנּוֹעַ כּוֹלֶלֶת קֶטַע שֶׁל תְּאוּצָה, קֶטַע שֶׁל מְהִירוּת קְבוּעָה וְקֶטַע נוֹסָף שֶׁל תְּאוּטָה.",
+      "translit": "He'ara: tnu'at ha'evofano'a kolelet ket'a shel te'utsa, ket'a shel mhirut kvu'a veket'a nosaf shel te'uta.",
+      "ru": "Примечание: движение мотоцикла включает участок разгона, участок постоянной скорости и дополнительный участок торможения."
+    }
+  ]
+}
