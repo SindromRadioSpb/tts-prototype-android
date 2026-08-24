@@ -57,10 +57,13 @@ test("actual Gemini generations are counted before parse or semantic rejection",
   const routeStart = serverJs.indexOf('app.post("/api/translate-table"');
   const routeEnd = serverJs.indexOf('app.post("/api/translate-table-v2"', routeStart);
   const route = serverJs.slice(routeStart, routeEnd > routeStart ? routeEnd : undefined);
-  const generated = route.indexOf("const rawText = generated.text;");
+  const generated = route.indexOf("rawText = generated.text;");
   const counted = route.indexOf('updateUsage("gemini", 1);');
+  const preserved = route.indexOf("writeRawTableCacheAtomic(rawCacheFile");
   const parsed = route.indexOf("JSON.parse(cleaned)");
   assert.ok(generated >= 0 && counted > generated, "usage increments only after an upstream response exists");
+  assert.ok(preserved > counted && preserved < parsed,
+    "paid raw output is preserved before parsing/semantic validation can reject it");
   assert.ok(parsed > counted, "usage increments before parsing/semantic validation can reject the response");
   assert.equal(route.indexOf('updateUsage("gemini", 1);', counted + 1), -1, "one generation is counted once");
 });

@@ -37,6 +37,11 @@ const {
   buildGeminiCacheKey,
   cacheMatchesScenario,
 } = require("./ingest/geminiPolicy.js");
+const {
+  buildRawTableCachePayload,
+  readRawTableCache,
+  writeRawTableCacheAtomic,
+} = require("./ingest/geminiTableRawCache.js");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
@@ -6853,6 +6858,7 @@ app.post("/api/translate-table", async (req, res) => {
       .digest("hex");
     const hashKey = buildGeminiCacheKey({ ...scenario, contentSha256 });
     const cacheFile = path.join(geminiCacheDir, `table-v2-${hashKey}.json`);
+    const rawCacheFile = path.join(geminiCacheDir, `table-raw-v1-${hashKey}.json`);
 
     if (fs.existsSync(cacheFile)) {
       try {
@@ -6889,22 +6895,44 @@ app.post("/api/translate-table", async (req, res) => {
       ? segTable.HE_RU_SEG_PROMPT(cleanText)
       : (direction === "any-he" ? ANY_HE_PROMPT(cleanText) : HE_RU_PROMPT(cleanText));
 
-    const generated = await generateGeminiContent({
-      apiKey: trimmedKey,
-      scenario,
-      contents: prompt,
-      config: {
-        temperature: 0,
-        maxOutputTokens: 65536,
-        responseMimeType: "application/json",
-        responseSchema: buildGeminiTableResponseSchema(Type),
-      },
-    });
-    const rawText = generated.text;
-    // The upstream generation has already consumed the owner's provider quota
-    // even if JSON parsing or semantic Hebrew validation rejects the payload.
-    // Count here (never on cache hits), not only after publication succeeds.
-    updateUsage("gemini", 1);
+    const rawCached = readRawTableCache(rawCacheFile, scenario, translitProfile, cacheMatchesScenario);
+    let generated;
+    let rawText;
+    let rawFromCache = false;
+    if (rawCached) {
+      rawFromCache = true;
+      rawText = rawCached.rawText;
+      generated = { modelVersion: rawCached.modelVersion || null };
+    } else {
+      generated = await generateGeminiContent({
+        apiKey: trimmedKey,
+        scenario,
+        contents: prompt,
+        config: {
+          temperature: 0,
+          maxOutputTokens: 65536,
+          responseMimeType: "application/json",
+          responseSchema: buildGeminiTableResponseSchema(Type),
+        },
+      });
+      rawText = generated.text;
+      // The upstream generation has already consumed the owner's provider quota
+      // even if JSON parsing or semantic Hebrew validation rejects the payload.
+      // Count here (never on cache hits), not only after publication succeeds.
+      updateUsage("gemini", 1);
+      // Preserve the paid provider output before parsing or semantic validation.
+      // It contains source/derived text only and deliberately excludes the BYOK key.
+      try {
+        writeRawTableCacheAtomic(rawCacheFile, buildRawTableCachePayload({
+          rawText,
+          scenario,
+          modelVersion: generated.modelVersion,
+          translitProfile,
+        }));
+      } catch (e) {
+        console.error("Ошибка записи сырого кэша Gemini:", e && e.message ? e.message : String(e));
+      }
+    }
 
     const cleaned = rawText
       .replace(/^```json\s*/i, "")
@@ -6925,6 +6953,8 @@ app.post("/api/translate-table", async (req, res) => {
         modelVersion: generated.modelVersion,
         promptId: scenario.promptId,
         schemaId: scenario.schemaId,
+        fromCache: rawFromCache,
+        rawCacheKey: hashKey,
       });
     }
 
@@ -6941,6 +6971,8 @@ app.post("/api/translate-table", async (req, res) => {
         raw: rawText,
         details: e.message,
         error_code: e.code || "GEMINI_SEMANTIC_INVALID",
+        fromCache: rawFromCache,
+        rawCacheKey: hashKey,
       });
     }
 
@@ -7000,7 +7032,7 @@ app.post("/api/translate-table", async (req, res) => {
       modelVersion: generated.modelVersion,
       promptId: scenario.promptId,
       schemaId: scenario.schemaId,
-      fromCache: false,
+      fromCache: rawFromCache,
       cacheKey: hashKey,
       cachedAt: cachePayload.createdAt,
       warnings,
