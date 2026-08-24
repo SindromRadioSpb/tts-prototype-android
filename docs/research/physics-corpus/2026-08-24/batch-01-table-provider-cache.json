@@ -1,0 +1,1385 @@
+{
+  "text": "פרק 1: בעיות בתחום תנועה שוות תאוצה\nשאלה 1.1:\nרכבת נוסעת במהירות של 110 קמ\"ש. בנקודה M של המסלול מפעיל נהג הרכבת את הבלמים והרכבת מתקדמת אל הצומת C בתנועה שוות-תאוצה, כך שבמרחק 0.8 ק\"מ מהנקודה M יורדת מהירותה של הרכבת עד ל-80 קמ\"ש.\nרכב פרטי נוסע בכביש החותך את מסלול הרכבת במהירות של 40 קמ\"ש. ברגע שהרכבת נמצאת בנקודה M נמצא הרכב הפרטי בנקודה N. בנקודה N מאיץ הנהג את הרכב הפרטי והוא מתקדם אל הצומת C במהירות שוות-תאוצה.\nחשב את שיעור התאוצה של הרכב הפרטי, אם הוא חותך את הצומת C ב-10 שניות לפני הרכבת.\nמהי מהירותו של הרכב הפרטי בצומת C ?\nמרחקי הנקודות M ו- N מהצומת C נתונים בתרשים.\nשאלה 1.2:\nאופנוע ומכונית נוסעים על כביש ישר ואופקי במהירות קבועה של 72 km/h כל אחד. במצב המתואר בתרשים (כשהאופנוע נמצא בנקודה A) החליט האופנוען לעקוף את המכונית, ולסיים את העקיפה בנקודה B, במהירות של 72 km/h ובמרחק 20 מטר לפני המכונית (כמתואר בתרשים). תאוצת האופנוע בתחילת העקיפה קבועה ושווה 1.25m/sec² ותאוטתו בגמר העקיפה קבועה ושווה 2.5m/sec² .\nחשב את זמן העקיפה המינימאלי של האופנוע בתנאי שאינו עובר את המהירות 90km/h.\nהערה: תנועת האופנוע כוללת קטע של תאוצה, קטע של מהירות קבועה וקטע נוסף של תאוצה.\nשאלה 1.3:\nמחליק סקי מתחיל את תנועתו ממצב של מנוחה (נקודה A) ומגיע עד לנקודה C. בהנחה שהתנועה היא שוות-תאוצה ושיעורי התאוצות הן:\nבקטע AB שאורכו 30 מטר: a₁ = 2 m/sec²\nבקטע BC שאורכו 50 מטר: a₂ = 6 m/sec²\nא. חשב את הזמן הכולל שבו עובר המחליק מנקודה A ועד הנקודה C. ב. חשב את המהירות בנקודה C. ג. תאר גרפים של התאוצה, המהירות והדרך כפונקציה של הזמן. הזנח את החיכוך.\nשאלה 1.4:\nשוטר תנועה, הנוסע על אופנוע, מתחיל את תנועתו בנקודה A, 3 שניות לאחר שמכונית פרטית חלפה לידו. המכונית הפרטית נוסעת במהירות קבועה של 120 קמ\"ש. השוטר מאיץ את האופנוע בתאוצה של 5 מטר לשנייה בריבוע, עד למהירות של 150 קמ\"ש, שהיא המהירות המקסימלית המותרת לו, וממשיך את נסיעתו במהירות זו.\nא. חשב את הזמן הנדרש לשוטר כדי להשיג את המכונית. ב. חשב את המרחק מנקודה A עד הנקודה, שבה משיג השוטר את המכונית.\nשאלה 1.5:\nמשאית נוסעת בקו ישר, מזרחה מנקודה A לנקודה B, מרחק של 180 מטר, במשך 10 שניות, תוך כדי תאוצה בשיעור קבוע של 0.6 מטר לשנייה בריבוע.\nחשב:\nא. את המהירות התחילית של המשאית. ב. את המהירות הסופית של המשאית בנקודה B.\nברגע שהמשאית יצאה מנקודה A מערבה למזרח, חלפה מכונית פרטית על פני נקודה B ממזרח למערב. המכונית הפרטית נוסעת במהירות קבועה.\nחשב:\nג. מהי מהירות המכונית הפרטית, אם המשאית פגשה אותה 4 שניות לאחר שיצאה מנקודה A ? ד. מהי מהירות המשאית בשעת המפגש ?\nשאלה 1.6 (בשילוב תאוצה, חיכוך והספק):\nבמכונית שמסתה (m) – 2,250 ק\"ג, והנוסעת במהירות של 98 קמ\"ש, מפעיל הנהג את המעצורים וגורם לנעילת 4 הגלגלים, ולתנועת המכונית בהחלקה לאורך מרחק d, עד להקטנת המהירות ל-80 קמ\"ש.\nאם מקדם החיכוך הקינטי μₖ = 0.3, חשב:\nא. את המרחק (d) שעברה המכונית בהחלקה. ב. את ההספק P (בקילוואטים) שאותו פיתח כוח החיכוך בשעת ההחלקה.\nתאוצת הכובד: g = 9.81 m/sec²\nהערה: 1kW = 1 kN·m/sec\nשאלה 1.7:\nשני כלי רכב נוסעים בקטע של כביש אופקי ישר זה מול זה. כאשר המרחק ביניהם (AB) היה 500 מטר, המהירות של כלי הרכב הראשון (V₁) הייתה 48 קמ\"ש והמהירות של כלי הרכב השני ( V₂) הייתה 32 קמ\"ש. בשלב זה התחילו שני כלי הרכב להאיץ את תנועתם ולנסוע במהירות שוות תאוצה.\nתאוצות שני כלי הרכב היו: a₁ = 1.6 m/sec² , a₂ = 1.4 m/sec²\nא. חשב את פרק הזמן (t) מרגע התחלת ההאצה ועד לרגע שבו שני כלי הרכב ייפגשו. ב. חשב את מיקומה של הנקודה (C) על הקטע AB שבה הם ייפגשו. ג. חשב את מהירותם של שני כלי הרכב בנקודת המפגש, ובדוק אם הם לא עברו את המהירות המותרת שהיא 100 קמ\"ש.\nשאלה 1.8:\nרכבת מתחילה את תנועתה ממנוחה בתחנה A בתאוצה של 0.4 m/sec² ואחר כך ממשיכה לנוע במהירות קבועה של 72 km/h במשך 15 דקות.\nכאשר המרחק בין הרכבת לבין התחנה הבאה B הוא 400 מטר, מפעיל נהג הרכבת בלמים כדי לעצור בתחנה.\nתאוטת הרכבת בזמן הבלימה היא 0.4 m/sec² .\nחשב:\nא. את המרחק בין התחנות. ב. את המרחק שתעבור הרכבת עד לעצירתה הסופית. ג. האם הרכבת תצליח לעצור בתחנה? אם לא, מהי התאוצה הנדרשת לבלימת הרכבת כדי שתעצור בתחנה! ד. מה יהיה זמן תנועת הרכבת בין התחנות אם היא תנוע כפי שחושב בסעיף ג' לשאלה ?\nשאלה 1.9:\nאוטובוס מתחיל את תנועתו בתחנה A ממנוחה, מאיץ במשך 7 שניות וממשיך את תנועתו לתחנה B במהירות קבועה של 50.4 km/h במשך 5 דקות. בנקודה C, הנמצאת במרחק של 50 מטרים לפני הגעתו לתחנה B, האוטובוס מתחיל להאט כדי לעצור בתחנה.\nאדם שרוצה לעלות לאוטובוס הולך ברגל לתחנה B בכיוון נגדי לכיוון תנועת האוטובוס במהירות קבועה של 2 m/sec .\nכאשר האוטובוס מתחיל להאט בנקודה C, האדם נמצא בנקודה D במרחק של 80 מטרים ממנו.\nחשבו :\nא. את תאוצת האוטובוס בתחילת תנועתו מתחנה A לתחנה B. ב. את המרחק בין התחנות A ו-B. ג. כמה דקות נע האוטובוס בין התחנות A ו- B ? ד. באיזו תאוצה על האדם לרוץ מנקודה D כדי להגיע לתחנה B ברגע של עצירת האוטובוס בתחנה ?\nשאלה 1.10:\nשתי מכוניות נעות באותו כיוון. המכונית A נעה במהירות קבועה של 15 m/sec והמכונית האחרת B בתאוצה של 1 m/sec² .\nמכונית A עוברת בצומת א' 14 שניות לפני שמכונית B עוברת בצומת א'.\nמכונית B עוברת בצומת א' במהירות של 10 m/sec .\nשתי המכוניות מגיעות יחד לצומת ב'.\nחשבו:\nא. כעבור כמה זמן אחרי שהמכונית הראשונה A עברה את צומת א', ייפגשו שתי המכוניות בצומת ב' ! ב. את המהירות של מכונית B בצומת ב'. האם המכונית תעבור על חוקי התנועה, אם המהירות המותרת בכביש זה היא 120 km/h ? ג. את המרחק בין הצמתים.\nפרק 2 : בעיות בתחום זריקה אנכית כלפי מעלה/מטה\nשאלה 2.1:\nאדם עומד על חומה וזורק אבן בצורה אנכית כלפי מעלה. האבן עולה עד לנקודה M ונופלת בנקודה N ליד תחתית החומה.\nנתון:\nגובה החומה (h) הוא 6 מטר והזמן הכולל (t) הנדרש לעליית האבן ולנפילתה היה 3 שניות.\nתאוצת הכובד: g = 9.81 m/sec²\nחשב:\nא. את מהירות התחילית (v₀) של האבן. ב. את הגובה (h) מפני הקרקע ועד הנקודה העליונה שבה מגיעה האבן. ג. את המהירות הסופית של האבן (בנקודה N). ד. את הזמן (t₂) שבו עוברת האבן בנפילתה מראש החומה (נקודה A) ועד פני הקרקע (נקודה N). ה. צייר תרשים המתאר את המהירות כפונקציה של הזמן במשך כל תהליך העלייה והנפילה של האבן.\nשאלה 2.2\nאביב 2023, מועד ב', שאלה 4\nבאיור לשאלה נתון ילד קופץ לבריכה ממקפצה בגובה 5 מטרים ומגיע למים תוך 1.5 שניות.\nחשבו את :\nא. המהירות ההתחלתית v₀ של קפיצת הילד בהנחה שהוא קופץ אנכית כלפי מעלה. ב. מהו הגובה של הילד מעל פני המים בקפיצה ? ג. באיזו מהירות הילד נכנס לתוך המים ? ד. אם הילד יקפוץ אנכית כלפי מעלה במהירות התחלתית של v₀ = 2 m/sec, תוך כמה זמן הוא ייכנס למים ?\nשאלה 2.3\nלהטוטן זורק כדור אנכית כלפי מעלה מגובה של 1 מטר מפני הקרקע. כאשר הכדור מגיע לשיא גובהו – 5 מטרים מנקודת הזריקה, הלהטוטן זורק כדור שני אנכית כלפי מעלה מאותו גובה ובאותה מהירות התחלתית..\nחשבו את :\nא. המהירות ההתחלתית של זריקת הכדורים. ב. את הפרש הזמן בין זריקת הכדורים. ג. כמה זמן אחרי זריקת הכדור השני ייפגשו הכדורים ? ד. באיזה גובה מעל הרצפה ייפגשו הכדורים ?\nפרק 3 : בעיות בתחום זריקה אופקית\nשאלה 3.1:\nטייס צריך לשחרר מטען ממטוס A, שיפול בדיוק בנקודה C.\nמה צריך להיות המרחק (x) בין המטוס A לבין המטרה C, ומהי הזווית ( β ) שבה רואה הטייס את המטרה, ברגע של שחרור המטען. כן חשב את זמן הנפילה של המטען.\nהמטוס טס אופקית בגובה (H) השווה 240 מטר במהירות קבועה של 250 קמ\"ש.\nהנח: g = 9.81 m/sec²\nשאלה 3.2:\nשק קמח מחליק מהנקודה A במהירות אופקית (V_A)_x ומגיע אל הרצפה בנקודה B (ראה תרשים).\nנתון : g = 9.81 m/sec² , H = 8 m , (V_A)_x = 10 m/sec\nא. חשב את פרק הזמן הדרוש לשק כדי להגיע מהרציף בנקודה A עד הרצפה בנקודה B. ב. חשב את המרחק L מהרציף עד הנקודה B. ג. אילו היו מטילים את השק ממצב מנוחה כלפי מטה במסלול AC, מה היה הזמן הדרוש לשק להגיע לרצפה? הזנח את התנגדות האוויר לתנועת השק.\nשאלה 3.3:\nמטוס טס בטיסה אופקית ואוטובוס נע לקראתו על הקרקע. כל נתוני התנועה של המטוס ושל האוטובוס מסומנים בתרשים.\nבשלב מסוים משחרר טייס המסוק חפץ כדי שייפול בדיוק על גג האוטובוס.\nחשב:\nא. מה יהיה המרחק האופקי בין המסוק לאוטובוס בעת שחרור החפץ ? ב. מה יהיה המרחק האופקי בין המסוק לאוטובוס בעת פגיעת החפץ באוטובוס ? ג. באיזה מהירות (גודל וכיוון) יפגע החפץ באוטובוס ?\nהערות: התייחס למסוק ולאוטובוס כשתי נקודות חומריות.\nזריקה אופקית בשילוב חיכוך ואנרגיה\nשאלה 3.4:\nלבנה שמסתה 1 ק\"ג, מחליקה על פני גג משופע חסר חיכוך (ראה איור לשאלה 4). זווית השיפוע של הגג היא 37°. בנקודה A מהירותה של הלבנה היא 1.5 m/sec, ובנקודה B היא נופלת מהגג.\nחשב:\nא. מהי מהירות הלבנה בנקודה B? ב. כמה זמן נמשכת נפילת הלבנה מנקודה B עד פגיעתה בקרקע בנקודה E? ג. מהי מהירות הלבנה בנקודה E (שיעור וכיוון) ? ד. מהו המרחק d ?\nהערה: יש להתייחס ללבנה כנקודה חומרית, ואין להביא בחשבון את התנגדות האוויר.\nשאלה 3.5:\nמזוודה שמסתה 15Kg מחליקה על פני מישור משופע שזווית השיפוע שלו 30°. בנקודה A מהירותה של המזוודה שווה 3 m/sec. בנקודה C, המזוודה נופלת במישור המשופע. מקדם החיכוך הקינטי בין המזוודה לבין המישור המשופע μₖ = 0.25 .\nהערה: 1. התייחס למזוודה כנקודה חומרית אחת. 2. הזנח את התנגדות האוויר. א. מהי מהירות המזוודה בנקודה C? ב. מהו זמן נפילת המזוודה מנקודה C עד פגיעתה בקרקע בנקודה B ? ג. חשב את מהירות המזוודה בנקודה B (שיעור וכיוון) ? ד. חשב את המרחק המסומן באות R ?\nשאלה 3.6:\nארגז שמסתו 5Kg נכנס למישור משופע בנקודה A במהירות 2 m/sec, ומחליק על פני המישור המשופע בזווית של 37° כמתואר באיור לשאלה 4. מקדם החיכוך הקינטי בין הארגז ובין המישור המשופע הוא μₖ = 0.2. בנקודה B הארגז עוזב את המישור המשופע, ובנקודה C הוא נופל לעגלה הנמצאת על פני הקרקע.\nהערה: יש להתייחס לארגז כנקודה חומרית, ולהזניח את התנגדות האוויר.\nא. חשב את מהירות הארגז בנקודה B. ב. חשב כמה זמן נמשכת נפילת הארגז מנקודה B לנקודה C. ג. מהי מהירות הארגז בנקודה C (שיעור וכיוון) ? ד. כדי שהארגז ייכנס לעגלה בנקודה C, מה צריך להיות המרחק המסומן באות a ?\nשאלה 3.7:\nשני גופים מתחילים את תנועתם בו זמנית באותו גובה כאשר המרחק האופקי ביניהם הוא 8.66 מטרים. הגוף האחד A נופל חופשי. הגוף האחר B נזרק אופקית במטרה לפגוע בגוף הראשון A ופוגע בו במרחק אנכי של 5 מטרים מנקודת זריקתו.\nחשב:\nא. זמן תנועת הגופים עד לפגישתם. ב. מהירות הזריקה של הגוף השני B. ג. כאשר הגוף הראשון A ייזרק אנכית כלפי מטה במהירות התחלתית השווה למהירות הזריקה של הגוף השני B, מתי יש לזרוק אותו כדי שהוא יפגע בגוף השני B ?\nשאלה 8.3:\nדוחפים אבן A על משטח קרח אופקי במהירות התחלתית של 5 m/sec כדי לפגוע באבן B הנמצאת במנוחה במרחק של 30 מטרים, כפי שמוצג באיור א' לשאלה. אבן A מחליקה על פני משטח הקרח בתאוטה של 0.5 m/sec² .\nאיור א' לשאלה מתייחס לסעיפים א', ב' ו-ג'.\nחשבו :\nא. את משך זמן החלקת אבן A עד לעצירתה הסופית. ב. איזה מרחק תעבור אבן A עד לעצירתה ! האם היא תפגע באבן B ? ג. באיזו מהירות התחלתית מינימלית יש לדחוף את אבן A כדי שתגיע לאבן B ? כמה זמן תימשך תנועתה במקרה זה ? ד. באיור ב' לשאלה זורקים את אבן A בצורה אופקית מגובה של 5 מטרים מעל נקודת ההתחלה כפי שהוצג באיור ב' לשאלה, ופוגעים באבן B, מהי מהירות הזריקה v₀ ?\nפרק 4 : בעיות בתחום זריקה משופעת (זוויתית)\nשאלה 4.1:\nכדורגלן בועט בכדור וכתוצאה מכך מגיע הכדור לנקודה C, מעל השער בגובה 4 מטרים (ראה תרשים).\nבהנחה שהנקודה C נמצאת בגובה מקסימאלי של המסלול והמרחק AB הוא 20 מטרים, חשב את מהירות הכדור (V_A) (שיעור וכיוון) בשעת הבעיטה. הנח שהכדור מהווה נקודה חומרית.\nתאוצת הכובד: g = 9.81 m/sec²\nשאלה 4.2:\nתוך כדי רכיבה, בנקודה A, עולה רוכב האופניים על גבעה, מבצע קפיצה באוויר, ונוחת בנקודה B (ראה תרשים). נתון:\nהמרחק AB : d = 8 m\nזווית הנטייה של המשיק למסלול בנקודה α = 55° : A\nתאוצת הכובד: g = 9.81 m/sec²\nא. חשב את מהירותו של הרוכב ברגע שהוא מתנתק מהקרקע, בנקודה A. ב. חשב את הגובה המקסימאלי (h) שאליו הוא יגיע.\nשאלה 4.3:\nבתרשים מתואר צילום מהיר של קטע במשחק כדורסל. בצילום רואים ששחקן (A) זרק את הכדור והכדור נכנס בדיוק לתוך הסל (C). ניתן לראות שהשחקן (B) ניסה לחסום את הכדור אבל לא הצליח לפגוע בו.\nחשב:\nא. את המהירות ההתחלתית (V₀) של הכדור. ב. את הגובה h של הכדור ברגע שהוא חולף מעל השחקן B.\nהערה: הזנח את מימדי הכדור.\nנתונים: הנח תאוצת הכובד g = 9.81 m/sec²\nהמידות בתרשים נתונות במטרים.\nרמז: משוואות התנועה של הכדור הן: x(t) = (v₀ cos 30°)t , y(t) = y₀ + (v₀ sin 30°)t - gt²/2\nשאלה 4.4:\nמסלול מרוצים של אופנועים מתוכנן כך, שרוכב האופנוע קופץ מגבעה הנטויה בזווית של 30° וגובה של 1.4 מטר. תוך כדי מרוץ נקבע שהרוכב המתואר בתרשים נשאר באוויר במשך 1.65 שניות. חשב:\nא. את מהירותו של הרוכב כשיצא מנקודה V_A) A). ב. את המרחק האופקי (L) שעבר הרוכב עד שנחת על הקרקע. ג. את הגובה המרבי (h) שאליו הגיע בשעת הקפיצה.\nהזנח את מימדי האופנוע והרוכב.\nתאוצת הכובד: g = 9.81 m/sec²\nהמידות הדרושות נתונות בתרשים.\nשאלה 4.5:\nפגז נורה בזווית 45° מנקודה A הנמצאת בגובה 600 מטרים מעל פני הים. בשיא מסלולו חולף הפגז על פני פסגת ההר בנקודה B הנמצאת בגובה H מעל פני הים. הפגז משלים את מעופו עם הכניסה למים במרחק R מנקודה A, כמתואר באיור לשאלה 4. תאוצת הכובד: g = 9.81 m/sec²\nא. חשב את המהירות ההתחלתית של הפגז .u ב. חשב את הגובה הפסגה H. ג. חשב את מרחק הירי R.\nשאלה 4.6 (זריקה משופעת בשילוב אנרגיה):\nכדור שמסתו 0.5kg נזרק מנקודה A במהירות 10 m/sec לאורך מישור משופע חלק ללא חיכוך, כמתואר באיור לשאלה 4. בנקודה B הכדור עוזב את המישור.\nהערות: יש להתייחס לכדור כנקודה חומרית. אין להביא בחשבון את התנגדות האוויר.\nא. חשב מהי מהירות הכדור בנקודה .B ב. חשב מה הגובה המרבי של הכדור על פני הקרקע במהלך תנועתו. ג. חשב מהו זמן תנועת הכדור מנקודה B עד פגיעתו בקרקע בנקודה D. ד. חשב מהי מהירות הכדור בנקודה D, בעת הגעתו לקרקע (שיעור וכיוון).\nשאלה 4.7:\nרמפה של סקי מים ממוקמת בזווית של 25° ביחס לפני המים כמתואר באיור לשאלה. מהירות הגולש כאשר הוא עוזב את הרמפה בנקודה A שווה V_A = 10 m/sec.\nחשב:\nא. מהו הגובה המקסימלי של הגולש מעל פני המים במהלך תנועתו? ב. מהו זמן תנועת הגולש מנקודה A עד לפגיעתו במים בנקודה B ? ג. מהי מהירות הגולש בנקודה B (שיעור וכיוון) ? ד. מהו המרחק a ? הערות: התייחס לגולש כנקודה חומרית. הזנח את התנגדות האוויר.",
+  "rows": [
+    {
+      "segmentId": 1,
+      "he": "פרק 1: בעיות בתחום תנועה שוות תאוצה",
+      "he_niqqud": "פֶּרֶק 1: בְּעָיוֹת בִּתְחוּם תְּנוּעָה שְׁוַת תְּאוּצָה",
+      "translit": "Perek 1: be'ayot bitkhum tnu'a shvat te'utsa",
+      "ru": "Глава 1: Задачи на тему прямолинейного равноускоренного движения",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 2,
+      "he": "שאלה 1.1:",
+      "he_niqqud": "שְׁאֵלָה 1.1:",
+      "translit": "She'ela 1.1:",
+      "ru": "Вопрос 1.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 3,
+      "he": "רכבת נוסעת במהירות של 110 קמ\"ש. בנקודה M של המסלול מפעיל נהג הרכבת את הבלמים והרכבת מתקדמת אל הצומת C בתנועה שוות-תאוצה, כך שבמרחק 0.8 ק\"מ מהנקודה M יורדת מהירותה של הרכבת עד ל-80 קמ\"ש.",
+      "he_niqqud": "רַכֶּבֶת נוֹסַעַת בִּמְהִירוּת שֶׁל 110 קמ\"ש. בִּנְקֻדָּה M שֶׁל הַמַּסְלוּל מַפְעִיל נְהַג הָרַכֶּבֶת אֶת הַבְּלָמִים וְהָרַכֶּבֶת מִתְקַדֶּמֶת אֶל הַצֹּמֶת C בִּתְנוּעָה שְׁוַת-תְּאוּצָה, כָּךְ שֶׁבְּמֶרְחָק 0.8 ק\"מ מֵהַנְּקֻדָּה M יוֹרֶדֶת מְהִירוּתָהּ שֶׁל הָרַכֶּבֶת עַד לְ-80 קמ\"ש.",
+      "translit": "Rakevet nosa'at bimhirut shel 110 kmsh\". Binkuda M shel hamaslul maf'il nhag harakevet et hablamim veharakevet mitkademet el hatsomet C bitnu'a shvat-te'utsa, kakh shebmerkhak 0.8 km\" mehankuda M yoredet mhirutah shel harakevet ad l-80 kmsh\".",
+      "ru": "Поезд движется со скоростью 110 км/ч. В точке M пути машинист применяет тормоза, и поезд движется к перекрёстку C с постоянным ускорением (замедлением) так, что на расстоянии 0,8 км от точки M его скорость снижается до 80 км/ч.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 4,
+      "he": "רכב פרטי נוסע בכביש החותך את מסלול הרכבת במהירות של 40 קמ\"ש. ברגע שהרכבת נמצאת בנקודה M נמצא הרכב הפרטי בנקודה N. בנקודה N מאיץ הנהג את הרכב הפרטי והוא מתקדם אל הצומת C במהירות שוות-תאוצה.",
+      "he_niqqud": "רֶכֶב פְּרָטִי נוֹסֵעַ בִּכְבִישׁ הַחוֹתֵךְ אֶת מַסְלוּל הָרַכֶּבֶת בִּמְהִירוּת שֶׁל 40 קמ\"ש. בָּרֶגַע שֶׁהָרַכֶּבֶת נִמְצֵאת בִּנְקֻדָּה M נִמְצָא הָרֶכֶב הַפְּרָטִי בִּנְקֻדָּה N. בִּנְקֻדָּה N מֵאִיץ הַנֶּהָג אֶת הָרֶכֶב הַפְּרָטִי וְהוּא מִתְקַדֵּם אֶל הַצֹּמֶת C בִּמְהִירוּת שְׁוַת-תְּאוּצָה.",
+      "translit": "Rekhev prati nose'a bikhvish hakhotekh et maslul harakevet bimhirut shel 40 kmsh\". Bareg'a sheharakevet nimtse't binkuda M nimts'a harekhev haprati binkuda N. Binkuda N me'its hanehag et harekhev haprati vehu' mitkadem el hatsomet C bimhirut shvat-te'utsa.",
+      "ru": "Легковой автомобиль движется по дороге, пересекающей железнодорожные пути, со скоростью 40 км/ч. В момент, когда поезд находится в точке M, автомобиль находится в точке N. В точке N водитель ускоряет автомобиль, и тот движется к перекрёстку C с постоянным ускорением.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 5,
+      "he": "חשב את שיעור התאוצה של הרכב הפרטי, אם הוא חותך את הצומת C ב-10 שניות לפני הרכבת.",
+      "he_niqqud": "חַשֵּׁב אֶת שִׁעוּר הַתְּאוּצָה שֶׁל הָרֶכֶב הַפְּרָטִי, אִם הוּא חוֹתֵךְ אֶת הַצֹּמֶת C בְּ-10 שְׁנִיּוֹת לִפְנֵי הָרַכֶּבֶת.",
+      "translit": "Khashev et shi'ur hate'utsa shel harekhev haprati, im hu' khotekh et hatsomet C b-10 shniyot lifne harakevet.",
+      "ru": "Рассчитайте величину ускорения легкового автомобиля, если он пересекает перекрёсток C на 10 секунд раньше поезда.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 6,
+      "he": "מהי מהירותו של הרכב הפרטי בצומת C ?",
+      "he_niqqud": "מַהִי מְהִירוּתוֹ שֶׁל הָרֶכֶב הַפְּרָטִי בַּצֹּמֶת C ?",
+      "translit": "Mahi mhiruto shel harekhev haprati batsomet C ?",
+      "ru": "Какова скорость легкового автомобиля на перекрёстке C?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 7,
+      "he": "מרחקי הנקודות M ו- N מהצומת C נתונים בתרשים.",
+      "he_niqqud": "מֶרְחֲקֵי הַנְּקֻדּוֹת M וְ- N מֵהַצֹּמֶת C נְתוּנִים בַּתַּרְשִׁים.",
+      "translit": "Merkhake hankudot M v- N mehatsomet C ntunim batarshim.",
+      "ru": "Расстояния от точек M и N до перекрёстка C приведены на схеме.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 8,
+      "he": "שאלה 1.2:",
+      "he_niqqud": "שְׁאֵלָה 1.2:",
+      "translit": "She'ela 1.2:",
+      "ru": "Вопрос 1.2:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 9,
+      "he": "אופנוע ומכונית נוסעים על כביש ישר ואופקי במהירות קבועה של 72 km/h כל אחד. במצב המתואר בתרשים (כשהאופנוע נמצא בנקודה A) החליט האופנוען לעקוף את המכונית, ולסיים את העקיפה בנקודה B, במהירות של 72 km/h ובמרחק 20 מטר לפני המכונית (כמתואר בתרשים). תאוצת האופנוע בתחילת העקיפה קבועה ושווה 1.25m/sec² ותאוטתו בגמר העקיפה קבועה ושווה 2.5m/sec² .",
+      "he_niqqud": "אוֹפַנּוֹעַ וּמְכוֹנִית נוֹסְעִים עַל כְּבִישׁ יָשָׁר וְאָפְקִי בִּמְהִירוּת קְבוּעָה שֶׁל 72 km/h כָּל אֶחָד. בַּמַּצָּב הַמְּתֹאָר בַּתַּרְשִׁים (כְּשֶׁהָאוֹפַנּוֹעַ נִמְצָא בִּנְקֻדָּה A) הֶחְלִיט הָאֶוֹפַנּוֹעָן לַעֲקֹף אֶת הַמְּכוֹנִית, וּלְסַיֵּם אֶת הָעֲקִיפָה בִּנְקֻדָּה B, בִּמְהִירוּת שֶׁל 72 km/h וּבְמֶרְחָק 20 מֶטֶר לִפְנֵי הַמְּכוֹנִית (כַּמְּתֹאָר בַּתַּרְשִׁים). תְּאוּצַת הָאוֹפַנּוֹעַ בִּתְחִלַּת הָעֲקִיפָה קְבוּעָה וְשָׁוָה 1.25m/sec² וּתְאוּטָתוֹ בִּגְמַר הָעֲקִיפָה קְבוּעָה וְשָׁוָה 2.5m/sec² .",
+      "translit": "Ofno'a umkhonit nose'im al kvish yashar ve'ofki bimhirut kvu'a shel 72 km/h kol ekhad. Bamatsav hamto'ar batarshim (ksheha'ofno'a nimts'a binkuda A) hekhlit ha'ofno'an la'akof et hamkhonit, ulsayem et ha'akifa binkuda B, bimhirut shel 72 km/h uvmerkhak 20 meter lifne hamkhonit (kamto'ar batarshim). Te'utsat ha'ofno'a bitkhilat ha'akifa kvu'a veshava 1.25m/sec2 ute'utato bigmar ha'akifa kvu'a veshava 2.5m/sec2 .",
+      "ru": "Мотоцикл и автомобиль едут по прямой горизонтальной дороге с постоянной скоростью 72 км/ч каждый. В ситуации, показанной на схеме (когда мотоцикл находится в точке A), мотоциклист решает обогнать автомобиль и завершить обгон в точке B со скоростью 72 км/ч на расстоянии 20 метров впереди автомобиля (как показано на схеме). Ускорение мотоцикла в начале обгона постоянно и равно 1,25 м/с², а замедление в конце обгона постоянно и равно 2,5 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 10,
+      "he": "חשב את זמן העקיפה המינימאלי של האופנוע בתנאי שאינו עובר את המהירות 90km/h.",
+      "he_niqqud": "חַשֵּׁב אֶת זְמַן הָעֲקִיפָה הַמִּינִימָאלִי שֶׁל הָאוֹפַנּוֹעַ בִּתְנַאי שֶׁאֵינוֹ עוֹבֵר אֶת הַמְּהִירוּת 90km/h.",
+      "translit": "Khashev et zman ha'akifa haminima'li shel ha'ofno'a bitna'y she'eno over et hamhirut 90km/h.",
+      "ru": "Рассчитайте минимальное время обгона мотоцикла при условии, что он не превышает скорость 90 км/ч.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 11,
+      "he": "הערה: תנועת האופנוע כוללת קטע של תאוצה, קטע של מהירות קבועה וקטע נוסף של תאוצה.",
+      "he_niqqud": "הֶעָרָה: תְּנוּעַת הָאוֹפַנּוֹעַ כּוֹלֶלֶת קֶטַע שֶׁל תְּאוּצָה, קֶטַע שֶׁל מְהִירוּת קְבוּעָה וְקֶטַע נוֹסָף שֶׁל תְּאוּצָה.",
+      "translit": "He'ara: tnu'at ha'ofno'a kolelet ket'a shel te'utsa, ket'a shel mhirut kvu'a veket'a nosaf shel te'utsa.",
+      "ru": "Примечание: движение мотоцикла включает участок ускорения, участок постоянной скорости и ещё один участок ускорения (замедления).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 12,
+      "he": "שאלה 1.3:",
+      "he_niqqud": "שְׁאֵלָה 1.3:",
+      "translit": "She'ela 1.3:",
+      "ru": "Вопрос 1.3:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 13,
+      "he": "מחליק סקי מתחיל את תנועתו ממצב של מנוחה (נקודה A) ומגיע עד לנקודה C. בהנחה שהתנועה היא שוות-תאוצה ושיעורי התאוצות הן:",
+      "he_niqqud": "מַחֲלִיק סְקִי מַתְחִיל אֶת תְּנוּעָתוֹ מִמַּצָּב שֶׁל מְנוּחָה (נְקֻדָּה A) וּמַגִּיעַ עַד לִנְקֻדָּה C. בְּהַנָּחָה שֶׁהַתְּנוּעָה הִיא שְׁוַת-תְּאוּצָה וְשִׁעוּרֵי הַתְּאוּצוֹת הֵן:",
+      "translit": "Makhalik ski matkhil et tnu'ato mimatsav shel mnukha (nkuda A) umagi'a ad linkuda C. Bhanakha shehatnu'a hi' shvat-te'utsa veshi'ure hate'utsot hen:",
+      "ru": "Лыжник начинает движение из состояния покоя (точка A) и доходит до точки C. Предполагая, что движение является равноускоренным и величины ускорений равны:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 14,
+      "he": "בקטע AB שאורכו 30 מטר: a₁ = 2 m/sec²",
+      "he_niqqud": "בַּקֶּטַע AB שֶׁאָרְכּוֹ 30 מֶטֶר: a₁ = 2 m/sec²",
+      "translit": "Baket'a AB she'orko 30 meter: a1 = 2 m/sec2",
+      "ru": "На участке AB длиной 30 метров: a₁ = 2 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 15,
+      "he": "בקטע BC שאורכו 50 מטר: a₂ = 6 m/sec²",
+      "he_niqqud": "בַּקֶּטַע BC שֶׁאָרְכּוֹ 50 מֶטֶר: a₂ = 6 m/sec²",
+      "translit": "Baket'a BC she'orko 50 meter: a2 = 6 m/sec2",
+      "ru": "На участке BC длиной 50 метров: a₂ = 6 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 16,
+      "he": "א. חשב את הזמן הכולל שבו עובר המחליק מנקודה A ועד הנקודה C. ב. חשב את המהירות בנקודה C. ג. תאר גרפים של התאוצה, המהירות והדרך כפונקציה של הזמן. הזנח את החיכוך.",
+      "he_niqqud": "א. חַשֵּׁב אֶת הַזְּמַן הַכּוֹלֵל שֶׁבּוֹ עוֹבֵר הַמַּחֲלִיק מִנְּקֻדָּה A וְעַד הַנְּקֻדָּה C. ב. חַשֵּׁב אֶת הַמְּהִירוּת בִּנְקֻדָּה C. ג. תָּאֵר גְּרָפִים שֶׁל הַתְּאוּצָה, הַמְּהִירוּת וְהַדֶּרֶךְ כְּפוּנְקְצִיָּה שֶׁל הַזְּמָן. הַזְנַח אֶת הַחִכּוּךְ.",
+      "translit": "'. Khashev et hazman hakolel shebo over hamakhalik minkuda A ve'ad hankuda C. V. Khashev et hamhirut binkuda C. G. Ta'er grafim shel hate'utsa, hamhirut vehaderekh kfunktsiya shel hazman. Haznakh et hakhikukh.",
+      "ru": "а. Рассчитайте общее время движения лыжника от точки A до точки C. б. Рассчитайте скорость в точке C. в. Постройте графики ускорения, скорости и пути как функции времени. Трением пренебречь.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 17,
+      "he": "שאלה 1.4:",
+      "he_niqqud": "שְׁאֵלָה 1.4:",
+      "translit": "She'ela 1.4:",
+      "ru": "Вопрос 1.4:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 18,
+      "he": "שוטר תנועה, הנוסע על אופנוע, מתחיל את תנועתו בנקודה A, 3 שניות לאחר שמכונית פרטית חלפה לידו. המכונית הפרטית נוסעת במהירות קבועה של 120 קמ\"ש. השוטר מאיץ את האופנוע בתאוצה של 5 מטר לשנייה בריבוע, עד למהירות של 150 קמ\"ש, שהיא המהירות המקסימלית המותרת לו, וממשיך את נסיעתו במהירות זו.",
+      "he_niqqud": "שׁוֹטֵר תְּנוּעָה, הַנּוֹסֵעַ עַל אוֹפַנּוֹעַ, מַתְחִיל אֶת תְּנוּעָתוֹ בִּנְקֻדָּה A, 3 שְׁנִיּוֹת לְאַחַר שֶׁמְּכוֹנִית פְּרָטִית חָלְפָה לְיָדוֹ. הַמְּכוֹנִית הַפְּרָטִית נוֹסַעַת בִּמְהִירוּת קְבוּעָה שֶׁל 120 קמ\"ש. הַשּׁוֹטֵר מֵאִיץ אֶת הָאוֹפַנּוֹעַ בִּתְאוּצָה שֶׁל 5 מֶטֶר לִשְׁנִיָּה בְּרִבּוּעַ, עַד לִמְהִירוּת שֶׁל 150 קמ\"ש, שֶׁהִיא הַמְּהִירוּת הַמַּקְסִימָלִית הַמֻּתֶּרֶת לוֹ, וּמַמְשִׁיךְ אֶת נְסִיעָתוֹ בִּמְהִירוּת זוֹ.",
+      "translit": "Shoter tnu'a, hanose'a al ofno'a, matkhil et tnu'ato binkuda A, 3 shniyot le'akhar shemkhonit pratit khalfa lyado. Hamkhonit hapratit nosa'at bimhirut kvu'a shel 120 kmsh\". Hashoter me'its et ha'ofno'a bit'utsa shel 5 meter lishniya bribu'a, ad limhirut shel 150 kmsh\", shehi' hamhirut hamaksimalit hamuteret lo, umamshikh et nsi'ato bimhirut zo.",
+      "ru": "Дорожный полицейский на мотоцикле начинает движение в точке A через 3 секунды после того, как мимо него проехал легковой автомобиль. Легковой автомобиль движется с постоянной скоростью 120 км/ч. Полицейский разгоняет мотоцикл с ускорением 5 м/с² до скорости 150 км/ч (максимально разрешённой для него) и продолжает движение с этой скоростью.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 19,
+      "he": "א. חשב את הזמן הנדרש לשוטר כדי להשיג את המכונית. ב. חשב את המרחק מנקודה A עד הנקודה, שבה משיג השוטר את המכונית.",
+      "he_niqqud": "א. חַשֵּׁב אֶת הַזְּמַן הַנִּדְרָשׁ לַשּׁוֹטֵר כְּדֵי לְהַשִּׂיג אֶת הַמְּכוֹנִית. ב. חַשֵּׁב אֶת הַמֶּרְחָק מִנְּקֻדָּה A עַד הַנְּקֻדָּה, שֶׁבָּהּ מַשִּׂיג הַשּׁוֹטֵר אֶת הַמְּכוֹנִית.",
+      "translit": "'. Khashev et hazman hanidrash lashoter kde lhasig et hamkhonit. V. Khashev et hamerkhak minkuda A ad hankuda, shebah masig hashoter et hamkhonit.",
+      "ru": "а. Рассчитайте время, необходимое полицейскому, чтобы догнать автомобиль. б. Рассчитайте расстояние от точки A до точки, в которой полицейский догонит автомобиль.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 20,
+      "he": "שאלה 1.5:",
+      "he_niqqud": "שְׁאֵלָה 1.5:",
+      "translit": "She'ela 1.5:",
+      "ru": "Вопрос 1.5:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 21,
+      "he": "משאית נוסעת בקו ישר, מזרחה מנקודה A לנקודה B, מרחק של 180 מטר, במשך 10 שניות, תוך כדי תאוצה בשיעור קבוע של 0.6 מטר לשנייה בריבוע.",
+      "he_niqqud": "מַשָּׂאִית נוֹסַעַת בְּקַו יָשָׁר, מִזְרָחָה מִנְּקֻדָּה A לִנְקֻדָּה B, מֶרְחָק שֶׁל 180 מֶטֶר, בְּמֶשֶׁךְ 10 שְׁנִיּוֹת, תּוֹךְ כְּדֵי תְּאוּצָה בְּשִׁעוּר קָבוּעַ שֶׁל 0.6 מֶטֶר לִשְׁנִיָּה בְּרִבּוּעַ.",
+      "translit": "Masa'it nosa'at bkav yashar, mizrakha minkuda A linkuda B, merkhak shel 180 meter, bmeshekh 10 shniyot, tokh kde te'utsa bshi'ur kavu'a shel 0.6 meter lishniya bribu'a.",
+      "ru": "Грузовик движется по прямой линии на восток из точки A в точку B на расстояние 180 метров в течение 10 секунд с постоянным ускорением 0,6 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 22,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 23,
+      "he": "א. את המהירות התחילית של המשאית. ב. את המהירות הסופית של המשאית בנקודה B.",
+      "he_niqqud": "א. אֶת הַמְּהִירוּת הַתְּחִלִּית שֶׁל הַמַּשָּׂאִית. ב. אֶת הַמְּהִירוּת הַסּוֹפִית שֶׁל הַמַּשָּׂאִית בִּנְקֻדָּה B.",
+      "translit": "'. Et hamhirut hatkhilit shel hamasa'it. V. Et hamhirut hasofit shel hamasa'it binkuda B.",
+      "ru": "а. Начальную скорость грузовика. б. Конечную скорость грузовика в точке B.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 24,
+      "he": "ברגע שהמשאית יצאה מנקודה A מערבה למזרח, חלפה מכונית פרטית על פני נקודה B ממזרח למערב. המכונית הפרטית נוסעת במהירות קבועה.",
+      "he_niqqud": "בָּרֶגַע שֶׁהַמַּשָּׂאִית יָצְאָה מִנְּקֻדָּה A מַעֲרָבָה לְמִזְרָח, חָלְפָה מְכוֹנִית פְּרָטִית עַל פְּנֵי נְקֻדָּה B מִמִּזְרָח לְמַעֲרָב. הַמְּכוֹנִית הַפְּרָטִית נוֹסַעַת בִּמְהִירוּת קְבוּעָה.",
+      "translit": "Bareg'a shehamasa'it yatse'a minkuda A ma'arava lmizrakh, khalfa mkhonit pratit al pne nkuda B mimizrakh lma'arav. Hamkhonit hapratit nosa'at bimhirut kvu'a.",
+      "ru": "В момент, когда грузовик выехал из точки A с запада на восток, легковой автомобиль проехал мимо точки B с востока на запад. Легковой автомобиль движется с постоянной скоростью.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 25,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 26,
+      "he": "ג. מהי מהירות המכונית הפרטית, אם המשאית פגשה אותה 4 שניות לאחר שיצאה מנקודה A ? ד. מהי מהירות המשאית בשעת המפגש ?",
+      "he_niqqud": "ג. מַהִי מְהִירוּת הַמְּכוֹנִית הַפְּרָטִית, אִם הַמַּשָּׂאִית פָּגְשָׁה אוֹתָהּ 4 שְׁנִיּוֹת לְאַחַר שֶׁיָּצְאָה מִנְּקֻדָּה A ? ד. מַהִי מְהִירוּת הַמַּשָּׂאִית בִּשְׁעַת הַמִּפְגָּשׁ ?",
+      "translit": "G. Mahi mhirut hamkhonit hapratit, im hamasa'it pagsha otah 4 shniyot le'akhar sheyatse'a minkuda A ? D. Mahi mhirut hamasa'it bish'at hamifgash ?",
+      "ru": "в. Какова скорость легкового автомобиля, если грузовик встретил его через 4 секунды после выезда из точки A? г. Какова скорость грузовика в момент встречи?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 27,
+      "he": "שאלה 1.6 (בשילוב תאוצה, חיכוך והספק):",
+      "he_niqqud": "שְׁאֵלָה 1.6 (בְּשִׁלּוּב תְּאוּצָה, חִכּוּךְ וְהֶסְפֵּק):",
+      "translit": "She'ela 1.6 (bshiluv te'utsa, khikukh vehespek):",
+      "ru": "Вопрос 1.6 (в сочетании ускорения, трения и мощности):",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 28,
+      "he": "במכונית שמסתה (m) – 2,250 ק\"ג, והנוסעת במהירות של 98 קמ\"ש, מפעיל הנהג את המעצורים וגורם לנעילת 4 הגלגלים, ולתנועת המכונית בהחלקה לאורך מרחק d, עד להקטנת המהירות ל-80 קמ\"ש.",
+      "he_niqqud": "בִּמְכוֹנִית שֶׁמַּסָּתָהּ (m) – 2,250 ק\"ג, וְהַנּוֹסַעַת בִּמְהִירוּת שֶׁל 98 קמ\"ש, מַפְעִיל הַנֶּהָג אֶת הַמַּעֲצוֹרִים וְגוֹרֵם לִנְעִילַת 4 הַגַּלְגַּלִּים, וְלִתְנוּעַת הַמְּכוֹנִית בְּהַחְלָקָה לְאֹרֶךְ מֶרְחָק d, עַד לְהַקְטָנַת הַמְּהִירוּת לְ-80 קמ\"ש.",
+      "translit": "Bimkhonit shemasatah (m) – 2,250 kg\", vehanosa'at bimhirut shel 98 kmsh\", maf'il hanehag et hama'atsorim vegorem lin'ilat 4 hagalgalim, velitnu'at hamkhonit bhakhlaka le'orekh merkhak d, ad lhaktanat hamhirut l-80 kmsh\".",
+      "ru": "В автомобиле массой (m) 2250 кг, движущемся со скоростью 98 км/ч, водитель применяет тормоза, что приводит к блокировке всех 4 колёс и скольжению автомобиля на расстояние d до снижения скорости до 80 км/ч.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 29,
+      "he": "אם מקדם החיכוך הקינטי μₖ = 0.3, חשב:",
+      "he_niqqud": "אִם מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי μₖ = 0.3, חַשֵּׁב:",
+      "translit": "Im mkadem hakhikukh hakineti μk = 0.3, khashev:",
+      "ru": "Если коэффициент кинетического трения μₖ = 0,3, рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 30,
+      "he": "א. את המרחק (d) שעברה המכונית בהחלקה. ב. את ההספק P (בקילוואטים) שאותו פיתח כוח החיכוך בשעת ההחלקה.",
+      "he_niqqud": "א. אֶת הַמֶּרְחָק (d) שֶׁעָבְרָה הַמְּכוֹנִית בְּהַחְלָקָה. ב. אֶת הַהֶסְפֵּק P (בְּקִילוֹוָאטִים) שֶׁאוֹתוֹ פִּתֵּחַ כֹּחַ הַחִכּוּךְ בִּשְׁעַת הַהַחְלָקָה.",
+      "translit": "'. Et hamerkhak (d) she'avra hamkhonit bhakhlaka. V. Et hahespek P (bkilova'tim) she'oto piteakh koakh hakhikukh bish'at hahakhlaka.",
+      "ru": "а. Расстояние (d), пройденное автомобилем в процессе скольжения. б. Мощность P (в киловаттах), развитую силой трения во время скольжения.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 31,
+      "he": "תאוצת הכובד: g = 9.81 m/sec²",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81 m/sec²",
+      "translit": "Te'utsat hakoved: g = 9.81 m/sec2",
+      "ru": "Ускорение свободного падения: g = 9,81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 32,
+      "he": "הערה: 1kW = 1 kN·m/sec",
+      "he_niqqud": "הֶעָרָה: 1kW = 1 kN·m/sec",
+      "translit": "He'ara: 1kW = 1 kN·m/sec",
+      "ru": "Примечание: 1 кВт = 1 кН·м/с",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 33,
+      "he": "שאלה 1.7:",
+      "he_niqqud": "שְׁאֵלָה 1.7:",
+      "translit": "She'ela 1.7:",
+      "ru": "Вопрос 1.7:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 34,
+      "he": "שני כלי רכב נוסעים בקטע של כביש אופקי ישר זה מול זה. כאשר המרחק ביניהם (AB) היה 500 מטר, המהירות של כלי הרכב הראשון (V₁) הייתה 48 קמ\"ש והמהירות של כלי הרכב השני ( V₂) הייתה 32 קמ\"ש. בשלב זה התחילו שני כלי הרכב להאיץ את תנועתם ולנסוע במהירות שוות תאוצה.",
+      "he_niqqud": "שְׁנֵי כְּלֵי רֶכֶב נוֹסְעִים בְּקֶטַע שֶׁל כְּבִישׁ אָפְקִי יָשָׁר זֶה מוּל זֶה. כַּאֲשֶׁר הַמֶּרְחָק בֵּינֵיהֶם (AB) הָיָה 500 מֶטֶר, הַמְּהִירוּת שֶׁל כְּלִי הָרֶכֶב הָרִאשׁוֹן (V₁) הָיְתָה 48 קמ\"ש וְהַמְּהִירוּת שֶׁל כְּלִי הָרֶכֶב הַשֵּׁנִי ( V₂) הָיְתָה 32 קמ\"ש. בְּשָׁלָב זֶה הִתְחִילוּ שְׁנֵי כְּלֵי הָרֶכֶב לְהָאִיץ אֶת תְּנוּעָתָם וְלִנְסֹעַ בִּמְהִירוּת שְׁוַת תְּאוּצָה.",
+      "translit": "Shne kle rekhev nose'im bket'a shel kvish ofki yashar ze mul ze. Ka'asher hamerkhak benehem (AB) haya 500 meter, hamhirut shel kli harekhev hari'shon (V1) hayta 48 kmsh\" vehamhirut shel kli harekhev hasheni ( V2) hayta 32 kmsh\". Bshalav ze hitkhilu shne kle harekhev lha'its et tnu'atam velinso'a bimhirut shvat te'utsa.",
+      "ru": "Два транспортных средства едут навстречу друг другу по прямому горизонтальному участку дороги. Когда расстояние между ними (AB) составляло 500 метров, скорость первого транспортного средства (V₁) была 48 км/ч, а скорость второго (V₂) — 32 км/ч. В этот момент оба транспортных средства начали ускоряться и двигаться с постоянным ускорением.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 35,
+      "he": "תאוצות שני כלי הרכב היו: a₁ = 1.6 m/sec² , a₂ = 1.4 m/sec²",
+      "he_niqqud": "תְּאוּצוֹת שְׁנֵי כְּלֵי הָרֶכֶב הָיוּ: a₁ = 1.6 m/sec² , a₂ = 1.4 m/sec²",
+      "translit": "Te'utsot shne kle harekhev hayu: a1 = 1.6 m/sec2 , a2 = 1.4 m/sec2",
+      "ru": "Ускорения двух транспортных средств были: a₁ = 1,6 м/с², a₂ = 1,4 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 36,
+      "he": "א. חשב את פרק הזמן (t) מרגע התחלת ההאצה ועד לרגע שבו שני כלי הרכב ייפגשו. ב. חשב את מיקומה של הנקודה (C) על הקטע AB שבה הם ייפגשו. ג. חשב את מהירותם של שני כלי הרכב בנקודת המפגש, ובדוק אם הם לא עברו את המהירות המותרת שהיא 100 קמ\"ש.",
+      "he_niqqud": "א. חַשֵּׁב אֶת פֶּרֶק הַזְּמַן (t) מֵרֶגַע הַתְחָלַת הַהַאֲצָה וְעַד לָרֶגַע שֶׁבּוֹ שְׁנֵי כְּלֵי הָרֶכֶב יִפָּגְשׁוּ. ב. חַשֵּׁב אֶת מֵיקוּמָהּ שֶׁל הַנְּקֻדָּה (C) עַל הַקֶּטַע AB שֶׁבָּהּ הֵם יִפָּגְשׁוּ. ג. חַשֵּׁב אֶת מְהִירוּתָם שֶׁל שְׁנֵי כְּלֵי הָרֶכֶב בִּנְקֻדַּת הַמִּפְגָּשׁ, וּבְדֹק אִם הֵם לֹא עָבְרוּ אֶת הַמְּהִירוּת הַמֻּתֶּרֶת שֶׁהִיא 100 קמ\"ש.",
+      "translit": "'. Khashev et perek hazman (t) mereg'a hatkhalat haha'atsa ve'ad lareg'a shebo shne kle harekhev yipagshu. V. Khashev et mekumah shel hankuda (C) al haket'a AB shebah hem yipagshu. G. Khashev et mhirutam shel shne kle harekhev binkudat hamifgash, uvdok im hem lo' avru et hamhirut hamuteret shehi' 100 kmsh\".",
+      "ru": "а. Рассчитайте промежуток времени (t) от момента начала ускорения до встречи обоих транспортных средств. б. Рассчитайте положение точки (C) на отрезке AB, где они встретятся. в. Рассчитайте скорость обоих транспортных средств в точке встречи и проверьте, не превысили ли они разрешённую скорость 100 км/ч.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 37,
+      "he": "שאלה 1.8:",
+      "he_niqqud": "שְׁאֵלָה 1.8:",
+      "translit": "She'ela 1.8:",
+      "ru": "Вопрос 1.8:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 38,
+      "he": "רכבת מתחילה את תנועתה ממנוחה בתחנה A בתאוצה של 0.4 m/sec² ואחר כך ממשיכה לנוע במהירות קבועה של 72 km/h במשך 15 דקות.",
+      "he_niqqud": "רַכֶּבֶת מַתְחִילָה אֶת תְּנוּעָתָהּ מִמְּנוּחָה בְּתַחֲנָה A בִּתְאוּצָה שֶׁל 0.4 m/sec² וְאַחַר כָּךְ מַמְשִׁיכָה לָנוּעַ בִּמְהִירוּת קְבוּעָה שֶׁל 72 km/h בְּמֶשֶׁךְ 15 דַּקּוֹת.",
+      "translit": "Rakevet matkhila et tnu'atah mimnukha btakhana A bit'utsa shel 0.4 m/sec2 ve'akhar kakh mamshikha lanu'a bimhirut kvu'a shel 72 km/h bmeshekh 15 dakot.",
+      "ru": "Поезд начинает движение из состояния покоя на станции A с ускорением 0,4 м/с², а затем продолжает двигаться с постоянной скоростью 72 км/ч в течение 15 минут.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 39,
+      "he": "כאשר המרחק בין הרכבת לבין התחנה הבאה B הוא 400 מטר, מפעיל נהג הרכבת בלמים כדי לעצור בתחנה.",
+      "he_niqqud": "כַּאֲשֶׁר הַמֶּרְחָק בֵּין הָרַכֶּבֶת לְבֵין הַתַּחֲנָה הַבָּאָה B הוּא 400 מֶטֶר, מַפְעִיל נְהַג הָרַכֶּבֶת בְּלָמִים כְּדֵי לַעֲצֹר בַּתַּחֲנָה.",
+      "translit": "Ka'asher hamerkhak ben harakevet lven hatakhana haba'a B hu' 400 meter, maf'il nhag harakevet blamim kde la'atsor batakhana.",
+      "ru": "Когда расстояние от поезда до следующей станции B составляет 400 метров, машинист применяет тормоза, чтобы остановиться на станции.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 40,
+      "he": "תאוטת הרכבת בזמן הבלימה היא 0.4 m/sec² .",
+      "he_niqqud": "תְּאוּטַת הָרַכֶּבֶת בִּזְמַן הַבְּלִימָה הִיא 0.4 m/sec² .",
+      "translit": "Te'utat harakevet bizman hablima hi' 0.4 m/sec2 .",
+      "ru": "Замедление поезда при торможении составляет 0,4 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 41,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 42,
+      "he": "א. את המרחק בין התחנות. ב. את המרחק שתעבור הרכבת עד לעצירתה הסופית. ג. האם הרכבת תצליח לעצור בתחנה? אם לא, מהי התאוצה הנדרשת לבלימת הרכבת כדי שתעצור בתחנה! ד. מה יהיה זמן תנועת הרכבת בין התחנות אם היא תנוע כפי שחושב בסעיף ג' לשאלה ?",
+      "he_niqqud": "א. אֶת הַמֶּרְחָק בֵּין הַתַּחֲנוֹת. ב. אֶת הַמֶּרְחָק שֶׁתַּעֲבֹר הָרַכֶּבֶת עַד לַעֲצִירָתָהּ הַסּוֹפִית. ג. הַאִם הָרַכֶּבֶת תַּצְלִיחַ לַעֲצֹר בַּתַּחֲנָה? אִם לֹא, מַהִי הַתְּאוּצָה הַנִּדְרֶשֶׁת לִבְלִימַת הָרַכֶּבֶת כְּדֵי שֶׁתַּעֲצֹר בַּתַּחֲנָה! ד. מָה יִהְיֶה זְמַן תְּנוּעַת הָרַכֶּבֶת בֵּין הַתַּחֲנוֹת אִם הִיא תָּנוּעַ כְּפִי שֶׁחֻשַּׁב בְּסָעִיף ג' לַשְּׁאֵלָה ?",
+      "translit": "'. Et hamerkhak ben hatakhanot. V. Et hamerkhak sheta'avor harakevet ad la'atsiratah hasofit. G. Ha'im harakevet tatsliakh la'atsor batakhana? Im lo', mahi hate'utsa hanidreshet livlimat harakevet kde sheta'atsor batakhana! D. Ma yihye zman tnu'at harakevet ben hatakhanot im hi' tanu'a kfi shekhushav bsa'if g' lashe'ela ?",
+      "ru": "а. Расстояние между станциями. б. Расстояние, которое пройдет поезд до полной остановки. в. Удастся ли поезду остановиться на станции? Если нет, каково требуемое ускорение замедления поезда, чтобы он остановился на станции? г. Каково будет время движения поезда между станциями, если он будет двигаться так, как рассчитано в пункте «в»?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 43,
+      "he": "שאלה 1.9:",
+      "he_niqqud": "שְׁאֵלָה 1.9:",
+      "translit": "She'ela 1.9:",
+      "ru": "Вопрос 1.9:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 44,
+      "he": "אוטובוס מתחיל את תנועתו בתחנה A ממנוחה, מאיץ במשך 7 שניות וממשיך את תנועתו לתחנה B במהירות קבועה של 50.4 km/h במשך 5 דקות. בנקודה C, הנמצאת במרחק של 50 מטרים לפני הגעתו לתחנה B, האוטובוס מתחיל להאט כדי לעצור בתחנה.",
+      "he_niqqud": "אוֹטוֹבּוּס מַתְחִיל אֶת תְּנוּעָתוֹ בְּתַחֲנָה A מִמְּנוּחָה, מֵאִיץ בְּמֶשֶׁךְ 7 שְׁנִיּוֹת וּמַמְשִׁיךְ אֶת תְּנוּעָתוֹ לְתַחֲנָה B בִּמְהִירוּת קְבוּעָה שֶׁל 50.4 km/h בְּמֶשֶׁךְ 5 דַּקּוֹת. בִּנְקֻדָּה C, הַנִּמְצֵאת בְּמֶרְחָק שֶׁל 50 מֶטְרִים לִפְנֵי הַגָּעָתוֹ לְתַחֲנָה B, הָאוֹטוֹבּוּס מַתְחִיל לְהָאֵט כְּדֵי לַעֲצֹר בַּתַּחֲנָה.",
+      "translit": "Otobus matkhil et tnu'ato btakhana A mimnukha, me'its bmeshekh 7 shniyot umamshikh et tnu'ato ltakhana B bimhirut kvu'a shel 50.4 km/h bmeshekh 5 dakot. Binkuda C, hanimtse't bmerkhak shel 50 metrim lifne haga'ato ltakhana B, ha'otobus matkhil lha'et kde la'atsor batakhana.",
+      "ru": "Автобус начинает движение на станции A из состояния покоя, разгоняется в течение 7 секунд и продолжает движение к станции B с постоянной скоростью 50,4 км/ч в течение 5 минут. В точке C, находящейся на расстоянии 50 метров до прибытия на станцию B, автобус начинает замедляться, чтобы остановиться на станции.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 45,
+      "he": "אדם שרוצה לעלות לאוטובוס הולך ברגל לתחנה B בכיוון נגדי לכיוון תנועת האוטובוס במהירות קבועה של 2 m/sec .",
+      "he_niqqud": "אָדָם שֶׁרוֹצֶה לַעֲלוֹת לָאוֹטוֹבּוּס הוֹלֵךְ בְּרֶגֶל לְתַחֲנָה B בְּכִוּוּן נֶגְדִּי לְכִוּוּן תְּנוּעַת הָאוֹטוֹבּוּס בִּמְהִירוּת קְבוּעָה שֶׁל 2 m/sec .",
+      "translit": "Adam sherotse la'alot la'otobus holekh bregel ltakhana B bkhivun negdi lkhivun tnu'at ha'otobus bimhirut kvu'a shel 2 m/sec .",
+      "ru": "Человек, желающий сесть в автобус, идет пешком к станции B навстречу движению автобуса с постоянной скоростью 2 м/с.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 46,
+      "he": "כאשר האוטובוס מתחיל להאט בנקודה C, האדם נמצא בנקודה D במרחק של 80 מטרים ממנו.",
+      "he_niqqud": "כַּאֲשֶׁר הָאוֹטוֹבּוּס מַתְחִיל לְהָאֵט בִּנְקֻדָּה C, הָאָדָם נִמְצָא בִּנְקֻדָּה D בְּמֶרְחָק שֶׁל 80 מֶטְרִים מִמֶּנּוּ.",
+      "translit": "Ka'asher ha'otobus matkhil lha'et binkuda C, ha'adam nimts'a binkuda D bmerkhak shel 80 metrim mimenu.",
+      "ru": "Когда автобус начинает замедляться в точке C, человек находится в точке D на расстоянии 80 метров от него.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 47,
+      "he": "חשבו :",
+      "he_niqqud": "חַשְּׁבוּ :",
+      "translit": "Khashvu :",
+      "ru": "Вычислите:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 48,
+      "he": "א. את תאוצת האוטובוס בתחילת תנועתו מתחנה A לתחנה B. ב. את המרחק בין התחנות A ו-B. ג. כמה דקות נע האוטובוס בין התחנות A ו- B ? ד. באיזו תאוצה על האדם לרוץ מנקודה D כדי להגיע לתחנה B ברגע של עצירת האוטובוס בתחנה ?",
+      "he_niqqud": "א. אֶת תְּאוּצַת הָאוֹטוֹבּוּס בִּתְחִלַּת תְּנוּעָתוֹ מִתַּחֲנָה A לְתַחֲנָה B. ב. אֶת הַמֶּרְחָק בֵּין הַתַּחֲנוֹת A וְ-B. ג. כַּמָּה דַּקּוֹת נָע הָאוֹטוֹבּוּס בֵּין הַתַּחֲנוֹת A וְ- B ? ד. בְּאֵיזוֹ תְּאוּצָה עַל הָאָדָם לָרוּץ מִנְּקֻדָּה D כְּדֵי לְהַגִּיעַ לְתַחֲנָה B בְּרֶגַע שֶׁל עֲצִירַת הָאוֹטוֹבּוּס בַּתַּחֲנָה ?",
+      "translit": "'. Et te'utsat ha'otobus bitkhilat tnu'ato mitakhana A ltakhana B. V. Et hamerkhak ben hatakhanot A v-B. G. Kama dakot n'a ha'otobus ben hatakhanot A v- B ? D. Be'ezo te'utsa al ha'adam laruts minkuda D kde lhagi'a ltakhana B breg'a shel atsirat ha'otobus batakhana ?",
+      "ru": "а. Ускорение автобуса в начале движения от станции A к станции B. б. Расстояние между станциями A и B. в. Сколько минут двигался автобус между станциями A и B? г. С каким ускорением человек должен бежать из точки D, чтобы добраться до станции B в момент остановки автобуса на станции?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 49,
+      "he": "שאלה 1.10:",
+      "he_niqqud": "שְׁאֵלָה 1.10:",
+      "translit": "She'ela 1.10:",
+      "ru": "Вопрос 1.10:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 50,
+      "he": "שתי מכוניות נעות באותו כיוון. המכונית A נעה במהירות קבועה של 15 m/sec והמכונית האחרת B בתאוצה של 1 m/sec² .",
+      "he_niqqud": "שְׁתֵּי מְכוֹנִיּוֹת נָעוֹת בְּאוֹתוֹ כִּוּוּן. הַמְּכוֹנִית A נָעָה בִּמְהִירוּת קְבוּעָה שֶׁל 15 m/sec וְהַמְּכוֹנִית הָאַחֶרֶת B בִּתְאוּצָה שֶׁל 1 m/sec² .",
+      "translit": "Shte mkhoniyot na'ot be'oto kivun. Hamkhonit A na'a bimhirut kvu'a shel 15 m/sec vehamkhonit ha'akheret B bit'utsa shel 1 m/sec2 .",
+      "ru": "Два автомобиля движутся в одном направлении. Автомобиль A движется с постоянной скоростью 15 м/с, а другой автомобиль B — с ускорением 1 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 51,
+      "he": "מכונית A עוברת בצומת א' 14 שניות לפני שמכונית B עוברת בצומת א'.",
+      "he_niqqud": "מְכוֹנִית A עוֹבֶרֶת בְּצֹמֶת א' 14 שְׁנִיּוֹת לִפְנֵי שֶׁמְּכוֹנִית B עוֹבֶרֶת בְּצֹמֶת א'.",
+      "translit": "Mkhonit A overet btsomet '' 14 shniyot lifne shemkhonit B overet btsomet ''.",
+      "ru": "Автомобиль A проезжает перекрёсток А за 14 секунд до того, как автомобиль B проезжает перекрёсток А.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 52,
+      "he": "מכונית B עוברת בצומת א' במהירות של 10 m/sec .",
+      "he_niqqud": "מְכוֹנִית B עוֹבֶרֶת בְּצֹמֶת א' בִּמְהִירוּת שֶׁל 10 m/sec .",
+      "translit": "Mkhonit B overet btsomet '' bimhirut shel 10 m/sec .",
+      "ru": "Автомобиль B проезжает перекрёсток А со скоростью 10 м/с.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 53,
+      "he": "שתי המכוניות מגיעות יחד לצומת ב'.",
+      "he_niqqud": "שְׁתֵּי הַמְּכוֹנִיּוֹת מַגִּיעוֹת יַחַד לְצֹמֶת ב'.",
+      "translit": "Shte hamkhoniyot magi'ot yakhad ltsomet v'.",
+      "ru": "Оба автомобиля прибывают одновременно на перекрёсток Б.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 54,
+      "he": "חשבו:",
+      "he_niqqud": "חַשְּׁבוּ:",
+      "translit": "Khashvu:",
+      "ru": "Вычислите:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 55,
+      "he": "א. כעבור כמה זמן אחרי שהמכונית הראשונה A עברה את צומת א', ייפגשו שתי המכוניות בצומת ב' !",
+      "he_niqqud": "א. כַּעֲבֹר כַּמָּה זְמַן אַחֲרֵי שֶׁהַמְּכוֹנִית הָרִאשׁוֹנָה A עָבְרָה אֶת צֹמֶת א', יִפָּגְשׁוּ שְׁתֵּי הַמְּכוֹנִיּוֹת בְּצֹמֶת ב' !",
+      "translit": "'. Ka'avor kama zman akhare shehamkhonit hari'shona A avra et tsomet '', yipagshu shte hamkhoniyot btsomet v' !",
+      "ru": "а. Через какое время после того, как первый автомобиль A проехал перекрёсток А, оба автомобиля встретятся на перекрёстке Б!",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 56,
+      "he": "ב. את המהירות של מכונית B בצומת ב'. האם המכונית תעבור על חוקי התנועה, אם המהירות המותרת בכביש זה היא 120 km/h ? ג. את המרחק בין הצמתים.",
+      "he_niqqud": "ב. אֶת הַמְּהִירוּת שֶׁל מְכוֹנִית B בְּצֹמֶת ב'. הַאִם הַמְּכוֹנִית תַּעֲבֹר עַל חֻקֵּי הַתְּנוּעָה, אִם הַמְּהִירוּת הַמֻּתֶּרֶת בִּכְבִישׁ זֶה הִיא 120 km/h ? ג. אֶת הַמֶּרְחָק בֵּין הַצְּמָתִים.",
+      "translit": "V. Et hamhirut shel mkhonit B btsomet v'. Ha'im hamkhonit ta'avor al khuke hatnu'a, im hamhirut hamuteret bikhvish ze hi' 120 km/h ? G. Et hamerkhak ben hatsmatim.",
+      "ru": "б. Скорость автомобиля B на перекрёстке Б. Нарушит ли автомобиль правила дорожного движения, если разрешённая скорость на этой дороге составляет 120 км/ч? в. Расстояние между перекрёстками.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 57,
+      "he": "פרק 2 : בעיות בתחום זריקה אנכית כלפי מעלה/מטה",
+      "he_niqqud": "פֶּרֶק 2 : בְּעָיוֹת בִּתְחוּם זְרִיקָה אֲנָכִית כְּלַפֵּי מַעְלָה/מַטָּה",
+      "translit": "Perek 2 : be'ayot bitkhum zrika anakhit klape ma'lamata/",
+      "ru": "Глава 2: Задачи на тему вертикального броска вверх/вниз",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 58,
+      "he": "שאלה 2.1:",
+      "he_niqqud": "שְׁאֵלָה 2.1:",
+      "translit": "She'ela 2.1:",
+      "ru": "Вопрос 2.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 59,
+      "he": "אדם עומד על חומה וזורק אבן בצורה אנכית כלפי מעלה. האבן עולה עד לנקודה M ונופלת בנקודה N ליד תחתית החומה.",
+      "he_niqqud": "אָדָם עוֹמֵד עַל חוֹמָה וְזוֹרֵק אֶבֶן בְּצוּרָה אֲנָכִית כְּלַפֵּי מַעְלָה. הָאֶבֶן עוֹלָה עַד לִנְקֻדָּה M וְנוֹפֶלֶת בִּנְקֻדָּה N לְיַד תַּחְתִּית הַחוֹמָה.",
+      "translit": "Adam omed al khoma vezorek even btsura anakhit klape ma'la. Ha'even ola ad linkuda M venofelet binkuda N lyad takhtit hakhoma.",
+      "ru": "Человек стоит на стене и бросает камень вертикально вверх. Камень поднимается до точки M и падает в точке N около основания стены.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 60,
+      "he": "נתון: גובה החומה (h) הוא 6 מטר והזמן הכולל (t) הנדרש לעליית האבן ולנפילתה היה 3 שניות.",
+      "he_niqqud": "נָתוּן: גֹּבַהּ הַחוֹמָה (h) הוּא 6 מֶטֶר וְהַזְּמַן הַכּוֹלֵל (t) הַנִּדְרָשׁ לַעֲלִיַּת הָאֶבֶן וּלִנְפִילָתָהּ הָיָה 3 שְׁנִיּוֹת.",
+      "translit": "Natun: govah hakhoma (h) hu' 6 meter vehazman hakolel (t) hanidrash la'aliyat ha'even ulinfilatah haya 3 shniyot.",
+      "ru": "Дано: высота стены (h) составляет 6 метров, а общее время (t), необходимое для подъема и падения камня, составило 3 секунды.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 61,
+      "he": "תאוצת הכובד: g = 9.81 m/sec²",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81 m/sec²",
+      "translit": "Te'utsat hakoved: g = 9.81 m/sec2",
+      "ru": "Ускорение свободного падения: g = 9,81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 62,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 63,
+      "he": "א. את מהירות התחילית (v₀) של האבן. ב. את הגובה (h) מפני הקרקע ועד הנקודה העליונה שבה מגיעה האבן. ג. את המהירות הסופית של האבן (בנקודה N). ד. את הזמן (t₂) שבו עוברת האבן בנפילתה מראש החומה (נקודה A) ועד פני הקרקע (נקודה N). ה. צייר תרשים המתאר את המהירות כפונקציה של הזמן במשך כל תהליך העלייה והנפילה של האבן.",
+      "he_niqqud": "א. אֶת מְהִירוּת הַתְּחִלִּית (v₀) שֶׁל הָאֶבֶן. ב. אֶת הַגֹּבַהּ (h) מִפְּנֵי הַקַּרְקַע וְעַד הַנְּקֻדָּה הָעֶלְיוֹנָה שֶׁבָּהּ מַגִּיעָה הָאֶבֶן. ג. אֶת הַמְּהִירוּת הַסּוֹפִית שֶׁל הָאֶבֶן (בִּנְקֻדָּה N). ד. אֶת הַזְּמַן (t₂) שֶׁבּוֹ עוֹבֶרֶת הָאֶבֶן בִּנְפִילָתָהּ מֵרֹאשׁ הַחוֹמָה (נְקֻדָּה A) וְעַד פְּנֵי הַקַּרְקַע (נְקֻדָּה N). ה. צַיֵּר תַּרְשִׁים הַמְּתָאֵר אֶת הַמְּהִירוּת כְּפוּנְקְצִיָּה שֶׁל הַזְּמָן בְּמֶשֶׁךְ כָּל תַּהֲלִיךְ הָעֲלִיָּה וְהַנְּפִילָה שֶׁל הָאֶבֶן.",
+      "translit": "'. Et mhirut hatkhilit (v0) shel ha'even. V. Et hagovah (h) mipne hakark'a ve'ad hankuda ha'elyona shebah magi'a ha'even. G. Et hamhirut hasofit shel ha'even (binkuda N). D. Et hazman (t2) shebo overet ha'even binfilatah mero'sh hakhoma (nkuda A) ve'ad pne hakark'a (nkuda N). H. Tsayer tarshim hamta'er et hamhirut kfunktsiya shel hazman bmeshekh kol tahalikh ha'aliya vehanfila shel ha'even.",
+      "ru": "а. Начальную скорость (v₀) камня. б. Высоту (h) от поверхности земли до высшей точки, которой достигает камень. в. Конечную скорость камня (в точке N). г. Время (t₂), за которое камень проходит при падении от вершины стены (точка A) до поверхности земли (точка N). д. Нарисуйте график зависимости скорости от времени на протяжении всего процесса подъема и падения камня.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 64,
+      "he": "שאלה 2.2 אביב 2023, מועד ב', שאלה 4",
+      "he_niqqud": "שְׁאֵלָה 2.2 אָבִיב 2023, מוֹעֵד ב', שְׁאֵלָה 4",
+      "translit": "She'ela 2.2 aviv 2023, mo'ed v', she'ela 4",
+      "ru": "Вопрос 2.2: Весна 2023, сессия Б, вопрос 4",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 65,
+      "he": "באיור לשאלה נתון ילד קופץ לבריכה ממקפצה בגובה 5 מטרים ומגיע למים תוך 1.5 שניות.",
+      "he_niqqud": "בָּאִיּוּר לַשְּׁאֵלָה נָתוּן יֶלֶד קוֹפֵץ לַבְּרֵכָה מִמַּקְפֵּצָה בְּגֹבַהּ 5 מֶטְרִים וּמַגִּיעַ לַמַּיִם תּוֹךְ 1.5 שְׁנִיּוֹת.",
+      "translit": "Ba'iyur lashe'ela natun yeled kofets labrekha mimakpetsa bgovah 5 metrim umagi'a lamayim tokh 1.5 shniyot.",
+      "ru": "На рисунке к задаче показан мальчик, прыгающий в бассейн с вышки высотой 5 метров и достигающий воды за 1,5 секунды.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 66,
+      "he": "חשבו את :",
+      "he_niqqud": "חַשְּׁבוּ אֶת :",
+      "translit": "Khashvu et :",
+      "ru": "Вычислите:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 67,
+      "he": "א. המהירות ההתחלתית v₀ של קפיצת הילד בהנחה שהוא קופץ אנכית כלפי מעלה. ב. מהו הגובה של הילד מעל פני המים בקפיצה ? ג. באיזו מהירות הילד נכנס לתוך המים ? ד. אם הילד יקפוץ אנכית כלפי מעלה במהירות התחלתית של v₀ = 2 m/sec, תוך כמה זמן הוא ייכנס למים ?",
+      "he_niqqud": "א. הַמְּהִירוּת הַהַתְחָלָתִית v₀ שֶׁל קְפִיצַת הַיֶּלֶד בְּהַנָּחָה שֶׁהוּא קוֹפֵץ אֲנָכִית כְּלַפֵּי מַעְלָה. ב. מַהוּ הַגֹּבַהּ שֶׁל הַיֶּלֶד מֵעַל פְּנֵי הַמַּיִם בַּקְּפִיצָה ? ג. בְּאֵיזוֹ מְהִירוּת הַיֶּלֶד נִכְנָס לְתוֹךְ הַמַּיִם ? ד. אִם הַיֶּלֶד יִקְפֹּץ אֲנָכִית כְּלַפֵּי מַעְלָה בִּמְהִירוּת הַתְחָלָתִית שֶׁל v₀ = 2 m/sec, תּוֹךְ כַּמָּה זְמַן הוּא יִכָּנֵס לַמַּיִם ?",
+      "translit": "'. Hamhirut hahatkhalatit v0 shel kfitsat hayeled bhanakha shehu' kofets anakhit klape ma'la. V. Mahu hagovah shel hayeled me'al pne hamayim bakfitsa ? G. Be'ezo mhirut hayeled nikhnas ltokh hamayim ? D. Im hayeled yikpots anakhit klape ma'la bimhirut hatkhalatit shel v0 = 2 m/sec, tokh kama zman hu' yikanes lamayim ?",
+      "ru": "а. Начальную скорость v₀ прыжка мальчика в предположении, что он прыгает вертикально вверх. б. Какова максимальная высота мальчика над поверхностью воды при прыжке? в. С какой скоростью мальчик входит в воду? г. Если мальчик прыгнет вертикально вверх с начальной скоростью v₀ = 2 м/с, через какое время он войдет в воду?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 68,
+      "he": "שאלה 2.3",
+      "he_niqqud": "שְׁאֵלָה 2.3",
+      "translit": "She'ela 2.3",
+      "ru": "Вопрос 2.3",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 69,
+      "he": "להטוטן זורק כדור אנכית כלפי מעלה מגובה של 1 מטר מפני הקרקע. כאשר הכדור מגיע לשיא גובהו – 5 מטרים מנקודת הזריקה, הלהטוטן זורק כדור שני אנכית כלפי מעלה מאותו גובה ובאותה מהירות התחלתית..",
+      "he_niqqud": "לַהֲטוּטָן זוֹרֵק כַּדּוּר אֲנָכִית כְּלַפֵּי מַעְלָה מִגֹּבַהּ שֶׁל 1 מֶטֶר מִפְּנֵי הַקַּרְקַע. כַּאֲשֶׁר הַכַּדּוּר מַגִּיעַ לְשִׂיא גָּבְהוֹ – 5 מֶטְרִים מִנְּקֻדַּת הַזְּרִיקָה, הַלַּהֲטוּטָן זוֹרֵק כַּדּוּר שֵׁנִי אֲנָכִית כְּלַפֵּי מַעְלָה מֵאוֹתוֹ גֹּבַהּ וּבְאוֹתָהּ מְהִירוּת הַתְחָלָתִית..",
+      "translit": "Lahatutan zorek kadur anakhit klape ma'la migovah shel 1 meter mipne hakark'a. Ka'asher hakadur magi'a lsi' govho – 5 metrim minkudat hazrika, halahatutan zorek kadur sheni anakhit klape ma'la me'oto govah uve'otah mhirut hatkhalatit..",
+      "ru": "Жонглер бросает мяч вертикально вверх с высоты 1 метр от земли. Когда мяч достигает максимальной высоты — 5 метров от точки броска, жонглер бросает второй мяч вертикально вверх с той же высоты и с той же начальной скоростью.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 70,
+      "he": "חשבו את :",
+      "he_niqqud": "חַשְּׁבוּ אֶת :",
+      "translit": "Khashvu et :",
+      "ru": "Вычислите:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 71,
+      "he": "א. המהירות ההתחלתית של זריקת הכדורים. ב. את הפרש הזמן בין זריקת הכדורים. ג. כמה זמן אחרי זריקת הכדור השני ייפגשו הכדורים ? ד. באיזה גובה מעל הרצפה ייפגשו הכדורים ?",
+      "he_niqqud": "א. הַמְּהִירוּת הַהַתְחָלָתִית שֶׁל זְרִיקַת הַכַּדּוּרִים. ב. אֶת הֶפְרֵשׁ הַזְּמַן בֵּין זְרִיקַת הַכַּדּוּרִים. ג. כַּמָּה זְמַן אַחֲרֵי זְרִיקַת הַכַּדּוּר הַשֵּׁנִי יִפָּגְשׁוּ הַכַּדּוּרִים ? ד. בְּאֵיזֶה גֹּבַהּ מֵעַל הָרִצְפָּה יִפָּגְשׁוּ הַכַּדּוּרִים ?",
+      "translit": "'. Hamhirut hahatkhalatit shel zrikat hakadurim. V. Et hefresh hazman ben zrikat hakadurim. G. Kama zman akhare zrikat hakadur hasheni yipagshu hakadurim ? D. Be'eze govah me'al haritspa yipagshu hakadurim ?",
+      "ru": "а. Начальную скорость бросания мячей. б. Разницу во времени между бросками мячей. в. Через сколько времени после броска второго мяча мячи встретятся? г. На какой высоте над полом встретятся мячи?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 72,
+      "he": "פרק 3 : בעיות בתחום זריקה אופקית",
+      "he_niqqud": "פֶּרֶק 3 : בְּעָיוֹת בִּתְחוּם זְרִיקָה אׇפְקִית",
+      "translit": "Perek 3 : be'ayot bitkhum zrika ofkit",
+      "ru": "Глава 3: Задачи на тему горизонтального броска",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 73,
+      "he": "שאלה 3.1:",
+      "he_niqqud": "שְׁאֵלָה 3.1:",
+      "translit": "She'ela 3.1:",
+      "ru": "Вопрос 3.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 74,
+      "he": "טייס צריך לשחרר מטען ממטוס A, שיפול בדיוק בנקודה C.",
+      "he_niqqud": "טַיָּס צָרִיךְ לְשַׁחְרֵר מִטְעָן מִמָּטוֹס A, שֶׁיִּפֹּל בְּדִיּוּק בִּנְקֻדָּה C.",
+      "translit": "Tayas tsarikh lshakhrer mit'an mimatos A, sheyipol bdiyuk binkuda C.",
+      "ru": "Пилот должен сбросить груз с самолета A так, чтобы он упал точно в точку C.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 75,
+      "he": "מה צריך להיות המרחק (x) בין המטוס A לבין המטרה C, ומהי הזווית ( β ) שבה רואה הטייס את המטרה, ברגע של שחרור המטען. כן חשב את זמן הנפילה של המטען.",
+      "he_niqqud": "מָה צָרִיךְ לִהְיוֹת הַמֶּרְחָק (x) בֵּין הַמָּטוֹס A לְבֵין הַמַּטָּרָה C, וּמַהִי הַזָּוִית ( β ) שֶׁבָּהּ רוֹאֶה הַטַּיָּס אֶת הַמַּטָּרָה, בְּרֶגַע שֶׁל שִׁחְרוּר הַמִּטְעָן. כֵּן חַשֵּׁב אֶת זְמַן הַנְּפִילָה שֶׁל הַמִּטְעָן.",
+      "translit": "Ma tsarikh lihyot hamerkhak (x) ben hamatos A lven hamatara C, umahi hazavit ( β ) shebah ro'e hatayas et hamatara, breg'a shel shikhrur hamit'an. Ken khashev et zman hanfila shel hamit'an.",
+      "ru": "Каким должно быть расстояние (x) между самолетом A и целью C, и каков угол (β), под которым пилот видит цель в момент сброса груза? Также рассчитайте время падения груза.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 76,
+      "he": "המטוס טס אופקית בגובה (H) השווה 240 מטר במהירות קבועה של 250 קמ\"ש. הנח: g = 9.81 m/sec²",
+      "he_niqqud": "הַמָּטוֹס טָס אׇפְקִית בְּגֹבַהּ (H) הַשָּׁוֶה 240 מֶטֶר בִּמְהִירוּת קְבוּעָה שֶׁל 250 קמ\"ש. הַנַּח: g = 9.81 m/sec²",
+      "translit": "Hamatos tas ofkit bgovah (H) hashave 240 meter bimhirut kvu'a shel 250 kmsh\". Hanakh: g = 9.81 m/sec2",
+      "ru": "Самолет летит горизонтально на высоте (H), равной 240 метров, с постоянной скоростью 250 км/ч. Примите: g = 9,81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 77,
+      "he": "שאלה 3.2:",
+      "he_niqqud": "שְׁאֵלָה 3.2:",
+      "translit": "She'ela 3.2:",
+      "ru": "Вопрос 3.2:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 78,
+      "he": "שק קמח מחליק מהנקודה A במהירות אופקית (V_A)_x ומגיע אל הרצפה בנקודה B (ראה תרשים).",
+      "he_niqqud": "שַׂק קֶמַח מַחְלִיק מֵהַנְּקֻדָּה A בִּמְהִירוּת אׇפְקִית (V_A)_x וּמַגִּיעַ אֶל הָרִצְפָּה בִּנְקֻדָּה B (רְאֵה תַּרְשִׁים).",
+      "translit": "Sak kemakh makhlik mehankuda A bimhirut ofkit (V_A)_x umagi'a el haritspa binkuda B (re'e tarshim).",
+      "ru": "Мешок муки соскальзывает из точки A с горизонтальной скоростью (V_A)_x и достигает пола в точке B (см. схему).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 79,
+      "he": "נתון : g = 9.81 m/sec² , H = 8 m , (V_A)_x = 10 m/sec",
+      "he_niqqud": "נָתוּן : g = 9.81 m/sec² , H = 8 m , (V_A)_x = 10 m/sec",
+      "translit": "Natun : g = 9.81 m/sec2 , H = 8 m , (V_A)_x = 10 m/sec",
+      "ru": "Дано: g = 9,81 м/с², H = 8 м, (V_A)_x = 10 м/с",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 80,
+      "he": "א. חשב את פרק הזמן הדרוש לשק כדי להגיע מהרציף בנקודה A עד הרצפה בנקודה B. ב. חשב את המרחק L מהרציף עד הנקודה B. ג. אילו היו מטילים את השק ממצב מנוחה כלפי מטה במסלול AC, מה היה הזמן הדרוש לשק להגיע לרצפה? הזנח את התנגדות האוויר לתנועת השק.",
+      "he_niqqud": "א. חַשֵּׁב אֶת פֶּרֶק הַזְּמַן הַדָּרוּשׁ לַשַּׂק כְּדֵי לְהַגִּיעַ מֵהָרְצִיף בִּנְקֻדָּה A עַד הָרִצְפָּה בִּנְקֻדָּה B. ב. חַשֵּׁב אֶת הַמֶּרְחָק L מֵהָרְצִיף עַד הַנְּקֻדָּה B. ג. אִלּוּ הָיוּ מְטִילִים אֶת הַשַּׂק מִמַּצַּב מְנוּחָה כְּלַפֵּי מַטָּה בְּמַסְלוּל AC, מָה הָיָה הַזְּמַן הַדָּרוּשׁ לַשַּׂק לְהַגִּיעַ לָרִצְפָּה? הַזְנַח אֶת הִתְנַגְּדוּת הָאֲוִיר לִתְנוּעַת הַשַּׂק.",
+      "translit": "'. Khashev et perek hazman hadarush lasak kde lhagi'a mehartsif binkuda A ad haritspa binkuda B. V. Khashev et hamerkhak L mehartsif ad hankuda B. G. Ilu hayu mtilim et hasak mimatsav mnukha klape mata bmaslul AC, ma haya hazman hadarush lasak lhagi'a laritspa? Haznakh et hitnagdut ha'avir litnu'at hasak.",
+      "ru": "а. Рассчитайте промежуток времени, необходимый мешку, чтобы добраться от платформы в точке A до пола в точке B. б. Рассчитайте расстояние L от платформы до точки B. в. Если бы мешок сбросили из состояния покоя вертикально вниз по траектории AC, сколько времени потребовалось бы мешку, чтобы достичь пола? Сопротивлением воздуха движению мешка пренебречь.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 81,
+      "he": "שאלה 3.3:",
+      "he_niqqud": "שְׁאֵלָה 3.3:",
+      "translit": "She'ela 3.3:",
+      "ru": "Вопрос 3.3:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 82,
+      "he": "מטוס טס בטיסה אופקית ואוטובוס נע לקראתו על הקרקע. כל נתוני התנועה של המטוס ושל האוטובוס מסומנים בתרשים.",
+      "he_niqqud": "מָטוֹס טָס בְּטִיסָה אׇפְקִית וְאוֹטוֹבּוּס נָע לִקְרָאתוֹ עַל הַקַּרְקַע. כָּל נְתוּנֵי הַתְּנוּעָה שֶׁל הַמָּטוֹס וְשֶׁל הָאוֹטוֹבּוּס מְסֻמָּנִים בַּתַּרְשִׁים.",
+      "translit": "Matos tas btisa ofkit ve'otobus n'a likra'to al hakark'a. Kol ntune hatnu'a shel hamatos veshel ha'otobus msumanim batarshim.",
+      "ru": "Самолет совершает горизонтальный полет, а автобус движется навстречу ему по земле. Все параметры движения самолета и автобуса указаны на схеме.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 83,
+      "he": "בשלב מסוים משחרר טייס המסוק חפץ כדי שייפול בדיוק על גג האוטובוס.",
+      "he_niqqud": "בְּשָׁלָב מְסֻיָּם מְשַׁחְרֵר טַיָּס הַמַּסּוֹק חֵפֶץ כְּדֵי שֶׁיִּפֹּל בְּדִיּוּק עַל גַּג הָאוֹטוֹבּוּס.",
+      "translit": "Bshalav msuyam mshakhrer tayas hamasok khefets kde sheyipol bdiyuk al gag ha'otobus.",
+      "ru": "В определенный момент пилот вертолета сбрасывает предмет так, чтобы он упал точно на крышу автобуса.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 84,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 85,
+      "he": "א. מה יהיה המרחק האופקי בין המסוק לאוטובוס בעת שחרור החפץ ? ב. מה יהיה המרחק האופקי בין המסוק לאוטובוס בעת פגיעת החפץ באוטובוס ? ג. באיזה מהירות (גודל וכיוון) יפגע החפץ באוטובוס ? הערות: התייחס למסוק ולאוטובוס כשתי נקודות חומריות.",
+      "he_niqqud": "א. מָה יִהְיֶה הַמֶּרְחָק הָאׇפְקִי בֵּין הַמַּסּוֹק לָאוֹטוֹבּוּס בְּעֵת שִׁחְרוּר הַחֵפֶץ ? ב. מָה יִהְיֶה הַמֶּרְחָק הָאׇפְקִי בֵּין הַמַּסּוֹק לָאוֹטוֹבּוּס בְּעֵת פְּגִיעַת הַחֵפֶץ בָּאוֹטוֹבּוּס ? ג. בְּאֵיזֶה מְהִירוּת (גֹּדֶל וְכִוּוּן) יִפְגַּע הַחֵפֶץ בָּאוֹטוֹבּוּס ? הֶעָרוֹת: הִתְיַחֵס לַמַּסּוֹק וְלָאוֹטוֹבּוּס כִּשְׁתֵּי נְקֻדּוֹת חָמְרִיּוֹת.",
+      "translit": "'. Ma yihye hamerkhak ha'ofki ben hamasok la'otobus be'et shikhrur hakhefets ? V. Ma yihye hamerkhak ha'ofki ben hamasok la'otobus be'et pgi'at hakhefets ba'otobus ? G. Be'eze mhirut (godel vekhivun) yifg'a hakhefets ba'otobus ? He'arot: hityakhes lamasok vela'otobus kishte nkudot khamriyot.",
+      "ru": "а. Каково будет горизонтальное расстояние между вертолетом и автобусом в момент сброса предмета? б. Каково будет горизонтальное расстояние между вертолетом и автобусом в момент попадания предмета в автобус? в. С какой скоростью (величина и направление) предмет ударит по автобусу? Примечания: рассматривайте вертолет и автобус как материальные точки.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 86,
+      "he": "זריקה אופקית בשילוב חיכוך ואנרגיה",
+      "he_niqqud": "זְרִיקָה אׇפְקִית בְּשִׁלּוּב חִכּוּךְ וְאֶנֶרְגְּיָה",
+      "translit": "Zrika ofkit bshiluv khikukh ve'energya",
+      "ru": "Горизонтальный бросок в сочетании с трением и энергией",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 87,
+      "he": "שאלה 3.4:",
+      "he_niqqud": "שְׁאֵלָה 3.4:",
+      "translit": "She'ela 3.4:",
+      "ru": "Вопрос 3.4:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 88,
+      "he": "לבנה שמסתה 1 ק\"ג, מחליקה על פני גג משופע חסר חיכוך (ראה איור לשאלה 4). זווית השיפוע של הגג היא 37°. בנקודה A מהירותה של הלבנה היא 1.5 m/sec, ובנקודה B היא נופלת מהגג.",
+      "he_niqqud": "לְבֵנָה שֶׁמַּסָּתָהּ 1 ק\"ג, מַחְלִיקָה עַל פְּנֵי גַּג מְשֻׁפָּע חֲסַר חִכּוּךְ (רְאֵה אִיּוּר לִשְׁאֵלָה 4). זָוִית הַשִּׁפּוּעַ שֶׁל הַגַּג הִיא 37°. בִּנְקֻדָּה A מְהִירוּתָהּ שֶׁל הַלְּבֵנָה הִיא 1.5 m/sec, וּבִנְקֻדָּה B הִיא נוֹפֶלֶת מֵהַגַּג.",
+      "translit": "Lvena shemasatah 1 kg\", makhlika al pne gag mshup'a khasar khikukh (re'e iyur lish'ela 4). Zavit hashipu'a shel hagag hi' 37°. Binkuda A mhirutah shel halvena hi' 1.5 m/sec, uvinkuda B hi' nofelet mehagag.",
+      "ru": "Кирпич массой 1 кг соскальзывает по наклонной крыше без трения (см. рисунок к вопросу 4). Угол наклона крыши 37°. В точке A скорость кирпича равна 1,5 м/с, а в точке B он падает с крыши.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 89,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 90,
+      "he": "א. מהי מהירות הלבנה בנקודה B? ב. כמה זמן נמשכת נפילת הלבנה מנקודה B עד פגיעתה בקרקע בנקודה E? ג. מהי מהירות הלבנה בנקודה E (שיעור וכיוון) ? ד. מהו המרחק d ? הערה: יש להתייחס ללבנה כנקודה חומרית, ואין להביא בחשבון את התנגדות האוויר.",
+      "he_niqqud": "א. מַהִי מְהִירוּת הַלְּבֵנָה בִּנְקֻדָּה B? ב. כַּמָּה זְמַן נִמְשֶׁכֶת נְפִילַת הַלְּבֵנָה מִנְּקֻדָּה B עַד פְּגִיעָתָהּ בַּקַּרְקַע בִּנְקֻדָּה E? ג. מַהִי מְהִירוּת הַלְּבֵנָה בִּנְקֻדָּה E (שִׁעוּר וְכִוּוּן) ? ד. מַהוּ הַמֶּרְחָק d ? הֶעָרָה: יֵשׁ לְהִתְיַחֵס לַלְּבֵנָה כִּנְקֻדָּה חָמְרִית, וְאֵין לְהָבִיא בְּחֶשְׁבּוֹן אֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "'. Mahi mhirut halvena binkuda B? V. Kama zman nimshekhet nfilat halvena minkuda B ad pgi'atah bakark'a binkuda E? G. Mahi mhirut halvena binkuda E (shi'ur vekhivun) ? D. Mahu hamerkhak d ? He'ara: yesh lhityakhes lalvena kinkuda khamrit, ve'en lhavi' bkheshbon et hitnagdut ha'avir.",
+      "ru": "а. Какова скорость кирпича в точке B? б. Сколько времени длится падение кирпича от точки B до удара о землю в точке E? в. Какова скорость кирпича в точке E (величина и направление)? г. Чему равно расстояние d? Примечание: кирпич следует рассматривать как материальную точку, сопротивление воздуха не учитывать.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 91,
+      "he": "שאלה 3.5:",
+      "he_niqqud": "שְׁאֵלָה 3.5:",
+      "translit": "She'ela 3.5:",
+      "ru": "Вопрос 3.5:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 92,
+      "he": "מזוודה שמסתה 15Kg מחליקה על פני מישור משופע שזווית השיפוע שלו 30°. בנקודה A מהירותה של המזוודה שווה 3 m/sec. בנקודה C, המזוודה נופלת במישור המשופע. מקדם החיכוך הקינטי בין המזוודה לבין המישור המשופע μₖ = 0.25 .",
+      "he_niqqud": "מִזְוָדָה שֶׁמַּסָּתָהּ 15Kg מַחְלִיקָה עַל פְּנֵי מִישׁוֹר מְשֻׁפָּע שֶׁזָּוִית הַשִּׁפּוּעַ שֶׁלּוֹ 30°. בִּנְקֻדָּה A מְהִירוּתָהּ שֶׁל הַמִּזְוָדָה שָׁוָה 3 m/sec. בִּנְקֻדָּה C, הַמִּזְוָדָה נוֹפֶלֶת בַּמִּישׁוֹר הַמְּשֻׁפָּע. מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַמִּזְוָדָה לְבֵין הַמִּישׁוֹר הַמְּשֻׁפָּע μₖ = 0.25 .",
+      "translit": "Mizvada shemasatah 15Kg makhlika al pne mishor mshup'a shezavit hashipu'a shelo 30°. Binkuda A mhirutah shel hamizvada shava 3 m/sec. Binkuda C, hamizvada nofelet bamishor hamshup'a. Mkadem hakhikukh hakineti ben hamizvada lven hamishor hamshup'a μk = 0.25 .",
+      "ru": "Чемодан массой 15 кг соскальзывает по наклонной плоскости с углом наклона 30°. В точке A скорость чемодана равна 3 м/с. В точке C чемодан слетает с наклонной плоскости. Коэффициент кинетического трения между чемоданом и наклонной плоскостью μₖ = 0,25.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 93,
+      "he": "הערה: 1. התייחס למזוודה כנקודה חומרית אחת. 2. הזנח את התנגדות האוויר. א. מהי מהירות המזוודה בנקודה C? ב. מהו זמן נפילת המזוודה מנקודה C עד פגיעתה בקרקע בנקודה B ? ג. חשב את מהירות המזוודה בנקודה B (שיעור וכיוון) ? ד. חשב את המרחק המסומן באות R ?",
+      "he_niqqud": "הֶעָרָה: 1. הִתְיַחֵס לַמִּזְוָדָה כִּנְקֻדָּה חָמְרִית אַחַת. 2. הַזְנַח אֶת הִתְנַגְּדוּת הָאֲוִיר. א. מַהִי מְהִירוּת הַמִּזְוָדָה בִּנְקֻדָּה C? ב. מַהוּ זְמַן נְפִילַת הַמִּזְוָדָה מִנְּקֻדָּה C עַד פְּגִיעָתָהּ בַּקַּרְקַע בִּנְקֻדָּה B ? ג. חַשֵּׁב אֶת מְהִירוּת הַמִּזְוָדָה בִּנְקֻדָּה B (שִׁעוּר וְכִוּוּן) ? ד. חַשֵּׁב אֶת הַמֶּרְחָק הַמְּסֻמָּן בָּאוֹת R ?",
+      "translit": "He'ara: 1. Hityakhes lamizvada kinkuda khamrit akhat. 2. Haznakh et hitnagdut ha'avir. '. Mahi mhirut hamizvada binkuda C? V. Mahu zman nfilat hamizvada minkuda C ad pgi'atah bakark'a binkuda B ? G. Khashev et mhirut hamizvada binkuda B (shi'ur vekhivun) ? D. Khashev et hamerkhak hamsuman ba'ot R ?",
+      "ru": "Примечание: 1. Рассматривайте чемодан как одну материальную точку. 2. Сопротивлением воздуха пренебречь. а. Какова скорость чемодана в точке C? б. Каково время падения чемодана от точки C до падения на землю в точке B? в. Рассчитайте скорость чемодана в точке B (величина и направление)? г. Рассчитайте расстояние, обозначенное буквой R?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 94,
+      "he": "שאלה 3.6:",
+      "he_niqqud": "שְׁאֵלָה 3.6:",
+      "translit": "She'ela 3.6:",
+      "ru": "Вопрос 3.6:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 95,
+      "he": "ארגז שמסתו 5Kg נכנס למישור משופע בנקודה A במהירות 2 m/sec, ומחליק על פני המישור המשופע בזווית של 37° כמתואר באיור לשאלה 4. מקדם החיכוך הקינטי בין הארגז ובין המישור המשופע הוא μₖ = 0.2. בנקודה B הארגז עוזב את המישור המשופע, ובנקודה C הוא נופל לעגלה הנמצאת על פני הקרקע.",
+      "he_niqqud": "אַרְגַּז שֶׁמַּסָּתוֹ 5Kg נִכְנָס לְמִישׁוֹר מְשֻׁפָּע בִּנְקֻדָּה A בִּמְהִירוּת 2 m/sec, וּמַחְלִיק עַל פְּנֵי הַמִּישׁוֹר הַמְּשֻׁפָּע בְּזָוִית שֶׁל 37° כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4. מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הָאַרְגַּז וּבֵין הַמִּישׁוֹר הַמְּשֻׁפָּע הוּא μₖ = 0.2. בִּנְקֻדָּה B הָאַרְגַּז עוֹזֵב אֶת הַמִּישׁוֹר הַמְּשֻׁפָּע, וּבִנְקֻדָּה C הוּא נוֹפֵל לַעֲגָלָה הַנִּמְצֵאת עַל פְּנֵי הַקַּרְקַע.",
+      "translit": "Argaz shemasato 5Kg nikhnas lmishor mshup'a binkuda A bimhirut 2 m/sec, umakhlik al pne hamishor hamshup'a bzavit shel 37° kamto'ar ba'iyur lish'ela 4. Mkadem hakhikukh hakineti ben ha'argaz uven hamishor hamshup'a hu' μk = 0.2. Binkuda B ha'argaz ozev et hamishor hamshup'a, uvinkuda C hu' nofel la'agala hanimtse't al pne hakark'a.",
+      "ru": "Ящик массой 5 кг въезжает на наклонную плоскость в точке A со скоростью 2 м/с и соскальзывает по наклонной плоскости с углом наклона 37°, как показано на рисунке к вопросу 4. Коэффициент кинетического трения между ящиком и наклонной плоскостью равен μₖ = 0,2. В точке B ящик покидает наклонную плоскость, а в точке C падает в тележку, находящуюся на земле.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 96,
+      "he": "הערה: יש להתייחס לארגז כנקודה חומרית, ולהזניח את התנגדות האוויר.",
+      "he_niqqud": "הֶעָרָה: יֵשׁ לְהִתְיַחֵס לָאַרְגַּז כִּנְקֻדָּה חָמְרִית, וּלְהַזְנִיחַ אֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "He'ara: yesh lhityakhes la'argaz kinkuda khamrit, ulhazniakh et hitnagdut ha'avir.",
+      "ru": "Примечание: ящик следует рассматривать как материальную точку, сопротивлением воздуха пренебречь.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 97,
+      "he": "א. חשב את מהירות הארגז בנקודה B. ב. חשב כמה זמן נמשכת נפילת הארגז מנקודה B לנקודה C. ג. מהי מהירות הארגז בנקודה C (שיעור וכיוון) ? ד. כדי שהארגז ייכנס לעגלה בנקודה C, מה צריך להיות המרחק המסומן באות a ?",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת הָאַרְגַּז בִּנְקֻדָּה B. ב. חַשֵּׁב כַּמָּה זְמַן נִמְשֶׁכֶת נְפִילַת הָאַרְגַּז מִנְּקֻדָּה B לִנְקֻדָּה C. ג. מַהִי מְהִירוּת הָאַרְגַּז בִּנְקֻדָּה C (שִׁעוּר וְכִוּוּן) ? ד. כְּדֵי שֶׁהָאַרְגַּז יִכָּנֵס לָעֲגָלָה בִּנְקֻדָּה C, מָה צָרִיךְ לִהְיוֹת הַמֶּרְחָק הַמְּסֻמָּן בָּאוֹת a ?",
+      "translit": "'. Khashev et mhirut ha'argaz binkuda B. V. Khashev kama zman nimshekhet nfilat ha'argaz minkuda B linkuda C. G. Mahi mhirut ha'argaz binkuda C (shi'ur vekhivun) ? D. Kde sheha'argaz yikanes la'agala binkuda C, ma tsarikh lihyot hamerkhak hamsuman ba'ot a ?",
+      "ru": "а. Рассчитайте скорость ящика в точке B. б. Рассчитайте, сколько времени длится падение ящика от точки B до точки C. в. Какова скорость ящика в точке C (величина и направление)? г. Чтобы ящик попал в тележку в точке C, каким должно быть расстояние, обозначенное буквой a?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 98,
+      "he": "שאלה 3.7:",
+      "he_niqqud": "שְׁאֵלָה 3.7:",
+      "translit": "She'ela 3.7:",
+      "ru": "Вопрос 3.7:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 99,
+      "he": "שני גופים מתחילים את תנועתם בו זמנית באותו גובה כאשר המרחק האופקי ביניהם הוא 8.66 מטרים. הגוף האחד A נופל חופשי. הגוף האחר B נזרק אופקית במטרה לפגוע בגוף הראשון A ופוגע בו במרחק אנכי של 5 מטרים מנקודת זריקתו.",
+      "he_niqqud": "שְׁנֵי גּוּפִים מַתְחִילִים אֶת תְּנוּעָתָם בּוֹ זְמַנִּית בְּאוֹתוֹ גֹּבַהּ כַּאֲשֶׁר הַמֶּרְחָק הָאׇפְקִי בֵּינֵיהֶם הוּא 8.66 מֶטְרִים. הַגּוּף הָאֶחָד A נוֹפֵל חָפְשִׁי. הַגּוּף הָאַחֵר B נִזְרָק אׇפְקִית בְּמַטָּרָה לִפְגֹּעַ בַּגּוּף הָרִאשׁוֹן A וּפוֹגֵעַ בּוֹ בְּמֶרְחָק אֲנָכִי שֶׁל 5 מֶטְרִים מִנְּקֻדַּת זְרִיקָתוֹ.",
+      "translit": "Shne gufim matkhilim et tnu'atam bo zmanit be'oto govah ka'asher hamerkhak ha'ofki benehem hu' 8.66 metrim. Haguf ha'ekhad A nofel khofshi. Haguf ha'akher B nizrak ofkit bmatara lifgo'a baguf hari'shon A ufoge'a bo bmerkhak anakhi shel 5 metrim minkudat zrikato.",
+      "ru": "Два тела одновременно начинают движение на одной высоте, при этом горизонтальное расстояние между ними составляет 8,66 метров. Одно тело A падает свободно. Другое тело B брошено горизонтально с целью попасть в первое тело A и попадает в него на вертикальном расстоянии 5 метров от точки броска.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 100,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 101,
+      "he": "א. זמן תנועת הגופים עד לפגישתם. ב. מהירות הזריקה של הגוף השני B. ג. כאשר הגוף הראשון A ייזרק אנכית כלפי מטה במהירות התחלתית השווה למהירות הזריקה של הגוף השני B, מתי יש לזרוק אותו כדי שהוא יפגע בגוף השני B ?",
+      "he_niqqud": "א. זְמַן תְּנוּעַת הַגּוּפִים עַד לִפְגִישָׁתָם. ב. מְהִירוּת הַזְּרִיקָה שֶׁל הַגּוּף הַשֵּׁנִי B. ג. כַּאֲשֶׁר הַגּוּף הָרִאשׁוֹן A יִזָּרֵק אֲנָכִית כְּלַפֵּי מַטָּה בִּמְהִירוּת הַתְחָלָתִית הַשָּׁוָה לִמְהִירוּת הַזְּרִיקָה שֶׁל הַגּוּף הַשֵּׁנִי B, מָתַי יֵשׁ לִזְרֹק אוֹתוֹ כְּדֵי שֶׁהוּא יִפְגַּע בַּגּוּף הַשֵּׁנִי B ?",
+      "translit": "'. Zman tnu'at hagufim ad lifgishatam. V. Mhirut hazrika shel haguf hasheni B. G. Ka'asher haguf hari'shon A yizarek anakhit klape mata bimhirut hatkhalatit hashava limhirut hazrika shel haguf hasheni B, matay yesh lizrok oto kde shehu' yifg'a baguf hasheni B ?",
+      "ru": "а. Время движения тел до их встречи. б. Скорость броска второго тела B. в. Если первое тело A бросить вертикально вниз с начальной скоростью, равной скорости броска второго тела B, когда его следует бросить, чтобы оно попало во второе тело B?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 102,
+      "he": "שאלה 8.3:",
+      "he_niqqud": "שְׁאֵלָה 8.3:",
+      "translit": "She'ela 8.3:",
+      "ru": "Вопрос 8.3:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 103,
+      "he": "דוחפים אבן A על משטח קרח אופקי במהירות התחלתית של 5 m/sec כדי לפגוע באבן B הנמצאת במנוחה במרחק של 30 מטרים, כפי שמוצג באיור א' לשאלה. אבן A מחליקה על פני משטח הקרח בתאוטה של 0.5 m/sec² .",
+      "he_niqqud": "דּוֹחֲפִים אֶבֶן A עַל מִשְׁטַח קֶרַח אָפְקִי בִּמְהִירוּת הַתְחָלָתִית שֶׁל 5 m/sec כְּדֵי לִפְגֹּעַ בְּאֶבֶן B הַנִּמְצֵאת בִּמְנוּחָה בְּמֶרְחָק שֶׁל 30 מֶטְרִים, כְּפִי שֶׁמֻּצָּג בָּאִיּוּר א' לַשְּׁאֵלָה. אֶבֶן A מַחְלִיקָה עַל פְּנֵי מִשְׁטַח הַקֶּרַח בִּתְאוּטָה שֶׁל 0.5 m/sec² .",
+      "translit": "Dokhafim even A al mishtakh kerakh ofki bimhirut hatkhalatit shel 5 m/sec kde lifgo'a be'even B hanimtse't bimnukha bmerkhak shel 30 metrim, kfi shemutsag ba'iyur '' lashe'ela. Even A makhlika al pne mishtakh hakerakh bit'uta shel 0.5 m/sec2 .",
+      "ru": "Толкают камень A по горизонтальной поверхности льда с начальной скоростью 5 м/с, чтобы попасть в камень B, находящийся в состоянии покоя на расстоянии 30 метров, как показано на рисунке «а» к вопросу. Камень A скользит по поверхности льда с замедлением 0,5 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 104,
+      "he": "איור א' לשאלה מתייחס לסעיפים א', ב' ו-ג'.",
+      "he_niqqud": "אִיּוּר א' לַשְּׁאֵלָה מִתְיַחֵס לִסְעִיפִים א', ב' וְ-ג'.",
+      "translit": "Iyur '' lashe'ela mityakhes lis'ifim '', v' v-g'.",
+      "ru": "Рисунок «а» к вопросу относится к пунктам «а», «б» и «в».",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 105,
+      "he": "חשבו :",
+      "he_niqqud": "חַשְּׁבוּ :",
+      "translit": "Khashvu :",
+      "ru": "Вычислите:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 106,
+      "he": "א. את משך זמן החלקת אבן A עד לעצירתה הסופית. ב. איזה מרחק תעבור אבן A עד לעצירתה ! האם היא תפגע באבן B ? ג. באיזו מהירות התחלתית מינימלית יש לדחוף את אבן A כדי שתגיע לאבן B ? כמה זמן תימשך תנועתה במקרה זה ? ד. באיור ב' לשאלה זורקים את אבן A בצורה אופקית מגובה של 5 מטרים מעל נקודת ההתחלה כפי שהוצג באיור ב' לשאלה, ופוגעים באבן B, מהי מהירות הזריקה v₀ ?",
+      "he_niqqud": "א. אֶת מֶשֶׁךְ זְמַן הַחְלָקַת אֶבֶן A עַד לַעֲצִירָתָהּ הַסּוֹפִית. ב. אֵיזֶה מֶרְחָק תַּעֲבֹר אֶבֶן A עַד לַעֲצִירָתָהּ ! הַאִם הִיא תִּפְגַּע בְּאֶבֶן B ? ג. בְּאֵיזוֹ מְהִירוּת הַתְחָלָתִית מִינִימָלִית יֵשׁ לִדְחֹף אֶת אֶבֶן A כְּדֵי שֶׁתַּגִּיעַ לְאֶבֶן B ? כַּמָּה זְמַן תִּמָּשֵׁךְ תְּנוּעָתָהּ בְּמִקְרֶה זֶה ? ד. בָּאִיּוּר ב' לַשְּׁאֵלָה זוֹרְקִים אֶת אֶבֶן A בְּצוּרָה אׇפְקִית מִגֹּבַהּ שֶׁל 5 מֶטְרִים מֵעַל נְקֻדַּת הַהַתְחָלָה כְּפִי שֶׁהֻצַּג בָּאִיּוּר ב' לַשְּׁאֵלָה, וּפוֹגְעִים בְּאֶבֶן B, מַהִי מְהִירוּת הַזְּרִיקָה v₀ ?",
+      "translit": "'. Et meshekh zman hakhlakat even A ad la'atsiratah hasofit. V. Eze merkhak ta'avor even A ad la'atsiratah ! Ha'im hi' tifg'a be'even B ? G. Be'ezo mhirut hatkhalatit minimalit yesh lidkhof et even A kde shetagi'a le'even B ? Kama zman timashekh tnu'atah bmikre ze ? D. Ba'iyur v' lashe'ela zorkim et even A btsura ofkit migovah shel 5 metrim me'al nkudat hahatkhala kfi shehutsag ba'iyur v' lashe'ela, ufoge'im be'even B, mahi mhirut hazrika v0 ?",
+      "ru": "а. Продолжительность времени скольжения камня A до его полной остановки. б. Какое расстояние пройдет камень A до остановки! Попадет ли он в камень B? в. С какой минимальной начальной скоростью нужно толкнуть камень A, чтобы он достиг камня B? Сколько времени продлится его движение в этом случае? г. На рисунке «б» к вопросу бросают камень A горизонтально с высоты 5 метров над начальной точкой, как показано на рисунке «б», и попадают в камень B; какова скорость броска v₀?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 107,
+      "he": "פרק 4 : בעיות בתחום זריקה משופעת (זוויתית)",
+      "he_niqqud": "פֶּרֶק 4 : בְּעָיוֹת בִּתְחוּם זְרִיקָה מְשֻׁפַּעַת (זָוִיתִית)",
+      "translit": "Perek 4 : be'ayot bitkhum zrika mshupa'at (zavitit)",
+      "ru": "Глава 4: Задачи на тему броска под углом к горизонту",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 108,
+      "he": "שאלה 4.1:",
+      "he_niqqud": "שְׁאֵלָה 4.1:",
+      "translit": "She'ela 4.1:",
+      "ru": "Вопрос 4.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 109,
+      "he": "כדורגלן בועט בכדור וכתוצאה מכך מגיע הכדור לנקודה C, מעל השער בגובה 4 מטרים (ראה תרשים).",
+      "he_niqqud": "כַּדּוּרַגְלָן בּוֹעֵט בַּכַּדּוּר וּכְתוֹצָאָה מִכָּךְ מַגִּיעַ הַכַּדּוּר לִנְקֻדָּה C, מֵעַל הַשַּׁעַר בְּגֹבַהּ 4 מֶטְרִים (רְאֵה תַּרְשִׁים).",
+      "translit": "Kaduraglan bo'et bakadur ukhtotsa'a mikakh magi'a hakadur linkuda C, me'al hasha'ar bgovah 4 metrim (re'e tarshim).",
+      "ru": "Футболист бьет по мячу, в результате чего мяч достигает точки C над воротами на высоте 4 метров (см. схему).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 110,
+      "he": "בהנחה שהנקודה C נמצאת בגובה מקסימאלי של המסלול והמרחק AB הוא 20 מטרים, חשב את מהירות הכדור (V_A) (שיעור וכיוון) בשעת הבעיטה. הנח שהכדור מהווה נקודה חומרית.",
+      "he_niqqud": "בְּהַנָּחָה שֶׁהַנְּקֻדָּה C נִמְצֵאת בְּגֹבַהּ מַקְסִימָאלִי שֶׁל הַמַּסְלוּל וְהַמֶּרְחָק AB הוּא 20 מֶטְרִים, חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר (V_A) (שִׁעוּר וְכִוּוּן) בִּשְׁעַת הַבְּעִיטָה. הַנַּח שֶׁהַכַּדּוּר מְהַוֶּה נְקֻדָּה חָמְרִית.",
+      "translit": "Bhanakha shehankuda C nimtse't bgovah maksima'li shel hamaslul vehamerkhak AB hu' 20 metrim, khashev et mhirut hakadur (V_A) (shi'ur vekhivun) bish'at habe'ita. Hanakh shehakadur mhave nkuda khamrit.",
+      "ru": "Предполагая, что точка C находится на максимальной высоте траектории, а расстояние AB составляет 20 метров, рассчитайте скорость мяча (V_A) (величину и направление) в момент удара. Примите, что мяч представляет собой материальную точку.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 111,
+      "he": "תאוצת הכובד: g = 9.81 m/sec²",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81 m/sec²",
+      "translit": "Te'utsat hakoved: g = 9.81 m/sec2",
+      "ru": "Ускорение свободного падения: g = 9,81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 112,
+      "he": "שאלה 4.2:",
+      "he_niqqud": "שְׁאֵלָה 4.2:",
+      "translit": "She'ela 4.2:",
+      "ru": "Вопрос 4.2:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 113,
+      "he": "תוך כדי רכיבה, בנקודה A, עולה רוכב האופניים על גבעה, מבצע קפיצה באוויר, ונוחת בנקודה B (ראה תרשים).",
+      "he_niqqud": "תּוֹךְ כְּדֵי רְכִיבָה, בִּנְקֻדָּה A, עוֹלֶה רוֹכֵב הָאוֹפַנַּיִם עַל גִּבְעָה, מְבַצֵּעַ קְפִיצָה בָּאֲוִיר, וְנוֹחֵת בִּנְקֻדָּה B (רְאֵה תַּרְשִׁים).",
+      "translit": "Tokh kde rkhiva, binkuda A, ole rokhev ha'ofanayim al giv'a, mvatse'a kfitsa ba'avir, venokhet binkuda B (re'e tarshim).",
+      "ru": "Во время езды, в точке A, велосипедист заезжает на холм, совершает прыжок в воздухе и приземляется в точке B (см. схему).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 114,
+      "he": "נתון: המרחק AB : d = 8 m זווית הנטייה של המשיק למסלול בנקודה α = 55° : A תאוצת הכובד: g = 9.81 m/sec²",
+      "he_niqqud": "נָתוּן: הַמֶּרְחָק AB : d = 8 m זָוִית הַנְּטִיָּה שֶׁל הַמַּשִּׁיק לַמַּסְלוּל בִּנְקֻדָּה α = 55° : A תְּאוּצַת הַכֹּבֶד: g = 9.81 m/sec²",
+      "translit": "Natun: hamerkhak AB : d = 8 m zavit hantiya shel hamashik lamaslul binkuda α = 55° : A te'utsat hakoved: g = 9.81 m/sec2",
+      "ru": "Дано: расстояние AB: d = 8 м; угол наклона касательной к траектории в точке A: α = 55°; ускорение свободного падения: g = 9,81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 115,
+      "he": "א. חשב את מהירותו של הרוכב ברגע שהוא מתנתק מהקרקע, בנקודה A. ב. חשב את הגובה המקסימאלי (h) שאליו הוא יגיע.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל הָרוֹכֵב בָּרֶגַע שֶׁהוּא מִתְנַתֵּק מֵהַקַּרְקַע, בִּנְקֻדָּה A. ב. חַשֵּׁב אֶת הַגֹּבַהּ הַמַּקְסִימָאלִי (h) שֶׁאֵלָיו הוּא יַגִּיעַ.",
+      "translit": "'. Khashev et mhiruto shel harokhev bareg'a shehu' mitnatek mehakark'a, binkuda A. V. Khashev et hagovah hamaksima'li (h) she'elayw hu' yagi'a.",
+      "ru": "а. Рассчитайте скорость велосипедиста в момент его отрыва от земли в точке A. б. Рассчитайте максимальную высоту (h), которой он достигнет.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 116,
+      "he": "שאלה 4.3:",
+      "he_niqqud": "שְׁאֵלָה 4.3:",
+      "translit": "She'ela 4.3:",
+      "ru": "Вопрос 4.3:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 117,
+      "he": "בתרשים מתואר צילום מהיר של קטע במשחק כדורסל. בצילום רואים ששחקן (A) זרק את הכדור והכדור נכנס בדיוק לתוך הסל (C). ניתן לראות שהשחקן (B) ניסה לחסום את הכדור אבל לא הצליח לפגוע בו.",
+      "he_niqqud": "בַּתַּרְשִׁים מְתֹאָר צִלּוּם מָהִיר שֶׁל קֶטַע בְּמִשְׂחַק כַּדּוּרְסַל. בַּצִּלּוּם רוֹאִים שֶׁשַּׂחְקָן (A) זָרַק אֶת הַכַּדּוּר וְהַכַּדּוּר נִכְנַס בְּדִיּוּק לְתוֹךְ הַסַּל (C). נִיתָּן לִרְאוֹת שֶׁהַשַּׂחְקָן (B) נִסָּה לַחְסֹם אֶת הַכַּדּוּר אֲבָל לֹא הִצְלִיחַ לִפְגֹּעַ בּוֹ.",
+      "translit": "Batarshim mto'ar tsilum mahir shel ket'a bmiskhak kadursal. Batsilum ro'im shesakhkan (A) zarak et hakadur vehakadur nikhnas bdiyuk ltokh hasal (C). Nitan lir'ot shehasakhkan (B) nisa lakhsom et hakadur aval lo' hitsliakh lifgo'a bo.",
+      "ru": "На схеме показан скоростной снимок эпизода баскетбольного матча. На снимке видно, что игрок (A) бросил мяч, и мяч попал точно в корзину (C). Видно, что игрок (B) пытался заблокировать мяч, но не смог до него дотронуться.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 118,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 119,
+      "he": "א. את המהירות ההתחלתית (V₀) של הכדור. ב. את הגובה h של הכדור ברגע שהוא חולף מעל השחקן B.",
+      "he_niqqud": "א. אֶת הַמְּהִירוּת הַהַתְחָלָתִית (V₀) שֶׁל הַכַּדּוּר. ב. אֶת הַגֹּבַהּ h שֶׁל הַכַּדּוּר בָּרֶגַע שֶׁהוּא חוֹלֵף מֵעַל הַשַּׂחְקָן B.",
+      "translit": "'. Et hamhirut hahatkhalatit (V0) shel hakadur. V. Et hagovah h shel hakadur bareg'a shehu' kholef me'al hasakhkan B.",
+      "ru": "а. Начальную скорость (V₀) мяча. б. Высоту h мяча в момент, когда он пролетает над игроком B.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 120,
+      "he": "הערה: הזנח את מימדי הכדור.",
+      "he_niqqud": "הֶעָרָה: הַזְנַח אֶת מֵמַדֵּי הַכַּדּוּר.",
+      "translit": "He'ara: haznakh et memade hakadur.",
+      "ru": "Примечание: пренебречь размерами мяча.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 121,
+      "he": "נתונים: הנח תאוצת הכובד g = 9.81 m/sec² המידות בתרשים נתונות במטרים.",
+      "he_niqqud": "נְתוּנִים: הַנַּח תְּאוּצַת הַכֹּבֶד g = 9.81 m/sec² הַמִּדּוֹת בַּתַּרְשִׁים נְתוּנוֹת בְּמֶטְרִים.",
+      "translit": "Ntunim: hanakh te'utsat hakoved g = 9.81 m/sec2 hamidot batarshim ntunot bmetrim.",
+      "ru": "Данные: примите ускорение свободного падения g = 9,81 м/с². Размеры на схеме даны в метрах.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 122,
+      "he": "רמז: משוואות התנועה של הכדור הן: x(t) = (v₀ cos 30°)t , y(t) = y₀ + (v₀ sin 30°)t - gt²/2",
+      "he_niqqud": "רֶמֶז: מִשְׁוָאוֹת הַתְּנוּעָה שֶׁל הַכַּדּוּר הֵן: x(t) = (v₀ cos 30°)t , y(t) = y₀ + (v₀ sin 30°)t - gt²/2",
+      "translit": "Remez: mishva'ot hatnu'a shel hakadur hen: x(t) = (v0 cos 30°)t , y(t) = y0 + (v0 sin 30°)t - gt2/2",
+      "ru": "Подсказка: уравнения движения мяча имеют вид: x(t) = (v₀ cos 30°)t , y(t) = y₀ + (v₀ sin 30°)t - gt²/2",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 123,
+      "he": "שאלה 4.4:",
+      "he_niqqud": "שְׁאֵלָה 4.4:",
+      "translit": "She'ela 4.4:",
+      "ru": "Вопрос 4.4:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 124,
+      "he": "מסלול מרוצים של אופנועים מתוכנן כך, שרוכב האופנוע קופץ מגבעה הנטויה בזווית של 30° וגובה של 1.4 מטר. תוך כדי מרוץ נקבע שהרוכב המתואר בתרשים נשאר באוויר במשך 1.65 שניות. חשב:",
+      "he_niqqud": "מַסְלוּל מֵרוֹצִים שֶׁל אֶוֹפַנּוֹעִים מְתֻכְנָן כָּךְ, שֶׁרוֹכֵב הָאוֹפַנּוֹעַ קוֹפֵץ מִגִּבְעָה הַנְּטוּיָה בְּזָוִית שֶׁל 30° וְגֹבַהּ שֶׁל 1.4 מֶטֶר. תּוֹךְ כְּדֵי מֵרוֹץ נִקְבַּע שֶׁהָרוֹכֵב הַמְּתֹאָר בַּתַּרְשִׁים נִשְׁאַר בָּאֲוִיר בְּמֶשֶׁךְ 1.65 שְׁנִיּוֹת. חַשֵּׁב:",
+      "translit": "Maslul merotsim shel evofano'im mtukhnan kakh, sherokhev ha'ofno'a kofets migiv'a hantuya bzavit shel 30° vegovah shel 1.4 meter. Tokh kde merots nikb'a sheharokhev hamto'ar batarshim nish'ar ba'avir bmeshekh 1.65 shniyot. Khashev:",
+      "ru": "Трасса для мотокросса спроектирована так, что мотоциклист прыгает с холма с уклоном 30° и высотой 1,4 метра. Во время гонки было установлено, что показанный на схеме гонщик находился в воздухе 1,65 секунды. Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 125,
+      "he": "א. את מהירותו של הרוכב כשיצא מנקודה V_A) A). ב. את המרחק האופקי (L) שעבר הרוכב עד שנחת על הקרקע. ג. את הגובה המרבי (h) שאליו הגיע בשעת הקפיצה.",
+      "he_niqqud": "א. אֶת מְהִירוּתוֹ שֶׁל הָרוֹכֵב כְּשֶׁיָּצָא מִנְּקֻדָּה V_A) A). ב. אֶת הַמֶּרְחָק הָאׇפְקִי (L) שֶׁעָבַר הָרוֹכֵב עַד שֶׁנָּחַת עַל הַקַּרְקַע. ג. אֶת הַגֹּבַהּ הַמֵּרַבִּי (h) שֶׁאֵלָיו הִגִּיעַ בִּשְׁעַת הַקְּפִיצָה.",
+      "translit": "'. Et mhiruto shel harokhev ksheyats'a minkuda V_A) A). V. Et hamerkhak ha'ofki (L) she'avar harokhev ad shenakhat al hakark'a. G. Et hagovah hamerabi (h) she'elayw higi'a bish'at hakfitsa.",
+      "ru": "а. Скорость гонщика при вылете из точки A (V_A). б. Горизонтальное расстояние (L), пройденное гонщиком до приземления на землю. в. Максимальную высоту (h), которой он достиг во время прыжка.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 126,
+      "he": "הזנח את מימדי האופנוע והרוכב.",
+      "he_niqqud": "הַזְנַח אֶת מֵמַדֵּי הָאוֹפַנּוֹעַ וְהָרוֹכֵב.",
+      "translit": "Haznakh et memade ha'ofno'a veharokhev.",
+      "ru": "Пренебречь размерами мотоцикла и гонщика.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 127,
+      "he": "תאוצת הכובד: g = 9.81 m/sec² המידות הדרושות נתונות בתרשים.",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81 m/sec² הַמִּדּוֹת הַדְּרוּשׁוֹת נְתוּנוֹת בַּתַּרְשִׁים.",
+      "translit": "Te'utsat hakoved: g = 9.81 m/sec2 hamidot hadrushot ntunot batarshim.",
+      "ru": "Ускорение свободного падения: g = 9,81 м/с². Необходимые размеры даны на схеме.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 128,
+      "he": "שאלה 4.5:",
+      "he_niqqud": "שְׁאֵלָה 4.5:",
+      "translit": "She'ela 4.5:",
+      "ru": "Вопрос 4.5:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 129,
+      "he": "פגז נורה בזווית 45° מנקודה A הנמצאת בגובה 600 מטרים מעל פני הים. בשיא מסלולו חולף הפגז על פני פסגת ההר בנקודה B הנמצאת בגובה H מעל פני הים. הפגז משלים את מעופו עם הכניסה למים במרחק R מנקודה A, כמתואר באיור לשאלה 4. תאוצת הכובד: g = 9.81 m/sec²",
+      "he_niqqud": "פָּגָז נוֹרָה בְּזָוִית 45° מִנְּקֻדָּה A הַנִּמְצֵאת בְּגֹבַהּ 600 מֶטְרִים מֵעַל פְּנֵי הַיָּם. בְּשִׂיא מַסְלוּלוֹ חוֹלֵף הַפָּגָז עַל פְּנֵי פִּסְגַּת הָהָר בִּנְקֻדָּה B הַנִּמְצֵאת בְּגֹבַהּ H מֵעַל פְּנֵי הַיָּם. הַפָּגָז מַשְׁלִים אֶת מְעוּפוֹ עִם הַכְּנִיסָה לַמַּיִם בְּמֶרְחָק R מִנְּקֻדָּה A, כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4. תְּאוּצַת הַכֹּבֶד: g = 9.81 m/sec²",
+      "translit": "Pagaz nora bzavit 45° minkuda A hanimtse't bgovah 600 metrim me'al pne hayam. Bsi' maslulo kholef hapagaz al pne pisgat hahar binkuda B hanimtse't bgovah H me'al pne hayam. Hapagaz mashlim et me'ufo im haknisa lamayim bmerkhak R minkuda A, kamto'ar ba'iyur lish'ela 4. Te'utsat hakoved: g = 9.81 m/sec2",
+      "ru": "Снаряд выпущен под углом 45° из точки A, находящейся на высоте 600 метров над уровнем моря. В наивысшей точке своей траектории снаряд пролетает над вершиной горы в точке B, находящейся на высоте H над уровнем моря. Снаряд завершает полет при входе в воду на расстоянии R от точки A, как показано на рисунке к вопросу 4. Ускорение свободного падения: g = 9,81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 130,
+      "he": "א. חשב את המהירות ההתחלתית של הפגז .u ב. חשב את הגובה הפסגה H. ג. חשב את מרחק הירי R.",
+      "he_niqqud": "א. חַשֵּׁב אֶת הַמְּהִירוּת הַהַתְחָלָתִית שֶׁל הַפָּגָז .u ב. חַשֵּׁב אֶת הַגֹּבַהּ הַפִּסְגָּה H. ג. חַשֵּׁב אֶת מֶרְחַק הַיֶּרִי R.",
+      "translit": "'. Khashev et hamhirut hahatkhalatit shel hapagaz .u v. Khashev et hagovah hapisga H. G. Khashev et merkhak hayeri R.",
+      "ru": "а. Рассчитайте начальную скорость снаряда u. б. Рассчитайте высоту вершины H. в. Рассчитайте дальность стрельбы R.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 131,
+      "he": "שאלה 4.6 (זריקה משופעת בשילוב אנרגיה):",
+      "he_niqqud": "שְׁאֵלָה 4.6 (זְרִיקָה מְשֻׁפַּעַת בְּשִׁלּוּב אֶנֶרְגְּיָה):",
+      "translit": "She'ela 4.6 (zrika mshupa'at bshiluv energya):",
+      "ru": "Вопрос 4.6 (бросок под углом в сочетании с энергией):",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 132,
+      "he": "כדור שמסתו 0.5kg נזרק מנקודה A במהירות 10 m/sec לאורך מישור משופע חלק ללא חיכוך, כמתואר באיור לשאלה 4. בנקודה B הכדור עוזב את המישור.",
+      "he_niqqud": "כַּדּוּר שֶׁמַּסָּתוֹ 0.5kg נִזְרָק מִנְּקֻדָּה A בִּמְהִירוּת 10 m/sec לְאֹרֶךְ מִישׁוֹר מְשֻׁפָּע חָלָק לְלֹא חִכּוּךְ, כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4. בִּנְקֻדָּה B הַכַּדּוּר עוֹזֵב אֶת הַמִּישׁוֹר.",
+      "translit": "Kadur shemasato 0.5kg nizrak minkuda A bimhirut 10 m/sec le'orekh mishor mshup'a khalak llo' khikukh, kamto'ar ba'iyur lish'ela 4. Binkuda B hakadur ozev et hamishor.",
+      "ru": "Мяч массой 0,5 кг брошен из точки A со скоростью 10 м/с вдоль гладкой наклонной плоскости без трения, как показано на рисунке к вопросу 4. В точке B мяч покидает плоскость.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 133,
+      "he": "הערות: יש להתייחס לכדור כנקודה חומרית. אין להביא בחשבון את התנגדות האוויר.",
+      "he_niqqud": "הֶעָרוֹת: יֵשׁ לְהִתְיַחֵס לַכַּדּוּר כִּנְקֻדָּה חָמְרִית. אֵין לְהָבִיא בְּחֶשְׁבּוֹן אֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "He'arot: yesh lhityakhes lakadur kinkuda khamrit. En lhavi' bkheshbon et hitnagdut ha'avir.",
+      "ru": "Примечания: мяч следует рассматривать как материальную точку. Сопротивление воздуха не учитывать.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 134,
+      "he": "א. חשב מהי מהירות הכדור בנקודה .B ב. חשב מה הגובה המרבי של הכדור על פני הקרקע במהלך תנועתו. ג. חשב מהו זמן תנועת הכדור מנקודה B עד פגיעתו בקרקע בנקודה D. ד. חשב מהי מהירות הכדור בנקודה D, בעת הגעתו לקרקע (שיעור וכיוון).",
+      "he_niqqud": "א. חַשֵּׁב מַהִי מְהִירוּת הַכַּדּוּר בִּנְקֻדָּה .B ב. חַשֵּׁב מָה הַגֹּבַהּ הַמֵּרַבִּי שֶׁל הַכַּדּוּר עַל פְּנֵי הַקַּרְקַע בְּמַהֲלַךְ תְּנוּעָתוֹ. ג. חַשֵּׁב מַהוּ זְמַן תְּנוּעַת הַכַּדּוּר מִנְּקֻדָּה B עַד פְּגִיעָתוֹ בַּקַּרְקַע בִּנְקֻדָּה D. ד. חַשֵּׁב מַהִי מְהִירוּת הַכַּדּוּר בִּנְקֻדָּה D, בְּעֵת הַגָּעָתוֹ לַקַּרְקַע (שִׁעוּר וְכִוּוּן).",
+      "translit": "'. Khashev mahi mhirut hakadur binkuda .B v. Khashev ma hagovah hamerabi shel hakadur al pne hakark'a bmahalakh tnu'ato. G. Khashev mahu zman tnu'at hakadur minkuda B ad pgi'ato bakark'a binkuda D. D. Khashev mahi mhirut hakadur binkuda D, be'et haga'ato lakark'a (shi'ur vekhivun).",
+      "ru": "а. Рассчитайте скорость мяча в точке B. б. Рассчитайте максимальную высоту мяча над землей в ходе его движения. в. Рассчитайте время движения мяча от точки B до удара о землю в точке D. г. Рассчитайте скорость мяча в точке D в момент падения на землю (величина и направление).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 135,
+      "he": "שאלה 4.7:",
+      "he_niqqud": "שְׁאֵלָה 4.7:",
+      "translit": "She'ela 4.7:",
+      "ru": "Вопрос 4.7:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 136,
+      "he": "רמפה של סקי מים ממוקמת בזווית של 25° ביחס לפני המים כמתואר באיור לשאלה. מהירות הגולש כאשר הוא עוזב את הרמפה בנקודה A שווה V_A = 10 m/sec.",
+      "he_niqqud": "רַמְפָּה שֶׁל סְקִי מַיִם מְמֻקֶּמֶת בְּזָוִית שֶׁל 25° בְּיַחַס לִפְנֵי הַמַּיִם כַּמְּתֹאָר בָּאִיּוּר לַשְּׁאֵלָה. מְהִירוּת הַגּוֹלֵשׁ כַּאֲשֶׁר הוּא עוֹזֵב אֶת הָרַמְפָּה בִּנְקֻדָּה A שָׁוָה V_A = 10 m/sec.",
+      "translit": "Rampa shel ski mayim mmukemet bzavit shel 25° byakhas lifne hamayim kamto'ar ba'iyur lashe'ela. Mhirut hagolesh ka'asher hu' ozev et harampa binkuda A shava V_A = 10 m/sec.",
+      "ru": "Трамплин для водных лыж расположен под углом 25° относительно поверхности воды, как показано на рисунке к вопросу. Скорость лыжника в момент схода с трамплина в точке A равна V_A = 10 м/с.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 137,
+      "he": "חשב:",
+      "he_niqqud": "חַשֵּׁב:",
+      "translit": "Khashev:",
+      "ru": "Рассчитайте:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    },
+    {
+      "segmentId": 138,
+      "he": "א. מהו הגובה המקסימלי של הגולש מעל פני המים במהלך תנועתו? ב. מהו זמן תנועת הגולש מנקודה A עד לפגיעתו במים בנקודה B ? ג. מהי מהירות הגולש בנקודה B (שיעור וכיוון) ? ד. מהו המרחק a ? הערות: התייחס לגולש כנקודה חומרית. הזנח את התנגדות האוויר.",
+      "he_niqqud": "א. מַהוּ הַגֹּבַהּ הַמַּקְסִימָלִי שֶׁל הַגּוֹלֵשׁ מֵעַל פְּנֵי הַמַּיִם בְּמַהֲלַךְ תְּנוּעָתוֹ? ב. מַהוּ זְמַן תְּנוּעַת הַגּוֹלֵשׁ מִנְּקֻדָּה A עַד לִפְגִיעָתוֹ בַּמַּיִם בִּנְקֻדָּה B ? ג. מַהִי מְהִירוּת הַגּוֹלֵשׁ בִּנְקֻדָּה B (שִׁעוּר וְכִוּוּן) ? ד. מַהוּ הַמֶּרְחָק a ? הֶעָרוֹת: הִתְיַחֵס לַגּוֹלֵשׁ כִּנְקֻדָּה חָמְרִית. הַזְנַח אֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "'. Mahu hagovah hamaksimali shel hagolesh me'al pne hamayim bmahalakh tnu'ato? V. Mahu zman tnu'at hagolesh minkuda A ad lifgi'ato bamayim binkuda B ? G. Mahi mhirut hagolesh binkuda B (shi'ur vekhivun) ? D. Mahu hamerkhak a ? He'arot: hityakhes lagolesh kinkuda khamrit. Haznakh et hitnagdut ha'avir.",
+      "ru": "а. Какова максимальная высота лыжника над поверхностью воды во время его движения? б. Каково время движения лыжника от точки A до входа в воду в точке B? в. Какова скорость лыжника в точке B (величина и направление)? г. Каково расстояние a? Примечания: рассматривайте лыжника как материальную точку. Сопротивлением воздуха пренебречь.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true}"
+    }
+  ],
+  "warnings": [
+    "LOCAL_NIQQUD_CANONICALIZED"
+  ],
+  "model": "gemini-3.7-flash",
+  "modelVersion": "gemini-3.7-flash",
+  "promptId": "he-ru-table-v3",
+  "schemaId": "studio-table-rows-schema-v1",
+  "translitProfile": "learner-latin",
+  "translitProfileVersion": "learner-latin-v2-local-niqqud",
+  "localNiqqudCorrections": [
+    {
+      "rowIndex": 8,
+      "field": "he_niqqud",
+      "term": "אופנוע",
+      "from": "אֶוֹפַנּוֹעַ",
+      "to": "אוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 8,
+      "field": "he_niqqud",
+      "term": "אופקי",
+      "from": "וְאׇפְקִי",
+      "to": "וְאָפְקִי"
+    },
+    {
+      "rowIndex": 8,
+      "field": "he_niqqud",
+      "term": "כשהאופנוע",
+      "from": "כְּשֶׁהָאֶוֹפַנּוֹעַ",
+      "to": "כְּשֶׁהָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 8,
+      "field": "he_niqqud",
+      "term": "האופנוע",
+      "from": "הָאֶוֹפַנּוֹעַ",
+      "to": "הָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 8,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "Ofano'a umkhonit nos'im al kvish yashar ve'ofki bimhirut kvu'a shel 72 km/h kol ekhad. Bamatsav hameto'ar batarsheem (ksheha'ofano'a nimtsa binkuda A) hekhlit ha'ofano'an la'akof et hamkhonit, ulsayem et ha'akifa binkuda B, bimhirut shel 72 km/h uvmerkhak 20 meter lifney hamkhonit (kameto'ar batarsheem). Te'utsat ha'ofano'a bitkhilat ha'akifa kvu'a veshava 1.25m/sec² ute'utato bigmar ha'akifa kvu'a veshava 2.5m/sec² .",
+      "to": "Ofno'a umkhonit nos'im al kvish yashar ve'ofki bimhirut kvu'a shel 72 km/h kol ekhad. Bamatsav hameto'ar batarsheem (ksheha'ofno'a nimtsa binkuda A) hekhlit ha'ofno'an la'akof et hamkhonit, ulsayem et ha'akifa binkuda B, bimhirut shel 72 km/h uvmerkhak 20 meter lifney hamkhonit (kameto'ar batarsheem). Te'utsat ha'ofno'a bitkhilat ha'akifa kvu'a veshava 1.25m/sec² ute'utato bigmar ha'akifa kvu'a veshava 2.5m/sec² ."
+    },
+    {
+      "rowIndex": 9,
+      "field": "he_niqqud",
+      "term": "האופנוע",
+      "from": "הָאֶוֹפַנּוֹעַ",
+      "to": "הָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 9,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "Khashev et zman ha'akifa haminimali shel ha'ofano'a bitnay she'eino over et hamhirut 90km/h.",
+      "to": "Khashev et zman ha'akifa haminimali shel ha'ofno'a bitnay she'eino over et hamhirut 90km/h."
+    },
+    {
+      "rowIndex": 10,
+      "field": "he_niqqud",
+      "term": "האופנוע",
+      "from": "הָאֶוֹפַנּוֹעַ",
+      "to": "הָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 10,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "He'ara: tnu'at ha'ofano'a kolelet keta shel te'utsa, keta shel mehirut kvu'a veketa nosaf shel te'utsa.",
+      "to": "He'ara: tnu'at ha'ofno'a kolelet keta shel te'utsa, keta shel mehirut kvu'a veketa nosaf shel te'utsa."
+    },
+    {
+      "rowIndex": 17,
+      "field": "he_niqqud",
+      "term": "אופנוע",
+      "from": "אֶוֹפַנּוֹעַ",
+      "to": "אוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 17,
+      "field": "he_niqqud",
+      "term": "האופנוע",
+      "from": "הָאֶוֹפַנּוֹעַ",
+      "to": "הָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 17,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "Shoter tnu'a, hanose'a al ofano'a, matkhil et tnu'ato binkuda A, 3 shniyot le'akhar shemkhonit pratit khalfa leyado. Hamkhonit hapratit nosa'at bimhirut kvu'a shel 120 km/h. Hashoter me'its et ha'ofano'a bit'utsa shel 5 meter lishniya beribu'a, ad limhirut shel 150 km/h, shehi hamhirut hamaksimalit hamuteret lo, umamshikh et nesi'ato bimhirut zo.",
+      "to": "Shoter tnu'a, hanose'a al ofno'a, matkhil et tnu'ato binkuda A, 3 shniyot le'akhar shemkhonit pratit khalfa leyado. Hamkhonit hapratit nosa'at bimhirut kvu'a shel 120 km/h. Hashoter me'its et ha'ofno'a bit'utsa shel 5 meter lishniya beribu'a, ad limhirut shel 150 km/h, shehi hamhirut hamaksimalit hamuteret lo, umamshikh et nesi'ato bimhirut zo."
+    },
+    {
+      "rowIndex": 33,
+      "field": "he_niqqud",
+      "term": "אופקי",
+      "from": "אׇפְקִי",
+      "to": "אָפְקִי"
+    },
+    {
+      "rowIndex": 102,
+      "field": "he_niqqud",
+      "term": "אופקי",
+      "from": "אׇפְקִי",
+      "to": "אָפְקִי"
+    },
+    {
+      "rowIndex": 123,
+      "field": "he_niqqud",
+      "term": "האופנוע",
+      "from": "הָאֶוֹפַנּוֹעַ",
+      "to": "הָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 123,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "Maslul merotsim shel ofano'im metukhnan kakh, sherokhev ha'ofano'a kofets migiv'ah hanetuya bezavit shel 30° vegovah shel 1.4 meter. Tokh kedey merots nikba sheharokhev hameto'ar batarsheem nish'ar ba'avir bemeshekh 1.65 shniyot. Khashev:",
+      "to": "Maslul merotsim shel ofano'im metukhnan kakh, sherokhev ha'ofno'a kofets migiv'ah hanetuya bezavit shel 30° vegovah shel 1.4 meter. Tokh kedey merots nikba sheharokhev hameto'ar batarsheem nish'ar ba'avir bemeshekh 1.65 shniyot. Khashev:"
+    },
+    {
+      "rowIndex": 125,
+      "field": "he_niqqud",
+      "term": "האופנוע",
+      "from": "הָאֶוֹפַנּוֹעַ",
+      "to": "הָאוֹפַנּוֹעַ"
+    },
+    {
+      "rowIndex": 125,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "Haznakh et memadey ha'ofano'a veharokhev.",
+      "to": "Haznakh et memadey ha'ofno'a veharokhev."
+    }
+  ],
+  "createdAt": "2026-08-24T22:57:05.576Z"
+}
