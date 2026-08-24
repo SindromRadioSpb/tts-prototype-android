@@ -9,6 +9,7 @@ const { getGeminiScenario } = require("../ingest/geminiPolicy");
 const root = path.resolve(__dirname, "..");
 const indexHtml = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");
 const serverJs = fs.readFileSync(path.join(root, "server.js"), "utf8");
+const serviceWorker = fs.readFileSync(path.join(root, "public", "sw.js"), "utf8");
 
 test("Studio sends the selected transliteration profile to Gemini table routes", () => {
   assert.match(indexHtml, /<option value="learner-latin" selected>/);
@@ -26,6 +27,15 @@ test("local table cache cannot cross direction or transliteration contracts", ()
   assert.match(indexHtml, /tableCacheContract: TABLE_CACHE_CONTRACT_VERSION/);
   assert.match(indexHtml, /translitProfile: translit_profile/);
   assert.match(indexHtml, /promptId: v3LastGeminiMeta && v3LastGeminiMeta\.promptId \|\| null/);
+});
+
+test("restored browser tables use the same audited local niqqud normalizer", () => {
+  assert.match(indexHtml, /<script src="\/js\/table-niqqud-normalizer\.js\?v=429"><\/script>/);
+  assert.match(indexHtml, /TableNiqqudNormalizer\.normalizeRows\(cache\.rows\)/);
+  assert.match(indexHtml, /cache\.localNiqqudCorrections = localNiqqud\.corrections/);
+  assert.match(indexHtml, /таблица восстановлена и исправлена локально \(без запроса к Gemini\)/);
+  assert.match(serviceWorker, /"\/js\/table-niqqud-normalizer\.js\?v=429"/);
+  assert.match(serverJs, /"\/js\/table-niqqud-normalizer\.js\?v=429"/);
 });
 
 test("Gemini local-cache prompt identity distinguishes direction and segment mode", () => {

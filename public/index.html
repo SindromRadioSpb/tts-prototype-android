@@ -13441,6 +13441,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-mt-client.js"></script>
 <script src="/js/local-mt-table.js"></script>
 <script src="/js/local-mt-onboarding.js"></script>
+<script src="/js/table-niqqud-normalizer.js?v=429"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/table-job.js"></script>
 <script src="/js/media-store.js"></script>
@@ -13524,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.428";
+    window.APP_VERSION = "3.11.429";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -21543,13 +21544,26 @@ updatePlaylistButtonUI();
 
             if (cache.text !== inputTextEl.value) return;
 
-            currentTableData = cache.rows;
+            const localNiqqud = window.TableNiqqudNormalizer
+              ? window.TableNiqqudNormalizer.normalizeRows(cache.rows)
+              : { rows: cache.rows, corrections: [], version: null };
+            currentTableData = localNiqqud.rows;
+            if (localNiqqud.corrections.length > 0) {
+                cache.rows = currentTableData;
+                cache.tableCacheContract = TABLE_CACHE_CONTRACT_VERSION;
+                cache.translitProfileVersion = "learner-latin-v2-local-niqqud";
+                cache.localNiqqudNormalizerVersion = localNiqqud.version;
+                cache.localNiqqudCorrections = localNiqqud.corrections;
+                v3StoreTableCache(cache);
+            }
             lastDocxFilename = cache.lastDocxFilename || null;
 
             renderTable(currentTableData);
 
             tableIsStale = false;
-            setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
+            setResultsMeta("table", localNiqqud.corrections.length > 0
+              ? "таблица восстановлена и исправлена локально (без запроса к Gemini)"
+              : "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
             try { classicSyncMainPanels({ force: true }); } catch (_) {}
         } catch (e) {
             console.error("Table cache restore error", e);

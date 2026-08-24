@@ -20,6 +20,7 @@
 
 const { transliterate: _lib, Schema } = require("hebrew-transliteration");
 const { sblAcademicSpirantization, sblSimple } = require("hebrew-transliteration/schemas");
+const { normalizeLearnerLatinTranslit } = require("../../public/js/table-niqqud-normalizer.js");
 
 // ── SBL Academic (spirantized) ──────────────────────────────────────────────
 // Overrides vs library defaults:
@@ -144,7 +145,7 @@ const SCHEMAS = {
 };
 
 function _finishLearnerLatin(value) {
-  return value
+  const finished = value
     .replace(new RegExp(`\\bv${LEARNER_SHEVA}`, "g"), "ve")
     .replace(new RegExp(`${LEARNER_SHEVA}(?=')`, "g"), "e")
     .replaceAll(LEARNER_SHEVA, "")
@@ -153,14 +154,11 @@ function _finishLearnerLatin(value) {
     // The library emits furtive patah before final ע as a'; learner spelling
     // places the separator before the vowel: nose'a, ofno'a, poge'a.
     .replace(/a'(?=$|[\s.,!?;:)\]])/g, "'a")
-    // Academy niqqud writes אוֹפַנּוֹעַ with patah and אָפְקִי with qamats
-    // qatan. Keep the owner's compact modern learner spellings rather than
-    // exposing the library's mechanical Ofano'a / Afki renderings.
-    .replace(/Ofano'a/g, "Ofno'a")
-    .replace(/ofano'a/g, "ofno'a")
-    .replace(/Afki\b/g, "Ofki")
-    .replace(/afki\b/g, "ofki")
     .replace(/(^|[.!?]\s+)([a-z])/g, (_match, before, letter) => before + letter.toUpperCase());
+  // Academy niqqud writes אוֹפַנּוֹעַ with patah and אָפְקִי with qamats
+  // qatan. The shared normalizer keeps the owner's compact modern learner
+  // spellings and repairs old browser-cache transliteration identically.
+  return normalizeLearnerLatinTranslit(finished);
 }
 
 function _run(text, schema) {
