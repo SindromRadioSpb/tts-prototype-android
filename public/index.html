@@ -13524,7 +13524,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.425";
+    window.APP_VERSION = "3.11.426";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17620,6 +17620,10 @@ function v3NotesRefreshAllButtons() {
     // remain recoverable after upgrades, while an explicit Rebuild cannot reuse
     // rows produced under another direction/transliteration contract.
     const TABLE_CACHE_CONTRACT_VERSION = "table-cache-v2-direction-translit";
+    function v3ExpectedGeminiTablePromptId(direction, segmentMode) {
+        if (segmentMode) return "he-ru-table-seg-v3";
+        return direction === "any-he" ? "any-he-table-v3" : "he-ru-table-v3";
+    }
     let v3TableCacheWriteOutcome = { status: "unknown", error_code: null, recorded_at: null };
 
     function v3StoreTableCache(payload) {
@@ -35662,6 +35666,8 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
                 direction: getTableDirection(),
                 translitProfile: getSelectedTranslitProfile(),
+                segmentMode: false,
+                promptId: "local-mt-table-v1",
                 rows: currentTableData,
                 createdAt: new Date().toISOString(),
                 lastDocxFilename: lastDocxFilename,
@@ -35703,6 +35709,10 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         // W1: resolve once from OPFS canon BEFORE any provider branch. Premium Gemini used to
         // bypass segments by construction; now all providers consume the same proven context.
         const v3ResolvedMediaContext = await v3ResolveMediaContext();
+        const requestedSegmentMode = !!v3AudioSegmentsForRequest();
+        const requestedPromptId = requestedProvider === "gemini"
+            ? v3ExpectedGeminiTablePromptId(requestedDirection, requestedSegmentMode)
+            : null;
 
         // 0) Library source-of-truth: if opened saved text was not changed, never regenerate via Gemini
         if (await v3RestoreSavedTableIfUnchanged(currentText, requestedProvider)) {
@@ -35722,6 +35732,8 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     cache.tableCacheContract === TABLE_CACHE_CONTRACT_VERSION &&
                     cache.translitProfile === requestedTranslitProfile &&
                     cache.direction === requestedDirection &&
+                    cache.segmentMode === requestedSegmentMode &&
+                    (requestedProvider !== "gemini" || cache.promptId === requestedPromptId) &&
                     Array.isArray(cache.rows) &&
                     cache.rows.length > 0
                 ) {
@@ -35951,6 +35963,8 @@ try {
                         tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
                         direction: getTableDirection(),
                         translitProfile: translit_profile,
+                        segmentMode: segModeSent,
+                        promptId: v3LastGeminiMeta && v3LastGeminiMeta.promptId || null,
                         rows: currentTableData,
                         createdAt: new Date().toISOString(),
                         lastDocxFilename: lastDocxFilename

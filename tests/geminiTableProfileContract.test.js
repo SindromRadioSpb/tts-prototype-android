@@ -21,8 +21,16 @@ test("local table cache cannot cross direction or transliteration contracts", ()
   assert.match(indexHtml, /cache\.tableCacheContract === TABLE_CACHE_CONTRACT_VERSION/);
   assert.match(indexHtml, /cache\.translitProfile === requestedTranslitProfile/);
   assert.match(indexHtml, /cache\.direction === requestedDirection/);
+  assert.match(indexHtml, /cache\.segmentMode === requestedSegmentMode/);
+  assert.match(indexHtml, /cache\.promptId === requestedPromptId/);
   assert.match(indexHtml, /tableCacheContract: TABLE_CACHE_CONTRACT_VERSION/);
   assert.match(indexHtml, /translitProfile: translit_profile/);
+  assert.match(indexHtml, /promptId: v3LastGeminiMeta && v3LastGeminiMeta\.promptId \|\| null/);
+});
+
+test("Gemini local-cache prompt identity distinguishes direction and segment mode", () => {
+  assert.match(indexHtml, /if \(segmentMode\) return "he-ru-table-seg-v3"/);
+  assert.match(indexHtml, /direction === "any-he" \? "any-he-table-v3" : "he-ru-table-v3"/);
 });
 
 test("Gemini route isolates cache and recomputes transliteration by profile", () => {
