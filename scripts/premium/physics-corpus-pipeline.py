@@ -133,6 +133,106 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _reflow_pdf_ocr(value: str) -> str:
+    """Mirror public/js/table-chunks.js::reflowDocumentText exactly."""
+    normalized = (value or "").replace("\r\n", "\n").replace("\r", "\n")
+    paragraphs = re.split(r"\n\s*\n+", normalized)
+    out: list[str] = []
+    for paragraph in paragraphs:
+        joined = " ".join(line.strip() for line in paragraph.split("\n") if line.strip())
+        if joined:
+            out.append(joined)
+    return "\n".join(out)
+
+
+def prepare_table_input(args: argparse.Namespace) -> int:
+    cache_path = Path(args.ocr_cache)
+    output = Path(args.output)
+    manifest_path = Path(args.manifest)
+    if not cache_path.is_file():
+        print(json.dumps({"error": "OCR cache missing", "path": str(cache_path)}, ensure_ascii=False), file=sys.stderr)
+        return 2
+    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    pages = cache.get("pages") or []
+    if not isinstance(pages, list) or not pages or not all(isinstance(page, dict) for page in pages):
+        print(json.dumps({"error": "OCR cache has no pages", "path": str(cache_path)}, ensure_ascii=False), file=sys.stderr)
+        return 2
+    raw_text = "\n\n".join(str(page.get("text") or "") for page in pages)
+    corrected_text = raw_text
+    replacement_reports: list[dict[str, object]] = []
+    corrections_path: Path | None = Path(args.corrections) if args.corrections else None
+    corrections_sha: str | None = None
+    if corrections_path:
+        if not corrections_path.is_file():
+            print(json.dumps({"error": "correction spec missing", "path": str(corrections_path)}, ensure_ascii=False), file=sys.stderr)
+            return 2
+        correction_spec = json.loads(corrections_path.read_text(encoding="utf-8"))
+        corrections_sha = sha256_file(corrections_path)
+        for correction in correction_spec.get("replacements", []):
+            old = str(correction.get("from") or "")
+            new = str(correction.get("to") or "")
+            expected = int(correction.get("expected_count", -1))
+            actual = corrected_text.count(old)
+            if not old or expected < 0 or actual != expected:
+                print(json.dumps({
+                    "error": "correction count mismatch", "from": old,
+                    "expected_count": expected, "actual_count": actual,
+                }, ensure_ascii=False), file=sys.stderr)
+                return 3
+            corrected_text = corrected_text.replace(old, new)
+            replacement_reports.append({"from": old, "to": new, "count": actual})
+    table_input = _reflow_pdf_ocr(corrected_text)
+    # Independent losslessness oracle: layout projection may change whitespace
+    # only; the approved replacements above are recorded separately.
+    if re.sub(r"\s+", " ", corrected_text).strip() != re.sub(r"\s+", " ", table_input).strip():
+        print(json.dumps({"error": "reflow changed non-whitespace content"}, ensure_ascii=False), file=sys.stderr)
+        return 4
+    # Some source pages place a chapter heading and its first task heading in
+    # the same visual paragraph.  Count the task marker wherever it occurs;
+    # card assembly later splits that known structural boundary locally.
+    task_numbers = re.findall(r"שאלה\s+(\d+\.\d+)\s*:?", table_input)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(table_input + "\n")
+    payload = {
+        "schema": "linguistpro.physics.table-input.1",
+        "source": {
+            "ocr_cache": str(cache_path),
+            "ocr_cache_sha256": sha256_file(cache_path),
+            "model": cache.get("model"),
+            "model_version": cache.get("modelVersion"),
+            "prompt_id": cache.get("promptId"),
+            "schema_id": cache.get("schemaId"),
+            "created_at": cache.get("createdAt"),
+            "page_count": len(pages),
+        },
+        "corrections": {
+            "spec": str(corrections_path) if corrections_path else None,
+            "spec_sha256": corrections_sha,
+            "replacements": replacement_reports,
+        },
+        "projection": {
+            "method": "pdf-visual-wrap-reflow-v1",
+            "raw_chars": len(raw_text),
+            "raw_lines": len(raw_text.splitlines()),
+            "table_input_chars": len(table_input),
+            "table_input_lines": len(table_input.splitlines()),
+            "table_input_sha256": _sha256_text(table_input + "\n"),
+            "task_count": len(task_numbers),
+            "task_numbers": task_numbers,
+        },
+        "output": str(output),
+    }
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"output": str(output), "manifest": str(manifest_path), **payload["projection"]}, ensure_ascii=False, indent=2))
+    return 0
+
+
 def strip_hebrew_marks(value: str) -> str:
     return re.sub(r"[\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7]", "", value or "")
 
@@ -454,6 +554,12 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--gold", required=True, help="Rendered live-gold evidence JSON")
     compare.add_argument("--output", required=True, help="Output comparison JSON path")
     compare.set_defaults(func=compare_gold)
+    table_input = sub.add_parser("prepare-table-input", help="Create a deterministic one-line-per-semantic-row table input from an OCR provider cache")
+    table_input.add_argument("--ocr-cache", required=True, help="Immutable OCR provider-cache JSON")
+    table_input.add_argument("--corrections", help="Optional approved exact-replacement JSON")
+    table_input.add_argument("--output", required=True, help="Output UTF-8 table-input text")
+    table_input.add_argument("--manifest", required=True, help="Output provenance and checksum manifest")
+    table_input.set_defaults(func=prepare_table_input)
     return parser
 
 

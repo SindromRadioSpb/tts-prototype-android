@@ -1,0 +1,12 @@
+{
+  "schema": "linguistpro.physics.ocr-corrections.1",
+  "scope": "physics-year1-ocr-batch-01.pdf",
+  "authority": "owner-approved exact correction",
+  "replacements": [
+    {
+      "from": "שווה-תאוצה",
+      "to": "שוות-תאוצה",
+      "expected_count": 1
+    }
+  ]
+}

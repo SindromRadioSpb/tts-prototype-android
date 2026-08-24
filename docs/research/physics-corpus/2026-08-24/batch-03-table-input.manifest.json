@@ -1,0 +1,54 @@
+{
+  "schema": "linguistpro.physics.table-input.1",
+  "source": {
+    "ocr_cache": "docs\\research\\physics-corpus\\2026-08-24\\batch-03-ocr-provider-cache.json",
+    "ocr_cache_sha256": "f77c838dcaa89cc6a4b9613c0f2c890268da19b2494ffebc459c8505069b6147",
+    "model": "gemini-3.7-flash",
+    "model_version": "gemini-3.7-flash",
+    "prompt_id": "ingest-extract-pages-v2",
+    "schema_id": "ingest-extract-pages-schema-v1",
+    "created_at": "2026-08-24T23:05:02.130Z",
+    "page_count": 14
+  },
+  "corrections": {
+    "spec": null,
+    "spec_sha256": null,
+    "replacements": []
+  },
+  "projection": {
+    "method": "pdf-visual-wrap-reflow-v1",
+    "raw_chars": 12497,
+    "raw_lines": 326,
+    "table_input_chars": 12379,
+    "table_input_lines": 119,
+    "table_input_sha256": "30dbbf6d504ee1c17d148305f0ccccaf68cf13fe14b836fb33cb6aeb6d3edb85",
+    "task_count": 24,
+    "task_numbers": [
+      "7.1",
+      "7.2",
+      "7.3",
+      "7.4",
+      "7.5",
+      "7.6",
+      "7.7",
+      "7.8",
+      "8.1",
+      "8.2",
+      "8.3",
+      "8.4",
+      "8.5",
+      "9.1",
+      "9.2",
+      "9.3",
+      "9.4",
+      "9.5",
+      "9.6",
+      "9.7",
+      "9.8",
+      "9.9",
+      "9.10",
+      "9.11"
+    ]
+  },
+  "output": "docs\\research\\physics-corpus\\2026-08-24\\batch-03-table-input.txt"
+}
