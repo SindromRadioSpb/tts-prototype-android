@@ -1,0 +1,626 @@
+{
+  "text": "שאלה 4.8 (זריקה משופעת בשילוב אנרגיה) :\nכדור שמסתו m = 2_{kg} נורה מתותח משחקי, כמתואר באיור לשאלה 4. מנגנון הירי של התותח הוא קפיץ לחיצה שהקבוע שלו הוא: k = 5_{N/mm}\nבמצב ההתחלתי, המתואר באיור, הקפיץ מתכווץ ב- 150_{mm} ביחס למצבו החופשי, ומשתחרר בזמן הירי. קנה התותח נטוי בזווית 30° לקו האופק.\nהערות: 1. יש להתייחס לכדור כנקודה חומרית, אין להביא בחשבון את החיכוך בקנה ואת התנגדות האוויר. 2. המידות באיור נתונות במ\"מ.\nא. חשב את מהירות הכדור ברגע שהוא יוצא מהקנה. ב. חשב מה הגובה המרבי H שאליו יגיע הכדור במהלך תנועתו. ג. חשב את הזמן של תנועת הכדור מרגע עזיבתו את הקנה ועד שפגע בקרקע. ד. חשב את המרחק L.\nשאלה 4.9:\nבאיור לשאלה מתואר כדור שנזרק מנקודה A בזווית \\phi = 40^\\circ ביחס לכיוון האופק במהירות התחלתית V_0 = 12 m/_{sec}. בנקודה C הכדור פוגע בקרקע. א. מהו הגובה המקסימאלי של הכדור מעל פני הקרקע h_{max} במהלך תנועתו ? ב. מהו זמן תנועת הכדור מנקודה A עד לפגיעתו בקרקע בנקודה C. ג. מהי מהירותו של הכדור בנקודה C (שיעור וכיוון) ? ד. מהו המרחק d ?\nהערה : יש להתייחס לכדור כנקודה חומרית ולהזניח את התנגדות האוויר.\nשאלה 4.10\nבאיור לשאלה נתון כדור שנזרק בזווית של 60° מעל האופק מנקודה A, הנמצאת על הקרקע במרחק של 40 מטרים מבניין שגובהו H ורוחבו 20 מטרים.\nבשיא גובהו, הכדור פוגע בנקודה B הנמצאת על גג הבניין. מידות הכדור זניחות.\nחשבו את:\nא. המהירות ההתחלתית של הכדור v_0. ב. גובה הבניין H. ג. מהירות הכדור בנקודה B. ד. מהי המהירות ההתחלתית המינימלית הנדרשת כדי שהכדור יעוף מעל הבניין ויפול על הקרקע מצידו השני, כאשר הוא נזרק בזווית הזריקה הנתונה. הערה לסעיף ד' : במהירות הנדרשת בסעיף ד', הכדור יעבור בסמוך לנקודה C הנמצאת בצידו השני של גג הבניין.\nשאלה 4.11\nבאיור לשאלה שחקן כדורגל בועט כדור במהירות התחלתית של v ובזווית של \\alpha יחסית לאופק. במרחק אופקי של 25 מטרים מנקודת הבעיטה הכדור מגיע לשיא גובהו שהוא 20 מטרים.\nחשבו את:\nא. זמן הגעת הכדור לשיא הגובה. ב. הזווית \\alpha של בעיטת הכדור. ג. המהירות ההתחלתית של בעיטת הכדור v ? ד. מהירות הכדור בשיא גובהו ?\nשאלה 4.12\nבאיור לשאלה אבן נזרקת מנקודה A הנמצאת על הקרקע במהירות התחלתית v = 12_{m/sec}, ובזווית של \\alpha = 45^\\circ ופגעה בקרקע בנקודה B.\nחשבו:\nא. מהו המרחק בין הנקודות A ו-B ? ב. מהו משך זמן תנועת האבן ? ג. מהו הגובה המרבי של האבן על מסלול תנועתה ? ד. מאיזה גובה H מעל נקודה A יש לזרוק את האבן בכיוון אופקי במהירות התחלתית v = 12_{m/sec}, (ראו איור מצורף) כדי שהיא תפגע בקרקע באותה נקודה B ?\nשאלה 4.13\nרקטת תאורה משוגרת בזווית של 45° יחסית לאופק. לאחר 6 שניות מהשיגור, בשיא הגובה של מסלול התנועה, מופעל גוף התאורה. כמוצג באיור לשאלה.\nחשבו:\nא. מהי מהירות השיגור של הרקטה כדי שגוף התאורה יופעל בשיא הגובה של מסלול תנועתה ? ב. באיזה גובה יופעל גוף התאורה ? ג. באיזה מרחק אופקי מנקודת השיגור יופעל גוף התאורה ? ד. מהי מהירות הרקטה בעת הפעלת גוף התאורה ? ה. אם הרקטה תשוגר אנכית במהירות ההתחלתית שחושבה בסעיף א', באיזה גובה יופעל גוף התאורה ? אם הוא מופעל 6 שניות לאחר השיגור.\nשאלה 4.14\nבאיור לשאלה מתואר ילד הזורק כדור מגובה 1.2 מטר במהירות התחלתית של 15_{m/sec} בכיוון של גדר הנמצאת במרחק של חמישה מטרים ממנו. גובה הגדר שלושה מטרים.\nחשבו:\nא. אם הילד זורק את הכדור בזווית 20° מעל האופק, תוך כמה זמן הכדור יגיע לגדר ? האם הכדור יהיה בעלייה או בירידה בעת הגעתו לגדר? ב. האם הכדור יפגע בגדר או יחלוף מעליה ? ג. אם הילד יזרוק את הכדור אופקית, במהירות ההתחלתית הנתונה, האם הכדור יגיע לגדר ? אם כן, באיזה גובה מעל הקרקע הוא יפגע בגדר ? אם לא, באיזה מרחק מהגדר הכדור יפגע בקרקע ?\nפרק 5: בעיות בתחום כוחות במישור וחיכוך שאלה 5.1:\nלצורך ניסוי מנוע סילון הרכיבו את המנוע על עגלה המסוגלת לנוע אופקית על גבי מסילת רכבת. המסה של כל המערכת (העגלה עם המנוע) הייתה 350 ק\"ג.\nחשב את כוח הדחף של המנוע (F), אם בתנועה למרחק של 100 מ' הגיעה העגלה למהירות של 120 ק\"מ לשעה. העגלה נעה במהירות שוות-תאוצה וכוח ההתנגדות לתנועה (T) היה 120 ניוטון.\nהנח כי מסת העגלה עם המנוע נשארים ללא שינוי.\nשאלה 5.2:\nגוף בעל מסה של 20Kg נע (ימינה) על פני משטח חלק במהירות 0.5 m/s. ברגע מסוים מופעל עליו כוח של 40N בכיוון המנוגד לכיוון תנועתו הקודמת.\nחשב מה תהיה מהירות הגוף (שיעור וכיוון), 3 sec לאחר מועד הפעלת הכוח?\nשאלה 5.3:\nבמכונית שמסתה (m) - 2,250 ק\"ג, והנוסעת במהירות של 98 קמ\"ש, מפעיל הנהג את המעצורים וגורם לנעילת הגלגלים, ולתנועת המכונית בהחלקה לאורך מרחק d, עד להקטנת המהירות ל-80 קמ\"ש.\nאם מקדם החיכוך הקינטי שווה \\mu_k = 0.3, חשב:\nא. את המרחק (d) שעברה המכונית בהחלקה. ב. את ההספק P (בקילוואטים) שאותו פיתח כוח החיכוך בשעת ההחלקה.\nתאוצת הכובד: g = 9.81_{m/sec^2}\nהערה: 1kW = 1 \\frac{kN \\cdot m}{sec}\nפרק 6: בעיות בתחום תנועה במישור משופע שאלה 6.1:\nגוף A שמסתו (Q) 200 ניוטון נמשך במהירות קבועה ע\"י כוח Q, השווה 160 ניוטון, במורד המישור המשופע לאורך 1.5 מטר. הכוח Q נטוי לקו האופקי בזווית של 10°. מקדם החיכוך הסטטי (\\mu) בין המישור המשופע לבין גוף A הוא 0.3 והזווית \\theta שווה 40°.\nחשב את העבודה הנעשית ע\"י כל כוח בנפרד, הפועל על הגוף A, וכן את העבודה הכוללת הנעשית ע\"י כל הכוחות הפועלים על הגוף ביחד.\nשאלה 6.2:\nמנוע שהספקו (P) 0.5 קילוואט, מושך במעלה המישור המשופע עומס שמשקלו (W) הוא 2 ק\"נ. המישור המשופע נטוי כלפי הקו האופקי בזווית \\alpha = 40^\\circ. מקדם החיכוך (\\mu) בין העומס והמישור המשופע הוא 0.25. מהו הזמן t הדרוש להעלאת העומס בגובה h השווה 5 מטר ? הנח שהתנועה היא קצובה.\nשאלה 6.3:\nבלוק שמסתו m מחליק במורד של מישור משופע מחוספס, הנטוי למישור האופקי בזווית \\alpha = 30^\\circ. תנועת הבלוק מתחילה מהנקודה העליונה של המורד ממצב של מנוחה. בניסוי מדויק שנעשה במעבדה התברר כי הבלוק עבר את כל המורד במשך 1.12 שניות.\nחשב את מקדם החיכוך בין המישור המשופע לבין פני הבלוק ואת מהירות הבלוק בנקודה התחתונה של המישור המשופע. גובה המישור המשופע (h) שווה 1 מטר ותאוצת הכובד (g) 9.81 מטר לשנייה בריבוע.\nשאלה 6.4:\nשני גופים W_1 , W_2 מקושרים באמצעות חבל על פני גלגלת, מונחים על משורים משופעים ניצבים זה לזה.\nמקדם החיכוך בין הגוף למישור \\mu = 0.2.\nנתון משקלי הגופים: W_1 = 98_N , W_2 = 0.5W_1\nחשב:\nא. את תאוצת הגופים. ב. את המתיחות בחבל המחבר בין הגופים.\nהערה: הנח שהתנועה בכיוון החץ.\nשאלה 6.5: (אנרגיה וכוחות)\nרכב נוסע ממצב של מנוחה מנקודה A ועובר את הקטע האופקי AB, שאורכו S, בתנועה שוות תאוצה. שיעור התאוצה (a) הוא 3 מטר לשנייה בריבוע (a = 3_{m/sec^2}). בנקודה B מכבה הנהג את המנוע והרכב מתקדם בגלגול חופשי. הוא עולה במעלה המישור המשופע בגובה H השווה 10 מ' ומנקודה C הוא ממשיך בדרך אופקית .CD\nא. מה צריך להיות אורך הקטע האופקי S כדי שהרכב יעלה במעלה המישור המשופע אם ידוע שמהירותו בנקודה C הינה 4 מטר לשנייה. ב. מהי מהירות הרכב בסוף קטע S. ג. מהו המרחק (S_1) שבו יעבור הרכב בקטע CD, אם הנהג יפעיל את הבלמים בנקודה C ? הנח שכוח הבלימה שווה ל-0.25 ממשקלו של הרכב, ובקטע זה אין התנגדויות אחרות לתנועת הרכב. בחישוב הנח שהרכב מהווה נקודה חומרית, הזנח את החיכוך בקטעים AB ו- BC והנח ש: g = 9.81_{m/sec^2}\nשאלה 6.6:\nגוף שמסתו m קיבל דחיפה והתחיל לנוע במעלה של מישור משופע במהירות תחילית של 12 מטר לשנייה. זווית הנטייה של המישור המשופע כלפי הקו האופקי \\alpha = 20^\\circ. מקדם החיכוך (\\mu) בין הגוף והמישור המשופע הוא 0.4. תאוצת הכובד g = 9.81_{m/sec^2}.\nא. חשב את התאוצה a של הגוף בשעת התנועה. ב. חשב את המרחק s שבו יעלה הגוף במעלה המישור המשופע עד שמהירותו תקטן עד ל-5 מטר לשנייה. ג. חשב את המרחק s_1 שבו יעלה הגוף במעלה המישור המשופע עד שיעצור.\nשאלה 6.7:\nגוף שמשקלו W מתקדם במעלה של מישור משופע, הנטוי לקו האופקי בזווית \\alpha. הכוח F, המופעל על הגוף, במקביל למישור המשופע, נשאר קבוע במשך כל זמן הפעולה. מקדם החיכוך בין הגוף לבין המישור המשופע הוא \\mu. תאוצת הכובד - (g).\nא. חשב את הכוח F הפועל על הגוף, אם בתנועתו של הגוף לאורך הקטע AB, יורדת מהירותו מ-6 מטר/שנייה עד ל- 3 מטר/שנייה. ב. מהי העבודה הנעשית בקטע זה? ג. לא פועל כוח F על הגוף, האם הגוף יישאר במנוחה, או שיחליק במורד המישור המשופע?\nנתון: W = 10kN, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2}, AB = 30_m\nשאלה 6.8:\nגוף שמשקלו W הוא 12kN מתקדם במעלה מישור משופע, הנטוי לקו האופקי בזווית \\alpha. הכוח F, המופעל על הגוף, במקביל למישור המשופע, נשאר קבוע במשך כל זמן הפעולה. בזמן תנועתו של הגוף בקטע AB (שאורכו L), יורדת מהירותו מ- V_0 עד ל- V. מקדם החיכוך הקינטי בין הגוף לבין המישור המשופע הוא \\mu .\nא. חשב את שיעורו של הכוח F. ב. אם לא יפעל הכוח F על הגוף, האם הגוף יישאר במנוחה, או שיחליק במורד המישור המשופע? הנח שמקדמי החיכוך הסטאטי והקינטי שווים.\nנתונים נוספים: L = 30_m , V = 3_{m/sec} , V_0 = 6_{m/sec} , g = 9.81_{m/sec^2} , \\mu = 0.3 , \\alpha = 15^\\circ\nשאלה 6.9:\nבאיור לשאלה 4 מתוארת מכונית הנעה ימינה במעלה כביש משופע במהירות 105 קמ\"ש. בנקודה A מפעיל הנהג מעצורים באופן שהגלגלים מחליקים, עד לעצירת המכונית בנקודה B.\nשיעור השיפוע של הכביש הוא 6% (זווית השיפוע היא \\alpha = 3.43^\\circ).\nמקדם החיכוך הקינטי בין הגלגלים לבין הכביש הוא \\mu = 0.6.\nא. חשב מהו מרחק העצירה S. ב. חשב מה יהיה מרחק העצירה S במקרה שבו המכונית תנוע במורד המישור המשופע במהירות 105 קמ\"ש ותחליק מנקודה B לנקודה A.\nשאלה 6.10:\nגוף A מונח על מישור משופע, וגוף B מונח על מישור אופקי. שני הגופים מחוברים בכבל העובר דרך הגלגלת, כמתואר באיור לשאלה. גוף B נמשך על ידי כוח אופקי P מסתו של גוף A היא 40 kg ושל גוף B 60 kg מקדם החיכוך הסטטי בין גוף A לבין המישור המשופע \\mu_{s1} = 0.2 ומקדם החיכוך הסטטי בין גוף B לבין המישור האופקי \\mu_{s2} = 0.3. א. שרטט את תרשימי הכוחות הפועלים על כל אחד מהגופים A ו- B בסמוך לתחילת תנועת הגופים ימינה ובמעלה המישור המשופע. ב. חשב את המתיחות הנדרשת בכבל לתחילת התנועה של גוף A במעלה המישור המשופע. ג. חשב את הכוח P הנדרש להפעיל על גוף B לתחילת תנועתו ימינה. הערה: יש להזניח את החיכוך בגלגלת ולהניח שהמתיחויות בשני ענפי הכבל שוות.\nשאלה 6.11:\nגוף A מונח על מישור משופע בזווית 25° וגוף B מונח על מישור משופע בזווית 37°. שני הגופים מחוברים בכבל העובר דרך הגלגלת הקבועה כמתואר באיור לשאלה. ענף a של הכבל מקביל למישור שעליו מונח גוף A וענף b - למישור שעליו מונח גוף B. גוף B נמשך על ידי כוח P הפועל במקביל למישור המשופע עליו מונח גוף B. מסתו של גוף A היא 50kg ושל גוף 40kg-B.\nמקדם החיכוך הסטטי בין גוף A לבין המישור שעליו הוא מונח הוא \\mu s1 = 0.3 ומקדם החיכוך הסטטי בין גוף B לבין המישור שעליו הוא מונח הוא \\mu s2 = 0.4.\nא. סרטט את תרשימי הכוחות הפועלים על כל אחד מהגופים A ו-B. בסמוך לתחילת תנועת גוף A ימינה ובמעלה המישור המשופע וגוף B שמאלה ובמורד המישור המשופע. ב. חשב את המתיחות הנדרשת בכבל לתחילת התנועה של גוף A במעלה המישור המשופע. ג. חשב את הכוח P הנדרש להפעיל על גוף B לתחילת תנועתו שמאלה.\nהערה: יש להזניח את החיכוך בגלגלת ולהניח שהמתיחויות בשני ענפי הכבל שוות.\nשאלה 6.12:\nגוף B מונח על מישור משופע ועליו מונח גוף A, המחובר לקיר בחבל שמקביל למישור המשופע כמתואר באיור לשאלה 2. גוף B נמשך על ידי כוח אופקי P. מסתו של גוף A היא 20kg ושל גוף 50kg B. מקדם החיכוך הסטטי בין שני הגופים \\mu_{s1} = 0.3 ומקדם החיכוך הסטטי בין גוף B לבין המישור המשופע .\\mu_{s1} = 0.5\nא. סרטט את תרשימי הכוחות, הפועלים על כל אחד מהגופים A ו-B לכל גוף בנפרד. ב. חשב את המתיחות בחבל, בתחילת התנועה של גוף B. ג. חשב את הכוח P הנדרש לתחילת תנועתו של גוף B במורד המישור המשופע.",
+  "rows": [
+    {
+      "segmentId": 1,
+      "he": "שאלה 4.8 (זריקה משופעת בשילוב אנרגיה) :",
+      "he_niqqud": "שְׁאֵלָה 4.8 (זְרִיקָה מְשׁוּפַּעַת בְּשִׁלּוּב אֶנֶרְגְּיָה) :",
+      "translit": "She'ela 4.8 (zrika mshupa'at bshiluv energya) :",
+      "ru": "Задача 4.8 (Бросок под углом к горизонту в сочетании с энергией):",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 2,
+      "he": "כדור שמסתו m = 2_{kg} נורה מתותח משחקי, כמתואר באיור לשאלה 4. מנגנון הירי של התותח הוא קפיץ לחיצה שהקבוע שלו הוא: k = 5_{N/mm}",
+      "he_niqqud": "כַּדּוּר שֶׁמַּסָּתוֹ m = 2_{kg} נוֹרָה מִתּוֹתָח מִשְׂחָקִי, כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4. מַנְגְּנוֹן הַיְּרִי שֶׁל הַתּוֹתָח הוּא קְפִיץ לְחִיצָה שֶׁהַקָּבוּעַ שֶׁלּוֹ הוּא: k = 5_{N/mm}",
+      "translit": "Kadur shemasato m = 2_{kg} nora mitotakh miskhaki, kamto'ar ba'iyur lish'ela 4. Mangnon hayri shel hatotakh hu' kfits lkhitsa shehakavu'a shelo hu': k = 5_{N/mm}",
+      "ru": "Шар массой m = 2 кг выстреливается из игрушечной пушки, как показано на рисунке к задаче 4. Механизм выстрела пушки представляет собой пружину сжатия с коэффициентом жесткости: k = 5 Н/мм.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 3,
+      "he": "במצב ההתחלתי, המתואר באיור, הקפיץ מתכווץ ב- 150_{mm} ביחס למצבו החופשי, ומשתחרר בזמן הירי. קנה התותח נטוי בזווית 30° לקו האופק.",
+      "he_niqqud": "בַּמַּצָּב הַהַתְחָלָתִי, הַמְּתֹאָר בָּאִיּוּר, הַקְּפִיץ מִתְכַּוֵּץ בְּ- 150_{mm} בְּיַחַס לְמַצָּבוֹ הַחָפְשִׁי, וּמִשְׁתַּחְרֵר בִּזְמַן הַיְּרִי. קְנֵה הַתּוֹתָח נָטוּי בְּזָוִית 30° לְקַו הָאֹפֶק.",
+      "translit": "Bamatsav hahatkhalati, hamto'ar ba'iyur, hakfits mitkavets b- 150_{mm} byakhas lmatsavo hakhofshi, umishtakhrer bizman hayri. Kne hatotakh natuy bzavit 30° lkav ha'ofek.",
+      "ru": "В начальном состоянии, показанном на рисунке, пружина сжата на 150 мм относительно свободного состояния и освобождается в момент выстрела. Ствол пушки наклонен под углом 30° к линии горизонта.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 4,
+      "he": "הערות: 1. יש להתייחס לכדור כנקודה חומרית, אין להביא בחשבון את החיכוך בקנה ואת התנגדות האוויר. 2. המידות באיור נתונות במ\"מ.",
+      "he_niqqud": "הֶעָרוֹת: 1. יֵשׁ לְהִתְיַחֵס לַכַּדּוּר כִּנְקֻדָּה חָמְרִית, אֵין לְהָבִיא בְּחֶשְׁבּוֹן אֶת הַחִכּוּךְ בַּקָּנֶה וְאֶת הִתְנַגְּדוּת הָאֲוִיר. 2. הַמִּדּוֹת בָּאִיּוּר נְתוּנוֹת בְּמ\"מ.",
+      "translit": "He'arot: 1. Yesh lhityakhes lakadur kinkuda khamrit, en lhavi' bkheshbon et hakhikukh bakane ve'et hitnagdut ha'avir. 2. Hamidot ba'iyur ntunot bmm\".",
+      "ru": "Примечания: 1. Шар следует рассматривать как материальную точку, трением в стволе и сопротивлением воздуха пренебречь. 2. Размеры на рисунке даны в мм.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 5,
+      "he": "א. חשב את מהירות הכדור ברגע שהוא יוצא מהקנה. ב. חשב מה הגובה המרבי H שאליו יגיע הכדור במהלך תנועתו. ג. חשב את הזמן של תנועת הכדור מרגע עזיבתו את הקנה ועד שפגע בקרקע. ד. חשב את המרחק L.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר בָּרֶגַע שֶׁהוּא יוֹצֵא מֵהַקָּנֶה. ב. חַשֵּׁב מַה הַגֹּבַהּ הַמְּרַבִּי H שֶׁאֵלָיו יַגִּיעַ הַכַּדּוּר בְּמַהֲלַךְ תְּנוּעָתוֹ. ג. חַשֵּׁב אֶת הַזְּמַן שֶׁל תְּנוּעַת הַכַּדּוּר מֵרֶגַע עֲזִיבָתוֹ אֶת הַקָּנֶה וְעַד שֶׁפָּגַע בַּקַּרְקַע. ד. חַשֵּׁב אֶת הַמֶּרְחָק L.",
+      "translit": "'. Khashev et mhirut hakadur bareg'a shehu' yotse' mehakane. V. Khashev mah hagovah hamrabi H she'elayw yagi'a hakadur bmahalakh tnu'ato. G. Khashev et hazman shel tnu'at hakadur mereg'a azivato et hakane ve'ad shepag'a bakark'a. D. Khashev et hamerkhak L.",
+      "ru": "а. Рассчитайте скорость шара в момент вылета из ствола. б. Рассчитайте максимальную высоту H, которой достигнет шар во время движения. в. Рассчитайте время движения шара от момента вылета из ствола до падения на землю. г. Рассчитайте расстояние L.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 6,
+      "he": "שאלה 4.9:",
+      "he_niqqud": "שְׁאֵלָה 4.9:",
+      "translit": "She'ela 4.9:",
+      "ru": "Задача 4.9:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 7,
+      "he": "באיור לשאלה מתואר כדור שנזרק מנקודה A בזווית \\phi = 40^\\circ ביחס לכיוון האופק במהירות התחלתית V_0 = 12 m/_{sec}. בנקודה C הכדור פוגע בקרקע. א. מהו הגובה המקסימאלי של הכדור מעל פני הקרקע h_{max} במהלך תנועתו ? ב. מהו זמן תנועת הכדור מנקודה A עד לפגיעתו בקרקע בנקודה C. ג. מהי מהירותו של הכדור בנקודה C (שיעור וכיוון) ? ד. מהו המרחק d ?",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה מְתֹאָר כַּדּוּר שֶׁנִּזְרַק מִנְּקֻדָּה A בְּזָוִית \\phi = 40^\\circ בְּיַחַס לְכִוּוּן הָאֹפֶק בִּמְהִירוּת הַתְחָלָתִית V_0 = 12 m/_{sec}. בִּנְקֻדָּה C הַכַּדּוּר פּוֹגֵעַ בַּקַּרְקַע. א. מַהוּ הַגֹּבַהּ הַמַּקְסִימָלִי שֶׁל הַכַּדּוּר מֵעַל פְּנֵי הַקַּרְקַע h_{max} בְּמַהֲלַךְ תְּנוּעָתוֹ ? ב. מַהוּ זְמַן תְּנוּעַת הַכַּדּוּר מִנְּקֻדָּה A עַד לִפְגִיעָתוֹ בַּקַּרְקַע בִּנְקֻדָּה C. ג. מַהִי מְהִירוּתוֹ שֶׁל הַכַּדּוּר בִּנְקֻדָּה C (שִׁעוּר וְכִוּוּן) ? ד. מַהוּ הַמֶּרְחָק d ?",
+      "translit": "Ba'iyur lish'ela mto'ar kadur shenizrak minkuda A bzavit \\phi = 40^\\circ byakhas lkhivun ha'ofek bimhirut hatkhalatit V_0 = 12 m/_{sec}. Binkuda C hakadur poge'a bakark'a. '. Mahu hagovah hamaksimali shel hakadur me'al pne hakark'a h_{max} bmahalakh tnu'ato ? V. Mahu zman tnu'at hakadur minkuda A ad lifgi'ato bakark'a binkuda C. G. Mahi mhiruto shel hakadur binkuda C (shi'ur vekhivun) ? D. Mahu hamerkhak d ?",
+      "ru": "На рисунке к задаче показан шар, брошенный из точки A под углом \\phi = 40^\\circ к горизонту с начальной скоростью V_0 = 12 м/с. В точке C шар падает на землю. а. Какова максимальная высота шара над поверхностью земли h_{max} во время движения? б. Каково время движения шара от точки A до его падения на землю в точке C? в. Какова скорость шара в точке C (величина и направление)? г. Чему равно расстояние d?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 8,
+      "he": "הערה : יש להתייחס לכדור כנקודה חומרית ולהזניח את התנגדות האוויר.",
+      "he_niqqud": "הֶעָרָה : יֵשׁ לְהִתְיַחֵס לַכַּדּוּר כִּנְקֻדָּה חָמְרִית וּלְהַזְנִיחַ אֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "He'ara : yesh lhityakhes lakadur kinkuda khamrit ulhazniakh et hitnagdut ha'avir.",
+      "ru": "Примечание: шар следует рассматривать как материальную точку, сопротивлением воздуха пренебречь.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 9,
+      "he": "שאלה 4.10",
+      "he_niqqud": "שְׁאֵלָה 4.10",
+      "translit": "She'ela 4.10",
+      "ru": "Задача 4.10",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 10,
+      "he": "באיור לשאלה נתון כדור שנזרק בזווית של 60° מעל האופק מנקודה A, הנמצאת על הקרקע במרחק של 40 מטרים מבניין שגובהו H ורוחבו 20 מטרים.",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה נָתוּן כַּדּוּר שֶׁנִּזְרַק בְּזָוִית שֶׁל 60° מֵעַל הָאֹפֶק מִנְּקֻדָּה A, הַנִּמְצֵאת עַל הַקַּרְקַע בְּמֶרְחָק שֶׁל 40 מֶטְרִים מִבִּנְיָן שֶׁגָּבְהוֹ H וְרָחְבּוֹ 20 מֶטְרִים.",
+      "translit": "Ba'iyur lish'ela natun kadur shenizrak bzavit shel 60° me'al ha'ofek minkuda A, hanimtse't al hakark'a bmerkhak shel 40 metrim mibinyan shegovho H verokhbo 20 metrim.",
+      "ru": "На рисунке к задаче дан шар, брошенный под углом 60° к горизонту из точки A, находящейся на земле на расстоянии 40 метров от здания высотой H и шириной 20 метров.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 11,
+      "he": "בשיא גובהו, הכדור פוגע בנקודה B הנמצאת על גג הבניין. מידות הכדור זניחות.",
+      "he_niqqud": "בְּשִׂיא גָּבְהוֹ, הַכַּדּוּר פּוֹגֵעַ בִּנְקֻדָּה B הַנִּמְצֵאת עַל גַּג הַבִּנְיָן. מִדּוֹת הַכַּדּוּר זְנִיחוֹת.",
+      "translit": "Bsi' govho, hakadur poge'a binkuda B hanimtse't al gag habinyan. Midot hakadur znikhot.",
+      "ru": "В наивысшей точке своей траектории шар попадает в точку B, расположенную на крыше здания. Размерами шара пренебречь.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 12,
+      "he": "חשבו את:\nא. המהירות ההתחלתית של הכדור v_0. ב. גובה הבניין H. ג. מהירות הכדור בנקודה B. ד. מהי המהירות ההתחלתית המינימלית הנדרשת כדי שהכדור יעוף מעל הבניין ויפול על הקרקע מצידו השני, כאשר הוא נזרק בזווית הזריקה הנתונה. הערה לסעיף ד' : במהירות הנדרשת בסעיף ד', הכדור יעבור בסמוך לנקודה C הנמצאת בצידו השני של גג הבניין.",
+      "he_niqqud": "חַשְּׁבוּ אֶת:\nא. הַמְּהִירוּת הַהַתְחָלָתִית שֶׁל הַכַּדּוּר v_0. ב. גֹּבַהּ הַבִּנְיָן H. ג. מְהִירוּת הַכַּדּוּר בִּנְקֻדָּה B. ד. מַהִי הַמְּהִירוּת הַהַתְחָלָתִית הַמִּינִימָלִית הַנִּדְרֶשֶׁת כְּדֵי שֶׁהַכַּדּוּר יָעוּף מֵעַל הַבִּנְיָן וְיִפֹּל עַל הַקַּרְקַע מִצִּדּוֹ הַשֵּׁנִי, כַּאֲשֶׁר הוּא נִזְרָק בְּזָוִית הַזְּרִיקָה הַנְּתוּנָה. הֶעָרָה לִסְעִיף ד' : בַּמְּהִירוּת הַנִּדְרֶשֶׁת בִּסְעִיף ד', הַכַּדּוּר יַעֲבֹר בְּסָמוּךְ לִנְקֻדָּה C הַנִּמְצֵאת בְּצִדּוֹ הַשֵּׁנִי שֶׁל גַּג הַבִּנְיָן.",
+      "translit": "Khashvu et:\n'. Hamhirut hahatkhalatit shel hakadur v_0. V. Govah habinyan H. G. Mhirut hakadur binkuda B. D. Mahi hamhirut hahatkhalatit haminimalit hanidreshet kde shehakadur ya'uf me'al habinyan veyipol al hakark'a mitsido hasheni, ka'asher hu' nizrak bzavit hazrika hantuna. He'ara lis'if d' : bamhirut hanidreshet bis'if d', hakadur ya'avor bsamukh linkuda C hanimtse't btsido hasheni shel gag habinyan.",
+      "ru": "Вычислите:\nа. Начальную скорость шара v_0. б. Высоту здания H. в. Скорость шара в точке B. г. Какова минимальная начальная скорость, необходимая для того, чтобы шар перелетел через здание и упал на землю с другой стороны при том же угле броска? Примечание к пункту «г»: при скорости, требуемой в пункте «г», шар пройдет вблизи точки C, находящейся на противоположном краю крыши здания.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 13,
+      "he": "שאלה 4.11",
+      "he_niqqud": "שְׁאֵלָה 4.11",
+      "translit": "She'ela 4.11",
+      "ru": "Задача 4.11",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 14,
+      "he": "באיור לשאלה שחקן כדורגל בועט כדור במהירות התחלתית של v ובזווית של \\alpha יחסית לאופק. במרחק אופקי של 25 מטרים מנקודת הבעיטה הכדור מגיע לשיא גובהו שהוא 20 מטרים.",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה שַׂחְקַן כַּדּוּרֶגֶל בּוֹעֵט כַּדּוּר בִּמְהִירוּת הַתְחָלָתִית שֶׁל v וּבְזָוִית שֶׁל \\alpha יַחֲסִית לָאֹפֶק. בְּמֶרְחָק אָפְקִי שֶׁל 25 מֶטְרִים מִנְּקֻדַּת הַבְּעִיטָה הַכַּדּוּר מַגִּיעַ לְשִׂיא גָּבְהוֹ שֶׁהוּא 20 מֶטְרִים.",
+      "translit": "Ba'iyur lish'ela sakhkan kaduregel bo'et kadur bimhirut hatkhalatit shel v uvzavit shel \\alpha yakhasit la'ofek. Bmerkhak ofki shel 25 metrim minkudat habe'ita hakadur magi'a lsi' govho shehu' 20 metrim.",
+      "ru": "На рисунке к задаче футболист бьет по мячу с начальной скоростью v под углом \\alpha к горизонту. На горизонтальном расстоянии 25 метров от точки удара мяч достигает максимальной высоты, равной 20 метрам.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 15,
+      "he": "חשבו את:\nא. זמן הגעת הכדור לשיא הגובה. ב. הזווית \\alpha של בעיטת הכדור. ג. המהירות ההתחלתית של בעיטת הכדור v ? ד. מהירות הכדור בשיא גובהו ?",
+      "he_niqqud": "חַשְּׁבוּ אֶת:\nא. זְמַן הַגָּעַת הַכַּדּוּר לְשִׂיא הַגֹּבַהּ. ב. הַזָּוִית \\alpha שֶׁל בְּעִיטַת הַכַּדּוּר. ג. הַמְּהִירוּת הַהַתְחָלָתִית שֶׁל בְּעִיטַת הַכַּדּוּר v ? ד. מְהִירוּת הַכַּדּוּר בְּשִׂיא גָּבְהוֹ ?",
+      "translit": "Khashvu et:\n'. Zman haga'at hakadur lsi' hagovah. V. Hazavit \\alpha shel be'itat hakadur. G. Hamhirut hahatkhalatit shel be'itat hakadur v ? D. Mhirut hakadur bsi' govho ?",
+      "ru": "Вычислите:\nа. Время подъема мяча до наивысшей точки. б. Угол удара по мячу \\alpha. в. Начальную скорость удара по мячу v? г. Скорость мяча в наивысшей точке траектории?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 16,
+      "he": "שאלה 4.12",
+      "he_niqqud": "שְׁאֵלָה 4.12",
+      "translit": "She'ela 4.12",
+      "ru": "Задача 4.12",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 17,
+      "he": "באיור לשאלה אבן נזרקת מנקודה A הנמצאת על הקרקע במהירות התחלתית v = 12_{m/sec}, ובזווית של \\alpha = 45^\\circ ופגעה בקרקע בנקודה B.",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה אֶבֶן נִזְרֶקֶת מִנְּקֻדָּה A הַנִּמְצֵאת עַל הַקַּרְקַע בִּמְהִירוּת הַתְחָלָתִית v = 12_{m/sec}, וּבְזָוִית שֶׁל \\alpha = 45^\\circ וּפָגְעָה בַּקַּרְקַע בִּנְקֻדָּה B.",
+      "translit": "Ba'iyur lish'ela even nizreket minkuda A hanimtse't al hakark'a bimhirut hatkhalatit v = 12_{m/sec}, uvzavit shel \\alpha = 45^\\circ ufage'a bakark'a binkuda B.",
+      "ru": "На рисунке к задаче камень брошен из точки A, находящейся на земле, с начальной скоростью v = 12 м/с под углом \\alpha = 45^\\circ и упал на землю в точке B.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 18,
+      "he": "חשבו:\nא. מהו המרחק בין הנקודות A ו-B ? ב. מהו משך זמן תנועת האבן ? ג. מהו הגובה המרבי של האבן על מסלול תנועתה ? ד. מאיזה גובה H מעל נקודה A יש לזרוק את האבן בכיוון אופקי במהירות התחלתית v = 12_{m/sec}, (ראו איור מצורף) כדי שהיא תפגע בקרקע באותה נקודה B ?",
+      "he_niqqud": "חַשְּׁבוּ:\nא. מַהוּ הַמֶּרְחָק בֵּין הַנְּקֻדּוֹת A וְ-B ? ב. מַהוּ מֶשֶׁךְ זְמַן תְּנוּעַת הָאֶבֶן ? ג. מַהוּ הַגֹּבַהּ הַמְּרַבִּי שֶׁל הָאֶבֶן עַל מַסְלוּל תְּנוּעָתָהּ ? ד. מֵאֵיזֶה גֹּבַהּ H מֵעַל נְקֻדָּה A יֵשׁ לִזְרֹק אֶת הָאֶבֶן בְּכִוּוּן אָפְקִי בִּמְהִירוּת הַתְחָלָתִית v = 12_{m/sec}, (רְאוּ אִיּוּר מְצֹרָף) כְּדֵי שֶׁהִיא תִּפְגַּע בַּקַּרְקַע בְּאוֹתָהּ נְקֻדָּה B ?",
+      "translit": "Khashvu:\n'. Mahu hamerkhak ben hankudot A v-B ? V. Mahu meshekh zman tnu'at ha'even ? G. Mahu hagovah hamrabi shel ha'even al maslul tnu'atah ? D. Me'eze govah H me'al nkuda A yesh lizrok et ha'even bkhivun ofki bimhirut hatkhalatit v = 12_{m/sec}, (re'u iyur mtsoraf) kde shehi' tifg'a bakark'a be'otah nkuda B ?",
+      "ru": "Вычислите:\nа. Каково расстояние между точками A и B? б. Какова продолжительность полета камня? в. Какова максимальная высота полета камня на траектории его движения? г. С какой высоты H над точкой A следует бросить камень горизонтально с начальной скоростью v = 12 м/с (см. рисунок), чтобы он упал на землю в той же точке B?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 19,
+      "he": "שאלה 4.13",
+      "he_niqqud": "שְׁאֵלָה 4.13",
+      "translit": "She'ela 4.13",
+      "ru": "Задача 4.13",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 20,
+      "he": "רקטת תאורה משוגרת בזווית של 45° יחסית לאופק. לאחר 6 שניות מהשיגור, בשיא הגובה של מסלול התנועה, מופעל גוף התאורה. כמוצג באיור לשאלה.",
+      "he_niqqud": "רַקֶּטַת תְּאוּרָה מְשׁוּגֶרֶת בְּזָוִית שֶׁל 45° יַחֲסִית לָאֹפֶק. לְאַחַר 6 שְׁנִיּוֹת מֵהַשִּׁגּוּר, בְּשִׂיא הַגֹּבַהּ שֶׁל מַסְלוּל הַתְּנוּעָה, מֻפְעָל גּוּף הַתְּאוּרָה. כַּמֻּצָּג בָּאִיּוּר לִשְׁאֵלָה.",
+      "translit": "Raketat te'ura mshugeret bzavit shel 45° yakhasit la'ofek. Le'akhar 6 shniyot mehashigur, bsi' hagovah shel maslul hatnu'a, muf'al guf hate'ura. Kamutsag ba'iyur lish'ela.",
+      "ru": "Осветительная ракета запускается под углом 45° к горизонту. Через 6 секунд после запуска, в наивысшей точке траектории, срабатывает осветительный элемент, как показано на рисунке к задаче.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 21,
+      "he": "חשבו:\nא. מהי מהירות השיגור של הרקטה כדי שגוף התאורה יופעל בשיא הגובה של מסלול תנועתה ? ב. באיזה גובה יופעל גוף התאורה ? ג. באיזה מרחק אופקי מנקודת השיגור יופעל גוף התאורה ? ד. מהי מהירות הרקטה בעת הפעלת גוף התאורה ? ה. אם הרקטה תשוגר אנכית במהירות ההתחלתית שחושבה בסעיף א', באיזה גובה יופעל גוף התאורה ? אם הוא מופעל 6 שניות לאחר השיגור.",
+      "he_niqqud": "חַשְּׁבוּ:\nא. מַהִי מְהִירוּת הַשִּׁגּוּר שֶׁל הָרַקֶּטָה כְּדֵי שֶׁגּוּף הַתְּאוּרָה יֻפְעַל בְּשִׂיא הַגֹּבַהּ שֶׁל מַסְלוּל תְּנוּעָתָהּ ? ב. בְּאֵיזֶה גֹּבַהּ יֻפְעַל גּוּף הַתְּאוּרָה ? ג. בְּאֵיזֶה מֶרְחָק אָפְקִי מִנְּקֻדַּת הַשִּׁגּוּר יֻפְעַל גּוּף הַתְּאוּרָה ? ד. מַהִי מְהִירוּת הָרַקֶּטָה בְּעֵת הַפְעָלַת גּוּף הַתְּאוּרָה ? ה. אִם הָרַקֶּטָה תְּשׁוּגַר אֲנָכִית בִּמְהִירוּת הַהַתְחָלָתִית שֶׁחֻשְּׁבָה בִּסְעִיף א', בְּאֵיזֶה גֹּבַהּ יֻפְעַל גּוּף הַתְּאוּרָה ? אִם הוּא מֻפְעָל 6 שְׁנִיּוֹת לְאַחַר הַשִּׁגּוּר.",
+      "translit": "Khashvu:\n'. Mahi mhirut hashigur shel haraketa kde sheguf hate'ura yuf'al bsi' hagovah shel maslul tnu'atah ? V. Be'eze govah yuf'al guf hate'ura ? G. Be'eze merkhak ofki minkudat hashigur yuf'al guf hate'ura ? D. Mahi mhirut haraketa be'et haf'alat guf hate'ura ? H. Im haraketa tshugar anakhit bimhirut hahatkhalatit shekhushva bis'if '', be'eze govah yuf'al guf hate'ura ? Im hu' muf'al 6 shniyot le'akhar hashigur.",
+      "ru": "Вычислите:\nа. Какова начальная скорость запуска ракеты, чтобы осветительный элемент сработал в верхней точке траектории? б. На какой высоте сработает осветительный элемент? в. На каком горизонтальном расстоянии от точки старта сработает осветительный элемент? г. Какова скорость ракеты в момент срабатывания осветительного элемента? д. Если ракету запустить вертикально с начальной скоростью, рассчитанной в пункте «а», на какой высоте сработает осветительный элемент (если он срабатывает через 6 секунд после запуска)?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 22,
+      "he": "שאלה 4.14",
+      "he_niqqud": "שְׁאֵלָה 4.14",
+      "translit": "She'ela 4.14",
+      "ru": "Задача 4.14",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 23,
+      "he": "באיור לשאלה מתואר ילד הזורק כדור מגובה 1.2 מטר במהירות התחלתית של 15_{m/sec} בכיוון של גדר הנמצאת במרחק של חמישה מטרים ממנו. גובה הגדר שלושה מטרים.",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה מְתֹאָר יֶלֶד הַזּוֹרֵק כַּדּוּר מִגֹּבַהּ 1.2 מֶטֶר בִּמְהִירוּת הַתְחָלָתִית שֶׁל 15_{m/sec} בְּכִוּוּן שֶׁל גָּדֵר הַנִּמְצֵאת בְּמֶרְחָק שֶׁל חֲמִשָּׁה מֶטְרִים מִמֶּנּוּ. גֹּבַהּ הַגָּדֵר שְׁלוֹשָׁה מֶטְרִים.",
+      "translit": "Ba'iyur lish'ela mto'ar yeled hazorek kadur migovah 1.2 meter bimhirut hatkhalatit shel 15_{m/sec} bkhivun shel gader hanimtse't bmerkhak shel khamisha metrim mimenu. Govah hagader shlosha metrim.",
+      "ru": "На рисунке к задаче показан мальчик, бросающий мяч с высоты 1,2 метра с начальной скоростью 15 м/с в направлении забора, находящегося на расстоянии 5 метров от него. Высота забора 3 метра.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 24,
+      "he": "חשבו:\nא. אם הילד זורק את הכדור בזווית 20° מעל האופק, תוך כמה זמן הכדור יגיע לגדר ? האם הכדור יהיה בעלייה או בירידה בעת הגעתו לגדר? ב. האם הכדור יפגע בגדר או יחלוף מעליה ? ג. אם הילד יזרוק את הכדור אופקית, במהירות ההתחלתית הנתונה, האם הכדור יגיע לגדר ? אם כן, באיזה גובה מעל הקרקע הוא יפגע בגדר ? אם לא, באיזה מרחק מהגדר הכדור יפגע בקרקע ?",
+      "he_niqqud": "חַשְּׁבוּ:\nא. אִם הַיֶּלֶד זוֹרֵק אֶת הַכַּדּוּר בְּזָוִית 20° מֵעַל הָאֹפֶק, תּוֹךְ כַּמָּה זְמַן הַכַּדּוּר יַגִּיעַ לַגָּדֵר ? הַאִם הַכַּדּוּר יִהְיֶה בַּעֲלִיָּה אוֹ בִּירִידָה בְּעֵת הַגָּעָתוֹ לַגָּדֵר? ב. הַאִם הַכַּדּוּר יִפְגַּע בַּגָּדֵר אוֹ יַחְלֹף מֵעָלֶיהָ ? ג. אִם הַיֶּלֶד יִזְרֹק אֶת הַכַּדּוּר אָפְקִית, בִּמְהִירוּת הַהַתְחָלָתִית הַנְּתוּנָה, הַאִם הַכַּדּוּר יַגִּיעַ לַגָּדֵר ? אִם כֵּן, בְּאֵיזֶה גֹּבַהּ מֵעַל הַקַּרְקַע הוּא יִפְגַּע בַּגָּדֵר ? אִם לֹא, בְּאֵיזֶה מֶרְחָק מֵהַגָּדֵר הַכַּדּוּר יִפְגַּע בַּקַּרְקַע ?",
+      "translit": "Khashvu:\n'. Im hayeled zorek et hakadur bzavit 20° me'al ha'ofek, tokh kama zman hakadur yagi'a lagader ? Ha'im hakadur yihye ba'aliya o birida be'et haga'ato lagader? V. Ha'im hakadur yifg'a bagader o yakhlof me'aleha ? G. Im hayeled yizrok et hakadur afkit, bimhirut hahatkhalatit hantuna, ha'im hakadur yagi'a lagader ? Im ken, be'eze govah me'al hakark'a hu' yifg'a bagader ? Im lo', be'eze merkhak mehagader hakadur yifg'a bakark'a ?",
+      "ru": "Вычислите:\nа. Если мальчик бросает мяч под углом 20° к горизонту, через какое время мяч долетит до забора? Будет ли мяч на подъеме или на спуске в момент достижения забора? б. Попадет ли мяч в забор или пролетит над ним? в. Если мальчик бросит мяч горизонтально с той же начальной скоростью, достигнет ли мяч забора? Если да, то на какой высоте над землей он ударится о забор? Если нет, то на каком расстоянии от забора мяч упадет на землю?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 25,
+      "he": "פרק 5: בעיות בתחום כוחות במישור וחיכוך שאלה 5.1:",
+      "he_niqqud": "פֶּרֶק 5: בְּעָיוֹת בִּתְחוּם כּוֹחוֹת בְּמִישׁוֹר וְחִכּוּךְ שְׁאֵלָה 5.1:",
+      "translit": "Perek 5: be'ayot bitkhum kokhot bmishor vekhikukh she'ela 5.1:",
+      "ru": "Глава 5: Задачи по силам на плоскости и трению. Задача 5.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 26,
+      "he": "לצורך ניסוי מנוע סילון הרכיבו את המנוע על עגלה המסוגלת לנוע אופקית על גבי מסילת רכבת. המסה של כל המערכת (העגלה עם המנוע) הייתה 350 ק\"ג.",
+      "he_niqqud": "לְצֹרֶךְ נִסּוּי מְנוֹעַ סִילוֹן הִרְכִּיבוּ אֶת הַמָּנוֹעַ עַל עֲגָלָה הַמְּסֻגֶּלֶת לָנוּעַ אָפְקִית עַל גַּבֵּי מְסִלַּת רַכֶּבֶת. הַמַּסָּה שֶׁל כָּל הַמַּעֲרֶכֶת (הָעֲגָלָה עִם הַמָּנוֹעַ) הָיְתָה 350 ק\"ג.",
+      "translit": "Ltsorekh nisuy mno'a silon hirkivu et hamano'a al agala hamsugelet lanu'a afkit al gabe msilat rakevet. Hamasa shel kol hama'arekhet (ha'agala im hamano'a) hayta 350 kg\".",
+      "ru": "Для испытания реактивного двигателя его установили на тележку, способную перемещаться горизонтально по рельсовому пути. Масса всей системы (тележка с двигателем) составляла 350 кг.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 27,
+      "he": "חשב את כוח הדחף של המנוע (F), אם בתנועה למרחק של 100 מ' הגיעה העגלה למהירות של 120 ק\"מ לשעה. העגלה נעה במהירות שוות-תאוצה וכוח ההתנגדות לתנועה (T) היה 120 ניוטון.",
+      "he_niqqud": "חַשֵּׁב אֶת כֹּחַ הַדַּחַף שֶׁל הַמָּנוֹעַ (F), אִם בִּתְנוּעָה לְמֶרְחָק שֶׁל 100 מ' הִגִּיעָה הָעֲגָלָה לִמְהִירוּת שֶׁל 120 ק\"מ לְשָׁעָה. הָעֲגָלָה נָעָה בִּמְהִירוּת שַׁוַּת-תְּאוּצָה וְכֹחַ הַהִתְנַגְּדוּת לַתְּנוּעָה (T) הָיָה 120 נְיוּטוֹן.",
+      "translit": "Khashev et koakh hadakhaf shel hamano'a (F), im bitnu'a lmerkhak shel 100 m' higi'a ha'agala limhirut shel 120 km\" lsha'a. Ha'agala na'a bimhirut shavat-te'utsa vekhoakh hahitnagdut latnu'a (T) haya 120 nyuton.",
+      "ru": "Рассчитайте силу тяги двигателя (F), если при движении на расстояние 100 м тележка достигла скорости 120 км/ч. Движение тележки было равноускоренным, а сила сопротивления движению (T) составляла 120 Н.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 28,
+      "he": "הנח כי מסת העגלה עם המנוע נשארים ללא שינוי.",
+      "he_niqqud": "הַנַּח כִּי מַסַּת הָעֲגָלָה עִם הַמָּנוֹעַ נִשְׁאָרִים לְלֹא שִׁנּוּי.",
+      "translit": "Hanakh ki masat ha'agala im hamano'a nish'arim llo' shinuy.",
+      "ru": "Считайте, что масса тележки с двигателем остается неизменной.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 29,
+      "he": "שאלה 5.2:",
+      "he_niqqud": "שְׁאֵלָה 5.2:",
+      "translit": "She'ela 5.2:",
+      "ru": "Задача 5.2:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 30,
+      "he": "גוף בעל מסה של 20Kg נע (ימינה) על פני משטח חלק במהירות 0.5 m/s. ברגע מסוים מופעל עליו כוח של 40N בכיוון המנוגד לכיוון תנועתו הקודמת.",
+      "he_niqqud": "גּוּף בַּעַל מַסָּה שֶׁל 20Kg נָע (יָמִינָה) עַל פְּנֵי מִשְׁטָח חָלָק בִּמְהִירוּת 0.5 m/s. בְּרֶגַע מְסֻיָּם מֻפְעָל עָלָיו כֹּחַ שֶׁל 40N בְּכִוּוּן הַמְּנֻגָּד לְכִוּוּן תְּנוּעָתוֹ הַקּוֹדֶמֶת.",
+      "translit": "Guf ba'al masa shel 20Kg n'a (yamina) al pne mishtakh khalak bimhirut 0.5 m/s. Breg'a msuyam muf'al alayw koakh shel 40N bkhivun hamnugad lkhivun tnu'ato hakodemet.",
+      "ru": "Тело массой 20 кг движется (вправо) по гладкой поверхности со скоростью 0,5 м/с. В некоторый момент времени к нему прикладывается сила 40 Н, направленная противоположно его предыдущему движению.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 31,
+      "he": "חשב מה תהיה מהירות הגוף (שיעור וכיוון), 3 sec לאחר מועד הפעלת הכוח?",
+      "he_niqqud": "חַשֵּׁב מַה תִּהְיֶה מְהִירוּת הַגּוּף (שִׁעוּר וְכִוּוּן), 3 sec לְאַחַר מוֹעֵד הַפְעָלַת הַכֹּחַ?",
+      "translit": "Khashev mah tihye mhirut haguf (shi'ur vekhivun), 3 sec le'akhar mo'ed haf'alat hakoakh?",
+      "ru": "Рассчитайте, какой будет скорость тела (величина и направление) через 3 секунды после начала действия силы?",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 32,
+      "he": "שאלה 5.3:",
+      "he_niqqud": "שְׁאֵלָה 5.3:",
+      "translit": "She'ela 5.3:",
+      "ru": "Задача 5.3:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 33,
+      "he": "במכונית שמסתה (m) - 2,250 ק\"ג, והנוסעת במהירות של 98 קמ\"ש, מפעיל הנהג את המעצורים וגורם לנעילת הגלגלים, ולתנועת המכונית בהחלקה לאורך מרחק d, עד להקטנת המהירות ל-80 קמ\"ש.",
+      "he_niqqud": "בִּמְכוֹנִית שֶׁמַּסָּתָהּ (m) - 2,250 ק\"ג, וְהַנּוֹסַעַת בִּמְהִירוּת שֶׁל 98 קמ\"ש, מַפְעִיל הַנַּהָג אֶת הַמַּעֲצוֹרִים וְגוֹרֵם לִנְעִילַת הַגַּלְגַּלִּים, וְלִתְנוּעַת הַמְּכוֹנִית בְּהַחְלָקָה לְאֹרֶךְ מֶרְחָק d, עַד לְהַקְטָנַת הַמְּהִירוּת לְ-80 קמ\"ש.",
+      "translit": "Bimkhonit shemasatah (m) - 2,250 kg\", vehanosa'at bimhirut shel 98 kmsh\", maf'il hanahag et hama'atsorim vegorem lin'ilat hagalgalim, velitnu'at hamkhonit bhakhlaka le'orekh merkhak d, ad lhaktanat hamhirut l-80 kmsh\".",
+      "ru": "В автомобиле массой (m) 2250 кг, едущем со скоростью 98 км/ч, водитель применяет тормоза, что приводит к блокировке колес и юзу автомобиля на расстоянии d до снижения скорости до 80 км/ч.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 34,
+      "he": "אם מקדם החיכוך הקינטי שווה \\mu_k = 0.3, חשב:\nא. את המרחק (d) שעברה המכונית בהחלקה. ב. את ההספק P (בקילוואטים) שאותו פיתח כוח החיכוך בשעת ההחלקה.\nתאוצת הכובד: g = 9.81_{m/sec^2}\nהערה: 1kW = 1 \\frac{kN \\cdot m}{sec}",
+      "he_niqqud": "אִם מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי שָׁוֶה \\mu_k = 0.3, חַשֵּׁב:\nא. אֶת הַמֶּרְחָק (d) שֶׁעָבְרָה הַמְּכוֹנִית בְּהַחְלָקָה. ב. אֶת הַהֶסְפֵּק P (בְּקִילוֹוָאטִים) שֶׁאוֹתוֹ פִּתַּח כֹּחַ הַחִכּוּךְ בִּשְׁעַת הַהַחְלָקָה.\nתְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}\nהֶעָרָה: 1kW = 1 \\frac{kN \\cdot m}{sec}",
+      "translit": "Im mkadem hakhikukh hakineti shave \\mu_k = 0.3, khashev:\n'. Et hamerkhak (d) she'avra hamkhonit bhakhlaka. V. Et hahespek P (bkilova'tim) she'oto pitakh koakh hakhikukh bish'at hahakhlaka.\nTe'utsat hakoved: g = 9.81_{m/sec^2}\nhe'ara: 1kW = 1 \\frac{kN \\cdot m}{sec}",
+      "ru": "Если коэффициент кинетического трения равен \\mu_k = 0.3, вычислите:\nа. Расстояние (d), пройденное автомобилем при скольжении.\nб. Мощность P (в киловаттах), развиваемую силой трения во время скольжения.\nУскорение свободного падения: g = 9.81 м/с²\nПримечание: 1 кВт = 1 (кН · м)/с",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 35,
+      "he": "פרק 6: בעיות בתחום תנועה במישור משופע שאלה 6.1:",
+      "he_niqqud": "פֶּרֶק 6: בְּעָיוֹת בִּתְחוּם תְּנוּעָה בְּמִישׁוֹר מְשׁוּפָּע שְׁאֵלָה 6.1:",
+      "translit": "Perek 6: be'ayot bitkhum tnu'a bmishor mshup'a she'ela 6.1:",
+      "ru": "Глава 6: Задачи на движение по наклонной плоскости. Задача 6.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 36,
+      "he": "גוף A שמסתו (Q) 200 ניוטון נמשך במהירות קבועה ע\"י כוח Q, השווה 160 ניוטון, במורד המישור המשופע לאורך 1.5 מטר. הכוח Q נטוי לקו האופקי בזווית של 10°. מקדם החיכוך הסטטי (\\mu) בין המישור המשופע לבין גוף A הוא 0.3 והזווית \\theta שווה 40°.",
+      "he_niqqud": "גּוּף A שֶׁמַּסָּתוֹ (Q) 200 נְיוּטוֹן נִמְשָׁךְ בִּמְהִירוּת קְבוּעָה עַ\"י כֹּחַ Q, הַשָּׁוֶה 160 נְיוּטוֹן, בְּמוֹרַד הַמִּישׁוֹר הַמְּשׁוּפָּע לְאֹרֶךְ 1.5 מֶטֶר. הַכֹּחַ Q נָטוּי לְקַו הָאָפְקִי בְּזָוִית שֶׁל 10°. מְקַדֵּם הַחִכּוּךְ הַסְטָטִי (\\mu) בֵּין הַמִּישׁוֹר הַמְּשׁוּפָּע לְבֵין גּוּף A הוּא 0.3 וְהַזָּוִית \\theta שָׁוָה 40°.",
+      "translit": "Guf A shemasato (Q) 200 nyuton nimshakh bimhirut kvu'a ay\" koakh Q, hashave 160 nyuton, bmorad hamishor hamshup'a le'orekh 1.5 meter. Hakoakh Q natuy lkav ha'ofki bzavit shel 10°. Mkadem hakhikukh hastati (\\mu) ben hamishor hamshup'a lven guf A hu' 0.3 vehazavit \\theta shava 40°.",
+      "ru": "Тело A весом (Q) 200 Н тянут с постоянной скоростью силой Q, равной 160 Н, вниз по наклонной плоскости на расстояние 1,5 м. Сила Q наклонена к горизонту под углом 10°. Коэффициент статического трения (\\mu) между наклонной плоскостью и телом A равен 0,3, а угол наклона \\theta равен 40°.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 37,
+      "he": "חשב את העבודה הנעשית ע\"י כל כוח בנפרד, הפועל על הגוף A, וכן את העבודה הכוללת הנעשית ע\"י כל הכוחות הפועלים על הגוף ביחד.",
+      "he_niqqud": "חַשֵּׁב אֶת הָעֲבוֹדָה הַנַּעֲשֵׂית עַ\"י כָּל כֹּחַ בְּנִפְרָד, הַפּוֹעֵל עַל הַגּוּף A, וְכֵן אֶת הָעֲבוֹדָה הַכּוֹלֶלֶת הַנַּעֲשֵׂית עַ\"י כָּל הַכֹּחוֹת הַפּוֹעֲלִים עַל הַגּוּף בְּיַחַד.",
+      "translit": "Khashev et ha'avoda hana'aset ay\" kol koakh bnifrad, hapo'el al haguf A, vekhen et ha'avoda hakolelet hana'aset ay\" kol hakokhot hapo'alim al haguf byakhad.",
+      "ru": "Рассчитайте работу каждой отдельной силы, действующей на тело A, а также полную работу всех сил, действующих на тело совместно.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 38,
+      "he": "שאלה 6.2:",
+      "he_niqqud": "שְׁאֵלָה 6.2:",
+      "translit": "She'ela 6.2:",
+      "ru": "Задача 6.2:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 39,
+      "he": "מנוע שהספקו (P) 0.5 קילוואט, מושך במעלה המישור המשופע עומס שמשקלו (W) הוא 2 ק\"נ. המישור המשופע נטוי כלפי הקו האופקי בזווית \\alpha = 40^\\circ. מקדם החיכוך (\\mu) בין העומס והמישור המשופע הוא 0.25. מהו הזמן t הדרוש להעלאת העומס בגובה h השווה 5 מטר ? הנח שהתנועה היא קצובה.",
+      "he_niqqud": "מָנוֹעַ שֶׁהֶסְפֵּקוֹ (P) 0.5 קִילוֹוָאט, מוֹשֵׁךְ בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע עֹמֶס שֶׁמִּשְׁקָלוֹ (W) הוּא 2 ק\"נ. הַמִּישׁוֹר הַמְּשׁוּפָּע נָטוּי כְּלַפֵּי הַקַּו הָאָפְקִי בְּזָוִית \\alpha = 40^\\circ. מְקַדֵּם הַחִכּוּךְ (\\mu) בֵּין הָעֹמֶס וְהַמִּישׁוֹר הַמְּשׁוּפָּע הוּא 0.25. מַהוּ הַזְּמַן t הַדָּרוּשׁ לְהַעֲלָאַת הָעֹמֶס בְּגֹבַהּ h הַשָּׁוֶה 5 מֶטֶר ? הַנַּח שֶׁהַתְּנוּעָה הִיא קְצוּבָה.",
+      "translit": "Mano'a shehespeko (P) 0.5 kilova't, moshekh bma'ale hamishor hamshup'a omes shemishkalo (W) hu' 2 kn\". Hamishor hamshup'a natuy klape hakav ha'ofki bzavit \\alpha = 40^\\circ. Mkadem hakhikukh (\\mu) ben ha'omes vehamishor hamshup'a hu' 0.25. Mahu hazman t hadarush lha'ala'at ha'omes bgovah h hashave 5 meter ? Hanakh shehatnu'a hi' ktsuva.",
+      "ru": "Двигатель мощностью (P) 0,5 кВт тянет вверх по наклонной плоскости груз весом (W) 2 кН. Наклонная плоскость составляет с горизонтом угол \\alpha = 40^\\circ. Коэффициент трения (\\mu) между грузом и наклонной плоскостью равен 0,25. Каково время t, необходимое для подъема груза на высоту h = 5 м? Считайте движение равномерным.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 40,
+      "he": "שאלה 6.3:",
+      "he_niqqud": "שְׁאֵלָה 6.3:",
+      "translit": "She'ela 6.3:",
+      "ru": "Задача 6.3:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 41,
+      "he": "בלוק שמסתו m מחליק במורד של מישור משופע מחוספס, הנטוי למישור האופקי בזווית \\alpha = 30^\\circ. תנועת הבלוק מתחילה מהנקודה העליונה של המורד ממצב של מנוחה. בניסוי מדויק שנעשה במעבדה התברר כי הבלוק עבר את כל המורד במשך 1.12 שניות.",
+      "he_niqqud": "בְּלוֹק שֶׁמַּסָּתוֹ m מַחְלִיק בְּמוֹרָד שֶׁל מִישׁוֹר מְשׁוּפָּע מְחֻסְפָּס, הַנָּטוּי לַמִּישׁוֹר הָאָפְקִי בְּזָוִית \\alpha = 30^\\circ. תְּנוּעַת הַבְּלוֹק מַתְחִילָה מֵהַנְּקֻדָּה הָעֶלְיוֹנָה שֶׁל הַמּוֹרָד מִמַּצָּב שֶׁל מְנוּחָה. בְּנִסּוּי מְדֻיָּק שֶׁנַּעֲשָׂה בַּמַּעְבָּדָה הִתְבָּרֵר כִּי הַבְּלוֹק עָבַר אֶת כָּל הַמּוֹרָד בְּמֶשֶׁךְ 1.12 שְׁנִיּוֹת.",
+      "translit": "Blok shemasato m makhlik bmorad shel mishor mshup'a mkhuspas, hanatuy lamishor ha'ofki bzavit \\alpha = 30^\\circ. Tnu'at hablok matkhila mehankuda ha'elyona shel hamorad mimatsav shel mnukha. Bnisuy mduyak shena'asa bama'bada hitbarer ki hablok avar et kol hamorad bmeshekh 1.12 shniyot.",
+      "ru": "Брусок массой m соскальзывает вниз по шероховатой наклонной плоскости, наклоненной к горизонту под углом \\alpha = 30^\\circ. Движение бруска начинается из верхней точки склона из состояния покоя. В ходе точного лабораторного эксперимента было установлено, что брусок прошел весь склон за 1,12 секунды.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 42,
+      "he": "חשב את מקדם החיכוך בין המישור המשופע לבין פני הבלוק ואת מהירות הבלוק בנקודה התחתונה של המישור המשופע. גובה המישור המשופע (h) שווה 1 מטר ותאוצת הכובד (g) 9.81 מטר לשנייה בריבוע.",
+      "he_niqqud": "חַשֵּׁב אֶת מְקַדֵּם הַחִכּוּךְ בֵּין הַמִּישׁוֹר הַמְּשׁוּפָּע לְבֵין פְּנֵי הַבְּלוֹק וְאֶת מְהִירוּת הַבְּלוֹק בִּנְקֻדָּה הַתַּחְתּוֹנָה שֶׁל הַמִּישׁוֹר הַמְּשׁוּפָּע. גֹּבַהּ הַמִּישׁוֹר הַמְּשׁוּפָּע (h) שָׁוֶה 1 מֶטֶר וּתְאוּצַת הַכֹּבֶד (g) 9.81 מֶטֶר לִשְׁנִיָּה בְּרִבּוּעַ.",
+      "translit": "Khashev et mkadem hakhikukh ben hamishor hamshup'a lven pne hablok ve'et mhirut hablok binkuda hatakhtona shel hamishor hamshup'a. Govah hamishor hamshup'a (h) shave 1 meter ute'utsat hakoved (g) 9.81 meter lishniya bribu'a.",
+      "ru": "Рассчитайте коэффициент трения между наклонной плоскостью и поверхностью бруска, а также скорость бруска в нижней точке наклонной плоскости. Высота наклонной плоскости (h) равна 1 метр, а ускорение свободного падения (g) — 9,81 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 43,
+      "he": "שאלה 6.4:",
+      "he_niqqud": "שְׁאֵלָה 6.4:",
+      "translit": "She'ela 6.4:",
+      "ru": "Задача 6.4:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 44,
+      "he": "שני גופים W_1 , W_2 מקושרים באמצעות חבל על פני גלגלת, מונחים על משורים משופעים ניצבים זה לזה.\nמקדם החיכוך בין הגוף למישור \\mu = 0.2.\nנתון משקלי הגופים: W_1 = 98_N , W_2 = 0.5W_1\nחשב:\nא. את תאוצת הגופים. ב. את המתיחות בחבל המחבר בין הגופים.\nהערה: הנח שהתנועה בכיוון החץ.",
+      "he_niqqud": "שְׁנֵי גוּפִים W_1 , W_2 מְקֻשָּׁרִים בְּאֶמְצָעוּת חֶבֶל עַל פְּנֵי גַּלְגַּלֶּת, מֻנָּחִים עַל מִישׁוֹרִים מְשׁוּפָּעִים נִצָּבִים זֶה לָזֶה.\nמְקַדֵּם הַחִכּוּךְ בֵּין הַגּוּף לַמִּישׁוֹר \\mu = 0.2.\nנָתוּן מִשְׁקְלֵי הַגּוּפִים: W_1 = 98_N , W_2 = 0.5W_1\nחַשֵּׁב:\nא. אֶת תְּאוּצַת הַגּוּפִים. ב. אֶת הַמְּתִיחוּת בַּחֶבֶל הַמְּחַבֵּר בֵּין הַגּוּפִים.\nהֶעָרָה: הַנַּח שֶׁהַתְּנוּעָה בְּכִוּוּן הַחֵץ.",
+      "translit": "Shne gufim W_1 , W_2 mkusharim be'emtsa'ut khevel al pne galgalet, munakhim al mishorim mshupa'im nitsavim ze laze.\nMkadem hakhikukh ben haguf lamishor \\mu = 0.2.\nNatun mishkle hagufim: W_1 = 98_N , W_2 = 0.5W_1\nkhashev:\n'. Et te'utsat hagufim. V. Et hamtikhut bakhevel hamkhaber ben hagufim.\nHe'ara: hanakh shehatnu'a bkhivun hakhets.",
+      "ru": "Два тела W_1, W_2 соединены канатом через блок и лежат на взаимно перпендикулярных наклонных плоскостях.\nКоэффициент трения между телом и плоскостью \\mu = 0.2.\nДаны веса тел: W_1 = 98 Н, W_2 = 0.5W_1.\nВычислите:\nа. Ускорение тел.\nб. Натяжение троса, соединяющего тела.\nПримечание: считайте, что движение направлено по стрелке.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 45,
+      "he": "שאלה 6.5: (אנרגיה וכוחות)",
+      "he_niqqud": "שְׁאֵלָה 6.5: (אֶנֶרְגְּיָה וְכוֹחוֹת)",
+      "translit": "She'ela 6.5: (energya vekhokhot)",
+      "ru": "Задача 6.5: (Энергия и силы)",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 46,
+      "he": "רכב נוסע ממצב של מנוחה מנקודה A ועובר את הקטע האופקי AB, שאורכו S, בתנועה שוות תאוצה. שיעור התאוצה (a) הוא 3 מטר לשנייה בריבוע (a = 3_{m/sec^2}). בנקודה B מכבה הנהג את המנוע והרכב מתקדם בגלגול חופשי. הוא עולה במעלה המישור המשופע בגובה H השווה 10 מ' ומנקודה C הוא ממשיך בדרך אופקית .CD",
+      "he_niqqud": "רֶכֶב נוֹסֵעַ מִמַּצָּב שֶׁל מְנוּחָה מִנְּקֻדָּה A וְעוֹבֵר אֶת הַקֶּטַע הָאָפְקִי AB, שֶׁאָרְכּוֹ S, בִּתְנוּעָה שַׁוַּת תְּאוּצָה. שִׁעוּר הַתְּאוּצָה (a) הוּא 3 מֶטֶר לִשְׁנִיָּה בְּרִבּוּעַ (a = 3_{m/sec^2}). בִּנְקֻדָּה B מְכַבֶּה הַנַּהָג אֶת הַמָּנוֹעַ וְהָרֶכֶב מִתְקַדֵּם בְּגִלְגּוּל חָפְשִׁי. הוּא עוֹלֶה בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע בְּגֹבַהּ H הַשָּׁוֶה 10 מ' וּמִנְּקֻדָּה C הוּא מַמְשִׁיךְ בְּדֶרֶךְ אָפְקִית .CD",
+      "translit": "Rekhev nose'a mimatsav shel mnukha minkuda A ve'over et haket'a ha'ofki AB, she'orko S, bitnu'a shavat te'utsa. Shi'ur hate'utsa (a) hu' 3 meter lishniya bribu'a (a = 3_{m/sec^2}). Binkuda B mkhabe hanahag et hamano'a veharekhev mitkadem bgilgul khofshi. Hu' ole bma'ale hamishor hamshup'a bgovah H hashave 10 m' uminkuda C hu' mamshikh bderekh afkit .CD",
+      "ru": "Автомобиль начинает движение из состояния покоя из точки A и проходит горизонтальный участок AB длиной S с постоянным ускорением. Величина ускорения (a) составляет 3 м/с² (a = 3 м/с²). В точке B водитель выключает двигатель, и автомобиль движется по инерции. Он поднимается по наклонной плоскости на высоту H = 10 м и из точки C продолжает путь по горизонтальной дороге CD.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 47,
+      "he": "א. מה צריך להיות אורך הקטע האופקי S כדי שהרכב יעלה במעלה המישור המשופע אם ידוע שמהירותו בנקודה C הינה 4 מטר לשנייה. ב. מהי מהירות הרכב בסוף קטע S. ג. מהו המרחק (S_1) שבו יעבור הרכב בקטע CD, אם הנהג יפעיל את הבלמים בנקודה C ? הנח שכוח הבלימה שווה ל-0.25 ממשקלו של הרכב, ובקטע זה אין התנגדויות אחרות לתנועת הרכב. בחישוב הנח שהרכב מהווה נקודה חומרית, הזנח את החיכוך בקטעים AB ו- BC והנח ש: g = 9.81_{m/sec^2}",
+      "he_niqqud": "א. מַה צָּרִיךְ לִהְיוֹת אֹרֶךְ הַקֶּטַע הָאָפְקִי S כְּדֵי שֶׁהָרֶכֶב יַעֲלֶה בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע אִם יָדוּעַ שֶׁמְּהִירוּתוֹ בִּנְקֻדָּה C הִנָּהּ 4 מֶטֶר לִשְׁנִיָּה. ב. מַהִי מְהִירוּת הָרֶכֶב בְּסוֹף קֶטַע S. ג. מַהוּ הַמֶּרְחָק (S_1) שֶׁבּוֹ יַעֲבֹר הָרֶכֶב בְּקֶטַע CD, אִם הַנַּהָג יַפְעִיל אֶת הַבְּלָמִים בִּנְקֻדָּה C ? הַנַּח שֶׁכֹּחַ הַבְּלִימָה שָׁוֶה לְ-0.25 מִמִּשְׁקָלוֹ שֶׁל הָרֶכֶב, וּבְקֶטַע זֶה אֵין הִתְנַגְּדֻיּוֹת אַחֲרוֹת לִתְנוּעַת הָרֶכֶב. בַּחִישּׁוּב הַנַּח שֶׁהָרֶכֶב מְהַוֶּה נְקֻדָּה חָמְרִית, הַזְנַח אֶת הַחִכּוּךְ בַּקְּטָעִים AB וְ- BC וְהַנַּח שֶׁ: g = 9.81_{m/sec^2}",
+      "translit": "'. Mah tsarikh lihyot orekh haket'a ha'ofki S kde sheharekhev ya'ale bma'ale hamishor hamshup'a im yadu'a shemhiruto binkuda C hinah 4 meter lishniya. V. Mahi mhirut harekhev bsof ket'a S. G. Mahu hamerkhak (S_1) shebo ya'avor harekhev bket'a CD, im hanahag yaf'il et hablamim binkuda C ? Hanakh shekoakh hablima shave l-0.25 mimishkalo shel harekhev, uvket'a ze en hitnagduyot akharot litnu'at harekhev. Bakhishuv hanakh sheharekhev mhave nkuda khamrit, haznakh et hakhikukh bakta'im AB v- BC vehanakh she: g = 9.81_{m/sec^2}",
+      "ru": "а. Какой должна быть длина горизонтального участка S, чтобы автомобиль поднялся по наклонной плоскости, если известно, что его скорость в точке C равна 4 м/с? б. Какова скорость автомобиля в конце участка S? в. Какое расстояние (S_1) пройдет автомобиль на участке CD, если водитель задействует тормоза в точке C? Считайте, что тормозная сила равна 0,25 веса автомобиля, а другие сопротивления движению на этом участке отсутствуют. При расчетах считайте автомобиль материальной точкой, пренебрегите трением на участках AB и BC и примите g = 9,81 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 48,
+      "he": "שאלה 6.6:",
+      "he_niqqud": "שְׁאֵלָה 6.6:",
+      "translit": "She'ela 6.6:",
+      "ru": "Задача 6.6:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 49,
+      "he": "גוף שמסתו m קיבל דחיפה והתחיל לנוע במעלה של מישור משופע במהירות תחילית של 12 מטר לשנייה. זווית הנטייה של המישור המשופע כלפי הקו האופקי \\alpha = 20^\\circ. מקדם החיכוך (\\mu) בין הגוף והמישור המשופע הוא 0.4. תאוצת הכובד g = 9.81_{m/sec^2}.",
+      "he_niqqud": "גּוּף שֶׁמַּסָּתוֹ m קִבֵּל דְּחִיפָה וְהִתְחִיל לָנוּעַ בְּמַעֲלֵה שֶׁל מִישׁוֹר מְשׁוּפָּע בִּמְהִירוּת תְּחִלִּית שֶׁל 12 מֶטֶר לִשְׁנִיָּה. זָוִית הַנְּטִיָּה שֶׁל הַמִּישׁוֹר הַמְּשׁוּפָּע כְּלַפֵּי הַקַּו הָאָפְקִי \\alpha = 20^\\circ. מְקַדֵּם הַחִכּוּךְ (\\mu) בֵּין הַגּוּף וְהַמִּישׁוֹר הַמְּשׁוּפָּע הוּא 0.4. תְּאוּצַת הַכֹּבֶד g = 9.81_{m/sec^2}.",
+      "translit": "Guf shemasato m kibel dkhifa vehitkhil lanu'a bma'ale shel mishor mshup'a bimhirut tkhilit shel 12 meter lishniya. Zavit hantiya shel hamishor hamshup'a klape hakav ha'ofki \\alpha = 20^\\circ. Mkadem hakhikukh (\\mu) ben haguf vehamishor hamshup'a hu' 0.4. Te'utsat hakoved g = 9.81_{m/sec^2}.",
+      "ru": "Тело массой m получило толчок и начало двигаться вверх по наклонной плоскости с начальной скоростью 12 м/с. Угол наклона плоскости к горизонту \\alpha = 20^\\circ. Коэффициент трения (\\mu) между телом и плоскостью равен 0,4. Ускорение свободного падения g = 9,81 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 50,
+      "he": "א. חשב את התאוצה a של הגוף בשעת התנועה. ב. חשב את המרחק s שבו יעלה הגוף במעלה המישור המשופע עד שמהירותו תקטן עד ל-5 מטר לשנייה. ג. חשב את המרחק s_1 שבו יעלה הגוף במעלה המישור המשופע עד שיעצור.",
+      "he_niqqud": "א. חַשֵּׁב אֶת הַתְּאוּצָה a שֶׁל הַגּוּף בִּשְׁעַת הַתְּנוּעָה. ב. חַשֵּׁב אֶת הַמֶּרְחָק s שֶׁבּוֹ יַעֲלֶה הַגּוּף בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע עַד שֶׁמְּהִירוּתוֹ תִּקְטַן עַד לְ-5 מֶטֶר לִשְׁנִיָּה. ג. חַשֵּׁב אֶת הַמֶּרְחָק s_1 שֶׁבּוֹ יַעֲלֶה הַגּוּף בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע עַד שֶׁיַּעֲצֹר.",
+      "translit": "'. Khashev et hate'utsa a shel haguf bish'at hatnu'a. V. Khashev et hamerkhak s shebo ya'ale haguf bma'ale hamishor hamshup'a ad shemhiruto tiktan ad l-5 meter lishniya. G. Khashev et hamerkhak s_1 shebo ya'ale haguf bma'ale hamishor hamshup'a ad sheya'atsor.",
+      "ru": "а. Рассчитайте ускорение a тела во время движения. б. Рассчитайте расстояние s, на которое тело поднимется вверх по наклонной плоскости, пока его скорость не уменьшится до 5 м/с. в. Рассчитайте расстояние s_1, на которое тело поднимется вверх по наклонной плоскости до полной остановки.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 51,
+      "he": "שאלה 6.7:",
+      "he_niqqud": "שְׁאֵלָה 6.7:",
+      "translit": "She'ela 6.7:",
+      "ru": "Задача 6.7:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 52,
+      "he": "גוף שמשקלו W מתקדם במעלה של מישור משופע, הנטוי לקו האופקי בזווית \\alpha. הכוח F, המופעל על הגוף, במקביל למישור המשופע, נשאר קבוע במשך כל זמן הפעולה. מקדם החיכוך בין הגוף לבין המישור המשופע הוא \\mu. תאוצת הכובד - (g).",
+      "he_niqqud": "גּוּף שֶׁמִּשְׁקָלוֹ W מִתְקַדֵּם בְּמַעֲלֵה שֶׁל מִישׁוֹר מְשׁוּפָּע, הַנָּטוּי לַקַּו הָאָפְקִי בְּזָוִית \\alpha. הַכֹּחַ F, הַמֻּפְעָל עַל הַגּוּף, בְּמַקְבִּיל לַמִּישׁוֹר הַמְּשׁוּפָּע, נִשְׁאָר קָבוּעַ בְּמֶשֶׁךְ כָּל זְמַן הַפְּעֻלָּה. מְקַדֵּם הַחִכּוּךְ בֵּין הַגּוּף לְבֵין הַמִּישׁוֹר הַמְּשׁוּפָּע הוּא \\mu. תְּאוּצַת הַכֹּבֶד - (g).",
+      "translit": "Guf shemishkalo W mitkadem bma'ale shel mishor mshup'a, hanatuy lakav ha'ofki bzavit \\alpha. Hakoakh F, hamuf'al al haguf, bmakbil lamishor hamshup'a, nish'ar kavu'a bmeshekh kol zman hape'ula. Mkadem hakhikukh ben haguf lven hamishor hamshup'a hu' \\mu. Te'utsat hakoved - (g).",
+      "ru": "Тело весом W движется вверх по наклонной плоскости с углом наклона к горизонту \\alpha. Сила F, приложенная к телу параллельно наклонной плоскости, остается постоянной все время действия. Коэффициент трения между телом и наклонной плоскостью равен \\mu. Ускорение свободного падения — (g).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 53,
+      "he": "א. חשב את הכוח F הפועל על הגוף, אם בתנועתו של הגוף לאורך הקטע AB, יורדת מהירותו מ-6 מטר/שנייה עד ל- 3 מטר/שנייה. ב. מהי העבודה הנעשית בקטע זה? ג. לא פועל כוח F על הגוף, האם הגוף יישאר במנוחה, או שיחליק במורד המישור המשופע?\nנתון: W = 10kN, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2}, AB = 30_m",
+      "he_niqqud": "א. חַשֵּׁב אֶת הַכֹּחַ F הַפּוֹעֵל עַל הַגּוּף, אִם בִּתְנוּעָתוֹ שֶׁל הַגּוּף לְאֹרֶךְ הַקֶּטַע AB, יוֹרֶדֶת מְהִירוּתוֹ מִ-6 מֶטֶר/שְׁנִיָּה עַד לְ- 3 מֶטֶר/שְׁנִיָּה. ב. מַהִי הָעֲבוֹדָה הַנַּעֲשֵׂית בְּקֶטַע זֶה? ג. לֹא פּוֹעֵל כֹּחַ F עַל הַגּוּף, הַאִם הַגּוּף יִשָּׁאֵר בִּמְנוּחָה, אוֹ שֶׁיַּחְלִיק בְּמוֹרַד הַמִּישׁוֹר הַמְּשׁוּפָּע?\nנָתוּן: W = 10kN, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2}, AB = 30_m",
+      "translit": "'. Khashev et hakoakh F hapo'el al haguf, im bitnu'ato shel haguf le'orekh haket'a AB, yoredet mhiruto mi-6 metershniya/ ad l- 3 metershniya/. V. Mahi ha'avoda hana'aset bket'a ze? G. Lo' po'el koakh F al haguf, ha'im haguf yisha'er bimnukha, o sheyakhlik bmorad hamishor hamshup'a?\nNatun: W = 10kN, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2}, AB = 30_m",
+      "ru": "а. Рассчитайте силу F, действующую на тело, если при движении тела вдоль участка AB его скорость падает с 6 м/с до 3 м/с. б. Какова работа, совершаемая на этом участке? в. Если сила F не действует на тело, останется ли тело в покое или соскользнет вниз по наклонной плоскости?\nДано: W = 10 кН, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81 м/с², AB = 30 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 54,
+      "he": "שאלה 6.8:",
+      "he_niqqud": "שְׁאֵלָה 6.8:",
+      "translit": "She'ela 6.8:",
+      "ru": "Задача 6.8:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 55,
+      "he": "גוף שמשקלו W הוא 12kN מתקדם במעלה מישור משופע, הנטוי לקו האופקי בזווית \\alpha. הכוח F, המופעל על הגוף, במקביל למישור המשופע, נשאר קבוע במשך כל זמן הפעולה. בזמן תנועתו של הגוף בקטע AB (שאורכו L), יורדת מהירותו מ- V_0 עד ל- V. מקדם החיכוך הקינטי בין הגוף לבין המישור המשופע הוא \\mu .",
+      "he_niqqud": "גּוּף שֶׁמִּשְׁקָלוֹ W הוּא 12kN מִתְקַדֵּם בְּמַעֲלֵה מִישׁוֹר מְשׁוּפָּע, הַנָּטוּי לַקַּו הָאָפְקִי בְּזָוִית \\alpha. הַכֹּחַ F, הַמֻּפְעָל עַל הַגּוּף, בְּמַקְבִּיל לַמִּישׁוֹר הַמְּשׁוּפָּע, נִשְׁאָר קָבוּעַ בְּמֶשֶׁךְ כָּל זְמַן הַפְּעֻלָּה. בִּזְמַן תְּנוּעָתוֹ שֶׁל הַגּוּף בְּקֶטַע AB (שֶׁאָרְכּוֹ L), יוֹרֶדֶת מְהִירוּתוֹ מִ- V_0 עַד לְ- V. מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַגּוּף לְבֵין הַמִּישׁוֹר הַמְּשׁוּפָּע הוּא \\mu .",
+      "translit": "Guf shemishkalo W hu' 12kN mitkadem bma'ale mishor mshup'a, hanatuy lakav ha'ofki bzavit \\alpha. Hakoakh F, hamuf'al al haguf, bmakbil lamishor hamshup'a, nish'ar kavu'a bmeshekh kol zman hape'ula. Bizman tnu'ato shel haguf bket'a AB (she'orko L), yoredet mhiruto mi- V_0 ad l- V. Mkadem hakhikukh hakineti ben haguf lven hamishor hamshup'a hu' \\mu .",
+      "ru": "Тело весом W = 12 кН движется вверх по наклонной плоскости, наклоненной к горизонту под углом \\alpha. Сила F, приложенная к телу параллельно наклонной плоскости, остается постоянной в течение всего времени действия. Во время движения тела на участке AB (длиной L) его скорость снижается с V_0 до V. Коэффициент кинетического трения между телом и наклонной плоскостью равен \\mu.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 56,
+      "he": "א. חשב את שיעורו של הכוח F. ב. אם לא יפעל הכוח F על הגוף, האם הגוף יישאר במנוחה, או שיחליק במורד המישור המשופע? הנח שמקדמי החיכוך הסטאטי והקינטי שווים.\nנתונים נוספים: L = 30_m , V = 3_{m/sec} , V_0 = 6_{m/sec} , g = 9.81_{m/sec^2} , \\mu = 0.3 , \\alpha = 15^\\circ",
+      "he_niqqud": "א. חַשֵּׁב אֶת שִׁעוּרוֹ שֶׁל הַכֹּחַ F. ב. אִם לֹא יִפְעַל הַכֹּחַ F עַל הַגּוּף, הַאִם הַגּוּף יִשָּׁאֵר בִּמְנוּחָה, אוֹ שֶׁיַּחְלִיק בְּמוֹרַד הַמִּישׁוֹר הַמְּשׁוּפָּע? הַנַּח שֶׁמְּקַדְּמֵי הַחִכּוּךְ הַסְטָטִי וְהַקִּינֶטִי שָׁוִים.\nנְתוּנִים נוֹסָפִים: L = 30_m , V = 3_{m/sec} , V_0 = 6_{m/sec} , g = 9.81_{m/sec^2} , \\mu = 0.3 , \\alpha = 15^\\circ",
+      "translit": "'. Khashev et shi'uro shel hakoakh F. V. Im lo' yif'al hakoakh F al haguf, ha'im haguf yisha'er bimnukha, o sheyakhlik bmorad hamishor hamshup'a? Hanakh shemkadme hakhikukh hastati vehakineti shavim.\nNtunim nosafim: L = 30_m , V = 3_{m/sec} , V_0 = 6_{m/sec} , g = 9.81_{m/sec^2} , \\mu = 0.3 , \\alpha = 15^\\circ",
+      "ru": "а. Рассчитайте величину силы F. б. Если сила F перестанет действовать на тело, останется ли оно в покое или соскользнет вниз по наклонной плоскости? Примите коэффициенты статического и кинетического трения равными.\nДополнительные данные: L = 30 м, V = 3 м/с, V_0 = 6 м/с, g = 9,81 м/с², \\mu = 0.3, \\alpha = 15^\\circ.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 57,
+      "he": "שאלה 6.9:",
+      "he_niqqud": "שְׁאֵלָה 6.9:",
+      "translit": "She'ela 6.9:",
+      "ru": "Задача 6.9:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 58,
+      "he": "באיור לשאלה 4 מתוארת מכונית הנעה ימינה במעלה כביש משופע במהירות 105 קמ\"ש. בנקודה A מפעיל הנהג מעצורים באופן שהגלגלים מחליקים, עד לעצירת המכונית בנקודה B.",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה 4 מְתֹאָרֶת מְכוֹנִית הַנָּעָה יָמִינָה בְּמַעֲלֵה כְּבִישׁ מְשׁוּפָּע בִּמְהִירוּת 105 קמ\"ש. בִּנְקֻדָּה A מַפְעִיל הַנַּהָג מַעֲצוֹרִים בְּאֹפֶן שֶׁהַגַּלְגַּלִּים מַחְלִיקִים, עַד לַעֲצִירַת הַמְּכוֹנִית בִּנְקֻדָּה B.",
+      "translit": "Ba'iyur lish'ela 4 mto'aret mkhonit hana'a yamina bma'ale kvish mshup'a bimhirut 105 kmsh\". Binkuda A maf'il hanahag ma'atsorim be'ofen shehagalgalim makhlikim, ad la'atsirat hamkhonit binkuda B.",
+      "ru": "На рисунке к задаче 4 показан автомобиль, движущийся вправо вверх по наклонной дороге со скоростью 105 км/ч. В точке A водитель применяет тормоза так, что колеса блокируются и скользят до полной остановки автомобиля в точке B.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 59,
+      "he": "שיעור השיפוע של הכביש הוא 6% (זווית השיפוע היא \\alpha = 3.43^\\circ).\nמקדם החיכוך הקינטי בין הגלגלים לבין הכביש הוא \\mu = 0.6.\nא. חשב מהו מרחק העצירה S. ב. חשב מה יהיה מרחק העצירה S במקרה שבו המכונית תנוע במורד המישור המשופע במהירות 105 קמ\"ש ותחליק מנקודה B לנקודה A.",
+      "he_niqqud": "שִׁעוּר הַשִּׁפּוּעַ שֶׁל הַכְּבִישׁ הוּא 6% (זָוִית הַשִּׁפּוּעַ הִיא \\alpha = 3.43^\\circ).\nמְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַגַּלְגַּלִּים לְבֵין הַכְּבִישׁ הוּא \\mu = 0.6.\nא. חַשֵּׁב מַהוּ מֶרְחַק הַעֲצִירָה S. ב. חַשֵּׁב מַה יִּהְיֶה מֶרְחַק הַעֲצִירָה S בַּמִּקְרֶה שֶׁבּוֹ הַמְּכוֹנִית תָּנוּעַ בְּמוֹרַד הַמִּישׁוֹר הַמְּשׁוּפָּע בִּמְהִירוּת 105 קמ\"ש וְתַחְלִיק מִנְּקֻדָּה B לִנְקֻדָּה A.",
+      "translit": "Shi'ur hashipu'a shel hakvish hu' 6% (zavit hashipu'a hi' \\alpha = 3.43^\\circ).\nMkadem hakhikukh hakineti ben hagalgalim lven hakvish hu' \\mu = 0.6.\n'. Khashev mahu merkhak ha'atsira S. V. Khashev mah yihye merkhak ha'atsira S bamikre shebo hamkhonit tanu'a bmorad hamishor hamshup'a bimhirut 105 kmsh\" vetakhlik minkuda B linkuda A.",
+      "ru": "Уклон дороги составляет 6% (угол уклона \\alpha = 3.43^\\circ).\nКоэффициент кинетического трения между колесами и дорогой равен \\mu = 0.6.\nа. Рассчитайте тормозной путь S.\nб. Рассчитайте тормозной путь S в случае, если автомобиль будет двигаться вниз по наклонной плоскости со скоростью 105 км/ч и тормозить юзом от точки B к точке A.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 60,
+      "he": "שאלה 6.10:",
+      "he_niqqud": "שְׁאֵלָה 6.10:",
+      "translit": "She'ela 6.10:",
+      "ru": "Задача 6.10:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 61,
+      "he": "גוף A מונח על מישור משופע, וגוף B מונח על מישור אופקי. שני הגופים מחוברים בכבל העובר דרך הגלגלת, כמתואר באיור לשאלה. גוף B נמשך על ידי כוח אופקי P מסתו של גוף A היא 40 kg ושל גוף B 60 kg מקדם החיכוך הסטטי בין גוף A לבין המישור המשופע \\mu_{s1} = 0.2 ומקדם החיכוך הסטטי בין גוף B לבין המישור האופקי \\mu_{s2} = 0.3. א. שרטט את תרשימי הכוחות הפועלים על כל אחד מהגופים A ו- B בסמוך לתחילת תנועת הגופים ימינה ובמעלה המישור המשופע. ב. חשב את המתיחות הנדרשת בכבל לתחילת התנועה של גוף A במעלה המישור המשופע. ג. חשב את הכוח P הנדרש להפעיל על גוף B לתחילת תנועתו ימינה. הערה: יש להזניח את החיכוך בגלגלת ולהניח שהמתיחויות בשני ענפי הכבל שוות.",
+      "he_niqqud": "גּוּף A מֻנָּח עַל מִישׁוֹר מְשׁוּפָּע, וְגוּף B מֻנָּח עַל מִישׁוֹר אָפְקִי. שְׁנֵי הַגּוּפִים מְחֻבָּרִים בְּכֶבֶל הָעוֹבֵר דֶּרֶךְ הַגַּלְגַּלֶּת, כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה. גּוּף B נִמְשָׁךְ עַל יְדֵי כֹּחַ אָפְקִי P מַסָּתוֹ שֶׁל גּוּף A הִיא 40 kg וְשֶׁל גּוּף B 60 kg מְקַדֵּם הַחִכּוּךְ הַסְטָטִי בֵּין גּוּף A לְבֵין הַמִּישׁוֹר הַמְּשׁוּפָּע \\mu_{s1} = 0.2 וּמְקַדֵּם הַחִכּוּךְ הַסְטָטִי בֵּין גּוּף B לְבֵין הַמִּישׁוֹר הָאָפְקִי \\mu_{s2} = 0.3. א. שַׂרְטֵט אֶת תַּרְשִׁימֵי הַכֹּחוֹת הַפּוֹעֲלִים עַל כָּל אֶחָד מֵהַגּוּפִים A וְ- B בְּסָמוּךְ לִתְחִלַּת תְּנוּעַת הַגּוּפִים יָמִינָה וּבְמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע. ב. חַשֵּׁב אֶת הַמְּתִיחוּת הַנִּדְרֶשֶׁת בַּכֶּבֶל לִתְחִלַּת הַתְּנוּעָה שֶׁל גּוּף A בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע. ג. חַשֵּׁב אֶת הַכֹּחַ P הַנִּדְרָשׁ לְהַפְעִיל עַל גּוּף B לִתְחִלַּת תְּנוּעָתוֹ יָמִינָה. הֶעָרָה: יֵשׁ לְהַזְנִיחַ אֶת הַחִכּוּךְ בַּגַּלְגַּלֶּת וּלְהַנִּיחַ שֶׁהַמְּתִיחוּיּוֹת בִּשְׁנֵי עַנְפֵי הַכֶּבֶל שָׁווֹת.",
+      "translit": "Guf A munakh al mishor mshup'a, veguf B munakh al mishor ofki. Shne hagufim mkhubarim bkhevel ha'over derekh hagalgalet, kamto'ar ba'iyur lish'ela. Guf B nimshakh al yde koakh ofki P masato shel guf A hi' 40 kg veshel guf B 60 kg mkadem hakhikukh hastati ben guf A lven hamishor hamshup'a \\mu_{s1} = 0.2 umkadem hakhikukh hastati ben guf B lven hamishor ha'ofki \\mu_{s2} = 0.3. '. Sartet et tarshime hakokhot hapo'alim al kol ekhad mehagufim A v- B bsamukh litkhilat tnu'at hagufim yamina uvma'ale hamishor hamshup'a. V. Khashev et hamtikhut hanidreshet bakevel litkhilat hatnu'a shel guf A bma'ale hamishor hamshup'a. G. Khashev et hakoakh P hanidrash lhaf'il al guf B litkhilat tnu'ato yamina. He'ara: yesh lhazniakh et hakhikukh bagalgalet ulhaniakh shehamtikhuyot bishne anfe hakevel shavot.",
+      "ru": "Тело A лежит на наклонной плоскости, а тело B — на горизонтальной плоскости. Оба тела соединены тросом, проходящим через блок, как показано на рисунке к задаче. Тело B тянут горизонтальной силой P. Масса тела A равна 40 кг, тела B — 60 кг. Коэффициент статического трения между телом A и наклонной плоскостью \\mu_{s1} = 0.2, а коэффициент статического трения между телом B и горизонтальной плоскостью \\mu_{s2} = 0.3. а. Начертите схемы сил, действующих на каждое из тел A и B непосредственно перед началом движения тел вправо и вверх по наклонной плоскости. б. Рассчитайте натяжение троса, необходимое для начала движения тела A вверх по наклонной плоскости. в. Рассчитайте силу P, которую необходимо приложить к телу B для начала его движения вправо. Примечание: трением в блоке пренебречь и считать натяжения в обеих ветвях троса равными.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 62,
+      "he": "שאלה 6.11:",
+      "he_niqqud": "שְׁאֵלָה 6.11:",
+      "translit": "She'ela 6.11:",
+      "ru": "Задача 6.11:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 63,
+      "he": "גוף A מונח על מישור משופע בזווית 25° וגוף B מונח על מישור משופע בזווית 37°. שני הגופים מחוברים בכבל העובר דרך הגלגלת הקבועה כמתואר באיור לשאלה. ענף a של הכבל מקביל למישור שעליו מונח גוף A וענף b - למישור שעליו מונח גוף B. גוף B נמשך על ידי כוח P הפועל במקביל למישור המשופע עליו מונח גוף B. מסתו של גוף A היא 50kg ושל גוף 40kg-B.",
+      "he_niqqud": "גּוּף A מֻנָּח עַל מִישׁוֹר מְשׁוּפָּע בְּזָוִית 25° וְגוּף B מֻנָּח עַל מִישׁוֹר מְשׁוּפָּע בְּזָוִית 37°. שְׁנֵי הַגּוּפִים מְחֻבָּרִים בְּכֶבֶל הָעוֹבֵר דֶּרֶךְ הַגַּלְגַּלֶּת הַקְּבוּעָה כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה. עֲנַף a שֶׁל הַכֶּבֶל מַקְבִּיל לַמִּישׁוֹר שֶׁעָלָיו מֻנָּח גּוּף A וַעֲנַף b - לַמִּישׁוֹר שֶׁעָלָיו מֻנָּח גּוּף B. גּוּף B נִמְשָׁךְ עַל יְדֵי כֹּחַ P הַפּוֹעֵל בְּמַקְבִּיל לַמִּישׁוֹר הַמְּשׁוּפָּע עָלָיו מֻנָּח גּוּף B. מַסָּתוֹ שֶׁל גּוּף A הִיא 50kg וְשֶׁל גּוּף 40kg-B.",
+      "translit": "Guf A munakh al mishor mshup'a bzavit 25° veguf B munakh al mishor mshup'a bzavit 37°. Shne hagufim mkhubarim bkhevel ha'over derekh hagalgalet hakvu'a kamto'ar ba'iyur lish'ela. Anaf a shel hakevel makbil lamishor she'alayw munakh guf A va'anaf b - lamishor she'alayw munakh guf B. Guf B nimshakh al yde koakh P hapo'el bmakbil lamishor hamshup'a alayw munakh guf B. Masato shel guf A hi' 50kg veshel guf 40kg-B.",
+      "ru": "Тело A лежит на наклонной плоскости с углом 25°, а тело B — на наклонной плоскости с углом 37°. Оба тела соединены тросом, проходящим через неподвижный блок, как показано на рисунке к задаче. Ветвь троса a параллельна плоскости, на которой лежит тело A, а ветвь b — плоскости, на которой лежит тело B. Тело B тянут силой P, действующей параллельно наклонной плоскости, на которой оно лежит. Масса тела A равна 50 кг, тела B — 40 кг.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 64,
+      "he": "מקדם החיכוך הסטטי בין גוף A לבין המישור שעליו הוא מונח הוא \\mu s1 = 0.3 ומקדם החיכוך הסטטי בין גוף B לבין המישור שעליו הוא מונח הוא \\mu s2 = 0.4.",
+      "he_niqqud": "מְקַדֵּם הַחִכּוּךְ הַסְטָטִי בֵּין גּוּף A לְבֵין הַמִּישׁוֹר שֶׁעָלָיו הוּא מֻנָּח הוּא \\mu s1 = 0.3 וּמְקַדֵּם הַחִכּוּךְ הַסְטָטִי בֵּין גּוּף B לְבֵין הַמִּישׁוֹר שֶׁעָלָיו הוּא מֻנָּח הוּא \\mu s2 = 0.4.",
+      "translit": "Mkadem hakhikukh hastati ben guf A lven hamishor she'alayw hu' munakh hu' \\mu s1 = 0.3 umkadem hakhikukh hastati ben guf B lven hamishor she'alayw hu' munakh hu' \\mu s2 = 0.4.",
+      "ru": "Коэффициент статического трения между телом A и плоскостью, на которой оно лежит, равен \\mu s1 = 0.3, а коэффициент статического трения между телом B и плоскостью, на которой оно лежит, равен \\mu s2 = 0.4.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 65,
+      "he": "א. סרטט את תרשימי הכוחות הפועלים על כל אחד מהגופים A ו-B. בסמוך לתחילת תנועת גוף A ימינה ובמעלה המישור המשופע וגוף B שמאלה ובמורד המישור המשופע. ב. חשב את המתיחות הנדרשת בכבל לתחילת התנועה של גוף A במעלה המישור המשופע. ג. חשב את הכוח P הנדרש להפעיל על גוף B לתחילת תנועתו שמאלה.\nהערה: יש להזניח את החיכוך בגלגלת ולהניח שהמתיחויות בשני ענפי הכבל שוות.",
+      "he_niqqud": "א. סַרְטֵט אֶת תַּרְשִׁימֵי הַכֹּחוֹת הַפּוֹעֲלִים עַל כָּל אֶחָד מֵהַגּוּפִים A וְ-B. בְּסָמוּךְ לִתְחִלַּת תְּנוּעַת גּוּף A יָמִינָה וּבְמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע וְגוּף B שְׂמֹאלָה וּבְמוֹרַד הַמִּישׁוֹר הַמְּשׁוּפָּע. ב. חַשֵּׁב אֶת הַמְּתִיחוּת הַנִּדְרֶשֶׁת בַּכֶּבֶל לִתְחִלַּת הַתְּנוּעָה שֶׁל גּוּף A בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשׁוּפָּע. ג. חַשֵּׁב אֶת הַכֹּחַ P הַנִּדְרָשׁ לְהַפְעִיל עַל גּוּף B לִתְחִלַּת תְּנוּעָתוֹ שְׂמֹאלָה.\nהֶעָרָה: יֵשׁ לְהַזְנִיחַ אֶת הַחִכּוּךְ בַּגַּלְגַּלֶּת וּלְהַנִּיחַ שֶׁהַמְּתִיחוּיּוֹת בִּשְׁנֵי עַנְפֵי הַכֶּבֶל שָׁווֹת.",
+      "translit": "'. Sartet et tarshime hakokhot hapo'alim al kol ekhad mehagufim A v-B. Bsamukh litkhilat tnu'at guf A yamina uvma'ale hamishor hamshup'a veguf B smo'la uvmorad hamishor hamshup'a. V. Khashev et hamtikhut hanidreshet bakevel litkhilat hatnu'a shel guf A bma'ale hamishor hamshup'a. G. Khashev et hakoakh P hanidrash lhaf'il al guf B litkhilat tnu'ato smo'la.\nHe'ara: yesh lhazniakh et hakhikukh bagalgalet ulhaniakh shehamtikhuyot bishne anfe hakevel shavot.",
+      "ru": "а. Начертите схемы сил, действующих на каждое из тел A и B непосредственно перед началом движения тела A вправо и вверх по наклонной плоскости, а тела B — влево и вниз по наклонной плоскости. б. Рассчитайте натяжение троса, необходимое для начала движения тела A вверх по наклонной плоскости. в. Рассчитайте силу P, которую необходимо приложить к телу B для начала его движения влево.\nПримечание: трением в блоке пренебречь и считать натяжения в обеих ветвях троса равными.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 66,
+      "he": "שאלה 6.12:",
+      "he_niqqud": "שְׁאֵלָה 6.12:",
+      "translit": "She'ela 6.12:",
+      "ru": "Задача 6.12:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 67,
+      "he": "גוף B מונח על מישור משופע ועליו מונח גוף A, המחובר לקיר בחבל שמקביל למישור המשופע כמתואר באיור לשאלה 2. גוף B נמשך על ידי כוח אופקי P. מסתו של גוף A היא 20kg ושל גוף 50kg B. מקדם החיכוך הסטטי בין שני הגופים \\mu_{s1} = 0.3 ומקדם החיכוך הסטטי בין גוף B לבין המישור המשופע .\\mu_{s1} = 0.5",
+      "he_niqqud": "גּוּף B מֻנָּח עַל מִישׁוֹר מְשׁוּפָּע וְעָלָיו מֻנָּח גּוּף A, הַמְּחֻבָּר לַקִּיר בְּחֶבֶל שֶׁמַּקְבִּיל לַמִּישׁוֹר הַמְּשׁוּפָּע כַּמְּתֹאָר בָּאִיּוּר לִשְׁאֵלָה 2. גּוּף B נִמְשָׁךְ עַל יְדֵי כֹּחַ אָפְקִי P. מַסָּתוֹ שֶׁל גּוּף A הִיא 20kg וְשֶׁל גּוּף 50kg B. מְקַדֵּם הַחִכּוּךְ הַסְטָטִי בֵּין שְׁנֵי הַגּוּפִים \\mu_{s1} = 0.3 וּמְקַדֵּם הַחִכּוּךְ הַסְטָטִי בֵּין גּוּף B לְבֵין הַמִּישׁוֹר הַמְּשׁוּפָּע .\\mu_{s1} = 0.5",
+      "translit": "Guf B munakh al mishor mshup'a ve'alayw munakh guf A, hamkhubar lakir bkhevel shemakbil lamishor hamshup'a kamto'ar ba'iyur lish'ela 2. Guf B nimshakh al yde koakh ofki P. Masato shel guf A hi' 20kg veshel guf 50kg B. Mkadem hakhikukh hastati ben shne hagufim \\mu_{s1} = 0.3 umkadem hakhikukh hastati ben guf B lven hamishor hamshup'a .\\mu_{s1} = 0.5",
+      "ru": "Тело B лежит на наклонной плоскости, а на нем лежит тело A, прикрепленное к стене тросом, параллельным наклонной плоскости, как показано на рисунке к задаче 2. Тело B тянут горизонтальной силой P. Масса тела A равна 20 кг, тела B — 50 кг. Коэффициент статического трения между двумя телами \\mu_{s1} = 0.3, а коэффициент статического трения между телом B и наклонной плоскостью .\\mu_{s1} = 0.5.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    },
+    {
+      "segmentId": 68,
+      "he": "א. סרטט את תרשימי הכוחות, הפועלים על כל אחד מהגופים A ו-B לכל גוף בנפרד. ב. חשב את המתיחות בחבל, בתחילת התנועה של גוף B. ג. חשב את הכוח P הנדרש לתחילת תנועתו של גוף B במורד המישור המשופע.",
+      "he_niqqud": "א. סַרְטֵט אֶת תַּרְשִׁימֵי הַכֹּחוֹת, הַפּוֹעֲלִים עַל כָּל אֶחָד מֵהַגּוּפִים A וְ-B לְכָל גּוּף בְּנִפְרָד. ב. חַשֵּׁב אֶת הַמְּתִיחוּת בַּחֶבֶל, בִּתְחִלַּת הַתְּנוּעָה שֶׁל גּוּף B. ג. חַשֵּׁב אֶת הַכֹּחַ P הַנִּדְרָשׁ לִתְחִלַּת תְּנוּעָתוֹ שֶׁל גּוּף B בְּמוֹרַד הַמִּישׁוֹר הַמְּשׁוּפָּע.",
+      "translit": "'. Sartet et tarshime hakokhot, hapo'alim al kol ekhad mehagufim A v-B lkhol guf bnifrad. V. Khashev et hamtikhut bakhevel, bitkhilat hatnu'a shel guf B. G. Khashev et hakoakh P hanidrash litkhilat tnu'ato shel guf B bmorad hamishor hamshup'a.",
+      "ru": "а. Начертите схемы сил, действующих на каждое из тел A и B, для каждого тела отдельно. б. Рассчитайте натяжение троса в момент начала движения тела B. в. Рассчитайте силу P, необходимую для начала движения тела B вниз по наклонной плоскости.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":false}"
+    }
+  ],
+  "warnings": [],
+  "model": "gemini-3.7-flash",
+  "modelVersion": "gemini-3.7-flash",
+  "promptId": "he-ru-table-v3",
+  "schemaId": "studio-table-rows-schema-v1",
+  "translitProfile": "learner-latin",
+  "translitProfileVersion": "learner-latin-v2-local-niqqud",
+  "localNiqqudCorrections": [],
+  "createdAt": "2026-08-24T23:03:07.447Z"
+}
