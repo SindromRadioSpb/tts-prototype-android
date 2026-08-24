@@ -1,0 +1,35 @@
+{
+  "schema": "physics-page05-production-local-repair-v1",
+  "accepted_at": "2026-08-24T22:46:46.167Z",
+  "app_version": "3.11.429",
+  "deployment_commit": "9ad7730d46641f0623ee733cd295b39dd90ab2e1",
+  "source_image_sha256": "dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10",
+  "row_count": 16,
+  "ui_status": "таблица восстановлена и исправлена локально (без запроса к Gemini)",
+  "gemini_usage": {
+    "requests_total": 76,
+    "requests_today": 2,
+    "daily_limit": 50,
+    "provider_request_consumed": false
+  },
+  "required_heading_translit": "Perek 1: be'ayot bitkhum tnu'a shvat te'utsa",
+  "forbidden_rendered_strings": {
+    "אֶוֹפַנּוֹעַ": false,
+    "אֹפְקִי": false,
+    "Evofano'a": false
+  },
+  "required_rendered_strings": {
+    "אוֹפַנּוֹעַ": true,
+    "וְאָפְקִי": true,
+    "Ofno'a": true
+  },
+  "production_probes": {
+    "consecutive_version_matches": 7,
+    "health_ok": true,
+    "database_ready": true,
+    "migrations_ready": true,
+    "disk_percent_used": 69,
+    "disk_warn": false
+  },
+  "scope": "Rendered-DOM and production-health acceptance of automatic local normalization only; no additional Gemini request and no claim about unseen batch vocabulary."
+}

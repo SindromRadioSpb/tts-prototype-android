@@ -66,3 +66,11 @@ The corrected source removed the prior row-3 consonant mismatch, but the returne
 - the malformed motorcycle niqqud propagated into learner transliteration as `Evofano'a` / `ha'evofano'a`, rather than the required `Ofno'a` / `ha'ofno'a` family.
 
 Therefore the corrected retry validates the forced-regeneration workflow, source correction, request accounting, source coverage, and the exact approved chapter transliteration, but it does **not** approve the current Gemini niqqud output for the three-PDF batch. The exact retry rows are in `live-gold-page05-retry-02-rendered-evidence.json`; the refreshed legacy comparison is in `live-gold-page05-retry-02-comparison.json`.
+
+## Production local-repair acceptance — application 3.11.429
+
+Application 3.11.429 was accepted on production after a bounded Docker build-cache/image cleanup recovered the host from 100% to 69% disk usage without touching volumes. Seven consecutive no-cache client-config probes returned `3.11.429`; `/healthz` reported `ok=true`, database ready, migrations ready, and `disk_warn=false`.
+
+On a fresh production load the previously cached 16-row table repaired itself through the shared audited local normalizer. The UI reported `таблица восстановлена и исправлена локально (без запроса к Gemini)`. Usage remained total 76 and `Сегодня: 2 / 50`, proving that the repair did not consume a provider request. The rendered table contained none of `אֶוֹפַנּוֹעַ`, `אֹפְקִי`, or `Evofano'a`, and did contain `אוֹפַנּוֹעַ`, `וְאָפְקִי`, `Ofno'a`, and the exact approved heading `Perek 1: be'ayot bitkhum tnu'a shvat te'utsa`.
+
+Machine-readable acceptance evidence is preserved in `live-gold-page05-production-local-repair.json`. This closes the page-05 niqqud/transliteration preflight without another Gemini call; it does not by itself approve unseen vocabulary in the remaining three PDF batches.
