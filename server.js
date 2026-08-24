@@ -6868,6 +6868,10 @@ app.post("/api/translate-table", async (req, res) => {
       },
     });
     const rawText = generated.text;
+    // The upstream generation has already consumed the owner's provider quota
+    // even if JSON parsing or semantic Hebrew validation rejects the payload.
+    // Count here (never on cache hits), not only after publication succeeds.
+    updateUsage("gemini", 1);
 
     const cleaned = rawText
       .replace(/^```json\s*/i, "")
@@ -6954,8 +6958,6 @@ app.post("/api/translate-table", async (req, res) => {
     } catch (e) {
       console.error("Ошибка записи в кэш Gemini:", e);
     }
-
-    updateUsage("gemini", 1);
 
     res.json({
       rows: preparedRows,

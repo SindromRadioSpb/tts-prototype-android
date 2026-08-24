@@ -1,0 +1,38 @@
+{
+  "format": "linguistpro.physics.gold-retry-failure-v1",
+  "attempted_at": "2026-08-24T21:49:14.853Z",
+  "application": {
+    "version": "3.11.426",
+    "commit": "10a343ee"
+  },
+  "source": {
+    "filename": "для оцифровки учебника_2_Страница_05_Изображение_0001.png",
+    "image_sha256": "dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10",
+    "ocr_text_chars": 1097,
+    "ocr_text_sha256": "fa56c5ce136b15857f2972c86efbd086883e765933f560162f1dc3f41219cdf0"
+  },
+  "request": {
+    "provider": "gemini",
+    "requested_model": "gemini-3.7-flash",
+    "prompt_id": "he-ru-table-v3",
+    "translit_profile": "learner-latin",
+    "translit_profile_version": "learner-latin-v1"
+  },
+  "result": {
+    "status": "semantic_rejected",
+    "error_code": "HE_NIQQUD_CONSONANT_MISMATCH",
+    "message": "Row 3 changes Hebrew consonants while adding niqqud",
+    "published_rows": 0,
+    "server_cache_written": false
+  },
+  "quality_inference": {
+    "source_ocr_form": "שווה-תאוצה",
+    "image_verified_form": "שוות-תאוצה",
+    "note": "The exact rejected provider row was not retained. The likely conflict is inferred from the already image-verified OCR defect in row 3; correct the source before a separately confirmed retry."
+  },
+  "usage_accounting": {
+    "provider_call_occurred": true,
+    "application_counter_advanced": false,
+    "known_issue": "Version 3.11.426 counted only successfully published Gemini tables; fixed prospectively in 3.11.427."
+  }
+}
