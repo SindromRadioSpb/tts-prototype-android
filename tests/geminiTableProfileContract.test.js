@@ -16,6 +16,15 @@ test("Studio sends the selected transliteration profile to Gemini table routes",
   assert.match(indexHtml, /translit_profile:\s*translitProfile/);
 });
 
+test("local table cache cannot cross direction or transliteration contracts", () => {
+  assert.match(indexHtml, /TABLE_CACHE_CONTRACT_VERSION = "table-cache-v2-direction-translit"/);
+  assert.match(indexHtml, /cache\.tableCacheContract === TABLE_CACHE_CONTRACT_VERSION/);
+  assert.match(indexHtml, /cache\.translitProfile === requestedTranslitProfile/);
+  assert.match(indexHtml, /cache\.direction === requestedDirection/);
+  assert.match(indexHtml, /tableCacheContract: TABLE_CACHE_CONTRACT_VERSION/);
+  assert.match(indexHtml, /translitProfile: translit_profile/);
+});
+
 test("Gemini route isolates cache and recomputes transliteration by profile", () => {
   assert.match(serverJs, /translit_profile=\$\{translitProfile\}/);
   assert.match(serverJs, /transliterateWithProfile\(row\.he_niqqud, translitProfile\)/);

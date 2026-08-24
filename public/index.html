@@ -13524,7 +13524,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.424";
+    window.APP_VERSION = "3.11.425";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17616,6 +17616,10 @@ function v3NotesRefreshAllButtons() {
 
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+    // Cache identity is separate from the storage key so existing offline rows
+    // remain recoverable after upgrades, while an explicit Rebuild cannot reuse
+    // rows produced under another direction/transliteration contract.
+    const TABLE_CACHE_CONTRACT_VERSION = "table-cache-v2-direction-translit";
     let v3TableCacheWriteOutcome = { status: "unknown", error_code: null, recorded_at: null };
 
     function v3StoreTableCache(payload) {
@@ -35655,6 +35659,9 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             const cacheWrite = window.LocalMtTable.persistTableCache(localStorage, TABLE_CACHE_KEY, {
                 text: currentText,
                 provider: "madlad",
+                tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
+                direction: getTableDirection(),
+                translitProfile: getSelectedTranslitProfile(),
                 rows: currentTableData,
                 createdAt: new Date().toISOString(),
                 lastDocxFilename: lastDocxFilename,
@@ -35690,6 +35697,8 @@ try { v3DashCloseViewMenu(); } catch (_) {}
 
         const currentText = getText().trim();
         const requestedProvider = getSelectedProvider();
+        const requestedTranslitProfile = getSelectedTranslitProfile();
+        const requestedDirection = getTableDirection();
 
         // W1: resolve once from OPFS canon BEFORE any provider branch. Premium Gemini used to
         // bypass segments by construction; now all providers consume the same proven context.
@@ -35710,6 +35719,9 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     typeof cache.text === "string" &&
                     cache.text.trim() === currentText &&
                     cache.provider === requestedProvider &&
+                    cache.tableCacheContract === TABLE_CACHE_CONTRACT_VERSION &&
+                    cache.translitProfile === requestedTranslitProfile &&
+                    cache.direction === requestedDirection &&
                     Array.isArray(cache.rows) &&
                     cache.rows.length > 0
                 ) {
@@ -35936,6 +35948,9 @@ try {
                     const cache = {
                         text: getText().trim(),
                         provider,
+                        tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
+                        direction: getTableDirection(),
+                        translitProfile: translit_profile,
                         rows: currentTableData,
                         createdAt: new Date().toISOString(),
                         lastDocxFilename: lastDocxFilename
