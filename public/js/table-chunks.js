@@ -8,6 +8,12 @@
   // ~26k out-ток на кусок ≈ 2.4× запас до лимита. Смена размера инвалидирует серверный
   // кэш кусков (другой cleanText) — менять только осознанно, с новым замером.
   var CHUNK_SIZE = 120;
+  // Gemini 3.7 Flash has a 65,536-token output ceiling.  The measured table
+  // envelope is about 220 output tokens per semantic source segment, so 250
+  // remains the single-request safety budget.  It is NOT a document limit:
+  // larger flat documents are routed through the resumable chunk path below.
+  var SINGLE_REQUEST_SAFE_SEGMENTS = 250;
+  var MAX_SEGMENT_TEXT = 2000;
 
   function buildChunks(segments) {
     var out = [];
@@ -111,11 +117,77 @@
     return Math.max(lines, Math.ceil(chars / 100));
   }
 
+  // PDF OCR keeps visual line wrapping.  Those wraps are layout, not semantic
+  // rows.  Preserve blank-paragraph boundaries while joining only the lines
+  // inside each paragraph.  Provider evidence remains untouched; this is the
+  // deterministic table-input projection recorded in import provenance.
+  function reflowDocumentText(text) {
+    return String(text == null ? "" : text).replace(/\r\n?/g, "\n")
+      .split(/\n\s*\n+/)
+      .map(function (paragraph) {
+        return paragraph.split("\n").map(function (line) { return line.trim(); })
+          .filter(Boolean).join(" ");
+      })
+      .filter(Boolean).join("\n");
+  }
+
+  function splitOversizeSegment(text, maxText) {
+    var limit = Math.max(200, Number(maxText) || MAX_SEGMENT_TEXT);
+    var rest = String(text || "").trim(), out = [];
+    while (rest.length > limit) {
+      var cut = rest.lastIndexOf(" ", limit);
+      if (cut < Math.floor(limit * 0.6)) cut = limit;
+      out.push(rest.slice(0, cut).trim());
+      rest = rest.slice(cut).trim();
+    }
+    if (rest) out.push(rest);
+    return out;
+  }
+
+  // Build semantic flat-text segments for capacity planning and, only when
+  // needed, for the existing resumable Gemini chunk cycle.  A PDF paragraph
+  // is already the owner-visible semantic row after visual-wrap reflow; do not
+  // explode it into sentences, which would turn an ordinary 14-page worksheet
+  // into several paid requests.  Only an individually oversized paragraph is
+  // split to stay inside the server's per-segment input contract.
+  function buildPlainSegments(text, opts) {
+    var maxText = opts && opts.maxSegmentText;
+    var normalized = String(text == null ? "" : text).replace(/\r\n?/g, "\n"), pieces = [];
+    normalized.split("\n").forEach(function (paragraph) {
+      splitOversizeSegment(paragraph, maxText).forEach(function (part) {
+        if (part) pieces.push(part);
+      });
+    });
+    return pieces.map(function (piece, index) { return { i: index, text: piece }; });
+  }
+
+  function plainRequestPlan(text) {
+    // PDF layout normalization belongs to StudioImport, where source provenance
+    // proves that the text is OCR-derived.  At this generic table boundary a
+    // single newline may be an intentional owner-authored semantic row, so a
+    // second reflow would merge valid rows and is forbidden.
+    var reflowedText = String(text == null ? "" : text).replace(/\r\n?/g, "\n").trim();
+    var segments = buildPlainSegments(reflowedText);
+    return {
+      reflowedText: reflowedText,
+      segments: segments,
+      semanticSegments: segments.length,
+      requiresChunking: segments.length > SINGLE_REQUEST_SAFE_SEGMENTS,
+      expectedRequests: segments.length > SINGLE_REQUEST_SAFE_SEGMENTS
+        ? Math.ceil(segments.length / CHUNK_SIZE) : (segments.length ? 1 : 0),
+    };
+  }
+
   var API = { CHUNK_SIZE: CHUNK_SIZE, buildChunks: buildChunks, offsetRows: offsetRows,
               coverageForChunk: coverageForChunk, aggregateMissing: aggregateMissing,
               coverageForRows: coverageForRows, buildRepairChunks: buildRepairChunks,
               restoreRepairRows: restoreRepairRows, mergeRepairRows: mergeRepairRows,
-              estimatePlainRows: estimatePlainRows };
+              estimatePlainRows: estimatePlainRows,
+              SINGLE_REQUEST_SAFE_SEGMENTS: SINGLE_REQUEST_SAFE_SEGMENTS,
+              MAX_SEGMENT_TEXT: MAX_SEGMENT_TEXT,
+              reflowDocumentText: reflowDocumentText,
+              buildPlainSegments: buildPlainSegments,
+              plainRequestPlan: plainRequestPlan };
   if (typeof window !== "undefined") window.TableChunks = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })();

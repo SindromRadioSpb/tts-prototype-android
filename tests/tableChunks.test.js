@@ -60,3 +60,32 @@ test("estimatePlainRows: max(строки, символы/100)", () => {
   assert.equal(TC.estimatePlainRows("x".repeat(1000)), 10);
   assert.equal(TC.estimatePlainRows("  \n \n"), 0);
 });
+
+test("PDF visual wraps reflow inside paragraphs but preserve semantic boundaries", () => {
+  const source = "שאלה 1.1:\n\nПервая книжная\nстрока.\n\nא. подпункт\nпродолжение.";
+  assert.equal(TC.reflowDocumentText(source),
+    "שאלה 1.1:\nПервая книжная строка.\nא. подпункт продолжение.");
+});
+
+test("flat request plan keeps ordinary PDF in one call and chunks a real large table", () => {
+  const ordinary = Array.from({ length: 146 }, (_, i) => `Строка ${i}.`).join("\n\n");
+  const one = TC.plainRequestPlan(ordinary);
+  assert.equal(one.semanticSegments, 146);
+  assert.equal(one.requiresChunking, false);
+  assert.equal(one.expectedRequests, 1);
+
+  const large = Array.from({ length: 251 }, (_, i) => `Смысловая строка ${i}.`).join("\n\n");
+  const many = TC.plainRequestPlan(large);
+  assert.equal(many.semanticSegments, 251);
+  assert.equal(many.requiresChunking, true);
+  assert.equal(many.expectedRequests, 3);
+  assert.deepEqual(TC.buildChunks(many.segments).map((chunk) => chunk.segs.length), [120, 120, 11]);
+});
+
+test("oversize unpunctuated source is split under the server segment limit without loss", () => {
+  const source = "слово ".repeat(900).trim();
+  const segments = TC.buildPlainSegments(source);
+  assert.ok(segments.length > 1);
+  assert.ok(segments.every((segment) => segment.text.length <= TC.MAX_SEGMENT_TEXT));
+  assert.equal(segments.map((segment) => segment.text).join(" "), source);
+});

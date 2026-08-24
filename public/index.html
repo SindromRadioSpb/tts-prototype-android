@@ -13348,9 +13348,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=180"></script>
-    <script src="/i18n/locales/en.js?v=180"></script>
-    <script src="/i18n/locales/he.js?v=180"></script>
+    <script src="/i18n/locales/ru.js?v=181"></script>
+    <script src="/i18n/locales/en.js?v=181"></script>
+    <script src="/i18n/locales/he.js?v=181"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.429";
+    window.APP_VERSION = "3.11.430";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35841,6 +35841,8 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         // привязанной ревизии — иначе переоткрытый транскрипт навсегда считается плоским текстом.
         if (!v3ResolvedMediaContext && !v3MediaPassport(window.v3LastImportMeta)) await v3RestoreImportPassportFromWorkspace();
         const segsForChunks = v3AudioSegmentsForRequest();
+        const plainPlan = (!segsForChunks && window.TableChunks)
+            ? TableChunks.plainRequestPlan(getText()) : null;
         if (usePremium && segsForChunks && window.TableChunks
             && segsForChunks.length > TableChunks.CHUNK_SIZE) {
             await v3TranslateTablePremiumChunked(segsForChunks, provider, translit_profile);
@@ -35851,38 +35853,13 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
             await v3TranslateTableChunked(segsForChunks, v3ResolvedMediaContext);
             return;
         }
-
-        // W2-S12 T6 (R11 fix): flat he-ru/any-he text (no import segments) that would render a
-        // huge single table today silently 500s server-side and loses the whole translation.
-        // Brief text says "place BEFORE setLoading(true)" but in the live code the chunk fork
-        // (and segsForChunks/usePremium themselves) only exist AFTER setLoading(true)/skeleton —
-        // so the guard sits here instead, right after the fork, where segsForChunks is in scope.
-        // setLoading(true) + skeleton already ran above; unwind both by hand since we bail before
-        // the try/finally further down owns that cleanup. window.TableChunks guard mirrors the
-        // fork above — if the module failed to load, fall through honestly instead of throwing.
-        if (!segsForChunks && window.TableChunks
-            && TableChunks.estimatePlainRows(getText()) > 250) {
-            showError(t("classic.textTooLongForSingleTable"));
-            // The composer no longer matches any canonical revision. Do not leave the previous
-            // table's derived karaoke passport active behind this refusal: it would visually bind
-            // edited text to foreign rows even though the resolver has just rejected that identity.
-            try {
-                if (v3LastGeminiMeta && typeof v3LastGeminiMeta === "object") {
-                    v3LastGeminiMeta = Object.assign({}, v3LastGeminiMeta, { source: null });
-                }
-                if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-                window.v3ActiveMediaAudio = null;
-                if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
-            } catch (_) {}
-            // Fix1 (review): #errorMsg lives inside <details id="classicResultWorkspace">, which
-            // auto-collapses on mobile when there's no current table (classicSyncMainPanels) —
-            // exactly this state. Force it open so the error is actually visible, and duplicate
-            // via toast (visible regardless of any panel's collapsed state).
-            try { const ws = document.getElementById("classicResultWorkspace"); if (ws) ws.open = true; } catch (_) {}
-            try { showToast(t("classic.textTooLongForSingleTable"), "warning"); } catch (_) {}
-            document.getElementById("tableContainer").innerHTML = "";
-            setLoading(false);
-            updateAiButtonState();
+        // Large flat documents have no media passport, but they still have a
+        // deterministic semantic segmentation.  Route them through the same
+        // resumable/cost-confirmed chunk cycle instead of rejecting at a fixed
+        // 250-row estimate.  This removes the document limit without hiding the
+        // fact that a larger table necessarily consumes multiple provider calls.
+        if (!usePremium && plainPlan && plainPlan.requiresChunking) {
+            await v3TranslateTableChunked(plainPlan.segments, null);
             return;
         }
 
@@ -50469,6 +50446,14 @@ document.addEventListener("i18n:changed", function () {
           <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsFile').click()" data-i18n="studio.import.fileBtnCaptions">Выбрать файл субтитров…</button>
           <input type="file" id="l3ImportPackageFile" accept=".zip,application/zip" hidden onchange="StudioMediaPackage.handleSlimImport(event)">
           <button type="button" class="btn-secondary" onclick="document.getElementById('l3ImportPackageFile').click()" data-i18n="studio.mediaPackage.importSlim">Импорт slim Media Package…</button>
+        </div>
+      </div>
+
+      <div id="v3ImportOcrDraftBar" hidden style="margin-top:10px; padding:8px; border:1px solid var(--border,#d7dce2); border-radius:8px; font-size:13px;">
+        <span id="v3ImportOcrDraftLabel"></span>
+        <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="StudioImport.restoreOcrDraft()" data-i18n="studio.import.ocrDraftRestoreBtn">Восстановить OCR-черновик</button>
+          <button type="button" class="btn-secondary" onclick="StudioImport.clearOcrDraft()" data-i18n="studio.import.ocrDraftDeleteBtn">Удалить черновик</button>
         </div>
       </div>
 

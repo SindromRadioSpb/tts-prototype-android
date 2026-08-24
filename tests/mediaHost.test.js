@@ -378,18 +378,13 @@ test('W1/W3 cold-open retries the canonical resolver after lazy source hydration
     'the mere presence of a media passport must not suppress partial-proven recovery');
 });
 
-test('W6 keeps the >250 safety gate and names every permitted next route in RU/HE/EN', () => {
+test('W6 routes large flat documents through the resumable chunk path instead of a fixed rejection', () => {
   const root = path.join(__dirname, '..');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
-  assert.match(html, /estimatePlainRows\(getText\(\)\) > 250/, 'the historical server-500 guard is load-bearing');
-  const texts = {
-    ru: fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', 'ru.js'), 'utf8'),
-    en: fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', 'en.js'), 'utf8'),
-    he: fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', 'he.js'), 'utf8'),
-  };
-  assert.match(texts.ru, /textTooLongForSingleTable[^\n]+восстанов[^\n]+сегмент[^\n]+Импорт[^\n]+разбей/i);
-  assert.match(texts.en, /textTooLongForSingleTable[^\n]+restore[^\n]+segment identity[^\n]+import[^\n]+media[^\n]+split/i);
-  assert.match(texts.he, /textTooLongForSingleTable[^\n]+זהות המקטעים[^\n]+ייבאו[^\n]+מדיה[^\n]+פצלו/i);
+  assert.match(html, /TableChunks\.plainRequestPlan\(getText\(\)\)/);
+  assert.match(html, /plainPlan && plainPlan\.requiresChunking/);
+  assert.match(html, /v3TranslateTableChunked\(plainPlan\.segments, null\)/);
+  assert.doesNotMatch(html, /estimatePlainRows\(getText\(\)\) > 250/);
 });
 
 test('W3 offline restore keeps proven rows, leaves holes blind, and surfaces coverage', () => {

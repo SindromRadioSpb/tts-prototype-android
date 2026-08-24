@@ -12,6 +12,82 @@
   var VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
   var DOWNR_INTENT_KEY = "studio.downr-handoff.v1";
   var DOWNR_INTENT_TTL_MS = 24 * 60 * 60 * 1000;
+  var OCR_DRAFT_KEY = "studio.ocr-draft.v1";
+  var OCR_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  var OCR_DRAFT_MAX_TEXT_CHARS = 1_000_000;
+
+  // OCR is a paid, user-correctable intermediate artifact.  Keep only the explicit provider
+  // evidence needed to resume the preview; never persist file bytes or a BYOK credential.  The
+  // server remains the immutable model cache keyed by file SHA + model/prompt/schema, while this
+  // small browser draft protects the UI against reload/accidental tab closure.
+  function discardOcrDraft(storage) {
+    try { if (storage && typeof storage.removeItem === "function") storage.removeItem(OCR_DRAFT_KEY); } catch (_) {}
+  }
+
+  function cleanOcrPage(page) {
+    var p = page && typeof page === "object" && !Array.isArray(page) ? page : {};
+    var out = {};
+    ["page_index", "pageIndex", "sourcePage"].forEach(function (key) {
+      if (Number.isSafeInteger(p[key]) && p[key] > 0) out[key] = p[key];
+    });
+    ["text", "sourceFilename", "sourceSha256"].forEach(function (key) {
+      if (typeof p[key] === "string") out[key] = p[key];
+    });
+    if (Array.isArray(p.warnings)) out.warnings = p.warnings.map(String).slice(0, 20);
+    return out;
+  }
+
+  function buildOcrDraft(preview, reviewedText, nowMs) {
+    var p = preview && typeof preview === "object" && !Array.isArray(preview) ? preview : null;
+    if (!p || ["pdf", "image"].indexOf(p.kind) < 0) return null;
+    var rawText = typeof p.text === "string" ? p.text : "";
+    var editedText = typeof reviewedText === "string" ? reviewedText : rawText;
+    if (!rawText.trim() || rawText.length > OCR_DRAFT_MAX_TEXT_CHARS || editedText.length > OCR_DRAFT_MAX_TEXT_CHARS) return null;
+    var savedAt = Number.isFinite(Number(nowMs)) ? Math.round(Number(nowMs)) : Date.now();
+    var safePreview = {
+      kind: p.kind,
+      source: typeof p.source === "string" ? p.source.slice(0, 512) : "",
+      method: typeof p.method === "string" ? p.method : null,
+      model: typeof p.model === "string" ? p.model : null,
+      requestedModel: typeof p.requestedModel === "string" ? p.requestedModel : null,
+      modelVersion: typeof p.modelVersion === "string" ? p.modelVersion : null,
+      promptId: typeof p.promptId === "string" ? p.promptId : null,
+      schemaId: typeof p.schemaId === "string" ? p.schemaId : null,
+      fileSha256: typeof p.fileSha256 === "string" && /^[a-f0-9]{64}$/i.test(p.fileSha256) ? p.fileSha256.toLowerCase() : null,
+      pages: Array.isArray(p.pages) ? p.pages.slice(0, 500).map(cleanOcrPage) : [],
+      fromCache: p.fromCache === true,
+      cacheKey: typeof p.cacheKey === "string" ? p.cacheKey.slice(0, 256) : null,
+      warnings: Array.isArray(p.warnings) ? p.warnings.map(String).slice(0, 100) : [],
+      text: rawText,
+    };
+    return { v: 1, saved_at_ms: savedAt, expires_at_ms: savedAt + OCR_DRAFT_TTL_MS,
+             preview: safePreview, reviewed_text: editedText };
+  }
+
+  function writeOcrDraft(storage, preview, reviewedText, nowMs) {
+    var draft = buildOcrDraft(preview, reviewedText, nowMs);
+    if (!draft || !storage || typeof storage.setItem !== "function") return false;
+    try { storage.setItem(OCR_DRAFT_KEY, JSON.stringify(draft)); return true; }
+    catch (_) { return false; }
+  }
+
+  function readOcrDraft(storage, nowMs) {
+    var raw = null;
+    try { raw = storage && typeof storage.getItem === "function" ? storage.getItem(OCR_DRAFT_KEY) : null; }
+    catch (_) { return null; }
+    if (!raw) return null;
+    var value = null;
+    try { value = JSON.parse(raw); } catch (_) { discardOcrDraft(storage); return null; }
+    var now = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
+    var rebuilt = value && value.v === 1
+      ? buildOcrDraft(value.preview, value.reviewed_text, value.saved_at_ms)
+      : null;
+    var valid = !!rebuilt && Number.isSafeInteger(value.saved_at_ms) && Number.isSafeInteger(value.expires_at_ms)
+      && value.expires_at_ms === value.saved_at_ms + OCR_DRAFT_TTL_MS && value.expires_at_ms > now;
+    if (!valid) { discardOcrDraft(storage); return null; }
+    return { preview: rebuilt.preview, reviewedText: rebuilt.reviewed_text,
+             savedAtMs: value.saved_at_ms, expiresAtMs: value.expires_at_ms };
+  }
 
   // B2: this is an intent to continue, never a download receipt. It deliberately contains no
   // media bytes, credentials or success assertion and expires after one day.
@@ -739,6 +815,9 @@
                           importSessionResetPatch: importSessionResetPatch,
                           writeDownrIntent: writeDownrIntent, readDownrIntent: readDownrIntent,
                           discardDownrIntent: discardDownrIntent,
+                          buildOcrDraft: buildOcrDraft, writeOcrDraft: writeOcrDraft,
+                          readOcrDraft: readOcrDraft, discardOcrDraft: discardOcrDraft,
+                          OCR_DRAFT_KEY: OCR_DRAFT_KEY, OCR_DRAFT_TTL_MS: OCR_DRAFT_TTL_MS,
                           mediaSegmentsForPromotion: mediaSegmentsForPromotion };
     }
     return;
@@ -1886,6 +1965,8 @@
       ? "studio.import.provAudioLocal"
       : { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio", captions: "studio.import.provCaptions" }[p.kind];
     var prov = tr(provKey) + " · " + p.source + (p.model ? " · " + p.model : "");
+    if (p.fromCache === true) prov += " · " + tr("studio.import.provCacheHit");
+    if (p.restoredFromLocalDraft === true) prov += " · " + tr("studio.import.provLocalDraft");
     if (p.warnings && p.warnings.length) prov += " · ⚠ " + tr("studio.import.warnCheck");
     $("v3ImportProv").textContent = prov; // сбрасывает и ранее добавленные дочерние блоки (сводка/хинт)
     if (p.summary) renderAsrSummary(p.summary); // S12.5 T4 — только аудио-путь
@@ -1911,7 +1992,44 @@
     $("v3ImportPreviewWrap").hidden = false;
     var exportOcrButton = $("v3ImportExportOcrBtn");
     if (exportOcrButton) exportOcrButton.hidden = !(Array.isArray(p.pages) && p.pages.length && (p.kind === "pdf" || p.kind === "image"));
+    if ((p.kind === "pdf" || p.kind === "image") && writeOcrDraft(window.localStorage, p, p.text, Date.now())) {
+      refreshOcrDraftUi();
+    }
     setStatus(null);
+  }
+
+  function refreshOcrDraftUi() {
+    var bar = $("v3ImportOcrDraftBar");
+    var label = $("v3ImportOcrDraftLabel");
+    if (!bar || !label) return null;
+    var draft = readOcrDraft(window.localStorage, Date.now());
+    bar.hidden = !draft;
+    label.textContent = draft ? tr("studio.import.ocrDraftAvailable", { name: draft.preview.source || "PDF" }) : "";
+    return draft;
+  }
+
+  function restoreOcrDraft() {
+    var draft = readOcrDraft(window.localStorage, Date.now());
+    if (!draft) { refreshOcrDraftUi(); return false; }
+    var preview = Object.assign({}, draft.preview, { restoredFromLocalDraft: true });
+    switchTab("file");
+    showPreview(preview);
+    $("v3ImportPreview").value = draft.reviewedText;
+    writeOcrDraft(window.localStorage, preview, draft.reviewedText, Date.now());
+    setStatus("studio.import.ocrDraftRestored");
+    return true;
+  }
+
+  function clearOcrDraft() {
+    discardOcrDraft(window.localStorage);
+    refreshOcrDraftUi();
+    setStatus("studio.import.ocrDraftDeleted");
+  }
+
+  function onOcrPreviewEdited() {
+    if (!pending || (pending.kind !== "pdf" && pending.kind !== "image")) return;
+    writeOcrDraft(window.localStorage, pending, $("v3ImportPreview").value, Date.now());
+    refreshOcrDraftUi();
   }
 
   function safeDownloadStem(value) {
@@ -2086,6 +2204,12 @@
       if (vu) vu.value = "";
       switchTab("url");
     }
+    var preview = $("v3ImportPreview");
+    if (preview && preview.dataset.ocrDraftBound !== "1") {
+      preview.dataset.ocrDraftBound = "1";
+      preview.addEventListener("input", onOcrPreviewEdited);
+    }
+    refreshOcrDraftUi();
     if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
     window.setTimeout(function () {
       var selectedTab = m && m.querySelector("[role='tab'][aria-selected='true']");
@@ -2182,6 +2306,18 @@
     if (!pending) return false;
     var text = ($("v3ImportPreview").value || "").trim(); // пользователь мог поправить в превью — это ок
     if (!text) { setStatus("studio.import.errEmpty"); return false; }
+    var layoutNormalization = null;
+    if (pending.kind === "pdf" && window.TableChunks && typeof window.TableChunks.reflowDocumentText === "function") {
+      var reflowedText = window.TableChunks.reflowDocumentText(text);
+      if (reflowedText && reflowedText !== text) {
+        layoutNormalization = {
+          method: "pdf-visual-wrap-reflow-v1",
+          source_lines: text.split(/\r?\n/).length,
+          table_input_lines: reflowedText.split(/\r?\n/).length,
+        };
+        text = reflowedText;
+      }
+    }
     // S12.5 T4: гейт судит по ТОЙ ЖЕ сводке, которую владелец видел в превью (pending.summary) —
     // не по пересчитанной здесь заново.
     if (pending.kind === "audio" && pending.summary && pending.summary.level === "bad") {
@@ -2292,6 +2428,7 @@
       source_file_sha256: pending.fileSha256 || null,
       pages: Array.isArray(pending.pages) ? pending.pages : undefined,
       cache: pending.cacheKey ? { key: pending.cacheKey, hit: pending.fromCache === true } : undefined,
+      layout_normalization: layoutNormalization || undefined,
       warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
       audio: audioMetaForImport || undefined,
       captions: captionsMetaForImport || undefined,
@@ -2701,6 +2838,7 @@
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            exportOcrEvidence: exportOcrEvidence,
+                           restoreOcrDraft: restoreOcrDraft, clearOcrDraft: clearOcrDraft,
                            acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,
                            recordRemoteSavedCopy: recordRemoteSavedCopy,
                            useText: useText, useTextAndCorrect: useTextAndCorrect,
