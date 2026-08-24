@@ -200,20 +200,27 @@ async function checkExtractDocxSuccess(label) {
 // Check 14 — cache-hit response shape (fix round 1, Important finding). The route
 // spreads the on-disk cache object into the response on a cache hit; the cache file
 // also carries a `createdAt` bookkeeping field that must NEVER leak into the HTTP
-// response (the brief's response shape is the fixed 7 keys below). This check writes
+// response. This check writes
 // a synthetic cache entry DIRECTLY into the smoke server's geminiCacheDir — derived
 // the SAME way storage.js derives it (GEMINI_CACHE_DIR defaults to DATA_DIR/gemini-cache,
 // and the smoke server only sets DATA_DIR, not GEMINI_CACHE_DIR) — so the whole check
 // stays fully offline: the cache hit short-circuits before any Gemini call.
 async function checkExtractCacheHitShape(label, geminiCacheDir) {
   const bytes = Buffer.from("smoke-pdf-bytes");
-  const hash = crypto.createHash("sha256").update(bytes).digest("hex");
+  const fileSha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+  const policy = require(path.join(REPO_ROOT, "ingest", "geminiPolicy.js"));
+  const scenario = policy.getGeminiScenario("ocr");
+  const hash = policy.buildGeminiCacheKey({ ...scenario, contentSha256: fileSha256 });
   fs.mkdirSync(geminiCacheDir, { recursive: true });
-  const cacheFile = path.join(geminiCacheDir, `ingest-extract-v1-${hash}.json`);
+  const cacheFile = path.join(geminiCacheDir, `ingest-extract-v2-${hash}.json`);
   fs.writeFileSync(cacheFile, JSON.stringify({
-    text: "cached text",
+    pages: [{ pageIndex: 1, text: "cached text" }],
     language: "he",
     warnings: [],
+    model: scenario.model,
+    modelVersion: "gemini-3.7-flash-smoke",
+    promptId: scenario.promptId,
+    schemaId: scenario.schemaId,
     createdAt: "2026-01-01T00:00:00.000Z",
   }));
 
@@ -224,7 +231,8 @@ async function checkExtractCacheHitShape(label, geminiCacheDir) {
     geminiApiKey: "AIza" + "x".repeat(30),
   });
 
-  const expectedKeys = ["ok", "text", "language", "warnings", "method", "model", "fromCache"].sort();
+  const expectedKeys = ["ok", "text", "pages", "fileSha256", "language", "warnings", "method",
+    "model", "requestedModel", "modelVersion", "promptId", "schemaId", "fromCache", "cacheKey"].sort();
   const actualKeys = data ? Object.keys(data).sort() : [];
   const exactShape = actualKeys.length === expectedKeys.length && actualKeys.every((k, i) => k === expectedKeys[i]);
   const shapeOk = status === 200 && data && data.ok === true && data.fromCache === true
@@ -233,10 +241,10 @@ async function checkExtractCacheHitShape(label, geminiCacheDir) {
     && exactShape;
 
   if (!shapeOk) {
-    console.log(`FAIL ${label} -> expected 200 fromCache:true exact 7-key shape (no createdAt), got ${status} keys=[${actualKeys.join(",")}]: ${text.slice(0, 300)}`);
+    console.log(`FAIL ${label} -> expected 200 model-aware fromCache:true exact response shape (no createdAt), got ${status} keys=[${actualKeys.join(",")}]: ${text.slice(0, 300)}`);
     return false;
   }
-  console.log(`PASS ${label} -> 200 fromCache:true, text "cached text", exact 7-key shape, no createdAt leak`);
+  console.log(`PASS ${label} -> 200 model-aware fromCache:true, text "cached text", no createdAt leak`);
   return true;
 }
 
@@ -272,12 +280,19 @@ async function expectRetellCase(label, body, expectedStatus, expectedCode) {
 // answers fromCache:true with NO Gemini call reached (fully offline).
 async function checkRetellCacheHit(label, geminiCacheDir) {
   const retellMod = require(path.join(REPO_ROOT, "ingest", "retell.js"));
-  const key = crypto.createHash("sha256").update(retellMod.cacheKeyInput("טקסט קטן לבדיקה.", "A2")).digest("hex");
+  const policy = require(path.join(REPO_ROOT, "ingest", "geminiPolicy.js"));
+  const scenario = policy.getGeminiScenario("retell");
+  const contentSha256 = crypto.createHash("sha256").update(retellMod.cacheKeyInput("טקסט קטן לבדיקה.", "A2")).digest("hex");
+  const key = policy.buildGeminiCacheKey({ ...scenario, contentSha256 });
   fs.mkdirSync(geminiCacheDir, { recursive: true });
-  const cacheFile = path.join(geminiCacheDir, `retell-v1-${key}.json`);
+  const cacheFile = path.join(geminiCacheDir, `retell-v2-${key}.json`);
   fs.writeFileSync(cacheFile, JSON.stringify({
     retell: "משפט פשוט.",
     level: "A2",
+    model: scenario.model,
+    modelVersion: "gemini-3.7-flash-smoke",
+    promptId: scenario.promptId,
+    schemaId: scenario.schemaId,
     createdAt: "2026-01-01T00:00:00.000Z",
   }));
 

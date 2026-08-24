@@ -11830,6 +11830,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <button id="btnWord" class="btn-word disabled"
                                         data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                         onclick="downloadWord()" disabled data-i18n="classic.downloadTable">Скачать таблицу</button>
+                                <button id="btnTableEvidenceJson" class="btn-secondary" onclick="downloadTableEvidenceJson()" disabled data-i18n="classic.downloadEvidenceJson">Скачать JSON результата</button>
                             </div>
                         </div>
 
@@ -13346,9 +13347,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=178"></script>
-    <script src="/i18n/locales/en.js?v=178"></script>
-    <script src="/i18n/locales/he.js?v=178"></script>
+    <script src="/i18n/locales/ru.js?v=179"></script>
+    <script src="/i18n/locales/en.js?v=179"></script>
+    <script src="/i18n/locales/he.js?v=179"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13522,7 +13523,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.420";
+    window.APP_VERSION = "3.11.421";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17523,6 +17524,7 @@ function v3NotesRefreshAllButtons() {
 	const btnAnkiEl = document.getElementById("btnAnki");
 	
 	const btnWordEl = document.getElementById("btnWord");
+    const btnTableEvidenceEl = document.getElementById("btnTableEvidenceJson");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
     const btnMainTtsEl = document.getElementById("btnMainTts");
     const classicStatusStripEl = document.getElementById("classicStatusStrip");
@@ -22266,6 +22268,7 @@ updatePlaylistButtonUI();
         audioIsStale = false;
         tableIsStale = false;
         currentTableData = [];
+        if (btnTableEvidenceEl) btnTableEvidenceEl.disabled = true;
         lastAudioBlob = null;
         lastAudioUrl = null;
         lastDocxFilename = null;
@@ -35894,8 +35897,11 @@ try {
     v3AttachAudioTiming(res, false, premiumLines);
   } else {
     v3LastGeminiMeta = {
-      promptId: getTableDirection() === "any-he" ? "any-he-table-v1" : "he-ru-table-v1",
-      model: "gemini-flash-latest",
+      promptId: res.promptId || null,
+      schemaId: res.schemaId || null,
+      model: res.model || res.requestedModel || "unknown",
+      requestedModel: res.requestedModel || res.model || null,
+      modelVersion: res.modelVersion || null,
       cacheKey: res.cacheKey || null,
       fromCache: (res.fromCache === true),
       provider: "gemini",
@@ -36137,6 +36143,32 @@ try {
             clearInterval(v3TableJobTimer); v3TableJobTimer = null;
         }
     }
+    function v3GeminiResponseProvenance(res) {
+        const r = res || {};
+        return {
+            promptId: r.promptId || null,
+            schemaId: r.schemaId || null,
+            model: r.model || r.requestedModel || null,
+            requestedModel: r.requestedModel || r.model || null,
+            modelVersion: r.modelVersion || null,
+        };
+    }
+    function v3GeminiAggregateProvenance(entries) {
+        const list = Array.isArray(entries) ? entries : [];
+        const first = list.find((entry) => entry && (entry.model || entry.requestedModel || entry.promptId)) || {};
+        return {
+            promptId: first.promptId || null,
+            schemaId: first.schemaId || null,
+            model: first.model || first.requestedModel || "unknown-legacy",
+            requestedModel: first.requestedModel || first.model || null,
+            modelVersion: first.modelVersion || null,
+        };
+    }
+    function v3GeminiChunkedProvenance(entries) {
+        const provenance = v3GeminiAggregateProvenance(entries);
+        if (provenance.promptId) provenance.promptId += "+chunked";
+        return provenance;
+    }
     async function v3TableJobRestoreLocalOnly(input) {
         if (!window.TableJob || !input || !Array.isArray(input.segments)) return null;
         const restored = TableJob.resume(await TableJob.loadDurable(), input);
@@ -36161,7 +36193,8 @@ try {
             v3TableJobStartedAt = Number(restored.journal.startedAt) || Date.now();
             const restoredCoverage = TableChunks.coverageForRows(restored.rows, segments.length);
             const restoredComplete = restoredCoverage.missing.length === 0 && restored.nextChunk === restored.journal.plan.length;
-            v3LastGeminiMeta = { promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
+            const restoredProvenance = v3GeminiChunkedProvenance((restored.journal.completed || []).map((entry) => entry.meta || {}));
+            v3LastGeminiMeta = { ...restoredProvenance,
                 cacheKey: null, fromCache: (restored.journal.completed || []).every((entry) => entry.meta && entry.meta.fromCache),
                 provider: "gemini", chunks: (restored.journal.completed || []).map((entry) => entry.meta || {}),
                 repairs: (restored.journal.repairs || []).map((entry) => entry.meta || {}),
@@ -36257,6 +36290,11 @@ try {
             last = si;
         }
         return { rows: prepared, fromCache: false, cacheKey: null,
+            model: payload.model || payload.requestedModel || null,
+            requestedModel: payload.requestedModel || payload.model || null,
+            modelVersion: payload.modelVersion || null,
+            promptId: payload.promptId || null,
+            schemaId: payload.schemaId || null,
             warnings: ["CLIENT_JSON_QUOTE_REPAIRED"], recoveredJsonRepairs: repaired.repairs };
     }
 
@@ -36307,6 +36345,7 @@ try {
             const combinedRows = [];
             const combinedWarnings = [];
             const parts = [];
+            const childProvenance = [];
             let allFromCache = true;
             let anyRecoveredJson = false;
             for (const child of childDefs) {
@@ -36317,12 +36356,14 @@ try {
                 });
                 allFromCache = allFromCache && childResult.fromCache === true;
                 anyRecoveredJson = anyRecoveredJson || childResult.clientRecoveredJson === true;
+                childProvenance.push(v3GeminiResponseProvenance(childResult));
                 parts.push({ base: child.base, segments: child.segs.length,
                     rows: (childResult.rows || []).length, fromCache: childResult.fromCache === true,
                     retried: childResult.clientRetried === true,
                     recoveredJson: childResult.clientRecoveredJson === true });
             }
             return { rows: combinedRows, fromCache: allFromCache, cacheKey: null,
+                ...v3GeminiAggregateProvenance(childProvenance),
                 warnings: combinedWarnings, clientRetried: true,
                 clientRecoveredJson: anyRecoveredJson, clientSubdivided: true,
                 clientSubdivisionParts: parts };
@@ -36446,7 +36487,7 @@ try {
                     // a side effect of the loop body) — on a chunk-0 failure this is honestly [].
                     currentTableData = accum.slice();
                     v3LastGeminiMeta = {
-                        promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
+                        ...v3GeminiChunkedProvenance(chunkMeta),
                         cacheKey: null, fromCache: false,
                         provider: "gemini", chunks: chunkMeta.slice(), partial: true,
                         generatedAt: new Date().toISOString(),
@@ -36475,7 +36516,8 @@ try {
                 // segment_index (server-side). The independent global coverage oracle below
                 // decides whether targeted repair or a stopped resumable state is required.
                 const chunkMissing = TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing;
-                const chunkMetaEntry = { cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
+                const chunkMetaEntry = { ...v3GeminiResponseProvenance(res),
+                                 cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
                                  rows: (res.rows || []).length, missing: chunkMissing };
                 if (retriedThisChunk) chunkMetaEntry.retried = true; // R9-провенанс: кусок прошёл со 2-й попытки (S12.1)
                 if (recoveredJsonThisChunk) chunkMetaEntry.recoveredJson = true;
@@ -36532,7 +36574,7 @@ try {
                     const repairedRows = TableChunks.restoreRepairRows(repairResult.rows || [], repair.indexes);
                     const repairedIndexes = Array.from(new Set(repairedRows.map((row) => row.segment_index))).sort((a, b) => a - b);
                     accum.splice(0, accum.length, ...TableChunks.mergeRepairRows(accum, repairedRows));
-                    const meta = { reason: "coverage-gap", requested: repair.indexes,
+                    const meta = { ...v3GeminiResponseProvenance(repairResult), reason: "coverage-gap", requested: repair.indexes,
                         repaired: repairedIndexes, rows: repairedRows.length,
                         fromCache: repairResult.fromCache === true };
                     repairMeta.push(meta);
@@ -36554,7 +36596,7 @@ try {
             missingGlobal = coverage.missing.slice();
         }
         v3LastGeminiMeta = {
-            promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
+            ...v3GeminiChunkedProvenance(chunkMeta),
             cacheKey: null, fromCache: chunkMeta.every((c) => c.fromCache),
             provider: "gemini", chunks: chunkMeta, repairs: repairMeta,
             partial: missingGlobal.length > 0, generatedAt: new Date().toISOString(),
@@ -37618,6 +37660,7 @@ try {
         try { classicCloseRowSheet(); } catch (_) {}
         if (!Array.isArray(rows) || rows.length === 0) {
     document.getElementById("tableContainer").innerHTML = "";
+	if (btnTableEvidenceEl) btnTableEvidenceEl.disabled = true;
 	
 	// C3: header follows table presence (table cleared)
 	try { v3UiUpdateActiveHeader(); } catch (_) {}
@@ -37643,6 +37686,7 @@ try {
 
 
         // гарантируем строгую сумму базовых ширин
+        if (btnTableEvidenceEl) btnTableEvidenceEl.disabled = false;
         normalizeVisibleBaseWidthsTo100();
 
         const eff = computeEffectiveWidths();
@@ -39261,6 +39305,48 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
 
         // строгая сумма видимых = 100 (остальные видимые масштабируем)
         normalizeVisibleBaseWidthsTo100();
+    }
+
+    // ----------------------------
+    // AUDIT JSON (raw table + exact OCR/translator provenance; no Library save required)
+    // ----------------------------
+    function downloadTableEvidenceJson() {
+        if (!Array.isArray(currentTableData) || !currentTableData.length) return;
+        const cleanRow = (row, index) => ({
+            order_index: index,
+            kind: row && (row.kind || row._kind) || null,
+            he_plain: row && (row.he || row.he_plain) || "",
+            he_niqqud: row && row.he_niqqud || "",
+            translit: row && row.translit || "",
+            translit_ru: row && row.translit_ru || "",
+            ru: row && row.ru || "",
+            segment_index: Number.isInteger(Number(row && row.segment_index)) ? Number(row.segment_index) : null,
+            translation_provider: row && (row.translation_provider || row._translationProvider) || null,
+            translation_meta_json: row && (row.translation_meta_json || row._translationMetaJson) || null,
+            edit_meta_json: row && row.edit_meta_json || null,
+        });
+        const importMeta = window.v3LastImportMeta && typeof window.v3LastImportMeta === "object"
+          ? window.v3LastImportMeta : null;
+        const payload = {
+          format: "linguistpro-table-evidence-v1",
+          exported_at: new Date().toISOString(),
+          source_text: String(inputTextEl && inputTextEl.value || ""),
+          source_provenance: importMeta,
+          table_provenance: (v3LastGeminiMeta && typeof v3LastGeminiMeta === "object") ? v3LastGeminiMeta : null,
+          rows: currentTableData.map(cleanRow),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        const sourceName = String(importMeta && importMeta.source || "table")
+          .replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}._-]+/gu, "-")
+          .replace(/^-+|-+$/g, "").slice(0, 96) || "table";
+        anchor.href = url;
+        anchor.download = sourceName + "-table.json";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     // ----------------------------
@@ -43147,12 +43233,23 @@ async function v3TcbProcessJob(job) {
         provider: 'madlad', localExecution: true,
         qualityPositioning: 'LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION',
         generatedAt: new Date().toISOString(),
-      } : (typeof v3LastGeminiMeta === 'object' && v3LastGeminiMeta) ? v3LastGeminiMeta : {
-        promptId: usePremium ? 'he-ru-table-v2' : 'he-ru-table-v1',
-        model: provider,
+      } : usePremium ? {
+        promptId: 'he-ru-table-v2',
+        model: (res.provenance && res.provenance.translator_version) || provider,
+        modelRevision: (res.provenance && res.provenance.model_revision) || null,
+        provider: (res.provenance && (res.provenance.actual_provider || res.provenance.provider)) || provider,
         cacheKey: (res && res.cacheKey) || null,
         fromCache: (res && res.fromCache === true),
-        provider,
+        generatedAt: new Date().toISOString(),
+      } : {
+        promptId: res.promptId || null,
+        schemaId: res.schemaId || null,
+        model: res.model || res.requestedModel || 'unknown',
+        requestedModel: res.requestedModel || res.model || null,
+        modelVersion: res.modelVersion || null,
+        cacheKey: res.cacheKey || null,
+        fromCache: res.fromCache === true,
+        provider: 'gemini',
         generatedAt: new Date().toISOString(),
       },
     };
@@ -50350,6 +50447,7 @@ document.addEventListener("i18n:changed", function () {
         <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
           <button type="button" class="btn-primary" onclick="StudioImport.useTextAndCorrect()" data-i18n="studio.mediaPackage.correctBtn">Исправить транскрипт</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.useText()" data-i18n="studio.mediaPackage.continueDraftBtn">Продолжить с черновиком</button>
+          <button type="button" class="btn-secondary" id="v3ImportExportOcrBtn" hidden onclick="StudioImport.exportOcrEvidence()" data-i18n="studio.import.exportOcrBtn">Скачать OCR JSON</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.useTextAndRetell()" data-i18n="studio.retell.fromImportBtn">✨ Упростить…</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
         </div>

@@ -1,0 +1,415 @@
+{
+  "schema": "linguistpro-physics-ocr-batches-v1",
+  "generated_on": "2026-08-24",
+  "source_commit": "bedbcee7a9ea31e209d17d50dfe1ccb450416736",
+  "source_directory": "G:\\Andasa\\📘 Учебная. 1 год\\Физика\\1",
+  "pdf_quality": 86,
+  "max_pdf_bytes": 6291456,
+  "batches": [
+    {
+      "batch_id": 1,
+      "chapters": [
+        1,
+        2,
+        3
+      ],
+      "textbook_pages": [
+        5,
+        18
+      ],
+      "pdf_filename": "physics-year1-ocr-batch-01.pdf",
+      "pdf_sha256": "c774255385b861310c4d097f420b4dc0eea9aae7ad27b8a98e3c87e13a83ff76",
+      "pdf_bytes": 2184616,
+      "page_count": 14,
+      "pages": [
+        {
+          "pdf_page_index": 1,
+          "textbook_page": 5,
+          "source_filename": "для оцифровки учебника_2_Страница_05_Изображение_0001.png",
+          "source_sha256": "dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10",
+          "source_bytes": 588003,
+          "width": 1267,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 2,
+          "textbook_page": 6,
+          "source_filename": "для оцифровки учебника_2_Страница_06_Изображение_0001.png",
+          "source_sha256": "047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217",
+          "source_bytes": 574415,
+          "width": 1277,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 3,
+          "textbook_page": 7,
+          "source_filename": "для оцифровки учебника_2_Страница_07_Изображение_0001.png",
+          "source_sha256": "a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df",
+          "source_bytes": 507860,
+          "width": 1324,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 4,
+          "textbook_page": 8,
+          "source_filename": "для оцифровки учебника_2_Страница_08_Изображение_0001.png",
+          "source_sha256": "f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc",
+          "source_bytes": 586822,
+          "width": 1356,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 5,
+          "textbook_page": 9,
+          "source_filename": "для оцифровки учебника_2_Страница_09_Изображение_0001.png",
+          "source_sha256": "5cadfc576680e18f8dd24fe1171c3dcda1f216edf5b0e91448e7f085ebc409e3",
+          "source_bytes": 288294,
+          "width": 1239,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 6,
+          "textbook_page": 10,
+          "source_filename": "для оцифровки учебника_2_Страница_10_Изображение_0001.png",
+          "source_sha256": "7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c",
+          "source_bytes": 534944,
+          "width": 1283,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 7,
+          "textbook_page": 11,
+          "source_filename": "для оцифровки учебника_2_Страница_11_Изображение_0001.png",
+          "source_sha256": "08f0e5fe8e43d61b06d3310b9b9a9f2a27514e1e545adf05430dfeadfea572c0",
+          "source_bytes": 407693,
+          "width": 1849,
+          "height": 2047
+        },
+        {
+          "pdf_page_index": 8,
+          "textbook_page": 12,
+          "source_filename": "для оцифровки учебника_2_Страница_12_Изображение_0001.png",
+          "source_sha256": "b1aabef182b59ab972a767103c38e8f1a34873d8443611703ca5e2aa2e35921d",
+          "source_bytes": 563890,
+          "width": 1581,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 9,
+          "textbook_page": 13,
+          "source_filename": "для оцифровки учебника_2_Страница_13_Изображение_0001.png",
+          "source_sha256": "105badc6aca43aeebc2dcdfdf29175637f07f2437d5f23f5d926287b170a79ff",
+          "source_bytes": 553000,
+          "width": 1356,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 10,
+          "textbook_page": 14,
+          "source_filename": "для оцифровки учебника_2_Страница_14_Изображение_0001.png",
+          "source_sha256": "05af530124324356ead85a1e997646aa47a559c0ce59029e294f1497d4f85c56",
+          "source_bytes": 614453,
+          "width": 1454,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 11,
+          "textbook_page": 15,
+          "source_filename": "для оцифровки учебника_2_Страница_15_Изображение_0001.png",
+          "source_sha256": "df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e",
+          "source_bytes": 702029,
+          "width": 1441,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 12,
+          "textbook_page": 16,
+          "source_filename": "для оцифровки учебника_2_Страница_16_Изображение_0001.png",
+          "source_sha256": "4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db",
+          "source_bytes": 427093,
+          "width": 1444,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 13,
+          "textbook_page": 17,
+          "source_filename": "для оцифровки учебника_2_Страница_17_Изображение_0001.png",
+          "source_sha256": "8505d2536eacb63167403787e14bacfddf4e58682b156768181317f35a75acee",
+          "source_bytes": 546457,
+          "width": 1299,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 14,
+          "textbook_page": 18,
+          "source_filename": "для оцифровки учебника_2_Страница_18_Изображение_0001.png",
+          "source_sha256": "82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802",
+          "source_bytes": 682950,
+          "width": 1375,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "chapters": [
+        4,
+        5,
+        6
+      ],
+      "textbook_pages": [
+        19,
+        29
+      ],
+      "pdf_filename": "physics-year1-ocr-batch-02.pdf",
+      "pdf_sha256": "19279e8d24eb3c5ebb0daa372b6ede5f9e9056c33e4a7e5daedecd49fcb91afe",
+      "pdf_bytes": 1761222,
+      "page_count": 11,
+      "pages": [
+        {
+          "pdf_page_index": 1,
+          "textbook_page": 19,
+          "source_filename": "для оцифровки учебника_2_Страница_19_Изображение_0001.png",
+          "source_sha256": "e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab",
+          "source_bytes": 530161,
+          "width": 1160,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 2,
+          "textbook_page": 20,
+          "source_filename": "для оцифровки учебника_2_Страница_20_Изображение_0001.png",
+          "source_sha256": "4282d051143d0066b7856621051fbae65dd4b9bcac84f4133d0eb140258c31c5",
+          "source_bytes": 536231,
+          "width": 1495,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 3,
+          "textbook_page": 21,
+          "source_filename": "для оцифровки учебника_2_Страница_21_Изображение_0001.png",
+          "source_sha256": "600e187a3a69e9770afca546877de2ad16085295a740861547b26ab0102e87e3",
+          "source_bytes": 515238,
+          "width": 1365,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 4,
+          "textbook_page": 22,
+          "source_filename": "для оцифровки учебника_2_Страница_22_Изображение_0001.png",
+          "source_sha256": "45f5c8bbeb737b71b3f7f01ee3114f132a9f1ab3947c199341a679c30bae9c1a",
+          "source_bytes": 445800,
+          "width": 1805,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 5,
+          "textbook_page": 23,
+          "source_filename": "для оцифровки учебника_2_Страница_23_Изображение_0001.png",
+          "source_sha256": "9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0",
+          "source_bytes": 573021,
+          "width": 1381,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 6,
+          "textbook_page": 24,
+          "source_filename": "для оцифровки учебника_2_Страница_24_Изображение_0001.png",
+          "source_sha256": "a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8",
+          "source_bytes": 572136,
+          "width": 1343,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 7,
+          "textbook_page": 25,
+          "source_filename": "для оцифровки учебника_2_Страница_25_Изображение_0001.png",
+          "source_sha256": "33fee4ce87a63cc8d9b0281c9eca20eec5c8e6c174d7c830a40560c23428ae62",
+          "source_bytes": 600578,
+          "width": 1435,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 8,
+          "textbook_page": 26,
+          "source_filename": "для оцифровки учебника_2_Страница_26_Изображение_0001.png",
+          "source_sha256": "017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8",
+          "source_bytes": 580872,
+          "width": 1435,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 9,
+          "textbook_page": 27,
+          "source_filename": "для оцифровки учебника_2_Страница_27_Изображение_0001.png",
+          "source_sha256": "ae36e9696804b03d0202fccf4ae52a21b1567e096904e8088085a05ed62b3323",
+          "source_bytes": 564137,
+          "width": 1340,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 10,
+          "textbook_page": 28,
+          "source_filename": "для оцифровки учебника_2_Страница_28_Изображение_0001.png",
+          "source_sha256": "4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006",
+          "source_bytes": 738503,
+          "width": 1371,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 11,
+          "textbook_page": 29,
+          "source_filename": "для оцифровки учебника_2_Страница_29_Изображение_0001.png",
+          "source_sha256": "b11a3b1d3491d0964a981e725f7e12f1339bb456ad06523f75fdc0cba54dc60b",
+          "source_bytes": 446845,
+          "width": 1775,
+          "height": 2048
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "chapters": [
+        7,
+        8,
+        9
+      ],
+      "textbook_pages": [
+        30,
+        43
+      ],
+      "pdf_filename": "physics-year1-ocr-batch-03.pdf",
+      "pdf_sha256": "613b79834bbd65c4b9fa35b0885ee3dfb8b802c8a0d651585a71f10b3d959d77",
+      "pdf_bytes": 2200543,
+      "page_count": 14,
+      "pages": [
+        {
+          "pdf_page_index": 1,
+          "textbook_page": 30,
+          "source_filename": "для оцифровки учебника_2_Страница_30_Изображение_0001.png",
+          "source_sha256": "2b4e2dba73df659eeab78c099570e18742f4df771cf472d8070909f318240be3",
+          "source_bytes": 475883,
+          "width": 1530,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 2,
+          "textbook_page": 31,
+          "source_filename": "для оцифровки учебника_2_Страница_31_Изображение_0001.png",
+          "source_sha256": "bd067ef7aa812e1fa0fe899e74d74b378485e4e295054751970c576a73930231",
+          "source_bytes": 443962,
+          "width": 1605,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 3,
+          "textbook_page": 32,
+          "source_filename": "для оцифровки учебника_2_Страница_32_Изображение_0001.png",
+          "source_sha256": "0992e8a8849fe995cfd7afe7ba245750f17b332308e0af81420201aa0ad5df13",
+          "source_bytes": 426459,
+          "width": 1632,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 4,
+          "textbook_page": 33,
+          "source_filename": "для оцифровки учебника_2_Страница_33_Изображение_0001.png",
+          "source_sha256": "d0d26a0117f1388623f9fe6e39f9d356eda5ac8af70eee189b12fdbcdbaf0268",
+          "source_bytes": 406548,
+          "width": 1337,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 5,
+          "textbook_page": 34,
+          "source_filename": "для оцифровки учебника_2_Страница_34_Изображение_0001.png",
+          "source_sha256": "d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae",
+          "source_bytes": 492816,
+          "width": 1371,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 6,
+          "textbook_page": 35,
+          "source_filename": "для оцифровки учебника_2_Страница_35_Изображение_0001.png",
+          "source_sha256": "4fdca422e256cb96770ccc6a2fe4b40de9814837cc762a82c5193fe8ba4702f1",
+          "source_bytes": 559178,
+          "width": 1213,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 7,
+          "textbook_page": 36,
+          "source_filename": "для оцифровки учебника_2_Страница_36_Изображение_0001.png",
+          "source_sha256": "25f65394d0ac342bfb3e790063d56a60255a541be78f04717a3fe46b416e994d",
+          "source_bytes": 610864,
+          "width": 1330,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 8,
+          "textbook_page": 37,
+          "source_filename": "для оцифровки учебника_2_Страница_37_Изображение_0001.png",
+          "source_sha256": "a3f0f1c21b45205cde9f1527a4b495526a14bf4e8d9a3ece1da53f2806ded5a0",
+          "source_bytes": 606003,
+          "width": 1305,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 9,
+          "textbook_page": 38,
+          "source_filename": "для оцифровки учебника_2_Страница_38_Изображение_0001.png",
+          "source_sha256": "faadae9640548dc09d6af6b43ef731c8f3c297f7c7c38b3f82ad2d883af77014",
+          "source_bytes": 631885,
+          "width": 1933,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 10,
+          "textbook_page": 39,
+          "source_filename": "для оцифровки учебника_2_Страница_39_Изображение_0001.png",
+          "source_sha256": "2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22",
+          "source_bytes": 645865,
+          "width": 1324,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 11,
+          "textbook_page": 40,
+          "source_filename": "для оцифровки учебника_2_Страница_40_Изображение_0001.png",
+          "source_sha256": "8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95",
+          "source_bytes": 525619,
+          "width": 1498,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 12,
+          "textbook_page": 41,
+          "source_filename": "для оцифровки учебника_2_Страница_41_Изображение_0001.png",
+          "source_sha256": "652f0f24b0a84115a37aaf11cae2bcd1e15a780d1d386811961bf279b148690b",
+          "source_bytes": 469803,
+          "width": 1242,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 13,
+          "textbook_page": 42,
+          "source_filename": "для оцифровки учебника_2_Страница_42_Изображение_0001.png",
+          "source_sha256": "84293fe3fcd918c4d9eab91ab39a4899bf7603953401f432e6a102a286d00eb3",
+          "source_bytes": 611081,
+          "width": 1428,
+          "height": 2048
+        },
+        {
+          "pdf_page_index": 14,
+          "textbook_page": 43,
+          "source_filename": "для оцифровки учебника_2_Страница_43_Изображение_0001.png",
+          "source_sha256": "59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73",
+          "source_bytes": 631235,
+          "width": 1333,
+          "height": 2048
+        }
+      ]
+    }
+  ]
+}

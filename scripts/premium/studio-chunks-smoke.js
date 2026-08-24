@@ -209,10 +209,13 @@ async function installFakeFetch(ctx) {
       await new Promise((r) => setTimeout(r, 180));
 
       const cacheKey = JSON.stringify(segments);
+      const modelMeta = { model: "gemini-3.7-flash", requestedModel: "gemini-3.7-flash",
+        modelVersion: "gemini-3.7-flash-smoke", promptId: "he-ru-table-seg-v2",
+        schemaId: "studio-table-rows-schema-v1" };
       if (window.__fakeCache.has(cacheKey)) {
         window.__cacheHits += 1;
         const hit = window.__fakeCache.get(cacheKey);
-        return new Response(JSON.stringify({ rows: hit.rows, fromCache: true, cacheKey: hit.key, warnings: hit.warnings }),
+        return new Response(JSON.stringify({ rows: hit.rows, fromCache: true, cacheKey: hit.key, warnings: hit.warnings, ...modelMeta }),
           { status: 200, headers: { "content-type": "application/json" } });
       }
 
@@ -236,13 +239,13 @@ async function installFakeFetch(ctx) {
             const validRaw = JSON.stringify({ segments: segments.map((s) => ({ index: s.i, he: s.text })), rows: malformedRows });
             // Mirror the owner-live Gemini defect: a Hebrew abbreviation's inner quote is emitted
             // literally inside a JSON string instead of as \". The rest of the payload is valid.
-            errBody = { error: "Ошибка JSON", raw: validRaw.replace('רמב\\"ם', 'רמב"ם') };
+            errBody = { error: "Ошибка JSON", raw: validRaw.replace('רמב\\"ם', 'רמב"ם'), ...modelMeta };
           }
           if (status === 500 && plan.unrecoverableJson) {
             // Complete-looking but structurally invalid JSON that the quote-only repair must
             // reject. This mirrors a second owner-live Gemini failure class and proves that the
             // client falls back to bounded subdivision instead of accepting guessed content.
-            errBody = { error: "Ошибка JSON", raw: '{"rows":[{"segment_index":0,,"he":"x","he_niqqud":"x","translit":"x","ru":"x"}]}' };
+            errBody = { error: "Ошибка JSON", raw: '{"rows":[{"segment_index":0,,"he":"x","he_niqqud":"x","translit":"x","ru":"x"}]}', ...modelMeta };
           }
           // Failed calls are NEVER cached (mirrors a real 500/429 — nothing to remember).
           return new Response(JSON.stringify(errBody), { status, headers: { "content-type": "application/json" } });
@@ -258,7 +261,7 @@ async function installFakeFetch(ctx) {
       const warnings = mappingLost ? ["SEG_MAPPING_LOST"] : [];
       const key = "fake" + (++seq);
       window.__fakeCache.set(cacheKey, { rows, key, warnings });
-      return new Response(JSON.stringify({ rows, fromCache: false, cacheKey: key, warnings }),
+      return new Response(JSON.stringify({ rows, fromCache: false, cacheKey: key, warnings, ...modelMeta }),
         { status: 200, headers: { "content-type": "application/json" } });
     };
   }, { geminiKeyLsKey: GEMINI_KEY_LS_KEY, tableCacheLsKey: TABLE_CACHE_LS_KEY, providerLsKey: PROVIDER_LS_KEY, byokTourLsKey: BYOK_TOUR_LS_KEY, fakeKey: FAKE_GEMINI_KEY });
@@ -425,7 +428,7 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     must(s1.tableLen === N_SEGS, "scenario1: currentTableData.length=" + s1.tableLen + " expected " + N_SEGS);
     must(s1.row150 === 150, "scenario1: currentTableData[150].segment_index=" + s1.row150 + " expected 150");
     must(s1.chunksLen === 3, "scenario1: v3LastGeminiMeta.chunks.length=" + s1.chunksLen + " expected 3");
-    must(s1.promptId === "he-ru-table-seg-v1+chunked", "scenario1: v3LastGeminiMeta.promptId=" + s1.promptId + " expected he-ru-table-seg-v1+chunked");
+    must(s1.promptId === "he-ru-table-seg-v2+chunked", "scenario1: v3LastGeminiMeta.promptId=" + s1.promptId + " expected he-ru-table-seg-v2+chunked");
 
     console.log("scenario1 OK — chunkCalls=" + JSON.stringify(calls1) + " progressiveMax=" + r1.intermediateMax + " final=" + s1.tableLen);
 

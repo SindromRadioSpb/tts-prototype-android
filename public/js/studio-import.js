@@ -744,7 +744,7 @@
     return;
   }
   var MAX_FILE_BYTES = 6 * 1024 * 1024;
-  var pending = null; // {kind, source, method, model, warnings, text}
+  var pending = null; // {kind, source, method, model/modelVersion/promptId, fileSha256, pages, warnings, text}
 
   // W2-S4 — Import → Audio (BYOK Gemini ASR). Канон:
   // docs/planning/STUDIO_INGEST_W2_S4_AUDIO_KARAOKE_DESIGN_2026_07_26.md.
@@ -1909,7 +1909,53 @@
       }
     } catch (_) {}
     $("v3ImportPreviewWrap").hidden = false;
+    var exportOcrButton = $("v3ImportExportOcrBtn");
+    if (exportOcrButton) exportOcrButton.hidden = !(Array.isArray(p.pages) && p.pages.length && (p.kind === "pdf" || p.kind === "image"));
     setStatus(null);
+  }
+
+  function safeDownloadStem(value) {
+    return String(value || "ocr")
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^\p{L}\p{N}._-]+/gu, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 96) || "ocr";
+  }
+
+  function exportOcrEvidence() {
+    if (!pending || !Array.isArray(pending.pages) || !pending.pages.length) return;
+    var editedText = ($("v3ImportPreview").value || "").trim();
+    var payload = {
+      format: "linguistpro-ocr-evidence-v1",
+      exported_at: new Date().toISOString(),
+      source: {
+        filename: pending.source || null,
+        kind: pending.kind || null,
+        sha256: pending.fileSha256 || null,
+        pages: pending.pages,
+      },
+      ocr: {
+        provider: "gemini",
+        method: pending.method || null,
+        requested_model: pending.requestedModel || pending.model || null,
+        response_model: pending.modelVersion || pending.model || null,
+        prompt_id: pending.promptId || null,
+        schema_id: pending.schemaId || null,
+        warnings: Array.isArray(pending.warnings) ? pending.warnings : [],
+        cache: pending.cacheKey ? { key: pending.cacheKey, hit: pending.fromCache === true } : null,
+      },
+      raw_text: pending.text || "",
+      reviewed_text: editedText !== String(pending.text || "").trim() ? editedText : null,
+    };
+    var blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], { type: "application/json;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = safeDownloadStem(pending.source) + "-ocr.json";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
   async function postJson(url, body) {
@@ -2011,6 +2057,8 @@
     }
     var pw = $("v3ImportPreviewWrap");
     if (pw) pw.hidden = true;
+    var exportOcrButton = $("v3ImportExportOcrBtn");
+    if (exportOcrButton) exportOcrButton.hidden = true;
     var ai = $("v3ImportAudioInfo");
     if (ai) ai.hidden = true;
     pendingAudio = null;
@@ -2105,7 +2153,22 @@
         var body = { kind: k.kind, mimeType: k.mimeType, dataBase64: b64, filename: file.name };
         if (needsKey) body.geminiApiKey = key;
         var r = await postJson("/api/ingest/extract-file", body);
-        showPreview({ kind: k.kind, source: file.name, method: r.method, model: r.model, warnings: r.warnings || [], text: r.text });
+        showPreview({
+          kind: k.kind,
+          source: file.name,
+          method: r.method,
+          model: r.model,
+          requestedModel: r.requestedModel || r.model,
+          modelVersion: r.modelVersion || null,
+          promptId: r.promptId || null,
+          schemaId: r.schemaId || null,
+          fileSha256: r.fileSha256 || null,
+          pages: Array.isArray(r.pages) ? r.pages : [],
+          fromCache: r.fromCache === true,
+          cacheKey: r.cacheKey || null,
+          warnings: r.warnings || [],
+          text: r.text,
+        });
       } catch (e) { setStatus(errKey(e.code)); }
       finally { setBusy(false); }
     };
@@ -2222,6 +2285,13 @@
     }
     var importMeta = {
       kind: pending.kind, source: pending.source, method: pending.method, model: pending.model,
+      requested_model: pending.requestedModel || pending.model || null,
+      model_version: pending.modelVersion || null,
+      prompt_id: pending.promptId || null,
+      schema_id: pending.schemaId || null,
+      source_file_sha256: pending.fileSha256 || null,
+      pages: Array.isArray(pending.pages) ? pending.pages : undefined,
+      cache: pending.cacheKey ? { key: pending.cacheKey, hit: pending.fromCache === true } : undefined,
       warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
       audio: audioMetaForImport || undefined,
       captions: captionsMetaForImport || undefined,
@@ -2630,6 +2700,7 @@
                            chooseTranscriptOnly: chooseTranscriptOnly,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
+                           exportOcrEvidence: exportOcrEvidence,
                            acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,
                            recordRemoteSavedCopy: recordRemoteSavedCopy,
                            useText: useText, useTextAndCorrect: useTextAndCorrect,

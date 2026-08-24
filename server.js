@@ -26,6 +26,13 @@ const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
 const segTable = require("./ingest/segTable.js");
 const { buildRowsFromGeminiPayload } = require("./ingest/tableRows.js");
 const { buildGeminiTableResponseSchema } = require("./ingest/geminiTableSchema.js");
+const { generateGeminiContent } = require("./ingest/geminiClient.js");
+const {
+  GEMINI_STUDIO_MODEL,
+  getGeminiScenario,
+  buildGeminiCacheKey,
+  cacheMatchesScenario,
+} = require("./ingest/geminiPolicy.js");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
@@ -35,7 +42,7 @@ const { startupCheck } = require("./db/integrity");
 const { createBackup, cleanupBackups, DEFAULT_MAX_BACKUPS } = require("./db/backup");
 
 const textToSpeech = require("@google-cloud/text-to-speech");
-const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+const { Type } = require("@google/genai");
 const hebrewTtsClient = require("./db/premium/hebrewTtsClient");
 const {
   Document,
@@ -1254,7 +1261,7 @@ app.get("/api/client-config", (_req, res) => {
       firefoxSupported: false,
     },
     gemini: {
-      model: "gemini-flash-latest",
+      model: GEMINI_STUDIO_MODEL,
       structuredOutput: true,
       semanticValidation: true,
     },
@@ -4600,16 +4607,6 @@ function getTtsKeyStatusSummary() {
 
 initTtsClient();
 
-// 4.2. Gemini
-const GEMINI_API_KEY =
-  process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
-let genAI = null;
-if (GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-} else {
-  console.warn("[Gemini] GEMINI_API_KEY / GOOGLE_API_KEY не задан — AI translation отключен");
-}
-
 // --------------------------------------------------------
 // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ USAGE/ЛИМИТОВ
 // --------------------------------------------------------
@@ -6810,22 +6807,26 @@ app.post("/api/translate-table", async (req, res) => {
         error_code: "GEMINI_KEY_INVALID",
       });
     }
-    const ai = new GoogleGenerativeAI(trimmedKey);
-
     const cleanText = segMode ? segTable.buildSegInput(req.body.segments) : text.trim();
 
-    const promptId = segMode ? "he-ru-table-seg-v1" : (direction === "any-he" ? "any-he-table-v1" : "he-ru-table-v1");
-    const hashInput = `${promptId}||${cleanText}`;
-    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
-    const cacheFile = path.join(geminiCacheDir, `${hashKey}.json`);
+    const scenarioName = segMode ? "table-seg-he-ru" : (direction === "any-he" ? "table-any-he" : "table-he-ru");
+    const scenario = getGeminiScenario(scenarioName);
+    const contentSha256 = crypto.createHash("sha256").update(cleanText).digest("hex");
+    const hashKey = buildGeminiCacheKey({ ...scenario, contentSha256 });
+    const cacheFile = path.join(geminiCacheDir, `table-v2-${hashKey}.json`);
 
     if (fs.existsSync(cacheFile)) {
       try {
         const rawCache = fs.readFileSync(cacheFile, "utf8");
         const cached = JSON.parse(rawCache);
-        if (cached && Array.isArray(cached.rows)) {
+        if (cacheMatchesScenario(cached, scenario) && Array.isArray(cached.rows)) {
           return res.json({
             rows: cached.rows,
+            model: cached.model,
+            requestedModel: cached.model,
+            modelVersion: cached.modelVersion || null,
+            promptId: cached.promptId,
+            schemaId: cached.schemaId,
             fromCache: true,
             cacheKey: hashKey,
             cachedAt: cached.createdAt || null,
@@ -6837,21 +6838,22 @@ app.post("/api/translate-table", async (req, res) => {
       }
     }
 
-    const model = ai.getGenerativeModel({
-      model: "gemini-flash-latest",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: buildGeminiTableResponseSchema(SchemaType),
-      },
-    });
-
     const prompt = segMode
       ? segTable.HE_RU_SEG_PROMPT(cleanText)
       : (direction === "any-he" ? ANY_HE_PROMPT(cleanText) : HE_RU_PROMPT(cleanText));
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const rawText = response.text();
+    const generated = await generateGeminiContent({
+      apiKey: trimmedKey,
+      scenario,
+      contents: prompt,
+      config: {
+        temperature: 0,
+        maxOutputTokens: 65536,
+        responseMimeType: "application/json",
+        responseSchema: buildGeminiTableResponseSchema(Type),
+      },
+    });
+    const rawText = generated.text;
 
     const cleaned = rawText
       .replace(/^```json\s*/i, "")
@@ -6867,6 +6869,11 @@ app.post("/api/translate-table", async (req, res) => {
       return res.status(500).json({
         error: "Ошибка JSON",
         raw: rawText,
+        model: scenario.model,
+        requestedModel: scenario.model,
+        modelVersion: generated.modelVersion,
+        promptId: scenario.promptId,
+        schemaId: scenario.schemaId,
       });
     }
 
@@ -6900,6 +6907,10 @@ app.post("/api/translate-table", async (req, res) => {
       text: cleanText,
       rows: preparedRows,
       warnings,
+      model: scenario.model,
+      modelVersion: generated.modelVersion,
+      promptId: scenario.promptId,
+      schemaId: scenario.schemaId,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -6912,6 +6923,11 @@ app.post("/api/translate-table", async (req, res) => {
 
     res.json({
       rows: preparedRows,
+      model: scenario.model,
+      requestedModel: scenario.model,
+      modelVersion: generated.modelVersion,
+      promptId: scenario.promptId,
+      schemaId: scenario.schemaId,
       fromCache: false,
       cacheKey: hashKey,
       cachedAt: cachePayload.createdAt,

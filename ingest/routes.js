@@ -7,12 +7,24 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { Type } = require("@google/genai");
 const { safeFetchHtml } = require("./ssrfGuard.js");
 const { extractArticle } = require("./urlExtract.js");
 const { extractDocxText } = require("./docxExtract.js");
 const { isPlausibleGeminiKey } = require("./geminiKey.js");
 const { classifyGeminiError } = require("./geminiError.js");
+const { generateGeminiContent } = require("./geminiClient.js");
+const {
+  getGeminiScenario,
+  buildGeminiCacheKey,
+  cacheMatchesScenario,
+} = require("./geminiPolicy.js");
+const {
+  buildGeminiExtractSchema,
+  validatePageManifest,
+  normalizeExtractPayload,
+  mergePageProvenance,
+} = require("./geminiExtract.js");
 const retell = require("./retell.js");
 
 function errStatus(code) {
@@ -22,20 +34,23 @@ function errStatus(code) {
 const EXTRACT_PROMPT = `
 You are a strict JSON generator performing TEXT EXTRACTION (not translation).
 The attached document (image or PDF) likely contains Hebrew and/or Russian text.
-Extract the main readable text.
+Extract the main readable text separately for every input page.
 Rules:
+- Return one item in "pages" for each input page, in order. "page_index" is 1-based.
 - Output plain text with paragraph breaks preserved; Hebrew in logical (not visual) order.
 - Preserve niqqud (vocalization marks) EXACTLY as printed; do NOT add niqqud that is not printed.
 - Do NOT translate, summarize, correct or invent anything.
 - Skip page headers, footers, page numbers, watermarks.
 - If a region is illegible, insert "[…]" there and add "PARTIALLY_ILLEGIBLE" to warnings.
-- If there is no readable text at all, return {"text":"","language":null,"warnings":["NO_TEXT_FOUND"]}.
+- If one page has no readable text, keep that page with an empty "text" and add "PAGE_TEXT_MISSING".
+- If there is no readable text at all, return all pages with empty text and add "NO_TEXT_FOUND".
 Output ONLY JSON, no markdown fences:
-{"text":"...","language":"he|ru|mixed|other","warnings":[]}
+{"pages":[{"page_index":1,"text":"..."}],"language":"he|ru|mixed|other|unknown","warnings":[]}
 `;
 
 function registerIngestRoutes(app, deps) {
   const { makeRateLimiter } = deps;
+  const generateContent = deps.generateGeminiContent || generateGeminiContent;
   const limiter = makeRateLimiter({ windowMs: 60_000, max: 10, name: "ingest" });
 
   app.post("/api/ingest/fetch-url", limiter, async (req, res) => {
@@ -68,7 +83,7 @@ function registerIngestRoutes(app, deps) {
   };
 
   app.post("/api/ingest/extract-file", limiter, async (req, res) => {
-    const { kind, mimeType, dataBase64, geminiApiKey } = req.body || {};
+    const { kind, mimeType, dataBase64, geminiApiKey, pageManifest } = req.body || {};
     if (!["docx", "image", "pdf"].includes(kind)) {
       return res.status(400).json({ ok: false, error: "Неизвестный тип файла", error_code: "BAD_KIND" });
     }
@@ -103,47 +118,92 @@ function registerIngestRoutes(app, deps) {
       return res.status(400).json({ ok: false, error: "Неверный формат Gemini API Key", error_code: "GEMINI_KEY_INVALID" });
     }
 
+    const manifestValidation = validatePageManifest(pageManifest);
+    if (!manifestValidation.ok) {
+      return res.status(400).json({ ok: false, error: "Некорректный page manifest", error_code: manifestValidation.error_code });
+    }
+
     const method = kind === "pdf" ? "gemini-pdf" : "gemini-ocr";
-    const hash = crypto.createHash("sha256").update(bytes).digest("hex");
-    const cacheFile = path.join(deps.geminiCacheDir, `ingest-extract-v1-${hash}.json`);
+    const scenario = getGeminiScenario("ocr");
+    const fileSha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+    const cacheKey = buildGeminiCacheKey({ ...scenario, contentSha256: fileSha256 });
+    const cacheFile = path.join(deps.geminiCacheDir, `ingest-extract-v2-${cacheKey}.json`);
     if (fs.existsSync(cacheFile)) {
       try {
         const cached = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-        if (cached && typeof cached.text === "string") {
+        if (cacheMatchesScenario(cached, scenario) && Array.isArray(cached.pages)) {
+          const merged = mergePageProvenance(cached.pages, manifestValidation.value, fileSha256);
           return res.json({
             ok: true,
-            text: cached.text,
+            text: merged.text,
+            pages: merged.pages,
+            fileSha256,
             language: cached.language ?? null,
-            warnings: Array.isArray(cached.warnings) ? cached.warnings : [],
+            warnings: [...new Set([...(Array.isArray(cached.warnings) ? cached.warnings : []), ...merged.warnings])],
             method,
-            model: "gemini-flash-latest",
+            model: cached.model,
+            requestedModel: cached.model,
+            modelVersion: cached.modelVersion || null,
+            promptId: cached.promptId,
+            schemaId: cached.schemaId,
             fromCache: true,
+            cacheKey,
           });
         }
       } catch (e) { console.error("ingest cache read error", e); }
     }
 
     try {
-      const ai = new GoogleGenerativeAI(geminiApiKey.trim());
-      const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
-      const result = await model.generateContent([
-        { inlineData: { mimeType, data: dataBase64 } },
-        { text: EXTRACT_PROMPT },
-      ]);
-      const raw = (await result.response).text();
+      const generated = await generateContent({
+        apiKey: geminiApiKey.trim(),
+        scenario,
+        contents: [{ role: "user", parts: [
+          { inlineData: { mimeType, data: dataBase64 } },
+          { text: EXTRACT_PROMPT },
+        ] }],
+        config: {
+          temperature: 0,
+          responseMimeType: "application/json",
+          responseSchema: buildGeminiExtractSchema(Type),
+          maxOutputTokens: 65536,
+        },
+      });
+      const raw = generated.text;
       const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
       let parsed;
       try { parsed = JSON.parse(cleaned); }
       catch { return res.status(502).json({ ok: false, error: "Модель вернула не-JSON", error_code: "EXTRACT_BAD_JSON" }); }
-      const out = {
-        text: typeof parsed.text === "string" ? parsed.text.trim() : "",
-        language: parsed.language || null,
-        warnings: Array.isArray(parsed.warnings) ? parsed.warnings : [],
+      const normalized = normalizeExtractPayload(parsed);
+      const merged = mergePageProvenance(normalized.pages, manifestValidation.value, fileSha256);
+      const warnings = [...new Set([...normalized.warnings, ...merged.warnings])];
+      const cachePayload = {
+        pages: normalized.pages,
+        language: normalized.language,
+        warnings: normalized.warnings,
+        model: scenario.model,
+        modelVersion: generated.modelVersion,
+        promptId: scenario.promptId,
+        schemaId: scenario.schemaId,
+        createdAt: new Date().toISOString(),
       };
-      if (!out.text) out.warnings = [...new Set([...out.warnings, "NO_TEXT_FOUND"])];
-      try { fs.writeFileSync(cacheFile, JSON.stringify({ ...out, createdAt: new Date().toISOString() })); }
+      try { fs.writeFileSync(cacheFile, JSON.stringify(cachePayload)); }
       catch (e) { console.error("ingest cache write error", e); }
-      return res.json({ ok: true, ...out, method, model: "gemini-flash-latest", fromCache: false });
+      return res.json({
+        ok: true,
+        text: merged.text,
+        pages: merged.pages,
+        fileSha256,
+        language: normalized.language,
+        warnings,
+        method,
+        model: scenario.model,
+        requestedModel: scenario.model,
+        modelVersion: generated.modelVersion,
+        promptId: scenario.promptId,
+        schemaId: scenario.schemaId,
+        fromCache: false,
+        cacheKey,
+      });
     } catch (e) {
       console.error("ingest gemini error", e && e.message);
       const c = classifyGeminiError(e);
@@ -163,33 +223,39 @@ function registerIngestRoutes(app, deps) {
     if (!isPlausibleGeminiKey(geminiApiKey)) {
       return res.status(400).json({ ok: false, error: "Неверный формат Gemini API Key", error_code: "GEMINI_KEY_INVALID" });
     }
-    const hash = crypto.createHash("sha256").update(retell.cacheKeyInput(text, level)).digest("hex");
-    const cacheFile = path.join(deps.geminiCacheDir, `retell-v1-${hash}.json`);
+    const scenario = getGeminiScenario("retell");
+    const contentSha256 = crypto.createHash("sha256").update(retell.cacheKeyInput(text, level)).digest("hex");
+    const hash = buildGeminiCacheKey({ ...scenario, contentSha256 });
+    const cacheFile = path.join(deps.geminiCacheDir, `retell-v2-${hash}.json`);
     if (fs.existsSync(cacheFile)) {
       try {
         const cached = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-        if (cached && typeof cached.retell === "string" && cached.retell.trim()) {
-          return res.json({ ok: true, retell: cached.retell, promptId: retell.RETELL_PROMPT_ID,
-                            model: "gemini-flash-latest", fromCache: true, cacheKey: hash });
+        if (cacheMatchesScenario(cached, scenario) && typeof cached.retell === "string" && cached.retell.trim()) {
+          return res.json({ ok: true, retell: cached.retell, promptId: scenario.promptId,
+                            model: cached.model, requestedModel: cached.model,
+                            modelVersion: cached.modelVersion || null, fromCache: true, cacheKey: hash });
         }
       } catch (e) { console.error("retell cache read error", e); }
     }
     try {
-      const ai = new GoogleGenerativeAI(geminiApiKey.trim());
-      const model = ai.getGenerativeModel({
-        model: "gemini-flash-latest",
+      const generated = await generateContent({
+        apiKey: geminiApiKey.trim(),
+        scenario,
+        contents: retell.buildRetellPrompt(text, level),
         // maxOutputTokens 16384: thinking входит в бюджет вывода — 8192 обрезало list-вариант
         // (замер M1, docs/research/studio-ingest-graded-retell/2026-07-28/README.md)
-        generationConfig: { temperature: 0, maxOutputTokens: 16384 },
+        config: { temperature: 0, maxOutputTokens: 16384 },
       });
-      const result = await model.generateContent(retell.buildRetellPrompt(text, level));
-      const raw = (await result.response).text();
+      const raw = generated.text;
       const out = raw.replace(/^```[a-z]*\s*/i, "").replace(/```\s*$/i, "").trim();
       if (!out) return res.status(502).json({ ok: false, error: "Пустой ответ модели", error_code: "RETELL_EMPTY_OUTPUT" });
-      try { fs.writeFileSync(cacheFile, JSON.stringify({ retell: out, level, createdAt: new Date().toISOString() })); }
+      try { fs.writeFileSync(cacheFile, JSON.stringify({ retell: out, level, model: scenario.model,
+        modelVersion: generated.modelVersion, promptId: scenario.promptId, schemaId: scenario.schemaId,
+        createdAt: new Date().toISOString() })); }
       catch (e) { console.error("retell cache write error", e); }
-      return res.json({ ok: true, retell: out, promptId: retell.RETELL_PROMPT_ID,
-                        model: "gemini-flash-latest", fromCache: false, cacheKey: hash });
+      return res.json({ ok: true, retell: out, promptId: scenario.promptId,
+                        model: scenario.model, requestedModel: scenario.model,
+                        modelVersion: generated.modelVersion, fromCache: false, cacheKey: hash });
     } catch (e) {
       console.error("retell gemini error", e && e.message); // только .message — ключ не логируем
       const c = classifyGeminiError(e);

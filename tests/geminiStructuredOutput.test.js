@@ -17,14 +17,15 @@ test('Gemini table route requests the existing row contract as structured JSON',
   assert.deepEqual(schema.properties.rows.items.required,
     ['segment_index', 'he', 'he_niqqud', 'translit', 'ru']);
   assert.match(server, /responseMimeType:\s*["']application\/json["']/);
-  assert.match(server, /responseSchema:\s*buildGeminiTableResponseSchema\(SchemaType\)/);
+  assert.match(server, /responseSchema:\s*buildGeminiTableResponseSchema\(Type\)/);
 });
 
-test('structured syntax never replaces local semantic validation or changes model/cache identity', () => {
+test('structured syntax keeps semantic validation and model-aware cache identity', () => {
   assert.match(server, /JSON\.parse\(cleaned\)/);
   assert.match(server, /buildRowsFromGeminiPayload\(parsed/);
   assert.ok(server.indexOf('buildRowsFromGeminiPayload(parsed') < server.indexOf('fs.writeFileSync(cacheFile'),
     'semantic validation must precede cache publication');
-  assert.match(server, /model:\s*["']gemini-flash-latest["']/);
-  assert.match(server, /const hashInput = `\$\{promptId\}\|\|\$\{cleanText\}`/);
+  assert.match(server, /getGeminiScenario\(scenarioName\)/);
+  assert.match(server, /buildGeminiCacheKey\(/);
+  assert.doesNotMatch(server, /model:\s*["']gemini-flash-latest["']/);
 });
