@@ -17,7 +17,7 @@ test("Studio sends the selected transliteration profile to Gemini table routes",
 });
 
 test("local table cache cannot cross direction or transliteration contracts", () => {
-  assert.match(indexHtml, /TABLE_CACHE_CONTRACT_VERSION = "table-cache-v2-direction-translit"/);
+  assert.match(indexHtml, /TABLE_CACHE_CONTRACT_VERSION = "table-cache-v3-local-niqqud-normalization"/);
   assert.match(indexHtml, /cache\.tableCacheContract === TABLE_CACHE_CONTRACT_VERSION/);
   assert.match(indexHtml, /cache\.translitProfile === requestedTranslitProfile/);
   assert.match(indexHtml, /cache\.direction === requestedDirection/);
@@ -35,7 +35,11 @@ test("Gemini local-cache prompt identity distinguishes direction and segment mod
 
 test("Gemini route isolates cache and recomputes transliteration by profile", () => {
   assert.match(serverJs, /translit_profile=\$\{translitProfile\}/);
+  assert.match(serverJs, /canonicalizeGeminiTableRowsLocally\(cached\.rows, translitProfile\)/);
+  assert.match(serverJs, /canonicalizeGeminiTableRowsLocally\(preparedRows, translitProfile\)/);
   assert.match(serverJs, /transliterateWithProfile\(row\.he_niqqud, translitProfile\)/);
+  assert.match(serverJs, /LOCAL_NIQQUD_CANONICALIZED/);
+  assert.match(serverJs, /localNiqqudCorrections:\s*local\.corrections/);
   assert.match(serverJs, /translitProfileVersion:\s*resolvedTranslitProfile/);
 });
 

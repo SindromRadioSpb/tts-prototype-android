@@ -26,6 +26,7 @@ const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
 const segTable = require("./ingest/segTable.js");
 const {
   buildRowsFromGeminiPayload,
+  canonicalizeKnownNiqqudRows,
   validateHebrewSourceCoverage,
 } = require("./ingest/tableRows.js");
 const { buildGeminiTableResponseSchema } = require("./ingest/geminiTableSchema.js");
@@ -6685,6 +6686,31 @@ app.post("/api/save-audio", async (req, res) => {
 // Task 6 fix round 1, for standalone regression-test coverage — see
 // tests/tableRows.test.js).
 
+function canonicalizeGeminiTableRowsLocally(rows, translitProfile) {
+  const { rows: normalizedRows, corrections } = canonicalizeKnownNiqqudRows(rows);
+  const { transliterateWithProfile } = require("./db/premium/translit");
+  const { translitProfileVersion } = require("./db/premium/versions");
+  const resolvedTranslitProfile = translitProfileVersion(translitProfile);
+
+  normalizedRows.forEach((row) => {
+    row.translit = transliterateWithProfile(row.he_niqqud, translitProfile) || "";
+    if (!row.translation_meta_json) return;
+    try {
+      const meta = JSON.parse(row.translation_meta_json);
+      row.translation_meta_json = JSON.stringify({
+        ...meta,
+        translitProfile: resolvedTranslitProfile,
+        localNiqqudNormalization: corrections.length > 0,
+      });
+    } catch (_) {
+      // Preserve opaque legacy metadata. The response-level correction ledger
+      // below still reports the local normalization honestly.
+    }
+  });
+
+  return { rows: normalizedRows, corrections, resolvedTranslitProfile };
+}
+
 // direction="he-ru" (default): Hebrew source -> Russian table.
 const HE_RU_PROMPT = (cleanText) => `
 You are a strict JSON generator.
@@ -6832,8 +6858,13 @@ app.post("/api/translate-table", async (req, res) => {
         const rawCache = fs.readFileSync(cacheFile, "utf8");
         const cached = JSON.parse(rawCache);
         if (cacheMatchesScenario(cached, scenario) && Array.isArray(cached.rows)) {
+          const local = canonicalizeGeminiTableRowsLocally(cached.rows, translitProfile);
+          const warnings = Array.isArray(cached.warnings) ? [...cached.warnings] : [];
+          if (local.corrections.length > 0 && !warnings.includes("LOCAL_NIQQUD_CANONICALIZED")) {
+            warnings.push("LOCAL_NIQQUD_CANONICALIZED");
+          }
           return res.json({
-            rows: cached.rows,
+            rows: local.rows,
             model: cached.model,
             requestedModel: cached.model,
             modelVersion: cached.modelVersion || null,
@@ -6842,9 +6873,10 @@ app.post("/api/translate-table", async (req, res) => {
             fromCache: true,
             cacheKey: hashKey,
             cachedAt: cached.createdAt || null,
-            warnings: Array.isArray(cached.warnings) ? cached.warnings : [],
+            warnings,
             translitProfile: cached.translitProfile || translitProfile,
-            translitProfileVersion: cached.translitProfileVersion || null,
+            translitProfileVersion: local.resolvedTranslitProfile,
+            localNiqqudCorrections: local.corrections,
           });
         }
       } catch (e) {
@@ -6911,11 +6943,10 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
 
-    const { transliterateWithProfile } = require("./db/premium/translit");
-    const { translitProfileVersion } = require("./db/premium/versions");
-    const resolvedTranslitProfile = translitProfileVersion(translitProfile);
+    const local = canonicalizeGeminiTableRowsLocally(preparedRows, translitProfile);
+    preparedRows = local.rows;
+    const resolvedTranslitProfile = local.resolvedTranslitProfile;
     preparedRows.forEach((row) => {
-      row.translit = transliterateWithProfile(row.he_niqqud, translitProfile) || "";
       row.translation_provider = `gemini:${scenario.model}`;
       row.translation_meta_json = JSON.stringify({
         provider: "gemini",
@@ -6924,10 +6955,11 @@ app.post("/api/translate-table", async (req, res) => {
         promptId: scenario.promptId,
         schemaId: scenario.schemaId,
         translitProfile: resolvedTranslitProfile,
+        localNiqqudNormalization: local.corrections.length > 0,
       });
     });
 
-    let warnings = [];
+    let warnings = local.corrections.length > 0 ? ["LOCAL_NIQQUD_CANONICALIZED"] : [];
     if (segMode) {
       if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {
         preparedRows.forEach((r) => { delete r.segment_index; });
@@ -6951,6 +6983,7 @@ app.post("/api/translate-table", async (req, res) => {
       schemaId: scenario.schemaId,
       translitProfile,
       translitProfileVersion: resolvedTranslitProfile,
+      localNiqqudCorrections: local.corrections,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -6972,6 +7005,7 @@ app.post("/api/translate-table", async (req, res) => {
       warnings,
       translitProfile,
       translitProfileVersion: resolvedTranslitProfile,
+      localNiqqudCorrections: local.corrections,
     });
   } catch (error) {
     // Sanitize: log only flat scalars, never the raw error object (it can

@@ -12,6 +12,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
   buildRowsFromGeminiPayload,
+  canonicalizeKnownNiqqudRows,
   validateHebrewSourceCoverage,
 } = require("../ingest/tableRows.js");
 
@@ -111,4 +112,38 @@ test("source coverage rejects dropped or rewritten Hebrew before cache publicati
     () => validateHebrewSourceCoverage([{ he: "בנקודה N עוזב הרכב" }], "בנקודה N מאיץ הנהג את הרכב"),
     (error) => error && error.code === "HE_SOURCE_COVERAGE_MISMATCH",
   );
+});
+
+test("known physics terms are canonicalized locally without changing plain Hebrew", () => {
+  const input = [{
+    he: "אופנוע ומכונית נוסעים על כביש ישר ואופקי.",
+    he_niqqud: "אֶוֹפַנּוֹעַ וּמְכוֹנִית נוֹסְעִים עַל כְּבִישׁ יָשָׁר וְאֹפְקִי.",
+    translit: "provider output must be replaced",
+    ru: "Мотоцикл и автомобиль едут по прямой горизонтальной дороге.",
+  }, {
+    he: "כשהאופנוע מאיץ, תאוצת האופנוע קבועה.",
+    he_niqqud: "כְּשֶׁהָאֶוֹפַנּוֹעַ מֵאִיץ, תְּאוּצַת הָאֶוֹפַנּוֹעַ קְבוּעָה.",
+    translit: "stale",
+    ru: "Когда мотоцикл ускоряется, его ускорение постоянно.",
+  }];
+
+  const result = canonicalizeKnownNiqqudRows(input);
+
+  assert.deepEqual(result.rows.map((row) => row.he), input.map((row) => row.he));
+  assert.equal(
+    result.rows[0].he_niqqud,
+    "אוֹפַנּוֹעַ וּמְכוֹנִית נוֹסְעִים עַל כְּבִישׁ יָשָׁר וְאָפְקִי.",
+  );
+  assert.equal(
+    result.rows[1].he_niqqud,
+    "כְּשֶׁהָאוֹפַנּוֹעַ מֵאִיץ, תְּאוּצַת הָאוֹפַנּוֹעַ קְבוּעָה.",
+  );
+  assert.equal(result.corrections.length, 4);
+  assert.deepEqual(result.corrections.map((item) => item.term), ["אופנוע", "אופקי", "כשהאופנוע", "האופנוע"]);
+  assert.notStrictEqual(result.rows[0], input[0]);
+  assert.equal(input[0].he_niqqud, "אֶוֹפַנּוֹעַ וּמְכוֹנִית נוֹסְעִים עַל כְּבִישׁ יָשָׁר וְאֹפְקִי.");
+
+  const unrelated = canonicalizeKnownNiqqudRows([{ he: "מכונית בלבד", he_niqqud: "אֶוֹפַנּוֹעַ" }]);
+  assert.equal(unrelated.rows[0].he_niqqud, "אֶוֹפַנּוֹעַ");
+  assert.equal(unrelated.corrections.length, 0);
 });

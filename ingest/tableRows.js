@@ -7,6 +7,22 @@
 "use strict";
 
 const HEBREW_MARKS_RE = /[\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7]/g;
+const HEBREW_TOKEN_RE = /[א-ת\u0591-\u05c7]+/g;
+
+// Small, reviewable local lexicon for terms whose machine niqqud has already
+// failed owner QA. The plain Hebrew remains source truth; only the derived
+// niqqud layer is replaced. Exact prefixed forms are intentional: Hebrew
+// proclitic vowels are context-sensitive, so guessing arbitrary prefixes here
+// would be less safe than extending this audited map when a new case appears.
+const KNOWN_NIQQUD_CANONICAL = new Map([
+  ["אופנוע", { term: "אופנוע", plain: "אופנוע", value: "אוֹפַנּוֹעַ" }],
+  ["האופנוע", { term: "האופנוע", plain: "האופנוע", value: "הָאוֹפַנּוֹעַ" }],
+  ["כשהאופנוע", { term: "כשהאופנוע", plain: "כשהאופנוע", value: "כְּשֶׁהָאוֹפַנּוֹעַ" }],
+  ["אפקי", { term: "אופקי", plain: "אופקי", value: "אָפְקִי" }],
+  ["אופקי", { term: "אופקי", plain: "אופקי", value: "אָפְקִי" }],
+  ["ואפקי", { term: "אופקי", plain: "ואופקי", value: "וְאָפְקִי" }],
+  ["ואופקי", { term: "אופקי", plain: "ואופקי", value: "וְאָפְקִי" }],
+]);
 
 function comparableHebrewBase(value) {
   return String(value || "")
@@ -33,6 +49,24 @@ function semanticError(code, message, details) {
   error.code = code;
   error.details = details || null;
   return error;
+}
+
+function canonicalizeKnownNiqqudRows(rows) {
+  const corrections = [];
+  const normalizedRows = (Array.isArray(rows) ? rows : []).map((row, rowIndex) => {
+    const next = { ...(row || {}) };
+    const plainTokens = new Set(String(next.he || "").match(/[א-ת]+/g) || []);
+    const before = String(next.he_niqqud || "");
+    next.he_niqqud = before.replace(HEBREW_TOKEN_RE, (token) => {
+      const key = comparableHebrewBase(token);
+      const canonical = KNOWN_NIQQUD_CANONICAL.get(key);
+      if (!canonical || !plainTokens.has(canonical.plain) || canonical.value === token) return token;
+      corrections.push({ rowIndex, term: canonical.term, from: token, to: canonical.value });
+      return canonical.value;
+    });
+    return next;
+  });
+  return { rows: normalizedRows, corrections };
 }
 
 function validateNiqqudBase(rows) {
@@ -168,6 +202,7 @@ function buildRowsFromGeminiPayload(parsed, options, opts) {
 
 module.exports = {
   buildRowsFromGeminiPayload,
+  canonicalizeKnownNiqqudRows,
   comparableHebrewBase,
   comparableHebrewConsonantalSkeleton,
   validateNiqqudBase,

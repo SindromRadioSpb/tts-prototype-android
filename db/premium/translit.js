@@ -153,6 +153,13 @@ function _finishLearnerLatin(value) {
     // The library emits furtive patah before final ע as a'; learner spelling
     // places the separator before the vowel: nose'a, ofno'a, poge'a.
     .replace(/a'(?=$|[\s.,!?;:)\]])/g, "'a")
+    // Academy niqqud writes אוֹפַנּוֹעַ with patah and אָפְקִי with qamats
+    // qatan. Keep the owner's compact modern learner spellings rather than
+    // exposing the library's mechanical Ofano'a / Afki renderings.
+    .replace(/Ofano'a/g, "Ofno'a")
+    .replace(/ofano'a/g, "ofno'a")
+    .replace(/Afki\b/g, "Ofki")
+    .replace(/afki\b/g, "ofki")
     .replace(/(^|[.!?]\s+)([a-z])/g, (_match, before, letter) => before + letter.toUpperCase());
 }
 

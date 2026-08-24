@@ -14,12 +14,17 @@ test("learner Latin reproduces the approved physics-corpus style", () => {
 });
 
 test("learner Latin profile has a distinct cache version", () => {
-  assert.equal(translitProfileVersion("learner-latin"), "learner-latin-v1");
+  assert.equal(translitProfileVersion("learner-latin"), "learner-latin-v2-local-niqqud");
   assert.notEqual(translitProfileVersion("learner-latin"), translitProfileVersion("sbl"));
 });
 
 test("learner Latin keeps the existing readable apostrophe convention", () => {
   assert.equal(transliterateWithProfile("אוֹפְנוֹעַ", "learner-latin"), "Ofno'a");
+  assert.equal(transliterateWithProfile("אוֹפַנּוֹעַ", "learner-latin"), "Ofno'a");
   assert.equal(transliterateWithProfile("הָאוֹפְנוֹעַ", "learner-latin"), "Ha'ofno'a");
+  assert.equal(transliterateWithProfile("הָאוֹפַנּוֹעַ", "learner-latin"), "Ha'ofno'a");
+  assert.equal(transliterateWithProfile("כְּשֶׁהָאוֹפַנּוֹעַ", "learner-latin"), "Ksheha'ofno'a");
+  assert.equal(transliterateWithProfile("אָפְקִי", "learner-latin"), "Ofki");
+  assert.equal(transliterateWithProfile("וְאָפְקִי", "learner-latin"), "Ve'ofki");
   assert.equal(transliterateWithProfile("נוֹסֵעַ", "learner-latin"), "Nose'a");
 });
