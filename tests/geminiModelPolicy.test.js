@@ -3,6 +3,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const policy = require("../ingest/geminiPolicy.js");
 const extract = require("../ingest/geminiExtract.js");
@@ -16,6 +18,16 @@ test("Studio BYOK scenarios pin the approved current model without an implicit f
     assert.ok(selected.schemaId);
   }
   assert.equal(policy.GEMINI_ECONOMY_MODEL, "gemini-3.5-flash-lite");
+});
+
+test("usage UI reports the pinned model and does not guess the BYOK billing tier", () => {
+  const server = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
+  const shell = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.match(server, /geminiModelName:\s*GEMINI_STUDIO_MODEL/);
+  assert.match(server, /geminiBillingTier:\s*"byok"/);
+  assert.match(shell, /data\.geminiModelName \|\| "gemini-3\.7-flash"/);
+  assert.match(shell, /geminiBillingTier === "byok"[^\n]+tierLabel = "BYOK"/);
+  assert.doesNotMatch(shell, /geminiModelName \|\| "Gemini 2\.5 Flash"/);
 });
 
 test("cache identity changes with model, prompt and schema", () => {

@@ -7626,6 +7626,10 @@ app.get("/api/usage", (req, res) => {
       resetHourUTC: GEMINI_RESET_HOUR_UTC,
       geminiRequests: usedToday,
       geminiRequestsTotal: totalGemini,
+      geminiModelName: GEMINI_STUDIO_MODEL,
+      // The API key is supplied by the browser. Its Google billing tier is not
+      // observable by LinguistPro, so never label BYOK usage as Free or Paid.
+      geminiBillingTier: "byok",
     });
   } catch (error) {
     console.error("Usage Error:", error);
