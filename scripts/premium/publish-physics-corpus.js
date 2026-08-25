@@ -103,8 +103,10 @@ function materializeAudioCache(source, dataDir, options = {}) {
       if (!validMp3(existing)) throw new Error("SHARED_CACHE_INVALID_MP3:" + key);
       const existingSha = sha256(existing);
       const action = existingSha === bodySha ? "EXISTING" : "REUSED_CANONICAL";
-      meta.size_bytes = existing.length;
-      meta.content_hash = existingSha;
+      if (apply) {
+        meta.size_bytes = existing.length;
+        meta.content_hash = existingSha;
+      }
       receipts.push({ key, bytes: existing.length, sha256: existingSha, action });
       continue;
     }

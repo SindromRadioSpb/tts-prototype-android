@@ -36,6 +36,9 @@ test("audio-cache materialization is idempotent and reuses valid canonical bytes
   assert.throws(() => publish.materializeAudioCache(source, dataDir), /SHARED_CACHE_INVALID_MP3/);
   const canonical = Buffer.concat([Buffer.from("ID3"), Buffer.alloc(200, 9)]);
   fs.writeFileSync(path.join(dataDir, "audio-cache", key + ".mp3"), canonical);
+  const originalHash = source.assets.get(key).content_hash;
+  assert.deepEqual(publish.materializeAudioCache(source, dataDir, { apply: false }).map(item => item.action), ["REUSED_CANONICAL"]);
+  assert.equal(source.assets.get(key).content_hash, originalHash);
   assert.deepEqual(publish.materializeAudioCache(source, dataDir).map(item => item.action), ["REUSED_CANONICAL"]);
   assert.equal(source.assets.get(key).size_bytes, canonical.length);
   assert.equal(source.assets.get(key).content_hash, crypto.createHash("sha256").update(canonical).digest("hex"));
