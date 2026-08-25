@@ -49,6 +49,18 @@ test("public Study Songs has an unambiguous localized display name without chang
   assert.match(room, /authorizedCorpusById\('public:' \+ slug\)/);
 });
 
+test("shared public-corpus controls stay material-generic for non-song corpora", () => {
+  const expected = {
+    ru: ['search:"Найти материал или автора"', 'scopeCreator:"Только автор"', 'audioFilterLabel:"Аудио"'],
+    en: ['search:"Find a material or author"', 'scopeCreator:"Author only"', 'audioFilterLabel:"Audio"'],
+    he: ['search:"חיפוש חומר או מחבר"', 'scopeCreator:"מחבר בלבד"', 'audioFilterLabel:"שמע"'],
+  };
+  for (const [locale, fragments] of Object.entries(expected)) {
+    const dictionary = source(`public/i18n/locales/${locale}.js`);
+    for (const fragment of fragments) assert.ok(dictionary.includes(fragment), `${locale}: ${fragment}`);
+  }
+});
+
 test("Room loads public corpora before protected memberships and uses the public audio transport", () => {
   const room = source("public/js/library-ui.js");
   const html = source("public/library.html");

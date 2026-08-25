@@ -9860,8 +9860,8 @@ function openPublicShare(catalog, work, returnFocus) {
   const included = work ? work.included_audio_count : Math.max(0, catalog.edition.asset_count - catalog.edition.asset_missing);
   const missing = work ? work.asset_missing : catalog.edition.asset_missing;
   box.appendChild(el('p', { class: 'room-share-note', text: missing
-    ? tt('room.publicCorpus.packagePartial', 'ZIP содержит текст и доступное оригинальное аудио; {n} аудиофайл(а) технически недоступно.').replace('{n}', String(missing))
-    : tt('room.publicCorpus.packageComplete', 'ZIP содержит опубликованный текст и разрешённое оригинальное аудио.') }));
+    ? tt('room.publicCorpus.packagePartial', 'ZIP содержит текст и доступное аудио; {n} аудиофайл(а) технически недоступно.').replace('{n}', String(missing))
+    : tt('room.publicCorpus.packageComplete', 'ZIP содержит опубликованный текст и разрешённое аудио.') }));
   const facts = el('div', { class: 'room-share-facts', attrs: { 'aria-label': tt('room.share.packageFacts', 'Состав архива') } });
   for (const [value, key, fallback] of [[expected, 'tcs.expectedAudio', 'Ожидалось аудио'], [included, 'tcs.includedAudio', 'Включено аудио'], [missing, 'tcs.missingAudio', 'Недоступно аудио']]) {
     const node = el('div', { class: 'room-share-fact' }); node.appendChild(el('strong', { text: String(value) })); node.appendChild(el('span', { text: tt(key, fallback) })); facts.appendChild(node);
@@ -9933,7 +9933,7 @@ async function renderPublicCorpus(slug, token) {
   wrap.appendChild(corpusShellHeader(descriptor, {
     countText: catalog.items.length + ' ' + tt('room.hub.textsN', 'текст(ов)'), description: localizedDescription,
     authority: '● ' + tt('room.publicCorpus.publicTrust', 'Публичная неизменяемая редакция · без аккаунта'),
-    capabilityText: tt('room.publicCorpus.capabilities', 'Чтение, перевод, транслитерация, морфология и доступное оригинальное аудио · прогресс хранится на этом устройстве'),
+    capabilityText: tt('room.publicCorpus.capabilities', 'Чтение, перевод, транслитерация, морфология и доступное аудио · прогресс хранится на этом устройстве'),
   }));
   const guest = el('aside', { class: 'public-corpus-guest', attrs: { role: 'note' } });
   const guestCopy = el('div'); guestCopy.appendChild(el('strong', { text: tt('room.publicCorpus.guestTitle', 'Можно начать сразу') })); guestCopy.appendChild(el('p', { text: tt('room.publicCorpus.guestCopy', 'Аккаунт нужен только для синхронизации и долговременной персонализации между устройствами.') }));
@@ -9950,8 +9950,8 @@ async function renderPublicCorpus(slug, token) {
   searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
   const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: {
     id: 'roomPublicCorpusSearch', name: 'room-public-corpus-search', type: 'search',
-    placeholder: tt('room.publicCorpus.search', 'Найти песню или исполнителя'),
-    'aria-label': tt('room.publicCorpus.search', 'Найти песню или исполнителя'),
+    placeholder: tt('room.publicCorpus.search', 'Найти материал или автора'),
+    'aria-label': tt('room.publicCorpus.search', 'Найти материал или автора'),
   } });
   search.value = browseState.q; searchField.appendChild(search);
   const makeSelect = (id, options, value, label, onChange) => {
@@ -9967,11 +9967,11 @@ async function renderPublicCorpus(slug, token) {
   };
   const filterControls = el('div', { class: 'group-corpus-controls public-corpus-filter-controls' });
   filterControls.appendChild(makeSelect('roomPublicCorpusScope', [
-    ['all', 'room.publicCorpus.scopeAll', 'Название и исполнитель'],
+    ['all', 'room.publicCorpus.scopeAll', 'Название и автор'],
     ['title', 'room.publicCorpus.scopeTitle', 'Только название'],
-    ['creator', 'room.publicCorpus.scopeCreator', 'Только исполнитель'],
+    ['creator', 'room.publicCorpus.scopeCreator', 'Только автор'],
   ], browseState.scope, tt('room.publicCorpus.scopeLabel', 'Область поиска'), value => { browseState.scope = value; schedulePaint(); }));
-  const audioFilters = el('div', { class: 'corpus-facets group-corpus-smart public-corpus-audio-filter', attrs: { id: 'roomPublicCorpusAudio', 'aria-label': tt('room.publicCorpus.audioFilterLabel', 'Оригинальное аудио') } });
+  const audioFilters = el('div', { class: 'corpus-facets group-corpus-smart public-corpus-audio-filter', attrs: { id: 'roomPublicCorpusAudio', 'aria-label': tt('room.publicCorpus.audioFilterLabel', 'Аудио') } });
   const buildAudioFilters = () => {
     audioFilters.replaceChildren();
     for (const [value, key, fallback] of [
@@ -9992,7 +9992,7 @@ async function renderPublicCorpus(slug, token) {
     ['position', 'room.publicCorpus.sortPosition', 'Порядок корпуса'],
     ['title_asc', 'room.publicCorpus.sortTitleAZ', 'Название А–Я'],
     ['title_desc', 'room.publicCorpus.sortTitleZA', 'Название Я–А'],
-    ['creator_asc', 'room.publicCorpus.sortCreator', 'Исполнитель А–Я'],
+    ['creator_asc', 'room.publicCorpus.sortCreator', 'Автор А–Я'],
     ['familiar_desc', 'room.compass.sortFamiliar', 'Сначала достоверно знакомые'],
   ], browseState.sort, tt('room.corpus.sort.label', 'Сортировка'), async (value, select) => {
     if (value === 'familiar_desc' && !await familiaritySortProfileAvailable()) { select.value = browseState.sort; return; }
@@ -10012,7 +10012,7 @@ async function renderPublicCorpus(slug, token) {
   filterChrome = corpusFilterChrome('roomPublicCorpus', searchField, filterControls, sortField, () => {
     const labels = [];
     if (browseState.scope === 'title') labels.push(tt('room.publicCorpus.scopeTitle', 'Только название'));
-    else if (browseState.scope === 'creator') labels.push(tt('room.publicCorpus.scopeCreator', 'Только исполнитель'));
+    else if (browseState.scope === 'creator') labels.push(tt('room.publicCorpus.scopeCreator', 'Только автор'));
     if (browseState.audio === 'complete') labels.push(tt('room.publicCorpus.audioComplete', 'Полный аудиопакет'));
     else if (browseState.audio === 'missing') labels.push(tt('room.publicCorpus.audioMissingOnly', 'Есть технические исключения'));
     return { count: labels.length, labels };
