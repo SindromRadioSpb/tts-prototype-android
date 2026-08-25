@@ -13387,6 +13387,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/function-usage.js"></script>
 <!-- ②-note autogen resolver core (pure, DOM-free; shared with Node audit/parity smoke) -->
 <script src="/js/notes-autogen.js"></script>
+<!-- Shared ReaderMorph Pealim table renderer. Load after NotesAutoGen and before
+     reader-morph.js so Studio and Reading Room expose the same rich word card. -->
+<script src="/js/inflection-render.js"></script>
 <!-- Retention P3 — the Studio Trainer's scheduler is now FSRS-6 (recon §3.5/D5): the SAME pure
      engine + canon keyer the Reading Room uses, so word memory is unified via review_log. UMD
      globals only (window.FsrsCore / window.LemmaCanon); no side effects. reviewCard degrades to
@@ -13525,7 +13528,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.436";
+    window.APP_VERSION = "3.11.437";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

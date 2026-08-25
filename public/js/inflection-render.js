@@ -2,9 +2,9 @@
 //
 // Faithful PORT of the Studio's pure inflection-table renderer (index.html
 // v3RenderInflectionParadigm + v3RenderPronounSet + v3ConjSpeak + their constants/
-// helpers) so the Reading-Room word-card shows the SAME «Спряжение / Склонение» table
-// 1:1 (vocalized forms + transliteration per cell, tap-to-hear). index.html keeps its
-// own copy (UNTOUCHED, like reader-core vs renderTable); this is the Room's shared copy.
+// helpers) so ReaderMorph shows the SAME «Спряжение / Склонение» table in Studio and
+// Reading Room (vocalized forms + transliteration per cell, tap-to-hear). The legacy
+// Studio editor card keeps its inline renderer; ReaderMorph uses this shared module.
 //
 // Pure HTML-string builder — no DOM reads. Per-form audio = browser speechSynthesis of
 // the cell's vocalized form (R1: the FORMS are from Pealim; the VOICE is TTS, not a

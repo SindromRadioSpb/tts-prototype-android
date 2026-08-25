@@ -12,15 +12,20 @@
 //   A3 после рендера слова обёрнуты в .rm-w (he-ячейки)
 //   A4 тумблер ON → у решённых слов появляется раскраска (.rm-w-new и т.п.)
 //   A5 тап по слову → карточка .rm-sheet.rm-open с палитрой из 7 статусов
-//   A6 клик по статусу l3 → строка в word_status появилась со статусом l3 + перекраска .rm-w-l3
-//   A7 метка посеяла FSRS-расписание (getSrsSchedule непусто) — канон P5.6 на несохранённой таблице
-//   A8 edit-mode: тап по слову НЕ открывает карточку; после выхода — открывает
+//   A6 карточка существительного содержит тот же accordion «Спряжение / Склонение» и
+//      отрисованную Pealim-таблицу, что и карточка Читального зала
+//   A7 клик по статусу l3 → строка в word_status появилась со статусом l3 + перекраска .rm-w-l3
+//   A8 метка посеяла FSRS-расписание (getSrsSchedule непусто) — канон P5.6 на несохранённой таблице
+//   A9 edit-mode: тап по слову НЕ открывает карточку; после выхода — открывает
 const path = require("path");
+const fs = require("fs");
 const { spawn } = require("child_process");
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3299;
 const BASE = `http://127.0.0.1:${PORT}`;
+const SHOT_380 = path.join(REPO_ROOT, ".tmp", "studio-morph-paradigm-380.png");
+const SHOT_DESKTOP = path.join(REPO_ROOT, ".tmp", "studio-morph-paradigm-desktop.png");
 
 function startServer() {
   return spawn(process.execPath, ["server.js"], {
@@ -110,6 +115,7 @@ function ok(cond, msg) {
     // Синтетическая НЕСОХРАНЁННАЯ таблица (нет _v3_textId/_v3_sentenceId)
     await pg.evaluate(() => {
       window.v3RenderTableFromLibrary([
+        { he: "רכבת מהירה מאוד", he_niqqud: "רַכֶּבֶת מְהִירָה מְאֹד", translit: "rakevet mehira meod", ru: "очень быстрый поезд" },
         { he: "אני הולך הביתה", he_niqqud: "אֲנִי הוֹלֵךְ הַבַּיְתָה", translit: "ani holekh habayta", ru: "я иду домой" },
         { he: "מלחמה קשה מאוד", he_niqqud: "מִלְחָמָה קָשָׁה מְאֹד", translit: "milchama kasha meod", ru: "очень тяжёлая война" },
         { he: "ספר טוב מאוד", he_niqqud: "סֵפֶר טוֹב מְאֹד", translit: "sefer tov meod", ru: "очень хорошая книга" },
@@ -132,13 +138,36 @@ function ok(cond, msg) {
     } catch (_) {}
     ok(colored, "тумблер ON → решённые слова раскрашены (несохранённая таблица, глобальный профиль)");
 
-    // A5 — тап по слову → карточка с палитрой (слово с уверенным разбором: מלחמה)
-    const target = pg.locator('#proTable td[data-col="he"] .rm-w', { hasText: "מלחמה" }).first();
+    // A5 — тап по слову → карточка с палитрой (точный пользовательский регресс: רכבת)
+    const target = pg.locator('#proTable td[data-col="he"] .rm-w', { hasText: "רכבת" }).first();
     await target.click();
     await pg.waitForFunction(() => !!document.querySelector(".rm-sheet.rm-open") && document.querySelectorAll(".rm-status-btn").length >= 7, null, { timeout: 30000 });
     ok(true, "тап по слову открывает морф-карточку с палитрой статусов");
 
-    // A6+A7 — метка l3: word_status появился + FSRS-посев + перекраска
+    // A6 — parity с Залом: общий renderer должен показать таблицу склонения.
+    const paradigm = await pg.evaluate(() => ({
+      renderer: !!(window.InflectionRender && typeof window.InflectionRender.renderParadigm === "function"),
+      accordion: !!document.querySelector(".rm-sheet.rm-open .rm-acc-conj"),
+      table: !!document.querySelector(".rm-sheet.rm-open .rm-acc-conj .v3-conj-wrap"),
+    }));
+    ok(paradigm.renderer, "общий InflectionRender загружен в Студии");
+    ok(paradigm.accordion, "карточка существительного содержит «Спряжение / Склонение»");
+    ok(paradigm.table, "в accordion отрисована Pealim-таблица форм");
+    await pg.locator(".rm-sheet.rm-open .rm-acc-conj > summary").click();
+    const expanded = await pg.evaluate(() => {
+      const details = document.querySelector(".rm-sheet.rm-open .rm-acc-conj");
+      const table = details && details.querySelector(".v3-conj-wrap");
+      return !!(details && details.open && table && table.getClientRects().length);
+    });
+    ok(expanded, "«Спряжение / Склонение» раскрывается и показывает таблицу форм");
+    try { fs.mkdirSync(path.dirname(SHOT_380), { recursive: true }); } catch (_) {}
+    await pg.screenshot({ path: SHOT_380 });
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    await pg.waitForTimeout(250);
+    await pg.screenshot({ path: SHOT_DESKTOP });
+    await pg.setViewportSize({ width: 380, height: 845 });
+
+    // A7+A8 — метка l3: word_status появился + FSRS-посев + перекраска
     const before = await pg.evaluate(async () => {
       const db = await import("/db/local-db.js");
       const all = await db.getAllWordStatuses();
@@ -175,7 +204,7 @@ function ok(cond, msg) {
     await pg.keyboard.press("Escape");
     await pg.waitForTimeout(400);
 
-    // A8 — edit-mode подавляет карточку
+    // A9 — edit-mode подавляет карточку
     await pg.evaluate(() => { window.tableEditModeEnter(); });
     await pg.waitForTimeout(300);
     await pg.locator('#proTable td[data-col="he"] .rm-w', { hasText: "ספר" }).first().click({ force: true });
@@ -202,6 +231,7 @@ function ok(cond, msg) {
     await stopServer(srv);
   }
   if (failures.length) { console.log(`[studio-morph-smoke] FAIL (${failures.length})`); process.exit(1); }
+  console.log("screenshots → " + path.relative(REPO_ROOT, SHOT_380) + ", " + path.relative(REPO_ROOT, SHOT_DESKTOP));
   console.log("[studio-morph-smoke] PASS");
   process.exit(0);
 })();
