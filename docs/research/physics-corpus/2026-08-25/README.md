@@ -1,6 +1,6 @@
 # Physics Year 1 — Online TTS and public-corpus run
 
-Status: `PRODUCTION_VERIFIED`; immutable full edition 2 is the active public pointer.
+Status: `PRODUCTION_VERIFIED_OWNER_ACCEPTED`; immutable full edition 2 is the active public pointer.
 
 ## Scope and source
 
@@ -60,8 +60,8 @@ The asset key identifies the exact row text and TTS profile, not an MP3 byte has
 - RU/LTR and HE/RTL both had document width exactly 380 px with no horizontal overflow. The corpus search/sort copy is generic in both languages (`material or author` semantics), and the browser console had no warnings or errors.
 - Controlled production rollback changed only the public pointer from full edition 2 to pilot edition 1; anonymous repository read-back returned 3 items. The canonical writer then restored edition 2; five consecutive anonymous probes returned 74 items on `3.11.435`.
 - The production backup made before publication remains readable. Current `/healthz` reports application, database and migrations ready; host disk monitoring is warning at 91% used and remains an operations follow-up, not a corpus-integrity failure.
-- This is browser mobile emulation, not a claim of owner acceptance on a physical phone or assistive-technology hardware.
+- Owner smoke: `SUCCESS`, reported by the owner on 2026-08-25 after production publication. The report confirms owner acceptance of the released corpus; the exact device/browser/assistive-technology matrix was not itemized and is not inferred.
 
 ## Deferred next program
 
-`Физика — решения и форум` is not part of this release. Its first architecture should use immutable task-edition links plus external Google Drive/Telegram solution/discussion URLs. Authorization, task-scoped threads, notifications, moderation, attachments, quotas, anti-vandal controls and backups remain a separate program; server attachments come only after the link-first model is proven.
+`Физика — решения и форум` is not part of this release. It starts in a separate research-only session from `docs/planning/PHYSICS_SOLUTIONS_FORUM_RESEARCH_SESSION_PROMPT_2026_08_25.md`. Immutable task-edition anchors and external Google Drive/Telegram links are the initial hypothesis, not a substitute for product research. The session must determine a useful one-person and community product model, authorization, task-scoped discussions, notifications, moderation, storage/attachments, quotas, anti-vandal controls, recovery, cost and scale before any implementation approval.
