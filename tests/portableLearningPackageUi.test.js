@@ -105,7 +105,7 @@ test('text-card share links to the same material truth and single-card ZIP cover
   assert.match(html,/id="v3TcsPortableTitle"/);
   assert.match(html,/id="v3TcsPortableHelp"/);
   assert.match(html,/id="v3TcsPortableBtn"/);
-  assert.match(html,/openForText\(v3TcsCurrentTextId\)/);
+  assert.match(html,/openForText\(portableTextId\)/);
   assert.match(html,/augmentTextBackupZip\(zip, manifest, v3TcsCurrentTextId\)/);
   assert.match(studio,/async function augmentTextBackupZip/);
   assert.match(html,/portableSection\.hidden = false/,'legacy text-card must explain zero P2 coverage instead of hiding the feature');
@@ -142,8 +142,8 @@ test('recovery UX names broken, archived and complete receipt states without tre
   assert.match(html,/materialForText\(textId\)/);
   assert.match(html,/archiveText\(textId\)/);
   assert.match(html,/Studio history/);
-  assert.match(html,/studio-exact-binding/);
-  assert.match(html,/row_caption_segment_ids/);
+  assert.match(html,/studio-media-binding-outcome-v1/);
+  assert.match(html,/_studio_source/);
 });
 
 test('repairable import history still exposes verified complete deletion with blocker details',()=>{

@@ -349,9 +349,9 @@
   // а studio_learning_materials.package_id остаётся висеть), валил ВЕСЬ полный бэкап — и валил его
   // на последнем шаге, после сборки тысяч аудио. Отказ вместо молчаливо неполного архива задуман
   // верно, но «резервную копию сделать нельзя вообще» — худший исход, чем «копия с названным
-  // пробелом». Поэтому пропускается РОВНО это структурное состояние, вслух; любая другая ошибка
+  // пробелом». Поэтому пропускаются РОВНО известные структурные состояния, вслух; любая другая ошибка
   // по-прежнему валит бэкап, потому что мы её не понимаем.
-  const ARCHIVE_GAP_CODES=new Set(['MEDIA_PACKAGE_NOT_FOUND','CAPTION_TRACKS_INCOMPLETE']);
+  const ARCHIVE_GAP_CODES=new Set(['MEDIA_PACKAGE_NOT_FOUND','CAPTION_TRACKS_INCOMPLETE','SELECTED_CAPTION_REVISION_MISSING']);
   function archiveGapCode(error){const code=String(error&&(error.code||error.message)||'');return ARCHIVE_GAP_CODES.has(code)?code:null;}
   async function backupCoverageGaps(){const repo=await readyRepository();return typeof repo.materialArchiveGaps==='function'?repo.materialArchiveGaps():[];}
   async function appendMaterialArchives(zip,manifest,materials){

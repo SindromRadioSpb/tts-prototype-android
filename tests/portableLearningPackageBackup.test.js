@@ -88,6 +88,24 @@ test('full backup declares a dead media package as a named gap instead of losing
   assert.equal(payload.manifest.portable_learning_packages_count,1);
 });
 
+test('full backup declares a missing selected caption revision as a named gap and still downloads',async()=>{
+  const materials=[
+    {material_id:'m1',portable_text_key:'backup-key',title:'Backup fixture'},
+    {material_id:'caption-gap',portable_text_key:'caption-gap-key',title:'Material with detached caption history'},
+  ];
+  Studio.setRepositoryForTests({
+    listMaterials:async()=>materials,
+    snapshotForMaterial:async id=>{if(id==='caption-gap'){const e=new Error('SELECTED_CAPTION_REVISION_MISSING');e.code='SELECTED_CAPTION_REVISION_MISSING';throw e;}return source();},
+  });
+  const zip=new JSZip(),payload={manifest:{}};
+  const index=await Studio.augmentFullBackupZip(zip,payload);
+  assert.equal(index.packages.length,1,'the healthy material is still archived');
+  assert.ok(zip.file(index.packages[0].path));
+  assert.deepEqual(index.skipped,[{material_id:'caption-gap',text_key:'caption-gap-key',title:'Material with detached caption history',reason:'SELECTED_CAPTION_REVISION_MISSING'}]);
+  assert.equal(payload.manifest.portable_learning_packages_complete,false);
+  assert.equal(payload.manifest.portable_learning_packages_skipped,1);
+});
+
 test('a gap that is not a dead media package still aborts the backup',async()=>{
   Studio.setRepositoryForTests({listMaterials:async()=>[{material_id:'broken'}],snapshotForMaterial:async()=>{const e=new Error('MATERIAL_HEAD_MISSING');e.code='MATERIAL_HEAD_MISSING';throw e;}});
   await assert.rejects(()=>Studio.augmentFullBackupZip(new JSZip(),{manifest:{}}),/MATERIAL_HEAD_MISSING/,'an unexplained failure must not be downgraded to a gap');

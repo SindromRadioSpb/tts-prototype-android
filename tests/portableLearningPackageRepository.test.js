@@ -31,7 +31,7 @@ async function harness() {
     CREATE TABLE texts(id TEXT PRIMARY KEY,text_key TEXT NOT NULL UNIQUE,title TEXT NOT NULL,source_text TEXT NOT NULL,level TEXT,tags_json TEXT,source TEXT,topic TEXT,source_meta_json TEXT,table_model_meta_json TEXT,tts_profile_json TEXT,is_archived INTEGER NOT NULL DEFAULT 0,updated_at TEXT,created_at TEXT);
     CREATE TABLE sentences(id TEXT PRIMARY KEY,text_id TEXT NOT NULL REFERENCES texts(id) ON DELETE CASCADE,order_index INTEGER NOT NULL,he_plain TEXT,he_niqqud TEXT,translit TEXT,translit_ru TEXT,ru TEXT,meta_json TEXT,edit_meta_json TEXT,translation_provider TEXT,translation_meta_json TEXT,created_at TEXT,UNIQUE(text_id,order_index));`);
   const { MIGRATIONS } = await import('../public/db/migrations.js');
-  assert.equal(MIGRATIONS.length,48);
+  assert.equal(MIGRATIONS.length,49);
   db.run(MIGRATIONS[44]); db.run(MIGRATIONS[45]); db.run(MIGRATIONS[46]); db.run(MIGRATIONS[47]);
   const rows=(sql,params=[])=>{const s=db.prepare(sql);s.bind(params);const out=[];while(s.step())out.push(s.getAsObject());s.free();return out;};
   const adapter={dbQuery:async(sql,p)=>rows(sql,p),dbRun:async(sql,p)=>{const s=db.prepare(sql);s.run(p||[]);s.free();return{changes:db.getRowsModified()};},execRaw:async(sql)=>db.run(sql)};
@@ -118,6 +118,43 @@ test('Import Center reads verified codec state from existing JSON metadata witho
   const [item]=await h.repo.lifecycleInventory();
   assert.equal(item.media_codec_supported,true);
   assert.equal(h.rows('SELECT json_extract(external_ref_json,\'$.compatibility.outcome\') AS outcome FROM studio_media_packages')[0].outcome,'READY');
+});
+
+test('archive preflight reports a selected caption revision detached from its material package',async()=>{
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
+  const applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const materialId=applied.receipt.id_map.material.local_id;
+  h.db.run("UPDATE studio_table_revisions SET bound_caption_revision_id='missing-caption-revision' WHERE material_id=?",[materialId]);
+  await assert.rejects(
+    async()=>Core.buildPackageFiles(await h.repo.snapshotForMaterial(materialId),{mode:'archive'}),
+    /SELECTED_CAPTION_REVISION_MISSING/,
+    'fixture must reproduce the owner-visible export failure',
+  );
+  assert.deepEqual(await h.repo.materialArchiveGaps(),[{
+    material_id:String(materialId),
+    text_key:'owner-lesson-1',
+    title:'שיעור Мия',
+    reason:'SELECTED_CAPTION_REVISION_MISSING',
+  }]);
+});
+
+test('snapshot follows the selected table revision to its exact corrected sibling track',async()=>{
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
+  const applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const materialId=applied.receipt.id_map.material.local_id;
+  const material=h.rows('SELECT package_id,current_table_revision_id FROM studio_learning_materials WHERE material_id=?',[materialId])[0];
+  const rawTrack=h.rows("SELECT track_id FROM studio_caption_tracks WHERE package_id=? AND role='raw_original' LIMIT 1",[material.package_id])[0].track_id;
+  const current=h.rows("SELECT r.* FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id WHERE t.package_id=? AND t.role='user_corrected' LIMIT 1",[material.package_id])[0];
+  h.db.run("INSERT INTO studio_caption_tracks(track_id,package_id,role,language,parent_track_id,current_revision_id,created_at,updated_at) VALUES('corrected-sibling',?,'user_corrected','he',?,'corrected-sibling-revision','t','t')",[material.package_id,rawTrack]);
+  h.db.run(`INSERT INTO studio_caption_revisions(revision_id,track_id,parent_revision_id,revision_no,segments_json,operations_json,canonical_sha256,author_kind,provenance_json,created_at)
+    VALUES('corrected-sibling-revision','corrected-sibling',NULL,1,?,?,?,?,?,'t')`,[current.segments_json,current.operations_json,current.canonical_sha256,current.author_kind,current.provenance_json]);
+  h.db.run("UPDATE studio_table_revisions SET bound_caption_revision_id='corrected-sibling-revision' WHERE table_revision_id=?",[material.current_table_revision_id]);
+  assert.deepEqual(await h.repo.materialArchiveGaps(),[],'a valid corrected sibling in the same package is not a backup gap');
+  const snapshot=await h.repo.snapshotForMaterial(materialId);
+  assert.equal(snapshot.corrected_track.track_id,'corrected-sibling');
+  assert.equal(snapshot.selected_caption_revision_id,'corrected-sibling-revision');
+  const built=await Core.buildPackageFiles(snapshot,{mode:'archive'});
+  assert.equal(JSON.parse(built['manifest.json']).roots.caption_revision,'caption-revision:sha256:'+current.canonical_sha256);
 });
 
 test('committed receipt repairs a deleted compatibility closure without duplicating surviving canon', async () => {

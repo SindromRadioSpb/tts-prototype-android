@@ -9,7 +9,7 @@ test.before(async () => { SQL = await initSqlJs(); });
 
 async function migration46() {
   const migrations = await import('../public/db/migrations.js');
-  assert.equal(migrations.MIGRATIONS.length, 48, 'v48 must append to the existing v47 portable import migration');
+  assert.equal(migrations.MIGRATIONS.length, 49, 'v49 must append to the existing v48 portable export receipt migration');
   return migrations.MIGRATIONS[45];
 }
 

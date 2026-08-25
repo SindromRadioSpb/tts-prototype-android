@@ -675,12 +675,27 @@
     // D4: материалы, чей медиа-пакет (а с ним дорожки и ревизии) удалён. Считается ДО долгой
     // сборки, чтобы владелец узнал о пробеле на префлайте, а не через 12 минут работы.
     async function materialArchiveGaps() {
-      return (await q(`SELECT m.material_id,m.portable_text_key AS text_key,t.title
+      const missingPackages=(await q(`SELECT m.material_id,m.portable_text_key AS text_key,t.title
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id
         LEFT JOIN studio_media_packages p ON p.package_id=m.package_id AND p.deleted_at IS NULL
         WHERE m.package_id IS NOT NULL AND p.package_id IS NULL
         ORDER BY m.updated_at DESC`))
         .map((row) => ({ material_id: String(row.material_id), text_key: row.text_key || null, title: row.title || null, reason: 'MEDIA_PACKAGE_NOT_FOUND' }));
+      // A table may legitimately bind a second user_corrected track in the same package. That is
+      // archivable (snapshotForMaterial follows the exact revision owner below). Only a missing,
+      // raw-track or cross-package selected revision is a real continuity gap.
+      const missingSelectedCaptions=(await q(`SELECT m.material_id,m.portable_text_key AS text_key,t.title
+        FROM studio_learning_materials m
+        JOIN texts t ON t.id=m.text_id
+        JOIN studio_media_packages p ON p.package_id=m.package_id AND p.deleted_at IS NULL
+        JOIN studio_table_revisions tr ON tr.table_revision_id=m.current_table_revision_id
+        LEFT JOIN studio_caption_revisions cr ON cr.revision_id=tr.bound_caption_revision_id
+        LEFT JOIN studio_caption_tracks ct ON ct.track_id=cr.track_id
+        WHERE tr.bound_caption_revision_id IS NOT NULL
+          AND (cr.revision_id IS NULL OR ct.role IS NULL OR ct.role!='user_corrected' OR ct.package_id!=m.package_id)
+        ORDER BY m.updated_at DESC`))
+        .map((row)=>({material_id:String(row.material_id),text_key:row.text_key||null,title:row.title||null,reason:'SELECTED_CAPTION_REVISION_MISSING'}));
+      return missingPackages.concat(missingSelectedCaptions);
     }
 
     async function mediaForText(textId) {
@@ -706,8 +721,19 @@
       if (!material.current_table_revision_id) throw failure('MATERIAL_HEAD_MISSING');
       const pkg = await one('SELECT * FROM studio_media_packages WHERE package_id=? AND deleted_at IS NULL', [material.package_id]);
       if (!pkg) throw failure('MEDIA_PACKAGE_NOT_FOUND');
+      const tableHeaders = await q('SELECT * FROM studio_table_revisions WHERE material_id=? ORDER BY revision_no', [material.material_id]);
+      const selectedHeader = tableHeaders.find((item) => item.table_revision_id === material.current_table_revision_id);
+      if (!selectedHeader) throw failure('MATERIAL_HEAD_INVALID');
+      const selectedCaptionOwner=selectedHeader.bound_caption_revision_id?await one(`SELECT r.track_id,t.package_id,t.role
+        FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id
+        WHERE r.revision_id=?`,[selectedHeader.bound_caption_revision_id]):null;
       const tracks = await q('SELECT * FROM studio_caption_tracks WHERE package_id=? ORDER BY role', [pkg.package_id]);
-      const rawTrack = tracks.find((item) => item.role === 'raw_original'), correctedTrack = tracks.find((item) => item.role === 'user_corrected');
+      const selectedCorrectedTrack=selectedCaptionOwner&&selectedCaptionOwner.role==='user_corrected'&&String(selectedCaptionOwner.package_id)===String(pkg.package_id)
+        ?tracks.find((item)=>String(item.track_id)===String(selectedCaptionOwner.track_id)):null;
+      const correctedTrack=selectedCorrectedTrack||tracks.find((item) => item.role === 'user_corrected');
+      const rawTrack=correctedTrack&&correctedTrack.parent_track_id
+        ?tracks.find((item)=>String(item.track_id)===String(correctedTrack.parent_track_id))
+        :tracks.find((item) => item.role === 'raw_original');
       if (!rawTrack || !correctedTrack) throw failure('CAPTION_TRACKS_INCOMPLETE');
       async function revisionsFor(trackId) {
         return (await q('SELECT * FROM studio_caption_revisions WHERE track_id=? ORDER BY revision_no', [trackId])).map((row) => ({
@@ -717,7 +743,6 @@
         }));
       }
       const rawRevisions = await revisionsFor(rawTrack.track_id), correctedRevisions = await revisionsFor(correctedTrack.track_id);
-      const tableHeaders = await q('SELECT * FROM studio_table_revisions WHERE material_id=? ORDER BY revision_no', [material.material_id]);
       const tableRevisions = [];
       for (const header of tableHeaders) {
         const rows = await q(`SELECT rv.*,tr.order_index,tr.caption_segment_id,tr.source_segment_ids_json,tr.mapping_meta_json
