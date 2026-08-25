@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "mode": "PLAN",
+  "source_bundle": "G:\\Andasa\\📘 Учебная. 1 год\\Физика\\Корпус\\Физика — задачник, 1 год-learning.zip",
+  "source_bundle_sha256": "0030a95f20be1be5511020632f2188979bc45148a49eee71547669d17cf77327",
+  "texts": 74,
+  "rows": 425,
+  "unique_clips": 394,
+  "cached_clips": 0,
+  "missing_clips": 394,
+  "profile": {
+    "language": "he-IL",
+    "voiceName": "he-IL-Standard-A",
+    "speakingRate": 0.8,
+    "pitch": 2.5
+  },
+  "output_bundle": "G:\\Andasa\\📘 Учебная. 1 год\\Физика\\Корпус\\Физика — задачник, 1 год-learning-with-tts.zip"
+}

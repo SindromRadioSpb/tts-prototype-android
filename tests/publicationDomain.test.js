@@ -158,6 +158,39 @@ test("copy is source-preserving and owner attestation becomes three append-only 
   } finally { await close(fixture.db); fs.rmSync(fixture.root, { recursive: true, force: true }); }
 });
 
+test("MY_TEXTS publication resolves only referenced shared-cache audio and accepts a corpus-specific owner attestation", async () => {
+  const fixture = await buildFixture();
+  try {
+    const audioKey = sha256("physics-audio");
+    const audio = Buffer.from("ID3" + "physics-audio".repeat(20));
+    writeExact(path.join(fixture.dataDir, "audio-cache", audioKey + ".mp3"), audio);
+    writeExact(path.join(fixture.dataDir, "audio-cache", sha256("unreferenced") + ".mp3"), Buffer.from("ID3unreferenced"));
+    const created = await fixture.repo.createCorpus(fixture.owner, { slug: "physics-year-1", title: "Физика — задачник, 1 год" }, { idempotencyKey: "create-physics" });
+    const copied = await fixture.repo.copyMyTextItems(fixture.owner, created.corpus_id, {
+      expectedVersion: created.draft_version,
+      items: [{
+        sourceWorkId: "physics-year1-task-1-1", title: "Физика — задача 1.1", expectedAudioCount: 1,
+        snapshot: { library: { texts: [{ text_key: "physics-year1-task-1-1", rows: [{ order_index: 0, hebrew_niqqud: "שָׁלוֹם", russian: "Привет", audio_asset_key: audioKey }] }], audio_assets: [{ asset_key: audioKey }] } },
+      }],
+    }, { idempotencyKey: "copy-physics" });
+    const basis = "OWNER_ATTESTATION_PHYSICS_YEAR1_2026_08_25";
+    const rights = await fixture.repo.applyRightsPreset(fixture.owner, created.corpus_id, {
+      itemIds: copied.items.map(item => item.item_id), expectedVersion: copied.draft_version,
+      preset: { public_read_allowed: true, public_stream_allowed: true, package_download_allowed: true, basis, asserted_at: "2026-08-25" },
+    }, { idempotencyKey: "rights-physics" });
+    const validation = await fixture.repo.validateDraft(fixture.owner, created.corpus_id, rights.draft_version);
+    assert.deepEqual({ ready: validation.ready, included_assets: validation.included_assets, asset_missing: validation.asset_missing, package_complete: validation.package_complete }, { ready: true, included_assets: 1, asset_missing: 0, package_complete: true });
+    const receipt = await fixture.repo.publish(fixture.owner, created.corpus_id, { expectedVersion: rights.draft_version }, { idempotencyKey: "publish-physics" });
+    assert.equal(receipt.asset_count, 1);
+    assert.equal(receipt.package_complete, true);
+    const publicCorpus = await fixture.repo.getPublicCorpus("physics-year-1");
+    assert.equal(publicCorpus.items[0].rights_basis, basis);
+    const archive = new AdmZip((await fixture.repo.getPublicPackage("physics-year-1")).absolute_path);
+    assert.ok(archive.getEntry("audio/" + audioKey + ".mp3"));
+    assert.equal(archive.getEntries().filter(entry => entry.entryName.startsWith("audio/")).length, 1);
+  } finally { await close(fixture.db); fs.rmSync(fixture.root, { recursive: true, force: true }); }
+});
+
 test("publish is idempotent, immutable, hash-read-back verified and pointer/event driven", async () => {
   const fixture = await buildFixture();
   try {

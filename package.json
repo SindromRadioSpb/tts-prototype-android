@@ -148,6 +148,8 @@
     "smoke:group-corpus-ui": "node scripts/premium/group-corpus-ui-smoke.js",
     "smoke:group-corpus-api": "node scripts/premium/group-corpus-api-smoke.js",
     "plan:group-corpus-revoice": "node scripts/premium/group-corpus-revoice.js",
+    "plan:physics-corpus-tts": "node scripts/premium/physics-corpus-tts.js",
+    "plan:publish-physics-corpus": "node scripts/premium/publish-physics-corpus.js",
     "smoke:sync-slim": "node scripts/premium/sync-slim-smoke.js",
     "smoke:agent-personal-texts": "node scripts/premium/agent-personal-texts-smoke.js",
     "smoke:web-push": "node scripts/premium/web-push-smoke.js",

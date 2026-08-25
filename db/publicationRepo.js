@@ -174,9 +174,9 @@ function createPublicationRepo(options = {}) {
   function sourcePath(relative) {
     const rel = String(relative || "").replace(/\\/g, "/");
     if (!rel || rel.startsWith("/") || rel.includes("../") || rel.includes("\0")) fail("SOURCE_SNAPSHOT_INVALID", 400);
-    const root = path.resolve(dataDir, "group-corpora");
+    const roots = [path.resolve(dataDir, "group-corpora"), path.resolve(dataDir, "audio-cache")];
     const absolute = path.resolve(dataDir, rel);
-    if (absolute !== root && !absolute.startsWith(root + path.sep)) fail("SOURCE_SNAPSHOT_INVALID", 400);
+    if (!roots.some(root => absolute === root || absolute.startsWith(root + path.sep))) fail("SOURCE_SNAPSHOT_INVALID", 400);
     return absolute;
   }
   function publicationPath(relative) {
@@ -198,9 +198,28 @@ function createPublicationRepo(options = {}) {
     return hash.digest("hex");
   }
   async function sourceAudio(item) {
-    if (item.source_domain !== "GROUP_CORPUS") return [];
-    return dbAll(database, `SELECT asset_key,relative_path,bytes,sha256,mime FROM group_corpus_audio
+    if (item.source_domain === "GROUP_CORPUS") return dbAll(database, `SELECT asset_key,relative_path,bytes,sha256,mime FROM group_corpus_audio
                              WHERE corpus_id=? AND work_id=? ORDER BY asset_key`, [item.source_corpus_id, item.source_work_id]);
+    if (item.source_domain !== "MY_TEXTS") return [];
+    const snapshot = parseJson(item.snapshot_json);
+    const referenced = new Set();
+    (function collect(value) {
+      if (!value || typeof value !== "object") return;
+      if (typeof value.audio_asset_key === "string" && /^[0-9a-f]{64}$/i.test(value.audio_asset_key)) referenced.add(value.audio_asset_key.toLowerCase());
+      if (Array.isArray(value)) value.forEach(collect);
+      else Object.values(value).forEach(collect);
+    })(snapshot);
+    const assets = [];
+    for (const key of [...referenced].sort()) {
+      const relativePath = path.posix.join("audio-cache", key + ".mp3");
+      const absolute = sourcePath(relativePath);
+      try {
+        const stat = await fs.promises.stat(absolute);
+        if (!stat.isFile()) continue;
+        assets.push({ asset_key: key, relative_path: relativePath, bytes: stat.size, sha256: await fileHash(absolute), mime: "audio/mpeg" });
+      } catch (_) {}
+    }
+    return assets;
   }
   async function latestRights(itemId) {
     const rows = await dbAll(database, `SELECT permission,allowed,basis,asserted_at,created_at,fact_id
@@ -392,7 +411,10 @@ function createPublicationRepo(options = {}) {
     if (String(actor && actor.role).toLowerCase() !== "owner") fail("PUBLISHER_FORBIDDEN", 403);
     const itemIds = Array.isArray(input && input.itemIds) ? [...new Set(input.itemIds.map(value => cleanId(value, "PUBLICATION_INPUT_INVALID")))] : [];
     const preset = input && input.preset || {};
-    if (!itemIds.length || itemIds.length > 1000 || preset.basis !== "OWNER_ATTESTATION_2026_08_20" || preset.asserted_at !== "2026-08-20"
+    const basis = String(preset.basis || "");
+    const dateMatch = basis.match(/(\d{4})_(\d{2})_(\d{2})$/);
+    const basisDate = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}` : "";
+    if (!itemIds.length || itemIds.length > 1000 || !/^OWNER_ATTESTATION_(?:[A-Z0-9]+_)*\d{4}_\d{2}_\d{2}$/.test(basis) || preset.asserted_at !== basisDate
         || preset.public_read_allowed !== true || preset.public_stream_allowed !== true || preset.package_download_allowed !== true)
       fail("RIGHTS_PRESET_INVALID", 400);
     const expectedVersion = Number(input && input.expectedVersion);
