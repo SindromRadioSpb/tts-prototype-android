@@ -13,7 +13,7 @@ const sqlite3 = require("sqlite3");
 const AdmZip = require("adm-zip");
 const { createPublicationRepo } = require("../../db/publicationRepo");
 const { sensitiveFingerprint } = require("./publication-migration-rehearsal");
-const { DEFAULT_PROFILE, verifyOutputBundle } = require("./physics-corpus-tts");
+const { DEFAULT_PROFILE, validMp3, verifyOutputBundle } = require("./physics-corpus-tts");
 
 const SLUG = "physics-year1-problems";
 const TITLE = "Физика — задачник, 1 год";
@@ -86,9 +86,10 @@ async function ownerActor(db, requested) {
   return rows[0];
 }
 
-function materializeAudioCache(source, dataDir) {
+function materializeAudioCache(source, dataDir, options = {}) {
+  const apply = options.apply !== false;
   const root = path.resolve(dataDir, "audio-cache");
-  fs.mkdirSync(root, { recursive: true });
+  if (apply) fs.mkdirSync(root, { recursive: true });
   const receipts = [];
   for (const [key, meta] of source.assets) {
     const entry = source.zip.getEntry("audio/" + key + ".mp3");
@@ -99,8 +100,16 @@ function materializeAudioCache(source, dataDir) {
     const target = path.join(root, key + ".mp3");
     if (fs.existsSync(target)) {
       const existing = fs.readFileSync(target);
-      if (sha256(existing) !== bodySha) throw new Error("SHARED_CACHE_COLLISION:" + key);
-      receipts.push({ key, bytes: body.length, sha256: bodySha, action: "EXISTING" });
+      if (!validMp3(existing)) throw new Error("SHARED_CACHE_INVALID_MP3:" + key);
+      const existingSha = sha256(existing);
+      const action = existingSha === bodySha ? "EXISTING" : "REUSED_CANONICAL";
+      meta.size_bytes = existing.length;
+      meta.content_hash = existingSha;
+      receipts.push({ key, bytes: existing.length, sha256: existingSha, action });
+      continue;
+    }
+    if (!apply) {
+      receipts.push({ key, bytes: body.length, sha256: bodySha, action: "MISSING" });
       continue;
     }
     const temp = target + ".tmp-" + process.pid;
@@ -155,7 +164,9 @@ async function main(argv = process.argv.slice(2)) {
     await exec(db, "PRAGMA foreign_keys=ON");
     const actor = await ownerActor(db, options.ownerUserId);
     const migrationReady = !!(await get(db, "SELECT 1 ok FROM sqlite_master WHERE type='table' AND name='published_corpora'"));
-    const plan = { mode: options.apply ? "APPLY" : "DRY_RUN", migration_ready: migrationReady, slug: options.slug, source_bundle_sha256: source.bundleSha256, texts: source.items.length, rows: source.verified.row_count, physical_audio_assets: source.assets.size, audio_bytes: source.verified.audio_bytes, profile: source.verified.profile, pilot_size: Math.min(options.pilotSize, source.items.length), attestation: ATTESTATION };
+    const cacheAudit = materializeAudioCache(source, dataDir, { apply: false });
+    const plan = { mode: options.apply ? "APPLY" : "DRY_RUN", migration_ready: migrationReady, slug: options.slug, source_bundle_sha256: source.bundleSha256, texts: source.items.length, rows: source.verified.row_count, physical_audio_assets: source.assets.size, audio_bytes: source.verified.audio_bytes, profile: source.verified.profile, pilot_size: Math.min(options.pilotSize, source.items.length), attestation: ATTESTATION,
+      cache: { assets: cacheAudit.length, existing: cacheAudit.filter(item => item.action === "EXISTING").length, canonical_reuse: cacheAudit.filter(item => item.action === "REUSED_CANONICAL").length, missing: cacheAudit.filter(item => item.action === "MISSING").length } };
     if (!options.apply) { process.stdout.write(JSON.stringify(plan, null, 2) + "\n"); return plan; }
     if (!migrationReady) throw new Error("PUBLICATION_MIGRATION_NOT_APPLIED");
     const beforeSensitive = await sensitiveFingerprint(db);
@@ -186,7 +197,7 @@ async function main(argv = process.argv.slice(2)) {
     const full = await verifyPublished(repo, db, options.slug, source.items.length);
     const afterSensitive = await sensitiveFingerprint(db);
     if (JSON.stringify(beforeSensitive) !== JSON.stringify(afterSensitive)) throw new Error("LEARNER_PRIVATE_REVIEW_CHANGED");
-    const result = { ok: true, plan, pilot, full, cache: { assets: cacheReceipts.length, created: cacheReceipts.filter(item => item.action === "CREATED").length, existing: cacheReceipts.filter(item => item.action === "EXISTING").length }, learner_private_review_unchanged: true };
+    const result = { ok: true, plan, pilot, full, cache: { assets: cacheReceipts.length, created: cacheReceipts.filter(item => item.action === "CREATED").length, existing: cacheReceipts.filter(item => item.action === "EXISTING").length, canonical_reuse: cacheReceipts.filter(item => item.action === "REUSED_CANONICAL").length }, learner_private_review_unchanged: true };
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
     return result;
   } finally { await close(db); }

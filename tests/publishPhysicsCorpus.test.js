@@ -22,7 +22,7 @@ test("Physics publication uses a separate slug and corpus-specific attestation",
   });
 });
 
-test("audio-cache materialization is idempotent and refuses a same-key byte collision", () => {
+test("audio-cache materialization is idempotent and reuses valid canonical bytes for a semantic TTS key", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "publish-physics-cache-"));
   const dataDir = path.join(root, "data");
   const body = Buffer.concat([Buffer.from("ID3"), Buffer.alloc(150, 4)]);
@@ -33,5 +33,10 @@ test("audio-cache materialization is idempotent and refuses a same-key byte coll
   assert.deepEqual(publish.materializeAudioCache(source, dataDir).map(item => item.action), ["CREATED"]);
   assert.deepEqual(publish.materializeAudioCache(source, dataDir).map(item => item.action), ["EXISTING"]);
   fs.writeFileSync(path.join(dataDir, "audio-cache", key + ".mp3"), Buffer.from("different"));
-  assert.throws(() => publish.materializeAudioCache(source, dataDir), /SHARED_CACHE_COLLISION/);
+  assert.throws(() => publish.materializeAudioCache(source, dataDir), /SHARED_CACHE_INVALID_MP3/);
+  const canonical = Buffer.concat([Buffer.from("ID3"), Buffer.alloc(200, 9)]);
+  fs.writeFileSync(path.join(dataDir, "audio-cache", key + ".mp3"), canonical);
+  assert.deepEqual(publish.materializeAudioCache(source, dataDir).map(item => item.action), ["REUSED_CANONICAL"]);
+  assert.equal(source.assets.get(key).size_bytes, canonical.length);
+  assert.equal(source.assets.get(key).content_hash, crypto.createHash("sha256").update(canonical).digest("hex"));
 });

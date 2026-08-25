@@ -29,6 +29,8 @@ The controlled runner is `scripts/premium/publish-physics-corpus.js`. It creates
 
 The publication repository now resolves audio referenced by a `MY_TEXTS` snapshot only from exact 64-hex keys in the server `audio-cache`; unreferenced cache files are excluded. Every included file is size/SHA-read back before the public pointer changes.
 
+The asset key identifies the exact row text and TTS profile, not an MP3 byte hash. If production already has a valid MP3 under that semantic key, publication preserves those canonical bytes and normalizes snapshot size/hash metadata to them; it never overwrites the shared cache. Invalid existing MP3 bytes remain a hard failure.
+
 ## Current verification
 
 - `node --test tests/physicsCorpusTts.test.js tests/publishPhysicsCorpus.test.js tests/publicationDomain.test.js`: 14/14 PASS.
