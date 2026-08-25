@@ -1,0 +1,6281 @@
+{
+  "schema": "linguistpro.physics.gold-legacy-comparison.1",
+  "legacy": {
+    "path": "docs\\research\\physics-corpus\\2026-08-24\\legacy-reference.json",
+    "sha256": "38376c8d118463ae4d7ca328960088385dcb5884ae20175e3e55cad56675d72b"
+  },
+  "gold": {
+    "path": "docs\\research\\physics-corpus\\2026-08-24\\batch-02-rendered-table.json",
+    "sha256": "19f3b80ca66a9398df1da4169f3000c31666a3430b7f488f785afb033391aa8b"
+  },
+  "summary": {
+    "gold_task_count": 22,
+    "compared_task_count": 20,
+    "missing_in_legacy": [
+      "4.8",
+      "6.5"
+    ]
+  },
+  "tasks": [
+    {
+      "task_number": "4.8",
+      "status": "missing_in_legacy",
+      "gold_row_count": 4
+    },
+    {
+      "task_number": "4.9",
+      "status": "compared",
+      "legacy_row_count": 7,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.975796,
+          "legacy_chars": 385,
+          "gold_chars": 400,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "φ",
+              "gold": "\\phi"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40°",
+              "gold": "40^\\circ"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v_0"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec.",
+              "gold": "m/_{sec}."
+            },
+            {
+              "operation": "replace",
+              "legacy": "h_max",
+              "gold": "h_{max}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הערה:",
+              "gold": "הערה :"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.959371,
+          "legacy_chars": 608,
+          "gold_chars": 610,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "מתואר",
+              "gold": "מתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מנקודה",
+              "gold": "מנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "φ",
+              "gold": "\\phi"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40°",
+              "gold": "40^\\circ"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופק",
+              "gold": "האפק"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v_0"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec. בנקודה",
+              "gold": "m/_{sec}. בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הגובה",
+              "gold": "הגבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "h_max",
+              "gold": "h_{max}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מנקודה",
+              "gold": "מנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(שיעור וכיוון)",
+              "gold": "(שעור וכוון)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הערה:",
+              "gold": "הערה :"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כנקודה חומרית",
+              "gold": "כנקדה חמרית"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.891304,
+          "legacy_chars": 519,
+          "gold_chars": 493,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ba-iyur la-she'ela metuar",
+              "gold": "ba'iyur lish'ela mto'ar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "she-nizrak mi-nekuda",
+              "gold": "shenizrak minkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be-zavit φ",
+              "gold": "bzavit \\phi"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40° beyachas le-kivun ha-ofek bi-mehirut ha-tkhalatit v0",
+              "gold": "40^\\circ byakhas lkhivun ha'ofek bimhirut hatkhalatit v_0"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec. be-nekuda",
+              "gold": "m/_{sec}. binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-kadur",
+              "gold": "hakadur"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ba-karka. a. ma hu ha-govah ha-maksimali",
+              "gold": "bakark'a. '. mahu hagovah hamaksimali"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-kadur me-al p'nei ha-karka h_max b'mahalakh tnu'ato? b. ma hu",
+              "gold": "hakadur me'al pne hakark'a h_{max} bmahalakh tnu'ato ? v. mahu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-kadur mi-nekuda",
+              "gold": "hakadur minkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-pgi'ato ba-karka ba-nekuda",
+              "gold": "lifgi'ato bakark'a binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma hi mehiruto",
+              "gold": "mahi mhiruto"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-kadur ba-nekuda",
+              "gold": "hakadur binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-kivun)?",
+              "gold": "vekhivun) ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma hu ha-merkhaq d? he'ara:",
+              "gold": "mahu hamerkhak d ? he'ara :"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-hityakhes la-kadur ki-nekuda khomerit u-lehazniakh",
+              "gold": "lhityakhes lakadur kinkuda khamrit ulhazniakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-avir.",
+              "gold": "ha'avir."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.844358,
+          "legacy_chars": 524,
+          "gold_chars": 504,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "вопросу описан",
+              "gold": "задаче показан"
+            },
+            {
+              "operation": "replace",
+              "legacy": "φ",
+              "gold": "\\phi"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40° относительно направления горизонта",
+              "gold": "40^\\circ к горизонту"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v_0"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec.",
+              "gold": "м/с."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ударяется о",
+              "gold": "падает на"
+            },
+            {
+              "operation": "replace",
+              "legacy": "h_max в процессе его",
+              "gold": "h_{max} во время"
+            },
+            {
+              "operation": "replace",
+              "legacy": "момента удара о",
+              "gold": "его падения на"
+            },
+            {
+              "operation": "replace",
+              "legacy": "c.",
+              "gold": "c?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "каково",
+              "gold": "чему равно"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "шар"
+            },
+            {
+              "operation": "delete",
+              "legacy": "шар",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "точку и пренебречь",
+              "gold": "точку,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "воздуха.",
+              "gold": "воздуха пренебречь."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "4.10",
+      "status": "compared",
+      "legacy_row_count": 11,
+      "gold_row_count": 3,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.995169,
+          "legacy_chars": 516,
+          "gold_chars": 519,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "חשב",
+              "gold": "חשבו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0.",
+              "gold": "v_0."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ד':",
+              "gold": "ד' :"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לנקודת",
+              "gold": "לנקודה"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.983118,
+          "legacy_chars": 830,
+          "gold_chars": 824,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "האופק מנקודה",
+              "gold": "האפק מנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שגובהו",
+              "gold": "שגבהו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ורוחבו",
+              "gold": "ורחבו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובהו,",
+              "gold": "גבהו,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב",
+              "gold": "חשבו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0.",
+              "gold": "v_0."
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובה",
+              "gold": "גבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המינימאלית",
+              "gold": "המינימלית"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ויפול",
+              "gold": "ויפל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מצידו",
+              "gold": "מצדו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ד':",
+              "gold": "ד' :"
+            },
+            {
+              "operation": "replace",
+              "legacy": "יעבור",
+              "gold": "יעבר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לנקודה",
+              "gold": "לנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בצידו",
+              "gold": "בצדו"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.948225,
+          "legacy_chars": 690,
+          "gold_chars": 662,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "be'iyur lash'e'ela",
+              "gold": "ba'iyur lish'ela"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bezavit",
+              "gold": "bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "min nekuda",
+              "gold": "minkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanimtse'et",
+              "gold": "hanimtse't"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hakarka bimerkhak",
+              "gold": "hakark'a bmerkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metarim",
+              "gold": "metrim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shegovoho",
+              "gold": "shegovho"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metarim. be-si govoho,",
+              "gold": "metrim. bsi' govho,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "benekuda",
+              "gold": "binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanimtse'et",
+              "gold": "hanimtse't"
+            },
+            {
+              "operation": "replace",
+              "legacy": "znihot. khashév",
+              "gold": "znikhot. khashvu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "a. hamehirut hahatkhala'tit",
+              "gold": "'. hamhirut hahatkhalatit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0. b.",
+              "gold": "v_0. v."
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehirut",
+              "gold": "mhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "benekuda",
+              "gold": "binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma hi hamehirut hahatkhala'tit",
+              "gold": "mahi hamhirut hahatkhalatit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanidréshet kedei",
+              "gold": "hanidreshet kde"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hakarka",
+              "gold": "hakark'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hu",
+              "gold": "hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bezavit",
+              "gold": "bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanetuna.",
+              "gold": "hantuna."
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-se'if d': bemehirut hanidréshet bese'if",
+              "gold": "lis'if d' : bamhirut hanidreshet bis'if"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bis'mukh lenekuda",
+              "gold": "bsamukh linkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanimtse'et betsido",
+              "gold": "hanimtse't btsido"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.877273,
+          "legacy_chars": 655,
+          "gold_chars": 665,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "над горизонтом",
+              "gold": "к горизонту"
+            },
+            {
+              "operation": "replace",
+              "legacy": "высшей",
+              "gold": "наивысшей"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "своей"
+            },
+            {
+              "operation": "replace",
+              "legacy": "находящуюся",
+              "gold": "расположенную"
+            },
+            {
+              "operation": "replace",
+              "legacy": "размеры",
+              "gold": "размерами"
+            },
+            {
+              "operation": "replace",
+              "legacy": "пренебрежимо малы. вычисли:",
+              "gold": "пренебречь. вычислите:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0.",
+              "gold": "v_0."
+            },
+            {
+              "operation": "replace",
+              "legacy": "требуемая,",
+              "gold": "необходимая для того,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "пролетел над зданием",
+              "gold": "перелетел через здание"
+            },
+            {
+              "operation": "replace",
+              "legacy": "стороны, когда его бросают под данным углом броска.",
+              "gold": "стороны при том же угле броска?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "д:",
+              "gold": "«г»:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "д,",
+              "gold": "«г»,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "пройдёт",
+              "gold": "пройдет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "с другой стороны",
+              "gold": "на противоположном краю"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "4.11",
+      "status": "compared",
+      "legacy_row_count": 7,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.96633,
+          "legacy_chars": 294,
+          "gold_chars": 300,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "v0,",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α°",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב",
+              "gold": "חשבו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α°",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.953846,
+          "legacy_chars": 469,
+          "gold_chars": 467,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "v0,",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α°",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לאופק.",
+              "gold": "לאפק."
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקי",
+              "gold": "אפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מנקודת",
+              "gold": "מנקדת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובהו",
+              "gold": "גבהו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב",
+              "gold": "חשבו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הגיעת",
+              "gold": "הגעת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הגובה.",
+              "gold": "הגבה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "α°",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובהו",
+              "gold": "גבהו"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.917214,
+          "legacy_chars": 386,
+          "gold_chars": 375,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "be'iyur lash'e'ela",
+              "gold": "ba'iyur lish'ela"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimehirut hatkhala'tit",
+              "gold": "bimhirut hatkhalatit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0, uvezavit",
+              "gold": "v uvzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α° yakhásit",
+              "gold": "\\alpha yakhasit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimerkhak",
+              "gold": "bmerkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metarim minnekudat hage'a,",
+              "gold": "metrim minkudat habe'ita"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-si govoho shehu",
+              "gold": "lsi' govho shehu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metarim. khashév",
+              "gold": "metrim. khashvu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "a.",
+              "gold": "'."
+            },
+            {
+              "operation": "replace",
+              "legacy": "hagi'at",
+              "gold": "haga'at"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-si",
+              "gold": "lsi'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b.",
+              "gold": "v."
+            },
+            {
+              "operation": "replace",
+              "legacy": "α°",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamehirut hahatkhala'tit",
+              "gold": "hamhirut hahatkhalatit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehirut",
+              "gold": "mhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be-si govoho",
+              "gold": "bsi' govho"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.831373,
+          "legacy_chars": 393,
+          "gold_chars": 372,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "бьёт",
+              "gold": "бьет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0 и",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α° относительно горизонта.",
+              "gold": "\\alpha к горизонту."
+            },
+            {
+              "operation": "delete",
+              "legacy": "своей",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "метров. вычисли:",
+              "gold": "метрам. вычислите:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "достижения мячом максимальной высоты.",
+              "gold": "подъема мяча до наивысшей точки."
+            },
+            {
+              "operation": "delete",
+              "legacy": "α°",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "мячу.",
+              "gold": "мячу \\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0 ?",
+              "gold": "v?"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "наивысшей"
+            },
+            {
+              "operation": "replace",
+              "legacy": "его максимальной высоты ?",
+              "gold": "траектории?"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "4.12",
+      "status": "compared",
+      "legacy_row_count": 11,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.948344,
+          "legacy_chars": 371,
+          "gold_chars": 384,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "כאיור",
+              "gold": "באיור"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "12 m/sec",
+              "gold": "12_{m/sec},"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "45°,",
+              "gold": "45^\\circ"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב:",
+              "gold": "חשבו:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "12 m/sec",
+              "gold": "12_{m/sec},"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ש היא",
+              "gold": "שהיא"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.932432,
+          "legacy_chars": 567,
+          "gold_chars": 575,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "כאיור",
+              "gold": "באיור"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מנקודה",
+              "gold": "מנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "12 m/sec",
+              "gold": "12_{m/sec},"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "45°,",
+              "gold": "45^\\circ"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב:",
+              "gold": "חשבו:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הנקודות",
+              "gold": "הנקדות"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הגובה",
+              "gold": "הגבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובה",
+              "gold": "גבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "נקודה",
+              "gold": "נקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקי",
+              "gold": "אפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "12 m/sec (ראה",
+              "gold": "12_{m/sec}, (ראו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מצורף)",
+              "gold": "מצרף)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ש היא",
+              "gold": "שהיא"
+            },
+            {
+              "operation": "replace",
+              "legacy": "נקודה",
+              "gold": "נקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.882169,
+          "legacy_chars": 486,
+          "gold_chars": 473,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ke-iyur la-she'ela,",
+              "gold": "ba'iyur lish'ela"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mi-nekuda",
+              "gold": "minkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-nimtse'et",
+              "gold": "hanimtse't"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-karka, bimehirut",
+              "gold": "hakark'a bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "12 m/sec uve-zavit",
+              "gold": "12_{m/sec}, uvzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "45°, u-pag'a ba-karka ba-nekuda",
+              "gold": "45^\\circ ufage'a bakark'a binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "khashev: a. ma hu",
+              "gold": "khashvu: '. mahu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bein hanekudot",
+              "gold": "ben hankudot"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-b ! b. ma hu",
+              "gold": "v-b ? v. mahu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-even !",
+              "gold": "ha'even ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma hu ha-gova ha-merabi",
+              "gold": "mahu hagovah hamrabi"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-even",
+              "gold": "ha'even"
+            },
+            {
+              "operation": "replace",
+              "legacy": "tnu'ata !",
+              "gold": "tnu'atah ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "me'eize gova",
+              "gold": "me'eze govah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "nekuda",
+              "gold": "nkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-even be-kivun",
+              "gold": "ha'even bkhivun"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bimehirut",
+              "gold": "bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "12 m/sec (re'e",
+              "gold": "12_{m/sec}, (re'u"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metsuraf) kedei she- hi tifga ba-karka be-ota nekuda",
+              "gold": "mtsoraf) kde shehi' tifg'a bakark'a be'otah nkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.826216,
+          "legacy_chars": 527,
+          "gold_chars": 480,
+          "token_changes": [
+            {
+              "operation": "delete",
+              "legacy": "как",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "вопросу,",
+              "gold": "задаче"
+            },
+            {
+              "operation": "replace",
+              "legacy": "бросают",
+              "gold": "брошен"
+            },
+            {
+              "operation": "replace",
+              "legacy": "a",
+              "gold": "a,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec и",
+              "gold": "м/с"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "45°,",
+              "gold": "45^\\circ"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ударилась о",
+              "gold": "упал на"
+            },
+            {
+              "operation": "replace",
+              "legacy": "рассчитайте:",
+              "gold": "вычислите:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b !",
+              "gold": "b?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "времени движения камня !",
+              "gold": "полета камня?"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "полета"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "траектории"
+            },
+            {
+              "operation": "replace",
+              "legacy": "траектории движения !",
+              "gold": "движения?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "нужно",
+              "gold": "следует"
+            },
+            {
+              "operation": "replace",
+              "legacy": "в горизонтальном направлении",
+              "gold": "горизонтально"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec",
+              "gold": "м/с"
+            },
+            {
+              "operation": "replace",
+              "legacy": "приложенный рисунок)",
+              "gold": "рисунок),"
+            },
+            {
+              "operation": "replace",
+              "legacy": "она ударилась о",
+              "gold": "он упал на"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b !",
+              "gold": "b?"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "4.13",
+      "status": "compared",
+      "legacy_row_count": 17,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.981934,
+          "legacy_chars": 472,
+          "gold_chars": 469,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "כמתואר",
+              "gold": "כמוצג"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב:",
+              "gold": "חשבו:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "יפעל",
+              "gold": "יופעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "התאורה,",
+              "gold": "התאורה ?"
+            },
+            {
+              "operation": "delete",
+              "legacy": "לאחר",
+              "gold": ""
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.960699,
+          "legacy_chars": 759,
+          "gold_chars": 739,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משגרת",
+              "gold": "משוגרת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לאופק.",
+              "gold": "לאפק."
+            },
+            {
+              "operation": "replace",
+              "legacy": "מהשיגור,",
+              "gold": "מהשגור,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הגובה",
+              "gold": "הגבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מופעל",
+              "gold": "מפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כמתואר",
+              "gold": "כמצג"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב:",
+              "gold": "חשבו:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "השיגור",
+              "gold": "השגור"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הגובה",
+              "gold": "הגבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובה יופעל",
+              "gold": "גבה יפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקי מנקודת השיגור יופעל",
+              "gold": "אפקי מנקדת השגור יפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "!",
+              "gold": "?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "תשגר",
+              "gold": "תשוגר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "התחלתית",
+              "gold": "ההתחלתית"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובה יופעל",
+              "gold": "גבה יפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "התאורה,",
+              "gold": "התאורה ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מופעל לאחר",
+              "gold": "מפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "השיגור.",
+              "gold": "השגור."
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.924979,
+          "legacy_chars": 623,
+          "gold_chars": 590,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "meshuger(et) be-zavit",
+              "gold": "mshugeret bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yakh'sit la-ofek.",
+              "gold": "yakhasit la'ofek."
+            },
+            {
+              "operation": "replace",
+              "legacy": "be-si ha-gova",
+              "gold": "bsi' hagovah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ka-metuar ba-iyur la-she'ela. khashev: a. ma hi mehirut ha-shigur",
+              "gold": "kamutsag ba'iyur lish'ela. khashvu: '. mahi mhirut hashigur"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-raketa kedei she-guf",
+              "gold": "haraketa kde sheguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yif'al be-si ha-gova",
+              "gold": "yuf'al bsi' hagovah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "tnu'ata",
+              "gold": "tnu'atah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b. be'eize gova",
+              "gold": "v. be'eze govah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be'eize merkakh",
+              "gold": "be'eze merkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "minekudat ha-shigur",
+              "gold": "minkudat hashigur"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma hi mehirut ha-raketa",
+              "gold": "mahi mhirut haraketa"
+            },
+            {
+              "operation": "replace",
+              "legacy": "! he.",
+              "gold": "? h."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-raketa tushgar anakhi bimehirut hatkhalatit she-khushva be-se'if a', be'eize gova",
+              "gold": "haraketa tshugar anakhit bimhirut hahatkhalatit shekhushva bis'if '', be'eze govah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hate'ura,",
+              "gold": "hate'ura ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hu",
+              "gold": "hu'"
+            },
+            {
+              "operation": "delete",
+              "legacy": "le'akhar",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-shigur.",
+              "gold": "hashigur."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.882066,
+          "legacy_chars": 725,
+          "gold_chars": 708,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ракета-осветитель",
+              "gold": "осветительная ракета"
+            },
+            {
+              "operation": "replace",
+              "legacy": "относительно горизонта.",
+              "gold": "к горизонту."
+            },
+            {
+              "operation": "replace",
+              "legacy": "вершине высоты траектории движения, включается",
+              "gold": "наивысшей точке траектории, срабатывает"
+            },
+            {
+              "operation": "replace",
+              "legacy": "элемент.",
+              "gold": "элемент,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вопросу. рассчитайте:",
+              "gold": "задаче. вычислите:"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "начальная"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ракеты",
+              "gold": "ракеты,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вершине высоты траектории движения ?",
+              "gold": "верхней точке траектории?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "элемент ?",
+              "gold": "элемент?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "запуска",
+              "gold": "старта"
+            },
+            {
+              "operation": "replace",
+              "legacy": "элемент ?",
+              "gold": "элемент?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "включения",
+              "gold": "срабатывания"
+            },
+            {
+              "operation": "replace",
+              "legacy": "элемента !",
+              "gold": "элемента?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "а',",
+              "gold": "«а»,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "элемент, если",
+              "gold": "элемент (если"
+            },
+            {
+              "operation": "replace",
+              "legacy": "запуска.",
+              "gold": "запуска)?"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "4.14",
+      "status": "compared",
+      "legacy_row_count": 5,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.98152,
+          "legacy_chars": 488,
+          "gold_chars": 486,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "15 m/sec",
+              "gold": "15_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב:",
+              "gold": "חשבו:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "יזרוק",
+              "gold": "זורק"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לגדר ?",
+              "gold": "לגדר?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "יפול על הקרקע",
+              "gold": "יפגע בקרקע"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.967539,
+          "legacy_chars": 788,
+          "gold_chars": 778,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "מתואר",
+              "gold": "מתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מגובה",
+              "gold": "מגבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "15 m/sec",
+              "gold": "15_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גובה",
+              "gold": "גבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שלוש",
+              "gold": "שלושה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשב:",
+              "gold": "חשבו:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "יזרק",
+              "gold": "זורק"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופק,",
+              "gold": "האפק,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לגדר ?",
+              "gold": "לגדר?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מעל הגדר",
+              "gold": "מעליה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקית,",
+              "gold": "אפקית,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "התחלתית",
+              "gold": "ההתחלתית"
+            },
+            {
+              "operation": "replace",
+              "legacy": "באיזו",
+              "gold": "באיזה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "יפול על הקרקע",
+              "gold": "יפגע בקרקע"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.918623,
+          "legacy_chars": 643,
+          "gold_chars": 635,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "be'iyur lash'e'ela meto'ar",
+              "gold": "ba'iyur lish'ela mto'ar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metar bimehirut hatkhala'tit",
+              "gold": "meter bimhirut hatkhalatit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "15 m/sec bekivun",
+              "gold": "15_{m/sec} bkhivun"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hanimtse'et bimerkhak",
+              "gold": "hanimtse't bmerkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "5 metarim mimeno.",
+              "gold": "khamisha metrim mimenu."
+            },
+            {
+              "operation": "replace",
+              "legacy": "shalosh metarim. khashév: a.",
+              "gold": "shlosha metrim. khashvu: '."
+            },
+            {
+              "operation": "replace",
+              "legacy": "yizrok",
+              "gold": "zorek"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bezavit shel",
+              "gold": "bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "lagader?",
+              "gold": "lagader ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be'aliya",
+              "gold": "ba'aliya"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hagi'ato",
+              "gold": "haga'ato"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b.",
+              "gold": "v."
+            },
+            {
+              "operation": "replace",
+              "legacy": "yifga",
+              "gold": "yifg'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yakhlóf me'al hagader?",
+              "gold": "yakhlof me'aleha ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ofkit, bimehirut hatkhala'tit hanetuna,",
+              "gold": "afkit, bimhirut hahatkhalatit hantuna,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "lagader?",
+              "gold": "lagader ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be'eizo",
+              "gold": "be'eze"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hakarka hu yifga bagader?",
+              "gold": "hakark'a hu' yifg'a bagader ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "lo, be'eizo",
+              "gold": "lo', be'eze"
+            },
+            {
+              "operation": "replace",
+              "legacy": "min hagader",
+              "gold": "mehagader"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yipol al hakarka?",
+              "gold": "yifg'a bakark'a ?"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.84441,
+          "legacy_chars": 650,
+          "gold_chars": 629,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ребёнок,",
+              "gold": "мальчик,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "1.2",
+              "gold": "1,2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec",
+              "gold": "м/с"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограды, находящейся",
+              "gold": "забора, находящегося"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограды -",
+              "gold": "забора"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли:",
+              "gold": "вычислите:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ребёнок бросит",
+              "gold": "мальчик бросает"
+            },
+            {
+              "operation": "replace",
+              "legacy": "над горизонтом,",
+              "gold": "к горизонту,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "достигнет ограды?",
+              "gold": "долетит до забора?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "подниматься",
+              "gold": "на подъеме"
+            },
+            {
+              "operation": "replace",
+              "legacy": "опускаться",
+              "gold": "на спуске"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограды?",
+              "gold": "забора?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ударит",
+              "gold": "попадет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограду",
+              "gold": "забор"
+            },
+            {
+              "operation": "replace",
+              "legacy": "оградой?",
+              "gold": "ним?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ребёнок",
+              "gold": "мальчик"
+            },
+            {
+              "operation": "replace",
+              "legacy": "горизонтально,",
+              "gold": "горизонтально"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "той же"
+            },
+            {
+              "operation": "delete",
+              "legacy": "заданной в условии,",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограды?",
+              "gold": "забора?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "землёй",
+              "gold": "землей"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограду?",
+              "gold": "забор?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "нет -",
+              "gold": "нет, то"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ограды",
+              "gold": "забора"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "5.1",
+      "status": "compared",
+      "legacy_row_count": 7,
+      "gold_row_count": 3,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.989691,
+          "legacy_chars": 337,
+          "gold_chars": 342,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "היתה",
+              "gold": "הייתה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש.",
+              "gold": "ק\"מ לשעה."
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.986425,
+          "legacy_chars": 522,
+          "gold_chars": 530,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "אופקית",
+              "gold": "אפקית"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מסילת",
+              "gold": "מסלת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כוח",
+              "gold": "כח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש.",
+              "gold": "ק\"מ לשעה."
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.904018,
+          "legacy_chars": 455,
+          "gold_chars": 441,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "le-tsorekh",
+              "gold": "ltsorekh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meno'a",
+              "gold": "mno'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-meno'a",
+              "gold": "hamano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-mesugelet",
+              "gold": "hamsugelet"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ofkit",
+              "gold": "afkit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "gabey mesilat",
+              "gold": "gabe msilat"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-masa",
+              "gold": "hamasa"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ma'arekhet (ha-agala",
+              "gold": "hama'arekhet (ha'agala"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-meno'a)",
+              "gold": "hamano'a)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ק\"ג. chashev",
+              "gold": "kg\". khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ko'aḥ ha-dakḥaf",
+              "gold": "koakh hadakhaf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-meno'a",
+              "gold": "hamano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'tnu'a l'merḥak",
+              "gold": "bitnu'a lmerkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-agala li-mehirut",
+              "gold": "ha'agala limhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש. ha-agala",
+              "gold": "km\" lsha'a. ha'agala"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bi-mehirut shvat-te'utza ve-ko'aḥ ha-hitnagdut la-tnu'a",
+              "gold": "bimhirut shavat-te'utsa vekhoakh hahitnagdut latnu'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "niyuton. henaḥ",
+              "gold": "nyuton. hanakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-agala",
+              "gold": "ha'agala"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-meno'a",
+              "gold": "hamano'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-lo",
+              "gold": "llo'"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.787211,
+          "legacy_chars": 463,
+          "gold_chars": 444,
+          "token_changes": [
+            {
+              "operation": "delete",
+              "legacy": "проведения",
+              "gold": ""
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "его"
+            },
+            {
+              "operation": "delete",
+              "legacy": "двигатель",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "двигаться",
+              "gold": "перемещаться"
+            },
+            {
+              "operation": "replace",
+              "legacy": "железнодорожному",
+              "gold": "рельсовому"
+            },
+            {
+              "operation": "replace",
+              "legacy": "была",
+              "gold": "составляла"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ק\"ג. вычисли",
+              "gold": "кг. рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "м'",
+              "gold": "м тележка"
+            },
+            {
+              "operation": "delete",
+              "legacy": "тележка",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש. тележка двигалась с постоянным ускорением и",
+              "gold": "км/ч. движение тележки было равноускоренным, а"
+            },
+            {
+              "operation": "replace",
+              "legacy": "была",
+              "gold": "составляла"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ньютон. предположи,",
+              "gold": "н. считайте,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "остаются без изменения.",
+              "gold": "остается неизменной."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "5.2",
+      "status": "compared",
+      "legacy_row_count": 3,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.980296,
+          "legacy_chars": 206,
+          "gold_chars": 200,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "הקדמית.",
+              "gold": "הקודמת."
+            },
+            {
+              "operation": "delete",
+              "legacy": "לאחר",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec,",
+              "gold": "sec"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.971867,
+          "legacy_chars": 310,
+          "gold_chars": 298,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "כוח",
+              "gold": "כח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הקדמית.",
+              "gold": "הקודמת."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(שיעור וכיוון), לאחר",
+              "gold": "(שעור וכוון),"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec,",
+              "gold": "sec"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.889749,
+          "legacy_chars": 264,
+          "gold_chars": 253,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "na",
+              "gold": "n'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "p'nei mishtaḥ ḥalak bi-mehirut",
+              "gold": "pne mishtakh khalak bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'rega mesuyam",
+              "gold": "breg'a msuyam"
+            },
+            {
+              "operation": "replace",
+              "legacy": "alav ko'aḥ",
+              "gold": "alayw koakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'kivun ha-menugad l'kivun",
+              "gold": "bkhivun hamnugad lkhivun"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-kadmit. chashev ma",
+              "gold": "hakodemet. khashev mah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehirut ha-guf",
+              "gold": "mhirut haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-kivun), l'aḥar",
+              "gold": "vekhivun),"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec, l'aḥar",
+              "gold": "sec le'akhar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ko'aḥ?",
+              "gold": "hakoakh?"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.784768,
+          "legacy_chars": 302,
+          "gold_chars": 302,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "20kg",
+              "gold": "20 кг"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5 m/s.",
+              "gold": "0,5 м/с."
+            },
+            {
+              "operation": "replace",
+              "legacy": "на него действует",
+              "gold": "времени к нему прикладывается"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40n в направлении, противоположном направлению",
+              "gold": "40 н, направленная противоположно"
+            },
+            {
+              "operation": "replace",
+              "legacy": "поступательного движения. вычисли,",
+              "gold": "предыдущему движению. рассчитайте,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "направление),",
+              "gold": "направление)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "sec",
+              "gold": "секунды"
+            },
+            {
+              "operation": "replace",
+              "legacy": "момента приложения",
+              "gold": "начала действия"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "5.3",
+      "status": "compared",
+      "legacy_row_count": 11,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.958611,
+          "legacy_chars": 366,
+          "gold_chars": 383,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "=",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הנוסעת",
+              "gold": "והנוסעת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_k",
+              "gold": "\\mu_k"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 ,",
+              "gold": "0.3,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(בקילווואטים)",
+              "gold": "(בקילוואטים)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2",
+              "gold": "9.81_{m/sec^2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kn·m/sec",
+              "gold": "\\frac{kn \\cdot m}{sec}"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.956522,
+          "legacy_chars": 542,
+          "gold_chars": 559,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "=",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הנוסעת",
+              "gold": "והנוסעת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_k",
+              "gold": "\\mu_k"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 ,",
+              "gold": "0.3,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כוח",
+              "gold": "כח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכובד:",
+              "gold": "הכבד:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2",
+              "gold": "9.81_{m/sec^2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kn·m/sec",
+              "gold": "\\frac{kn \\cdot m}{sec}"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.872428,
+          "legacy_chars": 489,
+          "gold_chars": 483,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "b'mekhonit she-masatah",
+              "gold": "bimkhonit shemasatah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "=",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ק\"ג, ha-nosa'at bi-mehirut",
+              "gold": "kg\", vehanosa'at bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש,",
+              "gold": "kmsh\","
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-nahag",
+              "gold": "hanahag"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ma'atsorim ve-gorem l'ne'ilat ha-galgalim, u-l'tnu'at ha-mekhonit b'hakhlaka l'orekh merḥak",
+              "gold": "hama'atsorim vegorem lin'ilat hagalgalim, velitnu'at hamkhonit bhakhlaka le'orekh merkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "l'haktanat ha-mehirut",
+              "gold": "lhaktanat hamhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש.",
+              "gold": "kmsh\"."
+            },
+            {
+              "operation": "replace",
+              "legacy": "mikdam ha-khiḥukh ha-kineti",
+              "gold": "mkadem hakhikukh hakineti"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_k",
+              "gold": "\\mu_k"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 , chashev: a.",
+              "gold": "0.3, khashev: '."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-merḥak",
+              "gold": "hamerkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "she-‘avra ha-mekhonit b'hakhlaka. b.",
+              "gold": "she'avra hamkhonit bhakhlaka. v."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-hespek",
+              "gold": "hahespek"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(b'kilovatim) she-oto pite'aḥ ko'aḥ ha-khiḥukh bi-sha'at ha-hakhlaka.",
+              "gold": "(bkilova'tim) she'oto pitakh koakh hakhikukh bish'at hahakhlaka."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-koved:",
+              "gold": "hakoved:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2",
+              "gold": "9.81_{m/sec^2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kn·m/sec",
+              "gold": "\\frac{kn \\cdot m}{sec}"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.815047,
+          "legacy_chars": 491,
+          "gold_chars": 466,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "= 2,250 ק\"ג, движущемся",
+              "gold": "2250 кг, едущем"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש,",
+              "gold": "км/ч,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "нажимает на тормоза",
+              "gold": "применяет тормоза, что приводит к блокировке колес"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вызывает блокировку колёс и движение",
+              "gold": "юзу"
+            },
+            {
+              "operation": "delete",
+              "legacy": "в скольжении",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "d,",
+              "gold": "d"
+            },
+            {
+              "operation": "replace",
+              "legacy": "уменьшения",
+              "gold": "снижения"
+            },
+            {
+              "operation": "replace",
+              "legacy": "קמ\"ש.",
+              "gold": "км/ч."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_k",
+              "gold": "\\mu_k"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли:",
+              "gold": "вычислите:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "которое прошёл автомобиль в",
+              "gold": "пройденное автомобилем при"
+            },
+            {
+              "operation": "replace",
+              "legacy": "которую развила сила",
+              "gold": "развиваемую силой"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec^2",
+              "gold": "м/с²"
+            },
+            {
+              "operation": "replace",
+              "legacy": "1kw",
+              "gold": "1 квт"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kn·m/sec",
+              "gold": "(кн · м)/с"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.1",
+      "status": "compared",
+      "legacy_row_count": 4,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.969957,
+          "legacy_chars": 346,
+          "gold_chars": 353,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "שמשקלו (g)",
+              "gold": "שמסתו (q)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מושך",
+              "gold": "נמשך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "q",
+              "gold": "q,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "θ",
+              "gold": "\\theta"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.937591,
+          "legacy_chars": 544,
+          "gold_chars": 531,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "שמשקלו (g)",
+              "gold": "שמסתו (q)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מושך",
+              "gold": "נמשך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "על-ידי כוח q",
+              "gold": "ע\"י כח q,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכוח",
+              "gold": "הכח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופקי",
+              "gold": "האפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "θ",
+              "gold": "\\theta"
+            },
+            {
+              "operation": "replace",
+              "legacy": "על-ידי",
+              "gold": "ע\"י"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כוח",
+              "gold": "כח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "על-ידי",
+              "gold": "ע\"י"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכוחות",
+              "gold": "הכחות"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.893989,
+          "legacy_chars": 478,
+          "gold_chars": 437,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "shemishkalo (g)",
+              "gold": "shemasato (q)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mushakh bemehirut",
+              "gold": "nimshakh bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "al yedey ko'akh q",
+              "gold": "ay\" koakh q,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemorad ha-mishor ha-meshupa'",
+              "gold": "bmorad hamishor hamshup'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ko'akh",
+              "gold": "hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "la-kav ha-ofki bezavit",
+              "gold": "lkav ha'ofki bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mekadem ha-khikhukh ha-stati (μ) beyn ha-mishor ha-meshupa' uveyn",
+              "gold": "mkadem hakhikukh hastati (\\mu) ben hamishor hamshup'a lven"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hu",
+              "gold": "hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "veha-zavit θ",
+              "gold": "vehazavit \\theta"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-avoda ha-na'asit",
+              "gold": "ha'avoda hana'aset ay\" kol koakh bnifrad, hapo'el"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yedey kol ko'akh benifrad, ha-po'el al ha-guf",
+              "gold": "haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-avoda ha-kolelet ha-na'asit",
+              "gold": "ha'avoda hakolelet hana'aset ay\" kol hakokhot hapo'alim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yedey kol ha-ko'akhot ha-po'alim al ha-guf beyakhad.",
+              "gold": "haguf byakhad."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.83105,
+          "legacy_chars": 462,
+          "gold_chars": 414,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "a, вес которого (g)",
+              "gold": "a весом (q)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ньютон,",
+              "gold": "н"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ньютон,",
+              "gold": "н,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "протяжении 1.5 метра.",
+              "gold": "расстояние 1,5 м."
+            },
+            {
+              "operation": "replace",
+              "legacy": "горизонтальной линии",
+              "gold": "горизонту"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3, и",
+              "gold": "0,3, а"
+            },
+            {
+              "operation": "replace",
+              "legacy": "θ",
+              "gold": "наклона \\theta"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычислите работу, совершаемую",
+              "gold": "рассчитайте работу"
+            },
+            {
+              "operation": "replace",
+              "legacy": "силой отдельно,",
+              "gold": "отдельной силы,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "суммарную работу, совершаемую всеми силами, действующими",
+              "gold": "полную работу всех сил, действующих"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вместе.",
+              "gold": "совместно."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.2",
+      "status": "compared",
+      "legacy_row_count": 5,
+      "gold_row_count": 1,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.961832,
+          "legacy_chars": 255,
+          "gold_chars": 269,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40°.",
+              "gold": "40^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "t"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.943026,
+          "legacy_chars": 397,
+          "gold_chars": 409,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "המשפע עומס",
+              "gold": "המשופע עמס"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופקי",
+              "gold": "האפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40°.",
+              "gold": "40^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "העומס",
+              "gold": "העמס"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "t"
+            },
+            {
+              "operation": "replace",
+              "legacy": "העומס בגובה",
+              "gold": "העמס בגבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מטר?",
+              "gold": "מטר ?"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.894428,
+          "legacy_chars": 344,
+          "gold_chars": 338,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "she-hespéko",
+              "gold": "shehespeko"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kilovat,",
+              "gold": "kilova't,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bema'ale ha-mishor ha-meshupa'",
+              "gold": "bma'ale hamishor hamshup'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "she-mishkalo",
+              "gold": "shemishkalo"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hu",
+              "gold": "hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "k\"n. ha-mishor ha-meshupa'",
+              "gold": "kn\". hamishor hamshup'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "klapey ha-kav ha-ofki bezavit α",
+              "gold": "klape hakav ha'ofki bzavit \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40°. mekadem ha-khikhukh (μ) beyn ha-omes veha-mishor ha-meshupa' hu",
+              "gold": "40^\\circ. mkadem hakhikukh (\\mu) ben ha'omes vehamishor hamshup'a hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ma hu ha-zman ha-darush leha'alat ha-omes be-gova",
+              "gold": "mahu hazman t hadarush lha'ala'at ha'omes bgovah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meter?",
+              "gold": "meter ?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "she-ha-tnu'a hi ketsuva.",
+              "gold": "shehatnu'a hi' ktsuva."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.821997,
+          "legacy_chars": 367,
+          "gold_chars": 324,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "двигатель, мощность которого",
+              "gold": "двигатель мощностью"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5 киловатт,",
+              "gold": "0,5 квт"
+            },
+            {
+              "operation": "replace",
+              "legacy": "груз, вес которого",
+              "gold": "груз весом"
+            },
+            {
+              "operation": "replace",
+              "legacy": "наклонена к горизонтальной линии под углом α",
+              "gold": "составляет с горизонтом угол \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "40°.",
+              "gold": "40^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.25.",
+              "gold": "0,25."
+            },
+            {
+              "operation": "replace",
+              "legacy": "время,",
+              "gold": "время t,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "подъёма",
+              "gold": "подъема"
+            },
+            {
+              "operation": "replace",
+              "legacy": "h, равную",
+              "gold": "h ="
+            },
+            {
+              "operation": "replace",
+              "legacy": "метров? предположите, что",
+              "gold": "м? считайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равномерное.",
+              "gold": "равномерным."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.3",
+      "status": "compared",
+      "legacy_row_count": 5,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.969849,
+          "legacy_chars": 393,
+          "gold_chars": 403,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "30°.",
+              "gold": "30^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "הניסוי",
+              "gold": "בניסוי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מראה",
+              "gold": "התברר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "עובר",
+              "gold": "עבר"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.954722,
+          "legacy_chars": 644,
+          "gold_chars": 650,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע",
+              "gold": "משופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופקי",
+              "gold": "האפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "30°.",
+              "gold": "30^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "מהנקודה",
+              "gold": "מהנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הנסוי המדויק",
+              "gold": "בנסוי מדיק"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מראה",
+              "gold": "התברר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "עובר",
+              "gold": "עבר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע. גובה",
+              "gold": "המשופע. גבה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכובד",
+              "gold": "הכבד"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.901701,
+          "legacy_chars": 547,
+          "gold_chars": 511,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "she-masato",
+              "gold": "shemasato"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemorad",
+              "gold": "bmorad"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshupa' mekhuspas, ha-natuy la-mishor ha-ofki bezavit α",
+              "gold": "mshup'a mkhuspas, hanatuy lamishor ha'ofki bzavit \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "30°.",
+              "gold": "30^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-blok",
+              "gold": "hablok"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meha-nekuda ha-elyona",
+              "gold": "mehankuda ha'elyona"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-morad mi-matsav",
+              "gold": "hamorad mimatsav"
+            },
+            {
+              "operation": "replace",
+              "legacy": "menukha. ha-nisuy hameduyak",
+              "gold": "mnukha. bnisuy mduyak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ba-ma'abada mare she-ha-blok over",
+              "gold": "bama'bada hitbarer ki hablok avar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-morad bemeshekh",
+              "gold": "hamorad bmeshekh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mekadem ha-khikhukh beyn ha-mishor ha-meshupa' le-veyn pney ha-blok",
+              "gold": "mkadem hakhikukh ben hamishor hamshup'a lven pne hablok"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehirut ha-blok ba-nekuda ha-takhtona",
+              "gold": "mhirut hablok binkuda hatakhtona"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-mishor ha-meshupa'. gova ha-mishor ha-meshupa'",
+              "gold": "hamishor hamshup'a. govah hamishor hamshup'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-te'utsat ha-koved",
+              "gold": "ute'utsat hakoved"
+            },
+            {
+              "operation": "replace",
+              "legacy": "la-shniya beribua.",
+              "gold": "lishniya bribu'a."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.817264,
+          "legacy_chars": 555,
+          "gold_chars": 534,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "блок, масса которого m, скользит",
+              "gold": "брусок массой m соскальзывает"
+            },
+            {
+              "operation": "replace",
+              "legacy": "наклонённой",
+              "gold": "наклоненной"
+            },
+            {
+              "operation": "replace",
+              "legacy": "горизонтальной плоскости",
+              "gold": "горизонту"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "30°.",
+              "gold": "30^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "блока",
+              "gold": "бруска"
+            },
+            {
+              "operation": "delete",
+              "legacy": "точный эксперимент, проведённый",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "лаборатории, показывает,",
+              "gold": "ходе точного лабораторного эксперимента было установлено,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "блок проходит",
+              "gold": "брусок прошел"
+            },
+            {
+              "operation": "replace",
+              "legacy": "1.12",
+              "gold": "1,12"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычислите",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "блока,",
+              "gold": "бруска,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "блока",
+              "gold": "бруска"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 метр в секунду в квадрате.",
+              "gold": "- 9,81 м/с²."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.4",
+      "status": "compared",
+      "legacy_row_count": 19,
+      "gold_row_count": 1,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.42728,
+          "legacy_chars": 948,
+          "gold_chars": 269,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w2",
+              "gold": "w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גלגלה,",
+              "gold": "גלגלת,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מישורים",
+              "gold": "משורים"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שונים וניצבים",
+              "gold": "ניצבים"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w2",
+              "gold": "w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5w1.",
+              "gold": "0.5w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "תאוצות",
+              "gold": "תאוצת"
+            },
+            {
+              "operation": "delete",
+              "legacy": "שאלה 6.5: (אנרגיה וכוחות) רכב נוסע ממצב של מנוחה מנקודה a ועובר את הקטע האופקי ab, שאורכו s, בתנועה שוות תאוצה. שיעור התאוצה (a) הוא 3 m/sec^2. בנקודה b מכבה הנהג את המנוע ועובר בגלגול חופשי. הוא עולה במעלה המישור המשופע בגובה h השווה 10 מ' ומנקודה c הוא ממשיך בדרך אופקית cd. א. מה צריך להיות אורך הקטע האופקי s כדי שהרכב יעלה במעלה המישור המשופע אם ידוע שמהירותו בנקודה c היתה 4 מטר לשניה ? ב. מה מהירות הרכב בסוף קטע s? ג. מה המרחק (s1) שבו יעבור הרכב בקטע cd, אם הנהג יפעיל את הבלמים בנקודה c? הנח שכוח הבלימה שווה ל-0.25 ממשקלו של הרכב, ושבקטע זה אין התנגדויות אחרות לתנועת הרכב. בחישוב הנח שהרכב מהווה נקודה חומרית, הזנח את החיכוך בקטעים ab ו-bc והנח: g = 9.81 m/sec^2.",
+              "gold": ""
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.431138,
+          "legacy_chars": 1393,
+          "gold_chars": 402,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w2",
+              "gold": "w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גלגלה,",
+              "gold": "גלגלת,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "משפעים שונים ונצבים",
+              "gold": "משופעים נצבים"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w2",
+              "gold": "w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5w1.",
+              "gold": "0.5w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "תאוצות",
+              "gold": "תאוצת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המתח",
+              "gold": "המתיחות"
+            },
+            {
+              "operation": "delete",
+              "legacy": "שאלה 6.5: (אנרגיה וכחות) רכב נוסע ממנוחה מנקודה a ועובר את הקטע האופקי ab, שאורכו s, בתנועה שוות-תאוצה. שעור התאוצה (a) הוא 3 m/sec^2. בנקודה b הרכב מרגה את הגז וגולד חפשי. הרכב עולה במעלה המישור המשפע בגובה h השוה 10 מ', ומנקודה c ממשיך את תנועתו בדרך אופקית cd. א. מה צריך להיות אורך הקטע האופקי s כדי שהרכב יעלה במעלה המישור המשפע, אם ידוע שמהירותו בנקודה c היא 4 m/sec ? ב. מה מהירות הרכב בסוף קטע s ? ג. מה המרחק (s1) שיעבור הרכב בקטע cd, אם הנהג יפעיל את הבלמים בנקודה c ? כח הבלימה שוה ל-0.25 ממשקל הרכב, ובקטע זה אין התנגדות אחרת לתנועת הרכב. בחשוב החשב שהרכב מהוה מנקודה חומרית, הזנח את החכוך בקטעים ab ו-bc והנח: g = 9.81 m/sec^2.",
+              "gold": ""
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.413748,
+          "legacy_chars": 1178,
+          "gold_chars": 335,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "shnei",
+              "gold": "shne"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w2 mekusharim",
+              "gold": "w_2 mkusharim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "pnei gilgala,",
+              "gold": "pne galgalet,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshup'aim shonim venitsavim",
+              "gold": "mshupa'im nitsavim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mekadem hahikhukh bein",
+              "gold": "mkadem hakhikukh ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mishkaley",
+              "gold": "mishkle"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w2",
+              "gold": "w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5w1. khashév: a.",
+              "gold": "0.5w_1 khashev: '."
+            },
+            {
+              "operation": "replace",
+              "legacy": "te'utsot",
+              "gold": "te'utsat"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b.",
+              "gold": "v."
+            },
+            {
+              "operation": "replace",
+              "legacy": "hametakh",
+              "gold": "hamtikhut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamekhaber bein",
+              "gold": "hamkhaber ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bekivun hakhéts. she'ela 6.5: (energiya vekokhot) rekhev nose'a mimnukha minnekuda a ve'over et haketa ha'ofki ab she'or'ko s bitnu'a shavot-te'utsa. shi'ur hate'utsa (a) hu 3 m/sec^2. benekuda b harekhev margéa et hagaz vegoled khofshi. harekhev oleh bema'ala hamishor hameshupa begovah h hashave 10 m, uminnekuda c mamshikh et tnu'ato bederkh ofkit cd. a. ma tsarikh lihyot orakh haketa ha'ofki s kedei sheharekhev ya'ale bema'ala hamishor hameshupa, im yadu'a shemehiruto benekuda c hi 4 m/sec? b. ma mehirut harekhev besof keta s? g. ma hamerkhak (s1) sheya'avor harekhev beketa cd, im hanaheg yaf'il et hablamim benekuda c? ko'akh hablima shavé le-0.25 memishkal harekhev, uvaketa ze ein hitnagdut aheret letnu'at harekhev. bekhishuv hekhshev sheharekhev mehavenekuda khomerit; haznakh et hahikhukh b'kta'im ab u-bc vehanakh: g = 9.81 m/sec^2.",
+              "gold": "bkhivun hakhets."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.328972,
+          "legacy_chars": 1279,
+          "gold_chars": 326,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "w1 , w2",
+              "gold": "w_1, w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "с помощью троса",
+              "gold": "канатом"
+            },
+            {
+              "operation": "replace",
+              "legacy": "шкив,",
+              "gold": "блок и"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "взаимно перпендикулярных"
+            },
+            {
+              "operation": "replace",
+              "legacy": "плоскостях разной крутизны и обращены друг к другу.",
+              "gold": "плоскостях."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "w1",
+              "gold": "w_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "98_n , w2",
+              "gold": "98 н, w_2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5w1. вычисли:",
+              "gold": "0.5w_1. вычислите:"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ускорения",
+              "gold": "ускорение"
+            },
+            {
+              "operation": "replace",
+              "legacy": "напряжение в тросе, соединяющем",
+              "gold": "натяжение троса, соединяющего"
+            },
+            {
+              "operation": "replace",
+              "legacy": "предположи,",
+              "gold": "считайте,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "происходит в направлении стрелки. вопрос 6.5: (энергия и силы) автомобиль едет из покоя из точки a и проходит горизонтальный участок ab длиной s в равноускоренном движении. величина ускорения (a) равна 3 м/сек^2. в точке b автомобиль отпускает газ и катится свободно. автомобиль поднимается",
+              "gold": "направлено"
+            },
+            {
+              "operation": "replace",
+              "legacy": "наклонной плоскости высотой h = 10 м, и из точки c продолжает движение по горизонтальной дороге cd. а. какой должна быть длина горизонтального участка s, чтобы автомобиль поднялся по наклонной плоскости, если известно, что его скорость в точке c - 4 м/сек? б. какова скорость автомобиля в конце участка s? в. каково расстояние (s1), которое проедет автомобиль по участку cd, если водитель нажимает на тормоза в точке c? сила торможения равна 0.25 от веса автомобиля, и на этом участке нет сопротивления другим силам движению автомобиля. при вычислении учти, что автомобиль из состояния покоя; пренебреги трением в участках ab и bc и предположи: g = 9.81 m/sec^2.",
+              "gold": "стрелке."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.5",
+      "status": "missing_in_legacy",
+      "gold_row_count": 3
+    },
+    {
+      "task_number": "6.6",
+      "status": "compared",
+      "legacy_row_count": 7,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.967972,
+          "legacy_chars": 414,
+          "gold_chars": 429,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "לשניה.",
+              "gold": "לשנייה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "20°.",
+              "gold": "20^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "delete",
+              "legacy": ":",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2.",
+              "gold": "9.81_{m/sec^2}."
+            },
+            {
+              "operation": "replace",
+              "legacy": "לשניה.",
+              "gold": "לשנייה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "s1",
+              "gold": "s_1"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.959903,
+          "legacy_chars": 653,
+          "gold_chars": 675,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע",
+              "gold": "משופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "תחילית",
+              "gold": "תחלית"
+            },
+            {
+              "operation": "replace",
+              "legacy": "זווית",
+              "gold": "זוית"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופקי α",
+              "gold": "האפקי \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "20°.",
+              "gold": "20^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "delete",
+              "legacy": ":",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2.",
+              "gold": "9.81_{m/sec^2}."
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "s1",
+              "gold": "s_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.924324,
+          "legacy_chars": 559,
+          "gold_chars": 551,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "she-masato",
+              "gold": "shemasato"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bema'ala",
+              "gold": "bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshupa bimheirut",
+              "gold": "mshup'a bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metr la-shniya.",
+              "gold": "meter lishniya."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ntiya",
+              "gold": "hantiya"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hameshupa klapei ha-kav ha-ofki α",
+              "gold": "hamshup'a klape hakav ha'ofki \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "20°. mekadem ha-khikukh (μ) bein ha-guf",
+              "gold": "20^\\circ. mkadem hakhikukh (\\mu) ben haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hameshupa hu",
+              "gold": "hamshup'a hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-koved:",
+              "gold": "hakoved"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2. a. khashév",
+              "gold": "9.81_{m/sec^2}. '. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-te'utsa",
+              "gold": "hate'utsa"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf",
+              "gold": "haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-tnu'a. b. khashév",
+              "gold": "hatnu'a. v. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-merkhak",
+              "gold": "hamerkhak"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf bema'ala",
+              "gold": "haguf bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hameshupa",
+              "gold": "hamshup'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shemehiruto tik'tan",
+              "gold": "shemhiruto tiktan"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-5 metr la-shniya.",
+              "gold": "l-5 meter lishniya."
+            },
+            {
+              "operation": "replace",
+              "legacy": "khashév",
+              "gold": "khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-merkhak s1",
+              "gold": "hamerkhak s_1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf bema'ala",
+              "gold": "haguf bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hameshupa",
+              "gold": "hamshup'a"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.819383,
+          "legacy_chars": 582,
+          "gold_chars": 553,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "метров в секунду.",
+              "gold": "м/с."
+            },
+            {
+              "operation": "delete",
+              "legacy": "наклонной",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "относительно горизонтальной линии α",
+              "gold": "к горизонту \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "20°.",
+              "gold": "20^\\circ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "(μ)",
+              "gold": "(\\mu)"
+            },
+            {
+              "operation": "delete",
+              "legacy": "наклонной",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.4.",
+              "gold": "0,4."
+            },
+            {
+              "operation": "replace",
+              "legacy": "тяжести:",
+              "gold": "свободного падения"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81 m/sec^2.",
+              "gold": "9,81 м/с²."
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "тело"
+            },
+            {
+              "operation": "delete",
+              "legacy": "тело",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "метров в секунду. г. вычисли",
+              "gold": "м/с. в. рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "s1,",
+              "gold": "s_1,"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "тело"
+            },
+            {
+              "operation": "delete",
+              "legacy": "тело",
+              "gold": ""
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "полной"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.7",
+      "status": "compared",
+      "legacy_row_count": 8,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.867589,
+          "legacy_chars": 497,
+          "gold_chars": 515,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "α.",
+              "gold": "\\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "התנועה.",
+              "gold": "הפעולה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ.",
+              "gold": "\\mu."
+            },
+            {
+              "operation": "replace",
+              "legacy": "המופעל",
+              "gold": "הפועל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מטר/שניה",
+              "gold": "מטר/שנייה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ל-3 מטר/שניה.",
+              "gold": "ל- 3 מטר/שנייה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "נתון :",
+              "gold": "נתון: w = 10kn, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2},"
+            },
+            {
+              "operation": "delete",
+              "legacy": ", g = 9.81 m/sec^2 , μ = 0.2 , α = 20° , w = 10kn",
+              "gold": ""
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.859454,
+          "legacy_chars": 748,
+          "gold_chars": 767,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע,",
+              "gold": "משופע,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופקי",
+              "gold": "האפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α.",
+              "gold": "\\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "המופעל",
+              "gold": "המפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע,",
+              "gold": "המשופע,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "התנועה.",
+              "gold": "הפעלה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ.",
+              "gold": "\\mu."
+            },
+            {
+              "operation": "replace",
+              "legacy": "המופעל",
+              "gold": "הפועל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לאורך",
+              "gold": "לארך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ל-3",
+              "gold": "ל- 3"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כוח",
+              "gold": "כח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע? נתון :",
+              "gold": "המשופע? נתון: w = 10kn, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2},"
+            },
+            {
+              "operation": "delete",
+              "legacy": ", g = 9.81 m/sec^2 , μ = 0.2 , α = 20° , w = 10kn",
+              "gold": ""
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.871595,
+          "legacy_chars": 648,
+          "gold_chars": 637,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "bema'ala",
+              "gold": "bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshupa,",
+              "gold": "mshup'a,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "la-kav ha-ofki bezavit α. ha-ko'akh",
+              "gold": "lakav ha'ofki bzavit \\alpha. hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf, bemakbil la-mishor hameshupa,",
+              "gold": "haguf, bmakbil lamishor hamshup'a,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemeshekh",
+              "gold": "bmeshekh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-tnu'a. mekadem ha-khikukh bein ha-guf le-vein ha-mishor hameshupa hu μ.",
+              "gold": "hape'ula. mkadem hakhikukh ben haguf lven hamishor hamshup'a hu' \\mu."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-koved",
+              "gold": "hakoved"
+            },
+            {
+              "operation": "replace",
+              "legacy": "a. khashév",
+              "gold": "'. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ko'akh",
+              "gold": "hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamuf'al",
+              "gold": "hapo'el"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf,",
+              "gold": "haguf,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf",
+              "gold": "haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-keta",
+              "gold": "haket'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehiruto",
+              "gold": "mhiruto"
+            },
+            {
+              "operation": "replace",
+              "legacy": "metr/shniya",
+              "gold": "metershniya/"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-3 metr/shniya. b. ma hi ha-avoda ha-na'asit be-keta",
+              "gold": "l- 3 metershniya/. v. mahi ha'avoda hana'aset bket'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "lo",
+              "gold": "lo'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ko'akh",
+              "gold": "koakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf,",
+              "gold": "haguf,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf",
+              "gold": "haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemnukha,",
+              "gold": "bimnukha,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemorad ha-mishor hameshupa?",
+              "gold": "bmorad hamishor hamshup'a?"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "w = 10kn, \\alpha = 20^\\circ, \\mu = 0.2, g = 9.81_{m/sec^2},"
+            },
+            {
+              "operation": "delete",
+              "legacy": ", g = 9.81 m/sec^2 , μ = 0.2 , α = 20° , w = 10kn",
+              "gold": ""
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.817035,
+          "legacy_chars": 631,
+          "gold_chars": 637,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "плоскости, наклонённой",
+              "gold": "плоскости с углом наклона"
+            },
+            {
+              "operation": "replace",
+              "legacy": "горизонтали под углом α.",
+              "gold": "горизонту \\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "остаётся",
+              "gold": "остается"
+            },
+            {
+              "operation": "replace",
+              "legacy": "на протяжении всего движения.",
+              "gold": "все время действия."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ.",
+              "gold": "\\mu."
+            },
+            {
+              "operation": "replace",
+              "legacy": "тяжести",
+              "gold": "свободного падения"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "уменьшается",
+              "gold": "падает"
+            },
+            {
+              "operation": "replace",
+              "legacy": "на тело",
+              "gold": "если сила f"
+            },
+            {
+              "operation": "replace",
+              "legacy": "сила f;",
+              "gold": "на тело,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "будет скользить",
+              "gold": "соскользнет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ab",
+              "gold": "w"
+            },
+            {
+              "operation": "replace",
+              "legacy": "30_m ,",
+              "gold": "10 кн, \\alpha = 20^\\circ, \\mu = 0.2,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "m/sec^2 , μ",
+              "gold": "м/с², ab"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.2 , α = 20° , w = 10kn",
+              "gold": "30 м."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.8",
+      "status": "compared",
+      "legacy_row_count": 8,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.953289,
+          "legacy_chars": 505,
+          "gold_chars": 544,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "α.",
+              "gold": "\\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "הפעלה.",
+              "gold": "הפעולה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v_0 עד"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "הקינטי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ.",
+              "gold": "\\mu ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ישאר",
+              "gold": "יישאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3_m/sec",
+              "gold": "3_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "6_m/sec",
+              "gold": "6_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81_m/sec^2",
+              "gold": "9.81_{m/sec^2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "15°",
+              "gold": "15^\\circ"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.942214,
+          "legacy_chars": 750,
+          "gold_chars": 797,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע,",
+              "gold": "משופע,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופק",
+              "gold": "האפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α.",
+              "gold": "\\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "המופעל",
+              "gold": "המפעל"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע,",
+              "gold": "המשופע,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ההפעלה.",
+              "gold": "הפעלה."
+            },
+            {
+              "operation": "replace",
+              "legacy": "מ-v0 ל-v.",
+              "gold": "מ- v_0 עד ל- v."
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "הקינטי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ.",
+              "gold": "\\mu ."
+            },
+            {
+              "operation": "replace",
+              "legacy": "שיעורו",
+              "gold": "שעורו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע?",
+              "gold": "המשופע?"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הסטאטי",
+              "gold": "הסטטי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3_m/sec",
+              "gold": "3_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "6_m/sec",
+              "gold": "6_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81_m/sec^2",
+              "gold": "9.81_{m/sec^2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "15°",
+              "gold": "15^\\circ"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.878012,
+          "legacy_chars": 666,
+          "gold_chars": 662,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "she-mishkalo",
+              "gold": "shemishkalo"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hu",
+              "gold": "hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bema'ale",
+              "gold": "bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshupa, ha-natuy la-kav ha-ofek be-zavit α. ha-ko'aḥ",
+              "gold": "mshup'a, hanatuy lakav ha'ofki bzavit \\alpha. hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-muf'al",
+              "gold": "hamuf'al"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf, bamakbil la-mishor ha-meshupa,",
+              "gold": "haguf, bmakbil lamishor hamshup'a,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'meshekh",
+              "gold": "bmeshekh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-haf'ala.",
+              "gold": "hape'ula."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf be-keta",
+              "gold": "haguf bket'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "(she-or'kho",
+              "gold": "(she'orko"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mehiruto mi-v0 le-v. mikdam ha-khikhukh bein ha-guf le-vein ha-mishor ha-meshupa hu μ. a. chashev",
+              "gold": "mhiruto mi- v_0 ad l- v. mkadem hakhikukh hakineti ben haguf lven hamishor hamshup'a hu' \\mu . '. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ko'aḥ",
+              "gold": "hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b.",
+              "gold": "v."
+            },
+            {
+              "operation": "replace",
+              "legacy": "lo",
+              "gold": "lo'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ko'aḥ",
+              "gold": "hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-guf, ha-im ha-guf",
+              "gold": "haguf, ha'im haguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'menucha,",
+              "gold": "bimnukha,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "she-yakhlik b'morad ha-mishor ha-meshupa? henaḥ she-mikdamai ha-khikhukh ha-stat'i ve-ha-kineti",
+              "gold": "sheyakhlik bmorad hamishor hamshup'a? hanakh shemkadme hakhikukh hastati vehakineti"
+            },
+            {
+              "operation": "replace",
+              "legacy": "netunim",
+              "gold": "ntunim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3_m/sec",
+              "gold": "3_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "6_m/sec",
+              "gold": "6_{m/sec}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81_m/sec^2",
+              "gold": "9.81_{m/sec^2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.863897,
+          "legacy_chars": 702,
+          "gold_chars": 694,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "тело, вес которого",
+              "gold": "тело весом"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равен 12kn,",
+              "gold": "= 12 кн"
+            },
+            {
+              "operation": "replace",
+              "legacy": "наклонённой",
+              "gold": "наклоненной"
+            },
+            {
+              "operation": "replace",
+              "legacy": "горизонтальной линии",
+              "gold": "горизонту"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α.",
+              "gold": "\\alpha."
+            },
+            {
+              "operation": "replace",
+              "legacy": "телу,",
+              "gold": "телу"
+            },
+            {
+              "operation": "replace",
+              "legacy": "остаётся",
+              "gold": "остается"
+            },
+            {
+              "operation": "replace",
+              "legacy": "уменьшается",
+              "gold": "снижается"
+            },
+            {
+              "operation": "replace",
+              "legacy": "v0",
+              "gold": "v_0"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "кинетического"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ.",
+              "gold": "\\mu."
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "не будет",
+              "gold": "перестанет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "тело",
+              "gold": "оно"
+            },
+            {
+              "operation": "replace",
+              "legacy": "будет скользить",
+              "gold": "соскользнет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "предположи, что",
+              "gold": "примите"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равны.",
+              "gold": "равными."
+            },
+            {
+              "operation": "replace",
+              "legacy": "30_m ,",
+              "gold": "30 м,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3_m/sec ,",
+              "gold": "3 м/с,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "6_m/sec ,",
+              "gold": "6 м/с,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "9.81_m/sec^2 , μ",
+              "gold": "9,81 м/с², \\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 , α",
+              "gold": "0.3, \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "15°",
+              "gold": "15^\\circ."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.9",
+      "status": "compared",
+      "legacy_row_count": 8,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.97343,
+          "legacy_chars": 408,
+          "gold_chars": 420,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3.43°).",
+              "gold": "3.43^\\circ)."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ותתחיל",
+              "gold": "ותחליק"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.961776,
+          "legacy_chars": 635,
+          "gold_chars": 647,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "מתוארת",
+              "gold": "מתארת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "משפע",
+              "gold": "משופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "באופן",
+              "gold": "באפן"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בנקודה",
+              "gold": "בנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שיעור",
+              "gold": "שעור"
+            },
+            {
+              "operation": "replace",
+              "legacy": "α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3.43°).",
+              "gold": "3.43^\\circ)."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ותתחיל מנקודה",
+              "gold": "ותחליק מנקדה"
+            },
+            {
+              "operation": "replace",
+              "legacy": "לנקודה",
+              "gold": "לנקדה"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.892791,
+          "legacy_chars": 553,
+          "gold_chars": 529,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "ba-iyur la-she'ela",
+              "gold": "ba'iyur lish'ela"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meto'eret mekhonit ha-na'a",
+              "gold": "mto'aret mkhonit hana'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bema'ale",
+              "gold": "bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshupa bi-mehirut",
+              "gold": "mshup'a bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "km\"ש. be-nekuda",
+              "gold": "kmsh\". binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-nahag",
+              "gold": "hanahag"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be-ofen she-ha-galgalim",
+              "gold": "be'ofen shehagalgalim"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-atsirat ha-mekhonit ba-nekuda",
+              "gold": "la'atsirat hamkhonit binkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-shipu'a",
+              "gold": "hashipu'a"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-kvish hu",
+              "gold": "hakvish hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-shipu'a hi α",
+              "gold": "hashipu'a hi' \\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3.43°). mikdam ha-khikhukh ha-kineti bein ha-galgalim le-vein ha-kvish hu μ",
+              "gold": "3.43^\\circ). mkadem hakhikukh hakineti ben hagalgalim lven hakvish hu' \\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "a. chashev ma hu",
+              "gold": "'. khashev mahu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-atsira",
+              "gold": "ha'atsira"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b. chashev ma",
+              "gold": "v. khashev mah"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-atsira",
+              "gold": "ha'atsira"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'mikre she-bo ha-mekhonit",
+              "gold": "bamikre shebo hamkhonit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b'morad ha-mishor ha-meshupa bi-mehirut",
+              "gold": "bmorad hamishor hamshup'a bimhirut"
+            },
+            {
+              "operation": "replace",
+              "legacy": "km\"ש ve-tathil mi-nekuda",
+              "gold": "kmsh\" vetakhlik minkuda"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-nekuda",
+              "gold": "linkuda"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.806331,
+          "legacy_chars": 515,
+          "gold_chars": 559,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "вопросу",
+              "gold": "задаче"
+            },
+            {
+              "operation": "replace",
+              "legacy": "описана машина, движущаяся",
+              "gold": "показан автомобиль, движущийся"
+            },
+            {
+              "operation": "replace",
+              "legacy": "тормозит",
+              "gold": "применяет тормоза"
+            },
+            {
+              "operation": "replace",
+              "legacy": "колёса скользят,",
+              "gold": "колеса блокируются и скользят"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "полной"
+            },
+            {
+              "operation": "replace",
+              "legacy": "машины",
+              "gold": "автомобиля"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равен",
+              "gold": "составляет"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равен α",
+              "gold": "\\alpha"
+            },
+            {
+              "operation": "replace",
+              "legacy": "3.43°).",
+              "gold": "3.43^\\circ)."
+            },
+            {
+              "operation": "replace",
+              "legacy": "колёсами",
+              "gold": "колесами"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ",
+              "gold": "\\mu"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли, каким будет",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "когда машина",
+              "gold": "если автомобиль"
+            },
+            {
+              "operation": "replace",
+              "legacy": "начнёт движение из",
+              "gold": "тормозить юзом от"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.10",
+      "status": "compared",
+      "legacy_row_count": 11,
+      "gold_row_count": 1,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.976707,
+          "legacy_chars": 615,
+          "gold_chars": 630,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "גלגלת,",
+              "gold": "הגלגלת,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "כח",
+              "gold": "כוח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מסה",
+              "gold": "מסתו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kg.",
+              "gold": "kg"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs1",
+              "gold": "\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs1",
+              "gold": "\\mu_{s2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3",
+              "gold": "0.3."
+            },
+            {
+              "operation": "replace",
+              "legacy": "ו-b. סמנו",
+              "gold": "ו- b בסמוך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכח",
+              "gold": "הכוח"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.960065,
+          "legacy_chars": 985,
+          "gold_chars": 989,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע,",
+              "gold": "משופע,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקי.",
+              "gold": "אפקי."
+            },
+            {
+              "operation": "replace",
+              "legacy": "גלגלת, כמתואר",
+              "gold": "הגלגלת, כמתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "על-ידי",
+              "gold": "על ידי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקי p. מסה",
+              "gold": "אפקי p מסתו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kg.",
+              "gold": "kg"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע הוא μs1",
+              "gold": "המשופע \\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "האופקי הוא μs1",
+              "gold": "האפקי \\mu_{s2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3",
+              "gold": "0.3."
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכוחות",
+              "gold": "הכחות"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ו-b. סמנו",
+              "gold": "ו- b בסמוך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע.",
+              "gold": "המשופע."
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשוב",
+              "gold": "חשב"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע.",
+              "gold": "המשופע."
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשוב",
+              "gold": "חשב"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.917284,
+          "legacy_chars": 825,
+          "gold_chars": 795,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "meshupa, ve-guf",
+              "gold": "mshup'a, veguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shnei",
+              "gold": "shne"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mekhubarim bekhevel",
+              "gold": "mkhubarim bkhevel"
+            },
+            {
+              "operation": "replace",
+              "legacy": "galgelet, kemetuar ba-iyur la-she'ela.",
+              "gold": "hagalgalet, kamto'ar ba'iyur lish'ela."
+            },
+            {
+              "operation": "replace",
+              "legacy": "yedey ko'akh",
+              "gold": "yde koakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "p. masa",
+              "gold": "p masato"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hi",
+              "gold": "hi'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-shel",
+              "gold": "veshel"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kg. mikdam hakhikhukh",
+              "gold": "kg mkadem hakhikukh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "beyn",
+              "gold": "ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-veyn",
+              "gold": "lven"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamshupa hu μs1",
+              "gold": "hamshup'a \\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "u-mikdam hakhikhukh",
+              "gold": "umkadem hakhikukh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "beyn",
+              "gold": "ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-veyn",
+              "gold": "lven"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ha-ofki hu μs1",
+              "gold": "ha'ofki \\mu_{s2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 a. sirtet",
+              "gold": "0.3. '. sartet"
+            },
+            {
+              "operation": "replace",
+              "legacy": "tarshimei hako'akhot",
+              "gold": "tarshime hakokhot"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-b. samnu le-tkhilat",
+              "gold": "v- b bsamukh litkhilat"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yimina u-ve-ma'ala",
+              "gold": "yamina uvma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamshupa. b. khashov",
+              "gold": "hamshup'a. v. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hametikhut hanidréshet bakhevel le-tkhilat",
+              "gold": "hamtikhut hanidreshet bakevel litkhilat"
+            },
+            {
+              "operation": "replace",
+              "legacy": "be-ma'ala",
+              "gold": "bma'ale"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamshupa.",
+              "gold": "hamshup'a."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.863663,
+          "legacy_chars": 869,
+          "gold_chars": 840,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "расположено",
+              "gold": "лежит"
+            },
+            {
+              "operation": "replace",
+              "legacy": "расположено",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "два",
+              "gold": "оба"
+            },
+            {
+              "operation": "replace",
+              "legacy": "шкив,",
+              "gold": "блок,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "описано",
+              "gold": "показано"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kg, а масса",
+              "gold": "кг,"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "kg.",
+              "gold": "кг."
+            },
+            {
+              "operation": "replace",
+              "legacy": "равен μs1",
+              "gold": "\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.2 и",
+              "gold": "0.2, а"
+            },
+            {
+              "operation": "replace",
+              "legacy": "равен μs1",
+              "gold": "\\mu_{s2}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3",
+              "gold": "0.3."
+            },
+            {
+              "operation": "replace",
+              "legacy": "нарисуйте диаграммы",
+              "gold": "начертите схемы"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b. отметьте для начала",
+              "gold": "b непосредственно перед началом"
+            },
+            {
+              "operation": "replace",
+              "legacy": "тел:",
+              "gold": "тел"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычислите натяжение,",
+              "gold": "рассчитайте натяжение троса,"
+            },
+            {
+              "operation": "delete",
+              "legacy": "в тросе",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычислите",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "delete",
+              "legacy": "следует пренебречь",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "шкиве",
+              "gold": "блоке пренебречь"
+            },
+            {
+              "operation": "replace",
+              "legacy": "считать, что",
+              "gold": "считать"
+            },
+            {
+              "operation": "replace",
+              "legacy": "двух",
+              "gold": "обеих"
+            },
+            {
+              "operation": "replace",
+              "legacy": "одинаковы.",
+              "gold": "равными."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.11",
+      "status": "compared",
+      "legacy_row_count": 11,
+      "gold_row_count": 3,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.97167,
+          "legacy_chars": 834,
+          "gold_chars": 825,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "גלגלת",
+              "gold": "הגלגלת"
+            },
+            {
+              "operation": "replace",
+              "legacy": "של הכבל מקביל",
+              "gold": "-"
+            },
+            {
+              "operation": "delete",
+              "legacy": "המשופע",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "כח",
+              "gold": "כוח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שעליו",
+              "gold": "עליו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מסה",
+              "gold": "מסתו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b-40kg.",
+              "gold": "40kg-b."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs1",
+              "gold": "\\mu s1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs2",
+              "gold": "\\mu s2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שרטט",
+              "gold": "סרטט"
+            },
+            {
+              "operation": "replace",
+              "legacy": "סמנו",
+              "gold": "בסמוך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכח",
+              "gold": "הכוח"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.96475,
+          "legacy_chars": 1311,
+          "gold_chars": 1291,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע",
+              "gold": "משופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "משפע",
+              "gold": "משופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "גלגלת קבועה כמתואר",
+              "gold": "הגלגלת הקבועה כמתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "של הכבל מקביל",
+              "gold": "-"
+            },
+            {
+              "operation": "delete",
+              "legacy": "המשפע",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "על-ידי",
+              "gold": "על ידי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע שעליו",
+              "gold": "המשופע עליו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "מסה",
+              "gold": "מסתו"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b-40kg.",
+              "gold": "40kg-b."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs1",
+              "gold": "\\mu s1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs2",
+              "gold": "\\mu s2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שרטט",
+              "gold": "סרטט"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הכוחות",
+              "gold": "הכחות"
+            },
+            {
+              "operation": "replace",
+              "legacy": "סמנו",
+              "gold": "בסמוך"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע",
+              "gold": "המשופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע.",
+              "gold": "המשופע."
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשוב",
+              "gold": "חשב"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע.",
+              "gold": "המשופע."
+            },
+            {
+              "operation": "replace",
+              "legacy": "חשוב",
+              "gold": "חשב"
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.910956,
+          "legacy_chars": 1098,
+          "gold_chars": 1047,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "meshupa bezavit",
+              "gold": "mshup'a bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-guf",
+              "gold": "veguf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "meshupa bezavit",
+              "gold": "mshup'a bzavit"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shnei",
+              "gold": "shne"
+            },
+            {
+              "operation": "replace",
+              "legacy": "mekhubarim bekhevel",
+              "gold": "mkhubarim bkhevel"
+            },
+            {
+              "operation": "replace",
+              "legacy": "galgelet kvu'a kemetuar ba-iyur la-she'ela.",
+              "gold": "hagalgalet hakvu'a kamto'ar ba'iyur lish'ela."
+            },
+            {
+              "operation": "replace",
+              "legacy": "she'alav",
+              "gold": "she'alayw"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-anaf",
+              "gold": "va'anaf"
+            },
+            {
+              "operation": "replace",
+              "legacy": "shel hakevel makbil",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamshupa she'alav",
+              "gold": "she'alayw"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yedey ko'akh",
+              "gold": "yde koakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemakbil",
+              "gold": "bmakbil"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamshupa she'alav",
+              "gold": "hamshup'a alayw"
+            },
+            {
+              "operation": "replace",
+              "legacy": "masa",
+              "gold": "masato"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hi",
+              "gold": "hi'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-shel",
+              "gold": "veshel"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b-40kg. mikdam hakhikhukh",
+              "gold": "40kg-b. mkadem hakhikukh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "beyn",
+              "gold": "ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-veyn",
+              "gold": "lven"
+            },
+            {
+              "operation": "replace",
+              "legacy": "she'alav hu",
+              "gold": "she'alayw hu'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hu μs1",
+              "gold": "hu' \\mu s1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "u-mikdam hakhikhukh",
+              "gold": "umkadem hakhikukh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "beyn",
+              "gold": "ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "le-veyn",
+              "gold": "lven"
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.884497,
+          "legacy_chars": 1165,
+          "gold_chars": 1112,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "расположено",
+              "gold": "лежит"
+            },
+            {
+              "operation": "replace",
+              "legacy": "под",
+              "gold": "с"
+            },
+            {
+              "operation": "replace",
+              "legacy": "расположено",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "под",
+              "gold": "с"
+            },
+            {
+              "operation": "replace",
+              "legacy": "два",
+              "gold": "оба"
+            },
+            {
+              "operation": "replace",
+              "legacy": "шкив,",
+              "gold": "блок,"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "троса"
+            },
+            {
+              "operation": "delete",
+              "legacy": "троса",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "троса параллельна наклонной",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "лежит тело b.",
+              "gold": "оно лежит."
+            },
+            {
+              "operation": "replace",
+              "legacy": "50kg, а масса",
+              "gold": "50 кг,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b-40kg.",
+              "gold": "b - 40 кг."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs1",
+              "gold": "\\mu s1"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μs2",
+              "gold": "\\mu s2"
+            },
+            {
+              "operation": "replace",
+              "legacy": "нарисуйте диаграммы",
+              "gold": "начертите схемы"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b. отметьте для начала движения: тело",
+              "gold": "b непосредственно перед началом движения тела"
+            },
+            {
+              "operation": "replace",
+              "legacy": "тело",
+              "gold": "тела"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "-"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычислите натяжение,",
+              "gold": "рассчитайте натяжение троса,"
+            },
+            {
+              "operation": "delete",
+              "legacy": "в тросе",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычислите",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "delete",
+              "legacy": "следует пренебречь",
+              "gold": ""
+            },
+            {
+              "operation": "replace",
+              "legacy": "шкиве",
+              "gold": "блоке пренебречь"
+            },
+            {
+              "operation": "replace",
+              "legacy": "считать, что",
+              "gold": "считать"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "task_number": "6.12",
+      "status": "compared",
+      "legacy_row_count": 12,
+      "gold_row_count": 2,
+      "segmentation_changed": true,
+      "columns": {
+        "he_plain": {
+          "similarity": 0.977588,
+          "legacy_chars": 464,
+          "gold_chars": 473,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "כח",
+              "gold": "כוח"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b 50kg.",
+              "gold": "50kg b."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_s1",
+              "gold": "\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_s1",
+              "gold": ".\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5.",
+              "gold": "0.5"
+            },
+            {
+              "operation": "replace",
+              "legacy": "הדרוש",
+              "gold": "הנדרש"
+            }
+          ]
+        },
+        "he_niqqud": {
+          "similarity": 0.968167,
+          "legacy_chars": 718,
+          "gold_chars": 728,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "משפע",
+              "gold": "משופע"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע כמתואר",
+              "gold": "המשופע כמתאר"
+            },
+            {
+              "operation": "replace",
+              "legacy": "אופקי",
+              "gold": "אפקי"
+            },
+            {
+              "operation": "replace",
+              "legacy": "b 50kg.",
+              "gold": "50kg b."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_s1",
+              "gold": "\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע μ_s1",
+              "gold": "המשופע .\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.5.",
+              "gold": "0.5"
+            },
+            {
+              "operation": "replace",
+              "legacy": "שרטט",
+              "gold": "סרטט"
+            },
+            {
+              "operation": "replace",
+              "legacy": "בפרד.",
+              "gold": "בנפרד."
+            },
+            {
+              "operation": "replace",
+              "legacy": "הדרוש",
+              "gold": "הנדרש"
+            },
+            {
+              "operation": "replace",
+              "legacy": "המשפע.",
+              "gold": "המשופע."
+            }
+          ]
+        },
+        "translit": {
+          "similarity": 0.904202,
+          "legacy_chars": 596,
+          "gold_chars": 594,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "meshupa ve'alav",
+              "gold": "mshup'a ve'alayw"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hamekhubar",
+              "gold": "hamkhubar"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bekhevel",
+              "gold": "bkhevel"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hameshupa kemeto'ar be'iyur lash'e'ela",
+              "gold": "hamshup'a kamto'ar ba'iyur lish'ela"
+            },
+            {
+              "operation": "replace",
+              "legacy": "yedei ko'akh",
+              "gold": "yde koakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hi",
+              "gold": "hi'"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-shel",
+              "gold": "veshel guf 50kg b. mkadem hakhikukh hastati ben shne hagufim \\mu_{s1} = 0.3 umkadem hakhikukh hastati ben"
+            },
+            {
+              "operation": "replace",
+              "legacy": "50kg. mikdam haḥikhukh hastati bein shnei hagufim μ_s1",
+              "gold": "lven hamishor hamshup'a .\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 u-mikdam haḥikhukh hastati bein guf b le-vein hamishor hameshupa μ_s1 = 0.5. a.",
+              "gold": "0.5 '."
+            },
+            {
+              "operation": "replace",
+              "legacy": "tarsimei hakoḥot,",
+              "gold": "tarshime hakokhot,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "eḥad",
+              "gold": "ekhad"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ve-b, le-khol",
+              "gold": "v-b lkhol"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bifrad. b. ḥashev",
+              "gold": "bnifrad. v. khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hametiḥut baḥevel, bitḥilat",
+              "gold": "hamtikhut bakhevel, bitkhilat"
+            },
+            {
+              "operation": "replace",
+              "legacy": "ḥashev",
+              "gold": "khashev"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hako'aḥ",
+              "gold": "hakoakh"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hadarush litḥilat",
+              "gold": "hanidrash litkhilat"
+            },
+            {
+              "operation": "replace",
+              "legacy": "bemorad",
+              "gold": "bmorad"
+            },
+            {
+              "operation": "replace",
+              "legacy": "hameshupa.",
+              "gold": "hamshup'a."
+            }
+          ]
+        },
+        "ru": {
+          "similarity": 0.854633,
+          "legacy_chars": 617,
+          "gold_chars": 635,
+          "token_changes": [
+            {
+              "operation": "replace",
+              "legacy": "и",
+              "gold": "а"
+            },
+            {
+              "operation": "replace",
+              "legacy": "нём",
+              "gold": "нем"
+            },
+            {
+              "operation": "replace",
+              "legacy": "соединённое со стеной верёвкой, параллельной",
+              "gold": "прикрепленное к стене тросом, параллельным"
+            },
+            {
+              "operation": "replace",
+              "legacy": "описано",
+              "gold": "показано"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вопросу",
+              "gold": "задаче"
+            },
+            {
+              "operation": "replace",
+              "legacy": "- 20kg, а",
+              "gold": "равна 20 кг,"
+            },
+            {
+              "operation": "replace",
+              "legacy": "50kg.",
+              "gold": "50 кг."
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_s1",
+              "gold": "\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "0.3 и",
+              "gold": "0.3, а"
+            },
+            {
+              "operation": "replace",
+              "legacy": "μ_s1",
+              "gold": ".\\mu_{s1}"
+            },
+            {
+              "operation": "replace",
+              "legacy": "нарисуй диаграммы",
+              "gold": "начертите схемы"
+            },
+            {
+              "operation": "replace",
+              "legacy": "каждый",
+              "gold": "каждое"
+            },
+            {
+              "operation": "replace",
+              "legacy": "вычисли",
+              "gold": "рассчитайте"
+            },
+            {
+              "operation": "insert",
+              "legacy": "",
+              "gold": "троса"
+            },
+            {
+              "operation": "replace",
+              "legacy": "верёвке, в начале",
+              "gold": "момент начала"
+            },
+            {
+              "operation": "replace",
+              "legacy": "г. вычисли",
+              "gold": "в. рассчитайте"
+            },
+            {
+              "operation": "replace",
+              "legacy": "требуемую",
+              "gold": "необходимую"
+            },
+            {
+              "operation": "delete",
+              "legacy": "его",
+              "gold": ""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

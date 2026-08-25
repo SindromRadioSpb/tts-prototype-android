@@ -1,0 +1,26 @@
+{
+  "schema": "linguistpro.physics.approved-corrections.1",
+  "scope": "physics-year1-ocr-batch-03",
+  "approved_at": "2026-08-25T00:40:00Z",
+  "basis": "Direct visual comparison with the source scans after Gemini niqqud validation exposed OCR consonant mismatches.",
+  "replacements": [
+    {
+      "from": "1 מי לשנייה",
+      "to": "1 מ' לשנייה",
+      "expected_count": 1,
+      "source_page": 39,
+      "source_filename": "для оцифровки учебника_2_Страница_39_Изображение_0001.png",
+      "source_image_sha256": "2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22",
+      "reason": "The scan shows the metre abbreviation מ', not the OCR token מי."
+    },
+    {
+      "from": "שהוא עובד בנקודה B",
+      "to": "שהוא עובר בנקודה B",
+      "expected_count": 1,
+      "source_page": 40,
+      "source_filename": "для оцифровки учебника_2_Страница_40_Изображение_0001.png",
+      "source_image_sha256": "8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95",
+      "reason": "The scan reads עובר (passes), not the OCR token עובד (works)."
+    }
+  ]
+}

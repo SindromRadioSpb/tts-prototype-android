@@ -1,0 +1,1026 @@
+{
+  "text": "פרק 7: בעיות בתחום אנרגיה וקפיצים שאלה 7.1:\nבתרשים מתואר קו ייצור של מוצר M. כאשר המחסנית נפתחת, נופל מוצר אחד על השולחן האופקי. ברגע זה משתחרר קפיץ דרוך K המעניק למוצר דחיפה, והוא מתקדם לאורך הקטע AB שעל השולחן האופקי (ראה תרשים). ידועים:\nמשקל המוצר: G = 5N\nמקדם החיכוך בין המוצר לבין השולחן האופקי: μ = 0.1\nקבוע הקפיץ: c = 2_{N/cm}\nאורך הקפיץ במצב חופשי: L_1 = 180_{mm}\nאורך הקפיץ במצב דרוך: L_2 = 130_{mm}\nתאוצת הכובד: g = 9.81_{m/sec^2}\nחשב את מהירות המוצר בנקודה B (V_B). המידות בתרשים נתונות במ\"מ. (בחישוב המהירות אין להתייחס לנפילת המוצר מהמחסנית, אלא אך ורק לתנועתו על גבי השולחן).\nהערה: האנרגיה הפוטנציאלית E האצורה בקפיץ במצב A שווה: E = \\frac{c \\cdot \\Delta L^2}{2}\nכאן: \\Delta L = L_1 - L_2\nשאלה 7.2:\nבתרשים מתואר מכשיר מעבדה המיועד לפליטת כדוריות כלפי מעלה. הכדוריות נפלטות כתוצאה משחרור קפיץ בורגי שנלחץ מלכתחילה. במצב חופשי הקצה העליון של הקפיץ הגיע עד הקצה העליון של המכשיר. נתון:\nמשקל הכדורית: G = 0.5N\nמקדם הקשיחות של הקפיץ: c = 3_{N/cm}\nלחיצה תחילית של הקפיץ: h_1 = 12_{cm}\nתאוצת הכובד: g = 9.81_{m/sec^2}\nחשב: א. את המהירות, שבה נפלטת הכדורית מתוך המכשיר. ב. את הגובה H, אליו הכדורית תעלה. הזנח את החיכוך במכשיר ואת התנגדות האוויר.\nהערה: האנרגיה המצטברת בעבודת כוח אלסטי של קפיץ בורגי על מסלול h שווה: E = \\frac{c \\cdot h^2}{2}\nכאן: c - מקדם הקשיחות של הקפיץ\nיכל הסעיפים שווים בערכם\nשאלה 7.3:\nארגז שמסתו 12 ק\"ג נמצא במנוחה על מישור אופקי, ונלחץ ע\"י קפיץ, כמתואר בתרשים. הקפיץ נלחץ ממצבו הרפוי בנקודה A עד הנקודה O, על אורך של 0.25 מ', וננעל ע\"י מעצור. אחרי שמשחררים את הארגז ממצב של מנוחה בנקודה O, חשב:\nא. את מהירותו של הארגז בנקודה (OB = 0.5_m) B. ב. את המרחק s שיעבור הארגז מנקודה O עד שיעצור (בנקודה D).\nנתון: מקדם הקשיחות של הקפיץ: c = 800_{N/m}\nמקדם החיכוך הקינטי בין המישור האופקי והארגז: μ_k = 0.15\nתאוצת הכובד: g = 9.81_{m/sec^2}\nהערה: עבודת כוח אלסטי של קפיץ על מסלול W) s) שווה: W = \\frac{c \\cdot s^2}{2}\nשאלה 7.4:\nבתרשים מתואר קו ייצור של מוצר M. כאשר המחסנית נפתחת, נופל מוצר אחד על השולחן האופקי. ברגע זה משתחרר קפיץ דרוך K, המעניק למוצר M דחיפה, והמוצר מתקדם לאורך קטע AB שעל השולחן האופקי (ראה תרשים).\nנתונים: מקדם החיכוך בין המוצר לבין השולחן μ = 0.1\nקבוע הקפיץ: k = 2_{N/cm}\nאורך הקפיץ במצב חופשי: L_1 = 200_{mm} משקל המוצר: G = 8_N\nאורך הקפיץ במצב דרוך: L_2 = 140_{mm}\nתאוצת הכובד: g = 9.81_{m/sec^2}\nחשב את מהירות המוצר בנקודה V_B) B). המידות בתרשים נתונות במ\"מ.\nהערות: א. האנרגיה הפוטנציאלית E האצורה בקפיץ במצב דרוך שווה: E = \\frac{k \\cdot \\Delta L^2}{2} (כאן: \\Delta L = L_1 - L_2). ב. בחישוב המהירות V_B אין להתייחס לנפילת המוצר מהמחסנית, אלא רק לתנועתו על גבי השולחן (בין נקודות A ו- B).\nשאלה 7.5:\nא. גוף נע על מישור אופקי במהירות קבועה של V = 2_{m/sec} כמתואר בתרשים א'. בדרכו הוא פוגע בנקודה B בקפיץ אופקי, הנמצא במצב רפוי. מסת הגוף m = 1_{kg} וקבוע הקפיץ k = 80_{N/m}. חשב בכמה יתכווץ הקפיץ כתוצאה מפגיעת הגוף בו בהנחה שהמישור ללא חיכוך. ב. הגוף משתחרר מהקפיץ בנקודה B, במהירות התחלתית V = 2_{m/sec} כמתואר בתרשים ב'. לאיזה מרחק אופקי מנקודה B ינוע הגוף לאחר שהשתחרר מהקפיץ, אם מקדם החיכוך הקינטי בין הגוף למישור הוא μ = 0.25. מסת הגוף וזה לסעיף א'. יש לבצע את החישוב בשני דרכים: 1) עפ\"י שיקולי עבודה ואנרגיה. 2) עפ\"י החוק השני של ניוטון \\sum F = ma.\nשאלה 7.6:\nבאיור לשאלה מוצג גוף שמסתו 1.2kg. הגוף מחליק ללא חיכוך ממנוחה בנקודה A עד למפגש עם קפיץ בנקודה C. קבוע הקפיץ הוא k = 24_{kN/m} ולפני שהגוף פוגע בו הוא נמצא במצב רפוי.\nתאוצת הכובד: g = 9.81_{m/sec^2}\nאנרגיית הקפיץ: E_k = \\frac{k \\cdot x^2}{2}\nא. חשב את מהירויות הגוף בנקודה B ו-C. ב. חשב את שקיעת הקפיץ המקסימאלית לאחר המפגש עם הגוף.\nשאלה 7.7:\nמחליק שמסתו m = 2_{kg} משוחרר ממצב מנוחה בנקודה A בקצה העליון של המוט העקוס ונע לאורך קטע מעגלי חסר חיכוך במישור האנכי. בנקודה B המחליק נכנס לקטע אופקי מחוספס של המוט ובנקודה D הוא פוגע בקפיץ הנמצא במצב רפוי.\nנתון: מקדם החיכוך הקינטי בין המחליק לבין הקטע האופקי של המוט BD μ_k = 0.2, קבוע הקפיץ k = 500_{N/m}.\nא. חשב את מהירותו של המחליק בנקודה B. ב. חשב את מהירותו של המחליק בנקודה D. ג. חשב את השקיעה המקסימלית של הקפיץ לאחר שפוגע בו המחליק. הערה: יש להזניח את כוח החיכוך במסלול האופקי לאחר פגיעתו של המחליק בקפיץ.\nשאלה 7.8:\nכדור שמסתו m = 50g נורה מאקדח (אקדח משחק) כמתואר באיור לשאלה. מנגנון הירי של האקדח הינו קפיץ לחיצה בעל קבוע k = 500_{N/m}, ואורך במצב משוחרר 150mm. במצב התחלתי הקפיץ נלחץ לאורך של 50mm ובזמן הירי הוא משוחרר. קנה האקדח אופקי ונמצא בגובה של 2.5m מעל פני הקרקע. א. חשב את מהירות הכדור ברגע עזיבתו את הקנה בנקודה A. ב. חשב את מהירות הכדור בזמן פגיעתו בקרקע בנקודה B (שיעור וכיוון). ג. חשב את המרחק L.\nהערה: - יש להתייחס לכדור כנקודה חומרית. - יש להזניח את החיכוך בקנה ואת התנגדות האוויר.\nפרק 8: בעיות בתחום אנרגיה ומתקף ותנע שאלה 8.1:\nגוף A שמסתו m_A = 10_{kg} משוחרר ממצב מנוחה בנקודה B בקצה העליון של מסלול מעגלי חסר חיכוך. רדיוס המעגל r = 5_m. בקצה התחתון של המסלול, בנקודה D פוגע גוף A בבלוק C ונתקע בו. מסת הבלוק C היא m_C = 50_{kg}.\nלאחר הפגיעה נעה המערכת \"גוף-בלוק\" לאורך מישור אופקי מחוספס. מקדם החיכוך הקינטי בין הבלוק לבין המישור הוא μ_k = 0.3 (ראה איור לשאלה 4).\nא. חשב את מהירותו של גוף A בנקודה D לפני פגיעתו בבלוק C. ב. חשב את מהירותה של המערכת \"גוף-בלוק\" מיד לאחר ההתנגשות. ג. חשב את הכוח הממוצע שפעל בין בלוק C לבין גוף A במהלך ההתנגשות. בחישוב זה ניתן להזניח שזמן ההתנגשות הוא \\Delta t = 0.05_{sec}. ד. חשב את המרחק s שתעבור המערכת \"גוף-בלוק\" לאורך המישור המחוספס עד לעצירתה.\nשאלה 8.2:\nגוף A שמסתו m_A = 0.8_{kg} משוחרר ממצב מנוחה בנקודה B שבקצה העליון של מסלול עקום חסר חיכוך במישור אנכי, כמתואר באיור לשאלה 4. בקצה התחתון של המסלול, בנקודה D הגוף פועל בבלוק C שמסתו m_C = 1.6_{kg} ונתקע בו. לאחר הפגיעה נעה המערכת \"גוף-בלוק\" לאורך מישור אופקי חסר חיכוך שבקצהו נמצא קפיץ במצב רפוי. קבוע הקפיץ k = 1.2_{kN/m}.\nא. חשב את מהירותו של גוף A בנקודה D לפני פגיעתו בבלוק C. ב. חשב את מהירותה של המערכת \"גוף-בלוק\" מיד לאחר ההתנגשות. ג. חשב את ההתכווצות המרבית של הקפיץ לאחר שהמערכת \"גוף-בלוק\" פוגעת בו.\nשאלה 8.3:\nגוף A שמסתו m_A = 1_{kg} משוחרר ממצב מנוחה בנקודה 1 שבקצה העליון של מסלול מעגלי חסר חיכוך במישור אנכי, כמתואר באיור לשאלה 4. רדיוס המסלול R = 3_m. בקצה התחתון של המסלול, בנקודה 2 הגוף פוגע בבלוק B שמסתו m_B = 2_{kg} ונתקע בו. לאחר הפגיעה נעה המערכת \"גוף - בלוק\" לאורך מישור אופקי מחוספס בעל מקדם חיכוך קינטי μ_k = 0.2 בין המישור לבין הבלוק. בנקודה 3 של המישור האופקי המערכת \"גוף – בלוק\" נעצרת.\nא. חשב את מהירותו של גוף A בנקודה 2 לפני פגיעתו בבלוק B. ב. חשב את מהירותה של המערכת \"גוף – בלוק\" מיד לאחר ההתנגשות. ג. חשב את המרחק d שעוברת המערכת \"גוף – בלוק\" מרגע ההתנגשות עד לעצירתה.\nהערה: להזניח את מימדי הגופים ולהתייחס אליהם כנקודות חומריות.\nשאלה 8.4:\nגוף A שמסתו m_A = 2kg משוחרר ממצב מנוחה בנקודה B בקצה העליון של מסלול עקום חסר חיכוך במישור אנכי. הגוף מחובר באופן קבוע לקפיץ בעל קבוע k = 50_{N/m} באורך של l_0 = 0.3_m במצב רפוי.\nבקצה התחתון של המסלול פוגע גוף A בגוף B שמסתו m_B = 1kg. בשל ההתנגשות, שני הגופים נעצרים לאחר שעברו מרחק d בקטע האופקי.\nא. חשב את מהירותו של גוף A ברגע לפני פגיעתו בגוף B. ב. חשב את מהירותם של הגופים המתחברים מיד לאחר ההתנגשות. ג. חשב את אורך הקפיץ ברגע עצירת הגופים. ד. חשב את המרחק d.\nהערה: יש להזניח את ממדי הגופים.\nשאלה 8.5:\nמהירות החבילה שמסתה m_1 = 10_{kg} בנקודה A בקצה העליון של מסלול עקום חסר חיכוך במישור אנכי שווה ל- 2.5_{m/sec}. בקצה התחתון של המסלול בנקודה B, החבילה נכנסת לעגלה הנמצאת במנוחה על גבי מסלול אופקי חסר חיכוך. מסתה של העגלה m_2 = 40_{kg}. עקב החיכוך בין החבילה לעגלה, החבילה נעצרת בעגלה והמערכת \"עגלה-חבילה\" נעה לאורך מישור אופקי חסר חיכוך, שבקצהו נמצא קפיץ במצב רפוי.\nקבוע הקפיץ: k = 1500_{N/m}.\nא. מהי מהירותה של החבילה בנקודה B לפני שהיא נכנסת לעגלה? ב. מהי מהירות של המערכת \"עגלה-חבילה\" לאחר עצירת החבילה בעגלה ? ג. חשב את השקיעה המקסימלית של הקפיץ לאחר שהמערכת \"עגלה-חבילה\" פוגעת בו ?\nהערות: - התייחס לחבילה כנקודה חומרית. - הזנח התנגדות האוויר.\nפרק 9: בעיות בתחום אנרגיה ותנועה מעגלית שאלה 9.1:\nבניסוי של רכב רקטי שמסתו 100 ק\"ג. מתחיל הרכב לנוע ממנוחה בנקודה A ומתקדם לאורך מסלול בקשת המעגל (AB), כאשר הוא מפעיל כוח דחף קבוע T השווה 2 ק\"נ.\nחשב את המרחק S שבו יעלה הרכב במעלה המישור המשופע לאחר הפסקת הפעולה של כוח הדחף (בנקודה B) ועד לעצירתו הסופית. רדיוס הקשת AB שווה 90 מטרים.\nהמישור המשופע בקטע S משיק משיק לקשת AB והזווית α שווה 30^∘. (g = 9.81_{m/sec^2}).\nהזנח את החיכוך בין גלגלי הרכב למסילה.\nשאלה 9.2:\nמשקלו של הילד עם האופניים הוא 620 ניוטון. מהירות התנועה של הילד בראש הגבעה (נקודה A) היא 18 קמ\"ש. מנקודה זו יורד הילד בתנועה חופשית, ללא שימוש בפדלים. חשב את הכוח הנורמאלי (N) שמפעיל המשטח על גלגלי האופניים בנקודה התחתונה (נקודה B), אם הגובה H הוא 12 מ' ורדיוס העיקום (R) בנקודה Bהוא 24 מ'.\nתאוצת הכובד: g = 9.81_{m/sec^2}\nהערה: הנח כי הילד עם האופניים מהווה נקודה חומרית שמשקלה מופעל במרכז הכובד של המערכת \"ילד - אופניים\" (נקודה C) והזנח את החיכוך.\nשאלה 9.3:\nחבילות, שכל אחת מהן היא בעלת מסה של 1 ק\"ג, מגיעות מהסרט הנע אל משטח חלק לחלוטין של הרציף, במהירות (V_0) של 1 מ' לשנייה, כמתואר בתרשים.\nתאוצת הכובד: g = 9.81_{m/sec^2}\nחשב את הזווית המרבית (\\phi_{max}), שבה כל חבילה מתחילה להתנתק ממשטח הרציף, אם רדיוס הרציף (R) הוא 0.5 מ'.\nשאלה 9.4:\nרוכב אופניים מתחיל את תנועתו מראש הגבעה A במהירות התחלתית (V_0). מנקודה זו, מתגלגלים האופניים בתנועה חופשית (ללא שימוש בדוושות) במסלול המעגלי.\nא. חשב את מהירות הרוכב בנקודה התחתונה B. ב. חשב את כוח התגובה (N) המופעל על האופניים בנקודה B.\nנתונים: ✓ משקל של הרוכב יחד עם האופניים: W = 650N ✓ המהירות ההתחלתית: V_0 = 27km/h ✓ הגובה: H = 14m ✓ רדיוס העיקום של המסלול המעגלי: R = 10m\nהערות: ✓ הזנח את החיכוך. ✓ הנח כי הרוכב יחד עם האופניים מהווים נקודה חומרית, שמשקלה מופעל במרכז הכובד שלהם בנקודה C.\nשאלה 9.5:\nגוף בצורת גליל, שמסתו 0.25kg משוחרר ממנוחה בנקודה A. הגוף מחלק מטה לאורך חוט מתכת קבוע וחסר חיכוך, וממשיך בתנועתו לאורך מסלול מעגלי בעל רדיוס 0.15m, כמתואר באיור לשאלה 5.\nא. חשב את מהירות הגליל ברגע שהוא עובר בנקודה B. ב. חשב את הכוח הפועל על הגלגל כאשר הוא עובר בנקודה B.\nשאלה 9.6:\nאופנוע קופץ מנקודה A לנקודה B דרך העמק, כמתואר באיור לשאלה 4.\nבנקודה A מהירות האופנוע v_0 היא אופקית.\nא. חשב מהו זמן הקפיצה מ- A ל-B. ב. חשב מהי המהירות ההתחלתית v_0 של האופנוע. ג. חשב מהי מהירות האופנוע v בנקודה B (שיעור וכיוון).\nהערות: 1. התייחס לאופנוע ולאופנוען כנקודה חומרית אחת. 2. התעלם מהתנגדות האוויר.\nשאלה 9.7: קיץ 2014, שאלה 4\nרוכב אופניים מתחיל את תנועתו ממנוחה בנקודה A ונע במסלול אנכי עקום, כמתואר באיור לשאלה 4.\nהערות: 1. הנח שהאופניים והרוכב הם נקודה חומרית אחת. 2. הזנח את ההתנגדות לתנועה של המסלול ואת ההתנגדות של האוויר. 3. הנח תאוצת הכובד: g = 10_{m/sec^2}.\nא. חשב את מהירות רוכב האופניים בנקודה B של המסלול. ב. חשב את מהירות רוכב האופניים בנקודה C של המסלול. ג. חשב את רדיוס העקמומיות המינימאלי הנדרש של המסלול בנקודה C כדי שהאופניים לא יאבדו את המגע עם הקרקע.\nשאלה 9.8:\nכדור שמסתו m = 2Kg מחליק לאורך מוט ABC, הנמצא במישור אנכי. קטע AB של המוט הוא מעגלי וחסר חיכוך, ואילו קטע המוט האופקי BC הוא מחוספס עם מקדם חיכוך קינטי μ_k = 0.15.\nמשחררים את הכדור ממנוחה בנקודה A, הכדור מחליק לאורך המוט. בנקודה C עוזב הכדור את המוט, וממשיך במעופו עד לפגיעה בקרקע בנקודה D, כמתואר באיור לשאלה 4.\nהערות: - התייחס לכדור כנקודה חומרית, והזנח את התנגדות האוויר. - הזנח את קוטר המוט ABC.\nנתונים: - רדיוס הקטע המעגלי של המוט R = 2m - אורך הקטע האופקי של המוט d = 2m BC\nא. חשב את מהירות הכדור בנקודה B. ב. חשב את מהירות הכדור בנקודה C. ג. חשב את זמן נפילת הכדור מנקודה C עד לנקודה D. ד. חשב את מהירות הכדור בנקודה D (שיעור וכיוון). ה. חשב את המרחק a.\nשאלה 9.9:\nגלשן מתחיל את תנועתו ממנוחה בנקודה A, וגולש לאורך מסלול משופע AB כמתואר באיור. בנקודה B הגלשן עוזב את מסלול הגלישה כאשר מהירותו היא אופקית. בנקודה C הגלשן פוגע בקרקע.\nחשב: א. מהי מהירות הגלשן בנקודה B ? ב. מהו זמן תנועת הגלשן מנקודה B עד לנקודה C ? ג. מהי מהירות הגלשן בנקודה C (שיעור וכיוון) ? ד. מהו המרחק d ? הערות: יש להתייחס לגלשן כנקודה חומרית ולהזניח את התנגדות האוויר והחיכוך במסלול.\nשאלה 9.10:\nדור קטן משוחרר מנקודה A ונע במסלול עקום חסר חיכוך במישור אנכי כמתואר באיור לשאלה בנקודה B הכדור עוזב את המסלול כאשר מהירותו נטויה בזווית 60^∘ לאופק.\nבנקודה C הכדור פוגע בקרקע.\nא. מהי מהירותו של הכדור בנקודה B ? ב. מהו הגובה המקסימלי של הכדור מעל פני הקרקע במהלך תנועתו באוויר ? ג. מהו זמן תנועת הכדור מנקודה B עד לפגיעתו בקרקע בנקודה C ? ד. מהו המרחק S ? הערות: התייחס לכדור כנקודה חומרית, הזנח התנגדות האוויר.\nשאלה 9.11:\nמחליק שמסתו m = 3kg משוחרר ממצב מנוחה בנקודה A בקצה העליון של מוט עקום, ונע לאורך קטע מעגלי חסר חיכוך של המוט במישור אנכי. בנקודה B המחליק עובר לקטע אופקי מחוספס של המוט, בנקודה C המחליק עוזב את המוט ובנקודה D הוא פוגע במישור משופע DE. נתון: מקדם החיכוך הקינטי בין המחליק לבין הקטע האופקי BC של המוט μ_k = 0.2.\nא. חשב את מהירותו של המחליק בנקודה B. ב. חשב את מהירותו של המחליק בנקודה C. ג. חשב את הגובה h, בין נקודה C ו- D, הנדרש על מנת שכיוון המהירות של המחליק בנקודה D יהיה במקביל למישור המשופע DE. ד. חשב את המרחק a.\nהערות: - יש להתייחס למחליק כנקודה חומרית, ולהזניח את התנגדות האוויר.",
+  "rows": [
+    {
+      "segmentId": 1,
+      "he": "פרק 7: בעיות בתחום אנרגיה וקפיצים שאלה 7.1:",
+      "he_niqqud": "פֶּרֶק 7: בְּעָיוֹת בִּתְחוּם אֵנֶרְגְּיָה וּקְפִיצִים שְׁאֵלָה 7.1:",
+      "translit": "Perek 7: be'ayot bitkhum energya ukfitsim she'ela 7.1:",
+      "ru": "Глава 7: Задачи в области энергии и пружин. Вопрос 7.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 2,
+      "he": "בתרשים מתואר קו ייצור של מוצר M.",
+      "he_niqqud": "בַּתַּרְשִׁים מְתֹאָר קַו יִצּוּר שֶׁל מוּצָר M.",
+      "translit": "Batarshim mto'ar kav yitsur shel mutsar M.",
+      "ru": "На схеме показана производственная линия изделия M.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 3,
+      "he": "כאשר המחסנית נפתחת, נופל מוצר אחד על השולחן האופקי.",
+      "he_niqqud": "כַּאֲשֶׁר הַמַּחְסָנִית נִפְתַּחַת, נוֹפֵל מוּצָר אֶחָד עַל הַשֻּׁלְחָן הָאֳפְקִי.",
+      "translit": "Ka'asher hamakhsanit niftakhat, nofel mutsar ekhad al hashulkhan ho'ofki.",
+      "ru": "Когда магазин открывается, одно изделие падает на горизонтальный стол.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 4,
+      "he": "ברגע זה משתחרר קפיץ דרוך K המעניק למוצר דחיפה, והוא מתקדם לאורך הקטע AB שעל השולחן האופקי (ראה תרשים).",
+      "he_niqqud": "בְּרֶגַע זֶה מִשְׁתַּחְרֵר קְפִיץ דָּרוּךְ K הַמַּעֲנִיק לַמּוּצָר דְּחִיפָה, וְהוּא מִתְקַדֵּם לְאֹרֶךְ הַקֶּטַע AB שֶׁעַל הַשֻּׁלְחָן הָאֳפְקִי (רְאֵה תַּרְשִׁים).",
+      "translit": "Breg'a ze mishtakhrer kfits darukh K hama'anik lamutsar dkhifa, vehu' mitkadem le'orekh haket'a AB she'al hashulkhan ho'ofki (re'e tarshim).",
+      "ru": "В этот момент освобождается взведенная пружина K, придающая изделию толчок, и оно продвигается вдоль отрезка AB по горизонтальному столу (см. схему).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 5,
+      "he": "ידועים: משקל המוצר: G = 5N",
+      "he_niqqud": "יְדוּעִים: מִשְׁקַל הַמּוּצָר: G = 5N",
+      "translit": "Ydu'im: mishkal hamutsar: G = 5N",
+      "ru": "Известно: Вес изделия: G = 5 Н",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 6,
+      "he": "מקדם החיכוך בין המוצר לבין השולחן האופקי: μ = 0.1",
+      "he_niqqud": "מְקַדֵּם הַחִכּוּךְ בֵּין הַמּוּצָר לְבֵין הַשֻּׁלְחָן הָאֳפְקִי: μ = 0.1",
+      "translit": "Mkadem hakhikukh ben hamutsar lven hashulkhan ho'ofki: μ = 0.1",
+      "ru": "Коэффициент трения между изделием и горизонтальным столом: μ = 0.1",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 7,
+      "he": "קבוע הקפיץ: c = 2_{N/cm}",
+      "he_niqqud": "קְבוּעַ הַקְּפִיץ: c = 2_{N/cm}",
+      "translit": "Kvu'a hakfits: c = 2_{N/cm}",
+      "ru": "Жесткость пружины: c = 2 Н/см",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 8,
+      "he": "אורך הקפיץ במצב חופשי: L_1 = 180_{mm}",
+      "he_niqqud": "אֹרֶךְ הַקְּפִיץ בְּמַצָּב חָפְשִׁי: L_1 = 180_{mm}",
+      "translit": "Orekh hakfits bmatsav khofshi: L_1 = 180_{mm}",
+      "ru": "Длина пружины в свободном состоянии: L_1 = 180 мм",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 9,
+      "he": "אורך הקפיץ במצב דרוך: L_2 = 130_{mm}",
+      "he_niqqud": "אֹרֶךְ הַקְּפִיץ בְּמַצָּב דָּרוּךְ: L_2 = 130_{mm}",
+      "translit": "Orekh hakfits bmatsav darukh: L_2 = 130_{mm}",
+      "ru": "Длина пружины во взведенном состоянии: L_2 = 130 мм",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 10,
+      "he": "תאוצת הכובד: g = 9.81_{m/sec^2}",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}",
+      "translit": "Te'utsat hakoved: g = 9.81_{m/sec^2}",
+      "ru": "Ускорение свободного падения: g = 9.81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 11,
+      "he": "חשב את מהירות המוצר בנקודה B (V_B). המידות בתרשים נתונות במ\"מ. (בחישוב המהירות אין להתייחס לנפילת המוצר מהמחסנית, אלא אך ורק לתנועתו על גבי השולחן).",
+      "he_niqqud": "חַשֵּׁב אֶת מְהִירוּת הַמּוּצָר בִּנְקֻדָּה B (V_B). הַמִּדּוֹת בַּתַּרְשִׁים נְתוּנוֹת בְּמ\"מ. (בְּחִשּׁוּב הַמְּהִירוּת אֵין לְהִתְיַחֵס לִנְפִילַת הַמּוּצָר מֵהַמַּחְסָנִית, אֶלָּא אַךְ וְרַק לִתְנוּעָתוֹ עַל גַּבֵּי הַשֻּׁלְחָן).",
+      "translit": "Khashev et mhirut hamutsar binkuda B (V_B). Hamidot batarshim ntunot bmm\". (bkhishuv hamhirut en lhityakhes linfilat hamutsar mehamakhsanit, el'a akh verak litnu'ato al gabe hashulkhan).",
+      "ru": "Рассчитайте скорость изделия в точке B (V_B). Размеры на схеме даны в мм. (При расчете скорости не учитывать падение изделия из магазина, а только его движение по столу).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 12,
+      "he": "הערה: האנרגיה הפוטנציאלית E האצורה בקפיץ במצב A שווה: E = \\frac{c \\cdot \\Delta L^2}{2} כאן: \\Delta L = L_1 - L_2",
+      "he_niqqud": "הֶעָרָה: הָאֵנֶרְגְּיָה הַפּוֹטֶנְצִיאָלִית E הָאֲצוּרָה בַּקְּפִיץ בְּמַצָּב A שָׁוָה: E = \\frac{c \\cdot \\Delta L^2}{2} כָּאן: \\Delta L = L_1 - L_2",
+      "translit": "He'ara: ha'energya hapotentsi'alit E ha'atsura bakfits bmatsav A shava: E = \\frac{c \\cdot \\Delta L^2}{2} ka'n: \\Delta L = L_1 - L_2",
+      "ru": "Примечание: Потенциальная энергия E, запасенная в пружине в положении A, равна: E = (c * ΔL^2) / 2, где: ΔL = L_1 - L_2",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 13,
+      "he": "שאלה 7.2: בתרשים מתואר מכשיר מעבדה המיועד לפליטת כדוריות כלפי מעלה.",
+      "he_niqqud": "שְׁאֵלָה 7.2: בַּתַּרְשִׁים מְתֹאָר מַכְשִׁיר מַעְבָּדָה הַמְּיֹעָד לִפְלִיטַת כַּדּוּרִיּוֹת כְּלַפֵּי מַעְלָה.",
+      "translit": "She'ela 7.2: batarshim mto'ar makhshir ma'bada hamyo'ad liflitat kaduriyot klape ma'la.",
+      "ru": "Вопрос 7.2: На схеме показан лабораторный прибор, предназначенный для выбрасывания шариков вверх.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 14,
+      "he": "הכדוריות נפלטות כתוצאה משחרור קפיץ בורגי שנלחץ מלכתחילה.",
+      "he_niqqud": "הַכַּדּוּרִיּוֹת נִפְלָטוֹת כְּתוֹצָאָה מִשִּׁחְרוּר קְפִיץ בָּרְגִי שֶׁנִּלְחַץ מִלְּכַתְּחִלָּה.",
+      "translit": "Hakaduriyot niflatot ktotsa'a mishikhrur kfits bargi shenilkhats milkhatkhila.",
+      "ru": "Шарики выбрасываются в результате освобождения винтовой пружины, предварительно сжатой.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 15,
+      "he": "במצב חופשי הקצה העליון של הקפיץ הגיע עד הקצה העליון של המכשיר.",
+      "he_niqqud": "בְּמַצָּב חָפְשִׁי הַקָּצֶה הָעֶלְיוֹן שֶׁל הַקְּפִיץ הִגִּיעַ עַד הַקָּצֶה הָעֶלְיוֹן שֶׁל הַמַּכְשִׁיר.",
+      "translit": "Bmatsav khofshi hakatse ha'elyon shel hakfits higi'a ad hakatse ha'elyon shel hamakhshir.",
+      "ru": "В свободном состоянии верхний конец пружины достигал верхнего края прибора.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 16,
+      "he": "נתון: משקל הכדורית: G = 0.5N",
+      "he_niqqud": "נָתוּן: מִשְׁקַל הַכַּדּוּרִית: G = 0.5N",
+      "translit": "Natun: mishkal hakadurit: G = 0.5N",
+      "ru": "Дано: Вес шарика: G = 0.5 Н",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 17,
+      "he": "מקדם הקשיחות של הקפיץ: c = 3_{N/cm}",
+      "he_niqqud": "מְקַדֵּם הַקְּשִׁיחוּת שֶׁל הַקְּפִיץ: c = 3_{N/cm}",
+      "translit": "Mkadem hakshikhut shel hakfits: c = 3_{N/cm}",
+      "ru": "Жесткость пружины: c = 3 Н/см",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 18,
+      "he": "לחיצה תחילית של הקפיץ: h_1 = 12_{cm}",
+      "he_niqqud": "לְחִיצָה תְּחִלִּית שֶׁל הַקְּפִיץ: h_1 = 12_{cm}",
+      "translit": "Lkhitsa tkhilit shel hakfits: h_1 = 12_{cm}",
+      "ru": "Начальное сжатие пружины: h_1 = 12 см",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 19,
+      "he": "תאוצת הכובד: g = 9.81_{m/sec^2}",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}",
+      "translit": "Te'utsat hakoved: g = 9.81_{m/sec^2}",
+      "ru": "Ускорение свободного падения: g = 9.81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 20,
+      "he": "חשב: א. את המהירות, שבה נפלטת הכדורית מתוך המכשיר. ב. את הגובה H, אליו הכדורית תעלה. הזנח את החיכוך במכשיר ואת התנגדות האוויר.",
+      "he_niqqud": "חַשֵּׁב: א. אֶת הַמְּהִירוּת, שֶׁבָּהּ נִפְלֶטֶת הַכַּדּוּרִית מִתּוֹךְ הַמַּכְשִׁיר. ב. אֶת הַגֹּבַהּ H, אֵלָיו הַכַּדּוּרִית תַּעֲלֶה. הַזְנַח אֶת הַחִכּוּךְ בַּמַּכְשִׁיר וְאֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "Khashev: '. Et hamhirut, shebah nifletet hakadurit mitokh hamakhshir. V. Et hagovah H, elayw hakadurit ta'ale. Haznakh et hakhikukh bamakhshir ve'et hitnagdut ha'avir.",
+      "ru": "Рассчитайте: а. Скорость, с которой шарик вылетает из прибора. б. Высоту H, на которую поднимется шарик. Пренебрегите трением в приборе и сопротивлением воздуха.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 21,
+      "he": "הערה: האנרגיה המצטברת בעבודת כוח אלסטי של קפיץ בורגי על מסלול h שווה: E = \\frac{c \\cdot h^2}{2} כאן: c - מקדם הקשיחות של הקפיץ יכל הסעיפים שווים בערכם",
+      "he_niqqud": "הֶעָרָה: הָאֵנֶרְגְּיָה הַמִּצְטַבֶּרֶת בַּעֲבוֹדַת כֹּחַ אֵלַסְטִי שֶׁל קְפִיץ בָּרְגִי עַל מַסְלוּל h שָׁוָה: E = \\frac{c \\cdot h^2}{2} כָּאן: c - מְקַדֵּם הַקְּשִׁיחוּת שֶׁל הַקְּפִיץ יכל הַסְּעִיפִים שָׁוִים בְּעֶרְכָּם",
+      "translit": "He'ara: ha'energya hamitstaberet ba'avodat koakh elasti shel kfits bargi al maslul h shava: E = \\frac{c \\cdot h^2}{2} ka'n: c - mkadem hakshikhut shel hakfits ykhl hase'ifim shavim be'erkam",
+      "ru": "Примечание: Энергия, накопленная при работе упругой силы винтовой пружины на пути h, равна: E = (c * h^2) / 2, где c — жесткость пружины. Все пункты равнозначны.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 22,
+      "he": "שאלה 7.3: ארגז שמסתו 12 ק\"ג נמצא במנוחה על מישור אופקי, ונלחץ ע\"י קפיץ, כמתואר בתרשים.",
+      "he_niqqud": "שְׁאֵלָה 7.3: אַרְגָּז שֶׁמַּסָּתוֹ 12 ק\"ג נִמְצָא בִּמְנוּחָה עַל מִישׁוֹר אָפְקִי, וְנִלְחַץ ע\"י קְפִיץ, כַּמְתֹאָר בַּתַּרְשִׁים.",
+      "translit": "She'ela 7.3: argaz shemasato 12 kg\" nimts'a bimnukha al mishor ofki, venilkhats y\" kfits, kamto'ar batarshim.",
+      "ru": "Вопрос 7.3: Ящик массой 12 кг находится в покое на горизонтальной плоскости и поджат пружиной, как показано на схеме.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 23,
+      "he": "הקפיץ נלחץ ממצבו הרפוי בנקודה A עד הנקודה O, על אורך של 0.25 מ', וננעל ע\"י מעצור.",
+      "he_niqqud": "הַקְּפִיץ נִלְחַץ מִמַּצָּבוֹ הָרָפוּי בִּנְקֻדָּה A עַד הַנְּקֻדָּה O, עַל אֹרֶךְ שֶׁל 0.25 מ', וְנִנְעַל ע\"י מַעֲצוֹר.",
+      "translit": "Hakfits nilkhats mimatsavo harafuy binkuda A ad hankuda O, al orekh shel 0.25 m', venin'al y\" ma'atsor.",
+      "ru": "Пружина сжата из ее ненапряженного состояния в точке A до точки O на длину 0.25 м и зафиксирована стопором.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 24,
+      "he": "אחרי שמשחררים את הארגז ממצב של מנוחה בנקודה O, חשב: א. את מהירותו של הארגז בנקודה (OB = 0.5_m) B. ב. את המרחק s שיעבור הארגז מנקודה O עד שיעצור (בנקודה D).",
+      "he_niqqud": "אַחֲרֵי שֶׁמְּשַׁחְרְרִים אֶת הָאַרְגָּז מִמַּצָּב שֶׁל מְנוּחָה בִּנְקֻדָּה O, חַשֵּׁב: א. אֶת מְהִירוּתוֹ שֶׁל הָאַרְגָּז בִּנְקֻדָּה (OB = 0.5_m) B. ב. אֶת הַמֶּרְחָק s שֶׁיַּעֲבֹר הָאַרְגָּז מִנְּקֻדָּה O עַד שֶׁיַּעֲצֹר (בִּנְקֻדָּה D).",
+      "translit": "Akhare shemshakhrrim et ha'argaz mimatsav shel mnukha binkuda O, khashev: '. Et mhiruto shel ha'argaz binkuda (OB = 0.5_m) B. V. Et hamerkhak s sheya'avor ha'argaz minkuda O ad sheya'atsor (binkuda D).",
+      "ru": "После освобождения ящика из состояния покоя в точке O рассчитайте: а. Скорость ящика в точке B (OB = 0.5 м). б. Расстояние s, которое пройдет ящик от точки O до полной остановки (в точке D).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 25,
+      "he": "נתון: מקדם הקשיחות של הקפיץ: c = 800_{N/m} מקדם החיכוך הקינטי בין המישור האופקי והארגז: μ_k = 0.15 תאוצת הכובד: g = 9.81_{m/sec^2}",
+      "he_niqqud": "נָתוּן: מְקַדֵּם הַקְּשִׁיחוּת שֶׁל הַקְּפִיץ: c = 800_{N/m} מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַמִּישׁוֹר הָאֳפְקִי וְהָאַרְגָּז: μ_k = 0.15 תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}",
+      "translit": "Natun: mkadem hakshikhut shel hakfits: c = 800_{N/m} mkadem hakhikukh hakineti ben hamishor ho'ofki veha'argaz: μ_k = 0.15 te'utsat hakoved: g = 9.81_{m/sec^2}",
+      "ru": "Дано: Жесткость пружины: c = 800 Н/м; Коэффициент кинетического трения между горизонтальной плоскостью и ящиком: μ_k = 0.15; Ускорение свободного падения: g = 9.81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 26,
+      "he": "הערה: עבודת כוח אלסטי של קפיץ על מסלול W) s) שווה: W = \\frac{c \\cdot s^2}{2}",
+      "he_niqqud": "הֶעָרָה: עֲבוֹדַת כֹּחַ אֵלַסְטִי שֶׁל קְפִיץ עַל מַסְלוּל W) s) שָׁוָה: W = \\frac{c \\cdot s^2}{2}",
+      "translit": "He'ara: avodat koakh elasti shel kfits al maslul W) s) shava: W = \\frac{c \\cdot s^2}{2}",
+      "ru": "Примечание: Работа упругой силы пружины на пути s (W) равна: W = (c * s^2) / 2",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 27,
+      "he": "שאלה 7.4: בתרשים מתואר קו ייצור של מוצר M.",
+      "he_niqqud": "שְׁאֵלָה 7.4: בַּתַּרְשִׁים מְתֹאָר קַו יִצּוּר שֶׁל מוּצָר M.",
+      "translit": "She'ela 7.4: batarshim mto'ar kav yitsur shel mutsar M.",
+      "ru": "Вопрос 7.4: На схеме показана производственная линия изделия M.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 28,
+      "he": "כאשר המחסנית נפתחת, נופל מוצר אחד על השולחן האופקי.",
+      "he_niqqud": "כַּאֲשֶׁר הַמַּחְסָנִית נִפְתַּחַת, נוֹפֵל מוּצָר אֶחָד עַל הַשֻּׁלְחָן הָאֳפְקִי.",
+      "translit": "Ka'asher hamakhsanit niftakhat, nofel mutsar ekhad al hashulkhan ho'ofki.",
+      "ru": "Когда магазин открывается, одно изделие падает на горизонтальный стол.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 29,
+      "he": "ברגע זה משתחרר קפיץ דרוך K, המעניק למוצר M דחיפה, והמוצר מתקדם לאורך קטע AB שעל השולחן האופקי (ראה תרשים).",
+      "he_niqqud": "בְּרֶגַע זֶה מִשְׁתַּחְרֵר קְפִיץ דָּרוּךְ K, הַמַּעֲנִיק לַמּוּצָר M דְּחִיפָה, וְהַמּוּצָר מִתְקַדֵּם לְאֹרֶךְ קֶטַע AB שֶׁעַל הַשֻּׁלְחָן הָאֳפְקִי (רְאֵה תַּרְשִׁים).",
+      "translit": "Breg'a ze mishtakhrer kfits darukh K, hama'anik lamutsar M dkhifa, vehamutsar mitkadem le'orekh ket'a AB she'al hashulkhan ho'ofki (re'e tarshim).",
+      "ru": "В этот момент освобождается взведенная пружина K, придающая изделию M толчок, и изделие продвигается вдоль отрезка AB по горизонтальному столу (см. схему).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 30,
+      "he": "נתונים: מקדם החיכוך בין המוצר לבין השולחן μ = 0.1 קבוע הקפיץ: k = 2_{N/cm} אורך הקפיץ במצב חופשי: L_1 = 200_{mm} משקל המוצר: G = 8_N אורך הקפיץ במצב דרוך: L_2 = 140_{mm} תאוצת הכובד: g = 9.81_{m/sec^2}",
+      "he_niqqud": "נְתוּנִים: מְקַדֵּם הַחִכּוּךְ בֵּין הַמּוּצָר לְבֵין הַשֻּׁלְחָן μ = 0.1 קְבוּעַ הַקְּפִיץ: k = 2_{N/cm} אֹרֶךְ הַקְּפִיץ בְּמַצָּב חָפְשִׁי: L_1 = 200_{mm} מִשְׁקַל הַמּוּצָר: G = 8_N אֹרֶךְ הַקְּפִיץ בְּמַצָּב דָּרוּךְ: L_2 = 140_{mm} תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}",
+      "translit": "Ntunim: mkadem hakhikukh ben hamutsar lven hashulkhan μ = 0.1 kvu'a hakfits: k = 2_{N/cm} orekh hakfits bmatsav khofshi: L_1 = 200_{mm} mishkal hamutsar: G = 8_N orekh hakfits bmatsav darukh: L_2 = 140_{mm} te'utsat hakoved: g = 9.81_{m/sec^2}",
+      "ru": "Дано: Коэффициент трения между изделием и столом: μ = 0.1; Жесткость пружины: k = 2 Н/см; Длина пружины в свободном состоянии: L_1 = 200 мм; Вес изделия: G = 8 Н; Длина пружины во взведенном состоянии: L_2 = 140 мм; Ускорение свободного падения: g = 9.81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 31,
+      "he": "חשב את מהירות המוצר בנקודה V_B) B). המידות בתרשים נתונות במ\"מ.",
+      "he_niqqud": "חַשֵּׁב אֶת מְהִירוּת הַמּוּצָר בִּנְקֻדָּה V_B) B). הַמִּדּוֹת בַּתַּרְשִׁים נְתוּנוֹת בְּמ\"מ.",
+      "translit": "Khashev et mhirut hamutsar binkuda V_B) B). Hamidot batarshim ntunot bmm\".",
+      "ru": "Рассчитайте скорость изделия в точке B (V_B). Размеры на схеме даны в мм.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 32,
+      "he": "הערות: א. האנרגיה הפוטנציאלית E האצורה בקפיץ במצב דרוך שווה: E = \\frac{k \\cdot \\Delta L^2}{2} (כאן: \\Delta L = L_1 - L_2). ב. בחישוב המהירות V_B אין להתייחס לנפילת המוצר מהמחסנית, אלא רק לתנועתו על גבי השולחן (בין נקודות A ו- B).",
+      "he_niqqud": "הֶעָרוֹת: א. הָאֵנֶרְגְּיָה הַפּוֹטֶנְצִיאָלִית E הָאֲצוּרָה בַּקְּפִיץ בְּמַצָּב דָּרוּךְ שָׁוָה: E = \\frac{k \\cdot \\Delta L^2}{2} (כָּאן: \\Delta L = L_1 - L_2). ב. בְּחִשּׁוּב הַמְּהִירוּת V_B אֵין לְהִתְיַחֵס לִנְפִילַת הַמּוּצָר מֵהַמַּחְסָנִית, אֶלָּא רַק לִתְנוּעָתוֹ עַל גַּבֵּי הַשֻּׁלְחָן (בֵּין נְקֻדּוֹת A וְ- B).",
+      "translit": "He'arot: '. Ha'energya hapotentsi'alit E ha'atsura bakfits bmatsav darukh shava: E = \\frac{k \\cdot \\Delta L^2}{2} (ka'n: \\Delta L = L_1 - L_2). V. Bkhishuv hamhirut V_B en lhityakhes linfilat hamutsar mehamakhsanit, el'a rak litnu'ato al gabe hashulkhan (ben nkudot A v- B).",
+      "ru": "Примечания: а. Потенциальная энергия E, запасенная в пружине во взведенном состоянии, равна: E = (k * ΔL^2) / 2 (где ΔL = L_1 - L_2). б. При расчете скорости V_B не учитывать падение изделия из магазина, а только его движение по столу (между точками A и B).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 33,
+      "he": "שאלה 7.5: א. גוף נע על מישור אופקי במהירות קבועה של V = 2_{m/sec} כמתואר בתרשים א'.",
+      "he_niqqud": "שְׁאֵלָה 7.5: א. גּוּף נָע עַל מִישׁוֹר אָפְקִי בִּמְהִירוּת קְבוּעָה שֶׁל V = 2_{m/sec} כַּמְתֹאָר בַּתַּרְשִׁים א'.",
+      "translit": "She'ela 7.5: '. Guf n'a al mishor ofki bimhirut kvu'a shel V = 2_{m/sec} kamto'ar batarshim ''.",
+      "ru": "Вопрос 7.5: а. Тело движется по горизонтальной плоскости с постоянной скоростью V = 2 м/с, как показано на рис. а.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 34,
+      "he": "בדרכו הוא פוגע בנקודה B בקפיץ אופקי, הנמצא במצב רפוי.",
+      "he_niqqud": "בְּדַרְכּוֹ הוּא פּוֹגֵעַ בִּנְקֻדָּה B בִּקְפִיץ אָפְקִי, הַנִּמְצָא בְּמַצָּב רָפוּי.",
+      "translit": "Bdarko hu' poge'a binkuda B bikfits ofki, hanimts'a bmatsav rafuy.",
+      "ru": "На своем пути оно ударяет в точке B горизонтальную пружину, находящуюся в ненапряженном состоянии.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 35,
+      "he": "מסת הגוף m = 1_{kg} וקבוע הקפיץ k = 80_{N/m}. חשב בכמה יתכווץ הקפיץ כתוצאה מפגיעת הגוף בו בהנחה שהמישור ללא חיכוך.",
+      "he_niqqud": "מַסַּת הַגּוּף m = 1_{kg} וּקְבוּעַ הַקְּפִיץ k = 80_{N/m}. חַשֵּׁב בְּכַמָּה יִתְכַּוֵּץ הַקְּפִיץ כְּתוֹצָאָה מִפְּגִיעַת הַגּוּף בּוֹ בְּהַנָּחָה שֶׁהַמִּישׁוֹר לְלֹא חִכּוּךְ.",
+      "translit": "Masat haguf m = 1_{kg} ukvu'a hakfits k = 80_{N/m}. Khashev bkhama yitkavets hakfits ktotsa'a mipgi'at haguf bo bhanakha shehamishor llo' khikukh.",
+      "ru": "Масса тела m = 1 кг, жесткость пружины k = 80 Н/м. Рассчитайте, на сколько сожмется пружина в результате удара тела в предположении, что плоскость гладкая.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 36,
+      "he": "ב. הגוף משתחרר מהקפיץ בנקודה B, במהירות התחלתית V = 2_{m/sec} כמתואר בתרשים ב'. לאיזה מרחק אופקי מנקודה B ינוע הגוף לאחר שהשתחרר מהקפיץ, אם מקדם החיכוך הקינטי בין הגוף למישור הוא μ = 0.25. מסת הגוף וזה לסעיף א'.",
+      "he_niqqud": "ב. הַגּוּף מִשְׁתַּחְרֵר מֵהַקְּפִיץ בִּנְקֻדָּה B, בִּמְהִירוּת הַתְחָלָתִית V = 2_{m/sec} כַּמְתֹאָר בַּתַּרְשִׁים ב'. לְאֵיזֶה מֶרְחָק אָפְקִי מִנְּקֻדָּה B יָנוּעַ הַגּוּף לְאַחַר שֶׁהִשְׁתַּחְרֵר מֵהַקְּפִיץ, אִם מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַגּוּף לַמִּישׁוֹר הוּא μ = 0.25. מַסַּת הַגּוּף וזה לִסְעִיף א'.",
+      "translit": "V. Haguf mishtakhrer mehakfits binkuda B, bimhirut hatkhalatit V = 2_{m/sec} kamto'ar batarshim v'. Le'eze merkhak ofki minkuda B yanu'a haguf le'akhar shehishtakhrer mehakfits, im mkadem hakhikukh hakineti ben haguf lamishor hu' μ = 0.25. Masat haguf vzh lis'if ''.",
+      "ru": "б. Тело отрывается от пружины в точке B с начальной скоростью V = 2 м/с, как показано на рис. б. На какое горизонтальное расстояние от точки B сместится тело после отрыва от пружины, если коэффициент кинетического трения между телом и плоскостью равен μ = 0.25? Масса тела такая же, как в пункте а.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 37,
+      "he": "יש לבצע את החישוב בשני דרכים: 1) עפ\"י שיקולי עבודה ואנרגיה. 2) עפ\"י החוק השני של ניוטון \\sum F = ma.",
+      "he_niqqud": "יֵשׁ לְבַצֵּעַ אֶת הַחִשּׁוּב בִּשְׁנֵי דְּרָכִים: 1) עפ\"י שִׁקּוּלֵי עֲבוֹדָה וְאֵנֶרְגְּיָה. 2) עפ\"י הַחֹק הַשֵּׁנִי שֶׁל נְיוּטוֹן \\sum F = ma.",
+      "translit": "Yesh lvatse'a et hakhishuv bishne drakhim: 1) fy\" shikule avoda ve'energya. 2) fy\" hakhok hasheni shel nyuton \\sum F = ma.",
+      "ru": "Необходимо выполнить расчет двумя способами: 1) Исходя из закона сохранения и превращения энергии/работы. 2) По второму закону Ньютона ΣF = ma.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 38,
+      "he": "שאלה 7.6: באיור לשאלה מוצג גוף שמסתו 1.2kg.",
+      "he_niqqud": "שְׁאֵלָה 7.6: בָּאִיּוּר לַשְּׁאֵלָה מֻצָּג גּוּף שֶׁמַּסָּתוֹ 1.2kg.",
+      "translit": "She'ela 7.6: ba'iyur lashe'ela mutsag guf shemasato 1.2kg.",
+      "ru": "Вопрос 7.6: На рисунке к задаче показано тело массой 1.2 кг.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 39,
+      "he": "הגוף מחליק ללא חיכוך ממנוחה בנקודה A עד למפגש עם קפיץ בנקודה C.",
+      "he_niqqud": "הַגּוּף מַחְלִיק לְלֹא חִכּוּךְ מִמְּנוּחָה בִּנְקֻדָּה A עַד לַמִּפְגָּשׁ עִם קְפִיץ בִּנְקֻדָּה C.",
+      "translit": "Haguf makhlik llo' khikukh mimnukha binkuda A ad lamifgash im kfits binkuda C.",
+      "ru": "Тело соскальзывает без трения из состояния покоя в точке A до соприкосновения с пружиной в точке C.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 40,
+      "he": "קבוע הקפיץ הוא k = 24_{kN/m} ולפני שהגוף פוגע בו הוא נמצא במצב רפוי.",
+      "he_niqqud": "קְבוּעַ הַקְּפִיץ הוּא k = 24_{kN/m} וְלִפְנֵי שֶׁהַגּוּף פּוֹגֵעַ בּוֹ הוּא נִמְצָא בְּמַצָּב רָפוּי.",
+      "translit": "Kvu'a hakfits hu' k = 24_{kN/m} velifne shehaguf poge'a bo hu' nimts'a bmatsav rafuy.",
+      "ru": "Жесткость пружины k = 24 кН/м, и до удара тела она ненапряжена.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 41,
+      "he": "תאוצת הכובד: g = 9.81_{m/sec^2} אנרגיית הקפיץ: E_k = \\frac{k \\cdot x^2}{2}",
+      "he_niqqud": "תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2} אֵנֶרְגְּיַת הַקְּפִיץ: E_k = \\frac{k \\cdot x^2}{2}",
+      "translit": "Te'utsat hakoved: g = 9.81_{m/sec^2} energyat hakfits: E_k = \\frac{k \\cdot x^2}{2}",
+      "ru": "Ускорение свободного падения: g = 9.81 м/с²; Энергия пружины: E_k = (k * x^2) / 2",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 42,
+      "he": "א. חשב את מהירויות הגוף בנקודה B ו-C. ב. חשב את שקיעת הקפיץ המקסימאלית לאחר המפגש עם הגוף.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּיוֹת הַגּוּף בִּנְקֻדָּה B וְ-C. ב. חַשֵּׁב אֶת שְׁקִיעַת הַקְּפִיץ הַמַּקְסִימָאלִית לְאַחַר הַמִּפְגָּשׁ עִם הַגּוּף.",
+      "translit": "'. Khashev et mhiruyot haguf binkuda B v-C. V. Khashev et shki'at hakfits hamaksima'lit le'akhar hamifgash im haguf.",
+      "ru": "а. Рассчитайте скорости тела в точках B и C. б. Рассчитайте максимальную деформацию пружины после удара с телом.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 43,
+      "he": "שאלה 7.7: מחליק שמסתו m = 2_{kg} משוחרר ממצב מנוחה בנקודה A בקצה העליון של המוט העקוס ונע לאורך קטע מעגלי חסר חיכוך במישור האנכי.",
+      "he_niqqud": "שְׁאֵלָה 7.7: מַחְלִיק שֶׁמַּסָּתוֹ m = 2_{kg} מְשֻׁחְרָר מִמַּצָּב מְנוּחָה בִּנְקֻדָּה A בַּקָּצֶה הָעֶלְיוֹן שֶׁל הַמּוֹט הֶעָקוּס וְנָע לְאֹרֶךְ קֶטַע מַעְגָּלִי חֲסַר חִכּוּךְ בַּמִּישׁוֹר הָאֲנָכִי.",
+      "translit": "She'ela 7.7: makhlik shemasato m = 2_{kg} mshukhrar mimatsav mnukha binkuda A bakatse ha'elyon shel hamot he'akus ven'a le'orekh ket'a ma'gali khasar khikukh bamishor ha'anakhi.",
+      "ru": "Вопрос 7.7: Ползун массой m = 2 кг освобождается из состояния покоя в точке A на верхнем конце изогнутого стержня и движется по круговому участку без трения в вертикальной плоскости.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 44,
+      "he": "בנקודה B המחליק נכנס לקטע אופקי מחוספס של המוט ובנקודה D הוא פוגע בקפיץ הנמצא במצב רפוי.",
+      "he_niqqud": "בִּנְקֻדָּה B הַמַּחְלִיק נִכְנָס לְקֶטַע אָפְקִי מְחֻסְפָּס שֶׁל הַמּוֹט וּבִנְקֻדָּה D הוּא פּוֹגֵעַ בִּקְפִיץ הַנִּמְצָא בְּמַצָּב רָפוּי.",
+      "translit": "Binkuda B hamakhlik nikhnas lket'a ofki mkhuspas shel hamot uvinkuda D hu' poge'a bikfits hanimts'a bmatsav rafuy.",
+      "ru": "В точке B ползун переходит на шероховатый горизонтальный участок стержня, а в точке D ударяет пружину, находящуюся в ненапряженном состоянии.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 45,
+      "he": "נתון: מקדם החיכוך הקינטי בין המחליק לבין הקטע האופקי של המוט BD μ_k = 0.2, קבוע הקפיץ k = 500_{N/m}.",
+      "he_niqqud": "נָתוּן: מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַמַּחְלִיק לְבֵין הַקֶּטַע הָאֳפְקִי שֶׁל הַמּוֹט BD μ_k = 0.2, קְבוּעַ הַקְּפִיץ k = 500_{N/m}.",
+      "translit": "Natun: mkadem hakhikukh hakineti ben hamakhlik lven haket'a ho'ofki shel hamot BD μ_k = 0.2, kvu'a hakfits k = 500_{N/m}.",
+      "ru": "Дано: Коэффициент кинетического трения между ползуном и горизонтальным участком стержня BD: μ_k = 0.2, жесткость пружины: k = 500 Н/м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 46,
+      "he": "א. חשב את מהירותו של המחליק בנקודה B. ב. חשב את מהירותו של המחליק בנקודה D. ג. חשב את השקיעה המקסימלית של הקפיץ לאחר שפוגע בו המחליק. הערה: יש להזניח את כוח החיכוך במסלול האופקי לאחר פגיעתו של המחליק בקפיץ.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל הַמַּחְלִיק בִּנְקֻדָּה B. ב. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל הַמַּחְלִיק בִּנְקֻדָּה D. ג. חַשֵּׁב אֶת הַשְּׁקִיעָה הַמַּקְסִימָלִית שֶׁל הַקְּפִיץ לְאַחַר שֶׁפּוֹגֵעַ בּוֹ הַמַּחְלִיק. הֶעָרָה: יֵשׁ לְהַזְנִיחַ אֶת כֹּחַ הַחִכּוּךְ בַּמַּסְלוּל הָאֳפְקִי לְאַחַר פְּגִיעָתוֹ שֶׁל הַמַּחְלִיק בַּקְּפִיץ.",
+      "translit": "'. Khashev et mhiruto shel hamakhlik binkuda B. V. Khashev et mhiruto shel hamakhlik binkuda D. G. Khashev et hashki'a hamaksimalit shel hakfits le'akhar shepoge'a bo hamakhlik. He'ara: yesh lhazniakh et koakh hakhikukh bamaslul ho'ofki le'akhar pgi'ato shel hamakhlik bakfits.",
+      "ru": "а. Рассчитайте скорость ползуна в точке B. б. Рассчитайте скорость ползуна в точке D. в. Рассчитайте максимальную деформацию пружины после удара ползуна. Примечание: Пренебречь силой трения на горизонтальном участке после удара о пружину.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 47,
+      "he": "שאלה 7.8: כדור שמסתו m = 50g נורה מאקדח (אקדח משחק) כמתואר באיור לשאלה.",
+      "he_niqqud": "שְׁאֵלָה 7.8: כַּדּוּר שֶׁמַּסָּתוֹ m = 50g נוֹרֶה מֵאֶקְדָּח (אֶקְדַּח מִשְׂחָק) כַּמְתֹאָר בָּאִיּוּר לַשְּׁאֵלָה.",
+      "translit": "She'ela 7.8: kadur shemasato m = 50g nore me'ekdakh (ekdakh miskhak) kamto'ar ba'iyur lashe'ela.",
+      "ru": "Вопрос 7.8: Шарик массой m = 50 г выстреливается из игрушечного пистолета, как показано на рисунке к задаче.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 48,
+      "he": "מנגנון הירי של האקדח הינו קפיץ לחיצה בעל קבוע k = 500_{N/m}, ואורך במצב משוחרר 150mm.",
+      "he_niqqud": "מַנְגְּנוֹן הַיְּרִי שֶׁל הָאֶקְדָּח הִנּוֹ קְפִיץ לְחִיצָה בַּעַל קְבוּעַ k = 500_{N/m}, וְאֹרֶךְ בְּמַצָּב מְשֻׁחְרָר 150mm.",
+      "translit": "Mangnon hayri shel ha'ekdakh hino kfits lkhitsa ba'al kvu'a k = 500_{N/m}, ve'orekh bmatsav mshukhrar 150mm.",
+      "ru": "Спусковой механизм пистолета представляет собой пружину сжатия жесткостью k = 500 Н/м и длиной в свободном состоянии 150 мм.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 49,
+      "he": "במצב התחלתי הקפיץ נלחץ לאורך של 50mm ובזמן הירי הוא משוחרר.",
+      "he_niqqud": "בְּמַצָּב הַתְחָלָתִי הַקְּפִיץ נִלְחַץ לְאֹרֶךְ שֶׁל 50mm וּבִזְמַן הַיְּרִי הוּא מְשֻׁחְרָר.",
+      "translit": "Bmatsav hatkhalati hakfits nilkhats le'orekh shel 50mm uvizman hayri hu' mshukhrar.",
+      "ru": "В начальном состоянии пружина сжата на 50 мм, а во время выстрела освобождается.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 50,
+      "he": "קנה האקדח אופקי ונמצא בגובה של 2.5m מעל פני הקרקע.",
+      "he_niqqud": "קְנֵה הָאֶקְדָּח אָפְקִי וְנִמְצָא בְּגֹבַהּ שֶׁל 2.5m מֵעַל פְּנֵי הַקַּרְקַע.",
+      "translit": "Kne ha'ekdakh ofki venimts'a bgovah shel 2.5m me'al pne hakark'a.",
+      "ru": "Ствол пистолета горизонтален и находится на высоте 2.5 м над землей.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 51,
+      "he": "א. חשב את מהירות הכדור ברגע עזיבתו את הקנה בנקודה A. ב. חשב את מהירות הכדור בזמן פגיעתו בקרקע בנקודה B (שיעור וכיוון). ג. חשב את המרחק L.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר בְּרֶגַע עֲזִיבָתוֹ אֶת הַקָּנֶה בִּנְקֻדָּה A. ב. חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר בִּזְמַן פְּגִיעָתוֹ בַּקַּרְקַע בִּנְקֻדָּה B (שִׁעוּר וְכִוּוּן). ג. חַשֵּׁב אֶת הַמֶּרְחָק L.",
+      "translit": "'. Khashev et mhirut hakadur breg'a azivato et hakane binkuda A. V. Khashev et mhirut hakadur bizman pgi'ato bakark'a binkuda B (shi'ur vekhivun). G. Khashev et hamerkhak L.",
+      "ru": "а. Рассчитайте скорость шарика в момент вылета из ствола в точке A. б. Рассчитайте скорость шарика в момент удара о землю в точке B (величину и направление). в. Рассчитайте дальность полета L.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 52,
+      "he": "הערה: - יש להתייחס לכדור כנקודה חומרית. - יש להזניח את החיכוך בקנה ואת התנגדות האוויר.",
+      "he_niqqud": "הֶעָרָה: - יֵשׁ לְהִתְיַחֵס לַכַּדּוּר כִּנְקֻדָּה חָמְרִית. - יֵשׁ לְהַזְנִיחַ אֶת הַחִכּוּךְ בַּקָּנֶה וְאֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "He'ara: - yesh lhityakhes lakadur kinkuda khamrit. - yesh lhazniakh et hakhikukh bakane ve'et hitnagdut ha'avir.",
+      "ru": "Примечание: Шарик считать материальной точкой; Трение в стволе и сопротивление воздуха не учитывать.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 53,
+      "he": "פרק 8: בעיות בתחום אנרגיה ומתקף ותנע שאלה 8.1:",
+      "he_niqqud": "פֶּרֶק 8: בְּעָיוֹת בִּתְחוּם אֵנֶרְגְּיָה וּמַתְקָף וְתֶנַע שְׁאֵלָה 8.1:",
+      "translit": "Perek 8: be'ayot bitkhum energya umatkaf veten'a she'ela 8.1:",
+      "ru": "Глава 8: Задачи в области энергии, импульса силы и количества движения. Вопрос 8.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 54,
+      "he": "גוף A שמסתו m_A = 10_{kg} משוחרר ממצב מנוחה בנקודה B בקצה העליון של מסלול מעגלי חסר חיכוך. רדיוס המעגל r = 5_m.",
+      "he_niqqud": "גּוּף A שֶׁמַּסָּתוֹ m_A = 10_{kg} מְשֻׁחְרָר מִמַּצָּב מְנוּחָה בִּנְקֻדָּה B בַּקָּצֶה הָעֶלְיוֹן שֶׁל מַסְלוּל מַעְגָּלִי חֲסַר חִכּוּךְ. רַדְיוּס הַמַּעְגָּל r = 5_m.",
+      "translit": "Guf A shemasato m_A = 10_{kg} mshukhrar mimatsav mnukha binkuda B bakatse ha'elyon shel maslul ma'gali khasar khikukh. Radyus hama'gal r = 5_m.",
+      "ru": "Тело A массой m_A = 10 кг освобождается из состояния покоя в точке B на верхнем краю круговой траектории без трения. Радиус окружности r = 5 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 55,
+      "he": "בקצה התחתון של המסלול, בנקודה D פוגע גוף A בבלוק C ונתקע בו. מסת הבלוק C היא m_C = 50_{kg}.",
+      "he_niqqud": "בַּקָּצֶה הַתַּחְתּוֹן שֶׁל הַמַּסְלוּל, בִּנְקֻדָּה D פּוֹגֵעַ גּוּף A בְּבְּלוֹק C וְנִתְקָע בּוֹ. מַסַּת הַבְּלוֹק C הִיא m_C = 50_{kg}.",
+      "translit": "Bakatse hatakhton shel hamaslul, binkuda D poge'a guf A bblok C venitk'a bo. Masat hablok C hi' m_C = 50_{kg}.",
+      "ru": "В нижней точке траектории D тело A ударяется о блок C и застревает в нем. Масса блока C составляет m_C = 50 кг.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 56,
+      "he": "לאחר הפגיעה נעה המערכת \"גוף-בלוק\" לאורך מישור אופקי מחוספס. מקדם החיכוך הקינטי בין הבלוק לבין המישור הוא μ_k = 0.3 (ראה איור לשאלה 4).",
+      "he_niqqud": "לְאַחַר הַפְּגִיעָה נָעָה הַמַּעֲרֶכֶת \"גּוּף-בְּלוֹק\" לְאֹרֶךְ מִישׁוֹר אָפְקִי מְחֻסְפָּס. מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַבְּלוֹק לְבֵין הַמִּישׁוֹר הוּא μ_k = 0.3 (רְאֵה אִיּוּר לִשְׁאֵלָה 4).",
+      "translit": "Le'akhar hapgi'a na'a hama'arekhet \"guf-blok\" le'orekh mishor ofki mkhuspas. Mkadem hakhikukh hakineti ben hablok lven hamishor hu' μ_k = 0.3 (re'e iyur lish'ela 4).",
+      "ru": "После удара система «тело–блок» движется по шероховатой горизонтальной плоскости. Коэффициент кинетического трения между блоком и плоскостью равен μ_k = 0.3 (см. рисунок к задаче 4).",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 57,
+      "he": "א. חשב את מהירותו של גוף A בנקודה D לפני פגיעתו בבלוק C. ב. חשב את מהירותה של המערכת \"גוף-בלוק\" מיד לאחר ההתנגשות. ג. חשב את הכוח הממוצע שפעל בין בלוק C לבין גוף A במהלך ההתנגשות. בחישוב זה ניתן להזניח שזמן ההתנגשות הוא \\Delta t = 0.05_{sec}. ד. חשב את המרחק s שתעבור המערכת \"גוף-בלוק\" לאורך המישור המחוספס עד לעצירתה.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל גּוּף A בִּנְקֻדָּה D לִפְנֵי פְּגִיעָתוֹ בְּבְּלוֹק C. ב. חַשֵּׁב אֶת מְהִירוּתָהּ שֶׁל הַמַּעֲרֶכֶת \"גּוּף-בְּלוֹק\" מִיָּד לְאַחַר הַהִתְנַגְּשׁוּת. ג. חַשֵּׁב אֶת הַכֹּחַ הַמְּמֻצָּע שֶׁפָּעַל בֵּין בְּלוֹק C לְבֵין גּוּף A בְּמַהֲלַךְ הַהִתְנַגְּשׁוּת. בְּחִשּׁוּב זֶה נִיתָן לְהַזְנִיחַ שֶׁזְּמַן הַהִתְנַגְּשׁוּת הוּא \\Delta t = 0.05_{sec}. ד. חַשֵּׁב אֶת הַמֶּרְחָק s שֶׁתַּעֲבֹר הַמַּעֲרֶכֶת \"גּוּף-בְּלוֹק\" לְאֹרֶךְ הַמִּישׁוֹר הַמְּחֻסְפָּס עַד לַעֲצִירָתָהּ.",
+      "translit": "'. Khashev et mhiruto shel guf A binkuda D lifne pgi'ato bblok C. V. Khashev et mhirutah shel hama'arekhet \"guf-blok\" miyad le'akhar hahitnagshut. G. Khashev et hakoakh hammuts'a shepa'al ben blok C lven guf A bmahalakh hahitnagshut. Bkhishuv ze nitan lhazniakh shezman hahitnagshut hu' \\Delta t = 0.05_{sec}. D. Khashev et hamerkhak s sheta'avor hama'arekhet \"guf-blok\" le'orekh hamishor hamkhuspas ad la'atsiratah.",
+      "ru": "а. Рассчитайте скорость тела A в точке D перед ударом о блок C. б. Рассчитайте скорость системы «тело–блок» сразу после столкновения. в. Рассчитайте среднюю силу, действовавшую между блоком C и телом A во время соударения, если время удара составляет Δt = 0.05 с. г. Рассчитайте расстояние s, которое пройдет система «тело–блок» по шероховатой плоскости до полной остановки.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 58,
+      "he": "שאלה 8.2: גוף A שמסתו m_A = 0.8_{kg} משוחרר ממצב מנוחה בנקודה B שבקצה העליון של מסלול עקום חסר חיכוך במישור אנכי, כמתואר באיור לשאלה 4.",
+      "he_niqqud": "שְׁאֵלָה 8.2: גּוּף A שֶׁמַּסָּתוֹ m_A = 0.8_{kg} מְשֻׁחְרָר מִמַּצָּב מְנוּחָה בִּנְקֻדָּה B שֶׁבִּקְצֵה הָעֶלְיוֹן שֶׁל מַסְלוּל עָקוּם חֲסַר חִכּוּךְ בַּמִּישׁוֹר אֲנָכִי, כַּמְתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4.",
+      "translit": "She'ela 8.2: guf A shemasato m_A = 0.8_{kg} mshukhrar mimatsav mnukha binkuda B shebiktse ha'elyon shel maslul akum khasar khikukh bamishor anakhi, kamto'ar ba'iyur lish'ela 4.",
+      "ru": "Вопрос 8.2: Тело A массой m_A = 0.8 кг отпускается из состояния покоя в точке B на верхнем конце искривленной траектории без трения в вертикальной плоскости, как показано на рисунке к задаче 4.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 59,
+      "he": "בקצה התחתון של המסלול, בנקודה D הגוף פועל בבלוק C שמסתו m_C = 1.6_{kg} ונתקע בו.",
+      "he_niqqud": "בַּקָּצֶה הַתַּחְתּוֹן שֶׁל הַמַּסְלוּל, בִּנְקֻדָּה D הַגּוּף פּוֹעֵל בְּבְּלוֹק C שֶׁמַּסָּתוֹ m_C = 1.6_{kg} וְנִתְקָע בּוֹ.",
+      "translit": "Bakatse hatakhton shel hamaslul, binkuda D haguf po'el bblok C shemasato m_C = 1.6_{kg} venitk'a bo.",
+      "ru": "В нижней точке D тело ударяет блок C массой m_C = 1.6 кг и застревает в нем.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 60,
+      "he": "לאחר הפגיעה נעה המערכת \"גוף-בלוק\" לאורך מישור אופקי חסר חיכוך שבקצהו נמצא קפיץ במצב רפוי. קבוע הקפיץ k = 1.2_{kN/m}.",
+      "he_niqqud": "לְאַחַר הַפְּגִיעָה נָעָה הַמַּעֲרֶכֶת \"גּוּף-בְּלוֹק\" לְאֹרֶךְ מִישׁוֹר אָפְקִי חֲסַר חִכּוּךְ שֶׁבִּקְצֵהוּ נִמְצָא קְפִיץ בְּמַצָּב רָפוּי. קְבוּעַ הַקְּפִיץ k = 1.2_{kN/m}.",
+      "translit": "Le'akhar hapgi'a na'a hama'arekhet \"guf-blok\" le'orekh mishor ofki khasar khikukh shebiktsehu nimts'a kfits bmatsav rafuy. Kvu'a hakfits k = 1.2_{kN/m}.",
+      "ru": "После удара система «тело–блок» движется по гладкой горизонтальной плоскости, на конце которой находится ненапряженная пружина. Жесткость пружины k = 1.2 кН/м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 61,
+      "he": "א. חשב את מהירותו של גוף A בנקודה D לפני פגיעתו בבלוק C. ב. חשב את מהירותה של המערכת \"גוף-בלוק\" מיד לאחר ההתנגשות. ג. חשב את ההתכווצות המרבית של הקפיץ לאחר שהמערכת \"גוף-בלוק\" פוגעת בו.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל גּוּף A בִּנְקֻדָּה D לִפְנֵי פְּגִיעָתוֹ בְּבְּלוֹק C. ב. חַשֵּׁב אֶת מְהִירוּתָהּ שֶׁל הַמַּעֲרֶכֶת \"גּוּף-בְּלוֹק\" מִיָּד לְאַחַר הַהִתְנַגְּשׁוּת. ג. חַשֵּׁב אֶת הַהִתְכַּוְּצוּת הַמַּרְבִּית שֶׁל הַקְּפִיץ לְאַחַר שֶׁהַמַּעֲרֶכֶת \"גּוּף-בְּלוֹק\" פּוֹגַעַת בּוֹ.",
+      "translit": "'. Khashev et mhiruto shel guf A binkuda D lifne pgi'ato bblok C. V. Khashev et mhirutah shel hama'arekhet \"guf-blok\" miyad le'akhar hahitnagshut. G. Khashev et hahitkavtsut hamarbit shel hakfits le'akhar shehama'arekhet \"guf-blok\" poga'at bo.",
+      "ru": "а. Рассчитайте скорость тела A в точке D перед соударением с блоком C. б. Рассчитайте скорость системы «тело–блок» сразу после столкновения. в. Рассчитайте максимальное сжатие пружины после удара системы «тело–блок» о нее.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 62,
+      "he": "שאלה 8.3: גוף A שמסתו m_A = 1_{kg} משוחרר ממצב מנוחה בנקודה 1 שבקצה העליון של מסלול מעגלי חסר חיכוך במישור אנכי, כמתואר באיור לשאלה 4. רדיוס המסלול R = 3_m.",
+      "he_niqqud": "שְׁאֵלָה 8.3: גּוּף A שֶׁמַּסָּתוֹ m_A = 1_{kg} מְשֻׁחְרָר מִמַּצָּב מְנוּחָה בִּנְקֻדָּה 1 שֶׁבִּקְצֵה הָעֶלְיוֹן שֶׁל מַסְלוּל מַעְגָּלִי חֲסַר חִכּוּךְ בַּמִּישׁוֹר אֲנָכִי, כַּמְתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4. רַדְיוּס הַמַּסְלוּל R = 3_m.",
+      "translit": "She'ela 8.3: guf A shemasato m_A = 1_{kg} mshukhrar mimatsav mnukha binkuda 1 shebiktse ha'elyon shel maslul ma'gali khasar khikukh bamishor anakhi, kamto'ar ba'iyur lish'ela 4. Radyus hamaslul R = 3_m.",
+      "ru": "Вопрос 8.3: Тело A массой m_A = 1 кг отпускается из состояния покоя в точке 1 на верхнем краю круговой траектории без трения в вертикальной плоскости, как показано на рисунке к задаче 4. Радиус пути R = 3 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 63,
+      "he": "בקצה התחתון של המסלול, בנקודה 2 הגוף פוגע בבלוק B שמסתו m_B = 2_{kg} ונתקע בו.",
+      "he_niqqud": "בַּקָּצֶה הַתַּחְתּוֹן שֶׁל הַמַּסְלוּל, בִּנְקֻדָּה 2 הַגּוּף פּוֹגֵעַ בְּבְּלוֹק B שֶׁמַּסָּתוֹ m_B = 2_{kg} וְנִתְקָע בּוֹ.",
+      "translit": "Bakatse hatakhton shel hamaslul, binkuda 2 haguf poge'a bblok B shemasato m_B = 2_{kg} venitk'a bo.",
+      "ru": "В нижней точке 2 тело ударяет блок B массой m_B = 2 кг и застревает в нем.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 64,
+      "he": "לאחר הפגיעה נעה המערכת \"גוף - בלוק\" לאורך מישור אופקי מחוספס בעל מקדם חיכוך קינטי μ_k = 0.2 בין המישור לבין הבלוק. בנקודה 3 של המישור האופקי המערכת \"גוף – בלוק\" נעצרת.",
+      "he_niqqud": "לְאַחַר הַפְּגִיעָה נָעָה הַמַּעֲרֶכֶת \"גּוּף - בְּלוֹק\" לְאֹרֶךְ מִישׁוֹר אָפְקִי מְחֻסְפָּס בַּעַל מְקַדֵּם חִכּוּךְ קִינֶטִי μ_k = 0.2 בֵּין הַמִּישׁוֹר לְבֵין הַבְּלוֹק. בִּנְקֻדָּה 3 שֶׁל הַמִּישׁוֹר הָאֳפְקִי הַמַּעֲרֶכֶת \"גּוּף – בְּלוֹק\" נֶעֱצֶרֶת.",
+      "translit": "Le'akhar hapgi'a na'a hama'arekhet \"guf - blok\" le'orekh mishor ofki mkhuspas ba'al mkadem khikukh kineti μ_k = 0.2 ben hamishor lven hablok. Binkuda 3 shel hamishor ho'ofki hama'arekhet \"guf – blok\" ne'etseret.",
+      "ru": "После соударения система «тело–блок» движется по шероховатой горизонтальной плоскости с коэффициентом трения скольжения μ_k = 0.2 между плоскостью и блоком. В точке 3 горизонтальной плоскости система «тело–блок» останавливается.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 65,
+      "he": "א. חשב את מהירותו של גוף A בנקודה 2 לפני פגיעתו בבלוק B. ב. חשב את מהירותה של המערכת \"גוף – בלוק\" מיד לאחר ההתנגשות. ג. חשב את המרחק d שעוברת המערכת \"גוף – בלוק\" מרגע ההתנגשות עד לעצירתה. הערה: להזניח את מימדי הגופים ולהתייחס אליהם כנקודות חומריות.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל גּוּף A בִּנְקֻדָּה 2 לִפְנֵי פְּגִיעָתוֹ בְּבְּלוֹק B. ב. חַשֵּׁב אֶת מְהִירוּתָהּ שֶׁל הַמַּעֲרֶכֶת \"גּוּף – בְּלוֹק\" מִיָּד לְאַחַר הַהִתְנַגְּשׁוּת. ג. חַשֵּׁב אֶת הַמֶּרְחָק d שֶׁעוֹבֶרֶת הַמַּעֲרֶכֶת \"גּוּף – בְּלוֹק\" מֵרֶגַע הַהִתְנַגְּשׁוּת עַד לַעֲצִירָתָהּ. הֶעָרָה: לְהַזְנִיחַ אֶת מֵמַדֵּי הַגּוּפִים וּלְהִתְיַחֵס אֲלֵיהֶם כִּנְקֻדּוֹת חָמְרִיּוֹת.",
+      "translit": "'. Khashev et mhiruto shel guf A binkuda 2 lifne pgi'ato bblok B. V. Khashev et mhirutah shel hama'arekhet \"guf – blok\" miyad le'akhar hahitnagshut. G. Khashev et hamerkhak d she'overet hama'arekhet \"guf – blok\" mereg'a hahitnagshut ad la'atsiratah. He'ara: lhazniakh et memade hagufim ulhityakhes alehem kinkudot khamriyot.",
+      "ru": "а. Рассчитайте скорость тела A в точке 2 перед ударом о блок B. б. Рассчитайте скорость системы «тело–блок» сразу после столкновения. в. Рассчитайте расстояние d, пройденное системой «тело–блок» от момента удара до остановки. Примечание: Пренебречь размерами тел и рассматривать их как материальные точки.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 66,
+      "he": "שאלה 8.4: גוף A שמסתו m_A = 2kg משוחרר ממצב מנוחה בנקודה B בקצה העליון של מסלול עקום חסר חיכוך במישור אנכי.",
+      "he_niqqud": "שְׁאֵלָה 8.4: גּוּף A שֶׁמַּסָּתוֹ m_A = 2kg מְשֻׁחְרָר מִמַּצָּב מְנוּחָה בִּנְקֻדָּה B בַּקָּצֶה הָעֶלְיוֹן שֶׁל מַסְלוּל עָקוּם חֲסַר חִכּוּךְ בַּמִּישׁוֹר אֲנָכִי.",
+      "translit": "She'ela 8.4: guf A shemasato m_A = 2kg mshukhrar mimatsav mnukha binkuda B bakatse ha'elyon shel maslul akum khasar khikukh bamishor anakhi.",
+      "ru": "Вопрос 8.4: Тело A массой m_A = 2 кг отпускается из состояния покоя в точке B на верхнем краю криволинейной траектории без трения в вертикальной плоскости.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 67,
+      "he": "הגוף מחובר באופן קבוע לקפיץ בעל קבוע k = 50_{N/m} באורך של l_0 = 0.3_m במצב רפוי.",
+      "he_niqqud": "הַגּוּף מְחֻבָּר בְּאֹפֶן קָבוּעַ לִקְפִיץ בַּעַל קְבוּעַ k = 50_{N/m} בְּאֹרֶךְ שֶׁל l_0 = 0.3_m בְּמַצָּב רָפוּי.",
+      "translit": "Haguf mkhubar be'ofen kavu'a likfits ba'al kvu'a k = 50_{N/m} be'orekh shel l_0 = 0.3_m bmatsav rafuy.",
+      "ru": "Тело жестко прикреплено к пружине жесткостью k = 50 Н/м и начальной длиной в ненапряженном состоянии l_0 = 0.3 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 68,
+      "he": "בקצה התחתון של המסלול פוגע גוף A בגוף B שמסתו m_B = 1kg. בשל ההתנגשות, שני הגופים נעצרים לאחר שעברו מרחק d בקטע האופקי.",
+      "he_niqqud": "בַּקָּצֶה הַתַּחְתּוֹן שֶׁל הַמַּסְלוּל פּוֹגֵעַ גּוּף A בְּגוּף B שֶׁמַּסָּתוֹ m_B = 1kg. בְּשֶׁל הַהִתְנַגְּשׁוּת, שְׁנֵי הַגּוּפִים נֶעֱצָרִים לְאַחַר שֶׁעָבְרוּ מֶרְחָק d בַּקֶּטַע הָאֳפְקִי.",
+      "translit": "Bakatse hatakhton shel hamaslul poge'a guf A bguf B shemasato m_B = 1kg. Bshel hahitnagshut, shne hagufim ne'etsarim le'akhar she'avru merkhak d baket'a ho'ofki.",
+      "ru": "В нижней точке траектории тело A ударяет тело B массой m_B = 1 кг. В результате соударения оба тела останавливаются после прохождения расстояния d по горизонтальному участку.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 69,
+      "he": "א. חשב את מהירותו של גוף A ברגע לפני פגיעתו בגוף B. ב. חשב את מהירותם של הגופים המתחברים מיד לאחר ההתנגשות. ג. חשב את אורך הקפיץ ברגע עצירת הגופים. ד. חשב את המרחק d. הערה: יש להזניח את ממדי הגופים.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל גּוּף A בְּרֶגַע לִפְנֵי פְּגִיעָתוֹ בְּגוּף B. ב. חַשֵּׁב אֶת מְהִירוּתָם שֶׁל הַגּוּפִים הַמִּתְחַבְּרִים מִיָּד לְאַחַר הַהִתְנַגְּשׁוּת. ג. חַשֵּׁב אֶת אֹרֶךְ הַקְּפִיץ בְּרֶגַע עֲצִירַת הַגּוּפִים. ד. חַשֵּׁב אֶת הַמֶּרְחָק d. הֶעָרָה: יֵשׁ לְהַזְנִיחַ אֶת מְמַדֵּי הַגּוּפִים.",
+      "translit": "'. Khashev et mhiruto shel guf A breg'a lifne pgi'ato bguf B. V. Khashev et mhirutam shel hagufim hamitkhabrim miyad le'akhar hahitnagshut. G. Khashev et orekh hakfits breg'a atsirat hagufim. D. Khashev et hamerkhak d. He'ara: yesh lhazniakh et mmade hagufim.",
+      "ru": "а. Рассчитайте скорость тела A непосредственно перед ударом о тело B. б. Рассчитайте скорость слипшихся тел сразу после удара. в. Рассчитайте длину пружины в момент остановки тел. г. Рассчитайте расстояние d. Примечание: Пренебречь размерами тел.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 70,
+      "he": "שאלה 8.5: מהירות החבילה שמסתה m_1 = 10_{kg} בנקודה A בקצה העליון של מסלול עקום חסר חיכוך במישור אנכי שווה ל- 2.5_{m/sec}.",
+      "he_niqqud": "שְׁאֵלָה 8.5: מְהִירוּת הַחֲבִילָה שֶׁמַּסָּתָהּ m_1 = 10_{kg} בִּנְקֻדָּה A בַּקָּצֶה הָעֶלְיוֹן שֶׁל מַסְלוּל עָקוּם חֲסַר חִכּוּךְ בַּמִּישׁוֹר אֲנָכִי שָׁוָה לְ- 2.5_{m/sec}.",
+      "translit": "She'ela 8.5: mhirut hakhavila shemasatah m_1 = 10_{kg} binkuda A bakatse ha'elyon shel maslul akum khasar khikukh bamishor anakhi shava l- 2.5_{m/sec}.",
+      "ru": "Вопрос 8.5: Скорость пакета массой m_1 = 10 кг в точке A на верхнем краю криволинейной траектории без трения в вертикальной плоскости равна 2.5 м/с.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 71,
+      "he": "בקצה התחתון של המסלול בנקודה B, החבילה נכנסת לעגלה הנמצאת במנוחה על גבי מסלול אופקי חסר חיכוך. מסתה של העגלה m_2 = 40_{kg}.",
+      "he_niqqud": "בַּקָּצֶה הַתַּחְתּוֹן שֶׁל הַמַּסְלוּל בִּנְקֻדָּה B, הַחֲבִילָה נִכְנֶסֶת לַעֲגָלָה הַנִּמְצֵאת בִּמְנוּחָה עַל גַּבֵּי מַסְלוּל אָפְקִי חֲסַר חִכּוּךְ. מַסָּתָהּ שֶׁל הָעֲגָלָה m_2 = 40_{kg}.",
+      "translit": "Bakatse hatakhton shel hamaslul binkuda B, hakhavila nikhneset la'agala hanimtse't bimnukha al gabe maslul ofki khasar khikukh. Masatah shel ha'agala m_2 = 40_{kg}.",
+      "ru": "В нижней точке траектории B пакет попадает в тележку, покоящуюся на горизонтальном пути без трения. Масса тележки m_2 = 40 кг.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 72,
+      "he": "עקב החיכוך בין החבילה לעגלה, החבילה נעצרת בעגלה והמערכת \"עגלה-חבילה\" נעה לאורך מישור אופקי חסר חיכוך, שבקצהו נמצא קפיץ במצב רפוי. קבוע הקפיץ: k = 1500_{N/m}.",
+      "he_niqqud": "עֵקֶב הַחִכּוּךְ בֵּין הַחֲבִילָה לַעֲגָלָה, הַחֲבִילָה נֶעֱצֶרֶת בָּעֲגָלָה וְהַמַּעֲרֶכֶת \"עֲגָלָה-חֲבִילָה\" נָעָה לְאֹרֶךְ מִישׁוֹר אָפְקִי חֲסַר חִכּוּךְ, שֶׁבִּקְצֵהוּ נִמְצָא קְפִיץ בְּמַצָּב רָפוּי. קְבוּעַ הַקְּפִיץ: k = 1500_{N/m}.",
+      "translit": "Ekev hakhikukh ben hakhavila la'agala, hakhavila ne'etseret ba'agala vehama'arekhet \"'agala-khavila\" na'a le'orekh mishor ofki khasar khikukh, shebiktsehu nimts'a kfits bmatsav rafuy. Kvu'a hakfits: k = 1500_{N/m}.",
+      "ru": "Из-за трения между пакетом и тележкой пакет останавливается относительно тележки, и система «тележка–пакет» движется по гладкой горизонтальной плоскости, на конце которой находится ненапряженная пружина. Жесткость пружины: k = 1500 Н/м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 73,
+      "he": "א. מהי מהירותה של החבילה בנקודה B לפני שהיא נכנסת לעגלה? ב. מהי מהירות של המערכת \"עגלה-חבילה\" לאחר עצירת החבילה בעגלה ? ג. חשב את השקיעה המקסימלית של הקפיץ לאחר שהמערכת \"עגלה-חבילה\" פוגעת בו ? הערות: - התייחס לחבילה כנקודה חומרית. - הזנח התנגדות האוויר.",
+      "he_niqqud": "א. מָה הִיא מְהִירוּתָהּ שֶׁל הַחֲבִילָה בִּנְקֻדָּה B לִפְנֵי שֶׁהִיא נִכְנֶסֶת לַעֲגָלָה? ב. מָה הִיא מְהִירוּת שֶׁל הַמַּעֲרֶכֶת \"עֲגָלָה-חֲבִילָה\" לְאַחַר עֲצִירַת הַחֲבִילָה בָּעֲגָלָה ? ג. חַשֵּׁב אֶת הַשְּׁקִיעָה הַמַּקְסִימָלִית שֶׁל הַקְּפִיץ לְאַחַר שֶׁהַמַּעֲרֶכֶת \"עֲגָלָה-חֲבִילָה\" פּוֹגַעַת בּוֹ ? הֶעָרוֹת: - הִתְיַחֵס לַחֲבִילָה כִּנְקֻדָּה חָמְרִית. - הַזְנַח הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "'. Ma hi' mhirutah shel hakhavila binkuda B lifne shehi' nikhneset la'agala? V. Ma hi' mhirut shel hama'arekhet \"'agala-khavila\" le'akhar atsirat hakhavila ba'agala ? G. Khashev et hashki'a hamaksimalit shel hakfits le'akhar shehama'arekhet \"'agala-khavila\" poga'at bo ? He'arot: - hityakhes lakhavila kinkuda khamrit. - haznakh hitnagdut ha'avir.",
+      "ru": "а. Какова скорость пакета в точке B перед попаданием в тележку? б. Какова скорость системы «тележка–пакет» после остановки пакета в тележке? в. Рассчитайте максимальное сжатие пружины после удара о нее системы «тележка–пакет»? Примечания: Считать пакет материальной точкой; Пренебречь сопротивлением воздуха.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 74,
+      "he": "פרק 9: בעיות בתחום אנרגיה ותנועה מעגלית שאלה 9.1:",
+      "he_niqqud": "פֶּרֶק 9: בְּעָיוֹת בִּתְחוּם אֵנֶרְגְּיָה וּתְנוּעָה מַעְגָּלִית שְׁאֵלָה 9.1:",
+      "translit": "Perek 9: be'ayot bitkhum energya utnu'a ma'galit she'ela 9.1:",
+      "ru": "Глава 9: Задачи в области энергии и кругового движения. Вопрос 9.1:",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 75,
+      "he": "בניסוי של רכב רקטי שמסתו 100 ק\"ג. מתחיל הרכב לנוע ממנוחה בנקודה A ומתקדם לאורך מסלול בקשת המעגל (AB), כאשר הוא מפעיל כוח דחף קבוע T השווה 2 ק\"נ.",
+      "he_niqqud": "בְּנִסּוּי שֶׁל רֶכֶב רָקֶטִי שֶׁמַּסָּתוֹ 100 ק\"ג. מַתְחִיל הָרֶכֶב לָנוּעַ מִמְּנוּחָה בִּנְקֻדָּה A וּמִתְקַדֵּם לְאֹרֶךְ מַסְלוּל בְּקֶשֶׁת הַמַּעְגָּל (AB), כַּאֲשֶׁר הוּא מַפְעִיל כֹּחַ דַּחַף קָבוּעַ T הַשָּׁוֶה 2 ק\"נ.",
+      "translit": "Bnisuy shel rekhev raketi shemasato 100 kg\". Matkhil harekhev lanu'a mimnukha binkuda A umitkadem le'orekh maslul bkeshet hama'gal (AB), ka'asher hu' maf'il koakh dakhaf kavu'a T hashave 2 kn\".",
+      "ru": "В эксперименте с ракетной тележкой массой 100 кг тележка начинает движение из состояния покоя в точке A и перемещается по дуге окружности (AB), развивая постоянную силу тяги T = 2 кН.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 76,
+      "he": "חשב את המרחק S שבו יעלה הרכב במעלה המישור המשופע לאחר הפסקת הפעולה של כוח הדחף (בנקודה B) ועד לעצירתו הסופית. רדיוס הקשת AB שווה 90 מטרים.",
+      "he_niqqud": "חַשֵּׁב אֶת הַמֶּרְחָק S שֶׁבּוֹ יַעֲלֶה הָרֶכֶב בְּמַעֲלֵה הַמִּישׁוֹר הַמְּשֻׁפָּע לְאַחַר הַפְסָקַת הַפְּעֻלָּה שֶׁל כֹּחַ הַדַּחַף (בִּנְקֻדָּה B) וְעַד לַעֲצִירָתוֹ הַסּוֹפִית. רַדְיוּס הַקֶּשֶׁת AB שָׁוֶה 90 מֶטְרִים.",
+      "translit": "Khashev et hamerkhak S shebo ya'ale harekhev bma'ale hamishor hamshup'a le'akhar hafsakat hape'ula shel koakh hadakhaf (binkuda B) ve'ad la'atsirato hasofit. Radyus hakeshet AB shave 90 metrim.",
+      "ru": "Рассчитайте расстояние S, на которое тележка поднимется по наклонной плоскости после прекращения действия силы тяги (в точке B) до полной остановки. Радиус дуги AB равен 90 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 77,
+      "he": "המישור המשופע בקטע S משיק משיק לקשת AB והזווית α שווה 30^∘. (g = 9.81_{m/sec^2}). הזנח את החיכוך בין גלגלי הרכב למסילה.",
+      "he_niqqud": "הַמִּישׁוֹר הַמְּשֻׁפָּע בַּקֶּטַע S מַשִּׁיק מַשִּׁיק לְקֶשֶׁת AB וְהַזָּוִית α שָׁוָה 30^∘. (g = 9.81_{m/sec^2}). הַזְנַח אֶת הַחִכּוּךְ בֵּין גַּלְגַּלֵּי הָרֶכֶב לַמְּסִלָּה.",
+      "translit": "Hamishor hamshup'a baket'a S mashik mashik lkeshet AB vehazavit α shava 30^∘. (g = 9.81_{m/sec^2}). Haznakh et hakhikukh ben galgale harekhev lamsila.",
+      "ru": "Наклонная плоскость на участке S касается дуги AB, угол наклона α = 30°. (g = 9.81 м/с²). Пренебрегите трением между колесами тележки и рельсами.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 78,
+      "he": "שאלה 9.2: משקלו של הילד עם האופניים הוא 620 ניוטון. מהירות התנועה של הילד בראש הגבעה (נקודה A) היא 18 קמ\"ש. מנקודה זו יורד הילד בתנועה חופשית, ללא שימוש בפדלים.",
+      "he_niqqud": "שְׁאֵלָה 9.2: מִשְׁקָלוֹ שֶׁל הַיֶּלֶד עִם הָאוֹפַנַּיִם הוּא 620 נְיוּטוֹן. מְהִירוּת הַתְּנוּעָה שֶׁל הַיֶּלֶד בְּרֹאשׁ הַגִּבְעָה (נְקֻדָּה A) הִיא 18 קמ\"ש. מִנְּקֻדָּה זוֹ יוֹרֵד הַיֶּלֶד בִּתְנוּעָה חָפְשִׁית, לְלֹא שִׁמּוּשׁ בִּפְדָלִים.",
+      "translit": "She'ela 9.2: mishkalo shel hayeled im ha'ofanayim hu' 620 nyuton. Mhirut hatnu'a shel hayeled bro'sh hagiv'a (nkuda A) hi' 18 kmsh\". Minkuda zo yored hayeled bitnu'a khofshit, llo' shimush bifdalim.",
+      "ru": "Вопрос 9.2: Вес ребенка вместе с велосипедом составляет 620 Н. Скорость движения ребенка на вершине холма (точка A) равна 18 км/ч. С этой точки ребенок съезжает свободно, без использования педалей.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 79,
+      "he": "חשב את הכוח הנורמאלי (N) שמפעיל המשטח על גלגלי האופניים בנקודה התחתונה (נקודה B), אם הגובה H הוא 12 מ' ורדיוס העיקום (R) בנקודה Bהוא 24 מ'. תאוצת הכובד: g = 9.81_{m/sec^2}",
+      "he_niqqud": "חַשֵּׁב אֶת הַכֹּחַ הַנּוֹרְמָאלִי (N) שֶׁמַּפְעִיל הַמִּשְׁטָח עַל גַּלְגַּלֵּי הָאוֹפַנַּיִם בַּנְּקֻדָּה הַתַּחְתּוֹנָה (נְקֻדָּה B), אִם הַגֹּבַהּ H הוּא 12 מ' וְרַדְיוּס הָעִקּוּם (R) בִּנְקֻדָּה B הוּא 24 מ'. תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}",
+      "translit": "Khashev et hakoakh hanorma'li (N) shemaf'il hamishtakh al galgale ha'ofanayim bankuda hatakhtona (nkuda B), im hagovah H hu' 12 m' veradyus ha'ikum (R) binkuda B hu' 24 m'. Te'utsat hakoved: g = 9.81_{m/sec^2}",
+      "ru": "Рассчитайте нормальную силу реакции опоры (N), действующую со стороны поверхности на колеса велосипеда в нижней точке (точка B), если высота H = 12 м, а радиус кривизны (R) в точке B равен 24 м. Ускорение свободного падения: g = 9.81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 80,
+      "he": "הערה: הנח כי הילד עם האופניים מהווה נקודה חומרית שמשקלה מופעל במרכז הכובד של המערכת \"ילד - אופניים\" (נקודה C) והזנח את החיכוך.",
+      "he_niqqud": "הֶעָרָה: הַנַּח כִּי הַיֶּלֶד עִם הָאוֹפַנַּיִם מְהַוֶּה נְקֻדָּה חָמְרִית שֶׁמִּשְׁקָלָהּ מֻפְעָל בְּמֶרְכַּז הַכֹּבֶד שֶׁל הַמַּעֲרֶכֶת \"יֶלֶד - אוֹפַנַּיִם\" (נְקֻדָּה C) וְהַזְנַח אֶת הַחִכּוּךְ.",
+      "translit": "He'ara: hanakh ki hayeled im ha'ofanayim mhave nkuda khamrit shemishkalah muf'al bmerkaz hakoved shel hama'arekhet \"yeled - ofanayim\" (nkuda C) vehaznakh et hakhikukh.",
+      "ru": "Примечание: Считать ребенка с велосипедом материальной точкой, вес которой приложен в центре тяжести системы «ребенок-велосипед» (точка C), и пренебречь трением.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 81,
+      "he": "שאלה 9.3: חבילות, שכל אחת מהן היא בעלת מסה של 1 ק\"ג, מגיעות מהסרט הנע אל משטח חלק לחלוטין של הרציף, במהירות (V_0) של 1 מ' לשנייה, כמתואר בתרשים. תאוצת הכובד: g = 9.81_{m/sec^2}",
+      "he_niqqud": "שְׁאֵלָה 9.3: חֲבִילוֹת, שֶׁכָּל אַחַת מֵהֶן הִיא בַּעֲלַת מַסָּה שֶׁל 1 ק\"ג, מַגִּיעוֹת מֵהַסֶּרֶט הַנָּע אֶל מִשְׁטָח חָלָק לַחֲלוּטִין שֶׁל הָרָצִיף, בִּמְהִירוּת (V_0) שֶׁל 1 מ' לִשְׁנִיָּה, כַּמְתֹאָר בַּתַּרְשִׁים. תְּאוּצַת הַכֹּבֶד: g = 9.81_{m/sec^2}",
+      "translit": "She'ela 9.3: khavilot, shekal akhat mehen hi' ba'alat masa shel 1 kg\", magi'ot mehaseret han'a el mishtakh khalak lakhalutin shel haratsif, bimhirut (V_0) shel 1 m' lishniya, kamto'ar batarshim. Te'utsat hakoved: g = 9.81_{m/sec^2}",
+      "ru": "Вопрос 9.3: Пакеты, каждый массой 1 кг, поступают с конвейера на абсолютно гладкую поверхность платформы со скоростью V_0 = 1 м/с, как показано на схеме. Ускорение свободного падения: g = 9.81 м/с²",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 82,
+      "he": "חשב את הזווית המרבית (\\phi_{max}), שבה כל חבילה מתחילה להתנתק ממשטח הרציף, אם רדיוס הרציף (R) הוא 0.5 מ'.",
+      "he_niqqud": "חַשֵּׁב אֶת הַזָּוִית הַמַּרְבִּית (\\phi_{max}), שֶׁבָּהּ כָּל חֲבִילָה מַתְחִילָה לְהִתְנַתֵּק מִמִּשְׁטַח הָרָצִיף, אִם רַדְיוּס הָרָצִיף (R) הוּא 0.5 מ'.",
+      "translit": "Khashev et hazavit hamarbit (\\phi_{max}), shebah kol khavila matkhila lhitnatek mimishtakh haratsif, im radyus haratsif (R) hu' 0.5 m'.",
+      "ru": "Рассчитайте предельный угол (φ_max), при котором пакет начинает отрываться от поверхности платформы, если радиус платформы R = 0.5 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 83,
+      "he": "שאלה 9.4: רוכב אופניים מתחיל את תנועתו מראש הגבעה A במהירות התחלתית (V_0). מנקודה זו, מתגלגלים האופניים בתנועה חופשית (ללא שימוש בדוושות) במסלול המעגלי.",
+      "he_niqqud": "שְׁאֵלָה 9.4: רוֹכֵב אוֹפַנַּיִם מַתְחִיל אֶת תְּנוּעָתוֹ מֵרֹאשׁ הַגִּבְעָה A בִּמְהִירוּת הַתְחָלָתִית (V_0). מִנְּקֻדָּה זוֹ, מִתְגַּלְגְּלִים הָאוֹפַנַּיִם בִּתְנוּעָה חָפְשִׁית (לְלֹא שִׁמּוּשׁ בִּדְוָשׁוֹת) בַּמַּסְלוּל הַמַּעְגָּלִי.",
+      "translit": "She'ela 9.4: rokhev ofanayim matkhil et tnu'ato mero'sh hagiv'a A bimhirut hatkhalatit (V_0). Minkuda zo, mitgalglim ha'ofanayim bitnu'a khofshit (llo' shimush bidvashot) bamaslul hama'gali.",
+      "ru": "Вопрос 9.4: Велосипедист начинает движение с вершины холма A с начальной скоростью V_0. С этой точки велосипед катится свободно (без вращения педалей) по круговой траектории.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 84,
+      "he": "א. חשב את מהירות הרוכב בנקודה התחתונה B. ב. חשב את כוח התגובה (N) המופעל על האופניים בנקודה B.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת הָרוֹכֵב בַּנְּקֻדָּה הַתַּחְתּוֹנָה B. ב. חַשֵּׁב אֶת כֹּחַ הַתְּגוּבָה (N) הַמֻּפְעָל עַל הָאוֹפַנַּיִם בַּנְּקֻדָּה B.",
+      "translit": "'. Khashev et mhirut harokhev bankuda hatakhtona B. V. Khashev et koakh hatguva (N) hamuf'al al ha'ofanayim bankuda B.",
+      "ru": "а. Рассчитайте скорость велосипедиста в нижней точке B. б. Рассчитайте силу реакции (N), действующую на велосипед в точке B.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 85,
+      "he": "נתונים: ✓ משקל של הרוכב יחד עם האופניים: W = 650N ✓ המהירות ההתחלתית: V_0 = 27km/h ✓ הגובה: H = 14m ✓ רדיוס העיקום של המסלול המעגלי: R = 10m",
+      "he_niqqud": "נְתוּנִים: ✓ מִשְׁקָל שֶׁל הָרוֹכֵב יַחַד עִם הָאוֹפַנַּיִם: W = 650N ✓ הַמְּהִירוּת הַהַתְחָלָתִית: V_0 = 27km/h ✓ הַגֹּבַהּ: H = 14m ✓ רַדְיוּס הָעִקּוּם שֶׁל הַמַּסְלוּל הַמַּעְגָּלִי: R = 10m",
+      "translit": "Ntunim: ✓ mishkal shel harokhev yakhad im ha'ofanayim: W = 650N ✓ hamhirut hahatkhalatit: V_0 = 27km/h ✓ hagovah: H = 14m ✓ radyus ha'ikum shel hamaslul hama'gali: R = 10m",
+      "ru": "Данные: Вес велосипедиста вместе с велосипедом: W = 650 Н; Начальная скорость: V_0 = 27 км/ч; Высота: H = 14 м; Радиус кривизны круговой траектории: R = 10 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 86,
+      "he": "הערות: ✓ הזנח את החיכוך. ✓ הנח כי הרוכב יחד עם האופניים מהווים נקודה חומרית, שמשקלה מופעל במרכז הכובד שלהם בנקודה C.",
+      "he_niqqud": "הֶעָרוֹת: ✓ הַזְנַח אֶת הַחִכּוּךְ. ✓ הַנַּח כִּי הָרוֹכֵב יַחַד עִם הָאוֹפַנַּיִם מְהַוִּים נְקֻדָּה חָמְרִית, שֶׁמִּשְׁקָלָהּ מֻפְעָל בְּמֶרְכַּז הַכֹּבֶד שֶׁלָּהֶם בִּנְקֻדָּה C.",
+      "translit": "He'arot: ✓ haznakh et hakhikukh. ✓ hanakh ki harokhev yakhad im ha'ofanayim mhavim nkuda khamrit, shemishkalah muf'al bmerkaz hakoved shelahem binkuda C.",
+      "ru": "Примечания: Пренебречь трением; Считать велосипедиста вместе с велосипедом материальной точкой, вес которой приложен в центре тяжести в точке C.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 87,
+      "he": "שאלה 9.5: גוף בצורת גליל, שמסתו 0.25kg משוחרר ממנוחה בנקודה A. הגוף מחלק מטה לאורך חוט מתכת קבוע וחסר חיכוך, וממשיך בתנועתו לאורך מסלול מעגלי בעל רדיוס 0.15m, כמתואר באיור לשאלה 5.",
+      "he_niqqud": "שְׁאֵלָה 9.5: גּוּף בְּצוּרַת גָּלִיל, שֶׁמַּסָּתוֹ 0.25kg מְשֻׁחְרָר מִמְּנוּחָה בִּנְקֻדָּה A. הַגּוּף מַחְלִיק מַטָּה לְאֹרֶךְ חוּט מַתֶּכֶת קָבוּעַ וַחֲסַר חִכּוּךְ, וּמַמְשִׁיךְ בִּתְנוּעָתוֹ לְאֹרֶךְ מַסְלוּל מַעְגָּלִי בַּעַל רַדְיוּס 0.15m, כַּמְתֹאָר בָּאִיּוּר לִשְׁאֵלָה 5.",
+      "translit": "She'ela 9.5: guf btsurat galil, shemasato 0.25kg mshukhrar mimnukha binkuda A. Haguf makhlik mata le'orekh khut matekhet kavu'a vakhasar khikukh, umamshikh bitnu'ato le'orekh maslul ma'gali ba'al radyus 0.15m, kamto'ar ba'iyur lish'ela 5.",
+      "ru": "Вопрос 9.5: Цилиндрическое тело массой 0.25 кг отпускается из состояния покоя в точке A. Тело скользит вниз по неподвижной проволоке без трения и продолжает движение по круговой траектории радиусом 0.15 м, как показано на рисунке к задаче 5.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 88,
+      "he": "א. חשב את מהירות הגליל ברגע שהוא עובר בנקודה B. ב. חשב את הכוח הפועל על הגלגל כאשר הוא עובר בנקודה B.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת הַגָּלִיל בְּרֶגַע שֶׁהוּא עוֹבֵר בִּנְקֻדָּה B. ב. חַשֵּׁב אֶת הַכֹּחַ הַפּוֹעֵל עַל הַגַּלְגַּל כַּאֲשֶׁר הוּא עוֹבֵר בִּנְקֻדָּה B.",
+      "translit": "'. Khashev et mhirut hagalil breg'a shehu' over binkuda B. V. Khashev et hakoakh hapo'el al hagalgal ka'asher hu' over binkuda B.",
+      "ru": "а. Рассчитайте скорость цилиндра в момент прохождения точки B. б. Рассчитайте силу, действующую на цилиндр при прохождении точки B.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 89,
+      "he": "שאלה 9.6: אופנוע קופץ מנקודה A לנקודה B דרך העמק, כמתואר באיור לשאלה 4.",
+      "he_niqqud": "שְׁאֵלָה 9.6: אוֹפַנּוֹעַ קוֹפֵץ מִנְּקֻדָּה A לִנְקֻדָּה B דֶּרֶךְ הָעֵמֶק, כַּמְתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4.",
+      "translit": "She'ela 9.6: ofno'a kofets minkuda A linkuda B derekh ha'emek, kamto'ar ba'iyur lish'ela 4.",
+      "ru": "Вопрос 9.6: Мотоцикл перепрыгивает из точки A в точку B через овраг, как показано на рисунке к задаче 4.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 90,
+      "he": "בנקודה A מהירות האופנוע v_0 היא אופקית.",
+      "he_niqqud": "בִּנְקֻדָּה A מְהִירוּת הָאוֹפַנּוֹעַ v_0 הִיא אָפְקִית.",
+      "translit": "Binkuda A mhirut ha'ofno'a v_0 hi' afkit.",
+      "ru": "В точке A скорость мотоцикла v_0 горизонтальна.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 91,
+      "he": "א. חשב מהו זמן הקפיצה מ- A ל-B. ב. חשב מהי המהירות ההתחלתית v_0 של האופנוע. ג. חשב מהי מהירות האופנוע v בנקודה B (שיעור וכיוון). הערות: 1. התייחס לאופנוע ולאופנוען כנקודה חומרית אחת. 2. התעלם מהתנגדות האוויר.",
+      "he_niqqud": "א. חַשֵּׁב מַהוּ זְמַן הַקְּפִיצָה מִ- A לְ-B. ב. חַשֵּׁב מָה הִיא הַמְּהִירוּת הַהַתְחָלָתִית v_0 שֶׁל הָאוֹפַנּוֹעַ. ג. חַשֵּׁב מָה הִיא מְהִירוּת הָאוֹפַנּוֹעַ v בִּנְקֻדָּה B (שִׁעוּר וְכִוּוּן). הֶעָרוֹת: 1. הִתְיַחֵס לָאוֹפַנּוֹעַ וְלָאוֹפַנּוֹעָן כִּנְקֻדָּה חָמְרִית אַחַת. 2. הִתְעַלֵּם מֵהִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "'. Khashev mahu zman hakfitsa mi- A l-B. V. Khashev ma hi' hamhirut hahatkhalatit v_0 shel ha'ofno'a. G. Khashev ma hi' mhirut ha'ofno'a v binkuda B (shi'ur vekhivun). He'arot: 1. Hityakhes la'ofno'a vela'ofno'an kinkuda khamrit akhat. 2. Hit'alem mehitnagdut ha'avir.",
+      "ru": "а. Рассчитайте время полета от A до B. б. Рассчитайте начальную скорость v_0 мотоцикла. в. Рассчитайте скорость мотоцикла v в точке B (величину и направление). Примечания: 1. Считать мотоцикл и мотоциклиста единой материальной точкой. 2. Пренебречь сопротивлением воздуха.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 92,
+      "he": "שאלה 9.7: קיץ 2014, שאלה 4 רוכב אופניים מתחיל את תנועתו ממנוחה בנקודה A ונע במסלול אנכי עקום, כמתואר באיור לשאלה 4.",
+      "he_niqqud": "שְׁאֵלָה 9.7: קַיִץ 2014, שְׁאֵלָה 4 רוֹכֵב אוֹפַנַּיִם מַתְחִיל אֶת תְּנוּעָתוֹ מִמְּנוּחָה בִּנְקֻדָּה A וְנָע בְּמַסְלוּל אֲנָכִי עָקוּם, כַּמְתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4.",
+      "translit": "She'ela 9.7: kayits 2014, she'ela 4 rokhev ofanayim matkhil et tnu'ato mimnukha binkuda A ven'a bmaslul anakhi akum, kamto'ar ba'iyur lish'ela 4.",
+      "ru": "Вопрос 9.7: Лето 2014, задача 4. Велосипедист начинает движение из состояния покоя в точке A и движется по вертикальной криволинейной траектории, как показано на рисунке к задаче 4.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 93,
+      "he": "הערות: 1. הנח שהאופניים והרוכב הם נקודה חומרית אחת. 2. הזנח את ההתנגדות לתנועה של המסלול ואת ההתנגדות של האוויר. 3. הנח תאוצת הכובד: g = 10_{m/sec^2}.",
+      "he_niqqud": "הֶעָרוֹת: 1. הַנַּח שֶׁהָאוֹפַנַּיִם וְהָרוֹכֵב הֵם נְקֻדָּה חָמְרִית אַחַת. 2. הַזְנַח אֶת הַהִתְנַגְּדוּת לִתְנוּעָה שֶׁל הַמַּסְלוּל וְאֶת הַהִתְנַגְּדוּת שֶׁל הָאֲוִיר. 3. הַנַּח תְּאוּצַת הַכֹּבֶד: g = 10_{m/sec^2}.",
+      "translit": "He'arot: 1. Hanakh sheha'ofanayim veharokhev hem nkuda khamrit akhat. 2. Haznakh et hahitnagdut litnu'a shel hamaslul ve'et hahitnagdut shel ha'avir. 3. Hanakh te'utsat hakoved: g = 10_{m/sec^2}.",
+      "ru": "Примечания: 1. Считать велосипед и велосипедиста единой материальной точкой. 2. Пренебречь сопротивлением движению со стороны траектории и сопротивлением воздуха. 3. Принять ускорение свободного падения g = 10 м/с².",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 94,
+      "he": "א. חשב את מהירות רוכב האופניים בנקודה B של המסלול. ב. חשב את מהירות רוכב האופניים בנקודה C של המסלול. ג. חשב את רדיוס העקמומיות המינימאלי הנדרש של המסלול בנקודה C כדי שהאופניים לא יאבדו את המגע עם הקרקע.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת רוֹכֵב הָאוֹפַנַּיִם בִּנְקֻדָּה B שֶׁל הַמַּסְלוּל. ב. חַשֵּׁב אֶת מְהִירוּת רוֹכֵב הָאוֹפַנַּיִם בִּנְקֻדָּה C שֶׁל הַמַּסְלוּל. ג. חַשֵּׁב אֶת רַדְיוּס הָעַקְמוּמִיּוּת הַמִּינִימָאלִי הַנִּדְרָשׁ שֶׁל הַמַּסְלוּל בִּנְקֻדָּה C כְּדֵי שֶׁהָאוֹפַנַּיִם לֹא יְאַבְּדוּ אֶת הַמַּגָּע עִם הַקַּרְקַע.",
+      "translit": "'. Khashev et mhirut rokhev ha'ofanayim binkuda B shel hamaslul. V. Khashev et mhirut rokhev ha'ofanayim binkuda C shel hamaslul. G. Khashev et radyus ha'akmumiyut haminima'li hanidrash shel hamaslul binkuda C kde sheha'ofanayim lo' ye'abdu et hamag'a im hakark'a.",
+      "ru": "а. Рассчитайте скорость велосипедиста в точке B траектории. б. Рассчитайте скорость велосипедиста в точке C траектории. в. Рассчитайте минимальный радиус кривизны траектории в точке C, необходимый для того, чтобы колеса не оторвались от земли.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 95,
+      "he": "שאלה 9.8: כדור שמסתו m = 2Kg מחליק לאורך מוט ABC, הנמצא במישור אנכי.",
+      "he_niqqud": "שְׁאֵלָה 9.8: כַּדּוּר שֶׁמַּסָּתוֹ m = 2Kg מַחְלִיק לְאֹרֶךְ מוֹט ABC, הַנִּמְצָא בְּמִישׁוֹר אֲנָכִי.",
+      "translit": "She'ela 9.8: kadur shemasato m = 2Kg makhlik le'orekh mot ABC, hanimts'a bmishor anakhi.",
+      "ru": "Вопрос 9.8: Шарик массой m = 2 кг скользит вдоль стержня ABC, расположенного в вертикальной плоскости.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 96,
+      "he": "קטע AB של המוט הוא מעגלי וחסר חיכוך, ואילו קטע המוט האופקי BC הוא מחוספס עם מקדם חיכוך קינטי μ_k = 0.15.",
+      "he_niqqud": "קֶטַע AB שֶׁל הַמּוֹט הוּא מַעְגָּלִי וַחֲסַר חִכּוּךְ, וְאִלּוּ קֶטַע הַמּוֹט הָאֳפְקִי BC הוּא מְחֻסְפָּס עִם מְקַדֵּם חִכּוּךְ קִינֶטִי μ_k = 0.15.",
+      "translit": "Ket'a AB shel hamot hu' ma'gali vakhasar khikukh, ve'ilu ket'a hamot ho'ofki BC hu' mkhuspas im mkadem khikukh kineti μ_k = 0.15.",
+      "ru": "Участок AB стержня круговой и без трения, тогда как горизонтальный участок стержня BC шероховатый с коэффициентом трения скольжения μ_k = 0.15.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 97,
+      "he": "משחררים את הכדור ממנוחה בנקודה A, הכדור מחליק לאורך המוט. בנקודה C עוזב הכדור את המוט, וממשיך במעופו עד לפגיעה בקרקע בנקודה D, כמתואר באיור לשאלה 4.",
+      "he_niqqud": "מְשַׁחְרְרִים אֶת הַכַּדּוּר מִמְּנוּחָה בִּנְקֻדָּה A, הַכַּדּוּר מַחְלִיק לְאֹרֶךְ הַמּוֹט. בִּנְקֻדָּה C עוֹזֵב הַכַּדּוּר אֶת הַמּוֹט, וּמַמְשִׁיךְ בִּמְעוּפוֹ עַד לִפְגִיעָה בַּקַּרְקַע בִּנְקֻדָּה D, כַּמְתֹאָר בָּאִיּוּר לִשְׁאֵלָה 4.",
+      "translit": "Mshakhrrim et hakadur mimnukha binkuda A, hakadur makhlik le'orekh hamot. Binkuda C ozev hakadur et hamot, umamshikh bim'ufo ad lifgi'a bakark'a binkuda D, kamto'ar ba'iyur lish'ela 4.",
+      "ru": "Шарик отпускают из состояния покоя в точке A, он соскальзывает по стержню. В точке C шарик сходит со стержня и летит до падения на землю в точке D, как показано на рисунке к задаче 4.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 98,
+      "he": "הערות: - התייחס לכדור כנקודה חומרית, והזנח את התנגדות האוויר. - הזנח את קוטר המוט ABC. נתונים: - רדיוס הקטע המעגלי של המוט R = 2m - אורך הקטע האופקי של המוט d = 2m BC",
+      "he_niqqud": "הֶעָרוֹת: - הִתְיַחֵס לַכַּדּוּר כִּנְקֻדָּה חָמְרִית, וְהַזְנַח אֶת הִתְנַגְּדוּת הָאֲוִיר. - הַזְנַח אֶת קֹטֶר הַמּוֹט ABC. נְתוּנִים: - רַדְיוּס הַקֶּטַע הַמַּעְגָּלִי שֶׁל הַמּוֹט R = 2m - אֹרֶךְ הַקֶּטַע הָאֳפְקִי שֶׁל הַמּוֹט d = 2m BC",
+      "translit": "He'arot: - hityakhes lakadur kinkuda khamrit, vehaznakh et hitnagdut ha'avir. - haznakh et koter hamot ABC. Ntunim: - radyus haket'a hama'gali shel hamot R = 2m - orekh haket'a ho'ofki shel hamot d = 2m BC",
+      "ru": "Примечания: Шарик считать материальной точкой; Пренебречь сопротивлением воздуха; Пренебречь диаметром стержня ABC. Данные: Радиус кругового участка стержня R = 2 м; Длина горизонтального участка BC стержня d = 2 м.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 99,
+      "he": "א. חשב את מהירות הכדור בנקודה B. ב. חשב את מהירות הכדור בנקודה C. ג. חשב את זמן נפילת הכדור מנקודה C עד לנקודה D. ד. חשב את מהירות הכדור בנקודה D (שיעור וכיוון). ה. חשב את המרחק a.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר בִּנְקֻדָּה B. ב. חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר בִּנְקֻדָּה C. ג. חַשֵּׁב אֶת זְמַן נְפִילַת הַכַּדּוּר מִנְּקֻדָּה C עַד לִנְקֻדָּה D. ד. חַשֵּׁב אֶת מְהִירוּת הַכַּדּוּר בִּנְקֻדָּה D (שִׁעוּר וְכִוּוּן). ה. חַשֵּׁב אֶת הַמֶּרְחָק a.",
+      "translit": "'. Khashev et mhirut hakadur binkuda B. V. Khashev et mhirut hakadur binkuda C. G. Khashev et zman nfilat hakadur minkuda C ad linkuda D. D. Khashev et mhirut hakadur binkuda D (shi'ur vekhivun). H. Khashev et hamerkhak a.",
+      "ru": "а. Рассчитайте скорость шарика в точке B. б. Рассчитайте скорость шарика в точке C. в. Рассчитайте время падения шарика от точки C до точки D. г. Рассчитайте скорость шарика в точке D (величину и направление). д. Рассчитайте расстояние a.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 100,
+      "he": "שאלה 9.9: גלשן מתחיל את תנועתו ממנוחה בנקודה A, וגולש לאורך מסלול משופע AB כמתואר באיור.",
+      "he_niqqud": "שְׁאֵלָה 9.9: גַּלְשָׁן מַתְחִיל אֶת תְּנוּעָתוֹ מִמְּנוּחָה בִּנְקֻדָּה A, וְגוֹלֵשׁ לְאֹרֶךְ מַסְלוּל מְשֻׁפָּע AB כַּמְתֹאָר בָּאִיּוּר.",
+      "translit": "She'ela 9.9: galshan matkhil et tnu'ato mimnukha binkuda A, vegolesh le'orekh maslul mshup'a AB kamto'ar ba'iyur.",
+      "ru": "Вопрос 9.9: Сноубордист/санки начинают движение из состояния покоя в точке A и скользят по наклонному склону AB, как показано на рисунке.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 101,
+      "he": "בנקודה B הגלשן עוזב את מסלול הגלישה כאשר מהירותו היא אופקית. בנקודה C הגלשן פוגע בקרקע.",
+      "he_niqqud": "בִּנְקֻדָּה B הַגַּלְשָׁן עוֹזֵב אֶת מַסְלוּל הַגְּלִישָׁה כַּאֲשֶׁר מְהִירוּתוֹ הִיא אָפְקִית. בִּנְקֻדָּה C הַגַּלְשָׁן פּוֹגֵעַ בַּקַּרְקַע.",
+      "translit": "Binkuda B hagalshan ozev et maslul haglisha ka'asher mhiruto hi' afkit. Binkuda C hagalshan poge'a bakark'a.",
+      "ru": "В точке B он отрывается от трамплина с горизонтальной скоростью. В точке C происходит приземление на землю.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 102,
+      "he": "חשב: א. מהי מהירות הגלשן בנקודה B ? ב. מהו זמן תנועת הגלשן מנקודה B עד לנקודה C ? ג. מהי מהירות הגלשן בנקודה C (שיעור וכיוון) ? ד. מהו המרחק d ? הערות: יש להתייחס לגלשן כנקודה חומרית ולהזניח את התנגדות האוויר והחיכוך במסלול.",
+      "he_niqqud": "חַשֵּׁב: א. מָה הִיא מְהִירוּת הַגַּלְשָׁן בִּנְקֻדָּה B ? ב. מַהוּ זְמַן תְּנוּעַת הַגַּלְשָׁן מִנְּקֻדָּה B עַד לִנְקֻדָּה C ? ג. מָה הִיא מְהִירוּת הַגַּלְשָׁן בִּנְקֻדָּה C (שִׁעוּר וְכִוּוּן) ? ד. מַהוּ הַמֶּרְחָק d ? הֶעָרוֹת: יֵשׁ לְהִתְיַחֵס לַגַּלְשָׁן כִּנְקֻדָּה חָמְרִית וּלְהַזְנִיחַ אֶת הִתְנַגְּדוּת הָאֲוִיר וְהַחִכּוּךְ בַּמַּסְלוּל.",
+      "translit": "Khashev: '. Ma hi' mhirut hagalshan binkuda B ? V. Mahu zman tnu'at hagalshan minkuda B ad linkuda C ? G. Ma hi' mhirut hagalshan binkuda C (shi'ur vekhivun) ? D. Mahu hamerkhak d ? He'arot: yesh lhityakhes lagalshan kinkuda khamrit ulhazniakh et hitnagdut ha'avir vehakhikukh bamaslul.",
+      "ru": "Рассчитайте: а. Какова скорость в точке B? б. Каково время полета от точки B до точки C? в. Какова скорость в точке C (величина и направление)? г. Чему равно расстояние d? Примечания: Считать материальной точкой; пренебречь сопротивлением воздуха и трением о траекторию.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 103,
+      "he": "שאלה 9.10: דור קטן משוחרר מנקודה A ונע במסלול עקום חסר חיכוך במישור אנכי כמתואר באיור לשאלה בנקודה B הכדור עוזב את המסלול כאשר מהירותו נטויה בזווית 60^∘ לאופק. בנקודה C הכדור פוגע בקרקע.",
+      "he_niqqud": "שְׁאֵלָה 9.10: דור קָטָן מְשֻׁחְרָר מִנְּקֻדָּה A וְנָע בְּמַסְלוּל עָקוּם חֲסַר חִכּוּךְ בַּמִּישׁוֹר אֲנָכִי כַּמְתֹאָר בָּאִיּוּר לַשְּׁאֵלָה בִּנְקֻדָּה B הַכַּדּוּר עוֹזֵב אֶת הַמַּסְלוּל כַּאֲשֶׁר מְהִירוּתוֹ נְטוּיָה בְּזָוִית 60^∘ לָאֹפֶק. בִּנְקֻדָּה C הַכַּדּוּר פּוֹגֵעַ בַּקַּרְקַע.",
+      "translit": "She'ela 9.10: dvr katan mshukhrar minkuda A ven'a bmaslul akum khasar khikukh bamishor anakhi kamto'ar ba'iyur lashe'ela binkuda B hakadur ozev et hamaslul ka'asher mhiruto ntuya bzavit 60^∘ la'ofek. Binkuda C hakadur poge'a bakark'a.",
+      "ru": "Вопрос 9.10: Маленький шарик отпускается из точки A и движется по гладкой искривленной траектории в вертикальной плоскости, как показано на рисунке. В точке B шарик покидает траекторию со скоростью, направленной под углом 60° к горизонту. В точке C шарик падает на землю.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 104,
+      "he": "א. מהי מהירותו של הכדור בנקודה B ? ב. מהו הגובה המקסימלי של הכדור מעל פני הקרקע במהלך תנועתו באוויר ? ג. מהו זמן תנועת הכדור מנקודה B עד לפגיעתו בקרקע בנקודה C ? ד. מהו המרחק S ? הערות: התייחס לכדור כנקודה חומרית, הזנח התנגדות האוויר.",
+      "he_niqqud": "א. מָה הִיא מְהִירוּתוֹ שֶׁל הַכַּדּוּר בִּנְקֻדָּה B ? ב. מַהוּ הַגֹּבַהּ הַמַּקְסִימָלִי שֶׁל הַכַּדּוּר מֵעַל פְּנֵי הַקַּרְקַע בְּמַהֲלַךְ תְּנוּעָתוֹ בָּאֲוִיר ? ג. מַהוּ זְמַן תְּנוּעַת הַכַּדּוּר מִנְּקֻדָּה B עַד לִפְגִיעָתוֹ בַּקַּרְקַע בִּנְקֻדָּה C ? ד. מַהוּ הַמֶּרְחָק S ? הֶעָרוֹת: הִתְיַחֵס לַכַּדּוּר כִּנְקֻדָּה חָמְרִית, הַזְנַח הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "'. Ma hi' mhiruto shel hakadur binkuda B ? V. Mahu hagovah hamaksimali shel hakadur me'al pne hakark'a bmahalakh tnu'ato ba'avir ? G. Mahu zman tnu'at hakadur minkuda B ad lifgi'ato bakark'a binkuda C ? D. Mahu hamerkhak S ? He'arot: hityakhes lakadur kinkuda khamrit, haznakh hitnagdut ha'avir.",
+      "ru": "а. Какова скорость шарика в точке B? б. Какова максимальная высота шарика над поверхностью земли во время полета? в. Каково время движения шарика от точки B до удара о землю в точке C? г. Каково расстояние S? Примечания: Считать материальной точкой; пренебречь сопротивлением воздуха.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 105,
+      "he": "שאלה 9.11: מחליק שמסתו m = 3kg משוחרר ממצב מנוחה בנקודה A בקצה העליון של מוט עקום, ונע לאורך קטע מעגלי חסר חיכוך של המוט במישור אנכי.",
+      "he_niqqud": "שְׁאֵלָה 9.11: מַחְלִיק שֶׁמַּסָּתוֹ m = 3kg מְשֻׁחְרָר מִמַּצָּב מְנוּחָה בִּנְקֻדָּה A בַּקָּצֶה הָעֶלְיוֹן שֶׁל מוֹט עָקוּם, וְנָע לְאֹרֶךְ קֶטַע מַעְגָּלִי חֲסַר חִכּוּךְ שֶׁל הַמּוֹט בַּמִּישׁוֹר אֲנָכִי.",
+      "translit": "She'ela 9.11: makhlik shemasato m = 3kg mshukhrar mimatsav mnukha binkuda A bakatse ha'elyon shel mot akum, ven'a le'orekh ket'a ma'gali khasar khikukh shel hamot bamishor anakhi.",
+      "ru": "Вопрос 9.11: Ползун массой m = 3 кг отпускается из состояния покоя в точке A на верхнем конце изогнутого стержня и движется по круговому участку стержня без трения в вертикальной плоскости.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 106,
+      "he": "בנקודה B המחליק עובר לקטע אופקי מחוספס של המוט, בנקודה C המחליק עוזב את המוט ובנקודה D הוא פוגע במישור משופע DE. נתון: מקדם החיכוך הקינטי בין המחליק לבין הקטע האופקי BC של המוט μ_k = 0.2.",
+      "he_niqqud": "בִּנְקֻדָּה B הַמַּחְלִיק עוֹבֵר לְקֶטַע אָפְקִי מְחֻסְפָּס שֶׁל הַמּוֹט, בִּנְקֻדָּה C הַמַּחְלִיק עוֹזֵב אֶת הַמּוֹט וּבִנְקֻדָּה D הוּא פּוֹגֵעַ בְּמִישׁוֹר מְשֻׁפָּע DE. נָתוּן: מְקַדֵּם הַחִכּוּךְ הַקִּינֶטִי בֵּין הַמַּחְלִיק לְבֵין הַקֶּטַע הָאֳפְקִי BC שֶׁל הַמּוֹט μ_k = 0.2.",
+      "translit": "Binkuda B hamakhlik over lket'a ofki mkhuspas shel hamot, binkuda C hamakhlik ozev et hamot uvinkuda D hu' poge'a bmishor mshup'a DE. Natun: mkadem hakhikukh hakineti ben hamakhlik lven haket'a ho'ofki BC shel hamot μ_k = 0.2.",
+      "ru": "В точке B ползун переходит на шероховатый горизонтальный участок стержня, в точке C сходит со стержня, а в точке D ударяет наклонную плоскость DE. Дано: Коэффициент кинетического трения между ползуном и горизонтальным участком BC стержня μ_k = 0.2.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    },
+    {
+      "segmentId": 107,
+      "he": "א. חשב את מהירותו של המחליק בנקודה B. ב. חשב את מהירותו של המחליק בנקודה C. ג. חשב את הגובה h, בין נקודה C ו- D, הנדרש על מנת שכיוון המהירות של המחליק בנקודה D יהיה במקביל למישור המשופע DE. ד. חשב את המרחק a. הערות: - יש להתייחס למחליק כנקודה חומרית, ולהזניח את התנגדות האוויר.",
+      "he_niqqud": "א. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל הַמַּחְלִיק בִּנְקֻדָּה B. ב. חַשֵּׁב אֶת מְהִירוּתוֹ שֶׁל הַמַּחְלִיק בִּנְקֻדָּה C. ג. חַשֵּׁב אֶת הַגֹּבַהּ h, בֵּין נְקֻדָּה C וְ- D, הַנִּדְרָשׁ עַל מְנָת שֶׁכִּוּוּן הַמְּהִירוּת שֶׁל הַמַּחְלִיק בִּנְקֻדָּה D יִהְיֶה בְּמַקְבִּיל לַמִּישׁוֹר הַמְּשֻׁפָּע DE. ד. חַשֵּׁב אֶת הַמֶּרְחָק a. הֶעָרוֹת: - יֵשׁ לְהִתְיַחֵס לַמַּחְלִיק כִּנְקֻדָּה חָמְרִית, וּלְהַזְנִיחַ אֶת הִתְנַגְּדוּת הָאֲוִיר.",
+      "translit": "'. Khashev et mhiruto shel hamakhlik binkuda B. V. Khashev et mhiruto shel hamakhlik binkuda C. G. Khashev et hagovah h, ben nkuda C v- D, hanidrash al mnat shekivun hamhirut shel hamakhlik binkuda D yihye bmakbil lamishor hamshup'a DE. D. Khashev et hamerkhak a. He'arot: - yesh lhityakhes lamakhlik kinkuda khamrit, ulhazniakh et hitnagdut ha'avir.",
+      "ru": "а. Рассчитайте скорость ползуна в точке B. б. Рассчитайте скорость ползуна в точке C. в. Рассчитайте высоту h между точками C и D, необходимую для того, чтобы вектор скорости ползуна в точке D был параллелен наклонной плоскости DE. г. Рассчитайте расстояние a. Примечания: Считать материальной точкой; пренебречь сопротивлением воздуха.",
+      "translation_provider": "gemini:gemini-3.7-flash",
+      "translation_meta_json": "{\"provider\":\"gemini\",\"model\":\"gemini-3.7-flash\",\"modelVersion\":\"gemini-3.7-flash\",\"promptId\":\"he-ru-table-v3\",\"schemaId\":\"studio-table-rows-schema-v1\",\"translitProfile\":\"learner-latin-v2-local-niqqud\",\"localNiqqudNormalization\":true,\"localSourceCorrection\":true}"
+    }
+  ],
+  "warnings": [
+    "LOCAL_NIQQUD_CANONICALIZED",
+    "LOCAL_SOURCE_CORRECTED_FROM_SCAN"
+  ],
+  "model": "gemini-3.7-flash",
+  "modelVersion": "gemini-3.7-flash",
+  "promptId": "he-ru-table-v3",
+  "schemaId": "studio-table-rows-schema-v1",
+  "translitProfile": "learner-latin",
+  "translitProfileVersion": "learner-latin-v2-local-niqqud",
+  "localNiqqudCorrections": [
+    {
+      "rowIndex": 88,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "she'elah 9.6: ofano'a kofets mi-nekudah A li-nkudah B derekh ha-emek, ka-meto'ar ba-iyur li-she'elah 4.",
+      "to": "she'elah 9.6: ofno'a kofets mi-nekudah A li-nkudah B derekh ha-emek, ka-meto'ar ba-iyur li-she'elah 4."
+    },
+    {
+      "rowIndex": 89,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "bi-nkudah A mehirut ha-ofano'a v_0 hi ofkit.",
+      "to": "bi-nkudah A mehirut ha-ofno'a v_0 hi ofkit."
+    },
+    {
+      "rowIndex": 90,
+      "field": "translit",
+      "term": "learner-latin",
+      "from": "a. khashev mahu zman ha-kfitsah mi- A le-B. b. khashev mah hi ha-mehirut ha-hatkhalatit v_0 shel ha-ofano'a. g. khashev mah hi mehirut ha-ofano'a v bi-nkudah B (shi'ur ve-khivun). he'arot: 1. hityakhes la-ofano'a ve-la-ofano'an ki-nkudah khomrit akhat. 2. hit'alem me-hitnagdut ha-avir.",
+      "to": "a. khashev mahu zman ha-kfitsah mi- A le-B. b. khashev mah hi ha-mehirut ha-hatkhalatit v_0 shel ha-ofno'a. g. khashev mah hi mehirut ha-ofno'a v bi-nkudah B (shi'ur ve-khivun). he'arot: 1. hityakhes la-ofno'a ve-la-ofno'an ki-nkudah khomrit akhat. 2. hit'alem me-hitnagdut ha-avir."
+    }
+  ],
+  "localSourceCorrections": [
+    {
+      "from": "1 מי לשנייה",
+      "to": "1 מ' לשנייה",
+      "count": 1,
+      "source_page": 39,
+      "source_filename": "для оцифровки учебника_2_Страница_39_Изображение_0001.png",
+      "source_image_sha256": "2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22",
+      "reason": "The scan shows the metre abbreviation מ', not the OCR token מי."
+    },
+    {
+      "from": "שהוא עובד בנקודה B",
+      "to": "שהוא עובר בנקודה B",
+      "count": 1,
+      "source_page": 40,
+      "source_filename": "для оцифровки учебника_2_Страница_40_Изображение_0001.png",
+      "source_image_sha256": "8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95",
+      "reason": "The scan reads עובר (passes), not the OCR token עובד (works)."
+    }
+  ],
+  "createdAt": "2026-08-25T00:29:41.706Z",
+  "repairedAt": "2026-08-25T00:33:53.141Z",
+  "rawCacheSha256": "7ff9093fe7d8fc0e748728bcbff8e7e2cedff2c8d1d370d386cbd745f2a7afdb",
+  "correctedInputSha256": "8634217640cd0e6b32ac8906668453a9d7ecefffbba1d760c00f91eef900438b",
+  "cacheKey": "dd339f074cdd9c3e16660de3836e89a29cb4bdc1e82e2f82184a3673ba35a079"
+}

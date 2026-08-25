@@ -1,0 +1,15 @@
+{
+  "format": "linguistpro-bundle",
+  "schema_version": 1,
+  "generated_at": "2026-08-25T00:50:00Z",
+  "generator": "physics-corpus-pipeline",
+  "corpus_title": "Физика — задачник, 1 год",
+  "chapter_count": 9,
+  "text_count": 74,
+  "row_count": 425,
+  "audio_count": 0,
+  "missing_audio": 0,
+  "library_json_path": "library/library.json",
+  "records_sha256": "67ae2254ce16c97f537e55294b14be4aa44b344823a8fa52092c571996c49ba6",
+  "bundle_sha256": "0030a95f20be1be5511020632f2188979bc45148a49eee71547669d17cf77327"
+}
