@@ -1603,7 +1603,7 @@
         opacity: 1;
         transition: all 0.25s ease;
     }
-	
+
 	.export-actions {
     margin-left: auto;
     display: flex;
@@ -1665,7 +1665,7 @@
         background-color: #166a56;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-	
+
     /* Общий стиль "disabled" */
     button.disabled, button:disabled {
         background-color: #d0d4d8 !important;
@@ -1748,7 +1748,7 @@ body.resizing-rows {
     background: rgba(0,0,0,0.32);
 }
 
-	
+
     /* ТАБЛИЦА */
 #tableContainer{
   /* Внутренняя прокрутка таблицы */
@@ -1916,7 +1916,7 @@ td.col-action-cell {
         user-select: none;
         white-space: nowrap;
     }
-	
+
 	 .table-autonext {
     display: inline-flex;
     flex-direction: row;
@@ -1989,7 +1989,7 @@ td.col-action-cell {
     table {
         width: 100%;
         border-collapse: collapse;
-        background: #ffffff;    
+        background: #ffffff;
         box-shadow: none;
 
         table-layout: fixed; /* важно для стабильной работы процентов и resize */
@@ -2016,13 +2016,13 @@ td.col-action-cell {
         position: relative; /* для грипа */
         user-select: none;
     }
-	
+
 /* === Premium: softer grid + nicer typography === */
 table { border-radius: 10px; }
 th, td { border-color: rgba(0,0,0,0.55); }
 
 
-	
+
 	/*  PRO: STICKY HEADER */
 #proTable thead th {
     position: sticky;
@@ -2040,7 +2040,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 
-     
+
 
     .rtl {
         direction: rtl;
@@ -2107,7 +2107,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         font-size: 12px;
         color: #6c757d;
     }
-	
+
 	/* V3 Active Text Header (above table) */
 .v3-active-header {
   margin-top: 8px;
@@ -2363,7 +2363,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .controls { flex-direction: column; align-items: stretch; }
         .field-group { width: 100%; }
         .field-group select, .field-group input[type="range"] { width: 100%; }
-		
+
 		/* Mobile: делаем основные CTA-кнопки на всю ширину,
 		но не растягиваем "иконки-кнопки" (deeplink/source copy и т.п.) */
 		button.btn-console,
@@ -5586,7 +5586,7 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   .v3-dash-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
   .v3-dash-toolbar input[type="text"] { flex:1; min-width: 240px; }
   .v3-dash-toolbar select { min-width: 140px; }
-  
+
   /* --- Dashboard View menu (PRO): ⚙️ Вид + popover + collapsible sections --- */
 .v3-dash-view { position: relative; }
 .v3-dash-view-btn { white-space: nowrap; }
@@ -5663,15 +5663,15 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
     border-radius: 10px;
     transform-origin: 50% 50%;
   }
-  
- 
+
+
 
   /* rotate + slightly scale down to avoid "giant rotated pill" look */
   .v3-dash-section.v3-dash-collapsed .v3-dash-sec-toggle {
     transform: rotate(-90deg) scale(0.82);
   }
 }
-  
+
   .v3-dash-sections { display:flex; gap:14px; flex-direction:column; }
 
   .v3-dash-section {
@@ -5745,7 +5745,7 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 
 	.v3-dash-topic-chip:hover{ filter:brightness(0.98); }
 	.v3-dash-topic-chip:active{ transform:translateY(0.5px); }
-  
+
  /* Tags chips (grey, like Library) */
 .v3-dash-tags{
   display:flex;
@@ -5769,10 +5769,10 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 
 .v3-dash-tag:hover{ filter:brightness(0.98); }
 .v3-dash-tag:active{ transform:translateY(0.5px); }
-  
+
   .v3-dash-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
   .v3-dash-actions button { padding:6px 10px; font-size:12px; }
-  
+
   /* Dashboard master-detail layout */
 .v3-dash-layout {
   display: flex;
@@ -5962,7 +5962,7 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 }
 .v3-diag-bar-fill.warn { background: #ff9800; }
 .v3-diag-bar-fill.crit { background: #f44336; }
-  	  
+
 	  /* ──────────────────────────────────────────────────────────────────
    Phase 9.3.5 R2 — WYSIWYG note editor
    Compact icon-only toolbar + contenteditable surface + selection bubble.
@@ -8112,13 +8112,13 @@ body:not(.theme-light) .v3-notes-history-diff-removed { background: rgba(239, 68
    V3 IDE WORKSPACE LAYOUT (Week 12+)
    Feature-flagged via body.v3-ide-mode
    ============================================ */
-   
+
   :root {
   /* Реальная высота верхней IDE-шапки (включая кейсы iOS/landscape).
      JS будет обновлять значение динамически. */
   --v3-ide-header-offset: 56px;
 }
- 
+
 
 /* --- IDE Mode: Hide classic content --- */
 body.v3-ide-mode .dashboard-header,
@@ -8810,7 +8810,7 @@ body.v3-no-scroll {
     font-size: 12px;
   }
   .v3-ide-col-settings .v3-ide-col-note { display: none; }
-  
+
   /* NEW: показать кнопку Columns на мобиле */
   .v3-ide-mobile-colsbar { display: flex; }
 
@@ -9310,7 +9310,7 @@ body:not(.theme-light) .v3-srs-choice-btn.active { color: #0f172a; }
   .v3-ide-header-logo span:not(.v3-ide-logo-icon) {
     display: none;
   }
-  
+
    /* --- Mobile: compact # column (IDE mode only — не применять в classic) --- */
   body.v3-ide-mode #proTable th:nth-child(1),
   body.v3-ide-mode #proTable td:nth-child(1) {
@@ -12142,7 +12142,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <div id="v3LibraryFacets" class="v3-facets"></div>
   <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button">↺ Сбросить фильтры</button>
 </div>
-	  
+
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
 	  <div id="v3LibExportCardHost"></div>
 	  <div id="v3LibraryNotesMatches" class="v3-notes-matches" style="display:none;"></div>
@@ -12356,7 +12356,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 			<option value="rows" data-i18n="library.searchRows">Поиск: Только строки</option>
 			<option value="notes" data-i18n="library.searchNotes">Поиск: Только заметки</option>
 		</select>
-		
+
 		<select
 			id="v3DashMode"
 			onchange="v3DashboardOnModeChange()"
@@ -12433,14 +12433,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     </div>
   </div>
 </div>
-		
+
         <label style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;">
           <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
           <span data-i18n="dashboard.showArchived">Показывать архивные</span>
         </label>
 
 		      </div>
-	  
+
 	  <div class="v3-filter-row">
   <div id="v3DashActiveChips" class="v3-filter-chips"></div>
   <div id="v3DashFacets" class="v3-facets"></div>
@@ -12449,12 +12449,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 
 	  <div id="v3DashStatus" class="v3-lib-status"></div>
-	  
+
 	  <div id="v3DashMetrics" class="v3-lib-muted" style="margin-top:6px;"></div>
 	  <div id="v3DashHeatmap"></div>
 
 	  <div id="v3DashNotesMatches" class="v3-notes-matches" style="display:none;"></div>
-	  
+
 	  <div id="v3DashRowsMatches" class="v3-notes-matches" style="display:none;"></div>
 
  <div id="v3DashLayout" class="v3-dash-layout">
@@ -13348,9 +13348,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=182"></script>
-    <script src="/i18n/locales/en.js?v=182"></script>
-    <script src="/i18n/locales/he.js?v=182"></script>
+    <script src="/i18n/locales/ru.js?v=184"></script>
+    <script src="/i18n/locales/en.js?v=184"></script>
+    <script src="/i18n/locales/he.js?v=184"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13528,7 +13528,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.437";
+    window.APP_VERSION = "3.11.439";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -13970,7 +13970,7 @@ function v3IdeApplyMode(enabled, fromClassicTextId) {
     if (header) header.style.display = "flex";
     if (workspace) workspace.style.display = "flex";
     if (toggleBtn) syncStudioModeToggle(true);
-	
+
 	// Sync CSS offset so overlay panels/backdrop start BELOW the real header height
 	v3IdeSyncHeaderOffsetVar();
 	setTimeout(v3IdeSyncHeaderOffsetVar, 0);
@@ -15052,10 +15052,10 @@ function v3IdeRenderTable(rows, textId) {
   // Build table HTML with colgroup + resize grips
   let html = '<table id="proTable" class="proTable"'
     + ' data-text-id="' + v3EscapeHtml(String(textId)) + '"'
-    + ' data-cols="' + ideActiveKeys.join(',') + '">' 
+    + ' data-cols="' + ideActiveKeys.join(',') + '">'
     + '<colgroup>';
   ideActiveKeys.forEach(k => {
-    html += '<col data-col="' + k + '" style="width:' + (ideColWidths[k]||20).toFixed(4) + '%;">'; 
+    html += '<col data-col="' + k + '" style="width:' + (ideColWidths[k]||20).toFixed(4) + '%;">';
   });
   html += '</colgroup><thead><tr>';
   ideColList.forEach(c => {
@@ -17527,7 +17527,7 @@ function v3NotesRefreshAllButtons() {
     const limitBannerEl = document.getElementById("limitBanner");
 	const btnAudioPrefetchEl = document.getElementById("btnAudioPrefetch");
 	const btnAnkiEl = document.getElementById("btnAnki");
-	
+
 	const btnWordEl = document.getElementById("btnWord");
     const btnTableEvidenceEl = document.getElementById("btnTableEvidenceJson");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
@@ -17587,7 +17587,7 @@ function v3NotesRefreshAllButtons() {
             });
         }
     })();
-	
+
 	const autoNextToggleEl = document.getElementById("autoNextToggle");
 
 	const btnPlaylistRunEl = document.getElementById("btnPlaylistRun");
@@ -17614,7 +17614,7 @@ function v3NotesRefreshAllButtons() {
     const resultsMetaEl = document.getElementById("resultsMeta");
     const classicProgrammaticDisclosures = new WeakSet();
 
-    
+
 
     let toastTimeoutId = null;
 
@@ -17650,7 +17650,7 @@ function v3NotesRefreshAllButtons() {
         if (!outcome || outcome.status !== "failed") return;
         try { showToast(t("saveMeta.cacheUnavailableNext"), "warning"); } catch (_) {}
     }
-    
+
 
 // Session state (restore last opened Library/Dashboard text after reload)
 // This MUST NOT rely on textarea "input" events (those mark results as stale).
@@ -18094,7 +18094,7 @@ function v3SessionSet(patch) {
   } catch (e) {
     // non-fatal
   }
-  
+
   // Keep header/status in sync with session state
   try { v3UiUpdateActiveHeader(); } catch (_) {}
   try { v3UiSyncSaveButtons(); } catch (_) {}
@@ -18469,7 +18469,7 @@ function v3NavStickyShow() {
   }
 
   bar.classList.remove("hidden");
-  
+
     // hard-ensure visibility (на случай конкурирующих стилей/контекстов)
   try {
     bar.style.display = "flex";
@@ -18478,7 +18478,7 @@ function v3NavStickyShow() {
     bar.style.pointerEvents = "auto";
     bar.style.zIndex = "99999";
   } catch (_) {}
-  
+
   // update after layout settles
   setTimeout(() => { try { v3NavStickyUpdate(); } catch (_) {} }, 0);
 }
@@ -19615,7 +19615,7 @@ const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
 	// PRO: user-resizable table height
 const TABLE_HEIGHT_STORAGE_KEY = "ttsDashboard_table_height_v1";
 
-	
+
 	// ----------------------------
 // Row TTS v1 (per-row)
 // ----------------------------
@@ -19905,7 +19905,7 @@ function rowUxInvariantCheck(context) {
     }
 }
 
-	
+
 
 
 function ensureRowAudioPlayer() {
@@ -20073,7 +20073,7 @@ function setRowButtonLoading(rowIdx, isLoading) {
 function setRowSelectedUI(rowIdx) {
     const table = document.getElementById("proTable");
     if (!table) return;
-	
+
 	    // AR-11: не допускаем установки selected в несуществующую строку
     const rc = getDomRowCount();
     const normIdx = normalizeRowIdxOrNull(rowIdx, rc);
@@ -20180,7 +20180,7 @@ loadRowAudioCacheFromStorage();
     // ----------------------------
     const TABLE_SETTINGS_KEY = "ttsDashboard_table_settings_v1";
     const V3_IDE_WIDTHS_KEY = "ide.table.widths.v1";
-	
+
 	    // ----------------------------
     // P1.2 (Playlist): Auto-next toggle (persistent)
     // ----------------------------
@@ -20210,7 +20210,7 @@ loadRowAudioCacheFromStorage();
             localStorage.setItem(AUTO_NEXT_KEY, enabled ? "1" : "0");
         } catch (_) {}
     }
-	
+
 	function updatePlaylistButtonUI() {
     if (!btnPlaylistRunEl) return;
 
@@ -20417,7 +20417,7 @@ loadRowAudioCacheFromStorage();
 
         const root = document.getElementById("tableSettings");
         if (!root) return;
-		
+
 		        // playlist toggle
 if (autoNextToggleEl) {
     autoNextToggleEl.checked = !!autoNextEnabled;
@@ -20498,7 +20498,7 @@ if (btnPlaylistRunEl) {
 
 // initial paint
 updatePlaylistButtonUI();
-           
+
         root.addEventListener("click", function (e) {
             const btn = e.target && e.target.closest ? e.target.closest("button[data-preset]") : null;
             if (!btn) return;
@@ -20558,11 +20558,11 @@ updatePlaylistButtonUI();
                 if (Array.isArray(currentTableData) && currentTableData.length > 0) {
                     renderTable(currentTableData);
                 }
-				
+
 				// PRO: reset table height too
     clearTableHeightSetting();
     applyTableHeightNow();
-				
+
                 showToast(t("toast.tableSettingsReset"));
             });
         }
@@ -22224,7 +22224,7 @@ updatePlaylistButtonUI();
         }
 
         textChangedNoticeEl.classList.add("notice-visible");
-		
+
 		    // Sync Save UI + header with stale state (critical to prevent duplicate / stale saves)
 		try { v3UiSyncSaveButtons(); } catch (_) {}
 		try { v3UiUpdateActiveHeader(); } catch (_) {}
@@ -22262,7 +22262,7 @@ updatePlaylistButtonUI();
             if (!audioIsStale && !tableIsStale) {
             textChangedNoticeEl.classList.remove("notice-visible");
         }
-		
+
 		 try { v3UiSyncSaveButtons(); } catch (_) {}
 		 try { v3UiUpdateActiveHeader(); } catch (_) {}
          try { classicSyncStateUi(); } catch (_) {}
@@ -23376,7 +23376,7 @@ function v3FlushProgressNow(opts) {
   Object.keys(v3ProgressLatest).forEach((tid) => {
     v3SendLatestNow(tid, { keepalive });
   });
-  
+
   function v3FlushProgressForText(textId, opts) {
   try {
     if (!textId) return;
@@ -23499,7 +23499,7 @@ window.addEventListener("pagehide", function () {
     });
   } catch (_) {}
 });
-	
+
 	/* --------------------------------------------------------
    V3 Library UI (P0)
    - list (15)
@@ -24099,10 +24099,10 @@ async function v3NotesSearchNow(scope, opts) {
     v3NotesRender(scope, qRaw, results, notesOnly);
   } catch (e) {
     console.warn("[v3NotesSearchNow] failed:", e);
-	
+
 	// A3.1 / 4.4: сбросить results в session state при ошибке (до показа ошибки в UI)
   try { v3SearchSessionUpdateResults("notes", scope, qRaw, [], { notesOnly: notesOnly }); } catch (_) {}
-	
+
     if (box) {
       box.style.display = "block";
       box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в заметках</div><div class="v3-note-empty">Ошибка поиска (см. console).</div>`;
@@ -24760,7 +24760,7 @@ function v3LibraryBindTagClicksOnce() {
     try {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
-	  
+
 	  // Source copy button (inside cards)
 	const copyBtn = tgt.closest(".v3-src-copy");
 	if (copyBtn) {
@@ -25515,7 +25515,7 @@ function v3UiSyncSaveButtons() {
         if (btnWordEl.textContent !== "Скачать таблицу") btnWordEl.textContent = "Скачать таблицу";
       }
     } catch (_) {}
-	
+
     // Если модалка сохранения открыта — синхронизируем её кнопки тоже
     try {
       const saveBtn = document.getElementById("v3SaveMetaSaveBtn");
@@ -25739,7 +25739,7 @@ function v3LibraryOpen() {
     const s = v3LibEl("v3LibrarySearch");
     if (s) s.value = String(localStorage.getItem(V3_LIB_SEARCH_KEY) || "");
   } catch (_) {}
-  
+
   try {
     const lv = v3LibEl("v3LibraryLevel");
     if (lv) lv.value = String(localStorage.getItem(V3_LIB_FILTER_LEVEL_KEY) || "");
@@ -25754,7 +25754,7 @@ function v3LibraryOpen() {
     const sk = v3LibEl("v3LibrarySort");
     if (sk) sk.value = String(localStorage.getItem(V3_LIB_SORT_KEY) || "opened_desc");
   } catch (_) {}
-  
+
   // Restore tag match mode (ALL/ANY)
 try { v3SyncTagMatchModeUi(); } catch (_) {}
 
@@ -26119,7 +26119,7 @@ function v3SplitQueryTokens(qRaw) {
 
   return { raw, textTokens, tagTokens };
   }
-  
+
  function v3RemoveQueryParts(rawQuery, shouldDropPart) {
   const raw = String(rawQuery || "");
   const parts = raw.split(/\s+/).filter(Boolean);
@@ -26210,7 +26210,7 @@ function v3RenderTagFacets(containerEl, texts, limit) {
     </button>`;
   }).join("");
 }
-  
+
   function v3MergeTagIntoQuery(qRaw, tagRaw) {
   const tag = String(tagRaw || "").trim();
   if (!tag) return String(qRaw || "").trim();
@@ -26699,13 +26699,13 @@ function v3LibraryRenderList(texts) {
     const title = String(txt.title || "Без названия");
     const level = txt.level ? String(txt.level) : "";
     const isArchived = !!(txt.is_archived || txt.isArchived);
-	
+
 	const topic = txt.topic ? String(txt.topic) : "";
 	const topicHtml = topic ? (" <span class='v3-lib-topic-chip'>" + v3EscapeHtml(topic) + "</span>") : "";
 
     const tagsArr = v3ParseTags(txt.tags_json || txt.tagsJson || txt.tags || null);
     const tagsHtml = tagsArr.slice(0, 6).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(x) + "</span>").join("");
-	
+
 	const sourceRaw = String(txt.source || "").trim();
 const src = v3HumanizeSource(sourceRaw);
 
@@ -26857,7 +26857,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
       e.stopPropagation();
       v3LibraryToggleSelection(id, !!cb.checked, card);
     });
-	
+
 	if (btnEdit) btnEdit.addEventListener("click", (e) => {
   e.preventDefault();
   e.stopPropagation();
@@ -26926,7 +26926,7 @@ function v3PrepareForNewTableRender() {
   try { clearRowPlayingState(true); } catch (_) {}
   try { clearRowSelectedUI(); } catch (_) {}
   try { document.getElementById("tableContainer").innerHTML = ""; } catch (_) {}
-  
+
   // C3: header follows table presence (table cleared before new render)
 	try { v3UiUpdateActiveHeader(); } catch (_) {}
 }
@@ -27170,7 +27170,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       .map((r) => {
         return v3MapSentenceApiRowToUiRow(r, textId);
       });
-	  
+
 	      // Save offline cache for restore-on-load (Offline+F5). Factored into a
 	      // closure so the BRR-P0-002b source_text backfill below can re-save with
 	      // the hydrated blob using the IDENTICAL shape (no drift).
@@ -27230,7 +27230,7 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	    } catch (_) {}
 	  })();
 	}
-	
+
 	// W10-NOTES-PREMIUM-03: async notes ingest AFTER table render (never blocks UX)
 notesPromise.then(async (notesRes) => {
   try {
@@ -27247,7 +27247,7 @@ notesPromise.then(async (notesRes) => {
 }).catch((e) => {
   // already handled in catch above; keep non-fatal
 });
-	
+
 	// resume by sentenceId (Dashboard Continue)
 let resumeRowIdx = null;
 if (resumeSentenceId) {
@@ -27676,7 +27676,7 @@ async function v3LibrarySaveCurrentCore(meta) {
         }
       } catch (_) {}
     }
-	
+
 	// C4: draft -> saved + bind id/title into session (for header/status + restore)
     try {
       const effectiveTitle =
@@ -32694,7 +32694,7 @@ function v3DashboardOpen() {
     const inc = v3DashEl("v3DashIncludeArchived");
     if (inc) inc.checked = true;
   }
-  
+
   const ap = v3DashEl("v3DashAutoPlayContinue");
   if (ap) {
     let saved = "0";
@@ -32714,10 +32714,10 @@ function v3DashboardOpen() {
 
     // Restore tag match mode (ALL/ANY)
   try { v3SyncTagMatchModeUi(); } catch (_) {}
-  
+
     // Wave D (D3): restore Notes toggles (localStorage)
   try { v3NotesSyncUi(); } catch (_) {}
-  
+
   // init + apply mode
   const mode = v3DashboardGetMode();
   const sel = v3DashEl("v3DashMode");
@@ -32726,7 +32726,7 @@ function v3DashboardOpen() {
 
   v3DashboardRefresh();
   v3DashboardBindTagClicksOnce();
-  
+
   v3DashboardBindViewControlsOnce();
 try { v3DashApplyViewState(); } catch (_) {}
 try { v3DashApplyCollapsedState(); } catch (_) {}
@@ -33044,7 +33044,7 @@ function v3DashboardRender() {
 
   // NEW: active chips render (COMMIT 2)
   v3DashboardRenderActiveChips();
-  
+
   v3RenderTagFacets(v3LibEl("v3DashFacets"), v3DashboardGetTextsForFacets(), 18);
 }
 
@@ -33054,7 +33054,7 @@ function v3DashRenderItem(item) {
 
   const title = v3EscapeHtml(item.title || "(без названия)");
   const pinFlag = Number(item.is_pinned) === 1;
-  
+
   const topic = item.topic ? String(item.topic) : "";
 const topicHtml = topic
   ? (` <span class="v3-dash-topic-chip" data-topic="${v3EscapeHtml(topic)}" title="Фильтр по теме: ${v3EscapeHtml(topic)}">${v3EscapeHtml(topic)}</span>`)
@@ -33205,7 +33205,7 @@ function v3DashboardRenderRowsPanel() {
   const t = fromLib || fromRecent;
 
   if (t && t.title) title = String(t.title);
-  
+
     // ----------------------------
   // Variant A (strict): level-filter gates the “recent rows (within text)” panel
   // ----------------------------
@@ -34055,7 +34055,7 @@ if (typeof tableIsStale !== "undefined" && tableIsStale) {
 
 // На всякий случай синхронизируем кнопку сохранения перед показом модалки
 try { v3UiSyncSaveButtons(); } catch (_) {}
-  
+
   // гарантируем единый enum уровней (и для новой модалки тоже)
   try { v3InitLevelEnumUi(); } catch (_) {}
 
@@ -34984,7 +34984,7 @@ if (facet) {
   v3DashboardOnFilterChange();
   return;
 }
-  
+
       // NEW: Active filter chips (remove)
       const xBtn = tgt.closest(".v3-filter-chip-x");
       if (xBtn) {
@@ -35341,7 +35341,7 @@ function v3DashboardBindViewControlsOnce() {
   if (!modal) return;
 
   v3DashViewBound = true;
-  
+
   // always start with popover closed
 try { v3DashCloseViewMenu(); } catch (_) {}
 
@@ -35442,7 +35442,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     } catch (_) {}
   });
 }
-	
+
     // ----------------------------
     // TRANSLATE TABLE
     // ----------------------------
@@ -35766,7 +35766,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     renderTable(currentTableData);
                     clearTableStale();
                     tableIsStale = false;
-                    
+
                     setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
 
                     loadStats();
@@ -35815,10 +35815,10 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         setLoading(true);
         setAiButtonDisabled(true);
         document.getElementById("errorMsg").textContent = "";
-		
+
 		// P0.5 safety: при новом переводе сбрасываем навигационный якорь, чтобы не подсвечивать “старый индекс” на новом контенте
         try { if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause(); } catch (_) {}
-		
+
         // Week 6 guard: новый перевод/перерисовка таблицы => плейлист должен быть остановлен
 rowPlaylistRunActive = false;
 updatePlaylistButtonUI();
@@ -37675,7 +37675,7 @@ try {
         if (!Array.isArray(rows) || rows.length === 0) {
     document.getElementById("tableContainer").innerHTML = "";
 	if (btnTableEvidenceEl) btnTableEvidenceEl.disabled = true;
-	
+
 	// C3: header follows table presence (table cleared)
 	try { v3UiUpdateActiveHeader(); } catch (_) {}
 
@@ -37869,11 +37869,11 @@ try {
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
-		
+
 		// W12-AUDIO-PREFETCH-UI-01: refresh per-row audio markers
 try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
 		try { if (typeof v3PortableTtsApplyUiState === "function") v3PortableTtsApplyUiState(); } catch (_) {}
-		
+
 		// C3: header follows table render (table present)
 		try { v3UiUpdateActiveHeader(); } catch (_) {}
 
@@ -39274,7 +39274,7 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
         e.preventDefault();
     }
 
-    
+
 
     function getBaseWidthForKey(key) {
         const idx = TABLE_COL_ORDER.indexOf(key);
@@ -40517,7 +40517,7 @@ try {
     });
   }
 } catch (_) {}
-	
+
 // --------------------------------------------------------
 // W11-ANKI-CONNECT-01: AnkiConnect one-click export (UI)
 // --------------------------------------------------------
@@ -41357,7 +41357,7 @@ if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter" && key !== "Esca
         try { rowAudioPlayer.pause(); } catch (_) {}
         try { rowAudioPlayer.currentTime = 0; } catch (_) {}
         clearRowPlayingState(false);
-        
+
     }
     return;
 }
@@ -41433,10 +41433,10 @@ if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter" && key !== "Esca
         })();
 
     });
-	
-	
-	
-	
+
+
+
+
 	// ----------------------------
 // Variant A: focus-mode (dim non-active rows when there is an active playing/error row)
 function updateRowFocusMode() {
@@ -41470,7 +41470,7 @@ function initRowUxDelegatesOnce() {
             ? e.target.closest("#proTable tbody tr[data-row-idx]")
             : null;
         if (!tr) return;
-		
+
 		// Week 6 guard: клики по ресайзерам не должны менять selection
 			if (e.target && e.target.closest) {
 			if (e.target.closest(".col-resizer") || e.target.closest("#tableResizer")) return;
@@ -41716,7 +41716,7 @@ if (hasV3Ctx) {
   rowAudioUrl = null;
 
   audio.src = "/api/audio/" + encodeURIComponent(assetKey);
-  
+
   // W12-AUDIO-PREFETCH-UI-01: persist audio metadata in currentTableData (markers + Anki readiness)
 try {
   if (Array.isArray(currentTableData) && currentTableData[rowIdx]) {
@@ -41747,7 +41747,7 @@ try {
   return;
 }
 
-			
+
             const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
             if (!b64) throw new Error("Пустой ответ TTS");
 
@@ -41788,7 +41788,7 @@ try {
             updateRowFocusMode();
         }
     }, { capture: true });
-	
+
 	    // Notes button delegate (no audio listeners)
     document.addEventListener("click", function (e) {
         const btn = e.target && e.target.closest ? e.target.closest("button.row-note-btn") : null;

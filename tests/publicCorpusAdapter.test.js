@@ -72,6 +72,46 @@ test("Room loads public corpora before protected memberships and uses the public
   assert.match(html, /public-corpus-adapter\.js/);
 });
 
+test("Physics section and resource projections remain pinned to the immutable catalog", () => {
+  const catalog = adapter.normalizeCorpus({
+    corpus: { corpus_id: "pc-physics", slug: "physics-year1-problems", title: "Physics" },
+    edition: { edition_id: "ed-2", edition_number: 2, manifest_sha256: "a".repeat(64), item_count: 1, asset_count: 0, asset_missing: 0, package_complete: true },
+    items: [{ public_work_id: "physics-year1-task-1-1", position_no: 1, title: "Физика — задача 1.1", snapshot_sha256: "b".repeat(64), public_read_allowed: 1, public_stream_allowed: 1, package_download_allowed: 1, expected_audio_count: 0, included_audio_count: 0, asset_missing: 0, package_complete: 1 }],
+  });
+  const sections = adapter.normalizePhysicsSections({ schema_version: "physics_sections.1.0.0", slug: catalog.slug, sections: [{
+    section_no: 1, title_ru: "Глава 1", title_en: "Chapter 1", title_he: "פרק 1", task_count: 1,
+    tasks: [{ public_work_id: "physics-year1-task-1-1", position_no: 1, task_number: "1.1", title: "Физика — задача 1.1", snapshot_sha256: "b".repeat(64) }],
+  }] }, catalog);
+  assert.equal(sections[0].task_count, 1);
+  const resources = adapter.normalizePhysicsResourceIndex({ schema_version: "physics_task_resource_index.1.0.0", slug: catalog.slug, resources: [{
+    resource_id: "ptr_1", revision_id: "prv_1", revision_no: 1, edition_id: "ed-2", public_work_id: "physics-year1-task-1-1",
+    work_snapshot_sha256: "b".repeat(64), resource_kind: "PDF", content_kind: "CONDITION_AND_SOLUTION", title: "Условие и решение 1.1",
+    language: "MULTI", bytes: 1200, sha256: "c".repeat(64), mime: "application/pdf", quality_status: "ORIGINAL", public_read_allowed: true,
+    agent_read_allowed: false, file_url: "/api/public-corpora/physics-year1-problems/resources/prv_1/file",
+  }] }, catalog);
+  assert.equal(resources[0].edition_id, "ed-2");
+  assert.throws(() => adapter.normalizePhysicsResourceIndex({ schema_version: "physics_task_resource_index.1.0.0", slug: catalog.slug, resources: [{ ...resources[0], work_snapshot_sha256: "d".repeat(64) }] }, catalog), /PUBLIC_CORPUS_PAYLOAD_INVALID/);
+});
+
+test("Physics Room surface is section-first, localized and exposes an in-product PDF viewer", () => {
+  const room = source("public/js/library-ui.js");
+  const html = source("public/library.html");
+  assert.match(room, /ensurePhysicsPublicEnhancement/);
+  assert.match(room, /physics-section-nav/);
+  assert.match(room, /physics-section-list'[\s\S]*role: 'group'/);
+  assert.doesNotMatch(room, /type: 'button', role: 'listitem'/);
+  assert.match(room, /wrap\.insertBefore\(sectionNav, guest\)/);
+  assert.match(room, /physics\.taskByWork|get\(item\.public_work_id\)/);
+  assert.match(room, /openPhysicsResourceViewer/);
+  assert.match(room, /readerTaskResources/);
+  assert.match(html, /id="readerTaskResources"/);
+  assert.match(html, /@media \(max-width: 480px\)[\s\S]*\.physics-section-list \{ grid-template-columns: 1fr;/);
+  for (const locale of ["ru", "en", "he"]) {
+    const dictionary = source(`public/i18n/locales/${locale}.js`);
+    for (const key of ["physicsSectionsTitle", "physicsConditionSolution", "physicsTaskMaterials"]) assert.ok(dictionary.includes(key + ":"), `${locale}: ${key}`);
+  }
+});
+
 test("service worker answers audio Range requests from a cached full immutable asset", () => {
   const worker = source("public/sw.js");
   assert.match(worker, /req\.headers\.get\("range"\)/);
@@ -79,4 +119,15 @@ test("service worker answers audio Range requests from a cached full immutable a
   assert.match(worker, /cache\.put\(fullRequest, fullResponse\.clone\(\)\)/);
   assert.match(worker, /status:\s*206/);
   assert.match(worker, /Content-Range/);
+});
+
+test("service worker leaves immutable task-resource PDFs network-only", () => {
+  const worker = source("public/sw.js");
+  const publicBlock = worker.slice(
+    worker.indexOf('url.pathname.startsWith("/api/public-corpora")'),
+    worker.indexOf('// All other /api/*')
+  );
+  assert.match(publicBlock, /resources\\\/\[A-Za-z0-9_.:-\]\+\\\/file/);
+  assert.match(publicBlock, /if \(\/\\\/resources/);
+  assert.match(publicBlock, /file\$\/\.test\(url\.pathname\)\) return/);
 });

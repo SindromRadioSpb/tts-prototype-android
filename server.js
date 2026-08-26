@@ -1066,11 +1066,11 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=419",
+  "/js/library-ui.js?v=420",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=415",
+  "/js/public-corpus-adapter.js?v=416",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
@@ -1081,9 +1081,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=182",
-  "/i18n/locales/en.js?v=182",
-  "/i18n/locales/he.js?v=182",
+  "/i18n/locales/ru.js?v=184",
+  "/i18n/locales/en.js?v=184",
+  "/i18n/locales/he.js?v=184",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3806,6 +3806,7 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
 // same-origin JSON and an idempotency key.
 // ============================================================================
 const { getPublicationRepo } = require("./db/publicationRepo");
+const { getPhysicsTaskResourceRepo } = require("./db/physicsTaskResourceRepo");
 const rlPublicationRead = makeRateLimiter({ windowMs: 60_000, max: 180, name: "publication-read" });
 const rlPublicationWrite = makeRateLimiter({ windowMs: 60_000, max: 90, name: "publication-write" });
 
@@ -3997,6 +3998,104 @@ app.get("/api/public-corpora/:slug/package", rlPublicCorpusRead, (req, res) => p
   res.attachment(String(req.params.slug || "public-corpus") + ".zip");
   return res.sendFile(found.absolute_path);
 }));
+
+// PHYSICS-SOLUTION-DOCUMENTS-R2 — a separate, default-off read projection.
+// It never writes learner/account state and never mutates an immutable corpus
+// edition. The active edition is only used to validate the pinned task anchor.
+function physicsTaskResourcesEnabled() {
+  return String(process.env.PHYSICS_TASK_RESOURCES_PUBLIC_READ || "") === "1";
+}
+function physicsTaskResourceNotFound(res) {
+  res.set("Cache-Control", "public, max-age=30, must-revalidate");
+  return res.status(404).json({ ok: false, error: "PUBLIC_MATERIAL_NOT_FOUND" });
+}
+function physicsTaskResourceError(res, error) {
+  const code = String(error && (error.code || error.message) || "");
+  if (["PHYSICS_RESOURCE_NOT_FOUND", "PHYSICS_RESOURCE_FILE_UNAVAILABLE", "PHYSICS_SECTION_METADATA_INVALID", "PHYSICS_RESOURCE_INPUT_INVALID"].includes(code))
+    return physicsTaskResourceNotFound(res);
+  console.error("[physics-task-resources] read failed:", code);
+  return res.status(500).json({ ok: false, error: "PUBLIC_MATERIAL_UNAVAILABLE" });
+}
+function sendImmutablePdf(req, res, found) {
+  const size = Number(found.bytes);
+  const etag = `"${found.sha256}"`;
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `inline; filename="physics-${found.public_work_id}-${found.revision_id}.pdf"`);
+  res.setHeader("Accept-Ranges", "bytes");
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("ETag", etag);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Content-Security-Policy", "sandbox; default-src 'none';");
+  if (!req.headers.range && String(req.headers["if-none-match"] || "") === etag) return res.status(304).end();
+  const value = String(req.headers.range || "");
+  if (!value) {
+    res.setHeader("Content-Length", String(size));
+    const stream = fs.createReadStream(found.absolute_path);
+    stream.on("error", () => res.destroy());
+    return stream.pipe(res);
+  }
+  const match = value.match(/^bytes=(\d*)-(\d*)$/);
+  if (!match || (!match[1] && !match[2])) {
+    res.setHeader("Content-Range", `bytes */${size}`);
+    return res.status(416).end();
+  }
+  let start; let end;
+  if (!match[1]) {
+    const suffix = Number.parseInt(match[2], 10);
+    if (!Number.isInteger(suffix) || suffix <= 0) { res.setHeader("Content-Range", `bytes */${size}`); return res.status(416).end(); }
+    start = Math.max(0, size - suffix); end = size - 1;
+  } else {
+    start = Number.parseInt(match[1], 10);
+    end = match[2] ? Number.parseInt(match[2], 10) : size - 1;
+  }
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || start > end || start >= size) {
+    res.setHeader("Content-Range", `bytes */${size}`);
+    return res.status(416).end();
+  }
+  end = Math.min(end, size - 1);
+  res.status(206);
+  res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
+  res.setHeader("Content-Length", String(end - start + 1));
+  const stream = fs.createReadStream(found.absolute_path, { start, end });
+  stream.on("error", () => res.destroy());
+  return stream.pipe(res);
+}
+
+app.get("/api/public-corpora/:slug/sections", rlPublicCorpusRead, async (req, res) => {
+  if (!physicsTaskResourcesEnabled()) return physicsTaskResourceNotFound(res);
+  try {
+    const sections = await getPhysicsTaskResourceRepo().listPublicSections(req.params.slug);
+    if (!sections.length) return physicsTaskResourceNotFound(res);
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+    res.set("X-Content-Type-Options", "nosniff");
+    return res.json({ ok: true, schema_version: "physics_sections.1.0.0", slug: req.params.slug, sections });
+  } catch (error) { return physicsTaskResourceError(res, error); }
+});
+app.get("/api/public-corpora/:slug/works/:workId/resources", rlPublicCorpusRead, async (req, res) => {
+  if (!physicsTaskResourcesEnabled()) return physicsTaskResourceNotFound(res);
+  try {
+    const resources = await getPhysicsTaskResourceRepo().listPublicResources(req.params.slug, req.params.workId);
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+    res.set("X-Content-Type-Options", "nosniff");
+    return res.json({ ok: true, schema_version: "physics_task_resources.1.0.0", slug: req.params.slug, public_work_id: req.params.workId, resources });
+  } catch (error) { return physicsTaskResourceError(res, error); }
+});
+app.get("/api/public-corpora/:slug/resource-index", rlPublicCorpusRead, async (req, res) => {
+  if (!physicsTaskResourcesEnabled()) return physicsTaskResourceNotFound(res);
+  try {
+    const resources = await getPhysicsTaskResourceRepo().listPublicResourceIndex(req.params.slug);
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+    res.set("X-Content-Type-Options", "nosniff");
+    return res.json({ ok: true, schema_version: "physics_task_resource_index.1.0.0", slug: req.params.slug, resources });
+  } catch (error) { return physicsTaskResourceError(res, error); }
+});
+app.get("/api/public-corpora/:slug/resources/:revisionId/file", rlPublicCorpusRead, async (req, res) => {
+  if (!physicsTaskResourcesEnabled()) return physicsTaskResourceNotFound(res);
+  try { return sendImmutablePdf(req, res, await getPhysicsTaskResourceRepo().getPublicFile(req.params.slug, req.params.revisionId)); }
+  catch (error) { return physicsTaskResourceError(res, error); }
+});
 // MASS_ACCESS_I4_PUBLIC_READ_END
 
 // ============================================================================
@@ -4849,7 +4948,7 @@ async function synthesizeWithCache(
     safeTarget: TTS_SAFE_TARGET_BYTES,
     hardLimit: TTS_MAX_INPUT_BYTES
   });
-	
+
     const buffers = [];
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
@@ -5593,7 +5692,7 @@ app.post("/api/tts", async (req, res) => {
       const num = Number(pitch);
       if (!Number.isNaN(num)) pitchVal = num;
     }
-	
+
 	// -------------------------------
 // Step 8.2: normalize v3 context
 // включаем v3-ветку ТОЛЬКО когда есть линковка (sentenceId/textId)
@@ -8599,7 +8698,7 @@ if (Object.prototype.hasOwnProperty.call(body, "pinOrder")) {
 }
 if (!isPinned) pinOrder = null;
 
-	
+
     const rows = rowsIn.map((r, idx) => {
       const hePlain = String((r && r.he) || "");
       const heNiq = String((r && r.he_niqqud) || "");
@@ -10749,7 +10848,7 @@ app.post("/api/library/texts/:id/push/anki", gone410, async (req, res) => {
 
   const textId = String(req.params.id || "").trim();
   if (!isUuid(textId)) return res.status(400).json({ ok: false, error: "BAD_ID" });
-  
+
   let stage = "start";
 	const startedAt = Date.now();
 
@@ -10925,7 +11024,7 @@ if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
     }
   }
 }
-    
+
 
     const createdNotes = [];
     const updateActions = [];
@@ -10935,7 +11034,7 @@ if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
 
 let audioStored = 0;
 let audioStoreFailed = 0;
-	
+
 
 
     for (const r of rows) {
@@ -11062,7 +11161,7 @@ if (audioUrl && audioAssetKey) {
 }
     let created = 0;
     let updated = 0;
-	
+
 	// Debug/verify (dev-safe)
 	let createdIdsSample = [];
 	let createdNullIdxSample = [];
@@ -11852,7 +11951,7 @@ app.post("/api/library/import", gone410, async (req, res) => {
 
         const title = (t && t.title && String(t.title).trim()) ? String(t.title).trim() : guessTitle(sourceText);
         const level = (t && t.level && String(t.level).trim()) ? String(t.level).trim() : null;
-		
+
 		        // Week9 dashboard meta (optional)
         const source =
           (t && Object.prototype.hasOwnProperty.call(t, "source"))

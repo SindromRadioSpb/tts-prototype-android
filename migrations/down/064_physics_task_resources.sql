@@ -1,0 +1,15 @@
+DROP TRIGGER IF EXISTS trg_physics_task_resources_no_delete;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_events_no_delete;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_events_no_update;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_rights_no_delete;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_rights_no_update;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_revisions_no_delete;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_revisions_no_update;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_pointer_update;
+DROP TRIGGER IF EXISTS trg_physics_task_resource_pointer_insert;
+
+DROP TABLE IF EXISTS physics_task_resource_idempotency;
+DROP TABLE IF EXISTS physics_task_resource_events;
+DROP TABLE IF EXISTS physics_task_resource_rights_facts;
+DROP TABLE IF EXISTS physics_task_resource_revisions;
+DROP TABLE IF EXISTS physics_task_resources;

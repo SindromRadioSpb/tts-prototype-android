@@ -83,5 +83,39 @@
   function localTextKey(slug, workId, snapshotHash, index) {
     return "public:" + text(slug, 80, SLUG) + ":" + text(workId, 160, ID) + ":" + text(snapshotHash, 64, HASH).slice(0, 12) + (Number(index) ? ":" + count(index) : "");
   }
-  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey });
+  function normalizePhysicsSections(payload, catalog) {
+    if (!payload || payload.schema_version !== "physics_sections.1.0.0" || payload.slug !== catalog.slug || !Array.isArray(payload.sections)) invalid();
+    const catalogItems = new Map(catalog.items.map(item => [item.public_work_id, item]));
+    const seen = new Set();
+    const sections = payload.sections.map(raw => {
+      const sectionNo = count(raw.section_no);
+      if (sectionNo < 1 || sectionNo > 99 || !Array.isArray(raw.tasks) || count(raw.task_count) !== raw.tasks.length) invalid();
+      const tasks = raw.tasks.map(task => {
+        const publicWorkId = text(task.public_work_id, 160, ID), item = catalogItems.get(publicWorkId);
+        if (!item || seen.has(publicWorkId) || text(task.snapshot_sha256, 64, HASH) !== item.snapshot_sha256) invalid();
+        seen.add(publicWorkId);
+        return Object.freeze({ public_work_id: publicWorkId, position_no: count(task.position_no), task_number: text(task.task_number, 30, /^\d+\.\d+$/), title: text(task.title, 500), snapshot_sha256: item.snapshot_sha256 });
+      });
+      return Object.freeze({ section_no: sectionNo, title_ru: text(raw.title_ru, 500), title_en: text(raw.title_en, 500), title_he: text(raw.title_he, 500), task_count: tasks.length, tasks: Object.freeze(tasks) });
+    });
+    if (seen.size !== catalog.items.length || sections.some((section, index) => index && sections[index - 1].section_no >= section.section_no)) invalid();
+    return Object.freeze(sections);
+  }
+  function normalizePhysicsResourceIndex(payload, catalog) {
+    if (!payload || payload.schema_version !== "physics_task_resource_index.1.0.0" || payload.slug !== catalog.slug || !Array.isArray(payload.resources)) invalid();
+    const catalogItems = new Map(catalog.items.map(item => [item.public_work_id, item]));
+    return Object.freeze(payload.resources.map(raw => {
+      const workId = text(raw.public_work_id, 160, ID), item = catalogItems.get(workId);
+      if (!item || text(raw.edition_id, 160, ID) !== catalog.edition.edition_id || text(raw.work_snapshot_sha256, 64, HASH) !== item.snapshot_sha256) invalid();
+      const revisionId = text(raw.revision_id, 160, ID);
+      const fileUrl = text(raw.file_url, 500);
+      if (fileUrl !== "/api/public-corpora/" + encodeURIComponent(catalog.slug) + "/resources/" + encodeURIComponent(revisionId) + "/file") invalid();
+      if (raw.resource_kind !== "PDF" || raw.mime !== "application/pdf" || !yes(raw.public_read_allowed)) invalid();
+      return Object.freeze({ resource_id: text(raw.resource_id, 160, ID), revision_id: revisionId, revision_no: count(raw.revision_no), edition_id: catalog.edition.edition_id,
+        public_work_id: workId, work_snapshot_sha256: item.snapshot_sha256, content_kind: text(raw.content_kind, 60), title: text(raw.title, 500), language: text(raw.language, 16),
+        bytes: count(raw.bytes), sha256: text(raw.sha256, 64, HASH), mime: "application/pdf", quality_status: text(raw.quality_status, 40),
+        public_read_allowed: true, agent_read_allowed: yes(raw.agent_read_allowed), file_url: fileUrl });
+    }));
+  }
+  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex });
 });

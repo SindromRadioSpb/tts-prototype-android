@@ -55,12 +55,14 @@ let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
 let publicCorpora = [];         // anonymous published-corpus pointers; never membership-derived
 const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
+const physicsPublicEnhancements = new Map(); // slug -> validated sections + immutable resource index
 const publicCorpusBrowseStates = new Map(); // per-public-corpus discovery state; never learner truth
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
 const groupCorpusStates = new Map(); // per-corpus view state; never learner truth
 let readerGroupCorpusId = null; // selects protected audio transport for the open work
 let readerPublicCorpusSlug = null; // selects anonymous content-hash audio transport
+let readerPublicWorkId = null; // exact immutable public-work anchor for task resources
 const CORPUS_PAGE = 60;         // native Ben-Yehuda author/result page size
 const ROOM_PREVIEW = 12;        // hard shelf/ready-preview DOM bound (Option B)
 const ROOM_PROFILE_FIT_PREVIEW = 4; // quiet, actionable alternatives before the corpus catalog
@@ -7251,6 +7253,7 @@ async function openReader(textId, title, opts) {
     if (HEBREW_RE.test(title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
   }
   setReaderSubtitle(null);   // Epic-6 W1-a — clear any prior byline until res arrives (no stale flash)
+  const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
   roomRenderReaderCopyright(null);
   try { window.scrollTo(0, 0); } catch (_) {}
   const mount = $('roomReaderTable');
@@ -7277,13 +7280,14 @@ async function openReader(textId, title, opts) {
   readerIsOwnText = false;
   readerCorpusWorkId = null; readerCorpusExplainOk = false;   // безусловный сброс (singleton-reset)
   readerGroupCorpusId = null;
-  readerPublicCorpusSlug = null;
+  readerPublicCorpusSlug = null; readerPublicWorkId = null;
   try {
     const meta = res && res.text && res.text.source_meta_json ? JSON.parse(res.text.source_meta_json) : null;
     const groupMeta = meta && meta.group_corpus;
     const publicMeta = meta && meta.public_corpus;
     readerGroupCorpusId = groupMeta && groupMeta.corpus_id ? String(groupMeta.corpus_id) : null;
     readerPublicCorpusSlug = publicMeta && publicMeta.slug ? String(publicMeta.slug) : null;
+    readerPublicWorkId = publicMeta && publicMeta.public_work_id ? String(publicMeta.public_work_id) : null;
     readerIsOwnText = !!readerTextKey && !(meta && (meta.corpus || meta.group_corpus || meta.public_corpus));
     // PAS-A1 — id работы: та же фолбэк-цепочка, что loadProcliticOverlay (ранние импорты
     // могли не иметь поля в source_meta_json)
@@ -7295,6 +7299,7 @@ async function openReader(textId, title, opts) {
       if (readerCorpusWorkId) probeCorpusExplain(readerCorpusWorkId);
     }
   } catch (_) { readerIsOwnText = !!readerTextKey; }
+  if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   roomRenderReaderCopyright({ localPrivate: readerIsOwnText });
   if (res && res.ok) {
@@ -7426,7 +7431,8 @@ async function closeReader(options) {
   clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; _roomReaderPresentationReadOnly = false; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   roomRenderReaderCopyright(null);
-  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null; readerPublicCorpusSlug = null;   // singleton-reset
+  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null; readerPublicCorpusSlug = null; readerPublicWorkId = null;   // singleton-reset
+  const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -7636,6 +7642,92 @@ async function ensurePublicCatalog(slug) {
   const catalog = window.PublicCorpusAdapter.normalizeCorpus(payload);
   publicCatalogs.set(key, catalog);
   return catalog;
+}
+
+async function ensurePhysicsPublicEnhancement(slug, catalog) {
+  const key = String(slug || '');
+  if (key !== 'physics-year1-problems') return null;
+  if (physicsPublicEnhancements.has(key)) return physicsPublicEnhancements.get(key);
+  const [sectionsResponse, resourcesResponse] = await Promise.all([
+    fetch('/api/public-corpora/' + encodeURIComponent(key) + '/sections', { cache: 'no-cache' }),
+    fetch('/api/public-corpora/' + encodeURIComponent(key) + '/resource-index', { cache: 'no-cache' }),
+  ]);
+  // Flag-off remains indistinguishable from an absent optional public surface;
+  // the existing flat corpus continues to work unchanged.
+  if (sectionsResponse.status === 404 || resourcesResponse.status === 404) return null;
+  if (!sectionsResponse.ok || !resourcesResponse.ok) throw new Error('physics public enhancement unavailable');
+  const sections = window.PublicCorpusAdapter.normalizePhysicsSections(await sectionsResponse.json(), catalog);
+  const resources = window.PublicCorpusAdapter.normalizePhysicsResourceIndex(await resourcesResponse.json(), catalog);
+  const taskByWork = new Map();
+  for (const section of sections) for (const task of section.tasks) taskByWork.set(task.public_work_id, Object.freeze({ ...task, section }));
+  const resourcesByWork = new Map();
+  for (const resource of resources) {
+    const list = resourcesByWork.get(resource.public_work_id) || [];
+    list.push(resource); resourcesByWork.set(resource.public_work_id, list);
+  }
+  const value = Object.freeze({ sections, resources, taskByWork, resourcesByWork });
+  physicsPublicEnhancements.set(key, value);
+  return value;
+}
+
+function physicsResourceLabel(resource) {
+  if (resource.content_kind === 'CONDITION_AND_SOLUTION') return tt('room.publicCorpus.physicsConditionSolution', 'Условие и решение');
+  if (resource.content_kind === 'CONDITION_ONLY') return tt('room.publicCorpus.physicsConditionOnly', 'Оригинал условия');
+  if (resource.content_kind === 'SOLUTION_ONLY') return tt('room.publicCorpus.physicsSolutionOnly', 'Решение');
+  return tt('room.publicCorpus.physicsSupplement', 'Дополнительный материал');
+}
+
+function openPhysicsResourceViewer(resource, trigger) {
+  if (!resource || !/^\/api\/public-corpora\//.test(resource.file_url)) return;
+  const overlay = el('div', { class: 'physics-resource-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'physicsResourceViewerTitle' } });
+  const shell = el('section', { class: 'physics-resource-viewer' });
+  const head = el('header', { class: 'physics-resource-viewer-head' });
+  const heading = el('div');
+  heading.appendChild(el('span', { class: 'physics-resource-kicker', text: tt('room.publicCorpus.physicsOriginalDocument', 'Оригинальный документ') }));
+  heading.appendChild(el('h2', { class: 'physics-resource-viewer-title', attrs: { id: 'physicsResourceViewerTitle' }, text: resource.title }));
+  const actions = el('div', { class: 'physics-resource-viewer-actions' });
+  const external = el('a', { class: 'group-action quiet', attrs: { href: resource.file_url, target: '_blank', rel: 'noopener', referrerpolicy: 'no-referrer' }, text: tt('room.publicCorpus.physicsOpenSeparate', 'Открыть отдельно') + ' ↗' });
+  const closeButton = el('button', { class: 'group-action primary', attrs: { type: 'button', 'aria-label': tt('room.publicCorpus.physicsCloseDocument', 'Закрыть документ') }, text: '×' });
+  actions.append(external, closeButton); head.append(heading, actions); shell.appendChild(head);
+  if (resource.quality_status === 'QUALITY_LIMITED') shell.appendChild(el('p', { class: 'physics-resource-quality', attrs: { role: 'note' }, text: tt('room.publicCorpus.physicsQualityLimited', 'Качество исходного скана ограничено; формулы сохранены без дополнительного сжатия.') }));
+  shell.appendChild(el('iframe', { class: 'physics-resource-frame', attrs: { src: resource.file_url + '#view=FitH', title: resource.title, loading: 'eager', referrerpolicy: 'no-referrer' } }));
+  overlay.appendChild(shell); document.body.appendChild(overlay);
+  const background = roomSuspendBackground(overlay); let closed = false;
+  const close = () => { if (closed) return; closed = true; document.removeEventListener('keydown', onKey); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
+  const onKey = event => { if (event.key === 'Escape') { event.preventDefault(); close(); } else if (event.key === 'Tab') roomFocusTrap(event, shell); };
+  closeButton.addEventListener('click', close); overlay.addEventListener('click', event => { if (event.target === overlay) close(); }); document.addEventListener('keydown', onKey); roomFocusInto(shell);
+}
+
+function renderPhysicsResourceRail(resources) {
+  const rail = el('div', { class: 'physics-task-resources' });
+  for (const resource of (resources || [])) {
+    const button = el('button', { class: 'physics-task-resource', attrs: { type: 'button' } });
+    button.appendChild(el('span', { class: 'physics-task-resource-icon', attrs: { 'aria-hidden': 'true' }, text: 'PDF' }));
+    const copy = el('span', { class: 'physics-task-resource-copy' });
+    copy.appendChild(el('strong', { text: physicsResourceLabel(resource) }));
+    copy.appendChild(el('span', { text: (Math.max(1, Math.round(resource.bytes / 1024)) + ' KB') + (resource.quality_status === 'QUALITY_LIMITED' ? ' · ' + tt('room.publicCorpus.physicsQualityBadge', 'исходное качество ограничено') : '') }));
+    button.append(copy, el('span', { class: 'physics-task-resource-open', attrs: { 'aria-hidden': 'true' }, text: '↗' }));
+    button.setAttribute('aria-label', physicsResourceLabel(resource) + ': ' + resource.title);
+    button.addEventListener('click', () => openPhysicsResourceViewer(resource, button)); rail.appendChild(button);
+  }
+  return rail;
+}
+
+async function renderReaderTaskResources(slug, workId, epoch) {
+  const box = $('readerTaskResources'); if (!box) return;
+  box.replaceChildren(); box.hidden = true;
+  if (!slug || !workId) return;
+  try {
+    const catalog = await ensurePublicCatalog(slug);
+    const enhancement = await ensurePhysicsPublicEnhancement(slug, catalog);
+    if (epoch !== readerOpenEpoch || !enhancement) return;
+    const resources = enhancement.resourcesByWork.get(String(workId)) || [];
+    if (!resources.length) return;
+    const head = el('div', { class: 'reader-task-resources-head' });
+    head.appendChild(el('strong', { text: tt('room.publicCorpus.physicsTaskMaterials', 'Материалы к задаче') }));
+    head.appendChild(el('span', { text: tt('room.publicCorpus.physicsTaskMaterialsNote', 'Оригиналы привязаны к этой неизменяемой редакции') }));
+    box.append(head, renderPhysicsResourceRail(resources)); box.hidden = false;
+  } catch (_) { box.hidden = true; }
 }
 
 async function openPublicCorpusWork(slug, card, openOpts = {}) {
@@ -9916,6 +10008,9 @@ async function renderPublicCorpus(slug, token) {
   try { catalog = await ensurePublicCatalog(slug); }
   catch (_) { if (token === corpusRenderToken) showState(navigator.onLine ? 'room.state.error' : 'room.connection.offlinePartial', navigator.onLine ? '⚠️' : '↯'); return; }
   if (token !== corpusRenderToken) return;
+  let physics = null;
+  try { physics = await ensurePhysicsPublicEnhancement(slug, catalog); } catch (_) { physics = null; }
+  if (token !== corpusRenderToken) return;
   main.innerHTML = '';
   let local = [];
   try {
@@ -9942,9 +10037,52 @@ async function renderPublicCorpus(slug, token) {
   const topActions = el('div', { class: 'public-corpus-actions' });
   const shareAll = el('button', { class: 'group-action primary', attrs: { type: 'button' }, text: tt('room.share.title', 'Отправить или сохранить') }); shareAll.addEventListener('click', () => openPublicShare(catalog, null, shareAll)); topActions.appendChild(shareAll); wrap.appendChild(topActions);
 
-  const browseState = publicCorpusBrowseStates.get(slug) || { q: '', scope: 'all', audio: 'all', sort: 'position', start: 0 };
+  const browseState = publicCorpusBrowseStates.get(slug) || { q: '', scope: 'all', audio: 'all', sort: 'position', start: 0, section: 'all' };
+  if (!Object.prototype.hasOwnProperty.call(browseState, 'section')) browseState.section = 'all';
   publicCorpusBrowseStates.set(slug, browseState);
   const catalogRegion = corpusCatalogRegion('public-' + slug);
+  let sectionButtons = null;
+  if (physics) {
+    const sectionNav = el('section', { class: 'physics-section-nav', attrs: { 'aria-labelledby': 'physicsSectionTitle' } });
+    const intro = el('div', { class: 'physics-section-intro' });
+    intro.appendChild(el('span', { class: 'physics-section-kicker', text: tt('room.publicCorpus.physicsContentsKicker', 'Оглавление задачника') }));
+    intro.appendChild(el('h2', { attrs: { id: 'physicsSectionTitle' }, text: tt('room.publicCorpus.physicsSectionsTitle', 'Выберите раздел') }));
+    intro.appendChild(el('p', { text: tt('room.publicCorpus.physicsSectionsCopy', 'Сначала тема, затем задача. Поиск ниже работает по всему корпусу или выбранному разделу.') }));
+    sectionNav.appendChild(intro);
+    sectionButtons = el('div', { class: 'physics-section-list', attrs: { role: 'group', 'aria-label': tt('room.publicCorpus.physicsSectionsTitle', 'Выберите раздел') } });
+    const locale = () => String(document.documentElement.lang || 'ru').toLowerCase();
+    const sectionTitle = section => locale().startsWith('he') ? section.title_he : locale().startsWith('en') ? section.title_en : section.title_ru;
+    const taskCountLabel = count => {
+      const n = Number(count) || 0, lang = locale();
+      if (lang.startsWith('ru')) {
+        const mod100 = n % 100, mod10 = n % 10;
+        if (mod100 >= 11 && mod100 <= 14) return tt('room.publicCorpus.physicsTasksMany', 'задач');
+        if (mod10 === 1) return tt('room.publicCorpus.physicsTasksOne', 'задача');
+        if (mod10 >= 2 && mod10 <= 4) return tt('room.publicCorpus.physicsTasksFew', 'задачи');
+        return tt('room.publicCorpus.physicsTasksMany', 'задач');
+      }
+      return n === 1 ? tt('room.publicCorpus.physicsTasksOne', 'problem') : tt('room.publicCorpus.physicsTasksMany', 'problems');
+    };
+    const paintSectionButtons = () => {
+      sectionButtons.replaceChildren();
+      const definitions = [{ section_no: 'all', task_count: catalog.items.length, title_ru: tt('room.publicCorpus.physicsAllTasks', 'Все задачи'), title_en: tt('room.publicCorpus.physicsAllTasks', 'Все задачи'), title_he: tt('room.publicCorpus.physicsAllTasks', 'Все задачи') }, ...physics.sections];
+      for (const section of definitions) {
+        const value = String(section.section_no), active = String(browseState.section) === value;
+        const button = el('button', { class: 'physics-section-button' + (active ? ' is-active' : ''), attrs: { type: 'button', 'aria-pressed': String(active) } });
+        button.appendChild(el('span', { class: 'physics-section-number', attrs: { 'aria-hidden': 'true' }, text: value === 'all' ? '∑' : String(section.section_no).padStart(2, '0') }));
+        const copy = el('span', { class: 'physics-section-copy' });
+        copy.appendChild(el('strong', { text: value === 'all' ? tt('room.publicCorpus.physicsAllTasks', 'Все задачи') : sectionTitle(section), dir: value !== 'all' && locale().startsWith('he') ? 'rtl' : 'auto' }));
+        copy.appendChild(el('span', { text: roomNumber(section.task_count) + ' ' + taskCountLabel(section.task_count) }));
+        button.append(copy, el('span', { class: 'physics-section-arrow', attrs: { 'aria-hidden': 'true' }, text: '→' }));
+        button.addEventListener('click', () => { browseState.section = value; browseState.start = 0; paintSectionButtons(); schedulePaint(); });
+        sectionButtons.appendChild(button);
+      }
+    };
+    // For the physics corpus the table of contents is the primary entry point,
+    // so it precedes optional sync/share chrome. This keeps chapter choice in
+    // the first mobile viewport without changing the generic corpus order.
+    paintSectionButtons(); sectionNav.appendChild(sectionButtons); wrap.insertBefore(sectionNav, guest);
+  }
   let filterChrome = null;
   const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomPublicCorpusSearch' } });
   searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
@@ -10022,7 +10160,8 @@ async function renderPublicCorpus(slug, token) {
 
   const listSection = el('section', { class: 'room-primary-list public-corpus-list-section' });
   const listHead = el('div', { class: 'corpus-list-head' });
-  listHead.appendChild(el('h2', { class: 'corpus-list-count', text: tt('room.publicCorpus.materials', 'Учебные материалы') }));
+  const listTitle = el('h2', { class: 'corpus-list-count', text: physics ? tt('room.publicCorpus.physicsTasks', 'Задачи') : tt('room.publicCorpus.materials', 'Учебные материалы') });
+  listHead.appendChild(listTitle);
   listSection.appendChild(listHead);
   const resultLine = el('div', { class: 'group-corpus-results room-browse-summary', attrs: { role: 'status', 'aria-live': 'polite' } });
   const grid = el('div', { class: 'group-corpus-grid corpus-work-list' });
@@ -10033,9 +10172,11 @@ async function renderPublicCorpus(slug, token) {
   const paint = () => {
     const query = String(browseState.q || '').trim().toLocaleLowerCase();
     const found = catalog.items.filter(item => {
+      const physicsTask = physics && physics.taskByWork.get(item.public_work_id);
+      if (physics && String(browseState.section) !== 'all' && (!physicsTask || String(physicsTask.section.section_no) !== String(browseState.section))) return false;
       const searchable = browseState.scope === 'title' ? String(item.title || '')
         : browseState.scope === 'creator' ? String(item.creator || '')
-          : String((item.title || '') + ' ' + (item.creator || ''));
+          : String((item.title || '') + ' ' + (item.creator || '') + ' ' + (physicsTask ? physicsTask.task_number + ' ' + physicsTask.section.title_ru + ' ' + physicsTask.section.title_en + ' ' + physicsTask.section.title_he : ''));
       if (query && !searchable.toLocaleLowerCase().includes(query)) return false;
       if (browseState.audio === 'complete' && !item.package_complete) return false;
       if (browseState.audio === 'missing' && Number(item.asset_missing || 0) <= 0) return false;
@@ -10061,6 +10202,12 @@ async function renderPublicCorpus(slug, token) {
     });
     if (browseState.start >= found.length) browseState.start = 0;
     const page = found.slice(browseState.start, browseState.start + ROOM_BROWSE_PAGE);
+    if (physics) {
+      const activeSection = physics.sections.find(section => String(section.section_no) === String(browseState.section));
+      const lang = String(document.documentElement.lang || 'ru').toLowerCase();
+      const label = activeSection ? (lang.startsWith('he') ? activeSection.title_he : lang.startsWith('en') ? activeSection.title_en : activeSection.title_ru) : tt('room.publicCorpus.physicsAllTasks', 'Все задачи');
+      listTitle.textContent = label;
+    }
     const first = page.length ? browseState.start + 1 : 0;
     const last = browseState.start + page.length;
     resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + roomNumber(first) + '–' + roomNumber(last) + ' / ' + roomNumber(found.length);
@@ -10077,7 +10224,8 @@ async function renderPublicCorpus(slug, token) {
       });
       let view = makeView();
       const card = el('article', { class: 'group-work-card room-text-row room-material-row', attrs: { 'data-public-work': item.public_work_id, 'data-state': view.learnerState.state } });
-      card.appendChild(el('span', { class: 'group-work-position', text: String(item.position_no) }));
+      const taskMeta = physics && physics.taskByWork.get(item.public_work_id);
+      card.appendChild(el('span', { class: 'group-work-position', text: taskMeta ? taskMeta.task_number : String(item.position_no) }));
       const identity = el('div', { class: 'group-work-identity corpus-work-col' });
       const open = el('a', { class: 'room-text-title-link group-action primary', attrs: { href: window.PublicCorpusAdapter.deepLink(slug, item.public_work_id) } });
       const titleCopy = el('span', { class: 'room-item-title-copy' }); const title = el('span', { class: 'group-work-title', text: item.title }); if (HEBREW_RE.test(item.title)) title.setAttribute('dir', 'rtl'); titleCopy.appendChild(title);
@@ -10089,6 +10237,10 @@ async function renderPublicCorpus(slug, token) {
         compassRow.__compassRepaint = () => { view = makeView(); paintLearningCompass(compassRow, view, { showMedia: true, showDetails: true }); };
       }
       identity.appendChild(compassRow); card.appendChild(identity);
+      if (physics) {
+        const resources = physics.resourcesByWork.get(item.public_work_id) || [];
+        if (resources.length) identity.appendChild(renderPhysicsResourceRail(resources));
+      }
       const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
     }
     if (!page.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.publicCorpus.empty', 'Ничего не найдено') }));
