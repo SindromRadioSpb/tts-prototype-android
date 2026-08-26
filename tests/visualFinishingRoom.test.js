@@ -152,6 +152,10 @@ test("VF2 Room reports the loaded shell version honestly and has a network fallb
   assert.match(js, /const roomShellVersion[\s\S]*roomFooterVersion/);
   assert.match(js, /roomVersionMismatch = !!\(roomShellVersion && roomAppVersion !== roomShellVersion\)/);
   assert.match(js, /url\.searchParams\.set\('room_update', roomAppVersion/);
+  assert.match(js, /api\/client-config\?room_update_probe=/,
+    "Update must refresh the target version immediately before a network reload during rolling deploys");
+  assert.match(js, /await refreshRoomVersionBeforeNetworkReload\(\)[\s\S]*reloadRoomShellFromNetwork\(\)/,
+    "the fresh release target must be observed before the shell navigation");
   assert.match(js, /roomWaitingWorker \|\| roomVersionMismatch/);
   assert.match(js, /watch\(reg\.installing\)/,
     "an already-installing worker must not miss the update-ready notification");

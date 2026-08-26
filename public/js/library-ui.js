@@ -3869,6 +3869,20 @@ function reloadRoomShellFromNetwork() {
   url.searchParams.set('room_update', roomAppVersion || String(Date.now()));
   location.replace(url.pathname + '?' + url.searchParams.toString() + url.hash);
 }
+async function refreshRoomVersionBeforeNetworkReload() {
+  try {
+    // A tab can observe the previous release while a rolling deployment is in
+    // progress. Re-read the target immediately before navigation so Update
+    // cannot keep reloading an already-stale room_update marker.
+    const response = await fetch('/api/client-config?room_update_probe=' + Date.now(), {
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    if (!response.ok) return;
+    const config = await response.json();
+    if (config && config.version) roomAppVersion = String(config.version);
+  } catch (_) {}
+}
 async function applyRoomUpdate() {
   const safePoint = await prepareRoomUpdateSafePoint();
   if (!safePoint.ok) return;
@@ -3888,6 +3902,7 @@ async function applyRoomUpdate() {
   } else if (roomVersionMismatch) {
     dismissRoomUpdateToast();
     roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'network-reload-progress-flushed' : 'network-reload-safe-point' });
+    await refreshRoomVersionBeforeNetworkReload();
     reloadRoomShellFromNetwork();
   } else { reconnectRoomNetwork(); }
 }
