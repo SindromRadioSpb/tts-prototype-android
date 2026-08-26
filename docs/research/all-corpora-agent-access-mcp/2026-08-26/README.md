@@ -3,10 +3,10 @@
 Date: 2026-08-26
 Program: `ALL-CORPORA-AGENT-ACCESS-MCP-R`
 Mode: `RESEARCH_ONLY`
-Source commit: `e51e17ab8e88a378c221a9548a555539b6e18c2a`
-Branch: `main`; `HEAD == origin/main` at recon
+Source commit at research: `e51e17ab8e88a378c221a9548a555539b6e18c2a`; production implementation: `33efb4c8d0b8c9d3bd83d433b0d436aae8675db8`
+Branch: `main`; `HEAD == origin/main` at production verification
 Dirty tree: yes before research; unrelated owner files preserved
-Production inspected: anonymous GET only; served version basis `3.11.440` from predecessor live evidence
+Production inspected: anonymous browser plus owner-data read-only DB/service verification; served version `3.11.443`
 Evidence vocabulary: `CODE`, `LOCAL_TEST`, `ISOLATED_AUTOMATION`, `PRODUCTION_ANONYMOUS`, `OWNER_LIVE_READ_ONLY`, `OWNER_REPORTED`, `EXTERNAL_PRIMARY`, `INFERENCE`
 
 ## Outcome
@@ -15,7 +15,7 @@ The implementation-ready recommendation is a generic, read-only Agent Access pro
 
 The smallest useful pilot exposes typed discovery and bounded reading descriptors for Physics and Study Songs through the existing OAuth/consent/audit perimeter. Typed tools are the compatibility baseline. MCP Resources and `ResourceLink` values are additive views over the same immutable publication identity. PDF/audio bytes remain on first-party immutable HTTPS delivery with hashes and Range support; no binary is embedded in MCP messages and no OCR is canonical truth.
 
-The owner approved D1–D12 and started the implementation checkpoint on 2026-08-26. Local runtime code and an additive migration now exist on the working branch; production migration, owner rights writes, flags and deployment remain gated and have not occurred.
+The owner approved D1–D12, implementation and the bounded production rollout on 2026-08-26. Runtime 3.11.443 and migration 065 are live; the approved Study Songs agent-rights plan was applied exactly once. Server/anonymous production verification passed. Owner client reconsent and hosted-client acceptance remain pending before wider availability.
 
 ## Artifacts
 
@@ -39,14 +39,14 @@ The owner approved D1–D12 and started the implementation checkpoint on 2026-08
 - `LOCAL_TEST`: the stale coverage fixture was corrected before feature work; the MCP smoke now passes 74 checks across 30 tools and both `2025-11-25` and pinned `2026-07-28` eras.
 - `EXTERNAL_PRIMARY`: MCP `2026-07-28` is a major transport/auth era; the official TypeScript SDK v2 supports a dual-era modern + legacy handler. A breaking in-place protocol bump is rejected.
 
-## Research stop line and approved transition
+## Approved transition and current stop line
 
-The values in the decision packet were owner-approved on 2026-08-26 with the instruction `Формализуй и стартуй`. Implementation now proceeds through the documented red-test/local/temporary-DB gates. Production migration, owner rights writes, flags and deploy are not implied by this start instruction and remain later rollout gates.
+The values in the decision packet were owner-approved on 2026-08-26 with the instructions `Формализуй и стартуй` and then to deploy and verify on production. The bounded server rollout is complete. Stop before wider/community availability until owner reconsent, hosted-client corpus tasks, revoke/audit evidence and owner acceptance are recorded.
 
 ```text
-CODE=LOCAL_IMPLEMENTATION_COMPLETE_FOR_CHECKPOINT
-MIGRATION=TEMPORARY_DB_ONLY
-OWNER_DATA_WRITES=NONE
-PRODUCTION_WRITES=NONE
-DEPLOY=NONE
+CODE=PRODUCTION_3.11.443
+MIGRATION=065_APPLIED
+OWNER_DATA_WRITES=STUDY_SONGS_AGENT_RIGHTS_ONLY_309_FACTS
+PRODUCTION_WRITES=MIGRATION_065_AND_APPROVED_RIGHTS_ONLY
+DEPLOY=PRODUCTION_3.11.443
 ```

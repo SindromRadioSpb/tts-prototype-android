@@ -6,7 +6,7 @@ Owner authority: all recommended decision-packet values approved 2026-08-26; sta
 Starting commit: `d28f0cfdaac7b9cc0dc5e6bbd6fc0d8a81faf350`
 Branch: `main`; matched `origin/main` at start
 Dirty tree: yes before implementation; unrelated owner files are excluded from the allowlist
-Production mutation authority: none in this implementation checkpoint
+Production rollout authority: owner-approved after the local checkpoint; bounded migration, Study Songs rights, deploy and verification only
 
 ## Evidence classes
 
@@ -17,9 +17,9 @@ Production mutation authority: none in this implementation checkpoint
 - Typed read-only tools first; Resources are additive and cannot become a second content service.
 - Published-public namespace only. Group, personal, learner, review and forum truth are excluded.
 - Existing Physics `AGENT_READ` facts are read, never rewritten.
-- Study Songs agent rights require the new approved publication-rights writer and are not applied to production in this checkpoint.
+- Study Songs agent rights were applied once through the approved publication-rights writer: 309 append-only facts in four idempotent batches.
 - PDF/audio bytes remain direct first-party HTTPS; MCP returns descriptors only.
-- OCR, LLM/provider calls, object storage, external fetch/preview and production deploy remain excluded.
+- OCR, LLM/provider calls, object storage and external fetch/preview remain excluded.
 
 ## Gate ledger
 
@@ -29,9 +29,9 @@ Production mutation authority: none in this implementation checkpoint
 | G1 legacy MCP baseline | PASS | Stale v1 coverage fixture corrected; green before feature integration |
 | G2 red contracts | PASS | 10 publication-agent tests: absent deny, owner-only append facts, exact targets, rollback guard, HMAC cursors, Physics one-writer reuse, no external links/binary |
 | G3 additive migration/service/tools | PASS LOCAL/TEMPORARY_DB | Migration 065, rights repo, five tools, canonical writer; real runner applied all 65 migrations to a temporary DB |
-| G4 consent RU/EN/HE and transport compatibility | PASS ISOLATED; HOSTED CLIENTS PENDING | Official SDK v2 client proved legacy `2025-11-25` plus pinned modern `2026-07-28`; 380 px RU/EN/HE/RTL/keyboard browser smoke passed |
+| G4 consent RU/EN/HE and transport compatibility | PASS ISOLATED; OWNER RECONSENT / HOSTED CLIENTS PENDING | Official SDK v2 client proved legacy `2025-11-25` plus pinned modern `2026-07-28`; 380 px RU/EN/HE/RTL/keyboard browser smoke passed |
 | G5 regression/security/restore | PASS FOR CHECKPOINT | OAuth, OIDC, control plane, publication/Physics, migration copy rehearsal and output contracts green; dependency audit recorded below |
-| G6 production rollout | NOT AUTHORIZED | Requires separate preflight and rollout authority |
+| G6 owner-only production rollout | PASS FOR SERVER/ANONYMOUS; OWNER CLIENT ACCEPTANCE PENDING | Migration 065, exact Study Songs rights, 3.11.443, live read-only service and 380 px browser passed; new scopes still require explicit owner reconsent |
 
 ## Implemented boundary
 
@@ -39,7 +39,7 @@ Production mutation authority: none in this implementation checkpoint
 - Three separately consented OAuth scopes; consent version `agent-access-consent-v3` requires reconsent.
 - SDK v2 exact pins: `@modelcontextprotocol/server@2.0.0`, `node@2.0.0`, dev client `2.0.0`; one stateless endpoint supports the frozen legacy and modern eras.
 - Migration 065 extends the grant CHECK and adds publication-local append-only rights/events/idempotency. Absent rights deny; down migration refuses to discard rights facts or active new grants.
-- The canonical Study Songs writer is dry-run by default, requires exact current edition + manifest hash + owner role and splits the approved 309-fact production plan into bounded idempotent batches. It was exercised only on a temporary fixture.
+- The canonical Study Songs writer remained dry-run by default, matched the exact current edition and manifest, and applied the approved 309-fact plan in four bounded idempotent batches. Read-back is 77 `DISCOVER=YES`, 77 `SOURCE_TEXT=YES`, 77 `SOURCE_BINARY=YES`, 77 `DERIVATIVE_TEXT=NO`, and one package `SOURCE_BINARY=NO`.
 - Physics does not receive duplicate rights: discovery reuses its existing exact-edition `PUBLIC_READ` and `AGENT_READ` facts.
 - MCP returns first-party PDF/audio descriptors only. Binary/base64, packages, derivatives, external links, redirects, fetch/preview, OCR and all writes remain absent.
 
@@ -57,6 +57,11 @@ Production mutation authority: none in this implementation checkpoint
 | `ISOLATED_AUTOMATION` | publication consent browser | PASS at 380 CSS px, RU/EN/HE, RTL, keyboard focus, no horizontal overflow |
 | `LOCAL_TEST` | `node --check` on changed server/repo/service/scripts | PASS |
 | `LOCAL_TEST` | `npm ls` exact MCP packages | PASS, no invalid/extraneous dependency |
+| `PRODUCTION_ANONYMOUS` | repeated `/api/client-config` and clean Reading Room at 380 px | PASS; stable `3.11.443` 5/5, correct footer/SW/cache, no cookie, `/api/auth/me` 401, no horizontal overflow |
+| `PRODUCTION_ANONYMOUS` | Physics corpus UI and PDF viewer | PASS; nine chapter buttons total 74 tasks, chapter 1 filters to 10/10, PDF opens in the bounded full-height viewer with separate-open escape hatch |
+| `OWNER_LIVE_READ_ONLY` | production service constructed over SQLite `OPEN_READONLY` | PASS; Physics 74 / one PDF descriptor and Study Songs 77 / audio descriptors / bounded text window |
+| `OWNER_LIVE_READ_ONLY` | pre-rollout backup versus post-rollout online snapshot | PASS; 30 protected owner/learner/group/publication tables have identical row counts and content digests |
+| `OWNER_LIVE_READ_ONLY` | OAuth/MCP discovery | PASS; three `reading.publication.*` scopes advertised; unauthenticated MCP initialize denied 401 |
 
 The repository has no `npm run build` script; syntax, targeted tests and isolated server/browser smokes are the applicable gates. The external two-client script stopped before a connection because `HERMES_AGENT_REPO` / a discoverable Hermes checkout with `uv.lock` was unavailable. Hosted Hermes, OpenAI, Inspector and Claude evidence therefore remains a rollout gate, not a claimed pass.
 
@@ -65,14 +70,20 @@ The repository has no `npm run build` script; syntax, targeted tests and isolate
 ## Source and data write ledger
 
 ```text
-RUNTIME_CODE=LOCAL_ONLY
-MIGRATION=TEMPORARY_DB_ONLY
-OWNER_DATA_WRITES=NONE
-PRODUCTION_WRITES=NONE
-DEPLOY=NONE
+RUNTIME_CODE=PRODUCTION_3.11.443
+MIGRATION=065_APPLIED
+OWNER_DATA_WRITES=STUDY_SONGS_AGENT_RIGHTS_ONLY_309_FACTS
+PRODUCTION_WRITES=MIGRATION_065_AND_APPROVED_RIGHTS_ONLY
+DEPLOY=PRODUCTION_3.11.443
 ```
 
-The local `data/app.db` source used for rehearsal was opened `READ_ONLY`; all migration writes occurred on a disposable SQLite backup copy. No account, connection, grant, consent, publication pointer, Physics right, Study Songs right or learner/group truth was created in owner or production data.
+Migration 065 was applied automatically by the production migration runner on the first feature deployment. The production backup passed archive read-back before the rights writer ran. The writer added exactly 309 facts, four events and four idempotency receipts. No account, connection, grant, consent, publication pointer, Physics right, learner/review/note/bookmark/group truth or public corpus payload was changed. A digest comparison across 30 protected tables against the pre-rollout backup found no differences.
+
+Release commits were `3604c10a` (feature), `b7d2c1eb` (initial 3.11.441 marker), `528e79a6` (coherent 3.11.442 shell markers), and `33efb4c8` (3.11.443 rolling-update race fix). Owner report exposed that 3.11.441 served a 3.11.440 Room marker. The final fix keeps Studio, Room and SW at one release and refreshes `/api/client-config` immediately before a network fallback, preventing a rolling-deploy version captured in memory from becoming the next stale target.
+
+The three production control gates needed for the existing owner-only Agent Access perimeter remain effectively open through the pre-existing audited owner control journal; no production environment variable or client row was changed in this rollout. Existing connections do not silently gain the new scopes: the owner must explicitly reconnect/reconsent to `agent-access-consent-v3` before exercising the five new tools.
+
+Three sequential release builds temporarily raised root-disk use to 95%. Under the owner's existing bounded-cleanup authority, seven unreferenced old application image tags were removed. Current 3.11.443 and immediate rollback 3.11.442 were retained; volumes, backup and build cache were untouched. Post-cleanup disk use is 87%.
 
 ## Scoped implementation allowlist
 
@@ -80,14 +91,11 @@ Runtime/domain: `agent/access/{capabilities,consentCeremony,contracts,mcpAdapter
 
 Schema/ops/tests: `migrations/065_publication_agent_access.sql`, matching down migration, the two new premium scripts, MCP/domain/UI fixtures, `tests/publicationAgentAccess.test.js`, package manifests, Agent Access HTML/JS and these program docs.
 
-Explicitly untouched: publication/Physics pointers and files; learner, review, notes, bookmarks, group and Telegram writers; public corpus payloads; forum/solutions domain; production coordinates/config/flags/deployment.
+Explicitly untouched: publication/Physics pointers and files; learner, review, notes, bookmarks, group and Telegram writers; public corpus payloads; forum/solutions domain; production configuration and environment flags.
 
 ## Remaining rollout gates
 
-1. Fresh production preflight: `HEAD`, `origin/main`, served version, migrations, disk and backup/read-back — without applying migration 065.
-2. Hosted client interoperability: MCP Inspector, Hermes, OpenAI Responses; Claude before wider availability.
-3. Owner-only production migration after backup and exact rehearsal receipt.
-4. Dry-run the Study Songs rights writer against the production copy; owner verifies edition/manifest/count/plan hash before `--apply`.
-5. New consent and owner connection; flags remain off until the bounded window.
-6. Owner-only Physics + Study Songs tasks, live revoke ≤60 seconds, content-free audit inspection and flags-off rollback.
-7. Only after GO thresholds: bounded community availability. External-link descriptors, MCP Resources, OCR/derivatives and packages remain later approvals.
+1. Owner reconnects/reconsents to consent v3 and confirms the three new publication scopes; no existing connection receives them implicitly.
+2. Owner-only Physics + Study Songs tasks through a hosted client (Hermes first; Inspector/OpenAI as interoperability evidence), including live revoke ≤60 seconds and content-free audit inspection.
+3. Flags-off rollback remains available without deleting rights rows; immediate image rollback target is 3.11.442.
+4. Only after GO thresholds: bounded community availability. External-link descriptors, MCP Resources, OCR/derivatives and packages remain later approvals.
