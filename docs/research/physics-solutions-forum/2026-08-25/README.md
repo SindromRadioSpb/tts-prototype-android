@@ -52,6 +52,7 @@ Predecessor production evidence: версия 3.11.435, commit e2e41ffa, physics
 
 - [R2 implementation packet](../../../planning/PHYSICS_SOLUTION_DOCUMENTS_R2_IMPLEMENTATION_PACKET_2026_08_26.md)
 - [R2 implementation evidence](PHYSICS_SOLUTION_DOCUMENTS_R2_IMPLEMENTATION_EVIDENCE_2026_08_26.md)
+- [R2 production rollout evidence](PHYSICS_SOLUTION_DOCUMENTS_R2_PRODUCTION_ROLLOUT_EVIDENCE_2026_08_26.md)
 
 ## Evidence vocabulary
 
