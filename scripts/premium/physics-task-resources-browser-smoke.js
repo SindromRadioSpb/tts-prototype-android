@@ -54,6 +54,10 @@ async function main() {
     await mobile.locator(".physics-task-resource").click();
     assert.equal(await mobile.locator(".physics-resource-overlay").count(), 1);
     assert.match(await mobile.locator(".physics-resource-frame").getAttribute("src"), /^\/api\/public-corpora\/physics-year1-problems\/resources\/[^/]+\/file#view=FitH$/);
+    const viewerBox = await mobile.locator(".physics-resource-viewer").boundingBox();
+    const frameBox = await mobile.locator(".physics-resource-frame").boundingBox();
+    assert.ok(viewerBox && viewerBox.height >= 840, `viewer must fill the 844px viewport, got ${viewerBox?.height}`);
+    assert.ok(frameBox && frameBox.height >= 740, `PDF must use the remaining viewport height, got ${frameBox?.height}`);
     assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth), 380); checks.push("mobile-pdf-viewer");
     await mobile.screenshot({ path: path.join(outDir, "physics-resource-viewer-ru-380.png"), fullPage: false });
   } finally {
