@@ -46,7 +46,7 @@ const fixtures = Object.freeze({
   }),
   get_agent_connection: Object.freeze({
     schema_version: "aa.connection.1.0.0", connection_id: principal.connection_id, oauth_client_id: principal.oauth_client_id,
-    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read","intent.import_text.propose","intent.track_word.propose","intent.goal.propose","goal.read"]).has(scope))),
+    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read","intent.import_text.propose","intent.track_word.propose","intent.goal.propose","goal.read","reading.publication.catalog.read","reading.publication.item.read","reading.publication.resource.read"]).has(scope))),
     access_expires_at: principal.access_expires_at, consent_version: "consent-1", capability_version: "aa-v0.1",
     downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: GENERATED,
   }),
@@ -133,6 +133,11 @@ const fixtures = Object.freeze({
   propose_track_word: Object.freeze({schema_version:"aa.propose_track_word.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",per_item:Object.freeze([Object.freeze({surface:"מילה",resolution:"RESOLVED"})]),generated_at:GENERATED}),
   propose_goal: Object.freeze({schema_version:"aa.propose_goal.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",generated_at:GENERATED}),
   get_current_goal: Object.freeze({schema_version:"aa.current_goal.1.0.0",goal:null,generated_at:GENERATED}),
+  list_published_public_corpora: Object.freeze({schema_version:"aa.published_public_corpora.1.0.0",corpora:Object.freeze([Object.freeze({corpus_id:"pc-songs",slug:"study-songs",title:"Study Songs",description:"Public songs",edition_id:"ed-songs-1",edition_number:1,manifest_sha256:"a".repeat(64),item_count:77,asset_count:100,published_at:GENERATED})]),next_cursor:null,generated_at:GENERATED}),
+  search_published_public_items: Object.freeze({schema_version:"aa.published_public_items.1.0.0",items:Object.freeze([Object.freeze({corpus_id:"pc-songs",corpus_slug:"study-songs",corpus_title:"Study Songs",edition_id:"ed-songs-1",edition_number:1,manifest_sha256:"a".repeat(64),edition_item_id:"ei-song-1",public_work_id:"song-1",position_no:1,title:"Song",creator:"Author",snapshot_sha256:"b".repeat(64)})]),next_cursor:null,generated_at:GENERATED}),
+  get_published_public_item: Object.freeze({schema_version:"aa.published_public_item.1.0.0",item:Object.freeze({corpus_id:"pc-songs",corpus_slug:"study-songs",corpus_title:"Study Songs",edition_id:"ed-songs-1",edition_number:1,manifest_sha256:"a".repeat(64),edition_item_id:"ei-song-1",public_work_id:"song-1",position_no:1,title:"Song",creator:"Author",snapshot_sha256:"b".repeat(64)}),generated_at:GENERATED}),
+  list_published_item_resources: Object.freeze({schema_version:"aa.published_item_resources.1.0.0",edition_id:"ed-songs-1",edition_item_id:"ei-song-1",resources:Object.freeze([Object.freeze({resource_id:"ea-song-1",resource_kind:"PUBLICATION_ASSET",revision_id:null,asset_key:"c".repeat(64),bytes:12345,sha256:"d".repeat(64),mime:"audio/mpeg",url:`https://linguistpro.kolosei.com/api/public-corpora/study-songs/assets/${"c".repeat(64)}`})]),next_cursor:null,generated_at:GENERATED}),
+  read_published_text_window: Object.freeze({schema_version:"aa.published_text_window.1.0.0",item:Object.freeze({corpus_id:"pc-songs",corpus_slug:"study-songs",corpus_title:"Study Songs",edition_id:"ed-songs-1",edition_number:1,manifest_sha256:"a".repeat(64),edition_item_id:"ei-song-1",public_work_id:"song-1",position_no:1,title:"Song",creator:"Author",snapshot_sha256:"b".repeat(64)}),start_order_index:0,rows:Object.freeze([Object.freeze({order_index:0,he:"שלום",ru:"Привет"})]),rows_total:1,has_more:false,generated_at:GENERATED}),
 });
 
 const validArgs = Object.freeze({
@@ -161,6 +166,11 @@ const validArgs = Object.freeze({
   propose_track_word: Object.freeze({items:Object.freeze([Object.freeze({surface:"מילה",evidence:"USER_ASKED_ABOUT",reason:"ללמוד"})])}),
   propose_goal: Object.freeze({statement:"Read daily",goal_type:"PROCESS",period_days:7,reason:"weekly reflection"}),
   get_current_goal: Object.freeze({}),
+  list_published_public_corpora: Object.freeze({limit:10}),
+  search_published_public_items: Object.freeze({corpus_slug:"study-songs",edition_id:"ed-songs-1",query:"Song",limit:10}),
+  get_published_public_item: Object.freeze({corpus_slug:"study-songs",edition_id:"ed-songs-1",edition_item_id:"ei-song-1"}),
+  list_published_item_resources: Object.freeze({corpus_slug:"study-songs",edition_id:"ed-songs-1",edition_item_id:"ei-song-1",limit:10}),
+  read_published_text_window: Object.freeze({corpus_slug:"study-songs",edition_id:"ed-songs-1",edition_item_id:"ei-song-1",start:0,rows:10}),
 });
 
 function handlers(overrides = {}) {

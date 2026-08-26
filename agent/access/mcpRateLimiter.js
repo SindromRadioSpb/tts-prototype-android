@@ -38,6 +38,13 @@ const TOOL_LIMITS = Object.freeze({
   propose_track_word: Object.freeze({ minute: 6, day: 60 }),
   propose_goal: Object.freeze({ minute: 6, day: 60 }),
   get_current_goal: Object.freeze({ minute: 6, day: 200 }),
+  // Public-publication namespace: metadata discovery is cheap; item windows
+  // and descriptors remain bounded and use the canonical H2 read budget.
+  list_published_public_corpora: Object.freeze({ minute: 30, day: 1000 }),
+  search_published_public_items: Object.freeze({ minute: 20, day: 600 }),
+  get_published_public_item: Object.freeze({ minute: 20, day: 600 }),
+  list_published_item_resources: Object.freeze({ minute: 20, day: 600 }),
+  read_published_text_window: Object.freeze({ minute: 20, day: 400 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 import express from 'express';
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 
 import adapterModule from '../../agent/access/mcpAdapter.js';
 import capabilities from '../../agent/access/capabilities.js';
@@ -10,7 +11,7 @@ import serviceModule from '../../agent/access/service.js';
 import rateModule from '../../agent/access/mcpRateLimiter.js';
 import { createMcpResourceValidator } from '../../agent/access/mcpResourceValidator.mjs';
 
-const { MCP_PATH, MCP_PROTOCOL_VERSION, createMcpDefaultOffGate } = adapterModule;
+const { MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, createMcpDefaultOffGate } = adapterModule;
 const { createAgentAccessService } = serviceModule;
 const { createMcpRateLimiter } = rateModule;
 const issuer = 'https://linguistpro.kolosei.com/oauth';
@@ -29,7 +30,7 @@ const fixtures = Object.freeze({
   get_review_summary: Object.freeze({ schema_version: 'aa.review_summary.1.0.0', due_total: 12, urgent_total: 4, estimated_minutes: 9, handoff_eligible: false, handoff_scope_available: false, generated_at: new Date(nowSeconds * 1000).toISOString(), expires_at: new Date((nowSeconds + 120) * 1000).toISOString() }),
   search_public_reading_catalog: Object.freeze({ schema_version: 'aa.public_reading_search.1.0.0', catalog_version: 'catalog-fixture', results: Object.freeze([{ work_id: 'work-fixture', title: 'Public fixture work', author: 'Public fixture author', era: 'REVIVAL', genre: 'PROSE', language: 'he', sentence_count: 120, audio_available: false, ready_state: 'READY', first_party_path: '/library.html' }]), next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_recent_explanation_metadata: Object.freeze({ schema_version: 'aa.explanation_metadata.1.0.0', items: Object.freeze([{ explanation_id: 'explanation-fixture', created_at: new Date(nowSeconds * 1000).toISOString(), kind: 'word', construct_ids: Object.freeze(['construct-fixture']), purge_state: 'AVAILABLE' }]), next_before: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
-  get_agent_connection: Object.freeze({ schema_version: 'aa.connection.1.0.0', connection_id: connectionId, oauth_client_id: clientId, client_display_name: 'Fixture client', connection_status: 'ACTIVE', granted_scopes: Object.freeze(allScopes.filter((scope) => !['morphology.read', 'learner.coverage.read', 'reading.group_corpus.read', 'learner.group_coverage.read', 'intent.import_text.propose', 'intent.track_word.propose', 'intent.goal.propose', 'goal.read'].includes(scope))), access_expires_at: expiresAt, consent_version: 'consent-fixture', capability_version: 'aa-v0.1', downstream_retention_notice: 'EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_agent_connection: Object.freeze({ schema_version: 'aa.connection.1.0.0', connection_id: connectionId, oauth_client_id: clientId, client_display_name: 'Fixture client', connection_status: 'ACTIVE', granted_scopes: Object.freeze(allScopes.filter((scope) => !['morphology.read', 'learner.coverage.read', 'reading.group_corpus.read', 'learner.group_coverage.read', 'intent.import_text.propose', 'intent.track_word.propose', 'intent.goal.propose', 'goal.read', 'reading.publication.catalog.read', 'reading.publication.item.read', 'reading.publication.resource.read'].includes(scope))), access_expires_at: expiresAt, consent_version: 'consent-fixture', capability_version: 'aa-v0.1', downstream_retention_notice: 'EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_access_window: Object.freeze({ schema_version: 'aa.access_window.1.0.0', access_lifetime: 'PERSISTENT_WINDOW', window_expires_at: null, access_expires_at: expiresAt, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_due_review_items: Object.freeze({ schema_version: 'aa.due_review_items.1.0.0', items: Object.freeze([{ display: 'כָּתַב', gloss: 'написал', struggle: 'high', due_day: '2026-07-17', content_available: true }]), due_total: 12, next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_learner_profile: Object.freeze({ schema_version: 'aa.learner_profile.1.0.0', mode: 'coach', language: 'ru', depth: 'detailed', generated_at: new Date(nowSeconds * 1000).toISOString() }),
@@ -42,14 +43,19 @@ const fixtures = Object.freeze({
   list_personal_texts: Object.freeze({ schema_version: 'aa.personal_texts_list.1.0.0', items: Object.freeze([{ text_key: 'text-1783830247939-hpbn', title: 'Мой текст', rows_count: 12, content_updated_at: new Date(nowSeconds * 1000).toISOString(), replica_ingested_at: new Date(nowSeconds * 1000).toISOString() }]), total: 1, next_cursor: null, authority: 'OWNER_DEVICE_CANONICAL', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_personal_text_content: Object.freeze({ schema_version: 'aa.personal_text_content.1.0.0', text_key: 'text-1783830247939-hpbn', title: 'Мой текст', rows: Object.freeze([{ order_index: 0, he: 'שלום עולם', ru: 'Привет мир' }]), rows_total: 12, has_more: true, content_updated_at: new Date(nowSeconds * 1000).toISOString(), replica_ingested_at: new Date(nowSeconds * 1000).toISOString(), authority: 'OWNER_DEVICE_CANONICAL', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_word_morphology: Object.freeze({ schema_version: 'aa.word_morphology.1.0.0', resolution: 'EXACT', entries: Object.freeze([{ lemma: 'לכתוב', root: 'כתב', pos: 'verb', binyan: 'paal', tense: 'INFINITIVE', niqqud_form: 'לִכְתּוֹב', gloss_ru: 'писать', confidence: 'EXACT', provenance: 'PEALIM_OFFLINE_V12' }]), resolver_version: 'word-morphology-resolver-v1', dataset_version: 'pealim-infl-v12', generated_at: new Date(nowSeconds * 1000).toISOString() }),
-  get_text_coverage: Object.freeze({ schema_version: 'aa.text_coverage.1.0.0', status: 'OK', token_total: 10, token_known_pct: 90, lemma_total: 5, lemma_known_pct: 80, content_word_known_pct: 90, buckets: Object.freeze({ known: 2, learning: 1, due_now: 1, unknown: 1, unresolved: 0, proper_names: 0 }), top_unknown: Object.freeze([{ lemma: 'מילה', freq_in_text: 1, gloss_ru: 'слово' }]), recommendation_band: 'STRETCH_90_95', learner_projection_version: 'fixture-projection-v1', tokenizer_version: 'reader-morph-tokenizer-v1', resolver_version: 'text-coverage-resolver-v1', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_text_coverage: Object.freeze({ schema_version: 'aa.text_coverage.2.0.0', status: 'AVAILABLE', reason_code: 'RECORDED_FAMILIARITY_READY', counts: Object.freeze({ lexical_total: 10, eligible_denominator: 10, familiar: 9, explicit_new: 0, untracked: 1, unresolved: 0, ignored_excluded: 0, proper_names_excluded: 0 }), recorded_familiar_pct_lower_bound: 90, unresolved_uncertainty_pp: 0, rank_eligible: true, top_unknown: Object.freeze([{ lemma: 'מילה', freq_in_text: 1, gloss_ru: 'слово' }]), learner_projection_version: 'fixture-projection-v1', tokenizer_version: 'reader-morph-tokenizer-v1', resolver_version: 'recorded-familiarity-v2+fixture', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   search_group_reading_catalog: Object.freeze({ schema_version: 'aa.group_reading_search.1.0.0', results: Object.freeze([{ corpus_id: 'study-songs-pilot', corpus_title: 'Учебные песни', corpus_version: 1, work_id: 'song-pos-001', title: 'כולם גנבים', artist: 'אושר כהן', position_no: 1, rows_count: 42, audio_available: true, level: null, topic: null, tags: Object.freeze(['lyrics']), access: 'GROUP_RESTRICTED', first_party_path: '/library.html' }]), next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_group_reading_content: Object.freeze({ schema_version: 'aa.group_reading_content.1.0.0', corpus: Object.freeze({ corpus_id: 'study-songs-pilot', title: 'Учебные песни', version: 1, access: 'GROUP_RESTRICTED' }), work: Object.freeze({ work_id: 'song-pos-001', title: 'כולם גנבים', artist: 'אושר כהן', source_url: null, rights_status: 'REVIEW_REQUIRED' }), anchor: Object.freeze({ corpus_id: 'study-songs-pilot', work_id: 'song-pos-001', start_order_index: 0, row_count: 1 }), rows: Object.freeze([{ order_index: 0, he: 'שלום עולם', ru: 'Привет мир' }]), rows_total: 42, has_more: true, authority: 'GROUP_CORPUS_SERVER_CANONICAL', generated_at: new Date(nowSeconds * 1000).toISOString() }),
-  get_group_text_coverage: Object.freeze({ schema_version: 'aa.group_text_coverage.1.0.0', target: Object.freeze({ corpus_id: 'study-songs-pilot', work_id: 'song-pos-001', title: 'כולם גנבים' }), status: 'OK', token_total: 10, token_known_pct: 90, lemma_total: 5, lemma_known_pct: 80, content_word_known_pct: 90, buckets: Object.freeze({ known: 2, learning: 1, due_now: 1, unknown: 1, unresolved: 0, proper_names: 0 }), top_unknown: Object.freeze([{ lemma: 'מילה', freq_in_text: 1, gloss_ru: 'слово' }]), recommendation_band: 'STRETCH_90_95', learner_projection_version: 'fixture-projection-v1', tokenizer_version: 'reader-morph-tokenizer-v1', resolver_version: 'text-coverage-resolver-v1', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_group_text_coverage: Object.freeze({ schema_version: 'aa.group_text_coverage.2.0.0', target: Object.freeze({ corpus_id: 'study-songs-pilot', work_id: 'song-pos-001', title: 'כולם גנבים' }), status: 'AVAILABLE', reason_code: 'RECORDED_FAMILIARITY_READY', counts: Object.freeze({ lexical_total: 10, eligible_denominator: 10, familiar: 9, explicit_new: 0, untracked: 1, unresolved: 0, ignored_excluded: 0, proper_names_excluded: 0 }), recorded_familiar_pct_lower_bound: 90, unresolved_uncertainty_pp: 0, rank_eligible: true, top_unknown: Object.freeze([{ lemma: 'מילה', freq_in_text: 1, gloss_ru: 'слово' }]), learner_projection_version: 'fixture-projection-v1', tokenizer_version: 'reader-morph-tokenizer-v1', resolver_version: 'recorded-familiarity-v2+fixture', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   propose_import_text: Object.freeze({ schema_version:'aa.propose_import_text.1.0.0',proposal_id:'ap_0123456789abcdef0123456789abcdef',status:'PENDING',generated_at:new Date(nowSeconds*1000).toISOString() }),
   propose_track_word: Object.freeze({ schema_version:'aa.propose_track_word.1.0.0',proposal_id:'ap_0123456789abcdef0123456789abcdef',status:'PENDING',per_item:Object.freeze([{surface:'מילה',resolution:'RESOLVED'}]),generated_at:new Date(nowSeconds*1000).toISOString() }),
   propose_goal: Object.freeze({ schema_version:'aa.propose_goal.1.0.0',proposal_id:'ap_0123456789abcdef0123456789abcdef',status:'PENDING',generated_at:new Date(nowSeconds*1000).toISOString() }),
   get_current_goal: Object.freeze({ schema_version:'aa.current_goal.1.0.0',goal:null,generated_at:new Date(nowSeconds*1000).toISOString() }),
+  list_published_public_corpora: Object.freeze({ schema_version:'aa.published_public_corpora.1.0.0',corpora:Object.freeze([{corpus_id:'pc-songs',slug:'study-songs',title:'Study Songs',description:'Public songs',edition_id:'ed-songs-1',edition_number:1,manifest_sha256:'a'.repeat(64),item_count:77,asset_count:100,published_at:new Date(nowSeconds*1000).toISOString()}]),next_cursor:null,generated_at:new Date(nowSeconds*1000).toISOString() }),
+  search_published_public_items: Object.freeze({ schema_version:'aa.published_public_items.1.0.0',items:Object.freeze([{corpus_id:'pc-songs',corpus_slug:'study-songs',corpus_title:'Study Songs',edition_id:'ed-songs-1',edition_number:1,manifest_sha256:'a'.repeat(64),edition_item_id:'ei-song-1',public_work_id:'song-1',position_no:1,title:'Song',creator:'Author',snapshot_sha256:'b'.repeat(64)}]),next_cursor:null,generated_at:new Date(nowSeconds*1000).toISOString() }),
+  get_published_public_item: Object.freeze({ schema_version:'aa.published_public_item.1.0.0',item:Object.freeze({corpus_id:'pc-songs',corpus_slug:'study-songs',corpus_title:'Study Songs',edition_id:'ed-songs-1',edition_number:1,manifest_sha256:'a'.repeat(64),edition_item_id:'ei-song-1',public_work_id:'song-1',position_no:1,title:'Song',creator:'Author',snapshot_sha256:'b'.repeat(64)}),generated_at:new Date(nowSeconds*1000).toISOString() }),
+  list_published_item_resources: Object.freeze({ schema_version:'aa.published_item_resources.1.0.0',edition_id:'ed-songs-1',edition_item_id:'ei-song-1',resources:Object.freeze([{resource_id:'ea-song-1',resource_kind:'PUBLICATION_ASSET',revision_id:null,asset_key:'c'.repeat(64),bytes:12345,sha256:'d'.repeat(64),mime:'audio/mpeg',url:`https://linguistpro.kolosei.com/api/public-corpora/study-songs/assets/${'c'.repeat(64)}`}]),next_cursor:null,generated_at:new Date(nowSeconds*1000).toISOString() }),
+  read_published_text_window: Object.freeze({ schema_version:'aa.published_text_window.1.0.0',item:Object.freeze({corpus_id:'pc-songs',corpus_slug:'study-songs',corpus_title:'Study Songs',edition_id:'ed-songs-1',edition_number:1,manifest_sha256:'a'.repeat(64),edition_item_id:'ei-song-1',public_work_id:'song-1',position_no:1,title:'Song',creator:'Author',snapshot_sha256:'b'.repeat(64)}),start_order_index:0,rows:Object.freeze([{order_index:0,he:'שלום',ru:'Привет'}]),rows_total:1,has_more:false,generated_at:new Date(nowSeconds*1000).toISOString() }),
 });
 const args = Object.freeze({
   get_learning_brief: {}, get_review_summary: {}, get_agent_connection: {},
@@ -71,6 +77,11 @@ const args = Object.freeze({
   propose_track_word: { items:[{surface:'מילה',evidence:'USER_ASKED_ABOUT',reason:'ללמוד'}] },
   propose_goal: { statement:'Read daily',goal_type:'PROCESS',period_days:7,reason:'weekly reflection' },
   get_current_goal: {},
+  list_published_public_corpora: { limit: 10 },
+  search_published_public_items: { corpus_slug: 'study-songs', edition_id: 'ed-songs-1', query: 'Song', limit: 10 },
+  get_published_public_item: { corpus_slug: 'study-songs', edition_id: 'ed-songs-1', edition_item_id: 'ei-song-1' },
+  list_published_item_resources: { corpus_slug: 'study-songs', edition_id: 'ed-songs-1', edition_item_id: 'ei-song-1', limit: 10 },
+  read_published_text_window: { corpus_slug: 'study-songs', edition_id: 'ed-songs-1', edition_item_id: 'ei-song-1', start: 0, rows: 10 },
 });
 
 function listen(server) { return new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve(server.address())); }); }
@@ -148,7 +159,15 @@ async function post(body, options = {}) {
   if (!['GET', 'HEAD'].includes(method)) init.body = options.rawBody ?? JSON.stringify(body);
   return fetch(`${origin}${MCP_PATH}${options.query || ''}`, init);
 }
-async function json(response) { const text = await response.text(); return text ? JSON.parse(text) : null; }
+async function json(response) {
+  const text = await response.text();
+  if (!text) return null;
+  if (text.startsWith('event:')) {
+    const payloads = text.split(/\r?\n\r?\n/).map((block) => block.split(/\r?\n/).filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trim()).join('')).filter(Boolean);
+    return payloads.length ? JSON.parse(payloads[payloads.length - 1]) : null;
+  }
+  return JSON.parse(text);
+}
 function rpc(method, params, id = 1) { return { jsonrpc: '2.0', id, method, params }; }
 
 let checks = 0;
@@ -171,6 +190,25 @@ try {
   assert.equal(response.status, 400); assert.equal((await json(response)).error.message, 'Unsupported MCP protocol version.'); checks++;
   response = await post(rpc('tools/list', {}), { protocol: '2025-06-18' }); assert.equal(response.status, 400); checks++;
 
+  const modernBearer = await token();
+  const modernTransport = new StreamableHTTPClientTransport(new URL(`${origin}${MCP_PATH}`), {
+    authProvider: { token: async () => modernBearer },
+    requestInit: { headers: { 'x-forwarded-for': '198.51.100.240' } },
+  });
+  const modernClient = new Client({ name: 'fixture-modern-client', version: '1.0.0' }, {
+    capabilities: {}, versionNegotiation: { mode: { pin: MCP_MODERN_PROTOCOL_VERSION } },
+  });
+  try {
+    await modernClient.connect(modernTransport);
+    assert.equal(modernClient.getProtocolEra(), 'modern');
+    assert.equal(modernTransport.protocolVersion, MCP_MODERN_PROTOCOL_VERSION);
+    const modernTools = await modernClient.listTools();
+    assert.deepEqual(modernTools.tools.map((tool) => tool.name), capabilities.capabilityNames());
+    const modernResult = await modernClient.callTool({ name: 'list_published_public_corpora', arguments: args.list_published_public_corpora });
+    assert.deepEqual(modernResult.structuredContent, fixtures.list_published_public_corpora);
+    checks++;
+  } finally { await modernClient.close(); }
+
   response = await post(rpc('tools/list', {})); assert.equal(response.status, 200); body = await json(response);
   assert.deepEqual(body.result.tools.map((tool) => tool.name), capabilities.capabilityNames());
   for (const tool of body.result.tools) { assert.equal(tool.inputSchema.additionalProperties, false); assert.equal(tool.outputSchema.additionalProperties, false); }
@@ -189,6 +227,15 @@ try {
   const narrow = await token({ scope: 'review.summary.read' });
   response = await post(rpc('tools/call', { name: 'get_learning_brief', arguments: {} }), { token: narrow }); body = await json(response);
   assert.equal(JSON.parse(body.result.content[0].text).error.code, 'INSUFFICIENT_SCOPE'); checks++;
+  for (const [scope, deniedTool] of [
+    ['reading.publication.catalog.read', 'read_published_text_window'],
+    ['reading.publication.item.read', 'list_published_item_resources'],
+    ['reading.publication.resource.read', 'list_published_public_corpora'],
+  ]) {
+    response = await post(rpc('tools/call', { name: deniedTool, arguments: args[deniedTool] }), { token: await token({ scope }) });
+    body = await json(response);
+    assert.equal(JSON.parse(body.result.content[0].text).error.code, 'INSUFFICIENT_SCOPE'); checks++;
+  }
 
   for (const badToken of [
     await token({ iss: 'https://wrong.invalid/oauth' }), await token({ aud: 'https://wrong.invalid/resource' }),
@@ -234,7 +281,7 @@ try {
   for (const forbidden of ['createMessage(', 'registerResource', 'registerPrompt', 'setInterval(', 'setTimeout(', 'fetch(']) assert.equal(source.includes(forbidden), false, forbidden);
   assert.ok(auditRows.length > 0); assert.ok(auditRows.every((row) => !('token' in row) && !('user_id' in row))); checks++;
 
-  console.log(JSON.stringify({ ok: true, checks, tools: capabilities.capabilityNames().length, protocol: MCP_PROTOCOL_VERSION, stateless: true, sessions: 0, external_network_calls: 0, provider_calls: 0, live_data_reads: 0 }));
+  console.log(JSON.stringify({ ok: true, checks, tools: capabilities.capabilityNames().length, protocols: [MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION], stateless: true, sessions: 0, external_network_calls: 0, provider_calls: 0, live_data_reads: 0 }));
 } finally {
   await close(server);
 }

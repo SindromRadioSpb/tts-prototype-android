@@ -55,6 +55,11 @@ const SCENARIOS = Object.freeze({
   "agent_access.group_reading_search": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:group_membership_read", "repo:group_corpus_metadata_read"] },
   "agent_access.group_reading_content": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:group_membership_read", "repo:group_corpus_content_read"] },
   "agent_access.group_text_coverage": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:group_membership_read", "repo:group_corpus_content_read", "repo:learner_projection_read"] },
+  "agent_access.publication_corpora": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:publication_agent_rights_read", "repo:public_corpus_metadata_read"] },
+  "agent_access.publication_items": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:publication_agent_rights_read", "repo:public_corpus_metadata_read"] },
+  "agent_access.publication_item": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:publication_agent_rights_read", "repo:public_corpus_metadata_read"] },
+  "agent_access.publication_resources": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:publication_agent_rights_read", "repo:public_resource_descriptor_read"] },
+  "agent_access.publication_text": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:publication_agent_rights_read", "repo:public_corpus_content_read"] },
   // Write-scenarios: the agent INITIATES, the owner/LinguistPro executes. A mint
   // is a write, so the role is proposer, not reader (R17: the domain smoke derives
   // the expected role per capability and asserts reader-scenarios only read).

@@ -1927,6 +1927,9 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
       const handoffRepoForAgentAccess = require("./db/handoffRepo");
       const agentProposalsRepoForAgentAccess = require("./db/agentProposalsRepo");
       const nextTextForAgentAccess = require("./agent/nextText");
+      const { createPublicPublicationReadService } = require("./agent/access/publicPublicationReadService");
+      const { getPublicationAgentRightsRepo } = require("./db/publicationAgentRightsRepo");
+      const { getPhysicsTaskResourceRepo: getPhysicsTaskResourceRepoForAgentAccess } = require("./db/physicsTaskResourceRepo");
       const principalContext = new AsyncLocalStorage();
       const handlers = createProductionHandlers({
         learnerGraphRepo: learnerGraphRepoForAgentAccess,
@@ -1942,6 +1945,14 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         textGrantsRepo: require("./db/agentTextGrantsRepo"),           // S2: standing-грант владельца
         groupCorpusRepo: require("./db/groupCorpusRepo"),             // restricted corpus; ACTIVE membership on every read
         weeklyGoalsRepo: require("./db/weeklyGoalsRepo"),             // H2.3 server-authoritative weekly goals
+        publicPublicationReadService: createPublicPublicationReadService({
+          rightsRepo: getPublicationAgentRightsRepo(),
+          physicsRepo: getPhysicsTaskResourceRepoForAgentAccess(),
+          canonicalOrigin: "https://linguistpro.kolosei.com",
+          // Domain separation over the already-required MCP audit secret; no
+          // cursor is accepted across filters/editions or another environment.
+          cursorKey: `publication-cursor:${String(process.env.AGENT_ACCESS_OAUTH_AUDIT_HMAC_KEY || "")}`,
+        }),
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {

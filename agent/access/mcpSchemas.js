@@ -118,10 +118,39 @@ const INPUT_SCHEMAS = Object.freeze({
     anchor: string({ maxLength: 280 }), period_days: integer(7, 14), reason: string({ minLength: 1, maxLength: 200 }),
   }, ["statement", "goal_type", "period_days", "reason"]),
   get_current_goal: closedObject({}, []),
+  list_published_public_corpora: closedObject({
+    cursor: string({ maxLength: 512, pattern: "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$" }), limit: integer(1, 20),
+  }, []),
+  search_published_public_items: closedObject({
+    corpus_slug: string({ maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }),
+    edition_id: string({ maxLength: 128, pattern: ID }), query: string({ maxLength: 160 }),
+    cursor: string({ maxLength: 512, pattern: "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$" }), limit: integer(1, 20),
+  }, ["corpus_slug", "edition_id"]),
+  get_published_public_item: closedObject({
+    corpus_slug: string({ maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }), edition_id: string({ maxLength: 128, pattern: ID }),
+    edition_item_id: string({ maxLength: 128, pattern: ID }),
+  }, ["corpus_slug", "edition_id", "edition_item_id"]),
+  list_published_item_resources: closedObject({
+    corpus_slug: string({ maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }), edition_id: string({ maxLength: 128, pattern: ID }),
+    edition_item_id: string({ maxLength: 128, pattern: ID }), cursor: string({ maxLength: 512, pattern: "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$" }), limit: integer(1, 20),
+  }, ["corpus_slug", "edition_id", "edition_item_id"]),
+  read_published_text_window: closedObject({
+    corpus_slug: string({ maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }), edition_id: string({ maxLength: 128, pattern: ID }),
+    edition_item_id: string({ maxLength: 128, pattern: ID }), start: integer(0, 1000000), rows: integer(1, 20),
+  }, ["corpus_slug", "edition_id", "edition_item_id"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
 const id = string({ maxLength: 128, pattern: ID });
+const hash = string({ minLength: 64, maxLength: 64, pattern: "^[0-9a-f]{64}$" });
+const nullableId = Object.freeze({ anyOf: Object.freeze([id, Object.freeze({ type: "null" })]) });
+const nullableString = maxLength => Object.freeze({ anyOf: Object.freeze([string({ maxLength }), Object.freeze({ type: "null" })]) });
+const publicationItem = closedObject({
+  corpus_id: id, corpus_slug: string({ maxLength: 80 }), corpus_title: string({ maxLength: 500 }),
+  edition_id: id, edition_number: integer(1, 1000000), manifest_sha256: hash,
+  edition_item_id: id, public_work_id: string({ maxLength: 160 }), position_no: integer(1, 1000000),
+  title: string({ maxLength: 500 }), creator: nullableString(300), snapshot_sha256: hash,
+});
 // Frozen by the schema-caching contract: get_agent_connection existed before
 // H2.1, so its granted_scopes enum cannot grow when a new capability is added.
 // New scopes are discoverable through OAuth metadata/consent and their own
@@ -251,6 +280,35 @@ const OUTPUT_SCHEMAS = Object.freeze({
     schema_version: string({ const: "aa.current_goal.1.0.0" }),
     goal: Object.freeze({ anyOf: Object.freeze([closedObject({ statement: string({ maxLength: 280 }), goal_type: string({ enum: Object.freeze(["PROCESS", "OUTCOME"]) }), anchor: string({ maxLength: 280 }), week_start: string({ maxLength: 10, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }), status: string({ enum: Object.freeze(["ACTIVE", "COMPLETED_SELF_REPORT", "DROPPED"]) }), source: string({ enum: Object.freeze(["OWNER", "AGENT_PROPOSED_OWNER_CONFIRMED"]) }) }, ["statement", "goal_type", "week_start", "status", "source"]), Object.freeze({ type: "null" })]) }),
     generated_at: timestamp,
+  }),
+  list_published_public_corpora: closedObject({
+    schema_version: string({ const: "aa.published_public_corpora.1.0.0" }),
+    corpora: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      corpus_id: id, slug: string({ maxLength: 80 }), title: string({ maxLength: 500 }), description: string({ maxLength: 4000 }),
+      edition_id: id, edition_number: integer(1, 1000000), manifest_sha256: hash,
+      item_count: integer(1, 1000000), asset_count: integer(0, 10000000), published_at: timestamp,
+    }) }), next_cursor: nullableString(512), generated_at: timestamp,
+  }),
+  search_published_public_items: closedObject({
+    schema_version: string({ const: "aa.published_public_items.1.0.0" }),
+    items: Object.freeze({ type: "array", maxItems: 20, items: publicationItem }), next_cursor: nullableString(512), generated_at: timestamp,
+  }),
+  get_published_public_item: closedObject({
+    schema_version: string({ const: "aa.published_public_item.1.0.0" }), item: publicationItem, generated_at: timestamp,
+  }),
+  list_published_item_resources: closedObject({
+    schema_version: string({ const: "aa.published_item_resources.1.0.0" }), edition_id: id, edition_item_id: id,
+    resources: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      resource_id: id, resource_kind: string({ enum: Object.freeze(["PUBLICATION_ASSET", "PDF"]) }),
+      revision_id: nullableId, asset_key: nullableString(64), bytes: integer(1, 26214400), sha256: hash,
+      mime: string({ maxLength: 120 }), url: string({ maxLength: 1000, pattern: "^https://" }),
+    }) }), next_cursor: nullableString(512), generated_at: timestamp,
+  }),
+  read_published_text_window: closedObject({
+    schema_version: string({ const: "aa.published_text_window.1.0.0" }), item: publicationItem,
+    start_order_index: integer(0, 1000000), rows: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      order_index: integer(0, 1000000), he: string({ maxLength: 800 }), ru: nullableString(800),
+    }) }), rows_total: integer(0, 1000000), has_more: Object.freeze({ type: "boolean" }), generated_at: timestamp,
   }),
   get_progress_delta: closedObject({
     schema_version: string({ const: "aa.progress_delta.1.0.0" }),
@@ -418,6 +476,11 @@ const DESCRIPTIONS = Object.freeze({
   propose_track_word: "Create a 14-day PENDING proposal for 1-10 Hebrew words. Each item records whether the user produced, saw or asked about it and any ASR/morphology caveat. The owner confirms words one by one; only dictionary-resolved canonical item keys execute in the first-party browser. No grades, mastery or FSRS state is written by the agent.",
   propose_goal: "Create a 14-day PENDING weekly-goal proposal. The owner reviews statement, PROCESS/OUTCOME type, optional anchor and 7-14 day period. Only owner confirmation writes the server goal store; the agent never marks completion.",
   get_current_goal: "Return the owner's single ACTIVE weekly goal or goal:null. Read-only; completion and deletion are owner-only first-party actions.",
+  list_published_public_corpora: "List only current immutable public-corpus editions with an explicit publication-local agent DISCOVER right (or an existing Physics AGENT_READ resource fact). Public browser access alone never authorizes this tool.",
+  search_published_public_items: "Search owner-approved items inside one explicitly pinned current edition. The cursor is bound to corpus, edition and query; a new edition is never silently substituted.",
+  get_published_public_item: "Return immutable corpus, edition and item identity metadata for one owner-approved published item. No source body, learner state, notes, group data or private data is returned.",
+  list_published_item_resources: "Return bounded HTTPS descriptors for owner-approved source resources: stable IDs, MIME, bytes and SHA-256. Binary/base64, previews, server fetches, packages and unapproved derivatives are never returned through MCP.",
+  read_published_text_window: "Return at most 20 rows and 16 KiB from an explicitly SOURCE_TEXT-approved immutable publication item. Only library text is projected; notes, progress, bookmarks and review_log are structurally excluded.",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action", "propose_import_text", "propose_track_word", "propose_goal"]));

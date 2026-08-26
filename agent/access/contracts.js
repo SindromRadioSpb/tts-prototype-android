@@ -35,7 +35,7 @@ const SCOPES = new Set([
   "review.handoff.create",
   // S-пакет (PERSONAL_TEXTS_S1S2_DESIGN): личные тексты владельца. ОБА scope заведены в S1
   // (одна re-авторизация Hermes); content-инструмент приходит в S2. Lockstep: oauthContracts +
-  // Lockstep: oauthContracts + owner-approved migration 061 CHECK (23 scopes).
+  // Lockstep: oauthContracts + owner-approved migration 065 CHECK (26 scopes).
   "personal.texts.metadata.read",
   "personal.texts.content.read",
   "morphology.read",
@@ -46,6 +46,9 @@ const SCOPES = new Set([
   "intent.track_word.propose",
   "intent.goal.propose",
   "goal.read",
+  "reading.publication.catalog.read",
+  "reading.publication.item.read",
+  "reading.publication.resource.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -780,6 +783,103 @@ function accessWindow(value) {
   return Object.freeze({ ...x });
 }
 
+// All-Corpora Agent Access R — closed immutable-publication contracts. These
+// validators intentionally share no field with learner/group/private truth.
+const PUBLICATION_CURSOR_RE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+const SHA256_RE = /^[0-9a-f]{64}$/;
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+function publicationCursor(value) {
+  if (value == null) return null;
+  const out = string(value, 512, "ARGUMENT_SCHEMA_INVALID");
+  if (!PUBLICATION_CURSOR_RE.test(out)) fail("ARGUMENT_SCHEMA_INVALID");
+  return out;
+}
+function validatePublicationListInput(value) {
+  const x = closed(value, ["cursor", "limit"], [], "ARGUMENT_SCHEMA_INVALID"); bytes(x, MAX_ARGUMENT_BYTES, "ARGUMENTS_TOO_LARGE");
+  const out = {};
+  if (x.cursor != null) out.cursor = publicationCursor(x.cursor);
+  if (x.limit != null) out.limit = integer(x.limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function publicationAnchorInput(value, extras = []) {
+  const keys = ["corpus_slug", "edition_id", "edition_item_id", ...extras];
+  const required = ["corpus_slug", "edition_id", ...(keys.includes("edition_item_id") ? ["edition_item_id"] : [])];
+  const x = closed(value, keys, required, "ARGUMENT_SCHEMA_INVALID"); bytes(x, MAX_ARGUMENT_BYTES, "ARGUMENTS_TOO_LARGE");
+  if (!SLUG_RE.test(string(x.corpus_slug, 80, "ARGUMENT_SCHEMA_INVALID"))) fail("ARGUMENT_SCHEMA_INVALID");
+  id(x.edition_id, "ARGUMENT_SCHEMA_INVALID");
+  if (x.edition_item_id != null) id(x.edition_item_id, "ARGUMENT_SCHEMA_INVALID");
+  return x;
+}
+function validatePublicationSearchInput(value) {
+  const x = closed(value, ["corpus_slug", "edition_id", "query", "cursor", "limit"], ["corpus_slug", "edition_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, MAX_ARGUMENT_BYTES, "ARGUMENTS_TOO_LARGE");
+  if (!SLUG_RE.test(string(x.corpus_slug, 80, "ARGUMENT_SCHEMA_INVALID"))) fail("ARGUMENT_SCHEMA_INVALID");
+  id(x.edition_id, "ARGUMENT_SCHEMA_INVALID");
+  const out = { corpus_slug: x.corpus_slug, edition_id: x.edition_id };
+  if (x.query != null) out.query = string(x.query, 160, "ARGUMENT_SCHEMA_INVALID", true) || "";
+  if (x.cursor != null) out.cursor = publicationCursor(x.cursor);
+  if (x.limit != null) out.limit = integer(x.limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function validatePublicationItemInput(value) {
+  return Object.freeze({ ...publicationAnchorInput(value) });
+}
+function validatePublicationResourcesInput(value) {
+  const x = publicationAnchorInput(value, ["cursor", "limit"]);
+  const out = { corpus_slug: x.corpus_slug, edition_id: x.edition_id, edition_item_id: x.edition_item_id };
+  if (x.cursor != null) out.cursor = publicationCursor(x.cursor);
+  if (x.limit != null) out.limit = integer(x.limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function validatePublicationTextInput(value) {
+  const x = publicationAnchorInput(value, ["start", "rows"]);
+  const out = { corpus_slug: x.corpus_slug, edition_id: x.edition_id, edition_item_id: x.edition_item_id };
+  if (x.start != null) out.start = integer(x.start, 0, 1000000, "ARGUMENT_SCHEMA_INVALID");
+  if (x.rows != null) out.rows = integer(x.rows, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function optionalText(value, max, nullable = false) {
+  if (value == null && nullable) return null;
+  if (typeof value !== "string" || Buffer.byteLength(value, "utf8") > max) fail("OUTPUT_SCHEMA_INVALID");
+  return value;
+}
+function publicationHash(value) { if (typeof value !== "string" || !SHA256_RE.test(value)) fail("OUTPUT_SCHEMA_INVALID"); return value; }
+function publicationItemOutput(value) {
+  const keys = ["corpus_id","corpus_slug","corpus_title","edition_id","edition_number","manifest_sha256","edition_item_id","public_work_id","position_no","title","creator","snapshot_sha256"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID");
+  id(x.corpus_id); if (!SLUG_RE.test(optionalText(x.corpus_slug, 80))) fail("OUTPUT_SCHEMA_INVALID"); optionalText(x.corpus_title, 500);
+  id(x.edition_id); integer(x.edition_number, 1, 1000000); publicationHash(x.manifest_sha256); id(x.edition_item_id);
+  optionalText(x.public_work_id, 160); integer(x.position_no, 1, 1000000); optionalText(x.title, 500); optionalText(x.creator, 300, true); publicationHash(x.snapshot_sha256);
+  return Object.freeze({ ...x });
+}
+function publicationCorpora(value) {
+  const x = closed(value, ["schema_version","corpora","next_cursor","generated_at"], ["schema_version","corpora","next_cursor","generated_at"], "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.published_public_corpora.1.0.0" || !Array.isArray(x.corpora) || x.corpora.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  const corpora = x.corpora.map(row => { const r = closed(row, ["corpus_id","slug","title","description","edition_id","edition_number","manifest_sha256","item_count","asset_count","published_at"], undefined, "OUTPUT_SCHEMA_INVALID");
+    id(r.corpus_id); if (!SLUG_RE.test(optionalText(r.slug,80))) fail("OUTPUT_SCHEMA_INVALID"); optionalText(r.title,500); optionalText(r.description,4000); id(r.edition_id); integer(r.edition_number,1,1000000); publicationHash(r.manifest_sha256); integer(r.item_count,1,1000000); integer(r.asset_count,0,10000000); timestamp(r.published_at); return Object.freeze({...r}); });
+  publicationCursor(x.next_cursor); timestamp(x.generated_at); return Object.freeze({ ...x, corpora: Object.freeze(corpora) });
+}
+function publicationItems(value) {
+  const x = closed(value, ["schema_version","items","next_cursor","generated_at"], undefined, "OUTPUT_SCHEMA_INVALID"); bytes(x, 12288, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.published_public_items.1.0.0" || !Array.isArray(x.items) || x.items.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  publicationCursor(x.next_cursor); timestamp(x.generated_at); return Object.freeze({ ...x, items: Object.freeze(x.items.map(publicationItemOutput)) });
+}
+function publicationItem(value) {
+  const x = closed(value, ["schema_version","item","generated_at"], undefined, "OUTPUT_SCHEMA_INVALID"); bytes(x, 4096, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.published_public_item.1.0.0") fail("OUTPUT_SCHEMA_INVALID"); timestamp(x.generated_at); return Object.freeze({ ...x, item: publicationItemOutput(x.item) });
+}
+function publicationResources(value) {
+  const x = closed(value, ["schema_version","edition_id","edition_item_id","resources","next_cursor","generated_at"], undefined, "OUTPUT_SCHEMA_INVALID"); bytes(x,12288,"OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.published_item_resources.1.0.0" || !Array.isArray(x.resources) || x.resources.length > 20) fail("OUTPUT_SCHEMA_INVALID"); id(x.edition_id); id(x.edition_item_id); publicationCursor(x.next_cursor); timestamp(x.generated_at);
+  const resources = x.resources.map(row => { const r=closed(row,["resource_id","resource_kind","revision_id","asset_key","bytes","sha256","mime","url"],undefined,"OUTPUT_SCHEMA_INVALID"); id(r.resource_id); oneOf(r.resource_kind,new Set(["PUBLICATION_ASSET","PDF"])); if(r.revision_id!==null)id(r.revision_id); if(r.asset_key!==null){optionalText(r.asset_key,64);publicationHash(r.asset_key);} integer(r.bytes,1,26214400); publicationHash(r.sha256); optionalText(r.mime,120); if(!/^https:\/\/linguistpro\.kolosei\.com\//.test(optionalText(r.url,1000)))fail("OUTPUT_SCHEMA_INVALID"); return Object.freeze({...r}); });
+  return Object.freeze({...x,resources:Object.freeze(resources)});
+}
+function publicationText(value) {
+  const x=closed(value,["schema_version","item","start_order_index","rows","rows_total","has_more","generated_at"],undefined,"OUTPUT_SCHEMA_INVALID"); bytes(x,16384,"OUTPUT_TOO_LARGE");
+  if(x.schema_version!=="aa.published_text_window.1.0.0"||!Array.isArray(x.rows)||x.rows.length>20)fail("OUTPUT_SCHEMA_INVALID"); const item=publicationItemOutput(x.item); integer(x.start_order_index,0,1000000); integer(x.rows_total,0,1000000); bool(x.has_more); timestamp(x.generated_at);
+  const rows=x.rows.map(row=>{const r=closed(row,["order_index","he","ru"],undefined,"OUTPUT_SCHEMA_INVALID");integer(r.order_index,0,1000000);optionalText(r.he,800);optionalText(r.ru,800,true);return Object.freeze({...r});}); return Object.freeze({...x,item,rows:Object.freeze(rows)});
+}
+
 const INPUT_VALIDATORS = Object.freeze({
   get_learning_brief: emptyInput,
   get_review_summary: emptyInput,
@@ -806,6 +906,11 @@ const INPUT_VALIDATORS = Object.freeze({
   propose_track_word: validateProposeTrackInput,
   propose_goal: validateProposeGoalInput,
   get_current_goal: emptyInput,
+  list_published_public_corpora: validatePublicationListInput,
+  search_published_public_items: validatePublicationSearchInput,
+  get_published_public_item: validatePublicationItemInput,
+  list_published_item_resources: validatePublicationResourcesInput,
+  read_published_text_window: validatePublicationTextInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -833,6 +938,11 @@ const OUTPUT_VALIDATORS = Object.freeze({
   propose_track_word: (v) => h2ProposalOutput(v, "aa.propose_track_word.1.0.0", true),
   propose_goal: (v) => h2ProposalOutput(v, "aa.propose_goal.1.0.0"),
   get_current_goal: currentGoal,
+  list_published_public_corpora: publicationCorpora,
+  search_published_public_items: publicationItems,
+  get_published_public_item: publicationItem,
+  list_published_item_resources: publicationResources,
+  read_published_text_window: publicationText,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

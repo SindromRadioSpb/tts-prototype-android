@@ -47,6 +47,13 @@ const CAPABILITIES = Object.freeze({
   propose_track_word: Object.freeze({ scope: "intent.track_word.propose", purpose: "EXPLICIT_WORD_TRACK_PROPOSAL", scenario_id: "agent_access.propose_track_word", max_output_bytes: 4096 }),
   propose_goal: Object.freeze({ scope: "intent.goal.propose", purpose: "EXPLICIT_WEEKLY_GOAL_PROPOSAL", scenario_id: "agent_access.propose_goal", max_output_bytes: 2048 }),
   get_current_goal: Object.freeze({ scope: "goal.read", purpose: "EXPLICIT_CURRENT_WEEKLY_GOAL", scenario_id: "agent_access.current_goal", max_output_bytes: 2048 }),
+  // All-Corpora Agent Access R — immutable public-publication namespace. These
+  // scopes never inherit PUBLIC_READ and never replace the legacy Ben-Yehuda tools.
+  list_published_public_corpora: Object.freeze({ scope: "reading.publication.catalog.read", purpose: "EXPLICIT_PUBLISHED_CORPUS_DISCOVERY", scenario_id: "agent_access.publication_corpora", max_output_bytes: 8192 }),
+  search_published_public_items: Object.freeze({ scope: "reading.publication.catalog.read", purpose: "EXPLICIT_PUBLISHED_ITEM_DISCOVERY", scenario_id: "agent_access.publication_items", max_output_bytes: 12288 }),
+  get_published_public_item: Object.freeze({ scope: "reading.publication.item.read", purpose: "EXPLICIT_PUBLISHED_ITEM_METADATA", scenario_id: "agent_access.publication_item", max_output_bytes: 4096 }),
+  list_published_item_resources: Object.freeze({ scope: "reading.publication.resource.read", purpose: "EXPLICIT_PUBLISHED_RESOURCE_DESCRIPTORS", scenario_id: "agent_access.publication_resources", max_output_bytes: 12288 }),
+  read_published_text_window: Object.freeze({ scope: "reading.publication.item.read", purpose: "EXPLICIT_PUBLISHED_TEXT_WINDOW", scenario_id: "agent_access.publication_text", max_output_bytes: 16384 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

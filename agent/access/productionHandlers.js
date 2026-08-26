@@ -81,6 +81,11 @@ function createProductionHandlers(options = {}) {
   const coverageResolver = options.textCoverageResolver || require("./textCoverageResolver");
   const groupCorpusRepo = options.groupCorpusRepo; // restricted shared corpus; membership checked inside repo
   const weeklyGoalsRepo = options.weeklyGoalsRepo || require("../../db/weeklyGoalsRepo");
+  const unavailablePublicationRead = async () => fail("AA_PUBLICATION_ACCESS_UNAVAILABLE");
+  const publicationReadService = options.publicPublicationReadService || Object.freeze({
+    listCorpora: unavailablePublicationRead, searchItems: unavailablePublicationRead, getItem: unavailablePublicationRead,
+    listResources: unavailablePublicationRead, readTextWindow: unavailablePublicationRead,
+  });
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -97,6 +102,8 @@ function createProductionHandlers(options = {}) {
     || !morphologyResolver || typeof morphologyResolver.resolveWordMorphology !== "function"
     || !coverageResolver || typeof coverageResolver.calculate !== "function"
     || !weeklyGoalsRepo || typeof weeklyGoalsRepo.getCurrent !== "function"
+    || !publicationReadService || typeof publicationReadService.listCorpora !== "function" || typeof publicationReadService.searchItems !== "function"
+    || typeof publicationReadService.getItem !== "function" || typeof publicationReadService.listResources !== "function" || typeof publicationReadService.readTextWindow !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -341,6 +348,18 @@ function createProductionHandlers(options = {}) {
     const goal = row ? { statement: row.statement, goal_type: row.goal_type, ...(row.anchor ? { anchor: row.anchor } : {}), week_start: row.week_start, status: row.status, source: row.source } : null;
     return Object.freeze({ schema_version: "aa.current_goal.1.0.0", goal, generated_at: clock.iso });
   }
+
+  // All-Corpora Agent Access R: the handlers deliberately only translate the
+  // closed MCP shape. SQL, rights evaluation, edition pinning and URL creation
+  // stay inside the publication read service.
+  const publicationArgs = args => ({ corpusSlug: args.corpus_slug, editionId: args.edition_id,
+    editionItemId: args.edition_item_id, query: args.query, cursor: args.cursor, limit: args.limit,
+    start: args.start, rows: args.rows });
+  async function list_published_public_corpora(_context, args) { return publicationReadService.listCorpora(args); }
+  async function search_published_public_items(_context, args) { return publicationReadService.searchItems(publicationArgs(args)); }
+  async function get_published_public_item(_context, args) { return publicationReadService.getItem(publicationArgs(args)); }
+  async function list_published_item_resources(_context, args) { return publicationReadService.listResources(publicationArgs(args)); }
+  async function read_published_text_window(_context, args) { return publicationReadService.readTextWindow(publicationArgs(args)); }
 
   // AA4 slice 4a: pure-activity delta since a timestamp. The 90-day window check
   // lives HERE (contracts are clock-free) and fails with a TYPED client code.
@@ -738,6 +757,11 @@ function createProductionHandlers(options = {}) {
     propose_track_word,
     propose_goal,
     get_current_goal,
+    list_published_public_corpora,
+    search_published_public_items,
+    get_published_public_item,
+    list_published_item_resources,
+    read_published_text_window,
   });
 }
 

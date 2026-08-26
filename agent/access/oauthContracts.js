@@ -35,6 +35,9 @@ const SCOPES = Object.freeze([
   "intent.track_word.propose",
   "intent.goal.propose",
   "goal.read",
+  "reading.publication.catalog.read",
+  "reading.publication.item.read",
+  "reading.publication.resource.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

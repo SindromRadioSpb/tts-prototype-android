@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.384",
+  "version": "3.11.385",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -298,6 +298,8 @@
     "smoke:agent-access:oidc-loopback": "node scripts/premium/agent-access-oidc-loopback-smoke.mjs",
     "smoke:agent-access:oauth-deployment": "node scripts/premium/agent-access-oauth-deployment-smoke.mjs && node scripts/premium/agent-access-oauth-b0-adapter-smoke.mjs && node scripts/premium/agent-access-oauth-consent-bridge-smoke.mjs",
     "smoke:agent-access:mcp": "node scripts/premium/agent-access-mcp-smoke.mjs",
+    "smoke:agent-access:publication-consent-browser": "node scripts/premium/agent-access-publication-consent-browser-smoke.mjs",
+    "rehearse:agent-access:publication-migration": "node scripts/premium/publication-agent-access-migration-rehearsal.js",
     "smoke:agent-access:production-handlers": "node scripts/premium/agent-access-production-handlers-smoke.js",
     "smoke:agent-access:control-plane": "node scripts/premium/agent-access-control-plane-smoke.js",
     "smoke:agent-access:two-client": "node scripts/premium/agent-access-two-client-smoke.mjs",
@@ -331,7 +333,8 @@
     "@google-cloud/translate": "^9.3.0",
     "@google/genai": "^2.18.0",
     "@google/generative-ai": "^0.19.0",
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/node": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
     "@mozilla/readability": "^0.6.0",
     "adm-zip": "^0.5.17",
     "archiver": "^7.0.1",
@@ -357,6 +360,7 @@
     "node": ">=20"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
     "d3-force": "3.0.0",
     "d3-selection": "^3.0.0",
     "d3-zoom": "3.0.0",

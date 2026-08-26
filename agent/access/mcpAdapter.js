@@ -1,9 +1,8 @@
 "use strict";
 
 const { randomBytes } = require("crypto");
-const { Server } = require("@modelcontextprotocol/sdk/server/index.js");
-const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/server/streamableHttp.js");
-const { CallToolRequestSchema, ListToolsRequestSchema } = require("@modelcontextprotocol/sdk/types.js");
+const { Server, createMcpHandler } = require("@modelcontextprotocol/server");
+const { toNodeHandler } = require("@modelcontextprotocol/node");
 
 const { capabilityNames } = require("./capabilities");
 const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
@@ -11,6 +10,8 @@ const { toolDefinitions } = require("./mcpSchemas");
 
 const MCP_PATH = "/agent-access/mcp";
 const MCP_PROTOCOL_VERSION = "2025-11-25";
+const MCP_MODERN_PROTOCOL_VERSION = "2026-07-28";
+const MCP_SUPPORTED_PROTOCOL_VERSIONS = Object.freeze([MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION]);
 const MAX_BODY_BYTES = 16 * 1024;
 const TOOL_NAMES = new Set(capabilityNames());
 
@@ -48,7 +49,7 @@ async function readJson(req) {
 function validateProtocol(body, header) {
   if (body.method === "initialize") {
     if (body.params?.protocolVersion !== MCP_PROTOCOL_VERSION) return false;
-  } else if (String(header || "") !== MCP_PROTOCOL_VERSION) return false;
+  } else if (!MCP_SUPPORTED_PROTOCOL_VERSIONS.includes(String(header || ""))) return false;
   return true;
 }
 function safeAudit(audit, input) {
@@ -61,10 +62,10 @@ function bearerChallenge() {
 function createProtocolServer(runtime, trusted) {
   const server = new Server(
     { name: "linguistpro-agent-access", version: "aa-mcp.1.0.0" },
-    { capabilities: { tools: { listChanged: false } } },
+    { capabilities: { tools: { listChanged: false } }, supportedProtocolVersions: MCP_SUPPORTED_PROTOCOL_VERSIONS },
   );
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolDefinitions() }));
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler("tools/list", async () => ({ tools: toolDefinitions() }));
+  server.setRequestHandler("tools/call", async (request) => {
     const name = String(request.params?.name || "");
     const args = request.params?.arguments === undefined ? {} : request.params.arguments;
     const envelope = await runtime.service.execute(trusted.principal, name, args);
@@ -156,25 +157,19 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
     }
 
     const authenticated = Object.freeze({ ...trusted, ip: requestIp(req) });
-    const server = createProtocolServer(runtime, authenticated);
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
-    let closed = false;
-    const close = () => {
-      if (closed) return;
-      closed = true;
-      void transport.close().catch(() => {});
-      void server.close().catch(() => {});
-    };
-    res.once("close", close);
+    // Modern v2 exchanges use the SDK's safe auto mode: JSON when no related
+    // message is emitted, SSE only when required. The frozen 2025 stateless
+    // fallback retains its legacy SSE framing.
+    const handler = createMcpHandler(() => createProtocolServer(runtime, authenticated), { legacy: "stateless", responseMode: "auto" });
+    const nodeHandler = toNodeHandler(handler);
     try {
-      await server.connect(transport);
-      await transport.handleRequest(req, res, body);
+      await nodeHandler(req, res, body);
     } catch (_) {
       if (!res.headersSent) send(res, 500, jsonRpcError(-32603, "Internal MCP error.", body.id ?? null));
     } finally {
-      if (res.writableEnded) close();
+      try { await handler.close(); } catch (_) {}
     }
   };
 }
 
-module.exports = { MCP_PATH, MCP_PROTOCOL_VERSION, MAX_BODY_BYTES, createMcpDefaultOffGate };
+module.exports = { MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_SUPPORTED_PROTOCOL_VERSIONS, MAX_BODY_BYTES, createMcpDefaultOffGate };

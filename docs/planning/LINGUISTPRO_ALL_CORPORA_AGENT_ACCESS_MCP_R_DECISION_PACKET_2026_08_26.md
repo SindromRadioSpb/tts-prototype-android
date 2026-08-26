@@ -2,7 +2,8 @@
 
 Date: 2026-08-26
 Program: `ALL-CORPORA-AGENT-ACCESS-MCP-R`
-Authority: research-only packet; no implementation authorization
+Authority: owner-approved research decision and bounded implementation authority; production rollout remains separately gated
+Owner approval: 2026-08-26 — approved all recommended D1–D12 values and instructed `Формализуй и стартуй`; the exact approval bundle in this packet is therefore the governing implementation authority
 Source commit: `e51e17ab8e88a378c221a9548a555539b6e18c2a`
 Branch: `main`; `HEAD == origin/main` at recon
 Dirty tree: yes before research; unrelated owner files preserved
@@ -35,7 +36,7 @@ This creates no new content writer, forum, learner writer or grading authority.
 - `PRODUCTION_ANONYMOUS`: Study Songs edition 2 has 77 items/2,155 assets; Physics edition 2 has 74 items/394 assets.
 - `OWNER_REPORTED`: Physics production evidence records 74 exact-byte PDFs and 74 `AGENT_READ=YES` facts.
 - `LOCAL_TEST`: publication/resource tests passed 27/27; Agent Access production-handler smoke passed 61 checks with zero table/network/provider deltas.
-- `LOCAL_TEST BLOCKER`: current MCP smoke fixture still emits `aa.text_coverage.1.0.0` while runtime requires `2.0.0`; implementation must first restore a green baseline.
+- `LOCAL_TEST` implementation update: the stale coverage fixture was corrected first; the integrated MCP smoke now passes 74 checks over 30 tools in both protocol eras.
 - `EXTERNAL_PRIMARY`: MCP `2026-07-28` is a major transport/auth era. Official SDK v2 supports modern plus legacy stateless handling; a string-only version bump is invalid.
 
 ## Decision table D1–D12
@@ -197,7 +198,9 @@ OCR=DEFERRED_VERSIONED_DERIVATIVE;
 ROLLBACK=FLAGS_OFF_STOP_RIGHTS_WRITER_PRESERVE_ROWS_OLD_TOOLS_AND_PUBLIC_CORPORA_UNCHANGED;
 ```
 
-## Research stop confirmation
+## Research closure and implementation transition
+
+The research stop below was true through commit `d28f0cfd`. It is now a historical boundary. The owner approved the exact decision bundle and started the bounded implementation checkpoint on 2026-08-26. Production migration, rights writes, flags and deployment remain separately gated by rollout evidence.
 
 ```text
 CODE=NONE
@@ -207,4 +210,4 @@ PRODUCTION_WRITES=NONE
 DEPLOY=NONE
 ```
 
-Stop here and await owner decision.
+Current checkpoint status is recorded in `docs/research/all-corpora-agent-access-mcp/2026-08-26/IMPLEMENTATION_EVIDENCE_2026_08_26.md`. Stop before production rollout and await its separate authorization.

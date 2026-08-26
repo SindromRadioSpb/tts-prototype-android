@@ -8,7 +8,7 @@ const PROPOSAL_POLICY = require("./proposalPolicy");
 // S1: bumped — PERSONAL-tier scopes (личные тексты владельца) вводят новую, самую сильную
 // градацию карты. Equality-гейт версий — только approve-time (проверено критикой): живое
 // подключение Hermes НЕ рвётся; re-ceremony нужна лишь для добавления новых scope.
-const CONSENT_VERSION = "agent-access-consent-v2";
+const CONSENT_VERSION = "agent-access-consent-v3";
 const RETENTION_NOTICE_VERSION = "downstream-retention-v3";
 const MAX_PENDING = 100;
 
@@ -67,6 +67,9 @@ const SCOPE_PRESENTATION = Object.freeze({
   "intent.track_word.propose": Object.freeze({ capability: "propose_track_word", purpose: "AGENT_PROPOSES_WORDS_OWNER_CONFIRMS_EACH", data_class: "WORDS_CONTEXT_EVIDENCE_AND_CAVEATS", retention_tier: "PERSONAL", direction: "AGENT_WRITES_PROPOSAL_INTO_YOUR_ACCOUNT", internal_retention: PROPOSAL_POLICY.INTERNAL_RETENTION_NOTICE, excludes: "NO_MASTERY_NO_GRADE_NO_FSRS_NO_EXECUTION_BEFORE_OWNER_CONFIRM", first_party_action: "/agent-access.html" }),
   "intent.goal.propose": Object.freeze({ capability: "propose_goal", purpose: "AGENT_PROPOSES_WEEKLY_GOAL_OWNER_CONFIRMS", data_class: "GOAL_STATEMENT_TYPE_ANCHOR_PERIOD_REASON", retention_tier: "CONTENT", direction: "AGENT_WRITES_PROPOSAL_INTO_YOUR_ACCOUNT", internal_retention: PROPOSAL_POLICY.INTERNAL_RETENTION_NOTICE, excludes: "NO_GOAL_WRITE_BEFORE_OWNER_CONFIRM_NO_AGENT_COMPLETION", first_party_action: "/agent-access.html" }),
   "goal.read": Object.freeze({ capability: "get_current_goal", purpose: "READ_CURRENT_OWNER_CONFIRMED_WEEKLY_GOAL", data_class: "ACTIVE_GOAL_STATEMENT_TYPE_ANCHOR_AND_STATUS", retention_tier: "CONTENT", excludes: "NO_HISTORY_NO_AGENT_COMPLETION_NO_GRADES", first_party_action: "/agent-access.html" }),
+  "reading.publication.catalog.read": Object.freeze({ capability: "list_published_public_corpora", purpose: "DISCOVER_OWNER_APPROVED_PUBLICATION_ITEMS", data_class: "IMMUTABLE_CORPUS_EDITION_AND_ITEM_METADATA", retention_tier: "AGGREGATE", excludes: "NO_PRIVATE_OR_GROUP_CORPORA_NO_LEARNER_STATE_PUBLIC_READ_DOES_NOT_IMPLY_AGENT_ACCESS", first_party_action: "/library.html" }),
+  "reading.publication.item.read": Object.freeze({ capability: "read_published_text_window", purpose: "READ_OWNER_APPROVED_PUBLICATION_TEXT_WINDOWS", data_class: "PUBLICATION_TEXT_HE_RU_AND_IMMUTABLE_ANCHORS", retention_tier: "CONTENT", excludes: "NO_NOTES_PROGRESS_STUDY_HISTORY_PRIVATE_OR_GROUP_TEXT_NO_SILENT_EDITION_REBIND", first_party_action: "/library.html" }),
+  "reading.publication.resource.read": Object.freeze({ capability: "list_published_item_resources", purpose: "READ_OWNER_APPROVED_RESOURCE_DESCRIPTORS", data_class: "CANONICAL_HTTPS_URL_MIME_BYTES_SHA256_AND_PINNED_RESOURCE_ID", retention_tier: "AGGREGATE", excludes: "NO_BINARY_IN_MCP_NO_SERVER_FETCH_NO_PREVIEW_NO_PACKAGE_OR_DERIVATIVE_WITHOUT_SEPARATE_RIGHT", first_party_action: "/library.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }

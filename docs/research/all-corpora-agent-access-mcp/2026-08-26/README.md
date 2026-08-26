@@ -15,7 +15,7 @@ The implementation-ready recommendation is a generic, read-only Agent Access pro
 
 The smallest useful pilot exposes typed discovery and bounded reading descriptors for Physics and Study Songs through the existing OAuth/consent/audit perimeter. Typed tools are the compatibility baseline. MCP Resources and `ResourceLink` values are additive views over the same immutable publication identity. PDF/audio bytes remain on first-party immutable HTTPS delivery with hashes and Range support; no binary is embedded in MCP messages and no OCR is canonical truth.
 
-Implementation remains gated. This research created no runtime code, migration, account/content record, production write or deployment.
+The owner approved D1–D12 and started the implementation checkpoint on 2026-08-26. Local runtime code and an additive migration now exist on the working branch; production migration, owner rights writes, flags and deployment remain gated and have not occurred.
 
 ## Artifacts
 
@@ -26,6 +26,7 @@ Implementation remains gated. This research created no runtime code, migration, 
 - [Security, privacy, cost and operations](SECURITY_PRIVACY_COST_AND_OPERATIONS.md)
 - [Findings](FINDINGS.md)
 - [Owner research decision packet](../../../planning/LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_R_DECISION_PACKET_2026_08_26.md)
+- [Implementation evidence ledger](IMPLEMENTATION_EVIDENCE_2026_08_26.md)
 
 ## Evidence summary
 
@@ -34,17 +35,17 @@ Implementation remains gated. This research created no runtime code, migration, 
 - `CODE`: Physics PDF revisions already have independent `PUBLIC_READ` and `AGENT_READ` append-only facts and exact edition/work/snapshot pins.
 - `PRODUCTION_ANONYMOUS` 2026-08-26: two published corpora are visible—Study Songs edition 2 (77 items, 2,155 assets) and Physics edition 2 (74 items, 394 assets). GETs created no account/session state.
 - `OWNER_REPORTED` / predecessor production evidence: Physics has 74 exact-byte PDFs, 32 condition+solution and 42 condition-only; all 74 have separately attested `AGENT_READ=YES`.
-- `LOCAL_TEST`: publication/resource suites passed 27/27; production-handler smoke passed 61 checks with zero table/network/provider deltas.
-- `LOCAL_TEST BLOCKER`: `smoke:agent-access:mcp` fails because its `get_text_coverage` fixture remains `aa.text_coverage.1.0.0` while runtime contracts require `2.0.0`. This is a pre-existing test drift and is not fixed in research-only mode.
+- `LOCAL_TEST`: publication/resource suites passed 28/28; production-handler smoke passed 61 checks with zero table/network/provider deltas.
+- `LOCAL_TEST`: the stale coverage fixture was corrected before feature work; the MCP smoke now passes 74 checks across 30 tools and both `2025-11-25` and pinned `2026-07-28` eras.
 - `EXTERNAL_PRIMARY`: MCP `2026-07-28` is a major transport/auth era; the official TypeScript SDK v2 supports a dual-era modern + legacy handler. A breaking in-place protocol bump is rejected.
 
-## Stop line
+## Research stop line and approved transition
 
-No implementation may begin until the owner returns the exact approval line in the decision packet. In particular: no SDK upgrade, scope migration, rights facts, new tools/resources, OAuth consent change, flags, client connection, production data or deploy.
+The values in the decision packet were owner-approved on 2026-08-26 with the instruction `Формализуй и стартуй`. Implementation now proceeds through the documented red-test/local/temporary-DB gates. Production migration, owner rights writes, flags and deploy are not implied by this start instruction and remain later rollout gates.
 
 ```text
-CODE=NONE
-MIGRATION=NONE_EXECUTED
+CODE=LOCAL_IMPLEMENTATION_COMPLETE_FOR_CHECKPOINT
+MIGRATION=TEMPORARY_DB_ONLY
 OWNER_DATA_WRITES=NONE
 PRODUCTION_WRITES=NONE
 DEPLOY=NONE
