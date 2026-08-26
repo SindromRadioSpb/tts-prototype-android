@@ -6,11 +6,14 @@ Authority: owner-approved production deploy, real 74-PDF import and public enabl
 Implementation commit: `ed386ccf929da939cf3d24889554bc097632fd2e`
 Production checkpoint commit: `85a905298565d660ea2793e5b36d9aebaa0edc9a`
 PDF viewer correction commit: `e845e32bef7dd78a2164226b1656cd4bfbc693b9`
+Documentation checkpoint commit before this update: `2c4360348e07ac1637f119c620f5edb935108f22`
 Branch: `main`; all three scoped commits pushed to `origin/main`
 Dirty tree: `YES`; unrelated owner files were not staged or changed by the rollout
 Evidence methods: `CODE`, `LOCAL_TEST`, `ISOLATED_AUTOMATION`, `PRODUCTION_ANONYMOUS`, `PRODUCTION_READ_ONLY`, `PRODUCTION_WRITE_OWNER_APPROVED`, `INFERENCE`
 Inspected production version: `3.11.440`
 Status: `CLOSED_PRODUCTION_ACCEPTED`
+
+Owner acceptance: `OWNER_REPORTED` on 2026-08-26 — “Тестирование корпуса «Физика — задачник, 1 год» прошло успешно.” This closes the owner usability gate for the tested corpus. It does not reclassify unperformed physical-device or assistive-technology rows as tested.
 
 ## 1. Owner attestation and content review
 
@@ -125,7 +128,7 @@ The archive was selectively extracted into a validated `mktemp` directory and mo
 - no missing or orphaned resource file;
 - restored manifest SHA-256 `eae4bf6ef1c851a3b4381cae0c9b4792a7e23994724fc511e6512c767e814933`, equal to live read-back.
 
-The temporary restore directory was deleted after verification. No backup archive was deleted. The server currently retains 19 backup archives; this retention/storage inventory is an operations follow-up, not silently changed in this rollout.
+The temporary restore directory was deleted after verification. At the rollout checkpoint no backup archive had been deleted; the subsequent owner-approved bounded retention cleanup is recorded in §8.1.
 
 ## 8. Disk recovery and rollback
 
@@ -137,6 +140,23 @@ Build plus the new backup temporarily raised disk use to 86%/warning. The rollou
 The accepted `e845e32b` runtime image and previous `85a90529` rollback image were preserved through cleanup. Disk returned to 79%, warning false. Removed images/cache are recoverable by rebuilding the corresponding git commits; no production corpus file or backup was removed.
 
 Rollback remains: persistent flag `0` or removed -> redeploy -> anonymous routes return indistinguishable 404 -> preserve immutable rows/files and audit evidence. Corpus edition 2, publication pointers, learner truth, group truth and `review_log` are not rollback targets.
+
+### 8.1 Owner-approved backup retention cleanup
+
+`PRODUCTION_READ_ONLY` preflight established that the normal job creates an online SQLite backup daily at 03:00 and was configured for 14 rolling days. The backup root contained 19 archives and host disk use was 76%.
+
+`PRODUCTION_WRITE_OWNER_APPROVED` on 2026-08-26:
+
+- rolling daily retention changed from 14 to 7 days; a root-owned mode-0600 pre-change configuration copy was retained for rollback;
+- a mode-0700 milestone namespace was created inside the existing backup area;
+- four manual/milestone archives were preserved there: `app-data-20260820-172727.tar.gz`, `app-data-20260825-014147.tar.gz`, Physics pre-import `app-data-20260826-011054.tar.gz` and Physics post-import `app-data-20260826-014914.tar.gz`;
+- only nine confirmed scheduled 03:00 archives, 2026-08-11 through 2026-08-19 inclusive, were deleted;
+- exact removed bytes: `6,710,191,713`;
+- six rolling daily archives remained in the normal root (2026-08-20 through 2026-08-25), in addition to the four milestones;
+- the moved Physics archive SHA-256 values remained `afb6f87bca58eaed089c9e216739eba2d6d3af54598691b0dd82694bf3391fc8` and `c2ed18cac67a192ff704bcad5c31cfd120d48f76cc8eefbbc0d06f8dc89fa721`;
+- host `df` fell to 59%; the application health sample reported 60%, `disk_warn=false`, with health, DB and migrations ready.
+
+The deleted rolling copies are not recoverable from this server. The four named milestones and the new seven-day rolling policy remain the recovery basis. No production corpus data, database row, application image or milestone backup was removed by this cleanup.
 
 ## 9. Final ledger
 
@@ -151,4 +171,7 @@ PUBLIC_PDF_READ=ENABLED
 COMMUNITY_WRITES=NONE
 ATTACHMENTS_GENERIC_UPLOAD=NONE
 MCP_REGISTRATION=NONE
+OWNER_CORPUS_ACCEPTANCE=PASS_OWNER_REPORTED_2026_08_26
+BACKUP_RETENTION=7_DAILY_PLUS_4_MILESTONES
+BACKUP_BYTES_REMOVED=6710191713
 ```

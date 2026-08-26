@@ -56,6 +56,12 @@ Predecessor production evidence: версия 3.11.435, commit e2e41ffa, physics
 
 Production result: 9 тематических разделов / 74 задачи / 74 exact-byte PDF, anonymous approved read, 32 condition+solution и 42 condition-only. Community writes, generic uploads and MCP registration remain outside this slice.
 
+Owner acceptance: `OWNER_REPORTED`, 2026-08-26 — тестирование корпуса «Физика — задачник, 1 год» прошло успешно. Последующая ограниченная backup-cleanup операция сократила rolling retention до 7 дней, сохранила 4 milestone-архива и освободила 6,710,191,713 bytes; подробности и rollback evidence находятся в production rollout evidence.
+
+MCP follow-up зафиксирован как отдельное межкорпусное решение: не создавать Physics-only tool и не расширять молча legacy Ben-Yehuda contracts. До нового owner gate сохраняется `DOCUMENT_ONLY_NOW`; целевой scope — типизированный read-only доступ к immutable publications и approved resources всех корпусов:
+
+- [All-Corpora Agent Access MCP decision](../../../planning/LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_DECISION_2026_08_26.md)
+
 ## Evidence vocabulary
 
 | Label | Значение в этом пакете |
