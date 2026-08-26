@@ -9,7 +9,6 @@ Dirty tree: yes before research; unrelated owner files preserved
 Production inspected: anonymous GET only; served version basis `3.11.440`
 Evidence: `CODE`, `LOCAL_TEST`, `PRODUCTION_ANONYMOUS`, predecessor `OWNER_LIVE_READ_ONLY` / `OWNER_REPORTED`, `EXTERNAL_PRIMARY`, `INFERENCE`
 Research index: [all-corpora-agent-access-mcp/2026-08-26](../research/all-corpora-agent-access-mcp/2026-08-26/README.md)
-Predecessor: [docs-only decision record](LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_DECISION_2026_08_26.md)
 
 ## Owner outcome
 

@@ -25,7 +25,6 @@ Implementation remains gated. This research created no runtime code, migration, 
 - [Tool, resource, schema and identity contract](TOOL_RESOURCE_SCHEMA_AND_IDENTITY_CONTRACT.md)
 - [Security, privacy, cost and operations](SECURITY_PRIVACY_COST_AND_OPERATIONS.md)
 - [Findings](FINDINGS.md)
-- [Predecessor docs-only decision record](../../../planning/LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_DECISION_2026_08_26.md)
 - [Owner research decision packet](../../../planning/LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_R_DECISION_PACKET_2026_08_26.md)
 
 ## Evidence summary
