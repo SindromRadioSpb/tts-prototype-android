@@ -48,11 +48,13 @@ Predecessor production evidence: версия 3.11.435, commit e2e41ffa, physics
 
 ## Post-approval implementation
 
-После owner approval отдельный bounded R2 slice формализован и реализован локально. Research packet выше остаётся историческим decision evidence; актуальные implementation boundary и результаты находятся здесь:
+После owner approval отдельный bounded R2 slice формализован, реализован и 2026-08-26 выведен в production как версия `3.11.440`. Research packet выше остаётся историческим decision evidence; актуальные implementation boundary и результаты находятся здесь:
 
 - [R2 implementation packet](../../../planning/PHYSICS_SOLUTION_DOCUMENTS_R2_IMPLEMENTATION_PACKET_2026_08_26.md)
 - [R2 implementation evidence](PHYSICS_SOLUTION_DOCUMENTS_R2_IMPLEMENTATION_EVIDENCE_2026_08_26.md)
 - [R2 production rollout evidence](PHYSICS_SOLUTION_DOCUMENTS_R2_PRODUCTION_ROLLOUT_EVIDENCE_2026_08_26.md)
+
+Production result: 9 тематических разделов / 74 задачи / 74 exact-byte PDF, anonymous approved read, 32 condition+solution и 42 condition-only. Community writes, generic uploads and MCP registration remain outside this slice.
 
 ## Evidence vocabulary
 

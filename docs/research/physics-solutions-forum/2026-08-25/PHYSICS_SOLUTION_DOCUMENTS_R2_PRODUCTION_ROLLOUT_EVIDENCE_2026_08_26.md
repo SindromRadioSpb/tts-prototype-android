@@ -4,10 +4,13 @@ Date: 2026-08-26
 Program: `PHYSICS_SOLUTIONS_FORUM` / `PHYSICS-SOLUTION-DOCUMENTS-R2`
 Authority: owner-approved production deploy, real 74-PDF import and public enablement
 Implementation commit: `ed386ccf929da939cf3d24889554bc097632fd2e`
-Branch: `main`; implementation commit pushed to `origin/main`
+Production checkpoint commit: `85a905298565d660ea2793e5b36d9aebaa0edc9a`
+PDF viewer correction commit: `e845e32bef7dd78a2164226b1656cd4bfbc693b9`
+Branch: `main`; all three scoped commits pushed to `origin/main`
 Dirty tree: `YES`; unrelated owner files were not staged or changed by the rollout
 Evidence methods: `CODE`, `LOCAL_TEST`, `ISOLATED_AUTOMATION`, `PRODUCTION_ANONYMOUS`, `PRODUCTION_READ_ONLY`, `PRODUCTION_WRITE_OWNER_APPROVED`, `INFERENCE`
-Status at this checkpoint: `DATA_IMPORTED_FLAG_PERSISTED_REDEPLOY_PENDING`
+Inspected production version: `3.11.440`
+Status: `CLOSED_PRODUCTION_ACCEPTED`
 
 ## 1. Owner attestation and content review
 
@@ -66,16 +69,86 @@ The controlled owner CLI imported the real batch into the separate task-resource
 - live read-back manifest: `eae4bf6ef1c851a3b4381cae0c9b4792a7e23994724fc511e6512c767e814933`;
 - SQLite integrity `ok`; importer fingerprint reported learner/private/review truth unchanged.
 
-The persistent Coolify environment now contains `PHYSICS_TASK_RESOURCES_PUBLIC_READ=1` for production and preview. The currently active container remains default-off until the next target redeploy; therefore public UI/API acceptance is intentionally still pending at this checkpoint.
+The persistent Coolify environment contains `PHYSICS_TASK_RESOURCES_PUBLIC_READ=1` for production and preview. An env-bearing redeploy activated anonymous read on version `3.11.439`; a later viewport correction deployed as version `3.11.440`. No corpus pointer, learner truth, group truth or `review_log` row was used as a task-resource writer.
 
-## 5. Remaining acceptance and rollback
+## 5. Public API and target-version acceptance
 
-Pending after the env-bearing redeploy:
+Five consecutive no-cache probes returned only version `3.11.440` with `health.ok=true`, DB ready, migrations ready, disk `79%` and `disk_warn=false`.
 
-1. repeated target-image/version/health probes;
-2. anonymous sections `9`, task count `74`, resources `74`;
-3. exact full/Range/ETag PDF checks;
-4. fresh isolated browser plus real Chrome desktop/380/RU/HE/RTL/PDF-viewer checks;
-5. post-import backup/read-back and production evidence closure.
+Anonymous read-back returned:
+
+- 9 sections with task counts `10, 3, 8, 14, 3, 12, 8, 5, 11`, total 74;
+- 74 task resources: 32 condition+solution and 42 condition-only;
+- no `Set-Cookie` on sections or resource-index reads;
+- first PDF: `200`, 2,262,821 bytes, SHA-256 `1f294e463d312be114f7ef14267e9aae5565c38efc987c725c32275f6265fda0`, `application/pdf`, `Accept-Ranges: bytes`, `X-Content-Type-Options: nosniff`, ETag present;
+- byte range `0-4` returned `206` and `%PDF-`; `If-None-Match` returned `304`; invalid range returned `416`.
+
+## 6. Real-browser UX acceptance and discovered defect
+
+`PRODUCTION_ANONYMOUS` real Chrome used a fresh isolated context, not the owner profile. Desktop `1440x1000`, mobile `380x844`, RU and HE/RTL all exposed the section-first navigation with 10 controls (All + 9 sections), localized counts, no horizontal overflow and version `3.11.440`.
+
+The first production Chrome pass found that a normal PDF without a quality warning occupied only a 150 px iframe strip. Root cause: a three-row CSS grid had only two children, so the iframe landed in the `auto` row and the empty third row consumed the remaining height. Acceptance stopped. A red browser assertion reproduced `frameHeight=150`; commit `e845e32b` replaced the variable-child grid with a flex column and added exact viewport assertions.
+
+After redeploy, the same real PDF on `380x844` measured:
+
+- overlay/viewer: 844 px high;
+- iframe: 774.75 px high below the 69.25 px header;
+- `scrollWidth == clientWidth == 380`;
+- semantic modal dialog, labelled iframe and Escape close with focus restored to the originating resource button.
+
+Desktop measured a centered `1120x920` viewer with an 848.75 px PDF frame. Visual inspection confirmed the printed condition and handwritten solution use the available screen height and scroll naturally.
+
+Durable screenshots:
+
+- [RU desktop section navigation](implementation/production/screenshots/physics-sections-ru-desktop-production.png)
+- [RU 380 px section navigation](implementation/production/screenshots/physics-sections-ru-380-production.png)
+- [HE/RTL 380 px section navigation](implementation/production/screenshots/physics-sections-he-rtl-380-production.png)
+- [RU 380 px full-height PDF viewer](implementation/production/screenshots/physics-resource-viewer-ru-380-production.png)
+
+The existing isolated local Playwright acceptance is 7/7. A separate fresh headless production harness did not leave the generic Library loading state before issuing public-corpus requests; it was removed and is not counted as production evidence. Real Chrome, public API probes and local isolated automation remain explicitly separate.
+
+## 7. Post-import backup and isolated restore read-back
+
+The normal post-import backup completed successfully:
+
+- artifact: `app-data-20260826-014914.tar.gz`;
+- bytes: `1,056,635,541`;
+- archive SHA-256: `c2ed18cac67a192ff704bcad5c31cfd120d48f76cc8eefbbc0d06f8dc89fa721`;
+- online SQLite snapshot bytes: `490,442,752`;
+- SQLite snapshot SHA-256: `498d7db3c85175d267918fd5f99c0b48893ecc60a6929e2d70a0355e32aa597f`.
+
+The archive was selectively extracted into a validated `mktemp` directory and mounted into a temporary container; the production volume was never mounted. Because the snapshot uses WAL journal mode, SQLite needed permission to create temporary sidecar files next to the restored copy even though the verifier itself uses `SQLITE_OPEN_READONLY`. After granting that permission only inside the disposable restore directory, verification passed:
+
+- DB integrity `ok`;
+- 74 revisions;
+- exact resource bytes `114,301,036`;
+- no missing or orphaned resource file;
+- restored manifest SHA-256 `eae4bf6ef1c851a3b4381cae0c9b4792a7e23994724fc511e6512c767e814933`, equal to live read-back.
+
+The temporary restore directory was deleted after verification. No backup archive was deleted. The server currently retains 19 backup archives; this retention/storage inventory is an operations follow-up, not silently changed in this rollout.
+
+## 8. Disk recovery and rollback
+
+Build plus the new backup temporarily raised disk use to 86%/warning. The rollout removed only rebuildable artifacts:
+
+- Docker builder cache: 967.4 MB;
+- three explicitly identified unused application images with `CONTAINERS=0` (`ed386ccf`, `fd1aa7a`, `c00a4ac`).
+
+The accepted `e845e32b` runtime image and previous `85a90529` rollback image were preserved through cleanup. Disk returned to 79%, warning false. Removed images/cache are recoverable by rebuilding the corresponding git commits; no production corpus file or backup was removed.
 
 Rollback remains: persistent flag `0` or removed -> redeploy -> anonymous routes return indistinguishable 404 -> preserve immutable rows/files and audit evidence. Corpus edition 2, publication pointers, learner truth, group truth and `review_log` are not rollback targets.
+
+## 9. Final ledger
+
+```text
+CODE=IMPLEMENTED_AND_DEPLOYED
+MIGRATION=064_APPLIED
+OWNER_DATA_WRITES=74_TASK_RESOURCES_74_REVISIONS_148_RIGHTS_FACTS_74_EVENTS_74_IDEMPOTENCY_RECEIPTS
+LEARNER_OR_REVIEW_WRITES=NONE
+PRODUCTION_WRITES=OWNER_APPROVED_TASK_RESOURCE_IMPORT_AND_FLAG_ONLY
+DEPLOY=3.11.440
+PUBLIC_PDF_READ=ENABLED
+COMMUNITY_WRITES=NONE
+ATTACHMENTS_GENERIC_UPLOAD=NONE
+MCP_REGISTRATION=NONE
+```
