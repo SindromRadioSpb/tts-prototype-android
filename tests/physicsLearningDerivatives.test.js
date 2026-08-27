@@ -28,13 +28,30 @@ test('all ledgers match the exact 74-task corpus set', () => {
   const answer = json('answer-ledger.json');
   const solution = json('solution-ledger.json');
   const localized = json('solution-ledger.ru.json');
+  const exam = json('exam-solution-ledger.ru.json');
   assert.equal(new Set(canonical).size, 74);
   assert.deepEqual(ids(answer.entries), canonical);
   assert.deepEqual(ids(solution.entries), canonical);
   assert.deepEqual(ids(localized.entries), canonical);
+  assert.deepEqual(ids(exam.entries), canonical);
   assert.equal(solution.review.handwritten_solution_used, false);
   assert.equal(solution.review.answer_key_role, 'post_derivation_comparison_only');
   assert.equal(solution.entries.filter((entry) => entry.comparison === 'MISMATCH').length, 10);
+  for (const entry of exam.entries) {
+    for (const field of ['given', 'find', 'si', 'laws', 'symbolic', 'check']) {
+      assert.ok(Array.isArray(entry[field]) && entry[field].length > 0, `${entry.task_number}.${field}`);
+    }
+    assert.ok(entry.symbolic.length >= 2, `${entry.task_number}: symbolic derivation is too short`);
+    if (entry.calculation) {
+      assert.ok(entry.calculation.length >= 2, `${entry.task_number}: explicit calculation is too short`);
+    }
+    if (entry.construction) {
+      assert.ok(entry.construction.length >= 2, `${entry.task_number}: required construction is too short`);
+    }
+  }
+  for (const taskNumber of ['1.3', '2.1', '6.10', '6.11', '6.12']) {
+    assert.ok(exam.entries.find((entry) => entry.task_number === taskNumber).construction, `${taskNumber}: missing required graph or force diagram`);
+  }
 });
 
 test('builder is deterministic and manifests every generated learning artifact', () => {
@@ -60,8 +77,47 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   const html = fs.readFileSync(path.join(OUT, 'physics-year1-solutions.html'), 'utf8');
   assert.match(html, /74 задачи/);
   assert.match(html, /Грузовик: 180=10v₀/);
-  assert.match(html, /рукописные решения не распознавались/i);
+  assert.match(html, /Дано/);
+  assert.match(html, /Найти/);
+  assert.match(html, /Перевод в СИ и обозначения/);
+  assert.match(html, /Базовые законы/);
+  assert.match(html, /Вывод расчётных формул/);
+  assert.match(html, /Подстановка и последовательный расчёт/);
+  assert.match(html, /Проверка результата/);
+  assert.equal((html.match(/class="exam-construction"/g) || []).length, 5);
+  assert.match(html, /рукописные (?:решения|работы) не (?:распознавались|использовались)/i);
   assert.equal((html.match(/class="task(?: |")/g) || []).length, 74);
+  assert.equal((html.match(/class="exam-sheet"/g) || []).length, 74);
   assert.equal((html.match(/class="task task--mismatch"/g) || []).length, 10);
+  assert.match(html, /t=12,295 с; x_A=284,88 м; x_B=215,12 м/);
   assert.doesNotMatch(html, /G:\\|Andasa|Чистовик/);
+});
+
+test('every task has a complete exam protocol and carries every final value through the calculation', () => {
+  const solutions = json('solution-ledger.ru.json');
+  for (const solution of solutions.entries) {
+    const file = path.join(OUT, 'tasks', `task-${solution.task_number}.md`);
+    const markdown = fs.readFileSync(file, 'utf8');
+    for (const heading of [
+      '### Дано',
+      '### Найти',
+      '### Перевод в СИ и обозначения',
+      '#### 1. Физическая модель',
+      '#### 2. Базовые законы',
+      '#### 3. Вывод расчётных формул',
+      '#### 4. Подстановка и последовательный расчёт',
+      '#### 5. Проверка результата',
+      '## Ответ'
+    ]) {
+      assert.ok(markdown.includes(heading), `${solution.task_number}: missing ${heading}`);
+    }
+    const calculation = markdown
+      .split('#### 4. Подстановка и последовательный расчёт')[1]
+      .split('#### 5. Проверка результата')[0];
+    assert.ok((calculation.match(/^\d+\. /gm) || []).length >= 2, `${solution.task_number}: calculation has fewer than two steps`);
+    for (const token of solution.result.match(/\d+(?:[,.]\d+)?/g) || []) {
+      assert.ok(calculation.includes(token), `${solution.task_number}: final value ${token} is absent from calculation`);
+    }
+    assert.ok(markdown.includes(`**${solution.result}**`), `${solution.task_number}: final answer differs from reviewed result`);
+  }
 });

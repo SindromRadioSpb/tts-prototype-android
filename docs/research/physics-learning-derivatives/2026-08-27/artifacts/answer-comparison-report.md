@@ -1,20 +1,20 @@
-# Physics answer comparison report
+# Отчёт о сверке ответов по физике
 
-Date: 2026-08-27
-Scope: 74/74 tasks
-Method: independent derivation first; answer-key comparison second
-Handwritten solution use: none
+Дата: 2026-08-27
+Охват: 74/74 задачи
+Метод: сначала полное независимое решение, затем сверка с ключом
+Использование рукописных решений: нет
 
-## Outcome
+## Результат
 
-- 74 unique task records match the canonical corpus set.
-- 64 tasks agree with the key within the declared rounding tolerance.
-- 10 tasks have a material mismatch or source contradiction.
-- A mismatch is never repaired by widening tolerance.
+- 74 уникальные записи точно соответствуют каноническому набору корпуса.
+- 64 задачи совпадают с ключом в пределах объявленного округления.
+- 10 задач имеют существенное расхождение или противоречие источника.
+- Расхождение никогда не устраняется расширением допуска.
 
-## Mismatches requiring owner review
+## Расхождения, требующие решения владельца
 
-| Task | Independent result | Finding |
+| Задача | Независимый результат | Вывод проверки |
 |---|---|---|
 | 1.5 | грузовик: v₀=15 м/с, v_B=21 м/с; при встрече грузовик 17,4 м/с, автомобиль 28,8 м/с | Значения ключа 25,2 и 18,6 соответствуют 6 с, тогда как в печатном условии указано 4 с. |
 | 1.10 | τ_B=26,095 с; от старта A прошло 40,095 с; v_B=36,095 м/с; x=601,42 м | В ключе время после старта B названо полным временем и на него умножена скорость A; совпадает только скорость B. |
@@ -27,6 +27,8 @@ Handwritten solution use: none
 | 8.1 | v_D=9,9045 м/с; u=1,6508 м/с; F_ср=1651 Н; s=0,463 м | Не совпадает только сила 3300 Н: при Δt=0,05 с она вдвое больше результата по изменению импульса. |
 | 9.1 | S=168,03 м | Ответ ключа 192,146 м не следует из печатных R=90 м, T=2 кН, α=30° и g=9,81. |
 
-## Publication gate
+## Шлюз публикации
 
-This local derivative is not approved for production. Resolve or deliberately annotate every mismatch, complete an owner second pass over the answer transcription, and provide the rights/publication attestation described in the R1 plan.
+Локальная производная не разрешена к публикации в production. Необходимо принять
+решение по каждому расхождению, выполнить второй проход владельца по переносу ответов
+и подтвердить права на публикацию в соответствии с планами R1/R2.

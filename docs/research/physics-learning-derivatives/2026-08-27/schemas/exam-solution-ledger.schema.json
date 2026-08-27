@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "physics_exam_solution_ledger.2.0.0",
+  "title": "Physics college-exam solution structure",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "locale", "standard", "entries"],
+  "properties": {
+    "schema_version": {"const": "physics_exam_solution_ledger.2.0.0"},
+    "locale": {"const": "ru"},
+    "standard": {"const": "college_exam_full_derivation"},
+    "entries": {
+      "type": "array",
+      "minItems": 74,
+      "maxItems": 74,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_number", "given", "find", "si", "laws", "symbolic", "check"],
+        "properties": {
+          "task_number": {"type": "string", "pattern": "^[1-9]\\.[0-9]+$"},
+          "given": {"$ref": "#/$defs/nonEmptyLines"},
+          "find": {"$ref": "#/$defs/nonEmptyLines"},
+          "si": {"$ref": "#/$defs/nonEmptyLines"},
+          "laws": {"$ref": "#/$defs/nonEmptyLines"},
+          "symbolic": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+          "construction": {"$ref": "#/$defs/nonEmptyLines"},
+          "calculation": {"$ref": "#/$defs/nonEmptyLines"},
+          "check": {"$ref": "#/$defs/nonEmptyLines"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyLines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}
