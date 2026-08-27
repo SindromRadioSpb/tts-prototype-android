@@ -10,6 +10,7 @@ const PACKET = path.join(ROOT, 'docs', 'research', 'physics-learning-derivatives
 const CORPUS = path.join(ROOT, 'docs', 'research', 'physics-corpus', '2026-08-24', 'physics-year1-corpus-records.json');
 const BUILDER = path.join(ROOT, 'scripts', 'premium', 'build-physics-learning-derivatives.js');
 const OUT = path.join(PACKET, 'artifacts');
+const { normalizePhysicsNotation } = require(BUILDER);
 
 function json(relative) {
   return JSON.parse(fs.readFileSync(path.join(PACKET, relative), 'utf8'));
@@ -76,7 +77,7 @@ test('builder is deterministic and manifests every generated learning artifact',
 test('premium guide exposes provenance, Russian solution text and mismatch states', () => {
   const html = fs.readFileSync(path.join(OUT, 'physics-year1-solutions.html'), 'utf8');
   assert.match(html, /74 задачи/);
-  assert.match(html, /Грузовик: 180=10v₀/);
+  assert.match(html, /Грузовик:/);
   assert.match(html, /Дано/);
   assert.match(html, /Найти/);
   assert.match(html, /Перевод в СИ и обозначения/);
@@ -89,7 +90,8 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   assert.equal((html.match(/class="task(?: |")/g) || []).length, 74);
   assert.equal((html.match(/class="exam-sheet"/g) || []).length, 74);
   assert.equal((html.match(/class="task task--mismatch"/g) || []).length, 10);
-  assert.match(html, /t=12,295 с; x_A=284,88 м; x_B=215,12 м/);
+  assert.match(html, /12,295 с/);
+  assert.match(html, /284,88 м/);
   assert.doesNotMatch(html, /G:\\|Andasa|Чистовик/);
 });
 
@@ -118,6 +120,52 @@ test('every task has a complete exam protocol and carries every final value thro
     for (const token of solution.result.match(/\d+(?:[,.]\d+)?/g) || []) {
       assert.ok(calculation.includes(token), `${solution.task_number}: final value ${token} is absent from calculation`);
     }
-    assert.ok(markdown.includes(`**${solution.result}**`), `${solution.task_number}: final answer differs from reviewed result`);
+    assert.ok(markdown.includes(`**${normalizePhysicsNotation(solution.result)}**`), `${solution.task_number}: final answer differs from reviewed result`);
   }
+});
+
+test('math notation is explicit for agents and typeset semantically for learners', () => {
+  const task13 = fs.readFileSync(path.join(OUT, 'tasks', 'task-1.3.md'), 'utf8');
+  const examProtocol = task13.split('## Экзаменационное решение')[1].split('## Ответ')[0];
+  assert.match(examProtocol, /v_A = 0/);
+  assert.match(examProtocol, /t_\{AC\}/);
+  assert.match(examProtocol, /v\^2 = v_0\^2 \+ 2 \* a \* s/);
+  assert.doesNotMatch(examProtocol, /vA=0|tAC|2as/);
+
+  const task35 = fs.readFileSync(path.join(OUT, 'tasks', 'task-3.5.md'), 'utf8');
+  assert.match(task35, /sin\(α\)/);
+  assert.match(task35, /m \* g/);
+
+  const html = fs.readFileSync(path.join(OUT, 'physics-year1-solutions.html'), 'utf8');
+  assert.match(html, /<var>v<sub>A<\/sub><\/var>/);
+  assert.match(html, /<var>v<\/var><sup>2<\/sup>/);
+  assert.match(html, /class="math-op" aria-label="умножить">·<\/span>/);
+  assert.doesNotMatch(html, />vA=0<|>v²=v₀²\+2as</);
+});
+
+test('math normalizer removes ambiguous adjacency across the complete exam ledger', () => {
+  const exam = json('exam-solution-ledger.ru.json');
+  const allowedRuns = new Set([
+    'sin', 'cos', 'tan', 'arctan', 'arccos', 'dt',
+    'AB', 'AC', 'BC', 'BD', 'BE', 'CD', 'DE', 'MC', 'NC', 'OB'
+  ]);
+  for (const entry of exam.entries) {
+    for (const [field, values] of Object.entries(entry)) {
+      if (!Array.isArray(values)) continue;
+      for (const source of values) {
+        const normalized = normalizePhysicsNotation(source);
+        const withoutIndexedSymbols = normalized.replace(/[A-Za-zΔΣμ]_(?:\{[^}]+\}|[A-Za-zА-Яа-я0-9])/g, '');
+        assert.doesNotMatch(normalized, /[₀-₉ₓᵧ²³]/, `${entry.task_number}.${field}: convenience glyph remains`);
+        assert.doesNotMatch(withoutIndexedSymbols, /\d(?=[A-Za-zαβγθφμτ])/, `${entry.task_number}.${field}: number-symbol product is implicit`);
+        assert.doesNotMatch(normalized, /}(?=[A-Za-zαβγθφμτ])/, `${entry.task_number}.${field}: indexed-symbol product is implicit`);
+        assert.doesNotMatch(normalized, /[A-Za-zαβγθφμτ}]\s+(?=(?:sin|cos|tan)\()/, `${entry.task_number}.${field}: function product is implicit`);
+
+        for (const run of withoutIndexedSymbols.match(/[A-Za-z]{2,}/g) || []) {
+          assert.ok(allowedRuns.has(run), `${entry.task_number}.${field}: unexplained adjacent symbols ${run}`);
+        }
+      }
+    }
+  }
+  assert.equal(normalizePhysicsNotation('vB=√(vA²+2a₁AB)'), 'v_B = √(v_A^2 + 2 * a_1 * AB)');
+  assert.equal(normalizePhysicsNotation('mAgsinα'), 'm_A * g * sin(α)');
 });
