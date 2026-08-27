@@ -29,9 +29,9 @@ Production rollout authority: owner-approved after the local checkpoint; bounded
 | G1 legacy MCP baseline | PASS | Stale v1 coverage fixture corrected; green before feature integration |
 | G2 red contracts | PASS | 10 publication-agent tests: absent deny, owner-only append facts, exact targets, rollback guard, HMAC cursors, Physics one-writer reuse, no external links/binary |
 | G3 additive migration/service/tools | PASS LOCAL/TEMPORARY_DB | Migration 065, rights repo, five tools, canonical writer; real runner applied all 65 migrations to a temporary DB |
-| G4 consent RU/EN/HE and transport compatibility | PASS ISOLATED; OWNER RECONSENT / HOSTED CLIENTS PENDING | Official SDK v2 client proved legacy `2025-11-25` plus pinned modern `2026-07-28`; 380 px RU/EN/HE/RTL/keyboard browser smoke passed |
+| G4 consent RU/EN/HE and transport compatibility | PASS ISOLATED + OWNER-OPERATED HERMES; INSPECTOR/OPENAI PENDING | Official SDK v2 client proved legacy `2025-11-25` plus pinned modern `2026-07-28`; 380 px RU/EN/HE/RTL/keyboard browser smoke passed; owner reconsented to 26 scopes and Hermes discovered 30 tools |
 | G5 regression/security/restore | PASS FOR CHECKPOINT | OAuth, OIDC, control plane, publication/Physics, migration copy rehearsal and output contracts green; dependency audit recorded below |
-| G6 owner-only production rollout | PASS FOR SERVER/ANONYMOUS; OWNER CLIENT ACCEPTANCE PENDING | Migration 065, exact Study Songs rights, 3.11.443, live read-only service and 380 px browser passed; new scopes still require explicit owner reconsent |
+| G6 owner-only production rollout | OWNER_REPORTED PASS; OWNER-ONLY SLICE CLOSED | Migration 065, exact Study Songs rights, 3.11.443, live read-only service and 380 px browser passed; explicit consent v3 reconsent, five publication-tool calls and fresh-chat Hermes invocation passed |
 
 ## Implemented boundary
 
@@ -62,8 +62,12 @@ Production rollout authority: owner-approved after the local checkpoint; bounded
 | `OWNER_LIVE_READ_ONLY` | production service constructed over SQLite `OPEN_READONLY` | PASS; Physics 74 / one PDF descriptor and Study Songs 77 / audio descriptors / bounded text window |
 | `OWNER_LIVE_READ_ONLY` | pre-rollout backup versus post-rollout online snapshot | PASS; 30 protected owner/learner/group/publication tables have identical row counts and content digests |
 | `OWNER_LIVE_READ_ONLY` | OAuth/MCP discovery | PASS; three `reading.publication.*` scopes advertised; unauthenticated MCP initialize denied 401 |
+| `OWNER_LIVE_READ_ONLY` | Hermes reconsent and discovery, 2026-08-27 | PASS; explicit consent selected 26 scopes and the owner-operated Hermes client discovered 30 tools |
+| `OWNER_LIVE_READ_ONLY` | five publication tools through Hermes-compatible SDK | PASS; Physics edition 2 exposed 74 items / 394 assets and a task-bound PDF descriptor; Study Songs edition 2 exposed 77 items / 2,155 assets and a bounded two-row text window; content bodies were not copied into the evidence log |
+| `OWNER_LIVE_READ_ONLY` | fresh ordinary Hermes WebUI chat | PASS; session `98a7214ca904` recorded `mcp__linguistpro__list_published_public_corpora` as `tool_complete` with `is_error:false` and returned the expected immutable corpus identifiers and counts |
+| `OWNER_REPORTED` | owner acceptance, 2026-08-27 | PASS; owner reported that MCP was implemented and tested successfully |
 
-The repository has no `npm run build` script; syntax, targeted tests and isolated server/browser smokes are the applicable gates. The external two-client script stopped before a connection because `HERMES_AGENT_REPO` / a discoverable Hermes checkout with `uv.lock` was unavailable. Hosted Hermes, OpenAI, Inspector and Claude evidence therefore remains a rollout gate, not a claimed pass.
+The repository has no `npm run build` script; syntax, targeted tests and isolated server/browser smokes are the applicable gates. The earlier external two-client script stopped before a connection because `HERMES_AGENT_REPO` / a discoverable Hermes checkout with `uv.lock` was unavailable. That historical gap is now closed for the owner-operated Hermes client by the 2026-08-27 evidence above. OpenAI Responses and Inspector interoperability, live revoke/audit evidence, and Claude before wider launch remain gates, not claimed passes.
 
 `npm audit --omit=dev` reported 18 production advisories (3 low, 6 moderate, 8 high, 1 critical). None is in the new MCP v2 package paths; affected existing chains include `sqlite3/node-gyp/tar`, `adm-zip`, `body-parser` and Google dependencies. No broad dependency upgrade was attempted inside this bounded program. This remains a separate remediation item before wider availability.
 
@@ -83,6 +87,8 @@ Release commits were `3604c10a` (feature), `b7d2c1eb` (initial 3.11.441 marker),
 
 The three production control gates needed for the existing owner-only Agent Access perimeter remain effectively open through the pre-existing audited owner control journal; no production environment variable or client row was changed in this rollout. Existing connections do not silently gain the new scopes: the owner must explicitly reconnect/reconsent to `agent-access-consent-v3` before exercising the five new tools.
 
+That required ceremony was subsequently completed on 2026-08-27. The consent/connection changes belong to the separately authorized owner reconsent flow; they did not alter corpus, publication, learner, review, notes, bookmarks, group or forum truth. This documentation-only closure does not perform or authorize another consent write.
+
 Three sequential release builds temporarily raised root-disk use to 95%. Under the owner's existing bounded-cleanup authority, seven unreferenced old application image tags were removed. Current 3.11.443 and immediate rollback 3.11.442 were retained; volumes, backup and build cache were untouched. Post-cleanup disk use is 87%.
 
 ## Scoped implementation allowlist
@@ -93,9 +99,27 @@ Schema/ops/tests: `migrations/065_publication_agent_access.sql`, matching down m
 
 Explicitly untouched: publication/Physics pointers and files; learner, review, notes, bookmarks, group and Telegram writers; public corpus payloads; forum/solutions domain; production configuration and environment flags.
 
-## Remaining rollout gates
+## Owner-only slice closure — 2026-08-27
 
-1. Owner reconnects/reconsents to consent v3 and confirms the three new publication scopes; no existing connection receives them implicitly.
-2. Owner-only Physics + Study Songs tasks through a hosted client (Hermes first; Inspector/OpenAI as interoperability evidence), including live revoke ≤60 seconds and content-free audit inspection.
-3. Flags-off rollback remains available without deleting rights rows; immediate image rollback target is 3.11.442.
-4. Only after GO thresholds: bounded community availability. External-link descriptors, MCP Resources, OCR/derivatives and packages remain later approvals.
+```text
+OWNER_RECONSENT=PASS_26_SCOPES
+HERMES_DISCOVERY=PASS_30_TOOLS
+PUBLICATION_TOOL_CALLS=PASS_5_OF_5
+FRESH_HERMES_CHAT_TOOL_INVOCATION=PASS
+OWNER_ACCEPTANCE=OWNER_REPORTED_PASS
+OWNER_ONLY_SLICE=CLOSED
+RUNTIME_CODE_THIS_CLOSURE=NONE
+MIGRATION_THIS_CLOSURE=NONE_EXECUTED
+CORPUS_LEARNER_GROUP_WRITES_THIS_CLOSURE=NONE
+PRODUCTION_DEPLOY_THIS_CLOSURE=NONE
+WIDER_AVAILABILITY=NOT_APPROVED
+```
+
+The owner-only acceptance covers the existing read-only Physics and Study Songs publication contract through the owner-operated Hermes client. It does not broaden rights, enable writes, approve community access or establish general interoperability for every MCP client.
+
+## Remaining post-closure gates
+
+1. Prove Inspector and OpenAI Responses interoperability; prove Claude compatibility before wider launch.
+2. Exercise and record live revoke propagation within 60 seconds and inspect the content-free audit trail without mutating corpus or learner truth.
+3. Keep flags-off rollback available without deleting rights rows; immediate image rollback target remains 3.11.442.
+4. Only after separate GO thresholds and owner approval: bounded community availability. External-link descriptors, MCP Resources, OCR/derivatives and packages remain later approvals.

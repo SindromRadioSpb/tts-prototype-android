@@ -15,7 +15,7 @@ The implementation-ready recommendation is a generic, read-only Agent Access pro
 
 The smallest useful pilot exposes typed discovery and bounded reading descriptors for Physics and Study Songs through the existing OAuth/consent/audit perimeter. Typed tools are the compatibility baseline. MCP Resources and `ResourceLink` values are additive views over the same immutable publication identity. PDF/audio bytes remain on first-party immutable HTTPS delivery with hashes and Range support; no binary is embedded in MCP messages and no OCR is canonical truth.
 
-The owner approved D1–D12, implementation and the bounded production rollout on 2026-08-26. Runtime 3.11.443 and migration 065 are live; the approved Study Songs agent-rights plan was applied exactly once. Server/anonymous production verification passed. Owner client reconsent and hosted-client acceptance remain pending before wider availability.
+The owner approved D1–D12, implementation and the bounded production rollout on 2026-08-26. Runtime 3.11.443 and migration 065 are live; the approved Study Songs agent-rights plan was applied exactly once. Server/anonymous production verification passed. On 2026-08-27 the owner completed explicit reconsent for all 26 selected scopes, Hermes discovered 30 tools, the five publication tools passed owner-authenticated read-only checks, and a fresh ordinary Hermes chat invoked the publication catalog successfully. The owner then reported the MCP implementation and test successful. `OWNER_REPORTED=PASS`; `OWNER_ONLY_SLICE=CLOSED`.
 
 ## Artifacts
 
@@ -41,7 +41,7 @@ The owner approved D1–D12, implementation and the bounded production rollout o
 
 ## Approved transition and current stop line
 
-The values in the decision packet were owner-approved on 2026-08-26 with the instructions `Формализуй и стартуй` and then to deploy and verify on production. The bounded server rollout is complete. Stop before wider/community availability until owner reconsent, hosted-client corpus tasks, revoke/audit evidence and owner acceptance are recorded.
+The values in the decision packet were owner-approved on 2026-08-26 with the instructions `Формализуй и стартуй` and then to deploy and verify on production. The bounded server rollout and owner-operated Hermes acceptance are complete. Stop before wider/community availability until Inspector/OpenAI interoperability, live revoke within the approved bound, content-free audit inspection and the wider-launch GO thresholds are separately evidenced and approved. Claude interoperability remains a wider-launch gate, not part of the closed owner-only slice.
 
 ```text
 CODE=PRODUCTION_3.11.443
@@ -49,4 +49,8 @@ MIGRATION=065_APPLIED
 OWNER_DATA_WRITES=STUDY_SONGS_AGENT_RIGHTS_ONLY_309_FACTS
 PRODUCTION_WRITES=MIGRATION_065_AND_APPROVED_RIGHTS_ONLY
 DEPLOY=PRODUCTION_3.11.443
+OWNER_RECONSENT=PASS_26_SCOPES
+HERMES=OWNER_REPORTED_PASS_30_TOOLS
+OWNER_ONLY_SLICE=CLOSED
+WIDER_AVAILABILITY=NOT_APPROVED
 ```

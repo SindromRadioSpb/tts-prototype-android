@@ -2,7 +2,7 @@
 
 Date: 2026-08-26
 Program: `ALL-CORPORA-AGENT-ACCESS-MCP-R`
-Authority: owner-approved research decision and bounded implementation authority; production rollout remains separately gated
+Authority: owner-approved research decision and bounded implementation authority; owner-only production slice accepted and closed 2026-08-27; wider rollout remains separately gated
 Owner approval: 2026-08-26 — approved all recommended D1–D12 values and instructed `Формализуй и стартуй`; the exact approval bundle in this packet is therefore the governing implementation authority
 Source commit: `e51e17ab8e88a378c221a9548a555539b6e18c2a`
 Branch: `main`; `HEAD == origin/main` at recon
@@ -210,4 +210,18 @@ PRODUCTION_WRITES=NONE
 DEPLOY=NONE
 ```
 
-Current checkpoint status is recorded in `docs/research/all-corpora-agent-access-mcp/2026-08-26/IMPLEMENTATION_EVIDENCE_2026_08_26.md`. Stop before production rollout and await its separate authorization.
+Current checkpoint status is recorded in `docs/research/all-corpora-agent-access-mcp/2026-08-26/IMPLEMENTATION_EVIDENCE_2026_08_26.md`.
+
+## Owner-only production closure addendum — 2026-08-27
+
+The bounded production rollout was separately authorized and completed at version `3.11.443`. The owner then completed explicit consent-v3 reconsent for all 26 selected scopes. The owner-operated Hermes client discovered 30 tools; all five new publication tools passed read-only calls across Physics and Study Songs; and a fresh ordinary Hermes chat recorded a successful publication-catalog tool invocation. The owner reported the MCP implementation and testing successful.
+
+```text
+OWNER_RECONSENT=PASS_26_SCOPES
+HERMES=OWNER_REPORTED_PASS_30_TOOLS
+PUBLICATION_TOOLS=PASS_5_OF_5
+OWNER_ONLY_SLICE=CLOSED
+WIDER_AVAILABILITY=NOT_APPROVED
+```
+
+This closes only `PILOT_SCOPE=OWNER_ONLY_PHYSICS_AND_STUDY_SONGS_READ_ONLY`. It does not authorize new corpus or learner writers, community access, MCP Resources, OCR/derivatives, package delivery or binary transfer through MCP. Inspector/OpenAI interoperability, revoke-within-60-seconds evidence, content-free audit inspection, Claude compatibility before wider launch and the wider-launch GO thresholds remain open. Rollback remains flags-off with existing rows, public corpora and learner truth preserved.
