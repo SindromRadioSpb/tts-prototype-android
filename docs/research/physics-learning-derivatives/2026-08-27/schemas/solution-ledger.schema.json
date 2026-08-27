@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "physics_independent_solution_ledger.1.0.0",
+  "title": "Physics independent solution ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "corpus_slug", "method", "review", "entries"],
+  "properties": {
+    "schema_version": {"const": "physics_independent_solution_ledger.1.0.0"},
+    "corpus_slug": {"const": "physics-year1-problems"},
+    "method": {"const": "independent_derivation_from_canonical_condition_and_printed_diagram_only"},
+    "constants": {"type": "object"},
+    "review": {
+      "type": "object",
+      "required": ["handwritten_solution_used", "answer_key_role"],
+      "properties": {
+        "handwritten_solution_used": {"const": false},
+        "answer_key_role": {"const": "post_derivation_comparison_only"}
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 74,
+      "maxItems": 74,
+      "items": {
+        "type": "object",
+        "required": ["task_number", "model", "derivation", "result", "comparison"],
+        "properties": {
+          "task_number": {"type": "string", "pattern": "^[1-9]\\.[0-9]+$"},
+          "model": {"type": "string", "minLength": 1},
+          "derivation": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "result": {"type": "string", "minLength": 1},
+          "comparison": {"enum": ["EXACT", "WITHIN_TOLERANCE", "MISMATCH", "SOURCE_INSUFFICIENT"]},
+          "comparison_note": {"type": "string"}
+        }
+      }
+    }
+  }
+}
