@@ -40,6 +40,8 @@ These are isolated-browser fixtures, not production or owner-profile evidence.
 
 The new public GET route is anonymous, immutable and read-only. The MCP tool returns reviewed Russian Markdown only. Neither path reads or writes learner progress, review log, grades, notes, personal texts, group corpora, proposals, or external provider state.
 
-## Pending production evidence
+## Production status
 
-Commit/push, migration 066 on production, verified backup, 74 production rights facts, feature flag, repeated target-version probes, production API and browser screenshots remain open until rollout execution. Hermes owner-live acceptance remains a separate explicit re-consent and real-tool gate.
+Публичный пользовательский путь закрыт живой production-приёмкой; подробный журнал, backup/restore, DB read-back, 74/74 API-сверка и production screenshots находятся в `PHYSICS_YEAR1_LEARNING_SUPPORT_R12_PRODUCTION_EVIDENCE_2026_08_28.md`.
+
+Агентский код, scope, migration 066 и 74 exact `DERIVATIVE_TEXT=true` facts находятся в production. Глобальные production flags `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED` и `AGENT_ACCESS_MCP_ENABLED` остаются default-off: их включение активировало бы весь 31-tool Agent Access, а не только Physics, и относится к отдельным gate 5+ программы `LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_DECISION_PACKET_2026_08_26.md`. Поэтому Hermes owner-live acceptance не заявлена; она требует отдельного разрешённого включения owner-only MCP, нового consent и реального вызова инструмента.
