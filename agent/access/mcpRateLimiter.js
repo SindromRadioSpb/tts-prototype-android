@@ -45,6 +45,7 @@ const TOOL_LIMITS = Object.freeze({
   get_published_public_item: Object.freeze({ minute: 20, day: 600 }),
   list_published_item_resources: Object.freeze({ minute: 20, day: 600 }),
   read_published_text_window: Object.freeze({ minute: 20, day: 400 }),
+  read_published_learning_support: Object.freeze({ minute: 12, day: 240 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

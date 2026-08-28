@@ -1,0 +1,45 @@
+# PHYSICS-YEAR1-R12 — implementation evidence
+
+Дата: 2026-08-28
+Production target: `3.11.444`
+Authority: `OWNER_APPROVAL_PHYSICS_YEAR1_R12_2026_08_28`
+
+## Content and identity
+
+- Задач: 74/74.
+- Edition: `ed_c345975244ff7bd33d86fcb9`, №2.
+- Manifest SHA-256: `6926876557b93e984180a27a6cda01076b64a4649ff7287d4edd7ab35cbdde1b`.
+- Production anchor: `production-publication-anchor.json` — 74 exact work/snapshot/source-image bindings.
+- Runtime manifest: `physics/year1-support/manifest.json`; каждый shard проверяется по bytes + SHA-256 до парсинга.
+- План прав агента: 74 факта, SHA-256 `43cedcf8be2b31cbbcfa65eb45d0d7266d39a8e6f54023294141719f9bc8f451`.
+
+## Verified gates
+
+- `tests/physicsLearningSupport.test.js`: 3/3 — полнота, bounded output, fail-closed drift.
+- `tests/physicsLearningSupportUi.test.js`: 2/2 — actions в карточке и Reader, RU/EN/HE, version lockstep.
+- `tests/publicationAgentAccess.test.js`: migration 066, exact rights, Agent projection и output contract.
+- `tests/publicCorpusAdapter.test.js`: exact UI payload validation и snapshot drift rejection.
+- `tests/i18n.smoke.js --write-lock`: 233/233; locale cache rev 185.
+- `agent-access-domain-smoke.js`: 56 checks, 31 capabilities, 0 network/provider/live reads.
+- `agent-access-mcp-smoke.mjs`: 76 checks, 31 tools, both supported MCP protocols, stateless.
+- `agent-access-publication-consent-browser-smoke.mjs`: RU/EN/HE, 380 px, RTL, keyboard focus, 0 owner writes.
+- `physics-learning-support-smoke.js`: temporary DB, flag-off 404, flag-on 200, immutable ETag/304, unknown work 404, rights dry-run 0 + apply/read-back 74, 74 task anchors, anonymous browser.
+- Browser: answer-first, full walkthrough, 380 px no overflow, 380 px full-screen, Hebrew RTL.
+
+## Visual evidence
+
+- `implementation/screenshots/physics-learning-card-answer-desktop-ru.png`
+- `implementation/screenshots/physics-learning-solution-desktop-ru.png`
+- `implementation/screenshots/physics-learning-exam-desktop-ru.png`
+- `implementation/screenshots/physics-learning-solution-380-ru.png`
+- `implementation/screenshots/physics-learning-solution-380-he-rtl.png`
+
+These are isolated-browser fixtures, not production or owner-profile evidence.
+
+## Data boundary
+
+The new public GET route is anonymous, immutable and read-only. The MCP tool returns reviewed Russian Markdown only. Neither path reads or writes learner progress, review log, grades, notes, personal texts, group corpora, proposals, or external provider state.
+
+## Pending production evidence
+
+Commit/push, migration 066 on production, verified backup, 74 production rights facts, feature flag, repeated target-version probes, production API and browser screenshots remain open until rollout execution. Hermes owner-live acceptance remains a separate explicit re-consent and real-tool gate.

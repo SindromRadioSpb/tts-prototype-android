@@ -12,6 +12,8 @@ const sqlite3 = require("sqlite3");
 const ROOT = path.resolve(__dirname, "..");
 const UP = path.join(ROOT, "migrations", "065_publication_agent_access.sql");
 const DOWN = path.join(ROOT, "migrations", "down", "065_publication_agent_access.sql");
+const UP66 = path.join(ROOT, "migrations", "066_physics_learning_support_agent_scope.sql");
+const DOWN66 = path.join(ROOT, "migrations", "down", "066_physics_learning_support_agent_scope.sql");
 const RIGHTS_REPO = path.join(ROOT, "db", "publicationAgentRightsRepo.js");
 const READ_SERVICE = path.join(ROOT, "agent", "access", "publicPublicationReadService.js");
 const PHYSICS_REPO = path.join(ROOT, "db", "physicsTaskResourceRepo.js");
@@ -45,6 +47,7 @@ async function fixture() {
   await exec(db, "PRAGMA foreign_keys=ON");
   await applyBase(db);
   await exec(db, fs.readFileSync(UP, "utf8"));
+  await exec(db, fs.readFileSync(UP66, "utf8"));
   await run(db, "INSERT INTO users(id,role,display_name) VALUES('owner-a','owner','Owner')");
   await run(db, `INSERT INTO published_corpora(corpus_id,slug,title,description,status,current_edition_id,created_by,updated_by,created_at,updated_at)
                  VALUES('pc-songs','study-songs','Study Songs','', 'DRAFT_ACTIVE',NULL,'owner-a','owner-a',?,?)`, [now, now]);
@@ -88,6 +91,8 @@ async function applyPilotRights(fx) {
 test("R implementation contract files exist", () => {
   assert.ok(fs.existsSync(UP), "065 migration is missing");
   assert.ok(fs.existsSync(DOWN), "065 down migration is missing");
+  assert.ok(fs.existsSync(UP66), "066 migration is missing");
+  assert.ok(fs.existsSync(DOWN66), "066 down migration is missing");
   assert.ok(fs.existsSync(RIGHTS_REPO), "publication rights repository is missing");
   assert.ok(fs.existsSync(READ_SERVICE), "public publication read service is missing");
   assert.ok(fs.existsSync(RIGHTS_WRITER), "canonical Study Songs rights writer is missing");
@@ -108,6 +113,31 @@ test("065 is additive, re-applicable and extends grants without losing legacy sc
     await exec(db, fs.readFileSync(DOWN, "utf8"));
     assert.equal(await get(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='published_corpus_agent_rights_facts'"), null);
     await exec(db, fs.readFileSync(UP, "utf8"));
+  } finally { await close(db); fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test("066 adds a separately consented derivative scope and down refuses to discard its grants", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "lp-physics-derivative-scope-"));
+  const db = await open(path.join(root, "app.db"));
+  try {
+    await exec(db, "PRAGMA foreign_keys=ON"); await applyBase(db); await exec(db, fs.readFileSync(UP, "utf8")); await exec(db, fs.readFileSync(UP66, "utf8"));
+    const sql = (await get(db, "SELECT sql FROM sqlite_master WHERE type='table' AND name='agent_connection_grants'")).sql;
+    assert.match(sql, /reading\.publication\.derivative\.read/);
+    await run(db, "INSERT INTO users(id,role,display_name) VALUES('scope-owner','owner','Scope owner')");
+    await run(db, `INSERT INTO agent_oauth_clients(oauth_client_id,display_name,software_id,software_version,client_type,redirect_uris_json,status,registration_version,created_at,updated_at)
+      VALUES('scope-client','Scope client','scope-client','1','PUBLIC','[\"https://example.invalid/cb\"]','ACTIVE','v1','2026-08-28T00:00:00.000Z','2026-08-28T00:00:00.000Z')`);
+    await run(db, `INSERT INTO agent_connections(connection_id,user_id,oauth_client_id,display_label,status,consent_version,capability_version,retention_notice_version,created_at,activated_at,updated_at)
+      VALUES('scope-connection','scope-owner','scope-client','Scope connection','ACTIVE','agent-access-consent-v4','aa-v0.1','downstream-retention-v2','2026-08-28T00:00:00.000Z','2026-08-28T00:00:00.000Z','2026-08-28T00:00:00.000Z')`);
+    await run(db, `INSERT INTO consent_records(id,user_id,consent_key,granted,consent_version) VALUES('scope-consent','scope-owner','agent_access:scope-connection:reading.publication.derivative.read',1,'agent-access-consent-v4')`);
+    await run(db, `INSERT INTO agent_connection_grants(grant_id,user_id,connection_id,scope,status,consent_record_id,consent_version,created_at,updated_at)
+      VALUES('scope-grant','scope-owner','scope-connection','reading.publication.derivative.read','ACTIVE','scope-consent','agent-access-consent-v4','2026-08-28T00:00:00.000Z','2026-08-28T00:00:00.000Z')`);
+    await assert.rejects(exec(db, fs.readFileSync(DOWN66, "utf8")), /CHECK constraint failed/);
+    assert.equal((await get(db, "SELECT COUNT(*) n FROM agent_connection_grants WHERE scope='reading.publication.derivative.read'")).n, 1);
+    await exec(db, "DROP TABLE IF EXISTS physics_learning_support_scope_down_guard");
+    await run(db, "DELETE FROM agent_connection_grants WHERE grant_id='scope-grant'");
+    await exec(db, fs.readFileSync(DOWN66, "utf8"));
+    const reverted = (await get(db, "SELECT sql FROM sqlite_master WHERE type='table' AND name='agent_connection_grants'")).sql;
+    assert.doesNotMatch(reverted, /reading\.publication\.derivative\.read/);
   } finally { await close(db); fs.rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -220,8 +250,18 @@ test("Physics discovery reuses exact existing PUBLIC_READ and AGENT_READ facts w
     delete require.cache[require.resolve(PHYSICS_REPO)];
     const { createPhysicsTaskResourceRepo } = require(PHYSICS_REPO);
     const { createPublicPublicationReadService } = require(READ_SERVICE);
+    const derivativeSha = "e".repeat(64);
+    const physicsLearningSupport = {
+      resolveLearningSupport(anchor) {
+        assert.equal(anchor.publicWorkId, "physics-year1-task-1-1");
+        assert.equal(anchor.snapshotSha256, snapshotHash);
+        return { task_number: "1.1", derivative_sha256: derivativeSha };
+      },
+      toAgentMarkdown() { return "# Физика — задача 1.1\n\n## Экзаменационное решение\n\nПроверенный разбор."; },
+    };
     const service = createPublicPublicationReadService({ rightsRepo: fx.rightsRepo,
       physicsRepo: createPhysicsTaskResourceRepo({ db: fx.db, dataDir: fx.root, now: () => now }),
+      physicsLearningSupport,
       canonicalOrigin: "https://linguistpro.kolosei.com", cursorKey: "test-cursor-key-32-bytes-minimum-000" });
     const corpora = await service.listCorpora({ limit: 10 });
     assert.deepEqual(corpora.corpora.map(row => row.slug), ["physics-year1-problems"]);
@@ -230,6 +270,15 @@ test("Physics discovery reuses exact existing PUBLIC_READ and AGENT_READ facts w
     assert.equal(resources.resources[0].revision_id, "prv-physics-1");
     assert.equal(resources.resources[0].url, "https://linguistpro.kolosei.com/api/public-corpora/physics-year1-problems/resources/prv-physics-1/file");
     assert.equal((await get(fx.db, "SELECT COUNT(*) n FROM published_corpus_agent_rights_facts WHERE edition_id='ed-physics-2'")).n, 0);
+    await assert.rejects(service.readLearningSupport({ corpusSlug: "physics-year1-problems", editionId: "ed-physics-2", editionItemId: "ei-physics-1" }), /AA_PUBLICATION_DERIVATIVE_NOT_FOUND/);
+    await fx.rightsRepo.applyFacts(fx.owner, { editionId: "ed-physics-2", facts: [
+      { targetKind: "EDITION_ITEM", targetId: "ei-physics-1", useClass: "DERIVATIVE_TEXT", allowed: true, basis: "OWNER_APPROVAL_PHYSICS_YEAR1_R12_2026_08_28", assertedAt: "2026-08-28" },
+    ] }, { idempotencyKey: "physics-learning-support" });
+    const learning = await service.readLearningSupport({ corpusSlug: "physics-year1-problems", editionId: "ed-physics-2", editionItemId: "ei-physics-1" });
+    assert.equal(learning.task_number, "1.1");
+    assert.equal(learning.derivative_sha256, derivativeSha);
+    assert.match(learning.content_markdown, /Экзаменационное решение/);
+    assert.equal(require(CONTRACTS).validateOutput("read_published_learning_support", learning).schema_version, learning.schema_version);
   } finally { await close(fx.db); fs.rmSync(fx.root, { recursive: true, force: true }); }
 });
 

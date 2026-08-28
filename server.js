@@ -1066,11 +1066,11 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=421",
+  "/js/library-ui.js?v=422",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=416",
+  "/js/public-corpus-adapter.js?v=417",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
@@ -1081,9 +1081,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=184",
-  "/i18n/locales/en.js?v=184",
-  "/i18n/locales/he.js?v=184",
+  "/i18n/locales/ru.js?v=185",
+  "/i18n/locales/en.js?v=185",
+  "/i18n/locales/he.js?v=185",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -1948,6 +1948,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         publicPublicationReadService: createPublicPublicationReadService({
           rightsRepo: getPublicationAgentRightsRepo(),
           physicsRepo: getPhysicsTaskResourceRepoForAgentAccess(),
+          physicsLearningSupport: require("./physics/physicsYear1LearningSupport"),
           canonicalOrigin: "https://linguistpro.kolosei.com",
           // Domain separation over the already-required MCP audit secret; no
           // cursor is accepted across filters/editions or another environment.
@@ -3818,6 +3819,7 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
 // ============================================================================
 const { getPublicationRepo } = require("./db/publicationRepo");
 const { getPhysicsTaskResourceRepo } = require("./db/physicsTaskResourceRepo");
+const { resolveLearningSupport: resolvePhysicsLearningSupport } = require("./physics/physicsYear1LearningSupport");
 const rlPublicationRead = makeRateLimiter({ windowMs: 60_000, max: 180, name: "publication-read" });
 const rlPublicationWrite = makeRateLimiter({ windowMs: 60_000, max: 90, name: "publication-write" });
 
@@ -3896,14 +3898,18 @@ function publicCorpusNotFound(res) {
 async function publicCorpusRead(res, action) {
   try { return await action(getPublicationRepo()); }
   catch (error) {
-    if (error && (error.code === "CORPUS_NOT_FOUND" || error.code === "PUBLICATION_INPUT_INVALID")) return publicCorpusNotFound(res);
+    if (error && (error.code === "CORPUS_NOT_FOUND" || error.code === "PUBLICATION_INPUT_INVALID"
+      || error.code === "PHYSICS_LEARNING_SUPPORT_NOT_FOUND")) return publicCorpusNotFound(res);
     console.error("[public-corpus] read failed:", error && error.message);
     return res.status(500).json({ ok: false, error: "PUBLIC_MATERIAL_UNAVAILABLE" });
   }
 }
 function publicCorpusEtag(res, hash) {
   const value = String(hash || "").toLowerCase();
-  if (/^[0-9a-f]{64}$/.test(value)) res.set("ETag", '"' + value + '"');
+  if (!/^[0-9a-f]{64}$/.test(value)) return null;
+  const tag = '"' + value + '"';
+  res.set("ETag", tag);
+  return tag;
 }
 
 app.get("/api/public-corpora", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
@@ -3992,6 +3998,31 @@ app.get("/api/public-corpora/:slug/works/:workId", rlPublicCorpusRead, (req, res
   res.set("Cache-Control", "public, max-age=31536000, immutable");
   return res.json({ ok: true, schema_version: "public_corpus_work.1.0.0", ...published });
 }));
+function physicsLearningSupportEnabled() {
+  return String(process.env.PHYSICS_TASK_LEARNING_SUPPORT_PUBLIC_READ || "") === "1";
+}
+app.get("/api/public-corpora/:slug/works/:workId/learning-support", rlPublicCorpusRead, (req, res) => {
+  if (!physicsLearningSupportEnabled()) return publicCorpusNotFound(res);
+  return publicCorpusRead(res, async repo => {
+    const published = await repo.getPublicWork(req.params.slug, req.params.workId);
+    const body = resolvePhysicsLearningSupport({
+      slug: req.params.slug,
+      editionId: published.edition.edition_id,
+      editionNumber: published.edition.edition_number,
+      editionManifestSha256: published.edition.manifest_sha256,
+      editionItemId: published.item.edition_item_id,
+      publicWorkId: published.item.public_work_id,
+      snapshotSha256: published.item.snapshot_sha256,
+      snapshot: published.item.snapshot,
+    });
+    const etag = publicCorpusEtag(res, body.derivative_sha256);
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+    res.set("Cross-Origin-Resource-Policy", "same-origin");
+    res.set("X-Content-Type-Options", "nosniff");
+    if (etag && req.headers["if-none-match"] === etag) return res.status(304).end();
+    return res.json({ ok: true, ...body });
+  });
+});
 app.get("/api/public-corpora/:slug/assets/:assetKey", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
   const found = await repo.getPublicAsset(req.params.slug, req.params.assetKey, "stream");
   publicCorpusEtag(res, found.asset.sha256);

@@ -173,6 +173,16 @@ function createPublicationAgentRightsRepo(options = {}) {
        AND COALESCE(${latestAllowed("i", "'EDITION_ITEM'", "i.edition_item_id", "SOURCE_TEXT")},0)=1`, [text(slug, 80, SLUG), text(editionId, 160, ID), text(editionItemId, 160, ID)]);
   }
 
+  async function getDerivativeReadableItem({ slug, editionId, editionItemId }) {
+    return get(db, `SELECT c.corpus_id,c.slug,c.title corpus_title,e.edition_id,e.edition_number,e.manifest_sha256,
+      i.edition_item_id,i.public_work_id,i.position_no,i.title,i.creator,i.snapshot_json,i.snapshot_sha256
+      FROM published_corpora c JOIN published_corpus_editions e ON e.edition_id=c.current_edition_id
+      JOIN published_corpus_edition_items i ON i.edition_id=e.edition_id
+     WHERE c.slug=? AND c.status='PUBLISHED' AND e.edition_id=? AND i.edition_item_id=? AND i.public_read_allowed=1
+       AND COALESCE(${latestAllowed("i", "'EDITION_ITEM'", "i.edition_item_id", "DERIVATIVE_TEXT")},0)=1`,
+    [text(slug, 80, SLUG), text(editionId, 160, ID), text(editionItemId, 160, ID)]);
+  }
+
   async function listReadableAssets({ slug, editionId, editionItemId, afterKey = "", limit = 20 }) {
     return all(db, `SELECT a.edition_asset_id,a.edition_id,a.edition_item_id,a.asset_key,a.bytes,a.sha256,a.mime
       FROM published_corpora c JOIN published_corpus_editions e ON e.edition_id=c.current_edition_id
@@ -185,7 +195,7 @@ function createPublicationAgentRightsRepo(options = {}) {
      ORDER BY a.asset_key LIMIT ?`, [text(slug, 80, SLUG), text(editionId, 160, ID), text(editionItemId, 160, ID), String(afterKey || ""), Number(limit)]);
   }
 
-  return Object.freeze({ applyFacts, isAllowed, listDiscoverableCorpora, searchDiscoverableItems, getDiscoverableItem, getTextReadableItem, listReadableAssets });
+  return Object.freeze({ applyFacts, isAllowed, listDiscoverableCorpora, searchDiscoverableItems, getDiscoverableItem, getTextReadableItem, getDerivativeReadableItem, listReadableAssets });
 }
 
 let singleton = null;

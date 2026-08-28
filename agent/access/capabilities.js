@@ -54,6 +54,7 @@ const CAPABILITIES = Object.freeze({
   get_published_public_item: Object.freeze({ scope: "reading.publication.item.read", purpose: "EXPLICIT_PUBLISHED_ITEM_METADATA", scenario_id: "agent_access.publication_item", max_output_bytes: 4096 }),
   list_published_item_resources: Object.freeze({ scope: "reading.publication.resource.read", purpose: "EXPLICIT_PUBLISHED_RESOURCE_DESCRIPTORS", scenario_id: "agent_access.publication_resources", max_output_bytes: 12288 }),
   read_published_text_window: Object.freeze({ scope: "reading.publication.item.read", purpose: "EXPLICIT_PUBLISHED_TEXT_WINDOW", scenario_id: "agent_access.publication_text", max_output_bytes: 16384 }),
+  read_published_learning_support: Object.freeze({ scope: "reading.publication.derivative.read", purpose: "EXPLICIT_REVIEWED_LEARNING_DERIVATIVE", scenario_id: "agent_access.publication_learning_support", max_output_bytes: 24576 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

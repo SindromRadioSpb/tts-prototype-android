@@ -138,6 +138,10 @@ const INPUT_SCHEMAS = Object.freeze({
     corpus_slug: string({ maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }), edition_id: string({ maxLength: 128, pattern: ID }),
     edition_item_id: string({ maxLength: 128, pattern: ID }), start: integer(0, 1000000), rows: integer(1, 20),
   }, ["corpus_slug", "edition_id", "edition_item_id"]),
+  read_published_learning_support: closedObject({
+    corpus_slug: string({ maxLength: 80, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }), edition_id: string({ maxLength: 128, pattern: ID }),
+    edition_item_id: string({ maxLength: 128, pattern: ID }),
+  }, ["corpus_slug", "edition_id", "edition_item_id"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -310,6 +314,11 @@ const OUTPUT_SCHEMAS = Object.freeze({
       order_index: integer(0, 1000000), he: string({ maxLength: 800 }), ru: nullableString(800),
     }) }), rows_total: integer(0, 1000000), has_more: Object.freeze({ type: "boolean" }), generated_at: timestamp,
   }),
+  read_published_learning_support: closedObject({
+    schema_version: string({ const: "aa.published_learning_support.1.0.0" }), item: publicationItem,
+    task_number: string({ maxLength: 20 }), locale: string({ const: "ru" }),
+    content_markdown: string({ maxLength: 20480 }), derivative_sha256: hash, generated_at: timestamp,
+  }),
   get_progress_delta: closedObject({
     schema_version: string({ const: "aa.progress_delta.1.0.0" }),
     since: timestamp,
@@ -481,6 +490,7 @@ const DESCRIPTIONS = Object.freeze({
   get_published_public_item: "Return immutable corpus, edition and item identity metadata for one owner-approved published item. No source body, learner state, notes, group data or private data is returned.",
   list_published_item_resources: "Return bounded HTTPS descriptors for owner-approved source resources: stable IDs, MIME, bytes and SHA-256. Binary/base64, previews, server fetches, packages and unapproved derivatives are never returned through MCP.",
   read_published_text_window: "Return at most 20 rows and 16 KiB from an explicitly SOURCE_TEXT-approved immutable publication item. Only library text is projected; notes, progress, bookmarks and review_log are structurally excluded.",
+  read_published_learning_support: "Return one owner-reviewed, task-pinned Physics learning derivative only after an explicit DERIVATIVE_TEXT right. The Markdown contains the canonical condition, beginner bridge, complete exam solution, answer, checks and provenance; it never contains learner state, grades, notes or private/group data. Use it as the grounding source when explaining the selected task, and do not invent missing facts.",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action", "propose_import_text", "propose_track_word", "propose_goal"]));

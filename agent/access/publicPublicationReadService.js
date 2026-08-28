@@ -35,6 +35,7 @@ function createPublicPublicationReadService(options = {}) {
   if (!options.rightsRepo) fail("AA_PUBLICATION_DEPENDENCY_MISSING");
   const rightsRepo = options.rightsRepo;
   const physicsRepo = options.physicsRepo || null;
+  const physicsLearningSupport = options.physicsLearningSupport || null;
   const origin = String(options.canonicalOrigin || "").replace(/\/$/, "");
   if (!/^https:\/\//.test(origin)) fail("AA_PUBLICATION_ORIGIN_INVALID");
   const cursorKey = bounded(options.cursorKey, 256);
@@ -154,7 +155,26 @@ function createPublicPublicationReadService(options = {}) {
       generated_at: now() };
   }
 
-  return Object.freeze({ listCorpora, searchItems, getItem, readTextWindow, listResources });
+  async function readLearningSupport(input = {}) {
+    if (!physicsLearningSupport || typeof rightsRepo.getDerivativeReadableItem !== "function") fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
+    const row = await rightsRepo.getDerivativeReadableItem({
+      slug: bounded(input.corpusSlug, 80), editionId: bounded(input.editionId, 160), editionItemId: bounded(input.editionItemId, 160),
+    });
+    if (!row) fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
+    let body;
+    try {
+      body = physicsLearningSupport.resolveLearningSupport({
+        slug: row.slug, editionId: row.edition_id, editionNumber: row.edition_number,
+        editionManifestSha256: row.manifest_sha256, editionItemId: row.edition_item_id,
+        publicWorkId: row.public_work_id, snapshotSha256: row.snapshot_sha256, snapshot: row.snapshot_json,
+      });
+    } catch (_) { fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND"); }
+    const markdown = physicsLearningSupport.toAgentMarkdown(body);
+    return { schema_version: "aa.published_learning_support.1.0.0", item: projection(row), task_number: body.task_number,
+      locale: "ru", content_markdown: markdown, derivative_sha256: body.derivative_sha256, generated_at: now() };
+  }
+
+  return Object.freeze({ listCorpora, searchItems, getItem, readTextWindow, listResources, readLearningSupport });
 }
 
 module.exports = { createPublicPublicationReadService, MAX_TEXT_BYTES, MAX_ROWS };

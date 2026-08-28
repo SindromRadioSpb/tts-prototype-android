@@ -35,9 +35,11 @@ test("anonymous route source has no session, CSRF, audit or write call", () => {
   const end = server.indexOf("// MASS_ACCESS_I4_PUBLIC_READ_END");
   assert.ok(start >= 0 && end > start);
   const block = server.slice(start, end);
-  for (const route of ["/api/public-corpora", "/learning-index", "/works", "/assets/", "/package"]) assert.ok(block.includes(route), route);
+  for (const route of ["/api/public-corpora", "/learning-index", "/works", "/learning-support", "/assets/", "/package"]) assert.ok(block.includes(route), route);
   assert.doesNotMatch(block, /requireUser|requireCsrf|identityRepo\.audit|\.(?:run|exec)\s*\(|\b(?:INSERT|UPDATE|DELETE)\b/i);
   assert.match(block, /getPublicCorpus|getPublicLearningIndex|getPublicWork|getPublicAsset|getPublicPackage/);
+  assert.match(block, /resolvePhysicsLearningSupport/);
+  assert.match(server, /PHYSICS_TASK_LEARNING_SUPPORT_PUBLIC_READ[^\n]+=== "1"/);
 });
 
 test("public Study Songs has an unambiguous localized display name without changing its slug", () => {
@@ -91,6 +93,27 @@ test("Physics section and resource projections remain pinned to the immutable ca
   }] }, catalog);
   assert.equal(resources[0].edition_id, "ed-2");
   assert.throws(() => adapter.normalizePhysicsResourceIndex({ schema_version: "physics_task_resource_index.1.0.0", slug: catalog.slug, resources: [{ ...resources[0], work_snapshot_sha256: "d".repeat(64) }] }, catalog), /PUBLIC_CORPUS_PAYLOAD_INVALID/);
+});
+
+test("Physics learning support accepts only the exact reviewed edition, work and snapshot", () => {
+  const manifest = JSON.parse(source("physics/year1-support/manifest.json"));
+  const entry = manifest.tasks[0];
+  const payload = JSON.parse(source(`physics/year1-support/${entry.file}`));
+  const catalog = adapter.normalizeCorpus({
+    corpus: { corpus_id: "pc_physics", slug: manifest.corpus_slug, title: "Physics" },
+    edition: { edition_id: manifest.edition.edition_id, edition_number: manifest.edition.edition_number, manifest_sha256: manifest.edition.manifest_sha256,
+      item_count: 1, asset_count: 0, asset_missing: 0, package_complete: true },
+    items: [{ public_work_id: entry.public_work_id, position_no: 1, title: `Физика — задача ${entry.task_number}`,
+      snapshot_sha256: entry.snapshot_sha256, public_read_allowed: 1, public_stream_allowed: 0, package_download_allowed: 0,
+      expected_audio_count: 0, included_audio_count: 0, asset_missing: 0, package_complete: 1 }],
+  });
+  const item = catalog.items[0];
+  const runtimePayload = { ...payload, derivative_sha256: entry.sha256 };
+  const support = adapter.normalizePhysicsLearningSupport(runtimePayload, catalog, item);
+  assert.equal(support.task_number, entry.task_number);
+  assert.equal(support.answer.result.length > 0, true);
+  assert.equal(support.exam_solution.calculation.length > 0, true);
+  assert.throws(() => adapter.normalizePhysicsLearningSupport({ ...runtimePayload, snapshot_sha256: "f".repeat(64) }, catalog, item), /PUBLIC_CORPUS_PAYLOAD_INVALID/);
 });
 
 test("Physics Room surface is section-first, localized and exposes an in-product PDF viewer", () => {

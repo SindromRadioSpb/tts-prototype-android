@@ -117,5 +117,30 @@
         public_read_allowed: true, agent_read_allowed: yes(raw.agent_read_allowed), file_url: fileUrl });
     }));
   }
-  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex });
+  function normalizePhysicsLearningSupport(payload, catalog, item) {
+    if (!payload || payload.schema_version !== "physics_learning_support.1.0.0" || payload.corpus_slug !== catalog.slug
+      || payload.edition_id !== catalog.edition.edition_id || Number(payload.edition_number) !== Number(catalog.edition.edition_number)
+      || payload.edition_manifest_sha256 !== catalog.edition.manifest_sha256 || payload.public_work_id !== item.public_work_id
+      || payload.snapshot_sha256 !== item.snapshot_sha256 || !/^\d+\.\d+$/.test(String(payload.task_number || ""))
+      || payload.review?.open_mismatch !== false || payload.rights?.public_read_allowed !== true) invalid();
+    if (!HASH.test(String(payload.derivative_sha256 || ""))) invalid();
+    const stringArray = (value, maxItems = 20, maxLength = 4000) => {
+      if (!Array.isArray(value) || !value.length || value.length > maxItems) invalid();
+      return Object.freeze(value.map(row => text(row, maxLength)));
+    };
+    const beginner = payload.beginner || {}, exam = payload.exam_solution || {}, source = payload.source || {};
+    const normalized = {
+      ...clone(payload),
+      source: { ...clone(source), condition_ru: stringArray(source.condition_ru, 20), condition_he: stringArray(source.condition_he, 20) },
+      beginner: { ...clone(beginner), prerequisites: stringArray(beginner.prerequisites), application_conditions: stringArray(beginner.application_conditions),
+        roadmap: stringArray(beginner.roadmap), common_mistakes: stringArray(beginner.common_mistakes), self_check: stringArray(beginner.self_check) },
+      exam_solution: { ...clone(exam), given: stringArray(exam.given), find: stringArray(exam.find), si: stringArray(exam.si), laws: stringArray(exam.laws),
+        symbolic: stringArray(exam.symbolic), construction: Object.freeze(Array.isArray(exam.construction) ? exam.construction.map(row => text(row, 4000)) : invalid()),
+        calculation: stringArray(exam.calculation), check: stringArray(exam.check) },
+    };
+    text(normalized.beginner.physical_picture, 6000); text(normalized.beginner.profile_title, 1000); text(normalized.beginner.deep_principle, 6000);
+    text(normalized.beginner.task_trap, 4000); text(normalized.beginner.hint_model, 4000); text(normalized.answer?.result, 4000);
+    return Object.freeze(normalized);
+  }
+  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport });
 });

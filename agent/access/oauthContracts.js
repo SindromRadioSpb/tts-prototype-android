@@ -38,6 +38,7 @@ const SCOPES = Object.freeze([
   "reading.publication.catalog.read",
   "reading.publication.item.read",
   "reading.publication.resource.read",
+  "reading.publication.derivative.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

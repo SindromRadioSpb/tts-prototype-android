@@ -360,6 +360,7 @@ function createProductionHandlers(options = {}) {
   async function get_published_public_item(_context, args) { return publicationReadService.getItem(publicationArgs(args)); }
   async function list_published_item_resources(_context, args) { return publicationReadService.listResources(publicationArgs(args)); }
   async function read_published_text_window(_context, args) { return publicationReadService.readTextWindow(publicationArgs(args)); }
+  async function read_published_learning_support(_context, args) { return publicationReadService.readLearningSupport(publicationArgs(args)); }
 
   // AA4 slice 4a: pure-activity delta since a timestamp. The 90-day window check
   // lives HERE (contracts are clock-free) and fails with a TYPED client code.
@@ -762,6 +763,7 @@ function createProductionHandlers(options = {}) {
     get_published_public_item,
     list_published_item_resources,
     read_published_text_window,
+    read_published_learning_support,
   });
 }
 

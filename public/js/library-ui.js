@@ -56,6 +56,8 @@ let corpusImporting = false;
 let publicCorpora = [];         // anonymous published-corpus pointers; never membership-derived
 const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
 const physicsPublicEnhancements = new Map(); // slug -> validated sections + immutable resource index
+const physicsLearningSupportCache = new Map(); // exact public_work_id -> reviewed immutable derivative; lazy per task
+const physicsLearningSupportLoading = new Map();
 const publicCorpusBrowseStates = new Map(); // per-public-corpus discovery state; never learner truth
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
@@ -7269,6 +7271,7 @@ async function openReader(textId, title, opts) {
   }
   setReaderSubtitle(null);   // Epic-6 W1-a — clear any prior byline until res arrives (no stale flash)
   const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
+  const readerLearning = $('readerTaskLearningSupport'); if (readerLearning) { readerLearning.replaceChildren(); readerLearning.hidden = true; }
   roomRenderReaderCopyright(null);
   try { window.scrollTo(0, 0); } catch (_) {}
   const mount = $('roomReaderTable');
@@ -7315,6 +7318,7 @@ async function openReader(textId, title, opts) {
     }
   } catch (_) { readerIsOwnText = !!readerTextKey; }
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
+  if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskLearningSupport(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   roomRenderReaderCopyright({ localPrivate: readerIsOwnText });
   if (res && res.ok) {
@@ -7448,6 +7452,7 @@ async function closeReader(options) {
   roomRenderReaderCopyright(null);
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null; readerPublicCorpusSlug = null; readerPublicWorkId = null;   // singleton-reset
   const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
+  const readerLearning = $('readerTaskLearningSupport'); if (readerLearning) { readerLearning.replaceChildren(); readerLearning.hidden = true; }
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -7728,6 +7733,134 @@ function renderPhysicsResourceRail(resources) {
   return rail;
 }
 
+async function ensurePhysicsLearningSupport(slug, item) {
+  const key = String(slug || '') + ':' + String(item && item.public_work_id || '') + ':' + String(item && item.snapshot_sha256 || '');
+  if (physicsLearningSupportCache.has(key)) return physicsLearningSupportCache.get(key);
+  if (physicsLearningSupportLoading.has(key)) return physicsLearningSupportLoading.get(key);
+  const loading = (async () => {
+    const catalog = await ensurePublicCatalog(slug);
+    const response = await fetch('/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(item.public_work_id) + '/learning-support', { cache: 'force-cache' });
+    if (!response.ok) throw new Error('physics learning support ' + response.status);
+    const value = window.PublicCorpusAdapter.normalizePhysicsLearningSupport(await response.json(), catalog, item);
+    physicsLearningSupportCache.set(key, value);
+    return value;
+  })();
+  physicsLearningSupportLoading.set(key, loading);
+  try { return await loading; } finally { physicsLearningSupportLoading.delete(key); }
+}
+
+function physicsRichText(value, className) {
+  const node = el('span', { class: className || 'physics-rich-text' });
+  const source = String(value == null ? '' : value);
+  const pattern = /([A-Za-zΔΣμ])_(?:\{([^}]+)\}|([A-Za-zА-Яа-я0-9]+))|\^([0-9]+)|\*/g;
+  let cursor = 0; let match;
+  while ((match = pattern.exec(source))) {
+    if (match.index > cursor) node.appendChild(document.createTextNode(source.slice(cursor, match.index)));
+    if (match[1]) {
+      const symbol = el('var', { text: match[1] }); symbol.appendChild(el('sub', { text: match[2] || match[3] })); node.appendChild(symbol);
+    } else if (match[4]) node.appendChild(el('sup', { text: match[4] }));
+    else node.appendChild(el('span', { class: 'physics-math-op', attrs: { 'aria-label': tt('room.publicCorpus.physicsMultiply', 'умножить') }, text: '×' }));
+    cursor = pattern.lastIndex;
+  }
+  if (cursor < source.length) node.appendChild(document.createTextNode(source.slice(cursor)));
+  return node;
+}
+
+function physicsTextList(values, ordered, className) {
+  const list = el(ordered ? 'ol' : 'ul', { class: className || '' });
+  for (const value of (values || [])) { const item = el('li'); item.appendChild(physicsRichText(value)); list.appendChild(item); }
+  return list;
+}
+
+function physicsLearningBlock(titleKey, fallback, values, ordered) {
+  const section = el('section', { class: 'physics-learning-block' });
+  section.append(el('h4', { text: tt(titleKey, fallback) }), physicsTextList(values, ordered));
+  return section;
+}
+
+function openPhysicsLearningSupport(support, trigger) {
+  if (!support) return;
+  const overlay = el('div', { class: 'physics-learning-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'physicsLearningTitle' } });
+  const viewer = el('article', { class: 'physics-learning-viewer' });
+  const head = el('header', { class: 'physics-learning-head' });
+  const headCopy = el('div');
+  headCopy.appendChild(el('span', { class: 'physics-learning-kicker', text: tt('room.publicCorpus.physicsLearningKicker', 'Проверенный учебный разбор') }));
+  headCopy.appendChild(el('h2', { attrs: { id: 'physicsLearningTitle' }, text: tt('room.publicCorpus.physicsLearningTitle', 'Понять и решить') + ' · ' + support.task_number }));
+  headCopy.appendChild(el('p', { text: tt('room.publicCorpus.physicsLearningSubtitle', 'От физической картины к экзаменационному ответу — без пропущенных шагов') }));
+  const close = el('button', { class: 'physics-learning-close', attrs: { type: 'button', 'aria-label': tt('room.publicCorpus.physicsCloseLearning', 'Закрыть разбор') }, text: '×' });
+  head.append(headCopy, close); viewer.appendChild(head);
+  const body = el('div', { class: 'physics-learning-body' });
+
+  const answer = el('section', { class: 'physics-learning-answer', attrs: { 'aria-label': tt('room.publicCorpus.physicsAnswer', 'Ответ') } });
+  answer.append(el('span', { text: tt('room.publicCorpus.physicsAnswer', 'Ответ') }), physicsRichText(support.answer.result, 'physics-answer-value'));
+  body.appendChild(answer);
+
+  const bridge = el('section', { class: 'physics-learning-bridge' });
+  bridge.appendChild(el('span', { class: 'physics-learning-section-label', text: tt('room.publicCorpus.physicsLowThreshold', 'Низкий порог входа') }));
+  bridge.appendChild(el('h3', { text: tt('room.publicCorpus.physicsFirstUnderstand', 'Сначала поймём задачу') }));
+  const picture = el('div', { class: 'physics-learning-picture' }); picture.append(el('h4', { text: tt('room.publicCorpus.physicsWhatHappens', 'Что здесь происходит') }), el('p', { text: support.beginner.physical_picture })); bridge.appendChild(picture);
+  const bridgeGrid = el('div', { class: 'physics-learning-bridge-grid' });
+  bridgeGrid.appendChild(physicsLearningBlock('room.publicCorpus.physicsRecall', 'Что нужно вспомнить', support.beginner.prerequisites));
+  const principle = el('section', { class: 'physics-learning-block' }); principle.appendChild(el('h4', { text: tt('room.publicCorpus.physicsWhyPrinciple', 'Почему подходит этот принцип') }));
+  const principleText = el('p'); principleText.append(el('strong', { text: support.beginner.profile_title + '. ' }), document.createTextNode(support.beginner.deep_principle)); principle.appendChild(principleText);
+  principle.append(el('h5', { text: tt('room.publicCorpus.physicsConditions', 'Условия применимости') }), physicsTextList(support.beginner.application_conditions)); bridgeGrid.appendChild(principle); bridge.appendChild(bridgeGrid);
+  bridge.appendChild(physicsLearningBlock('room.publicCorpus.physicsRoadmap', 'Маршрут решения', support.beginner.roadmap, true));
+  const trap = el('aside', { class: 'physics-learning-trap' }); trap.append(el('strong', { text: tt('room.publicCorpus.physicsMainTrap', 'Главная ловушка') }), el('p', { text: support.beginner.task_trap })); bridge.appendChild(trap);
+  bridge.appendChild(physicsLearningBlock('room.publicCorpus.physicsMistakes', 'Что часто путают', support.beginner.common_mistakes));
+  const selfCheck = el('details', { class: 'physics-learning-self-check' }); selfCheck.append(el('summary', { text: tt('room.publicCorpus.physicsSelfCheck', 'Проверьте себя до вычислений') }), physicsTextList(support.beginner.self_check)); bridge.appendChild(selfCheck); body.appendChild(bridge);
+
+  const hint = el('details', { class: 'physics-learning-disclosure' });
+  hint.appendChild(el('summary', { text: tt('room.publicCorpus.physicsHintModel', 'Подсказка: физическая модель') }));
+  const hintBody = el('div', { class: 'physics-learning-disclosure-body' }); hintBody.appendChild(physicsRichText(support.beginner.hint_model, 'physics-formula-line')); hint.appendChild(hintBody); body.appendChild(hint);
+
+  const exam = el('details', { class: 'physics-learning-disclosure physics-learning-exam' });
+  exam.appendChild(el('summary', { text: tt('room.publicCorpus.physicsExamSolution', 'Экзаменационное решение') }));
+  const examBody = el('div', { class: 'physics-learning-disclosure-body' });
+  const ledger = el('div', { class: 'physics-learning-ledger' });
+  ledger.appendChild(physicsLearningBlock('room.publicCorpus.physicsGiven', 'Дано', support.exam_solution.given));
+  ledger.appendChild(physicsLearningBlock('room.publicCorpus.physicsFind', 'Найти', support.exam_solution.find)); examBody.appendChild(ledger);
+  examBody.appendChild(physicsLearningBlock('room.publicCorpus.physicsSi', 'Перевод в СИ и обозначения', support.exam_solution.si));
+  const model = el('section', { class: 'physics-learning-block physics-learning-formula-card' }); model.append(el('h4', { text: tt('room.publicCorpus.physicsModel', 'Физическая модель') }), physicsRichText(support.exam_solution.physical_model, 'physics-formula-line')); examBody.appendChild(model);
+  examBody.appendChild(physicsLearningBlock('room.publicCorpus.physicsLaws', 'Базовые законы', support.exam_solution.laws));
+  examBody.appendChild(physicsLearningBlock('room.publicCorpus.physicsDerivation', 'Вывод расчётных формул', support.exam_solution.symbolic, true));
+  if (support.exam_solution.construction.length) examBody.appendChild(physicsLearningBlock('room.publicCorpus.physicsConstruction', 'Обязательное построение', support.exam_solution.construction));
+  examBody.appendChild(physicsLearningBlock('room.publicCorpus.physicsCalculation', 'Подстановка и последовательный расчёт', support.exam_solution.calculation, true));
+  examBody.appendChild(physicsLearningBlock('room.publicCorpus.physicsCheck', 'Проверка результата', support.exam_solution.check));
+  const finalAnswer = el('div', { class: 'physics-learning-final-answer' }); finalAnswer.append(el('strong', { text: tt('room.publicCorpus.physicsAnswer', 'Ответ') + ': ' }), physicsRichText(support.answer.result)); examBody.appendChild(finalAnswer); exam.appendChild(examBody); body.appendChild(exam);
+
+  const provenance = el('details', { class: 'physics-learning-disclosure physics-learning-provenance' });
+  provenance.appendChild(el('summary', { text: tt('room.publicCorpus.physicsProvenance', 'Сверка и происхождение') }));
+  const provenanceBody = el('div', { class: 'physics-learning-disclosure-body' });
+  provenanceBody.appendChild(el('p', { text: tt('room.publicCorpus.physicsReviewedStatus', 'Решение независимо выведено, сверено и утверждено владельцем для публикации.') }));
+  const anchor = el('code', { text: 'edition ' + support.edition_number + ' · work ' + support.public_work_id + ' · snapshot ' + support.snapshot_sha256.slice(0, 12) + '…' }); provenanceBody.appendChild(anchor); provenance.appendChild(provenanceBody); body.appendChild(provenance);
+  viewer.appendChild(body); overlay.appendChild(viewer); document.body.appendChild(overlay);
+  const background = roomSuspendBackground(overlay); let closed = false;
+  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
+  const keydown = event => { if (event.key === 'Escape') { event.preventDefault(); shut(); } else if (event.key === 'Tab') roomFocusTrap(event, viewer); };
+  close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); roomFocusInto(viewer);
+}
+
+function renderPhysicsLearningActions(slug, item) {
+  const wrap = el('div', { class: 'physics-learning-actions' });
+  const check = el('button', { class: 'physics-learning-action answer', attrs: { type: 'button', 'aria-expanded': 'false' }, text: tt('room.publicCorpus.physicsCheckAnswer', 'Проверить ответ') });
+  const understand = el('button', { class: 'physics-learning-action primary', attrs: { type: 'button' }, text: tt('room.publicCorpus.physicsUnderstandSolve', 'Понять и решить') + ' →' });
+  const answer = el('div', { class: 'physics-inline-answer', attrs: { role: 'status' } }); answer.hidden = true;
+  let support = null;
+  async function load(button) {
+    button.disabled = true; wrap.setAttribute('data-loading', 'true');
+    try { support = support || await ensurePhysicsLearningSupport(slug, item); return support; }
+    catch (_) { roomToast(tt('room.publicCorpus.physicsLearningUnavailable', 'Проверенный разбор сейчас недоступен')); return null; }
+    finally { button.disabled = false; wrap.removeAttribute('data-loading'); }
+  }
+  check.addEventListener('click', async () => {
+    if (!answer.hidden) { answer.hidden = true; check.setAttribute('aria-expanded', 'false'); return; }
+    const value = await load(check); if (!value) return;
+    answer.replaceChildren(el('strong', { text: tt('room.publicCorpus.physicsAnswer', 'Ответ') + ': ' }), physicsRichText(value.answer.result)); answer.hidden = false; check.setAttribute('aria-expanded', 'true');
+  });
+  understand.addEventListener('click', async () => { const value = await load(understand); if (value) openPhysicsLearningSupport(value, understand); });
+  wrap.append(check, understand, answer); return wrap;
+}
+
 async function renderReaderTaskResources(slug, workId, epoch) {
   const box = $('readerTaskResources'); if (!box) return;
   box.replaceChildren(); box.hidden = true;
@@ -7742,6 +7875,21 @@ async function renderReaderTaskResources(slug, workId, epoch) {
     head.appendChild(el('strong', { text: tt('room.publicCorpus.physicsTaskMaterials', 'Материалы к задаче') }));
     head.appendChild(el('span', { text: tt('room.publicCorpus.physicsTaskMaterialsNote', 'Оригиналы привязаны к этой неизменяемой редакции') }));
     box.append(head, renderPhysicsResourceRail(resources)); box.hidden = false;
+  } catch (_) { box.hidden = true; }
+}
+
+async function renderReaderTaskLearningSupport(slug, workId, epoch) {
+  const box = $('readerTaskLearningSupport'); if (!box) return;
+  box.replaceChildren(); box.hidden = true;
+  if (slug !== 'physics-year1-problems' || !workId) return;
+  try {
+    const catalog = await ensurePublicCatalog(slug);
+    if (epoch !== readerOpenEpoch) return;
+    const item = catalog.items.find(row => row.public_work_id === String(workId)); if (!item) return;
+    const head = el('div', { class: 'reader-task-learning-head' });
+    head.appendChild(el('strong', { text: tt('room.publicCorpus.physicsLearningTitle', 'Понять и решить') }));
+    head.appendChild(el('span', { text: tt('room.publicCorpus.physicsLearningReaderNote', 'Ответ для сверки и полный разбор после условия') }));
+    box.append(head, renderPhysicsLearningActions(slug, item)); box.hidden = false;
   } catch (_) { box.hidden = true; }
 }
 
@@ -10255,6 +10403,7 @@ async function renderPublicCorpus(slug, token) {
       if (physics) {
         const resources = physics.resourcesByWork.get(item.public_work_id) || [];
         if (resources.length) identity.appendChild(renderPhysicsResourceRail(resources));
+        identity.appendChild(renderPhysicsLearningActions(slug, item));
       }
       const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
     }

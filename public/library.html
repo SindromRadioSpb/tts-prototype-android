@@ -866,6 +866,62 @@
     .reader-task-resources-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
     .reader-task-resources-head strong { color: var(--text-primary); font-size: 13px; }
     .reader-task-resources-head span { color: var(--text-secondary); font-size: 11px; }
+    /* Physics R12 — reviewed beginner bridge + exam solution. The compact card
+       actions keep answers optional; the full body loads only after intent. */
+    .physics-learning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 9px; }
+    .physics-learning-action { min-width: 0 !important; width: auto; min-height: 40px; padding: 8px 11px; border: 1px solid color-mix(in srgb,var(--accent) 40%,var(--border-soft)); border-radius: 8px; background: var(--bg-card); color: var(--accent); font-size: 12px; font-weight: 800; cursor: pointer; }
+    .physics-learning-action.primary { background: var(--accent); color: var(--bg-card); }
+    .physics-learning-action:hover,.physics-learning-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .physics-learning-action:disabled { opacity: .58; cursor: wait; }
+    .physics-inline-answer { flex-basis: 100%; padding: 10px 12px; border-inline-start: 3px solid #b7791f; background: color-mix(in srgb,#fbbf24 12%,var(--bg-card)); color: var(--text-primary); font: 650 14px/1.55 "Cambria Math",Cambria,serif; overflow-wrap: anywhere; }
+    .physics-inline-answer[hidden] { display: none; }
+    .reader-task-learning-support { margin: 10px 12px 14px; padding: 13px 14px; border: 1px solid color-mix(in srgb,var(--accent) 38%,var(--border-soft)); border-block-start: 4px solid #b7791f; border-radius: 10px; background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,var(--bg-card)),color-mix(in srgb,#fbbf24 5%,var(--bg-card))); }
+    .reader-task-learning-support[hidden] { display: none; }
+    .reader-task-learning-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .reader-task-learning-head strong { color: var(--text-primary); font-size: 14px; }
+    .reader-task-learning-head span { color: var(--text-secondary); font-size: 11px; }
+    .physics-learning-overlay { position: fixed; inset: 0; z-index: 10030; display: grid; place-items: center; padding: 14px; background: rgba(7,16,24,.82); }
+    .physics-learning-viewer { width: min(980px,100%); height: min(94vh,920px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 16px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 28px 90px rgba(0,0,0,.38); }
+    .physics-learning-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px 24px 20px; border-bottom: 1px solid var(--border-soft); background: linear-gradient(125deg,color-mix(in srgb,var(--accent) 12%,var(--bg-card)),color-mix(in srgb,#fbbf24 9%,var(--bg-card))); }
+    .physics-learning-head h2 { margin: 4px 0 3px; font: 800 clamp(23px,4vw,36px)/1.05 Georgia,"Times New Roman",serif; letter-spacing: -.025em; }
+    .physics-learning-head p { margin: 0; color: var(--text-secondary); font-size: 12px; }
+    .physics-learning-kicker,.physics-learning-section-label { color: var(--accent); font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .physics-learning-close { flex: 0 0 44px; min-width: 44px; min-height: 44px; border: 1px solid var(--border-soft); border-radius: 50%; background: var(--bg-card); color: var(--text-primary); font-size: 28px; line-height: 1; cursor: pointer; }
+    .physics-learning-close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .physics-learning-body { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 22px 24px 36px; }
+    .physics-learning-answer { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; padding: 14px 17px; border: 2px solid var(--accent); border-radius: 10px; background: color-mix(in srgb,var(--accent) 6%,var(--bg-card)); }
+    .physics-learning-answer>span:first-child { color: var(--accent); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .physics-answer-value { font: 750 16px/1.55 "Cambria Math",Cambria,serif; overflow-wrap: anywhere; }
+    .physics-learning-bridge { padding: 21px; border: 1px solid color-mix(in srgb,var(--accent) 30%,var(--border-soft)); border-block-start: 5px solid #b7791f; background: linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,var(--bg-card)),color-mix(in srgb,#fbbf24 6%,var(--bg-card))); }
+    .physics-learning-bridge h3 { margin: 5px 0 17px; font: 750 24px/1.2 Georgia,"Times New Roman",serif; }
+    .physics-learning-picture { padding-bottom: 14px; border-bottom: 1px solid var(--border-soft); }
+    .physics-learning-picture h4,.physics-learning-block h4 { margin: 0 0 7px; color: var(--accent); font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .physics-learning-picture p,.physics-learning-block p { margin: 0; line-height: 1.58; }
+    .physics-learning-bridge-grid,.physics-learning-ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+    .physics-learning-block { min-width: 0; padding: 14px; border: 1px solid var(--border-soft); background: color-mix(in srgb,var(--bg-card) 92%,transparent); }
+    .physics-learning-block h5 { margin: 12px 0 5px; color: var(--text-secondary); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
+    .physics-learning-block ul,.physics-learning-block ol,.physics-learning-self-check ul { margin: 0; padding-inline-start: 21px; }
+    .physics-learning-block li,.physics-learning-self-check li { margin: 7px 0; line-height: 1.52; }
+    .physics-learning-trap { margin: 14px 0; padding: 12px 15px; border-inline-start: 4px solid #b7791f; background: color-mix(in srgb,#fbbf24 13%,var(--bg-card)); }
+    .physics-learning-trap p { margin: 4px 0 0; line-height: 1.55; }
+    .physics-learning-self-check { margin-top: 14px; padding: 11px 14px; border: 1px dashed var(--text-secondary); }
+    .physics-learning-self-check summary,.physics-learning-disclosure>summary { cursor: pointer; font-weight: 800; }
+    .physics-learning-disclosure { margin-top: 13px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
+    .physics-learning-disclosure>summary { padding: 15px 17px; color: var(--text-primary); list-style-position: inside; }
+    .physics-learning-disclosure[open]>summary { border-bottom: 1px solid var(--border-soft); color: var(--accent); }
+    .physics-learning-disclosure-body { padding: 17px; }
+    .physics-learning-exam { border-block-start: 4px solid var(--accent); }
+    .physics-learning-exam .physics-learning-disclosure-body { background-image: repeating-linear-gradient(0deg,transparent 0,transparent 31px,color-mix(in srgb,var(--accent) 6%,transparent) 32px); }
+    .physics-learning-exam .physics-learning-block { margin: 12px 0; background: color-mix(in srgb,var(--bg-card) 94%,transparent); }
+    .physics-learning-ledger .physics-learning-block { margin: 0; }
+    .physics-learning-formula-card { border-inline-start: 4px solid #b7791f; }
+    .physics-formula-line,.physics-rich-text,.physics-answer-value { direction: ltr; unicode-bidi: isolate; }
+    .physics-formula-line { display: block; font: 700 16px/1.7 "Cambria Math",Cambria,"Times New Roman",serif; overflow-wrap: anywhere; }
+    .physics-rich-text var,.physics-formula-line var,.physics-answer-value var { font-family: "Cambria Math",Cambria,serif; font-style: italic; white-space: nowrap; }
+    .physics-rich-text sub,.physics-rich-text sup,.physics-formula-line sub,.physics-formula-line sup,.physics-answer-value sub,.physics-answer-value sup { font-size: .72em; line-height: 0; }
+    .physics-math-op { display: inline-block; margin-inline: .16em; font-weight: 700; }
+    .physics-learning-final-answer { margin-top: 15px; padding: 14px 16px; border: 2px solid var(--accent); background: color-mix(in srgb,var(--accent) 6%,var(--bg-card)); font: 700 15px/1.55 "Cambria Math",Cambria,serif; }
+    .physics-learning-provenance code { display: block; overflow-wrap: anywhere; white-space: normal; color: var(--text-secondary); font-size: 10px; }
     .group-corpus-head { position: relative; padding: 4px 0 12px; }
     .group-corpus-count { color: var(--text-secondary); font-size: 13px; font-weight: 700; margin-top: 6px; }
     .group-corpus-admin { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; margin: 2px 0 12px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-muted); }
@@ -986,6 +1042,20 @@
       .physics-resource-viewer { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
       .physics-resource-viewer-head { align-items: flex-start; }
       .physics-resource-viewer-actions .quiet { display: none; }
+      .physics-learning-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .physics-inline-answer { grid-column: 1 / -1; }
+      .reader-task-learning-head { display: grid; gap: 3px; }
+      .physics-learning-overlay { padding: 0; }
+      .physics-learning-viewer { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+      .physics-learning-head { padding: 16px 14px; }
+      .physics-learning-head h2 { font-size: 25px; }
+      .physics-learning-head p { max-width: 28ch; }
+      .physics-learning-body { padding: 15px 12px 30px; }
+      .physics-learning-answer { align-items: flex-start; flex-direction: column; gap: 5px; }
+      .physics-learning-bridge { padding: 17px 12px; }
+      .physics-learning-bridge-grid,.physics-learning-ledger { grid-template-columns: 1fr; }
+      .physics-learning-block { padding: 12px; }
+      .physics-learning-disclosure-body { padding: 12px; }
       .reader-task-resources-head { align-items: flex-start; flex-direction: column; gap: 2px; }
     }
     /* Multi-corpus: shared in-corpus identity/capabilities + the switcher pill.
@@ -2776,6 +2846,7 @@
     <div id="roomMediaYtMount" hidden></div>
   </div>
   <div id="roomReaderTable" class="reader-table-wrap"></div>
+  <div id="readerTaskLearningSupport" class="reader-task-learning-support" hidden></div>
   <div id="readerCopyright" class="reader-copyright"></div>
   <!-- Epic-2 #3 — honest provenance: translation AND vocalization are machine-made (R9). -->
   <p id="readerProvNote" class="reader-prov-note" dir="auto" data-i18n="room.prov.note">Перевод и огласовка — машинные, не вычитаны.</p>
@@ -2819,7 +2890,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.443</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.444</button>
   </div>
 </footer>
 
@@ -3007,9 +3078,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=184"></script>
-    <script src="/i18n/locales/en.js?v=184"></script>
-    <script src="/i18n/locales/he.js?v=184"></script>
+    <script src="/i18n/locales/ru.js?v=185"></script>
+    <script src="/i18n/locales/en.js?v=185"></script>
+    <script src="/i18n/locales/he.js?v=185"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3085,7 +3156,7 @@
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=416"></script>
-<script type="module" src="/js/library-ui.js?v=421"></script>
+<script src="/js/public-corpus-adapter.js?v=417"></script>
+<script type="module" src="/js/library-ui.js?v=422"></script>
 </body>
 </html>

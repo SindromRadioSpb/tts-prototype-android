@@ -49,6 +49,7 @@ const SCOPES = new Set([
   "reading.publication.catalog.read",
   "reading.publication.item.read",
   "reading.publication.resource.read",
+  "reading.publication.derivative.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -879,6 +880,14 @@ function publicationText(value) {
   if(x.schema_version!=="aa.published_text_window.1.0.0"||!Array.isArray(x.rows)||x.rows.length>20)fail("OUTPUT_SCHEMA_INVALID"); const item=publicationItemOutput(x.item); integer(x.start_order_index,0,1000000); integer(x.rows_total,0,1000000); bool(x.has_more); timestamp(x.generated_at);
   const rows=x.rows.map(row=>{const r=closed(row,["order_index","he","ru"],undefined,"OUTPUT_SCHEMA_INVALID");integer(r.order_index,0,1000000);optionalText(r.he,800);optionalText(r.ru,800,true);return Object.freeze({...r});}); return Object.freeze({...x,item,rows:Object.freeze(rows)});
 }
+function publicationLearningSupport(value) {
+  const x=closed(value,["schema_version","item","task_number","locale","content_markdown","derivative_sha256","generated_at"],undefined,"OUTPUT_SCHEMA_INVALID");
+  bytes(x,24576,"OUTPUT_TOO_LARGE");
+  if(x.schema_version!=="aa.published_learning_support.1.0.0")fail("OUTPUT_SCHEMA_INVALID");
+  const item=publicationItemOutput(x.item); optionalText(x.task_number,20); if(x.locale!=="ru")fail("OUTPUT_SCHEMA_INVALID");
+  optionalText(x.content_markdown,20480); publicationHash(x.derivative_sha256); timestamp(x.generated_at);
+  return Object.freeze({...x,item});
+}
 
 const INPUT_VALIDATORS = Object.freeze({
   get_learning_brief: emptyInput,
@@ -911,6 +920,7 @@ const INPUT_VALIDATORS = Object.freeze({
   get_published_public_item: validatePublicationItemInput,
   list_published_item_resources: validatePublicationResourcesInput,
   read_published_text_window: validatePublicationTextInput,
+  read_published_learning_support: validatePublicationItemInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -943,6 +953,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_published_public_item: publicationItem,
   list_published_item_resources: publicationResources,
   read_published_text_window: publicationText,
+  read_published_learning_support: publicationLearningSupport,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }
