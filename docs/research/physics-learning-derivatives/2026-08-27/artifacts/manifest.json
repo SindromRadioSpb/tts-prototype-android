@@ -5,8 +5,8 @@
   "generator": "scripts/premium/build-physics-learning-derivatives.js",
   "task_count": 74,
   "mismatch_count": 8,
-  "confirmed_key_error_count": 1,
-  "open_mismatch_count": 7,
+  "confirmed_key_error_count": 3,
+  "open_mismatch_count": 5,
   "handwritten_solution_used": true,
   "handwritten_solution_scope": [
     "1.5",
@@ -17,18 +17,18 @@
   "files": [
     {
       "path": "answer-comparison-report.md",
-      "bytes": 4073,
-      "sha256": "66035107c707aad6919cb2f3ded7e07428b8d1d0237ef882ea5b16d8cd46c6d4"
+      "bytes": 4337,
+      "sha256": "fbab1af857cc4631b0a71e06dd36fb67cd5ea7391359cee30d060fffbcc47eaf"
     },
     {
       "path": "physics-year1-agent-guide.md",
-      "bytes": 438188,
-      "sha256": "04a24a6c96eec7a9b5f6a1542a2f6b44ba4bd39b2fb57451ebaffea2e10f3fe8"
+      "bytes": 438431,
+      "sha256": "c3fcbfb66b12848956faf11b52f7aa0be190fca82ed19ddd8197c8373a55db3a"
     },
     {
       "path": "physics-year1-solutions.html",
-      "bytes": 809354,
-      "sha256": "1ea9e4901bd05ca204208fbf0b1e75bddd1ae193ca62786056933395bdc72a87"
+      "bytes": 809779,
+      "sha256": "5762db1479dc3c555ebe572cc3b7dc50dfe877601d151050d6b476b713195ed7"
     },
     {
       "path": "tasks/task-1.1.md",
@@ -92,8 +92,8 @@
     },
     {
       "path": "tasks/task-2.3.md",
-      "bytes": 6017,
-      "sha256": "b21721caa882ae75ae24cd30212de8e58c7af20848927e10784400c5a03fb9e7"
+      "bytes": 6158,
+      "sha256": "bfaa4bd6f8ec899d691b6bccef364584a86730dc9ccf08744e65ab7c98908cec"
     },
     {
       "path": "tasks/task-3.1.md",
@@ -157,8 +157,8 @@
     },
     {
       "path": "tasks/task-4.13.md",
-      "bytes": 6404,
-      "sha256": "f4d7db4925a28a2359ea441e172e17e630d04ecfc373e57294d28e8fa8fad524"
+      "bytes": 6506,
+      "sha256": "93adb939134b352c203fafdc75a4649e8cf2acb96a18bd384e2e7d18860bd9ac"
     },
     {
       "path": "tasks/task-4.14.md",

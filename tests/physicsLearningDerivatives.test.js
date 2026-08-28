@@ -45,7 +45,11 @@ test('all ledgers match the exact 74-task corpus set', () => {
   );
   assert.deepEqual(
     ids(solution.entries.filter((entry) => entry.review_disposition === 'OWNER_REVIEW_PENDING')),
-    ['2.3', '4.13', '6.2', '6.12', '7.8', '8.1', '9.1']
+    ['6.2', '6.12', '7.8', '8.1', '9.1']
+  );
+  assert.deepEqual(
+    ids(solution.entries.filter((entry) => entry.review_disposition === 'OWNER_CONFIRMED_KEY_ERROR')),
+    ['1.10', '2.3', '4.13']
   );
   const task15 = solution.entries.find((entry) => entry.task_number === '1.5');
   assert.equal(task15.comparison, 'EXACT');
@@ -53,6 +57,12 @@ test('all ledgers match the exact 74-task corpus set', () => {
   const task110 = solution.entries.find((entry) => entry.task_number === '1.10');
   assert.equal(task110.review_disposition, 'OWNER_CONFIRMED_KEY_ERROR');
   assert.match(task110.result, /601\.42 m/);
+  for (const taskNumber of ['2.3', '4.13']) {
+    const task = solution.entries.find((entry) => entry.task_number === taskNumber);
+    assert.equal(task.comparison, 'MISMATCH');
+    assert.equal(task.review_disposition, 'OWNER_CONFIRMED_KEY_ERROR');
+    assert.match(task.comparison_note, /Owner review confirms the repository solution/);
+  }
   const task61 = solution.entries.find((entry) => entry.task_number === '6.1');
   assert.equal(task61.comparison, 'EXACT');
   assert.match(task61.result, /192\.84 J.*154\.27 J.*-13\.79 J.*333\.3 J/);
@@ -84,8 +94,8 @@ test('builder is deterministic and manifests every generated learning artifact',
   const manifest = JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8'));
   assert.equal(manifest.task_count, 74);
   assert.equal(manifest.mismatch_count, 8);
-  assert.equal(manifest.confirmed_key_error_count, 1);
-  assert.equal(manifest.open_mismatch_count, 7);
+  assert.equal(manifest.confirmed_key_error_count, 3);
+  assert.equal(manifest.open_mismatch_count, 5);
   assert.equal(manifest.handwritten_solution_used, true);
   assert.deepEqual(manifest.handwritten_solution_scope, ['1.5', '1.10', '6.1']);
   assert.equal(manifest.files.filter((file) => /^tasks\/task-\d+\.\d+\.md$/.test(file.path)).length, 74);
@@ -97,7 +107,11 @@ test('builder is deterministic and manifests every generated learning artifact',
 
 test('premium guide exposes provenance, Russian solution text and mismatch states', () => {
   const html = fs.readFileSync(path.join(OUT, 'physics-year1-solutions.html'), 'utf8');
+  const report = fs.readFileSync(path.join(OUT, 'answer-comparison-report.md'), 'utf8');
+  assert.match(html, /<link rel="icon" href="data:,">/);
   assert.match(html, /74 задачи/);
+  assert.match(html, /3 подтверждённые ошибки ключа/);
+  assert.match(html, /5 ожидают проверки/);
   assert.match(html, /Грузовик:/);
   assert.match(html, /Дано/);
   assert.match(html, /Найти/);
@@ -110,12 +124,16 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   assert.match(html, /Три рукописных решения визуально сверены по разрешению владельца; OCR не применялся/i);
   assert.equal((html.match(/class="task(?: |")/g) || []).length, 74);
   assert.equal((html.match(/class="exam-sheet"/g) || []).length, 74);
-  assert.equal((html.match(/class="task task--mismatch"/g) || []).length, 7);
-  assert.equal((html.match(/class="task task--confirmed-key-error"/g) || []).length, 1);
+  assert.equal((html.match(/class="task task--mismatch"/g) || []).length, 5);
+  assert.equal((html.match(/class="task task--confirmed-key-error"/g) || []).length, 3);
   assert.match(html, /Ошибка ключа подтверждена/);
   assert.match(html, /12,295 с/);
   assert.match(html, /284,88 м/);
   assert.doesNotMatch(html, /G:\\|Andasa|Чистовик/);
+  assert.match(report, /3 расхождения являются подтверждёнными владельцем ошибками ключа/);
+  assert.match(report, /66 задач совпадают с ключом/);
+  assert.match(report, /решение по 5 открытым расхождениям/);
+  assert.doesNotMatch(report, /решение по семи открытым расхождениям/);
 });
 
 test('owner-reviewed tasks preserve the handwritten solution logic and exam sequence', () => {
@@ -131,6 +149,14 @@ test('owner-reviewed tasks preserve the handwritten solution logic and exam sequ
   assert.match(task110, /отрицательн(?:ый|ого) кор(?:ень|ня).*отбрасываем/i);
   assert.match(task110, /601,42 м/);
   assert.match(task110, /OWNER_CONFIRMED_KEY_ERROR/);
+
+  const task23 = fs.readFileSync(path.join(OUT, 'tasks', 'task-2.3.md'), 'utf8');
+  assert.match(task23, /OWNER_CONFIRMED_KEY_ERROR/);
+  assert.match(task23, /решение в репозитории и рукописное решение верны/i);
+
+  const task413 = fs.readFileSync(path.join(OUT, 'tasks', 'task-4.13.md'), 'utf8');
+  assert.match(task413, /OWNER_CONFIRMED_KEY_ERROR/);
+  assert.match(task413, /решение в репозитории верно/i);
 
   const task61 = fs.readFileSync(path.join(OUT, 'tasks', 'task-6.1.md'), 'utf8');
   for (const token of ['192,84 Дж', '154,27 Дж', '-13,79 Дж', '333,3 Дж']) {

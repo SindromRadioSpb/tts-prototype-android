@@ -6,7 +6,7 @@ source_page: 11
 source_image_sha256: 08f0e5fe8e43d61b06d3310b9b9a9f2a27514e1e545adf05430dfeadfea572c0
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
-review_disposition: OWNER_REVIEW_PENDING
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
 handwritten_evidence: NOT_USED
 ---
 
@@ -106,7 +106,7 @@ handwritten_evidence: NOT_USED
 - Ключ: א. v_0 = 10.15 m/s | ב. t = 1.0345 s | ג. Δt = 0.517 s | ד. Δy = 5.1375 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом ожидает проверки владельца**. Все четыре значения ключа противоречат печатному подъёму 5 м при g = 9,81 м/с^2.
+> Статус: **ошибка ключа подтверждена владельцем**. Проверка владельца подтверждает: решение в репозитории и рукописное решение верны. Все четыре значения ключа противоречат печатному подъёму 5 м при g = 9,81 м/с^2.
 
 ## Происхождение и границы
 

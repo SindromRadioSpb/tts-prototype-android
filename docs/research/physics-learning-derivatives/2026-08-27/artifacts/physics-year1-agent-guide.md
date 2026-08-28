@@ -1520,7 +1520,7 @@ source_page: 11
 source_image_sha256: 08f0e5fe8e43d61b06d3310b9b9a9f2a27514e1e545adf05430dfeadfea572c0
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
-review_disposition: OWNER_REVIEW_PENDING
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
 handwritten_evidence: NOT_USED
 ---
 
@@ -1620,7 +1620,7 @@ handwritten_evidence: NOT_USED
 - Ключ: א. v_0 = 10.15 m/s | ב. t = 1.0345 s | ג. Δt = 0.517 s | ד. Δy = 5.1375 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом ожидает проверки владельца**. Все четыре значения ключа противоречат печатному подъёму 5 м при g = 9,81 м/с^2.
+> Статус: **ошибка ключа подтверждена владельцем**. Проверка владельца подтверждает: решение в репозитории и рукописное решение верны. Все четыре значения ключа противоречат печатному подъёму 5 м при g = 9,81 м/с^2.
 
 ## Происхождение и границы
 
@@ -4019,7 +4019,7 @@ source_page: 21
 source_image_sha256: 600e187a3a69e9770afca546877de2ad16085295a740861547b26ab0102e87e3
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
-review_disposition: OWNER_REVIEW_PENDING
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
 handwritten_evidence: NOT_USED
 ---
 
@@ -4121,7 +4121,7 @@ handwritten_evidence: NOT_USED
 - Ключ: א. v_0 = 114.1 m/s | ב. H = 240.345 m | ג. x = 637.9 m | ד. v_x = 91.13 m/s; v_y = 0 | ה. y = 558.39 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом ожидает проверки владельца**. Значение ключа 114,1 м/с и зависимые от него результаты не удовлетворяют условию: вершина ровно через 6 с при 45° и g = 9,81.
+> Статус: **ошибка ключа подтверждена владельцем**. Проверка владельца подтверждает: решение в репозитории верно. Значение ключа 114,1 м/с и зависимые от него результаты не удовлетворяют условию: вершина ровно через 6 с при 45° и g = 9,81.
 
 ## Происхождение и границы
 

@@ -1,11 +1,13 @@
 # Physics Year 1 learning derivatives - 2026-08-27
 
-This directory contains the local R4 exam-solution derivative for the published
+This directory contains the local R5 exam-solution derivative for the published
 `physics-year1-problems` corpus. R2 supplied full exam protocols; R3 added one
 unambiguous mathematical notation system for agent Markdown and semantic premium HTML
 while preserving provenance and answer-comparison evidence. R4 records the
 owner-authorized visual review of handwritten solutions 1.5, 1.10 and 6.1, corrects
-1.5 and 6.1, and separates the confirmed key error in 1.10 from seven open reviews.
+1.5 and 6.1, and separates the confirmed key error in 1.10 from open reviews. R5
+records the owner's later confirmation of repository solutions 2.3 and 4.13, including
+the owner's report that the handwritten solution for 2.3 also agrees.
 
 ## Open first
 
@@ -31,6 +33,8 @@ owner-authorized visual review of handwritten solutions 1.5, 1.10 and 6.1, corre
   `docs/planning/PHYSICS_MATH_NOTATION_R3_PLAN_2026_08_28.md`.
 - The authorized handwritten-review scope and correction decisions are recorded in
   `docs/planning/PHYSICS_OWNER_HANDWRITTEN_CORRECTIONS_R4_PLAN_2026_08_28.md`.
+- The subsequent owner dispositions for 2.3 and 4.13 are recorded in
+  `docs/planning/PHYSICS_OWNER_REVIEW_DISPOSITIONS_R5_PLAN_2026_08_28.md`.
 
 ## Generation
 
@@ -56,11 +60,11 @@ no absolute owner-drive path is stored in generated artifacts.
   verified while its step sequence was expanded. Every card follows the R2 college-exam contract in
   `docs/planning/PHYSICS_EXAM_SOLUTIONS_R2_PLAN_2026_08_27.md` and the R3 notation
   contract above.
-- Answer comparison: 66 matching tasks, one owner-confirmed answer-key error (1.10),
-  and seven open reviews (2.3, 4.13, 6.2, 6.12, 7.8, 8.1 and 9.1).
+- Answer comparison: 66 matching tasks, three owner-confirmed answer-key errors
+  (1.10, 2.3 and 4.13), and five open reviews (6.2, 6.12, 7.8, 8.1 and 9.1).
 - Public rights for the new `Ответы.pdf` derivative: owner confirmation required.
 - Production/API/Agent Access publication: not performed.
 
 The generated guide is a review artifact. Every mismatch or insufficient source remains
-visible. The seven open reviews block publication of those tasks; 1.10 is retained as a
-confirmed key error. Edit the ledgers, not generated files.
+visible. The five open reviews block publication of those tasks; 1.10, 2.3 and 4.13
+are retained as confirmed key errors. Edit the ledgers, not generated files.
