@@ -41,11 +41,11 @@ test('all ledgers match the exact 74-task corpus set', () => {
   assert.equal(solution.review.answer_key_role, 'post_derivation_comparison_only');
   assert.deepEqual(
     ids(solution.entries.filter((entry) => entry.comparison === 'MISMATCH')),
-    ['1.10', '2.3', '4.13', '6.2', '6.12', '7.8', '8.1', '9.1']
+    ['1.10', '2.3', '4.13', '6.2', '7.8', '8.1', '9.1']
   );
   assert.deepEqual(
     ids(solution.entries.filter((entry) => entry.review_disposition === 'OWNER_REVIEW_PENDING')),
-    ['6.2', '6.12', '7.8', '8.1', '9.1']
+    ['6.2', '7.8', '8.1', '9.1']
   );
   assert.deepEqual(
     ids(solution.entries.filter((entry) => entry.review_disposition === 'OWNER_CONFIRMED_KEY_ERROR')),
@@ -66,6 +66,14 @@ test('all ledgers match the exact 74-task corpus set', () => {
   const task61 = solution.entries.find((entry) => entry.task_number === '6.1');
   assert.equal(task61.comparison, 'EXACT');
   assert.match(task61.result, /192\.84 J.*154\.27 J.*-13\.79 J.*333\.3 J/);
+  const task612 = solution.entries.find((entry) => entry.task_number === '6.12');
+  assert.equal(task612.comparison, 'WITHIN_TOLERANCE');
+  assert.equal(task612.review_disposition, undefined);
+  assert.match(task612.result, /P_\{min\}=189\.24 N/);
+  const exam612 = exam.entries.find((entry) => entry.task_number === '6.12');
+  assert.match(exam612.symbolic.join('\n'), /P \* cos\(α\) \+ m_B \* g \* sin\(α\) = f_1 \+ μ_\{B-пл\} \* N_2/);
+  assert.doesNotMatch(exam612.symbolic.join('\n'), /P \* cos\(α\) \+ \(m_A \+ m_B\) \* g \* sin\(α\)/);
+  assert.match(exam612.check.join('\n'), /системы A\+B.*натяжение T/i);
   for (const entry of exam.entries) {
     for (const field of ['given', 'find', 'si', 'laws', 'symbolic', 'check']) {
       assert.ok(Array.isArray(entry[field]) && entry[field].length > 0, `${entry.task_number}.${field}`);
@@ -93,9 +101,9 @@ test('builder is deterministic and manifests every generated learning artifact',
 
   const manifest = JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8'));
   assert.equal(manifest.task_count, 74);
-  assert.equal(manifest.mismatch_count, 8);
+  assert.equal(manifest.mismatch_count, 7);
   assert.equal(manifest.confirmed_key_error_count, 3);
-  assert.equal(manifest.open_mismatch_count, 5);
+  assert.equal(manifest.open_mismatch_count, 4);
   assert.equal(manifest.handwritten_solution_used, true);
   assert.deepEqual(manifest.handwritten_solution_scope, ['1.5', '1.10', '6.1']);
   assert.equal(manifest.files.filter((file) => /^tasks\/task-\d+\.\d+\.md$/.test(file.path)).length, 74);
@@ -111,7 +119,7 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   assert.match(html, /<link rel="icon" href="data:,">/);
   assert.match(html, /74 задачи/);
   assert.match(html, /3 подтверждённые ошибки ключа/);
-  assert.match(html, /5 ожидают проверки/);
+  assert.match(html, /4 ожидают проверки/);
   assert.match(html, /Грузовик:/);
   assert.match(html, /Дано/);
   assert.match(html, /Найти/);
@@ -124,15 +132,15 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   assert.match(html, /Три рукописных решения визуально сверены по разрешению владельца; OCR не применялся/i);
   assert.equal((html.match(/class="task(?: |")/g) || []).length, 74);
   assert.equal((html.match(/class="exam-sheet"/g) || []).length, 74);
-  assert.equal((html.match(/class="task task--mismatch"/g) || []).length, 5);
+  assert.equal((html.match(/class="task task--mismatch"/g) || []).length, 4);
   assert.equal((html.match(/class="task task--confirmed-key-error"/g) || []).length, 3);
   assert.match(html, /Ошибка ключа подтверждена/);
   assert.match(html, /12,295 с/);
   assert.match(html, /284,88 м/);
   assert.doesNotMatch(html, /G:\\|Andasa|Чистовик/);
   assert.match(report, /3 расхождения являются подтверждёнными владельцем ошибками ключа/);
-  assert.match(report, /66 задач совпадают с ключом/);
-  assert.match(report, /решение по 5 открытым расхождениям/);
+  assert.match(report, /67 задач совпадают с ключом/);
+  assert.match(report, /решение по 4 открытым расхождениям/);
   assert.doesNotMatch(report, /решение по семи открытым расхождениям/);
 });
 
@@ -168,6 +176,13 @@ test('owner-reviewed tasks preserve the handwritten solution logic and exam sequ
   assert.doesNotMatch(task61, /W \* (?:N|G|Q)/);
   assert.match(task61, /6\.1 верно\.pdf/);
   assert.doesNotMatch(task61, /внутренне противоречиво|сумма работ обязана быть нулевой/i);
+
+  const task612 = fs.readFileSync(path.join(OUT, 'tasks', 'task-6.12.md'), 'utf8');
+  assert.match(task612, /comparison: WITHIN_TOLERANCE/);
+  assert.match(task612, /P_\{min\} = 189,24 Н/);
+  assert.match(task612, /P \* cos\(20°\) \+ m_B \* g \* sin\(20°\)/);
+  assert.doesNotMatch(task612, /128,83 Н/);
+  assert.doesNotMatch(task612, /P_m \* i \* n/);
 });
 
 test('every task has a complete exam protocol and carries every final value through the calculation', () => {
