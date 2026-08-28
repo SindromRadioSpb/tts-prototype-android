@@ -83,7 +83,9 @@ This is strong evidence that the key is erroneous. Task 9.1 nevertheless remains
 - The answer-key number is reproduced and its omitted physical term is identified.
 - Generated Markdown, premium HTML, report and manifest agree on 7 mismatches,
   6 confirmed key errors and 1 open review.
-- Automated tests and mobile/desktop browser checks pass before commit.
+- Automated tests and the R9 desktop browser check pass before commit; the responsive
+  layout itself is unchanged from the prior R8 mobile/desktop gate, so R9 does not claim
+  a fresh mobile-device or mobile-emulation run.
 
 ## Release boundary
 
