@@ -15,6 +15,9 @@ test("every Physics card and Reader expose answer-first and full learning-suppor
   assert.match(ui, /openPhysicsLearningSupport/);
   assert.match(ui, /physicsCheckAnswer/);
   assert.match(ui, /physicsUnderstandSolve/);
+  assert.match(ui, /learning-support', \{ cache: 'no-cache' \}/,
+    "dynamic support endpoint must revalidate a pre-flag negative HTTP cache entry");
+  assert.doesNotMatch(ui, /learning-support', \{ cache: 'force-cache' \}/);
   assert.match(html, /id="readerTaskLearningSupport"/);
   assert.match(html, /\.physics-learning-overlay/);
   assert.match(html, /@media \(max-width: 760px\)[\s\S]*\.physics-learning-viewer/);

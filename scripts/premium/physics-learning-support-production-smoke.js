@@ -13,7 +13,7 @@ const { chromium } = require("playwright");
 const ROOT = path.resolve(__dirname, "../..");
 const MANIFEST = require("../../physics/year1-support/manifest.json");
 const BASE = String(process.env.PHYSICS_PRODUCTION_ORIGIN || "https://linguistpro.kolosei.com").replace(/\/$/, "");
-const EXPECTED_VERSION = "3.11.444";
+const EXPECTED_VERSION = "3.11.445";
 const OUT = path.join(ROOT, "docs/research/physics-learning-derivatives/2026-08-27/production/screenshots");
 
 async function mapLimited(items, limit, worker) {

@@ -1066,7 +1066,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=422",
+  "/js/library-ui.js?v=423",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
@@ -3891,8 +3891,8 @@ app.post("/api/publication/corpora/:corpusId/draft\\:new-revision", rlPublicatio
 // Anonymous public-corpus reads are a separate namespace and projection. They
 // intentionally have no session, CSRF, audit or publication-write middleware.
 const rlPublicCorpusRead = makeRateLimiter({ windowMs: 60_000, max: 300, name: "public-corpus-read" });
-function publicCorpusNotFound(res) {
-  res.set("Cache-Control", "public, max-age=30, must-revalidate");
+function publicCorpusNotFound(res, cacheControl = "public, max-age=30, must-revalidate") {
+  res.set("Cache-Control", cacheControl);
   return res.status(404).json({ ok: false, error: "PUBLIC_MATERIAL_NOT_FOUND" });
 }
 async function publicCorpusRead(res, action) {
@@ -4002,7 +4002,9 @@ function physicsLearningSupportEnabled() {
   return String(process.env.PHYSICS_TASK_LEARNING_SUPPORT_PUBLIC_READ || "") === "1";
 }
 app.get("/api/public-corpora/:slug/works/:workId/learning-support", rlPublicCorpusRead, (req, res) => {
-  if (!physicsLearningSupportEnabled()) return publicCorpusNotFound(res);
+  // A rollout-gated negative response must never survive the flag transition in
+  // a browser HTTP cache. Exact enabled derivatives remain immutable below.
+  if (!physicsLearningSupportEnabled()) return publicCorpusNotFound(res, "no-store");
   return publicCorpusRead(res, async repo => {
     const published = await repo.getPublicWork(req.params.slug, req.params.workId);
     const body = resolvePhysicsLearningSupport({

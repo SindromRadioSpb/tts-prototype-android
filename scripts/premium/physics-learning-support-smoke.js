@@ -149,6 +149,7 @@ async function main() {
     const first = MANIFEST.tasks[0], endpoint = `/api/public-corpora/${MANIFEST.corpus_slug}/works/${first.public_work_id}/learning-support`;
     let response = await fetch(running.base + endpoint);
     assert.equal(response.status, 404); checks += 1;
+    assert.equal(response.headers.get("cache-control"), "no-store"); checks += 1;
     await stop(running.processRef); running = null;
     const ownerId = await seed(dataDir);
     const rightsArgs = ["--db-path", path.join(dataDir, "app.db"), "--edition-id", MANIFEST.edition.edition_id,

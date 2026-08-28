@@ -7739,7 +7739,10 @@ async function ensurePhysicsLearningSupport(slug, item) {
   if (physicsLearningSupportLoading.has(key)) return physicsLearningSupportLoading.get(key);
   const loading = (async () => {
     const catalog = await ensurePublicCatalog(slug);
-    const response = await fetch('/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(item.public_work_id) + '/learning-support', { cache: 'force-cache' });
+    // This route is immutable after a successful 200, but it can be feature-gated
+    // before rollout. Revalidate any cached pre-rollout 404 instead of letting
+    // Request.cache=force-cache resurrect that negative response indefinitely.
+    const response = await fetch('/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(item.public_work_id) + '/learning-support', { cache: 'no-cache' });
     if (!response.ok) throw new Error('physics learning support ' + response.status);
     const value = window.PublicCorpusAdapter.normalizePhysicsLearningSupport(await response.json(), catalog, item);
     physicsLearningSupportCache.set(key, value);
