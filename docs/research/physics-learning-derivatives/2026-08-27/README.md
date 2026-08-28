@@ -1,6 +1,6 @@
 # Physics Year 1 learning derivatives - 2026-08-27
 
-This directory contains the local R6 exam-solution derivative for the published
+This directory contains the local R7 exam-solution derivative for the published
 `physics-year1-problems` corpus. R2 supplied full exam protocols; R3 added one
 unambiguous mathematical notation system for agent Markdown and semantic premium HTML
 while preserving provenance and answer-comparison evidence. R4 records the
@@ -11,6 +11,8 @@ the owner's report that the handwritten solution for 2.3 also agrees.
 R6 corrects the force balance for task 6.12 after reinspection of its source diagram:
 the B-only tangential equation uses `m_B * g * sin(α)`, while A's normal load is
 carried through `N_1`; the result now agrees with the answer key within rounding.
+R7 records the owner's independent recheck of task 6.2: the repository result remains
+`t = 25.95 s`, and the printed answer key is confirmed to be erroneous.
 
 ## Open first
 
@@ -40,6 +42,8 @@ carried through `N_1`; the result now agrees with the answer key within rounding
   `docs/planning/PHYSICS_OWNER_REVIEW_DISPOSITIONS_R5_PLAN_2026_08_28.md`.
 - The corrected force balance and dual free-body/system check for 6.12 are recorded in
   `docs/planning/PHYSICS_TASK_6_12_CORRECTION_R6_PLAN_2026_08_28.md`.
+- The owner-confirmed answer-key error for 6.2 is recorded in
+  `docs/planning/PHYSICS_OWNER_REVIEW_6_2_R7_PLAN_2026_08_28.md`.
 
 ## Generation
 
@@ -65,11 +69,11 @@ no absolute owner-drive path is stored in generated artifacts.
   verified while its step sequence was expanded. Every card follows the R2 college-exam contract in
   `docs/planning/PHYSICS_EXAM_SOLUTIONS_R2_PLAN_2026_08_27.md` and the R3 notation
   contract above.
-- Answer comparison: 67 matching tasks, three owner-confirmed answer-key errors
-  (1.10, 2.3 and 4.13), and four open reviews (6.2, 7.8, 8.1 and 9.1).
+- Answer comparison: 67 matching tasks, four owner-confirmed answer-key errors
+  (1.10, 2.3, 4.13 and 6.2), and three open reviews (7.8, 8.1 and 9.1).
 - Public rights for the new `Ответы.pdf` derivative: owner confirmation required.
 - Production/API/Agent Access publication: not performed.
 
 The generated guide is a review artifact. Every mismatch or insufficient source remains
-visible. The four open reviews block publication of those tasks; 1.10, 2.3 and 4.13
-are retained as confirmed key errors. Edit the ledgers, not generated files.
+visible. The three open reviews block publication of those tasks; 1.10, 2.3, 4.13
+and 6.2 are retained as confirmed key errors. Edit the ledgers, not generated files.

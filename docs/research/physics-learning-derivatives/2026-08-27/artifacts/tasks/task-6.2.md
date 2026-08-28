@@ -6,7 +6,7 @@ source_page: 24
 source_image_sha256: a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
-review_disposition: OWNER_REVIEW_PENDING
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
 handwritten_evidence: NOT_USED
 ---
 
@@ -99,7 +99,7 @@ handwritten_evidence: NOT_USED
 - Ключ: t = 0.433 s
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом ожидает проверки владельца**. Ответ ключа 0,433 с несовместим с печатными мощностью 0,5 кВт и нагрузкой 2 кН.
+> Статус: **ошибка ключа подтверждена владельцем**. Проверка владельца подтверждает: решение в репозитории верно. Ответ ключа 0,433 с несовместим с печатными мощностью 0,5 кВт и нагрузкой 2 кН.
 
 ## Происхождение и границы
 

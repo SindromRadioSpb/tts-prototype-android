@@ -4,7 +4,7 @@
   "method": "independent_derivation_with_owner_authorized_handwritten_correction",
   "constants": {"default_g_m_s2": 9.81},
   "review": {
-    "status": "OWNER_REQUESTED_TASK_CORRECTION_PASS",
+    "status": "OWNER_CONFIRMED_KEY_ERROR_UPDATE_PASS",
     "handwritten_solution_used": true,
     "handwritten_solution_method": "owner_authorized_visual_review_without_ocr",
     "handwritten_solution_scope": ["1.5", "1.10", "6.1"],
@@ -61,7 +61,7 @@
     {"task_number":"5.3","model":"Locked-wheel braking: a=-μg; average friction power equals friction work divided by time.","derivation":["a=-2.943 m/s²; d=(v_f²-v_i²)/(2a)=42.0017 m.","t=(v_f-v_i)/a=1.69895 s and P_avg=μmgd/t=163.70 kW."],"result":"d=42.0017 m; P_avg=163.70 kW","comparison":"WITHIN_TOLERANCE"},
 
     {"task_number":"6.1","model":"The displacement is down the incline. For each force use W=Fs cosγ, where γ is the angle between that force and the displacement.","derivation":["The angles with the displacement are γ_N=90°, γ_f=180°, γ_G=50°, and γ_Q=50°.","The normal force is N=Gcos40°-Qsin50°=30.64 N; therefore f=μN=9.19 N.","The individual works are W_N=0, W_f=-13.79 J, W_G=192.84 J, and W_Q=154.27 J.","Their sum is W_total=192.84+154.27-13.79=333.32≈333.3 J."],"result":"W_G=192.84 J; W_Q=154.27 J; W_f=-13.79 J; W_total=333.3 J","comparison":"EXACT","review_disposition":"OWNER_CONFIRMED_MATCH","comparison_note":"Owner-authorized visual review of the handwritten solution confirms the force directions, individual works, and answer-key total."},
-    {"task_number":"6.2","model":"At constant speed, motor power equals resistive force times speed.","derivation":["Required force is 2000(sin40°+0.25cos40°)=1668.6 N.","Path length for a 5 m rise is 5/sin40°=7.778 m; work is 12975.9 J.","At 0.5 kW, t=W/P=25.95 s."],"result":"t=25.95 s","comparison":"MISMATCH","review_disposition":"OWNER_REVIEW_PENDING","comparison_note":"The key's 0.433 s is incompatible with the printed 0.5 kW power and 2 kN load."},
+    {"task_number":"6.2","model":"At constant speed, motor power equals resistive force times speed.","derivation":["Required force is 2000(sin40°+0.25cos40°)=1668.6 N.","Path length for a 5 m rise is 5/sin40°=7.778 m; work is 12975.9 J.","At 0.5 kW, t=W/P=25.95 s."],"result":"t=25.95 s","comparison":"MISMATCH","review_disposition":"OWNER_CONFIRMED_KEY_ERROR","comparison_note":"Owner review confirms the repository solution is correct. The answer key's 0.433 s is incompatible with the printed 0.5 kW power and 2 kN load."},
     {"task_number":"6.3","model":"Measure acceleration from the timed descent, then resolve gravity and friction along the incline.","derivation":["Incline length is h/sin30°=2 m and a=2s/t²=3.1888 m/s².","a=g(sin30°-μcos30°), giving μ=0.202; bottom speed is at=3.57 m/s."],"result":"μ=0.202; v=3.57 m/s","comparison":"WITHIN_TOLERANCE"},
     {"task_number":"6.4","model":"Two coupled bodies on perpendicular inclines; assume the printed arrow direction positive.","derivation":["Write T-W₁sin37°-μW₁cos37°=(W₁/g)a for body 1.","Write W₂sin53°-μW₂cos53°-T=(W₂/g)a for body 2 and solve simultaneously."],"result":"a=-2.76 m/s² (opposite the assumed arrow); T=47.03 N","comparison":"WITHIN_TOLERANCE"},
     {"task_number":"6.5","model":"Energy from B to C and constant-acceleration motion on AB and CD.","derivation":["v_B²=v_C²+2gH=4²+2·9.81·10, so v_B=14.56 m/s.","From rest on AB, S=v_B²/(2·3)=35.36 m.","On CD the braking acceleration is -0.25g, so S₁=v_C²/(2·0.25g)=3.26 m."],"result":"S=35.36 m; v_B=14.56 m/s; S₁=3.26 m","comparison":"WITHIN_TOLERANCE"},
