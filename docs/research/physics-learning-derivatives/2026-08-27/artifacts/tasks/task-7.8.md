@@ -6,7 +6,7 @@ source_page: 35
 source_image_sha256: 4fdca422e256cb96770ccc6a2fe4b40de9814837cc762a82c5193fe8ba4702f1
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
-review_disposition: OWNER_REVIEW_PENDING
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
 handwritten_evidence: NOT_USED
 ---
 
@@ -113,7 +113,7 @@ handwritten_evidence: NOT_USED
 - Ключ: א. v_A = 10 m/s | ב. v_B = 12.21 m/s | ג. X_L = 7.14 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом ожидает проверки владельца**. Скорость вылета 10 м/с из ключа требует в четыре раза большей энергии пружины; ошибка переходит в скорость удара и дальность.
+> Статус: **ошибка ключа подтверждена владельцем**. Проверка владельца подтверждает: решение в репозитории верно. Скорость вылета 10 м/с из ключа требует в четыре раза большей энергии пружины; ошибка переходит в скорость удара и дальность.
 
 ## Происхождение и границы
 

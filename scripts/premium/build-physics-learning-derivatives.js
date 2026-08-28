@@ -31,6 +31,16 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
+function russianCountForm(count, singular, paucal, plural) {
+  const absolute = Math.abs(Number(count));
+  const lastTwo = absolute % 100;
+  if (lastTwo >= 11 && lastTwo <= 14) return plural;
+  const last = absolute % 10;
+  if (last === 1) return singular;
+  if (last >= 2 && last <= 4) return paucal;
+  return plural;
+}
+
 const SUBSCRIPT_DIGITS = Object.freeze({
   '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
   '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9', 'ₓ': 'x', 'ᵧ': 'y'
@@ -255,6 +265,12 @@ function handwrittenProvenance(solution) {
   return `- По разрешению владельца рукописное решение визуально сверено без OCR: \`${source.filename}\`, SHA-256 \`${source.sha256}\`.`;
 }
 
+function supplementaryFormulaProvenance(solution) {
+  if (!solution.formula_source) return '';
+  const source = solution.formula_source;
+  return `- Дополнительная формула предоставлена владельцем и визуально проверена: \`${source.filename}\`, SHA-256 \`${source.sha256}\`.`;
+}
+
 function isConfirmedKeyError(solution) {
   return solution.review_disposition === 'OWNER_CONFIRMED_KEY_ERROR';
 }
@@ -287,7 +303,7 @@ review_state: ANSWER_COMPARED
 comparison: ${solution.comparison}
 review_disposition: ${solution.review_disposition || 'NOT_APPLICABLE'}
 handwritten_evidence: ${solution.handwritten_source ? 'OWNER_AUTHORIZED_VISUAL_REVIEW_WITHOUT_OCR' : 'NOT_USED'}
----
+${solution.formula_source ? 'supplementary_formula_evidence: OWNER_SUPPLIED_IMAGE_VISUAL_REVIEW\n' : ''}---
 
 # Физика — задача ${task.task_number}
 
@@ -369,7 +385,7 @@ ${warning}
 - SHA-256 печатного исходного изображения: \`${task.source_image_sha256}\`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
 ${handwrittenProvenance(solution)}
-- Публичная публикация этой производной пока не разрешена.
+${solution.formula_source ? `${supplementaryFormulaProvenance(solution)}\n` : ''}- Публичная публикация этой производной пока не разрешена.
 `;
 }
 
@@ -382,6 +398,7 @@ locale: ru
 handwritten_solution_used: true
 handwritten_solution_scope: "${review.handwritten_solution_scope.join(', ')}"
 handwritten_solution_method: ${review.handwritten_solution_method}
+supplementary_formula_scope: "${(review.supplementary_formula_sources || []).map((source) => source.task_number).join(', ')}"
 publication_status: LOCAL_REVIEW_ONLY
 ---
 
@@ -395,6 +412,9 @@ publication_status: LOCAL_REVIEW_ONLY
 сверены с рукописными источниками без OCR: для 1.5 и 6.1 это корректирующее
 доказательство, для 1.10 — подтверждение результата и эталон последовательности
 экзаменационного оформления.
+Для 8.1 формула переменной массы из предоставленного владельцем изображения
+визуально проверена, её SHA-256 закреплён в карточке; байты изображения и
+абсолютный путь владельца в производные не копируются.
 
 ## Стандарт математической записи
 
@@ -468,7 +488,7 @@ function renderHtml(corpusTasks, answerMap, solutionMap) {
 @media(max-width:700px){.masthead h1{overflow-wrap:anywhere}.toolbar nav{width:100%;min-width:0;max-width:100%;white-space:nowrap}.attempt span{display:block;margin-top:8px}.exam-sheet{padding:18px 14px 22px 34px;margin-left:-6px;margin-right:-6px}.exam-sheet:before{left:7px}.exam-ledger{grid-template-columns:1fr}.exam-ledger section+section{border-left:0;border-top:1px solid #82939b}.exam-step{grid-template-columns:30px minmax(0,1fr);gap:8px}.exam-sheet ol,.exam-sheet ul{padding-left:1.1rem}}
 @media print{details>*:not(summary){display:block!important}.exam-sheet{box-shadow:none;break-inside:auto}.exam-step{break-inside:avoid}.task{break-inside:auto}}
 </style></head><body>
-<header class="masthead"><span class="kicker">LinguistPro · экзаменационная физика</span><h1>74 задачи.<br>От «дано» до ответа.</h1><p>Полные решения в формате колледжа: обозначения и СИ, базовые законы, символический вывод, последовательная подстановка и проверка результата. Индексы, степени и умножение оформлены однозначно. Три рукописных решения визуально сверены по разрешению владельца; OCR не применялся.</p><div class="stats"><span>74 задачи</span><span>9 глав</span><span>${mismatchCount} расхождений</span><span>${confirmedKeyErrorCount} подтверждённые ошибки ключа</span><span>${openMismatchCount} ожидают проверки</span></div></header>
+<header class="masthead"><span class="kicker">LinguistPro · экзаменационная физика</span><h1>74 задачи.<br>От «дано» до ответа.</h1><p>Полные решения в формате колледжа: обозначения и СИ, базовые законы, символический вывод, последовательная подстановка и проверка результата. Индексы, степени и умножение оформлены однозначно. Три рукописных решения визуально сверены по разрешению владельца; OCR не применялся.</p><div class="stats"><span>74 задачи</span><span>9 глав</span><span>${mismatchCount} ${russianCountForm(mismatchCount, 'расхождение', 'расхождения', 'расхождений')}</span><span>${confirmedKeyErrorCount} ${russianCountForm(confirmedKeyErrorCount, 'подтверждённая ошибка ключа', 'подтверждённые ошибки ключа', 'подтверждённых ошибок ключа')}</span><span>${openMismatchCount} ${openMismatchCount === 1 ? 'ожидает' : 'ожидают'} проверки</span></div></header>
 <div class="toolbar"><nav aria-label="Главы">${chapterNav}</nav><input id="search" type="search" placeholder="Номер или слова из условия" aria-label="Поиск по задачам"></div>
 <main class="content"><aside class="notation-key" aria-labelledby="notation-title"><h2 id="notation-title">Как читать формулы</h2><p>${mathHtml('vA=0; tAC=tAB+tBC')}<small>Индекс — точка, тело или участок</small></p><p>${mathHtml('v²=v₀²+2as')}<small>Степень и каждое умножение видны явно</small></p></aside>${sections}<p class="no-results" id="no-results">Совпадений не найдено.</p></main>
 <script>const q=document.querySelector('#search'),cards=[...document.querySelectorAll('.task')],empty=document.querySelector('#no-results');q.addEventListener('input',()=>{const s=q.value.trim().toLowerCase();let n=0;for(const c of cards){const show=!s||c.dataset.search.includes(s);c.hidden=!show;if(show)n++}for(const ch of document.querySelectorAll('.chapter'))ch.hidden=![...ch.querySelectorAll('.task')].some(c=>!c.hidden);empty.style.display=n?'none':'block'});</script>
@@ -498,8 +518,8 @@ function buildReviewReport(corpusTasks, solutionMap) {
 
 - 74 уникальные записи точно соответствуют каноническому набору корпуса.
 - ${74 - mismatches.length} задач совпадают с ключом в пределах объявленного округления.
-- ${confirmedKeyErrors.length} расхождения являются подтверждёнными владельцем ошибками ключа.
-- ${openMismatches.length} расхождений ожидают дополнительной проверки владельца.
+- ${confirmedKeyErrors.length} ${russianCountForm(confirmedKeyErrors.length, 'расхождение является подтверждённой владельцем ошибкой ключа', 'расхождения являются подтверждёнными владельцем ошибками ключа', 'расхождений являются подтверждёнными владельцем ошибками ключа')}.
+- ${openMismatches.length} ${russianCountForm(openMismatches.length, 'расхождение ожидает', 'расхождения ожидают', 'расхождений ожидают')} дополнительной проверки владельца.
 - Расхождение никогда не устраняется расширением допуска.
 
 ## Подтверждённая ошибка ключа
@@ -517,7 +537,7 @@ ${openRows}
 ## Шлюз публикации
 
 Локальная производная не разрешена к публикации в production. Необходимо принять
-решение по ${openMismatches.length} открытым расхождениям, выполнить второй проход владельца по переносу
+решение по ${openMismatches.length} ${russianCountForm(openMismatches.length, 'открытому расхождению', 'открытым расхождениям', 'открытым расхождениям')}, выполнить второй проход владельца по переносу
 ответов и подтвердить права на публикацию в соответствии с планами R1/R2.
 `;
 }
@@ -549,12 +569,15 @@ function main() {
     const localized = solutionRuMap.get(task.task_number);
     const exam = examSolutionMap.get(task.task_number);
     const handwrittenSource = solutionLedger.review.handwritten_sources.find((entry) => entry.task_number === task.task_number);
-    return [task.task_number, { ...source, ...localized, comparison: source.comparison, handwritten_source: handwrittenSource, exam }];
+    const formulaSource = (solutionLedger.review.supplementary_formula_sources || []).find((entry) => entry.task_number === task.task_number);
+    return [task.task_number, { ...source, ...localized, comparison: source.comparison, handwritten_source: handwrittenSource, formula_source: formulaSource, exam }];
   }));
   assert(answerLedger.source.sha256 === '5c5823f556ad4e7e892977bfbe6a0d86ef0b5b6bf241f58b5fb9d857905b84d9', 'Unexpected answer-key hash');
   assert(solutionLedger.review.handwritten_solution_used === true, 'Authorized handwritten review metadata is missing');
   assert(solutionLedger.review.handwritten_solution_method === 'owner_authorized_visual_review_without_ocr', 'Unexpected handwritten review method');
   assert(JSON.stringify(solutionLedger.review.handwritten_solution_scope) === JSON.stringify(['1.5', '1.10', '6.1']), 'Unexpected handwritten review scope');
+  assert(solutionLedger.review.supplementary_formula_sources?.length === 1, 'Unexpected supplementary formula source count');
+  assert(solutionLedger.review.supplementary_formula_sources[0].task_number === '8.1', 'Unexpected supplementary formula task');
 
   fs.mkdirSync(TASKS_OUT, { recursive: true });
   const generatedFiles = [];
@@ -583,6 +606,7 @@ function main() {
     handwritten_solution_used: true,
     handwritten_solution_scope: solutionLedger.review.handwritten_solution_scope,
     handwritten_solution_method: solutionLedger.review.handwritten_solution_method,
+    supplementary_formula_scope: solutionLedger.review.supplementary_formula_sources.map((source) => source.task_number),
     files: generatedFiles.sort().map((relative) => {
       const data = fs.readFileSync(path.join(OUT, relative));
       return { path: relative, bytes: data.length, sha256: sha256(data) };
