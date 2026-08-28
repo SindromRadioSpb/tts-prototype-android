@@ -130,3 +130,39 @@ Status: agent content/data path is `PRODUCTION_DATA_READY`; network invocation i
 - Agent data stop: append `DERIVATIVE_TEXT=false` for the same 74 edition items; never delete historical facts.
 - Migration 066 down must refuse while any grant still contains the new scope.
 - Do not mutate edition №2, content shards or existing PDF/resource revisions during rollback.
+
+## Anonymous-browser hotfix acceptance
+
+Final learner release: `3.11.446`
+
+Hotfix commits:
+
+- `c53771fd514a491916a6f4e56dab47e3e8fc4a7b` — revalidate a pre-rollout negative HTTP cache entry;
+- `1342cc855ca47c783057ff5ed765bcbb2ecfd742` — explicitly reveal the populated inline answer and advance the shell/module cache cohort.
+
+The defect was reproduced in the owner's existing Kapture Chrome tab before mutation. The failed `learning-support` request was an HTTP-cache hit: status `404`, `fromCache=true`, response date `2026-08-28 06:55:28 UTC`, body `PUBLIC_MATERIAL_NOT_FOUND`. The current public API already returned the reviewed derivative, but `library-ui.js` requested the dynamic endpoint with `cache: 'force-cache'`, allowing the browser to reuse the pre-flag negative response. The endpoint now revalidates with `cache: 'no-cache'`; the feature-off 404 is `Cache-Control: no-store`.
+
+The first deployed hotfix (`3.11.445`) removed the unavailable toast and made the full walkthrough open. A fresh production smoke then caught a second acceptance failure: the answer text was populated but the inline container retained the `hidden` attribute. This was not accepted as closure. Release `3.11.446` removes that attribute explicitly, with a source regression assertion and the existing visible-browser assertion retained.
+
+Final production evidence:
+
+- exact single active image `glmw0wjd6nm70fntxgjy6fkp:1342cc855ca47c783057ff5ed765bcbb2ecfd742`;
+- five consecutive probes: `version=3.11.446`, `ok=true`, `db.ready=true`, `migrations.ready=true`;
+- fresh anonymous production smoke: 74/74 API tasks, `answer-first`, `full-walkthrough`, unambiguous math, 380 px no-overflow and Hebrew RTL; no authentication and no production writes;
+- the same Kapture tab that reproduced the defect advanced from its coherent `3.11.445` service-worker shell through the product's guarded Update action to `3.11.446` without clearing profile, OPFS or browser storage;
+- in that same tab, `Проверить ответ` exposed a visible, non-empty answer (`a = 0,249530 м/с²; v_C = 26,8762 м/с`) with no `hidden` attribute, and `Понять и решить` opened a visible full-screen walkthrough containing `Дано`, `Найти`, SI conversion, base laws, derived formulas, sequential calculation, result check and final answer.
+
+Hotfix test accounting:
+
+- targeted repository tests: 33/33;
+- i18n: 233/233;
+- isolated rights/API/browser smoke: 13 checks, 74 items, temporary DB only;
+- final anonymous production smoke:
+
+```json
+{"ok":true,"origin":"https://linguistpro.kolosei.com","version":"3.11.446","api_tasks":74,"db_ready":true,"migrations_ready":true,"browser_checks":["answer-first","full-walkthrough","unambiguous-math","mobile-no-overflow","he-rtl"],"screenshots":5,"authenticated":false,"production_writes":false}
+```
+
+During deployment the root filesystem reached 100% and Coolify Redis temporarily refused writes because it could not persist an RDB snapshot. Only unused Docker images and reclaimable build cache were removed; active containers, volumes, the production DB and the verified backup were not touched. Redis `BGSAVE` returned `ok`. Final disk state was approximately 13 GiB free (65% used), with 9/9 images active and zero build cache.
+
+Evidence: `PRODUCTION_LIVE_READ_ONLY`, `PRODUCTION_INFRA`, `LOCAL_TEST`.
