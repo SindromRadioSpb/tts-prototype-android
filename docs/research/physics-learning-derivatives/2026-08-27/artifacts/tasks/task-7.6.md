@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.6"
 source_page: 34
 source_image_sha256: d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.6
@@ -107,5 +109,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 34
 - SHA-256 печатного исходного изображения: `d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

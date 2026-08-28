@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.3"
 source_page: 32
 source_image_sha256: 0992e8a8849fe995cfd7afe7ba245750f17b332308e0af81420201aa0ad5df13
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.3
@@ -111,5 +113,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 32
 - SHA-256 печатного исходного изображения: `0992e8a8849fe995cfd7afe7ba245750f17b332308e0af81420201aa0ad5df13`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

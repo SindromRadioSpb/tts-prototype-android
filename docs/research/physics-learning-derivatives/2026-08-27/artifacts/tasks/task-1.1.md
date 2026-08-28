@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.1"
 source_page: 5
 source_image_sha256: dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.1
@@ -107,5 +109,5 @@ v^2 = v_0^2 + 2 * a * s; x = v_0 * t + a * t^2/2
 - Каноническая страница корпуса: 5
 - SHA-256 печатного исходного изображения: `dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

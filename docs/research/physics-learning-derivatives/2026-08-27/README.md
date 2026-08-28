@@ -1,9 +1,11 @@
 # Physics Year 1 learning derivatives - 2026-08-27
 
-This directory contains the local R3 exam-solution derivative for the published
-`physics-year1-problems` corpus. R2 supplied full exam protocols; R3 adds one
+This directory contains the local R4 exam-solution derivative for the published
+`physics-year1-problems` corpus. R2 supplied full exam protocols; R3 added one
 unambiguous mathematical notation system for agent Markdown and semantic premium HTML
-while preserving provenance and answer-comparison evidence.
+while preserving provenance and answer-comparison evidence. R4 records the
+owner-authorized visual review of handwritten solutions 1.5, 1.10 and 6.1, corrects
+1.5 and 6.1, and separates the confirmed key error in 1.10 from seven open reviews.
 
 ## Open first
 
@@ -27,6 +29,8 @@ while preserving provenance and answer-comparison evidence.
   confused with products.
 - The contract and gates are recorded in
   `docs/planning/PHYSICS_MATH_NOTATION_R3_PLAN_2026_08_28.md`.
+- The authorized handwritten-review scope and correction decisions are recorded in
+  `docs/planning/PHYSICS_OWNER_HANDWRITTEN_CORRECTIONS_R4_PLAN_2026_08_28.md`.
 
 ## Generation
 
@@ -39,19 +43,24 @@ Source conditions come from
 `docs/research/physics-corpus/2026-08-24/physics-year1-corpus-records.json`.
 The answer key and source PDFs remain outside git on the owner drive; their exact
 SHA-256 pins are stored in the ledgers. No source PDF is copied or recompressed here.
-Handwritten solution pages are deliberately not OCRed, transcribed or used as solution
-inputs.
+The three owner-selected handwritten PDFs were visually reviewed without OCR. Their
+filenames, hashes, task scope and evidentiary roles are pinned in `solution-ledger.json`;
+no absolute owner-drive path is stored in generated artifacts.
 
 ## Status
 
 - Conditions: existing corpus derivative, 74/74.
 - Short answers: manual visual transcription, 74/74, single-reviewer source pass.
-- Independent solutions: derived from canonical conditions/printed diagrams, never
-  from handwritten work; every card follows the R2 college-exam contract in
+- Solutions: originally derived from canonical conditions and printed diagrams; tasks
+  1.5 and 6.1 were corrected after owner-authorized handwritten review, and 1.10 was
+  verified while its step sequence was expanded. Every card follows the R2 college-exam contract in
   `docs/planning/PHYSICS_EXAM_SOLUTIONS_R2_PLAN_2026_08_27.md` and the R3 notation
   contract above.
+- Answer comparison: 66 matching tasks, one owner-confirmed answer-key error (1.10),
+  and seven open reviews (2.3, 4.13, 6.2, 6.12, 7.8, 8.1 and 9.1).
 - Public rights for the new `Ответы.pdf` derivative: owner confirmation required.
 - Production/API/Agent Access publication: not performed.
 
 The generated guide is a review artifact. Every mismatch or insufficient source remains
-visible and blocks publication of that task. Edit the ledgers, not generated files.
+visible. The seven open reviews block publication of those tasks; 1.10 is retained as a
+confirmed key error. Edit the ledgers, not generated files.

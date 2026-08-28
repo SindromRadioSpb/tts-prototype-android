@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.8"
 source_page: 19
 source_image_sha256: e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.8
@@ -119,5 +121,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 19
 - SHA-256 печатного исходного изображения: `e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.7"
 source_page: 7
 source_image_sha256: a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.7
@@ -108,5 +110,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 7
 - SHA-256 печатного исходного изображения: `a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

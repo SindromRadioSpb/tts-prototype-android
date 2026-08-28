@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "2.1"
 source_page: 10
 source_image_sha256: 7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 2.1
@@ -124,5 +126,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 10
 - SHA-256 печатного исходного изображения: `7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

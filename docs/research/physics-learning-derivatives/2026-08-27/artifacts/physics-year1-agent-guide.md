@@ -1,9 +1,11 @@
 ---
-schema: physics_agent_learning_guide.2.0.0
+schema: physics_agent_learning_guide.2.1.0
 corpus: physics-year1-problems
 task_count: 74
 locale: ru
-handwritten_solution_used: false
+handwritten_solution_used: true
+handwritten_solution_scope: "1.5, 1.10, 6.1"
+handwritten_solution_method: owner_authorized_visual_review_without_ocr
 publication_status: LOCAL_REVIEW_ONLY
 ---
 
@@ -13,7 +15,10 @@ publication_status: LOCAL_REVIEW_ONLY
 каноническое условие, «Дано» и «Найти», перевод в СИ, базовые законы,
 символический вывод, последовательный численный расчёт, проверку и ответ,
 сверку с ключом и происхождение. Ответы из ключа открывались только после
-вывода; рукописные решения не распознавались и не использовались.
+вывода. По разрешению владельца решения 1.5, 1.10 и 6.1 затем были визуально
+сверены с рукописными источниками без OCR: для 1.5 и 6.1 это корректирующее
+доказательство, для 1.10 — подтверждение результата и эталон последовательности
+экзаменационного оформления.
 
 ## Стандарт математической записи
 
@@ -23,13 +28,15 @@ publication_status: LOCAL_REVIEW_ONLY
 - `2 * a * s` — явное умножение без склейки символов.
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.1"
 source_page: 5
 source_image_sha256: dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.1
@@ -131,20 +138,22 @@ v^2 = v_0^2 + 2 * a * s; x = v_0 * t + a * t^2/2
 - Каноническая страница корпуса: 5
 - SHA-256 печатного исходного изображения: `dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.2"
 source_page: 5
 source_image_sha256: dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10
 review_state: ANSWER_COMPARED
 comparison: EXACT
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.2
@@ -243,20 +252,22 @@ comparison: EXACT
 - Каноническая страница корпуса: 5
 - SHA-256 печатного исходного изображения: `dee68b75334ebc60d3f687af32f16fd1168fcc35e6d9b9fa3e255a9e7e899f10`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.3"
 source_page: 6
 source_image_sha256: 047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.3
@@ -367,20 +378,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 6
 - SHA-256 печатного исходного изображения: `047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.4"
 source_page: 6
 source_image_sha256: 047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.4
@@ -478,20 +491,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 6
 - SHA-256 печатного исходного изображения: `047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.5"
 source_page: 6
 source_image_sha256: 047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217
 review_state: ANSWER_COMPARED
-comparison: MISMATCH
+comparison: EXACT
+review_disposition: OWNER_CONFIRMED_MATCH
+handwritten_evidence: OWNER_AUTHORIZED_VISUAL_REVIEW_WITHOUT_OCR
 ---
 
 # Физика — задача 1.5
@@ -534,86 +549,97 @@ comparison: MISMATCH
 
 ## Подсказка: модель
 
-x = v_0 * t + a * t^2/2 и v = v_0 + a * t.
+Ось Ox направляем на восток. Грузовик замедляется, поэтому a = -0,6 м/с^2; используем x = v_0 * t + a * t^2/2 и v = v_0 + a * t.
 
 ## Экзаменационное решение
 
 ### Дано
 
-- Грузовик: AB = 180 м, t_{AB} = 10 с, a = 0,6 м/с^2.
+- Грузовик: AB = 180 м
+- t_{AB} = 10 с
+- модуль замедления b = 0,6 м/с^2.
 - Встреча через t_m = 4 с
-- автомобиль стартует из B навстречу равномерно.
+- автомобиль проходит точку B одновременно со стартом грузовика и движется равномерно навстречу.
 
 ### Найти
 
-- v_0 грузовика
-- v_B
-- скорость автомобиля
-- скорость грузовика при встрече.
+- v_0 — начальную скорость грузовика
+- v_B — скорость грузовика в B
+- v_{авто} — модуль скорости автомобиля
+- v_{встр} — скорость грузовика при встрече.
 
 ### Перевод в СИ и обозначения
 
-- Все данные уже в СИ.
+- Все числовые данные уже в СИ.
+- Ось Ox направляем из A в B, на восток. Грузовик замедляется, поэтому a = -b = -0,6 м/с^2
+- скорость автомобиля направлена против Ox.
 
 ### Решение
 
 #### 1. Физическая модель
 
-x = v_0 * t + a * t^2/2 и v = v_0 + a * t.
+Ось Ox направляем на восток. Грузовик замедляется, поэтому a = -0,6 м/с^2; используем x = v_0 * t + a * t^2/2 и v = v_0 + a * t.
 
 #### 2. Базовые законы
 
-- s = v_0 * t + a * t^2/2
+- x = x_0 + v_0 * t + a * t^2/2
 - v = v_0 + a * t
 - s_{авто} = v_{авто} * t
 
 #### 3. Вывод расчётных формул
 
-1. Из AB = v_0 * t_{AB} + a * t_{AB}^2/2: v_0 = (AB - a * t_{AB}^2/2)/t_{AB}.
-2. v_B = v_0 + a * t_{AB}; до встречи грузовик проходит x_m = v_0 * t_m + a * t_m^2/2 и имеет v * m = v_0 + a * t_m.
-3. Автомобиль проходит AB - x_m, поэтому v_{авто} = (AB - x_m)/t_m.
+1. Для грузовика на всём участке AB: AB = v_0 * t_{AB} + a * t_{AB}^2/2.
+2. Переносим слагаемое с ускорением: v_0 * t_{AB} = AB - a * t_{AB}^2/2. Делим на t_{AB}: v_0 = (AB - a * t_{AB}^2/2)/t_{AB}.
+3. Скорость грузовика в B: v_B = v_0 + a * t_{AB}.
+4. До встречи грузовик проходит x_m = v_0 * t_m + a * t_m^2/2. Автомобиль проходит s_{авто} = AB - x_m, поэтому v_{авто} = (AB - x_m)/t_m.
+5. Скорость грузовика при встрече: v_{встр} = v_0 + a * t_m.
 
 
 #### 4. Подстановка и последовательный расчёт
 
-1. Грузовик: 180 = 10 * v_0 + 0,5 * 0,6 * 10^2, откуда v_0 = 15 м/с и v_B = 21 м/с.
-2. По печатному условию встреча происходит через 4 с: грузовик проходит 64,8 м и имеет скорость 17,4 м/с.
-3. Автомобиль проходит 180 - 64,8 = 115,2 м за 4 с, поэтому его скорость равна 28,8 м/с.
+1. Из 180 = v_0 * 10 + (-0,6) * 10^2/2 получаем 180 = 10 * v_0 - 30.
+2. 10 * v_0 = 180 + 30 = 210, поэтому v_0 = 210/10 = 21 м/с.
+3. v_B = 21 + (-0,6) * 10 = 21 - 6 = 15 м/с.
+4. x_m = 21 * 4 + (-0,6) * 4^2/2 = 84 - 4,8 = 79,2 м.
+5. s_{авто} = 180 - 79,2 = 100,8 м; v_{авто} = 100,8/4 = 25,2 м/с.
+6. v_{встр} = 21 + (-0,6) * 4 = 21 - 2,4 = 18,6 м/с.
 
 #### 5. Проверка результата
 
-- x_m + (v_{авто} * t_m) = AB; именно t = 4 с объясняет расхождение с ключом, использующим 6 с.
+- Проверка участка AB: средняя скорость грузовика (21 + 15)/2 = 18 м/с; путь 18 * 10 = 180 м.
+- Проверка встречи: 79,2 + 25,2 * 4 = 79,2 + 100,8 = 180 м.
+- За 4 с скорость грузовика уменьшилась на 2,4 м/с: 21 - 2,4 = 18,6 м/с; знак ускорения и направление изменения скорости согласованы.
 
 ## Ответ
 
-**грузовик: v_0 = 15 м/с, v_B = 21 м/с; при встрече грузовик 17,4 м/с, автомобиль 28,8 м/с**
+**грузовик: v_0 = 21 м/с, v_B = 15 м/с; автомобиль 25,2 м/с на запад; грузовик при встрече 18,6 м/с на восток**
 
 ## Сверка с ответами
 
 - Ключ: א. V_0 = 21 m/s | ב. V_1 = 15 m/s | ג. V_2 = 25.2 m/s | ד. V_3 = 18.6 m/s
-- Вердикт: **MISMATCH**
-
-> Важно: **расхождение с ключом**. Значения ключа 25,2 и 18,6 соответствуют 6 с, тогда как в печатном условии указано 4 с.
+- Вердикт: **EXACT**
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 6
 - SHA-256 печатного исходного изображения: `047cd9ebcb14dfcf4f7290db38731276274fec668d927967a33daf0d26fc0217`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- По разрешению владельца рукописное решение визуально сверено без OCR: `1.5 верно.pdf`, SHA-256 `62b94e3c010206edd0d7386b820358844117d5b394f4036f22b4ad31f9dd0d2e`.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.6"
 source_page: 7
 source_image_sha256: a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.6
@@ -719,20 +745,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 7
 - SHA-256 печатного исходного изображения: `a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.7"
 source_page: 7
 source_image_sha256: a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.7
@@ -835,20 +863,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 7
 - SHA-256 печатного исходного изображения: `a3a9213fb0f89d7875b9c64b16cfc978e452e71f75fda8ce3fe1d59a89e444df`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.8"
 source_page: 8
 source_image_sha256: f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc
 review_state: ANSWER_COMPARED
 comparison: EXACT
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.8
@@ -961,20 +991,22 @@ comparison: EXACT
 - Каноническая страница корпуса: 8
 - SHA-256 печатного исходного изображения: `f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.9"
 source_page: 8
 source_image_sha256: f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.9
@@ -1084,20 +1116,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 8
 - SHA-256 печатного исходного изображения: `f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.10"
 source_page: 9
 source_image_sha256: 5cadfc576680e18f8dd24fe1171c3dcda1f216edf5b0e91448e7f085ebc409e3
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
+handwritten_evidence: OWNER_AUTHORIZED_VISUAL_REVIEW_WITHOUT_OCR
 ---
 
 # Физика — задача 1.10
@@ -1140,55 +1174,68 @@ comparison: MISMATCH
 
 ## Подсказка: модель
 
-Используем общую шкалу времени; автомобиль A стартует на 14 с раньше.
+Используем одно начало координат и общую шкалу времени; автомобиль A стартует на 14 с раньше автомобиля B.
 
 ## Экзаменационное решение
 
 ### Дано
 
-- A: v_A = 15 м/с, движение равномерное
-- фора 14 с.
-- B: v_{B0} = 10 м/с, a_B = 1 м/с^2
-- встреча на перекрёстке Б.
+- Автомобиль A: v_A = 15 м/с, движение равномерное
+- стартует первым.
+- Автомобиль B: v_{B0} = 10 м/с, a_B = 1 м/с^2
+- стартует через Δt = 14 с после A.
+- Оба автомобиля встречаются на перекрёстке Б.
 
 ### Найти
 
-- Время встречи от старта A
-- v_B
-- расстояние между перекрёстками.
+- τ — время движения B до встречи
+- t_A — время от старта A
+- v_B — скорость B при встрече
+- x — расстояние между перекрёстками.
 
 ### Перевод в СИ и обозначения
 
-- Ограничение 120 км/ч = 33,333 м/с.
+- Все исходные данные уже в СИ.
+- Ограничение скорости: 120 км/ч = 120/3,6 = 33,333 м/с.
 
 ### Решение
 
 #### 1. Физическая модель
 
-Используем общую шкалу времени; автомобиль A стартует на 14 с раньше.
+Используем одно начало координат и общую шкалу времени; автомобиль A стартует на 14 с раньше автомобиля B.
 
 #### 2. Базовые законы
 
 - x_A = v_A * t_A
 - x_B = v_{B0} * τ + a_B * τ^2/2
 - v_B = v_{B0} + a_B * τ
+- D = b^2 - 4 * a * c; τ = (-b±√D)/(2 * a)
 
 #### 3. Вывод расчётных формул
 
-1. Пусть τ — время после старта B; тогда t_A = τ + 14.
-2. Равенство координат: v_{B0} * τ + a_B * τ^2/2 = v_A(τ + 14), то есть a_B * τ^2/2 + (v_{B0} - v_A) * τ-14 * v_A = 0.
-3. Находим D, выбираем положительный корень τ; затем t_A = τ + 14, x = v_A * t_A, v_B = v_{B0} + a_B * τ.
+1. Начало координат помещаем на первом перекрёстке. Пусть τ — время после старта B; тогда A движется t_A = τ + Δt = τ + 14.
+2. В точке встречи координаты равны: x_A = x_B, поэтому v_A(τ + 14) = v_{B0} * τ + a_B * τ^2/2.
+3. Умножаем уравнение на 2 и переносим все слагаемые в одну сторону: a_B * τ^2 + 2 * (v_{B0} - v_A) * τ-28 * v_A = 0.
+4. После нахождения физического корня вычисляем t_A = τ + 14, v_B = v_{B0} + a_B * τ и x = v_A * t_A.
 
 
 #### 4. Подстановка и последовательный расчёт
 
-1. Для τ после старта B: 10 * τ + τ^2/2 = 15 * (τ + 14), откуда τ = 26,095 с.
-2. После старта A прошло 40,095 с; координата встречи 15 * 40,095 = 601,42 м.
-3. Скорость B равна 10 + τ = 36,095 м/с, то есть выше 120 км/ч.
+1. Подставляем данные: 15 * (τ + 14) = 10 * τ + τ^2/2.
+2. Раскрываем скобки: 15 * τ + 210 = 10 * τ + τ^2/2.
+3. Умножаем на 2 и переносим всё вправо: τ^2 - 10 * τ-420 = 0.
+4. Для a = 1, b = -10, c = -420: D = b^2 - 4 * a * c = (-10)^2 - 4 * 1 * (-420) = 100 + 1680 = 1780.
+5. τ1 = (10 + √1780)/2 = 26,095 с; τ2 = (10-√1780)/2≈-16,095 с. Отрицательный корень τ2 отбрасываем как нефизический.
+6. От старта A прошло t_A = τ1 + 14 = 26,095 + 14 = 40,095 с.
+7. v_B = 10 + 1 * 26,095 = 36,095 м/с. Поскольку 36,095 > 33,333, автомобиль B превысил ограничение 120 км/ч.
+8. x = x_A = 15 * 40,095 = 601,42 м.
+9. Контроль по B: x_B = 10 * 26,095 + 1 * 26,095^2/2≈601,42 м.
 
 #### 5. Проверка результата
 
-- Подстановка x в оба закона движения должна дать одну координату; v_B сравниваем с 33,333 м/с.
+- Оба закона движения дают одну координату встречи: x_A≈x_B≈601,42 м.
+- Положительный корень соответствует времени после старта B; полное время A обязано быть на 14 с больше.
+- Размерность скорости — м/с, координаты — м; округление выполнено только после нахождения корня.
 
 ## Ответ
 
@@ -1199,27 +1246,29 @@ comparison: MISMATCH
 - Ключ: א. t = 26.095 s | ב. v = 36.095 m/s | 36.095 m/s > 33.33 m/s | ג. x = 391.42 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. В ключе время после старта B названо полным временем и на него умножена скорость A; совпадает только скорость B.
+> Статус: **ошибка ключа подтверждена владельцем**. Владелец и разрешённая им визуальная сверка рукописного решения подтверждают решение репозитория. В ключе неверен только пункт ג: для пути A использовано время B, поэтому указано 391,42 м вместо 601,42 м.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 9
 - SHA-256 печатного исходного изображения: `5cadfc576680e18f8dd24fe1171c3dcda1f216edf5b0e91448e7f085ebc409e3`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- По разрешению владельца рукописное решение визуально сверено без OCR: `1.10.pdf`, SHA-256 `5e707357d47d56d8d9898030e4a81a6f42b9fb5ba87253b2030aa1a5f6915cee`.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "2.1"
 source_page: 10
 source_image_sha256: 7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 2.1
@@ -1338,20 +1387,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 10
 - SHA-256 печатного исходного изображения: `7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "2.2"
 source_page: 10
 source_image_sha256: 7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 2.2
@@ -1455,20 +1506,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 10
 - SHA-256 печатного исходного изображения: `7f63fd3c234abfd16451755fe11b97d2395255fa6bf4203e66bfd91fa9bc5b5c`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "2.3"
 source_page: 11
 source_image_sha256: 08f0e5fe8e43d61b06d3310b9b9a9f2a27514e1e545adf05430dfeadfea572c0
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 2.3
@@ -1567,27 +1620,29 @@ comparison: MISMATCH
 - Ключ: א. v_0 = 10.15 m/s | ב. t = 1.0345 s | ג. Δt = 0.517 s | ד. Δy = 5.1375 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Все четыре значения ключа противоречат печатному подъёму 5 м при g = 9,81 м/с^2.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Все четыре значения ключа противоречат печатному подъёму 5 м при g = 9,81 м/с^2.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 11
 - SHA-256 печатного исходного изображения: `08f0e5fe8e43d61b06d3310b9b9a9f2a27514e1e545adf05430dfeadfea572c0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.1"
 source_page: 12
 source_image_sha256: b1aabef182b59ab972a767103c38e8f1a34873d8443611703ca5e2aa2e35921d
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.1
@@ -1685,20 +1740,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 12
 - SHA-256 печатного исходного изображения: `b1aabef182b59ab972a767103c38e8f1a34873d8443611703ca5e2aa2e35921d`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.2"
 source_page: 12
 source_image_sha256: b1aabef182b59ab972a767103c38e8f1a34873d8443611703ca5e2aa2e35921d
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.2
@@ -1797,20 +1854,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 12
 - SHA-256 печатного исходного изображения: `b1aabef182b59ab972a767103c38e8f1a34873d8443611703ca5e2aa2e35921d`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.3"
 source_page: 13
 source_image_sha256: 105badc6aca43aeebc2dcdfdf29175637f07f2437d5f23f5d926287b170a79ff
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.3
@@ -1920,20 +1979,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 13
 - SHA-256 печатного исходного изображения: `105badc6aca43aeebc2dcdfdf29175637f07f2437d5f23f5d926287b170a79ff`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.4"
 source_page: 13
 source_image_sha256: 105badc6aca43aeebc2dcdfdf29175637f07f2437d5f23f5d926287b170a79ff
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.4
@@ -2042,20 +2103,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 13
 - SHA-256 печатного исходного изображения: `105badc6aca43aeebc2dcdfdf29175637f07f2437d5f23f5d926287b170a79ff`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.5"
 source_page: 14
 source_image_sha256: 05af530124324356ead85a1e997646aa47a559c0ce59029e294f1497d4f85c56
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.5
@@ -2162,20 +2225,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 14
 - SHA-256 печатного исходного изображения: `05af530124324356ead85a1e997646aa47a559c0ce59029e294f1497d4f85c56`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.6"
 source_page: 14
 source_image_sha256: 05af530124324356ead85a1e997646aa47a559c0ce59029e294f1497d4f85c56
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.6
@@ -2282,20 +2347,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 14
 - SHA-256 печатного исходного изображения: `05af530124324356ead85a1e997646aa47a559c0ce59029e294f1497d4f85c56`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.7"
 source_page: 15
 source_image_sha256: df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.7
@@ -2395,20 +2462,22 @@ A свободно падает на 5 м, пока B проходит по го
 - Каноническая страница корпуса: 15
 - SHA-256 печатного исходного изображения: `df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.8"
 source_page: 15
 source_image_sha256: df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.8
@@ -2515,20 +2584,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 15
 - SHA-256 печатного исходного изображения: `df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.1"
 source_page: 16
 source_image_sha256: 4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.1
@@ -2621,20 +2692,22 @@ C — вершина траектории: y = g * t^2/2, x = v_x * t.
 - Каноническая страница корпуса: 16
 - SHA-256 печатного исходного изображения: `4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.2"
 source_page: 16
 source_image_sha256: 4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.2
@@ -2729,20 +2802,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 16
 - SHA-256 печатного исходного изображения: `4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.3"
 source_page: 17
 source_image_sha256: 8505d2536eacb63167403787e14bacfddf4e58682b156768181317f35a75acee
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.3
@@ -2846,20 +2921,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 17
 - SHA-256 печатного исходного изображения: `8505d2536eacb63167403787e14bacfddf4e58682b156768181317f35a75acee`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.4"
 source_page: 17
 source_image_sha256: 8505d2536eacb63167403787e14bacfddf4e58682b156768181317f35a75acee
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.4
@@ -2962,20 +3039,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 17
 - SHA-256 печатного исходного изображения: `8505d2536eacb63167403787e14bacfddf4e58682b156768181317f35a75acee`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.5"
 source_page: 18
 source_image_sha256: 82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.5
@@ -3075,20 +3154,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 18
 - SHA-256 печатного исходного изображения: `82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.6"
 source_page: 18
 source_image_sha256: 82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.6
@@ -3194,20 +3275,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 18
 - SHA-256 печатного исходного изображения: `82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.7"
 source_page: 18
 source_image_sha256: 82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.7
@@ -3313,20 +3396,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 18
 - SHA-256 печатного исходного изображения: `82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.8"
 source_page: 19
 source_image_sha256: e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.8
@@ -3440,20 +3525,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 19
 - SHA-256 печатного исходного изображения: `e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.9"
 source_page: 19
 source_image_sha256: e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.9
@@ -3557,20 +3644,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 19
 - SHA-256 печатного исходного изображения: `e8a2b609c6bfb80ad6c1c21610a551aa30627fd1b54e422b0f1f5f90715e5fab`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.10"
 source_page: 20
 source_image_sha256: 4282d051143d0066b7856621051fbae65dd4b9bcac84f4133d0eb140258c31c5
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.10
@@ -3677,20 +3766,22 @@ B — вершина траектории в 40 м от старта; дальн
 - Каноническая страница корпуса: 20
 - SHA-256 печатного исходного изображения: `4282d051143d0066b7856621051fbae65dd4b9bcac84f4133d0eb140258c31c5`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.11"
 source_page: 20
 source_image_sha256: 4282d051143d0066b7856621051fbae65dd4b9bcac84f4133d0eb140258c31c5
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.11
@@ -3794,20 +3885,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 20
 - SHA-256 печатного исходного изображения: `4282d051143d0066b7856621051fbae65dd4b9bcac84f4133d0eb140258c31c5`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.12"
 source_page: 21
 source_image_sha256: 600e187a3a69e9770afca546877de2ad16085295a740861547b26ab0102e87e3
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.12
@@ -3912,20 +4005,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 21
 - SHA-256 печатного исходного изображения: `600e187a3a69e9770afca546877de2ad16085295a740861547b26ab0102e87e3`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.13"
 source_page: 21
 source_image_sha256: 600e187a3a69e9770afca546877de2ad16085295a740861547b26ab0102e87e3
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.13
@@ -4026,27 +4121,29 @@ comparison: MISMATCH
 - Ключ: א. v_0 = 114.1 m/s | ב. H = 240.345 m | ג. x = 637.9 m | ד. v_x = 91.13 m/s; v_y = 0 | ה. y = 558.39 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Значение ключа 114,1 м/с и зависимые от него результаты не удовлетворяют условию: вершина ровно через 6 с при 45° и g = 9,81.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Значение ключа 114,1 м/с и зависимые от него результаты не удовлетворяют условию: вершина ровно через 6 с при 45° и g = 9,81.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 21
 - SHA-256 печатного исходного изображения: `600e187a3a69e9770afca546877de2ad16085295a740861547b26ab0102e87e3`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.14"
 source_page: 22
 source_image_sha256: 45f5c8bbeb737b71b3f7f01ee3114f132a9f1ab3947c199341a679c30bae9c1a
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.14
@@ -4148,20 +4245,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 22
 - SHA-256 печатного исходного изображения: `45f5c8bbeb737b71b3f7f01ee3114f132a9f1ab3947c199341a679c30bae9c1a`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "5.1"
 source_page: 23
 source_image_sha256: 9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 5.1
@@ -4255,20 +4354,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 23
 - SHA-256 печатного исходного изображения: `9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "5.2"
 source_page: 23
 source_image_sha256: 9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0
 review_state: ANSWER_COMPARED
 comparison: EXACT
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 5.2
@@ -4360,20 +4461,22 @@ comparison: EXACT
 - Каноническая страница корпуса: 23
 - SHA-256 печатного исходного изображения: `9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "5.3"
 source_page: 23
 source_image_sha256: 9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 5.3
@@ -4477,20 +4580,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 23
 - SHA-256 печатного исходного изображения: `9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.1"
 source_page: 24
 source_image_sha256: a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8
 review_state: ANSWER_COMPARED
-comparison: MISMATCH
+comparison: EXACT
+review_disposition: OWNER_CONFIRMED_MATCH
+handwritten_evidence: OWNER_AUTHORIZED_VISUAL_REVIEW_WITHOUT_OCR
 ---
 
 # Физика — задача 6.1
@@ -4521,87 +4626,104 @@ comparison: MISMATCH
 
 ## Подсказка: модель
 
-Для каждой силы W = F * s * cos(γ); знак задаётся направлением перемещения.
+Перемещение направлено вниз по склону. Для каждой силы применяем W = F * s * cos(γ), где γ — угол между силой и перемещением.
 
 ## Экзаменационное решение
 
 ### Дано
 
 - Вес тела G = 200 Н
-- сила Q = 160 Н под 10° к горизонту
-- склон θ = 40°
-- s = 1,5 м
-- μ = 0,3
-- скорость постоянна.
+- приложенная сила Q = 160 Н под 10° к горизонту
+- угол склона θ = 40°.
+- Перемещение вниз по склону s = 1,5 м
+- коэффициент трения μ = 0,3.
 
 ### Найти
 
-- Работу каждой силы и суммарную работу.
+- W_N — работу нормальной силы
+- W_f — работу силы трения
+- W_G — работу силы тяжести
+- W_Q — работу силы Q
+- W_{Σ} — суммарную работу.
 
 ### Перевод в СИ и обозначения
 
 - Все данные уже в СИ.
+- Положительное направление оси Ox выбираем вниз вдоль склона.
 
 ### Решение
 
 #### 1. Физическая модель
 
-Для каждой силы W = F * s * cos(γ); знак задаётся направлением перемещения.
+Перемещение направлено вниз по склону. Для каждой силы применяем W = F * s * cos(γ), где γ — угол между силой и перемещением.
 
 #### 2. Базовые законы
 
 - W = F * s * cos(γ)
+- f = μ * N
 - N = G * cos(θ) - Q * sin(θ + 10°)
-- F_{тр} = μ * N
-- ΣW = ΔK
+- W_{Σ} = W_N + W_f + W_G + W_Q
 
 #### 3. Вывод расчётных формул
 
-1. Выбираем направление перемещения и для каждой силы определяем угол γ с ним; только после этого назначаем знак работы.
-2. Вычисляем N из проекции перпендикулярно плоскости, затем F_{тр} = μ * N и W_{тр} = -F_{тр} * s.
-3. Поскольку скорость постоянна, ΔK = 0 и физически согласованное условие требует ΣW = 0; если отдельные данные дают иное, фиксируем противоречие, а не подгоняем знак.
+1. По схеме сил углы с перемещением равны: γ_N = 90°, γ_f = 180°, γ_G = 90°-θ = 50°, γ_Q = θ + 10° = 50°.
+2. Из проекции сил на нормаль к плоскости: N = G * cos(θ) - Q * sin(θ + 10°); затем f = μ * N.
+3. W_N = N * s * cos(90°) = 0; W_f = f * s * cos(180°) = -f * s.
+4. W_G = G * s * cos(90°-θ); W_Q = Q * s * cos(θ + 10°).
+5. Суммарная работа равна алгебраической сумме отдельных работ: W_{Σ} = W_N + W_f + W_G + W_Q.
+
+#### Обязательное построение
+
+- Изобразить тело на наклонной плоскости и стрелкой показать перемещение s вниз по склону.
+- Из центра тела провести: G вертикально вниз, N перпендикулярно плоскости, f вверх по склону против перемещения, Q под 10° к горизонту.
+- Подписать углы между каждой силой и перемещением: 90° для N, 180° для f, 50° для G и 50° для Q.
 
 
 #### 4. Подстановка и последовательный расчёт
 
-1. Величины из ключа соответствуют движению вниз по склону: W_G = 200 * 1,5 * sin(40°) = 192,84 Дж, W_Q = 160 * 1,5 * cos(50°) = 154,27 Дж.
-2. N = 200 * cos(40°) - 160 * sin(50°) = 30,64 Н, поэтому |W_f| = 0,3 * 30,64 * 1,5 = 13,79 Дж.
-3. Сумма работ со знаками + 333,3 Дж противоречит печатному утверждению о постоянной скорости, при которой суммарная работа должна быть нулевой.
+1. N = 200 * cos(40°) - 160 * sin(50°) = 153,21 - 122,57 = 30,64 Н.
+2. f = μ * N = 0,3 * 30,64 = 9,19 Н.
+3. W_N = 30,64 * 1,5 * cos(90°) = 0 Дж.
+4. W_f = 9,19 * 1,5 * cos(180°) = -13,79 Дж.
+5. W_G = 200 * 1,5 * cos(50°) = 192,84 Дж.
+6. W_Q = 160 * 1,5 * cos(50°) = 154,27 Дж.
+7. W_{Σ} = 0 - 13,79 + 192,84 + 154,27 = 333,32≈333,3 Дж.
 
 #### 5. Проверка результата
 
-- Главная проверка — теорема о кинетической энергии: при постоянной скорости сумма работ обязана быть нулевой.
+- Знаки определены углами: нормальная сила перпендикулярна перемещению, трение направлено против него, G и Q имеют составляющие вдоль перемещения.
+- Проверка округления: 192,84 + 154,27 - 13,79 = 333,32 Дж, что округляется до 333,3 Дж и совпадает с ключом.
 
 ## Ответ
 
-**по соглашению ключа W_G = + 192,84 Дж, W_Q = + 154,27 Дж, W_f = -13,79 Дж, ΣW = + 333,3 Дж; условие внутренне противоречиво**
+**W_G = 192,84 Дж; W_Q = 154,27 Дж; W_f = -13,79 Дж; W_Σ = 333,3 Дж**
 
 ## Сверка с ответами
 
 - Ключ: W_G = 192.84 J; W_Q = 154.27 J; W_f = -13.79 J; W_t * o * t * a * l = 333.3 J
-- Вердикт: **MISMATCH**
-
-> Важно: **расхождение с ключом**. Перечисленные работы несовместимы с постоянной скоростью; при публикации это предупреждение необходимо сохранить.
+- Вердикт: **EXACT**
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 24
 - SHA-256 печатного исходного изображения: `a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- По разрешению владельца рукописное решение визуально сверено без OCR: `6.1 верно.pdf`, SHA-256 `ca7a8a74e6d6a283d1c453da3a6240ab5415566f79f52148ad20199c05ac7b64`.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.2"
 source_page: 24
 source_image_sha256: a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.2
@@ -4693,27 +4815,29 @@ comparison: MISMATCH
 - Ключ: t = 0.433 s
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Ответ ключа 0,433 с несовместим с печатными мощностью 0,5 кВт и нагрузкой 2 кН.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Ответ ключа 0,433 с несовместим с печатными мощностью 0,5 кВт и нагрузкой 2 кН.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 24
 - SHA-256 печатного исходного изображения: `a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.3"
 source_page: 24
 source_image_sha256: a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.3
@@ -4808,20 +4932,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 24
 - SHA-256 печатного исходного изображения: `a95de89970e395f59309c1b4055da04b323a048e833c33aa2a37c8463677adf8`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.4"
 source_page: 25
 source_image_sha256: 33fee4ce87a63cc8d9b0281c9eca20eec5c8e6c174d7c830a40560c23428ae62
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.4
@@ -4926,20 +5052,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 25
 - SHA-256 печатного исходного изображения: `33fee4ce87a63cc8d9b0281c9eca20eec5c8e6c174d7c830a40560c23428ae62`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.5"
 source_page: 25
 source_image_sha256: 33fee4ce87a63cc8d9b0281c9eca20eec5c8e6c174d7c830a40560c23428ae62
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.5
@@ -5042,20 +5170,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 25
 - SHA-256 печатного исходного изображения: `33fee4ce87a63cc8d9b0281c9eca20eec5c8e6c174d7c830a40560c23428ae62`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.6"
 source_page: 26
 source_image_sha256: 017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.6
@@ -5153,20 +5283,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 26
 - SHA-256 печатного исходного изображения: `017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.7"
 source_page: 26
 source_image_sha256: 017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.7
@@ -5270,20 +5402,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 26
 - SHA-256 печатного исходного изображения: `017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.8"
 source_page: 27
 source_image_sha256: ae36e9696804b03d0202fccf4ae52a21b1567e096904e8088085a05ed62b3323
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.8
@@ -5384,20 +5518,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 27
 - SHA-256 печатного исходного изображения: `ae36e9696804b03d0202fccf4ae52a21b1567e096904e8088085a05ed62b3323`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.9"
 source_page: 27
 source_image_sha256: ae36e9696804b03d0202fccf4ae52a21b1567e096904e8088085a05ed62b3323
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.9
@@ -5496,20 +5632,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 27
 - SHA-256 печатного исходного изображения: `ae36e9696804b03d0202fccf4ae52a21b1567e096904e8088085a05ed62b3323`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.10"
 source_page: 28
 source_image_sha256: 4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.10
@@ -5616,20 +5754,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 28
 - SHA-256 печатного исходного изображения: `4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.11"
 source_page: 28
 source_image_sha256: 4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.11
@@ -5736,20 +5876,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 28
 - SHA-256 печатного исходного изображения: `4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.12"
 source_page: 29
 source_image_sha256: b11a3b1d3491d0964a981e725f7e12f1339bb456ad06523f75fdc0cba54dc60b
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.12
@@ -5852,27 +5994,29 @@ comparison: MISMATCH
 - Ключ: א. Диаграмма в источнике. | ב. T = 122.41 N | ג. P ≥ 189.19 N
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Значение ключа 189,19 Н получается, если ошибочно приложить к B натяжение троса A вместо силы трения между A и B.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Значение ключа 189,19 Н получается, если ошибочно приложить к B натяжение троса A вместо силы трения между A и B.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 29
 - SHA-256 печатного исходного изображения: `b11a3b1d3491d0964a981e725f7e12f1339bb456ad06523f75fdc0cba54dc60b`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.1"
 source_page: 30
 source_image_sha256: 2b4e2dba73df659eeab78c099570e18742f4df771cf472d8070909f318240be3
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.1
@@ -5987,20 +6131,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 30
 - SHA-256 печатного исходного изображения: `2b4e2dba73df659eeab78c099570e18742f4df771cf472d8070909f318240be3`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.2"
 source_page: 31
 source_image_sha256: bd067ef7aa812e1fa0fe899e74d74b378485e4e295054751970c576a73930231
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.2
@@ -6115,20 +6261,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 31
 - SHA-256 печатного исходного изображения: `bd067ef7aa812e1fa0fe899e74d74b378485e4e295054751970c576a73930231`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.3"
 source_page: 32
 source_image_sha256: 0992e8a8849fe995cfd7afe7ba245750f17b332308e0af81420201aa0ad5df13
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.3
@@ -6234,20 +6382,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 32
 - SHA-256 печатного исходного изображения: `0992e8a8849fe995cfd7afe7ba245750f17b332308e0af81420201aa0ad5df13`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.4"
 source_page: 33
 source_image_sha256: d0d26a0117f1388623f9fe6e39f9d356eda5ac8af70eee189b12fdbcdbaf0268
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.4
@@ -6355,20 +6505,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 33
 - SHA-256 печатного исходного изображения: `d0d26a0117f1388623f9fe6e39f9d356eda5ac8af70eee189b12fdbcdbaf0268`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.5"
 source_page: 34
 source_image_sha256: d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.5
@@ -6470,20 +6622,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 34
 - SHA-256 печатного исходного изображения: `d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.6"
 source_page: 34
 source_image_sha256: d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.6
@@ -6585,20 +6739,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 34
 - SHA-256 печатного исходного изображения: `d86af1b485dc86727b83b35195e59738abdc3bd91f02aea4c35d8b8df73161ae`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.7"
 source_page: 35
 source_image_sha256: 4fdca422e256cb96770ccc6a2fe4b40de9814837cc762a82c5193fe8ba4702f1
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.7
@@ -6706,20 +6862,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 35
 - SHA-256 печатного исходного изображения: `4fdca422e256cb96770ccc6a2fe4b40de9814837cc762a82c5193fe8ba4702f1`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.8"
 source_page: 35
 source_image_sha256: 4fdca422e256cb96770ccc6a2fe4b40de9814837cc762a82c5193fe8ba4702f1
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.8
@@ -6825,27 +6983,29 @@ comparison: MISMATCH
 - Ключ: א. v_A = 10 m/s | ב. v_B = 12.21 m/s | ג. X_L = 7.14 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Скорость вылета 10 м/с из ключа требует в четыре раза большей энергии пружины; ошибка переходит в скорость удара и дальность.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Скорость вылета 10 м/с из ключа требует в четыре раза большей энергии пружины; ошибка переходит в скорость удара и дальность.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 35
 - SHA-256 печатного исходного изображения: `4fdca422e256cb96770ccc6a2fe4b40de9814837cc762a82c5193fe8ba4702f1`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "8.1"
 source_page: 36
 source_image_sha256: 25f65394d0ac342bfb3e790063d56a60255a541be78f04717a3fe46b416e994d
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 8.1
@@ -6951,27 +7111,29 @@ comparison: MISMATCH
 - Ключ: א. V_D = 9.904 m/s | ב. u = 1.65 m/s | ג. F_{EX} = 3300 N | ד. S = 0.463 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Не совпадает только сила 3300 Н: при Δt = 0,05 с она вдвое больше результата по изменению импульса.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Не совпадает только сила 3300 Н: при Δt = 0,05 с она вдвое больше результата по изменению импульса.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 36
 - SHA-256 печатного исходного изображения: `25f65394d0ac342bfb3e790063d56a60255a541be78f04717a3fe46b416e994d`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "8.2"
 source_page: 36
 source_image_sha256: 25f65394d0ac342bfb3e790063d56a60255a541be78f04717a3fe46b416e994d
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 8.2
@@ -7075,20 +7237,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 36
 - SHA-256 печатного исходного изображения: `25f65394d0ac342bfb3e790063d56a60255a541be78f04717a3fe46b416e994d`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "8.3"
 source_page: 37
 source_image_sha256: a3f0f1c21b45205cde9f1527a4b495526a14bf4e8d9a3ece1da53f2806ded5a0
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 8.3
@@ -7193,20 +7357,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 37
 - SHA-256 печатного исходного изображения: `a3f0f1c21b45205cde9f1527a4b495526a14bf4e8d9a3ece1da53f2806ded5a0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "8.4"
 source_page: 37
 source_image_sha256: a3f0f1c21b45205cde9f1527a4b495526a14bf4e8d9a3ece1da53f2806ded5a0
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 8.4
@@ -7318,20 +7484,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 37
 - SHA-256 печатного исходного изображения: `a3f0f1c21b45205cde9f1527a4b495526a14bf4e8d9a3ece1da53f2806ded5a0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "8.5"
 source_page: 38
 source_image_sha256: faadae9640548dc09d6af6b43ef731c8f3c297f7c7c38b3f82ad2d883af77014
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 8.5
@@ -7438,20 +7606,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 38
 - SHA-256 печатного исходного изображения: `faadae9640548dc09d6af6b43ef731c8f3c297f7c7c38b3f82ad2d883af77014`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.1"
 source_page: 39
 source_image_sha256: 2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
+review_disposition: OWNER_REVIEW_PENDING
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.1
@@ -7547,27 +7717,29 @@ comparison: MISMATCH
 - Ключ: ΔX_S = 192.146 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом**. Ответ ключа 192,146 м не следует из печатных R = 90 м, T = 2 кН, α = 30° и g = 9,81.
+> Важно: **расхождение с ключом ожидает проверки владельца**. Ответ ключа 192,146 м не следует из печатных R = 90 м, T = 2 кН, α = 30° и g = 9,81.
 
 ## Происхождение и границы
 
 - Каноническая страница корпуса: 39
 - SHA-256 печатного исходного изображения: `2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.2"
 source_page: 39
 source_image_sha256: 2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.2
@@ -7663,20 +7835,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 39
 - SHA-256 печатного исходного изображения: `2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.3"
 source_page: 39
 source_image_sha256: 2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.3
@@ -7768,20 +7942,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 39
 - SHA-256 печатного исходного изображения: `2a432e74f5bd7017fc2fd662772a623e59bf9586ea403751c68e51dee14ddf22`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.4"
 source_page: 40
 source_image_sha256: 8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.4
@@ -7880,20 +8056,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 40
 - SHA-256 печатного исходного изображения: `8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.5"
 source_page: 40
 source_image_sha256: 8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.5
@@ -7988,20 +8166,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 40
 - SHA-256 печатного исходного изображения: `8f6a4488fcd9ffcb2905091f86d78066ae38f29483033d44bb6a261454283f95`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.6"
 source_page: 41
 source_image_sha256: 652f0f24b0a84115a37aaf11cae2bcd1e15a780d1d386811961bf279b148690b
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.6
@@ -8106,20 +8286,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 41
 - SHA-256 печатного исходного изображения: `652f0f24b0a84115a37aaf11cae2bcd1e15a780d1d386811961bf279b148690b`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.7"
 source_page: 41
 source_image_sha256: 652f0f24b0a84115a37aaf11cae2bcd1e15a780d1d386811961bf279b148690b
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.7
@@ -8220,20 +8402,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 41
 - SHA-256 печатного исходного изображения: `652f0f24b0a84115a37aaf11cae2bcd1e15a780d1d386811961bf279b148690b`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.8"
 source_page: 42
 source_image_sha256: 84293fe3fcd918c4d9eab91ab39a4899bf7603953401f432e6a102a286d00eb3
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.8
@@ -8348,20 +8532,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 42
 - SHA-256 печатного исходного изображения: `84293fe3fcd918c4d9eab91ab39a4899bf7603953401f432e6a102a286d00eb3`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.9"
 source_page: 42
 source_image_sha256: 84293fe3fcd918c4d9eab91ab39a4899bf7603953401f432e6a102a286d00eb3
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.9
@@ -8470,20 +8656,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 42
 - SHA-256 печатного исходного изображения: `84293fe3fcd918c4d9eab91ab39a4899bf7603953401f432e6a102a286d00eb3`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.10"
 source_page: 43
 source_image_sha256: 59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.10
@@ -8589,20 +8777,22 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 43
 - SHA-256 печатного исходного изображения: `59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.
 
 
 ---
 
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.11"
 source_page: 43
 source_image_sha256: 59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.11
@@ -8712,5 +8902,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 43
 - SHA-256 печатного исходного изображения: `59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

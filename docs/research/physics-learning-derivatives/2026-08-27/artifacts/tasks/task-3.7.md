@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "3.7"
 source_page: 15
 source_image_sha256: df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 3.7
@@ -105,5 +107,5 @@ A свободно падает на 5 м, пока B проходит по го
 - Каноническая страница корпуса: 15
 - SHA-256 печатного исходного изображения: `df09b42032f85f245b7b3466548b9da3b405852b98a6810cde505cc98dff6b5e`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

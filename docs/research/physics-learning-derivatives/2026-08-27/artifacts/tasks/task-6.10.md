@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.10"
 source_page: 28
 source_image_sha256: 4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.10
@@ -112,5 +114,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 28
 - SHA-256 печатного исходного изображения: `4eef68be9a54fa5c66d647f633dd043ad3a9cf11213946e97725a2d244da2006`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

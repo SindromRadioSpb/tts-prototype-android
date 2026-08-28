@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "5.3"
 source_page: 23
 source_image_sha256: 9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 5.3
@@ -109,5 +111,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 23
 - SHA-256 печатного исходного изображения: `9e0af0137039fdce609a6183508da5def8c505a75af9aad2438aa6d66fb5fce0`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

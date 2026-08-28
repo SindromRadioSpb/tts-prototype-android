@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.1"
 source_page: 16
 source_image_sha256: 4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.1
@@ -98,5 +100,5 @@ C — вершина траектории: y = g * t^2/2, x = v_x * t.
 - Каноническая страница корпуса: 16
 - SHA-256 печатного исходного изображения: `4e7630db01713e805429d817392aedb4c1444932ff4361b17c4b53d865af81db`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

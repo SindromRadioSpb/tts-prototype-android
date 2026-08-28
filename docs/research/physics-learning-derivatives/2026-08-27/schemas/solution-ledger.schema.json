@@ -1,20 +1,39 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "physics_independent_solution_ledger.1.0.0",
+  "$id": "physics_independent_solution_ledger.1.1.0",
   "title": "Physics independent solution ledger",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "corpus_slug", "method", "review", "entries"],
   "properties": {
-    "schema_version": {"const": "physics_independent_solution_ledger.1.0.0"},
+    "schema_version": {"const": "physics_independent_solution_ledger.1.1.0"},
     "corpus_slug": {"const": "physics-year1-problems"},
-    "method": {"const": "independent_derivation_from_canonical_condition_and_printed_diagram_only"},
+    "method": {"const": "independent_derivation_with_owner_authorized_handwritten_correction"},
     "constants": {"type": "object"},
     "review": {
       "type": "object",
-      "required": ["handwritten_solution_used", "answer_key_role"],
+      "required": ["handwritten_solution_used", "handwritten_solution_method", "handwritten_solution_scope", "handwritten_sources", "answer_key_role"],
       "properties": {
-        "handwritten_solution_used": {"const": false},
+        "handwritten_solution_used": {"const": true},
+        "handwritten_solution_method": {"const": "owner_authorized_visual_review_without_ocr"},
+        "handwritten_solution_scope": {
+          "const": ["1.5", "1.10", "6.1"]
+        },
+        "handwritten_sources": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["task_number", "filename", "sha256", "role"],
+            "properties": {
+              "task_number": {"enum": ["1.5", "1.10", "6.1"]},
+              "filename": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "role": {"enum": ["correction_and_answer_verification", "solution_verification_and_presentation_reference"]}
+            }
+          }
+        },
         "answer_key_role": {"const": "post_derivation_comparison_only"}
       }
     },
@@ -31,7 +50,8 @@
           "derivation": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
           "result": {"type": "string", "minLength": 1},
           "comparison": {"enum": ["EXACT", "WITHIN_TOLERANCE", "MISMATCH", "SOURCE_INSUFFICIENT"]},
-          "comparison_note": {"type": "string"}
+          "comparison_note": {"type": "string"},
+          "review_disposition": {"enum": ["OWNER_CONFIRMED_MATCH", "OWNER_CONFIRMED_KEY_ERROR", "OWNER_REVIEW_PENDING"]}
         }
       }
     }

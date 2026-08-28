@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "physics_exam_solution_ledger.2.0.0",
+  "$id": "physics_exam_solution_ledger.2.1.0",
   "title": "Physics college-exam solution structure",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "locale", "standard", "entries"],
   "properties": {
-    "schema_version": {"const": "physics_exam_solution_ledger.2.0.0"},
+    "schema_version": {"const": "physics_exam_solution_ledger.2.1.0"},
     "locale": {"const": "ru"},
     "standard": {"const": "college_exam_full_derivation"},
     "entries": {

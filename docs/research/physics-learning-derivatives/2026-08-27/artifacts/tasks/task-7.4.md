@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "7.4"
 source_page: 33
 source_image_sha256: d0d26a0117f1388623f9fe6e39f9d356eda5ac8af70eee189b12fdbcdbaf0268
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 7.4
@@ -113,5 +115,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 33
 - SHA-256 печатного исходного изображения: `d0d26a0117f1388623f9fe6e39f9d356eda5ac8af70eee189b12fdbcdbaf0268`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

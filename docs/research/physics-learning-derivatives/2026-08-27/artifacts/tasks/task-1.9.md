@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "1.9"
 source_page: 8
 source_image_sha256: f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 1.9
@@ -115,5 +117,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 8
 - SHA-256 печатного исходного изображения: `f2cc8dae359534f8b8502c1eb97b6629872e30ff420668a424b1295417b985bc`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

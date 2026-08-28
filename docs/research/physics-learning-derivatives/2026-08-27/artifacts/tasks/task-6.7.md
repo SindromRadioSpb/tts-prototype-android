@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "6.7"
 source_page: 26
 source_image_sha256: 017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 6.7
@@ -109,5 +111,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 26
 - SHA-256 печатного исходного изображения: `017cf9f6106202ac599c3ae60662f693e5bc66046860d3990df30878e41886a8`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

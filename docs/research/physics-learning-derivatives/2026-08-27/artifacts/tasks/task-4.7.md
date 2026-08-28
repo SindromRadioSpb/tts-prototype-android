@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.7"
 source_page: 18
 source_image_sha256: 82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.7
@@ -111,5 +113,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 18
 - SHA-256 печатного исходного изображения: `82deb419eb2a3d36610959595dc386bb713bd9ffbd7428c102d07af4e5055802`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

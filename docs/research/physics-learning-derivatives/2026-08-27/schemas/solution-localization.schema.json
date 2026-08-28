@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "physics_solution_localization.1.0.0",
+  "$id": "physics_solution_localization.1.1.0",
   "title": "Physics solution localization",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "locale", "source_schema_version", "review_status", "entries"],
   "properties": {
-    "schema_version": {"const": "physics_solution_localization.1.0.0"},
+    "schema_version": {"const": "physics_solution_localization.1.1.0"},
     "locale": {"const": "ru"},
-    "source_schema_version": {"const": "physics_independent_solution_ledger.1.0.0"},
+    "source_schema_version": {"const": "physics_independent_solution_ledger.1.1.0"},
     "review_status": {"type": "string", "minLength": 1},
     "entries": {
       "type": "array",

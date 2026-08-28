@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "9.11"
 source_page: 43
 source_image_sha256: 59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 9.11
@@ -115,5 +117,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 43
 - SHA-256 печатного исходного изображения: `59f628bb0d4461b2d6353081ef799c834734952f36355aadbc74b8a815031a73`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

@@ -1,11 +1,13 @@
 ---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "4.14"
 source_page: 22
 source_image_sha256: 45f5c8bbeb737b71b3f7f01ee3114f132a9f1ab3947c199341a679c30bae9c1a
 review_state: ANSWER_COMPARED
 comparison: WITHIN_TOLERANCE
+review_disposition: NOT_APPLICABLE
+handwritten_evidence: NOT_USED
 ---
 
 # Физика — задача 4.14
@@ -107,5 +109,5 @@ comparison: WITHIN_TOLERANCE
 - Каноническая страница корпуса: 22
 - SHA-256 печатного исходного изображения: `45f5c8bbeb737b71b3f7f01ee3114f132a9f1ab3947c199341a679c30bae9c1a`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+- Рукописное решение для этой задачи не использовалось.
 - Публичная публикация этой производной пока не разрешена.

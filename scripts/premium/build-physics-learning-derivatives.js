@@ -58,7 +58,7 @@ const INDEXED_SYMBOLS = Object.freeze({
   μ: ['B-пл', 'AB', 's1', 's2', 'k', 's']
 });
 
-const SEGMENT_SYMBOLS = Object.freeze(['AB', 'AC', 'BC', 'BD', 'BE', 'CD', 'DE', 'MC', 'NC', 'OB']);
+const SEGMENT_SYMBOLS = Object.freeze(['AB', 'AC', 'BC', 'BD', 'BE', 'CD', 'DE', 'MC', 'NC', 'OB', 'Ox']);
 
 function subscript(base, suffix) {
   return suffix.length === 1 ? `${base}_${suffix}` : `${base}_{${suffix}}`;
@@ -82,6 +82,8 @@ function addExplicitProducts(value) {
   text = protectMatches(text, /(?:arctan|arccos|sin|cos|tan)/g, (match) => match, 'ƒ', protectedValues);
   text = protectMatches(text, /(?:[A-Za-zΔΣμ])_(?:\{[^}]+\}|[A-Za-zА-Яа-я0-9])/g, (match) => match, 'ℐ', protectedValues);
   text = protectMatches(text, /(?:Δ[A-Za-z]|Σ[FW]|dt)/g, (match) => match, 'ℐ', protectedValues);
+  // Protect both geometric segment labels and the conventional coordinate-axis
+  // label Ox; none of these adjacent letters denote multiplication.
   text = protectMatches(text, new RegExp(`(?:${SEGMENT_SYMBOLS.join('|')})`, 'g'), (match) => match, 'ℐ', protectedValues);
 
   // After named quantities, functions and geometric segments have been protected,
@@ -245,6 +247,22 @@ function calculationStepsFor(solution) {
   return steps;
 }
 
+function handwrittenProvenance(solution) {
+  if (!solution.handwritten_source) {
+    return '- Рукописное решение для этой задачи не использовалось.';
+  }
+  const source = solution.handwritten_source;
+  return `- По разрешению владельца рукописное решение визуально сверено без OCR: \`${source.filename}\`, SHA-256 \`${source.sha256}\`.`;
+}
+
+function isConfirmedKeyError(solution) {
+  return solution.review_disposition === 'OWNER_CONFIRMED_KEY_ERROR';
+}
+
+function isOpenMismatch(solution) {
+  return solution.comparison === 'MISMATCH' && !isConfirmedKeyError(solution);
+}
+
 function markdownForTask(task, answer, solution) {
   const ru = conditionRows(task, 'ru').map((text) => `- ${text}`).join('\n');
   const he = conditionRows(task, 'he_plain').map((text) => `- ${text}`).join('\n');
@@ -254,17 +272,21 @@ function markdownForTask(task, answer, solution) {
   const construction = solution.exam.construction
     ? `\n#### Обязательное построение\n\n${markdownList(solution.exam.construction, true)}\n`
     : '';
-  const warning = solution.comparison === 'MISMATCH'
-    ? `\n> Важно: **расхождение с ключом**. ${normalizePhysicsNotation(solution.comparison_note)}\n`
+  const warning = isConfirmedKeyError(solution)
+    ? `\n> Статус: **ошибка ключа подтверждена владельцем**. ${normalizePhysicsNotation(solution.comparison_note)}\n`
+    : isOpenMismatch(solution)
+      ? `\n> Важно: **расхождение с ключом ожидает проверки владельца**. ${normalizePhysicsNotation(solution.comparison_note)}\n`
     : '';
   return `---
-schema: physics_task_learning_derivative.2.0.0
+schema: physics_task_learning_derivative.2.1.0
 corpus: physics-year1-problems
 task_number: "${task.task_number}"
 source_page: ${task.source_page}
 source_image_sha256: ${task.source_image_sha256}
 review_state: ANSWER_COMPARED
 comparison: ${solution.comparison}
+review_disposition: ${solution.review_disposition || 'NOT_APPLICABLE'}
+handwritten_evidence: ${solution.handwritten_source ? 'OWNER_AUTHORIZED_VISUAL_REVIEW_WITHOUT_OCR' : 'NOT_USED'}
 ---
 
 # Физика — задача ${task.task_number}
@@ -346,18 +368,20 @@ ${warning}
 - Каноническая страница корпуса: ${task.source_page}
 - SHA-256 печатного исходного изображения: \`${task.source_image_sha256}\`
 - Ответы вручную перенесены из растрового ключа и использованы только после независимого вывода.
-- Рукописные решения не распознавались, не переписывались и не использовались.
+${handwrittenProvenance(solution)}
 - Публичная публикация этой производной пока не разрешена.
 `;
 }
 
-function agentGuide(taskDocuments) {
+function agentGuide(taskDocuments, review) {
   return `---
-schema: physics_agent_learning_guide.2.0.0
+schema: physics_agent_learning_guide.2.1.0
 corpus: physics-year1-problems
 task_count: 74
 locale: ru
-handwritten_solution_used: false
+handwritten_solution_used: true
+handwritten_solution_scope: "${review.handwritten_solution_scope.join(', ')}"
+handwritten_solution_method: ${review.handwritten_solution_method}
 publication_status: LOCAL_REVIEW_ONLY
 ---
 
@@ -367,7 +391,10 @@ publication_status: LOCAL_REVIEW_ONLY
 каноническое условие, «Дано» и «Найти», перевод в СИ, базовые законы,
 символический вывод, последовательный численный расчёт, проверку и ответ,
 сверку с ключом и происхождение. Ответы из ключа открывались только после
-вывода; рукописные решения не распознавались и не использовались.
+вывода. По разрешению владельца решения 1.5, 1.10 и 6.1 затем были визуально
+сверены с рукописными источниками без OCR: для 1.5 и 6.1 это корректирующее
+доказательство, для 1.10 — подтверждение результата и эталон последовательности
+экзаменационного оформления.
 
 ## Стандарт математической записи
 
@@ -381,6 +408,11 @@ ${taskDocuments.join('\n\n---\n\n')}`;
 
 function renderTaskCard(task, answer, solution) {
   const mismatch = solution.comparison === 'MISMATCH';
+  const confirmedKeyError = isConfirmedKeyError(solution);
+  const openMismatch = isOpenMismatch(solution);
+  const statusClass = confirmedKeyError ? 'task--confirmed-key-error' : openMismatch ? 'task--mismatch' : '';
+  const verdictClass = confirmedKeyError ? 'confirmed' : openMismatch ? 'warn' : 'ok';
+  const verdictText = confirmedKeyError ? 'Ошибка ключа подтверждена' : openMismatch ? 'Проверить расхождение' : 'Сверено';
   const ru = conditionRows(task, 'ru').map((text) => `<p>${escapeHtml(text)}</p>`).join('');
   const he = conditionRows(task, 'he_plain').map((text) => `<p>${escapeHtml(text)}</p>`).join('');
   const calculationSteps = calculationStepsFor(solution);
@@ -390,10 +422,10 @@ function renderTaskCard(task, answer, solution) {
     ? `<section class="exam-construction"><h4>Обязательное построение</h4>${htmlList(solution.exam.construction, '', true)}</section>`
     : '';
   const answerParts = answer.parts.map((part) => `<li><b>${escapeHtml(part.label || '—')}</b> ${mathHtml(part.text)}</li>`).join('');
-  return `<article class="task ${mismatch ? 'task--mismatch' : ''}" id="task-${task.task_number}" data-task="${task.task_number}" data-search="${escapeHtml(`${task.task_number} ${conditionRows(task, 'ru').join(' ')}`.toLowerCase())}">
+  return `<article class="task ${statusClass}" id="task-${task.task_number}" data-task="${task.task_number}" data-search="${escapeHtml(`${task.task_number} ${conditionRows(task, 'ru').join(' ')}`.toLowerCase())}">
     <header class="task__header">
       <div><span class="eyebrow">Задача ${task.task_number}</span><h2>Полное экзаменационное решение</h2></div>
-      <span class="verdict verdict--${mismatch ? 'warn' : 'ok'}">${mismatch ? 'Проверить расхождение' : 'Сверено'}</span>
+      <span class="verdict verdict--${verdictClass}">${verdictText}</span>
     </header>
     <div class="evidence-rail" aria-label="Этапы проверки"><span>условие</span><i></i><span>модель</span><i></i><span>вывод</span><i></i><span>ответ</span><i></i><span>сверка</span></div>
     <section class="condition"><h3>Условие</h3>${ru}</section>
@@ -411,7 +443,7 @@ ${construction}
       <section class="exam-step exam-check"><b class="step-no">05</b><div><h4>Проверка результата</h4>${htmlList(solution.exam.check, '', true)}</div></section>
       <p class="result"><span>Ответ</span>${mathHtml(solution.result)}</p>
     </div></details>
-    <details class="answer"><summary>Показать ответ и сверку</summary><ul>${answerParts}</ul><p class="comparison ${mismatch ? 'comparison--warn' : ''}">${escapeHtml(comparisonLabel(solution.comparison))}</p>${mismatch ? `<p>${mathHtml(solution.comparison_note)}</p>` : ''}</details>
+    <details class="answer"><summary>Показать ответ и сверку</summary><ul>${answerParts}</ul><p class="comparison ${confirmedKeyError ? 'comparison--confirmed' : openMismatch ? 'comparison--warn' : ''}">${confirmedKeyError ? 'Расхождение: ошибка ключа подтверждена' : escapeHtml(comparisonLabel(solution.comparison))}</p>${mismatch ? `<p>${mathHtml(solution.comparison_note)}</p>` : ''}</details>
     <footer><span>Источник: страница ${task.source_page}</span><code title="SHA-256 исходного изображения">${task.source_image_sha256.slice(0, 12)}…</code></footer>
   </article>`;
 }
@@ -428,13 +460,13 @@ function renderHtml(corpusTasks, answerMap, solutionMap) {
   return `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Физика — 74 экзаменационных решения</title>
 <style>
-:root{--ink:#182128;--paper:#f2efe7;--panel:#fffdf7;--blue:#155d83;--blue2:#0b3954;--amber:#d89022;--red:#a43b32;--line:#c8c4b8;--muted:#66727a;--shadow:0 18px 48px #102b3a18}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.6 "Segoe UI",Arial,sans-serif;background-image:linear-gradient(#155d8309 1px,transparent 1px),linear-gradient(90deg,#155d8309 1px,transparent 1px);background-size:24px 24px}a{color:inherit}.masthead{padding:64px max(24px,calc((100vw - 1120px)/2));background:var(--blue2);color:#fff;position:relative;overflow:hidden}.masthead:after{content:"";position:absolute;inset:auto -8% -160px 42%;height:320px;border:48px solid #ffffff0c;border-radius:50%;transform:rotate(-14deg)}.kicker,.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-weight:800;font-size:.72rem}.masthead h1{font:700 clamp(2.4rem,7vw,5.8rem)/.95 Georgia,serif;max-width:900px;margin:.3em 0}.masthead p{max-width:720px;color:#dbeaf1}.stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.stats span{border:1px solid #ffffff33;padding:8px 12px;border-radius:999px}.toolbar{position:sticky;top:0;z-index:9;background:#f2efe7ee;backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:10px max(16px,calc((100vw - 1120px)/2));display:flex;gap:12px;align-items:center}.toolbar nav{display:flex;gap:6px;overflow:auto}.toolbar a{min-width:38px;text-align:center;text-decoration:none;padding:7px;border:1px solid var(--line);border-radius:4px;background:#fff}.toolbar input{margin-left:auto;min-width:250px;padding:10px 12px;border:1px solid var(--line);background:white;border-radius:4px}.content{max-width:1120px;margin:auto;padding:36px 24px 100px}.notation-key{display:grid;grid-template-columns:minmax(180px,.7fr) 1fr 1fr;gap:18px;align-items:center;padding:18px 22px;background:#e5eef1;border:1px solid #9eb1ba;border-top:4px solid var(--amber);box-shadow:var(--shadow)}.notation-key h2{margin:0;font:700 1.25rem/1.2 Georgia,serif}.notation-key p{margin:0}.notation-key small{display:block;color:var(--muted)}.notation-key .math-expression{font:600 1.08rem/1.5 "Cambria Math",Cambria,serif}.chapter{scroll-margin-top:76px}.chapter__header{display:grid;grid-template-columns:110px 1fr auto;align-items:end;gap:20px;margin:60px 0 20px;border-bottom:4px solid var(--blue2)}.chapter__header span,.chapter__header b{padding-bottom:12px;color:var(--blue)}.chapter__header h1{margin:0;font:700 clamp(1.7rem,4vw,3rem)/1.05 Georgia,serif;padding-bottom:10px}.task{scroll-margin-top:76px;background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--blue);padding:28px;margin:18px 0;box-shadow:var(--shadow)}.task--mismatch{border-left-color:var(--red)}.task__header{display:flex;justify-content:space-between;gap:24px;align-items:start}.task__header h2{font:700 1.35rem/1.2 Georgia,serif;margin:.3rem 0 0}.verdict{font-size:.75rem;font-weight:800;padding:6px 10px;border-radius:3px;background:#e4f1e8;color:#24633a;white-space:nowrap}.verdict--warn{background:#f7e4df;color:#8b2f28}.evidence-rail{display:flex;align-items:center;gap:8px;color:var(--blue);font-size:.72rem;font-weight:800;margin:22px 0;text-transform:uppercase;letter-spacing:.08em}.evidence-rail i{height:1px;min-width:12px;flex:1;background:var(--amber)}h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);margin-top:24px}.condition p{margin:.7em 0}.attempt{display:flex;gap:16px;border:1px dashed var(--amber);padding:14px;margin:20px 0;background:#fff8e8}.attempt span{color:var(--muted)}details{border-top:1px solid var(--line);padding:12px 0}summary{cursor:pointer;font-weight:750;color:var(--blue2)}details p,details ol,details ul{margin-left:18px;margin-right:18px}.hebrew div{font-size:1.1rem}.result{border-left:3px solid var(--amber);padding:12px;background:#fff8e8}.result span{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:.68rem;font-weight:800;color:#8c5b11}.comparison{display:inline-block;background:#e4f1e8;color:#24633a;padding:4px 8px;font-weight:800}.comparison--warn{background:#f7e4df;color:#8b2f28}.task footer{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;margin-top:20px}code{font-family:Consolas,monospace}.no-results{display:none;padding:50px;text-align:center;color:var(--muted)}@media(max-width:700px){.masthead{padding:44px 20px}.toolbar{align-items:stretch;flex-direction:column}.toolbar input{margin:0;min-width:0;width:100%}.content{padding:18px 12px 70px}.notation-key{grid-template-columns:1fr}.chapter__header{grid-template-columns:1fr auto}.chapter__header h1{grid-column:1/-1}.task{padding:20px 16px}.task__header{display:block}.verdict{display:inline-block;margin-top:12px}.evidence-rail{overflow:auto}.attempt{display:block}.task footer{display:block}.task footer code{display:block;margin-top:6px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{.toolbar,.attempt{display:none}.masthead{background:#fff;color:#000;padding:20px}.masthead p{color:#333}.content{max-width:none;padding:0}.task{break-inside:avoid;box-shadow:none}.solution[open],.answer[open]{display:block}details{display:block}details>summary{font-weight:bold}}
+:root{--ink:#182128;--paper:#f2efe7;--panel:#fffdf7;--blue:#155d83;--blue2:#0b3954;--amber:#d89022;--red:#a43b32;--line:#c8c4b8;--muted:#66727a;--shadow:0 18px 48px #102b3a18}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.6 "Segoe UI",Arial,sans-serif;background-image:linear-gradient(#155d8309 1px,transparent 1px),linear-gradient(90deg,#155d8309 1px,transparent 1px);background-size:24px 24px}a{color:inherit}.masthead{padding:64px max(24px,calc((100vw - 1120px)/2));background:var(--blue2);color:#fff;position:relative;overflow:hidden}.masthead:after{content:"";position:absolute;inset:auto -8% -160px 42%;height:320px;border:48px solid #ffffff0c;border-radius:50%;transform:rotate(-14deg)}.kicker,.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-weight:800;font-size:.72rem}.masthead h1{font:700 clamp(2.4rem,7vw,5.8rem)/.95 Georgia,serif;max-width:900px;margin:.3em 0}.masthead p{max-width:760px;color:#dbeaf1}.stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.stats span{border:1px solid #ffffff33;padding:8px 12px;border-radius:999px}.toolbar{position:sticky;top:0;z-index:9;background:#f2efe7ee;backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:10px max(16px,calc((100vw - 1120px)/2));display:flex;gap:12px;align-items:center}.toolbar nav{display:flex;gap:6px;overflow:auto}.toolbar a{min-width:38px;text-align:center;text-decoration:none;padding:7px;border:1px solid var(--line);border-radius:4px;background:#fff}.toolbar input{margin-left:auto;min-width:250px;padding:10px 12px;border:1px solid var(--line);background:white;border-radius:4px}.content{max-width:1120px;margin:auto;padding:36px 24px 100px}.notation-key{display:grid;grid-template-columns:minmax(180px,.7fr) 1fr 1fr;gap:18px;align-items:center;padding:18px 22px;background:#e5eef1;border:1px solid #9eb1ba;border-top:4px solid var(--amber);box-shadow:var(--shadow)}.notation-key h2{margin:0;font:700 1.25rem/1.2 Georgia,serif}.notation-key p{margin:0}.notation-key small{display:block;color:var(--muted)}.notation-key .math-expression{font:600 1.08rem/1.5 "Cambria Math",Cambria,serif}.chapter{scroll-margin-top:76px}.chapter__header{display:grid;grid-template-columns:110px 1fr auto;align-items:end;gap:20px;margin:60px 0 20px;border-bottom:4px solid var(--blue2)}.chapter__header span,.chapter__header b{padding-bottom:12px;color:var(--blue)}.chapter__header h1{margin:0;font:700 clamp(1.7rem,4vw,3rem)/1.05 Georgia,serif;padding-bottom:10px}.task{scroll-margin-top:76px;background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--blue);padding:28px;margin:18px 0;box-shadow:var(--shadow)}.task--mismatch{border-left-color:var(--red)}.task--confirmed-key-error{border-left-color:var(--amber)}.task__header{display:flex;justify-content:space-between;gap:24px;align-items:start}.task__header h2{font:700 1.35rem/1.2 Georgia,serif;margin:.3rem 0 0}.verdict{font-size:.75rem;font-weight:800;padding:6px 10px;border-radius:3px;background:#e4f1e8;color:#24633a;white-space:nowrap}.verdict--warn{background:#f7e4df;color:#8b2f28}.verdict--confirmed{background:#fff0ce;color:#77500c}.evidence-rail{display:flex;align-items:center;gap:8px;color:var(--blue);font-size:.72rem;font-weight:800;margin:22px 0;text-transform:uppercase;letter-spacing:.08em}.evidence-rail i{height:1px;min-width:12px;flex:1;background:var(--amber)}h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);margin-top:24px}.condition p{margin:.7em 0}.attempt{display:flex;gap:16px;border:1px dashed var(--amber);padding:14px;margin:20px 0;background:#fff8e8}.attempt span{color:var(--muted)}details{border-top:1px solid var(--line);padding:12px 0}summary{cursor:pointer;font-weight:750;color:var(--blue2)}details p,details ol,details ul{margin-left:18px;margin-right:18px}.hebrew div{font-size:1.1rem}.result{border-left:3px solid var(--amber);padding:12px;background:#fff8e8}.result span{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:.68rem;font-weight:800;color:#8c5b11}.comparison{display:inline-block;background:#e4f1e8;color:#24633a;padding:4px 8px;font-weight:800}.comparison--warn{background:#f7e4df;color:#8b2f28}.comparison--confirmed{background:#fff0ce;color:#77500c}.task footer{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;margin-top:20px}code{font-family:Consolas,monospace}.no-results{display:none;padding:50px;text-align:center;color:var(--muted)}@media(max-width:700px){.masthead{padding:44px 20px}.toolbar{align-items:stretch;flex-direction:column}.toolbar input{margin:0;min-width:0;width:100%}.content{padding:18px 12px 70px}.notation-key{grid-template-columns:1fr}.chapter__header{grid-template-columns:1fr auto}.chapter__header h1{grid-column:1/-1}.task{padding:20px 16px}.task__header{display:block}.verdict{display:inline-block;margin-top:12px;white-space:normal}.evidence-rail{overflow:auto}.attempt{display:block}.task footer{display:block}.task footer code{display:block;margin-top:6px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{.toolbar,.attempt{display:none}.masthead{background:#fff;color:#000;padding:20px}.masthead p{color:#333}.content{max-width:none;padding:0}.task{break-inside:avoid;box-shadow:none}.solution[open],.answer[open]{display:block}details{display:block}details>summary{font-weight:bold}}
 </style><style>
 .exam-sheet{margin:18px 0 8px;padding:24px 26px 28px 54px;background-color:#fff;background-image:linear-gradient(90deg,transparent 0,transparent 31px,#cf5b561f 32px,#cf5b561f 33px,transparent 34px),repeating-linear-gradient(0deg,transparent 0,transparent 31px,#155d8310 32px);border:1px solid #b9c3c8;box-shadow:inset 0 0 0 5px #f7f9fa;position:relative;max-width:100%;overflow-wrap:anywhere}.exam-sheet:before{content:"ПРОТОКОЛ РЕШЕНИЯ";position:absolute;left:10px;top:26px;writing-mode:vertical-rl;transform:rotate(180deg);font:800 .62rem/1 "Segoe UI",sans-serif;letter-spacing:.14em;color:#9e403b}.exam-sheet h4{margin:0 0 8px;font:800 .76rem/1.25 "Segoe UI",sans-serif;letter-spacing:.11em;text-transform:uppercase;color:var(--blue2)}.exam-sheet ul,.exam-sheet ol{margin:0;padding-left:1.35rem}.exam-sheet li{margin:.5rem 0}.exam-ledger{display:grid;grid-template-columns:1.4fr 1fr;border:1px solid #82939b;background:#ffffffd9}.exam-ledger section{padding:16px;min-width:0}.exam-ledger section+section{border-left:1px solid #82939b}.exam-si{margin:14px 0 2px;padding:14px 16px;border-left:4px solid var(--amber);background:#fff8e9}.exam-step{display:grid;grid-template-columns:42px minmax(0,1fr);gap:14px;padding:20px 0;border-top:1px solid #9daab0}.exam-step>div{min-width:0}.step-no{font:800 1rem/1 Consolas,monospace;color:#9e403b;padding-top:3px}.exam-step>div>p{margin:.2rem 0}.math-expression var{font-family:"Cambria Math","STIX Two Math",Cambria,"Times New Roman",serif;font-style:italic;white-space:nowrap}.math-expression sub,.math-expression sup{font:600 .72em/0 "Cambria Math","STIX Two Math",Cambria,serif}.math-expression sub{vertical-align:-.28em}.math-expression sup{vertical-align:.55em}.math-op{display:inline-block;margin:0 .14em;font-family:"Cambria Math","STIX Two Math",Cambria,serif;font-weight:600;color:#314854}.math-fn{font-family:"Cambria Math","STIX Two Math",Cambria,serif;font-style:normal;font-weight:600}.formula-list{font:600 1.02rem/1.8 "Cambria Math","STIX Two Math",Cambria,"Times New Roman",serif}.formula-list .math-expression{display:inline-block;padding:.08rem .28rem;background:#f7fafb;border-radius:2px}.formula-list li::marker{color:var(--amber)}.exam-construction{margin:2px 0 4px;padding:16px 18px;border:1px dashed #8b5e2b;background:#fff9ec}.exam-construction h4{color:#7b4d18}.exam-construction li{font-family:Cambria,"Times New Roman",serif}.exam-check{background:#edf5f1;margin:0 -8px;padding:18px 8px}.exam-check h4{color:#296044}.exam-sheet .result{margin:20px 0 0;font:700 1rem/1.55 "Cambria Math","STIX Two Math",Cambria,"Times New Roman",serif;border:2px solid var(--blue2);background:#f5fafc}.solution>summary{font-size:1.02rem}.solution[open]>summary{margin-bottom:14px}
 @media(max-width:700px){.masthead h1{overflow-wrap:anywhere}.toolbar nav{width:100%;min-width:0;max-width:100%;white-space:nowrap}.attempt span{display:block;margin-top:8px}.exam-sheet{padding:18px 14px 22px 34px;margin-left:-6px;margin-right:-6px}.exam-sheet:before{left:7px}.exam-ledger{grid-template-columns:1fr}.exam-ledger section+section{border-left:0;border-top:1px solid #82939b}.exam-step{grid-template-columns:30px minmax(0,1fr);gap:8px}.exam-sheet ol,.exam-sheet ul{padding-left:1.1rem}}
 @media print{details>*:not(summary){display:block!important}.exam-sheet{box-shadow:none;break-inside:auto}.exam-step{break-inside:avoid}.task{break-inside:auto}}
 </style></head><body>
-<header class="masthead"><span class="kicker">LinguistPro · экзаменационная физика</span><h1>74 задачи.<br>От «дано» до ответа.</h1><p>Полные решения в формате колледжа: обозначения и СИ, базовые законы, символический вывод, последовательная подстановка и проверка результата. Индексы, степени и умножение оформлены однозначно. Ключ использован только после независимого решения; рукописные работы не использовались.</p><div class="stats"><span>74 задачи</span><span>9 глав</span><span>${mismatchCount} расхождений</span><span>математическая типографика R3</span></div></header>
+<header class="masthead"><span class="kicker">LinguistPro · экзаменационная физика</span><h1>74 задачи.<br>От «дано» до ответа.</h1><p>Полные решения в формате колледжа: обозначения и СИ, базовые законы, символический вывод, последовательная подстановка и проверка результата. Индексы, степени и умножение оформлены однозначно. Три рукописных решения визуально сверены по разрешению владельца; OCR не применялся.</p><div class="stats"><span>74 задачи</span><span>9 глав</span><span>${mismatchCount} расхождений</span><span>1 подтверждённая ошибка ключа</span><span>7 ожидают проверки</span></div></header>
 <div class="toolbar"><nav aria-label="Главы">${chapterNav}</nav><input id="search" type="search" placeholder="Номер или слова из условия" aria-label="Поиск по задачам"></div>
 <main class="content"><aside class="notation-key" aria-labelledby="notation-title"><h2 id="notation-title">Как читать формулы</h2><p>${mathHtml('vA=0; tAC=tAB+tBC')}<small>Индекс — точка, тело или участок</small></p><p>${mathHtml('v²=v₀²+2as')}<small>Степень и каждое умножение видны явно</small></p></aside>${sections}<p class="no-results" id="no-results">Совпадений не найдено.</p></main>
 <script>const q=document.querySelector('#search'),cards=[...document.querySelectorAll('.task')],empty=document.querySelector('#no-results');q.addEventListener('input',()=>{const s=q.value.trim().toLowerCase();let n=0;for(const c of cards){const show=!s||c.dataset.search.includes(s);c.hidden=!show;if(show)n++}for(const ch of document.querySelectorAll('.chapter'))ch.hidden=![...ch.querySelectorAll('.task')].some(c=>!c.hidden);empty.style.display=n?'none':'block'});</script>
@@ -443,35 +475,48 @@ function renderHtml(corpusTasks, answerMap, solutionMap) {
 
 function buildReviewReport(corpusTasks, solutionMap) {
   const mismatches = corpusTasks.filter((task) => solutionMap.get(task.task_number).comparison === 'MISMATCH');
-  const rows = mismatches.map((task) => {
+  const confirmedKeyErrors = mismatches.filter((task) => isConfirmedKeyError(solutionMap.get(task.task_number)));
+  const openMismatches = mismatches.filter((task) => isOpenMismatch(solutionMap.get(task.task_number)));
+  const confirmedRows = confirmedKeyErrors.map((task) => {
+    const solution = solutionMap.get(task.task_number);
+    return `| ${task.task_number} | ${solution.result.replaceAll('|', '\\|')} | ${solution.comparison_note.replaceAll('|', '\\|')} |`;
+  }).join('\n');
+  const openRows = openMismatches.map((task) => {
     const solution = solutionMap.get(task.task_number);
     return `| ${task.task_number} | ${solution.result.replaceAll('|', '\\|')} | ${solution.comparison_note.replaceAll('|', '\\|')} |`;
   }).join('\n');
   return `# Отчёт о сверке ответов по физике
 
-Дата: 2026-08-27
+Дата исходного пакета: 2026-08-27
+Дата корректирующей сверки: 2026-08-28
 Охват: 74/74 задачи
-Метод: сначала полное независимое решение, затем сверка с ключом
-Использование рукописных решений: нет
+Метод: независимое решение и сверка с ключом; затем разрешённая владельцем визуальная сверка рукописей 1.5, 1.10 и 6.1 без OCR
 
 ## Результат
 
 - 74 уникальные записи точно соответствуют каноническому набору корпуса.
 - ${74 - mismatches.length} задачи совпадают с ключом в пределах объявленного округления.
-- ${mismatches.length} задач имеют существенное расхождение или противоречие источника.
+- ${confirmedKeyErrors.length} расхождение является подтверждённой владельцем ошибкой ключа.
+- ${openMismatches.length} расхождений ожидают дополнительной проверки владельца.
 - Расхождение никогда не устраняется расширением допуска.
 
-## Расхождения, требующие решения владельца
+## Подтверждённая ошибка ключа
+
+| Задача | Проверенный результат | Вывод проверки |
+|---|---|---|
+${confirmedRows}
+
+## Расхождения, ожидающие решения владельца
 
 | Задача | Независимый результат | Вывод проверки |
 |---|---|---|
-${rows}
+${openRows}
 
 ## Шлюз публикации
 
 Локальная производная не разрешена к публикации в production. Необходимо принять
-решение по каждому расхождению, выполнить второй проход владельца по переносу ответов
-и подтвердить права на публикацию в соответствии с планами R1/R2.
+решение по семи открытым расхождениям, выполнить второй проход владельца по переносу
+ответов и подтвердить права на публикацию в соответствии с планами R1/R2.
 `;
 }
 
@@ -501,10 +546,13 @@ function main() {
     const source = sourceSolutionMap.get(task.task_number);
     const localized = solutionRuMap.get(task.task_number);
     const exam = examSolutionMap.get(task.task_number);
-    return [task.task_number, { ...source, ...localized, comparison: source.comparison, exam }];
+    const handwrittenSource = solutionLedger.review.handwritten_sources.find((entry) => entry.task_number === task.task_number);
+    return [task.task_number, { ...source, ...localized, comparison: source.comparison, handwritten_source: handwrittenSource, exam }];
   }));
   assert(answerLedger.source.sha256 === '5c5823f556ad4e7e892977bfbe6a0d86ef0b5b6bf241f58b5fb9d857905b84d9', 'Unexpected answer-key hash');
-  assert(solutionLedger.review.handwritten_solution_used === false, 'Handwritten solution use must remain false');
+  assert(solutionLedger.review.handwritten_solution_used === true, 'Authorized handwritten review metadata is missing');
+  assert(solutionLedger.review.handwritten_solution_method === 'owner_authorized_visual_review_without_ocr', 'Unexpected handwritten review method');
+  assert(JSON.stringify(solutionLedger.review.handwritten_solution_scope) === JSON.stringify(['1.5', '1.10', '6.1']), 'Unexpected handwritten review scope');
 
   fs.mkdirSync(TASKS_OUT, { recursive: true });
   const generatedFiles = [];
@@ -516,7 +564,7 @@ function main() {
     taskDocuments.push(body);
     generatedFiles.push(relative.replaceAll('\\', '/'));
   }
-  fs.writeFileSync(path.join(OUT, 'physics-year1-agent-guide.md'), agentGuide(taskDocuments), 'utf8');
+  fs.writeFileSync(path.join(OUT, 'physics-year1-agent-guide.md'), agentGuide(taskDocuments, solutionLedger.review), 'utf8');
   fs.writeFileSync(path.join(OUT, 'physics-year1-solutions.html'), renderHtml(corpus.tasks, answerMap, solutionMap), 'utf8');
   fs.writeFileSync(path.join(OUT, 'answer-comparison-report.md'), buildReviewReport(corpus.tasks, solutionMap), 'utf8');
   generatedFiles.push('physics-year1-agent-guide.md', 'physics-year1-solutions.html', 'answer-comparison-report.md');
@@ -528,7 +576,11 @@ function main() {
     generator: 'scripts/premium/build-physics-learning-derivatives.js',
     task_count: corpus.tasks.length,
     mismatch_count: corpus.tasks.filter((task) => solutionMap.get(task.task_number).comparison === 'MISMATCH').length,
-    handwritten_solution_used: false,
+    confirmed_key_error_count: corpus.tasks.filter((task) => isConfirmedKeyError(solutionMap.get(task.task_number))).length,
+    open_mismatch_count: corpus.tasks.filter((task) => isOpenMismatch(solutionMap.get(task.task_number))).length,
+    handwritten_solution_used: true,
+    handwritten_solution_scope: solutionLedger.review.handwritten_solution_scope,
+    handwritten_solution_method: solutionLedger.review.handwritten_solution_method,
     files: generatedFiles.sort().map((relative) => {
       const data = fs.readFileSync(path.join(OUT, relative));
       return { path: relative, bytes: data.length, sha256: sha256(data) };
