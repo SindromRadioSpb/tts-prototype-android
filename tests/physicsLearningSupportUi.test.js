@@ -18,6 +18,8 @@ test("every Physics card and Reader expose answer-first and full learning-suppor
   assert.match(ui, /learning-support', \{ cache: 'no-cache' \}/,
     "dynamic support endpoint must revalidate a pre-flag negative HTTP cache entry");
   assert.doesNotMatch(ui, /learning-support', \{ cache: 'force-cache' \}/);
+  assert.match(ui, /answer\.hidden = false; answer\.removeAttribute\('hidden'\)/,
+    "loaded answer must be made visibly available, not only populated off-screen");
   assert.match(html, /id="readerTaskLearningSupport"/);
   assert.match(html, /\.physics-learning-overlay/);
   assert.match(html, /@media \(max-width: 760px\)[\s\S]*\.physics-learning-viewer/);

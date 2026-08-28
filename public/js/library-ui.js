@@ -7858,7 +7858,7 @@ function renderPhysicsLearningActions(slug, item) {
   check.addEventListener('click', async () => {
     if (!answer.hidden) { answer.hidden = true; check.setAttribute('aria-expanded', 'false'); return; }
     const value = await load(check); if (!value) return;
-    answer.replaceChildren(el('strong', { text: tt('room.publicCorpus.physicsAnswer', 'Ответ') + ': ' }), physicsRichText(value.answer.result)); answer.hidden = false; check.setAttribute('aria-expanded', 'true');
+    answer.replaceChildren(el('strong', { text: tt('room.publicCorpus.physicsAnswer', 'Ответ') + ': ' }), physicsRichText(value.answer.result)); answer.hidden = false; answer.removeAttribute('hidden'); check.setAttribute('aria-expanded', 'true');
   });
   understand.addEventListener('click', async () => { const value = await load(understand); if (value) openPhysicsLearningSupport(value, understand); });
   wrap.append(check, understand, answer); return wrap;
