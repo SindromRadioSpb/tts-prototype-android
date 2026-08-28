@@ -230,7 +230,7 @@ async function purgeOrphanDevices(graceMs = 7 * 86400e3) {
 // ── consent (append-only history) ────────────────────────────────────────────
 async function recordConsent(userId, consentKey, granted, consentVersion) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
-  const key = String(consentKey || "").trim().slice(0, 80);
+  const key = String(consentKey || "").trim().slice(0, 160);
   if (!key) throw new Error("BAD_CONSENT_KEY");
   const id = rndId("c_", 8);
   await dbRun(db, `INSERT INTO consent_records (id, user_id, consent_key, granted, consent_version) VALUES (?,?,?,?,?)`,

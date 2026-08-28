@@ -72,6 +72,7 @@ function trusted(requestId, connectionId, scopes = SCOPES, overrides = {}) {
     await repo.createSubjectMapping("u2", "subject-consent-other", "v1", T0);
     await repo.createPendingConnection("u1", pending("conn-consent-a", "Owner A"), T0);
     await repo.createPendingConnection("u1", pending("conn-consent-b", "Owner B"), T0);
+    await repo.createPendingConnection("u1", pending(`ac_${"a".repeat(20)}`, "Physics learning support"), T0);
     await repo.createPendingConnection("u1", pending("conn-consent-deny", "Owner denied"), T0);
     await repo.createPendingConnection("u2", pending("conn-consent-other", "Other user"), T0);
     checks++;
@@ -104,6 +105,16 @@ function trusted(requestId, connectionId, scopes = SCOPES, overrides = {}) {
     await expectCode(ceremony.decide("u1", { request_id: "request-consent-a", decision: "approve", selected_scopes: SCOPES, retention_ack: true }), "AA_CONSENT_REQUEST_NOT_FOUND");
     checks++;
 
+    const physicsConnection = `ac_${"a".repeat(20)}`;
+    const physicsScope = "reading.publication.derivative.read";
+    const physicsConsentKey = C.consentKey(physicsConnection, physicsScope);
+    assert.strictEqual(physicsConsentKey.length, 81);
+    await ceremony.stageTrustedRequest("u1", trusted("request-consent-physics", physicsConnection, [physicsScope]));
+    await ceremony.decide("u1", { request_id: "request-consent-physics", decision: "approve", selected_scopes: [physicsScope], retention_ack: true });
+    assert.strictEqual((await repo.loadConnection("u1", physicsConnection)).status, "ACTIVE");
+    assert.ok((await identity.listConsents("u1")).history.some((row) => row.consent_key === physicsConsentKey));
+    checks++;
+
     await ceremony.stageTrustedRequest("u1", trusted("request-consent-b", "conn-consent-b", ["agent.connection.read"]));
     await ceremony.decide("u1", { request_id: "request-consent-b", decision: "approve", selected_scopes: ["agent.connection.read"], retention_ack: true });
     await ceremony.stageTrustedRequest("u1", trusted("request-consent-deny", "conn-consent-deny", ["reading.public.search"]));
@@ -112,7 +123,7 @@ function trusted(requestId, connectionId, scopes = SCOPES, overrides = {}) {
     checks++;
 
     const listed = await repo.listConnectionsForUser("u1");
-    assert.strictEqual(listed.length, 3);
+    assert.strictEqual(listed.length, 4);
     const serializedList = JSON.stringify(listed).toLowerCase();
     for (const forbidden of ["user_id", "subject_id", "token_hash", "code_hash", "pkce_challenge", "redirect_uri"]) assert.ok(!serializedList.includes(forbidden));
     assert.ok(!serializedList.includes("conn-consent-other"));

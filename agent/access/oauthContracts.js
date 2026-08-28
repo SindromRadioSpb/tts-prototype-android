@@ -88,7 +88,10 @@ function resourceUri(value) { if (value !== RESOURCE_URI) fail("AA_OAUTH_BAD_RES
 function pkceChallenge(value) { const s = bounded(value, 128, "AA_OAUTH_BAD_PKCE"); if (!PKCE_S256.test(s)) fail("AA_OAUTH_BAD_PKCE"); return s; }
 function consentKey(connection, requestedScope) {
   const key = `external_agent_access:${connectionId(connection)}:${scope(requestedScope)}`;
-  if (key.length > 80) fail("AA_OAUTH_CONSENT_KEY_TOO_LONG");
+  // A production connection id (ac_ + 20 hex chars) plus the reviewed-learning
+  // derivative scope is 81 characters. Keep the key intact: truncation would
+  // make consent lookup disagree with the grant that was actually approved.
+  if (key.length > 160) fail("AA_OAUTH_CONSENT_KEY_TOO_LONG");
   return key;
 }
 function canonicalJson(value, maxBytes) {
