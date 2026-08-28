@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "physics_beginner_pedagogy.1.0.0",
+  "title": "Beginner pedagogy overlays for Physics Year 1",
+  "type": "object",
+  "required": ["schema_version", "corpus_slug", "truth_boundary", "profiles", "entries"],
+  "properties": {
+    "schema_version": { "const": "physics_beginner_pedagogy.1.0.0" },
+    "corpus_slug": { "const": "physics-year1-problems" },
+    "truth_boundary": { "type": "string", "minLength": 80 },
+    "profiles": {
+      "type": "object",
+      "minProperties": 10,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["title", "prerequisites", "deep_principle", "application_conditions", "common_mistakes"],
+        "properties": {
+          "title": { "type": "string", "minLength": 10 },
+          "prerequisites": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+          "deep_principle": { "type": "string", "minLength": 60 },
+          "application_conditions": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+          "common_mistakes": { "type": "array", "minItems": 2, "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 74,
+      "maxItems": 74,
+      "items": {
+        "type": "object",
+        "required": ["task_number", "profile", "physical_picture", "roadmap", "task_trap", "self_check"],
+        "properties": {
+          "task_number": { "type": "string", "pattern": "^[1-9]\\.\\d+$" },
+          "profile": { "type": "string" },
+          "physical_picture": { "type": "string", "minLength": 60 },
+          "roadmap": { "type": "array", "minItems": 3, "items": { "type": "string" } },
+          "task_trap": { "type": "string", "minLength": 35 },
+          "self_check": { "type": "array", "minItems": 2, "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

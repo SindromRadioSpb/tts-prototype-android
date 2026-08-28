@@ -4,6 +4,10 @@
   "generated_for_date": "2026-08-27",
   "generator": "scripts/premium/build-physics-learning-derivatives.js",
   "task_count": 74,
+  "beginner_pedagogy_task_count": 74,
+  "beginner_pedagogy_schema": "physics_beginner_pedagogy.1.0.0",
+  "beginner_pedagogy_sha256": "c0da1698cf60008d158b5558f40cc513b970da63eacb7cc41bd84c358465bc0e",
+  "tutor_prompt_sha256": "b8d25a489ad1ce39e9db67c59dbe4876d9403e3bde04c2b737b71f06fc4af0cb",
   "mismatch_count": 7,
   "confirmed_key_error_count": 7,
   "open_mismatch_count": 0,
@@ -25,383 +29,388 @@
     },
     {
       "path": "physics-year1-agent-guide.md",
-      "bytes": 445036,
-      "sha256": "5596acf2100f2278099b7b06f9f69e5b0c94443e9163969ee03d93a246f87bb5"
+      "bytes": 654495,
+      "sha256": "3f4f362a33f03c1cb3a65d73543122d5bdb61a88d765774f7bbc6c9dc8902de0"
     },
     {
       "path": "physics-year1-solutions.html",
-      "bytes": 822294,
-      "sha256": "185dc221793c228b77e9719f6987315f5264b4b633a68980f12535f6a3387ea2"
+      "bytes": 1093595,
+      "sha256": "a50db282804f3e7268d3233c75e8e1cd0431857ba836467b703c05515e248977"
+    },
+    {
+      "path": "physics-year1-tutor-system-prompt.md",
+      "bytes": 10386,
+      "sha256": "b8d25a489ad1ce39e9db67c59dbe4876d9403e3bde04c2b737b71f06fc4af0cb"
     },
     {
       "path": "tasks/task-1.1.md",
-      "bytes": 6133,
-      "sha256": "4276644e78ae6f213ca3337a1b7a709a484e87bb8efc1015a2734e4f8a26ab91"
+      "bytes": 8735,
+      "sha256": "3d1a1c51420d2685d4fae67662c0d807d6ef8fc7a2aced332245552ff4881279"
     },
     {
       "path": "tasks/task-1.10.md",
-      "bytes": 8410,
-      "sha256": "5dc5cbb72011fb4579d914d887d12d5332c10df3e1eee4130d4ddb6a479ee000"
+      "bytes": 11093,
+      "sha256": "763c26daaa94ffc11ad10fd65738cc08d875514d3f640417963fa68fa83a5d36"
     },
     {
       "path": "tasks/task-1.2.md",
-      "bytes": 6176,
-      "sha256": "30086f7dbbd94d53f4abc7979ce1a887a821ba667f54b87dc76c9deda05770b5"
+      "bytes": 9022,
+      "sha256": "227898be49d745134251fc1d9477eefb882db8fd648b8d2280e7195c04d3b6fa"
     },
     {
       "path": "tasks/task-1.3.md",
-      "bytes": 5910,
-      "sha256": "e60b7c7108c467cb63b7285431d9e6fc651bf078be6fc4a297b307a3c0c80521"
+      "bytes": 8642,
+      "sha256": "111aaec7a71ccfc0ea552801f97d3debf695c4e7faec27b5238483bba8a112ed"
     },
     {
       "path": "tasks/task-1.4.md",
-      "bytes": 6063,
-      "sha256": "56bad56ce8dbac0732f63467c625c656892dc3daf0fbf6a59747d63cea915207"
+      "bytes": 8779,
+      "sha256": "35ae25f3368e57e97e90a09a70bc8082c09c32be441e9bff57a6ef19894b1827"
     },
     {
       "path": "tasks/task-1.5.md",
-      "bytes": 7379,
-      "sha256": "52e123b8b188c5024b9c2b8e71d55aca572e4187ecf7219342cd16b59d7a5b6b"
+      "bytes": 10204,
+      "sha256": "48bdf1e542edbca11260cfc3ebeaa30014fc7dc96217c2ebac000679c9dacde4"
     },
     {
       "path": "tasks/task-1.6.md",
-      "bytes": 5107,
-      "sha256": "0b0a29bf435db26d18ea22ccb53a554b30ab98835ab67b4f4b340b85f540dbdc"
+      "bytes": 7717,
+      "sha256": "3f98f8e6a721fdf631cf7b632b93a2eb7861a2f7c330f4703a8283225156bd1e"
     },
     {
       "path": "tasks/task-1.7.md",
-      "bytes": 6423,
-      "sha256": "a98c06eac2869f30ad0c221d600c9f486b38b01a81b832e03bed1f8a8c4fe7f7"
+      "bytes": 9027,
+      "sha256": "91149f050b96f3a84728030deb9a5a6e85a1048948fc01d84b0826b0c3f2f436"
     },
     {
       "path": "tasks/task-1.8.md",
-      "bytes": 6756,
-      "sha256": "a638aa16eb45b95011940f96fe237cd46b45315cc0760e66c3b1db40feeb3dec"
+      "bytes": 9530,
+      "sha256": "fdbf300ead2e33b9148cffc49c54541d02429de24ac9c460419e3de57190f446"
     },
     {
       "path": "tasks/task-1.9.md",
-      "bytes": 7151,
-      "sha256": "cd13b48323df2ed634914993f728a6635758c822ef13c8240f1b7e411ce895e4"
+      "bytes": 9822,
+      "sha256": "083ec202ed122d2a79427496aabe2ebad279d31459f5699b8b4a5ac081f0f2c9"
     },
     {
       "path": "tasks/task-2.1.md",
-      "bytes": 7304,
-      "sha256": "c7600b3205bdde1a698ca4ccc408c6ed4a075ba3c50539147b962e7eef3f6926"
+      "bytes": 10110,
+      "sha256": "0f102d7dd7149dea55ab1f4d5182b7c9351c9e5742a61acd122eb35b5330eecb"
     },
     {
       "path": "tasks/task-2.2.md",
-      "bytes": 5370,
-      "sha256": "d3494ff82eab6f00884b4d4de8cdf60e6681fdc8a12a6a9e6b959311371d4f63"
+      "bytes": 8061,
+      "sha256": "b7c44145f305ad7dc279000c27334dbc8b109ac0cbbbfc309f490b54fb7ac3cd"
     },
     {
       "path": "tasks/task-2.3.md",
-      "bytes": 6158,
-      "sha256": "bfaa4bd6f8ec899d691b6bccef364584a86730dc9ccf08744e65ab7c98908cec"
+      "bytes": 8985,
+      "sha256": "d3c649534028c3d22c40b9fbc67dfe5d553b9cf943495f8815acf573651eacc6"
     },
     {
       "path": "tasks/task-3.1.md",
-      "bytes": 4810,
-      "sha256": "fcffa458ae5e417d7fa4033dda626e8192c574f6c159a04d422b0014f5733b28"
+      "bytes": 7497,
+      "sha256": "ba80dd65ed6fe359721acf8f7c718939854db16cb3491890bdaab58d4c0c7edf"
     },
     {
       "path": "tasks/task-3.2.md",
-      "bytes": 4901,
-      "sha256": "e3a9a19ee25845cb478ea3b42b698ae4ddc51098c4e14059b3b9e4efe4f12b9d"
+      "bytes": 7516,
+      "sha256": "363e7172ae29344e8f928a7a93f8ad0b017ca824a34d8addf28c2ad89014d025"
     },
     {
       "path": "tasks/task-3.3.md",
-      "bytes": 6409,
-      "sha256": "76f45cef1f203db373adbeeaae9d96c389881f840abeba480bd818a9392e70e1"
+      "bytes": 9386,
+      "sha256": "4fafdf751249824100c79810df970cb4c76e686234e8f8883958f20a2de1639e"
     },
     {
       "path": "tasks/task-3.4.md",
-      "bytes": 5710,
-      "sha256": "0745c55bba81a4af45f24329ecf6fd16bdad68532ec8b91283a685dc8c6bd96d"
+      "bytes": 8341,
+      "sha256": "1c1e3a6752afcdf02670888ca72c0184d6901e5e612594b3606d69ae3c43c434"
     },
     {
       "path": "tasks/task-3.5.md",
-      "bytes": 6007,
-      "sha256": "d286f9379308d6bfcdcc36362bdf6c285cff9587bea0c298cf518d6be3373081"
+      "bytes": 8627,
+      "sha256": "a3ef3022bbd238e30e82dfe910445765d2640d49f632b817f713f227bf87a20f"
     },
     {
       "path": "tasks/task-3.6.md",
-      "bytes": 6444,
-      "sha256": "fc3c7d463c099551163d45d386570949a9545f2f16069afd5e9a4885ce494024"
+      "bytes": 9066,
+      "sha256": "094fe6d1a062a88b80e66295857fc664f1feb5c93cd3e757cebbe2f035178f48"
     },
     {
       "path": "tasks/task-3.7.md",
-      "bytes": 5969,
-      "sha256": "648e79c6521351bca29413b49087e22c6d50d4b97c44de6490f5fefa3d4bbfbf"
+      "bytes": 8705,
+      "sha256": "7d13898d10c188e32a6432db0b6b621d10f308fe066e06bd6c70e663f292a3e5"
     },
     {
       "path": "tasks/task-3.8.md",
-      "bytes": 6941,
-      "sha256": "fde736d154f336232abfd13b4f8c2523a1d9db6c4eb38dd0b4e1d28286a0fa41"
+      "bytes": 9555,
+      "sha256": "5d6515deb2a204e939bcff8e2631b22817045149d7d1238b4343bd81f18a654e"
     },
     {
       "path": "tasks/task-4.1.md",
-      "bytes": 4539,
-      "sha256": "c3c520070191d0790507b7c4b2c6ceea4de7f7fcb9ab549ced38ab877ca4c66a"
+      "bytes": 7127,
+      "sha256": "6f6696cd61b044331796788cbfaebecc42568cd83db46f201867da8002512c2d"
     },
     {
       "path": "tasks/task-4.10.md",
-      "bytes": 6418,
-      "sha256": "4fdc22718f9ed0c4de3246880b961595a73c8b02588053b18ac75937e21cec71"
+      "bytes": 9017,
+      "sha256": "feef0ebd26b43f1d99311a0465bc5ec47f83e293d78dbc856192e102f1723a72"
     },
     {
       "path": "tasks/task-4.11.md",
-      "bytes": 4862,
-      "sha256": "f3e793df82450fc140685a58b32df789f958ce64289ef14c2532d9a499384ce2"
+      "bytes": 7554,
+      "sha256": "2d4f902eb0113ff8d446aff7ed08aea6b7bac3066d2e044ca7e555c60d15370c"
     },
     {
       "path": "tasks/task-4.12.md",
-      "bytes": 5790,
-      "sha256": "ca0a34ac703f322c4fa9972ff3f0a5ae569844c6ff09ca06f5f46cb762910c20"
+      "bytes": 8469,
+      "sha256": "ecbe0f9cebfdd01afc5bf5f32d5bbbb8af2d332853c2ba68d5a582d924506af5"
     },
     {
       "path": "tasks/task-4.13.md",
-      "bytes": 6506,
-      "sha256": "93adb939134b352c203fafdc75a4649e8cf2acb96a18bd384e2e7d18860bd9ac"
+      "bytes": 9297,
+      "sha256": "c4de55bd19df4de46803e8eab341a4b35c00fca2c75612f193a390620c8fe054"
     },
     {
       "path": "tasks/task-4.14.md",
-      "bytes": 6395,
-      "sha256": "350e27a947f1dc04d29d584780daed4e0655e7b0285fab45f6a7402b5e3fa31b"
+      "bytes": 9173,
+      "sha256": "245ef649cb740befb3085446aa8cac33ab16ab47a3c6d7dc133b03b1160d3dce"
     },
     {
       "path": "tasks/task-4.2.md",
-      "bytes": 4555,
-      "sha256": "b9624ed3adf1e6339c6d3be1e128b88cb36171c6ed2707ac0f38a9982364b3a6"
+      "bytes": 7241,
+      "sha256": "7775b0693336844dd73b9978b0a6d1081d06aff50bc62c727dafbad9fb4fb058"
     },
     {
       "path": "tasks/task-4.3.md",
-      "bytes": 5567,
-      "sha256": "1a2e16cf216f1bf9d33a101eac0683dbfa6476ab668a9c21ac6991b727cc34e5"
+      "bytes": 8337,
+      "sha256": "43f484ffbb3731a4429495c67bb12c8bf2ce01db295d85db65bed72312ef757f"
     },
     {
       "path": "tasks/task-4.4.md",
-      "bytes": 5339,
-      "sha256": "08cf2e3d697f919c50afc03d512fe691bafc1fea658044c9765edce503905a01"
+      "bytes": 8066,
+      "sha256": "c94834792be97e6bb1365644e4e5d84fac66655a9c08c681b302c016b9d6fde0"
     },
     {
       "path": "tasks/task-4.5.md",
-      "bytes": 5309,
-      "sha256": "a345ecc32ee3e9d6b782de88ef1d479bd7bb5be21a5d7eee7f2cfb48c0c615d2"
+      "bytes": 8005,
+      "sha256": "035102efb0d81f973b40fa9eaa0e4dc10f4713e08d6840ccc36bb1b7c5fd0576"
     },
     {
       "path": "tasks/task-4.6.md",
-      "bytes": 5736,
-      "sha256": "586a95534cec24e8d53af57b7e7a41c7d7e0d53b152be05d652a063fcd48f0cd"
+      "bytes": 8353,
+      "sha256": "951168fb21b55462fb111ffb7465f291f447b993a06aef5f50920b62d2f404af"
     },
     {
       "path": "tasks/task-4.7.md",
-      "bytes": 5439,
-      "sha256": "94ff50004e440fd12188665e8b47adb2964e2d2b1a3648d483796ad20d9429ed"
+      "bytes": 8208,
+      "sha256": "628d2bfd87aed9450488be400dc0f8e8a151a5165c02b11fceedc4049da97ab1"
     },
     {
       "path": "tasks/task-4.8.md",
-      "bytes": 6708,
-      "sha256": "fc07bdb9b861c446ba6c698e0ca646c7868771ef14a32ef64a7a410f96506df5"
+      "bytes": 9319,
+      "sha256": "0207bbb522ab2cd6a9a9f8c96c74f8ee247c70a7b186fbf8bde8f3b426dde8bd"
     },
     {
       "path": "tasks/task-4.9.md",
-      "bytes": 5389,
-      "sha256": "d06bd7b24b70a4ac97b369d41866fb9f6de221743517bc1c97fdaa18988d580c"
+      "bytes": 8071,
+      "sha256": "e099d63b0b282bf163b14320962dfea7c2548400403939047f9f98f916c9dd85"
     },
     {
       "path": "tasks/task-5.1.md",
-      "bytes": 4616,
-      "sha256": "ac6bcf976060927344a7c0fa39366eb4b73bb6a80ab10ff8d31ee708da32a5a3"
+      "bytes": 7106,
+      "sha256": "801c59e0df004b31a6a882ddd6d5df1d19c3010eec080b5527b1c1f909cce193"
     },
     {
       "path": "tasks/task-5.2.md",
-      "bytes": 4479,
-      "sha256": "fefda0b13cbf166449783c24f7345616ac80ab08639cde23c4fc45d85fe9738e"
+      "bytes": 7003,
+      "sha256": "57b1a60620aa5e6bc4b6d5e90267e2e0ca3b4ac8c1a92e8bdc6acf5da6ff1baa"
     },
     {
       "path": "tasks/task-5.3.md",
-      "bytes": 4971,
-      "sha256": "26956104283511fd2fff6e2bd8a1ac28417f99745d63c8358a9bd36eea7b2996"
+      "bytes": 7496,
+      "sha256": "cdd92c1f8cdf6defb860901b89862f2d8404bddb8cc19ba312439cc3c7380d9b"
     },
     {
       "path": "tasks/task-6.1.md",
-      "bytes": 7129,
-      "sha256": "983daf61aeef97c15dfbefc9cc5018ee8af51e68f9a6c4f3e8e403fb0a375a96"
+      "bytes": 9696,
+      "sha256": "e68a02cc5eff06d646b21600af0cbe853572c7a450ed51fbe233d66162f00bda"
     },
     {
       "path": "tasks/task-6.10.md",
-      "bytes": 6961,
-      "sha256": "f42fa8c55b50132ede635283581dd3a8856f1016f09f4c06b1ec6e9b0f2bba14"
+      "bytes": 9534,
+      "sha256": "325b4efc8e794c1915fd4ac97d33773c998e58a38d30aaa27d1916b6525c17e5"
     },
     {
       "path": "tasks/task-6.11.md",
-      "bytes": 7887,
-      "sha256": "1edce744e2d7a32ac1cc1a89834e95ba20603cccbc1c8ac8b8e5538bd8d8cb69"
+      "bytes": 10663,
+      "sha256": "c518c584ecc07759e278f0f0acdcd13628b67fddc6b3b3abe6261c8fcef3f546"
     },
     {
       "path": "tasks/task-6.12.md",
-      "bytes": 8743,
-      "sha256": "6d7c585c98152e64e65de748e5ba418fbe6358b6dd3166cb14259f40f69c91c0"
+      "bytes": 11572,
+      "sha256": "32e43896c58dfa3d21a8fc79597943b910cd4b61705cfea16a75a47eee920360"
     },
     {
       "path": "tasks/task-6.2.md",
-      "bytes": 5090,
-      "sha256": "64155e99ef54f56341854f2d9742b0e09f28dc474cf2dc8076f9b1f5be578304"
+      "bytes": 7661,
+      "sha256": "f01422c973cecaecf4ab434c21b4321a49e5d2423d18a3b2e939d17e64012152"
     },
     {
       "path": "tasks/task-6.3.md",
-      "bytes": 5268,
-      "sha256": "42a995e584cd3f2a86bf7790d28ab8ea4fdcb41472e87b4fbf2cf98aab49cd3d"
+      "bytes": 7830,
+      "sha256": "92430ef37b1db332456216c0fec91823a60edb81c3565da3686567fa59320409"
     },
     {
       "path": "tasks/task-6.4.md",
-      "bytes": 5102,
-      "sha256": "c1e2df3174f899d1b6f6edaa8aa25e0d154d24aa672fff4065f03a132b5d6056"
+      "bytes": 7903,
+      "sha256": "b9dbc34715f3b6f39e3f8f43037fa5d9013b74bf638d9eadf268ef1ac2aabee4"
     },
     {
       "path": "tasks/task-6.5.md",
-      "bytes": 6477,
-      "sha256": "0e7d1a6693344a5442e5402ef90d55d0d9eb05bdb50e5773b943db4c390acc25"
+      "bytes": 9188,
+      "sha256": "1e4e275a812706d4f1bac03f6661c518b411b7198f598e546a033581e1ef1e11"
     },
     {
       "path": "tasks/task-6.6.md",
-      "bytes": 5219,
-      "sha256": "81fd4fde6b3bffb1b996f2554e189f85448bbb454fec6e0ae41e1d18ad088ea3"
+      "bytes": 7826,
+      "sha256": "392f51ee42fcb6e8d42f5742c260bca2788dd2d3357e72728fa0220c1cd585f2"
     },
     {
       "path": "tasks/task-6.7.md",
-      "bytes": 5879,
-      "sha256": "ad4b7f5d5fca608f042f13ece68561c782663ef60d1d1b76261c92d28836fa10"
+      "bytes": 8494,
+      "sha256": "ed300b2750b3a4dabc2610fdfda8fa41cb2ead6af7397dcfe01c1386478dd9aa"
     },
     {
       "path": "tasks/task-6.8.md",
-      "bytes": 5760,
-      "sha256": "8017758b61eacb32abf590526ca663b734b3d12123368948ec23858257d7d953"
+      "bytes": 8411,
+      "sha256": "aa380dcfe43ecbaad32ece03f2e9459331d12ae8eac50d2bc8636b8fe1315060"
     },
     {
       "path": "tasks/task-6.9.md",
-      "bytes": 5465,
-      "sha256": "9e11d6858d88e94d06c30a9eb3ae1f64f3458477ecce69a65ab8ea72c979ad9b"
+      "bytes": 8104,
+      "sha256": "9a29c1b7ab4df51be30333354b3eece7bab9fe043afc0190f02346efcb6431a5"
     },
     {
       "path": "tasks/task-7.1.md",
-      "bytes": 6235,
-      "sha256": "5c1fe3ba4b7e74ee8c00a8ea22ccb8a71f18451d6bbf125e3a1f9e2ebd714840"
+      "bytes": 8821,
+      "sha256": "c89a69445bba229921e80e0bf32e34ab5fea50fe4af2a68e526bf6e0c1817471"
     },
     {
       "path": "tasks/task-7.2.md",
-      "bytes": 6001,
-      "sha256": "c566189acd78e21d2463cd4dadc615625c9874931f63a4f95ded898b3b0eca70"
+      "bytes": 8620,
+      "sha256": "e48fd5dbcc5e830f86f743411ba795065b9c7e01a298d86a20da1312cd8ede52"
     },
     {
       "path": "tasks/task-7.3.md",
-      "bytes": 5646,
-      "sha256": "fcfecae47fcd2f45cf1271eef29c7ecc6b3a59056461f894c53056038fbbb28a"
+      "bytes": 8320,
+      "sha256": "28d56b915f36475bfaa1e71195d8cd8f5838e35b72f3acb94e4fcfb62a83ee40"
     },
     {
       "path": "tasks/task-7.4.md",
-      "bytes": 6213,
-      "sha256": "4af3c8327c6524f7af77031da2a40e7dfb3b70cebe16893a0143935d256a5bd5"
+      "bytes": 8773,
+      "sha256": "84270aa164ee8c4eedb28512c63efbd0ebf94db0742c9fc77b843564ca2cc8f1"
     },
     {
       "path": "tasks/task-7.5.md",
-      "bytes": 6450,
-      "sha256": "3ae863870144f23768e248f0b74b96f662af7a18d3a9c7e499212717924f4b47"
+      "bytes": 9159,
+      "sha256": "dbce892b06d1452d9c119ea952bbabe1a9421ef90fbb9fd86e4587cdde395f39"
     },
     {
       "path": "tasks/task-7.6.md",
-      "bytes": 4917,
-      "sha256": "462c772744391b34f799dd8906f851613b354c35068e2d07cb6d16d9e1e49d96"
+      "bytes": 7582,
+      "sha256": "8056cf75c76f16998a5406eb005e1d7ce1f26322e0436a6ee2f52c41a8b6417c"
     },
     {
       "path": "tasks/task-7.7.md",
-      "bytes": 5883,
-      "sha256": "e2e6771d07fd2432983568dfbcaaf8bea77c61e610bbbcc8c14c643b847a201e"
+      "bytes": 8474,
+      "sha256": "ee098622cd22ef324e7ab3394e93a6e84b251507464480f19d161b458448a814"
     },
     {
       "path": "tasks/task-7.8.md",
-      "bytes": 6325,
-      "sha256": "a98f6388926a6731b2ea08a58561f9e32fab24ee9d336173087017734e241477"
+      "bytes": 9055,
+      "sha256": "130b347e40e506681ce37e9783c837c9b85c69258a6a1b6b7519fee0bcface91"
     },
     {
       "path": "tasks/task-8.1.md",
-      "bytes": 9019,
-      "sha256": "4aa0247e2ba8f8b90be596f5a409f670c767a68aa77c7c341459d7fbb7b9fb5e"
+      "bytes": 11861,
+      "sha256": "844f26610546daaa1156fdc17f005fa6f9a930485c4f84c896bee8b385bc06f7"
     },
     {
       "path": "tasks/task-8.2.md",
-      "bytes": 5496,
-      "sha256": "5f1a6c791ac7ac15b6c3dde753e7e34555ce8ca8d552c0e6694ad887b434e6ba"
+      "bytes": 8170,
+      "sha256": "d1ceefbf4abde04eb5447842e9043e53883e2bf21de4cfdca463a9f0bbc639ca"
     },
     {
       "path": "tasks/task-8.3.md",
-      "bytes": 5977,
-      "sha256": "046f176f3499e3d9fd8bb7e801e51b9e91f2e92a90047ef99472533f480df898"
+      "bytes": 8683,
+      "sha256": "43a1c1488bb884e0b8828492c863ac621b7cf529d07bdd4e99b8ab642dd21e4f"
     },
     {
       "path": "tasks/task-8.4.md",
-      "bytes": 6533,
-      "sha256": "f6524fb843b4bf61a1fa27065bd1b45eacd9ade77306f222cfe1d6abaa1c4a74"
+      "bytes": 9386,
+      "sha256": "f5bfb7e1f77a210b4ca4cf178a0a25876fc879add16c4dd55b215ede750af51d"
     },
     {
       "path": "tasks/task-8.5.md",
-      "bytes": 6378,
-      "sha256": "bdf4eaf78076f5936424431fe49a3a69547f7e142f2572199011e04575fde13b"
+      "bytes": 9111,
+      "sha256": "5c9321fd50ac1a27c3a02295f166ffd95bec82272e3226ba7c00122775673243"
     },
     {
       "path": "tasks/task-9.1.md",
-      "bytes": 7809,
-      "sha256": "ef52521d2671a22253390ae1050bd47ba14d4e81125396b55d39e407569cc368"
+      "bytes": 10549,
+      "sha256": "d7c4ce90873ee9698a1e9e6acb77f58420f72ef33c318fec75c17907fd4145e8"
     },
     {
       "path": "tasks/task-9.10.md",
-      "bytes": 5570,
-      "sha256": "2b83fe0dc07f092875e81c1b4a4c0542c88c1155e616d675d8784347a5855518"
+      "bytes": 8181,
+      "sha256": "9b1da7fd6324129e6c05720dc9d61e53c3b8c920d28e2a11630b7ae0e0a2be6a"
     },
     {
       "path": "tasks/task-9.11.md",
-      "bytes": 6343,
-      "sha256": "f8a501f1371a7cf88b5e0b18c5541630c26504dd85af48ac4df3d544e61b6233"
+      "bytes": 9185,
+      "sha256": "d196c9aa8ff5d14143f73eec9de37e738246a6c35d1a3704a717f3d9b05994ad"
     },
     {
       "path": "tasks/task-9.2.md",
-      "bytes": 5169,
-      "sha256": "26106f370cc6b19cadf3ee65fb746a6c0de2c90bb09f14ed873854330534f928"
+      "bytes": 7835,
+      "sha256": "6f03f7ac434baf309a757338ff59b64115f08d3f20d2bd88ca71c1992886125a"
     },
     {
       "path": "tasks/task-9.3.md",
-      "bytes": 4488,
-      "sha256": "8f00ac3f356903c1352f7264b1657099cdbdd6a1e7b8d1dcd8257eaef66b8941"
+      "bytes": 7088,
+      "sha256": "acb8f95b2e7adab7ba2176b9d6038966d2654155545ab580316c84cab0459aa5"
     },
     {
       "path": "tasks/task-9.4.md",
-      "bytes": 5047,
-      "sha256": "96d97d036b1191b4211c8639dd17bd558abec203fca8faeac217c18554e98fd0"
+      "bytes": 7682,
+      "sha256": "a7b7535da190d11b5c891bc61ad20f6e611bfd551f3ef5f98892de98520a5377"
     },
     {
       "path": "tasks/task-9.5.md",
-      "bytes": 4559,
-      "sha256": "b994399485fe7456d7804cf35f15ba0561fb2b03ea5e12eb567f7b4df459d0a9"
+      "bytes": 7198,
+      "sha256": "d87497602fec7ac575bf6ddff31a92d574dba4b6490ded87a7a8cac374beed20"
     },
     {
       "path": "tasks/task-9.6.md",
-      "bytes": 4794,
-      "sha256": "e6f821229aafed4ba4dfd87efd0d8d1d98038dc0d1955aff57ed4bd5fb397364"
+      "bytes": 7511,
+      "sha256": "f1ed4457533a4a440e9525d7ac50ad78844c20b85331b7cc7b29517a6066dc16"
     },
     {
       "path": "tasks/task-9.7.md",
-      "bytes": 5594,
-      "sha256": "dcaa18003578e2232d7b486a356fdd00fff7138f3aea6e459ef189388ab6056a"
+      "bytes": 8311,
+      "sha256": "005d07352bbbf34ef1ef8b4b210a772904a7313ac14dd78151d6dbe4d9e044b7"
     },
     {
       "path": "tasks/task-9.8.md",
-      "bytes": 6757,
-      "sha256": "3650423b71a5c2590ffd29dd3f59ec220956abefd0492a3d0e7d4a5d2a6ef904"
+      "bytes": 9328,
+      "sha256": "6626fe4086399e939399a220952adbf232a1661f939e3930f26375894ced630e"
     },
     {
       "path": "tasks/task-9.9.md",
-      "bytes": 5585,
-      "sha256": "d77fb5cb035e3ee1f88a33c10810f25c2f6dfe2328e0b9372e388aa9384f6bba"
+      "bytes": 8171,
+      "sha256": "0cd3b072ad945462f85aaba5e0af2af898e1eaf4ea9fa6df6931de8c24ad127b"
     }
   ]
 }

@@ -30,11 +30,27 @@ test('all ledgers match the exact 74-task corpus set', () => {
   const solution = json('solution-ledger.json');
   const localized = json('solution-ledger.ru.json');
   const exam = json('exam-solution-ledger.ru.json');
+  const pedagogy = json('beginner-pedagogy-ledger.ru.json');
   assert.equal(new Set(canonical).size, 74);
   assert.deepEqual(ids(answer.entries), canonical);
   assert.deepEqual(ids(solution.entries), canonical);
   assert.deepEqual(ids(localized.entries), canonical);
   assert.deepEqual(ids(exam.entries), canonical);
+  assert.deepEqual(ids(pedagogy.entries), canonical);
+  assert.equal(pedagogy.schema_version, 'physics_beginner_pedagogy.1.0.0');
+  assert.ok(Object.keys(pedagogy.profiles).length >= 10);
+  const banned = /TODO|TBD|заглуш|очевидно|просто подстав/i;
+  const uniquePictures = new Set();
+  for (const entry of pedagogy.entries) {
+    assert.ok(pedagogy.profiles[entry.profile], `${entry.task_number}: unknown pedagogy profile`);
+    assert.ok(entry.physical_picture.length >= 60, `${entry.task_number}: physical picture is too short`);
+    assert.ok(entry.roadmap.length >= 3, `${entry.task_number}: roadmap is too short`);
+    assert.ok(entry.self_check.length >= 2, `${entry.task_number}: self-check is too short`);
+    assert.ok(entry.task_trap.length >= 35, `${entry.task_number}: task trap is too short`);
+    assert.doesNotMatch(JSON.stringify(entry), banned, `${entry.task_number}: banned shortcut language`);
+    uniquePictures.add(entry.physical_picture);
+  }
+  assert.equal(uniquePictures.size, 74);
   assert.equal(solution.review.handwritten_solution_used, true);
   assert.equal(solution.review.handwritten_solution_method, 'owner_authorized_visual_review_without_ocr');
   assert.deepEqual(solution.review.handwritten_solution_scope, ['1.5', '1.10', '6.1']);
@@ -143,11 +159,13 @@ test('builder is deterministic and manifests every generated learning artifact',
   assert.equal(manifest.mismatch_count, 7);
   assert.equal(manifest.confirmed_key_error_count, 7);
   assert.equal(manifest.open_mismatch_count, 0);
+  assert.equal(manifest.beginner_pedagogy_task_count, 74);
   assert.equal(manifest.handwritten_solution_used, true);
   assert.deepEqual(manifest.handwritten_solution_scope, ['1.5', '1.10', '6.1']);
   assert.deepEqual(manifest.supplementary_formula_scope, ['8.1']);
   assert.equal(manifest.files.filter((file) => /^tasks\/task-\d+\.\d+\.md$/.test(file.path)).length, 74);
   assert.ok(manifest.files.some((file) => file.path === 'physics-year1-agent-guide.md'));
+  assert.ok(manifest.files.some((file) => file.path === 'physics-year1-tutor-system-prompt.md'));
   for (const entry of manifest.files) {
     assert.equal(sha256(path.join(OUT, entry.path)), entry.sha256, entry.path);
   }
@@ -168,6 +186,10 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   assert.match(html, /Вывод расчётных формул/);
   assert.match(html, /Подстановка и последовательный расчёт/);
   assert.match(html, /Проверка результата/);
+  assert.equal((html.match(/class="beginner-bridge"/g) || []).length, 74);
+  assert.match(html, /Сначала поймём задачу/);
+  assert.match(html, /Маршрут решения/);
+  assert.match(html, /Проверьте себя до вычислений/);
   assert.equal((html.match(/class="exam-construction"/g) || []).length, 6);
   assert.match(html, /Три рукописных решения визуально сверены по разрешению владельца; OCR не применялся/i);
   assert.equal((html.match(/class="task(?: |")/g) || []).length, 74);
@@ -184,6 +206,36 @@ test('premium guide exposes provenance, Russian solution text and mismatch state
   assert.match(report, /Содержательная сверка закрыта владельцем/);
   assert.doesNotMatch(report, /принять решение по 0 открытым расхождениям/);
   assert.doesNotMatch(report, /решение по семи открытым расхождениям/);
+});
+
+test('beginner layer is present in every task and agent behavior is grounded', () => {
+  const corpus = JSON.parse(fs.readFileSync(CORPUS, 'utf8'));
+  for (const task of corpus.tasks) {
+    const markdown = fs.readFileSync(path.join(OUT, 'tasks', `task-${task.task_number}.md`), 'utf8');
+    for (const heading of [
+      '## Сначала поймём задачу',
+      '### Что здесь происходит',
+      '### Что нужно вспомнить',
+      '### Почему подходит этот принцип',
+      '### Маршрут решения',
+      '### Главная ловушка',
+      '### Что часто путают',
+      '### Проверьте себя до вычислений'
+    ]) assert.ok(markdown.includes(heading), `${task.task_number}: missing ${heading}`);
+  }
+  const guide = fs.readFileSync(path.join(OUT, 'physics-year1-agent-guide.md'), 'utf8');
+  const prompt = fs.readFileSync(path.join(OUT, 'physics-year1-tutor-system-prompt.md'), 'utf8');
+  for (const token of ['Намёк', 'Разбор вместе', 'Полное решение', 'В карточке недостаточно данных, чтобы утверждать это']) {
+    assert.ok(guide.includes(token), `agent guide: missing ${token}`);
+    assert.ok(prompt.includes(token), `tutor prompt: missing ${token}`);
+  }
+  assert.match(guide, /не вправе вводить новые\s+числа, формулы или факты/i);
+  assert.match(prompt, /цель шага.*закон.*условие его применимости.*символическое преобразование/is);
+  for (const taskNumber of ['1.3', '6.12', '8.1', '9.1']) {
+    const markdown = fs.readFileSync(path.join(OUT, 'tasks', `task-${taskNumber}.md`), 'utf8');
+    assert.match(markdown, /Главная ловушка/);
+    assert.match(markdown, /Проверьте себя до вычислений/);
+  }
 });
 
 test('owner-reviewed tasks preserve the handwritten solution logic and exam sequence', () => {

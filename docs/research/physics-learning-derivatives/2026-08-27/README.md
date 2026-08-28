@@ -1,6 +1,6 @@
 # Physics Year 1 learning derivatives - 2026-08-27
 
-This directory contains the local R10 exam-solution derivative for the published
+This directory contains the local R11 exam-solution derivative for the published
 `physics-year1-problems` corpus. R2 supplied full exam protocols; R3 added one
 unambiguous mathematical notation system for agent Markdown and semantic premium HTML
 while preserving provenance and answer-comparison evidence. R4 records the
@@ -19,11 +19,16 @@ that `F_EX = 1650.8 N` is correct and adds a direct full-path energy proof for t
 That proof reproduces the key's `192.146 m` exactly only when the height gain on arc AB
 is omitted. R10 records the owner's confirmation of both the repository result
 `S = 168.03 m` and that discrepancy explanation. No answer mismatch remains open.
+R11 adds a beginner-first pedagogy layer to all 74 tasks: a plain-language physical
+picture, prerequisites, principle and applicability conditions, a task-specific
+roadmap and trap, common misconceptions and retrieval questions. The same grounded
+contract is packaged as a system prompt for the user-facing AI tutor.
 
 ## Open first
 
 - `artifacts/physics-year1-solutions.html` - premium offline user view.
 - `artifacts/physics-year1-agent-guide.md` - combined agent-readable guide.
+- `artifacts/physics-year1-tutor-system-prompt.md` - grounded three-mode tutor prompt.
 - `artifacts/tasks/*.md` - bounded one-task files for retrieval.
 - `answer-ledger.json` - 74-task source-grounded answer transcription.
 - `solution-ledger.json` - independently derived solutions and answer comparisons.
@@ -31,6 +36,8 @@ is omitted. R10 records the owner's confirmation of both the repository result
 - `exam-solution-ledger.ru.json` - 74 structured college-exam protocols: givens,
   unknowns, SI, base laws, symbolic derivation, calculation, required graph/force
   construction where applicable, and verification.
+- `beginner-pedagogy-ledger.ru.json` - 12 reusable principle profiles and 74
+  task-specific beginner explanations; it never owns numerical solution truth.
 - `artifacts/manifest.json` - generated file hashes and source pins.
 
 ## Mathematical notation
@@ -56,6 +63,10 @@ is omitted. R10 records the owner's confirmation of both the repository result
   `docs/planning/PHYSICS_OWNER_CONFIRMATION_8_1_AND_9_1_ENERGY_R9_PLAN_2026_08_28.md`.
 - The owner's confirmation of 9.1 and closure of the complete mismatch review are recorded in
   `docs/planning/PHYSICS_OWNER_CONFIRMATION_9_1_FINAL_CLOSURE_R10_PLAN_2026_08_28.md`.
+- The beginner pedagogy architecture and gates are recorded in
+  `docs/planning/PHYSICS_YEAR1_BEGINNER_PEDAGOGY_R11_PLAN_2026_08_28.md`; the
+  executable tutor contract is
+  `docs/planning/PHYSICS_YEAR1_BEGINNER_TUTOR_MASTER_PROMPT_R11_2026_08_28.md`.
 
 ## Generation
 
@@ -81,6 +92,8 @@ no absolute owner-drive path is stored in generated artifacts.
   verified while its step sequence was expanded. Every card follows the R2 college-exam contract in
   `docs/planning/PHYSICS_EXAM_SOLUTIONS_R2_PLAN_2026_08_27.md` and the R3 notation
   contract above.
+- Beginner pedagogy: structured and rendered for 74/74 tasks. It explains the
+  verified solution but cannot introduce new givens, formulas, results or review states.
 - Answer comparison: 67 matching tasks and seven owner-confirmed answer-key errors
   (1.10, 2.3, 4.13, 6.2, 7.8, 8.1 and 9.1). No review remains open.
 - Public rights for the new `Ответы.pdf` derivative: owner confirmation required.
