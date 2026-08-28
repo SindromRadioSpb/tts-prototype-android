@@ -1,6 +1,6 @@
 # Physics Year 1 learning derivatives - 2026-08-27
 
-This directory contains the local R9 exam-solution derivative for the published
+This directory contains the local R10 exam-solution derivative for the published
 `physics-year1-problems` corpus. R2 supplied full exam protocols; R3 added one
 unambiguous mathematical notation system for agent Markdown and semantic premium HTML
 while preserving provenance and answer-comparison evidence. R4 records the
@@ -17,7 +17,8 @@ R8 records the owner's confirmation of task 7.8 and expands task 8.1(c) with the
 owner-supplied variable-mass equation. R9 records the owner's subsequent confirmation
 that `F_EX = 1650.8 N` is correct and adds a direct full-path energy proof for task 9.1.
 That proof reproduces the key's `192.146 m` exactly only when the height gain on arc AB
-is omitted; task 9.1 remains open for owner disposition.
+is omitted. R10 records the owner's confirmation of both the repository result
+`S = 168.03 m` and that discrepancy explanation. No answer mismatch remains open.
 
 ## Open first
 
@@ -53,6 +54,8 @@ is omitted; task 9.1 remains open for owner disposition.
   `docs/planning/PHYSICS_OWNER_REVIEW_7_8_AND_8_1_FORMULA_R8_PLAN_2026_08_28.md`.
 - The owner's confirmation of 8.1 and the direct-energy audit of 9.1 are recorded in
   `docs/planning/PHYSICS_OWNER_CONFIRMATION_8_1_AND_9_1_ENERGY_R9_PLAN_2026_08_28.md`.
+- The owner's confirmation of 9.1 and closure of the complete mismatch review are recorded in
+  `docs/planning/PHYSICS_OWNER_CONFIRMATION_9_1_FINAL_CLOSURE_R10_PLAN_2026_08_28.md`.
 
 ## Generation
 
@@ -78,11 +81,11 @@ no absolute owner-drive path is stored in generated artifacts.
   verified while its step sequence was expanded. Every card follows the R2 college-exam contract in
   `docs/planning/PHYSICS_EXAM_SOLUTIONS_R2_PLAN_2026_08_27.md` and the R3 notation
   contract above.
-- Answer comparison: 67 matching tasks, six owner-confirmed answer-key errors
-  (1.10, 2.3, 4.13, 6.2, 7.8 and 8.1), and one open review (9.1).
+- Answer comparison: 67 matching tasks and seven owner-confirmed answer-key errors
+  (1.10, 2.3, 4.13, 6.2, 7.8, 8.1 and 9.1). No review remains open.
 - Public rights for the new `Ответы.pdf` derivative: owner confirmation required.
 - Production/API/Agent Access publication: not performed.
 
-The generated guide is a review artifact. Every mismatch or insufficient source remains
-visible. The open review blocks publication of task 9.1; 1.10, 2.3, 4.13, 6.2, 7.8
-and 8.1 are retained as confirmed key errors. Edit the ledgers, not generated files.
+The generated guide is a review artifact. Every mismatch remains visible with its owner
+disposition. All seven discrepancies are retained as confirmed key errors; no mismatch
+review remains open. Edit the ledgers, not generated files.
