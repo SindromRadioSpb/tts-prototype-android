@@ -45,3 +45,9 @@ The new public GET route is anonymous, immutable and read-only. The MCP tool ret
 Публичный пользовательский путь закрыт живой production-приёмкой; подробный журнал, backup/restore, DB read-back, 74/74 API-сверка и production screenshots находятся в `PHYSICS_YEAR1_LEARNING_SUPPORT_R12_PRODUCTION_EVIDENCE_2026_08_28.md`.
 
 Агентский код, scope, migration 066 и 74 exact `DERIVATIVE_TEXT=true` facts находятся в production. Глобальные production flags `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED` и `AGENT_ACCESS_MCP_ENABLED` остаются default-off: их включение активировало бы весь 31-tool Agent Access, а не только Physics, и относится к отдельным gate 5+ программы `LINGUISTPRO_ALL_CORPORA_AGENT_ACCESS_MCP_DECISION_PACKET_2026_08_26.md`. Поэтому Hermes owner-live acceptance не заявлена; она требует отдельного разрешённого включения owner-only MCP, нового consent и реального вызова инструмента.
+
+## Addendum 2026-08-29 — owner-only runtime closure
+
+The paragraph above records the release-time state and remains historical. After explicit owner approval, the two global production gates were enabled and Hermes re-consented to all 27 scopes. Release `3.11.447` (`c2ae0fd6`) also corrected the 81-character Physics consent-key rejection and added an exact regression.
+
+Server-layer checks discovered all 31 tools. A completely new ordinary Hermes WebUI session `aedb86a4562d` then recorded `tool.started` and `tool.completed` for `mcp__linguistpro__read_published_learning_support`; the completion had `is_error=false` for the exact Physics task 1.1 edition item. Classification: `OWNER_REPORTED_PASS` for the owner's Hermes profile only. No Inspector/OpenAI/Claude/community readiness is inferred.

@@ -166,3 +166,38 @@ Hotfix test accounting:
 During deployment the root filesystem reached 100% and Coolify Redis temporarily refused writes because it could not persist an RDB snapshot. Only unused Docker images and reclaimable build cache were removed; active containers, volumes, the production DB and the verified backup were not touched. Redis `BGSAVE` returned `ok`. Final disk state was approximately 13 GiB free (65% used), with 9/9 images active and zero build cache.
 
 Evidence: `PRODUCTION_LIVE_READ_ONLY`, `PRODUCTION_INFRA`, `LOCAL_TEST`.
+
+## Owner-only Hermes MCP acceptance — 2026-08-29
+
+Status: `OWNER_REPORTED_PASS` for the owner's Hermes profile only.
+
+The owner explicitly approved enabling the already-deployed full Agent Access surface. Production now has `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1` and `AGENT_ACCESS_MCP_ENABLED=1`; this is the 31-tool owner-only surface, not a Physics-only or public/community entitlement. Five consecutive post-deploy probes observed `window.APP_VERSION="3.11.447"`, `ok=true`, `db.ready=true` and `migrations.ready=true`. OAuth metadata exposed exactly 27 supported scopes including `reading.publication.derivative.read`.
+
+The first consent attempt exposed a real boundary defect before any grant was activated: a production-form connection id plus `reading.publication.derivative.read` produced an 81-character append-only consent key, while `oauthContracts.consentKey()` rejected keys longer than 80. Commit `c2ae0fd6fb84f25803585939f49dbc314b7aad26` raised the aligned contract/storage bound to 160, added an exact 81-character end-to-end consent regression, bumped the release to `3.11.447`, and passed consent, OAuth lifecycle/bridge and 11/11 publication-agent tests. Coolify deployment `g2dzoi36w60epsx9i15awcib` completed successfully before re-consent.
+
+Fresh owner consent then completed with:
+
+- `TOKEN_STORED`, 27 scopes;
+- required publication scopes present;
+- required derivative scope present;
+- refresh token present (token values were never printed);
+- token file mode `0600` under the Hermes runtime owner.
+
+Hermes verification after restarting `hermes-agent` first and `hermes-webui` second:
+
+- `hermes mcp test linguistpro`: connected, 31 tools discovered;
+- publication diagnostic: 31 tools discovered, five publication tools callable, Physics edition №2 found with 74 items and exact task 1.1 anchor `ei_8d027f6f81e573ff98a6ff1d`;
+- WebUI health returned healthy before the owner-live run.
+
+Final acceptance used a completely new ordinary Hermes WebUI conversation, not a restored chat and not a CLI/SDK substitute:
+
+- session: `aedb86a4562d`;
+- run: `63e0707a7d574fce943e256255bbe7b9`;
+- session metadata: `is_cli_session=false`, title `Проверка задачи 1.1: ускорение и скорость`;
+- exactly one tool call in the session;
+- journal sequence 19: `tool.started`, name `mcp__linguistpro__read_published_learning_support`;
+- journal sequence 21: `tool.completed`, the same tool and `is_error=false`;
+- exact request anchors: corpus `physics-year1-problems`, edition `ed_c345975244ff7bd33d86fcb9`, item `ei_8d027f6f81e573ff98a6ff1d`;
+- Hermes grounded its response in the reviewed task source and returned the verified task 1.1 results.
+
+This closes only the owner's Hermes path. It does not establish MCP Inspector, OpenAI, Claude, another user profile, or community readiness. No learner/review/private/group truth was written by the acceptance.

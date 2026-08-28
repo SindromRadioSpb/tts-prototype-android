@@ -1,7 +1,7 @@
 # PHYSICS-YEAR1-R12 — production plan
 
 Дата: 2026-08-28
-Статус: `PRODUCTION_PUBLIC_LIVE · AGENT_DATA_READY · OWNER_LIVE_PENDING`
+Статус: `PRODUCTION_PUBLIC_LIVE · AGENT_DATA_READY · OWNER_REPORTED_PASS`
 Владелец разрешил публикацию: 2026-08-28
 Basis: `OWNER_APPROVAL_PHYSICS_YEAR1_R12_2026_08_28`
 
@@ -27,6 +27,12 @@ Basis: `OWNER_APPROVAL_PHYSICS_YEAR1_R12_2026_08_28`
 4. В production применить ровно 74 `DERIVATIVE_TEXT=true` факта с exact manifest и idempotency key; проверить read-back 74/74.
 5. Включить `PHYSICS_TASK_LEARNING_SUPPORT_PUBLIC_READ=1`, выполнить redeploy той же версии и повторную health/version/API/browser-приёмку.
 6. Отдельная owner-live граница: новое обычное подключение Hermes, явное согласие на scope и реальный вызов `read_published_learning_support`. До него не заявлять owner acceptance агентского пути.
+
+## Owner-live closure — 2026-08-29
+
+После отдельного явного подтверждения владельца глобальные owner-only флаги Agent Access включены. Hermes получил новое согласие на 27 scopes, обнаружил 31 инструмент, а новая обычная WebUI-сессия `aedb86a4562d` выполнила `read_published_learning_support` для точного item задачи 1.1 с `is_error=false`. Перед этим release `3.11.447` исправил найденный на живом consent-path предел ключа 80/81 символов и прошёл целевые OAuth/publication regressions.
+
+Граница закрыта как `OWNER_REPORTED_PASS` только для профиля владельца Hermes. Inspector/OpenAI/Claude, другие профили и community availability остаются вне этого доказательства.
 
 ## Rollback
 
