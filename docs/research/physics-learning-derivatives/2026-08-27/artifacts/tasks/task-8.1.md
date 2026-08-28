@@ -6,7 +6,7 @@ source_page: 36
 source_image_sha256: 25f65394d0ac342bfb3e790063d56a60255a541be78f04717a3fe46b416e994d
 review_state: ANSWER_COMPARED
 comparison: MISMATCH
-review_disposition: OWNER_REVIEW_PENDING
+review_disposition: OWNER_CONFIRMED_KEY_ERROR
 handwritten_evidence: NOT_USED
 supplementary_formula_evidence: OWNER_SUPPLIED_IMAGE_VISUAL_REVIEW
 ---
@@ -122,7 +122,7 @@ supplementary_formula_evidence: OWNER_SUPPLIED_IMAGE_VISUAL_REVIEW
 - Ключ: א. V_D = 9.904 m/s | ב. u = 1.65 m/s | ג. F_{EX} = 3300 N | ד. S = 0.463 m
 - Вердикт: **MISMATCH**
 
-> Важно: **расхождение с ключом ожидает проверки владельца**. Значение ключа 3300 Н является суммой модулей равных и противоположных сил действия и противодействия, а не одной силой между телами. Предоставленная владельцем формула даёт 1650,8 Н, поскольку для каждого замкнутого тела Δm = 0.
+> Статус: **ошибка ключа подтверждена владельцем**. Владелец подтвердил: решение в репозитории верно. Значение ключа 3300 Н является суммой модулей равных и противоположных сил действия и противодействия, а не одной силой между телами. Предоставленная владельцем формула даёт 1650,8 Н, поскольку для каждого замкнутого тела Δm = 0.
 
 ## Происхождение и границы
 
