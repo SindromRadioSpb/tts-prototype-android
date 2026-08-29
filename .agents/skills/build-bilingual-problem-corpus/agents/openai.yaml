@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bilingual Problem Corpus Builder"
+  short_description: "Build verified bilingual problem corpora"
+  default_prompt: "Use $build-bilingual-problem-corpus to inventory, build, verify, and prepare this bilingual problem corpus."

@@ -1,0 +1,59 @@
+{
+  "schema_version": "problem_solution_program.1.0.0",
+  "status": "DRAFT",
+  "corpus": {
+    "title": "",
+    "slug": "",
+    "subject": "",
+    "source_edition": "",
+    "manifest_sha256": "",
+    "expected_task_count": null
+  },
+  "inputs": {
+    "canonical_conditions": "",
+    "diagram_sources": [],
+    "answer_keys": [],
+    "handwritten_solutions_default": "EXCLUDED"
+  },
+  "rights": {
+    "answer_key_facts": "UNCONFIRMED",
+    "independent_solutions": "UNCONFIRMED",
+    "public_display_and_print": "UNCONFIRMED",
+    "agent_derivative_read": "UNCONFIRMED"
+  },
+  "solution_policy": {
+    "derivation_source": "CONDITION_DIAGRAM_DECLARED_CONSTANTS_ONLY",
+    "answer_key_role": "POST_DERIVATION_COMPARISON_ONLY",
+    "standard": "COLLEGE_EXAM_FULL_DERIVATION",
+    "beginner_bridge": true,
+    "symbolic_before_numeric": true,
+    "explicit_multiplication": true,
+    "round_at_end": true
+  },
+  "comparison_policy": {
+    "unit_normalization_required": true,
+    "global_relative_tolerance": null,
+    "last_place_tolerance": null,
+    "task_specific_overrides": []
+  },
+  "outputs": {
+    "answer_ledger": true,
+    "independent_solution_ledger": true,
+    "exam_solution_ledger": true,
+    "beginner_pedagogy_ledger": true,
+    "per_task_agent_markdown": true,
+    "premium_html": true,
+    "full_a4_print": true,
+    "tutor_prompt": true
+  },
+  "publication": {
+    "requested": null,
+    "public_read": null,
+    "agent_access": null,
+    "exact_edition_anchors": true,
+    "pilot_required": true,
+    "rollback_required": true
+  },
+  "owner_decisions_needed": [],
+  "stop_conditions": []
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "problem_corpus_program.1.0.0",
+  "status": "DRAFT",
+  "corpus": {
+    "title": "",
+    "slug": "",
+    "subject": "",
+    "source_language": "he",
+    "learning_language": "ru",
+    "source_edition": "",
+    "expected_task_count": null
+  },
+  "inputs": {
+    "problem_books": [],
+    "diagram_sources": [],
+    "legacy_tables": [],
+    "answer_keys_out_of_scope": []
+  },
+  "rights": {
+    "source_text_and_diagrams": "UNCONFIRMED",
+    "generated_learning_columns": "UNCONFIRMED",
+    "generated_audio": "UNCONFIRMED",
+    "public_read": "UNCONFIRMED",
+    "package_download": "UNCONFIRMED"
+  },
+  "processing": {
+    "external_provider_allowed": null,
+    "provider_profile": "",
+    "reuse_raw_caches": true,
+    "batch_and_resume": true,
+    "legacy_comparison_only": true
+  },
+  "learning_table": {
+    "columns": ["he", "he_niqqud", "transliteration", "ru"],
+    "typed_row_kinds": ["condition", "subpart", "note", "diagram_reference"],
+    "missing_diagram_policy": "MARK_INCOMPLETE_NEVER_INFER"
+  },
+  "audio": {
+    "enabled": null,
+    "voice": "OWNER_SELECTION_REQUIRED",
+    "rate": null,
+    "pitch": null,
+    "apply_cost_ceiling": null
+  },
+  "publication": {
+    "requested": null,
+    "immutable_editions": true,
+    "pilot_size": null,
+    "anonymous_read": null,
+    "rollback_required": true
+  },
+  "owner_decisions_needed": [],
+  "stop_conditions": []
+}

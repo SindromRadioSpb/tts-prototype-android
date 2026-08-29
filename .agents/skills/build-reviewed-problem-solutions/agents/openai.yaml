@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reviewed Problem Solutions Builder"
+  short_description: "Build reviewed exam-grade solution support"
+  default_prompt: "Use $build-reviewed-problem-solutions to derive, verify, teach, render, and prepare solutions for this problem corpus."
