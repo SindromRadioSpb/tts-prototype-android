@@ -67,6 +67,10 @@ contract is packaged as a system prompt for the user-facing AI tutor.
   `docs/planning/PHYSICS_YEAR1_BEGINNER_PEDAGOGY_R11_PLAN_2026_08_28.md`; the
   executable tutor contract is
   `docs/planning/PHYSICS_YEAR1_BEGINNER_TUTOR_MASTER_PROMPT_R11_2026_08_28.md`.
+- The production bilingual-condition and full-print contract is recorded in
+  `docs/planning/PHYSICS_YEAR1_BILINGUAL_PRINT_R13_PLAN_2026_08_30.md`; local
+  implementation and A4 evidence are in
+  `PHYSICS_YEAR1_BILINGUAL_PRINT_R13_IMPLEMENTATION_EVIDENCE_2026_08_30.md`.
 
 ## Generation
 

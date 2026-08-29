@@ -20,6 +20,7 @@ const { main: applyAgentRights } = require("./apply-physics-learning-support-age
 const ROOT = path.resolve(__dirname, "../..");
 const MANIFEST = require("../../physics/year1-support/manifest.json");
 const OUT = path.join(ROOT, "docs/research/physics-learning-derivatives/2026-08-27/implementation/screenshots");
+const PRINT_QA_PATH = process.env.PHYSICS_PRINT_QA_PATH ? path.resolve(process.env.PHYSICS_PRINT_QA_PATH) : null;
 const open = file => new Promise((resolve, reject) => { const db = new sqlite3.Database(file, error => error ? reject(error) : resolve(db)); });
 const close = db => new Promise(resolve => db.close(resolve));
 const run = (db, sql, params = []) => new Promise((resolve, reject) => db.run(sql, params, error => error ? reject(error) : resolve()));
@@ -98,6 +99,45 @@ async function seed(dataDir) {
     return owner.id;
   } finally { await close(db); }
 }
+async function verifyBilingualConditionsAndPrint(page, checks) {
+  const conditions = page.locator('.physics-learning-condition');
+  assert.equal(await conditions.count(), 2, 'both condition languages must be present');
+  assert.equal(await conditions.nth(0).evaluate(node => node.open), false, 'Russian condition must start collapsed');
+  assert.equal(await conditions.nth(1).evaluate(node => node.open), false, 'Hebrew condition must start collapsed');
+  assert.match(await conditions.nth(0).textContent(), /Поезд движется со скоростью 110 км\/ч/);
+  assert.match(await conditions.nth(1).textContent(), /[\u0590-\u05ff]{4,}/);
+  assert.equal(await conditions.nth(1).locator('.physics-learning-condition-body').getAttribute('dir'), 'rtl');
+  assert.equal(await conditions.nth(1).locator('.physics-learning-condition-body').getAttribute('lang'), 'he');
+  checks.push('bilingual-conditions-collapsed');
+
+  const initial = await page.locator('.physics-learning-viewer details').evaluateAll(nodes => nodes.map(node => node.open));
+  assert.ok(initial.length >= 6 && initial.every(value => value === false));
+  await page.evaluate(() => {
+    window.__physicsPrintSnapshot = null;
+    window.print = () => {
+      const viewer = document.querySelector('.physics-learning-viewer');
+      const details = Array.from(viewer.querySelectorAll('details'));
+      window.__physicsPrintSnapshot = {
+        total: details.length,
+        open: details.filter(node => node.open).length,
+        hasRussian: viewer.textContent.includes('Поезд движется со скоростью 110 км/ч'),
+        hasHebrew: /[\u0590-\u05ff]{4,}/.test(viewer.textContent),
+        hasExam: viewer.textContent.includes('Экзаменационное решение'),
+      };
+    };
+  });
+  await page.getByRole('button', { name: 'Распечатать полный проверенный разбор' }).click();
+  await page.waitForFunction(() => window.__physicsPrintSnapshot && window.__physicsPrintSnapshot.total > 0);
+  const snapshot = await page.evaluate(() => window.__physicsPrintSnapshot);
+  assert.equal(snapshot.open, snapshot.total, 'every disclosure must be open when print starts');
+  assert.equal(snapshot.hasRussian && snapshot.hasHebrew && snapshot.hasExam, true);
+  checks.push('print-all-sections');
+  await page.waitForFunction(expected => {
+    const values = Array.from(document.querySelectorAll('.physics-learning-viewer details')).map(node => node.open);
+    return JSON.stringify(values) === JSON.stringify(expected);
+  }, initial);
+  checks.push('print-state-restored');
+}
 async function browserAcceptance(base) {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch({ headless: true });
@@ -114,6 +154,16 @@ async function browserAcceptance(base) {
     await desktop.getByRole("button", { name: "Понять и решить" }).first().click();
     await desktop.locator(".physics-learning-disclosure summary", { hasText: "Экзаменационное решение" }).waitFor();
     assert.equal(await desktop.locator(".physics-learning-overlay").count(), 1); checks.push("full-walkthrough");
+    await verifyBilingualConditionsAndPrint(desktop, checks);
+    if (PRINT_QA_PATH) {
+      fs.mkdirSync(path.dirname(PRINT_QA_PATH), { recursive: true });
+      await desktop.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
+      assert.equal(await desktop.locator('.physics-learning-viewer details').evaluateAll(nodes => nodes.every(node => node.open)), true);
+      await desktop.pdf({ path: PRINT_QA_PATH, format: 'A4', preferCSSPageSize: true, printBackground: true });
+      await desktop.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+      assert.ok(fs.statSync(PRINT_QA_PATH).size > 50_000, 'print PDF must contain the complete walkthrough');
+      checks.push('print-a4-pdf');
+    }
     await desktop.screenshot({ path: path.join(OUT, "physics-learning-solution-desktop-ru.png"), fullPage: false });
     const examSummary = desktop.locator(".physics-learning-exam > summary");
     await examSummary.click(); await examSummary.scrollIntoViewIfNeeded();

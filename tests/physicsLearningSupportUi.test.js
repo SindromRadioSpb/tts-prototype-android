@@ -25,10 +25,27 @@ test("every Physics card and Reader expose answer-first and full learning-suppor
   assert.match(html, /@media \(max-width: 760px\)[\s\S]*\.physics-learning-viewer/);
 });
 
+test("full walkthrough renders both source conditions and prints every disclosure", () => {
+  const ui = read("public/js/library-ui.js");
+  const html = read("public/library.html");
+  assert.match(ui, /support\.source\.condition_ru/);
+  assert.match(ui, /support\.source\.condition_he/);
+  assert.match(ui, /class: 'physics-learning-condition[^']*'/);
+  assert.match(ui, /attrs: \{[^}]*lang: 'he'[^}]*dir: 'rtl'[^}]*\}/);
+  assert.match(ui, /function printPhysicsLearningSupport/);
+  assert.match(ui, /querySelectorAll\('details'\)/);
+  assert.match(ui, /window\.print\(\)/);
+  assert.match(ui, /afterprint/);
+  assert.match(html, /@media print[\s\S]*\.physics-learning-overlay/);
+  assert.match(html, /@page\s*\{[^}]*size:\s*A4/);
+  assert.match(html, /details:not\(\[open\]\)[^\{]*>[^\{]*:not\(summary\)[^\{]*\{[^}]*display:\s*block\s*!important/);
+});
+
 test("Physics learning support ships RU EN HE copy and cache/version lockstep", () => {
   for (const locale of ["ru", "en", "he"]) {
     const body = read(`public/i18n/locales/${locale}.js`);
-    for (const key of ["physicsCheckAnswer", "physicsUnderstandSolve", "physicsLearningTitle", "physicsExamSolution", "physicsAnswer"])
+    for (const key of ["physicsCheckAnswer", "physicsUnderstandSolve", "physicsLearningTitle", "physicsExamSolution", "physicsAnswer",
+      "physicsProblemStatement", "physicsConditionRussian", "physicsConditionHebrew", "physicsPrintWalkthrough"])
       assert.match(body, new RegExp(`${key}:`), `${locale}: ${key}`);
   }
   const html = read("public/library.html");

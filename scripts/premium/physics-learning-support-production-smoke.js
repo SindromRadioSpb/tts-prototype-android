@@ -13,7 +13,7 @@ const { chromium } = require("playwright");
 const ROOT = path.resolve(__dirname, "../..");
 const MANIFEST = require("../../physics/year1-support/manifest.json");
 const BASE = String(process.env.PHYSICS_PRODUCTION_ORIGIN || "https://linguistpro.kolosei.com").replace(/\/$/, "");
-const EXPECTED_VERSION = "3.11.447";
+const EXPECTED_VERSION = "3.11.448";
 const OUT = path.join(ROOT, "docs/research/physics-learning-derivatives/2026-08-27/production/screenshots");
 
 async function mapLimited(items, limit, worker) {
@@ -84,6 +84,46 @@ async function verifyApi() {
   return { health, tasks: MANIFEST.tasks.length };
 }
 
+async function verifyBilingualConditionsAndPrint(page, checks) {
+  const conditions = page.locator('.physics-learning-condition');
+  assert.equal(await conditions.count(), 2);
+  assert.equal(await conditions.nth(0).evaluate(node => node.open), false);
+  assert.equal(await conditions.nth(1).evaluate(node => node.open), false);
+  assert.match(await conditions.nth(0).textContent(), /Поезд движется со скоростью 110 км\/ч/);
+  assert.match(await conditions.nth(1).textContent(), /[\u0590-\u05ff]{4,}/);
+  assert.equal(await conditions.nth(1).locator('.physics-learning-condition-body').getAttribute('dir'), 'rtl');
+  assert.equal(await conditions.nth(1).locator('.physics-learning-condition-body').getAttribute('lang'), 'he');
+  checks.push('bilingual-conditions-collapsed');
+
+  const initial = await page.locator('.physics-learning-viewer details').evaluateAll(nodes => nodes.map(node => node.open));
+  assert.ok(initial.length >= 6 && initial.every(value => value === false));
+  await page.evaluate(() => {
+    window.__physicsPrintSnapshot = null;
+    window.print = () => {
+      const viewer = document.querySelector('.physics-learning-viewer');
+      const details = Array.from(viewer.querySelectorAll('details'));
+      window.__physicsPrintSnapshot = {
+        total: details.length,
+        open: details.filter(node => node.open).length,
+        hasRussian: viewer.textContent.includes('Поезд движется со скоростью 110 км/ч'),
+        hasHebrew: /[\u0590-\u05ff]{4,}/.test(viewer.textContent),
+        hasExam: viewer.textContent.includes('Экзаменационное решение'),
+      };
+    };
+  });
+  await page.getByRole('button', { name: 'Распечатать полный проверенный разбор' }).click();
+  await page.waitForFunction(() => window.__physicsPrintSnapshot && window.__physicsPrintSnapshot.total > 0);
+  const snapshot = await page.evaluate(() => window.__physicsPrintSnapshot);
+  assert.equal(snapshot.open, snapshot.total);
+  assert.equal(snapshot.hasRussian && snapshot.hasHebrew && snapshot.hasExam, true);
+  checks.push('print-all-sections');
+  await page.waitForFunction(expected => {
+    const values = Array.from(document.querySelectorAll('.physics-learning-viewer details')).map(node => node.open);
+    return JSON.stringify(values) === JSON.stringify(expected);
+  }, initial);
+  checks.push('print-state-restored');
+}
+
 async function verifyBrowser() {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch({ headless: true });
@@ -108,6 +148,7 @@ async function verifyBrowser() {
     await desktop.locator(".physics-learning-disclosure summary", { hasText: "Экзаменационное решение" }).waitFor();
     assert.equal(await desktop.locator(".physics-learning-overlay").count(), 1);
     checks.push("full-walkthrough");
+    await verifyBilingualConditionsAndPrint(desktop, checks);
     await desktop.screenshot({ path: path.join(OUT, "physics-learning-solution-desktop-ru.png"), fullPage: false });
     const examSummary = desktop.locator(".physics-learning-exam > summary");
     await examSummary.click();

@@ -7781,6 +7781,42 @@ function physicsLearningBlock(titleKey, fallback, values, ordered) {
   return section;
 }
 
+function physicsConditionDisclosure(titleKey, fallback, values, language) {
+  const isHebrew = language === 'he';
+  const details = el('details', { class: 'physics-learning-condition' + (isHebrew ? ' is-hebrew' : ' is-russian') });
+  details.appendChild(el('summary', { text: tt(titleKey, fallback) }));
+  const body = isHebrew
+    ? el('div', { class: 'physics-learning-condition-body', attrs: { lang: 'he', dir: 'rtl' } })
+    : el('div', { class: 'physics-learning-condition-body', attrs: { lang: 'ru', dir: 'ltr' } });
+  for (const value of (values || [])) body.appendChild(el('p', { text: value }));
+  details.appendChild(body);
+  return details;
+}
+
+const physicsLearningPrintStates = new WeakMap();
+
+function preparePhysicsLearningPrint(viewer) {
+  if (physicsLearningPrintStates.has(viewer)) return;
+  const disclosures = Array.from(viewer.querySelectorAll('details'));
+  physicsLearningPrintStates.set(viewer, { disclosures, openStates: disclosures.map(details => details.open) });
+  disclosures.forEach(details => { details.open = true; });
+  viewer.setAttribute('data-printing', 'true');
+}
+
+function restorePhysicsLearningPrint(viewer) {
+  const state = physicsLearningPrintStates.get(viewer);
+  if (!state) return;
+  state.disclosures.forEach((details, index) => { details.open = state.openStates[index]; });
+  physicsLearningPrintStates.delete(viewer);
+  viewer.removeAttribute('data-printing');
+}
+
+function printPhysicsLearningSupport(viewer) {
+  preparePhysicsLearningPrint(viewer);
+  try { window.print(); }
+  finally { window.setTimeout(() => restorePhysicsLearningPrint(viewer), 0); }
+}
+
 function openPhysicsLearningSupport(support, trigger) {
   if (!support) return;
   const overlay = el('div', { class: 'physics-learning-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'physicsLearningTitle' } });
@@ -7790,13 +7826,28 @@ function openPhysicsLearningSupport(support, trigger) {
   headCopy.appendChild(el('span', { class: 'physics-learning-kicker', text: tt('room.publicCorpus.physicsLearningKicker', 'Проверенный учебный разбор') }));
   headCopy.appendChild(el('h2', { attrs: { id: 'physicsLearningTitle' }, text: tt('room.publicCorpus.physicsLearningTitle', 'Понять и решить') + ' · ' + support.task_number }));
   headCopy.appendChild(el('p', { text: tt('room.publicCorpus.physicsLearningSubtitle', 'От физической картины к экзаменационному ответу — без пропущенных шагов') }));
+  const headActions = el('div', { class: 'physics-learning-head-actions' });
+  const print = el('button', { class: 'physics-learning-print', attrs: { type: 'button', 'aria-label': tt('room.publicCorpus.physicsPrintWalkthroughLabel', 'Распечатать полный проверенный разбор'), title: tt('room.publicCorpus.physicsPrintWalkthroughLabel', 'Распечатать полный проверенный разбор') }, text: tt('room.publicCorpus.physicsPrintWalkthrough', 'Печать разбора') });
   const close = el('button', { class: 'physics-learning-close', attrs: { type: 'button', 'aria-label': tt('room.publicCorpus.physicsCloseLearning', 'Закрыть разбор') }, text: '×' });
-  head.append(headCopy, close); viewer.appendChild(head);
+  headActions.append(print, close); head.append(headCopy, headActions); viewer.appendChild(head);
   const body = el('div', { class: 'physics-learning-body' });
 
   const answer = el('section', { class: 'physics-learning-answer', attrs: { 'aria-label': tt('room.publicCorpus.physicsAnswer', 'Ответ') } });
   answer.append(el('span', { text: tt('room.publicCorpus.physicsAnswer', 'Ответ') }), physicsRichText(support.answer.result, 'physics-answer-value'));
   body.appendChild(answer);
+
+  const conditions = el('section', { class: 'physics-learning-conditions', attrs: { 'aria-labelledby': 'physicsLearningConditionsTitle' } });
+  const conditionsHead = el('div', { class: 'physics-learning-conditions-head' });
+  conditionsHead.append(
+    el('h3', { attrs: { id: 'physicsLearningConditionsTitle' }, text: tt('room.publicCorpus.physicsProblemStatement', 'Условие задачи') }),
+    el('span', { text: tt('room.publicCorpus.physicsConditionsPrintNote', 'Обе формулировки включены в печатную версию') })
+  );
+  conditions.append(
+    conditionsHead,
+    physicsConditionDisclosure('room.publicCorpus.physicsConditionRussian', 'Условие на русском', support.source.condition_ru, 'ru'),
+    physicsConditionDisclosure('room.publicCorpus.physicsConditionHebrew', 'Оригинал на иврите', support.source.condition_he, 'he')
+  );
+  body.appendChild(conditions);
 
   const bridge = el('section', { class: 'physics-learning-bridge' });
   bridge.appendChild(el('span', { class: 'physics-learning-section-label', text: tt('room.publicCorpus.physicsLowThreshold', 'Низкий порог входа') }));
@@ -7838,9 +7889,12 @@ function openPhysicsLearningSupport(support, trigger) {
   const anchor = el('code', { text: 'edition ' + support.edition_number + ' · work ' + support.public_work_id + ' · snapshot ' + support.snapshot_sha256.slice(0, 12) + '…' }); provenanceBody.appendChild(anchor); provenance.appendChild(provenanceBody); body.appendChild(provenance);
   viewer.appendChild(body); overlay.appendChild(viewer); document.body.appendChild(overlay);
   const background = roomSuspendBackground(overlay); let closed = false;
-  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
+  const beforePrint = () => preparePhysicsLearningPrint(viewer);
+  const afterPrint = () => restorePhysicsLearningPrint(viewer);
+  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); restorePhysicsLearningPrint(viewer); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
   const keydown = event => { if (event.key === 'Escape') { event.preventDefault(); shut(); } else if (event.key === 'Tab') roomFocusTrap(event, viewer); };
-  close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); roomFocusInto(viewer);
+  print.addEventListener('click', () => printPhysicsLearningSupport(viewer));
+  close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); window.addEventListener('beforeprint', beforePrint); window.addEventListener('afterprint', afterPrint); roomFocusInto(viewer);
 }
 
 function renderPhysicsLearningActions(slug, item) {

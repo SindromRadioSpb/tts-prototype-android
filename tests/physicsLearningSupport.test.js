@@ -59,6 +59,10 @@ test("every support shard is hash-verified, bounded and complete for UI and agen
     assert.equal(body.public_work_id, entry.public_work_id);
     assert.equal(body.snapshot_sha256, entry.snapshot_sha256);
     assert.equal(body.review.open_mismatch, false);
+    assert.ok(Array.isArray(body.source.condition_ru) && body.source.condition_ru.length > 0, `${entry.task_number}: Russian condition`);
+    assert.ok(Array.isArray(body.source.condition_he) && body.source.condition_he.length > 0, `${entry.task_number}: Hebrew condition`);
+    assert.ok(body.source.condition_ru.every(row => row.trim().length > 0), `${entry.task_number}: blank Russian condition row`);
+    assert.ok(body.source.condition_he.every(row => /[\u0590-\u05ff]/.test(row)), `${entry.task_number}: Hebrew script missing`);
     assert.ok(body.beginner.physical_picture.length >= 60);
     assert.ok(body.beginner.roadmap.length >= 3);
     for (const key of ["given", "find", "si", "laws", "symbolic", "calculation", "check"])
