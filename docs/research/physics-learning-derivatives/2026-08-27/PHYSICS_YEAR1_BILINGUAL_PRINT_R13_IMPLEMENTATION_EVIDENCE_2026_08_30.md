@@ -4,7 +4,7 @@
 
 Target release: `3.11.448`
 
-Статус: `LOCAL_PASS · PRODUCTION_PENDING`
+Статус: `PRODUCTION_LIVE · READ_ONLY_ACCEPTED`
 
 ## Реализовано
 
@@ -56,9 +56,23 @@ provenance. Все четыре страницы отрендерены в PNG �
 learner-state или пользовательский профиль не изменён. Это только новая
 проекция уже канонических условий и печатное представление.
 
-## Production gate
+## Production evidence
 
-После push требуется устойчивый один image `3.11.448`, health с ready DB и
-migrations, затем свежий anonymous production smoke с 74/74 API tasks и
-новыми browser checks. Owner-device/physical printer и assistive-technology
-acceptance до отдельной проверки не заявляются.
+- Application commit: `8c4d1370` (`feat(physics): add bilingual walkthrough
+  printing`). Webhook deployment завершён успешно за 3 минуты 7 секунд.
+- Пять последовательных cache-busted probes вернули HTTP 200, версию
+  `3.11.448`, `db.ready=true` и `migrations.ready=true`.
+- Fresh-anonymous production smoke: `api_tasks=74`, `authenticated=false`,
+  `production_writes=false`; browser checks — answer-first, full walkthrough,
+  bilingual conditions collapsed, all sections present at print time, exact
+  state restore, unambiguous math, mobile no-overflow и HE RTL.
+- В сохранённом PWA-профиле штатное уведомление обновило shell с `3.11.447`
+  до `3.11.448` без очистки OPFS или пользовательских данных. После обновления
+  публичная задача 1.1 и dialog «Понять и решить» открылись; обе формулировки
+  остались закрыты, кнопка печати доступна.
+- Production screenshots совпали с локально принятыми fixtures; повторно
+  просмотрены RU 380 px и HE RTL 380 px без обрезки и горизонтального overflow.
+
+Owner-device/physical-printer и assistive-technology acceptance отдельно не
+заявляются: текущая приёмка покрывает Chromium PDF, браузерные viewport и
+семантические source tests.

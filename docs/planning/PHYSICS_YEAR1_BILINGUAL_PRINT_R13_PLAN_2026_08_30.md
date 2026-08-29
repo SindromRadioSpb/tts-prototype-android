@@ -2,7 +2,7 @@
 
 Дата: 2026-08-30
 
-Статус: `IMPLEMENTED_LOCAL · PRODUCTION_PENDING`
+Статус: `PRODUCTION_LIVE · READ_ONLY_ACCEPTED`
 
 ## Результат
 
@@ -68,3 +68,9 @@ focus и мобильную цель не меньше 44 px. Новые стр�
 Rollout: `3.11.448`, allowlist commit → `main` → один устойчивый production
 image → health/version/API/browser-приёмка. Rollback — предыдущий application
 commit; edition, shards, DB и права не меняются.
+
+Production rollout закрыт 2026-08-30: commit `8c4d1370`, успешный webhook
+deploy, пять последовательных healthy-проб `3.11.448`, 74/74 read-only API
+tasks и fresh-anonymous browser smoke. Существующий PWA-профиль также принят
+после штатного пользовательского обновления с `3.11.447` на `3.11.448` без
+очистки OPFS или данных.
