@@ -1,0 +1,84 @@
+{
+  "schema": "linguistpro-materials-pb2-goal-blocked-audit-v1",
+  "audited_on": "2026-08-30",
+  "goal_status_recommendation": "BLOCKED_OWNER_APPROVAL_REQUIRED",
+  "completion_claim_allowed": false,
+  "requirements": [
+    {
+      "requirement": "60 stable source-grounded task identities and source anchors",
+      "status": "ACHIEVED",
+      "evidence": [
+        "prepare/task-manifest.json",
+        "build/terminal-task-index.json",
+        "repair/preflight/source-anchor-repair-ledger.json"
+      ]
+    },
+    {
+      "requirement": "all source diagrams and required appendices classified",
+      "status": "ACHIEVED_LOCAL_CLASSIFICATION_AND_PREFLIGHT_MATERIALIZATION",
+      "evidence": [
+        "prepare/diagram-manifest.json",
+        "repair/preflight/canonical-repair-preflight-manifest.json"
+      ]
+    },
+    {
+      "requirement": "four source-reviewed learning columns for every row",
+      "status": "NOT_ACHIEVED",
+      "evidence": [
+        "build/aggregate-terminal-audit.json"
+      ],
+      "facts": {
+        "task_count": 60,
+        "row_count": 693,
+        "pass_task_count": 1,
+        "incomplete_task_count": 59,
+        "blocked_row_count": 642
+      }
+    },
+    {
+      "requirement": "explicit quality disposition for every task",
+      "status": "ACHIEVED_FAIL_CLOSED",
+      "evidence": [
+        "build/terminal-task-index.json",
+        "build/aggregate-terminal-audit.json"
+      ]
+    },
+    {
+      "requirement": "canonical local LinguistPro package with deterministic readback",
+      "status": "NOT_ACHIEVED_REAL_DATA_BLOCKED",
+      "evidence": [
+        "repair/canonical-pipeline-synthetic-rehearsal.json"
+      ],
+      "facts": {
+        "real_execution_ledger_exists": false,
+        "canonical_zip_count": 0,
+        "synthetic_rehearsal_is_corpus_truth": false
+      }
+    },
+    {
+      "requirement": "no unauthorized providers, credentials, solutions, audio APPLY, import, or publication",
+      "status": "ACHIEVED",
+      "facts": {
+        "canonical_repair_provider_calls": 0,
+        "canonical_repair_secret_accessed": false,
+        "solution_work": false,
+        "audio_apply": false,
+        "imported": false,
+        "published": false
+      }
+    }
+  ],
+  "blocking_condition": {
+    "code": "EXACT_OWNER_APPROVAL_FOR_SEPARATE_CANONICAL_REPAIR_ABSENT",
+    "consecutive_goal_turns": 3,
+    "safe_local_work_exhausted": true,
+    "why_external_change_required": "The remaining 642 rows require real source-first provider review; current authority prohibits provider and credential access.",
+    "exact_unblock_token": "APPROVE MATERIALS-PB2-SEPARATE-CANONICAL-REPAIR MODEL=gemini-3.7-flash MODE=STANDARD MAX_USD=2.00 MAX_CALLS=12 EGRESS=SOURCE_PAGES_AND_LEGACY_CONDITION_CANDIDATES CREDENTIAL=OWNER_APPROVED_LOCAL_READ_ONLY_NO_PERSIST"
+  },
+  "still_separate_after_unblock": [
+    "solutions",
+    "audio_apply",
+    "import",
+    "publication"
+  ]
+}

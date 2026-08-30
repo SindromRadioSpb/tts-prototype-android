@@ -1,0 +1,22 @@
+{
+  "schema_version": "materials_pb2_solution_batch_review_manifest.1.0.0",
+  "batch_id": "B06",
+  "status": "TECHNICAL_REVIEWED_PASS_10_OF_10_PRESENTATION_NOT_BUILT_NOT_PUBLISHED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "task_count": 10,
+  "publication_blocking_content_mismatches": 0,
+  "files": [
+    {"path":"B06-source-workpack.json","bytes":70057,"sha256":"156b24cab34b0fc414686aaa9eaaee265a4d58239256ad50091de8b640b5a039"},
+    {"path":"B06-independent-solution-ledger.ru.json","bytes":34302,"sha256":"d1c650a6c09e4f779317f9893e4b9cba9747bc69b73573506c79f4062eedec2c"},
+    {"path":"B06-comparison-ledger.json","bytes":5387,"sha256":"18b34efb3d42d43467f84edd366905872d49b9ce6242b33becd6f4382277a7ab"},
+    {"path":"B06-targeted-review-01.json","bytes":732,"sha256":"b83dae8d87e4fcd4912efe4dca9341807a0d1c926a9ac1b8ed5c7cfbf6b6301c"}
+  ],
+  "next_artifacts": [
+    "B06-student-solution-table.json",
+    "B06-agent-shards",
+    "B06-print-projections"
+  ],
+  "rights_status": "UNCONFIRMED_NOT_PUBLICATION_READY",
+  "tts_status": "FULL_AUDIO_DEFERRED_UNTIL_OWNER_CARD_REVIEW_ROW_CONTRACT_ONLY"
+}

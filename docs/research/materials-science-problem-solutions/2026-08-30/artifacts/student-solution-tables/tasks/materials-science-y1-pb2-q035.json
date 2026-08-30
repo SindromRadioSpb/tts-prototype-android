@@ -1,0 +1,4921 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q035",
+  "display_alias": "35",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "fb5fce3c8131366ffa03b1f3ead9de51ec32869a55cc8fbe4719f2cabf387924"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "fca071834419e4632053f0f613727c3bc2be6a977f00f0c3a3273763a908b1f6",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Rockwell C, all 23 positions and the edge-low/center-high impact ranking match; both solutions avoid inventing absolute Joules.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q035-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 35.",
+        "hebrew_niqqud": "שְׁאֵלָה 35.",
+        "translit": "She'ela 35.",
+        "translit_ru": "",
+        "russian": "Вопрос 35.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "task_heading",
+            "source_page": 42,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r002",
+        "order_index": 1,
+        "hebrew_plain": "עליך לאפיין תכונות מכאניות (קשיות ונגיפה) של מוט פלדה SAE 3120 בקוטר 60 מ\"מ לאחר ביצוע הטיפול התרמי הבא:",
+        "hebrew_niqqud": "עָלֶיךָ לְאַפְייֵן תְּכוּנוֹת מֶכָאנִיּוֹת (קַשְׁיוּת וּנְגִיפָה) שֶׁל מוֹט פְּלָדָה SAE 3120 בְּקֹוטֶר 60 מ\"מ לְאַחַר בִּיצּוּעַ הַטִּיפּוּל הַתֶּרְמִי הַבָּא:",
+        "translit": "Alekha le-afyen tkhunot mekhaniyot (ḳashyut u-negifah) shel moṭ pladah SAE 3120 be-ḳoṭer 60 m\"m le-aḥar bitsu'a ha-ṭipul ha-termi ha-ba:",
+        "translit_ru": "",
+        "russian": "Вам необходимо охарактеризовать механические свойства (твердость и ударную вязкость) прутка из стали SAE 3120 диаметром 60 мм после проведения следующей термической обработки:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r003",
+        "order_index": 2,
+        "hebrew_plain": "חימום לטמפרטורה 830°C (למשך זמן מספיק כך שכל המוט יהיה בטמפרטורה זו)",
+        "hebrew_niqqud": "חִימּוּם לְטֶמְפֶּרָטוּרָה 830°C (לְמֶשֶׁךְ זְמַן מַסְפִּיק כָּךְ שֶׁכָּל הַמּוֹט יִהְיֶה בְּטֶמְפֶּרָטוּרָה זוֹ)",
+        "translit": "ḥimum le-ṭemperaturah 830°C (le-meshekh zman maspiḳ kakh she-kol ha-moṭ yihyeh be-ṭemperaturah zo)",
+        "translit_ru": "",
+        "russian": "нагрев до температуры 830°C (в течение времени, достаточного для прогрева всего прутка до этой температуры)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r004",
+        "order_index": 3,
+        "hebrew_plain": "ולאחר מכן חיסום במים.",
+        "hebrew_niqqud": "וּלְאַחַר מִכֵּן חִיסּוּם בְּמַיִם.",
+        "translit": "u-le-aḥar mi-ken ḥisum be-mayim.",
+        "translit_ru": "",
+        "russian": "и затем закалка в воде.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r005",
+        "order_index": 4,
+        "hebrew_plain": "בטבלה שלהלן מוצגות תוצאות בדיקת קשיות שנערכו לאחר החיסום (ראה סרטוט):",
+        "hebrew_niqqud": "בַּטַּבְלָה שֶׁלְּהַלָּן מֻוצָּגוֹת תּוֹצָאוֹת בְּדִיקַת קַשְׁיוּת שֶׁנֶּעֶרְכוּ לְאַחַר הַחִיסּוּם (רְאֵה סִרְטוּט):",
+        "translit": "Ba-ṭavlah she-lehalan mutsagot totsa'ot bdikat ḳashyut she-ne'erkhu le-aḥar ha-ḥisum (re'eh sirtuṭ):",
+        "translit_ru": "",
+        "russian": "В приведенной ниже таблице представлены результаты испытаний твердости, проведенных после закалки (см. эскиз):",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r006",
+        "order_index": 5,
+        "hebrew_plain": "סרטוט סכמאתי המציג 23 נקודות לבדיקת הקשיות שנערכו על פני קוטר המוט",
+        "hebrew_niqqud": "סִרְטוּט סְכֶמָאתִי הַמַּצִּיג 23 נְקֻודּוֹת לִבְדִיקַת הַקַּשְׁיוּת שֶׁנֶּעֶרְכוּ עַל פְּנֵי קֹוטֶר הַמּוֹט",
+        "translit": "Sirtuṭ skhemati ha-matsig 23 neḳudot li-vdikat ha-ḳashyut she-ne'erkhu al pney ḳoṭer ha-moṭ",
+        "translit_ru": "",
+        "russian": "Схематический эскиз, показывающий 23 точки измерения твердости, проведенные по диаметру прутка",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r007",
+        "order_index": 6,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 1 הן 58.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 1 הֵן 58.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 1 hen 58.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 1 составляют 58.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 6,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r008",
+        "order_index": 7,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 2 הן 58.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 2 הֵן 58.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 2 hen 58.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 2 составляют 58.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 7,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r009",
+        "order_index": 8,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 3 הן 55.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 3 הֵן 55.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 3 hen 55.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 3 составляют 55.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 8,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r010",
+        "order_index": 9,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 4 הן 51.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 4 הֵן 51.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 4 hen 51.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 4 составляют 51.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 9,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r011",
+        "order_index": 10,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 5 הן 46.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 5 הֵן 46.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 5 hen 46.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 5 составляют 46.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 10,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r012",
+        "order_index": 11,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 6 הן 43.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 6 הֵן 43.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 6 hen 43.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 6 составляют 43.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 11,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r013",
+        "order_index": 12,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 7 הן 40.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 7 הֵן 40.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 7 hen 40.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 7 составляют 40.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 12,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 12,
+        "sentence_index": 12,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r014",
+        "order_index": 13,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 8 הן 38.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 8 הֵן 38.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 8 hen 38.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 8 составляют 38.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 13,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 13,
+        "sentence_index": 13,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r015",
+        "order_index": 14,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 9 הן 37.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 9 הֵן 37.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 9 hen 37.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 9 составляют 37.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 14,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 14,
+        "sentence_index": 14,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r016",
+        "order_index": 15,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 10 הן 37.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 10 הֵן 37.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 10 hen 37.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 10 составляют 37.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 15,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 15,
+        "sentence_index": 15,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r017",
+        "order_index": 16,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 11 הן 36.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 11 הֵן 36.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 11 hen 36.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 11 составляют 36.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 16,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 16,
+        "sentence_index": 16,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r018",
+        "order_index": 17,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 12 הן 36.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 12 הֵן 36.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 12 hen 36.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 12 составляют 36.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 17,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 17,
+        "sentence_index": 17,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r019",
+        "order_index": 18,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 13 הן 36.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 13 הֵן 36.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 13 hen 36.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 13 составляют 36.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 18,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 18,
+        "sentence_index": 18,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r020",
+        "order_index": 19,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 14 הן 37.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 14 הֵן 37.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 14 hen 37.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 14 составляют 37.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 19,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 19,
+        "sentence_index": 19,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r021",
+        "order_index": 20,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 15 הן 37.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 15 הֵן 37.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 15 hen 37.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 15 составляют 37.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 20,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 20,
+        "sentence_index": 20,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r022",
+        "order_index": 21,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 16 הן 38.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 16 הֵן 38.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 16 hen 38.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 16 составляют 38.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 21,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 21,
+        "sentence_index": 21,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r023",
+        "order_index": 22,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 17 הן 40.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 17 הֵן 40.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 17 hen 40.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 17 составляют 40.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 22,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 22,
+        "sentence_index": 22,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r024",
+        "order_index": 23,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 18 הן 43.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 18 הֵן 43.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 18 hen 43.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 18 составляют 43.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 23,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 23,
+        "sentence_index": 23,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r025",
+        "order_index": 24,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 19 הן 46.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 19 הֵן 46.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 19 hen 46.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 19 составляют 46.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 24,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 24,
+        "sentence_index": 24,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r026",
+        "order_index": 25,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 20 הן 51.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 20 הֵן 51.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 20 hen 51.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 20 составляют 51.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 25,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 25,
+        "sentence_index": 25,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r027",
+        "order_index": 26,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 21 הן 55.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 21 הֵן 55.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 21 hen 55.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 21 составляют 55.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 26,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 26,
+        "sentence_index": 26,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r028",
+        "order_index": 27,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 22 הן 58.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 22 הֵן 58.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 22 hen 58.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 22 составляют 58.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 27,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 27,
+        "sentence_index": 27,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r029",
+        "order_index": 28,
+        "hebrew_plain": "תוצאות קשיות HRC בנקודה 23 הן 58.",
+        "hebrew_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻודָּה 23 הֵן 58.",
+        "translit": "Totsa'ot kashyut HRC bi'nekudah 23 hen 58.",
+        "translit_ru": "",
+        "russian": "Результаты твердости HRC в точке 23 составляют 58.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "table_data",
+            "source_page": 42,
+            "source_row_index": 28,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 28,
+        "sentence_index": 28,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r030",
+        "order_index": 29,
+        "hebrew_plain": "בנוסף, נחתכו מהמוט 3 דגמי נגיפה תקניים לפי תקן ASTM-E-23.",
+        "hebrew_niqqud": "בְּנוֹסָף, נֶחְתְּכוּ מֵהַמּוֹט 3 דִּגְמֵי נְגִיפָה תַּקְנִיִּים לְפִי תֶּקֶן ASTM-E-23.",
+        "translit": "Be-nosaf, nekhtekhu me-ha-moṭ 3 digmey negifah taḳniyim lefi teḳen ASTM-E-23.",
+        "translit_ru": "",
+        "russian": "Кроме того, из прутка были вырезаны 3 стандартных образца на ударную вязкость согласно стандарту ASTM-E-23.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 29,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 29,
+        "sentence_index": 29,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r031",
+        "order_index": 30,
+        "hebrew_plain": "שני דגמי נגיפה מהיקף המוט",
+        "hebrew_niqqud": "שְׁנֵי דִּגְמֵי נְגִיפָה מֵהֶיקֵף הַמּוֹט",
+        "translit": "shney digmey negifah me-heyḳef ha-moṭ",
+        "translit_ru": "",
+        "russian": "два образца на ударную вязкость с периферии прутка",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 30,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 30,
+        "sentence_index": 30,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r032",
+        "order_index": 31,
+        "hebrew_plain": "ודגם אחד ממרכזו.",
+        "hebrew_niqqud": "וְדֶגֶם אֶחָד מִמֶּרְכָּזוֹ.",
+        "translit": "ve-degem eḥad mi-merkazo.",
+        "translit_ru": "",
+        "russian": "и один образец из его центра.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "condition",
+            "source_page": 42,
+            "source_row_index": 31,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 31,
+        "sentence_index": 31,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r033",
+        "order_index": 32,
+        "hebrew_plain": "א. מהי השיטה לפיה בוצעו בדיקות הקשיות (קבע על סמך התוצאות המוצגות בטבלה),",
+        "hebrew_niqqud": "א. מַהִי הַשִּׁיטָה לְפִיהָ בֻּוצְּעוּ בְּדִיקוֹת הַקַּשְׁיוּת (קְבַע עַל סְמַךְ הַתּוֹצָאוֹת הַמֻּוצָּגוֹת בַּטַּבְלָה),",
+        "translit": "A. Mahi ha-shitah lefiha buts'u bdikot ha-ḳashyut (ḳva al smakh ha-totsa'ot ha-mutsagot ba-ṭavlah),",
+        "translit_ru": "",
+        "russian": "А. Каков метод, по которому проводились испытания на твердость (определите на основании результатов, приведенных в таблице),",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "subpart",
+            "source_page": 42,
+            "source_row_index": 32,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 32,
+        "sentence_index": 32,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r034",
+        "order_index": 33,
+        "hebrew_plain": "וסרטט את התוצאות על מערכת צירים של קשיות כתלות בקוטר המוט.",
+        "hebrew_niqqud": "וְסַרְטֵט אֶת הַתּוֹצָאוֹת עַל מַעֲרֶכֶת צִירִים שֶׁל קַשְׁיוּת כִּתְלוּת בְּקֹוטֶר הַמּוֹט.",
+        "translit": "ve-sarṭeṭ et ha-totsa'ot al ma'arekhet tsirim shel ḳashyut ki-tlut be-ḳoṭer ha-moṭ.",
+        "translit_ru": "",
+        "russian": "и постройте график результатов в системе координат «твердость в зависимости от диаметра прутка».",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "subpart",
+            "source_page": 42,
+            "source_row_index": 33,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 33,
+        "sentence_index": 33,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r035",
+        "order_index": 34,
+        "hebrew_plain": "ב) מה צפויה להיות אנרגיית הנגיפה של כל אחד משלושת דגמי הנגיפה.",
+        "hebrew_niqqud": "ב) מַה צְּפוּיָה לִהְיוֹת אֶנֶרְגִּייַּת הַנְּגִיפָה שֶׁל כָּל אֶחָד מִשְּׁלֹושֶׁת דִּגְמֵי הַנְּגִיפָה.",
+        "translit": "B) Mah tzefuyah lihyot energeyat ha-negifah shel kol ehad mi-shloshet digmei ha-negifah.",
+        "translit_ru": "",
+        "russian": "Б) Какова ожидаемая энергия удара для каждого из трех образцов для испытаний на ударную вязкость.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "subpart",
+            "source_page": 42,
+            "source_row_index": 34,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 34,
+        "sentence_index": 34,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q035-r036",
+        "order_index": 35,
+        "hebrew_plain": "ב) קבע לכל דגם האם האנרגיה “גבוהה” או “נמוכה” ונמק.",
+        "hebrew_niqqud": "ב) קְבַע לְכָל דֶּגֶם הַאִם הָאֶנֶרְגִּיָּה “גְּבוֹהָה” אוֹ “נְמוּכָה” וְנַמֵּק.",
+        "translit": "B) Kva le'khol degem ha'im ha-energeyah \"gvohah\" o \"nemukhah\" ve'namek.",
+        "translit_ru": "",
+        "russian": "Б) Определите для каждого образца, является ли энергия «высокой» или «низкой», и обоснуйте.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q035",
+            "kind": "subpart",
+            "source_page": 42,
+            "source_row_index": 35,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 35,
+        "sentence_index": 35,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      42
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q035/anchor-01-p042.jpg",
+        "sha256": "3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "bytes": 406733,
+        "source_page": 42,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q035-v01",
+        "source_page": 42,
+        "kind": "HARDNESS_MEASUREMENT_TABLE",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      },
+      {
+        "visual_id": "materials-science-y1-pb2-q035-v02",
+        "source_page": 42,
+        "kind": "ROD_SAMPLING_SCHEMATIC",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:fca071834419e4632053f0f613727c3bc2be6a977f00f0c3a3273763a908b1f6"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 1: x=-30.0 mm ו־HRC=58.",
+        "he_niqqud": "נְקֻדָּה 1: x=-30.0 mm וְ־HRC=58.",
+        "transliteration": "Nekudah 1: x=-30.0 mm ve-HRC=58.",
+        "ru": "Точка 1: x=-30.0 мм и HRC=58."
+      },
+      "source_refs": [
+        "legacy_row_hash:b5fc96ee7bef9b4b3d8e8b7d4087bebf047a874599dc69c8abd993457a89954e",
+        "legacy_fields_sha256:8ea568bbbf6eb96137daec5434c3c903a8edef46dec541b7d826d4626db5351c",
+        "independent_solution_sha256:fca071834419e4632053f0f613727c3bc2be6a977f00f0c3a3273763a908b1f6"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "1:",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "x=-30.0",
+            "normalized": "x=-30.0"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=58.",
+            "normalized": "ו־HRC=58"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 2: x=-27.3 mm ו־HRC=58.",
+        "he_niqqud": "נְקֻדָּה 2: x=-27.3 mm וְ־HRC=58.",
+        "transliteration": "Nekudah 2: x=-27.3 mm ve-HRC=58.",
+        "ru": "Точка 2: x=-27.3 мм и HRC=58."
+      },
+      "source_refs": [
+        "legacy_row_hash:4dce948825aad2a2244c6a15668fc22fcfa81538fc686254169c2694e44935df",
+        "legacy_fields_sha256:b626fb3631e920f158b83be0d86cea55335ce658e1b96c198b5effbd9896beca",
+        "independent_solution_sha256:fca071834419e4632053f0f613727c3bc2be6a977f00f0c3a3273763a908b1f6"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "2:",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "x=-27.3",
+            "normalized": "x=-27.3"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=58.",
+            "normalized": "ו־HRC=58"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r004",
+      "order": 4,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) השיטה לבדיקת הקשיות היא רוקוול C (HRC) עם חוד יהלום (Brale).",
+        "he_niqqud": "א) הַשִּׁיטָה לִבְדִיקַת הַקַּשְׁיוּת הִיא רוֹקְוֶול C (HRC) עִם חוּד יַהֲלוֹם (Brale).",
+        "transliteration": "A) Ha-shitah li'vdikat ha-kashyut hi Rokvel C (HRC) im khud yahalom (Brale).",
+        "ru": "А) Методом испытания на твердость является Роквелл C (HRC) с алмазным индентором (Brale)."
+      },
+      "source_refs": [
+        "legacy_row_hash:d5a30f6f1511f42432c0d798c8847517d6e4e17ebedce24f3a6d25524e1e76c8",
+        "legacy_fields_sha256:3716a7bb24322b349cee64f58cb24d6f073eeb897850daae5884c5af87cfbadb",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַשִּׁיטָה",
+            "normalized": "השיטה"
+          },
+          {
+            "index": 2,
+            "surface": "לִבְדִיקַת",
+            "normalized": "לבדיקת"
+          },
+          {
+            "index": 3,
+            "surface": "הַקַּשְׁיוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "רוֹקְוֶול",
+            "normalized": "רוקוול"
+          },
+          {
+            "index": 6,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 7,
+            "surface": "(HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 8,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 9,
+            "surface": "חוּד",
+            "normalized": "חוד"
+          },
+          {
+            "index": 10,
+            "surface": "יַהֲלוֹם",
+            "normalized": "יהלום"
+          },
+          {
+            "index": 11,
+            "surface": "(Brale).",
+            "normalized": "Brale"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הסימון HRC מציין מדידת קשיות בסולם C של רוקוול.",
+        "he_niqqud": "הַסִּמּוּן HRC מְצַיֵּן מְדִידַת קַשְׁיוּת בְּסֻלָּם C שֶׁל רוֹקְוֶול.",
+        "transliteration": "Ha-simun HRC metzayen medidat kashyut be'sulam C shel Rokvel.",
+        "ru": "Обозначение HRC указывает на измерение твердости по шкале Роквелла C."
+      },
+      "source_refs": [
+        "legacy_row_hash:5b1afc267b9137eeb2979c9ac04392183848a462d53bb8c5b64b1fb2ac91a5ee",
+        "legacy_fields_sha256:f171c46f7d38cef9dc597d624af33ce7c032674609d6d5e3fb07b9989edd926e",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַסִּמּוּן",
+            "normalized": "הסמון"
+          },
+          {
+            "index": 1,
+            "surface": "HRC",
+            "normalized": "HRC"
+          },
+          {
+            "index": 2,
+            "surface": "מְצַיֵּן",
+            "normalized": "מצין"
+          },
+          {
+            "index": 3,
+            "surface": "מְדִידַת",
+            "normalized": "מדידת"
+          },
+          {
+            "index": 4,
+            "surface": "קַשְׁיוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 5,
+            "surface": "בְּסֻלָּם",
+            "normalized": "בסלם"
+          },
+          {
+            "index": 6,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "רוֹקְוֶול.",
+            "normalized": "רוקוול"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בסולם זה משתמשים בחוד יהלום ובפרוטוקול העמסה סטנדרטי.",
+        "he_niqqud": "בְּסֻלָּם זֶה מִשְׁתַּמְּשִׁים בְּחוּד יַהֲלוֹם וּבְפְּרוֹטוֹקוֹל הַעֲמָסָה סְטַנְדַּרְטִי.",
+        "transliteration": "Be'sulam zeh mishtamshim be'khud yahalom u've'protokol ha'amasah standartí.",
+        "ru": "В этой шкале используется алмазный индентор и стандартный протокол нагрузки."
+      },
+      "source_refs": [
+        "legacy_row_hash:4399a0c2b13ce3a04edbb4164916223417223fe59b6f31f4b7ea54a9f498e54c",
+        "legacy_fields_sha256:625c2d9eefc09d3df98d80bfcdd1e299f453decf47eab02815e029f88791b6f4",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּסֻלָּם",
+            "normalized": "בסלם"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מִשְׁתַּמְּשִׁים",
+            "normalized": "משתמשים"
+          },
+          {
+            "index": 3,
+            "surface": "בְּחוּד",
+            "normalized": "בחוד"
+          },
+          {
+            "index": 4,
+            "surface": "יַהֲלוֹם",
+            "normalized": "יהלום"
+          },
+          {
+            "index": 5,
+            "surface": "וּבְפְּרוֹטוֹקוֹל",
+            "normalized": "ובפרוטוקול"
+          },
+          {
+            "index": 6,
+            "surface": "הַעֲמָסָה",
+            "normalized": "העמסה"
+          },
+          {
+            "index": 7,
+            "surface": "סְטַנְדַּרְטִי.",
+            "normalized": "סטנדרטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הנקודות מסודרות על פני קוטר המוט בצורה סימטרית ביחס למרכז.",
+        "he_niqqud": "הַנְּקֻדּוֹת מְסֻדָּרוֹת עַל פְּנֵי קֹוטֶר הַמּוֹט בְּצוּרָה סִימֶטְרִית בְּיַחַס לַמֶּרְכָּז.",
+        "transliteration": "Ha-nekudot mesudarot al pnei koter ha-mot be'tzurah simetrit be'yakhas la-merkaz.",
+        "ru": "Точки расположены по диаметру стержня симметрично относительно центра."
+      },
+      "source_refs": [
+        "legacy_row_hash:fe35fffc34d542f0c826ee746b8a79e78d5fbcd6be9c14f89bb9a0ce73d36f04",
+        "legacy_fields_sha256:d6b79cdc9f469f7efee1a197f099ba36434426383cc43940eadb29de42eb049d",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַנְּקֻדּוֹת",
+            "normalized": "הנקדות"
+          },
+          {
+            "index": 1,
+            "surface": "מְסֻדָּרוֹת",
+            "normalized": "מסדרות"
+          },
+          {
+            "index": 2,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 3,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 4,
+            "surface": "קֹוטֶר",
+            "normalized": "קוטר"
+          },
+          {
+            "index": 5,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 6,
+            "surface": "בְּצוּרָה",
+            "normalized": "בצורה"
+          },
+          {
+            "index": 7,
+            "surface": "סִימֶטְרִית",
+            "normalized": "סימטרית"
+          },
+          {
+            "index": 8,
+            "surface": "בְּיַחַס",
+            "normalized": "ביחס"
+          },
+          {
+            "index": 9,
+            "surface": "לַמֶּרְכָּז.",
+            "normalized": "למרכז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r008",
+      "order": 8,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "מאחר שיש 23 נקודות, נקודת האמצע היא נקודה 12.",
+        "he_niqqud": "מֵאַחַר שֶׁיֵּשׁ 23 נְקֻדּוֹת, נְקֻדַּת הָאֶמְצַע הִיא נְקֻדָּה 12.",
+        "transliteration": "Me'akhar she'yesh 23 nekudot, nekudat ha-emtsa hi nekudah 12.",
+        "ru": "Поскольку имеется 23 точки, средняя точка — это точка 12."
+      },
+      "source_refs": [
+        "legacy_row_hash:876359ff4c8352cb44a763f4c38899933cc7a1f4c9cb7dc37fdce64b7cdc0b6c",
+        "legacy_fields_sha256:eb6149e5557385b8f22c721b0f19e11751500077ce18b2e55f19c0f3abe97f1d",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֵאַחַר",
+            "normalized": "מאחר"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁיֵּשׁ",
+            "normalized": "שיש"
+          },
+          {
+            "index": 2,
+            "surface": "23",
+            "normalized": "23"
+          },
+          {
+            "index": 3,
+            "surface": "נְקֻדּוֹת,",
+            "normalized": "נקדות"
+          },
+          {
+            "index": 4,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 5,
+            "surface": "הָאֶמְצַע",
+            "normalized": "האמצע"
+          },
+          {
+            "index": 6,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 7,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 8,
+            "surface": "12.",
+            "normalized": "12"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הערכים הנמוכים ביותר סביב המרכז (כגון 36 HRC) מתאימים לאזור הליבה.",
+        "he_niqqud": "הָעֲרָכִים הַנְּמוּכִים בְּיוֹתֵר סָבִיב הַמֶּרְכָּז (כְּגוֹן 36 HRC) מַתְאִימִים לְאֵזוֹר הַלִּיבָה.",
+        "transliteration": "Ha'arakhim ha-nemukhim beyoter saviv ha-merkaz (ke'gon 36 HRC) mat'imim le'ezor ha-libah.",
+        "ru": "Самые низкие значения вблизи центра (например, 36 HRC) соответствуют области сердцевины."
+      },
+      "source_refs": [
+        "legacy_row_hash:73acbf279d0404698f95cc8bcd681b18699192de6c130685c9b91265016d61a9",
+        "legacy_fields_sha256:7be3b822c5213bdcb075404282a095b33e441ae45ca2c895d24fd64c788dddf1",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הָעֲרָכִים",
+            "normalized": "הערכים"
+          },
+          {
+            "index": 1,
+            "surface": "הַנְּמוּכִים",
+            "normalized": "הנמוכים"
+          },
+          {
+            "index": 2,
+            "surface": "בְּיוֹתֵר",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 3,
+            "surface": "סָבִיב",
+            "normalized": "סביב"
+          },
+          {
+            "index": 4,
+            "surface": "הַמֶּרְכָּז",
+            "normalized": "המרכז"
+          },
+          {
+            "index": 5,
+            "surface": "(כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 6,
+            "surface": "36",
+            "normalized": "36"
+          },
+          {
+            "index": 7,
+            "surface": "HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 8,
+            "surface": "מַתְאִימִים",
+            "normalized": "מתאימים"
+          },
+          {
+            "index": 9,
+            "surface": "לְאֵזוֹר",
+            "normalized": "לאזור"
+          },
+          {
+            "index": 10,
+            "surface": "הַלִּיבָה.",
+            "normalized": "הליבה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r010",
+      "order": 10,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "לצורך שרטוט גרף קשיות כפונקציה של מיקום לאורך הקוטר מניחים מרווחים שווים בין נקודות המדידה.",
+        "he_niqqud": "לְצֹורֶךְ שִׂרְטוּט גְּרָף קַשְׁיוּת כְּפוּנְקְצְיָה שֶׁל מִקּוּם לְאֹרֶךְ הַקֹּוטֶר מַנִּיחִים מִרְוָחִים שָׁוִים בֵּין נְקֻדּוֹת הַמְּדִידָה.",
+        "transliteration": "Le'tzorekh sirtut graf kashyut ke'funktsyah shel mikum le'orekh ha-koter manikhim mirvakhim shavim bein nekudot ha-medidah.",
+        "ru": "Для построения графика твердости как функции положения вдоль диаметра предполагаются равные интервалы между точками измерения."
+      },
+      "source_refs": [
+        "legacy_row_hash:06a45558f107b0ff5802885a02b289671c44717f8eba41ba6b8e2887f20c71d9",
+        "legacy_fields_sha256:a8012e92a4b16cf8e8ba92b0129ae1522667911d9d09a098c5947b499c580e93",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְצֹורֶךְ",
+            "normalized": "לצורך"
+          },
+          {
+            "index": 1,
+            "surface": "שִׂרְטוּט",
+            "normalized": "שרטוט"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרָף",
+            "normalized": "גרף"
+          },
+          {
+            "index": 3,
+            "surface": "קַשְׁיוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 4,
+            "surface": "כְּפוּנְקְצְיָה",
+            "normalized": "כפונקציה"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "מִקּוּם",
+            "normalized": "מקום"
+          },
+          {
+            "index": 7,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 8,
+            "surface": "הַקֹּוטֶר",
+            "normalized": "הקוטר"
+          },
+          {
+            "index": 9,
+            "surface": "מַנִּיחִים",
+            "normalized": "מניחים"
+          },
+          {
+            "index": 10,
+            "surface": "מִרְוָחִים",
+            "normalized": "מרוחים"
+          },
+          {
+            "index": 11,
+            "surface": "שָׁוִים",
+            "normalized": "שוים"
+          },
+          {
+            "index": 12,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 13,
+            "surface": "נְקֻדּוֹת",
+            "normalized": "נקדות"
+          },
+          {
+            "index": 14,
+            "surface": "הַמְּדִידָה.",
+            "normalized": "המדידה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r011",
+      "order": 11,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "בין 23 נקודות יש 22 מרווחים לאורך הקוטר D=60 mm.",
+        "he_niqqud": "בֵּין 23 נְקֻדּוֹת יֵשׁ 22 מִרְוָחִים לְאֹרֶךְ הַקֹּוטֶר D=60 mm.",
+        "transliteration": "Bein 23 nekudot yesh 22 mirvakhim le'orekh ha-koter D=60 mm.",
+        "ru": "Между 23 точками имеется 22 интервала вдоль диаметра D=60 мм."
+      },
+      "source_refs": [
+        "legacy_row_hash:caafbe9114556178af1a04728b8c8380eb4f34c1a13a8848faef37f5f8cce2e5",
+        "legacy_fields_sha256:618e6dd1e5e37acc6349970d857e17326d25429319836365370f6dafc094ee87",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 1,
+            "surface": "23",
+            "normalized": "23"
+          },
+          {
+            "index": 2,
+            "surface": "נְקֻדּוֹת",
+            "normalized": "נקדות"
+          },
+          {
+            "index": 3,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 4,
+            "surface": "22",
+            "normalized": "22"
+          },
+          {
+            "index": 5,
+            "surface": "מִרְוָחִים",
+            "normalized": "מרוחים"
+          },
+          {
+            "index": 6,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 7,
+            "surface": "הַקֹּוטֶר",
+            "normalized": "הקוטר"
+          },
+          {
+            "index": 8,
+            "surface": "D=60",
+            "normalized": "D=60"
+          },
+          {
+            "index": 9,
+            "surface": "mm.",
+            "normalized": "mm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r012",
+      "order": 12,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Δx = D/22 = 60/22 ≈ 2.73 mm",
+        "he_niqqud": "Δx = D/22 = 60/22 ≈ 2.73 mm",
+        "transliteration": "Δx = D/22 = 60/22 ≈ 2.73 mm",
+        "ru": "Δx = D/22 = 60/22 ≈ 2.73 мм"
+      },
+      "source_refs": [
+        "legacy_row_hash:108038113390a4ddb7d49d7b651f27d0f553fbd1ac4bebcdce5bcf7f56f86e95",
+        "legacy_fields_sha256:f2283e5256b33c02c1d0c4dee788cfa65716db4ee5e8fdee79549aed21011aed",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Δx",
+            "normalized": "Δx"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "D/22",
+            "normalized": "D/22"
+          },
+          {
+            "index": 3,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 4,
+            "surface": "60/22",
+            "normalized": "60/22"
+          },
+          {
+            "index": 5,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 6,
+            "surface": "2.73",
+            "normalized": "2.73"
+          },
+          {
+            "index": 7,
+            "surface": "mm",
+            "normalized": "mm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Δx = D/22 = 60/22 ≈ 2.73 mm"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r013",
+      "order": 13,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "נבחר ציר מיקום כך ש־x=0 במרכז המוט בנקודה 12.",
+        "he_niqqud": "נִבְחַר צִיר מִקּוּם כָּךְ שֶׁ־x=0 בְּמֶרְכַּז הַמּוֹט בְּנְקֻדָּה 12.",
+        "transliteration": "Nivkhar tzir mikum kakh she-x=0 be'merkaz ha-mot bi'nekudah 12.",
+        "ru": "Выберем ось координат так, чтобы x=0 был в центре стержня в точке 12."
+      },
+      "source_refs": [
+        "legacy_row_hash:42073c145f129c79721e2f3e23428c0a4538eeea7d6d1f716e4446bd14ad49c2",
+        "legacy_fields_sha256:fabcb8cd6541f4c124b431cf8a2ca401a471859e49e2536001a4000d85951b5b",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 1,
+            "surface": "צִיר",
+            "normalized": "ציר"
+          },
+          {
+            "index": 2,
+            "surface": "מִקּוּם",
+            "normalized": "מקום"
+          },
+          {
+            "index": 3,
+            "surface": "כָּךְ",
+            "normalized": "כך"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁ־x=0",
+            "normalized": "ש־x=0"
+          },
+          {
+            "index": 5,
+            "surface": "בְּמֶרְכַּז",
+            "normalized": "במרכז"
+          },
+          {
+            "index": 6,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 7,
+            "surface": "בְּנְקֻדָּה",
+            "normalized": "בנקדה"
+          },
+          {
+            "index": 8,
+            "surface": "12.",
+            "normalized": "12"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r014",
+      "order": 14,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 1 נמצאת בקצה אחד של הקוטר ולכן x=-30.0 mm.",
+        "he_niqqud": "נְקֻדָּה 1 נִמְצֵאת בְּקָצֶה אֶחָד שֶׁל הַקֹּוטֶר וּלְכָן x=-30.0 mm.",
+        "transliteration": "Nekudah 1 nimtzet be'katzeh ehad shel ha-koter ve'lakhen x=-30.0 mm.",
+        "ru": "Точка 1 находится на одном конце диаметра, следовательно, x=-30.0 мм."
+      },
+      "source_refs": [
+        "legacy_row_hash:2d43be64ffdf66b46dd1bb14c8b7472b635202e6c13f33b87bc1c1a81bf936ca",
+        "legacy_fields_sha256:b5008858f4fef1b178445912a577f9d88c3497c4c7062679d1b1a9b10eeb7382",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "נִמְצֵאת",
+            "normalized": "נמצאת"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקָצֶה",
+            "normalized": "בקצה"
+          },
+          {
+            "index": 4,
+            "surface": "אֶחָד",
+            "normalized": "אחד"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "הַקֹּוטֶר",
+            "normalized": "הקוטר"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְכָן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 8,
+            "surface": "x=-30.0",
+            "normalized": "x=-30.0"
+          },
+          {
+            "index": 9,
+            "surface": "mm.",
+            "normalized": "mm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r015",
+      "order": 15,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 12 נמצאת במרכז ולכן x=0.0 mm.",
+        "he_niqqud": "נְקֻדָּה 12 נִמְצֵאת בַּמֶּרְכָּז וּלְכָן x=0.0 mm.",
+        "transliteration": "Nekudah 12 nimtzet ba-merkaz ve'lakhen x=0.0 mm.",
+        "ru": "Точка 12 находится в центре, следовательно, x=0.0 мм."
+      },
+      "source_refs": [
+        "legacy_row_hash:dcea33e793e32b0fb76bb17a27f67b6341bf53dda86f1e2d1ac7b39c4a5c84b0",
+        "legacy_fields_sha256:cbe8516eeda827710ee6290e3282b0f805670f94ca60ae4f0cce5a411ff8ccd4",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "12",
+            "normalized": "12"
+          },
+          {
+            "index": 2,
+            "surface": "נִמְצֵאת",
+            "normalized": "נמצאת"
+          },
+          {
+            "index": 3,
+            "surface": "בַּמֶּרְכָּז",
+            "normalized": "במרכז"
+          },
+          {
+            "index": 4,
+            "surface": "וּלְכָן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 5,
+            "surface": "x=0.0",
+            "normalized": "x=0.0"
+          },
+          {
+            "index": 6,
+            "surface": "mm.",
+            "normalized": "mm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r016",
+      "order": 16,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 23 נמצאת בקצה השני של הקוטר ולכן x=30.0 mm.",
+        "he_niqqud": "נְקֻדָּה 23 נִמְצֵאת בְּקָצֶה הַשֵּׁנִי שֶׁל הַקֹּוטֶר וּלְכָן x=30.0 mm.",
+        "transliteration": "Nekudah 23 nimtzet be'katzeh ha-sheni shel ha-koter ve'lakhen x=30.0 mm.",
+        "ru": "Точка 23 находится на другом конце диаметра, следовательно, x=30.0 мм."
+      },
+      "source_refs": [
+        "legacy_row_hash:7678741014cafc6f5f5af0426e630937626c8980b8e53cc7ae1f91902f6c996e",
+        "legacy_fields_sha256:cbaad4e82340e59e490f341293da09ed1525ade7cda8cdbfadd753ae6c2f10d9",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "23",
+            "normalized": "23"
+          },
+          {
+            "index": 2,
+            "surface": "נִמְצֵאת",
+            "normalized": "נמצאת"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקָצֶה",
+            "normalized": "בקצה"
+          },
+          {
+            "index": 4,
+            "surface": "הַשֵּׁנִי",
+            "normalized": "השני"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "הַקֹּוטֶר",
+            "normalized": "הקוטר"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְכָן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 8,
+            "surface": "x=30.0",
+            "normalized": "x=30.0"
+          },
+          {
+            "index": 9,
+            "surface": "mm.",
+            "normalized": "mm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r017",
+      "order": 17,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 1: x=-30.0 mm ו־HRC=58.",
+        "he_niqqud": "נְקֻדָּה 1: x=-30.0 mm וְ־HRC=58.",
+        "transliteration": "Nekudah 1: x=-30.0 mm ve-HRC=58.",
+        "ru": "Точка 1: x=-30.0 мм и HRC=58."
+      },
+      "source_refs": [
+        "legacy_row_hash:b5fc96ee7bef9b4b3d8e8b7d4087bebf047a874599dc69c8abd993457a89954e",
+        "legacy_fields_sha256:8ea568bbbf6eb96137daec5434c3c903a8edef46dec541b7d826d4626db5351c",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "1:",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "x=-30.0",
+            "normalized": "x=-30.0"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=58.",
+            "normalized": "ו־HRC=58"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r018",
+      "order": 18,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 2: x=-27.3 mm ו־HRC=58.",
+        "he_niqqud": "נְקֻדָּה 2: x=-27.3 mm וְ־HRC=58.",
+        "transliteration": "Nekudah 2: x=-27.3 mm ve-HRC=58.",
+        "ru": "Точка 2: x=-27.3 мм и HRC=58."
+      },
+      "source_refs": [
+        "legacy_row_hash:4dce948825aad2a2244c6a15668fc22fcfa81538fc686254169c2694e44935df",
+        "legacy_fields_sha256:b626fb3631e920f158b83be0d86cea55335ce658e1b96c198b5effbd9896beca",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "2:",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "x=-27.3",
+            "normalized": "x=-27.3"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=58.",
+            "normalized": "ו־HRC=58"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r019",
+      "order": 19,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 3: x=-24.5 mm ו־HRC=55.",
+        "he_niqqud": "נְקֻדָּה 3: x=-24.5 mm וְ־HRC=55.",
+        "transliteration": "Nekudah 3: x=-24.5 mm ve-HRC=55.",
+        "ru": "Точка 3: x=-24.5 мм и HRC=55."
+      },
+      "source_refs": [
+        "legacy_row_hash:63b79aceb3f009ec80e5aa4a4cfab7fe9ede1290e3644f535d91c7ae5460ccab",
+        "legacy_fields_sha256:28f84116fb9396eed6d00ee18bee442b1a73f8cf9a9f772ed5195767c6572959",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "3:",
+            "normalized": "3"
+          },
+          {
+            "index": 2,
+            "surface": "x=-24.5",
+            "normalized": "x=-24.5"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=55.",
+            "normalized": "ו־HRC=55"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 4: x=-21.8 mm ו־HRC=51.",
+        "he_niqqud": "נְקֻדָּה 4: x=-21.8 mm וְ־HRC=51.",
+        "transliteration": "Nekudah 4: x=-21.8 mm ve-HRC=51.",
+        "ru": "Точка 4: x=-21.8 мм и HRC=51."
+      },
+      "source_refs": [
+        "legacy_row_hash:067bd6183fa5dd3c5edf753ca9275642fccb8bd1d550391f21a4825f36c4f96c",
+        "legacy_fields_sha256:261cf89419f56cc222ef08360048d919698766701b491da61bdff359b44c7921",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "4:",
+            "normalized": "4"
+          },
+          {
+            "index": 2,
+            "surface": "x=-21.8",
+            "normalized": "x=-21.8"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=51.",
+            "normalized": "ו־HRC=51"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r021",
+      "order": 21,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 5: x=-19.1 mm ו־HRC=46.",
+        "he_niqqud": "נְקֻדָּה 5: x=-19.1 mm וְ־HRC=46.",
+        "transliteration": "Nekudah 5: x=-19.1 mm ve-HRC=46.",
+        "ru": "Точка 5: x=-19.1 мм и HRC=46."
+      },
+      "source_refs": [
+        "legacy_row_hash:9b764c822c048a868c9cd67e9c10e6fcd9fb9d4021277cbcce8d60322d5af35b",
+        "legacy_fields_sha256:c30a6224355e6a69154491eaa86a5a95c92399cf3d1a7af7aafc941ae8a2482d",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "5:",
+            "normalized": "5"
+          },
+          {
+            "index": 2,
+            "surface": "x=-19.1",
+            "normalized": "x=-19.1"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=46.",
+            "normalized": "ו־HRC=46"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r022",
+      "order": 22,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 6: x=-16.4 mm ו־HRC=43.",
+        "he_niqqud": "נְקֻדָּה 6: x=-16.4 mm וְ־HRC=43.",
+        "transliteration": "Nekudah 6: x=-16.4 mm ve-HRC=43.",
+        "ru": "Точка 6: x=-16.4 мм и HRC=43."
+      },
+      "source_refs": [
+        "legacy_row_hash:b8b7c8b1f9a655c7ae279c7ecc134444bdae33cc3a343c91ec7d8c447f6a5f94",
+        "legacy_fields_sha256:b85ceab359e73521dadabe86cb47e1141ca279a06c6b8b5c7743dbb1942cda1d",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "6:",
+            "normalized": "6"
+          },
+          {
+            "index": 2,
+            "surface": "x=-16.4",
+            "normalized": "x=-16.4"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=43.",
+            "normalized": "ו־HRC=43"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r023",
+      "order": 23,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 7: x=-13.6 mm ו־HRC=40.",
+        "he_niqqud": "נְקֻדָּה 7: x=-13.6 mm וְ־HRC=40.",
+        "transliteration": "Nekudah 7: x=-13.6 mm ve-HRC=40.",
+        "ru": "Точка 7: x=-13.6 мм и HRC=40."
+      },
+      "source_refs": [
+        "legacy_row_hash:8963cb7659a4b2a40d50937c6138746b25016c4f92747dfd40960340976db72f",
+        "legacy_fields_sha256:4cb8fed72a469a4524e3024b7b8fb25423af8c7c95441d854111f1eed2a154b2",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "7:",
+            "normalized": "7"
+          },
+          {
+            "index": 2,
+            "surface": "x=-13.6",
+            "normalized": "x=-13.6"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=40.",
+            "normalized": "ו־HRC=40"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r024",
+      "order": 24,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 8: x=-10.9 mm ו־HRC=38.",
+        "he_niqqud": "נְקֻדָּה 8: x=-10.9 mm וְ־HRC=38.",
+        "transliteration": "Nekudah 8: x=-10.9 mm ve-HRC=38.",
+        "ru": "Точка 8: x=-10.9 мм и HRC=38."
+      },
+      "source_refs": [
+        "legacy_row_hash:7125b9ecfd3114873888c1537d1aa4e6ae94850f2d445475fe1be35639de9834",
+        "legacy_fields_sha256:652f322833cbba677b566853349a29b4dfde6cc65ab293831cbf47e443f1de6f",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "8:",
+            "normalized": "8"
+          },
+          {
+            "index": 2,
+            "surface": "x=-10.9",
+            "normalized": "x=-10.9"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=38.",
+            "normalized": "ו־HRC=38"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r025",
+      "order": 25,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 9: x=-8.2 mm ו־HRC=37.",
+        "he_niqqud": "נְקֻדָּה 9: x=-8.2 mm וְ־HRC=37.",
+        "transliteration": "Nekudah 9: x=-8.2 mm ve-HRC=37.",
+        "ru": "Точка 9: x=-8.2 мм и HRC=37."
+      },
+      "source_refs": [
+        "legacy_row_hash:ecb10947ec0b1fd0f0b0b2ab334fb25f72125b8db6aede89276868656b7b62cc",
+        "legacy_fields_sha256:570fd13bd81172f4b96dedef58dcfaf15f706a56c7bc168082290674351f9803",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "9:",
+            "normalized": "9"
+          },
+          {
+            "index": 2,
+            "surface": "x=-8.2",
+            "normalized": "x=-8.2"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=37.",
+            "normalized": "ו־HRC=37"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r026",
+      "order": 26,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 10: x=-5.5 mm ו־HRC=37.",
+        "he_niqqud": "נְקֻדָּה 10: x=-5.5 mm וְ־HRC=37.",
+        "transliteration": "Nekudah 10: x=-5.5 mm ve-HRC=37.",
+        "ru": "Точка 10: x=-5.5 мм и HRC=37."
+      },
+      "source_refs": [
+        "legacy_row_hash:1171e73fbfba7d0d51d9a28e10bfcef1b2324ce42b3fc7e3aa3a3aa3f6a11b98",
+        "legacy_fields_sha256:85a70e1ddd43c526a33ac4549942a670a40e5dede09e90dcc77d07afe54d36da",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "10:",
+            "normalized": "10"
+          },
+          {
+            "index": 2,
+            "surface": "x=-5.5",
+            "normalized": "x=-5.5"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=37.",
+            "normalized": "ו־HRC=37"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r027",
+      "order": 27,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 11: x=-2.7 mm ו־HRC=36.",
+        "he_niqqud": "נְקֻדָּה 11: x=-2.7 mm וְ־HRC=36.",
+        "transliteration": "Nekudah 11: x=-2.7 mm ve-HRC=36.",
+        "ru": "Точка 11: x=-2.7 мм и HRC=36."
+      },
+      "source_refs": [
+        "legacy_row_hash:90ccba818f72c4f9549dcaff15353004596d59100065ff513d96b9871b47edb2",
+        "legacy_fields_sha256:0fcf209a6205914a2d72c43f8b8b01d501c23d67983c9d07f456c502d2c679ef",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "11:",
+            "normalized": "11"
+          },
+          {
+            "index": 2,
+            "surface": "x=-2.7",
+            "normalized": "x=-2.7"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=36.",
+            "normalized": "ו־HRC=36"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r028",
+      "order": 28,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 12: x=0.0 mm ו־HRC=36.",
+        "he_niqqud": "נְקֻדָּה 12: x=0.0 mm וְ־HRC=36.",
+        "transliteration": "Nekudah 12: x=0.0 mm ve-HRC=36.",
+        "ru": "Точка 12: x=0.0 мм и HRC=36."
+      },
+      "source_refs": [
+        "legacy_row_hash:d261648cd1430d34f7a7d3ddf7aa6c3c48e02a7c0dd89334c2896c8bdca3ee54",
+        "legacy_fields_sha256:1b3677a8c14c117318c3cdd37e7d36991fe77ec1d75dd1428d018e3fc183376c",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "12:",
+            "normalized": "12"
+          },
+          {
+            "index": 2,
+            "surface": "x=0.0",
+            "normalized": "x=0.0"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=36.",
+            "normalized": "ו־HRC=36"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r029",
+      "order": 29,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 13: x=2.7 mm ו־HRC=36.",
+        "he_niqqud": "נְקֻדָּה 13: x=2.7 mm וְ־HRC=36.",
+        "transliteration": "Nekudah 13: x=2.7 mm ve-HRC=36.",
+        "ru": "Точка 13: x=2.7 мм и HRC=36."
+      },
+      "source_refs": [
+        "legacy_row_hash:774af0d38efb1ace3a63db617d6fa40b37f0b4911d3fbbdfede1bfeef3bf4da1",
+        "legacy_fields_sha256:2a1aecc278115c4abcfb1bdb22e66cda77ea42177b5a9fdc6d9266e39c1e274a",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "13:",
+            "normalized": "13"
+          },
+          {
+            "index": 2,
+            "surface": "x=2.7",
+            "normalized": "x=2.7"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=36.",
+            "normalized": "ו־HRC=36"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r030",
+      "order": 30,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 14: x=5.5 mm ו־HRC=37.",
+        "he_niqqud": "נְקֻדָּה 14: x=5.5 mm וְ־HRC=37.",
+        "transliteration": "Nekudah 14: x=5.5 mm ve-HRC=37.",
+        "ru": "Точка 14: x=5.5 мм и HRC=37."
+      },
+      "source_refs": [
+        "legacy_row_hash:4734fc1b206b8cf3a76215e3ff59c13a003f592dbe73a415a60f783f7009bb9a",
+        "legacy_fields_sha256:e7a9a0f8e40379ff3b66c335f508e11ad6e404f5f526db97327cc5460c0d38b0",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "14:",
+            "normalized": "14"
+          },
+          {
+            "index": 2,
+            "surface": "x=5.5",
+            "normalized": "x=5.5"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=37.",
+            "normalized": "ו־HRC=37"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r031",
+      "order": 31,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 15: x=8.2 mm ו־HRC=37.",
+        "he_niqqud": "נְקֻדָּה 15: x=8.2 mm וְ־HRC=37.",
+        "transliteration": "Nekudah 15: x=8.2 mm ve-HRC=37.",
+        "ru": "Точка 15: x=8.2 мм и HRC=37."
+      },
+      "source_refs": [
+        "legacy_row_hash:72e15cc6b931910803fca66126e1a4abf4008f88c5312f554398efe44bf4860f",
+        "legacy_fields_sha256:30099595c7ab6e5a655f8cde6902d187ab9633628c0bd43795ae6869e6fac2e8",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "15:",
+            "normalized": "15"
+          },
+          {
+            "index": 2,
+            "surface": "x=8.2",
+            "normalized": "x=8.2"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=37.",
+            "normalized": "ו־HRC=37"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r032",
+      "order": 32,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 16: x=10.9 mm ו־HRC=38.",
+        "he_niqqud": "נְקֻדָּה 16: x=10.9 mm וְ־HRC=38.",
+        "transliteration": "Nekudah 16: x=10.9 mm ve-HRC=38.",
+        "ru": "Точка 16: x=10.9 мм и HRC=38."
+      },
+      "source_refs": [
+        "legacy_row_hash:89f18728baab6d34cf815a804a6071b19bf3c82d15d20ad7dde08eb220adee9e",
+        "legacy_fields_sha256:7b4c98fb847ba40d998bfce6b4dba75825e1c598f263105820cf8f4d7b4fc854",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "16:",
+            "normalized": "16"
+          },
+          {
+            "index": 2,
+            "surface": "x=10.9",
+            "normalized": "x=10.9"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=38.",
+            "normalized": "ו־HRC=38"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r033",
+      "order": 33,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 17: x=13.6 mm ו־HRC=40.",
+        "he_niqqud": "נְקֻדָּה 17: x=13.6 mm וְ־HRC=40.",
+        "transliteration": "Nekudah 17: x=13.6 mm ve-HRC=40.",
+        "ru": "Точка 17: x=13.6 мм и HRC=40."
+      },
+      "source_refs": [
+        "legacy_row_hash:4fbf25b33f62857269bbddb1f71d4cadcbb4faa1b17caa7b9fd7fe6b37437af0",
+        "legacy_fields_sha256:fdd31098fb72b7422e4bf13431fc13a3bc32d794ee0b1d5c661b38b385e7db5a",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "17:",
+            "normalized": "17"
+          },
+          {
+            "index": 2,
+            "surface": "x=13.6",
+            "normalized": "x=13.6"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=40.",
+            "normalized": "ו־HRC=40"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r034",
+      "order": 34,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 18: x=16.4 mm ו־HRC=43.",
+        "he_niqqud": "נְקֻדָּה 18: x=16.4 mm וְ־HRC=43.",
+        "transliteration": "Nekudah 18: x=16.4 mm ve-HRC=43.",
+        "ru": "Точка 18: x=16.4 мм и HRC=43."
+      },
+      "source_refs": [
+        "legacy_row_hash:6ec1eb629c4a9704a6d675aeefe733679055c92edc3b4d9cfa18f1deb01885c9",
+        "legacy_fields_sha256:40b03fc8515a5c20fd1e6f5303bc537e48b1dca90332d24616db29d244784619",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "18:",
+            "normalized": "18"
+          },
+          {
+            "index": 2,
+            "surface": "x=16.4",
+            "normalized": "x=16.4"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=43.",
+            "normalized": "ו־HRC=43"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r035",
+      "order": 35,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 19: x=19.1 mm ו־HRC=46.",
+        "he_niqqud": "נְקֻדָּה 19: x=19.1 mm וְ־HRC=46.",
+        "transliteration": "Nekudah 19: x=19.1 mm ve-HRC=46.",
+        "ru": "Точка 19: x=19.1 мм и HRC=46."
+      },
+      "source_refs": [
+        "legacy_row_hash:9eea42b2d02d01e5f24b8f74578f75d133212f8943922ae466a9465914391fbe",
+        "legacy_fields_sha256:bf68f5ab0fe2cdcaa5d1f5e7bbda0e0102e43bdf088ab419438305b10cf05d72",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "19:",
+            "normalized": "19"
+          },
+          {
+            "index": 2,
+            "surface": "x=19.1",
+            "normalized": "x=19.1"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=46.",
+            "normalized": "ו־HRC=46"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r036",
+      "order": 36,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 20: x=21.8 mm ו־HRC=51.",
+        "he_niqqud": "נְקֻדָּה 20: x=21.8 mm וְ־HRC=51.",
+        "transliteration": "Nekudah 20: x=21.8 mm ve-HRC=51.",
+        "ru": "Точка 20: x=21.8 мм и HRC=51."
+      },
+      "source_refs": [
+        "legacy_row_hash:bc7699b3f497684b3d437873102e3b137d534929050ed297559ff5c321dbfad7",
+        "legacy_fields_sha256:f97b88f9b10eed1e9e274069e4673c1cf8f899eefb50c7ddbf1fcd940db7a19f",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "20:",
+            "normalized": "20"
+          },
+          {
+            "index": 2,
+            "surface": "x=21.8",
+            "normalized": "x=21.8"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=51.",
+            "normalized": "ו־HRC=51"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r037",
+      "order": 37,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 21: x=24.5 mm ו־HRC=55.",
+        "he_niqqud": "נְקֻדָּה 21: x=24.5 mm וְ־HRC=55.",
+        "transliteration": "Nekudah 21: x=24.5 mm ve-HRC=55.",
+        "ru": "Точка 21: x=24.5 мм и HRC=55."
+      },
+      "source_refs": [
+        "legacy_row_hash:ecdead46d4aa4709ae8fd313fb4524dfa957334da1bdb97dd2313a459073d42e",
+        "legacy_fields_sha256:98d2d83df7b51f77e6ce7955b553e63e718435c652ed3ebd2cddc48049833ba1",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "21:",
+            "normalized": "21"
+          },
+          {
+            "index": 2,
+            "surface": "x=24.5",
+            "normalized": "x=24.5"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=55.",
+            "normalized": "ו־HRC=55"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r038",
+      "order": 38,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 22: x=27.3 mm ו־HRC=58.",
+        "he_niqqud": "נְקֻדָּה 22: x=27.3 mm וְ־HRC=58.",
+        "transliteration": "Nekudah 22: x=27.3 mm ve-HRC=58.",
+        "ru": "Точка 22: x=27.3 мм и HRC=58."
+      },
+      "source_refs": [
+        "legacy_row_hash:c5455be704009ed02b1be253128e929ff731407cfc97854bae9f19b3b52b97a2",
+        "legacy_fields_sha256:e9fd87a8a1c709fdf7cbebad21b8db59163f5f29972860345cc20fe2df94dee4",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "22:",
+            "normalized": "22"
+          },
+          {
+            "index": 2,
+            "surface": "x=27.3",
+            "normalized": "x=27.3"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=58.",
+            "normalized": "ו־HRC=58"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r039",
+      "order": 39,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נקודה 23: x=30.0 mm ו־HRC=58.",
+        "he_niqqud": "נְקֻדָּה 23: x=30.0 mm וְ־HRC=58.",
+        "transliteration": "Nekudah 23: x=30.0 mm ve-HRC=58.",
+        "ru": "Точка 23: x=30.0 мм и HRC=58."
+      },
+      "source_refs": [
+        "legacy_row_hash:2bebc5f15d7bce68947decb908d454cd77eaef6b2339f43763c0925ef0923540",
+        "legacy_fields_sha256:0bf8520fde8b3702574ec67eeba01b19ad651b2f9f992cc97e3dc6ff6128a01e",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְקֻדָּה",
+            "normalized": "נקדה"
+          },
+          {
+            "index": 1,
+            "surface": "23:",
+            "normalized": "23"
+          },
+          {
+            "index": 2,
+            "surface": "x=30.0",
+            "normalized": "x=30.0"
+          },
+          {
+            "index": 3,
+            "surface": "mm",
+            "normalized": "mm"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־HRC=58.",
+            "normalized": "ו־HRC=58"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r040",
+      "order": 40,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "פרופיל הקשיות על הגרף הוא בצורת U.",
+        "he_niqqud": "פְּרוֹפִיל הַקַּשְׁיוּת עַל הַגְּרָף הוּא בְּצוּרַת U.",
+        "transliteration": "Profil ha-kashyut al ha-graf hu be'tzurat U.",
+        "ru": "Профиль твердости на графике имеет U-образную форму."
+      },
+      "source_refs": [
+        "legacy_row_hash:7698002ffdb068934c2f2eb103a03850ed1f4504e77687ab861e57a03b9dea0c",
+        "legacy_fields_sha256:5d7e2c40582e3f3e216c976581e6c647ce6a4d8ca41d69024355f557863304a3",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פְּרוֹפִיל",
+            "normalized": "פרופיל"
+          },
+          {
+            "index": 1,
+            "surface": "הַקַּשְׁיוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 2,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 3,
+            "surface": "הַגְּרָף",
+            "normalized": "הגרף"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "בְּצוּרַת",
+            "normalized": "בצורת"
+          },
+          {
+            "index": 6,
+            "surface": "U.",
+            "normalized": "U"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r041",
+      "order": 41,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בהיקף מתקבלת קשיות גבוהה, ובמרכז מתקבלת קשיות נמוכה יותר.",
+        "he_niqqud": "בְּהֶיקֵף מִתְקַבֶּלֶת קַשְׁיוּת גְּבוֹהָה, וּבַמֶּרְכָּז מִתְקַבֶּלֶת קַשְׁיוּת נְמוּכָה יוֹתֵר.",
+        "transliteration": "Be'hekef mitkabelet kashyut gevohah, u'va-merkaz mitkabelet kashyut nemukhah yoter.",
+        "ru": "По окружности получается высокая твердость, а в центре — более низкая твердость."
+      },
+      "source_refs": [
+        "legacy_row_hash:3baa99e21de99b20f228afb15a814a8ac045c035bc8aaf710507fe97d0cfeac1",
+        "legacy_fields_sha256:00223f26663a1877c304d22f3e6cb1e71165a006fc00956f19a50950bf10d038",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּהֶיקֵף",
+            "normalized": "בהיקף"
+          },
+          {
+            "index": 1,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 2,
+            "surface": "קַשְׁיוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 3,
+            "surface": "גְּבוֹהָה,",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 4,
+            "surface": "וּבַמֶּרְכָּז",
+            "normalized": "ובמרכז"
+          },
+          {
+            "index": 5,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 6,
+            "surface": "קַשְׁיוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 7,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r042",
+      "order": 42,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "הסיבה היא שקצב הקירור בהיקף גבוה יותר ולכן מתקבל שיעור גבוה יותר של מרטנזיט.",
+        "he_niqqud": "הַסִּבָּה הִיא שֶׁקֶּצֶב הַקֵּרור בְּהֶיקֵף גָּבוֹהַ יוֹתֵר וּלְכֵן מִתְקַבֵּל שִׁעוּר גָּבוֹהַ יוֹתֵר שֶׁל מַרְטֶנְזִיט.",
+        "transliteration": "Ha-sibah hi she-ketzev ha-kirur be'hekef gavoha yoter u'lekhen mitkabel shi'ur gavoha yoter shel martenzit.",
+        "ru": "Причина в том, что скорость охлаждения по окружности выше, и, следовательно, получается более высокое содержание мартенсита."
+      },
+      "source_refs": [
+        "legacy_row_hash:ed73ac7960e75f724140e557f79c3e58b59ec2511306c22f8734727593c4e802",
+        "legacy_fields_sha256:782981ea4451977268624b2bc4f17678cdacf0177e4706d82d5d0939041dbb2c",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַסִּבָּה",
+            "normalized": "הסבה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁקֶּצֶב",
+            "normalized": "שקצב"
+          },
+          {
+            "index": 3,
+            "surface": "הַקֵּרור",
+            "normalized": "הקרור"
+          },
+          {
+            "index": 4,
+            "surface": "בְּהֶיקֵף",
+            "normalized": "בהיקף"
+          },
+          {
+            "index": 5,
+            "surface": "גָּבוֹהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 8,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 9,
+            "surface": "שִׁעוּר",
+            "normalized": "שעור"
+          },
+          {
+            "index": 10,
+            "surface": "גָּבוֹהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 13,
+            "surface": "מַרְטֶנְזִיט.",
+            "normalized": "מרטנזיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r043",
+      "order": 43,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בליבה קצב הקירור נמוך יותר ולכן מתקבל מבנה רך יותר כמו בייניט ופרליט ולעיתים גם פריט.",
+        "he_niqqud": "בַּלִּיבָה קֶצֶב הַקֵּרור נָמוּךְ יוֹתֵר וּלְכֵן מִתְקַבֵּל מִבְנֶה רַךְ יוֹתֵר כְּמוֹ בַּיְינִיט וּפֶרְלִיט וּלְעִיתִים גַּם פֶרִיט.",
+        "transliteration": "Ba-libah ketzev ha-kirur namukh yoter u'lekhen mitkabel mivneh rakh yoter kmo beinit u'ferlit u'le'itim gam ferit.",
+        "ru": "В сердцевине скорость охлаждения ниже, и поэтому образуется более мягкая структура, такая как бейнит и перлит, а иногда и феррит."
+      },
+      "source_refs": [
+        "legacy_row_hash:a455af4176d8db1296992eecc19d4b3f3b41665b18b174dc3a33816fbcbd1692",
+        "legacy_fields_sha256:db2c46dc3dec0bcc3871ccf070e12b1ae5d7b5960310049225afb98cdaf870a9",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּלִּיבָה",
+            "normalized": "בליבה"
+          },
+          {
+            "index": 1,
+            "surface": "קֶצֶב",
+            "normalized": "קצב"
+          },
+          {
+            "index": 2,
+            "surface": "הַקֵּרור",
+            "normalized": "הקרור"
+          },
+          {
+            "index": 3,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 4,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 7,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 8,
+            "surface": "רַךְ",
+            "normalized": "רך"
+          },
+          {
+            "index": 9,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 10,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 11,
+            "surface": "בַּיְינִיט",
+            "normalized": "בייניט"
+          },
+          {
+            "index": 12,
+            "surface": "וּפֶרְלִיט",
+            "normalized": "ופרליט"
+          },
+          {
+            "index": 13,
+            "surface": "וּלְעִיתִים",
+            "normalized": "ולעיתים"
+          },
+          {
+            "index": 14,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 15,
+            "surface": "פֶרִיט.",
+            "normalized": "פריט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r044",
+      "order": 44,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) שני דגמי הנגיפה שנחתכו מהיקף המוט צפויים להראות אנרגיית נגיפה “נמוכה”.",
+        "he_niqqud": "ב) שְׁנֵי דִּגְמֵי הַנְּגִיפָה שֶׁנֶּחְתְּכוּ מֵהֶיקֵף הַמּוֹט צְפוּיִים לְהַרְאוֹת אֶנֶרְגִּיַּת נְגִיפָה “נְמוּכָה”.",
+        "transliteration": "B) Shnei digmei ha-negifah she-nehtkhu me-hekef ha-mot tzefuyim le'har'ot energeyat negifah \"nemukhah\".",
+        "ru": "Б) Ожидается, что два образца для испытаний на ударную вязкость, вырезанные по окружности стержня, покажут «низкую» энергию удара."
+      },
+      "source_refs": [
+        "legacy_row_hash:c7d05cfc01f1f17af2b9d10756dcd624d8e575eea9dea8c5abb48afc785471af",
+        "legacy_fields_sha256:6d3b13b41c22b9c11e612c1178938ebfaf7e0d6c5a47c8153e1cea4d247c01e3",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "שְׁנֵי",
+            "normalized": "שני"
+          },
+          {
+            "index": 2,
+            "surface": "דִּגְמֵי",
+            "normalized": "דגמי"
+          },
+          {
+            "index": 3,
+            "surface": "הַנְּגִיפָה",
+            "normalized": "הנגיפה"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁנֶּחְתְּכוּ",
+            "normalized": "שנחתכו"
+          },
+          {
+            "index": 5,
+            "surface": "מֵהֶיקֵף",
+            "normalized": "מהיקף"
+          },
+          {
+            "index": 6,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 7,
+            "surface": "צְפוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 8,
+            "surface": "לְהַרְאוֹת",
+            "normalized": "להראות"
+          },
+          {
+            "index": 9,
+            "surface": "אֶנֶרְגִּיַּת",
+            "normalized": "אנרגית"
+          },
+          {
+            "index": 10,
+            "surface": "נְגִיפָה",
+            "normalized": "נגיפה"
+          },
+          {
+            "index": 11,
+            "surface": "“נְמוּכָה”.",
+            "normalized": "נמוכה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r045",
+      "order": 45,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הקשיות בהיקף גבוהה מאוד (כ־55–58 HRC) ולכן הנטייה לשבר פריך גבוהה יותר.",
+        "he_niqqud": "הַקַּשְׁיוּת בְּהֶיקֵף גְּבוֹהָה מְאֹד (כְּ־55–58 HRC) וּלְכֵן הַנְּטִיָּה לְשֶׁבֶר פָּרִיךְ גְּבוֹהָה יוֹתֵר.",
+        "transliteration": "Ha-kashyut be'hekef gevohah me'od (ke-55–58 HRC) u'lekhen ha-netiyah le'shever parikh gevohah yoter.",
+        "ru": "Твердость по окружности очень высока (около 55–58 HRC), и поэтому выше склонность к хрупкому разрушению."
+      },
+      "source_refs": [
+        "legacy_row_hash:78e40c637474e0b66d3fe435093d76b15c3fc31d9174c1aa05377693ceb2bbdc",
+        "legacy_fields_sha256:8e2e611ffbd663b02f7dd6bf29367a27a6f5ac4523fd56f949193164dc73d64a",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַקַּשְׁיוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 1,
+            "surface": "בְּהֶיקֵף",
+            "normalized": "בהיקף"
+          },
+          {
+            "index": 2,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 3,
+            "surface": "מְאֹד",
+            "normalized": "מאד"
+          },
+          {
+            "index": 4,
+            "surface": "(כְּ־55–58",
+            "normalized": "כ־55–58"
+          },
+          {
+            "index": 5,
+            "surface": "HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "הַנְּטִיָּה",
+            "normalized": "הנטיה"
+          },
+          {
+            "index": 8,
+            "surface": "לְשֶׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 9,
+            "surface": "פָּרִיךְ",
+            "normalized": "פריך"
+          },
+          {
+            "index": 10,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r046",
+      "order": 46,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה עשיר במרטנזיט לאחר חיסום ללא השבחה מאופיין בקשיחות נמוכה יותר.",
+        "he_niqqud": "מִבְנֶה עָשִׁיר בְּמַרְטֶנְזִיט לְאַחַר חִסּוּם לְלֹא הַשְׁבָּחָה מְאֻפְיָין בְּקַשִּׁיחוּת נְמוּכָה יוֹתֵר.",
+        "transliteration": "Mivneh ashir be'martenzit le'akhar khissum le'lo hashbakhah me'ufyan be'kashikhut nemukhah yoter.",
+        "ru": "Структура, богатая мартенситом после закалки без отпуска, характеризуется более низкой вязкостью."
+      },
+      "source_refs": [
+        "legacy_row_hash:b6d4d11eaeaad84504f7d222c91507c6f1f27d773c34c8cae3ae44f4b256b337",
+        "legacy_fields_sha256:220e82d9262bebaeb7485325717bf315c4573e3e0470cb0ea3937937ad0f94e0",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "עָשִׁיר",
+            "normalized": "עשיר"
+          },
+          {
+            "index": 2,
+            "surface": "בְּמַרְטֶנְזִיט",
+            "normalized": "במרטנזיט"
+          },
+          {
+            "index": 3,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 4,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 5,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 6,
+            "surface": "הַשְׁבָּחָה",
+            "normalized": "השבחה"
+          },
+          {
+            "index": 7,
+            "surface": "מְאֻפְיָין",
+            "normalized": "מאפיין"
+          },
+          {
+            "index": 8,
+            "surface": "בְּקַשִּׁיחוּת",
+            "normalized": "בקשיחות"
+          },
+          {
+            "index": 9,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 10,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r047",
+      "order": 47,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) דגם הנגיפה שנחתך ממרכז המוט צפוי להראות אנרגיית נגיפה “גבוהה” יחסית.",
+        "he_niqqud": "ב) דֶּגֶם הַנְּגִיפָה שֶׁנֶּחְתַּךְ מִמֶּרְכַּז הַמּוֹט צָפוּי לְהַרְאוֹת אֶנֶרְגִּיַּת נְגִיפָה “גְּבוֹהָה” יַחֲסִית.",
+        "transliteration": "B) Degem ha-negifah she-nehtakh mi-merkaz ha-mot tzafuy le'har'ot energeyat negifah \"gvohah\" yakhasit.",
+        "ru": "Б) Ожидается, что образец для испытаний на ударную вязкость, вырезанный из центра стержня, покажет относительно «высокую» энергию удара."
+      },
+      "source_refs": [
+        "legacy_row_hash:531c1a03b0948f645c65a165911d65e29d671c606ca7b857f3c4a7159f384564",
+        "legacy_fields_sha256:b7ff1aeecf17f9039d28be7977bb818bc00c0a5e1ab0ef572e25e1d636baeb74",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "דֶּגֶם",
+            "normalized": "דגם"
+          },
+          {
+            "index": 2,
+            "surface": "הַנְּגִיפָה",
+            "normalized": "הנגיפה"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁנֶּחְתַּךְ",
+            "normalized": "שנחתך"
+          },
+          {
+            "index": 4,
+            "surface": "מִמֶּרְכַּז",
+            "normalized": "ממרכז"
+          },
+          {
+            "index": 5,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 6,
+            "surface": "צָפוּי",
+            "normalized": "צפוי"
+          },
+          {
+            "index": 7,
+            "surface": "לְהַרְאוֹת",
+            "normalized": "להראות"
+          },
+          {
+            "index": 8,
+            "surface": "אֶנֶרְגִּיַּת",
+            "normalized": "אנרגית"
+          },
+          {
+            "index": 9,
+            "surface": "נְגִיפָה",
+            "normalized": "נגיפה"
+          },
+          {
+            "index": 10,
+            "surface": "“גְּבוֹהָה”",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 11,
+            "surface": "יַחֲסִית.",
+            "normalized": "יחסית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r048",
+      "order": 48,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הקשיות במרכז נמוכה יותר (כ־36–38 HRC) ולכן המיקרו־מבנה דוקטילי יותר.",
+        "he_niqqud": "הַקַּשְׁיוּת בַּמֶּרְכָּז נְמוּכָה יוֹתֵר (כְּ־36–38 HRC) וּלְכֵן הַמִּיקְרוֹ־מִבְנֶה דּוּקְטִילִי יוֹתֵר.",
+        "transliteration": "Ha-kashyut ba-merkaz nemukhah yoter (ke-36–38 HRC) u'lekhen ha-mikro-mivneh duktili yoter.",
+        "ru": "Твердость в центре ниже (около 36–38 HRC), и поэтому микроструктура более пластична."
+      },
+      "source_refs": [
+        "legacy_row_hash:63d6dc3003b7abfa6480f804236cb4eac74d17b29a8ef26e153614d4bbee6bd9",
+        "legacy_fields_sha256:f8ef957bd298a70603cc5df4df990b502099e57e5828d15c90048c7be60361d7",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַקַּשְׁיוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 1,
+            "surface": "בַּמֶּרְכָּז",
+            "normalized": "במרכז"
+          },
+          {
+            "index": 2,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 4,
+            "surface": "(כְּ־36–38",
+            "normalized": "כ־36–38"
+          },
+          {
+            "index": 5,
+            "surface": "HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "הַמִּיקְרוֹ־מִבְנֶה",
+            "normalized": "המיקרו־מבנה"
+          },
+          {
+            "index": 8,
+            "surface": "דּוּקְטִילִי",
+            "normalized": "דוקטילי"
+          },
+          {
+            "index": 9,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r049",
+      "order": 49,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה כמו בייניט או פרליט סופג אנרגיה גבוהה יותר בנגיפה ביחס למרטנזיט קשה.",
+        "he_niqqud": "מִבְנֶה כְּמוֹ בַּיְינִיט אוֹ פֶרְלִיט סוֹפֵג אֶנֶרְגִּיָּה גְּבוֹהָה יוֹתֵר בִּנְגִיפָה בְּיַחַס לְמַרְטֶנְזִיט קָשֶׁה.",
+        "transliteration": "Mivneh kmo beinit o perlit sofeg energeyah gevohah yoter bi-negifah be'yakhas le'martenzit kasheh.",
+        "ru": "Структура, такая как бейнит или перлит, поглощает более высокую энергию при ударе по сравнению с твердым мартенситом."
+      },
+      "source_refs": [
+        "legacy_row_hash:4306c3a02987ea04979d0e18cdba638b0525fb870e3879853a87cda2926c1198",
+        "legacy_fields_sha256:ea649b197fc0537da0bff2179f3aa9199d686aba0a92991081432fe8552582c4",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 2,
+            "surface": "בַּיְינִיט",
+            "normalized": "בייניט"
+          },
+          {
+            "index": 3,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 4,
+            "surface": "פֶרְלִיט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 5,
+            "surface": "סוֹפֵג",
+            "normalized": "סופג"
+          },
+          {
+            "index": 6,
+            "surface": "אֶנֶרְגִּיָּה",
+            "normalized": "אנרגיה"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 9,
+            "surface": "בִּנְגִיפָה",
+            "normalized": "בנגיפה"
+          },
+          {
+            "index": 10,
+            "surface": "בְּיַחַס",
+            "normalized": "ביחס"
+          },
+          {
+            "index": 11,
+            "surface": "לְמַרְטֶנְזִיט",
+            "normalized": "למרטנזיט"
+          },
+          {
+            "index": 12,
+            "surface": "קָשֶׁה.",
+            "normalized": "קשה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-sol-r050",
+      "order": 50,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:fca071834419e4632053f0f613727c3bc2be6a977f00f0c3a3273763a908b1f6",
+        "comparison:MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE",
+        "source_page:42",
+        "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+        "declared_convention:ASTM_E23"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q035",
+    "display_alias": "35",
+    "source_pages": [
+      42
+    ],
+    "independent_state": "SOURCE_INSUFFICIENT_FOR_ABSOLUTE_CHARPY_ENERGY_WITH_QUALITATIVE_RESULT_DERIVED",
+    "answer": [
+      "а) Метод твёрдости — Rockwell C, поскольку результаты заданы в HRC. График по 23 равноотстоящим точкам симметричен: 58,58,55,51,46,43,40,38,37,37,36,36,36,37,37,38,40,43,46,51,55,58,58; максимум у поверхности, минимум 36 HRC в центре.",
+      "б) Абсолютную энергию в Джоулях для трёх ASTM E23 образцов источник не задаёт и по HRC её вычислить нельзя. Два периферийных образца из области 58 HRC ожидаемо дадут сравнительно низкую энергию; центральный из области 36 HRC — сравнительно более высокую энергию, при одинаковой геометрии, надрезе и температуре."
+    ],
+    "engineering_picture": "Поверхность быстро охлаждается и даёт больше мартенсита/твёрдость; центр охлаждается медленнее, поэтому мягче и обычно вязче. Корреляция качественная, не универсальная формула Charpy(HRC).",
+    "prerequisites": [
+      "HRC identifies Rockwell C scale.",
+      "ASTM E23 measures absorbed impact energy of a notched specimen.",
+      "Hardness and toughness are not mutually convertible without data."
+    ],
+    "roadmap": [
+      "Определить шкалу.",
+      "Перенести 23 значения на координату диаметра.",
+      "Привязать места вырезки к HRC.",
+      "Дать только обоснованное сравнительное ранжирование энергии."
+    ],
+    "main_trap": "Не придумывать Джоули из твёрдости: источник не содержит корреляционной кривой или результатов Charpy.",
+    "givens": [
+      "Ø60 mm SAE3120, water quench from 830 °C; 23 HRC values; two edge and one center Charpy specimens."
+    ],
+    "find": [
+      "Hardness method/plot and expected impact energy classification."
+    ],
+    "assumptions": [
+      "Все Charpy specimens одинаковы по ориентации, надрезу и температуре испытания."
+    ],
+    "laws": [
+      "No source-grounded universal E_Charpy=f(HRC)."
+    ],
+    "symbolic_derivation": [
+      "HRC_edge≈58>HRC_center≈36⇒edge is harder and normally less tough; therefore E_edge<E_center qualitatively."
+    ],
+    "calculation": [],
+    "construction": [
+      "x from −30 to +30 mm; y=HRC; plot the 23 symmetric points and mark the three specimen zones."
+    ],
+    "checks": [
+      "Sequence is mirror-symmetric around point 12; center plateau is 36 HRC."
+    ],
+    "source_facts": [
+      "source_page:42",
+      "asset_sha256:3b311fa441bc83b61ebdc89c74d91e0c11be5bbdbabea1aa407a44a1d25dbc11",
+      "declared_convention:ASTM_E23"
+    ],
+    "unresolved_limits": [
+      "SOURCE_INSUFFICIENT: absolute Joule values, test temperature, notch orientation and specimen-location detail are absent."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

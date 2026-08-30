@@ -1,0 +1,14 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "batch_id": "B05",
+  "task_id": "materials-science-y1-pb2-q046",
+  "status": "PASS_ONE_REVIEW_CLOSED",
+  "trigger": "INDEPENDENT_DIAGRAM_B_MATERIAL_MISREAD",
+  "source_assets": [
+    "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a"
+  ],
+  "finding": "Source diagram B labels both plates as steel sheet and the rivet as quenched steel. It is a same-metal joint, not a steel-copper couple.",
+  "disposition": "REPAIR_B_TO_GALVANICALLY_STABLE_WITH_ORDINARY_CORROSION_CAVEAT",
+  "repair_passes_used": 1,
+  "further_repair_allowed": false
+}

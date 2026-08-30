@@ -1,0 +1,71 @@
+{
+  "gate": "MATERIALS_PB2_LOCAL_BROWSER_AND_PRINT",
+  "publication": {
+    "pilot_items": 3,
+    "full_items": 60,
+    "audio_assets": 0,
+    "source_figures": 72
+  },
+  "desktop_ru": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_deferred": true
+  },
+  "exam_desktop_ru": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 2,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_deferred": true
+  },
+  "mobile_ru": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_deferred": true
+  },
+  "mobile_he": {
+    "lang": "he",
+    "dir": "rtl",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_deferred": true
+  },
+  "api": {
+    "learning_support": 200,
+    "source_asset": 200,
+    "etag": "\"c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee\""
+  },
+  "pdf": {
+    "study": "E:\\projects\\tts-prototype-android\\output\\pdf\\materials-pb2-q001-study-4-columns.pdf",
+    "exam": "E:\\projects\\tts-prototype-android\\output\\pdf\\materials-pb2-q001-exam-hebrew.pdf"
+  },
+  "page_errors": [],
+  "failed_public_responses": [],
+  "screenshots": [
+    "materials-pb2-card-answer-desktop-ru.png",
+    "materials-pb2-exam-desktop-ru.png",
+    "materials-pb2-solution-380-he-rtl.png",
+    "materials-pb2-solution-380-ru.png",
+    "materials-pb2-solution-desktop-ru.png"
+  ]
+}

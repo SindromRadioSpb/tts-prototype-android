@@ -1,0 +1,27 @@
+{
+  "schema": "linguistpro-materials-pb2-local-mapping-verification-v1",
+  "status": "PASS",
+  "checks": {
+    "source_edition_bound": true,
+    "source_pdf_hash_bound": true,
+    "canonical_task_count_60": true,
+    "owner_approved_exercise_present": true,
+    "owner_approved_38_aliases_present": true,
+    "legacy_card_count_58": true,
+    "legacy_row_count_2469": true,
+    "all_legacy_rows_mapped": true,
+    "only_expected_tasks_without_legacy_rows": true,
+    "diagram_entries_cover_all_tasks": true,
+    "provider_calls_zero": true,
+    "secret_access_false": true,
+    "import_or_publication_false": true,
+    "solution_adjudication_false": true
+  },
+  "remaining_gates": [
+    "rights per content class",
+    "provider shadow plan, model, sample, batching policy, and cost ceiling",
+    "separate reviewed-solution program authorization",
+    "TTS voice, rate, pitch, sample, timing method, and cost ceiling",
+    "isolated import rehearsal, immutable publication, readback, and rollback"
+  ]
+}

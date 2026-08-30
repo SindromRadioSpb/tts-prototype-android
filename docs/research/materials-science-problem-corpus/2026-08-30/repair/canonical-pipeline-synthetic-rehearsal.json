@@ -1,0 +1,40 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-pipeline-synthetic-rehearsal-v1",
+  "status": "PASS_MECHANISM_ONLY_NOT_CORPUS_TRUTH",
+  "verified_on": "2026-08-30",
+  "command": "python tests/materialsSciencePb2CanonicalPipeline.test.py -v",
+  "test_result": {
+    "tests_run": 1,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds": 24.999
+  },
+  "coverage": {
+    "cached_batch_count": 6,
+    "reviewed_row_count": 642,
+    "canonical_text_count": 60,
+    "canonical_row_count": 693,
+    "source_assets_present": true,
+    "reference_assets_present": true,
+    "two_bakes_byte_identical": true,
+    "zip_readback_passed": true,
+    "audio_assets_present": false,
+    "solution_assets_present": false,
+    "credential_fixture_existed": false,
+    "credential_accessed": false,
+    "live_provider_calls": 0,
+    "imported": false,
+    "published": false
+  },
+  "fixture_boundary": {
+    "temporary_directory_only": true,
+    "synthetic_rows_are_corpus_truth": false,
+    "synthetic_bundle_retained": false,
+    "real_provider_review_still_required": true
+  },
+  "code_sha256": {
+    "apply": "fe39505cd325d837687904aacf17dded52ebc1cb9865f4363f5fb7a2c6bb01ee",
+    "bake": "ba3f9a6d9888ab318c6abf09a800bde8b71ce2816b78932f349dded29785d89c",
+    "test": "df59faf8db1ed7431236fb4326be74c833632d5c7972220c6d2557c4e48e12ed"
+  }
+}

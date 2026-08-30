@@ -1,0 +1,2414 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-p047-q038",
+  "display_alias": "38-B",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "a680e1ac565ea85be0345906640df090a162fdf0a16131aec73b4e3245ccde0d"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "a3f1b05eb1ce757c52effd43cea98bc01ca973b86acc7a7ed4f38b521aaeb42e",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Initial ambiguity, SAE6150 choice at 875 MPa and no carburizing match. Independent solution adds the required condition-dependent range and certification caveat.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r001",
+        "order_index": 0,
+        "hebrew_plain": "בחירת הפלדה בהתאם לדרישות הנדסיות.",
+        "hebrew_niqqud": "בְּחִירַת הַפְּלָדָה בְּהֶתְאֵם לִדְרִישׁוֹת הַנְדָּסִיּוֹת.",
+        "translit": "Bḥirat ha-pladah be-het'em li-drishot handasiyot.",
+        "translit_ru": "",
+        "russian": "Выбор стали в соответствии с инженерными требованиями.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "source_note",
+            "source_page": 47,
+            "source_row_index": 0,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r002",
+        "order_index": 1,
+        "hebrew_plain": "שאלה 38.",
+        "hebrew_niqqud": "שְׁאֵלָה 38.",
+        "translit": "She'ela 38.",
+        "translit_ru": "",
+        "russian": "Вопрос 38.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "task_heading",
+            "source_page": 47,
+            "source_row_index": 1,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r003",
+        "order_index": 2,
+        "hebrew_plain": "מחלקת הנדסה במפעל נדרשה להמליץ על פלדה שממנה ייצרו קפיץ.",
+        "hebrew_niqqud": "מַחְלֶקֶת הַנְדָּסָה בְּמִפְעָל נִדְרְשָׁה לְהַמְלִיץ עַל פְּלָדָה שֶׁמִּמֶּנָּה יְיַצְּרוּ קָפִיץ.",
+        "translit": "Maḥleḳet handasah be-mif'al nidreshah le-hamlits al pladah she-mimena yeyatsru ḳapits.",
+        "translit_ru": "",
+        "russian": "Инженерному отделу на заводе потребовалось рекомендовать сталь, из которой изготовят пружину.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r004",
+        "order_index": 3,
+        "hebrew_plain": "בבדיקה שנערכה במחסן חומרי הגלם במפעל נמצאו: פלדה עשירת פחמן 1075 SAE ופלדת נתך 6150 SAE.",
+        "hebrew_niqqud": "בִּבְדִיקָה שֶׁנֶּעֶרְכָה בְּמַחְסַן חָומְרֵי הַגֶּלֶם בְּמִפְעָל נִמְצְאוּ: פְּלָדָה עֲשִׁירַת פַּחְמָן 1075 SAE וּפְלָדַת נֶתֶךְ 6150 SAE.",
+        "translit": "Bi-vdikah she-ne'erkhah be-maḥsan ḥomrey ha-gelem be-mif'al nimtse'u: pladah ashirat paḥman 1075 SAE u-fladat netekh 6150 SAE.",
+        "translit_ru": "",
+        "russian": "При проверке, проведенной на складе сырья завода, были найдены: высокоуглеродистая сталь SAE 1075 и легированная сталь SAE 6150.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r005",
+        "order_index": 4,
+        "hebrew_plain": "על-פי המפרט, חומר הקפיץ צריך לעמוד בדרישות האלה:",
+        "hebrew_niqqud": "עַל-פִּי הַמִּפְרָט, חֹומֶר הַקָּפִיץ צָרִיךְ לַעֲמֹוד בַּדְּרִישׁוֹת הָאֵלֶּה:",
+        "translit": "Al-pi ha-mifraṭ, ḥomer ha-ḳapits tsarikh la'amod ba-drishot ha-eleh:",
+        "translit_ru": "",
+        "russian": "Согласно спецификации, материал пружины должен удовлетворять следующим требованиям:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r006",
+        "order_index": 5,
+        "hebrew_plain": "- מאמץ כניעה גדול מ- 790 MPa",
+        "hebrew_niqqud": "- מַאֲמַץ כְּנִיעָה גָּדוֹל מִ- 790 MPa",
+        "translit": "- ma'amats kni'ah gadol mi- 790 MPa",
+        "translit_ru": "",
+        "russian": "- предел текучести более 790 МПа",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r007",
+        "order_index": 6,
+        "hebrew_plain": "- התארכות יחסית גדולה מ- 10%",
+        "hebrew_niqqud": "- הִתְאָרְכוּת יַחֲסִית גְּדוֹלָה מִ- 10%",
+        "translit": "- hit'arkhut yaḥasit gdolah mi- 10%",
+        "translit_ru": "",
+        "russian": "- относительное удлинение более 10%",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r008",
+        "order_index": 7,
+        "hebrew_plain": "- קשיות גדולה מ- 375 HB",
+        "hebrew_niqqud": "- קַשְׁיוּת גְּדוֹלָה מִ- 375 HB",
+        "translit": "- ḳashyut gdolah mi- 375 HB",
+        "translit_ru": "",
+        "russian": "- твердость более 375 HB",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r009",
+        "order_index": 8,
+        "hebrew_plain": "ענה על הסעיפים א' ו-ב' בעזרת הנספחים ו' ו-ז':",
+        "hebrew_niqqud": "עֲנֵה עַל הַסְּעִיפִים א' וְ-ב' בְּעֶזְרַת הַנִּסְפָּחִים ו' וְ-ז':",
+        "translit": "Aneh al ha-se'ifim A ve-B be-ezrat ha-nispaḥim Ṿav ve-Zayin:",
+        "translit_ru": "",
+        "russian": "Ответьте на пункты А и Б с помощью приложений 6 (Вав) и 7 (Заин):",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "condition",
+            "source_page": 47,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r010",
+        "order_index": 9,
+        "hebrew_plain": "א. במחלקת ההנדסה התקשו לבחור את הפלדה המתאימה מבין שתי הפלדות שנמצאו במחסן, על-פי דרישות המפרט. מדוע?",
+        "hebrew_niqqud": "א. בְּמַחְלֶקֶת הַהַנְדָּסָה הִתְקַשּׁוּ לִבְחֹור אֶת הַפְּלָדָה הַמַּתְאִימָה מִבֵּין שְׁתֵּי הַפְּלָדוֹת שֶׁנִּמְצְאוּ בַּמַּחְסָן, עַל-פִּי דְּרִישׁוֹת הַמִּפְרָט. מַדּוּעַ?",
+        "translit": "A. Be-maḥleḳet ha-handasah hitḳashu livḥor et ha-pladah ha-mat'imah mi-beyn shtey ha-pladot she-nimtse'u ba-maḥsan, al-pi drishot ha-mifraṭ. Madu'a?",
+        "translit_ru": "",
+        "russian": "А. В инженерном отделе затруднились выбрать подходящую сталь из двух сталей, найденных на складе, по требованиям спецификации. Почему?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "subpart",
+            "source_page": 47,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r011",
+        "order_index": 10,
+        "hebrew_plain": "ב. איזו פלדה, מבין שתי הפלדות שנמצאו במחסן, מתאימה יותר, בהתחשב בתנאי הנוסף הזה: על הקפיץ לעמוד במאמץ של 875 MPa בעת עבודתו. נמק את תשובתך.",
+        "hebrew_niqqud": "ב. אֵיזוֹ פְלָדָה, מִבֵּין שְׁתֵּי הַפְּלָדוֹת שֶׁנִּמְצְאוּ בַּמַּחְסָן, מַתְאִימָה יוֹתֵר, בְּהִתְחַשֵּׁב בַּתְּנַאי הַנּוֹסָף הַזֶּה: עַל הַקָּפִיץ לַעֲמֹוד בְּמַאֲמָץ שֶׁל 875 MPa בְּעֵת עֲבוֹדָתוֹ. נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "B. Eyzo fladah, mi-beyn shtey ha-pladot she-nimtse'u ba-maḥsan, mat'imah yoter, be-hitḥashev ba-tnay ha-nosaf ha-zeh: al ha-ḳapits la'amod be-ma'amats shel 875 MPa be-et avodato. Nameḳ et tshuvatkha.",
+        "translit_ru": "",
+        "russian": "Б. Какая сталь из двух найденных на складе подходит больше с учетом следующего дополнительного условия: пружина должна выдерживать напряжение 875 МПа во время работы? Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "subpart",
+            "source_page": 47,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-p047-q038-r012",
+        "order_index": 11,
+        "hebrew_plain": "ג. האם יש צורך להעשיר בפחמן את פני השטח של הפלדה שבחרת בסעיף ב' באמצעות צימנטו? נמק את תשובתך (היעזר בנספח ז').",
+        "hebrew_niqqud": "ג. הַאִם יֵשׁ צֹורֶךְ לְהַעֲשִׁיר בְּפַחְמָן אֶת פְּנֵי הַשֶּׁטַח שֶׁל הַפְּלָדָה שֶׁבָּחַרְתָּ בִּסְעִיף ב' בְּאֶמְצָעוּת צִימֶנְטוּ? נַמֵּק אֶת תְּשׁוּבָתְךָ (הֵיעָזֵר בְּנִסְפָּח ז').",
+        "translit": "G. Ha'im yesh tsorekh le-ha'ashir be-faḥman et pney ha-shetaḥ shel ha-pladah she-baḥarta bi-se'if B be-emtsa'ut tsimentu? Nameḳ et tshuvatkha (he'azer be-nispaḥ Zayin).",
+        "translit_ru": "",
+        "russian": "В. Есть ли необходимость науглероживать поверхность стали, выбранной вами в пункте Б, методом цементации? Обоснуйте свой ответ (воспользуйтесь приложением 7 / Заин).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-p047-q038",
+            "kind": "subpart",
+            "source_page": 47,
+            "source_row_index": 11,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      47,
+      67,
+      68,
+      69
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-p047-q038/anchor-01-p047.jpg",
+        "sha256": "fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "bytes": 267267,
+        "source_page": 47,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          0.46
+        ],
+        "role": "condition"
+      },
+      {
+        "path": "assets/reference/alloying_elements_appendix-p067.jpg",
+        "sha256": "83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "bytes": 419364,
+        "source_page": 67,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALLOYING_ELEMENTS_APPENDIX"
+      },
+      {
+        "path": "assets/reference/steel_properties_appendix-p068.jpg",
+        "sha256": "1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "bytes": 878489,
+        "source_page": 68,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:STEEL_PROPERTIES_APPENDIX"
+      },
+      {
+        "path": "assets/reference/steel_properties_appendix-p069.jpg",
+        "sha256": "7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e",
+        "bytes": 772380,
+        "source_page": 69,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:STEEL_PROPERTIES_APPENDIX"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": [
+      {
+        "dependency_kind": "ALLOYING_ELEMENTS_APPENDIX",
+        "source_pages": [
+          67
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p067"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      },
+      {
+        "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+        "source_pages": [
+          68,
+          69
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p068",
+          "source-reference-p069"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:a3f1b05eb1ce757c52effd43cea98bc01ca973b86acc7a7ed4f38b521aaeb42e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) הפלדה המתאימה יותר היא 6150 SAE, משום שבמאמץ עבודה של 875 MPa היא נשארת בתחום האלסטי עם מרווח גדול יותר.",
+        "he_niqqud": "ב) הַפְּלָדָה הַמַּתְאִימָה יוֹתֵר הִיא 6150 SAE, מִשּׁוּם שֶׁבְּמַאֲמָץ עֲבוֹדָה שֶׁל 875 MPa הִיא נִשְׁאֶרֶת בַּתְּחוּם הָאֶלַסְטִי עִם מִרְוָח גָּדוֹל יוֹתֵר.",
+        "transliteration": "B) Ha'plada ha'mat'ima yoter hi 6150 SAE, mishum she'be'ma'amatz avoda shel 875 MPa hi nish'eret ba'thum ha'elasti im mirvah gadol yoter.",
+        "ru": "Б) Более подходящая сталь — SAE 6150, поскольку при рабочем напряжении 875 МПа она остается в упругой области с большим запасом."
+      },
+      "source_refs": [
+        "legacy_row_hash:8c70603b2d18bd784373fe472ce0560faf3f95f63c80421c050d22e4471acbc6",
+        "legacy_fields_sha256:4fd962f55d8995aaea64b1e1af227568b368014dd7ecb0ebc0e8a5e4b14945c8",
+        "independent_solution_sha256:a3f1b05eb1ce757c52effd43cea98bc01ca973b86acc7a7ed4f38b521aaeb42e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "6150",
+            "normalized": "6150"
+          },
+          {
+            "index": 6,
+            "surface": "SAE,",
+            "normalized": "SAE"
+          },
+          {
+            "index": 7,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁבְּמַאֲמָץ",
+            "normalized": "שבמאמץ"
+          },
+          {
+            "index": 9,
+            "surface": "עֲבוֹדָה",
+            "normalized": "עבודה"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "875",
+            "normalized": "875"
+          },
+          {
+            "index": 12,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 13,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 14,
+            "surface": "נִשְׁאֶרֶת",
+            "normalized": "נשארת"
+          },
+          {
+            "index": 15,
+            "surface": "בַּתְּחוּם",
+            "normalized": "בתחום"
+          },
+          {
+            "index": 16,
+            "surface": "הָאֶלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 17,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 18,
+            "surface": "מִרְוָח",
+            "normalized": "מרוח"
+          },
+          {
+            "index": 19,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 20,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r003",
+      "order": 3,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) קשה לבחור לפי דרישות המפרט בלבד, כי שתי הפלדות יכולות לעמוד בספי הדרישות σ_y > 790 MPa, ‏A > 10%, ‏HB > 375.",
+        "he_niqqud": "א) קָשֶׁה לִבְחֹר לְפִי דְּרִישׁוֹת הַמִּפְרָט בִּלְבָד, כִּי שְׁתֵּי הַפְּלָדוֹת יְכוֹלוֹת לַעֲמֹד בְּסִפֵּי הַדְּרִישׁוֹת σ_y > 790 MPa, ‏A > 10%, ‏HB > 375.",
+        "transliteration": "A) Kashe livroach lefi drishot ha'mifrat bilvad, ki shtey ha'pladot yecholot la'amod be'sepey ha'drishot σ_y > 790 MPa, A > 10%, HB > 375.",
+        "ru": "А) Сложно выбрать, основываясь только на требованиях спецификации, так как обе стали могут соответствовать пороговым требованиям σ_y > 790 МПа, A > 10%, HB > 375."
+      },
+      "source_refs": [
+        "legacy_row_hash:f65a48272daa63adb9442d6c63d2b96ad7922a4699514d5d307dc4209d1b6b89",
+        "legacy_fields_sha256:e415ce65024a51f3bc5e9f731c9c7cbdd7b85dc27bdd53b58f74d3883b37f7aa",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "קָשֶׁה",
+            "normalized": "קשה"
+          },
+          {
+            "index": 2,
+            "surface": "לִבְחֹר",
+            "normalized": "לבחר"
+          },
+          {
+            "index": 3,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 4,
+            "surface": "דְּרִישׁוֹת",
+            "normalized": "דרישות"
+          },
+          {
+            "index": 5,
+            "surface": "הַמִּפְרָט",
+            "normalized": "המפרט"
+          },
+          {
+            "index": 6,
+            "surface": "בִּלְבָד,",
+            "normalized": "בלבד"
+          },
+          {
+            "index": 7,
+            "surface": "כִּי",
+            "normalized": "כי"
+          },
+          {
+            "index": 8,
+            "surface": "שְׁתֵּי",
+            "normalized": "שתי"
+          },
+          {
+            "index": 9,
+            "surface": "הַפְּלָדוֹת",
+            "normalized": "הפלדות"
+          },
+          {
+            "index": 10,
+            "surface": "יְכוֹלוֹת",
+            "normalized": "יכולות"
+          },
+          {
+            "index": 11,
+            "surface": "לַעֲמֹד",
+            "normalized": "לעמד"
+          },
+          {
+            "index": 12,
+            "surface": "בְּסִפֵּי",
+            "normalized": "בספי"
+          },
+          {
+            "index": 13,
+            "surface": "הַדְּרִישׁוֹת",
+            "normalized": "הדרישות"
+          },
+          {
+            "index": 14,
+            "surface": "σ_y",
+            "normalized": "σ_y"
+          },
+          {
+            "index": 15,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 16,
+            "surface": "790",
+            "normalized": "790"
+          },
+          {
+            "index": 17,
+            "surface": "MPa,",
+            "normalized": "MPa"
+          },
+          {
+            "index": 18,
+            "surface": "‏A",
+            "normalized": "A"
+          },
+          {
+            "index": 19,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 20,
+            "surface": "10%,",
+            "normalized": "10%"
+          },
+          {
+            "index": 21,
+            "surface": "‏HB",
+            "normalized": "HB"
+          },
+          {
+            "index": 22,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 23,
+            "surface": "375.",
+            "normalized": "375"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r004",
+      "order": 4,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר שתי האפשרויות עוברות את ספי הדרישות, אין קריטריון מבדיל על בסיס “כן/לא” בלבד.",
+        "he_niqqud": "כַּאֲשֶׁר שְׁתֵּי הָאֶפְשָׁרוּיּוֹת עוֹבְרוֹת אֶת סִפֵּי הַדְּרִישׁוֹת, אֵין קְרִיטֶרְיוֹן מַבְדִּיל עַל בָּסִיס “כֵּן/לֹא” בִּלְבָד.",
+        "transliteration": "Ka'asher shtey ha'efsharuyot ovrot et sepey ha'drishot, ein kriteriyon mavdil al basis \"ken/lo\" bilvad.",
+        "ru": "Когда обе опции проходят пороговые требования, нет критерия для различия, основанного исключительно на принципе «да/нет»."
+      },
+      "source_refs": [
+        "legacy_row_hash:f1b42e1f3d1ec70383a8e0e5c701a30460c07666e222b500402cbfdaacf35774",
+        "legacy_fields_sha256:1f9767c2e70d2f6c865217b8aea83ed3af05bca8aa4b9bd18b9b3c3d4569c950",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "שְׁתֵּי",
+            "normalized": "שתי"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֶפְשָׁרוּיּוֹת",
+            "normalized": "האפשרויות"
+          },
+          {
+            "index": 3,
+            "surface": "עוֹבְרוֹת",
+            "normalized": "עוברות"
+          },
+          {
+            "index": 4,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 5,
+            "surface": "סִפֵּי",
+            "normalized": "ספי"
+          },
+          {
+            "index": 6,
+            "surface": "הַדְּרִישׁוֹת,",
+            "normalized": "הדרישות"
+          },
+          {
+            "index": 7,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 8,
+            "surface": "קְרִיטֶרְיוֹן",
+            "normalized": "קריטריון"
+          },
+          {
+            "index": 9,
+            "surface": "מַבְדִּיל",
+            "normalized": "מבדיל"
+          },
+          {
+            "index": 10,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 11,
+            "surface": "בָּסִיס",
+            "normalized": "בסיס"
+          },
+          {
+            "index": 12,
+            "surface": "“כֵּן/לֹא”",
+            "normalized": "כן/לא"
+          },
+          {
+            "index": 13,
+            "surface": "בִּלְבָד.",
+            "normalized": "בלבד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן יש צורך לשקלל גם מרווח אלסטי לעבודה, השפעה על עייפות, קשיחות מול שבריריות, ורגישות לטיפול תרמי.",
+        "he_niqqud": "לָכֵן יֵשׁ צֹרֶךְ לְשַׁכְלֵל גַּם מִרְוָח אֶלַסְטִי לַעֲבוֹדָה, הַשְׁפָּעָה עַל עֲיֵפוּת, קַשִׁיחוּת מוּל שְׁבִרִירוּת, וּרְגִישׁוּת לְטִפּוּל תֶּרְמִי.",
+        "transliteration": "La'chen yesh tzorech le'shaklel gam mirvah elasti la'avoda, hashpa'a al ayefut, kashihut mul shvri'ri'ut, ve'regishut le'tipul tarmi.",
+        "ru": "Поэтому необходимо учитывать также упругий запас для работы, влияние на усталость, вязкость по сравнению с хрупкостью, а также чувствительность к термической обработке."
+      },
+      "source_refs": [
+        "legacy_row_hash:e08d5fb375b2d6bdbca9144efb7cf68958b84d578100211d1009abb0f0ed085f",
+        "legacy_fields_sha256:0a676d511bae2680965a5fcf942a7bdadfdf31df96ae40bab22e56a638ffb85f",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "צֹרֶךְ",
+            "normalized": "צרך"
+          },
+          {
+            "index": 3,
+            "surface": "לְשַׁכְלֵל",
+            "normalized": "לשכלל"
+          },
+          {
+            "index": 4,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 5,
+            "surface": "מִרְוָח",
+            "normalized": "מרוח"
+          },
+          {
+            "index": 6,
+            "surface": "אֶלַסְטִי",
+            "normalized": "אלסטי"
+          },
+          {
+            "index": 7,
+            "surface": "לַעֲבוֹדָה,",
+            "normalized": "לעבודה"
+          },
+          {
+            "index": 8,
+            "surface": "הַשְׁפָּעָה",
+            "normalized": "השפעה"
+          },
+          {
+            "index": 9,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 10,
+            "surface": "עֲיֵפוּת,",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 11,
+            "surface": "קַשִׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 12,
+            "surface": "מוּל",
+            "normalized": "מול"
+          },
+          {
+            "index": 13,
+            "surface": "שְׁבִרִירוּת,",
+            "normalized": "שברירות"
+          },
+          {
+            "index": 14,
+            "surface": "וּרְגִישׁוּת",
+            "normalized": "ורגישות"
+          },
+          {
+            "index": 15,
+            "surface": "לְטִפּוּל",
+            "normalized": "לטפול"
+          },
+          {
+            "index": 16,
+            "surface": "תֶּרְמִי.",
+            "normalized": "תרמי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r006",
+      "order": 6,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) הפלדה המתאימה יותר היא 6150 SAE, משום שבמאמץ עבודה של 875 MPa היא נשארת בתחום האלסטי עם מרווח גדול יותר.",
+        "he_niqqud": "ב) הַפְּלָדָה הַמַּתְאִימָה יוֹתֵר הִיא 6150 SAE, מִשּׁוּם שֶׁבְּמַאֲמָץ עֲבוֹדָה שֶׁל 875 MPa הִיא נִשְׁאֶרֶת בַּתְּחוּם הָאֶלַסְטִי עִם מִרְוָח גָּדוֹל יוֹתֵר.",
+        "transliteration": "B) Ha'plada ha'mat'ima yoter hi 6150 SAE, mishum she'be'ma'amatz avoda shel 875 MPa hi nish'eret ba'thum ha'elasti im mirvah gadol yoter.",
+        "ru": "Б) Более подходящая сталь — SAE 6150, поскольку при рабочем напряжении 875 МПа она остается в упругой области с большим запасом."
+      },
+      "source_refs": [
+        "legacy_row_hash:8c70603b2d18bd784373fe472ce0560faf3f95f63c80421c050d22e4471acbc6",
+        "legacy_fields_sha256:4fd962f55d8995aaea64b1e1af227568b368014dd7ecb0ebc0e8a5e4b14945c8",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "6150",
+            "normalized": "6150"
+          },
+          {
+            "index": 6,
+            "surface": "SAE,",
+            "normalized": "SAE"
+          },
+          {
+            "index": 7,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁבְּמַאֲמָץ",
+            "normalized": "שבמאמץ"
+          },
+          {
+            "index": 9,
+            "surface": "עֲבוֹדָה",
+            "normalized": "עבודה"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "875",
+            "normalized": "875"
+          },
+          {
+            "index": 12,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 13,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 14,
+            "surface": "נִשְׁאֶרֶת",
+            "normalized": "נשארת"
+          },
+          {
+            "index": 15,
+            "surface": "בַּתְּחוּם",
+            "normalized": "בתחום"
+          },
+          {
+            "index": 16,
+            "surface": "הָאֶלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 17,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 18,
+            "surface": "מִרְוָח",
+            "normalized": "מרוח"
+          },
+          {
+            "index": 19,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 20,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ניתן עקרון תכנון לקפיצים: מאמץ העבודה צריך להישאר בתחום האלסטי כדי למנוע עיוות פלסטי קבוע (“סט”) ופגיעה בעמידות לעייפות תחת עומס מחזורי.",
+        "he_niqqud": "נִיתָּן עִקָּרוֹן תִּכְנוּן לִקְפִיצִים: מַאֲמָץ הָעֲבוֹדָה צָרִיךְ לְהִשָּׁאֵר בַּתְּחוּם הָאֶלַסְטִי כְּדֵי לִמְנֹעַ עִוּוּת פְּלַסְטִי קָבוּעַ (“סֶט”) וּפְגִיעָה בַּעֲמִידוּת לַעֲיֵפוּת תַּחַת עֹמֶס מַחְזוֹרִי.",
+        "transliteration": "Nitan ikaron tichnun li'kfitzim: ma'amatz ha'avoda tzarich le'hisha'er ba'thum ha'elasti kedei limno'a ivut plasti kavu'a (\"set\") u'fgi'a ba'amido'ut le'ayefut tahat omes mahzori.",
+        "ru": "Принцип проектирования пружин: рабочее напряжение должно оставаться в упругой области, чтобы предотвратить постоянную пластическую деформацию («осадку»/«сет») и снижение усталостной долговечности при циклической нагрузке."
+      },
+      "source_refs": [
+        "legacy_row_hash:c1a76e353ce3045272c7b93716c04fd243ac9a39547927fe86e4e45107562524",
+        "legacy_fields_sha256:b91001cdf7911816a3aa8f2f319855ef9b7d6ba1e7b598f1dc8495651790b936",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 1,
+            "surface": "עִקָּרוֹן",
+            "normalized": "עקרון"
+          },
+          {
+            "index": 2,
+            "surface": "תִּכְנוּן",
+            "normalized": "תכנון"
+          },
+          {
+            "index": 3,
+            "surface": "לִקְפִיצִים:",
+            "normalized": "לקפיצים"
+          },
+          {
+            "index": 4,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 5,
+            "surface": "הָעֲבוֹדָה",
+            "normalized": "העבודה"
+          },
+          {
+            "index": 6,
+            "surface": "צָרִיךְ",
+            "normalized": "צריך"
+          },
+          {
+            "index": 7,
+            "surface": "לְהִשָּׁאֵר",
+            "normalized": "להשאר"
+          },
+          {
+            "index": 8,
+            "surface": "בַּתְּחוּם",
+            "normalized": "בתחום"
+          },
+          {
+            "index": 9,
+            "surface": "הָאֶלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 10,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 11,
+            "surface": "לִמְנֹעַ",
+            "normalized": "למנע"
+          },
+          {
+            "index": 12,
+            "surface": "עִוּוּת",
+            "normalized": "עוות"
+          },
+          {
+            "index": 13,
+            "surface": "פְּלַסְטִי",
+            "normalized": "פלסטי"
+          },
+          {
+            "index": 14,
+            "surface": "קָבוּעַ",
+            "normalized": "קבוע"
+          },
+          {
+            "index": 15,
+            "surface": "(“סֶט”)",
+            "normalized": "סט"
+          },
+          {
+            "index": 16,
+            "surface": "וּפְגִיעָה",
+            "normalized": "ופגיעה"
+          },
+          {
+            "index": 17,
+            "surface": "בַּעֲמִידוּת",
+            "normalized": "בעמידות"
+          },
+          {
+            "index": 18,
+            "surface": "לַעֲיֵפוּת",
+            "normalized": "לעיפות"
+          },
+          {
+            "index": 19,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 20,
+            "surface": "עֹמֶס",
+            "normalized": "עמס"
+          },
+          {
+            "index": 21,
+            "surface": "מַחְזוֹרִי.",
+            "normalized": "מחזורי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r008",
+      "order": 8,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "פורמלית משתמשים במקדם בטיחות כך שמאמץ העבודה לא יתקרב לחוזק הכניעה.",
+        "he_niqqud": "פּוֹרְמָלִית מִשְׁתַּמְּשִׁים בְּמַקְדֵּם בְּטִיחוּת כָּךְ שֶׁמַּאֲמָץ הָעֲבוֹדָה לֹא יִתְקָרֵב לְחֹזֶק הַכְּנִיעָה.",
+        "transliteration": "Formalit mishtamshim be'mekadem bitahon kach she'ma'amatz ha'avoda lo yitkarev le'hozek ha'kni'a.",
+        "ru": "Формально используют коэффициент запаса, чтобы рабочее напряжение не приближалось к пределу текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:dd403920e73767741b1f8ab49961f4f5bf39f81b2c4785804382e2b2b2f589c1",
+        "legacy_fields_sha256:78efec0b76a9f55827fa7ad1944301483d984a0f962ac8297fc6a76aea3ae5bd",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פּוֹרְמָלִית",
+            "normalized": "פורמלית"
+          },
+          {
+            "index": 1,
+            "surface": "מִשְׁתַּמְּשִׁים",
+            "normalized": "משתמשים"
+          },
+          {
+            "index": 2,
+            "surface": "בְּמַקְדֵּם",
+            "normalized": "במקדם"
+          },
+          {
+            "index": 3,
+            "surface": "בְּטִיחוּת",
+            "normalized": "בטיחות"
+          },
+          {
+            "index": 4,
+            "surface": "כָּךְ",
+            "normalized": "כך"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁמַּאֲמָץ",
+            "normalized": "שמאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "הָעֲבוֹדָה",
+            "normalized": "העבודה"
+          },
+          {
+            "index": 7,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 8,
+            "surface": "יִתְקָרֵב",
+            "normalized": "יתקרב"
+          },
+          {
+            "index": 9,
+            "surface": "לְחֹזֶק",
+            "normalized": "לחזק"
+          },
+          {
+            "index": 10,
+            "surface": "הַכְּנִיעָה.",
+            "normalized": "הכניעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r009",
+      "order": 9,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_work ≤ σ_y / n ‏(n>1)",
+        "he_niqqud": "σ_work ≤ σ_y / n ‏(n>1)",
+        "transliteration": "σ_work ≤ σ_y / n (n>1)",
+        "ru": "σ_раб ≤ σ_y / n (n>1)"
+      },
+      "source_refs": [
+        "legacy_row_hash:c5ee739f23ab1114a8f903b8a1239d1215e030fa1cfd8b711a47bf3af9763b5c",
+        "legacy_fields_sha256:14c2c56e2fea9f5f044346fc595c334594127d55b8766165be03c284ff553057",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_work",
+            "normalized": "σ_work"
+          },
+          {
+            "index": 1,
+            "surface": "≤",
+            "normalized": "≤"
+          },
+          {
+            "index": 2,
+            "surface": "σ_y",
+            "normalized": "σ_y"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "n",
+            "normalized": "n"
+          },
+          {
+            "index": 5,
+            "surface": "‏(n>1)",
+            "normalized": "n>1"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_work ≤ σ_y / n ‏(n>1)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב־1075 SAE מאמץ של 875 MPa קרוב מאוד לנקודת הכניעה, ולכן קיים סיכון לסטייה פלסטית קטנה ולעייפות מוגברת בשירות.",
+        "he_niqqud": "בְּ־1075 SAE מַאֲמָץ שֶׁל 875 MPa קָרוֹב מְאֹד לְנְקֻדַּת הַכְּנִיעָה, וְלָכֵן קַיָּם סִכּוּן לִסְטִיָּה פְּלַסְטִית קְטַנָּה וְלַעֲיֵפוּת מֻגְבֶּרֶת בְּשֵׁרוּת.",
+        "transliteration": "Be-1075 SAE ma'amatz shel 875 MPa karov me'od le'nekudat ha'kni'a, ve'la'chen kayam sikun listiya plastit ktana ve'le'ayefut mugberet ba'sherut.",
+        "ru": "Для SAE 1075 напряжение 875 МПа очень близко к пределу текучести, поэтому существует риск небольшой пластической деформации и повышенной усталости при эксплуатации."
+      },
+      "source_refs": [
+        "legacy_row_hash:d9443e63e81c04d0e36782344f81c782ea3fb3007784dd305475e5400f1810c9",
+        "legacy_fields_sha256:8f81433f62f3354152f5c37fe111a879dc8139a5974e5d7354f2843379651b8e",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּ־1075",
+            "normalized": "ב־1075"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "875",
+            "normalized": "875"
+          },
+          {
+            "index": 5,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 6,
+            "surface": "קָרוֹב",
+            "normalized": "קרוב"
+          },
+          {
+            "index": 7,
+            "surface": "מְאֹד",
+            "normalized": "מאד"
+          },
+          {
+            "index": 8,
+            "surface": "לְנְקֻדַּת",
+            "normalized": "לנקדת"
+          },
+          {
+            "index": 9,
+            "surface": "הַכְּנִיעָה,",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 10,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 11,
+            "surface": "קַיָּם",
+            "normalized": "קים"
+          },
+          {
+            "index": 12,
+            "surface": "סִכּוּן",
+            "normalized": "סכון"
+          },
+          {
+            "index": 13,
+            "surface": "לִסְטִיָּה",
+            "normalized": "לסטיה"
+          },
+          {
+            "index": 14,
+            "surface": "פְּלַסְטִית",
+            "normalized": "פלסטית"
+          },
+          {
+            "index": 15,
+            "surface": "קְטַנָּה",
+            "normalized": "קטנה"
+          },
+          {
+            "index": 16,
+            "surface": "וְלַעֲיֵפוּת",
+            "normalized": "ולעיפות"
+          },
+          {
+            "index": 17,
+            "surface": "מֻגְבֶּרֶת",
+            "normalized": "מגברת"
+          },
+          {
+            "index": 18,
+            "surface": "בְּשֵׁרוּת.",
+            "normalized": "בשרות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב־6150 SAE מאמץ של 875 MPa נמצא בתוך התחום האלסטי עם מרווח גדול יותר, ולכן הוא מתאים יותר לעבודה של קפיץ.",
+        "he_niqqud": "בְּ־6150 SAE מַאֲמָץ שֶׁל 875 MPa נִמְצָא בְּתוֹךְ הַתְּחוּם הָאֶלַסְטִי עִם מִרְוָח גָּדוֹל יוֹתֵר, וְלָכֵן הוּא מַתְאִים יוֹתֵר לַעֲבוֹדָה שֶׁל קָפִיץ.",
+        "transliteration": "Be-6150 SAE ma'amatz shel 875 MPa nimtza be'toch ha'thum ha'elasti im mirvah gadol yoter, ve'la'chen hu mat'im yoter la'avoda shel kfitz.",
+        "ru": "Для SAE 6150 напряжение 875 МПа находится внутри упругой области с большим запасом, и поэтому она больше подходит для работы пружины."
+      },
+      "source_refs": [
+        "legacy_row_hash:2fee42cb421d22adda0dd6951938289fcbeb3f30e4242e20605dcf90024953c6",
+        "legacy_fields_sha256:314ced5546f35d978cfc25327cc35688968e2ee4255adee21f1e65c9741bdaee",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּ־6150",
+            "normalized": "ב־6150"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "875",
+            "normalized": "875"
+          },
+          {
+            "index": 5,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 6,
+            "surface": "נִמְצָא",
+            "normalized": "נמצא"
+          },
+          {
+            "index": 7,
+            "surface": "בְּתוֹךְ",
+            "normalized": "בתוך"
+          },
+          {
+            "index": 8,
+            "surface": "הַתְּחוּם",
+            "normalized": "התחום"
+          },
+          {
+            "index": 9,
+            "surface": "הָאֶלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 10,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 11,
+            "surface": "מִרְוָח",
+            "normalized": "מרוח"
+          },
+          {
+            "index": 12,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 13,
+            "surface": "יוֹתֵר,",
+            "normalized": "יותר"
+          },
+          {
+            "index": 14,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 15,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 16,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 17,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 18,
+            "surface": "לַעֲבוֹדָה",
+            "normalized": "לעבודה"
+          },
+          {
+            "index": 19,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 20,
+            "surface": "קָפִיץ.",
+            "normalized": "קפיץ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r012",
+      "order": 12,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) אין צורך בצימנוט עבור 6150 SAE שנבחרה, משום שניתן להשיג קשיות ועמידות נדרשות באמצעות טיפול תרמי מתאים ללא העשרת פחמן.",
+        "he_niqqud": "ג) אֵין צֹרֶךְ בְּצִימְנוּט עֲבוּר 6150 SAE שֶׁנִּבְחֲרָה, מִשּׁוּם שֶׁנִּיתָּן לְהַשִׂיג קַשִׁיּוּת וַעֲמִידוּת נִדְרָשׁוֹת בְּאֶמְצָעוּת טִפּוּל תֶּרְמִי מַתְאִים לְלֹא הַעֲשָׁרַת פַּחְמָן.",
+        "transliteration": "G) Ein tzorech be'tzimentot avur 6150 SAE she'nivchara, mishum she'nitan le'hasig kashi'ut ve'amidu'ut nidrashot be'emtzaut tipul tarmi mat'im lelo ha'asharat pahman.",
+        "ru": "В) Нет необходимости в цементации для выбранной SAE 6150, поскольку требуемую твердость и износостойкость можно получить с помощью соответствующей термической обработки без дополнительного обогащения углеродом."
+      },
+      "source_refs": [
+        "legacy_row_hash:3b81bf24b6f8c942449ee4923aff0eef39cf9cab548a562cc6774c6a76ce5691",
+        "legacy_fields_sha256:e6b233ac5136e030b6d3856746272499b622fa0251f5fba7179e077789150c55",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 2,
+            "surface": "צֹרֶךְ",
+            "normalized": "צרך"
+          },
+          {
+            "index": 3,
+            "surface": "בְּצִימְנוּט",
+            "normalized": "בצימנוט"
+          },
+          {
+            "index": 4,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 5,
+            "surface": "6150",
+            "normalized": "6150"
+          },
+          {
+            "index": 6,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁנִּבְחֲרָה,",
+            "normalized": "שנבחרה"
+          },
+          {
+            "index": 8,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁנִּיתָּן",
+            "normalized": "שניתן"
+          },
+          {
+            "index": 10,
+            "surface": "לְהַשִׂיג",
+            "normalized": "להשיג"
+          },
+          {
+            "index": 11,
+            "surface": "קַשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 12,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 13,
+            "surface": "נִדְרָשׁוֹת",
+            "normalized": "נדרשות"
+          },
+          {
+            "index": 14,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 15,
+            "surface": "טִפּוּל",
+            "normalized": "טפול"
+          },
+          {
+            "index": 16,
+            "surface": "תֶּרְמִי",
+            "normalized": "תרמי"
+          },
+          {
+            "index": 17,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 18,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 19,
+            "surface": "הַעֲשָׁרַת",
+            "normalized": "העשרת"
+          },
+          {
+            "index": 20,
+            "surface": "פַּחְמָן.",
+            "normalized": "פחמן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "צימנוט הוא העשרה בפחמן של פני השטח שמטרתה בעיקר להעלות קשיות פני שטח.",
+        "he_niqqud": "צִימְנוּט הוּא הַעֲשָׁרָה בְּפַחְמָן שֶׁל פְּנֵי הַשֶּׁטַח שֶׁמַּטְרָתָהּ בְּעִקָּר לְהַעֲלוֹת קַשִׁיּוּת פְּנֵי שֶׁטַח.",
+        "transliteration": "Tzimentot hu ha'ashara be'pahman shel pney ha'shetah she'matratah be'ikar le'ha'alot kashi'ut pney shetah.",
+        "ru": "Цементация — это обогащение поверхности углеродом, основная цель которого — повышение твердости поверхности."
+      },
+      "source_refs": [
+        "legacy_row_hash:22ea62682f2dec3ccb049f4d3ef077c117e61e6dcff4dd670db73d76c5868bbd",
+        "legacy_fields_sha256:07d30d01b7430fb48f505e55b6698e87c08f1bca80a0ac362cbcd8cb352f3a30",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צִימְנוּט",
+            "normalized": "צימנוט"
+          },
+          {
+            "index": 1,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "הַעֲשָׁרָה",
+            "normalized": "העשרה"
+          },
+          {
+            "index": 3,
+            "surface": "בְּפַחְמָן",
+            "normalized": "בפחמן"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 6,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁמַּטְרָתָהּ",
+            "normalized": "שמטרתה"
+          },
+          {
+            "index": 8,
+            "surface": "בְּעִקָּר",
+            "normalized": "בעקר"
+          },
+          {
+            "index": 9,
+            "surface": "לְהַעֲלוֹת",
+            "normalized": "להעלות"
+          },
+          {
+            "index": 10,
+            "surface": "קַשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 11,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁטַח.",
+            "normalized": "שטח"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "שתי הפלדות הן בעלות אחוז פחמן בינוני–גבוה, ולכן אינן מועמדות טיפוסיות לצימנוט לצורך השגת קשיות.",
+        "he_niqqud": "שְׁתֵּי הַפְּלָדוֹת הֵן בַּעֲלוֹת אָחוּז פַּחְמָן בֵּינוֹנִי–גָּבוֹהַּ, וְלָכֵן אֵינָן מוּעֲמָדוֹת טִיפּוּסִיּוֹת לְצִימְנוּט לְצֹרֶךְ הַשָּׂגַת קַשִׁיּוּת.",
+        "transliteration": "Shtey ha'pladot hen ba'alot ahuz pahman beinoni-gavoha, ve'la'chen einan mu'amadot tipusiyot le'tzimentot le'tzorech hasagat kashi'ut.",
+        "ru": "Обе стали имеют среднее–высокое содержание углерода и поэтому не являются типичными кандидатами для цементации с целью достижения твердости."
+      },
+      "source_refs": [
+        "legacy_row_hash:8d9affb4630a52bb47c3fc94ee4cc727b854173d335cfc6b3f3901068ef3797a",
+        "legacy_fields_sha256:73f50729b8dff46ca3bd93b5bf093cec6b9864f2a4737e161c6fb624c54382e6",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "שְׁתֵּי",
+            "normalized": "שתי"
+          },
+          {
+            "index": 1,
+            "surface": "הַפְּלָדוֹת",
+            "normalized": "הפלדות"
+          },
+          {
+            "index": 2,
+            "surface": "הֵן",
+            "normalized": "הן"
+          },
+          {
+            "index": 3,
+            "surface": "בַּעֲלוֹת",
+            "normalized": "בעלות"
+          },
+          {
+            "index": 4,
+            "surface": "אָחוּז",
+            "normalized": "אחוז"
+          },
+          {
+            "index": 5,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 6,
+            "surface": "בֵּינוֹנִי–גָּבוֹהַּ,",
+            "normalized": "בינוני–גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 8,
+            "surface": "אֵינָן",
+            "normalized": "אינן"
+          },
+          {
+            "index": 9,
+            "surface": "מוּעֲמָדוֹת",
+            "normalized": "מועמדות"
+          },
+          {
+            "index": 10,
+            "surface": "טִיפּוּסִיּוֹת",
+            "normalized": "טיפוסיות"
+          },
+          {
+            "index": 11,
+            "surface": "לְצִימְנוּט",
+            "normalized": "לצימנוט"
+          },
+          {
+            "index": 12,
+            "surface": "לְצֹרֶךְ",
+            "normalized": "לצרך"
+          },
+          {
+            "index": 13,
+            "surface": "הַשָּׂגַת",
+            "normalized": "השגת"
+          },
+          {
+            "index": 14,
+            "surface": "קַשִׁיּוּת.",
+            "normalized": "קשיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "צימנוט נהוג בעיקר בפלדות דלות־פחמן כאשר רוצים ליבה קשיחה פחות אך משטח קשה מאוד.",
+        "he_niqqud": "צִימְנוּט נָהוּג בְּעִקָּר בִּפְלָדוֹת דַּלּוֹת־פַּחְמָן כַּאֲשֶׁר רוֹצִים לִיבָּה קָשִׁיחָה פָּחוֹת אַךְ מִשְׁטָח קָשֶׁה מְאֹד.",
+        "transliteration": "Tzimentot nahug be'ikar be'pladot dalot-pahman ka'asher rotzim liba kshiha pahot ach mishtah kashe me'od.",
+        "ru": "Цементация обычно применяется в низкоуглеродистых сталях, когда требуется менее твердая сердцевина, но очень твердая поверхность."
+      },
+      "source_refs": [
+        "legacy_row_hash:163119af04b618ced3462e1f6782b44e619ce9cc0be3f85088f3a32673d88672",
+        "legacy_fields_sha256:f018d5935ef5e12359b216811441cf300c4b28d3a696245a81b411ae88bc0f6b",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צִימְנוּט",
+            "normalized": "צימנוט"
+          },
+          {
+            "index": 1,
+            "surface": "נָהוּג",
+            "normalized": "נהוג"
+          },
+          {
+            "index": 2,
+            "surface": "בְּעִקָּר",
+            "normalized": "בעקר"
+          },
+          {
+            "index": 3,
+            "surface": "בִּפְלָדוֹת",
+            "normalized": "בפלדות"
+          },
+          {
+            "index": 4,
+            "surface": "דַּלּוֹת־פַּחְמָן",
+            "normalized": "דלות־פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 6,
+            "surface": "רוֹצִים",
+            "normalized": "רוצים"
+          },
+          {
+            "index": 7,
+            "surface": "לִיבָּה",
+            "normalized": "ליבה"
+          },
+          {
+            "index": 8,
+            "surface": "קָשִׁיחָה",
+            "normalized": "קשיחה"
+          },
+          {
+            "index": 9,
+            "surface": "פָּחוֹת",
+            "normalized": "פחות"
+          },
+          {
+            "index": 10,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 11,
+            "surface": "מִשְׁטָח",
+            "normalized": "משטח"
+          },
+          {
+            "index": 12,
+            "surface": "קָשֶׁה",
+            "normalized": "קשה"
+          },
+          {
+            "index": 13,
+            "surface": "מְאֹד.",
+            "normalized": "מאד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-sol-r016",
+      "order": 16,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:a3f1b05eb1ce757c52effd43cea98bc01ca973b86acc7a7ed4f38b521aaeb42e",
+        "comparison:MATCH_WITH_PROPERTY_RANGE_QUALIFICATION",
+        "source_page:47",
+        "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+        "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+        "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+        "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-p047-q038",
+    "display_alias": "38 (выбор стали)",
+    "source_pages": [
+      47,
+      67,
+      68,
+      69
+    ],
+    "independent_state": "DERIVED_WITH_PROPERTY_RANGE_AND_HEAT_TREATMENT_QUALIFICATION",
+    "answer": [
+      "а) По приложениям нельзя гарантированно выбрать без состояния/термообработки: диапазоны обеих марок пересекают пороги. SAE1075: σ_y≈450–910 МПа, ε≈12%, HB≈223–388; SAE6150: σ_y≈745–1865 МПа, ε≈7–22%, HB≈241–601. Требования по σ_y и HB выполняются лишь в части диапазона, а для SAE6150 также надо обеспечить ε>10%.",
+      "б) При рабочем напряжении 875 МПа более подходяща SAE6150: её легирование даёт существенно больший запас по достижимому σ_y и прокаливаемости; SAE1075 имеет верхнюю границу σ_y около 910 МПа, то есть практически без инженерного запаса. Выбранный режим всё равно должен документированно одновременно обеспечить σ_y>875 МПа, ε>10% и HB>375.",
+      "в) Цементация не нужна: SAE6150 уже содержит около 0,50%C и выбирается для сквозных пружинных свойств; цементация создаёт градиентный твёрдый слой, не решает требование рабочего напряжения всей пружины и может ухудшить усталостное поведение без отдельного проекта."
+    ],
+    "engineering_picture": "Справочник даёт диапазоны по разным состояниям, а не одну гарантированную точку. Дополнительное рабочее напряжение делает запас по текучести критическим и выделяет глубоко прокаливаемую Cr–V сталь.",
+    "prerequisites": [
+      "Design requires stress below yield with margin.",
+      "Appendix ranges are condition-dependent.",
+      "Carburizing is a case-hardening process for suitable lower-carbon cores."
+    ],
+    "roadmap": [
+      "Переписать диапазоны обеих строк.",
+      "Проверить каждый строгий порог.",
+      "Добавить σ_work=875 и оценить запас.",
+      "Проверить необходимость углеродного слоя по составу/назначению."
+    ],
+    "main_trap": "Нельзя выбрать марку по одному максимальному значению диапазона и объявить все три требования одновременно гарантированными.",
+    "givens": [
+      "Requirements σ_y>790 MPa, ε>10%, HB>375; then σ_work=875 MPa; candidates SAE1075/SAE6150."
+    ],
+    "find": [
+      "Why initial choice is ambiguous, preferred steel with added load and need for carburizing."
+    ],
+    "assumptions": [
+      "Source appendix values are typical ranges, not certified lot minima.",
+      "A later specified Q&T condition may be selected within the range."
+    ],
+    "laws": [
+      "For elastic service σ_work<σ_y/design factor.",
+      "Carburizing changes surface C, not bulk yield capacity."
+    ],
+    "symbolic_derivation": [
+      "SAE1075 margin at best≈910−875=35 MPa; SAE6150 attainable margin can be much larger.",
+      "Both rows cross some original thresholds⇒heat-treatment state is required before acceptance."
+    ],
+    "calculation": [
+      "Best-case un-factored SAE1075 margin: 35 MPa≈4%; not a mature design margin."
+    ],
+    "construction": [
+      "Three-requirement table with each alloy range and PASS/CONDITIONAL cells; add operating-stress margin row."
+    ],
+    "checks": [
+      "Recommendation is conditional on simultaneous tested properties and does not turn appendix maxima into guaranteed minima."
+    ],
+    "source_facts": [
+      "source_page:47",
+      "asset_sha256:fe61afa5c595ba35297c7e28b730a6e1e3be4286bba5aad46f286606799a7e10",
+      "asset_sha256:83b4c8478352f8fd8d4be2fc5c3491ffeed682ec7dc806d1c538ed300516e44b",
+      "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+      "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+    ],
+    "unresolved_limits": [
+      "Final selection requires an explicit heat-treatment condition, certified minima, fatigue design and safety factor; source only supports the classroom preference SAE6150."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-post-build-source-manifest-drift-v1",
+  "recorded_on": "2026-08-30",
+  "status": "HISTORICAL_SHADOW_INPUT_PRESERVED_FINAL_SOURCE_ADVANCED",
+  "field": "source_manifest_sha256.diagram-manifest.json",
+  "historical_shadow_input_sha256": "85299a8f99bf8bbbd7b4ce99e64c57999584c07a8afbe1916f19a3c566bfae55",
+  "final_source_manifest_sha256": "b88d679b7321051d7e9cdde3237af75eb09f94723c15bf909b1665d970522bae",
+  "reason": "The immutable shadow plan records the diagram manifest used for the bounded provider experiment. The local source-first build later advanced the reviewed diagram manifest as part of final canonical correction and rebake. Rewriting the historical shadow hash would falsify provider-input provenance.",
+  "impact": {
+    "historical_shadow_packet_rewritten": false,
+    "shadow_provider_output_used_as_corpus_truth": false,
+    "canonical_bundle_built_from_final_source_manifest": true,
+    "provider_retry_allowed": false,
+    "production_blocking": false
+  },
+  "verification": "Regeneration must match every deterministic shadow-plan artifact. In shadow-sample-manifest.json only this explicitly recorded historical source hash may differ from a plan generated against the final source tree."
+}

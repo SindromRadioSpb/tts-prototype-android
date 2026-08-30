@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "materials_pb2_student_solution_table.1.0.0",
+  "title": "Materials PB2 reviewed student solution table",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "source_anchor",
+    "review",
+    "rows",
+    "render_contract"
+  ],
+  "properties": {
+    "schema_version": { "const": "materials_pb2_student_solution_table.1.0.0" },
+    "task_id": { "type": "string", "pattern": "^materials-science-y1-pb2-" },
+    "source_anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["corpus_slug", "source_edition", "canonical_bundle_sha256", "canonical_task_sha256"],
+      "properties": {
+        "corpus_slug": { "const": "materials-science-year1-problem-book-2" },
+        "source_edition": { "type": "string", "minLength": 1 },
+        "canonical_bundle_sha256": { "$ref": "#/$defs/sha256" },
+        "canonical_task_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "independent_solution_sha256", "legacy_comparison", "publication_blocking"],
+      "properties": {
+        "state": {
+          "enum": ["REVIEWED_PASS", "MISMATCH_REVIEW_REQUIRED", "SOURCE_INSUFFICIENT", "DIAGRAM_INSUFFICIENT"]
+        },
+        "independent_solution_sha256": { "$ref": "#/$defs/sha256" },
+        "legacy_comparison": { "enum": ["MATCH", "EQUIVALENT", "MISMATCH", "NO_LEGACY_SOLUTION"] },
+        "publication_blocking": { "type": "boolean" },
+        "reviewer_note": { "type": "string" }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/row" }
+    },
+    "render_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["study_columns", "exam_projection", "mobile_projection", "audio_projection"],
+      "properties": {
+        "study_columns": { "const": ["he", "he_niqqud", "transliteration", "ru"] },
+        "exam_projection": { "const": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS" },
+        "mobile_projection": { "const": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL" },
+        "audio_projection": { "const": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "parallelText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["he", "he_niqqud", "transliteration", "ru"],
+      "properties": {
+        "he": { "$ref": "#/$defs/nonEmpty" },
+        "he_niqqud": { "$ref": "#/$defs/nonEmpty" },
+        "transliteration": { "$ref": "#/$defs/nonEmpty" },
+        "ru": { "$ref": "#/$defs/nonEmpty" },
+        "spoken_he": { "$ref": "#/$defs/nonEmpty" },
+        "spoken_he_niqqud": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "dataTable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["columns", "rows"],
+      "properties": {
+        "columns": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/nonEmpty" }
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "items": { "type": ["string", "number"] }
+          }
+        },
+        "caption_he": { "type": "string" },
+        "caption_ru": { "type": "string" }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["row_id", "order", "section", "kind", "exam_copy", "text", "source_refs", "audio_plan"],
+      "properties": {
+        "row_id": { "type": "string", "pattern": "^[a-z0-9-]+-sol-r[0-9]{3}$" },
+        "order": { "type": "integer", "minimum": 1 },
+        "part_label": { "type": "string" },
+        "section": {
+          "enum": ["answer_first", "theory", "given_find", "model_and_laws", "derivation", "calculation", "construction", "verification", "final_answer", "provenance"]
+        },
+        "kind": {
+          "enum": ["solution_heading", "theory_statement", "definition", "given", "find", "assumption", "law_or_principle", "symbolic_derivation", "calculation", "table_fill", "diagram_instruction", "result_check", "final_answer", "provenance_note"]
+        },
+        "exam_copy": { "type": "boolean" },
+        "text": { "$ref": "#/$defs/parallelText" },
+        "formulae": { "type": "array", "items": { "$ref": "#/$defs/nonEmpty" } },
+        "data_table": { "$ref": "#/$defs/dataTable" },
+        "diagram_ref": { "type": "string" },
+        "source_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "audio_plan": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "synthesis_field", "karaoke_tokens", "timings_present", "formula_speech_review_required"],
+          "properties": {
+            "state": { "const": "DEFERRED_UNTIL_OWNER_CARD_REVIEW" },
+            "synthesis_field": { "enum": ["he_niqqud", "spoken_he_niqqud"] },
+            "karaoke_tokens": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["index", "surface", "normalized"],
+                "properties": {
+                  "index": { "type": "integer", "minimum": 0 },
+                  "surface": { "$ref": "#/$defs/nonEmpty" },
+                  "normalized": { "$ref": "#/$defs/nonEmpty" }
+                }
+              }
+            },
+            "timings_present": { "const": false },
+            "formula_speech_review_required": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1755 @@
+{
+  "schema": "linguistpro.materials-pb2.independent-solution-source-workpack.1",
+  "status": "SOURCE_ONLY_READY_FOR_INDEPENDENT_DERIVATION_NO_LEGACY_SOLUTIONS_INCLUDED",
+  "batch_id": "B03",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "canonical_manifest_sha256": "35cb755642b714d3a61f84c58ea6bd2952826c107610cad9ab20966cc6b083b7",
+  "truth_boundary": "CONDITIONS_DIAGRAMS_AND_DECLARED_SOURCE_METADATA_ONLY",
+  "task_count": 10,
+  "tasks": [
+    {
+      "task_id": "materials-science-y1-pb2-q020",
+      "title": "Материаловедение — задача 20",
+      "display_alias": "20",
+      "source_pages": [
+        26
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q020/anchor-01-p026.jpg",
+          "sha256": "262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c",
+          "bytes": 203280,
+          "source_page": 26,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q020-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 26,
+          "he": "שאלה 20.",
+          "he_niqqud": "שְׁאֵלָה 20.",
+          "transliteration": "She'ela 20.",
+          "ru": "Вопрос 20.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r002",
+          "order_index": 1,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "א. מהי המטרה של בדיקת נגיפה?",
+          "he_niqqud": "א. מַהִי הַמַּטָּרָה שֶׁל בְּדִיקַת נְגִיפָה?",
+          "transliteration": "a. Mahi ha-matarah shel bdikat negifah?",
+          "ru": "а. Какова цель испытания на ударный изгиб (ударную вязкость)?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "ב. ניתוח תוצאות של בדיקת נגיפה הראה שלאחר שבירת דגם מחומר א', המשיך פטיש־המטוטלת לנוע לגובה h.",
+          "he_niqqud": "ב. נִיתּוּחַ תּוֹצָאוֹת שֶׁל בְּדִיקַת נְגִיפָה הֶרְאָה שֶׁלְּאַחַר שְׁבִירַת דֶּגֶם מֵחֹומֶר א', הִמְשִׁיךְ פַּטִּישׁ־הַמְּטוֹטֶלֶת לָנוּעַ לְגֹובַהּ h.",
+          "transliteration": "b. Nitu'akh totsa'ot shel bdikat negifah her'ah she-le'akhar shvirat degem me-khomer alef, himshikh patish-ha-metotelet lanu'a le-govah h.",
+          "ru": "б. Анализ результатов испытания на ударный изгиб показал, что после излома образца из материала А маятник копра продолжил движение до высоты h.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "לאחר שבירת דגם מחומר ב', המשיך פטיש המטוטלת לגובה קטן מ־h.",
+          "he_niqqud": "לְאַחַר שְׁבִירַת דֶּגֶם מֵחֹומֶר ב', הִמְשִׁיךְ פַּטִּישׁ הַמְּטוֹטֶלֶת לְגֹובַהּ קָטָן מִ־h.",
+          "transliteration": "le'akhar shvirat degem me-khomer bet, himshikh patish ha-metotelet le-govah katan mi-h.",
+          "ru": "После излома образца из материала Б маятник копра поднялся на высоту меньше h.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "איזה מבין החומרים א' ו־ב' מתאים יותר לשמש כפגוש במכונית?",
+          "he_niqqud": "אֵיזֶה מִבֵּין הַחֳומָרִים א' וְ־ב' מַתְאִים יוֹתֵר לְשַׁמֵּשׁ כְּפָגוֹשׁ בִּמְכוֹנִית?",
+          "transliteration": "Eizeh mi-bein ha-khomarim alef ve-bet mat'im yoter le-shamesh ke-fagosh bi-mkhonit?",
+          "ru": "Какой из материалов (А или Б) лучше подходит для изготовления автомобильного бампера?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "נמק את תשובתך בהתבסס על הקשר הבא:",
+          "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ בְּהִתְבַּסֵּס עַל הַקֶּשֶׁר הַבָּא:",
+          "transliteration": "Namek et tshuvatkha be-hitbases al ha-kesher ha-ba:",
+          "ru": "Обоснуйте свой ответ, опираясь на следующее соотношение:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r007",
+          "order_index": 6,
+          "kind": "source_note",
+          "source_page": 26,
+          "he": "E = G (h0 - h)",
+          "he_niqqud": "E = G (h0 - h)",
+          "transliteration": "E = G (h0 - h)",
+          "ru": "E = G (h0 - h)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r008",
+          "order_index": 7,
+          "kind": "source_note",
+          "source_page": 26,
+          "he": "E — אנרגיית הנגיפה",
+          "he_niqqud": "E — אֶנֶרְגִּייַּת הַנְּגִיפָה",
+          "transliteration": "E — energiyat ha-negifah",
+          "ru": "E — работа удара (энергия удара)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r009",
+          "order_index": 8,
+          "kind": "source_note",
+          "source_page": 26,
+          "he": "G — משקל פטיש־המטוטלת",
+          "he_niqqud": "G — מִשְׁקַל פַּטִּישׁ־הַמְּטוֹטֶלֶת",
+          "transliteration": "G — mishkal patish-ha-metotelet",
+          "ru": "G — вес маятника копра",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r010",
+          "order_index": 9,
+          "kind": "source_note",
+          "source_page": 26,
+          "he": "h0 — הגובה של פטיש־המטוטלת לפני הבדיקה. (זהה בשני המקרים.)",
+          "he_niqqud": "h0 — הַגֹּובַהּ שֶׁל פַּטִּישׁ־הַמְּטוֹטֶלֶת לִפְנֵי הַבְּדִיקָה. (זֶהֶה בִּשְׁנֵי הַמִּקְרִים.)",
+          "transliteration": "h0 — ha-govah shel patish-ha-metotelet lifnei ha-bdikah. (zeheh bi-shnei ha-mikrim.)",
+          "ru": "h0 — высота маятника копра перед испытанием (одинакова в обоих случаях).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r011",
+          "order_index": 10,
+          "kind": "source_note",
+          "source_page": 26,
+          "he": "h — הגובה שאליו מתרומם פטיש־המטוטלת לאחר הבדיקה.",
+          "he_niqqud": "h — הַגֹּובַהּ שֶׁאֵלָיו מִתְרוֹמֵם פַּטִּישׁ־הַמְּטוֹטֶלֶת לְאַחַר הַבְּדִיקָה.",
+          "transliteration": "h — ha-govah she-elav mitromem patish-ha-metotelet le'akhar ha-bdikah.",
+          "ru": "h — высота, на которую поднимается маятник копра после испытания.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r012",
+          "order_index": 11,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "ג. צייר שלוש עקומות מאמץ־מעוות סכימתיות (על אותם צירים), המתארות חומר מתכתי, חומר קרמי וחומר פולימרי.",
+          "he_niqqud": "ג. צַייֵּר שָׁלוֹשׁ עֲקֻומּוֹת מַאֲמָץ־מַעֲווָת סְכֵימָתִיּוֹת (עַל אוֹתָם צִירִים), הַמְּתָאֲרוֹת חֹומֶר מַתַּכְתִּי, חֹומֶר קֵרָמִי וְחֹומֶר פּוֹלִימֶרִי.",
+          "transliteration": "g. Tsayer shalosh akumot ma'amats-ma'avat skhematiyot (al otam tsirim), ha-meta'arot khomer matakhti, khomer kerami ve-khomer polimeri.",
+          "ru": "г. Начертите схематично три кривые напряжение–деформация (на одних и тех же осях), описывающие металлический материал, керамический материал и полимерный материал.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r013",
+          "order_index": 12,
+          "kind": "condition",
+          "source_page": 26,
+          "he": "ד. נתונה רשימת חומרים: אלומינה (Al2O3), פוליסטירן (PS), אלומיניום (Al), מגנזיה (MgO), פוליווינילכלוריד (PVC), טונגסטן (W).",
+          "he_niqqud": "ד. נְתוּנָה רְשִׁימַת חֳומָרִים: אֲלוּמִינָה (Al2O3), פּוֹלִיסְטִירֶן (PS), אָלוּמִינְיוּם (Al), מַגְנֶזְיָה (MgO), פּוֹלִיוִוינִילכְּלוֹרִיד (PVC), טוּנְגְּסְטֶן (W).",
+          "transliteration": "d. Netunah reshimat khomarim: aluminah (Al2O3), polistiren (PS), alyuminyum (Al), magnezyah (MgO), polivinilkhlorid (PVC), tungsten (W).",
+          "ru": "д. Дан список материалов: оксид алюминия (Al2O3), полистирол (PS), алюминий (Al), оксид магния (MgO), поливинилхлорид (PVC), вольфрам (W).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q020-r014",
+          "order_index": 13,
+          "kind": "subpart",
+          "source_page": 26,
+          "he": "מיין את החומרים שברשימה והצג אותם בטבלה על־פי השתייכותם לכל אחת מקבוצות החומרים הבאות: חומרים מתכתיים, חומרים קרמיים, חומרים פולימריים.",
+          "he_niqqud": "מַייֵּן אֶת הַחֳומָרִים שֶׁבָּרְשִׁימָה וְהַצֵּג אוֹתָם בְּטַבְלָה עַל־פִּי הִשְׁתַּייְּכוּתָם לְכָל אַחַת מִקְּבוּצוֹת הַחֳומָרִים הַבָּאוֹת: חֳומָרִים מַתַּכְתִּיִּים, חֳומָרִים קֵרָמִיִּים, חֳומָרִים פּוֹלִימֶרִיִּים.",
+          "transliteration": "Mayen et ha-khomarim she-ba-reshimah ve-hatseg otam be-tavlah al-pi hishtaykhutam le-khol akhat mi-kvutsot ha-khomarim ha-ba'ot: khomarim matakhtiyim, khomarim keramiyim, khomarim polimeriyim.",
+          "ru": "Классифицируйте материалы из списка и представьте их в таблице в соответствии с их принадлежностью к каждой из следующих групп материалов: металлические материалы, керамические материалы, полимерные материалы.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q021",
+      "title": "Материаловедение — задача 21",
+      "display_alias": "21",
+      "source_pages": [
+        27,
+        28
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q021-v01",
+          "source_page": 27,
+          "kind": "MECHANICAL_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q021/anchor-01-p027.jpg",
+          "sha256": "2912babb385ef5bcb31956456e43ab0c4861722999b5a250b35f724fe5f9b1f2",
+          "bytes": 230260,
+          "source_page": 27,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        },
+        {
+          "path": "assets/source/materials-science-y1-pb2-q021/anchor-02-p028.jpg",
+          "sha256": "cc169bad01b308ffb47c9ffd7627a70b2e52fb6a2ac77f2e8031e5473d10abe1",
+          "bytes": 59434,
+          "source_page": 28,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            0.22
+          ],
+          "role": "condition_continuation"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q021-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 27,
+          "he": "שאלה 21.",
+          "he_niqqud": "שְׁאֵלָה 21.",
+          "transliteration": "She'ela 21.",
+          "ru": "Вопрос 21.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r002",
+          "order_index": 1,
+          "kind": "condition",
+          "source_page": 27,
+          "he": "בטבלה לשאלה 9 מוצגים ערכי התכונות המכניות של שני דגמים העשויים מפלדה SAE 1025 (דגם א' ודגם ב').",
+          "he_niqqud": "בַּטַּבְלָה לִשְׁאֵלָה 9 מוּצָגִים עֶרְכֵי הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל שְׁנֵי דְּגָמִים הָעֲשׂוּיִים מִפְּלָדָה SAE 1025 (דֶּגֶם א' וְדֶגֶם ב').",
+          "transliteration": "Ba-tavlah li-she'elah 9 mutsagim erkhei ha-tkhunot ha-mekhaniyot shel shnei dgamim ha-asuyim mi-pladah SAE 1025 (degem alef ve-degem bet).",
+          "ru": "В таблице к вопросу 9 приведены значения механических свойств двух образцов, изготовленных из стали SAE 1025 (образец А и образец Б).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r003",
+          "order_index": 2,
+          "kind": "condition",
+          "source_page": 27,
+          "he": "אחד הדגמים עבר ערגול קר,",
+          "he_niqqud": "אֶחָד הַדְּגָמִים עָבַר עִרְגּוּל קַר,",
+          "transliteration": "Ekhad ha-dgamim avar irgul kar,",
+          "ru": "Один из образцов подвергся холодной прокатке,",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r004",
+          "order_index": 3,
+          "kind": "condition",
+          "source_page": 27,
+          "he": "והאחר עבר ערגול חם.",
+          "he_niqqud": "וְהָאַחֵר עָבַר עִרְגּוּל חַם.",
+          "transliteration": "ve-ha-akher avar irgul kham.",
+          "ru": "а второй подвергся горячей прокатке.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r005",
+          "order_index": 4,
+          "kind": "condition",
+          "source_page": 27,
+          "he": "תכונה",
+          "he_niqqud": "תְּכוּנָה",
+          "transliteration": "Tkhunah",
+          "ru": "Свойство",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r006",
+          "order_index": 5,
+          "kind": "condition",
+          "source_page": 27,
+          "he": "דגם",
+          "he_niqqud": "דֶּגֶם",
+          "transliteration": "Degem",
+          "ru": "Образец",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r007",
+          "order_index": 6,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "ε (%) מעוות",
+          "he_niqqud": "ε (%) מַעֲווָת",
+          "transliteration": "ε (%) ma'avat",
+          "ru": "Деформация ε (%)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r008",
+          "order_index": 7,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "σUTS (MPa) מאמץ הרס",
+          "he_niqqud": "σUTS (MPa) מַאֲמַץ הֶרֶס",
+          "transliteration": "σUTS (MPa) ma'amats heres",
+          "ru": "Предел прочности (напряжение разрушения) σUTS (МПа)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r009",
+          "order_index": 8,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "σy (MPa) מאמץ כניעה",
+          "he_niqqud": "σy (MPa) מַאֲמַץ כְּנִיעָה",
+          "transliteration": "σy (MPa) ma'amats kni'ah",
+          "ru": "Предел текучести σy (МПа)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r010",
+          "order_index": 9,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "דגם א׳",
+          "he_niqqud": "דֶּגֶם א׳",
+          "transliteration": "Degem A",
+          "ru": "Образец А",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r011",
+          "order_index": 10,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "ε=15%",
+          "he_niqqud": "ε=15%",
+          "transliteration": "ε=15%",
+          "ru": "ε=15%",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r012",
+          "order_index": 11,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "σ_UTS=440 MPa",
+          "he_niqqud": "σ_UTS=440 MPa",
+          "transliteration": "σ_UTS=440 MPa",
+          "ru": "σ_UTS=440 МПа",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r013",
+          "order_index": 12,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "σ_y=370 MPa",
+          "he_niqqud": "σ_y=370 MPa",
+          "transliteration": "σ_y=370 MPa",
+          "ru": "σ_y=370 МПа",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r014",
+          "order_index": 13,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "דגם ב׳",
+          "he_niqqud": "דֶּגֶם ב׳",
+          "transliteration": "Degem B",
+          "ru": "Образец Б",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r015",
+          "order_index": 14,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "ε=25%",
+          "he_niqqud": "ε=25%",
+          "transliteration": "ε=25%",
+          "ru": "ε=25%",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r016",
+          "order_index": 15,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "σ_UTS=400 MPa",
+          "he_niqqud": "σ_UTS=400 MPa",
+          "transliteration": "σ_UTS=400 MPa",
+          "ru": "σ_UTS=400 МПа",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r017",
+          "order_index": 16,
+          "kind": "table_data",
+          "source_page": 27,
+          "he": "σ_y=220 MPa",
+          "he_niqqud": "σ_y=220 MPa",
+          "transliteration": "σ_y=220 MPa",
+          "ru": "σ_y=220 МПа",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r018",
+          "order_index": 17,
+          "kind": "subpart",
+          "source_page": 27,
+          "he": "א. הצג גרף, של מאמץ (σ) כתלות במעוות (ε), בהתאם לנתוני התכונות של שני הדגמים המוצגים בטבלה.",
+          "he_niqqud": "א. הַצֵּג גְּרָף, שֶׁל מַאֲמָץ (σ) כִּתְלוּת בְּמַעֲווָת (ε), בְּהֶתְאֵם לִנְתוּנֵי הַתְּכוּנוֹת שֶׁל שְׁנֵי הַדְּגָמִים הַמּוּצָגִים בַּטַּבְלָה.",
+          "transliteration": "a. Hatseg graf, shel ma'amats (σ) ki-tlut be-ma'avat (ε), be-het'em le-netunei ha-tkhunot shel shnei ha-dgamim ha-mutsagim ba-tavlah.",
+          "ru": "а. Постройте график зависимости напряжения (σ) от деформации (ε) в соответствии с данными свойств двух образцов, приведенными в таблице.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r019",
+          "order_index": 18,
+          "kind": "subpart",
+          "source_page": 27,
+          "he": "הנח שהמעוות בתחום האלסטי הוא בשיעור של 1% בשני הדגמים.",
+          "he_niqqud": "הַנַּח שֶׁהַמַּעֲווָת בַּתְּחוּם הָאֵלַסְטִי הוּא בְּשִׁיעוּר שֶׁל 1% בִּשְׁנֵי הַדְּגָמִים.",
+          "transliteration": "Hanakh she-ha-ma'avat ba-tkhum ha-elasti hu be-shi'ur shel 1% bi-shnei ha-dgamim.",
+          "ru": "Примите, что деформация в упругой области составляет 1% для обоих образцов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r020",
+          "order_index": 19,
+          "kind": "subpart",
+          "source_page": 27,
+          "he": "ב. קבע איזה דגם, מבין השניים שבטבלה, עבר ערגול קר ואיזה עבר ערגול חם.",
+          "he_niqqud": "ב. קְבַע אֵיזֶה דֶּגֶם, מִבֵּין הַשְּׁנַייִם שֶׁבַּטַּבְלָה, עָבַר עִרְגּוּל קַר וְאֵיזֶה עָבַר עִרְגּוּל חַם.",
+          "transliteration": "b. Kva eizeh degem, mi-bein ha-shnayim she-ba-tavlah, avar irgul kar ve-eizeh avar irgul kham.",
+          "ru": "б. Определите, какой из двух образцов в таблице подвергся холодной прокатке, а какой — горячей прокатке.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r021",
+          "order_index": 20,
+          "kind": "subpart",
+          "source_page": 27,
+          "he": "נמק את קביעתך.",
+          "he_niqqud": "נַמֵּק אֶת קְבִיעָתְךָ.",
+          "transliteration": "Namek et kvi'atkha.",
+          "ru": "Обоснуйте свое решение.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r022",
+          "order_index": 21,
+          "kind": "subpart",
+          "source_page": 27,
+          "he": "ג. קבע איזה דגם, מבין השניים שבטבלה, עשוי מחומר עמיד יותר בנגיפה.",
+          "he_niqqud": "ג. קְבַע אֵיזֶה דֶּגֶם, מִבֵּין הַשְּׁנַייִם שֶׁבַּטַּבְלָה, עָשׂוּי מֵחֹומֶר עָמִיד יוֹתֵר בִּנְגִיפָה.",
+          "transliteration": "g. Kva eizeh degem, mi-bein ha-shnayim she-ba-tavlah, asuy me-khomer amid yoter bi-ngifah.",
+          "ru": "в. Определите, какой из двух образцов в таблице изготовлен из материала с более высокой ударной вязкостью.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q021-r023",
+          "order_index": 22,
+          "kind": "subpart",
+          "source_page": 27,
+          "he": "נמק את קביעתך.",
+          "he_niqqud": "נַמֵּק אֶת קְבִיעָתְךָ.",
+          "transliteration": "Namek et kvi'atkha.",
+          "ru": "Обоснуйте свое решение.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q022",
+      "title": "Материаловедение — задача 22",
+      "display_alias": "22",
+      "source_pages": [
+        28
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q022-v01",
+          "source_page": 28,
+          "kind": "STEEL_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q022/anchor-01-p028.jpg",
+          "sha256": "0aaa58c973ebe0051c1f3c5394a9502f34533e32feff81d623a673ac663e28a7",
+          "bytes": 190790,
+          "source_page": 28,
+          "normalized_bbox": [
+            0,
+            0.18,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q022-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 28,
+          "he": "שאלה 22.",
+          "he_niqqud": "שְׁאֵלָה 22.",
+          "transliteration": "She'ela 22.",
+          "ru": "Вопрос 22.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r002",
+          "order_index": 1,
+          "kind": "table_reference",
+          "source_page": 28,
+          "he": "בטבלה שלהלן מוצגות התכונות המכניות של שתי הפלדות: SAE 3120 ו־SAE 3310 :",
+          "he_niqqud": "בַּטַּבְלָה שֶׁלְּהַלָּן מוּצָגוֹת הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל שְׁתֵּי הַפְּלָדוֹת: SAE 3120 וְ־SAE 3310 :",
+          "transliteration": "Ba-tavlah she-le-hallan mutsagot ha-tkhunot ha-mekhaniyot shel shtei ha-pladot: SAE 3120 ve-SAE 3310 :",
+          "ru": "В приведенной ниже таблице представлены механические свойства двух сталей: SAE 3120 и SAE 3310:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r003",
+          "order_index": 2,
+          "kind": "table_data",
+          "source_page": 28,
+          "he": "(SAE 3120): σy=735 MPa, εy=0.9%, σUTS=970 MPa, εUTS=15%, HRC=30",
+          "he_niqqud": "(SAE 3120): σy=735 MPa, εy=0.9%, σUTS=970 MPa, εUTS=15%, HRC=30",
+          "transliteration": "(SAE 3120): σy=735 MPa, εy=0.9%, σUTS=970 MPa, εUTS=15%, HRC=30",
+          "ru": "(SAE 3120): σy=735 МПа, εy=0.9%, σUTS=970 МПа, εUTS=15%, HRC=30",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r004",
+          "order_index": 3,
+          "kind": "table_data",
+          "source_page": 28,
+          "he": "(SAE 3310): σy=1030 MPa, εy=0.9%, σUTS=1245 MPa, εUTS=15%, HRC=30",
+          "he_niqqud": "(SAE 3310): σy=1030 MPa, εy=0.9%, σUTS=1245 MPa, εUTS=15%, HRC=30",
+          "transliteration": "(SAE 3310): σy=1030 MPa, εy=0.9%, σUTS=1245 MPa, εUTS=15%, HRC=30",
+          "ru": "(SAE 3310): σy=1030 МПа, εy=0.9%, σUTS=1245 МПа, εUTS=15%, HRC=30",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 28,
+          "he": "א. סרטט על אותה מערכת צירים, שני גרפים של מאמץ (σ) כתלות בעיבור (ε) עבור שתי הפלדות.",
+          "he_niqqud": "א. סַרְטֵט עַל אוֹתָהּ מַעֲרֶכֶת צִירִים, שְׁנֵי גְּרָפִים שֶׁל מַאֲמָץ (σ) כִּתְלוּת בְּעִיבּוּר (ε) עֲבוּר שְׁתֵּי הַפְּלָדוֹת.",
+          "transliteration": "a. Sartet al otah ma'arekhet tsirim, shnei grafim shel ma'amats (σ) ki-tlut be-ibur (ε) avur shtei ha-pladot.",
+          "ru": "а. Начертите на одной системе координат два графика зависимости напряжения (σ) от деформации (ε) для обеих сталей.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 28,
+          "he": "ב) קבע לאיזו משתי הפלדות דרושה אנרגיה גדולה יותר לשבירתה ונמק",
+          "he_niqqud": "ב) קְבַע לְאֵיזוֹ מִשְּׁתֵּי הַפְּלָדוֹת דְּרוּשָׁה אֶנֶרְגְּיָה גְּדוֹלָה יוֹתֵר לִשְׁבִירָתָהּ וְנַמֵּק",
+          "transliteration": "B) Kva' le'eyzo mi-shtey ha-pʻladot drushah enerǧyah gdolah yoter li-shviratah ve-namek",
+          "ru": "Б) Определите, для какой из двух сталей требуется большая энергия для разрушения, и обоснуйте",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 28,
+          "he": "ג. עליך לתכנן מוט בקוטר 11 mm שצריך לעמוד בכוח מתיחה חד־צירי של 76 kN.",
+          "he_niqqud": "ג. עָלֶיךָ לְתַכְנֵן מוֹט בְּקֹוטֶר 11 mm שֶׁצָּרִיךְ לַעֲמֹוד בְּכֹוחַ מְתִיחָה חַד־צִירִי שֶׁל 76 kN.",
+          "transliteration": "g. Alekha le-takhnen mot be-koter 11 mm she-tsarikh la'amod be-kho'akh metikhah khad-tsiri shel 76 kN.",
+          "ru": "в. Вам необходимо спроектировать стержень диаметром 11 мм, который должен выдерживать одноосную растягивающую силу 76 кН.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 28,
+          "he": "קבע התאמה ונמק בחישוב",
+          "he_niqqud": "קְבַע הַתְאַמָּה וְנַמֵּק בְּחִישּׁוּב",
+          "transliteration": "Kva' hat'amah ve-namek b'ḥishuv",
+          "ru": "Определите пригодность и обоснуйте расчетом",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q022-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 28,
+          "he": "ד. מהו הטיפול התרמי המאפשר לקבל קשיות בשיעור של 60 HRc, לעומק של 0.1 mm, בפני השטח של מוט העשוי מפלדה SAE 1030 ?",
+          "he_niqqud": "ד. מַהוּ הַטִּיפּוּל הַתֶּרְמִי הַמְּאַפְשֵׁר לְקַבֵּל קַשְׁיוּת בְּשִׁיעוּר שֶׁל 60 HRc, לְעֹומֶק שֶׁל 0.1 mm, בִּפְנֵי הַשֶּׁטַח שֶׁל מוֹט הָעָשׂוּי מִפְּלָדָה SAE 1030 ?",
+          "transliteration": "d. Mahu ha-tipul ha-termi ha-me'afsher le-kabel kashyut be-shi'ur shel 60 HRc, le-omek shel 0.1 mm, bi-fnei ha-shetakh shel mot ha-asuy mi-pladah SAE 1030 ?",
+          "ru": "г. Какая термическая обработка позволяет получить твердость 60 HRc на глубину 0.1 мм на поверхности стержня, изготовленного из стали SAE 1030?",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q023",
+      "title": "Материаловедение — задача 23",
+      "display_alias": "23",
+      "source_pages": [
+        29
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q023-v01",
+          "source_page": 29,
+          "kind": "IMPACT_ENERGY_TEMPERATURE_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q023/anchor-01-p029.jpg",
+          "sha256": "7c792ade932f88acab9705ff570f13be0062c5c234aaba86d06832791084ff0d",
+          "bytes": 382838,
+          "source_page": 29,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q023-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 29,
+          "he": "שאלה 23.",
+          "he_niqqud": "שְׁאֵלָה 23.",
+          "transliteration": "She'ela 23.",
+          "ru": "Вопрос 23.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 29,
+          "he": "באיור לשאלה 7 מוצגות עקומות נגיפה – טמפרטורה של שלוש פלדות. עיינו בגרפים וענו על השאלות הבאות:",
+          "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 7 מוּצָגוֹת עֲקֻומּוֹת נְגִיפָה – טֶמְפֶּרָטוּרָה שֶׁל שָׁלוֹשׁ פְּלָדוֹת. עַייְּנוּ בַּגְּרָפִים וַעֲנוּ עַל הַשְּׁאֵלוֹת הַבָּאוֹת:",
+          "transliteration": "Be-iyur li-she'elah 7 mutsagot akumot negifah – temperaturah shel shalosh pladot. Ayenu ba-grafim va-anu al ha-she'elot ha-ba'ot:",
+          "ru": "На рисунке к вопросу 7 приведены кривые зависимости ударной вязкости от температуры для трех сталей. Изучите графики и ответьте на следующие вопросы:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r003",
+          "order_index": 2,
+          "kind": "condition",
+          "source_page": 29,
+          "he": "עיינו בגרפים וענו על השאלות הבאות",
+          "he_niqqud": "עַייְּנוּ בַּגְּרָפִים וַעֲנוּ עַל הַשְּׁאֵלוֹת הַבָּאוֹת",
+          "transliteration": "'Ayenu ba-grafim va-'anu 'al ha-she'elot ha-ba'ot",
+          "ru": "Изучите графики и ответьте на следующие вопросы",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "(13 נק') א. הוצע להשתמש באחת מהפלדות (A, B או C) לשם ייצור חלקי מכונה הנמצאים בטמפרטורות",
+          "he_niqqud": "(13 נק') א. הוּצַע לְהִשְׁתַּמֵּשׁ בְּאַחַת מֵהַפְּלָדוֹת (A, B אוֹ C) לְשֵׁם יִיצּוּר חֶלְקֵי מְכוֹנָה הַנִּמְצָאִים בְּטֶמְפֶּרָטוּרוֹת",
+          "transliteration": "(13 nek') a. Hutsa le-hishtamesh be-akhat me-ha-pladot (A, B o C) le-shem yitsur khelkei mekhonah ha-nimtsa'im be-temperaturot",
+          "ru": "(13 баллов) а. Было предложено использовать одну из сталей (A, B или C) для изготовления деталей машин, работающих при температурах",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "מ־-50°C עד +20°C. החלקים אמורים לעמוד בתנאי עבודה של כוחות פתאומיים.",
+          "he_niqqud": "מִ־-50°C עַד +20°C. הַחֲלָקִים אֲמוּרִים לַעֲמֹוד בִּתְנָאֵי עֲבוֹדָה שֶׁל כֹּוחוֹת פִּתְאוֹמִיִּים.",
+          "transliteration": "mi--50°C ad +20°C. Ha-khalakim amurim la'amod bi-tna'ei avodah shel kokhot pit'omiyim.",
+          "ru": "от -50°C до +20°C. Детали должны работать в условиях действия внезапных (динамических) нагрузок.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "כמו כן חוזק הנגיפה הדרוש יהיה לא קטן מ־30J.",
+          "he_niqqud": "כְּמוֹ כֵן חֹוזֶק הַנְּגִיפָה הַדָּרוּשׁ יִהְיֶה לֹא קָטָן מִ־30J.",
+          "transliteration": "Kmo khen khozek ha-negifah ha-darush yihyeh lo katan mi-30J.",
+          "ru": "Кроме того, требуемая ударная вязкость должна быть не менее 30 Дж.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "בחרו פלדה (או פלדות) שמתאימה (או מתאימות) לתנאי עבודה הנ\"ל.",
+          "he_niqqud": "בַּחֲרוּ פְּלָדָה (אוֹ פְּלָדוֹת) שֶׁמַּתְאִימָה (אוֹ מַתְאִימוֹת) לִתְנָאֵי עֲבוֹדָה הַנַּ\"ל.",
+          "transliteration": "Bakhru pladah (o pladot) she-mat'imah (o mat'imot) li-tna'ei avodah ha-na\"l.",
+          "ru": "Выберите сталь (или стали), подходящую (или подходящие) для указанных условий работы.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "יש להציג את הנימוקים לתשובה בתרשים על גבי העקומות שבאיור לשאלה 7.",
+          "he_niqqud": "יֵשׁ לְהַצִּיג אֶת הַנִּימּוּקִים לַתְּשׁוּבָה בְּתַרְשִׁים עַל גַּבֵּי הָעֲקֻומּוֹת שֶׁבְּאִיּוּר לִשְׁאֵלָה 7.",
+          "transliteration": "Yesh le-hatsig et ha-nimukim la-tshuvah be-tarshim al gabei ha-akumot she-be-iyur li-she'elah 7.",
+          "ru": "Обоснование ответа необходимо представить на графике поверх кривых, приведенных на рисунке к вопросу 7.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "(6 נק') ב. מהו סוג הסריג הגבישי של החומרים הנבדקים? נמקו את תשובתכם.",
+          "he_niqqud": "(6 נק') ב. מַהוּ סוּג הַסְּרִיג הַגְּבִישִׁי שֶׁל הַחֳומָרִים הַנִּבְדָּקִים? נַמְּקוּ אֶת תְּשׁוּבַתְכֶם.",
+          "transliteration": "(6 nek') b. Mahu sug ha-srig ha-gvishi shel ha-khomarim ha-nivdakim? Namku et tshuvatkem.",
+          "ru": "(6 баллов) б. Каков тип кристаллической решетки исследуемых материалов? Обоснуйте свой ответ.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r010",
+          "order_index": 9,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "נמקו את תשובתכם",
+          "he_niqqud": "נַמְּקוּ אֶת תְּשׁוּבַתְכֶם",
+          "transliteration": "Nammequ et teshuvatkhem",
+          "ru": "Обоснуйте ваш ответ",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r011",
+          "order_index": 10,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "(6 נק') ג. סמנו את התשובה או את התשובות הנכונות:",
+          "he_niqqud": "(6 נק') ג. סַמְּנוּ אֶת הַתְּשׁוּבָה אוֹ אֶת הַתְּשׁוּבוֹת הַנְּכוֹנוֹת:",
+          "transliteration": "(6 nek') g. Samnu et ha-tshuvah o et ha-tshuvot ha-nekhonot:",
+          "ru": "(6 баллов) в. Отметьте правильный ответ или правильные ответы:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r012",
+          "order_index": 11,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "חומר פריך:",
+          "he_niqqud": "חֹומֶר פָּרִיךְ:",
+          "transliteration": "Khomer parikh:",
+          "ru": "Хрупкий материал:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r013",
+          "order_index": 12,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "1. עמיד בפני כוחות פתאומיים.",
+          "he_niqqud": "1. עָמִיד בִּפְנֵי כֹּוחוֹת פִּתְאוֹמִיִּים.",
+          "transliteration": "1. Amid bifnei kokhot pit'omiyim.",
+          "ru": "1. Устойчив к воздействию внезапных сил.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r014",
+          "order_index": 13,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "2. אינו עמיד בפני כוחות פתאומיים.",
+          "he_niqqud": "2. אֵינוֹ עָמִיד בִּפְנֵי כֹּוחוֹת פִּתְאוֹמִיִּים.",
+          "transliteration": "2. Eino amid bifnei kokhot pit'omiyim.",
+          "ru": "2. Неустойчив к воздействию внезапных сил.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r015",
+          "order_index": 14,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "3. בעל התארכות גדולה יחסית.",
+          "he_niqqud": "3. בַּעַל הִתְאָרְכוּת גְּדוֹלָה יַחֲסִית.",
+          "transliteration": "3. Ba'al hit'arkhut gdolah yakhasit.",
+          "ru": "3. Имеет относительно большое относительное удлинение.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r016",
+          "order_index": 15,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "4. בעל התארכות קטנה יחסית.",
+          "he_niqqud": "4. בַּעַל הִתְאָרְכוּת קְטַנָּה יַחֲסִית.",
+          "transliteration": "4. Ba'al hit'arkhut ktanah yakhasit.",
+          "ru": "4. Имеет относительно малое относительное удлинение.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r017",
+          "order_index": 16,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "5. בעל חוזק נגיפה גבוה.",
+          "he_niqqud": "5. בַּעַל חֹוזֶק נְגִיפָה גָּבוֹהַּ.",
+          "transliteration": "5. Ba'al khozek negifah gavoha.",
+          "ru": "5. Обладает высокой ударной вязкостью.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q023-r018",
+          "order_index": 17,
+          "kind": "subpart",
+          "source_page": 29,
+          "he": "6. בעל חוזק נגיפה נמוך.",
+          "he_niqqud": "6. בַּעַל חֹוזֶק נְגִיפָה נָמוּךְ.",
+          "transliteration": "6. Ba'al khozek negifah namukh.",
+          "ru": "6. Обладает низкой ударной вязкостью.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q024",
+      "title": "Материаловедение — задача 24",
+      "display_alias": "24",
+      "source_pages": [
+        30
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q024/anchor-01-p030.jpg",
+          "sha256": "8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2",
+          "bytes": 155561,
+          "source_page": 30,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q024-r001",
+          "order_index": 0,
+          "kind": "source_note",
+          "source_page": 30,
+          "he": "שאלה 24.",
+          "he_niqqud": "שְׁאֵלָה 24.",
+          "transliteration": "She'ela 24.",
+          "ru": "Вопрос 24.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r002",
+          "order_index": 1,
+          "kind": "task_heading",
+          "source_page": 30,
+          "he": "שאלה 24",
+          "he_niqqud": "שְׁאֵלָה 24",
+          "transliteration": "She'ela 24",
+          "ru": "Вопрос 24",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "ב. שבר במוט גלילי עלול להיווצר באחד מן האופנים האלה:",
+          "he_niqqud": "ב. שֶׁבֶר בְּמוֹט גְּלִילִי עָלוּל לְהִיוָּוצֵר בְּאַחַד מִן הָאוֹפַנִּים הָאֵלֶּה:",
+          "transliteration": "b. Shever be-mot glili alul lehivatser be-akhad min ha-ofanim ha-eleh:",
+          "ru": "б. Разрушение цилиндрического стержня может произойти одним из следующих путей:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "- מסדק במרכז המוט המתפשט אל שטח פני המוט.",
+          "he_niqqud": "- מִסֶּדֶק בְּמֶרְכַּז הַמּוֹט הַמִּתְפַּשֵּׁט אֶל שֶׁטַח פְּנֵי הַמּוֹט.",
+          "transliteration": "- mi-sedek be-merkaz ha-mot ha-mitpashet el shetakh pnei ha-mot.",
+          "ru": "- от трещины в центре стержня, распространяющейся к поверхности стержня.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "- מסדק על פני המוט המתפשט אל מרכז המוט.",
+          "he_niqqud": "- מִסֶּדֶק עַל פְּנֵי הַמּוֹט הַמִּתְפַּשֵּׁט אֶל מֶרְכַּז הַמּוֹט.",
+          "transliteration": "- mi-sedek al pnei ha-mot ha-mitpashet el merkaz ha-mot.",
+          "ru": "- от трещины на поверхности стержня, распространяющейся к центру стержня.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "באיזה אופן מבין השניים, נוצר שבר \"התעייפות\"?",
+          "he_niqqud": "בְּאֵיזֶה אוֹפֶן מִבֵּין הַשְּׁנַייִם, נוֹצָר שֶׁבֶר \"הִתְעַייְּפוּת\"?",
+          "transliteration": "Be-eizeh ofen mi-bein ha-shnayim, notsar shever \"hit'ayfut\"?",
+          "ru": "Каким из двух способов возникает «усталостный» излом?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "צייר חתך ערב (ניצב לציר) של מוט גלילי והראה עליו את שלושת האזורים המאפיינים שבר \"התעייפות\": אזור תחילת השבר, אזור התקדמות השבר ואזור השבר.",
+          "he_niqqud": "צַייֵּר חֲתַךְ עֶרֶב (נִיצָּב לַצִּיר) שֶׁל מוֹט גְּלִילִי וְהַרְאֵה עָלָיו אֶת שְׁלוֹשֶׁת הָאֲזוֹרִים הַמְּאַפְיְינִים שֶׁבֶר \"הִתְעַייְּפוּת\": אֲזוֹר תְּחִילַּת הַשֶּׁבֶר, אֲזוֹר הִתְקַדְּמוּת הַשֶּׁבֶר וַאֲזוֹר הַשֶּׁבֶר.",
+          "transliteration": "Tsayer khatakh erev (nitsav la-tsir) shel mot glili ve-har'eh alav et shloshet ha-azorim ha-me'afyenim shever \"hit'ayfut\": azor tkhilat ha-shever, azor hitkadmut ha-shever va-azor ha-shever.",
+          "ru": "Нарисуйте поперечное сечение (перпендикулярное оси) цилиндрического стержня и укажите на нем три характерные зоны усталостного излома: зону зарождения усталостной трещины, зону развития усталостного разрушения и зону долома.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "ג. 1. בנה מערכת צירים המתארת מאמץ מחזורי כתלות במספר מחזורים לכשל וסמן את הצירים באותיות המתאימות.",
+          "he_niqqud": "ג. 1. בְּנֵה מַעֲרֶכֶת צִירִים הַמְּתָאֶרֶת מַאֲמָץ מַחְזוֹרִי כִּתְלוּת בְּמִסְפַּר מַחְזוֹרִים לְכֶשֶׁל וְסַמֵּן אֶת הַצִּירִים בָּאוֹתִיּוֹת הַמַּתְאִימוֹת.",
+          "transliteration": "g. 1. Bneh ma'arekhet tsirim ha-meta'eret ma'amats makhzori ki-tlut be-mispar makhzorim le-kheshel ve-samen et ha-tsirim ba-otiyot ha-mat'imot.",
+          "ru": "в. 1. Постройте систему координат, показывающую циклическое напряжение в зависимости от числа циклов до разрушения, и обозначьте оси соответствующими буквами.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "הצג על מערכת הצירים עקום המתאר כשל של פלדה עקב \"התעייפות\".",
+          "he_niqqud": "הַצֵּג עַל מַעֲרֶכֶת הַצִּירִים עָקֹום הַמְּתָאֵר כֶּשֶׁל שֶׁל פְּלָדָה עֵקֶב \"הִתְעַייְּפוּת\".",
+          "transliteration": "Hatseg al ma'arekhet ha-tsirim akom ha-meta'er keshel shel pladah ekev \"hit'ayfut\".",
+          "ru": "Изобразите на системе координат кривую, описывающую разрушение стали в результате «усталости».",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q024-r010",
+          "order_index": 9,
+          "kind": "subpart",
+          "source_page": 30,
+          "he": "2. סמן בגרף את אזור \"גבול ההתעייפות\", והסבר מהי המשמעות ההנדסית של אזור זה.",
+          "he_niqqud": "2. סַמֵּן בַּגְּרָף אֶת אֲזוֹר \"גְּבוּל הַהִתְעַייְּפוּת\", וְהַסְבֵּר מַהִי הַמַּשְׁמָעוּת הַהַנְדָּסִית שֶׁל אֲזוֹר זֶה.",
+          "transliteration": "2. Samen ba-graf et azor \"gvul ha-hit'ayfut\", ve-hasber mahi ha-mashma'ut ha-handasit shel azor zeh.",
+          "ru": "2. Отметьте на графике область «предела выносливости (усталости)» и объясните инженерное значение этой области.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q025",
+      "title": "Материаловедение — задача 25",
+      "display_alias": "25",
+      "source_pages": [
+        31
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q025-v01",
+          "source_page": 31,
+          "kind": "S_N_FATIGUE_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q025/anchor-01-p031.jpg",
+          "sha256": "9b23eb5c043cc5be93180b033e10136bbdd29ea451cf476b16999b42c9b85b1d",
+          "bytes": 357852,
+          "source_page": 31,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q025-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 31,
+          "he": "שאלה 25.",
+          "he_niqqud": "שְׁאֵלָה 25.",
+          "transliteration": "She'ela 25.",
+          "ru": "Вопрос 25.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q025-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 31,
+          "he": "באיור לשאלה 9 מוצגות עקומות התעייפות של שלוש המתכות האלה: פלדה (SAE 1045) , נתך אלומיניום (Al-Alloy 2024) , פליז (Brass) .",
+          "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 9 מוּצָגוֹת עֲקֻומּוֹת הִתְעַייְּפוּת שֶׁל שָׁלוֹשׁ הַמַּתָּכוֹת הָאֵלֶּה: פְּלָדָה (SAE 1045) , נֶתֶךְ אָלוּמִינְיוּם (Al-Alloy 2024) , פְּלִיז (Brass) .",
+          "transliteration": "Be-iyur li-she'elah 9 mutsagot akumot hit'ayfut shel shalosh ha-matakhot ha-eleh: pladah (SAE 1045) , netekh alyuminyum (Al-Alloy 2024) , pliz (Brass) .",
+          "ru": "На рисунке к вопросу 9 приведены кривые усталости для следующих трех металлов: сталь (SAE 1045), алюминиевый сплав (Al-Alloy 2024), латунь (Brass).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q025-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 31,
+          "he": "א. מהו מספר המחזורים המרבי עד לכשל עבור כל אחת משלוש המתכות המוצגות באיור, באמפליטודה של מאמץ התעייפות בשיעור של 150 MPa ?",
+          "he_niqqud": "א. מַהוּ מִסְפַּר הַמַּחְזוֹרִים הַמְּרַבִּי עַד לְכֶשֶׁל עֲבוּר כָּל אַחַת מִשְּׁלוֹשׁ הַמַּתָּכוֹת הַמּוּצָגוֹת בָּאִיּוּר, בְּאַמְפְּלִיטוּדָה שֶׁל מַאֲמַץ הִתְעַייְּפוּת בְּשִׁיעוּר שֶׁל 150 MPa ?",
+          "transliteration": "a. Mahu mispar ha-makhzorim ha-merabi ad le-kheshel avur kol akhat mi-shlosh ha-matakhot ha-mutsagot ba-iyur, be-amplitudah shel ma'amats hit'ayfut be-shi'ur shel 150 MPa ?",
+          "ru": "а. Каково максимальное число циклов до разрушения для каждого из трех представленных на рисунке металлов при амплитуде усталостного напряжения 150 МПа?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q025-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 31,
+          "he": "ב. הסבר מהי המשמעות של המונח \"גבול ההתעייפות\".",
+          "he_niqqud": "ב. הַסְבֵּר מַהִי הַמַּשְׁמָעוּת שֶׁל הַמֻּונָּח \"גְּבוּל הַהִתְעַייְּפוּת\".",
+          "transliteration": "b. Hasber mahi ha-mashma'ut shel ha-munakh \"gvul ha-hit'ayfut\".",
+          "ru": "б. Объясните смысл термина «предел выносливости (усталости)».",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q025-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 31,
+          "he": "ג) חשב מהו קוטרו המזערי (המינימלי) של מוט גלילי מפלדה SAE 1045 שיבטיח שלא יתרחש בו כשל התעייפות כתוצאה מכוח מחזורי בשיעור של 87,500 N (היעזר באיור לשאלה 9).",
+          "he_niqqud": "ג) חַשֵּׁב מַהוּ קֻוטְרוֹ הַמִּזְעָרִי (הַמִּינִימָלִי) שֶׁל מוֹט גְּלִילִי מִפְּלָדָה SAE 1045 שֶׁיַּבְטִיחַ שֶׁלֹּא יִתְרַחֵשׁ בּוֹ כֶּשֶׁל הִתְעַייְּפוּת כְּתוֹצָאָה מִכּוֹחַ מַחְזוֹרִי בְּשִׁיעוּר שֶׁל 87,500 N (הֵיעָזֵר בָּאִיּוּר לִשְׁאֵלָה 9).",
+          "transliteration": "G) Hashev mahu kutro hamiz'ari (haminimali) shel mot glili mipladah SAE 1045 sheyavti'ah shelo yitrahesh bo keshel hit'ayefut ketotza'ah mikoh mahzori beshi'ur shel 87,500 N (he'azer ba'iyur lesha'elah 9).",
+          "ru": "В) Рассчитайте минимальный (наименьший) диаметр цилиндрического стержня из стали SAE 1045, который гарантирует отсутствие усталостного разрушения в результате циклической силы 87 500 Н (используйте рисунок к Вопросу 9).",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q026",
+      "title": "Материаловедение — задача 26",
+      "display_alias": "26",
+      "source_pages": [
+        33
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q026-v01",
+          "source_page": 33,
+          "kind": "S_N_FATIGUE_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q026/anchor-01-p033.jpg",
+          "sha256": "4db206fb2fff1402d656cd8a4738645a8b4d37ea22d073580ccf4d00a8ebc35e",
+          "bytes": 243230,
+          "source_page": 33,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q026-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 33,
+          "he": "שאלה 26.",
+          "he_niqqud": "שְׁאֵלָה 26.",
+          "transliteration": "She'ela 26.",
+          "ru": "Вопрос 26.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 33,
+          "he": "באיור לשאלה זו מוצגות עקומות ההתעייפות של שלושה סוגי מתכות: פלדת SAE 1045, סגסוגת אלומיניום AL 2024 ופליז (RED BRASS).",
+          "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה זוֹ מוּצָגוֹת עֲקֻומּוֹת הַהִתְעַייְּפוּת שֶׁל שְׁלוֹשָׁה סוּגֵי מַתָּכוֹת: פְּלָדַת SAE 1045, סַגְסוֹגֶת אָלוּמִינְיוּם AL 2024 וּפְלִיז (RED BRASS).",
+          "transliteration": "Be-iyur li-she'elah zo mutsagot akumot ha-hit'ayfut shel shloshah sugei matakhot: pladat SAE 1045, sagsoget alyuminyum AL 2024 u-fliz (RED BRASS).",
+          "ru": "На рисунке к этому вопросу приведены кривые усталости для трех видов металлов: стали SAE 1045, алюминиевого сплава AL 2024 и латуни (RED BRASS).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 33,
+          "he": "(6 נק') א. קבע, על־פי עקומות ההתעייפות המוצגות באיור, מהו מספר המחזורים המרבי עד לכשל עבור כל אחד משלושת סוגי המתכות, באמפליטודת מאמץ של S = 350 MPa .",
+          "he_niqqud": "(6 נק') א. קְבַע, עַל־פִּי עֲקֻומּוֹת הַהִתְעַייְּפוּת הַמּוּצָגוֹת בָּאִיּוּר, מַהוּ מִסְפַּר הַמַּחְזוֹרִים הַמְּרַבִּי עַד לְכֶשֶׁל עֲבוּר כָּל אֶחָד מִשְּׁלוֹשֶׁת סוּגֵי הַמַּתָּכוֹת, בְּאַמְפְּלִיטוּדַת מַאֲמָץ שֶׁל S = 350 MPa .",
+          "transliteration": "(6 nek') a. Kva, al-pi akumot ha-hit'ayfut ha-mutsagot ba-iyur, mahu mispar ha-makhzorim ha-merabi ad le-kheshel avur kol ekhad mi-shloshet sugei ha-matakhot, be-amplitudat ma'amats shel S = 350 MPa .",
+          "ru": "(6 баллов) а. Определите по кривым усталости, представленным на рисунке, максимальное число циклов до разрушения для каждого из трех типов металлов при амплитуде напряжения S = 350 МПа.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 33,
+          "he": "(8 נק') ב. נתון מוט גלילי בקוטר 30 mm העשוי מסגסוגת אלומיניום AL 2024, המיועד לפעול בתנאים של מאמצי התעייפות.",
+          "he_niqqud": "(8 נק') ב. נָתוּן מוֹט גְּלִילִי בְּקֹוטֶר 30 mm הָעָשׂוּי מִסַּגְסוֹגֶת אָלוּמִינְיוּם AL 2024, הַמְּיוֹעָד לִפְעֹול בִּתְנָאִים שֶׁל מַאֲמַצֵּי הִתְעַייְּפוּת.",
+          "transliteration": "(8 nek') b. Natun mot glili be-koter 30 mm ha-asuy mi-sagsoget alyuminyum AL 2024, ha-meyu'ad lif'ol bi-tna'im shel ma'amatsei hit'ayfut.",
+          "ru": "(8 баллов) б. Дан цилиндрический стержень диаметром 30 мм из алюминиевого сплава AL 2024, предназначенный для работы в условиях циклических напряжений.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 33,
+          "he": "אמפליטודת המאמץ של המוט היא 100 MPa .",
+          "he_niqqud": "אַמְפְּלִיטוּדַת הַמַּאֲמָץ שֶׁל הַמּוֹט הִיא 100 MPa .",
+          "transliteration": "Amplitudat ha-ma'amats shel ha-mot hi 100 MPa .",
+          "ru": "Амплитуда напряжения в стержне составляет 100 МПа.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 33,
+          "he": "היעזר באיור לשאלה זו, וחשב את כוח המתיחה המחזורי המרבי שניתן להפעיל על המוט.",
+          "he_niqqud": "הֵיעָזֵר בְּאִיּוּר לִשְׁאֵלָה זוֹ, וְחַשֵּׁב אֶת כֹּוחַ הַמְּתִיחָה הַמַּחְזוֹרִי הַמְּרַבִּי שֶׁנִּיתָן לְהַפְעִיל עַל הַמּוֹט.",
+          "transliteration": "He'azer be-iyur li-she'elah zo, ve-khashev et ko'akh ha-metikhah ha-makhzori ha-merabi she-nitan le-haf'il al ha-mot.",
+          "ru": "Используя рисунок к этому вопросу, рассчитайте максимальную циклическую растягивающую силу, которую можно приложить к стержню.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 33,
+          "he": "(6 נק') ג. הוחלט לקדוח חריץ בקוטר 2 mm במרכזו של המוט המתואר בסעיף ב'.",
+          "he_niqqud": "(6 נק') ג. הוּחְלַט לִקְדֹּוחַ חָרִיץ בְּקֹוטֶר 2 mm בְּמֶרְכָּזוֹ שֶׁל הַמּוֹט הַמְּתוֹאָר בְּסָעִיף ב'.",
+          "transliteration": "(6 nek') g. Hukhlat likdo'akh kharits be-koter 2 mm be-merkazo shel ha-mot ha-meto'ar be-sa'if bet.",
+          "ru": "(6 баллов) в. Было решено просверлить отверстие диаметром 2 мм в центре стержня, описанного в пункте б.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q026-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 33,
+          "he": "כיצד תשפיע פעולה זו על מספר המחזורים של המוט, עד לכשל שלו?",
+          "he_niqqud": "כֵּיצַד תַּשְׁפִּיעַ פְּעֻולָּה זוֹ עַל מִסְפַּר הַמַּחְזוֹרִים שֶׁל הַמּוֹט, עַד לְכֶשֶׁל שֶׁלּוֹ?",
+          "transliteration": "Keitsad tashpi'a pe'ulah zo al mispar ha-makhzorim shel ha-mot, ad le-kheshel shelo?",
+          "ru": "Как это действие повлияет на число циклов до разрушения стержня?",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q027",
+      "title": "Материаловедение — задача 27",
+      "display_alias": "27",
+      "source_pages": [
+        35,
+        36,
+        70
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q027-v01",
+          "source_page": 35,
+          "kind": "STEEL_MICROGRAPH",
+          "instance_count": 2,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q027/anchor-01-p035.jpg",
+          "sha256": "6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+          "bytes": 223851,
+          "source_page": 35,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        },
+        {
+          "path": "assets/source/materials-science-y1-pb2-q027/anchor-02-p036.jpg",
+          "sha256": "4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+          "bytes": 99599,
+          "source_page": 36,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            0.34
+          ],
+          "role": "condition_continuation"
+        },
+        {
+          "path": "assets/reference/iron_carbon_phase_diagram_appendix-p070.jpg",
+          "sha256": "88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+          "bytes": 715522,
+          "source_page": 70,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "external_reference:IRON_CARBON_PHASE_DIAGRAM_APPENDIX"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q027-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 35,
+          "he": "שאלה 27.",
+          "he_niqqud": "שְׁאֵלָה 27.",
+          "transliteration": "She'ela 27.",
+          "ru": "Вопрос 27.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r002",
+          "order_index": 1,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "(4 נק')",
+          "he_niqqud": "(4 נק')",
+          "transliteration": "(4 nek')",
+          "ru": "(4 балла)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "1. באיזו מהפלדות כמות הפחמן גדולה יותר? נמק.",
+          "he_niqqud": "1. בְּאֵיזוֹ מֵהַפְּלָדוֹת כַּמּוּת הפחמן גְּדוֹלָה יוֹתֵר? נַמֵּק.",
+          "transliteration": "1. Be-eizo me-ha-pladot kamut ha-pekham gdolah yoter? Namek.",
+          "ru": "1. В какой из сталей содержание углерода больше? Обоснуйте.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "(4 נק')",
+          "he_niqqud": "(4 נק')",
+          "transliteration": "(4 nek')",
+          "ru": "(4 балла)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "2. איזו מהפלדות פלסטית יותר? נמק.",
+          "he_niqqud": "2. אֵיזוֹ מֵהַפְּלָדוֹת פְּלַסְטִית יוֹתֵר? נַמֵּק.",
+          "transliteration": "2. Eizo me-ha-pladot plastit yoter? Namek.",
+          "ru": "2. Какая из сталей более пластична? Обоснуйте.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "(4 נק')",
+          "he_niqqud": "(4 נק')",
+          "transliteration": "(4 nek')",
+          "ru": "(4 балла)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "3. באיזו מהפלדות קיימת נקודת Acm ומה משמעותה?",
+          "he_niqqud": "3. בְּאֵיזוֹ מֵהַפְּלָדוֹת קַייֶּמֶת נְקֻודַּת Acm וּמַה מַשְׁמָעוּתָהּ?",
+          "transliteration": "3. Be-eizo me-ha-pladot kayemet nekudat Acm u-mah mashma'utah?",
+          "ru": "3. Для какой из сталей существует точка Acm и каково её значение?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r008",
+          "order_index": 7,
+          "kind": "diagram_label",
+          "source_page": 35,
+          "he": "פלדה 1",
+          "he_niqqud": "פְּלָדָה 1",
+          "transliteration": "Pladah 1",
+          "ru": "Сталь 1",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r009",
+          "order_index": 8,
+          "kind": "diagram_label",
+          "source_page": 35,
+          "he": "פרליט",
+          "he_niqqud": "פֶּרְלִיט",
+          "transliteration": "Perlit",
+          "ru": "Перлит",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r010",
+          "order_index": 9,
+          "kind": "diagram_label",
+          "source_page": 35,
+          "he": "פלדה 2",
+          "he_niqqud": "פְּלָדָה 2",
+          "transliteration": "Pladah 2",
+          "ru": "Сталь 2",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r011",
+          "order_index": 10,
+          "kind": "diagram_label",
+          "source_page": 35,
+          "he": "פרליט",
+          "he_niqqud": "פֶּרְלִיט",
+          "transliteration": "Perlit",
+          "ru": "Перлит",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r012",
+          "order_index": 11,
+          "kind": "diagram_label",
+          "source_page": 35,
+          "he": "צמנטיט",
+          "he_niqqud": "צֶמֶנְטִיט",
+          "transliteration": "Tsementit",
+          "ru": "Цементит",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r013",
+          "order_index": 12,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "(7 נק')",
+          "he_niqqud": "(7 נק')",
+          "transliteration": "(7 nek')",
+          "ru": "(7 баллов)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r014",
+          "order_index": 13,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "ב. השתמש בנספח לשאלה 8 סעיף ב' וענה :",
+          "he_niqqud": "ב. הִשְׁתַּמֵּשׁ בְּנִסְפָּח לִשְׁאֵלָה 8 סָעִיף ב' וַעֲנֵה :",
+          "transliteration": "b. Hishtamesh be-nispakh li-she'elah 8 sa'if bet va-aneh :",
+          "ru": "б. Используйте приложение к вопросу 8, пункт б, и ответьте:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r015",
+          "order_index": 14,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "מהו מבנה של פלדה SAE 1040. לאחר חימום לטמפרטורה 840° וקירור איטי בתנור סגור וכבוי? (7 נק')",
+          "he_niqqud": "מַהוּ מִבְנֶה שֶׁל פְּלָדָה SAE 1040. לְאַחַר חִימּוּם לְטֶמְפֶּרָטוּרָה 840° וְקֵירוּר אִיטִּי בְּתַנּוּר סָגוּר וְכָבוּי? (7 נק')",
+          "transliteration": "Mahu mivneh shel pladah SAE 1040. le'akhar khimum le-temperaturah 840° ve-keirur iti be-tanur sagur ve-khavui? (7 nek')",
+          "ru": "Какова структура стали SAE 1040 после нагрева до температуры 840° и медленного охлаждения в закрытой выключенной печи? (7 баллов)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r016",
+          "order_index": 15,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "(6 נק')",
+          "he_niqqud": "(6 נק')",
+          "transliteration": "(6 nek')",
+          "ru": "(6 баллов)",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q027-r017",
+          "order_index": 16,
+          "kind": "subpart",
+          "source_page": 35,
+          "he": "ג. מדוע בדיאגרמה \"ברזל פחמן\" לא מופיע מבנה (פאזה) מרטנסיט?",
+          "he_niqqud": "ג. מַדּוּעַ בַּדִּיאָגְרָמָה \"בַּרְזֶל פחמן\" לֹא מוֹפִיעַ מִבְנֶה (פָאזָה) מַרְטֶנְסִיט?",
+          "transliteration": "g. Madu'a ba-diagrahmah \"barzel pekham\" lo mofi'a mivneh (fazah) martensite?",
+          "ru": "в. Почему на диаграмме «железо–углерод» не отображается структура (фаза) мартенсит?",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q028",
+      "title": "Материаловедение — задача 28",
+      "display_alias": "28",
+      "source_pages": [
+        36,
+        70
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q028-v01",
+          "source_page": 36,
+          "kind": "STEEL_MICROGRAPH",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q028/anchor-01-p036.jpg",
+          "sha256": "548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+          "bytes": 228132,
+          "source_page": 36,
+          "normalized_bbox": [
+            0,
+            0.38,
+            1,
+            1
+          ],
+          "role": "condition"
+        },
+        {
+          "path": "assets/reference/iron_carbon_phase_diagram_appendix-p070.jpg",
+          "sha256": "88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+          "bytes": 715522,
+          "source_page": 70,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "external_reference:IRON_CARBON_PHASE_DIAGRAM_APPENDIX"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q028-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 36,
+          "he": "שאלה 28.",
+          "he_niqqud": "שְׁאֵלָה 28.",
+          "transliteration": "She'ela 28.",
+          "ru": "Вопрос 28.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q028-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 36,
+          "he": "א. באיור לשאלה 9 מוצגות שלוש תמונות (1-3) , המתארות מיקרו־מבנה של פלדות שונות.",
+          "he_niqqud": "א. בְּאִיּוּר לִשְׁאֵלָה 9 מוּצָגוֹת שָׁלוֹשׁ תְּמוּנוֹת (1-3) , הַמְּתָאֲרוֹת מִיקְרוֹ־מִבְנֶה שֶׁל פְּלָדוֹת שׁוֹנוֹת.",
+          "transliteration": "a. Be-iyur li-she'elah 9 mutsagot shalosh tmunot (1-3) , ha-meta'arot mikro-mivneh shel pladot shonot.",
+          "ru": "а. На рисунке к вопросу 9 представлены три фотографии (1–3), показывающие микроструктуру различных сталей.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q028-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 36,
+          "he": "רשום במחברתך את מספרה של כל תמונה ולצידו את שם המיקרו־מבנה המתאים: פריט, פריט + פרליט, פרליט.",
+          "he_niqqud": "רְשֹׁום בְּמַחְבַּרְתְּךָ אֶת מִסְפָּרָהּ שֶׁל כָּל תְּמוּנָה וּלְצִידּוֹ אֶת שֵׁם הַמִּיקְרוֹ־מִבְנֶה הַמַּתְאִים: פֶרִיט, פֶרִיט + פֶּרְלִיט, פֶּרְלִיט.",
+          "transliteration": "Rshom be-makhbartkha et misparah shel kol tmunah u-le-tsido et shem ha-mikro-mivneh ha-mat'im: ferit, ferit + perlit, perlit.",
+          "ru": "Запишите в тетради номер каждой фотографии и рядом с ним соответствующее название микроструктуры: феррит, феррит + перлит, перлит.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q028-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 36,
+          "he": "ב. היעזר בנספח ד' וקבע: 1. מהי המסיסות המרבית (המקסימלית) של פחמן בפאזה \"פריט\"?",
+          "he_niqqud": "ב. הֵיעָזֵר בְּנִסְפָּח ד' וּקְבַע: 1. מַהִי הַמְּסִיסוּת הַמְּרַבִּית (הַמַּקְסִימָלִית) שֶׁל פחמן בְּפָאזָה \"פֶרִיט\"?",
+          "transliteration": "b. He'azer be-nispakh dalet u-kva: 1. Mahi ha-mesisut ha-merabit (ha-maksimalit) shel pekham be-fazah \"ferit\"?",
+          "ru": "б. Используя приложение ד', определите: 1. Какова максимальная растворимость углерода в фазе «феррит»?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q028-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 36,
+          "he": "2. מהי המסיסות המרבית (המקסימלית) של פחמן בפאזה \"אוסטניט\"?",
+          "he_niqqud": "2. מַהִי הַמְּסִיסוּת הַמְּרַבִּית (הַמַּקְסִימָלִית) שֶׁל פחמן בְּפָאזָה \"אוֹסְטֶנִיט\"?",
+          "transliteration": "2. Mahi ha-mesisut ha-merabit (ha-maksimalit) shel pekham be-fazah \"ostenit\"?",
+          "ru": "2. Какова максимальная растворимость углерода в фазе «аустенит»?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q028-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 36,
+          "he": "ג. היעזר בנספח ד' וענה: 1. מהי טמפרטורת ההיתוך של הפאזה האוטקטית \"לדבוריט\"?",
+          "he_niqqud": "ג. הֵיעָזֵר בְּנִסְפָּח ד' וַעֲנֵה: 1. מַהִי טֶמְפֶּרָטוּרַת הַהִיתּוּךְ שֶׁל הַפָּאזָה הָאוֹטֶקְטִית \"לֶדֶבּוּרִיט\"?",
+          "transliteration": "g. He'azer be-nispakh dalet va-aneh: 1. Mahi temperaturat ha-hitukh shel ha-fazah ha-otektit \"ledeburit\"?",
+          "ru": "в. Используя приложение ד', ответьте: 1. Какова температура плавления эвтектической фазы «ледебурит»?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q028-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 36,
+          "he": "2. מהו תחום אחוזי הפחמן המגדירים את יצקות הברזל?",
+          "he_niqqud": "2. מַהוּ תְּחוּם אֲחוּזֵי הפחמן הַמַּגְדִּירִים אֶת יְצִקוֹת הַבַּרְזֶל?",
+          "transliteration": "2. Mahu tkhum akhuzei ha-pekham ha-magdirim et yetsikot ha-barzel?",
+          "ru": "2. Каков диапазон процентного содержания углерода, определяющий чугуны?",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q029",
+      "title": "Материаловедение — задача 29",
+      "display_alias": "29",
+      "source_pages": [
+        37
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q029-v01",
+          "source_page": 37,
+          "kind": "METALLOGRAPHIC_STRUCTURE_SCHEMATIC",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q029-v02",
+          "source_page": 37,
+          "kind": "IRON_CARBON_PHASE_DIAGRAM",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q029/anchor-01-p037.jpg",
+          "sha256": "b5b153070a461cdab8998e61f40b82e91cebbbbeefc38ac33d2f35c34b31a1a5",
+          "bytes": 238634,
+          "source_page": 37,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q029-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 37,
+          "he": "שאלה 29.",
+          "he_niqqud": "שְׁאֵלָה 29.",
+          "transliteration": "She'ela 29.",
+          "ru": "Вопрос 29.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q029-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 37,
+          "he": "א) באיור א׳ לשאלה 8 נתונה תמונה סכמתית של המבנה המטלוגרפי של הפלדה 1040 (SAE).",
+          "he_niqqud": "א) בְּאִיּוּר א׳ לִשְׁאֵלָה 8 נְתוּנָה תְּמוּנָה סְכֶמָתִית שֶׁל הַמִּבְנֶה הַמֵּטָלוֹגְרָפִי שֶׁל הַפְּלָדָה 1040 (SAE).",
+          "transliteration": "A) Ba'iyur A' liShe'ela 8 netunah tmunah schematit shel haMivneh haMetalografi shel haPeladah 1040 (SAE).",
+          "ru": "А) На рисунке А к вопросу 8 представлено схематическое изображение металлографической структуры стали 1040 (SAE).",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q029-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 37,
+          "he": "רשום במחברתך את השמות של מרכיבי המבנה המטלוגרפי המסומנים באיור (1 ו־2).",
+          "he_niqqud": "רְשֹׁום בְּמַחְבַּרְתְּךָ אֶת הַשֵּׁמוֹת שֶׁל מַרְכִּיבֵי הַמִּבְנֶה הַמֵּטָלוֹגְרָפִי הַמְּסֻומָּנִים בְּאִיּוּר (1 ו־2).",
+          "transliteration": "R'shom beMachbartcha et haShemot shel markivei haMivneh haMetalografi haMesumanim ba'iyur (1 ve-2).",
+          "ru": "Запишите в тетради названия составляющих металлографической структуры, обозначенных на рисунке (1 и 2).",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q029-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 37,
+          "he": "ב. היעזר באיור ב' לשאלה וקבע את טמפרטורת החיסום המומלצת ואת תחום הטמפרטורות המומלץ לטיפול הרפיה לפלדה אוטקטואידית (0.8%C) .",
+          "he_niqqud": "ב. הֵיעָזֵר בְּאִיּוּר ב' לִשְׁאֵלָה וּקְבַע אֶת טֶמְפֶּרָטוּרַת הַחִיסּוּם הַמּוּמְלֶצֶת וְאֶת תְּחוּם הַטֶּמְפֶּרָטוּרוֹת הַמּוּמְלָץ לְטִיפּוּל הַרְפָּיָה לִפְלָדָה אוֹטֶקְטוֹאִידִית (0.8%C) .",
+          "transliteration": "b. He'azer be-iyur bet li-she'elah u-kva et temperaturat ha-khisum ha-mumletset ve-et tkhum ha-temperaturot ha-mumlatz le-tipul harpaya li-fladah otekto'idit (0.8%C) .",
+          "ru": "б. Используя рисунок Б к вопросу, определите рекомендуемую температуру закалки и рекомендуемый диапазон температур для отпуска эвтектоидной стали (0,8% C).",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    }
+  ]
+}

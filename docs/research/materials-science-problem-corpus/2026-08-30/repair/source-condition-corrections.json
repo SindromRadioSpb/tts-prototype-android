@@ -1,0 +1,55 @@
+{
+  "schema": "linguistpro.materials-pb2.source-condition-corrections.1",
+  "status": "PASS_SOURCE_VISUAL_AND_LEGACY_ROW_EXACT_MATCH",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+  "legacy_export_sha256": "2a2f3191dd73a5e5bc99b096cda704a54172b33ebd3416c969d2f03299e2cb21",
+  "reviewed_on": "2026-08-30",
+  "truth_boundary": "CONDITION_ONLY_NO_SOLUTION_FACTS_USED",
+  "entries": [
+    {
+      "task_id": "materials-science-y1-pb2-q005",
+      "row_id": "materials-science-y1-pb2-q005-r002",
+      "source_page": 6,
+      "visual_evidence_repository_path": "docs/research/materials-science-problem-corpus/2026-08-30/repair/preflight/visual-review/B01-p06.png",
+      "legacy_card_key_sha256": "597b65c579999f6498a5d9d7e9949491631eaffaa51dd92431bea686967aabaf",
+      "legacy_row_index": 3,
+      "defect": "SUBPART_A_50_TO_55_MM_WAS_REPLACED_BY_A_DUPLICATE_OF_SUBPART_B_75_TO_80_MM",
+      "before": {
+        "he": "ב. אורך המוט לפני הפעלת הכוח הוא 75 מ\"מ. לאחר הפעלת כוח המוט התארך עד לאורך 80 מ\"מ. חשב התארכות אבסולוטית ויחסית של המוט.",
+        "he_niqqud": "ב. אֹורֶךְ הַמּוֹט לִפְנֵי הַפְעָלַת הַכֹּוחַ הוּא 75 מ\"מ. לְאַחַר הַפְעָלַת כֹּוחַ הַמּוֹט הִתְאָרֵךְ עַד לְאֹורֶךְ 80 מ\"מ. חַשֵּׁב הִתְאָרְכוּת אַבְּסוֹלוּטִית וְיַחֲסִית שֶׁל הַמּוֹט.",
+        "transliteration": "B. Orekh ha-mot lifnei haf'alat ha-koakh hu 75 m\"m. Le'akhar haf'alat koakh ha-mot hit'arekh ad le-orekh 80 m\"m. Khashev hit'arkhut absolutit ve-yakhasit shel ha-mot.",
+        "ru": "б. Длина стержня до приложения силы составляла 75 мм. После приложения силы стержень удлинился до 80 мм. Рассчитайте абсолютное и относительное удлинение стержня."
+      },
+      "after": {
+        "he": "א) אורך המוט לפני הפעלת הכוח הוא 50 mm ולאחר הפעלת כוח המוט התארך עד אורך 55 mm, חשב התארכות אבסולוטית והתארכות יחסית של המוט.",
+        "he_niqqud": "א) אוֹרֶךְ הַמּוֹט לִפְנֵי הַפְעָלַת הַכּוֹחַ הוּא 50 mm וּלְאַחַר הַפְעָלַת כּוֹחַ הַמּוֹט הִתְאָרֵךְ עַד אוֹרֶךְ 55 mm, חַשֵּׁב הִתְאַרְכוּת אַבְּסוֹלוּטִית וְהִתְאַרְכוּת יַחֲסִית שֶׁל הַמּוֹט.",
+        "transliteration": "A) Orekh haMot lifney haFla'at haKo'ah hu 50 mm veLe'akhar haFla'at ko'ah haMot hitarekh ad orekh 55 mm, hashev hitarkhut absolutit veHitarkhut yahasith shel haMot.",
+        "ru": "А) Длина стержня до приложения силы составляет 50 мм, а после приложения силы стержень удлинился до 55 мм, рассчитайте абсолютное и относительное удлинение стержня."
+      },
+      "disposition": "CORRECTED_FROM_EXACT_SOURCE_AND_MATCHING_LEGACY_ROW_NO_PROVIDER_CALL"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q019",
+      "row_id": "materials-science-y1-pb2-q019-r010",
+      "source_page": 25,
+      "visual_evidence_repository_path": "docs/research/materials-science-problem-corpus/2026-08-30/repair/preflight/visual-review/B02-p10.png",
+      "legacy_card_key_sha256": "828ecffc39c124373fb538609645adac8338b27f777029e8ef7635b4c8fd3718",
+      "legacy_row_index": 12,
+      "defect": "IMPACT_ENERGY_VALUES_WERE_REVERSED_RELATIVE_TO_TEMPERATURE_COLUMNS",
+      "before": {
+        "he": "אנרגיית השבר, Joul: 6, 8, 12, 14, 17",
+        "he_niqqud": "אֶנֶרְגִּייַּת הַשֶּׁבֶר, Joul: 6, 8, 12, 14, 17",
+        "transliteration": "energiyat hashever, Joul: 6, 8, 12, 14, 17",
+        "ru": "Энергия разрушения, Дж: 6, 8, 12, 14, 17"
+      },
+      "after": {
+        "he": "אנרגיית השבר, Joul: 17, 14, 12, 8, 6",
+        "he_niqqud": "אֶנֶרְגִּייַּת הַשֶּׁבֶר, Joul: 17, 14, 12, 8, 6",
+        "transliteration": "energiyat hashever, Joul: 17, 14, 12, 8, 6",
+        "ru": "Энергия разрушения, Дж: 17, 14, 12, 8, 6"
+      },
+      "disposition": "CORRECTED_FROM_EXACT_SOURCE_AND_MATCHING_LEGACY_ROW_NO_PROVIDER_CALL"
+    }
+  ]
+}

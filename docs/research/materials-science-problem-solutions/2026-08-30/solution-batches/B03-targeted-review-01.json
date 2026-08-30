@@ -1,0 +1,34 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B03-TR01-Q025-SN-GRAPH-READ",
+  "task_id": "materials-science-y1-pb2-q025",
+  "status": "SOURCE_VISUAL_REVIEW_PASS_LEGACY_GRAPH_READ_REJECTED",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "99e24d4c18b7d0b229262945d7be850752080e1b68858ee146120cce17916817",
+  "disagreement": {
+    "independent_candidate": "At 150 MPa, Brass is of order 10^5 cycles and Al 2024 is about 2e7 to 3e7 cycles; SAE 1045 is below its approximately 310 MPa endurance plateau.",
+    "legacy_candidate": "Brass about 1.0e4 cycles, Al 2024 about 5.4e6 cycles and SAE 1045 endurance limit about 315 MPa.",
+    "scope": "LOG_SCALE_GRAPH_READING"
+  },
+  "source_review": {
+    "condition_page": 31,
+    "condition_asset_sha256": "9b23eb5c043cc5be93180b033e10136bbdd29ea451cf476b16999b42c9b85b1d",
+    "method": "SOURCE_PIXEL_VISUAL_REVIEW_WITH_HORIZONTAL_150_MPA_CONSTRUCTION",
+    "finding": "The 150 MPa horizontal meets the Brass curve near 10^5 and the Al 2024 curve between 10^7 and 10^8, visibly much closer to the independent ranges than to the legacy values. The steel plateau reads approximately 310 to 315 MPa."
+  },
+  "review_reasoning": [
+    "The N axis is logarithmic; equal horizontal distances are decades, not equal cycle increments.",
+    "At 10^4 the Brass curve is only beginning above 150 MPa, so 1.0e4 cannot be the visible 150 MPa intersection.",
+    "At about 5.4e6 the Al curve is still visibly above 150 MPa; the intersection occurs later, at a few times 10^7.",
+    "The 310 versus 315 MPa endurance reading is within source raster thickness and leaves the rounded design diameter unchanged at 19 mm."
+  ],
+  "reviewed_exam_answer_ru": [
+    "При S=150 МПа: SAE 1045 — ниже предела выносливости; Al 2024 — примерно 2·10^7…3·10^7 циклов; латунь — порядка 10^5 циклов.",
+    "По графику σ_e≈310…315 МПа; расчёт даёт d_min≈18,8…19,0 мм, поэтому выбирают не менее 19 мм до учёта проектных коэффициентов."
+  ],
+  "disposition": "INDEPENDENT_LOG_SCALE_READ_ACCEPTED; LEGACY_CYCLE_READS_REJECTED; ENDURANCE_PLATEAU_TREATED_AS_SOURCE_TOLERANCE",
+  "publication_blocking": false,
+  "further_repair_allowed": false
+}

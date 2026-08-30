@@ -1,0 +1,34 @@
+{
+  "schema_version": "materials_pb2_production_readonly_preflight.1.0.0",
+  "observed_at": "2026-08-30T17:18:30Z",
+  "status": "PASS_CLEAN_PRODUCTION_START_RIGHTS_GATE_UNSATISFIED",
+  "production": {
+    "health_ok": true,
+    "database_ready": true,
+    "migrations_ready": true,
+    "served_version": "3.11.448",
+    "deployed_source_revision": "6804b515ad94dd4f2b9ed2c572ac3b6f3dff69be",
+    "origin_main_revision": "6804b515ad94dd4f2b9ed2c572ac3b6f3dff69be",
+    "data_mount_present": true,
+    "database_bytes": 491057152
+  },
+  "publication_domain": {
+    "schema_ready": true,
+    "materials_corpus_slug_count": 0,
+    "owner_user_count": 1,
+    "active_delegated_publisher_count": 0,
+    "owner_role_publisher_bypass_verified_in_repository": true
+  },
+  "learning_support": {
+    "feature_flag_configured": false,
+    "expected_before_content_publish": false,
+    "enable_after_exact_edition_runtime_materialization": true
+  },
+  "privacy": {
+    "user_ids_read_or_recorded": false,
+    "user_content_read_or_recorded": false,
+    "credential_values_read_or_recorded": false,
+    "private_production_coordinates_recorded": false
+  },
+  "next_gate": "OWNER_CONTENT_CLASS_RIGHTS_ATTESTATION"
+}

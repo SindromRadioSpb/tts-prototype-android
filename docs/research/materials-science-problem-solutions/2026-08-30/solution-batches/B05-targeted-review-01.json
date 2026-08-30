@@ -1,0 +1,16 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "batch_id": "B05",
+  "task_id": "materials-science-y1-pb2-q040",
+  "status": "PASS_ONE_REVIEW_CLOSED",
+  "trigger": "INDEPENDENT_SAE1050_VS_LEGACY_SAE1070_SELECTION",
+  "source_assets": [
+    "asset_sha256:e22d20467a4a43a167190ea6fe4a74355be4d9488d68678a5c741cc63f5fe290",
+    "asset_sha256:1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+    "asset_sha256:7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+  ],
+  "finding": "The source requires a high-carbon spring-steel sheet. The appendix explicitly classifies SAE1070 as high-carbon spring steel and its form and property ranges can satisfy all stated intervals in an appropriate condition.",
+  "disposition": "REPAIR_INDEPENDENT_SELECTION_TO_SAE1070_KEEP_830_TO_850_C_GRAPH_TOLERANCE",
+  "repair_passes_used": 1,
+  "further_repair_allowed": false
+}

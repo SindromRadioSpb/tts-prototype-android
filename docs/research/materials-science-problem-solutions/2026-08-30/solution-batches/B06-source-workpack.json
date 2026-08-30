@@ -1,0 +1,1278 @@
+{
+  "schema": "linguistpro.materials-pb2.independent-solution-source-workpack.1",
+  "status": "SOURCE_ONLY_READY_FOR_INDEPENDENT_DERIVATION_NO_LEGACY_SOLUTIONS_INCLUDED",
+  "batch_id": "B06",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "canonical_manifest_sha256": "35cb755642b714d3a61f84c58ea6bd2952826c107610cad9ab20966cc6b083b7",
+  "truth_boundary": "CONDITIONS_DIAGRAMS_AND_DECLARED_SOURCE_METADATA_ONLY",
+  "task_count": 10,
+  "tasks": [
+    {
+      "task_id": "materials-science-y1-pb2-q049",
+      "title": "Материаловедение — задача 49",
+      "display_alias": "49",
+      "source_pages": [
+        59
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q049-v01",
+          "source_page": 59,
+          "kind": "STAINLESS_STEEL_STRESS_STRAIN_CURVES",
+          "instance_count": 4,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q049-v02",
+          "source_page": 59,
+          "kind": "STEEL_ASSIGNMENT_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": false,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q049/anchor-01-p059.jpg",
+          "sha256": "a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de",
+          "bytes": 324464,
+          "source_page": 59,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q049-r001",
+          "order_index": 0,
+          "kind": "source_note",
+          "source_page": 59,
+          "he": "פלדות בלתי מחלידות.",
+          "he_niqqud": "פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת.",
+          "transliteration": "Pladot bilti machlidot.",
+          "ru": "Нержавеющие стали.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r002",
+          "order_index": 1,
+          "kind": "task_heading",
+          "source_page": 59,
+          "he": "שאלה 49.",
+          "he_niqqud": "שְׁאֵלָה 49.",
+          "transliteration": "She'ela 49.",
+          "ru": "Вопрос 49.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r003",
+          "order_index": 2,
+          "kind": "condition",
+          "source_page": 59,
+          "he": "לחלקי ציוד כימי יש לבחור פלדה בלתי מחלידה.",
+          "he_niqqud": "לְחֶלְקֵי צִיּוּד כִּימִי יֵשׁ לִבְחֹור פְּלָדָה בִּלְתִּי מַחְלִידָה.",
+          "transliteration": "L'chelkei tziyud chimi yesh livchor pladah bilti machlidah.",
+          "ru": "Для деталей химического оборудования необходимо выбрать нержавеющую сталь.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r004",
+          "order_index": 3,
+          "kind": "condition",
+          "source_page": 59,
+          "he": "לבחירתכם ארבע פלדות בלתי מחלידות:",
+          "he_niqqud": "לִבְחִירַתְכֶם אַרְבַּע פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת:",
+          "transliteration": "Livchiratkhem arba pladot bilti machlidot:",
+          "ru": "На ваш выбор предлагаются четыре нержавеющие стали:",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r005",
+          "order_index": 4,
+          "kind": "condition",
+          "source_page": 59,
+          "he": "פלדה מרטנסיטית (מסוגסגת ע״י כרום Cr).",
+          "he_niqqud": "פְּלָדָה מַרְטֶנְסִיטִית (מְסֻוגְסֶגֶת ע״י כְּרוֹם Cr).",
+          "transliteration": "Pladah martenisitit (mesugseget a\"y chrom Cr).",
+          "ru": "Мартенситная сталь (легированная хромом Cr).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r006",
+          "order_index": 5,
+          "kind": "condition",
+          "source_page": 59,
+          "he": "פלדה פריטית (מסוגסגת ע״י כרום Cr).",
+          "he_niqqud": "פְּלָדָה פֶרִיטִית (מְסֻוגְסֶגֶת ע״י כְּרוֹם Cr).",
+          "transliteration": "Pladah feritit (mesugseget a\"y chrom Cr).",
+          "ru": "Ферритная сталь (легированная хромом Cr).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r007",
+          "order_index": 6,
+          "kind": "condition",
+          "source_page": 59,
+          "he": "פלדה אוסטניטית (מסוגסגת ע״י כרום Cr וניקל Ni).",
+          "he_niqqud": "פְּלָדָה אוֹסְטֶנִיטִית (מְסֻוגְסֶגֶת ע״י כְּרוֹם Cr וְנִיקֶל Ni).",
+          "transliteration": "Pladah austenitit (mesugseget a\"y chrom Cr v'nikel Ni).",
+          "ru": "Аустенитная сталь (легированная хромом Cr и никелем Ni).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r008",
+          "order_index": 7,
+          "kind": "condition",
+          "source_page": 59,
+          "he": "פלדת Duplex (שילוב פריט 50% + אוסטניט 50%) מסוגסגת ע\"י כרום (Cr), מוליבדן (Mo), ונדיום (V) ועוד.",
+          "he_niqqud": "פְּלָדַת Duplex (שִׁילּוּב פֶרִיט 50% + אוֹסְטֶנִיט 50%) מְסֻוגְסֶגֶת ע\"י כְּרוֹם (Cr), מוֹלִיבְּדֶן (Mo), וָנַדְיוּם (V) וְעוֹד.",
+          "transliteration": "Pladat Duplex (shiluv ferit 50% + ostenit 50%) mesugseget a\"y chrom (Cr), molibden (Mo), vanadium (V) ve'od.",
+          "ru": "Дуплексная сталь Duplex (сочетание 50% феррита + 50% аустенита), легированная хромом (Cr), молибденом (Mo), ванадием (V) и др.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 59,
+          "he": "א) עליכם להתאים את דיאגרמות המתיחה (ראו איור לשאלה 8), להשלים את הטבלה הבאה ולנמק.",
+          "he_niqqud": "א) עֲלֵיכֶם לְהַתְאִים אֶת דִּיאַגְרָמוֹת הַמְּתִיחָה (רְאוּ אִיּוּר לִשְׁאֵלָה 8), לְהַשְׁלִים אֶת הַטַּבְלָה הַבָּאָה וּלְנַמֵּק.",
+          "transliteration": "A) Aleichem lehat'im et diagramot hametichah (re'u iyur lish'elah 8), lehashlim et hatavlah haba'ah ulenamek.",
+          "ru": "А) Вы должны сопоставить диаграммы растяжения (см. рисунок к вопросу 8), заполнить следующую таблицу и обосновать свой выбор.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r010",
+          "order_index": 9,
+          "kind": "subpart",
+          "source_page": 59,
+          "he": "ב) מדוע פלדה בלתי מחלידה עמידה יותר לקורוזיה כללית (אחידה) מאשר פלדות פחמן?",
+          "he_niqqud": "ב) מַדּוּעַ פְּלָדָה בִּלְתִּי מַחְלִידָה עֲמִידָה יוֹתֵר לְקוֹרוֹזְיָה כְּלָלִית (אֲחִידָה) מֵאֲשֶׁר פְּלָדוֹת פַּחְמָן?",
+          "transliteration": "B) Madua pladah bilti machlidah amidah yoter lekoroziah klalit (achidah) me'asher pladot pachman?",
+          "ru": "Б) Почему нержавеющая сталь более устойчива к общей (равномерной) коррозии, чем углеродистые стали?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r011",
+          "order_index": 10,
+          "kind": "subpart",
+          "source_page": 59,
+          "he": "ג) האם פלדות בלתי מחלידות עמידות לכל סוגי הקורוזיה? (דוגמה אם \"לא\").",
+          "he_niqqud": "ג) הַאִם פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת עֲמִידוֹת לְכָל סוּגֵי הַקּוֹרוֹזְיָה? (דֻּוגְמָה אִם \"לֹא\").",
+          "transliteration": "G) Ha'im pladot bilti machlidot amidot lechol sugei hakoroziah? (Dugmah im \"lo\").",
+          "ru": "В) Устойчивы ли нержавеющие стали ко всем типам коррозии? (Пример, если «Нет»).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q049-r012",
+          "order_index": 11,
+          "kind": "subpart",
+          "source_page": 59,
+          "he": "ד) לבחור פלדה לעבודה במאמצי מתיחה עד 300 MPa, מקדם בטיחות S=1.5, פלסטיות לפחות 12%.",
+          "he_niqqud": "ד) לִבְחֹור פְּלָדָה לַעֲבוֹדָה בְּמַאֲמַצֵּי מְתִיחָה עַד 300 MPa, מְקַדֵּם בְּטִיחוּת S=1.5, פְּלַסְטִיּוּת לְפָחוֹת 12%.",
+          "transliteration": "D) Livchor pladah la'avodah bema'amatzei metichah ad 300 MPa, mekadem betichut S=1.5, plastiut lefachot 12%.",
+          "ru": "Г) Выбрать сталь для работы при растягивающих напряжениях до 300 МПа, коэффициенте запаса S=1.5, пластичности не менее 12%.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q050",
+      "title": "Материаловедение — задача 50",
+      "display_alias": "50",
+      "source_pages": [
+        60
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q050-v01",
+          "source_page": 60,
+          "kind": "STEEL_STRESS_STRAIN_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q050/anchor-01-p060.jpg",
+          "sha256": "7e488cccb28e4c445b629b5d12399e81bb5cd5079e1378f1bf4e022df99228c3",
+          "bytes": 188378,
+          "source_page": 60,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q050-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 60,
+          "he": "שאלה 50.",
+          "he_niqqud": "שְׁאֵלָה 50.",
+          "transliteration": "She'ela 50.",
+          "ru": "Вопрос 50.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r002",
+          "order_index": 1,
+          "kind": "condition",
+          "source_page": 60,
+          "he": "באיור לשאלה 7 נתונה דיאגרמות מתיחה של פלדות שונות.",
+          "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 7 נְתוּנָה דִּיאַגְרָמוֹת מְתִיחָה שֶׁל פְּלָדוֹת שׁוֹנוֹת.",
+          "transliteration": "Ba'iyur lish'elah 7 netunah diagramot metichah shel pladot shonot.",
+          "ru": "На рисунке к вопросу 7 приведены диаграммы растяжения различных сталей.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r003",
+          "order_index": 2,
+          "kind": "condition",
+          "source_page": 60,
+          "he": "עליכם להציע פלדה לייצור מכלים לתסיסת יין.",
+          "he_niqqud": "עֲלֵיכֶם לְהַצִּיעַ פְּלָדָה לְייִצּוּר מְכָלִים לִתְסִיסַת יַיִן.",
+          "transliteration": "Aleichem lehatzi'a pladah leyitzur mechalim litsisat yayin.",
+          "ru": "Вам необходимо предложить сталь для производства резервуаров для брожения вина.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r004",
+          "order_index": 3,
+          "kind": "condition",
+          "source_page": 60,
+          "he": "דרישות חוזק מהפלדה: [σ] ≥ 100 MPa, מקדם בטיחות S = 1.5.",
+          "he_niqqud": "דְּרִישׁוֹת חֹוזֶק מֵהַפְּלָדָה: [σ] ≥ 100 MPa, מְקַדֵּם בְּטִיחוּת S = 1.5.",
+          "transliteration": "Drishot chozek mehapladah: [σ] ≥ 100 MPa, mekadem betichut S = 1.5.",
+          "ru": "Требования к прочности стали: [σ] ≥ 100 МПа, коэффициент запаса S = 1.5.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r005",
+          "order_index": 4,
+          "kind": "condition",
+          "source_page": 60,
+          "he": "המכלים עשויים מלוחות מרותכים.",
+          "he_niqqud": "הַמְּכָלִים עֲשׂוּיִים מִלּוּחוֹת מְרֻותָּכִים.",
+          "transliteration": "Hamechalim asuyim miluchot merutachim.",
+          "ru": "Резервуары изготовлены из сварных листов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 60,
+          "he": "א) איזו מהפלדות מתאימה לדרישות הנ״ל?",
+          "he_niqqud": "א) אֵיזוֹ מֵהַפְּלָדוֹת מַתְאִימָה לִדְרִישׁוֹת הַנַּ״ל?",
+          "transliteration": "A) Eizo mehapladot mat'imah lidrishot hanal?",
+          "ru": "А) Какая из сталей соответствует вышеуказанным требованиям?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 60,
+          "he": "הסבירו ונמקו בעזרת הגרפים שבאיור לשאלה.",
+          "he_niqqud": "הַסְבִּירוּ וְנַמְּקוּ בְּעֶזְרַת הַגְּרָפִים שֶׁבְּאִיּוּר לִשְׁאֵלָה.",
+          "transliteration": "Hasbiru venamku be'ezrat hageraphim sheba'iyur lish'elah.",
+          "ru": "Объясните и обоснуйте, используя графики на рисунке к вопросу.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q050-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 60,
+          "he": "ב) ציינו לפחות שני קריטריונים נוספים (שאינם מוזכרים בנתוני השאלה) לבחירת הפלדה המתאימה.",
+          "he_niqqud": "ב) צַייְּנוּ לְפָחוֹת שְׁנֵי קְרִיטֶרְיוֹנִים נוֹסָפִים (שֶׁאֵינָם מֻוזְכָּרִים בִּנְתוּנֵי הַשְּׁאֵלָה) לִבְחִירַת הַפְּלָדָה הַמַּתְאִימָה.",
+          "transliteration": "B) Tzaynu lefachot shnei kriteryonim nosafim (she'einam muzkarim bintunei hash'elah) livchirat hapladah hamat'imah.",
+          "ru": "Б) Укажите как минимум два дополнительных критерия (не упомянутых в данных вопроса) для выбора подходящей стали.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q051",
+      "title": "Материаловедение — задача 51",
+      "display_alias": "51",
+      "source_pages": [
+        61
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q051-v01",
+          "source_page": 61,
+          "kind": "STAINLESS_STEEL_STRESS_STRAIN_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q051-v02",
+          "source_page": 61,
+          "kind": "STEEL_ASSIGNMENT_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": false,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q051/anchor-01-p061.jpg",
+          "sha256": "da25af2f1e1ae4725e1173bedd258a149762438091d0cf9b082bbcc2a81f99e9",
+          "bytes": 244962,
+          "source_page": 61,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q051-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 61,
+          "he": "שאלה 51.",
+          "he_niqqud": "שְׁאֵלָה 51.",
+          "transliteration": "She'ela 51.",
+          "ru": "Вопрос 51.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 61,
+          "he": "באיור לשאלה 8 מוצגות דיאגרמות מתיחה של שלוש פלדות בלתי מחלידות: פלדה פריטית, פלדה מרטנסיטית ופלדה אוסטניטית.",
+          "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 8 מֻוצָּגוֹת דִּיאַגְרָמוֹת מְתִיחָה שֶׁל שָׁלוֹשׁ פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת: פְּלָדָה פֶרִיטִית, פְּלָדָה מַרְטֶנְסִיטִית וּפְלָדָה אוֹסְטֶנִיטִית.",
+          "transliteration": "Ba'iyur lish'elah 8 mutzagot diagramot metichah shel shalosh pladot bilti machlidot: pladah feritit, pladah martenisitit ufladah ostenitit.",
+          "ru": "На рисунке к вопросу 8 представлены диаграммы растяжения трех нержавеющих сталей: ферритной стали, мартенситной стали и аустенитной стали.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "א) עליך לשייך כל אחת מהדיאגרמות לסוג הפלדה.",
+          "he_niqqud": "א) עָלֶיךָ לְשַׁייֵּךְ כָּל אַחַת מֵהַדִּיאַגְרָמוֹת לְסוּג הַפְּלָדָה.",
+          "transliteration": "A) Alecha leshayech kol achat mehadiagramot lesug hapladah.",
+          "ru": "А) Вам следует соотнести каждую из диаграмм с типом стали.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "נמקו את בחירתכם.",
+          "he_niqqud": "נַמְּקוּ אֶת בְּחִירַתְכֶם.",
+          "transliteration": "Namku et bechiratchem.",
+          "ru": "Обоснуйте свой выбор.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "השלם את הטבלה.",
+          "he_niqqud": "הַשְׁלֵם אֶת הַטַּבְלָה.",
+          "transliteration": "Hashlem et hatavlah.",
+          "ru": "Заполните таблицу.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "ב) הגדירו מהם מרטנסיט, אוסטניט ופריט.",
+          "he_niqqud": "ב) הַגְדִּירוּ מָהֵם מַרְטֶנְסִיט, אוֹסְטֶנִיט וּפֶרִיט.",
+          "transliteration": "B) Hagdiru mahem martensite, ostenite veferit.",
+          "ru": "Б) Определите, что такое мартенсит, аустенит и феррит.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "ג) חשבו את מודול האלסטיות של הפלדות.",
+          "he_niqqud": "ג) חַשְּׁבוּ אֶת מוֹדוּל הָאֵלַסְטִיּוּת שֶׁל הַפְּלָדוֹת.",
+          "transliteration": "G) Chashvu et modul ha'elastiut shel hapladot.",
+          "ru": "В) Рассчитайте модуль упругости сталей.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "ד) קבעו את החוזק הגבולי למתיחה של כל אחת מהפלדות.",
+          "he_niqqud": "ד) קִבְעוּ אֶת הַחֹוזֶק הַגְּבוּלִי לִמְתִיחָה שֶׁל כָּל אַחַת מֵהַפְּלָדוֹת.",
+          "transliteration": "D) Kiv'u et hachozek hagevuli limtichah shel kol achat mehapladot.",
+          "ru": "Г) Определите предел прочности при растяжении для каждой из сталей.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "ה) נתון כי כמות הכרום בפלדה פריטית ובפלדה מרטנסיטית זהה בקירוב.",
+          "he_niqqud": "ה) נָתוּן כִּי כַּמּוּת הַכְּרוֹם בִּפְלָדָה פֶרִיטִית וּבִפְלָדָה מַרְטֶנְסִיטִית זֶהָה בְּקֵירוּב.",
+          "transliteration": "H) Natun ki kamut hachrom bifladah feritit uvifladah martenisitit zehah bekiruv.",
+          "ru": "Д) Дано, что содержание хрома в ферритной и мартенситной сталях примерно одинаково.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r010",
+          "order_index": 9,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "לאיזו פלדה יש עמידות גבוהה יותר בפני קורוזיה?",
+          "he_niqqud": "לְאֵיזוֹ פְּלָדָה יֵשׁ עֲמִידוּת גְּבוֹהָה יוֹתֵר בִּפְנֵי קוֹרוֹזְיָה?",
+          "transliteration": "Le'eizo pladah yesh amidut gevohah yoter bifnei koroziah?",
+          "ru": "Какая сталь имеет более высокую коррозионную стойкость?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q051-r011",
+          "order_index": 10,
+          "kind": "subpart",
+          "source_page": 61,
+          "he": "נמקו.",
+          "he_niqqud": "נַמְּקוּ.",
+          "transliteration": "Namku.",
+          "ru": "Обоснуйте.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q052",
+      "title": "Материаловедение — задача 52",
+      "display_alias": "52",
+      "source_pages": [
+        62
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q052-v01",
+          "source_page": 62,
+          "kind": "PLASTIC_PROPERTIES_COMPARISON_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q052/anchor-01-p062.jpg",
+          "sha256": "01e8b4fe358825dd5cf77679feeac657af29e2d0b391a6a9b8431fecb037085f",
+          "bytes": 283397,
+          "source_page": 62,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q052-r001",
+          "order_index": 0,
+          "kind": "source_note",
+          "source_page": 62,
+          "he": "פולימרים.",
+          "he_niqqud": "פּוֹלִימֶרִים.",
+          "transliteration": "Polimerim.",
+          "ru": "Полимеры.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r002",
+          "order_index": 1,
+          "kind": "task_heading",
+          "source_page": 62,
+          "he": "שאלה 52.",
+          "he_niqqud": "שְׁאֵלָה 52.",
+          "transliteration": "She'ela 52.",
+          "ru": "Вопрос 52.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "א) הגדר מהו חומר פלסטי, וממה מיוצרים רוב החומרים הפלסטיים",
+          "he_niqqud": "א) הַגְדֵּר מַהוּ חוֹמֶר פְּלַסְטִי, וּמִמָּה מְיֻוצָּרִים רֹוב הַחֳומָרִים הַפְּלַסְטִיִּים",
+          "transliteration": "A) Hagder mahu chomer plasti, umimah meyutzarim rov hachomarim haplastiyim",
+          "ru": "А) Определите, что такое пластический материал, и из чего производится большинство пластических материалов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "ב) נתונים שני סוגים של חומרים פלסטיים: פוליאתילן (תרמופלסטי) ופוליאסטר (תרמוסטי)",
+          "he_niqqud": "ב) נְתוּנִים שְׁנֵי סוּגִים שֶׁל חֳומָרִים פְּלַסְטִיִּים: פּוֹלִיאֶתִילֶן (תֶּרְמוֹפְּלַסְטִי) וּפוֹלִיאַסְטֶר (תֶּרְמוֹסְטִי)",
+          "transliteration": "B) Netunim shnei sugim shel chomarim plastiyim: polietilen (termoplasti) ufoli'ester (termosti)",
+          "ru": "Б) Даны два типа пластических материалов: полиэтилен (термопласт) и полиэстер (термореактопласт).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "מהו ההבדל העיקרי ביניהם",
+          "he_niqqud": "מַהוּ הַהֶבְדֵּל הָעִיקָּרִי בֵּינֵיהֶם",
+          "transliteration": "Mahu hahevdel ha'ikari beineihem",
+          "ru": "Какова основная разница между ними?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "הסבר",
+          "he_niqqud": "הַסְבֵּר",
+          "transliteration": "Hasber",
+          "ru": "Объясните.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "ג) תאר את שני התהליכים המרכזיים בייצור בקבוקים מחומר תרמופלסטי",
+          "he_niqqud": "ג) תָּאֵר אֶת שְׁנֵי הַתַּהֲלִיכִים הַמֶּרְכָּזִיִּים בְּייִצּוּר בַּקְבּוּקִים מֵחוֹמֶר תֶּרְמוֹפְּלַסְטִי",
+          "transliteration": "G) Ta'er et shnei hatahalichim hamerkaziyim beyitzur bakbukim mechomer termoplasti",
+          "ru": "В) Опишите два основных процесса производства бутылок из термопластического материала.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "הדגם בשני איורים סכמטיים",
+          "he_niqqud": "הַדְגֵּם בִּשְׁנֵי אִיּוּרִים סְכֶמָטִיִּים",
+          "transliteration": "Hadgem bishnei iyurim schematiyim",
+          "ru": "Проиллюстрируйте двумя схематическими рисунками.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q052-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 62,
+          "he": "ד) העתק את הטבלה וסמן X ל“גבוה” או “נמוך” בהשוואה למתכת (פרמטרים 1–7)",
+          "he_niqqud": "ד) הַעְתֵּק אֶת הַטַּבְלָה וְסַמֵּן X לְ“גָּבוֹהַּ” אוֹ “נָמוּךְ” בְּהַשְׁווָאָה לְמַתֶּכֶת (פָּרָמֶטְרִים 1–7)",
+          "transliteration": "D) Ha'atek et hatavlah vesamen X le-\"gavoah\" o \"namuch\" behashva'ah lematechet (parametrim 1-7)",
+          "ru": "Г) Скопируйте таблицу и отметьте X как «высокий» или «низкий» по сравнению с металлом (параметры 1–7).",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q053",
+      "title": "Материаловедение — задача 53",
+      "display_alias": "53",
+      "source_pages": [
+        63
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q053/anchor-01-p063.jpg",
+          "sha256": "e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388",
+          "bytes": 142480,
+          "source_page": 63,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            0.48
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q053-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 63,
+          "he": "שאלה 53.",
+          "he_niqqud": "שְׁאֵלָה 53.",
+          "transliteration": "She'ela 53.",
+          "ru": "Вопрос 53.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q053-r002",
+          "order_index": 1,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "א) פולימרים תרמוסטיים אינם ניתנים לעיבוד מחדש על־ידי התכה בחימום חוזר.",
+          "he_niqqud": "א) פּוֹלִימֶרִים תֶּרְמוֹסְטִיִּים אֵינָם נִיתָּנִים לְעִיבּוּד מֵחָדָשׁ עַל־יְדֵי הַתָּכָה בְּחִימּוּם חוֹזֵר.",
+          "transliteration": "A) Polimerim termostiyim eynam nitanim le'ibud mechadash al-yedei hatachah bechimum chozer.",
+          "ru": "А) Термореактивные полимеры не подлежат повторной обработке путем плавления при повторном нагреве.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q053-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "הסבר מדוע.",
+          "he_niqqud": "הַסְבֵּר מַדּוּעַ.",
+          "transliteration": "Hasber madua.",
+          "ru": "Объясните, почему.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q053-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "ב) לרשותו של מפעל לייצור מוצרים פלסטיים עומדות שתי מכונות: מכונת שיחול (Extrusion) ומכונת הזרקה (Injection molding).",
+          "he_niqqud": "ב) לִרְשׁוּתוֹ שֶׁל מִפְעָל לְייִצּוּר מוּצָרִים פְּלַסְטִיִּים עוֹמְדוֹת שְׁתֵּי מְכוֹנוֹת: מְכוֹנַת שִׁיחוּל (Extrusion) וּמְכוֹנַת הַזְרָקָה (Injection molding).",
+          "transliteration": "B) Lirshuto shel mif'al leyitzur mutzarim plastiyim omdot shtei mechonot: mechonat shichul (Extrusion) umechonat hazrakah (Injection molding).",
+          "ru": "Б) Завод по производству пластмассовых изделий имеет в своем распоряжении две машины: экструзионную машину (Extrusion) и литьевую машину (Injection molding).",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q053-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "באיזו מכונה תבחר כדי לייצר מסגרת למשקפיים מצלולואיד (Cellulosics)?",
+          "he_niqqud": "בְּאֵיזוֹ מְכוֹנָה תִּבְחַר כְּדֵי לְיַיצֵּר מִסְגֶּרֶת לְמִשְׁקָפַייִם מִצֶּלּוּלוֹאִיד (Cellulosics)?",
+          "transliteration": "Be'eizo mechonah tivchar kedei leyatzer misgeret lemishkafayim mitzeluloid (Cellulosics)?",
+          "ru": "Какую машину вы выберете для изготовления оправы для очков из целлулоида (Cellulosics)?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q053-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "נמק את תשובתך.",
+          "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+          "transliteration": "Namek et teshuvat'cha.",
+          "ru": "Обоснуйте свой ответ.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q053-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "ג) ציין את השם (או השמות) של שיטת הייצור המתאימה (או שיטות הייצור המתאימות) לייצור כל אחד מן המוצרים שלהלן מחומרים תרמופלסטיים: צינור גמיש, בקבוק למשקה קל, כוס למשקה קל, גלגל שיניים במנגנון של שעון.",
+          "he_niqqud": "ג) צַייֵּן אֶת הַשֵּׁם (אוֹ הַשֵּׁמוֹת) שֶׁל שִׁיטַת הַייִּצּוּר הַמַּתְאִימָה (אוֹ שִׁיטוֹת הַייִּצּוּר הַמַּתְאִימוֹת) לְייִצּוּר כָּל אֶחָד מִן הַמּוּצָרִים שֶׁלְּהַלָּן מֵחֳומָרִים תֶּרְמוֹפְּלַסְטִיִּים: צִינּוֹר גָּמִישׁ, בַּקְבּוּק לְמַשְׁקֶה קַל, כּוֹס לְמַשְׁקֶה קַל, גַּלְגַּל שִׁינַּייִם בְּמַנְגָּנוֹן שֶׁל שָׁעוֹן.",
+          "transliteration": "G) Tzayen et hashem (o hashemot) shel shitat hayitzur hamat'imah (o shitot hayitzur hamat'imot) leyitzur kol echad min hamutzarim shelehalan mechomarim termoplastiyim: tzinor gamish, bakbuk lemashkeh kal, kos lemashkeh kal, galgal shinayim bemanganon shel sha'on.",
+          "ru": "В) Укажите название (или названия) подходящего метода производства (или подходящих методов производства) для изготовления каждого из следующих изделий из термопластичных материалов: гибкая труба, бутылка для безалкогольного напитка, стакан для безалкогольного напитка, зубчатое колесо в часовом механизме.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q054",
+      "title": "Материаловедение — задача 54",
+      "display_alias": "54",
+      "source_pages": [
+        63
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q054/anchor-01-p063.jpg",
+          "sha256": "a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32",
+          "bytes": 141797,
+          "source_page": 63,
+          "normalized_bbox": [
+            0,
+            0.46,
+            1,
+            0.72
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q054-r001",
+          "order_index": 0,
+          "kind": "source_note",
+          "source_page": 63,
+          "he": "חומרים קראמיים",
+          "he_niqqud": "חֳומָרִים קֵרָאמִיִּים",
+          "transliteration": "Chomarim keramiyim",
+          "ru": "Керамические материалы",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r002",
+          "order_index": 1,
+          "kind": "task_heading",
+          "source_page": 63,
+          "he": "שאלה 54.",
+          "he_niqqud": "שְׁאֵלָה 54.",
+          "transliteration": "She'ela 54.",
+          "ru": "Вопрос 54.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "א) 1. הגדר \"חומר קרמי\".",
+          "he_niqqud": "א) 1. הַגְדֵּר \"חוֹמֶר קֵרָמִי\".",
+          "transliteration": "A) 1. Hagder \"chomer kerami\".",
+          "ru": "А) 1. Дайте определение \"керамическому материалу\".",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "א) 2. רשום את הנוסחה הכימית של שני (2) חומרים קרמיים ממשפחת הקרבידים.",
+          "he_niqqud": "א) 2. רְשׁוֹם אֶת הַנֻּוסְחָה הַכִּימִית שֶׁל שְׁנֵי (2) חֳומָרִים קֵרָמִיִּים מִמִּשְׁפַּחַת הַקַּרְבִּידִים.",
+          "transliteration": "A) 2. Reshom et hanuschah hachimit shel shnei (2) chomarim keramiyim mimishpachat hakarbidim.",
+          "ru": "А) 2. Запишите химические формулы двух (2) керамических материалов из семейства карбидов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "ב) מהם שני (2) היתרונות הראשיים בייצור מוצרים בטכנולוגיית (מטלורגיית) אבקות?",
+          "he_niqqud": "ב) מָהֵם שְׁנֵי (2) הַיִּתְרוֹנוֹת הָרָאשִׁיִּים בְּייִצּוּר מוּצָרִים בְּטֶכְנוֹלוֹגְייַת (מֶטָלוּרְגִּייַת) אֲבָקוֹת?",
+          "transliteration": "B) Mahem shnei (2) hayitronot harashiyim beyitzur mutzarim betechnologiyat (metalurgiyat) avakot?",
+          "ru": "Б) Каковы два (2) основных преимущества производства изделий по технологии (металлургии) порошков?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "ג) האם אפשר לייצר כל מוצר מאבקות?",
+          "he_niqqud": "ג) הַאִם אֶפְשָׁר לְיַיצֵּר כָּל מוּצָר מֵאֲבָקוֹת?",
+          "transliteration": "G) Ha'im efshar leyatzer kol mutzar me'avakot?",
+          "ru": "В) Можно ли изготовить любое изделие из порошков?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "כן/לא?",
+          "he_niqqud": "כֵּן/לֹא?",
+          "transliteration": "Ken/lo?",
+          "ru": "Да/Нет?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q054-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "נמק את תשובתך.",
+          "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+          "transliteration": "Namek et teshuvat'cha.",
+          "ru": "Обоснуйте свой ответ.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q055",
+      "title": "Материаловедение — задача 55",
+      "display_alias": "55",
+      "source_pages": [
+        63
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q055/anchor-01-p063.jpg",
+          "sha256": "b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b",
+          "bytes": 56887,
+          "source_page": 63,
+          "normalized_bbox": [
+            0,
+            0.69,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q055-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 63,
+          "he": "שאלה 55.",
+          "he_niqqud": "שְׁאֵלָה 55.",
+          "transliteration": "She'ela 55.",
+          "ru": "Вопрос 55.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q055-r002",
+          "order_index": 1,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "א) תאר את השלבים של ייצור מוצר בטכנולוגיית אבקות.",
+          "he_niqqud": "א) תָּאֵר אֶת הַשְּׁלָבִים שֶׁל ייִצּוּר מוּצָר בְּטֶכְנוֹלוֹגְייַת אֲבָקוֹת.",
+          "transliteration": "A) Ta'er et hashlabim shel yitzur mutzar betechnologiyat avakot.",
+          "ru": "А) Опишите этапы производства изделия по порошковой технологии.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q055-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "ב) הסבר מדוע מייצרים מוצר ממתק״ש (מתכת קשה) על בסיס טונגסטן (W) בשיטת הסינטור.",
+          "he_niqqud": "ב) הַסְבֵּר מַדּוּעַ מְיַיצְּרִים מוּצָר מִמַּתְקָ״שׁ (מַתֶּכֶת קָשָׁה) עַל בְּסִיס טוּנְגְּסְטֶן (W) בְּשִׁיטַת הַסִּינְטוּר.",
+          "transliteration": "B) Hasber madua meyatzrim mutzar mimatkash (matechet kashah) al bsis tungsten (W) beshitat hasintur.",
+          "ru": "Б) Объясните, почему изделие из твердого сплава (hard metal) на основе вольфрама (W) изготавливается методом спекания.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q055-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 63,
+          "he": "ג) תאר כיצד מייצרים סכין לעיבוד שבבי (Insert) מטונגסטן קרביד (WC), בשיטת הסינטור, בפאזה נוזלית.",
+          "he_niqqud": "ג) תָּאֵר כֵּיצַד מְיַיצְּרִים סַכִּין לְעִיבּוּד שְׁבָבִי (Insert) מִטּוּנְגְּסְטֶן קַרְבִּיד (WC), בְּשִׁיטַת הַסִּינְטוּר, בְּפָאזָה נוֹזְלִית.",
+          "transliteration": "G) Ta'er keitzad meyatzrim sakin le'ibud shvavi (Insert) mitungsten karbid (WC), beshitat hasintur, befazah nozlit.",
+          "ru": "В) Опишите, как изготавливают режущую пластину (Insert) из карбида вольфрама (WC) методом жидкофазного спекания.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q056",
+      "title": "Материаловедение — задача 56",
+      "display_alias": "56",
+      "source_pages": [
+        64
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q056-v01",
+          "source_page": 64,
+          "kind": "COMPOSITE_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q056/anchor-01-p064.jpg",
+          "sha256": "e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042",
+          "bytes": 162952,
+          "source_page": 64,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            0.58
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q056-r001",
+          "order_index": 0,
+          "kind": "source_note",
+          "source_page": 64,
+          "he": "חומרים מרוכבים",
+          "he_niqqud": "חֳומָרִים מְרֻוכָּבִים",
+          "transliteration": "Chomarim merukavim",
+          "ru": "Композиционные материалы",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r002",
+          "order_index": 1,
+          "kind": "task_heading",
+          "source_page": 64,
+          "he": "שאלה 56.",
+          "he_niqqud": "שְׁאֵלָה 56.",
+          "transliteration": "She'ela 56.",
+          "ru": "Вопрос 56.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "א) הגדר ארבע תנאים עיקריים הנדרשים מחומר מרוכב.",
+          "he_niqqud": "א) הַגְדֵּר אַרְבַּע תְּנָאִים עִיקָּרִיִּים הַנִּדְרָשִׁים מֵחוֹמֶר מְרֻוכָּב.",
+          "transliteration": "A) Hagder arba tna'im ikariyim hanidrashim mechomer merukav.",
+          "ru": "A) Определите четыре основных условия, которым должен соответствовать композиционный материал.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "ב) מהי המשמעות של חוזק סגולי גבוה בחומרים מרוכבים?",
+          "he_niqqud": "ב) מַהִי הַמַּשְׁמָעוּת שֶׁל חֹוזֶק סְגֻולִּי גָּבוֹהַּ בַּחֳומָרִים מְרֻוכָּבִים?",
+          "transliteration": "B) Mahi hamashma'ut shel chozek seguli gavoah bachomarim merukavim?",
+          "ru": "Б) Каково значение высокой удельной прочности в композиционных материалах?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "הסבר את תשובתך.",
+          "he_niqqud": "הַסְבֵּר אֶת תְּשׁוּבָתְךָ.",
+          "transliteration": "Hasber et teshuvat'cha.",
+          "ru": "Объясните свой ответ.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "ג) נתונות התכונות המכאניות של פוליסטירן ושל פוליסטירן משוריין.",
+          "he_niqqud": "ג) נְתוּנוֹת הַתְּכוּנוֹת הַמְּכָאנִיּוֹת שֶׁל פּוֹלִיסְטִירֶן וְשֶׁל פּוֹלִיסְטִירֶן מְשֻׁורְייָן.",
+          "transliteration": "G) Netunot hatkhunot hamechaniyot shel polistiren veshel polistiren meshuryan.",
+          "ru": "В) Даны механические свойства полистирола и армированного полистирола.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r007",
+          "order_index": 6,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "ג) 1) הסבר מהו תפקידו של המשריין, וללא חישוב, קבע ונמק לאיזה חומר יהיה חוזק סגולי גבוה יותר.",
+          "he_niqqud": "ג) 1) הַסְבֵּר מַהוּ תַּפְקִידוֹ שֶׁל הַמְשָׁרְייֵן, וּלְלֹא חִישּׁוּב, קְבַע וְנַמֵּק לְאֵיזֶה חוֹמֶר יִהְיֶה חֹוזֶק סְגֻולִּי גָּבוֹהַּ יוֹתֵר.",
+          "transliteration": "G) 1) Hasber mahu tafkido shel hamashryen, ulelo chishuv, keva venamek le'eizeh chomer yihyeh chozek seguli gavoah yoter.",
+          "ru": "В) 1) Объясните роль армирующего наполнителя и без расчетов определите и обоснуйте, какой материал будет иметь более высокую удельную прочность.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r008",
+          "order_index": 7,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "ג) 2) חשב את החוזק הסגולי של כל אחד מהחומרים.",
+          "he_niqqud": "ג) 2) חַשֵּׁב אֶת הַחֹוזֶק הַסְּגֻולִּי שֶׁל כָּל אֶחָד מֵהַחֳומָרִים.",
+          "transliteration": "G) 2) Chashev et hachozek haseguli shel kol echad mehachomarim.",
+          "ru": "В) 2) Рассчитайте удельную прочность для каждого из материалов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q056-r009",
+          "order_index": 8,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "(נתונים: משקל סגולי 1050/1280; חוזק משיכה 4570/9843; התארכות 2%/1.1%)",
+          "he_niqqud": "(נְתוּנִים: מִשְׁקָל סְגֻולִּי 1050/1280; חֹוזֶק מְשִׁיכָה 4570/9843; הִתְאָרְכוּת 2%/1.1%)",
+          "transliteration": "(Netunim: mishkal seguli 1050/1280; chozek meshichah 4570/9843; hit'archut 2%/1.1%)",
+          "ru": "(Данные: удельный вес 1050/1280; прочность на растяжение 4570/9843; удлинение 2%/1.1%)",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q057",
+      "title": "Материаловедение — задача 57",
+      "display_alias": "57",
+      "source_pages": [
+        64
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q057-v01",
+          "source_page": 64,
+          "kind": "COMPOSITE_REINFORCEMENT_STRUCTURE_DIAGRAM",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q057/anchor-01-p064.jpg",
+          "sha256": "25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1",
+          "bytes": 132811,
+          "source_page": 64,
+          "normalized_bbox": [
+            0,
+            0.54,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q057-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 64,
+          "he": "שאלה 57.",
+          "he_niqqud": "שְׁאֵלָה 57.",
+          "transliteration": "She'ela 57.",
+          "ru": "Вопрос 57.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q057-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 64,
+          "he": "האיור לשאלה מציג שלושה מבנים של חומרים מורכבים משוריינים בשכבות.",
+          "he_niqqud": "הָאִיּוּר לִשְׁאֵלָה מַצִּיג שְׁלוֹשָׁה מִבְנִים שֶׁל חֳומָרִים מֻורְכָּבִים מְשֻׁורְייָנִים בִּשְׁכָבוֹת.",
+          "transliteration": "Ha'iyur lish'elah matzig shloshah mivnim shel chomarim murkavim meshuryanim bishkhavot.",
+          "ru": "Рисунок к вопросу показывает три структуры слоистых армированных композиционных материалов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q057-r003",
+          "order_index": 2,
+          "kind": "condition",
+          "source_page": 64,
+          "he": "1. משוריינים בחלקיקים.",
+          "he_niqqud": "1. מְשֻׁורְייָנִים בְּחֶלְקִיקִים.",
+          "transliteration": "1. Meshuryanim bechelkikim.",
+          "ru": "1. Армированные частицами.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q057-r004",
+          "order_index": 3,
+          "kind": "condition",
+          "source_page": 64,
+          "he": "2. משוריינים בסיבים.",
+          "he_niqqud": "2. מְשֻׁורְייָנִים בְּסִיבִים.",
+          "transliteration": "2. Meshuryanim besivim.",
+          "ru": "2. Армированные волокнами.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q057-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "א) איזה מבנה (או אילו מבנים) יציג (או יציגו) תכונות מכניות איזוטרופיות בעת הפעלת מאמץ בשלושת הצירים הראשיים.",
+          "he_niqqud": "א) אֵיזֶה מִבְנֶה (אוֹ אֵילּוּ מִבְנִים) יַצִּיג (אוֹ יַצִּיגוּ) תְּכוּנוֹת מְכָנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת בְּעֵת הַפְעָלַת מַאֲמָץ בִּשְׁלוֹשֶׁת הַצִּירִים הָרָאשִׁיִּים.",
+          "transliteration": "A) Eizeh mivneh (o eilu mivnim) yatzig (o yatzigu) tkhunot mechaniyot izotropiyot be'et haf'alat ma'amatz bishloshet hatzirim harashiyim.",
+          "ru": "А) Какая структура (или какие структуры) будет (или будут) обладать изотропными механическими свойствами при приложении напряжения по трем основным осям.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q057-r006",
+          "order_index": 5,
+          "kind": "subpart",
+          "source_page": 64,
+          "he": "נמק את תשובתך.",
+          "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+          "transliteration": "Namek et teshuvat'cha.",
+          "ru": "Обоснуйте свой ответ.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q058",
+      "title": "Материаловедение — задача 58",
+      "display_alias": "58",
+      "source_pages": [
+        65
+      ],
+      "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "verification_status": "source_first_reviewed_visuals_materialized",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q058-v01",
+          "source_page": 65,
+          "kind": "FIBER_REINFORCED_COMPOSITE_CUBE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [],
+      "source_assets": [
+        {
+          "path": "assets/source/materials-science-y1-pb2-q058/anchor-01-p065.jpg",
+          "sha256": "768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821",
+          "bytes": 183903,
+          "source_page": 65,
+          "normalized_bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "role": "condition"
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "materials-science-y1-pb2-q058-r001",
+          "order_index": 0,
+          "kind": "task_heading",
+          "source_page": 65,
+          "he": "שאלה 58.",
+          "he_niqqud": "שְׁאֵלָה 58.",
+          "transliteration": "She'ela 58.",
+          "ru": "Вопрос 58.",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q058-r002",
+          "order_index": 1,
+          "kind": "diagram_reference",
+          "source_page": 65,
+          "he": "באיור לשאלה 3 מוצגת קובייה העשויה מפולימר (חומר אם) והמחוזקת בסיבים של חומרים קרמיים.",
+          "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 3 מֻוצֶּגֶת קֻובִּייָּה הָעֲשׂוּיָה מִפּוֹלִימֶר (חוֹמֶר אֵם) וְהַמְּחֻוזֶּקֶת בְּסִיבִים שֶׁל חֳומָרִים קֵרָמִיִּים.",
+          "transliteration": "Ba'iyur lish'elah 3 mutzeget kubiyah ha'asuyah mipolimer (chomer em) vehamchuzeket besivim shel chomarim keramiyim.",
+          "ru": "На рисунке к вопросу 3 показан куб, изготовленный из полимера (исходный материал/матрица) и армированный волокнами керамических материалов.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q058-r003",
+          "order_index": 2,
+          "kind": "subpart",
+          "source_page": 65,
+          "he": "א) האם הקובייה בעלת תכונות מכניות איזוטרופיות או אנאיזוטרופיות.",
+          "he_niqqud": "א) הַאִם הַקֻּובִּייָּה בַּעֲלַת תְּכוּנוֹת מְכָנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת אוֹ אָנְאִיזוֹטְרוֹפִּיּוֹת.",
+          "transliteration": "A) Ha'im hakubiyah ba'alat tkhunot mechaniyot izotropiyot o an'izotropiyot.",
+          "ru": "А) Обладает ли куб изотропными или анизотропными механическими свойствами?",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q058-r004",
+          "order_index": 3,
+          "kind": "subpart",
+          "source_page": 65,
+          "he": "נמק את תשובתך.",
+          "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+          "transliteration": "Namek et teshuvat'cha.",
+          "ru": "Обоснуйте свой ответ.",
+          "canonical_provenance": "provider_reviewed"
+        },
+        {
+          "row_id": "materials-science-y1-pb2-q058-r005",
+          "order_index": 4,
+          "kind": "subpart",
+          "source_page": 65,
+          "he": "ב) סרטט שלוש עקומות מאמץ (σ) כנגד מעוות (ε) סכמתיות על אותה מערכת צירים לתיאור התכונות המכניות של חומר האם, הסיב הקרמי והחומר המרוכב.",
+          "he_niqqud": "ב) סַרְטֵט שָׁלוֹשׁ עֲקֻומּוֹת מַאֲמָץ (σ) כְּנֶגֶד מְעֻווָּת (ε) סְכֶמָתִיּוֹת עַל אוֹתָהּ מַעֲרֶכֶת צִירִים לְתֵיאוּר הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל חוֹמֶר הָאֵם, הַסִּיב הַקֵּרָמִי וְהַחוֹמֶר הַמְרֻוכָּב.",
+          "transliteration": "B) Sartet shalosh akumot ma'amatz (σ) keneged me'uvat (ε) schematiyot al otah ma'arechet tzirim lete'ur hatkhunot hamechaniyot shel chomer ha'em, hasiv hakerami vehachomer hamerukav.",
+          "ru": "Б) Начертите схематично три кривые «напряжение (σ) — деформация (ε)» на одной системе координат для описания механических свойств материала матрицы, керамического волокна и композиционного материала.",
+          "canonical_provenance": "provider_reviewed"
+        }
+      ]
+    }
+  ]
+}

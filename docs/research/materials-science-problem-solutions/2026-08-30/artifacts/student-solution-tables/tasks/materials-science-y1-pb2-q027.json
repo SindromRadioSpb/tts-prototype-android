@@ -1,0 +1,4044 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q027",
+  "display_alias": "27",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "688b2d799ad7da8b942ba0d5aab095ca55101fcd920632ee5fcf0e097be1bebc"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Carbon ordering, ductility, Acm meaning, SAE 1040 ferrite-pearlite structure and absence of martensite from the equilibrium diagram match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q027-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 27.",
+        "hebrew_niqqud": "שְׁאֵלָה 27.",
+        "translit": "She'ela 27.",
+        "translit_ru": "",
+        "russian": "Вопрос 27.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "task_heading",
+            "source_page": 35,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r002",
+        "order_index": 1,
+        "hebrew_plain": "(4 נק')",
+        "hebrew_niqqud": "(4 נק')",
+        "translit": "(4 nek')",
+        "translit_ru": "",
+        "russian": "(4 балла)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r003",
+        "order_index": 2,
+        "hebrew_plain": "1. באיזו מהפלדות כמות הפחמן גדולה יותר? נמק.",
+        "hebrew_niqqud": "1. בְּאֵיזוֹ מֵהַפְּלָדוֹת כַּמּוּת הפחמן גְּדוֹלָה יוֹתֵר? נַמֵּק.",
+        "translit": "1. Be-eizo me-ha-pladot kamut ha-pekham gdolah yoter? Namek.",
+        "translit_ru": "",
+        "russian": "1. В какой из сталей содержание углерода больше? Обоснуйте.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r004",
+        "order_index": 3,
+        "hebrew_plain": "(4 נק')",
+        "hebrew_niqqud": "(4 נק')",
+        "translit": "(4 nek')",
+        "translit_ru": "",
+        "russian": "(4 балла)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r005",
+        "order_index": 4,
+        "hebrew_plain": "2. איזו מהפלדות פלסטית יותר? נמק.",
+        "hebrew_niqqud": "2. אֵיזוֹ מֵהַפְּלָדוֹת פְּלַסְטִית יוֹתֵר? נַמֵּק.",
+        "translit": "2. Eizo me-ha-pladot plastit yoter? Namek.",
+        "translit_ru": "",
+        "russian": "2. Какая из сталей более пластична? Обоснуйте.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r006",
+        "order_index": 5,
+        "hebrew_plain": "(4 נק')",
+        "hebrew_niqqud": "(4 נק')",
+        "translit": "(4 nek')",
+        "translit_ru": "",
+        "russian": "(4 балла)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r007",
+        "order_index": 6,
+        "hebrew_plain": "3. באיזו מהפלדות קיימת נקודת Acm ומה משמעותה?",
+        "hebrew_niqqud": "3. בְּאֵיזוֹ מֵהַפְּלָדוֹת קַייֶּמֶת נְקֻודַּת Acm וּמַה מַשְׁמָעוּתָהּ?",
+        "translit": "3. Be-eizo me-ha-pladot kayemet nekudat Acm u-mah mashma'utah?",
+        "translit_ru": "",
+        "russian": "3. Для какой из сталей существует точка Acm и каково её значение?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r008",
+        "order_index": 7,
+        "hebrew_plain": "פלדה 1",
+        "hebrew_niqqud": "פְּלָדָה 1",
+        "translit": "Pladah 1",
+        "translit_ru": "",
+        "russian": "Сталь 1",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "diagram_label",
+            "source_page": 35,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r009",
+        "order_index": 8,
+        "hebrew_plain": "פרליט",
+        "hebrew_niqqud": "פֶּרְלִיט",
+        "translit": "Perlit",
+        "translit_ru": "",
+        "russian": "Перлит",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "diagram_label",
+            "source_page": 35,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r010",
+        "order_index": 9,
+        "hebrew_plain": "פלדה 2",
+        "hebrew_niqqud": "פְּלָדָה 2",
+        "translit": "Pladah 2",
+        "translit_ru": "",
+        "russian": "Сталь 2",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "diagram_label",
+            "source_page": 35,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r011",
+        "order_index": 10,
+        "hebrew_plain": "פרליט",
+        "hebrew_niqqud": "פֶּרְלִיט",
+        "translit": "Perlit",
+        "translit_ru": "",
+        "russian": "Перлит",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "diagram_label",
+            "source_page": 35,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r012",
+        "order_index": 11,
+        "hebrew_plain": "צמנטיט",
+        "hebrew_niqqud": "צֶמֶנְטִיט",
+        "translit": "Tsementit",
+        "translit_ru": "",
+        "russian": "Цементит",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "diagram_label",
+            "source_page": 35,
+            "source_row_index": 11,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r013",
+        "order_index": 12,
+        "hebrew_plain": "(7 נק')",
+        "hebrew_niqqud": "(7 נק')",
+        "translit": "(7 nek')",
+        "translit_ru": "",
+        "russian": "(7 баллов)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 12,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 12,
+        "sentence_index": 12,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r014",
+        "order_index": 13,
+        "hebrew_plain": "ב. השתמש בנספח לשאלה 8 סעיף ב' וענה :",
+        "hebrew_niqqud": "ב. הִשְׁתַּמֵּשׁ בְּנִסְפָּח לִשְׁאֵלָה 8 סָעִיף ב' וַעֲנֵה :",
+        "translit": "b. Hishtamesh be-nispakh li-she'elah 8 sa'if bet va-aneh :",
+        "translit_ru": "",
+        "russian": "б. Используйте приложение к вопросу 8, пункт б, и ответьте:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 13,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 13,
+        "sentence_index": 13,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r015",
+        "order_index": 14,
+        "hebrew_plain": "מהו מבנה של פלדה SAE 1040. לאחר חימום לטמפרטורה 840° וקירור איטי בתנור סגור וכבוי? (7 נק')",
+        "hebrew_niqqud": "מַהוּ מִבְנֶה שֶׁל פְּלָדָה SAE 1040. לְאַחַר חִימּוּם לְטֶמְפֶּרָטוּרָה 840° וְקֵירוּר אִיטִּי בְּתַנּוּר סָגוּר וְכָבוּי? (7 נק')",
+        "translit": "Mahu mivneh shel pladah SAE 1040. le'akhar khimum le-temperaturah 840° ve-keirur iti be-tanur sagur ve-khavui? (7 nek')",
+        "translit_ru": "",
+        "russian": "Какова структура стали SAE 1040 после нагрева до температуры 840° и медленного охлаждения в закрытой выключенной печи? (7 баллов)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 14,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 14,
+        "sentence_index": 14,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r016",
+        "order_index": 15,
+        "hebrew_plain": "(6 נק')",
+        "hebrew_niqqud": "(6 נק')",
+        "translit": "(6 nek')",
+        "translit_ru": "",
+        "russian": "(6 баллов)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 15,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 15,
+        "sentence_index": 15,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q027-r017",
+        "order_index": 16,
+        "hebrew_plain": "ג. מדוע בדיאגרמה \"ברזל פחמן\" לא מופיע מבנה (פאזה) מרטנסיט?",
+        "hebrew_niqqud": "ג. מַדּוּעַ בַּדִּיאָגְרָמָה \"בַּרְזֶל פחמן\" לֹא מוֹפִיעַ מִבְנֶה (פָאזָה) מַרְטֶנְסִיט?",
+        "translit": "g. Madu'a ba-diagrahmah \"barzel pekham\" lo mofi'a mivneh (fazah) martensite?",
+        "translit_ru": "",
+        "russian": "в. Почему на диаграмме «железо–углерод» не отображается структура (фаза) мартенсит?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q027",
+            "kind": "subpart",
+            "source_page": 35,
+            "source_row_index": 16,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 16,
+        "sentence_index": 16,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      35,
+      36,
+      70
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q027/anchor-01-p035.jpg",
+        "sha256": "6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "bytes": 223851,
+        "source_page": 35,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition"
+      },
+      {
+        "path": "assets/source/materials-science-y1-pb2-q027/anchor-02-p036.jpg",
+        "sha256": "4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "bytes": 99599,
+        "source_page": 36,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          0.34
+        ],
+        "role": "condition_continuation"
+      },
+      {
+        "path": "assets/reference/iron_carbon_phase_diagram_appendix-p070.jpg",
+        "sha256": "88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "bytes": 715522,
+        "source_page": 70,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:IRON_CARBON_PHASE_DIAGRAM_APPENDIX"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q027-v01",
+        "source_page": 35,
+        "kind": "STEEL_MICROGRAPH",
+        "instance_count": 2,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": [
+      {
+        "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+        "source_pages": [
+          70
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p070"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) בפלדה 2 כמות הפחמן גדולה יותר.",
+        "he_niqqud": "א) בפלדה 2 כמות הפחמן גדולה יותר.",
+        "transliteration": "A) BaPladah 2 kamut hapahman gdola yoter.",
+        "ru": "А) В стали 2 содержание углерода выше."
+      },
+      "source_refs": [
+        "legacy_row_hash:b3d2f5269a57c0728ba6fc1df47bebcd082abd3fcda265eb7334121119017bfb",
+        "legacy_fields_sha256:42b59bd0fc5e7f8be6a6629b1c016f56d26b407eaede728fff1e97860d5df33e",
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "כמות",
+            "normalized": "כמות"
+          },
+          {
+            "index": 4,
+            "surface": "הפחמן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 5,
+            "surface": "גדולה",
+            "normalized": "גדולה"
+          },
+          {
+            "index": 6,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) פלדה 1 פלסטית יותר.",
+        "he_niqqud": "ב) פלדה 1 פלסטית יותר.",
+        "transliteration": "B) Pladah 1 plastit yoter.",
+        "ru": "Б) Сталь 1 более пластична."
+      },
+      "source_refs": [
+        "legacy_row_hash:3983c11b5904232ca2b9a0f290e588b1b764bf77abb362cf07d7296689360bbc",
+        "legacy_fields_sha256:6fbb7e9088e714584d6142add28f3de7d65e2a871e2e573b07a3fbb7006af79e",
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "פלדה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 2,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 3,
+            "surface": "פלסטית",
+            "normalized": "פלסטית"
+          },
+          {
+            "index": 4,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה 2 מופיעים פרליט וצמנטיט.",
+        "he_niqqud": "בפלדה 2 מופיעים פרליט וצמנטיט.",
+        "transliteration": "BaPladah 2 mofi'im peralit ve'cementit.",
+        "ru": "В стали 2 присутствуют перлит и цементит."
+      },
+      "source_refs": [
+        "legacy_row_hash:a4560c7955c97384e4bd57f191d94ca5315f50b44d28506c9e2a3520ef80cc67",
+        "legacy_fields_sha256:cb1b796106cb38e212e8c382c88c3395774d69f2cc3251000bab6a98460eccda",
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "מופיעים",
+            "normalized": "מופיעים"
+          },
+          {
+            "index": 3,
+            "surface": "פרליט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 4,
+            "surface": "וצמנטיט.",
+            "normalized": "וצמנטיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "הפרליט גס בגלל קירור איטי.",
+        "he_niqqud": "הפרליט גס בגלל קירור איטי.",
+        "transliteration": "HaPeralit gas biglal qirur iṭi.",
+        "ru": "Перлит крупный из-за медленного охлаждения."
+      },
+      "source_refs": [
+        "legacy_row_hash:ed137b3eb215b875fa2e0bbc293a64881523649463771a033931bbcc9b6aad7f",
+        "legacy_fields_sha256:9306a543a5fd7b1448f15108f5551c852068b3edc13ebd588bc93b239e51edc4",
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הפרליט",
+            "normalized": "הפרליט"
+          },
+          {
+            "index": 1,
+            "surface": "גס",
+            "normalized": "גס"
+          },
+          {
+            "index": 2,
+            "surface": "בגלל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 3,
+            "surface": "קירור",
+            "normalized": "קירור"
+          },
+          {
+            "index": 4,
+            "surface": "איטי.",
+            "normalized": "איטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r006",
+      "order": 6,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מרטנסיט נוצר בקירור מהיר כטרנספורמציה ללא דיפוזיה.",
+        "he_niqqud": "מרטנסיט נוצר בקירור מהיר כטרנספורמציה ללא דיפוזיה.",
+        "transliteration": "Marṭensit notzar beQirur mahir keṬransformaẓyah lelo difuzia.",
+        "ru": "Мартенсит образуется при быстром охлаждении как превращение без диффузии."
+      },
+      "source_refs": [
+        "legacy_row_hash:4cc7d5504092584aa2ddbc03c8dc0cf6796827ae40d53453820eda4a87ae2dbd",
+        "legacy_fields_sha256:df9c0c83258d2ce26d9f5dfaf297b69d92c94d5e79ea2b472d0c75ec4cec4d17",
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מרטנסיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 1,
+            "surface": "נוצר",
+            "normalized": "נוצר"
+          },
+          {
+            "index": 2,
+            "surface": "בקירור",
+            "normalized": "בקירור"
+          },
+          {
+            "index": 3,
+            "surface": "מהיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 4,
+            "surface": "כטרנספורמציה",
+            "normalized": "כטרנספורמציה"
+          },
+          {
+            "index": 5,
+            "surface": "ללא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 6,
+            "surface": "דיפוזיה.",
+            "normalized": "דיפוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) בפלדה 2 כמות הפחמן גדולה יותר.",
+        "he_niqqud": "א) בפלדה 2 כמות הפחמן גדולה יותר.",
+        "transliteration": "A) BaPladah 2 kamut hapahman gdola yoter.",
+        "ru": "А) В стали 2 содержание углерода выше."
+      },
+      "source_refs": [
+        "legacy_row_hash:b3d2f5269a57c0728ba6fc1df47bebcd082abd3fcda265eb7334121119017bfb",
+        "legacy_fields_sha256:42b59bd0fc5e7f8be6a6629b1c016f56d26b407eaede728fff1e97860d5df33e",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "כמות",
+            "normalized": "כמות"
+          },
+          {
+            "index": 4,
+            "surface": "הפחמן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 5,
+            "surface": "גדולה",
+            "normalized": "גדולה"
+          },
+          {
+            "index": 6,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה 1 מופיע פרליט בלבד.",
+        "he_niqqud": "בפלדה 1 מופיע פרליט בלבד.",
+        "transliteration": "BaPladah 1 mofia peralit bilvad.",
+        "ru": "В стали 1 присутствует только перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:5fcb91eb736ed5d88e6a420da75e977d90c2f52977b780017f4ae5c24e74a6dd",
+        "legacy_fields_sha256:782cc99f1587036e7d746ac4ee90f517f8bca90a659b70c381d83677cf09b9c5",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "מופיע",
+            "normalized": "מופיע"
+          },
+          {
+            "index": 3,
+            "surface": "פרליט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 4,
+            "surface": "בלבד.",
+            "normalized": "בלבד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה 2 מופיעים פרליט וצמנטיט.",
+        "he_niqqud": "בפלדה 2 מופיעים פרליט וצמנטיט.",
+        "transliteration": "BaPladah 2 mofi'im peralit ve'cementit.",
+        "ru": "В стали 2 присутствуют перлит и цементит."
+      },
+      "source_refs": [
+        "legacy_row_hash:a4560c7955c97384e4bd57f191d94ca5315f50b44d28506c9e2a3520ef80cc67",
+        "legacy_fields_sha256:cb1b796106cb38e212e8c382c88c3395774d69f2cc3251000bab6a98460eccda",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "מופיעים",
+            "normalized": "מופיעים"
+          },
+          {
+            "index": 3,
+            "surface": "פרליט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 4,
+            "surface": "וצמנטיט.",
+            "normalized": "וצמנטיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הופעת צמנטיט בנוסף לפרליט מעידה על פלדה היפר-אאוטקטואידית.",
+        "he_niqqud": "הופעת צמנטיט בנוסף לפרליט מעידה על פלדה היפר-אאוטקטואידית.",
+        "transliteration": "Hofa'at cementit benosaf laPeralit me'idah al pladah hiper-eutectoidit.",
+        "ru": "Появление цементита в дополнение к перлиту свидетельствует о заэвтектоидной стали."
+      },
+      "source_refs": [
+        "legacy_row_hash:e429247cbc304a16645890275304369744831738836481639706d616709a6480",
+        "legacy_fields_sha256:43ddbd8efe8c1d46ee18cf01803119a5157e173fbd734f747d35694a9a92c6f5",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הופעת",
+            "normalized": "הופעת"
+          },
+          {
+            "index": 1,
+            "surface": "צמנטיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 2,
+            "surface": "בנוסף",
+            "normalized": "בנוסף"
+          },
+          {
+            "index": 3,
+            "surface": "לפרליט",
+            "normalized": "לפרליט"
+          },
+          {
+            "index": 4,
+            "surface": "מעידה",
+            "normalized": "מעידה"
+          },
+          {
+            "index": 5,
+            "surface": "על",
+            "normalized": "על"
+          },
+          {
+            "index": 6,
+            "surface": "פלדה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 7,
+            "surface": "היפר-אאוטקטואידית.",
+            "normalized": "היפר-אאוטקטואידית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה היפר-אאוטקטואידית תכולת הפחמן גבוהה מן התכולה האאוטקטואידית.",
+        "he_niqqud": "בפלדה היפר-אאוטקטואידית תכולת הפחמן גבוהה מן התכולה האאוטקטואידית.",
+        "transliteration": "BaPladah hiper-eutectoidit tehulat hapahman gvoha min hatehulah ha'eutectoidit.",
+        "ru": "В заэвтектоидной стали содержание углерода выше эвтектоидного содержания."
+      },
+      "source_refs": [
+        "legacy_row_hash:a316db1cf9bc5673521104519c4461de4ecb5003ec081f32b860893470c24302",
+        "legacy_fields_sha256:189052d9f11066d4644ada567f2dbdac267e0b6e787f815faa04eb16a1ef956b",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "היפר-אאוטקטואידית",
+            "normalized": "היפר-אאוטקטואידית"
+          },
+          {
+            "index": 2,
+            "surface": "תכולת",
+            "normalized": "תכולת"
+          },
+          {
+            "index": 3,
+            "surface": "הפחמן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 4,
+            "surface": "גבוהה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 5,
+            "surface": "מן",
+            "normalized": "מן"
+          },
+          {
+            "index": 6,
+            "surface": "התכולה",
+            "normalized": "התכולה"
+          },
+          {
+            "index": 7,
+            "surface": "האאוטקטואידית.",
+            "normalized": "האאוטקטואידית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן בפלדה 2 כמות הפחמן גדולה יותר.",
+        "he_niqqud": "לכן בפלדה 2 כמות הפחמן גדולה יותר.",
+        "transliteration": "Lahen baPladah 2 kamut hapahman gdola yoter.",
+        "ru": "Поэтому в стали 2 содержание углерода выше."
+      },
+      "source_refs": [
+        "legacy_row_hash:cca3de892c5f58168b30b4616fda2a7f5cc287cb3dcdf3f1397f9b11207e1c78",
+        "legacy_fields_sha256:23ab473ae3333eaf53dd726726e8ce9ee299e32407b60ef941e3c5cc0fcfc384",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לכן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "כמות",
+            "normalized": "כמות"
+          },
+          {
+            "index": 4,
+            "surface": "הפחמן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 5,
+            "surface": "גדולה",
+            "normalized": "גדולה"
+          },
+          {
+            "index": 6,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) פלדה 1 פלסטית יותר.",
+        "he_niqqud": "ב) פלדה 1 פלסטית יותר.",
+        "transliteration": "B) Pladah 1 plastit yoter.",
+        "ru": "Б) Сталь 1 более пластична."
+      },
+      "source_refs": [
+        "legacy_row_hash:3983c11b5904232ca2b9a0f290e588b1b764bf77abb362cf07d7296689360bbc",
+        "legacy_fields_sha256:6fbb7e9088e714584d6142add28f3de7d65e2a871e2e573b07a3fbb7006af79e",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "פלדה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 2,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 3,
+            "surface": "פלסטית",
+            "normalized": "פלסטית"
+          },
+          {
+            "index": 4,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "פלסטיות תלויה בהרכב ובפאזות.",
+        "he_niqqud": "פלסטיות תלויה בהרכב ובפאזות.",
+        "transliteration": "Plasti'ut tluyah beherkev uvaFaza'ot.",
+        "ru": "Пластичность зависит от состава и фаз."
+      },
+      "source_refs": [
+        "legacy_row_hash:ceb9fc339d7f470a8b9ca356fe92aef35648d11b39be3208a2374683f26dd2b0",
+        "legacy_fields_sha256:9700dabe867c779178bbb3618c52836905f4c6657f37ef8f3acf070b3e391121",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פלסטיות",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 1,
+            "surface": "תלויה",
+            "normalized": "תלויה"
+          },
+          {
+            "index": 2,
+            "surface": "בהרכב",
+            "normalized": "בהרכב"
+          },
+          {
+            "index": 3,
+            "surface": "ובפאזות.",
+            "normalized": "ובפאזות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "צמנטיט הוא פאזה קשה ושבירה.",
+        "he_niqqud": "צמנטיט הוא פאזה קשה ושבירה.",
+        "transliteration": "Cementit hu faza qasha ushvirah.",
+        "ru": "Цементит — это твердая и хрупкая фаза."
+      },
+      "source_refs": [
+        "legacy_row_hash:1af1964a9a908d64c3c1cb1a5b1e44488677e54c65eee88d75ac7649f0d101e5",
+        "legacy_fields_sha256:cd46f9b978677d506ff1838987e2eb5553d049a4376d90824d439d50d9b5dd5a",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צמנטיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 1,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "פאזה",
+            "normalized": "פאזה"
+          },
+          {
+            "index": 3,
+            "surface": "קשה",
+            "normalized": "קשה"
+          },
+          {
+            "index": 4,
+            "surface": "ושבירה.",
+            "normalized": "ושבירה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תוספת צמנטיט מורידה את יכולת העיוות הפלסטי.",
+        "he_niqqud": "תוספת צמנטיט מורידה את יכולת העיוות הפלסטי.",
+        "transliteration": "Tosefet cementit moridah et yekholet ha'ivut haplasti.",
+        "ru": "Добавление цементита снижает способность к пластической деформации."
+      },
+      "source_refs": [
+        "legacy_row_hash:b030aee2c0326b882078893f3a210903eca7617c2e4ee1815141635dcbd5754e",
+        "legacy_fields_sha256:673c795daadb55e7bde5e2a2aa00769793e57fe941bc830f37c79797a5de3172",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תוספת",
+            "normalized": "תוספת"
+          },
+          {
+            "index": 1,
+            "surface": "צמנטיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 2,
+            "surface": "מורידה",
+            "normalized": "מורידה"
+          },
+          {
+            "index": 3,
+            "surface": "את",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "יכולת",
+            "normalized": "יכולת"
+          },
+          {
+            "index": 5,
+            "surface": "העיוות",
+            "normalized": "העיוות"
+          },
+          {
+            "index": 6,
+            "surface": "הפלסטי.",
+            "normalized": "הפלסטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה 2 יש פרליט וצמנטיט ולכן הפלסטיות נמוכה יותר.",
+        "he_niqqud": "בפלדה 2 יש פרליט וצמנטיט ולכן הפלסטיות נמוכה יותר.",
+        "transliteration": "BaPladah 2 yesh peralit ve'cementit velahen haPlasti'ut nemukhah yoter.",
+        "ru": "В стали 2 есть перлит и цементит, поэтому пластичность ниже."
+      },
+      "source_refs": [
+        "legacy_row_hash:983a40c1e1c7cbb3e06a3b0d2ba9d6bbdf8df577665cfd78220cbdf2496ba53b",
+        "legacy_fields_sha256:cb2704d155ab2ce68f6047d819e4e06912a31ff03f427a51754a0c189d9fe7fc",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "יש",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "פרליט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 4,
+            "surface": "וצמנטיט",
+            "normalized": "וצמנטיט"
+          },
+          {
+            "index": 5,
+            "surface": "ולכן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "הפלסטיות",
+            "normalized": "הפלסטיות"
+          },
+          {
+            "index": 7,
+            "surface": "נמוכה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 8,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה 1 יש פרליט בלבד ולכן הפלסטיות גבוהה יותר.",
+        "he_niqqud": "בפלדה 1 יש פרליט בלבד ולכן הפלסטיות גבוהה יותר.",
+        "transliteration": "BaPladah 1 yesh peralit bilvad velahen haPlasti'ut gvoha yoter.",
+        "ru": "В стали 1 есть только перлит, поэтому пластичность выше."
+      },
+      "source_refs": [
+        "legacy_row_hash:4ea43c658d46c24f38edfead7d5ffb5f4e74930d7af87e18aa03e3c429e64083",
+        "legacy_fields_sha256:ec9fcb9289643bbda22d6533a571967717eecc267c78c16729903e101c6c70e2",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "יש",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "פרליט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 4,
+            "surface": "בלבד",
+            "normalized": "בלבד"
+          },
+          {
+            "index": 5,
+            "surface": "ולכן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "הפלסטיות",
+            "normalized": "הפלסטיות"
+          },
+          {
+            "index": 7,
+            "surface": "גבוהה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "יותר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) נקודת (Acm) קיימת בפלדה 2 ומשמעותה קשורה להמסה של צמנטיט באוסטניט בחימום.",
+        "he_niqqud": "ג) נקודת (Acm) קיימת בפלדה 2 ומשמעותה קשורה להמסה של צמנטיט באוסטניט בחימום.",
+        "transliteration": "G) Neqdat (Acm) qaiyemet baPladah 2 uM'ashma'utah qshurah leHamasah shel cementit be'Austenit beHimum.",
+        "ru": "В) Точка (Acm) существует в стали 2, и ее значение связано с растворением цементита в аустените при нагреве."
+      },
+      "source_refs": [
+        "legacy_row_hash:fa88c7e13f2124d92e091e985dca51a8400ff8935efe37b1ee450f91b997b4b6",
+        "legacy_fields_sha256:2c348158bc9ea14d0eb373a2b8b62a223d4e631fbefd8dd741babd2354419a17",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "נקודת",
+            "normalized": "נקודת"
+          },
+          {
+            "index": 2,
+            "surface": "(Acm)",
+            "normalized": "Acm"
+          },
+          {
+            "index": 3,
+            "surface": "קיימת",
+            "normalized": "קיימת"
+          },
+          {
+            "index": 4,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 5,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 6,
+            "surface": "ומשמעותה",
+            "normalized": "ומשמעותה"
+          },
+          {
+            "index": 7,
+            "surface": "קשורה",
+            "normalized": "קשורה"
+          },
+          {
+            "index": 8,
+            "surface": "להמסה",
+            "normalized": "להמסה"
+          },
+          {
+            "index": 9,
+            "surface": "של",
+            "normalized": "של"
+          },
+          {
+            "index": 10,
+            "surface": "צמנטיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 11,
+            "surface": "באוסטניט",
+            "normalized": "באוסטניט"
+          },
+          {
+            "index": 12,
+            "surface": "בחימום.",
+            "normalized": "בחימום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "קו או נקודה (Acm) שייכים לפלדות היפר-אאוטקטואידיות.",
+        "he_niqqud": "קו או נקודה (Acm) שייכים לפלדות היפר-אאוטקטואידיות.",
+        "transliteration": "Qav o nequdah (Acm) shayeikhim lePeladot hiper-eutectoidiot.",
+        "ru": "Линия или точка (Acm) относится к заэвтектоидным сталям."
+      },
+      "source_refs": [
+        "legacy_row_hash:55dc8c8e68b231b7ad0b5d9ca777c1b93e21b438fff1848b505999bfb796923d",
+        "legacy_fields_sha256:6d2803fe4504d524604c031bc6f02813594d8ec26270d2abeab3b122858e2108",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "קו",
+            "normalized": "קו"
+          },
+          {
+            "index": 1,
+            "surface": "או",
+            "normalized": "או"
+          },
+          {
+            "index": 2,
+            "surface": "נקודה",
+            "normalized": "נקודה"
+          },
+          {
+            "index": 3,
+            "surface": "(Acm)",
+            "normalized": "Acm"
+          },
+          {
+            "index": 4,
+            "surface": "שייכים",
+            "normalized": "שייכים"
+          },
+          {
+            "index": 5,
+            "surface": "לפלדות",
+            "normalized": "לפלדות"
+          },
+          {
+            "index": 6,
+            "surface": "היפר-אאוטקטואידיות.",
+            "normalized": "היפר-אאוטקטואידיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה היפר-אאוטקטואידית יש צמנטיט פרו-אאוטקטואידי בנוסף לפרליט.",
+        "he_niqqud": "בפלדה היפר-אאוטקטואידית יש צמנטיט פרו-אאוטקטואידי בנוסף לפרליט.",
+        "transliteration": "BaPladah hiper-eutectoidit yesh cementit pro-eutectoidi benosaf laPeralit.",
+        "ru": "В заэвтектоидной стали есть доэвтектоидный цементит в дополнение к перлиту."
+      },
+      "source_refs": [
+        "legacy_row_hash:eaa524a368426c5931609270bb1a04b2c0e78ddca5cbfa35a78e6a0f6382b98c",
+        "legacy_fields_sha256:0c7e0c8019eae0ed39b208095eceb439e5927d2b6471f8454f93c99a7d338320",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "היפר-אאוטקטואידית",
+            "normalized": "היפר-אאוטקטואידית"
+          },
+          {
+            "index": 2,
+            "surface": "יש",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "צמנטיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 4,
+            "surface": "פרו-אאוטקטואידי",
+            "normalized": "פרו-אאוטקטואידי"
+          },
+          {
+            "index": 5,
+            "surface": "בנוסף",
+            "normalized": "בנוסף"
+          },
+          {
+            "index": 6,
+            "surface": "לפרליט.",
+            "normalized": "לפרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה 2 מופיעים פרליט וצמנטיט ולכן היא מתאימה לקיום (Acm).",
+        "he_niqqud": "בפלדה 2 מופיעים פרליט וצמנטיט ולכן היא מתאימה לקיום (Acm).",
+        "transliteration": "BaPladah 2 mofi'im peralit ve'cementit velahen hi mat'imah leQiyum (Acm).",
+        "ru": "В стали 2 присутствуют перлит и цементит, поэтому она подходит для существования (Acm)."
+      },
+      "source_refs": [
+        "legacy_row_hash:dc48c0fb88f8025c7b4c4600d74633fe4959b59a5ba6c8fad52a583211a3e7fb",
+        "legacy_fields_sha256:ff513226083da547ae47ffb6685269403874cc66fb51bf848d68bb3ead2d31dd",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בפלדה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "מופיעים",
+            "normalized": "מופיעים"
+          },
+          {
+            "index": 3,
+            "surface": "פרליט",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 4,
+            "surface": "וצמנטיט",
+            "normalized": "וצמנטיט"
+          },
+          {
+            "index": 5,
+            "surface": "ולכן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "היא",
+            "normalized": "היא"
+          },
+          {
+            "index": 7,
+            "surface": "מתאימה",
+            "normalized": "מתאימה"
+          },
+          {
+            "index": 8,
+            "surface": "לקיום",
+            "normalized": "לקיום"
+          },
+          {
+            "index": 9,
+            "surface": "(Acm).",
+            "normalized": "Acm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "משמעות (Acm) היא טמפרטורת סיום המסה של צמנטיט לתוך אוסטניט בחימום.",
+        "he_niqqud": "משמעות (Acm) היא טמפרטורת סיום המסה של צמנטיט לתוך אוסטניט בחימום.",
+        "transliteration": "Mashma'ut (Acm) hi ṭemperaṭura siyum hamasah shel cementit letoch austenit beḥimum.",
+        "ru": "Значение (Acm) — это температура завершения растворения цементита в аустените при нагреве."
+      },
+      "source_refs": [
+        "legacy_row_hash:7d238c4b2ac4a49e0c0932c01643b88aaec4b24d2c4661d266d1a7b675338375",
+        "legacy_fields_sha256:b9a38c7713d069982ac97e26148d17b4518e41ce7627355c79880e4b5ec88eb9",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "משמעות",
+            "normalized": "משמעות"
+          },
+          {
+            "index": 1,
+            "surface": "(Acm)",
+            "normalized": "Acm"
+          },
+          {
+            "index": 2,
+            "surface": "היא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "טמפרטורת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 4,
+            "surface": "סיום",
+            "normalized": "סיום"
+          },
+          {
+            "index": 5,
+            "surface": "המסה",
+            "normalized": "המסה"
+          },
+          {
+            "index": 6,
+            "surface": "של",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "צמנטיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 8,
+            "surface": "לתוך",
+            "normalized": "לתוך"
+          },
+          {
+            "index": 9,
+            "surface": "אוסטניט",
+            "normalized": "אוסטניט"
+          },
+          {
+            "index": 10,
+            "surface": "בחימום.",
+            "normalized": "בחימום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעל (Acm) מתקבל אוסטניט חד-פאזי (γ).",
+        "he_niqqud": "מעל (Acm) מתקבל אוסטניט חד-פאזי (γ).",
+        "transliteration": "Me'al (Acm) mitqabel austenit ḥad-fazi (γ).",
+        "ru": "Выше (Acm) получается однофазный аустенит (γ)."
+      },
+      "source_refs": [
+        "legacy_row_hash:4720b2cc64ea58fc5f08ac812c3e395f8ac94981c6353a1216d8edb903545d56",
+        "legacy_fields_sha256:705b2a214e82d6da96bd4be39005bafc37a12be5ccf20e590f0e3b9f69a936e2",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מעל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 1,
+            "surface": "(Acm)",
+            "normalized": "Acm"
+          },
+          {
+            "index": 2,
+            "surface": "מתקבל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 3,
+            "surface": "אוסטניט",
+            "normalized": "אוסטניט"
+          },
+          {
+            "index": 4,
+            "surface": "חד-פאזי",
+            "normalized": "חד-פאזי"
+          },
+          {
+            "index": 5,
+            "surface": "(γ).",
+            "normalized": "γ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מתחת (Acm) נשארת תערובת (γ + Fe₃C).",
+        "he_niqqud": "מתחת (Acm) נשארת תערובת (γ + Fe₃C).",
+        "transliteration": "Miṭaḥat (Acm) nish'eret ta'arovet (γ + Fe₃C).",
+        "ru": "Ниже (Acm) остается смесь (γ + Fe₃C)."
+      },
+      "source_refs": [
+        "legacy_row_hash:6b56040cb8c730884e51bf67335f3c0971b469277be1ec882b7cf3210f4aca47",
+        "legacy_fields_sha256:ec5e60ce5fbd6ed09117d34d4d306a42e16e7877c5d0676300bb80e50394f2a5",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מתחת",
+            "normalized": "מתחת"
+          },
+          {
+            "index": 1,
+            "surface": "(Acm)",
+            "normalized": "Acm"
+          },
+          {
+            "index": 2,
+            "surface": "נשארת",
+            "normalized": "נשארת"
+          },
+          {
+            "index": 3,
+            "surface": "תערובת",
+            "normalized": "תערובת"
+          },
+          {
+            "index": 4,
+            "surface": "(γ",
+            "normalized": "γ"
+          },
+          {
+            "index": 5,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 6,
+            "surface": "Fe₃C).",
+            "normalized": "Fe₃C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) לאחר חימום ל-840° וקירור איטי בתנור סגור וכבוי מתקבל מבנה פריט + פרליט, כאשר הפרליט גס.",
+        "he_niqqud": "ד) לאחר חימום ל-840° וקירור איטי בתנור סגור וכבוי מתקבל מבנה פריט + פרליט, כאשר הפרליט גס.",
+        "transliteration": "D) Ahar ḥimum le-840° veqirur iṭi betanur sagur vekavui mitqabel mivneh Ferit + Peralit, ka'asher haPeralit gas.",
+        "ru": "Г) После нагрева до 840° и медленного охлаждения в закрытой и выключенной печи получается структура феррит + перлит, при этом перлит крупный."
+      },
+      "source_refs": [
+        "legacy_row_hash:3514a8cbe54876cdf9a3f2d3557448f0d12bd4c10e7147fb9266313675d81a6e",
+        "legacy_fields_sha256:f26a891281ab6690981fef6fff322eee510dd17c1d049e3afad88850cd9826da",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "לאחר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 2,
+            "surface": "חימום",
+            "normalized": "חימום"
+          },
+          {
+            "index": 3,
+            "surface": "ל-840°",
+            "normalized": "ל-840"
+          },
+          {
+            "index": 4,
+            "surface": "וקירור",
+            "normalized": "וקירור"
+          },
+          {
+            "index": 5,
+            "surface": "איטי",
+            "normalized": "איטי"
+          },
+          {
+            "index": 6,
+            "surface": "בתנור",
+            "normalized": "בתנור"
+          },
+          {
+            "index": 7,
+            "surface": "סגור",
+            "normalized": "סגור"
+          },
+          {
+            "index": 8,
+            "surface": "וכבוי",
+            "normalized": "וכבוי"
+          },
+          {
+            "index": 9,
+            "surface": "מתקבל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 10,
+            "surface": "מבנה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 11,
+            "surface": "פריט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 12,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 13,
+            "surface": "פרליט,",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 14,
+            "surface": "כאשר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 15,
+            "surface": "הפרליט",
+            "normalized": "הפרליט"
+          },
+          {
+            "index": 16,
+            "surface": "גס.",
+            "normalized": "גס"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r027",
+      "order": 27,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "תכולת הפחמן של (SAE 1040) היא בערך 0.40% C.",
+        "he_niqqud": "תכולת הפחמן של (SAE 1040) היא בערך 0.40% C.",
+        "transliteration": "Tehulat hapahman shel (SAE 1040) hi be'erekh 0.40% C.",
+        "ru": "Содержание углерода в (SAE 1040) составляет примерно 0.40% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:6c1aafea327b053094fdf65f8254c80e7561f9c0906ca28800f700fcf9af8692",
+        "legacy_fields_sha256:2a534f0f9b48717fcc32c5e171c2713667cfde532a8fe9b37ac59cc8d57a4dff",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תכולת",
+            "normalized": "תכולת"
+          },
+          {
+            "index": 1,
+            "surface": "הפחמן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 2,
+            "surface": "של",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "(SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 4,
+            "surface": "1040)",
+            "normalized": "1040"
+          },
+          {
+            "index": 5,
+            "surface": "היא",
+            "normalized": "היא"
+          },
+          {
+            "index": 6,
+            "surface": "בערך",
+            "normalized": "בערך"
+          },
+          {
+            "index": 7,
+            "surface": "0.40%",
+            "normalized": "0.40%"
+          },
+          {
+            "index": 8,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r028",
+      "order": 28,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "0.40% C נמוך מן הערך האאוטקטואידי ולכן זו פלדה היפו-אאוטקטואידית.",
+        "he_niqqud": "0.40% C נמוך מן הערך האאוטקטואידי ולכן זו פלדה היפו-אאוטקטואידית.",
+        "transliteration": "0.40% C namukh min ha'erekh ha'eutectoidi velahen zo pladah hypo-eutectoidit.",
+        "ru": "0.40% C ниже эвтектоидного значения, и поэтому это доэвтектоидная сталь."
+      },
+      "source_refs": [
+        "legacy_row_hash:b5c529e997e987f82f8ff8b6177271906052d8bf1346fb76a476e5b9ceac333b",
+        "legacy_fields_sha256:484fdd1ff433adbd3e354551673786bd36be7a5d30404c7593b37ff44d078b5a",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "0.40%",
+            "normalized": "0.40%"
+          },
+          {
+            "index": 1,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 2,
+            "surface": "נמוך",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 3,
+            "surface": "מן",
+            "normalized": "מן"
+          },
+          {
+            "index": 4,
+            "surface": "הערך",
+            "normalized": "הערך"
+          },
+          {
+            "index": 5,
+            "surface": "האאוטקטואידי",
+            "normalized": "האאוטקטואידי"
+          },
+          {
+            "index": 6,
+            "surface": "ולכן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "זו",
+            "normalized": "זו"
+          },
+          {
+            "index": 8,
+            "surface": "פלדה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 9,
+            "surface": "היפו-אאוטקטואידית.",
+            "normalized": "היפו-אאוטקטואידית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r029",
+      "order": 29,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "בחימום ל-840° עוברים מעל (A3) ומקבלים אוסטניט (γ).",
+        "he_niqqud": "בחימום ל-840° עוברים מעל (A3) ומקבלים אוסטניט (γ).",
+        "transliteration": "BeḤimum le-840° ovrim me'al (A3) umqablim austenit (γ).",
+        "ru": "При нагреве до 840° мы переходим выше (A3) и получаем аустенит (γ)."
+      },
+      "source_refs": [
+        "legacy_row_hash:b58369bcadf52dc97d1c50aa01b8d24116f3caedf49007707ff9ac5a158c86ea",
+        "legacy_fields_sha256:bca75d96070116834a4e2964e66e21f1fffe8eb74e21d74c237e1a69fb57b21b",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בחימום",
+            "normalized": "בחימום"
+          },
+          {
+            "index": 1,
+            "surface": "ל-840°",
+            "normalized": "ל-840"
+          },
+          {
+            "index": 2,
+            "surface": "עוברים",
+            "normalized": "עוברים"
+          },
+          {
+            "index": 3,
+            "surface": "מעל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 4,
+            "surface": "(A3)",
+            "normalized": "A3"
+          },
+          {
+            "index": 5,
+            "surface": "ומקבלים",
+            "normalized": "ומקבלים"
+          },
+          {
+            "index": 6,
+            "surface": "אוסטניט",
+            "normalized": "אוסטניט"
+          },
+          {
+            "index": 7,
+            "surface": "(γ).",
+            "normalized": "γ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "קירור איטי בתנור הוא קירור קרוב לתנאי שיווי-משקל עם דיפוזיה מספקת.",
+        "he_niqqud": "קירור איטי בתנור הוא קירור קרוב לתנאי שיווי-משקל עם דיפוזיה מספקת.",
+        "transliteration": "Qirur iṭi baTanur hu qirur qarov litna'ei shivui-mishqal im difuzia maspeqet.",
+        "ru": "Медленное охлаждение в печи — это охлаждение, близкое к условиям равновесия с достаточной диффузией."
+      },
+      "source_refs": [
+        "legacy_row_hash:f044b6315ac36ce18cc76bce15995137d6a5cca84653c889f1dbcedeb7cfd3f0",
+        "legacy_fields_sha256:d1fa6b21e8bfbcd1e412dece8f86754f8501feb7e0c97319c894214a17389181",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "קירור",
+            "normalized": "קירור"
+          },
+          {
+            "index": 1,
+            "surface": "איטי",
+            "normalized": "איטי"
+          },
+          {
+            "index": 2,
+            "surface": "בתנור",
+            "normalized": "בתנור"
+          },
+          {
+            "index": 3,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "קירור",
+            "normalized": "קירור"
+          },
+          {
+            "index": 5,
+            "surface": "קרוב",
+            "normalized": "קרוב"
+          },
+          {
+            "index": 6,
+            "surface": "לתנאי",
+            "normalized": "לתנאי"
+          },
+          {
+            "index": 7,
+            "surface": "שיווי-משקל",
+            "normalized": "שיווי-משקל"
+          },
+          {
+            "index": 8,
+            "surface": "עם",
+            "normalized": "עם"
+          },
+          {
+            "index": 9,
+            "surface": "דיפוזיה",
+            "normalized": "דיפוזיה"
+          },
+          {
+            "index": 10,
+            "surface": "מספקת.",
+            "normalized": "מספקת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r031",
+      "order": 31,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקירור מתחת ל-(A3) מתחיל להיווצר פריט פרו-אאוטקטואידי.",
+        "he_niqqud": "בקירור מתחת ל-(A3) מתחיל להיווצר פריט פרו-אאוטקטואידי.",
+        "transliteration": "BeQirur miṭaḥat le-(A3) mathil lehivazer Ferit pro-eutectoidi.",
+        "ru": "При охлаждении ниже (A3) начинает образовываться доэвтектоидный феррит."
+      },
+      "source_refs": [
+        "legacy_row_hash:da6c817d5a8bd592819426ebbec36d5837bec3bca8bf385c68d309da01ab56bd",
+        "legacy_fields_sha256:47b586b916a89a02b8d6fd53fb1c1b587266d214c330591de82c4d093d462dfb",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בקירור",
+            "normalized": "בקירור"
+          },
+          {
+            "index": 1,
+            "surface": "מתחת",
+            "normalized": "מתחת"
+          },
+          {
+            "index": 2,
+            "surface": "ל-(A3)",
+            "normalized": "ל-(A3"
+          },
+          {
+            "index": 3,
+            "surface": "מתחיל",
+            "normalized": "מתחיל"
+          },
+          {
+            "index": 4,
+            "surface": "להיווצר",
+            "normalized": "להיווצר"
+          },
+          {
+            "index": 5,
+            "surface": "פריט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 6,
+            "surface": "פרו-אאוטקטואידי.",
+            "normalized": "פרו-אאוטקטואידי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r032",
+      "order": 32,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "בהגעה ל-(A1)≈727°C שארית האוסטניט הופכת לפרליט.",
+        "he_niqqud": "בהגעה ל-(A1)≈727°C שארית האוסטניט הופכת לפרליט.",
+        "transliteration": "BeHaga'ah le-(A1)≈727°C she'erit ha'Austenit hofkhet lePeralit.",
+        "ru": "При достижении (A1)≈727°C остаток аустенита превращается в перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:3703903c0447193e239b593c430ab7bb5d5bf962fbe6fbefbc7bb99ef3f2af60",
+        "legacy_fields_sha256:5bedcd3481c0ef6429e2dfd7d11e19317d8d51c6be7d50bacbb9baa923b02924",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בהגעה",
+            "normalized": "בהגעה"
+          },
+          {
+            "index": 1,
+            "surface": "ל-(A1)≈727°C",
+            "normalized": "ל-(A1)≈727°C"
+          },
+          {
+            "index": 2,
+            "surface": "שארית",
+            "normalized": "שארית"
+          },
+          {
+            "index": 3,
+            "surface": "האוסטניט",
+            "normalized": "האוסטניט"
+          },
+          {
+            "index": 4,
+            "surface": "הופכת",
+            "normalized": "הופכת"
+          },
+          {
+            "index": 5,
+            "surface": "לפרליט.",
+            "normalized": "לפרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r033",
+      "order": 33,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן המבנה הסופי הוא פריט + פרליט.",
+        "he_niqqud": "לכן המבנה הסופי הוא פריט + פרליט.",
+        "transliteration": "Lahen haMivneh haSofi hu Ferit + Peralit.",
+        "ru": "Поэтому конечная структура — феррит + перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:481c6a21887d2ccb25ae06faecb7fa93a80d6436282e0a258670423261913337",
+        "legacy_fields_sha256:b29a0679333b0ce35f52d39d1d98319d2898f1fe808e97c979c4ef86a0d8d8d2",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לכן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "המבנה",
+            "normalized": "המבנה"
+          },
+          {
+            "index": 2,
+            "surface": "הסופי",
+            "normalized": "הסופי"
+          },
+          {
+            "index": 3,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "פריט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 5,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 6,
+            "surface": "פרליט.",
+            "normalized": "פרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r034",
+      "order": 34,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הפרליט גס בגלל קירור איטי.",
+        "he_niqqud": "הפרליט גס בגלל קירור איטי.",
+        "transliteration": "HaPeralit gas biglal qirur iṭi.",
+        "ru": "Перлит крупный из-за медленного охлаждения."
+      },
+      "source_refs": [
+        "legacy_row_hash:ed137b3eb215b875fa2e0bbc293a64881523649463771a033931bbcc9b6aad7f",
+        "legacy_fields_sha256:9306a543a5fd7b1448f15108f5551c852068b3edc13ebd588bc93b239e51edc4",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הפרליט",
+            "normalized": "הפרליט"
+          },
+          {
+            "index": 1,
+            "surface": "גס",
+            "normalized": "גס"
+          },
+          {
+            "index": 2,
+            "surface": "בגלל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 3,
+            "surface": "קירור",
+            "normalized": "קירור"
+          },
+          {
+            "index": 4,
+            "surface": "איטי.",
+            "normalized": "איטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r035",
+      "order": 35,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "אפשר לחשב שברים לפי כלל המנוף ב-(A1).",
+        "he_niqqud": "אפשר לחשב שברים לפי כלל המנוף ב-(A1).",
+        "transliteration": "Efshar leḤashev shvarim lefi klal haManof be-(A1).",
+        "ru": "Можно рассчитать доли по правилу рычага при (A1)."
+      },
+      "source_refs": [
+        "legacy_row_hash:5252750842a7bbda27ff41c623d3a89ca20482c00ab4f5e168748cf8b4937699",
+        "legacy_fields_sha256:b4b18adc07dd7c4ef8531cd969f5fe8ad5060b1d1d2649e95985ee1ba6d4da20",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אפשר",
+            "normalized": "אפשר"
+          },
+          {
+            "index": 1,
+            "surface": "לחשב",
+            "normalized": "לחשב"
+          },
+          {
+            "index": 2,
+            "surface": "שברים",
+            "normalized": "שברים"
+          },
+          {
+            "index": 3,
+            "surface": "לפי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 4,
+            "surface": "כלל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 5,
+            "surface": "המנוף",
+            "normalized": "המנוף"
+          },
+          {
+            "index": 6,
+            "surface": "ב-(A1).",
+            "normalized": "ב-(A1"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r036",
+      "order": 36,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Wα(pro)=(Cₑ−C₀)/(Cₑ−Cα)=(0.76−0.40)/(0.76−0.022)≈0.488",
+        "he_niqqud": "Wα(pro)=(Cₑ−C₀)/(Cₑ−Cα)=(0.76−0.40)/(0.76−0.022)≈0.488",
+        "transliteration": "Wα(pro)=(Cₑ−C₀)/(Cₑ−Cα)=(0.76−0.40)/(0.76−0.022)≈0.488",
+        "ru": "Wα(pro)=(Cₑ−C₀)/(Cₑ−Cα)=(0.76−0.40)/(0.76−0.022)≈0.488"
+      },
+      "source_refs": [
+        "legacy_row_hash:001a8b5fa0bc380e01bd4e197fef56de7e478682c918df75e0a7afa2e4497a18",
+        "legacy_fields_sha256:63cd563c8f8a4d405082b18b4bd0dd15d44a0dc1c16305f59dfa3b196821c284",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Wα(pro)=(Cₑ−C₀)/(Cₑ−Cα)=(0.76−0.40)/(0.76−0.022)≈0.488",
+            "normalized": "Wα(pro)=(Cₑ−C₀)/(Cₑ−Cα)=(0.76−0.40)/(0.76−0.022)≈0.488"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r037",
+      "order": 37,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Wp=1−Wα≈0.512",
+        "he_niqqud": "Wp=1−Wα≈0.512",
+        "transliteration": "Wp=1−Wα≈0.512",
+        "ru": "Wp=1−Wα≈0.512"
+      },
+      "source_refs": [
+        "legacy_row_hash:f6e31896564337194f5704c2da65a4cea0b7515865ebe78d1858c7dc083e62f6",
+        "legacy_fields_sha256:cc85781cc9288e454987f5510d451303995d898bf2caf9fd9bbe34ca25153cb3",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Wp=1−Wα≈0.512",
+            "normalized": "Wp=1−Wα≈0.512"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Wp=1−Wα≈0.512"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r038",
+      "order": 38,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "שבר הפריט הפרו-אאוטקטואידי הוא ≈0.488 (48.8%).",
+        "he_niqqud": "שבר הפריט הפרו-אאוטקטואידי הוא ≈0.488 (48.8%).",
+        "transliteration": "Shever haFerit haPro-eutectoidi hu ≈0.488 (48.8%).",
+        "ru": "Доля доэвтектоидного феррита составляет ≈0.488 (48.8%)."
+      },
+      "source_refs": [
+        "legacy_row_hash:9b917717e754a88cde72dc7bd2d83ced9e4bf9d3169e4da3b4371f025de0b88b",
+        "legacy_fields_sha256:7fe4c97fe579664b8842fa460e85cc9efcd5b79368da4b5d9523977779fe9e08",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "שבר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 1,
+            "surface": "הפריט",
+            "normalized": "הפריט"
+          },
+          {
+            "index": 2,
+            "surface": "הפרו-אאוטקטואידי",
+            "normalized": "הפרו-אאוטקטואידי"
+          },
+          {
+            "index": 3,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "≈0.488",
+            "normalized": "0.488"
+          },
+          {
+            "index": 5,
+            "surface": "(48.8%).",
+            "normalized": "48.8%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r039",
+      "order": 39,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "שבר הפרליט הוא ≈0.512 (51.2%).",
+        "he_niqqud": "שבר הפרליט הוא ≈0.512 (51.2%).",
+        "transliteration": "Shever haPeralit hu ≈0.512 (51.2%).",
+        "ru": "Доля перлита составляет ≈0.512 (51.2%)."
+      },
+      "source_refs": [
+        "legacy_row_hash:f72a6d8c828c87f06f54db560204933e34bfb89a031eb057969222d8cc811058",
+        "legacy_fields_sha256:ca17d928d96b8f6b72fbad7205e6fbc08a90440791f96f845b0349a7a05294ca",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "שבר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 1,
+            "surface": "הפרליט",
+            "normalized": "הפרליט"
+          },
+          {
+            "index": 2,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "≈0.512",
+            "normalized": "0.512"
+          },
+          {
+            "index": 4,
+            "surface": "(51.2%).",
+            "normalized": "51.2%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r040",
+      "order": 40,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ה) מרטנסיט לא מופיע בדיאגרמה \"ברזל פחמן\" כי הוא אינו פאזה בשיווי-משקל אלא מבנה מטא-יציב התלוי בקינטיקה.",
+        "he_niqqud": "ה) מרטנסיט לא מופיע בדיאגרמה \"ברזל פחמן\" כי הוא אינו פאזה בשיווי-משקל אלא מבנה מטא-יציב התלוי בקינטיקה.",
+        "transliteration": "E) Marṭensit lo mofia beDi'agrama \"Barzel Pahman\" ki hu eino faza beShivui-Mishqal ela mivneh meṭa-yatziv haTalui beKineṭiqa.",
+        "ru": "Д) Мартенсит не появляется на диаграмме «железо-углерод», потому что это не равновесная фаза, а метастабильная структура, зависящая от кинетики."
+      },
+      "source_refs": [
+        "legacy_row_hash:18eca7343a1fe2d900c678b2e9908c77dd970f2dec3f59f3afc0f438d56bc466",
+        "legacy_fields_sha256:2eadebd494e68e0652a646e0372a4fbe73652e93d53e75a7998d02967f660213",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ה)",
+            "normalized": "ה"
+          },
+          {
+            "index": 1,
+            "surface": "מרטנסיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 2,
+            "surface": "לא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מופיע",
+            "normalized": "מופיע"
+          },
+          {
+            "index": 4,
+            "surface": "בדיאגרמה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 5,
+            "surface": "\"ברזל",
+            "normalized": "ברזל"
+          },
+          {
+            "index": 6,
+            "surface": "פחמן\"",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 7,
+            "surface": "כי",
+            "normalized": "כי"
+          },
+          {
+            "index": 8,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 9,
+            "surface": "אינו",
+            "normalized": "אינו"
+          },
+          {
+            "index": 10,
+            "surface": "פאזה",
+            "normalized": "פאזה"
+          },
+          {
+            "index": 11,
+            "surface": "בשיווי-משקל",
+            "normalized": "בשיווי-משקל"
+          },
+          {
+            "index": 12,
+            "surface": "אלא",
+            "normalized": "אלא"
+          },
+          {
+            "index": 13,
+            "surface": "מבנה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 14,
+            "surface": "מטא-יציב",
+            "normalized": "מטא-יציב"
+          },
+          {
+            "index": 15,
+            "surface": "התלוי",
+            "normalized": "התלוי"
+          },
+          {
+            "index": 16,
+            "surface": "בקינטיקה.",
+            "normalized": "בקינטיקה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Д"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r041",
+      "order": 41,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "דיאגרמת (Fe–C) היא דיאגרמת שיווי-משקל.",
+        "he_niqqud": "דיאגרמת (Fe–C) היא דיאגרמת שיווי-משקל.",
+        "transliteration": "Di'agramat (Fe–C) hi di'agramat shivui-mishqal.",
+        "ru": "Диаграмма (Fe–C) является диаграммой равновесия."
+      },
+      "source_refs": [
+        "legacy_row_hash:f7b7790a3c0faaab17ff9943b7d7cdbbe8f622e3833a3c25735b09e705e9b685",
+        "legacy_fields_sha256:41bc6d778fa3cedf4fa718d6ebcd7f4d0d21f34808a595c414fbca3df8c74b37",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "דיאגרמת",
+            "normalized": "דיאגרמת"
+          },
+          {
+            "index": 1,
+            "surface": "(Fe–C)",
+            "normalized": "Fe–C"
+          },
+          {
+            "index": 2,
+            "surface": "היא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "דיאגרמת",
+            "normalized": "דיאגרמת"
+          },
+          {
+            "index": 4,
+            "surface": "שיווי-משקל.",
+            "normalized": "שיווי-משקל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r042",
+      "order": 42,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "היא מתארת פאזות יציבות לאחר זמן מספיק לדיפוזיה.",
+        "he_niqqud": "היא מתארת פאזות יציבות לאחר זמן מספיק לדיפוזיה.",
+        "transliteration": "Hi meta'eret faza'ot yetzivot ahar zman maspeq leDifuzia.",
+        "ru": "Она описывает стабильные фазы после достаточного времени для диффузии."
+      },
+      "source_refs": [
+        "legacy_row_hash:86f20b9aef86d92d9d1159ec4f6a0497bf5e3e66509affaa0f1196d3ecc5e593",
+        "legacy_fields_sha256:b1568726615972639c492384fea5c8d720ff3a65fefc942636c07e70da156c34",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "היא",
+            "normalized": "היא"
+          },
+          {
+            "index": 1,
+            "surface": "מתארת",
+            "normalized": "מתארת"
+          },
+          {
+            "index": 2,
+            "surface": "פאזות",
+            "normalized": "פאזות"
+          },
+          {
+            "index": 3,
+            "surface": "יציבות",
+            "normalized": "יציבות"
+          },
+          {
+            "index": 4,
+            "surface": "לאחר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 5,
+            "surface": "זמן",
+            "normalized": "זמן"
+          },
+          {
+            "index": 6,
+            "surface": "מספיק",
+            "normalized": "מספיק"
+          },
+          {
+            "index": 7,
+            "surface": "לדיפוזיה.",
+            "normalized": "לדיפוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r043",
+      "order": 43,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מרטנסיט נוצר בקירור מהיר כטרנספורמציה ללא דיפוזיה.",
+        "he_niqqud": "מרטנסיט נוצר בקירור מהיר כטרנספורמציה ללא דיפוזיה.",
+        "transliteration": "Marṭensit notzar beQirur mahir keṬransformaẓyah lelo difuzia.",
+        "ru": "Мартенсит образуется при быстром охлаждении как превращение без диффузии."
+      },
+      "source_refs": [
+        "legacy_row_hash:4cc7d5504092584aa2ddbc03c8dc0cf6796827ae40d53453820eda4a87ae2dbd",
+        "legacy_fields_sha256:df9c0c83258d2ce26d9f5dfaf297b69d92c94d5e79ea2b472d0c75ec4cec4d17",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מרטנסיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 1,
+            "surface": "נוצר",
+            "normalized": "נוצר"
+          },
+          {
+            "index": 2,
+            "surface": "בקירור",
+            "normalized": "בקירור"
+          },
+          {
+            "index": 3,
+            "surface": "מהיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 4,
+            "surface": "כטרנספורמציה",
+            "normalized": "כטרנספורמציה"
+          },
+          {
+            "index": 5,
+            "surface": "ללא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 6,
+            "surface": "דיפוזיה.",
+            "normalized": "דיפוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r044",
+      "order": 44,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן מרטנסיט הוא מבנה מטא-יציב ולא פאזה של שיווי-משקל.",
+        "he_niqqud": "לכן מרטנסיט הוא מבנה מטא-יציב ולא פאזה של שיווי-משקל.",
+        "transliteration": "Lahen marṭensit hu mivneh meṭa-yatziv velo faza shel shivui-mishqal.",
+        "ru": "Поэтому мартенсит является метастабильной структурой, а не равновесной фазой."
+      },
+      "source_refs": [
+        "legacy_row_hash:e8c9738d468d3dfbc42ecd7b81f615ab2ea653445bfaec8548bad64ee431420a",
+        "legacy_fields_sha256:6fab4a896aed8e6a30cbad7f4cc9cb5376e55955da1613365d759f00931d70c9",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לכן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "מרטנסיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 2,
+            "surface": "הוא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "מבנה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 4,
+            "surface": "מטא-יציב",
+            "normalized": "מטא-יציב"
+          },
+          {
+            "index": 5,
+            "surface": "ולא",
+            "normalized": "ולא"
+          },
+          {
+            "index": 6,
+            "surface": "פאזה",
+            "normalized": "פאזה"
+          },
+          {
+            "index": 7,
+            "surface": "של",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "שיווי-משקל.",
+            "normalized": "שיווי-משקל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r045",
+      "order": 45,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אם נותנים זמן וחימום מתאים מרטנסיט מתפרק למבנים יציבים כגון פריט וצמנטיט.",
+        "he_niqqud": "אם נותנים זמן וחימום מתאים מרטנסיט מתפרק למבנים יציבים כגון פריט וצמנטיט.",
+        "transliteration": "Im notnim zman veḥimum mat'im marṭensit mitpareq liMivnim yetzivim kegon Ferit veCementit.",
+        "ru": "Если дать время и обеспечить соответствующий нагрев, мартенсит распадается на стабильные структуры, такие как феррит и цементит."
+      },
+      "source_refs": [
+        "legacy_row_hash:a53191c0b5a297a96902ebbd3b1a16d434488ddceaa28fe6ee5a6bd8f1b76731",
+        "legacy_fields_sha256:d93266b429dedb54650a94038688a9cc3a20010b35576fe768971f2df2d132af",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אם",
+            "normalized": "אם"
+          },
+          {
+            "index": 1,
+            "surface": "נותנים",
+            "normalized": "נותנים"
+          },
+          {
+            "index": 2,
+            "surface": "זמן",
+            "normalized": "זמן"
+          },
+          {
+            "index": 3,
+            "surface": "וחימום",
+            "normalized": "וחימום"
+          },
+          {
+            "index": 4,
+            "surface": "מתאים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 5,
+            "surface": "מרטנסיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 6,
+            "surface": "מתפרק",
+            "normalized": "מתפרק"
+          },
+          {
+            "index": 7,
+            "surface": "למבנים",
+            "normalized": "למבנים"
+          },
+          {
+            "index": 8,
+            "surface": "יציבים",
+            "normalized": "יציבים"
+          },
+          {
+            "index": 9,
+            "surface": "כגון",
+            "normalized": "כגון"
+          },
+          {
+            "index": 10,
+            "surface": "פריט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 11,
+            "surface": "וצמנטיט.",
+            "normalized": "וצמנטיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r046",
+      "order": 46,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "כדי לתאר יצירת מרטנסיט משתמשים בדיאגרמות קינטיות כגון (TTT/CCT) ולא בדיאגרמת (Fe–C).",
+        "he_niqqud": "כדי לתאר יצירת מרטנסיט משתמשים בדיאגרמות קינטיות כגון (TTT/CCT) ולא בדיאגרמת (Fe–C).",
+        "transliteration": "Kedey leta'er yetzirat marṭensit mishtamshim beDi'agramot qineṭiyot kegon (TTT/CCT) velo beDi'agramat (Fe–C).",
+        "ru": "Чтобы описать образование мартенсита, используют кинетические диаграммы, такие как (TTT/CCT), а не диаграмму (Fe–C)."
+      },
+      "source_refs": [
+        "legacy_row_hash:644f8b68f4ea2f8a9a76d3a5f98f767aefb3f20a0699ebd94451367366548cee",
+        "legacy_fields_sha256:9f1e796b4e98eca95019afb7bcf007774a91f42a9e54336ea37658835c12c8b6",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כדי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 1,
+            "surface": "לתאר",
+            "normalized": "לתאר"
+          },
+          {
+            "index": 2,
+            "surface": "יצירת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 3,
+            "surface": "מרטנסיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 4,
+            "surface": "משתמשים",
+            "normalized": "משתמשים"
+          },
+          {
+            "index": 5,
+            "surface": "בדיאגרמות",
+            "normalized": "בדיאגרמות"
+          },
+          {
+            "index": 6,
+            "surface": "קינטיות",
+            "normalized": "קינטיות"
+          },
+          {
+            "index": 7,
+            "surface": "כגון",
+            "normalized": "כגון"
+          },
+          {
+            "index": 8,
+            "surface": "(TTT/CCT)",
+            "normalized": "TTT/CCT"
+          },
+          {
+            "index": 9,
+            "surface": "ולא",
+            "normalized": "ולא"
+          },
+          {
+            "index": 10,
+            "surface": "בדיאגרמת",
+            "normalized": "בדיאגרמת"
+          },
+          {
+            "index": 11,
+            "surface": "(Fe–C).",
+            "normalized": "Fe–C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q027-sol-r047",
+      "order": 47,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:1930d26b01e2a5c09e2b24c1583e0f3c6e7fd57f54b01a208fa7decd6bd28d02",
+        "comparison:MATCH",
+        "source_pages:35-36",
+        "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+        "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q027",
+    "display_alias": "27",
+    "source_pages": [
+      35,
+      36,
+      70
+    ],
+    "independent_state": "DERIVED_WITH_DIAGRAM_CONVENTION",
+    "answer": [
+      "а1) В стали 2 больше углерода: кроме перлита присутствует вторичный цементит, то есть это заэвтектоидная сталь; сталь 1 показана как полностью перлитная, близкая к эвтектоидной.",
+      "а2) Сталь 1 более пластична: избыток твёрдого хрупкого цементита в стали 2 повышает твёрдость и снижает пластичность.",
+      "а3) Точка/линия A_cm относится к заэвтектоидной стали 2. Она обозначает границу γ ↔ γ+Fe₃C; при нагреве выше A_cm вторичный цементит полностью растворяется и структура становится однофазным аустенитом.",
+      "б) SAE1040 после 840 °C и медленного печного охлаждения имеет доэвтектоидную равновесную микроструктуру: проэвтектоидный феррит + перлит (фазы α-Fe и Fe₃C).",
+      "в) Мартенсит не показан на равновесной диаграмме Fe–C, потому что это метастабильная неравновесная структура, образующаяся бездиффузионно при быстром охлаждении аустенита."
+    ],
+    "engineering_picture": "Количество проэвтектоидного феррита или цементита показывает положение состава относительно эвтектоида. Равновесная диаграмма описывает медленные превращения, а не кинетику закалки.",
+    "prerequisites": [
+      "Эвтектоид около 0,8%C.",
+      "Доэвтектоидная структура: феррит+перлит.",
+      "Заэвтектоидная: перлит+вторичный цементит.",
+      "A_cm — правая критическая граница аустенита."
+    ],
+    "roadmap": [
+      "Распознать составляющие двух микрофотографий.",
+      "Связать цементит с повышенным C и меньшей пластичностью.",
+      "Объяснить A_cm как фазовую границу.",
+      "Проследить SAE1040 при медленном охлаждении.",
+      "Отделить равновесную диаграмму от мартенситного превращения."
+    ],
+    "main_trap": "Не называть перлит отдельной фазой: это микроструктурная смесь феррита и цементита.",
+    "givens": [
+      "Сталь 1: перлит; сталь 2: перлит+цементит.",
+      "SAE1040 нагрета до 840 °C и медленно охлаждается в печи."
+    ],
+    "find": [
+      "Сравнение C и пластичности, смысл A_cm, структура SAE1040 и отсутствие мартенсита на диаграмме."
+    ],
+    "assumptions": [
+      "840 °C выше A₃ для SAE1040 по учебному приложению и обеспечивает аустенитизацию.",
+      "Охлаждение близко к равновесному."
+    ],
+    "laws": [
+      "При C<Ceutectoid после медленного охлаждения: проэвтектоидный α+перлит.",
+      "При C>Ceutectoid: перлит+проэвтектоидный Fe₃C."
+    ],
+    "symbolic_derivation": [
+      "Перлит+Fe₃C→C>0,8%→A_cm exists.",
+      "SAE1040≈0,40%C<0,8%→α+перлит."
+    ],
+    "calculation": [],
+    "construction": [
+      "На Fe–C отметить состав 0,4%C и путь охлаждения из γ через γ+α к α+Fe₃C."
+    ],
+    "checks": [
+      "Ответ различает фазы и микроструктурные составляющие."
+    ],
+    "source_facts": [
+      "source_pages:35-36",
+      "asset_sha256:6c82b695be36b3df291a5c3aac3b1e89206f9c89fc173ceb0ec4a00481e13f86",
+      "asset_sha256:4541d54257eef9c57047fa2cb2db06e9ef70284f4611ac1362835ad1512f8b2e",
+      "appendix_page:70",
+      "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+    ],
+    "unresolved_limits": [
+      "Канонический русский текст «каково значение A_cm» интерпретирован по исходному ивриту как «что она означает», а не как запрос численной температуры неизвестного состава."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

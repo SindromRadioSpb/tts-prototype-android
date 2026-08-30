@@ -1,0 +1,2372 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q028",
+  "display_alias": "28",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "88473204e9edde45c2ca11e8d0256b7c66d77b7a910b6e54fccb2cdd23d5551f"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Microstructure identification and Fe-C values match. Source figure labels 2.14 percent at 1147 C while legacy uses the common rounded 2.11 percent; the student result will preserve the source figure value and note the convention.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q028-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 28.",
+        "hebrew_niqqud": "שְׁאֵלָה 28.",
+        "translit": "She'ela 28.",
+        "translit_ru": "",
+        "russian": "Вопрос 28.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "task_heading",
+            "source_page": 36,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q028-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. באיור לשאלה 9 מוצגות שלוש תמונות (1-3) , המתארות מיקרו־מבנה של פלדות שונות.",
+        "hebrew_niqqud": "א. בְּאִיּוּר לִשְׁאֵלָה 9 מוּצָגוֹת שָׁלוֹשׁ תְּמוּנוֹת (1-3) , הַמְּתָאֲרוֹת מִיקְרוֹ־מִבְנֶה שֶׁל פְּלָדוֹת שׁוֹנוֹת.",
+        "translit": "a. Be-iyur li-she'elah 9 mutsagot shalosh tmunot (1-3) , ha-meta'arot mikro-mivneh shel pladot shonot.",
+        "translit_ru": "",
+        "russian": "а. На рисунке к вопросу 9 представлены три фотографии (1–3), показывающие микроструктуру различных сталей.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "diagram_reference",
+            "source_page": 36,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q028-r003",
+        "order_index": 2,
+        "hebrew_plain": "רשום במחברתך את מספרה של כל תמונה ולצידו את שם המיקרו־מבנה המתאים: פריט, פריט + פרליט, פרליט.",
+        "hebrew_niqqud": "רְשֹׁום בְּמַחְבַּרְתְּךָ אֶת מִסְפָּרָהּ שֶׁל כָּל תְּמוּנָה וּלְצִידּוֹ אֶת שֵׁם הַמִּיקְרוֹ־מִבְנֶה הַמַּתְאִים: פֶרִיט, פֶרִיט + פֶּרְלִיט, פֶּרְלִיט.",
+        "translit": "Rshom be-makhbartkha et misparah shel kol tmunah u-le-tsido et shem ha-mikro-mivneh ha-mat'im: ferit, ferit + perlit, perlit.",
+        "translit_ru": "",
+        "russian": "Запишите в тетради номер каждой фотографии и рядом с ним соответствующее название микроструктуры: феррит, феррит + перлит, перлит.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "subpart",
+            "source_page": 36,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q028-r004",
+        "order_index": 3,
+        "hebrew_plain": "ב. היעזר בנספח ד' וקבע: 1. מהי המסיסות המרבית (המקסימלית) של פחמן בפאזה \"פריט\"?",
+        "hebrew_niqqud": "ב. הֵיעָזֵר בְּנִסְפָּח ד' וּקְבַע: 1. מַהִי הַמְּסִיסוּת הַמְּרַבִּית (הַמַּקְסִימָלִית) שֶׁל פחמן בְּפָאזָה \"פֶרִיט\"?",
+        "translit": "b. He'azer be-nispakh dalet u-kva: 1. Mahi ha-mesisut ha-merabit (ha-maksimalit) shel pekham be-fazah \"ferit\"?",
+        "translit_ru": "",
+        "russian": "б. Используя приложение ד', определите: 1. Какова максимальная растворимость углерода в фазе «феррит»?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "subpart",
+            "source_page": 36,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q028-r005",
+        "order_index": 4,
+        "hebrew_plain": "2. מהי המסיסות המרבית (המקסימלית) של פחמן בפאזה \"אוסטניט\"?",
+        "hebrew_niqqud": "2. מַהִי הַמְּסִיסוּת הַמְּרַבִּית (הַמַּקְסִימָלִית) שֶׁל פחמן בְּפָאזָה \"אוֹסְטֶנִיט\"?",
+        "translit": "2. Mahi ha-mesisut ha-merabit (ha-maksimalit) shel pekham be-fazah \"ostenit\"?",
+        "translit_ru": "",
+        "russian": "2. Какова максимальная растворимость углерода в фазе «аустенит»?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "subpart",
+            "source_page": 36,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q028-r006",
+        "order_index": 5,
+        "hebrew_plain": "ג. היעזר בנספח ד' וענה: 1. מהי טמפרטורת ההיתוך של הפאזה האוטקטית \"לדבוריט\"?",
+        "hebrew_niqqud": "ג. הֵיעָזֵר בְּנִסְפָּח ד' וַעֲנֵה: 1. מַהִי טֶמְפֶּרָטוּרַת הַהִיתּוּךְ שֶׁל הַפָּאזָה הָאוֹטֶקְטִית \"לֶדֶבּוּרִיט\"?",
+        "translit": "g. He'azer be-nispakh dalet va-aneh: 1. Mahi temperaturat ha-hitukh shel ha-fazah ha-otektit \"ledeburit\"?",
+        "translit_ru": "",
+        "russian": "в. Используя приложение ד', ответьте: 1. Какова температура плавления эвтектической фазы «ледебурит»?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "subpart",
+            "source_page": 36,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q028-r007",
+        "order_index": 6,
+        "hebrew_plain": "2. מהו תחום אחוזי הפחמן המגדירים את יצקות הברזל?",
+        "hebrew_niqqud": "2. מַהוּ תְּחוּם אֲחוּזֵי הפחמן הַמַּגְדִּירִים אֶת יְצִקוֹת הַבַּרְזֶל?",
+        "translit": "2. Mahu tkhum akhuzei ha-pekham ha-magdirim et yetsikot ha-barzel?",
+        "translit_ru": "",
+        "russian": "2. Каков диапазон процентного содержания углерода, определяющий чугуны?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q028",
+            "kind": "subpart",
+            "source_page": 36,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      36,
+      70
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q028/anchor-01-p036.jpg",
+        "sha256": "548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "bytes": 228132,
+        "source_page": 36,
+        "normalized_bbox": [
+          0,
+          0.38,
+          1,
+          1
+        ],
+        "role": "condition"
+      },
+      {
+        "path": "assets/reference/iron_carbon_phase_diagram_appendix-p070.jpg",
+        "sha256": "88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "bytes": 715522,
+        "source_page": 70,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:IRON_CARBON_PHASE_DIAGRAM_APPENDIX"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q028-v01",
+        "source_page": 36,
+        "kind": "STEEL_MICROGRAPH",
+        "instance_count": 3,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": [
+      {
+        "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+        "source_pages": [
+          70
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p070"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) תמונה 3 היא פריט + פרליט.",
+        "he_niqqud": "א) תְּמוּנָה 3 הִיא פֶרִיט + פֶּרְלִיט.",
+        "transliteration": "(A) Tmuná 3 hí ferít + perlít.",
+        "ru": "А) Изображение 3 – это феррит + перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:a362c7346d3e0e817e1b7fe5e3ca6f8ba5d38dfaabd6f9d5f6ad14705715fdde",
+        "legacy_fields_sha256:6f884855839e7f6cb4fc50f19d7759e11a016ae9cc0db4e0d7e479b9a6814c8e",
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 2,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 5,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 6,
+            "surface": "פֶּרְלִיט.",
+            "normalized": "פרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) המסיסות המרבית של פחמן בפריט היא 0.022% C.",
+        "he_niqqud": "ב) הַמְּסִיסוּת הַמֶּרַבִּית שֶׁל פַּחְמָן בְּפֶרִיט הִיא 0.022% C.",
+        "transliteration": "(B) Ha'm'sisút ha'meravít shel pahmán b'ferít hí 0.022% C.",
+        "ru": "Б) Максимальная растворимость углерода в феррите составляет 0.022% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:1341cc7afd7326977c5b680a2e003cabacfd45563a1cba4a7f865aa8776ab63b",
+        "legacy_fields_sha256:b76ba88a774dc9f88adae3fb92e5e682a2730db23e0b10b69ab2f6ab321431c2",
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 2,
+            "surface": "הַמֶּרַבִּית",
+            "normalized": "המרבית"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "בְּפֶרִיט",
+            "normalized": "בפריט"
+          },
+          {
+            "index": 6,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 7,
+            "surface": "0.022%",
+            "normalized": "0.022%"
+          },
+          {
+            "index": 8,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) המסיסות המרבית של פחמן באוסטניט לפי נספח המקור היא 2.14% C.",
+        "he_niqqud": "ב) הַמְּסִיסוּת הַמְּרַבִּית שֶׁל פַּחְמָן בְּאוֹסְטֶנִיט לְפִי נִסְפַּח הַמָּקוֹר הִיא 2.14% C.",
+        "transliteration": "B) Ha-mesisut ha-merabit shel pahman be-ostenit lefi nispah ha-maqor hi 2.14% C.",
+        "ru": "Б) Максимальная растворимость углерода в аустените по приложению источника равна 2,14% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:6c45f02e287669fdf21668a4f7656ff2fb00e77b1badb51ed5617d73796595ca",
+        "legacy_fields_sha256:44f7a0d9f326bdb82e5349d481127c23859b996f1257b7a07c03416278ab749b",
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּרַבִּית",
+            "normalized": "המרבית"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "בְּאוֹסְטֶנִיט",
+            "normalized": "באוסטניט"
+          },
+          {
+            "index": 6,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 7,
+            "surface": "נִסְפַּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 8,
+            "surface": "הַמָּקוֹר",
+            "normalized": "המקור"
+          },
+          {
+            "index": 9,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 10,
+            "surface": "2.14%",
+            "normalized": "2.14%"
+          },
+          {
+            "index": 11,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "הטמפרטורה המתאימה היא 1147°C.",
+        "he_niqqud": "הַטֶּמְפֶּרָטוּרָה הַמַּתְאִימָה הִיא 1147°C.",
+        "transliteration": "Ha'tem'peratúrá hamat'imá hí 1147°C.",
+        "ru": "Соответствующая температура составляет 1147°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:72bf72ca4695aaad8e2aa9d111a5d6485870777943fc62f0021d98fec058ea05",
+        "legacy_fields_sha256:daaf304b2a8302f8acf51b1176253166564ea63d09ea1272fe4a3077f18e59ae",
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַטֶּמְפֶּרָטוּרָה",
+            "normalized": "הטמפרטורה"
+          },
+          {
+            "index": 1,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "1147°C.",
+            "normalized": "1147°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r006",
+      "order": 6,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לפי נספח המקור, תחום היציקות הוא בקירוב 2.14%–6.67% C.",
+        "he_niqqud": "ג) לְפִי נִסְפַּח הַמָּקוֹר, תְּחוּם הַיְּצִיקוֹת הוּא בְּקֵרוּב 2.14%–6.67% C.",
+        "transliteration": "G) Lefi nispah ha-maqor, tehum ha-yetsiqot hu be-qeruv 2.14%–6.67% C.",
+        "ru": "В) По приложению источника диапазон чугунов составляет примерно 2,14–6,67% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:f428e861f9cd782891efabd3ce600127bed8733893f52f7420be9a5f948b5f9d",
+        "legacy_fields_sha256:4acbc53e0faff8067da79a82439aa5df529599f2c19fe837b1141c7d19338859",
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 2,
+            "surface": "נִסְפַּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 3,
+            "surface": "הַמָּקוֹר,",
+            "normalized": "המקור"
+          },
+          {
+            "index": 4,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 5,
+            "surface": "הַיְּצִיקוֹת",
+            "normalized": "היציקות"
+          },
+          {
+            "index": 6,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 7,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 8,
+            "surface": "2.14%–6.67%",
+            "normalized": "2.14%–6.67%"
+          },
+          {
+            "index": 9,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r007",
+      "order": 7,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "א) תמונה 1 היא פרליט.",
+        "he_niqqud": "א) תְּמוּנָה 1 הִיא פֶּרְלִיט.",
+        "transliteration": "(A) Tmuná 1 hí perlít.",
+        "ru": "А) Изображение 1 – это перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:f93fa2c73fc51a00edc56c2926f426afa0075b8adfcffa840e32962b36f3fd5a",
+        "legacy_fields_sha256:6971d017fd6858a45e391c29e81b1fa65b6c734af786f657d130091c6ca327cb",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 2,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "פֶּרְלִיט.",
+            "normalized": "פרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הזיהוי מבוסס על מבנה למלרי של שכבות בהירות וכהות בקולוניות בכיוונים שונים.",
+        "he_niqqud": "הַזִּהוּי מְבֻסָּס עַל מִבְנֶה לַמֶּלָרִי שֶׁל שְׁכָבוֹת בְּהִירוֹת וּכְהוֹת בְּקוֹלוֹנְיוֹת בִּכְיַוּוּנִים שׁוֹנִים.",
+        "transliteration": "Hazihúy m'vusás al mivné lamelarí shel sh'chavót b'hirót uk'hót b'kolonyót bikh'yuvuním shoním.",
+        "ru": "Идентификация основана на пластинчатой структуре светлых и темных слоев в колониях, расположенных в разных направлениях."
+      },
+      "source_refs": [
+        "legacy_row_hash:2860962d33c554fe1004f9e5ebd4529ba47c0e053b1d7f3ab2b51ab8438b7553",
+        "legacy_fields_sha256:9867504a45b8f373fa27fbd4958e8f4bb3ee8d0dee589ad829d0a74fc316c7a4",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַזִּהוּי",
+            "normalized": "הזהוי"
+          },
+          {
+            "index": 1,
+            "surface": "מְבֻסָּס",
+            "normalized": "מבסס"
+          },
+          {
+            "index": 2,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 3,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 4,
+            "surface": "לַמֶּלָרִי",
+            "normalized": "למלרי"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "שְׁכָבוֹת",
+            "normalized": "שכבות"
+          },
+          {
+            "index": 7,
+            "surface": "בְּהִירוֹת",
+            "normalized": "בהירות"
+          },
+          {
+            "index": 8,
+            "surface": "וּכְהוֹת",
+            "normalized": "וכהות"
+          },
+          {
+            "index": 9,
+            "surface": "בְּקוֹלוֹנְיוֹת",
+            "normalized": "בקולוניות"
+          },
+          {
+            "index": 10,
+            "surface": "בִּכְיַוּוּנִים",
+            "normalized": "בכיוונים"
+          },
+          {
+            "index": 11,
+            "surface": "שׁוֹנִים.",
+            "normalized": "שונים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r009",
+      "order": 9,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "א) תמונה 2 היא פריט.",
+        "he_niqqud": "א) תְּמוּנָה 2 הִיא פֶרִיט.",
+        "transliteration": "(A) Tmuná 2 hí ferít.",
+        "ru": "А) Изображение 2 – это феррит."
+      },
+      "source_refs": [
+        "legacy_row_hash:899266388fd3fbdeab2feb0fe15824ff6476b96f2c3d09eb9f0237ec93bc60fd",
+        "legacy_fields_sha256:4fc290489fac9d1362888ecdf572ad9e12b195da6680fd92efa535067521de45",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "פֶרִיט.",
+            "normalized": "פריט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הזיהוי מבוסס על גרעינים פוליגונליים בהירים עם גבולות גרעין בולטים וללא למלות.",
+        "he_niqqud": "הַזִּהוּי מְבֻסָּס עַל גַּרְעִינִים פּוֹלִיגוֹנָלִיִּים בְּהִירִים עִם גְּבוּלוֹת גַּרְעִין בּוֹלְטִים וּלְלֹא לַמֶּלוֹת.",
+        "transliteration": "Hazihúy m'vusás al gar'iním poligonaliyyím b'hirím im g'vulót gar'ín boltím ul'ló lamelót.",
+        "ru": "Идентификация основана на светлых полигональных зернах с четкими границами зерен и без пластинок."
+      },
+      "source_refs": [
+        "legacy_row_hash:943aa64ef1eb04180d61a96ac5452ac0450f058d0cc44ce2f40e4878ffb32f63",
+        "legacy_fields_sha256:0831f89ab856063e5246f5ae76186e412c1dae0c238855e63d6028b175067514",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַזִּהוּי",
+            "normalized": "הזהוי"
+          },
+          {
+            "index": 1,
+            "surface": "מְבֻסָּס",
+            "normalized": "מבסס"
+          },
+          {
+            "index": 2,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 3,
+            "surface": "גַּרְעִינִים",
+            "normalized": "גרעינים"
+          },
+          {
+            "index": 4,
+            "surface": "פּוֹלִיגוֹנָלִיִּים",
+            "normalized": "פוליגונליים"
+          },
+          {
+            "index": 5,
+            "surface": "בְּהִירִים",
+            "normalized": "בהירים"
+          },
+          {
+            "index": 6,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוּלוֹת",
+            "normalized": "גבולות"
+          },
+          {
+            "index": 8,
+            "surface": "גַּרְעִין",
+            "normalized": "גרעין"
+          },
+          {
+            "index": 9,
+            "surface": "בּוֹלְטִים",
+            "normalized": "בולטים"
+          },
+          {
+            "index": 10,
+            "surface": "וּלְלֹא",
+            "normalized": "וללא"
+          },
+          {
+            "index": 11,
+            "surface": "לַמֶּלוֹת.",
+            "normalized": "למלות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r011",
+      "order": 11,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "א) תמונה 3 היא פריט + פרליט.",
+        "he_niqqud": "א) תְּמוּנָה 3 הִיא פֶרִיט + פֶּרְלִיט.",
+        "transliteration": "(A) Tmuná 3 hí ferít + perlít.",
+        "ru": "А) Изображение 3 – это феррит + перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:a362c7346d3e0e817e1b7fe5e3ca6f8ba5d38dfaabd6f9d5f6ad14705715fdde",
+        "legacy_fields_sha256:6f884855839e7f6cb4fc50f19d7759e11a016ae9cc0db4e0d7e479b9a6814c8e",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 2,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 5,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 6,
+            "surface": "פֶּרְלִיט.",
+            "normalized": "פרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הזיהוי מבוסס על מטריצה בהירה של פריט עם איים כהים של קולוניות פרליט.",
+        "he_niqqud": "הַזִּהוּי מְבֻסָּס עַל מַטְרִיצָה בְּהִירָה שֶׁל פֶרִיט עִם אִיִּים כֵּהִים שֶׁל קוֹלוֹנְיוֹת פֶּרְלִיט.",
+        "transliteration": "Hazihúy m'vusás al matritzá b'hirá shel ferít im iyyím kehím shel kolonyót perlít.",
+        "ru": "Идентификация основана на светлой матрице феррита с темными \"островами\" колоний перлита."
+      },
+      "source_refs": [
+        "legacy_row_hash:160f739bf5a12a2339a74cab2a70faafcbc1a17dcb87d632b48682ab897a172e",
+        "legacy_fields_sha256:4c6c2731408eff06667094b22eb03c4b8f8046b66cf186391d1582696a1105dc",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַזִּהוּי",
+            "normalized": "הזהוי"
+          },
+          {
+            "index": 1,
+            "surface": "מְבֻסָּס",
+            "normalized": "מבסס"
+          },
+          {
+            "index": 2,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 3,
+            "surface": "מַטְרִיצָה",
+            "normalized": "מטריצה"
+          },
+          {
+            "index": 4,
+            "surface": "בְּהִירָה",
+            "normalized": "בהירה"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 7,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 8,
+            "surface": "אִיִּים",
+            "normalized": "איים"
+          },
+          {
+            "index": 9,
+            "surface": "כֵּהִים",
+            "normalized": "כהים"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "קוֹלוֹנְיוֹת",
+            "normalized": "קולוניות"
+          },
+          {
+            "index": 12,
+            "surface": "פֶּרְלִיט.",
+            "normalized": "פרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה זה אופייני לפלדה היפו-אוטקטואידית.",
+        "he_niqqud": "מִבְנֶה זֶה אוֹפְיָנִי לִפְלָדָה הִיפּוֹ-אוֹטֶקְטוֹאִידִית.",
+        "transliteration": "Mivné ze ofyaní li'fladá hipo-otekto'ídít.",
+        "ru": "Эта структура характерна для доэвтектоидной стали."
+      },
+      "source_refs": [
+        "legacy_row_hash:f62ba010f56e2438120157635ccb3063753d6c7e2b5fe50882087e9c9dfe16c6",
+        "legacy_fields_sha256:8d54c9c47697f9fbaa7c036c8608b14299cbf238b1b1816cf561da10b1fa6d3b",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹפְיָנִי",
+            "normalized": "אופיני"
+          },
+          {
+            "index": 3,
+            "surface": "לִפְלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "הִיפּוֹ-אוֹטֶקְטוֹאִידִית.",
+            "normalized": "היפו-אוטקטואידית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r014",
+      "order": 14,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) המסיסות המרבית של פחמן בפריט היא 0.022% C.",
+        "he_niqqud": "ב) הַמְּסִיסוּת הַמֶּרַבִּית שֶׁל פַּחְמָן בְּפֶרִיט הִיא 0.022% C.",
+        "transliteration": "(B) Ha'm'sisút ha'meravít shel pahmán b'ferít hí 0.022% C.",
+        "ru": "Б) Максимальная растворимость углерода в феррите составляет 0.022% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:1341cc7afd7326977c5b680a2e003cabacfd45563a1cba4a7f865aa8776ab63b",
+        "legacy_fields_sha256:b76ba88a774dc9f88adae3fb92e5e682a2730db23e0b10b69ab2f6ab321431c2",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 2,
+            "surface": "הַמֶּרַבִּית",
+            "normalized": "המרבית"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "בְּפֶרִיט",
+            "normalized": "בפריט"
+          },
+          {
+            "index": 6,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 7,
+            "surface": "0.022%",
+            "normalized": "0.022%"
+          },
+          {
+            "index": 8,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r015",
+      "order": 15,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "הטמפרטורה המתאימה היא 727°C.",
+        "he_niqqud": "הַטֶּמְפֶּרָטוּרָה הַמַּתְאִימָה הִיא 727°C.",
+        "transliteration": "Ha'tem'peratúrá hamat'imá hí 727°C.",
+        "ru": "Соответствующая температура составляет 727°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:51f08ea5177c5b200684221c3a9bd71b0abe792c1673f909a4c91780c10b6e1b",
+        "legacy_fields_sha256:0982c06d31d8d1a33774d146b5c6f03ac905bc058296adca8bc8070c24af5ca6",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַטֶּמְפֶּרָטוּרָה",
+            "normalized": "הטמפרטורה"
+          },
+          {
+            "index": 1,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "727°C.",
+            "normalized": "727°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפריט יש סריג מעוקב מרכז-גוף (BCC) ולכן מספר האתרים הבין-אטומיים לפחמן קטן.",
+        "he_niqqud": "בְּפֶרִיט יֵשׁ סָרִיג מְעֻקָּב מֶרְכַּז-גּוּף (BCC) וּלְכֵן מִסְפַּר הָאֲתָרִים הַבֵּין-אֲטוֹמִיִּים לְפַחְמָן קָטָן.",
+        "transliteration": "B'ferít yesh saríg m'uqqáv merkaz-gúf (BCC) ul'chén mispar ha'atarím ha'béin-atomiyyím l'pahmán qatán.",
+        "ru": "Феррит имеет объёмно-центрированную кубическую решетку (ОЦК), и поэтому количество межатомных узлов для углерода невелико."
+      },
+      "source_refs": [
+        "legacy_row_hash:d7a6b16fa48d4b4fc852c988ac830790bd66a82b408d1627b3653a1997ae3d4f",
+        "legacy_fields_sha256:bf447032a569864008ee6fba34059dedbc90f3fb7c480fef35d076df47c310b4",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּפֶרִיט",
+            "normalized": "בפריט"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "סָרִיג",
+            "normalized": "סריג"
+          },
+          {
+            "index": 3,
+            "surface": "מְעֻקָּב",
+            "normalized": "מעקב"
+          },
+          {
+            "index": 4,
+            "surface": "מֶרְכַּז-גּוּף",
+            "normalized": "מרכז-גוף"
+          },
+          {
+            "index": 5,
+            "surface": "(BCC)",
+            "normalized": "BCC"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 8,
+            "surface": "הָאֲתָרִים",
+            "normalized": "האתרים"
+          },
+          {
+            "index": 9,
+            "surface": "הַבֵּין-אֲטוֹמִיִּים",
+            "normalized": "הבין-אטומיים"
+          },
+          {
+            "index": 10,
+            "surface": "לְפַחְמָן",
+            "normalized": "לפחמן"
+          },
+          {
+            "index": 11,
+            "surface": "קָטָן.",
+            "normalized": "קטן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן המסיסות המקסימלית של פחמן בפריט נמוכה מאוד.",
+        "he_niqqud": "לָכֵן הַמְּסִיסוּת הַמַּקְסִימָלִית שֶׁל פַּחְמָן בְּפֶרִיט נְמוּכָה מְאֹד.",
+        "transliteration": "Lachén ha'm'sisút ha'maksimálit shel pahmán b'ferít n'muchá m'ód.",
+        "ru": "Поэтому максимальная растворимость углерода в феррите очень низка."
+      },
+      "source_refs": [
+        "legacy_row_hash:f4d90105fcc3e89223952d3db875ee77ec62552d013fdf0bfe549baf19d3e2ce",
+        "legacy_fields_sha256:d327ed0334d8b33b4cdc27311442a27e7da918885fccdde7bec45db2bf164e36",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּקְסִימָלִית",
+            "normalized": "המקסימלית"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "בְּפֶרִיט",
+            "normalized": "בפריט"
+          },
+          {
+            "index": 6,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 7,
+            "surface": "מְאֹד.",
+            "normalized": "מאד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) המסיסות המרבית של פחמן באוסטניט לפי נספח המקור היא 2.14% C.",
+        "he_niqqud": "ב) הַמְּסִיסוּת הַמְּרַבִּית שֶׁל פַּחְמָן בְּאוֹסְטֶנִיט לְפִי נִסְפַּח הַמָּקוֹר הִיא 2.14% C.",
+        "transliteration": "B) Ha-mesisut ha-merabit shel pahman be-ostenit lefi nispah ha-maqor hi 2.14% C.",
+        "ru": "Б) Максимальная растворимость углерода в аустените по приложению источника равна 2,14% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:6c45f02e287669fdf21668a4f7656ff2fb00e77b1badb51ed5617d73796595ca",
+        "legacy_fields_sha256:44f7a0d9f326bdb82e5349d481127c23859b996f1257b7a07c03416278ab749b",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "presentation_repair:19"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּרַבִּית",
+            "normalized": "המרבית"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "בְּאוֹסְטֶנִיט",
+            "normalized": "באוסטניט"
+          },
+          {
+            "index": 6,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 7,
+            "surface": "נִסְפַּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 8,
+            "surface": "הַמָּקוֹר",
+            "normalized": "המקור"
+          },
+          {
+            "index": 9,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 10,
+            "surface": "2.14%",
+            "normalized": "2.14%"
+          },
+          {
+            "index": 11,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r019",
+      "order": 19,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "הטמפרטורה המתאימה היא 1147°C.",
+        "he_niqqud": "הַטֶּמְפֶּרָטוּרָה הַמַּתְאִימָה הִיא 1147°C.",
+        "transliteration": "Ha'tem'peratúrá hamat'imá hí 1147°C.",
+        "ru": "Соответствующая температура составляет 1147°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:72bf72ca4695aaad8e2aa9d111a5d6485870777943fc62f0021d98fec058ea05",
+        "legacy_fields_sha256:daaf304b2a8302f8acf51b1176253166564ea63d09ea1272fe4a3077f18e59ae",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַטֶּמְפֶּרָטוּרָה",
+            "normalized": "הטמפרטורה"
+          },
+          {
+            "index": 1,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "1147°C.",
+            "normalized": "1147°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באוסטניט יש סריג מעוקב מרכז-פאה (FCC) ולכן יש יותר אתרים בין-אטומיים לפחמן.",
+        "he_niqqud": "בְּאוֹסְטֶנִיט יֵשׁ סָרִיג מְעֻקָּב מֶרְכַּז-פָּאָה (FCC) וּלְכֵן יֵשׁ יוֹתֵר אֲתָרִים בֵּין-אֲטוֹמִיִּים לְפַחְמָן.",
+        "transliteration": "B'os'tenít yesh saríg m'uqqáv merkaz-pá'á (FCC) ul'chén yesh yotér atarím béin-atomiyyím l'pahmán.",
+        "ru": "Аустенит имеет гранецентрированную кубическую решетку (ГЦК), и поэтому в нем больше межатомных узлов для углерода."
+      },
+      "source_refs": [
+        "legacy_row_hash:6e9057c2c4f4901f06ad22d27fb7288ef81adb34fa1a88fa5b9aa73225c34bce",
+        "legacy_fields_sha256:99669458ba9c621e60311740ab4e6b1897c1ea630d713e2ee18ccf044500b809",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּאוֹסְטֶנִיט",
+            "normalized": "באוסטניט"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "סָרִיג",
+            "normalized": "סריג"
+          },
+          {
+            "index": 3,
+            "surface": "מְעֻקָּב",
+            "normalized": "מעקב"
+          },
+          {
+            "index": 4,
+            "surface": "מֶרְכַּז-פָּאָה",
+            "normalized": "מרכז-פאה"
+          },
+          {
+            "index": 5,
+            "surface": "(FCC)",
+            "normalized": "FCC"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 9,
+            "surface": "אֲתָרִים",
+            "normalized": "אתרים"
+          },
+          {
+            "index": 10,
+            "surface": "בֵּין-אֲטוֹמִיִּים",
+            "normalized": "בין-אטומיים"
+          },
+          {
+            "index": 11,
+            "surface": "לְפַחְמָן.",
+            "normalized": "לפחמן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן המסיסות המקסימלית של פחמן באוסטניט גבוהה בהרבה.",
+        "he_niqqud": "לָכֵן הַמְּסִיסוּת הַמַּקְסִימָלִית שֶׁל פַּחְמָן בְּאוֹסְטֶנִיט גְּבוֹהָה בְּהַרְבֵּה.",
+        "transliteration": "Lachén ha'm'sisút ha'maksimálit shel pahmán b'os'tenít g'vohá b'harbé.",
+        "ru": "Поэтому максимальная растворимость углерода в аустените намного выше."
+      },
+      "source_refs": [
+        "legacy_row_hash:a07413270d3e9d46ef6ef5123eac698f8c8bd6c1d4d81096b34990386549881b",
+        "legacy_fields_sha256:99f95b6d14134cce667a6d5ab1e91e6588b4c23941bb52efdf0cf5f15c34771e",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּקְסִימָלִית",
+            "normalized": "המקסימלית"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "בְּאוֹסְטֶנִיט",
+            "normalized": "באוסטניט"
+          },
+          {
+            "index": 6,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 7,
+            "surface": "בְּהַרְבֵּה.",
+            "normalized": "בהרבה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r022",
+      "order": 22,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) טמפרטורת ההיתוך של לדבוריט היא 1147°C.",
+        "he_niqqud": "ג) טֶמְפֶּרָטוּרַת הַהִיתּוּךְ שֶׁל לֶדֶבּוּרִיט הִיא 1147°C.",
+        "transliteration": "(C) Tem'peratúrat ha'hitúch shel led'burít hí 1147°C.",
+        "ru": "В) Температура плавления ледебурита составляет 1147°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:ad7fc864537f6d7112abe9e7ea216e968cf6ba0cc50a59bf76c88a89a214ac16",
+        "legacy_fields_sha256:251960aea0a22b996eb33eaeadc7419e637a2e80790269adcb36d88ebec85115",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 2,
+            "surface": "הַהִיתּוּךְ",
+            "normalized": "ההיתוך"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "לֶדֶבּוּרִיט",
+            "normalized": "לדבוריט"
+          },
+          {
+            "index": 5,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 6,
+            "surface": "1147°C.",
+            "normalized": "1147°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באוטקטי ההיתוך מתרחש בטמפרטורה יחידה.",
+        "he_niqqud": "בָּאוֹטֶקְטִי הַהִיתּוּךְ מִתְרַחֵשׁ בְּטֶמְפֶּרָטוּרָה יְחִידָה.",
+        "transliteration": "Ba'otékti ha'hitúch mit'rahésh b'tem'peratúrá y'hidá.",
+        "ru": "В эвтектике плавление происходит при одной единственной температуре."
+      },
+      "source_refs": [
+        "legacy_row_hash:aba5d79707fe742a32c16751344272948f61648addc732b3b44feed4572ebcd2",
+        "legacy_fields_sha256:ec239bdb91977935da3f006389bf5988f7492daa54a761b7a08717734bfc03ac",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בָּאוֹטֶקְטִי",
+            "normalized": "באוטקטי"
+          },
+          {
+            "index": 1,
+            "surface": "הַהִיתּוּךְ",
+            "normalized": "ההיתוך"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 4,
+            "surface": "יְחִידָה.",
+            "normalized": "יחידה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r024",
+      "order": 24,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לפי נספח המקור, תחום היציקות הוא בקירוב 2.14%–6.67% C.",
+        "he_niqqud": "ג) לְפִי נִסְפַּח הַמָּקוֹר, תְּחוּם הַיְּצִיקוֹת הוּא בְּקֵרוּב 2.14%–6.67% C.",
+        "transliteration": "G) Lefi nispah ha-maqor, tehum ha-yetsiqot hu be-qeruv 2.14%–6.67% C.",
+        "ru": "В) По приложению источника диапазон чугунов составляет примерно 2,14–6,67% C."
+      },
+      "source_refs": [
+        "legacy_row_hash:f428e861f9cd782891efabd3ce600127bed8733893f52f7420be9a5f948b5f9d",
+        "legacy_fields_sha256:4acbc53e0faff8067da79a82439aa5df529599f2c19fe837b1141c7d19338859",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "presentation_repair:25"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 2,
+            "surface": "נִסְפַּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 3,
+            "surface": "הַמָּקוֹר,",
+            "normalized": "המקור"
+          },
+          {
+            "index": 4,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 5,
+            "surface": "הַיְּצִיקוֹת",
+            "normalized": "היציקות"
+          },
+          {
+            "index": 6,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 7,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 8,
+            "surface": "2.14%–6.67%",
+            "normalized": "2.14%–6.67%"
+          },
+          {
+            "index": 9,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r025",
+      "order": 25,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "התחום נקבע לפי דיאגרמת (Fe–Fe₃C).",
+        "he_niqqud": "הַתְּחוּם נִקְבַּע לְפִי דִּיאַגְרָמַת (Fe–Fe₃C).",
+        "transliteration": "Ha't'húm niqba l'fí diyagramat (Fe–Fe₃C).",
+        "ru": "Этот диапазон определяется согласно диаграмме (Fe–Fe₃C)."
+      },
+      "source_refs": [
+        "legacy_row_hash:58b812a3da57614cd3331ffd3d5721e122b9af96130d6dae2828ccd88dcb6747",
+        "legacy_fields_sha256:83de0aa07f001adad48c01b077333bc0060dbd045978d554ccecb643d4226f51",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַתְּחוּם",
+            "normalized": "התחום"
+          },
+          {
+            "index": 1,
+            "surface": "נִקְבַּע",
+            "normalized": "נקבע"
+          },
+          {
+            "index": 2,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 3,
+            "surface": "דִּיאַגְרָמַת",
+            "normalized": "דיאגרמת"
+          },
+          {
+            "index": 4,
+            "surface": "(Fe–Fe₃C).",
+            "normalized": "Fe–Fe₃C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "פלדות מוגדרות עד המסיסות המקסימלית של פחמן באוסטניט.",
+        "he_niqqud": "פְּלָדוֹת מוּגְדָּרוֹת עַד הַמְּסִיסוּת הַמַּקְסִימָלִית שֶׁל פַּחְמָן בְּאוֹסְטֶנִיט.",
+        "transliteration": "Pladót mug'darót ad ha'm'sisút ha'maksimálit shel pahmán b'os'tenít.",
+        "ru": "Стали определяются до максимальной растворимости углерода в аустените."
+      },
+      "source_refs": [
+        "legacy_row_hash:1011a1de09607a13a98773909ba2cb521de1b4d5186581d2700b079046e6d8b2",
+        "legacy_fields_sha256:edb8390cb2e12fbcd341c248173ef5b367f634b235f2e7c3bebaab568aa2149d",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פְּלָדוֹת",
+            "normalized": "פלדות"
+          },
+          {
+            "index": 1,
+            "surface": "מוּגְדָּרוֹת",
+            "normalized": "מוגדרות"
+          },
+          {
+            "index": 2,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 3,
+            "surface": "הַמְּסִיסוּת",
+            "normalized": "המסיסות"
+          },
+          {
+            "index": 4,
+            "surface": "הַמַּקְסִימָלִית",
+            "normalized": "המקסימלית"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 7,
+            "surface": "בְּאוֹסְטֶנִיט.",
+            "normalized": "באוסטניט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעל תחום זה מדובר ביציקות ברזל.",
+        "he_niqqud": "מֵעַל תְּחוּם זֶה מְדֻבָּר בִּיצִיקוֹת בַּרְזֶל.",
+        "transliteration": "Me'ál t'húm ze m'dubár biy'tziqót barzél.",
+        "ru": "Выше этого диапазона речь идет о чугунах."
+      },
+      "source_refs": [
+        "legacy_row_hash:f7a0856952654a1923ea7e38de584ca39fb1c363a939d0f9c63e38b180b359a5",
+        "legacy_fields_sha256:8d3077ac61e706e1cd7972706337c6cd53f1dd33948a7b70f54ecaff66e7fd68",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֵעַל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 1,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 2,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 3,
+            "surface": "מְדֻבָּר",
+            "normalized": "מדבר"
+          },
+          {
+            "index": 4,
+            "surface": "בִּיצִיקוֹת",
+            "normalized": "ביציקות"
+          },
+          {
+            "index": 5,
+            "surface": "בַּרְזֶל.",
+            "normalized": "ברזל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q028-sol-r028",
+      "order": 28,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:fc0fdd8a88996540eb75580b9c673301db8a66f9b589afab2713edf6a6e42cd3",
+        "comparison:MATCH_WITH_SOURCE_LABEL_TOLERANCE",
+        "source_page:36",
+        "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+        "appendix_page:70",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q028",
+    "display_alias": "28",
+    "source_pages": [
+      36,
+      70
+    ],
+    "independent_state": "DERIVED_FROM_PINNED_MICROGRAPHS_AND_APPENDIX",
+    "answer": [
+      "а) Фото 1 — перлит; фото 2 — феррит; фото 3 — феррит+перлит.",
+      "б1) Максимальная растворимость углерода в α-феррите около 0,02% C при эвтектоидной температуре.",
+      "б2) Максимальная растворимость углерода в аустените γ — 2,14% C при 1147 °C.",
+      "в1) Эвтектическое превращение с ледебуритом происходит при 1147 °C.",
+      "в2) По приложению чугуны занимают диапазон примерно 2,14–6,67% C."
+    ],
+    "engineering_picture": "Ламеллярные колонии идентифицируют перлит; светлые равноосные зёрна — феррит; смешанная светло-тёмная картина — феррит с перлитом. Числа считываются с pinned Fe–C appendix.",
+    "prerequisites": [
+      "Перлит имеет ламеллярную морфологию.",
+      "Феррит при травлении обычно светлый.",
+      "Эвтектика Fe–Fe₃C: 4,3%C и 1147 °C; граница сталей/чугунов по максимальной растворимости C в γ."
+    ],
+    "roadmap": [
+      "Классифицировать три изображения по морфологии.",
+      "Считать пределы растворимости с диаграммы.",
+      "Считать эвтектическую температуру и композиционный диапазон чугуна."
+    ],
+    "main_trap": "Не путать 0,8%C эвтектоида с 4,2–4,3%C эвтектики и 2,14%C максимальной растворимости в аустените.",
+    "givens": [
+      "Три микрофотографии и приложение Fe–C."
+    ],
+    "find": [
+      "Названия микроструктур, две растворимости, температура ледебурита и диапазон чугуна."
+    ],
+    "assumptions": [
+      "Используется метастабильная диаграмма Fe–Fe₃C учебного приложения; округления принимаются как на рисунке."
+    ],
+    "laws": [],
+    "symbolic_derivation": [
+      "Ламеллы→перлит; светлые зёрна→феррит; смешанные области→феррит+перлит."
+    ],
+    "calculation": [],
+    "construction": [
+      "Таблица: 1|перлит; 2|феррит; 3|феррит+перлит."
+    ],
+    "checks": [
+      "Все три требуемые структуры использованы ровно по одному разу.",
+      "2,14<4,2<6,67 по оси C приложения."
+    ],
+    "source_facts": [
+      "source_page:36",
+      "asset_sha256:548b1ce5461114d7d4ac4e30fe641ae20e1effece1fe6edfd6fc0fda644c193b",
+      "appendix_page:70",
+      "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44"
+    ],
+    "unresolved_limits": [
+      "На схематической оси приложения эвтектический состав подписан 4,20%, тогда как часто используется округление 4,3%; ответ сохраняет температуру и границы самого приложения."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

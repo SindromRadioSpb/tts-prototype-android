@@ -1,0 +1,24 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-manual-visual-review-v1",
+  "status": "PASS_MANUAL_VISUAL_REVIEW",
+  "reviewed_on": "2026-08-30",
+  "method": "CONTACT_SHEETS_PLUS_ORIGINAL_SCALE_CRITICAL_PAGE_RENDERS",
+  "batches": [
+    {
+      "batch_id": "B01",
+      "pdf_sha256": "8398c4d86fe5516b7cc8d1137acd78aac02939cc9134e51f33b4769a9a2357ed",
+      "result": "PASS_RASTER_SANITIZED_ALL_4_PAGES_READABLE_PAGE_5_UNION_COMPLETE"
+    },
+    {
+      "batch_id": "B02",
+      "pdf_sha256": "ac8e06369c28e8a38f27285fde408b8ae1a70207cb14779ae0e53a9757297387",
+      "result": "PASS_RASTER_SANITIZED_ALL_5_PAGES_READABLE_APPENDIX_PAGE_70_PRESENT"
+    },
+    {
+      "batch_id": "B03",
+      "pdf_sha256": "c08468144cc7712683047001f3c2d6f9414f500b4f11d91844b8f0dffa3b2131",
+      "result": "PASS_RASTER_SANITIZED_ALL_11_PAGES_READABLE_Q38B_AND_Q44_CROPS_EXCLUDE_PRECEDING_SOLUTIONS_P68_P69_ROTATION_PRESERVED"
+    }
+  ],
+  "provider_calls_before_review": 0
+}

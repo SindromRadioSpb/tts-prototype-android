@@ -1,0 +1,142 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-preflight-v1.request-blueprint",
+  "batch_id": "B01",
+  "model": "gemini-3.7-flash",
+  "mode": "STANDARD",
+  "thinking_level": "medium",
+  "pdf_filename": "materials-pb2-canonical-repair-B01.pdf",
+  "pdf_sha256": "4c270c161e2bc1982560947618678a0a548d6a4e3b7136437d2e433a7f9dfcb5",
+  "candidate_filename": "B01-candidate-rows.json",
+  "candidate_sha256": "f8849af5fa38e72470ead6ab3884846b6246fb6093cd39d9a950744f2acaa9f5",
+  "prompt": "You are repairing bilingual learning rows for a materials-science problem corpus.\nBatch: B01. Exact row count: 80.\n\nThe attached PDF contains only source condition crops and explicitly required reference appendices.\nThe attached candidate JSON contains stable row_id values and legacy candidate columns.\n\nFor every input row, return exactly one output row with the same row_id and no extra rows.\nUse the PDF as source truth. Legacy columns are comparison evidence only.\n- he: exact plain Hebrew condition text for that row, without niqqud.\n- he_niqqud: the same Hebrew text with accurate niqqud; consonant skeleton must equal he.\n- transliteration: faithful readable Latin transliteration of he_niqqud, preserving formulas and symbols.\n- ru: faithful Russian translation of the condition, preserving formulas, units, subparts, and uncertainty.\nDo not answer, solve, explain, infer missing values, or emit status/severity fields.\nIf the row is a heading or formula-only row, preserve that semantic role and content.\nReturn JSON matching the supplied schema only.\n",
+  "prompt_sha256": "07a9de7b4366de07539d94daf0ad106114fe92da84f925841fecd4e93cb2a602",
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "batch_id",
+      "rows"
+    ],
+    "properties": {
+      "batch_id": {
+        "type": "string"
+      },
+      "rows": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "row_id",
+            "he",
+            "he_niqqud",
+            "transliteration",
+            "ru"
+          ],
+          "properties": {
+            "row_id": {
+              "type": "string"
+            },
+            "he": {
+              "type": "string"
+            },
+            "he_niqqud": {
+              "type": "string"
+            },
+            "transliteration": {
+              "type": "string"
+            },
+            "ru": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "output_schema_sha256": "15a3f4389ad43a1ea822692add5ac7e997e8442805e80f37be282ee267679ebf",
+  "expected_row_ids": [
+    "materials-science-y1-pb2-q002-r001",
+    "materials-science-y1-pb2-q002-r002",
+    "materials-science-y1-pb2-q002-r003",
+    "materials-science-y1-pb2-q002-r004",
+    "materials-science-y1-pb2-q002-r005",
+    "materials-science-y1-pb2-q002-r006",
+    "materials-science-y1-pb2-q002-r007",
+    "materials-science-y1-pb2-q002-r008",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r001",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r002",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r003",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r004",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r005",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r006",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r007",
+    "materials-science-y1-pb2-exercise-p005-allotropy-r008",
+    "materials-science-y1-pb2-q003-r001",
+    "materials-science-y1-pb2-q003-r002",
+    "materials-science-y1-pb2-q003-r003",
+    "materials-science-y1-pb2-q003-r004",
+    "materials-science-y1-pb2-q003-r005",
+    "materials-science-y1-pb2-q003-r006",
+    "materials-science-y1-pb2-q003-r007",
+    "materials-science-y1-pb2-q003-r008",
+    "materials-science-y1-pb2-q004-r001",
+    "materials-science-y1-pb2-q004-r002",
+    "materials-science-y1-pb2-q004-r003",
+    "materials-science-y1-pb2-q004-r004",
+    "materials-science-y1-pb2-q004-r005",
+    "materials-science-y1-pb2-q004-r006",
+    "materials-science-y1-pb2-q005-r001",
+    "materials-science-y1-pb2-q005-r002",
+    "materials-science-y1-pb2-q005-r003",
+    "materials-science-y1-pb2-q005-r004",
+    "materials-science-y1-pb2-q005-r005",
+    "materials-science-y1-pb2-q006-r001",
+    "materials-science-y1-pb2-q006-r002",
+    "materials-science-y1-pb2-q006-r003",
+    "materials-science-y1-pb2-q006-r004",
+    "materials-science-y1-pb2-q006-r005",
+    "materials-science-y1-pb2-q006-r006",
+    "materials-science-y1-pb2-q006-r007",
+    "materials-science-y1-pb2-q006-r008",
+    "materials-science-y1-pb2-q006-r009",
+    "materials-science-y1-pb2-q007-r001",
+    "materials-science-y1-pb2-q007-r002",
+    "materials-science-y1-pb2-q007-r003",
+    "materials-science-y1-pb2-q007-r004",
+    "materials-science-y1-pb2-q007-r005",
+    "materials-science-y1-pb2-q007-r006",
+    "materials-science-y1-pb2-q007-r007",
+    "materials-science-y1-pb2-q007-r008",
+    "materials-science-y1-pb2-q007-r009",
+    "materials-science-y1-pb2-q007-r010",
+    "materials-science-y1-pb2-q007-r011",
+    "materials-science-y1-pb2-q007-r012",
+    "materials-science-y1-pb2-q007-r013",
+    "materials-science-y1-pb2-q007-r014",
+    "materials-science-y1-pb2-q007-r015",
+    "materials-science-y1-pb2-q008-r001",
+    "materials-science-y1-pb2-q008-r002",
+    "materials-science-y1-pb2-q008-r003",
+    "materials-science-y1-pb2-q008-r004",
+    "materials-science-y1-pb2-q008-r005",
+    "materials-science-y1-pb2-q008-r006",
+    "materials-science-y1-pb2-q008-r007",
+    "materials-science-y1-pb2-q008-r008",
+    "materials-science-y1-pb2-q008-r009",
+    "materials-science-y1-pb2-q008-r010",
+    "materials-science-y1-pb2-q008-r011",
+    "materials-science-y1-pb2-q008-r012",
+    "materials-science-y1-pb2-q008-r013",
+    "materials-science-y1-pb2-q009-r001",
+    "materials-science-y1-pb2-q009-r002",
+    "materials-science-y1-pb2-q009-r003",
+    "materials-science-y1-pb2-q009-r004",
+    "materials-science-y1-pb2-q009-r005",
+    "materials-science-y1-pb2-q009-r006",
+    "materials-science-y1-pb2-q009-r007",
+    "materials-science-y1-pb2-q009-r008"
+  ],
+  "maximum_output_tokens": 32768,
+  "provider_calls_made": 0
+}

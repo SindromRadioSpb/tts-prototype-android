@@ -1,0 +1,34 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-cost-plan-v1",
+  "status": "PROPOSED_NOT_APPROVED_NO_CALLS_MADE",
+  "pricing_checked_on": "2026-08-30",
+  "model": "gemini-3.7-flash",
+  "consumption_mode": "STANDARD",
+  "thinking_level": "medium",
+  "grounding_or_tools": false,
+  "pricing_usd_per_1m_tokens": {
+    "input": 0.75,
+    "output_including_thinking": 3.75
+  },
+  "pdf_page_token_rule": 258,
+  "primary_request_count": 3,
+  "total_retry_budget": 1,
+  "max_provider_calls": 4,
+  "input_token_cap_per_call": 50000,
+  "output_token_cap_per_call_including_thinking": 16384,
+  "planned_pdf_page_exposures": 20,
+  "planned_pdf_image_tokens": 5160,
+  "formula_max_usd": "calls * ((input_cap * input_rate) + (output_cap * output_rate)) / 1000000",
+  "calculated_worst_case_usd": 0.39576,
+  "proposed_hard_ceiling_usd": 0.5,
+  "headroom_usd": 0.10424,
+  "apply_preconditions": [
+    "owner_approves exact model, sample, standard mode, and MAX_USD=0.50",
+    "owner confirms selected source and legacy condition rows may be sent to Gemini paid tier",
+    "official price is rechecked; any increase or model drift returns to PLAN",
+    "three cropped/page-faithful input PDFs pass local render read-back",
+    "serialized request stays within input cap before every call"
+  ],
+  "provider_calls_made": 0,
+  "secret_accessed": false
+}

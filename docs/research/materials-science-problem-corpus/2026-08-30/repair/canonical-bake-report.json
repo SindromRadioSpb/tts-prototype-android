@@ -1,0 +1,19 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-bake-report-v1",
+  "status": "PASS_LOCAL_CANONICAL_BUNDLE_DETERMINISTIC_READBACK_NOT_IMPORTED_NOT_PUBLISHED",
+  "bundle_filename": "materials-pb2-q043-rebake.zip",
+  "bundle_bytes": 15892072,
+  "bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "task_count": 60,
+  "row_count": 693,
+  "asset_count": 72,
+  "provider_reviewed_row_count": 488,
+  "source_verified_legacy_fallback_row_count": 152,
+  "source_verified_post_bake_correction_row_count": 2,
+  "existing_canonical_pass_row_count": 51,
+  "audio_count": 0,
+  "missing_audio": 693,
+  "solution_count": 0,
+  "imported": false,
+  "published": false
+}

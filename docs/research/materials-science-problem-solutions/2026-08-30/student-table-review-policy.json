@@ -1,0 +1,257 @@
+{
+  "schema_version": "materials_pb2_student_table_review_policy.1.0.0",
+  "status": "TECHNICAL_CONTENT_REVIEWED_PRESENTATION_REPAIRS_EXACTLY_ALLOWLISTED_RIGHTS_PENDING",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "policy": {
+    "legacy_rows_default": "INCLUDE_ONLY_AFTER_TASK_LEVEL_INDEPENDENT_COMPARISON",
+    "repair_match": "TASK_ID_PLUS_LEGACY_ROW_INDEX_PLUS_EXPECTED_FIELDS_SHA256_FAIL_CLOSED",
+    "source_only_tasks": "CURATED_FROM_REVIEWED_INDEPENDENT_LEDGER_NO_PROVIDER",
+    "unlisted_row_mutation_allowed": false,
+    "full_tts_generation_allowed": false
+  },
+  "replacements": {
+    "materials-science-y1-pb2-q008": [
+      {
+        "legacy_row_index": 45,
+        "expected_fields_sha256": "7f09ecf6182d810947e55b52ce7a8f5d8150b64edacffa9d8afe27fc4b2c57f4",
+        "reason": "The source does not determine one unique surface-hardening route.",
+        "fields": {
+          "he": "ד) נדרש תהליך הקשיית פני שטח מבוקר לעומק של 0.10 מ״מ; ניטרור או תהליך מוסמך אחר הם אפשרויות, אך מן הנתונים אי־אפשר לבחור מסלול יחיד.",
+          "he_niqqud": "ד) נִדְרָשׁ תַּהֲלִיךְ הַקְשָׁיַת פְּנֵי שֶׁטַח מְבֻקָּר לְעֹמֶק שֶׁל 0.10 מ״מ; נִטְרוּר אוֹ תַּהֲלִיךְ מֻסְמָךְ אַחֵר הֵם אֶפְשָׁרֻיּוֹת, אַךְ מִן הַנְּתוּנִים אִי־אֶפְשָׁר לִבְחֹר מַסְלוּל יָחִיד.",
+          "transliteration": "D) Nidrash tahalikh haqshayat penei shetah mevukar le-omeq shel 0.10 mm; nitrur o tahalikh musmakh aher hem efsharuyot, akh min ha-netunim i-efshar livhor maslul yahid.",
+          "ru": "Г) Требуется контролируемое поверхностное упрочнение на глубину 0,10 мм; азотирование или иной квалифицированный процесс являются вариантами, но данные не позволяют выбрать единственный маршрут."
+        }
+      },
+      {
+        "legacy_row_index": 46,
+        "expected_fields_sha256": "20f6c93d652803c863ce77cf5d83466a0d9e55de8d67f3204b382a944223648f",
+        "reason": "Process sequence must be qualified rather than asserted.",
+        "fields": {
+          "he": "יש לאמת את רצף הטיפול לפי דרגת הפלדה, הגאומטריה וטמפרטורת הליבה.",
+          "he_niqqud": "יֵשׁ לְאַמֵּת אֶת רֶצֶף הַטִּפּוּל לְפִי דַּרְגַת הַפְּלָדָה, הַגֵּאוֹמֶטְרְיָה וְטֶמְפֶּרָטוּרַת הַלִּבָּה.",
+          "transliteration": "Yesh le-amet et retsef ha-tipul lefi dargat ha-peladah, ha-geometriyah ve-temperaturat ha-libah.",
+          "ru": "Последовательность обработки необходимо квалифицировать по марке стали, геометрии и температуре сердцевины."
+        }
+      },
+      {
+        "legacy_row_index": 47,
+        "expected_fields_sha256": "9f24f9a9ce0f8986174a5ef73624ae9c322d2d212c02d6a651b10aec804b5bc5",
+        "reason": "Preserve the required case depth without inventing time.",
+        "fields": {
+          "he": "הדרישה הגאומטרית היא עומק שכבה של 0.10 מ״מ, כלומר 100 מיקרומטר; זמן הטיפול אינו נתון.",
+          "he_niqqud": "הַדְּרִישָׁה הַגֵּאוֹמֶטְרִית הִיא עֹמֶק שִׁכְבָה שֶׁל 0.10 מ״מ, כְּלוֹמַר 100 מִיקְרוֹמֶטֶר; זְמַן הַטִּפּוּל אֵינוֹ נָתוּן.",
+          "transliteration": "Ha-drishah ha-geometrit hi omeq shikhvah shel 0.10 mm, klomar 100 miqrometer; zman ha-tipul eino natun.",
+          "ru": "Геометрическое требование — глубина слоя 0,10 мм, то есть 100 мкм; время обработки не задано."
+        }
+      },
+      {
+        "legacy_row_index": 48,
+        "expected_fields_sha256": "c39a9a22302803231987f3c445dd80525d1d49a3581c1cc85c47281b680f4ab1",
+        "reason": "Hardness profile is an acceptance check, not a guaranteed process outcome.",
+        "fields": {
+          "he": "לאחר הטיפול יש לבדוק פרופיל מיקרו־קשיות: כ־230 HB בפני השטח וכ־170 HB בליבה.",
+          "he_niqqud": "לְאַחַר הַטִּפּוּל יֵשׁ לִבְדֹּק פְּרוֹפִיל מִיקְרוֹ־קְשִׁיּוּת: כְּ־230 HB בִּפְנֵי הַשֶּׁטַח וּכְ־170 HB בַּלִּבָּה.",
+          "transliteration": "Le-ahar ha-tipul yesh livdoq profil mikro-qeshiyut: ke-230 HB bifnei ha-shetah u-khe-170 HB ba-libah.",
+          "ru": "После обработки следует проверить профиль микротвёрдости: около 230 HB на поверхности и около 170 HB в сердцевине."
+        }
+      }
+    ],
+    "materials-science-y1-pb2-q018": [
+      {
+        "legacy_row_index": 20,
+        "expected_fields_sha256": "09655511e741275f22d0f14acabd02237843079a8e403d48553a7773e5fa847d",
+        "reason": "No hardness method is universally more accurate without test conditions.",
+        "fields": {
+          "he": "אי־אפשר לקבוע ששיטה אחת מדויקת תמיד; הדיוק תלוי בסקלה, בחומר, בעובי, בפני השטח ובכיול.",
+          "he_niqqud": "אִי־אֶפְשָׁר לִקְבֹּעַ שֶׁשִּׁיטָה אַחַת מְדֻיֶּקֶת תָּמִיד; הַדִּיּוּק תָּלוּי בַּסְּקָלָה, בַּחֹמֶר, בָּעֹבִי, בִּפְנֵי הַשֶּׁטַח וּבַכִּיּוּל.",
+          "transliteration": "I-efshar liqboa she-shitah ahat meduyeqet tamid; ha-diyuq talui ba-sqalah, ba-homer, ba-ovi, bifnei ha-shetah u-va-kiyul.",
+          "ru": "Нельзя считать один метод всегда более точным: точность зависит от шкалы, материала, толщины, поверхности и калибровки."
+        }
+      },
+      {
+        "legacy_row_index": 21,
+        "expected_fields_sha256": "7e1998eba1d064e55a22f2594c6ed145c9d13618449cbcfaf5fc299398fe1735",
+        "reason": "Replace unsupported universal metrology claim.",
+        "fields": {
+          "he": "בתנאים מתאימים ובמכשיר מכויל, רוקוול, ברינל וויקרס הם שיטות תקניות ומהימנות.",
+          "he_niqqud": "בִּתְנָאִים מַתְאִימִים וּבְמַכְשִׁיר מְכֻיָּל, רוֹקְוֶול, בְּרִינֶל וְוִיקֶרְס הֵם שִׁיטוֹת תִּקְנִיּוֹת וּמְהֵימָנוֹת.",
+          "transliteration": "Bi-tnaim mat'imim u-ve-makhshir mekhuyal, Roqvel, Brinel ve-Viqers hem shitot tiqniyot u-mehemanot.",
+          "ru": "При подходящих условиях и откалиброванном приборе Rockwell, Brinell и Vickers являются стандартизованными надёжными методами."
+        }
+      },
+      {
+        "legacy_row_index": 22,
+        "expected_fields_sha256": "3579b839a283b72402318d9b0f643d6b8b152e0ba4c3c7013744a656418b01de",
+        "reason": "Keep speed distinction with a conditional sensitivity statement.",
+        "fields": {
+          "he": "רוקוול מאפשר קריאה ישירה ומהירה, אך יש לבחור סקלה ולהכין את פני השטח בהתאם לתקן.",
+          "he_niqqud": "רוֹקְוֶול מְאַפְשֵׁר קְרִיאָה יְשִׁירָה וּמְהִירָה, אַךְ יֵשׁ לִבְחֹר סְקָלָה וּלְהָכִין אֶת פְּנֵי הַשֶּׁטַח בְּהֶתְאֵם לַתֶּקֶן.",
+          "transliteration": "Roqvel me'afsher qeri'ah yeshirah u-mehirah, akh yesh livhor sqalah u-lehakhin et penei ha-shetah behet'em la-teqen.",
+          "ru": "Rockwell даёт прямое и быстрое считывание, но шкалу и подготовку поверхности выбирают по стандарту."
+        }
+      },
+      {
+        "legacy_row_index": 28,
+        "expected_fields_sha256": "63f51273b5feb9bd8de95c3cacfb42de6231e0fa4e2dd1305a4644d24d1cb53d",
+        "reason": "SAE1045 is unsupported; appendix supports SAE1040 as best classroom fit with ambiguity disclosed.",
+        "fields": {
+          "he": "684 MPa נמצא בתחום של SAE 1040 וגם של SAE 1050; יחד עם 190 HB, הבחירה הלימודית הסבירה ביותר היא SAE 1040, אך הזיהוי אינו חד־משמעי.",
+          "he_niqqud": "684 MPa נִמְצָא בַּתְּחוּם שֶׁל SAE 1040 וְגַם שֶׁל SAE 1050; יַחַד עִם 190 HB, הַבְּחִירָה הַלִּמּוּדִית הַסְּבִירָה בְּיוֹתֵר הִיא SAE 1040, אַךְ הַזִּהוּי אֵינוֹ חַד־מַשְׁמָעִי.",
+          "transliteration": "684 MPa nimtsa ba-tehum shel SAE 1040 ve-gam shel SAE 1050; yahad im 190 HB, ha-behirah ha-limudit ha-sevirah be-yoter hi SAE 1040, akh ha-zihui eino had-mashma'i.",
+          "ru": "684 МПа входит в диапазоны SAE 1040 и SAE 1050; с учётом 190 HB наиболее обоснованный учебный выбор — SAE 1040, но идентификация не является однозначной."
+        }
+      }
+    ],
+    "materials-science-y1-pb2-q025": [
+      {
+        "legacy_row_index": 6,
+        "expected_fields_sha256": "165b61f9c54e6b745a6d285ecde53fb09410463f603d5c77798befd4af90d2a2",
+        "reason": "Correct logarithmic graph reading.",
+        "fields": {
+          "he": "א) עבור פליז ב־150 MPa מתקבל סדר גודל של 10^5 מחזורים עד לכשל.",
+          "he_niqqud": "א) עֲבוּר פְּלִיז בְּ־150 MPa מִתְקַבֵּל סֵדֶר גֹּדֶל שֶׁל 10^5 מַחְזוֹרִים עַד לְכֶשֶׁל.",
+          "transliteration": "A) Avur peliz be-150 MPa mitqabel seder godel shel 10^5 mahzorim ad le-kheshel.",
+          "ru": "А) Для латуни при 150 МПа получается порядок 10^5 циклов до разрушения."
+        }
+      },
+      {
+        "legacy_row_index": 8,
+        "expected_fields_sha256": "e00286d307fc1af01d29824e2c5083d0842216767c30279b9ae476015afa53f2",
+        "reason": "Repeat the corrected approximate graph read, not the rejected value.",
+        "fields": {
+          "he": "הקריאה היא בקירוב בלבד משום שציר המחזורים לוגריתמי.",
+          "he_niqqud": "הַקְּרִיאָה הִיא בְּקֵרוּב בִּלְבַד מִשּׁוּם שֶׁצִּיר הַמַּחְזוֹרִים לוֹגָרִיתְמִי.",
+          "transliteration": "Ha-qeri'ah hi be-qeruv bilvad mishum she-tsir ha-mahzorim logaritmi.",
+          "ru": "Значение считывается только приближённо, поскольку ось циклов логарифмическая."
+        }
+      },
+      {
+        "legacy_row_index": 9,
+        "expected_fields_sha256": "8f6e97c278737f101073b510047464fabbad047c3c798b44fd1ade77e96721ff",
+        "reason": "Correct logarithmic graph reading.",
+        "fields": {
+          "he": "א) עבור סגסוגת Al 2024 ב־150 MPa מתקבלים בקירוב 2×10^7 עד 3×10^7 מחזורים.",
+          "he_niqqud": "א) עֲבוּר סַגְסוֹגֶת Al 2024 בְּ־150 MPa מִתְקַבְּלִים בְּקֵרוּב 2×10^7 עַד 3×10^7 מַחְזוֹרִים.",
+          "transliteration": "A) Avur sagsoget Al 2024 be-150 MPa mitqabelim be-qeruv 2×10^7 ad 3×10^7 mahzorim.",
+          "ru": "А) Для сплава Al 2024 при 150 МПа получается примерно 2×10^7–3×10^7 циклов."
+        }
+      },
+      {
+        "legacy_row_index": 11,
+        "expected_fields_sha256": "4e3b52bae39dc29a3793fba6410d42d5d92012af86102547d1a04e463337ad99",
+        "reason": "Keep graph precision explicit.",
+        "fields": {
+          "he": "גם כאן התוצאה היא טווח משוער מן הגרף ולא מספר מדויק.",
+          "he_niqqud": "גַּם כָּאן הַתּוֹצָאָה הִיא טְוָח מְשֹׁעָר מִן הַגְּרָף וְלֹא מִסְפָּר מְדֻיָּק.",
+          "transliteration": "Gam kan ha-totsa'ah hi tevah meshu'ar min ha-graf ve-lo mispar meduyaq.",
+          "ru": "Здесь результат также является оценочным диапазоном по графику, а не точным числом."
+        }
+      }
+    ],
+    "materials-science-y1-pb2-q026": [
+      {
+        "legacy_row_index": 15,
+        "expected_fields_sha256": "825c3f8dcdee36824f99e0a2377ed3f42c24fab197de873c4fbf970f8afa26d1",
+        "reason": "Do not extrapolate beyond the plotted Brass curve.",
+        "fields": {
+          "he": "א) עבור Red Brass ב־350 MPa החיתוך נמצא משמאל לתחום הגרף; לכן N קטן בערך מ־10^4, אך ערך מדויק אינו נקבע מן האיור.",
+          "he_niqqud": "א) עֲבוּר Red Brass בְּ־350 MPa הַחִתּוּךְ נִמְצָא מִשְּׂמֹאל לִתְחוּם הַגְּרָף; לָכֵן N קָטָן בְּעֵרֶךְ מִ־10^4, אַךְ עֵרֶךְ מְדֻיָּק אֵינוֹ נִקְבָּע מִן הָאִיּוּר.",
+          "transliteration": "A) Avur Red Brass be-350 MPa ha-hitukh nimtsa mi-smol li-tehum ha-graf; lakhen N qatan be-erekh mi-10^4, akh erekh meduyaq eino niqba min ha-iyur.",
+          "ru": "А) Для Red Brass при 350 МПа пересечение лежит левее диапазона графика: N меньше примерно 10^4, но точное значение по рисунку не определяется."
+        }
+      },
+      {
+        "legacy_row_index": 16,
+        "expected_fields_sha256": "df50918cbff02d52c192a4e12bc2b2f7868ce57725393e871030ce34b600047c",
+        "reason": "State the visible source limit.",
+        "fields": {
+          "he": "כל עקומת הפליז המוצגת נמצאת מתחת לרמת 350 MPa.",
+          "he_niqqud": "כָּל עֲקֻמַּת הַפְּלִיז הַמֻּצֶּגֶת נִמְצֵאת מִתַּחַת לְרָמַת 350 MPa.",
+          "transliteration": "Kol aqumat ha-peliz ha-mutsetet nimtset mi-tahat le-ramat 350 MPa.",
+          "ru": "Вся показанная кривая латуни лежит ниже уровня 350 МПа."
+        }
+      },
+      {
+        "legacy_row_index": 17,
+        "expected_fields_sha256": "90c3996c98c2548b9a4194817f3b8ee57f95e546ca27c7fef7446b7a0cacce80",
+        "reason": "Make insufficiency explicit instead of numerical extrapolation.",
+        "fields": {
+          "he": "אין להאריך את העקומה מעבר לאיור ולדווח מספר מחזורים מדויק.",
+          "he_niqqud": "אֵין לְהַאֲרִיךְ אֶת הָעֲקֻמָּה מֵעֵבֶר לָאִיּוּר וּלְדַוֵּחַ מִסְפַּר מַחְזוֹרִים מְדֻיָּק.",
+          "transliteration": "Ein leha'arikh et ha-aqumah me-ever la-iyur u-ledaveah mispar mahzorim meduyaq.",
+          "ru": "Нельзя продолжать кривую за пределы рисунка и сообщать точное число циклов."
+        }
+      }
+    ],
+    "materials-science-y1-pb2-q028": [
+      {
+        "legacy_row_index": 19,
+        "expected_fields_sha256": "44f7a0d9f326bdb82e5349d481127c23859b996f1257b7a07c03416278ab749b",
+        "reason": "Use the exact value printed in the pinned appendix.",
+        "fields": {
+          "he": "ב) המסיסות המרבית של פחמן באוסטניט לפי נספח המקור היא 2.14% C.",
+          "he_niqqud": "ב) הַמְּסִיסוּת הַמְּרַבִּית שֶׁל פַּחְמָן בְּאוֹסְטֶנִיט לְפִי נִסְפַּח הַמָּקוֹר הִיא 2.14% C.",
+          "transliteration": "B) Ha-mesisut ha-merabit shel pahman be-ostenit lefi nispah ha-maqor hi 2.14% C.",
+          "ru": "Б) Максимальная растворимость углерода в аустените по приложению источника равна 2,14% C."
+        }
+      },
+      {
+        "legacy_row_index": 25,
+        "expected_fields_sha256": "4acbc53e0faff8067da79a82439aa5df529599f2c19fe837b1141c7d19338859",
+        "reason": "Use the exact cast-iron boundary printed in the pinned appendix.",
+        "fields": {
+          "he": "ג) לפי נספח המקור, תחום היציקות הוא בקירוב 2.14%–6.67% C.",
+          "he_niqqud": "ג) לְפִי נִסְפַּח הַמָּקוֹר, תְּחוּם הַיְּצִיקוֹת הוּא בְּקֵרוּב 2.14%–6.67% C.",
+          "transliteration": "G) Lefi nispah ha-maqor, tehum ha-yetsiqot hu be-qeruv 2.14%–6.67% C.",
+          "ru": "В) По приложению источника диапазон чугунов составляет примерно 2,14–6,67% C."
+        }
+      }
+    ],
+    "materials-science-y1-pb2-q029": [
+      {
+        "legacy_row_index": 12,
+        "expected_fields_sha256": "35111e304bcf79ac6c4e437032551a7152b41052ff67ea7453a38c144a123fed",
+        "reason": "Quench range is supported; a single temper range is not selected by the Fe-C diagram.",
+        "fields": {
+          "he": "ב) טמפרטורת החיסום היא בקירוב 760–780°C; אי־אפשר לבחור תחום הרפיה יחיד מדיאגרמת Fe–C בלבד.",
+          "he_niqqud": "ב) טֶמְפֶּרָטוּרַת הַחִסּוּם הִיא בְּקֵרוּב 760–780°C; אִי־אֶפְשָׁר לִבְחֹר תְּחוּם הַרְפָּיָה יָחִיד מִדִּיאַגְרָמַת Fe–C בִּלְבַד.",
+          "transliteration": "B) Temperaturat ha-hisum hi be-qeruv 760–780°C; i-efshar livhor tehum harpayah yahid mi-diagramat Fe–C bilvad.",
+          "ru": "Б) Температура закалки составляет примерно 760–780 °C; выбрать единственный диапазон отпуска только по диаграмме Fe–C нельзя."
+        }
+      },
+      {
+        "legacy_row_index": 20,
+        "expected_fields_sha256": "bb0c6176c243b2706c483e5a040a8d2994fc61916330d1208ff79fc0a3e602cd",
+        "reason": "Present educational temper bands conditionally.",
+        "fields": {
+          "he": "לימודית מבחינים בהרפיה נמוכה 150–250°C, בינונית 350–450°C וגבוהה 500–650°C; הבחירה תלויה בדרישות הקשיות והקשיחות.",
+          "he_niqqud": "לִמּוּדִית מַבְחִינִים בְּהַרְפָּיָה נְמוּכָה 150–250°C, בֵּינוֹנִית 350–450°C וּגְבוֹהָה 500–650°C; הַבְּחִירָה תְּלוּיָה בִּדְרִישׁוֹת הַקְּשִׁיּוּת וְהַקְּשִׁיחוּת.",
+          "transliteration": "Limudit mavhinim be-harpayah nemukhah 150–250°C, beinonit 350–450°C u-gvohah 500–650°C; ha-behirah teluyah bi-drishot ha-qeshiyut ve-ha-qeshihut.",
+          "ru": "В учебных целях различают низкий отпуск 150–250 °C, средний 350–450 °C и высокий 500–650 °C; выбор зависит от требований к твёрдости и вязкости."
+        }
+      }
+    ]
+  },
+  "source_only_rows": {
+    "materials-science-y1-pb2-q002": [
+      {"section":"theory","kind":"theory_statement","exam_copy":true,"text":{"he":"הטענות נבדקות לפי סדר גבישי, אלוטרופיה, פגמים וסוג הקשר.","he_niqqud":"הַטְּעָנוֹת נִבְדָּקוֹת לְפִי סֵדֶר גְּבִישִׁי, אַלּוֹטְרוֹפְּיָה, פְּגָמִים וְסוּג הַקֶּשֶׁר.","transliteration":"Ha-te'anot nivdaqot lefi seder gevishi, alotropiyah, pegamim ve-sug ha-qesher.","ru":"Утверждения проверяются по кристаллическому порядку, аллотропии, дефектам и типу связи."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"א","text":{"he":"א) נכון: לנחושת מוצקה יש מבנה גבישי FCC.","he_niqqud":"א) נָכוֹן: לִנְחֹשֶׁת מוּצָקָה יֵשׁ מִבְנֶה גְּבִישִׁי FCC.","transliteration":"A) Nakhon: li-nehoshet mutsaqah yesh mivneh gevishi FCC.","ru":"А) Верно: твёрдая медь имеет кристаллическую структуру ГЦК."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ב","text":{"he":"ב) לא נכון: בנוזל אין סדר מחזורי ארוך־טווח כמו בגביש.","he_niqqud":"ב) לֹא נָכוֹן: בְּנוֹזֵל אֵין סֵדֶר מַחְזוֹרִי אֲרֹךְ־טְוָח כְּמוֹ בִּגְבִישׁ.","transliteration":"B) Lo nakhon: be-nozel ein seder mahzori arokh-tevah kemo bi-gevish.","ru":"Б) Неверно: в жидкости нет дальнего периодического порядка, как в кристалле."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ג","text":{"he":"ג) נכון: הברזל אלוטרופי ומשנה את הסריג בין BCC ל־FCC עם הטמפרטורה.","he_niqqud":"ג) נָכוֹן: הַבַּרְזֶל אַלּוֹטְרוֹפִּי וּמְשַׁנֶּה אֶת הַסָּרִיג בֵּין BCC לְ־FCC עִם הַטֶּמְפֶּרָטוּרָה.","transliteration":"G) Nakhon: ha-barzel alotropi u-meshaneh et ha-sarig bein BCC le-FCC im ha-temperaturah.","ru":"В) Верно: железо аллотропно и с температурой меняет решётку между ОЦК и ГЦК."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ד","text":{"he":"ד) לא נכון: לגרעין יש אוריינטציה משותפת, אך בגרעין ממשי קיימים פגמים.","he_niqqud":"ד) לֹא נָכוֹן: לַגַּרְעִין יֵשׁ אוֹרְיֶנְטַצְיָה מְשֻׁתֶּפֶת, אַךְ בְּגַרְעִין מַמָּשִׁי קַיָּמִים פְּגָמִים.","transliteration":"D) Lo nakhon: la-gar'in yesh orientatsiyah meshutefet, akh be-gar'in mamashi qayamim pegamim.","ru":"Г) Неверно: зерно имеет общую ориентацию, но реальное зерно содержит дефекты."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ה","text":{"he":"ה) נכון במובן האטומי: הנטייה לחמצון קשורה לאלקטרוני הערכיות; הקצב תלוי גם בסביבה ובטמפרטורה.","he_niqqud":"ה) נָכוֹן בַּמּוּבָן הָאָטוֹמִי: הַנְּטִיָּה לְחִמְצוּן קְשׁוּרָה לְאֶלֶקְטְרוֹנֵי הָעֶרְכִּיּוּת; הַקֶּצֶב תָּלוּי גַּם בַּסְּבִיבָה וּבַטֶּמְפֶּרָטוּרָה.","transliteration":"H) Nakhon ba-muvan ha-atomi: ha-netiyah le-himtsun qeshurah le-eleqtronei ha-erkhiyut; ha-qetsev talui gam ba-svivah u-va-temperaturah.","ru":"Д) Верно в атомном смысле: склонность к окислению связана с валентными электронами; скорость зависит также от среды и температуры."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ו","text":{"he":"ו) לא נכון: בברזל פועל קשר מתכתי עם אלקטרונים בלתי־מקומיים, ולא קשר יוני.","he_niqqud":"ו) לֹא נָכוֹן: בַּבַּרְזֶל פּוֹעֵל קֶשֶׁר מַתַּכְתִּי עִם אֶלֶקְטְרוֹנִים בִּלְתִּי־מְקוֹמִיִּים, וְלֹא קֶשֶׁר יוֹנִי.","transliteration":"V) Lo nakhon: ba-barzel po'el qesher matakhti im eleqtronim bilti-meqomiyim, ve-lo qesher yoni.","ru":"Е) Неверно: в железе действует металлическая связь с делокализованными электронами, а не ионная связь."}},
+      {"section":"verification","kind":"result_check","exam_copy":true,"text":{"he":"בדיקה: לכל אחד מששת הסעיפים נכתב פסק דין ונימוק נפרד.","he_niqqud":"בְּדִיקָה: לְכָל אֶחָד מִשֵּׁשֶׁת הַסְּעִיפִים נִכְתַּב פְּסַק דִּין וְנִמּוּק נִפְרָד.","transliteration":"Bediqah: le-khol ehad mi-sheshet ha-se'ifim nikhtav psaq din ve-nimuq nifrad.","ru":"Проверка: для каждого из шести пунктов дан отдельный вердикт и обоснование."}}
+    ],
+    "materials-science-y1-pb2-q032": [
+      {"section":"theory","kind":"theory_statement","exam_copy":true,"text":{"he":"בפלדות Cr–Mo קרובות, יותר פחמן מעלה את חוזק המרטנזיט לאחר אותו חיסום והרפיה.","he_niqqud":"בִּפְלָדוֹת Cr–Mo קְרוֹבוֹת, יוֹתֵר פַּחְמָן מַעֲלֶה אֶת חֹזֶק הַמַּרְטֶנְזִיט לְאַחַר אוֹתוֹ חִסּוּם וְהַרְפָּיָה.","transliteration":"Bi-feladot Cr–Mo qerovot, yoter pahman ma'aleh et hozeq ha-martenzit le-ahar oto hisum ve-harpayah.","ru":"В близких Cr–Mo-сталях большее содержание углерода повышает прочность мартенсита после одинаковых закалки и отпуска."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"א","text":{"he":"א) SAE 4150 היא החזקה ביותר: UTS בקירוב 2200 MPa, לעומת 1950 MPa ל־4140 ו־1650 MPa ל־4130.","he_niqqud":"א) SAE 4150 הִיא הַחֲזָקָה בְּיוֹתֵר: UTS בְּקֵרוּב 2200 MPa, לְעֻמַּת 1950 MPa לְ־4140 וְ־1650 MPa לְ־4130.","transliteration":"A) SAE 4150 hi ha-hazaqah be-yoter: UTS be-qeruv 2200 MPa, le'umat 1950 MPa le-4140 ve-1650 MPa le-4130.","ru":"А) SAE 4150 — самая прочная: UTS около 2200 МПа против 1950 МПа у 4140 и 1650 МПа у 4130."}},
+      {"section":"model_and_laws","kind":"law_or_principle","exam_copy":true,"part_label":"ב","text":{"he":"ב) הסיבה היא בקירוב 0.50% C ב־4150, לעומת 0.40% ו־0.30% C.","he_niqqud":"ב) הַסִּבָּה הִיא בְּקֵרוּב 0.50% C בְּ־4150, לְעֻמַּת 0.40% וְ־0.30% C.","transliteration":"B) Ha-sibah hi be-qeruv 0.50% C be-4150, le'umat 0.40% ve-0.30% C.","ru":"Б) Причина — около 0,50% C в 4150 против 0,40% и 0,30% C."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ג","text":{"he":"ג) מודול האלסטיות כמעט זהה, כ־200 GPa, כי השיפועים האלסטיים ההתחלתיים חופפים.","he_niqqud":"ג) מוֹדוּל הָאֶלַסְטִיּוּת כִּמְעַט זֵהֶה, כְּ־200 GPa, כִּי הַשִּׁפּוּעִים הָאֶלַסְטִיִּים הַהַתְחָלָתִיִּים חוֹפְפִים.","transliteration":"G) Modul ha-elastiyut kim'at zeheh, ke-200 GPa, ki ha-shipu'im ha-elastiyim ha-hathalatiyim hofefim.","ru":"В) Модуль упругости почти одинаков, около 200 ГПа, поскольку начальные упругие наклоны совпадают."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ד","text":{"he":"ד) לאחר חיסום והרפיה ב־500°C המבנה הוא מרטנזיט מורפה עם קרבידים.","he_niqqud":"ד) לְאַחַר חִסּוּם וְהַרְפָּיָה בְּ־500°C הַמִּבְנֶה הוּא מַרְטֶנְזִיט מֻרְפֶּה עִם קַרְבִּידִים.","transliteration":"D) Le-ahar hisum ve-harpayah be-500°C ha-mivneh hu martenzit murpeh im qarbidim.","ru":"Г) После закалки и отпуска при 500 °C структура — отпущенный мартенсит с карбидами."}},
+      {"section":"final_answer","kind":"final_answer","exam_copy":true,"part_label":"ה","text":{"he":"ה) העלאת טמפרטורת ההרפיה מורידה חוזק וקשיות ומעלה בדרך כלל משיכות וקשיחות; E כמעט אינו משתנה.","he_niqqud":"ה) הַעֲלָאַת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה מוֹרִידָה חֹזֶק וְקָשִׁיּוּת וּמַעֲלָה בְּדֶרֶךְ כְּלָל מְשִׁיכוּת וּקְשִׁיחוּת; E כִּמְעַט אֵינוֹ מִשְׁתַּנֶּה.","transliteration":"H) Ha'ala'at temperaturat ha-harpayah moridah hozeq ve-qashiyut u-ma'alah be-derekh klal meshikhut u-qeshihut; E kim'at eino mishtaneh.","ru":"Д) Повышение температуры отпуска снижает прочность и твёрдость и обычно повышает пластичность и вязкость; E почти не меняется."}},
+      {"section":"construction","kind":"diagram_instruction","exam_copy":true,"text":{"he":"בגרף יש לסמן: עקומה עליונה 4150, אמצעית 4140 ותחתונה 4130, וכן שיפוע התחלתי משותף.","he_niqqud":"בַּגְּרָף יֵשׁ לְסַמֵּן: עֲקֻמָּה עֶלְיוֹנָה 4150, אֶמְצָעִית 4140 וְתַחְתּוֹנָה 4130, וְכֵן שִׁפּוּעַ הַתְחָלָתִי מְשֻׁתָּף.","transliteration":"Ba-graf yesh lesamen: aqumah elyonah 4150, emtsa'it 4140 ve-tahtonah 4130, ve-khen shipu'a hathalati meshutaf.","ru":"На графике подписать верхнюю кривую 4150, среднюю 4140, нижнюю 4130 и общий начальный наклон."}},
+      {"section":"verification","kind":"result_check","exam_copy":true,"text":{"he":"בדיקה: סדר החוזק אינו משמש להסיק מודולי E שונים.","he_niqqud":"בְּדִיקָה: סֵדֶר הַחֹזֶק אֵינוֹ מְשַׁמֵּשׁ לְהַסִּיק מוֹדוּלֵי E שׁוֹנִים.","transliteration":"Bediqah: seder ha-hozeq eino meshamesh le-hasiq modulei E shonim.","ru":"Проверка: порядок прочности не используется для вывода разных модулей E."}}
+    ]
+  }
+}

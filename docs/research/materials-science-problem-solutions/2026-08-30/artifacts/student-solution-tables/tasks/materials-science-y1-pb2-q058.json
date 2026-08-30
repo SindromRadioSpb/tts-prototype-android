@@ -1,0 +1,2714 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q058",
+  "display_alias": "58",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "e29ebe07723ca1c98e75e3dcdc6b2238a97547ef4b9c054085ebdb5cf46440aa"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "2c72cc111be369c4229193703ac8757b28239bb7d792d61feef555c5c2e82cbc",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Statistical isotropy and the ceramic/composite/polymer slope and fracture-strain order match; independent solution keeps interface and volume-fraction limits visible.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q058-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 58.",
+        "hebrew_niqqud": "שְׁאֵלָה 58.",
+        "translit": "She'ela 58.",
+        "translit_ru": "",
+        "russian": "Вопрос 58.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q058",
+            "kind": "task_heading",
+            "source_page": 65,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q058-r002",
+        "order_index": 1,
+        "hebrew_plain": "באיור לשאלה 3 מוצגת קובייה העשויה מפולימר (חומר אם) והמחוזקת בסיבים של חומרים קרמיים.",
+        "hebrew_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 3 מֻוצֶּגֶת קֻובִּייָּה הָעֲשׂוּיָה מִפּוֹלִימֶר (חוֹמֶר אֵם) וְהַמְּחֻוזֶּקֶת בְּסִיבִים שֶׁל חֳומָרִים קֵרָמִיִּים.",
+        "translit": "Ba'iyur lish'elah 3 mutzeget kubiyah ha'asuyah mipolimer (chomer em) vehamchuzeket besivim shel chomarim keramiyim.",
+        "translit_ru": "",
+        "russian": "На рисунке к вопросу 3 показан куб, изготовленный из полимера (исходный материал/матрица) и армированный волокнами керамических материалов.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q058",
+            "kind": "diagram_reference",
+            "source_page": 65,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q058-r003",
+        "order_index": 2,
+        "hebrew_plain": "א) האם הקובייה בעלת תכונות מכניות איזוטרופיות או אנאיזוטרופיות.",
+        "hebrew_niqqud": "א) הַאִם הַקֻּובִּייָּה בַּעֲלַת תְּכוּנוֹת מְכָנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת אוֹ אָנְאִיזוֹטְרוֹפִּיּוֹת.",
+        "translit": "A) Ha'im hakubiyah ba'alat tkhunot mechaniyot izotropiyot o an'izotropiyot.",
+        "translit_ru": "",
+        "russian": "А) Обладает ли куб изотропными или анизотропными механическими свойствами?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q058",
+            "kind": "subpart",
+            "source_page": 65,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q058-r004",
+        "order_index": 3,
+        "hebrew_plain": "נמק את תשובתך.",
+        "hebrew_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Namek et teshuvat'cha.",
+        "translit_ru": "",
+        "russian": "Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q058",
+            "kind": "subpart",
+            "source_page": 65,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q058-r005",
+        "order_index": 4,
+        "hebrew_plain": "ב) סרטט שלוש עקומות מאמץ (σ) כנגד מעוות (ε) סכמתיות על אותה מערכת צירים לתיאור התכונות המכניות של חומר האם, הסיב הקרמי והחומר המרוכב.",
+        "hebrew_niqqud": "ב) סַרְטֵט שָׁלוֹשׁ עֲקֻומּוֹת מַאֲמָץ (σ) כְּנֶגֶד מְעֻווָּת (ε) סְכֶמָתִיּוֹת עַל אוֹתָהּ מַעֲרֶכֶת צִירִים לְתֵיאוּר הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל חוֹמֶר הָאֵם, הַסִּיב הַקֵּרָמִי וְהַחוֹמֶר הַמְרֻוכָּב.",
+        "translit": "B) Sartet shalosh akumot ma'amatz (σ) keneged me'uvat (ε) schematiyot al otah ma'arechet tzirim lete'ur hatkhunot hamechaniyot shel chomer ha'em, hasiv hakerami vehachomer hamerukav.",
+        "translit_ru": "",
+        "russian": "Б) Начертите схематично три кривые «напряжение (σ) — деформация (ε)» на одной системе координат для описания механических свойств материала матрицы, керамического волокна и композиционного материала.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q058",
+            "kind": "subpart",
+            "source_page": 65,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      65
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q058/anchor-01-p065.jpg",
+        "sha256": "768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821",
+        "bytes": 183903,
+        "source_page": 65,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q058-v01",
+        "source_page": 65,
+        "kind": "FIBER_REINFORCED_COMPOSITE_CUBE",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:2c72cc111be369c4229193703ac8757b28239bb7d792d61feef555c5c2e82cbc"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) הקובייה בעלת תכונות מכניות איזוטרופיות בקירוב (סטטיסטית).",
+        "he_niqqud": "א) הַקֻּבִּיָּה בַּעֲלַת תְּכוּנוֹת מְכָאִנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת בְּקֵרוּב (סְטָטִיסְטִית).",
+        "transliteration": "A) Ha-qubiyah ba'alat tkhunot mekhaniyot izotropiyot beqiruv (staṭisṭit).",
+        "ru": "А) Куб обладает приблизительно изотропными механическими свойствами (статистически)."
+      },
+      "source_refs": [
+        "legacy_row_hash:3bb6286bd3c446e1d9dec76e2c48cf6e766dca61e89bcb042ff14d4b8b622cb6",
+        "legacy_fields_sha256:1c70040d1822000bc85a2c3d5cc12e9d8ae81817845b9cd50dfe7c00c4e4a145",
+        "independent_solution_sha256:2c72cc111be369c4229193703ac8757b28239bb7d792d61feef555c5c2e82cbc"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַקֻּבִּיָּה",
+            "normalized": "הקביה"
+          },
+          {
+            "index": 2,
+            "surface": "בַּעֲלַת",
+            "normalized": "בעלת"
+          },
+          {
+            "index": 3,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 4,
+            "surface": "מְכָאִנִיּוֹת",
+            "normalized": "מכאניות"
+          },
+          {
+            "index": 5,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 6,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 7,
+            "surface": "(סְטָטִיסְטִית).",
+            "normalized": "סטטיסטית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "על אותו גרף סדר השיפועים יהיה: סיב קרמי תלול ביותר, אחריו מרוכב, ואחריו פולימר מתון ביותר.",
+        "he_niqqud": "עַל אֹותֹו גְּרָף סֵדֶר הַשִּׁפּוּעִים יִהְיֶה: סִיב קֵרָמִי תָּלוּל בְּיֹותֵר, אַחֲרָיו מְרֻכָּב, וְאַחֲרָיו פּוֹלִימֶר מָתוֹן בְּיֹותֵר.",
+        "transliteration": "Al oto graf seder ha-shipu'im yihiyeh: siv qerami talul beyoter, aḥarav merukav, ve'aḥarav polymer maṭon beyoter.",
+        "ru": "На том же графике порядок наклонов будет следующим: керамическое волокно — самый крутой, за ним композит, а затем полимер — самый пологий."
+      },
+      "source_refs": [
+        "legacy_row_hash:2fa5cdf23f4fd95389d875425243e7217fd0c2a15fd4d238c4f7d4ac6de7b698",
+        "legacy_fields_sha256:05fe642cb7aecc16337e558395bc2f53c47d65ee35278a2e00763d8362b9205e",
+        "independent_solution_sha256:2c72cc111be369c4229193703ac8757b28239bb7d792d61feef555c5c2e82cbc"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 1,
+            "surface": "אֹותֹו",
+            "normalized": "אותו"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרָף",
+            "normalized": "גרף"
+          },
+          {
+            "index": 3,
+            "surface": "סֵדֶר",
+            "normalized": "סדר"
+          },
+          {
+            "index": 4,
+            "surface": "הַשִּׁפּוּעִים",
+            "normalized": "השפועים"
+          },
+          {
+            "index": 5,
+            "surface": "יִהְיֶה:",
+            "normalized": "יהיה"
+          },
+          {
+            "index": 6,
+            "surface": "סִיב",
+            "normalized": "סיב"
+          },
+          {
+            "index": 7,
+            "surface": "קֵרָמִי",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 8,
+            "surface": "תָּלוּל",
+            "normalized": "תלול"
+          },
+          {
+            "index": 9,
+            "surface": "בְּיֹותֵר,",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 10,
+            "surface": "אַחֲרָיו",
+            "normalized": "אחריו"
+          },
+          {
+            "index": 11,
+            "surface": "מְרֻכָּב,",
+            "normalized": "מרכב"
+          },
+          {
+            "index": 12,
+            "surface": "וְאַחֲרָיו",
+            "normalized": "ואחריו"
+          },
+          {
+            "index": 13,
+            "surface": "פּוֹלִימֶר",
+            "normalized": "פולימר"
+          },
+          {
+            "index": 14,
+            "surface": "מָתוֹן",
+            "normalized": "מתון"
+          },
+          {
+            "index": 15,
+            "surface": "בְּיֹותֵר.",
+            "normalized": "ביותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r004",
+      "order": 4,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) הקובייה בעלת תכונות מכניות איזוטרופיות בקירוב (סטטיסטית).",
+        "he_niqqud": "א) הַקֻּבִּיָּה בַּעֲלַת תְּכוּנוֹת מְכָאִנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת בְּקֵרוּב (סְטָטִיסְטִית).",
+        "transliteration": "A) Ha-qubiyah ba'alat tkhunot mekhaniyot izotropiyot beqiruv (staṭisṭit).",
+        "ru": "А) Куб обладает приблизительно изотропными механическими свойствами (статистически)."
+      },
+      "source_refs": [
+        "legacy_row_hash:3bb6286bd3c446e1d9dec76e2c48cf6e766dca61e89bcb042ff14d4b8b622cb6",
+        "legacy_fields_sha256:1c70040d1822000bc85a2c3d5cc12e9d8ae81817845b9cd50dfe7c00c4e4a145",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַקֻּבִּיָּה",
+            "normalized": "הקביה"
+          },
+          {
+            "index": 2,
+            "surface": "בַּעֲלַת",
+            "normalized": "בעלת"
+          },
+          {
+            "index": 3,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 4,
+            "surface": "מְכָאִנִיּוֹת",
+            "normalized": "מכאניות"
+          },
+          {
+            "index": 5,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 6,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 7,
+            "surface": "(סְטָטִיסְטִית).",
+            "normalized": "סטטיסטית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "חומר איזוטרופי הוא חומר שבו התכונות המכניות אינן תלויות בכיוון ההעמסה.",
+        "he_niqqud": "חֹומֶר אִיזוֹטְרוֹפִּי הֻוּא חֹומֶר שֶׁבֹּו הַתְּכוּנוֹת הַמְּכָאִנִיּוֹת אֵינָן תְּלוּיוֹת בְּכִוּוּן הָהַעֲמָסָה.",
+        "transliteration": "Ḥomer izotropi hu ḥomer shebo ha-tkhunot ha-mekhaniyot einan teluyot be-khivun ha-ha'amasah.",
+        "ru": "Изотропный материал — это материал, механические свойства которого не зависят от направления нагрузки."
+      },
+      "source_refs": [
+        "legacy_row_hash:28d7da517c4b7e5e7e227b6c7f567cc16b61d9be42079e4de721f0263da12077",
+        "legacy_fields_sha256:c6564e9b267af76909396fbc7f9fcf85bb544612ea96ebcd9ffb3406d4129565",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 1,
+            "surface": "אִיזוֹטְרוֹפִּי",
+            "normalized": "איזוטרופי"
+          },
+          {
+            "index": 2,
+            "surface": "הֻוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁבֹּו",
+            "normalized": "שבו"
+          },
+          {
+            "index": 5,
+            "surface": "הַתְּכוּנוֹת",
+            "normalized": "התכונות"
+          },
+          {
+            "index": 6,
+            "surface": "הַמְּכָאִנִיּוֹת",
+            "normalized": "המכאניות"
+          },
+          {
+            "index": 7,
+            "surface": "אֵינָן",
+            "normalized": "אינן"
+          },
+          {
+            "index": 8,
+            "surface": "תְּלוּיוֹת",
+            "normalized": "תלויות"
+          },
+          {
+            "index": 9,
+            "surface": "בְּכִוּוּן",
+            "normalized": "בכוון"
+          },
+          {
+            "index": 10,
+            "surface": "הָהַעֲמָסָה.",
+            "normalized": "ההעמסה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "חומר אנאיזוטרופי הוא חומר שבו התכונות המכניות תלויות בכיוון, למשל ביחס לכיוון הסיבים במרוכב חד־כיווני.",
+        "he_niqqud": "חֹומֶר אָנְאַיזוֹטְרוֹפִּי הֻוּא חֹומֶר שֶׁבֹּו הַתְּכוּנוֹת הַמְּכָאִנִיּוֹת תְּלוּיוֹת בְּכִוּוּן, לְמָשָׁל בְּיַחַס לְכִוּוּן הַסִּיבִים בְּמְרֻכָּב חַד־כִּוּוּנִי.",
+        "transliteration": "Ḥomer an'izotropi hu ḥomer shebo ha-tkhunot ha-mekhaniyot teluyot be-khivun, lemashal be-yaḥas le-khivun ha-sivim ba-merukav ḥad-kivuni.",
+        "ru": "Анизотропный материал — это материал, механические свойства которого зависят от направления, например, по отношению к направлению волокон в однонаправленном композите."
+      },
+      "source_refs": [
+        "legacy_row_hash:e926262b7b2173b06c5e402f7ec681f71d07f7232e962e38fe8b5ca975805b25",
+        "legacy_fields_sha256:4344d717c4acc26ad308d5742278d665adf8a01db28824e2a191239825ce7ddb",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 1,
+            "surface": "אָנְאַיזוֹטְרוֹפִּי",
+            "normalized": "אנאיזוטרופי"
+          },
+          {
+            "index": 2,
+            "surface": "הֻוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁבֹּו",
+            "normalized": "שבו"
+          },
+          {
+            "index": 5,
+            "surface": "הַתְּכוּנוֹת",
+            "normalized": "התכונות"
+          },
+          {
+            "index": 6,
+            "surface": "הַמְּכָאִנִיּוֹת",
+            "normalized": "המכאניות"
+          },
+          {
+            "index": 7,
+            "surface": "תְּלוּיוֹת",
+            "normalized": "תלויות"
+          },
+          {
+            "index": 8,
+            "surface": "בְּכִוּוּן,",
+            "normalized": "בכוון"
+          },
+          {
+            "index": 9,
+            "surface": "לְמָשָׁל",
+            "normalized": "למשל"
+          },
+          {
+            "index": 10,
+            "surface": "בְּיַחַס",
+            "normalized": "ביחס"
+          },
+          {
+            "index": 11,
+            "surface": "לְכִוּוּן",
+            "normalized": "לכוון"
+          },
+          {
+            "index": 12,
+            "surface": "הַסִּיבִים",
+            "normalized": "הסיבים"
+          },
+          {
+            "index": 13,
+            "surface": "בְּמְרֻכָּב",
+            "normalized": "במרכב"
+          },
+          {
+            "index": 14,
+            "surface": "חַד־כִּוּוּנִי.",
+            "normalized": "חד־כווני"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r007",
+      "order": 7,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "באיור נראים סיבים קצרים המפוזרים בכיוונים רבים ללא כיוון מועדף אחד.",
+        "he_niqqud": "בָּאִיּוּר נִרְאִים סִיבִים קְצָרִים הַמְפֻזָּרִים בְּכִוּוּנִים רַבִּים לְלֹא כִּוּוּן מֻעֲדָּף אֶחָד.",
+        "transliteration": "Ba-iyur nir'im sivim qetzarim ha-mefuzarim be-khivunim rabim lelo kivun mu'adaf eḥad.",
+        "ru": "На рисунке видны короткие волокна, распределенные во многих направлениях без какого-либо предпочтительного направления."
+      },
+      "source_refs": [
+        "legacy_row_hash:a57473424a1d28a0d0e161c899cdfd33656a49845ca898d74fd0605bc273276a",
+        "legacy_fields_sha256:77dadacd458f8134611860e043d8b31780f270ada9eb5f034e91d93411e60edb",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בָּאִיּוּר",
+            "normalized": "באיור"
+          },
+          {
+            "index": 1,
+            "surface": "נִרְאִים",
+            "normalized": "נראים"
+          },
+          {
+            "index": 2,
+            "surface": "סִיבִים",
+            "normalized": "סיבים"
+          },
+          {
+            "index": 3,
+            "surface": "קְצָרִים",
+            "normalized": "קצרים"
+          },
+          {
+            "index": 4,
+            "surface": "הַמְפֻזָּרִים",
+            "normalized": "המפזרים"
+          },
+          {
+            "index": 5,
+            "surface": "בְּכִוּוּנִים",
+            "normalized": "בכוונים"
+          },
+          {
+            "index": 6,
+            "surface": "רַבִּים",
+            "normalized": "רבים"
+          },
+          {
+            "index": 7,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 8,
+            "surface": "כִּוּוּן",
+            "normalized": "כוון"
+          },
+          {
+            "index": 9,
+            "surface": "מֻעֲדָּף",
+            "normalized": "מעדף"
+          },
+          {
+            "index": 10,
+            "surface": "אֶחָד.",
+            "normalized": "אחד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר התפלגות כיווני הסיבים אחידה, התגובה המאקרוסקופית של החומר אינה תלויה בכיוון העמסה ולכן מתקבלת איזוטרופיות בקירוב.",
+        "he_niqqud": "כַּאֲשֶׁר הִתְפַּלְּגוּת כִּוּוּנֵי הַסִּיבִים אֲחִידָה, הַתְּגוּבָה הַמַּקְרֹוסְקוֹפִּית שֶׁל הַחֹומֶר אֵינָהּ תְּלוּיָה בְּכִוּוּן הָעֲמָסָה וְלָכֵן מִתְקַבֶּלֶת אִיזוֹטְרוֹפִּיּוֹת בְּקֵרוּב.",
+        "transliteration": "Ka'asher hitpalgut kivuney ha-sivim aḥidah, ha-teguvah ha-maqrosqopit shel ha-ḥomer einah teluyah be-khivun ha-'amasah vela-khen mitqabelet izotropiyot beqiruv.",
+        "ru": "Когда распределение направлений волокон однородно, макроскопический отклик материала не зависит от направления нагрузки, и поэтому получается приблизительная изотропия."
+      },
+      "source_refs": [
+        "legacy_row_hash:5d6a7b47f9f606feb3a7da45e44b7581e44d7e0535489af5544a9e46b306de96",
+        "legacy_fields_sha256:78fb3996513d3f8caa6634223fcb509abbe06e68d2708369e633de1ac985474b",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "הִתְפַּלְּגוּת",
+            "normalized": "התפלגות"
+          },
+          {
+            "index": 2,
+            "surface": "כִּוּוּנֵי",
+            "normalized": "כווני"
+          },
+          {
+            "index": 3,
+            "surface": "הַסִּיבִים",
+            "normalized": "הסיבים"
+          },
+          {
+            "index": 4,
+            "surface": "אֲחִידָה,",
+            "normalized": "אחידה"
+          },
+          {
+            "index": 5,
+            "surface": "הַתְּגוּבָה",
+            "normalized": "התגובה"
+          },
+          {
+            "index": 6,
+            "surface": "הַמַּקְרֹוסְקוֹפִּית",
+            "normalized": "המקרוסקופית"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "הַחֹומֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 9,
+            "surface": "אֵינָהּ",
+            "normalized": "אינה"
+          },
+          {
+            "index": 10,
+            "surface": "תְּלוּיָה",
+            "normalized": "תלויה"
+          },
+          {
+            "index": 11,
+            "surface": "בְּכִוּוּן",
+            "normalized": "בכוון"
+          },
+          {
+            "index": 12,
+            "surface": "הָעֲמָסָה",
+            "normalized": "העמסה"
+          },
+          {
+            "index": 13,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 14,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 15,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 16,
+            "surface": "בְּקֵרוּב.",
+            "normalized": "בקרוב"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אם הסיבים היו מיושרים בכיוון אחד, המרוכב היה מציג אנאיזוטרופיות או אורתוטרופיות.",
+        "he_niqqud": "אִם הַסִּיבִים הָיוּ מְיֻשָּׁרִים בְּכִוּוּן אֶחָד, הַמְרֻכָּב הָיָה מַצִּיג אָנְאַיזוֹטְרוֹפִּיּוֹת אֹו אוֹרְתוֹטְרוֹפִּיּוֹת.",
+        "transliteration": "Im ha-sivim hayu meyuysharim be-khivun eḥad, ha-merukav hayah matzig an'izotropiyot o ortoṭropiyot.",
+        "ru": "Если бы волокна были выровнены в одном направлении, композит демонстрировал бы анизотропию или ортотропию."
+      },
+      "source_refs": [
+        "legacy_row_hash:543abcf3ff69d1151cb68681013552d9e40c2b9664c45f8e3fcd88f29cf0f1ce",
+        "legacy_fields_sha256:29e17105456aadbac549ce5e88514078e486b43a39481e71d581e88d007d1d14",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אִם",
+            "normalized": "אם"
+          },
+          {
+            "index": 1,
+            "surface": "הַסִּיבִים",
+            "normalized": "הסיבים"
+          },
+          {
+            "index": 2,
+            "surface": "הָיוּ",
+            "normalized": "היו"
+          },
+          {
+            "index": 3,
+            "surface": "מְיֻשָּׁרִים",
+            "normalized": "מישרים"
+          },
+          {
+            "index": 4,
+            "surface": "בְּכִוּוּן",
+            "normalized": "בכוון"
+          },
+          {
+            "index": 5,
+            "surface": "אֶחָד,",
+            "normalized": "אחד"
+          },
+          {
+            "index": 6,
+            "surface": "הַמְרֻכָּב",
+            "normalized": "המרכב"
+          },
+          {
+            "index": 7,
+            "surface": "הָיָה",
+            "normalized": "היה"
+          },
+          {
+            "index": 8,
+            "surface": "מַצִּיג",
+            "normalized": "מציג"
+          },
+          {
+            "index": 9,
+            "surface": "אָנְאַיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "אנאיזוטרופיות"
+          },
+          {
+            "index": 10,
+            "surface": "אֹו",
+            "normalized": "או"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹרְתוֹטְרוֹפִּיּוֹת.",
+            "normalized": "אורתוטרופיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r010",
+      "order": 10,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) עקומת חומר האם (פולימר) תהיה בעלת שיפוע התחלתי נמוך, כניעה, אזור פלסטי משמעותי והתארכות גדולה עד שבר.",
+        "he_niqqud": "ב) עַקּוּמַת חֹומֶר הָאֵם (פּוֹלִימֶר) תִּהְיֶה בַּעֲלַת שִׁפּוּעַ הַתְחָלָתִי נָמוּךְ, כְּנִיעָה, אֵזוֹר פְּלַסְטִי מַשְׁמָעוּתִי וְהִתְאָרְכוּת גְּדוֹלָה עַד שֶׁבֶר.",
+        "transliteration": "B) 'Aqumat ḥomer ha-em (polymer) tihiyeh ba'alat shipu'a hatḥalati namukh, ken'iyah, ezor plasṭi mashma'uti ve-hit'arḥut gedolah 'ad shever.",
+        "ru": "Б) Кривая исходного материала (полимера) будет иметь низкий начальный наклон, предел текучести, значительную пластическую область и большое удлинение до разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:92752220966d22188276bde4e838e48711b1d546ce8e01fa29cb28e67bc8e074",
+        "legacy_fields_sha256:62aff7d40b397cc4fa7b9fd563bb1b2bd9e1df80ac926e5137ecc962d493c753",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "עַקּוּמַת",
+            "normalized": "עקומת"
+          },
+          {
+            "index": 2,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 3,
+            "surface": "הָאֵם",
+            "normalized": "האם"
+          },
+          {
+            "index": 4,
+            "surface": "(פּוֹלִימֶר)",
+            "normalized": "פולימר"
+          },
+          {
+            "index": 5,
+            "surface": "תִּהְיֶה",
+            "normalized": "תהיה"
+          },
+          {
+            "index": 6,
+            "surface": "בַּעֲלַת",
+            "normalized": "בעלת"
+          },
+          {
+            "index": 7,
+            "surface": "שִׁפּוּעַ",
+            "normalized": "שפוע"
+          },
+          {
+            "index": 8,
+            "surface": "הַתְחָלָתִי",
+            "normalized": "התחלתי"
+          },
+          {
+            "index": 9,
+            "surface": "נָמוּךְ,",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 10,
+            "surface": "כְּנִיעָה,",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 11,
+            "surface": "אֵזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 12,
+            "surface": "פְּלַסְטִי",
+            "normalized": "פלסטי"
+          },
+          {
+            "index": 13,
+            "surface": "מַשְׁמָעוּתִי",
+            "normalized": "משמעותי"
+          },
+          {
+            "index": 14,
+            "surface": "וְהִתְאָרְכוּת",
+            "normalized": "והתארכות"
+          },
+          {
+            "index": 15,
+            "surface": "גְּדוֹלָה",
+            "normalized": "גדולה"
+          },
+          {
+            "index": 16,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 17,
+            "surface": "שֶׁבֶר.",
+            "normalized": "שבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באזור האלסטי מתקיים קשר ליניארי בין מאמץ למעוות.",
+        "he_niqqud": "בְּאֵזוֹר הָאֵלַסְטִי מִתְקַיֵּם קֶשֶׁר לִינֵאָרִי בֵּין מַאֲמָץ לִמְעֻוָּות.",
+        "transliteration": "Be'ezor ha-elasti mitqayem qesher line'ari ben ma'amatz li-me'uvat.",
+        "ru": "В упругой области существует линейная зависимость между напряжением и деформацией."
+      },
+      "source_refs": [
+        "legacy_row_hash:fd0b6209d1e9560dd1ba0325a37eca394d48c6bc50b002098dc735d3db46e14a",
+        "legacy_fields_sha256:4692cbe515c233307e4831bed3ccb335d0b0bb1571eddaa536fc34e49f5a5871",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּאֵזוֹר",
+            "normalized": "באזור"
+          },
+          {
+            "index": 1,
+            "surface": "הָאֵלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַיֵּם",
+            "normalized": "מתקים"
+          },
+          {
+            "index": 3,
+            "surface": "קֶשֶׁר",
+            "normalized": "קשר"
+          },
+          {
+            "index": 4,
+            "surface": "לִינֵאָרִי",
+            "normalized": "לינארי"
+          },
+          {
+            "index": 5,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 6,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 7,
+            "surface": "לִמְעֻוָּות.",
+            "normalized": "למעוות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r012",
+      "order": 12,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ = E·ε",
+        "he_niqqud": "σ = E·ε",
+        "transliteration": "σ = E·ε",
+        "ru": "σ = E·ε"
+      },
+      "source_refs": [
+        "legacy_row_hash:606a68dc11825e955efe75c436ff594e7fe837f874f2abb5760b27d1e2862b75",
+        "legacy_fields_sha256:f0ad86c0a89c1961a65911c1b5949b5182cde46461ecf5638dcea004882b565e",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ",
+            "normalized": "σ"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "E·ε",
+            "normalized": "E·ε"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ = E·ε"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r013",
+      "order": 13,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "השיפוע ההתחלתי של העקומה הוא המודול האלסטי.",
+        "he_niqqud": "הַשִּׁפּוּעַ הַהַתְחָלָתִי שֶׁל הָעַקּוּמָה הֻוּא הַמֹּודוּל הָאֵלַסְטִי.",
+        "transliteration": "Ha-shipu'a ha-hatḥalati shel ha-'aqumah hu ha-modul ha-elasti.",
+        "ru": "Начальный наклон кривой — это модуль упругости."
+      },
+      "source_refs": [
+        "legacy_row_hash:e5eee1e54478c23e049d3e70ecc455e35f48a245e513f3bfd4d4efd4de589b6e",
+        "legacy_fields_sha256:627b2a8b0ea5b2338adfbe9e232feea53323e9f9abf464b36600a17e208b6ee4",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁפּוּעַ",
+            "normalized": "השפוע"
+          },
+          {
+            "index": 1,
+            "surface": "הַהַתְחָלָתִי",
+            "normalized": "ההתחלתי"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "הָעַקּוּמָה",
+            "normalized": "העקומה"
+          },
+          {
+            "index": 4,
+            "surface": "הֻוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "הַמֹּודוּל",
+            "normalized": "המודול"
+          },
+          {
+            "index": 6,
+            "surface": "הָאֵלַסְטִי.",
+            "normalized": "האלסטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r014",
+      "order": 14,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "E = dσ/dε",
+        "he_niqqud": "E = dσ/dε",
+        "transliteration": "E = dσ/dε",
+        "ru": "E = dσ/dε"
+      },
+      "source_refs": [
+        "legacy_row_hash:f0fa87b49fb3f58bc5f2ae92005231f4b7b94f0f7b26a7732b6273909f8139d3",
+        "legacy_fields_sha256:053386a2dede7f70e10a2062d9738a19888c9e012a2ceea80f56993da33ce0ac",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "dσ/dε",
+            "normalized": "dσ/dε"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E = dσ/dε"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r015",
+      "order": 15,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בעקומת פולימר יופיע לרוב מעבר לכניעה (חוזק כניעה) ולאחריו המשך התארכות פלסטית עד לחוזק מרבי ולשבר ב־ε גבוה.",
+        "he_niqqud": "בְּעַקּוּמַת פּוֹלִימֶר יֹופִיעַ לָרֹוב מַעֲבָר לִכְנִיעָה (חֹוזֶק כְּנִיעָה) וּלְאַחֲרָיו הֶמְשֵׁךְ הִתְאָרְכוּת פְּלַסְטִית עַד לְחֹוזֶק מֶרָבִי וְלִשְׁבַר בְּ־ε גָּבֹוהַ.",
+        "transliteration": "Be-'aqumat polymer yofi'a larov ma'avar li-khni'ah (ḥozeq ken'iyah) ule'aḥarav hemshekh hit'arḥut plasṭit 'ad leḥozeq meravi vele-shever be-ε gavoha.",
+        "ru": "На кривой полимера обычно присутствует переход к текучести (предел текучести), за которым следует продолжение пластического удлинения до максимальной прочности и разрушения при высоком ε."
+      },
+      "source_refs": [
+        "legacy_row_hash:a805bef9d4a2b04cab7607867e2e089561676898879bc359ba45d36d42b9f991",
+        "legacy_fields_sha256:d8116c481b98f8750fa208d9b10b3775e32f7c87d00b9ef8fd8d0e5efe879446",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּעַקּוּמַת",
+            "normalized": "בעקומת"
+          },
+          {
+            "index": 1,
+            "surface": "פּוֹלִימֶר",
+            "normalized": "פולימר"
+          },
+          {
+            "index": 2,
+            "surface": "יֹופִיעַ",
+            "normalized": "יופיע"
+          },
+          {
+            "index": 3,
+            "surface": "לָרֹוב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 4,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 5,
+            "surface": "לִכְנִיעָה",
+            "normalized": "לכניעה"
+          },
+          {
+            "index": 6,
+            "surface": "(חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 7,
+            "surface": "כְּנִיעָה)",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְאַחֲרָיו",
+            "normalized": "ולאחריו"
+          },
+          {
+            "index": 9,
+            "surface": "הֶמְשֵׁךְ",
+            "normalized": "המשך"
+          },
+          {
+            "index": 10,
+            "surface": "הִתְאָרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 11,
+            "surface": "פְּלַסְטִית",
+            "normalized": "פלסטית"
+          },
+          {
+            "index": 12,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 13,
+            "surface": "לְחֹוזֶק",
+            "normalized": "לחוזק"
+          },
+          {
+            "index": 14,
+            "surface": "מֶרָבִי",
+            "normalized": "מרבי"
+          },
+          {
+            "index": 15,
+            "surface": "וְלִשְׁבַר",
+            "normalized": "ולשבר"
+          },
+          {
+            "index": 16,
+            "surface": "בְּ־ε",
+            "normalized": "ב־ε"
+          },
+          {
+            "index": 17,
+            "surface": "גָּבֹוהַ.",
+            "normalized": "גבוה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r016",
+      "order": 16,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומת הסיב הקרמי תהיה כמעט ליניארית אלסטית עד שבר, ללא כניעה, עם ε קטן לשבר עקב התנהגות פריכה.",
+        "he_niqqud": "עַקּוּמַת הַסִּיב הַקֵּרָמִי תִּהְיֶה כִּמְעַט לִינֵאָרִית אֵלַסְטִית עַד שֶׁבֶר, לְלֹא כְּנִיעָה, עִם ε קָטָן לְשֶׁבֶר עֵקֶב הִתְנַהֲגוּת פְּרִיכָה.",
+        "transliteration": "'Aqumat ha-siv ha-qerami tihiyeh kim'at linearit elasṭit 'ad shever, lelo ken'iyah, 'im ε qaṭan le-shever 'eqev hitnahagut perikhah.",
+        "ru": "Кривая керамического волокна будет почти линейно-упругой до разрушения, без текучести, с малым ε при разрушении из-за хрупкого поведения."
+      },
+      "source_refs": [
+        "legacy_row_hash:529db4630fba8b36fc9a184451863e47f7fbda7ff4358156ed2102a62231d865",
+        "legacy_fields_sha256:bafbfbb2e872facb6600fe1a9ff22e36e9ebc9f64d3a34fe3ac71f305d58b38b",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַקּוּמַת",
+            "normalized": "עקומת"
+          },
+          {
+            "index": 1,
+            "surface": "הַסִּיב",
+            "normalized": "הסיב"
+          },
+          {
+            "index": 2,
+            "surface": "הַקֵּרָמִי",
+            "normalized": "הקרמי"
+          },
+          {
+            "index": 3,
+            "surface": "תִּהְיֶה",
+            "normalized": "תהיה"
+          },
+          {
+            "index": 4,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 5,
+            "surface": "לִינֵאָרִית",
+            "normalized": "לינארית"
+          },
+          {
+            "index": 6,
+            "surface": "אֵלַסְטִית",
+            "normalized": "אלסטית"
+          },
+          {
+            "index": 7,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁבֶר,",
+            "normalized": "שבר"
+          },
+          {
+            "index": 9,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 10,
+            "surface": "כְּנִיעָה,",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 11,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 12,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 13,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 14,
+            "surface": "לְשֶׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 15,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 16,
+            "surface": "הִתְנַהֲגוּת",
+            "normalized": "התנהגות"
+          },
+          {
+            "index": 17,
+            "surface": "פְּרִיכָה.",
+            "normalized": "פריכה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הסיב הקרמי מציג שיפוע התחלתי גדול מאוד בגלל E גבוה.",
+        "he_niqqud": "הַסִּיב הַקֵּרָמִי מַצִּיג שִׁפּוּעַ הַתְחָלָתִי גָּדוֹל מְאֹד בִּגְלַל E גָּבֹוהַ.",
+        "transliteration": "Ha-siv ha-qerami matzig shipu'a hatḥalati gadol me'od biglal E gavoha.",
+        "ru": "Керамическое волокно демонстрирует очень большой начальный наклон из-за высокого E."
+      },
+      "source_refs": [
+        "legacy_row_hash:db4d56a011784d90ca7bf3768cac756af87ca2db76ff828ba7f96695cbfbb635",
+        "legacy_fields_sha256:0db89252bc3d8104e9b31324e69b46cd7b54e70f6fee81b2db54f817bc448e57",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַסִּיב",
+            "normalized": "הסיב"
+          },
+          {
+            "index": 1,
+            "surface": "הַקֵּרָמִי",
+            "normalized": "הקרמי"
+          },
+          {
+            "index": 2,
+            "surface": "מַצִּיג",
+            "normalized": "מציג"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁפּוּעַ",
+            "normalized": "שפוע"
+          },
+          {
+            "index": 4,
+            "surface": "הַתְחָלָתִי",
+            "normalized": "התחלתי"
+          },
+          {
+            "index": 5,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 6,
+            "surface": "מְאֹד",
+            "normalized": "מאד"
+          },
+          {
+            "index": 7,
+            "surface": "בִּגְלַל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 8,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 9,
+            "surface": "גָּבֹוהַ.",
+            "normalized": "גבוה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באופן טיפוסי E של חומר קרמי גדול בהרבה מ־E של פולימר.",
+        "he_niqqud": "בְּאֹופֶן טִיפּוּסִי E שֶׁל חֹומֶר קֵרָמִי גָּדוֹל בְּהַרְבֵּה מִ־E שֶׁל פּוֹלִימֶר.",
+        "transliteration": "Be'ofen ṭipusi E shel ḥomer qerami gadol be-harbeh mi-E shel polymer.",
+        "ru": "Типично, что E керамического материала намного больше, чем E полимера."
+      },
+      "source_refs": [
+        "legacy_row_hash:a5eb8b4693f1b78fb757aabfa0abb73306b8aad19973c1af1e82da3e62cc617e",
+        "legacy_fields_sha256:ed4eba9aca3cffc6bcb691ca469f100a9fad9b62e2117359d36dc92143991e47",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּאֹופֶן",
+            "normalized": "באופן"
+          },
+          {
+            "index": 1,
+            "surface": "טִיפּוּסִי",
+            "normalized": "טיפוסי"
+          },
+          {
+            "index": 2,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 5,
+            "surface": "קֵרָמִי",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 6,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 7,
+            "surface": "בְּהַרְבֵּה",
+            "normalized": "בהרבה"
+          },
+          {
+            "index": 8,
+            "surface": "מִ־E",
+            "normalized": "מ־E"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 10,
+            "surface": "פּוֹלִימֶר.",
+            "normalized": "פולימר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r019",
+      "order": 19,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E_קרמי ≈ 200–400 GPa",
+        "he_niqqud": "E_קֵרָמִי ≈ 200–400 GPa",
+        "transliteration": "E_qerami ≈ 200–400 GPa",
+        "ru": "E_керамики ≈ 200–400 ГПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:b75e62bfa885be0d9900196807d08ae65f52613a0bc0c552b31eecb3f2a04231",
+        "legacy_fields_sha256:fe22e11c6ec4b01bdf6a6a6afbdbc567abb290484902a39d233eb4f2d51ff29e",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E_קֵרָמִי",
+            "normalized": "E_קרמי"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "200–400",
+            "normalized": "200–400"
+          },
+          {
+            "index": 3,
+            "surface": "GPa",
+            "normalized": "GPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E_פולימר ≈ 1–5 GPa",
+        "he_niqqud": "E_פּוֹלִימֶר ≈ 1–5 GPa",
+        "transliteration": "E_polymer ≈ 1–5 GPa",
+        "ru": "E_полимера ≈ 1–5 ГПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:4874482a358133324d105bab6fbb0aeecb0882ef3cf6562a8767a7d0beb67c28",
+        "legacy_fields_sha256:d9a5e93af727f4633745b7e54b988a5f88904369f44d4db2df591f9abe00e6ce",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E_פּוֹלִימֶר",
+            "normalized": "E_פולימר"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "1–5",
+            "normalized": "1–5"
+          },
+          {
+            "index": 3,
+            "surface": "GPa",
+            "normalized": "GPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r021",
+      "order": 21,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומת החומר המרוכב תהיה בין השתיים: שיפוע התחלתי גבוה מפולימר ונמוך מסיב קרמי.",
+        "he_niqqud": "עַקּוּמַת הַחֹומֶר הַמְרֻכָּב תִּהְיֶה בֵּין הַשְּׁתַּיִם: שִׁפּוּעַ הַתְחָלָתִי גָּבֹוהַ מִפּוֹלִימֶר וְנָמוּךְ מִסִּיב קֵרָמִי.",
+        "transliteration": "'Aqumat ha-ḥomer ha-merukav tihiyeh ben ha-shtayim: shipu'a hatḥalati gavoha mi-polymer ve-namukh mi-siv qerami.",
+        "ru": "Кривая композиционного материала будет находиться между двумя другими: начальный наклон выше, чем у полимера, но ниже, чем у керамического волокна."
+      },
+      "source_refs": [
+        "legacy_row_hash:94ddee1e2d851c42afabe2172cadc050ded2fc4fa8d47372de15a535a6bc5493",
+        "legacy_fields_sha256:5792b7975ccd925ca32792c5acb4280c07bc60ecaf8fa15f4293def982794b69",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַקּוּמַת",
+            "normalized": "עקומת"
+          },
+          {
+            "index": 1,
+            "surface": "הַחֹומֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְרֻכָּב",
+            "normalized": "המרכב"
+          },
+          {
+            "index": 3,
+            "surface": "תִּהְיֶה",
+            "normalized": "תהיה"
+          },
+          {
+            "index": 4,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 5,
+            "surface": "הַשְּׁתַּיִם:",
+            "normalized": "השתים"
+          },
+          {
+            "index": 6,
+            "surface": "שִׁפּוּעַ",
+            "normalized": "שפוע"
+          },
+          {
+            "index": 7,
+            "surface": "הַתְחָלָתִי",
+            "normalized": "התחלתי"
+          },
+          {
+            "index": 8,
+            "surface": "גָּבֹוהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 9,
+            "surface": "מִפּוֹלִימֶר",
+            "normalized": "מפולימר"
+          },
+          {
+            "index": 10,
+            "surface": "וְנָמוּךְ",
+            "normalized": "ונמוך"
+          },
+          {
+            "index": 11,
+            "surface": "מִסִּיב",
+            "normalized": "מסיב"
+          },
+          {
+            "index": 12,
+            "surface": "קֵרָמִי.",
+            "normalized": "קרמי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r022",
+      "order": 22,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "E_fiber > E_comp > E_matrix",
+        "he_niqqud": "E_fiber > E_comp > E_matrix",
+        "transliteration": "E_fiber > E_comp > E_matrix",
+        "ru": "E_волокна > E_композита > E_матрицы"
+      },
+      "source_refs": [
+        "legacy_row_hash:9e84887db3b39a3883e6d8b7b33bfca92f82b48ba774a012e742ddc0947d4d6e",
+        "legacy_fields_sha256:5e252e96cb5de05065881237731420cddca60ca3d9fd51b3a01a82595008eb63",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E_fiber",
+            "normalized": "E_fiber"
+          },
+          {
+            "index": 1,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 2,
+            "surface": "E_comp",
+            "normalized": "E_comp"
+          },
+          {
+            "index": 3,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 4,
+            "surface": "E_matrix",
+            "normalized": "E_matrix"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E_fiber > E_comp > E_matrix"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "החוזק של המרוכב גבוה משל חומר האם בגלל נשיאת עומס על ידי הסיבים והעברת מאמץ דרך הממשק.",
+        "he_niqqud": "הַחֹוזֶק שֶׁל הַמְרֻכָּב גָּבֹוהַ מִשֶׁל חֹומֶר הָאֵם בִּגְלַל נְשִׂיאַת עֹומֶס עַל יְדֵי הַסִּיבִים וְהַעֲבָרַת מַאֲמָץ דֶּרֶךְ הַמִּמְשָׁק.",
+        "transliteration": "Ha-ḥozeq shel ha-merukav gavoha mishel ḥomer ha-em biglal nesi'at omes 'al yedei ha-sivim ve-ha'avarat ma'amatz derekh ha-mimshaq.",
+        "ru": "Прочность композита выше, чем у исходного материала, из-за несения нагрузки волокнами и передачи напряжения через интерфейс."
+      },
+      "source_refs": [
+        "legacy_row_hash:401d68cb8c992e57f210824414d9b5da6ef0b1a808a6628f139df29d25b4c2a6",
+        "legacy_fields_sha256:580fc7c3fd6a2f70395114578db3f136c746afe090aca17b6ea394a9165e04f0",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַחֹוזֶק",
+            "normalized": "החוזק"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְרֻכָּב",
+            "normalized": "המרכב"
+          },
+          {
+            "index": 3,
+            "surface": "גָּבֹוהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 4,
+            "surface": "מִשֶׁל",
+            "normalized": "משל"
+          },
+          {
+            "index": 5,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 6,
+            "surface": "הָאֵם",
+            "normalized": "האם"
+          },
+          {
+            "index": 7,
+            "surface": "בִּגְלַל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 8,
+            "surface": "נְשִׂיאַת",
+            "normalized": "נשיאת"
+          },
+          {
+            "index": 9,
+            "surface": "עֹומֶס",
+            "normalized": "עומס"
+          },
+          {
+            "index": 10,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 11,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 12,
+            "surface": "הַסִּיבִים",
+            "normalized": "הסיבים"
+          },
+          {
+            "index": 13,
+            "surface": "וְהַעֲבָרַת",
+            "normalized": "והעברת"
+          },
+          {
+            "index": 14,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 15,
+            "surface": "דֶּרֶךְ",
+            "normalized": "דרך"
+          },
+          {
+            "index": 16,
+            "surface": "הַמִּמְשָׁק.",
+            "normalized": "הממשק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הדוקטיליות של המרוכב נמוכה משל פולימר אך גבוהה משל סיב קרמי, ולכן ε לשבר בינוני.",
+        "he_niqqud": "הַדּוּקְטִילִיּוּת שֶׁל הַמְרֻכָּב נְמוּכָה מִשֶׁל פּוֹלִימֶר אַךְ גְּבֹוהָה מִשֶׁל סִיב קֵרָמִי, וְלָכֵן ε לְשֶׁבֶר בֵּינוֹנִי.",
+        "transliteration": "Ha-doqṭiliyut shel ha-merukav nemukhah mishel polymer akh gevohah mishel siv qerami, vela-khen ε le-shever beinoni.",
+        "ru": "Пластичность композита ниже, чем у полимера, но выше, чем у керамического волокна, поэтому ε при разрушении является промежуточным."
+      },
+      "source_refs": [
+        "legacy_row_hash:2d069911cb497f766d64bb96543b19ebcdb71e4362c973e690b180498ffc2752",
+        "legacy_fields_sha256:d15f321a84cb9cc69ddfbdb8d9cebb0db14c13b992125f6b48e9d108c63b10a3",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַדּוּקְטִילִיּוּת",
+            "normalized": "הדוקטיליות"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְרֻכָּב",
+            "normalized": "המרכב"
+          },
+          {
+            "index": 3,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 4,
+            "surface": "מִשֶׁל",
+            "normalized": "משל"
+          },
+          {
+            "index": 5,
+            "surface": "פּוֹלִימֶר",
+            "normalized": "פולימר"
+          },
+          {
+            "index": 6,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבֹוהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "מִשֶׁל",
+            "normalized": "משל"
+          },
+          {
+            "index": 9,
+            "surface": "סִיב",
+            "normalized": "סיב"
+          },
+          {
+            "index": 10,
+            "surface": "קֵרָמִי,",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 13,
+            "surface": "לְשֶׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 14,
+            "surface": "בֵּינוֹנִי.",
+            "normalized": "בינוני"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r025",
+      "order": 25,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "ε_fiber < ε_comp < ε_matrix",
+        "he_niqqud": "ε_fiber < ε_comp < ε_matrix",
+        "transliteration": "ε_fiber < ε_comp < ε_matrix",
+        "ru": "ε_волокна < ε_композита < ε_матрицы"
+      },
+      "source_refs": [
+        "legacy_row_hash:4539b21a2abf767279318313224b625a11a11e12aec301a99d6d378c0f263eb5",
+        "legacy_fields_sha256:a2f26c852ac96d3b3b6fe5bcc97d0259b43ac455bfa75fd728ed6fb445c0d45d",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ε_fiber",
+            "normalized": "ε_fiber"
+          },
+          {
+            "index": 1,
+            "surface": "<",
+            "normalized": "<"
+          },
+          {
+            "index": 2,
+            "surface": "ε_comp",
+            "normalized": "ε_comp"
+          },
+          {
+            "index": 3,
+            "surface": "<",
+            "normalized": "<"
+          },
+          {
+            "index": 4,
+            "surface": "ε_matrix",
+            "normalized": "ε_matrix"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ε_fiber < ε_comp < ε_matrix"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r026",
+      "order": 26,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר כניעת המטריצה ייתכן שינוי שיפוע בעקומת המרוכב עקב מעבר חלק מהעומס לסיבים.",
+        "he_niqqud": "לְאַחַר כְּנִיעַת הַמַּטְרִיצָה יִתָּכֵן שִׁנּוּי שִׁפּוּעַ בְּעַקּוּמַת הַמְרֻכָּב עֵקֶב מַעֲבָר חֵלֶק מֵהָעֹומֶס לַסִּיבִים.",
+        "transliteration": "Le'aḥar ken'iat ha-matriza yitakhen shinuy shipu'a be-'aqumat ha-merukav 'eqev ma'avar ḥeleq me-ha-'omes la-sivim.",
+        "ru": "После текучести матрицы возможно изменение наклона кривой композита из-за частичного перехода нагрузки на волокна."
+      },
+      "source_refs": [
+        "legacy_row_hash:9562bf34bb3bfb3f1b3b5cf0cb38811421f94eb48a400a0e20b3d5262343e9b7",
+        "legacy_fields_sha256:f6ba643e9fa7e6f5341ef2c38002789bd94735ebcfd1b18510b4db11d1ba520b",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "כְּנִיעַת",
+            "normalized": "כניעת"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּטְרִיצָה",
+            "normalized": "המטריצה"
+          },
+          {
+            "index": 3,
+            "surface": "יִתָּכֵן",
+            "normalized": "יתכן"
+          },
+          {
+            "index": 4,
+            "surface": "שִׁנּוּי",
+            "normalized": "שנוי"
+          },
+          {
+            "index": 5,
+            "surface": "שִׁפּוּעַ",
+            "normalized": "שפוע"
+          },
+          {
+            "index": 6,
+            "surface": "בְּעַקּוּמַת",
+            "normalized": "בעקומת"
+          },
+          {
+            "index": 7,
+            "surface": "הַמְרֻכָּב",
+            "normalized": "המרכב"
+          },
+          {
+            "index": 8,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 9,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 10,
+            "surface": "חֵלֶק",
+            "normalized": "חלק"
+          },
+          {
+            "index": 11,
+            "surface": "מֵהָעֹומֶס",
+            "normalized": "מהעומס"
+          },
+          {
+            "index": 12,
+            "surface": "לַסִּיבִים.",
+            "normalized": "לסיבים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r027",
+      "order": 27,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "על אותו גרף סדר השיפועים יהיה: סיב קרמי תלול ביותר, אחריו מרוכב, ואחריו פולימר מתון ביותר.",
+        "he_niqqud": "עַל אֹותֹו גְּרָף סֵדֶר הַשִּׁפּוּעִים יִהְיֶה: סִיב קֵרָמִי תָּלוּל בְּיֹותֵר, אַחֲרָיו מְרֻכָּב, וְאַחֲרָיו פּוֹלִימֶר מָתוֹן בְּיֹותֵר.",
+        "transliteration": "Al oto graf seder ha-shipu'im yihiyeh: siv qerami talul beyoter, aḥarav merukav, ve'aḥarav polymer maṭon beyoter.",
+        "ru": "На том же графике порядок наклонов будет следующим: керамическое волокно — самый крутой, за ним композит, а затем полимер — самый пологий."
+      },
+      "source_refs": [
+        "legacy_row_hash:2fa5cdf23f4fd95389d875425243e7217fd0c2a15fd4d238c4f7d4ac6de7b698",
+        "legacy_fields_sha256:05fe642cb7aecc16337e558395bc2f53c47d65ee35278a2e00763d8362b9205e",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 1,
+            "surface": "אֹותֹו",
+            "normalized": "אותו"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרָף",
+            "normalized": "גרף"
+          },
+          {
+            "index": 3,
+            "surface": "סֵדֶר",
+            "normalized": "סדר"
+          },
+          {
+            "index": 4,
+            "surface": "הַשִּׁפּוּעִים",
+            "normalized": "השפועים"
+          },
+          {
+            "index": 5,
+            "surface": "יִהְיֶה:",
+            "normalized": "יהיה"
+          },
+          {
+            "index": 6,
+            "surface": "סִיב",
+            "normalized": "סיב"
+          },
+          {
+            "index": 7,
+            "surface": "קֵרָמִי",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 8,
+            "surface": "תָּלוּל",
+            "normalized": "תלול"
+          },
+          {
+            "index": 9,
+            "surface": "בְּיֹותֵר,",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 10,
+            "surface": "אַחֲרָיו",
+            "normalized": "אחריו"
+          },
+          {
+            "index": 11,
+            "surface": "מְרֻכָּב,",
+            "normalized": "מרכב"
+          },
+          {
+            "index": 12,
+            "surface": "וְאַחֲרָיו",
+            "normalized": "ואחריו"
+          },
+          {
+            "index": 13,
+            "surface": "פּוֹלִימֶר",
+            "normalized": "פולימר"
+          },
+          {
+            "index": 14,
+            "surface": "מָתוֹן",
+            "normalized": "מתון"
+          },
+          {
+            "index": 15,
+            "surface": "בְּיֹותֵר.",
+            "normalized": "ביותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r028",
+      "order": 28,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "על אותו גרף סדר ההתארכות לשבר יהיה: פולימר הגדול ביותר, אחריו מרוכב, ואחריו סיב קרמי הקטן ביותר.",
+        "he_niqqud": "עַל אֹותֹו גְּרָף סֵדֶר הַהִתְאָרְכוּת לְשֶׁבֶר יִהְיֶה: פּוֹלִימֶר הַגָּדוֹל בְּיֹותֵר, אַחֲרָיו מְרֻכָּב, וְאַחֲרָיו סִיב קֵרָמִי הַקָּטָן בְּיֹותֵר.",
+        "transliteration": "Al oto graf seder ha-hit'arḥut le-shever yihiyeh: polymer ha-gadol beyoter, aḥarav merukav, ve'aḥarav siv qerami ha-qaṭan beyoter.",
+        "ru": "На том же графике порядок удлинений до разрушения будет следующим: полимер — наибольшее, за ним композит, а затем керамическое волокно — наименьшее."
+      },
+      "source_refs": [
+        "legacy_row_hash:82807ec771653769a16f002667fe2344a815467be501b8ef7395cd1cc37c2cb1",
+        "legacy_fields_sha256:dae482aed5a9011b2cd36c84bb10c27fda40f8b6af2a36b86856bd31b972dd7a",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 1,
+            "surface": "אֹותֹו",
+            "normalized": "אותו"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרָף",
+            "normalized": "גרף"
+          },
+          {
+            "index": 3,
+            "surface": "סֵדֶר",
+            "normalized": "סדר"
+          },
+          {
+            "index": 4,
+            "surface": "הַהִתְאָרְכוּת",
+            "normalized": "ההתארכות"
+          },
+          {
+            "index": 5,
+            "surface": "לְשֶׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 6,
+            "surface": "יִהְיֶה:",
+            "normalized": "יהיה"
+          },
+          {
+            "index": 7,
+            "surface": "פּוֹלִימֶר",
+            "normalized": "פולימר"
+          },
+          {
+            "index": 8,
+            "surface": "הַגָּדוֹל",
+            "normalized": "הגדול"
+          },
+          {
+            "index": 9,
+            "surface": "בְּיֹותֵר,",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 10,
+            "surface": "אַחֲרָיו",
+            "normalized": "אחריו"
+          },
+          {
+            "index": 11,
+            "surface": "מְרֻכָּב,",
+            "normalized": "מרכב"
+          },
+          {
+            "index": 12,
+            "surface": "וְאַחֲרָיו",
+            "normalized": "ואחריו"
+          },
+          {
+            "index": 13,
+            "surface": "סִיב",
+            "normalized": "סיב"
+          },
+          {
+            "index": 14,
+            "surface": "קֵרָמִי",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 15,
+            "surface": "הַקָּטָן",
+            "normalized": "הקטן"
+          },
+          {
+            "index": 16,
+            "surface": "בְּיֹותֵר.",
+            "normalized": "ביותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q058-sol-r029",
+      "order": 29,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:2c72cc111be369c4229193703ac8757b28239bb7d792d61feef555c5c2e82cbc",
+        "comparison:MATCH_WITH_CURVE_ORDER_SCOPE",
+        "source_page:65",
+        "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q058",
+    "display_alias": "58",
+    "source_pages": [
+      65
+    ],
+    "independent_state": "DERIVED_WITH_CURVE_ORDER_SCOPE",
+    "answer": [
+      "а) Куб приблизительно изотропен на масштабе детали, если показанные ceramic fibers короткие и равномерно случайно ориентированы во всех трёх измерениях. Локально материал неоднороден; при preferred orientation он стал бы анизотропным.",
+      "б) На одном σ–ε графике: ceramic fiber — самый крутой elastic slope E, высокая strength и малое fracture strain (почти линейно-хрупкая кривая); polymer matrix — самый малый E/strength и наибольшая strain с пластической/нелинейной областью; composite — slope и strength выше matrix, но ниже эффективной fiber curve, fracture strain обычно между ними и зависит от interface/volume fraction. Подписать порядок E_f>E_c>E_m и σ_f>σ_c>σ_m для идеального load transfer."
+    ],
+    "engineering_picture": "Random fibers remove a macroscopic direction preference, while load transfer through interface lets stiff fibers raise composite slope and strength at the cost of matrix ductility.",
+    "prerequisites": [
+      "Rule-of-mixtures ordering is qualitative here.",
+      "Ceramic fibers are stiff and brittle; polymer matrix is compliant and ductile relative to them."
+    ],
+    "roadmap": [
+      "Check orientation distribution.",
+      "Separate local heterogeneity from macro isotropy.",
+      "Order E, strength and fracture strain.",
+      "Sketch and label three curves."
+    ],
+    "main_trap": "Не рисовать composite curve stronger/stiffer than the isolated ceramic fiber without a supplied mechanism or data.",
+    "givens": [
+      "Polymer matrix with randomly shown ceramic fibers; qualitative curves requested."
+    ],
+    "find": [
+      "Isotropy and three stress-strain curves."
+    ],
+    "assumptions": [
+      "Fiber orientations are statistically uniform in 3D and interface transfers load effectively."
+    ],
+    "laws": [
+      "Composite axial stiffness lies between constituent bounds for ordinary positive volume fractions.",
+      "Random orientation averages directional reinforcement."
+    ],
+    "symbolic_derivation": [
+      "E_f>E_c>E_m;σ_f>σ_c>σ_m;εf,matrix>εf,composite>εf,fiber as the schematic default."
+    ],
+    "calculation": [],
+    "construction": [
+      "Same origin/axes; steep short fiber line, shallow long matrix curve, intermediate composite curve; label fracture points."
+    ],
+    "checks": [
+      "Every curve is distinguishable by slope, peak and fracture strain, not colour alone."
+    ],
+    "source_facts": [
+      "source_page:65",
+      "asset_sha256:768711af25173ebbcc7d16a7ee27d4ec5eb2d28afa164936da866cb0a4e9e821"
+    ],
+    "unresolved_limits": [
+      "Exact curve shape depends on fiber volume fraction, orientation distribution, aspect ratio, interface and matrix rheology."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

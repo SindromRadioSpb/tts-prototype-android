@@ -1,0 +1,36 @@
+{
+  "schema_version": "materials_pb2_solution_comparison.1.0.0",
+  "status": "REVIEWED_PASS_10_OF_10",
+  "batch_id": "B05",
+  "independent_solution_ledger": {
+    "path": "B05-independent-solution-ledger.ru.json",
+    "sha256": "b8f9aba92425ef9436197b9a85e4cd4c184e10cf1b69f9a0533e62a2c5e4fe5a"
+  },
+  "legacy_source": "../legacy-solution-candidate-ledger.json",
+  "comparison_policy": {
+    "legacy_role": "COMPARISON_ONLY_NEVER_PREMISE",
+    "numeric_equivalence": "SAME_SOURCE_VALUE_OR_EXPLICITLY_DISCLOSED_SOURCE_CONTRADICTION",
+    "theory_equivalence": "SAME_CAUSAL_CLAIM_WITH_PRODUCT_FORM_WELD_AND_CORROSION_SCOPE",
+    "silent_overwrite_allowed": false,
+    "maximum_targeted_repair_passes": 1
+  },
+  "summary": {
+    "task_count": 10,
+    "match_or_equivalent_count": 7,
+    "targeted_source_review_count": 3,
+    "targeted_source_review_pass_count": 3,
+    "publication_blocking_count": 0
+  },
+  "entries": [
+    {"task_id":"materials-science-y1-pb2-q039","legacy_candidate_rows":22,"legacy_candidate_rows_sha256":"7e5fa9d37bfd09996735730f7e882aeefaeaf9bba31c1949e0cf4ecea27bf1a4","computed_verdict":"MATCH_WITH_PRODUCT_FORM_QUALIFICATION","comparison_note":"SAE30304, unchanged grade at 8 mm and Cr2O3 passivation match. Independent solution retains supplier and environment qualification.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q040","legacy_candidate_rows":17,"legacy_candidate_rows_sha256":"531e02a7567614e46d1affbb932231c44cb8769901a826a16e3873f640928a40","computed_verdict":"CORRECTED_TO_SOURCE_AND_LEGACY_SAE1070","comparison_note":"Single source review confirms SAE1070 from high-carbon spring use, product form and compatible ranges. Independent Fe-C readback retains 830-850 C rather than widening beyond the source graph.","reviewer_disposition":"CORRECTED_AND_REVERIFIED","review_evidence":"B05-targeted-review-01.json","publication_blocking":false,"targeted_repair":"B05-targeted-review-01.json"},
+    {"task_id":"materials-science-y1-pb2-q041","legacy_candidate_rows":24,"legacy_candidate_rows_sha256":"3b54b55b1719673b7fa73a264d48109301c4c4529c54ef7d397c03d435e0dda0","computed_verdict":"MATCH_WITH_VISIBLE_SOURCE_CONTRADICTION","comparison_note":"Both literal 7.74 GPa and probable 77.4 GPa branches match. Publication must preserve the printed 6.2 percent contradiction and must not silently normalize it.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q042","legacy_candidate_rows":24,"legacy_candidate_rows_sha256":"5819ce03e6b4d9e9f808c9983173ad1fb0cf68a1ca4fd10d514bc93d1588e503","computed_verdict":"MATCH","comparison_note":"Quench, temper, aluminum aging, natural/artificial aging and carbon effects match with the independent structure scope.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q043","legacy_candidate_rows":29,"legacy_candidate_rows_sha256":"d71bd2136787780853e82a43ef8c9fbe3fb32e5c5f2fcb266ef2d402c002dbf2","computed_verdict":"EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION","comparison_note":"AA2014-T4 and AA2024-T4 selection matches. Independent solution correctly scopes natural/artificial precipitation aging to the aluminum-alloy context despite the source word for steel.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q044","legacy_candidate_rows":24,"legacy_candidate_rows_sha256":"c45822e4479580e4921b6b3a08043be927d166bdb41c83b4b36b3764efeb639f","computed_verdict":"CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4","comparison_note":"Single source review restores the welded extruded-tube and HAZ criteria. AA6061-T4 is selected while its lower listed 95 MPa fatigue value remains an explicit design qualification.","reviewer_disposition":"CORRECTED_AND_REVERIFIED","review_evidence":"B05-targeted-review-02.json","publication_blocking":false,"targeted_repair":"B05-targeted-review-02.json"},
+    {"task_id":"materials-science-y1-pb2-q045","legacy_candidate_rows":16,"legacy_candidate_rows_sha256":"4499ce22b2877a50e73f562a8f062667c93c8198dc862171b6fccb47305a2a26","computed_verdict":"MATCH","comparison_note":"Annealing/aging, SAE1020 carburize-quench-temper and ABCD/DEFG graph segments match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q046","legacy_candidate_rows":30,"legacy_candidate_rows_sha256":"c1d903c871d44a83100a7e764d4fc6edc6329048cd65129508a732e66a38b225","computed_verdict":"CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL","comparison_note":"Single source-image review confirms B is quenched-steel rivet with steel sheets and is galvanically stable in the simplified exercise. A and C remain unsafe; ordinary corrosion is not excluded.","reviewer_disposition":"CORRECTED_AND_REVERIFIED","review_evidence":"B05-targeted-review-03.json","publication_blocking":false,"targeted_repair":"B05-targeted-review-03.json"},
+    {"task_id":"materials-science-y1-pb2-q047","legacy_candidate_rows":26,"legacy_candidate_rows_sha256":"430d4aa3e6a97b85633c6edc50838e0db1c80a2b9d1295ad0f436b494b8e74f0","computed_verdict":"MATCH_WITH_INSULATION_INTEGRITY_QUALIFICATION","comparison_note":"Conditional galvanic isolation, plastic function, compositions and strengthening routes match. Independent solution preserves electrolyte-bypass and crevice limits.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q048","legacy_candidate_rows":33,"legacy_candidate_rows_sha256":"eb3b4ee2d4129eb47f8f8994450828764ec805c07c6c6fd8668a30217dd83804","computed_verdict":"MATCH_WITH_PASSIVITY_SCOPE_NOTE","comparison_note":"Hot-dip galvanizing sequence, coating classes and Al/Cu passive films match. Independent solution rejects universal corrosion immunity.","publication_blocking":false,"targeted_repair":null}
+  ]
+}

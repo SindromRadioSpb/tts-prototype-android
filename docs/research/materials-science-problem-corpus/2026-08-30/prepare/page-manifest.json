@@ -1,0 +1,1218 @@
+{
+  "schema": "linguistpro-materials-pb2-page-manifest-v1",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+  "page_count": 73,
+  "pages": [
+    {
+      "source_page": 1,
+      "page_role": "table_of_contents",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 0,
+      "extracted_text_characters": 592,
+      "render_sha256": "dcc928eb371830a167cb6d9d9f8ef976282522f61f621e300644c9f880158a00",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.046149,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 2,
+      "page_role": "reference_periodic_table",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 201,
+      "render_sha256": "da470c8f98d0974b6211dff03e948ff0dfa820e2a13aa2095dfdda1ad5b29a16",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.217069,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 3,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 4,
+      "extracted_text_characters": 243,
+      "render_sha256": "863e0788dbc2e7f53a256571c589e37ca79172bc9bf7e717281bf0862a29c057",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.119826,
+      "task_ids": [
+        "materials-science-y1-pb2-q001"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 4,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 18,
+      "render_sha256": "1a891de1a783f02247ab11b966ec235c95f198b17dab9feaa52497da32eae068",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.044119,
+      "task_ids": [
+        "materials-science-y1-pb2-q002"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 5,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 38,
+      "render_sha256": "1cd5e168b0b466cb8237877672cf92122fbabdeb181c3a02a5e195a14c885169",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.043365,
+      "task_ids": [
+        "materials-science-y1-pb2-q002",
+        "materials-science-y1-pb2-exercise-p005-allotropy"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 6,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 3,
+      "extracted_text_characters": 264,
+      "render_sha256": "10cd7f74077f4e9f9efeeff7cbbfd6da05d942e603076796e0c17a5e47b549b2",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.445291,
+      "task_ids": [
+        "materials-science-y1-pb2-q003",
+        "materials-science-y1-pb2-q004",
+        "materials-science-y1-pb2-q005"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 7,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 42,
+      "render_sha256": "47fe8602396cdfa3112a7b4f541b031d03ee66ee5c03ff9ee8365b6d1e063808",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.307802,
+      "task_ids": [
+        "materials-science-y1-pb2-q006"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 8,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 133,
+      "render_sha256": "5afdfc768b87023f6cf105cc2013d9a49e40261adfbf8f2ab23d9fbf97945225",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.054479,
+      "task_ids": [
+        "materials-science-y1-pb2-q007"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 9,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 115,
+      "render_sha256": "8b97be6824f8b16954d710f44ea5f03a573e187dabdb865165a9d50024c64e02",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.486598,
+      "task_ids": [
+        "materials-science-y1-pb2-q008"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 10,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 33,
+      "render_sha256": "019fb9ac48b5ce305b9d99d330d027a6f1bae63bf8854acce8a3c5984921a241",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.04443,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 11,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 36,
+      "render_sha256": "5657d3fd0ca071208234a072296d058ea6cc398d4300613231655440a73d6984",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.018818,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 12,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 130,
+      "render_sha256": "8c3d00a398b5cf9a2f79ec90ec5f212dd68aafab716a162c0db8b172de6b2046",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.036712,
+      "task_ids": [
+        "materials-science-y1-pb2-q009"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 13,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 28,
+      "render_sha256": "815e2d1f7a17aa40dbcc992a83d6984ca37b2a1f54e54456d6cf5a61c894d057",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.015097,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 14,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 96,
+      "render_sha256": "e07b1e5d729745d77e286306fb37308c96ac0c7628b6544ca689a68b1d6fe253",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.044726,
+      "task_ids": [
+        "materials-science-y1-pb2-q010"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 15,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 34,
+      "render_sha256": "fde1aa4a142ff590595f69a975d7fe14953c2f7141aca4d41710744d9ad24b69",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.06118,
+      "task_ids": [
+        "materials-science-y1-pb2-q011"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 16,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 99,
+      "render_sha256": "df0022ab796bb46b1fccd683a1d5016baac80a161ee6e66aa1c33ba52d649435",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.040283,
+      "task_ids": [
+        "materials-science-y1-pb2-q012"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 17,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 135,
+      "render_sha256": "52569df5eacc502baa554120a7cd763a2d3d730b84af1bbd31ed06d03f9de41d",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.025287,
+      "task_ids": [
+        "materials-science-y1-pb2-q013"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 18,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 85,
+      "render_sha256": "2d7177e615fe038aa081b569b2c88a60d21d497f134af42584710ae47cd4bcc9",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.034506,
+      "task_ids": [
+        "materials-science-y1-pb2-q014"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 19,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 61,
+      "render_sha256": "c0f2f6212e32e368b5d80f71da60ec45b206738c96e7ba7a683e830215c44181",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.008878,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 20,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 26,
+      "render_sha256": "bd1d1c30a5d08f67c72c35947681b3795ba733b824944cb71847bfbbf2d37ccc",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.036193,
+      "task_ids": [
+        "materials-science-y1-pb2-q015"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 21,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 20,
+      "render_sha256": "c8f518b429d11df49dbf568390c97a4c2399facbda805c4846a704acc5fc304a",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.07564,
+      "task_ids": [
+        "materials-science-y1-pb2-q016"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 22,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 20,
+      "render_sha256": "a4fe5392097528ee1982143bd0330f9bea8b7a53e08a93be08822f93f034030e",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.068523,
+      "task_ids": [
+        "materials-science-y1-pb2-q017"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 23,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 144,
+      "render_sha256": "945dfbe59e2d94925d912707f207e67c152488e0f2d917703e0122253b86dc41",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.050358,
+      "task_ids": [
+        "materials-science-y1-pb2-q018"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 24,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 47,
+      "render_sha256": "d44176e4351a70d8c9efbd3e569b7a669abe795c6bb1e158baab334554137a29",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.03523,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 25,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 55,
+      "render_sha256": "aeaf1cdb2073898c152072fead6233a9476a8e973d6a007a55d85f4fc65e01a6",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.076276,
+      "task_ids": [
+        "materials-science-y1-pb2-q019"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 26,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 36,
+      "render_sha256": "c804763b706001178c2ca1d1b857ff7bb7f406345c64346f8778e4d69695b7f3",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.03822,
+      "task_ids": [
+        "materials-science-y1-pb2-q020"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 27,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 39,
+      "render_sha256": "65a4751b7f982db7cea8e210391096703d90f9766f4c360ed5f4551e88b89b23",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.044728,
+      "task_ids": [
+        "materials-science-y1-pb2-q021"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 28,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 96,
+      "render_sha256": "358feaa3df79d2f35ffa97ea1122c95b0f42e03cd09c16e78fd55245cddf74c1",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.047334,
+      "task_ids": [
+        "materials-science-y1-pb2-q022"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 29,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 18,
+      "render_sha256": "90e179e0c88c1aed03c73d3e7035863946e2d8e548aa4eda129eb9658584e14b",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.060943,
+      "task_ids": [
+        "materials-science-y1-pb2-q023"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 30,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 67,
+      "render_sha256": "6a804e978debba63daf55569a4f81d8abb3343858dca548b876ddfbb3da6edfb",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.027677,
+      "task_ids": [
+        "materials-science-y1-pb2-q024"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 31,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 124,
+      "render_sha256": "4bb695e5fda6b48c23d648f6bb915f7993b397308488305ac5d7834d9e9a2268",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.05651,
+      "task_ids": [
+        "materials-science-y1-pb2-q025"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 32,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 43,
+      "render_sha256": "4d969783b841cee4e55ab286477953cf672999128c4a9ef5fce76d174d3263b7",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.022306,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 33,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 75,
+      "render_sha256": "625a135472d4cb92890805264a511c13303dd00e407b353032a43deadd69ce6d",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.051265,
+      "task_ids": [
+        "materials-science-y1-pb2-q026"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 34,
+      "page_role": "reference_topic_intro",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 75,
+      "render_sha256": "df2b9e77739bc46bcd7f9b77d9756c94b5d8f048c10db7fb5339952bd25945ff",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.066155,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 35,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 28,
+      "render_sha256": "2d5554de92d5387bace88bb26d198ffb1aa923d4d00e5ed20044aad3a0ab3154",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.091391,
+      "task_ids": [
+        "materials-science-y1-pb2-q027"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 36,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 3,
+      "extracted_text_characters": 26,
+      "render_sha256": "fb3fd1755fb15088f5a3deee1d087e460048fb80c4f12fed98581eb77f5aab23",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.103776,
+      "task_ids": [
+        "materials-science-y1-pb2-q028"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 37,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 24,
+      "render_sha256": "6a5ece755fdc499f689d30594416f356bf74e7f4bf94a87a893d757e4888f51e",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.055501,
+      "task_ids": [
+        "materials-science-y1-pb2-q029"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 38,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 55,
+      "render_sha256": "5eb384e185deab7be2c15b80f7cead18dff97a37e2f7a2b3e34f0f0c23635599",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.151718,
+      "task_ids": [
+        "materials-science-y1-pb2-q030"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 39,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 3,
+      "extracted_text_characters": 94,
+      "render_sha256": "a7e4000ce9718335fd29eb638caa01682cb22bf268d2fc1e6789281f67726bcb",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.063605,
+      "task_ids": [
+        "materials-science-y1-pb2-q031",
+        "materials-science-y1-pb2-q032"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 40,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 28,
+      "render_sha256": "6564b7c2f17f74ff8a11a04b8a80d814f8163f79a3eaf310306f7e514a7c6fa1",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.057218,
+      "task_ids": [
+        "materials-science-y1-pb2-q033"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 41,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 45,
+      "render_sha256": "4ec2db9e1f9f976c39130ec7a61922a783c0999793efb16d41de04ed3ed671c4",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.055849,
+      "task_ids": [
+        "materials-science-y1-pb2-q034"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 42,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 23,
+      "render_sha256": "9c1d67e016c5398068840c350fd6b9fff842e007b2f7eba33954182c4eb74171",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.10699,
+      "task_ids": [
+        "materials-science-y1-pb2-q035"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 43,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 26,
+      "render_sha256": "175654ba00126688ba4d01bd051327dbc1e08b44dd754ab9dedf0ca301bdf114",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.066983,
+      "task_ids": [
+        "materials-science-y1-pb2-q036"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 44,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 18,
+      "render_sha256": "81915fbd0f1153fcf5db899e3d78c492ef0bc1eb42bcaf6565bbab238b6f9b7b",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.068652,
+      "task_ids": [
+        "materials-science-y1-pb2-q037"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 45,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 33,
+      "render_sha256": "399785f223c276773ee46ec132d6f6181473c14f402ea4ec3d29873f1f92d723",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.067164,
+      "task_ids": [
+        "materials-science-y1-pb2-p045-q038"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 46,
+      "page_role": "reference_topic_notes",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 93,
+      "render_sha256": "c3db0920af2b62fb8a9929896f3220b8c88365535757ea55429e2abfd91a09b5",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.048522,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 47,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 3,
+      "extracted_text_characters": 79,
+      "render_sha256": "43bab2ae8ae798fdc35ce6d54e49e67692d7b235a266fe957e6ed5a586e67932",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.059862,
+      "task_ids": [
+        "materials-science-y1-pb2-p047-q038"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 48,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 42,
+      "render_sha256": "c35b5ffcd3953c6157c74ea34b812387e0a1ac2f871553065b74c87f3236cf21",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.040816,
+      "task_ids": [
+        "materials-science-y1-pb2-q039"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 49,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 51,
+      "render_sha256": "fa31f6b53baadf383e6ce4c1fcf9c2aa323e8700184a6d99c5d00e0db8cd065d",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.02416,
+      "task_ids": [
+        "materials-science-y1-pb2-q040"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 50,
+      "page_role": "embedded_solution_only",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 35,
+      "render_sha256": "e09d8a1c29260319242686b2d9410aed5189db4a425ded7c44ced9cc88181df3",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.029548,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 51,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 57,
+      "render_sha256": "2d3da4dd0437615ca48c83750fe204324d1674fd84317e26fcfc1d224ce6e30f",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.042518,
+      "task_ids": [
+        "materials-science-y1-pb2-q041"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 52,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 22,
+      "render_sha256": "093d407fefbe72c3f349940fe34110569c04cd76296ee2a954f75f383a32ef2b",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.036553,
+      "task_ids": [
+        "materials-science-y1-pb2-q042"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 53,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 40,
+      "render_sha256": "1da5dc03dcd92509d14ee7068cc4245e59167e14e0d325f17db1cfbe19bf0862",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.048338,
+      "task_ids": [
+        "materials-science-y1-pb2-q043"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 54,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 33,
+      "render_sha256": "3eed718711274712b0daf54734a0682604fc6ad759ceb7908c2e70844341d3b0",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.061844,
+      "task_ids": [
+        "materials-science-y1-pb2-q044"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 55,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 36,
+      "render_sha256": "d6841e6576df8f69f62b105968886f6d479c7f0d98132454831df3a8e94a21d2",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.025432,
+      "task_ids": [
+        "materials-science-y1-pb2-q045"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 56,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 68,
+      "render_sha256": "c0bbe3b79be524b74be7b4a99b78b4ae518394fdc7b66ac679a35c31191e13b8",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.041525,
+      "task_ids": [
+        "materials-science-y1-pb2-q046"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 57,
+      "page_role": "mixed_condition_and_non_source_material",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 32,
+      "render_sha256": "13553c8f8af3b1e71095f78382fe18ef19ad465adb9be00f88936827ba17c8af",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.090633,
+      "task_ids": [
+        "materials-science-y1-pb2-q047"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 58,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 24,
+      "render_sha256": "1506beef7b417f444c63f590a6f9fc6abe9fcae7680bd3af609b935991f14a13",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.030921,
+      "task_ids": [
+        "materials-science-y1-pb2-q048"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 59,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 40,
+      "render_sha256": "8121f0fab4256271924f35adc1b1e81e34923544e4ca59c814e3921ef69faa50",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.082555,
+      "task_ids": [
+        "materials-science-y1-pb2-q049"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 60,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 30,
+      "render_sha256": "877ac1ca28275630b314fdbbeb179d6c2761793c170518802d27f555205c8bb0",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.035134,
+      "task_ids": [
+        "materials-science-y1-pb2-q050"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 61,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 26,
+      "render_sha256": "21e95482961f826bb68000204fc1cf65978c5b1ef1f8e2078310cdfd571c3126",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.051038,
+      "task_ids": [
+        "materials-science-y1-pb2-q051"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 62,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 44,
+      "render_sha256": "e36d9acbee7572a7fc3418e3ad996afeb437196d1afda3fa830cddeb3f667230",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.051868,
+      "task_ids": [
+        "materials-science-y1-pb2-q052"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 63,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 3,
+      "extracted_text_characters": 67,
+      "render_sha256": "fb1aaf000fd2a219817522e2a36a3eb072ba3b06b48297fb8b2868d7c49e45e7",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.054298,
+      "task_ids": [
+        "materials-science-y1-pb2-q053",
+        "materials-science-y1-pb2-q054",
+        "materials-science-y1-pb2-q055"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 64,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 508,
+      "render_sha256": "a5c0d3d50efff02f2f2b6ba9ad4484226026817c0f569d3557537ac441ccffb8",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.063745,
+      "task_ids": [
+        "materials-science-y1-pb2-q056",
+        "materials-science-y1-pb2-q057"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 65,
+      "page_role": "task_condition",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 2,
+      "extracted_text_characters": 40,
+      "render_sha256": "bd11a5143486d3c049f703c84d75d57774edd8eb2f4ff697896ef2d66282c97c",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.03422,
+      "task_ids": [
+        "materials-science-y1-pb2-q058"
+      ],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 66,
+      "page_role": "appendix_title",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 18,
+      "render_sha256": "d46f3884816531bab0ca744e77750486a20c85d7452a9c6471d97df8e38a65c2",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.072321,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 67,
+      "page_role": "appendix_reference",
+      "rotation_degrees": 0,
+      "display_width_points": 612.0,
+      "display_height_points": 792.0,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 14,
+      "render_sha256": "1884dcc0ebfb16802897842702e598100794c1e530064d97c5bd2ac2e5c93200",
+      "width": 918,
+      "height": 1188,
+      "ink_ratio": 0.118104,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 68,
+      "page_role": "appendix_reference_rotated",
+      "rotation_degrees": 270,
+      "display_width_points": 1032.0,
+      "display_height_points": 729.0,
+      "embedded_image_count": 0,
+      "extracted_text_characters": 3117,
+      "render_sha256": "7ca3296e96d950d207fec5e93ff365c9c2b8e6118e59c75c03647a947dc02087",
+      "width": 1548,
+      "height": 1094,
+      "ink_ratio": 0.135502,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 69,
+      "page_role": "appendix_reference_rotated",
+      "rotation_degrees": 270,
+      "display_width_points": 1032.0,
+      "display_height_points": 729.0,
+      "embedded_image_count": 0,
+      "extracted_text_characters": 3556,
+      "render_sha256": "1b141da407a2e2c83811dd5acb9abffb61470ca93a156c4897496623661da053",
+      "width": 1548,
+      "height": 1094,
+      "ink_ratio": 0.108414,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 70,
+      "page_role": "appendix_reference_landscape",
+      "rotation_degrees": 0,
+      "display_width_points": 935.433,
+      "display_height_points": 680.315,
+      "embedded_image_count": 1,
+      "extracted_text_characters": 55,
+      "render_sha256": "f5b9d8b9bc17690739c5b2bc3d04c328a68c8bf9743eb879a821a116e394f39f",
+      "width": 1404,
+      "height": 1021,
+      "ink_ratio": 0.110845,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 71,
+      "page_role": "appendix_reference",
+      "rotation_degrees": 0,
+      "display_width_points": 595.32,
+      "display_height_points": 841.92,
+      "embedded_image_count": 0,
+      "extracted_text_characters": 1153,
+      "render_sha256": "2fdbe03d8e74b0f45cb7db4c0cd8c662da1d14437c3c110ff180303f22cd8179",
+      "width": 893,
+      "height": 1263,
+      "ink_ratio": 0.187126,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 72,
+      "page_role": "appendix_reference",
+      "rotation_degrees": 0,
+      "display_width_points": 595.32,
+      "display_height_points": 841.92,
+      "embedded_image_count": 0,
+      "extracted_text_characters": 4592,
+      "render_sha256": "ba72d7e433622f122486094714e06f6eea4c0cb30ff0b2afbc47d422755ce042",
+      "width": 893,
+      "height": 1263,
+      "ink_ratio": 0.16247,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    },
+    {
+      "source_page": 73,
+      "page_role": "appendix_reference",
+      "rotation_degrees": 0,
+      "display_width_points": 595.32,
+      "display_height_points": 841.92,
+      "embedded_image_count": 0,
+      "extracted_text_characters": 1800,
+      "render_sha256": "e9420b9363dc877f6e60dda8c13ad33c2c11925211d4534f3553d365e2953c34",
+      "width": 893,
+      "height": 1263,
+      "ink_ratio": 0.212934,
+      "task_ids": [],
+      "visual_review_status": "CONTACT_SHEET_REVIEWED_PREPARE_2026_08_30"
+    }
+  ]
+}

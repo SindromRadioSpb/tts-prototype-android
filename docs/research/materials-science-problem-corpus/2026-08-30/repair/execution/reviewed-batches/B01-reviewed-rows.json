@@ -1,0 +1,636 @@
+{
+  "batch_id": "B01",
+  "row_count": 80,
+  "row_ids_sha256": "db61109d0b9753a78f6aaf7755134da3687aa5044bb3546613d4266d2f1a9017",
+  "plain_hebrew_has_niqqud": false,
+  "hebrew_skeleton_mismatch_count": 0,
+  "hebrew_niqqud_skeleton_normalization_count": 53,
+  "source_verified_legacy_fallback_count": 52,
+  "source_verified_legacy_fallback_row_ids": [
+    "materials-science-y1-pb2-exercise-p005-allotropy-r006",
+    "materials-science-y1-pb2-q003-r001",
+    "materials-science-y1-pb2-q003-r006",
+    "materials-science-y1-pb2-q003-r008",
+    "materials-science-y1-pb2-q004-r003",
+    "materials-science-y1-pb2-q004-r004",
+    "materials-science-y1-pb2-q004-r005",
+    "materials-science-y1-pb2-q004-r006",
+    "materials-science-y1-pb2-q005-r001",
+    "materials-science-y1-pb2-q005-r003",
+    "materials-science-y1-pb2-q005-r004",
+    "materials-science-y1-pb2-q005-r005",
+    "materials-science-y1-pb2-q006-r001",
+    "materials-science-y1-pb2-q006-r002",
+    "materials-science-y1-pb2-q006-r003",
+    "materials-science-y1-pb2-q006-r004",
+    "materials-science-y1-pb2-q006-r005",
+    "materials-science-y1-pb2-q006-r006",
+    "materials-science-y1-pb2-q006-r007",
+    "materials-science-y1-pb2-q006-r008",
+    "materials-science-y1-pb2-q006-r009",
+    "materials-science-y1-pb2-q007-r001",
+    "materials-science-y1-pb2-q007-r002",
+    "materials-science-y1-pb2-q007-r003",
+    "materials-science-y1-pb2-q007-r004",
+    "materials-science-y1-pb2-q007-r005",
+    "materials-science-y1-pb2-q007-r006",
+    "materials-science-y1-pb2-q007-r007",
+    "materials-science-y1-pb2-q007-r008",
+    "materials-science-y1-pb2-q007-r009",
+    "materials-science-y1-pb2-q007-r010",
+    "materials-science-y1-pb2-q007-r011",
+    "materials-science-y1-pb2-q007-r012",
+    "materials-science-y1-pb2-q007-r013",
+    "materials-science-y1-pb2-q007-r014",
+    "materials-science-y1-pb2-q007-r015",
+    "materials-science-y1-pb2-q008-r001",
+    "materials-science-y1-pb2-q008-r007",
+    "materials-science-y1-pb2-q008-r008",
+    "materials-science-y1-pb2-q008-r009",
+    "materials-science-y1-pb2-q008-r010",
+    "materials-science-y1-pb2-q008-r011",
+    "materials-science-y1-pb2-q008-r012",
+    "materials-science-y1-pb2-q008-r013",
+    "materials-science-y1-pb2-q009-r001",
+    "materials-science-y1-pb2-q009-r002",
+    "materials-science-y1-pb2-q009-r003",
+    "materials-science-y1-pb2-q009-r004",
+    "materials-science-y1-pb2-q009-r005",
+    "materials-science-y1-pb2-q009-r006",
+    "materials-science-y1-pb2-q009-r007",
+    "materials-science-y1-pb2-q009-r008"
+  ],
+  "minimum_provider_to_legacy_semantic_similarity": 0.72,
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q002-r001",
+      "he": "שאלה 2.",
+      "he_niqqud": "שְׁאֵלָה 2.",
+      "transliteration": "She'elah 2.",
+      "ru": "Вопрос 2."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r002",
+      "he": "לגבי כל משפט סמן \"נכון\" או \"לא נכון\" ונמק את קביעתך.",
+      "he_niqqud": "לְגַבֵּי כָּל מִשְׁפָּט סַמֵּן \"נָכוֹן\" אוֹ \"לֹא נָכוֹן\" וְנַמֵּק אֶת קְבִיעָתְךָ.",
+      "transliteration": "Legabei kol mishpat samen \"nakhon\" o \"lo nakhon\" ve-namek et kvi'atkha.",
+      "ru": "Для каждого утверждения отметьте «верно» или «неверно» и обоснуйте свое решение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r003",
+      "he": "א. נחושת שייכת לחומרים גבישיים. נמק.",
+      "he_niqqud": "א. נְחֹושֶׁת שַׁייֶּכֶת לַחֳומָרִים גְּבִישִׁיִּים. נַמֵּק.",
+      "transliteration": "A. Nekhoshet shayekhet la-khomarim gvishyiyim. Namek.",
+      "ru": "а. Медь относится к кристаллическим материалам. Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r004",
+      "he": "ב. סריג גבישי הוא מבנה של אטומים בחומר מוצק ובנוזל. נמק.",
+      "he_niqqud": "ב. סָרִיג גְּבִישִׁי הוּא מִבְנֶה שֶׁל אֲטוֹמִים בְּחֹומֶר מֻוצָּק וּבְנוֹזֵל. נַמֵּק.",
+      "transliteration": "B. Sarig gvishi hu mivneh shel atomim be-khomer mutzak u-ve-nozel. Namek.",
+      "ru": "б. Кристаллическая решетка — это структура атомов в твердом веществе и в жидкости. Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r005",
+      "he": "ג. ברזל במצב מוצק מסוגל לשנות את הסריג הגבישי שלו. נמק.",
+      "he_niqqud": "ג. בַּרְזֶל בְּמַצָּב מֻוצָּק מְסֻוגָּל לְשַׁנּוֹת אֶת הַסָּרִיג הַגְּבִישִׁי שֶׁלּוֹ. נַמֵּק.",
+      "transliteration": "G. Barzel be-matzav mutzak mesugal leshanot et ha-sarig ha-gvishi shelo. Namek.",
+      "ru": "в. Железо в твердом состоянии способно изменять свою кристаллическую решетку. Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r006",
+      "he": "ד. גרעין בחומר רב גבישי הוא אזור בעל סדר מושלם של אטומים. נמק.",
+      "he_niqqud": "ד. גַּרְעִין בְּחֹומֶר רַב גְּבִישִׁי הוּא אֵזוֹר בַּעַל סֵדֶר מֻושְׁלָם שֶׁל אֲטוֹמִים. נַמֵּק.",
+      "transliteration": "D. Gar'in be-khomer rav gvishi hu ezor ba'al seder mushlam shel atomim. Namek.",
+      "ru": "г. Зерно в поликристаллическом материале — это область с идеальным порядком расположения атомов. Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r007",
+      "he": "ה. יכולת החומר להתחמצן תלויה במבנה של האטום. נמק.",
+      "he_niqqud": "ה. יְכֹולֶת הַחֹומֶר לְהִתְחַמְצֵן תְּלוּיָה בַּמִּבְנֶה שֶׁל הָאָטוֹם. נַמֵּק.",
+      "transliteration": "H. Yekholet ha-khomer lehitkhamtzen tluyah ba-mivneh shel ha-atom. Namek.",
+      "ru": "д. Способность материала окисляться зависит от строения атома. Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q002-r008",
+      "he": "ו. בין יונים של ברזל קיים קשר יוני. נמק.",
+      "he_niqqud": "ו. בֵּין יוֹנִים שֶׁל בַּרְזֶל קַייָּם קֶשֶׁר יוֹנִי. נַמֵּק.",
+      "transliteration": "V. Bein yonim shel barzel kayam kesher yoni. Namek.",
+      "ru": "е. Между ионами железа существует ионная связь. Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r001",
+      "he": "תרגיל \"אלוטרופיה של ברזל\"",
+      "he_niqqud": "תַּרְגִּיל \"אַלּוֹטְרוֹפְּיָה שֶׁל בַּרְזֶל\"",
+      "transliteration": "Targil \"Alotropyah shel barzel\"",
+      "ru": "Упражнение «Аллотропия железа»"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r002",
+      "he": "א. במהלך קירור איטי של ברזל טהור (Fe) מטמפרטורה של 1600 °C לטמפרטורת החדר, חלים בברזל ארבעה מעברים אלוטרופיים, כמתואר באיור לשאלה 8 .",
+      "he_niqqud": "א. בְּמַהֲלַךְ קֵירוּר אִיטִּי שֶׁל בַּרְזֶל טָהוֹר (Fe) מִטֶּמְפֶּרָטוּרָה שֶׁל 1600 °C לְטֶמְפֶּרָטוּרַת הַחֶדֶר, חָלִים בְּבַרְזֶל אַרְבָּעָה מַעֲבָרִים אַלּוֹטְרוֹפִּיִּים, כַּמְתֹואָר בָּאִיּוּר לִשְׁאֵלָה 8 .",
+      "transliteration": "A. Be-mahalakh kerur iti shel barzel tahor (Fe) mi-temperaturah shel 1600 °C le-temperaturat ha-kheder, khalim be-varzel arba'ah ma'avarim alotropyiyim, kamto'ar ba-iyur li-she'elah 8 .",
+      "ru": "а. При медленном охлаждении чистого железа (Fe) от температуры 1600 °C до комнатной температуры в железе происходят четыре аллотропических превращения, как показано на рисунке к вопросу 8."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r003",
+      "he": "רשום בטבלה את השם של מבנה הסריג הנוצר בכל מעבר, את טמפרטורת המעבר ואת מידת תא היחידה של המבנה הנוצר בכל מעבר .",
+      "he_niqqud": "רְשֹׁום בְּטַבְלָה אֶת הַשֵּׁם שֶׁל מִבְנֵה הַסָּרִיג הַנּוֹצָר בְּכָל מַעֲבָר, אֶת טֶמְפֶּרָטוּרַת הַמַּעֲבָר וְאֶת מִידַּת תָּא הַיְחִידָה שֶׁל הַמִּבְנֶה הַנּוֹצָר בְּכָל מַעֲבָר .",
+      "transliteration": "Reshom be-tavlah et ha-shem shel mivneh ha-sarig ha-notzar be-khol ma'avar, et temperaturat ha-ma'avar ve-et midat ta ha-yekhidah shel ha-mivneh ha-notzar be-khol ma'avar .",
+      "ru": "Запишите в таблицу название структуры решетки, образующейся при каждом переходе, температуру перехода и размер элементарной ячейки структуры, образующейся при каждом переходе."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r004",
+      "he": "ב. האם המעברים האלוטרופיים מברזל γ לברזל α , כרוכים בהתפשטות נפחית של תא היחידה או בהתכווצות נפחית שלו?",
+      "he_niqqud": "ב. הַאִם הַמַּעֲבָרִים הָאַלּוֹטְרוֹפִּיִּים מִבַּרְזֶל γ לְבַרְזֶל α , כְּרוּכִים בְּהִתְפַּשְּׁטוּת נַפְחִית שֶׁל תָּא הַיְחִידָה אוֹ בְּהִתְכַּווְּצוּת נַפְחִית שֶׁלּוֹ?",
+      "transliteration": "B. Ha-im ha-ma'avarim ha-alotropiim mi-barzel γ le-varzel α , krukhim be-hitpashtut nafhyt shel ta ha-yikhidah o be-hitkavtzut nafhyt shelo?",
+      "ru": "б. Сопровождаются ли аллотропические переходы от γ-железа к α-железу объемным расширением элементарной ячейки или ее объемным сжатием?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r005",
+      "he": "ענה תוך התייחסות לסוג הסריג, ולמידת תא היחידה. היעזר בנתונים שבאיור לשאלה 8 .",
+      "he_niqqud": "עֲנֵה תּוֹךְ הִתְייַחֲסוּת לְסוּג הַסָּרִיג, וּלְמִידַּת תָּא הַיְחִידָה. הֵיעָזֵר בַּנְּתוּנִים שֶׁבָּאִיּוּר לִשְׁאֵלָה 8 .",
+      "transliteration": "Aneh tokh hityakhasut le-sug ha-sarig, u-le-midat ta ha-yekhidah. He'azer ba-netunim she-ba-iyur li-she'elah 8 .",
+      "ru": "Ответьте со ссылкой на тип решетки и размер элементарной ячейки. Воспользуйтесь данными на рисунке к вопросу 8."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r006",
+      "he": "היעזר בנתונים שבאיור לשאלה 8",
+      "he_niqqud": "הֵיעָזֵר בַּנְּתוּנִים שֶׁבְּאִיּוּר לִשְׁאֵלָה 8",
+      "transliteration": "Hi'azer be-netunim she-ba-iyur le-she'elah 8",
+      "ru": "Воспользуйтесь данными, приведенными на рисунке к вопросу 8."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r007",
+      "he": "ג. מקררים פלדה מסוג SAE 1040 באופן איטי מטמפרטורה של 900 °C לטמפרטורת החדר.",
+      "he_niqqud": "ג. מְקָרְרִים פְּלָדָה מִסּוּג SAE 1040 בְּאֹופֶן אִיטִּי מִטֶּמְפֶּרָטוּרָה שֶׁל 900 °C לְטֶמְפֶּרָטוּרַת הַחֶדֶר.",
+      "transliteration": "G. Mekarrerim pladah mi-sug SAE 1040 be-ofen iti mi-temperaturah shel 900 °C le-temperaturat ha-kheder.",
+      "ru": "в. Медленно охлаждают сталь марки SAE 1040 от температуры 900 °C до комнатной температуры."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r008",
+      "he": "מהן הפאזות שיתקבלו בפלדה זו בטמפרטורת החדר?",
+      "he_niqqud": "מַהַן הַפָּאזוֹת שֶׁיִּתְקַבְּלוּ בִּפְלָדָה זוֹ בְּטֶמְפֶּרָטוּרַת הַחֶדֶר?",
+      "transliteration": "Mahan ha-fazot she-yitkablu bi-fladah zo be-temperaturat ha-kheder?",
+      "ru": "Какие фазы будут получены в этой стали при комнатной температуре?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r001",
+      "he": "שאלה 3: הגדר את תכונות החומר בעזרת מאגר המושגים:",
+      "he_niqqud": "שְׁאֵלָה 3: הַגְדֵּר אֶת תְּכוּנוֹת הַחוֹמֶר בְּעֶזְרַת מַאֲגַר הַמּוּשָׂגִים:",
+      "transliteration": "Sh'ela 3: Hagder et tkhunot ha-khomer be'ezrat ma'agar ha-musagim:",
+      "ru": "Вопрос 3: Определите свойства материала с помощью банка терминов:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r002",
+      "he": "מאגר המושגים",
+      "he_niqqud": "מַאֲגַר הַמֻּושָּׂגִים",
+      "transliteration": "Ma'agar ha-musagim",
+      "ru": "Банк понятий"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r003",
+      "he": "1. להתמודד",
+      "he_niqqud": "1. לְהִתְמוֹדֵד",
+      "transliteration": "1. Lehitmoded",
+      "ru": "1. Противостоять"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r004",
+      "he": "2. לשנות את צורתו בלי להישבר ולהיסדק עקב",
+      "he_niqqud": "2. לְשַׁנּוֹת אֶת צוּרָתוֹ בְּלִי לְהִישָּׁבֵר וּלְהִיסָּדֵק עֵקֶב",
+      "transliteration": "2. Leshanot et tzurato bli lehishaver u-lehissadek ekev",
+      "ru": "2. Изменять свою форму без разрушения и растрескивания вследствие"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r005",
+      "he": "3. לחזור למצבו המקורי אחרי הפסקת",
+      "he_niqqud": "3. לַחֲזֹור לְמַצָּבוֹ הַמְּקוֹרִי אַחֲרֵי הַפְסָקַת",
+      "transliteration": "3. Lakhazor le-matzavo ha-mekori akharei hafsakat",
+      "ru": "3. Возвращаться в исходное состояние после прекращения"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r006",
+      "he": "א) חוזק הוא יכולת של החומר ________ להשפעה של כוחות חיצוניים.",
+      "he_niqqud": "א) חֹוזֶק הוּא יְכֹולֶת שֶׁל הַחוֹמֶר ________ לְהַשְׁפָּעָה שֶׁל כֹּוחוֹת חִיצוֹנִיִּים.",
+      "transliteration": "A) Khozek hu yekholet shel ha-khomer ________ le-hashpa'ah shel kokhot khitzoniyim.",
+      "ru": "А) Прочность — это способность материала ________ воздействию внешних сил."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r007",
+      "he": "ב. אלסטיות היא יכולת של החומר ................................ השפעה של כוחות חיצוניים.",
+      "he_niqqud": "ב. אֵלַסְטִיּוּת הִיא יְכֹולֶת שֶׁל הַחֹומֶר ................................ הַשְׁפָּעָה שֶׁל כֹּוחוֹת חִיצוֹנִיִּים.",
+      "transliteration": "B. Elastiyut hi yekholet shel ha-khomer ................................ hashpa'ah shel kokhot khitzoniyim.",
+      "ru": "б. Упругость — это способность материала ................................ действие внешних сил."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-r008",
+      "he": "ג) פלסטיות היא יכולת של החומר ________ השפעה של כוחות חיצוניים.",
+      "he_niqqud": "ג) פְּלַסְטִיּוּת הִיא יְכֹולֶת שֶׁל הַחוֹמֶר ________ הַשְׁפָּעָה שֶׁל כֹּוחוֹת חִיצוֹנִיִּים.",
+      "transliteration": "G) Plasticut hi yekholet shel ha-khomer ________ hashpa'ah shel kokhot khitzoniyim.",
+      "ru": "В) Пластичность — это способность материала ________ воздействие внешних сил."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q004-r001",
+      "he": "שאלה 4.",
+      "he_niqqud": "שְׁאֵלָה 4.",
+      "transliteration": "She'elah 4.",
+      "ru": "Вопрос 4."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q004-r002",
+      "he": "חישוב המאמץ הנוצר בחומר כתגובה על הפעלת כוח.",
+      "he_niqqud": "חִישּׁוּב הַמַּאֲמָץ הַנּוֹצָר בְּחֹומֶר כִּתְגוּבָה עַל הַפְעָלַת כֹּוחַ.",
+      "transliteration": "Khishuv ha-ma'amatz ha-notzar be-khomer ki-tguvah al haf'alat koakh.",
+      "ru": "Расчет напряжения, возникающего в материале в ответ на приложение силы."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q004-r003",
+      "he": "א) על מוט שקוטרו 10 mm פועל כוח מתיחה בשיעור 15000 N.",
+      "he_niqqud": "א) עַל מוֹט שֶׁקָּוטְרוֹ 10 mm פּוֹעֵל כֹּוחַ מְתִיחָה בְּשִׁיעוּר 15000 N.",
+      "transliteration": "A) Al mot she-kotro 10 mm po'el koakh metikhah be-shi'ur 15000 N.",
+      "ru": "А) На стержень диаметром 10 мм действует сила растяжения величиной 15000 Н."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q004-r004",
+      "he": "חשב את המאמץ הנוצר בחומר.",
+      "he_niqqud": "חַשֵּׁב אֶת הַמַּאֲמָץ הַנּוֹצָר בַּחֹומֶר.",
+      "transliteration": "Khashév et ha-ma'amatz ha-notzar ba-khomer.",
+      "ru": "Рассчитайте напряжение, возникающее в материале."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q004-r005",
+      "he": "ב) חשב את המאמץ הנוצר במוט שקוטרו 14 mm אם פועל עליו אותו כוח של 15000 N.",
+      "he_niqqud": "ב) חַשֵּׁב אֶת הַמַּאֲמָץ הַנּוֹצָר בְּמוֹט שֶׁקָּוטְרוֹ 14 mm אִם פּוֹעֵל עָלָיו אוֹתוֹ כֹּוחַ שֶׁל 15000 N.",
+      "transliteration": "B) Khashév et ha-ma'amatz ha-notzar ba-mot she-kotro 14 mm im po'el alav oto koakh shel 15000 N.",
+      "ru": "Б) Рассчитайте напряжение, возникающее в стержне диаметром 14 мм, если на него действует та же сила 15000 Н."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q004-r006",
+      "he": "ג) השווה את התוצאות של המאמץ שהתקבלו בסעיף א) ובסעיף ב) והסבר את הסיבה להבדל בין התוצאות.",
+      "he_niqqud": "ג) הַשְׁווֵה אֶת הַתּוֹצָאוֹת שֶׁל הַמַּאֲמָץ שֶׁהִתְקַבְּלוּ בְּסָעִיף א) וּבְסָעִיף ב) וְהַסְבֵּר אֶת הַסִּיבָּה לְהֶבְדֵּל בֵּין הַתּוֹצָאוֹת.",
+      "transliteration": "G) Hashveh et ha-totsa'ot shel ha-ma'amatz she-hitkablo ba-sa'if A) u-va-sa'if B) ve-hesber et ha-sibah la-hevdél ben ha-totsa'ot.",
+      "ru": "В) Сравните результаты напряжения, полученные в пунктах А) и Б), и объясните причину различия между результатами."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q005-r001",
+      "he": "שאלה 5 עוסקת בחישוב התארכות מוחלטת והתארכות יחסית (מעוות) הנוצרות בחומר כתגובה להפעלת כוח.",
+      "he_niqqud": "שְׁאֵלָה 5 עוֹסֶקֶת בְּחִישּׁוּב הִתְאַרְכוּת מוּחְלֶטֶת וְהִתְאַרְכוּת יַחֲסִית (מְעַווֶּת) הַנּוֹצְרוֹת בַּחוֹמֶר כִּתְגוּבָה לְהַפְעָלַת כֹּוחַ.",
+      "transliteration": "Sha'elah 5 oseketh beHishuv hitarkhut mukhletet veHitarkhut yahasith (me'avat) haNotzrot baKhomer keTeguvah leHafla'at ko'ah.",
+      "ru": "Вопрос 5 посвящен расчету абсолютного и относительного удлинения (деформации), возникающих в материале в ответ на приложение силы."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q005-r002",
+      "he": "ב. אורך המוט לפני הפעלת הכוח הוא 75 מ\"מ. לאחר הפעלת כוח המוט התארך עד לאורך 80 מ\"מ. חשב התארכות אבסולוטית ויחסית של המוט.",
+      "he_niqqud": "ב. אֹורֶךְ הַמּוֹט לִפְנֵי הַפְעָלַת הַכֹּוחַ הוּא 75 מ\"מ. לְאַחַר הַפְעָלַת כֹּוחַ הַמּוֹט הִתְאָרֵךְ עַד לְאֹורֶךְ 80 מ\"מ. חַשֵּׁב הִתְאָרְכוּת אַבְּסוֹלוּטִית וְיַחֲסִית שֶׁל הַמּוֹט.",
+      "transliteration": "B. Orekh ha-mot lifnei haf'alat ha-koakh hu 75 m\"m. Le'akhar haf'alat koakh ha-mot hit'arekh ad le-orekh 80 m\"m. Khashev hit'arkhut absolutit ve-yakhasit shel ha-mot.",
+      "ru": "б. Длина стержня до приложения силы составляла 75 мм. После приложения силы стержень удлинился до 80 мм. Рассчитайте абсолютное и относительное удлинение стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q005-r003",
+      "he": "ב) אורך המוט לפני הפעלת הכוח הוא 75 mm ולאחר הפעלת כוח המוט התארך עד אורך 80 mm, חשב התארכות אבסולוטית והתארכות יחסית של המוט.",
+      "he_niqqud": "ב) אֹורֶךְ הַמּוֹט לִפְנֵי הַפְעָלַת הַכֹּוחַ הוּא 75 mm וּלְאַחַר הַפְעָלַת כֹּוחַ הַמּוֹט הִתְאַרֵךְ עַד אֹורֶךְ 80 mm, חַשֵּׁב הִתְאַרְכוּת אַבְּסוֹלוּטִית וְהִתְאַרְכוּת יַחֲסִית שֶׁל הַמּוֹט.",
+      "transliteration": "B) Orekh haMot lifney haFla'at haKo'ah hu 75 mm veLe'akhar haFla'at ko'ah haMot hitarekh ad orekh 80 mm, hashev hitarkhut absolutit veHitarkhut yahasith shel haMot.",
+      "ru": "Б) Длина стержня до приложения силы составляет 75 мм, а после приложения силы стержень удлинился до 80 мм, рассчитайте абсолютное и относительное удлинение стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q005-r004",
+      "he": "ג) השוו בין התוצאות שהתקבלו בסעיף א׳ ובסעיף ב׳.",
+      "he_niqqud": "ג) הַשְׁווּ בֵּין הַתּוֹצָאוֹת שֶׁהִתְקַבְּלוּ בְּסָעִיף א׳ וּבְסָעִיף ב׳.",
+      "transliteration": "G) Hashvu ben haTotza'ot sheHitkablu beSe'if A uVeSe'if B.",
+      "ru": "В) Сравните результаты, полученные в пунктах А и Б."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q005-r005",
+      "he": "ד) נניח שעל שני המוטות האלה פועל אותו כוח ונניח שקוטרם של שני המוטות זהים, האם ניתן להגיד ששני המוטות האלה עשויים מאותו חומר, נמק.",
+      "he_niqqud": "ד) נַנִּיחַ שֶׁעַל שְׁנֵי הַמּוֹטוֹת הָאֵלֶּה פּוֹעֵל אוֹתוֹ כֹּוחַ וְנַנִּיחַ שֶׁקּוּטְרָם שֶׁל שְׁנֵי הַמּוֹטוֹת זְהִים, הַאִם נִיתָן לְהַגִּיד שֶׁשְּׁנֵי הַמּוֹטוֹת הָאֵלֶּה עֲשׂוּיִים מֵאוֹתוֹ חוֹמֶר, נַמֵּק.",
+      "transliteration": "D) Nanih she'al shney haMotot ha'Eleh po'el oto ko'ah veNanih sheKotram shel shney haMotot zehim, ha'Im nittan leHagid sheShney haMotot ha'Eleh asuyim me'Oto Khomer, namek.",
+      "ru": "Г) Предположим, что на оба стержня действует одна и та же сила, и предположим, что диаметры обоих стержней одинаковы. Можно ли сказать, что эти два стержня изготовлены из одного и того же материала? Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r001",
+      "he": "שאלה 6.",
+      "he_niqqud": "שְׁאֵלָה 6.",
+      "transliteration": "She'ela 6.",
+      "ru": "Вопрос 6."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r002",
+      "he": "נתונים שהתקבלו מניסוי המתיחה.",
+      "he_niqqud": "נְתוּנִים שֶׁהִתְקַבְּלוּ מִנִּיסּוּי הַמְּתִיחָה.",
+      "transliteration": "Netunim shehitkablu mi'nissuy hameticha.",
+      "ru": "Данные, полученные в результате испытания на растяжение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r003",
+      "he": "הנקודה האחרונה בטבלה היא נקודת השבירה של הדגם.",
+      "he_niqqud": "הַנְּקֻודָּה הָאַחֲרוֹנָה בַּטַּבְלָה הִיא נְקֻודַּת הַשְּׁבִירָה שֶׁל הַדֶּגֶם.",
+      "transliteration": "Hanekudah ha'acharonah ba'tavlah hi nekudat hashevira shel hadegem.",
+      "ru": "Последняя точка в таблице — это точка разрушения образца."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r004",
+      "he": "נתונה הטבלה עם הנתונים: ε [%] = 0, 0.5, 1, 2, 10, 15, 18 ; σ [MPa] = 0, 110, 220, 220, 300, 330, 320",
+      "he_niqqud": "נְתוּנָה הַטַּבְלָה עִם הַנְּתוּנִים: ε [%] = 0, 0.5, 1, 2, 10, 15, 18 ; σ [MPa] = 0, 110, 220, 220, 300, 330, 320",
+      "transliteration": "Netunah hatavlah im hanetunim: ε [%] = 0, 0.5, 1, 2, 10, 15, 18 ; σ [MPa] = 0, 110, 220, 220, 300, 330, 320",
+      "ru": "Дана таблица с данными: ε [%] = 0, 0.5, 1, 2, 10, 15, 18 ; σ [MPa] = 0, 110, 220, 220, 300, 330, 320"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r005",
+      "he": "א) שרטט לפי הנקודות הנתונות בטבלה את דיאגראמת המאמץ-מעוות של החומר.",
+      "he_niqqud": "א) שַׂרְטֵט לְפִי הַנְּקֻודּוֹת הַנְּתוּנוֹת בַּטַּבְלָה אֶת דִּיאַגְרָאמַת הַמַּאֲמָץ-מְעוֹוָת שֶׁל הַחֹומֶר.",
+      "transliteration": "A) Sartet lefi hanekudot hanetunot ba'tavlah et diagramat hama'amatz-me'uvat shel hachomer.",
+      "ru": "А) Постройте по заданным в таблице точкам диаграмму «напряжение–деформация» для материала."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r006",
+      "he": "ב) מהו מאמץ הכניעה של החומר?",
+      "he_niqqud": "ב) מַהוּ מַאֲמָץ הַכְּנִיעָה שֶׁל הַחֹומֶר?",
+      "transliteration": "B) Mahu ma'amatz hakni'ah shel hachomer?",
+      "ru": "Б) Каков предел текучести материала?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r007",
+      "he": "ג) מהו מאמץ המתיחה המרבי?",
+      "he_niqqud": "ג) מַהוּ מַאֲמָץ הַמְּתִיחָה הַמֶּרָבִי?",
+      "transliteration": "G) Mahu ma'amatz hameticha hamiravi?",
+      "ru": "В) Каково максимальное напряжение растяжения?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r008",
+      "he": "ד) האם החומר הנתון ניתן לעיבוד פלסטי?",
+      "he_niqqud": "ד) הַאִם הַחֹומֶר הַנָּתוּן נִיתָּן לְעִיבּוּד פְּלַסְטִי?",
+      "transliteration": "D) Ha'im hachomer hanatun nitan le'ibud plasti?",
+      "ru": "Г) Подлежит ли данный материал пластической обработке?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q006-r009",
+      "he": "ה) האם החומר הנתון מתאים לשימוש במתקן ההנדסי שבו פועל על החומר כוח מתיחה שמביא את החומר למאמץ 300 MPa?",
+      "he_niqqud": "ה) הַאִם הַחֹומֶר הַנָּתוּן מַתְאִים לְשִׁימּוּשׁ בַּמִּתְקָן הַהַנְדָּסִי שֶׁבּוֹ פּוֹעֵל עַל הַחֹומֶר כֹּוחַ מְתִיחָה שֶׁמֵּבִיא אֶת הַחֹומֶר לְמַאֲמָץ 300 MPa?",
+      "transliteration": "H) Ha'im hachomer hanatun mat'im leshimush ba'mitkan hahandasi shebo po'el 'al hachomer ko'ach meticha shemevi et hachomer lema'amatz 300 MPa?",
+      "ru": "Д) Подходит ли данный материал для использования в инженерном сооружении, где на материал действует растягивающее усилие, вызывающее в нем напряжение 300 МПа?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r001",
+      "he": "שאלה 7.",
+      "he_niqqud": "שְׁאֵלָה 7.",
+      "transliteration": "She'ela 7.",
+      "ru": "Вопрос 7."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r002",
+      "he": "נתון דגם מתיחה סטנדרטי העשוי פלדה SAE 4340, ללא טיפול תרמי של חיסום והרפיה.",
+      "he_niqqud": "נָתוּן דֶּגֶם מְתִיחָה סְטַנְדַּרְטִי הֶעָשׂוּי פְּלָדָה SAE 4340, לְלֹא טִיפּוּל תֶּרְמִי שֶׁל חִיסּוּם וְהַרְפָּיָה.",
+      "transliteration": "Natún dégem metiḥá standartí he'asúy peladá SAE 4340, leló tipúl termí shel ḥisúm ve-harpayá.",
+      "ru": "Дан стандартный образец для испытаний на растяжение, изготовленный из стали SAE 4340, без термообработки в виде закалки и отпуска."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r003",
+      "he": "שטח החתך של הדגם הוא 200 [מ״מ²], ואורכו הנבדק הוא 50 mm.",
+      "he_niqqud": "שֶׁטַח הַחֵתֶךְ שֶׁל הַדֶּגֶם הוּא 200 [מ״מ²], וְאׇורְכּוֹ הַנִּבְדָּק הוּא 50 mm.",
+      "transliteration": "Shétaḥ ha-ḥatakh shel ha-détem hú 200 [mm²], ve-orkó ha-nivdák hú 50 mm.",
+      "ru": "Площадь поперечного сечения образца составляет 200 [мм²], а его испытательная длина — 50 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r004",
+      "he": "הדגם נבחן בניסוי מתיחה, ונמדדו התוצאות הבאות:",
+      "he_niqqud": "הַדֶּגֶם נִבְחָן בְּנִיסּוּי מְתִיחָה, וְנִמְדְּדוּ הַתּוֹצָאוֹת הַבָּאוֹת:",
+      "transliteration": "Ha-détem nivḥán be-nisúy metiḥá, ve-nimdedú ha-totsa'ót ha-ba'ót:",
+      "ru": "Образец был испытан на растяжение, и были измерены следующие результаты:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r005",
+      "he": "Fy = 98000 N",
+      "he_niqqud": "Fy = 98000 N",
+      "transliteration": "Fy = 98000 N",
+      "ru": "Fy = 98000 H"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r006",
+      "he": "אורך הדגם בעומס הכניעה: Ly = 50.13 mm",
+      "he_niqqud": "אֹורֶךְ הַדֶּגֶם בְּעֹומֶס הַכְּנִיעָה: Ly = 50.13 mm",
+      "transliteration": "Órekh ha-détem be-ómes ha-kníya: Ly = 50.13 mm",
+      "ru": "Длина образца при пределе текучести: Ly = 50.13 мм"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r007",
+      "he": "כוח המתיחה המקסימלי: FUTS = 168000 N",
+      "he_niqqud": "כֹּוחַ הַמְּתִיחָה הַמַּקְסִימָלִי: FUTS = 168000 N",
+      "transliteration": "Kóaḥ ha-metiḥá ha-maksimalí: FUTS = 168000 N",
+      "ru": "Максимальная сила растяжения: FUTS = 168000 H"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r008",
+      "he": "אורך הדגם בעומס המתיחה המקסימלי: Luts = 64.00 mm",
+      "he_niqqud": "אֹורֶךְ הַדֶּגֶם בְּעֹומֶס הַמְּתִיחָה הַמַּקְסִימָלִי: Luts = 64.00 mm",
+      "transliteration": "Órekh ha-détem be-ómes ha-metiḥá ha-maksimalí: Luts = 64.00 mm",
+      "ru": "Длина образца при максимальной силе растяжения: Luts = 64.00 мм"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r009",
+      "he": "קשיות הפלדה: HB 217",
+      "he_niqqud": "קְשִׁיּוּת הַפְּלָדָה: HB 217",
+      "transliteration": "Qashyút ha-peladá: HB 217",
+      "ru": "Твердость стали: HB 217"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r010",
+      "he": "א) חשב את מאמץ הכניעה (σy) ואת מאמץ המתיחה המקסימלי (σUTS).",
+      "he_niqqud": "א) חַשֵּׁב אֶת מַאֲמָץ הַכְּנִיעָה (σy) וְאֶת מַאֲמָץ הַמְּתִיחָה הַמַּקְסִימָלִי (σUTS).",
+      "transliteration": "A) Ḥashév et ma'amatz ha-kníya (σy) ve-et ma'amatz ha-metiḥá ha-maksimalí (σUTS).",
+      "ru": "A) Рассчитайте предел текучести (σy) и максимальное напряжение растяжения (σUTS)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r011",
+      "he": "ב) חשב את מודול יאנג (E) של הפלדה SAE 4340.",
+      "he_niqqud": "ב) חַשֵּׁב אֶת מוֹדוּל יַאנְג (E) שֶׁל הַפְּלָדָה SAE 4340.",
+      "transliteration": "B) Ḥashév et módul Yáng (E) shel ha-peladá SAE 4340.",
+      "ru": "Б) Рассчитайте модуль Юнга (E) стали SAE 4340."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r012",
+      "he": "ג) דרישת הלקוח לשאת מאמץ מתיחה חד־צירי של 550 MPa לאורך המוט.",
+      "he_niqqud": "ג) דְּרִישַׁת הַלָּקוֹחַ לָשֵׂאת מַאֲמָץ מְתִיחָה חַד־צִירִי שֶׁל 550 MPa לְאֹורֶךְ הַמּוֹט.",
+      "transliteration": "G) Derishát ha-laqóaḥ laśét ma'amatz metiḥá ḥad-tsirí shel 550 MPa le'órekh ha-moṭ.",
+      "ru": "В) Требование заказчика — выдержать одноосное напряжение растяжения 550 МПа по длине стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r013",
+      "he": "קבע אם ניתן להשתמש בפלדה זו למוט, ונמק.",
+      "he_niqqud": "קְבַע אִם נִיתָּן לְהִשְׁתַּמֵּשׁ בִּפְלָדָה זוֹ לַמּוֹט, וְנַמֵּק.",
+      "transliteration": "Qva ímm nitán lehishtamésh ba-peladá zó la-moṭ, ve-naméq.",
+      "ru": "Определите, можно ли использовать эту сталь для стержня, и обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r014",
+      "he": "ד) לאחר טיפול תרמי של חיסום והרפיה התקבלו ערכי קשיות 180 HB, 217 HB, 331 HB.",
+      "he_niqqud": "ד) לְאַחַר טִיפּוּל תֶּרְמִי שֶׁל חִיסּוּם וְהַרְפָּיָה הִתְקַבְּלוּ עֶרְכֵי קְשִׁיּוּת 180 HB, 217 HB, 331 HB.",
+      "transliteration": "D) Le'aḥar tipúl termí shel ḥisúm ve-harpayá hitqablú erkhéi qashyút 180 HB, 217 HB, 331 HB.",
+      "ru": "Г) После термообработки в виде закалки и отпуска были получены значения твердости 180 HB, 217 HB, 331 HB."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-r015",
+      "he": "איזה ערך קשיות אמור להתקבל, ונמק.",
+      "he_niqqud": "אֵיזֶה עֶרֶךְ קְשִׁיּוּת אָמוּר לְהִתְקַבֵּל, וְנַמֵּק.",
+      "transliteration": "Éizeh érekh qashyút amúr lehitqabél, ve-naméq.",
+      "ru": "Какое значение твердости должно быть получено, и обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r001",
+      "he": "שאלה 8 (2016)",
+      "he_niqqud": "שְׁאֵלָה 8 (2016)",
+      "transliteration": "She'ela 8 (2016)",
+      "ru": "Вопрос 8 (2016)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r002",
+      "he": "בטבלה שלהלן מוצגים נתונים (L, F) שהתקבלו מניסוי מתיחה (עד לשבר) על דגם סטנדרטי העשוי ממוט פלדה SAE 1030 , בעל חתך עגול בקוטר של 11 mm ואורך נבדק של 50 mm .",
+      "he_niqqud": "בַּטַּבְלָה שֶׁלְּהַלָּן מֻוצָּגִים נְתוּנִים (L, F) שֶׁהִתְקַבְּלוּ מִנִּיסּוּי מְתִיחָה (עַד לַשֶּׁבֶר) עַל דֶּגֶם סְטַנְדַּרְטִי הָעָשׂוּי מִמּוֹט פְּלָדָה SAE 1030 , בַּעַל חֲתָךְ עָגֹול בְּקֹוטֶר שֶׁל 11 mm וְאֹורֶךְ נִבְדָּק שֶׁל 50 mm .",
+      "transliteration": "Ba-tavlah she-le-hallan mutzagim netunim (L, F) she-hitkablu mi-nisui metikhah (ad la-shever) al degem standarti ha-asuy mi-mot pladah SAE 1030 , ba'al khatakh agol be-koter shel 11 mm ve-orekh nivdak shel 50 mm .",
+      "ru": "В приведенной ниже таблице представлены данные (L, F), полученные в ходе испытания на растяжение (до разрушения) стандартного образца из стального стержня SAE 1030 круглого сечения диаметром 11 мм и рабочей длиной 50 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r003",
+      "he": "דוגמה: F(N) כוח | σ(MPa) מאמץ | L(mm) אורך נמדד | ε (%) עיבור | 0 / 50.000 ; 19,000 / 200 / 50.048 / 0.096 ; 41,800 / 50.106 ; 52,250 / 53.000 ; 56,525 / 57.500 ; 48,450 / 64.100",
+      "he_niqqud": "דֻּוגְמָה: F(N) כֹּוחַ | σ(MPa) מַאֲמָץ | L(mm) אֹורֶךְ נִמְדָּד | ε (%) עִיבּוּר | 0 / 50.000 ; 19,000 / 200 / 50.048 / 0.096 ; 41,800 / 50.106 ; 52,250 / 53.000 ; 56,525 / 57.500 ; 48,450 / 64.100",
+      "transliteration": "Dugmah: F(N) koakh | σ(MPa) ma'amatz | L(mm) orekh nimdad | ε (%) ibur | 0 / 50.000 ; 19,000 / 200 / 50.048 / 0.096 ; 41,800 / 50.106 ; 52,250 / 53.000 ; 56,525 / 57.500 ; 48,450 / 64.100",
+      "ru": "Пример: F(Н) сила | σ(МПа) напряжение | L(мм) измеренная длина | ε (%) деформация | 0 / 50.000 ; 19,000 / 200 / 50.048 / 0.096 ; 41,800 / 50.106 ; 52,250 / 53.000 ; 56,525 / 57.500 ; 48,450 / 64.100"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r004",
+      "he": "א. 1. העתק את הטבלה למחברתך, חשב את ערכי המאמץ (σ) ואת ערכי העיבור (ε) והשלם אותם בטבלה. (נתונה שורה לדוגמה ובה תוצאות החישוב של σ ושל ε.)",
+      "he_niqqud": "א. 1. הַעְתֵּק אֶת הַטַּבְלָה לְמַחְבַּרְתְּךָ, חַשֵּׁב אֶת עֶרְכֵי הַמַּאֲמָץ (σ) וְאֶת עֶרְכֵי הָעִיבּוּר (ε) וְהַשְׁלֵם אוֹתָם בַּטַּבְלָה. (נְתוּנָה שׁוּרָה לְדֻוגְמָה וּבָהּ תּוֹצָאוֹת הַחִישּׁוּב שֶׁל σ וְשֶׁל ε.)",
+      "transliteration": "A. 1. Ha'atek et ha-tavlah le-makhbartkha, khashev et erkhei ha-ma'amatz (σ) ve-et erkhei ha-ibur (ε) ve-hashlem otam ba-tavlah. (Netunah shurah le-dugmah u-vah totza'ot ha-khishuv shel σ ve-shel ε.)",
+      "ru": "а. 1. Перечертите таблицу в тетрадь, рассчитайте значения напряжения (σ) и деформации (ε) и заполните ими таблицу. (Приведена строка-пример с результатами расчета σ и ε.)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r005",
+      "he": "2. סרטט גרף מאמץ כנגד עיבור, על סמך הערכים שחישבת.",
+      "he_niqqud": "2. סַרְטֵט גְּרָף מַאֲמָץ כְּנֶגֶד עִיבּוּר, עַל סְמַךְ הָעֲרָכִים שֶׁחִישַּׁבְתָּ.",
+      "transliteration": "2. Sartet graf ma'amatz keneged ibur, al smakh ha-arakhim she-khishavta.",
+      "ru": "2. Постройте график зависимости напряжения от деформации на основе рассчитанных вами значений."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r006",
+      "he": "ב. חשב את מודול יאנג (E) עבור הפלדה הנבדקת. הצג את תשובתך ביחידות MPa .",
+      "he_niqqud": "ב. חַשֵּׁב אֶת מוֹדוּל יָאנְג (E) עֲבוּר הַפְּלָדָה הַנִּבְדֶּקֶת. הַצֵּג אֶת תְּשׁוּבָתְךָ בִּיחִידוֹת MPa .",
+      "transliteration": "B. Khashev et modul yang (E) avur ha-pladah ha-nivdeket. Hatzeg et tshuvatkha bi-ykhidot MPa .",
+      "ru": "б. Рассчитайте модуль Юнга (E) для испытуемой стали. Представьте ответ в единицах МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r007",
+      "he": "ב) הצג את תשובתך ביחידות MPa.",
+      "he_niqqud": "ב) הַצֵּג אֶת תְּשׁוּבָתְךָ בִּיְחִידוֹת MPa.",
+      "transliteration": "B) Hatzeg et tshuvatkha bi'yehidot MPa.",
+      "ru": "Б) Представьте ваш ответ в единицах МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r008",
+      "he": "ג) לקוח מעוניין להרכיב במתקן מוט מהפלדה שנבדקה.",
+      "he_niqqud": "ג) לָקוֹחַ מְעֻונְייָן לְהַרְכִּיב בַּמִּתְקָן מוֹט מֵהַפְּלָדָה שֶׁנִּבְדְּקָה.",
+      "transliteration": "G) Lakóah me'unyan le'harkiv ba'mitkan mot me'haPladah she'nivdekah.",
+      "ru": "В) Клиент заинтересован в установке в оборудовании стержня из испытанной стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r009",
+      "he": "ג) המוט צריך לעמוד במאמץ מתיחה לאורך בטווח MPa240 עד MPa550.",
+      "he_niqqud": "ג) הַמּוֹט צָרִיךְ לַעֲמֹוד בְּמַאֲמָץ מְתִיחָה לָאֹורֶךְ בְּטַווָּח MPa240 עַד MPa550.",
+      "transliteration": "G) HaMot tzarikh la'amod be'ma'amatz metihah le'orekh ba'tvah MPa240 ad MPa550.",
+      "ru": "В) Стержень должен выдерживать продольное растягивающее напряжение в диапазоне от 240 МПа до 550 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r010",
+      "he": "ג) קבע אם יש לאשר.",
+      "he_niqqud": "ג) קְבַע אִם יֵשׁ לְאַשֵּׁר.",
+      "transliteration": "G) Kva im yesh le'asher.",
+      "ru": "В) Определите, следует ли утвердить [использование]."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r011",
+      "he": "ג) נמק.",
+      "he_niqqud": "ג) נַמֵּק.",
+      "transliteration": "G) Namek.",
+      "ru": "В) Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r012",
+      "he": "ד) לאחר חיסום והרפיה נמדדה קשיות אחידה 170 (HB).",
+      "he_niqqud": "ד) לְאַחַר חִיסּוּם וְהַרְפָּיָה נִמְדְּדָה קַשְׁיוּת אֲחִידָה 170 (HB).",
+      "transliteration": "D) Lekhar hisum ve'harpaya nimdedah kashyut ahidah 170 (HB).",
+      "ru": "Г) После закалки и отпуска была измерена однородная твердость 170 (HB)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q008-r013",
+      "he": "ד) הסבר כיצד להגדיל קשיות פני השטח ל-230 (HB) לעומק 100 μm.",
+      "he_niqqud": "ד) הַסְבֵּר כֵּיצַד לְהַגְדִּיל קַשְׁיוּת פְּנֵי הַשֶּׁטַח לְ-230 (HB) לְעֹומֶק 100 μm.",
+      "transliteration": "D) Hasber kietzad le'hagdil kashyut penei ha'shethah le-230 (HB) le'omek 100 μm.",
+      "ru": "Г) Объясните, как увеличить твердость поверхности до 230 (HB) на глубину 100 мкм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r001",
+      "he": "שאלה 9",
+      "he_niqqud": "שְׁאֵלָה 9",
+      "transliteration": "She'elah 9",
+      "ru": "Задача 9"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r002",
+      "he": "בטבלה שלהלן מוצגים ערכים של תכונות מכניות שהתקבלו בניסוי מתיחה.",
+      "he_niqqud": "בַּטַּבְלָה שֶׁלְּהַלָּן מוּצָּגִים עֲרָכִים שֶׁל תְּכוּנוֹת מְכָנִיּוֹת שֶׁהִתְקַבְּלוּ בְּנִיסּוּי מְתִיחָה.",
+      "transliteration": "Ba-tavla she-la-halan mutz'agim arakhim shel tkhunot mekhaniyot she-hitkablu be-nisui metiḥah.",
+      "ru": "В следующей таблице представлены значения механических свойств, полученных в эксперименте на растяжение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r003",
+      "he": "בניסוי נבדק דגם העשוי מיצקת ברזל ולו חתך עגול שקוטרו 20 mm.",
+      "he_niqqud": "בְּנִיסּוּי נִבְדַּק דֶּגֶם הֶעָשׂוּי מִיצֶקֶת בַּרְזֶל וְלוֹ חָתָךְ עָגֹול שֶׁקֻּוטְרוֹ 20 mm.",
+      "transliteration": "Be-nisui nivdak degem he-asuy mi-yitzeket barzel ve-lo ḥataẖ agol she-qutro 20 mm.",
+      "ru": "В эксперименте был исследован образец, изготовленный из чугуна, имеющий круглое сечение диаметром 20 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r004",
+      "he": "מעוות ε(%) / מאמץ σ(MPa): 0/0; 0.09/146; 0.14/240; 0.50/287; 1.50/334; 1.55/335 (במאמץ מרבי)",
+      "he_niqqud": "מְעֻווָּת ε(%) / מַאֲמָץ σ(MPa): 0/0; 0.09/146; 0.14/240; 0.50/287; 1.50/334; 1.55/335 (בְּמַאֲמָץ מְרַבִּי)",
+      "transliteration": "Me'uvat ε(%) / ma'amatz σ(MPa): 0/0; 0.09/146; 0.14/240; 0.50/287; 1.50/334; 1.55/335 (be-ma'amatz merabi)",
+      "ru": "Деформация ε(%) / Напряжение σ(МПа): 0/0; 0.09/146; 0.14/240; 0.50/287; 1.50/334; 1.55/335 (при максимальном напряжении)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r005",
+      "he": "א) סרטט גרף של המאמץ σ כתלות במעוות ε בהתאם לנתונים שבטבלה.",
+      "he_niqqud": "א) סַרְטֵט גְּרָף שֶׁל הַמַּאֲמָץ σ כְּתַלּוּת בַּמְּעֻווָּת ε בְּהֶתְאֵם לַנְּתוּנִים שֶׁבַּטַּבְלָה.",
+      "transliteration": "A) Sartet graf shel ha-ma'amatz σ ke-tlut ba-me'uvat ε be-het'em la-netunim she-ba-tavla.",
+      "ru": "а) Начертите график зависимости напряжения σ от деформации ε в соответствии с данными в таблице."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r006",
+      "he": "ב) חשב את מודול יאנג של יצקת הברזל (היעזר בגרף שהצגת בסעיף א׳).",
+      "he_niqqud": "ב) חַשֵּׁב אֶת מוֹדוּל יַאנְג שֶׁל יְצֶקֶת הַבַּרְזֶל (הֵיעָזֵר בַּגְּרָף שֶׁהִצַּגְתָּ בְּסָעִיף א׳).",
+      "transliteration": "B) Ḥashev et modul Yang shel yitzeket ha-barzel (he'azer ba-graf she-hitzagta be-sa'if A).",
+      "ru": "б) Рассчитайте модуль Юнга для чугуна (используйте график, представленный в пункте «а»)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r007",
+      "he": "ג) חשב את הקוטר המזערי הדרוש של הדגם כדי שיעמוד בכוח מתיחה של 90000 N כשערכו של המאמץ המותר [σ] הוא מחצית ממאמץ הכניעה σy.",
+      "he_niqqud": "ג) חַשֵּׁב אֶת הַקֹּוטֶר הַמִּזְעָרִי הַדָּרוּשׁ שֶׁל הַדֶּגֶם כְּדֵי שֶׁיַּעֲמֹוד בְּכֹוחַ מְתִיחָה שֶׁל 90000 N כְּשֶׁעֶרְכּוֹ שֶׁל הַמַּאֲמָץ הַמֻּותָּר [σ] הוּא מַחֲצִית מִמַּאֲמַץ הַכְּנִיעָה σy.",
+      "transliteration": "G) Ḥashev et ha-qoter ha-miz'ari ha-darush shel ha-degem kedei she-ya'amod be-kho'aḥ metiḥah shel 90000 N keshe-erkho shel ha-ma'amatz ha-mutar [σ] hu maḥatzit mi-ma'amatz ha-keni'ah σy.",
+      "ru": "в) Рассчитайте требуемый минимальный диаметр образца, чтобы он выдержал растягивающее усилие 90000 Н, при условии, что величина допускаемого напряжения [σ] составляет половину предела текучести σy."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q009-r008",
+      "he": "היעזר בנתונים שבטבלה והצג את מהלך החישוב.",
+      "he_niqqud": "הֵיעָזֵר בַּנְּתוּנִים שֶׁבַּטַּבְלָה וְהַצֵּג אֶת מַהֲלַךְ הַחִישּׁוּב.",
+      "transliteration": "He'azer ba-netunim she-ba-tavla ve-hatzeg et mahalaẖ ha-ḥishuv.",
+      "ru": "Воспользуйтесь данными из таблицы и представьте ход вычислений."
+    }
+  ],
+  "schema": "linguistpro-materials-pb2-reviewed-provider-rows-v1",
+  "status": "PASS_STRICT_LOCAL_VALIDATION_SOURCE_FIRST_PROVIDER_REVIEW",
+  "model": "gemini-3.7-flash",
+  "request_sha256": "11a335723a0038bfa9a8c2a7bf8e2d39159e75a19d3d15e2edfce5db6124925e",
+  "raw_response_sha256": "d17889cca2039e562ae354002cf46e953eae4d420188608b13cf5bdba593b10a",
+  "provider_text_sha256": "c3399f5cbbcefa44ac8fe92b4e783126bcad1df82be1a113ec3ffe02190bcca1",
+  "provider_calls_for_batch": 2,
+  "selected_from_existing_raw_cache": true,
+  "solution_work": false,
+  "artifact_sha256": "b8fdd7032c67ba71cc259b2739a646dc77fad89cd56ccba4cff989a6443f3588"
+}

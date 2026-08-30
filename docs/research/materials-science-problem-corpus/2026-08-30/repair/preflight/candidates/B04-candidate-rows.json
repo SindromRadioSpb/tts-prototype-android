@@ -1,0 +1,1153 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-preflight-v1.candidate-input",
+  "batch_id": "B04",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "truth_status": "LEGACY_COMPARISON_ONLY_SOURCE_PDF_CANONICAL",
+  "solution_rows_included": false,
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q030-r002",
+      "semantic_kind": "subpart",
+      "he": "א) הגדר מהם מעברים אלוטרופיים.",
+      "he_niqqud": "א) הַגְדֵּר מַהֵם מַעֲבָרִים אָלוֹטְרוֹפִּיִּים.",
+      "transliteration": "A) Hagdér mahém ma'avarím alotrópi'ím.",
+      "ru": "А) Определите, что такое аллотропные переходы."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r003",
+      "semantic_kind": "subpart",
+      "he": "א) תן דוגמאות למעברים אלוטרופיים מדיאגרמת הפאזות ברזל־פחמן.",
+      "he_niqqud": "א) תֵּן דּוּגְמָאוֹת לְמַעֲבָרִים אָלוֹטְרוֹפִּיִּים מִדִּיאַגְרָמַת הַפָּאזוֹת בַּרְזֶל־פַּחְמָן.",
+      "transliteration": "A) Ten dugma'ót l'ma'avarím alotrópi'ím mi-di'agrámat ha-pazót barzél-paḥmán.",
+      "ru": "А) Приведите примеры аллотропных переходов из диаграммы фаз железо-углерод."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r004",
+      "semantic_kind": "subpart",
+      "he": "ב) הגדר את המושגים \"מעבר פאזות אוטקטי\" ו-\"מעבר פאזות אוטקטואידי\".",
+      "he_niqqud": "ב) הַגְדֵּר אֶת הַמֻּשָּׂגִים \"מַעֲבַר פָּאזוֹת אָוּטֶקְטִי\" וְ-\"מַעֲבַר פָּאזוֹת אָוּטֶקְטוֹאִידִי\".",
+      "transliteration": "B) Hagdér et ha-musagím \"ma'avar pazót outékṭi\" v'-'ma'avar pazót outekṭo'ídi'.",
+      "ru": "Б) Определите понятия «эвтектический фазовый переход» и «эвтектоидный фазовый переход»."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r005",
+      "semantic_kind": "subpart",
+      "he": "ב) הצג דוגמאות למושגים אלו מדיאגרמת ברזל-פחמן.",
+      "he_niqqud": "ב) הַצֵּג דּוּגְמָאוֹת לְמֻשָּׂגִים אֵלּוּ מִדִּיאַגְרָמַת בַּרְזֶל-פַּחְמָן.",
+      "transliteration": "B) Hatzég dugma'ót l'musagím élu mi-di'agrámat barzél-paḥmán.",
+      "ru": "Б) Представьте примеры этих понятий на диаграмме железо-углерод."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r006",
+      "semantic_kind": "subpart",
+      "he": "ג) בצילום של דגם מטלוגרפי שבוצע באמצעות מיקרוסקופ אופטי, אופיין מבנה מרטנזיטי (ראה תמונה), תאר מהלך של טיפול תרמי המבוצע לפלדה SAE 1040 לקבלת מבנה מרטנזיטי.",
+      "he_niqqud": "ג) בְּצִלּוּם שֶׁל דֶּגֶם מֶטָלוֹגְרָפִי שֶׁבֻּצַּע בְּאֶמְצָעוּת מִיקְרוֹסְקוֹפּ אוֹפְּטִי, אֻפְיַן מִבְנֶה מַרְטֶנְזִיטִי (רְאֵה תְּמוּנָה), תָּאֵר מַהֲלָךְ שֶׁל טִפּוּל תֶּרְמִי הַמְבֻצָּע לִפְלָדָה SAE 1040 לְקַבָּלַת מִבְנֶה מַרְטֶנְזִיטִי.",
+      "transliteration": "G) Batzilúm shel dégem metalógrafi she-butzá be'emtzút mikroskóp ópṭi, ufyán mivné marténziṭi (re'é tmuná), ta'ér mahalákh shel ṭipúl termí ha-mebutzá l'pladá SAE 1040 l'kabalát mivné marténziṭi.",
+      "ru": "В) На микрофотографии металлографического образца, выполненной с помощью оптического микроскопа, была охарактеризована мартенситная структура (см. рисунок), опишите процесс термообработки, выполняемый для стали SAE 1040 для получения мартенситной структуры."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r007",
+      "semantic_kind": "subpart",
+      "he": "ג) הסבר בפירוט את מהלך הטיפול כולל הנימוקים לבחירת טמפרטורות הטיפול.",
+      "he_niqqud": "ג) הַסְבֵּר בְּפֵירוּט אֶת מַהֲלָךְ הַטִּפּוּל כּוֹלֵל הַנִּמּוּקִים לִבְחִירַת טֶמְפֶּרָטוּרוֹת הַטִּפּוּל.",
+      "transliteration": "G) Hasbér bi-ferúṭ et mahalákh ha-ṭipúl kovél ha-nimukím li-vḥirát ṭempéraṭurót ha-ṭipúl.",
+      "ru": "В) Подробно объясните ход обработки, включая обоснование выбора температур обработки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r008",
+      "semantic_kind": "subpart",
+      "he": "א) הסבר מה מתארת דיאגרמת ברזל-פחמן (ראה נספח לשאלה 3).",
+      "he_niqqud": "אַ) הַסְבֵּר מַה מְתָאֶרֶת דִּיאַגְרָמַת בַּרְזֶל-פַּחְמָן (רְאֵה נִסְפָּח לִשְׁאֵלָה 3).",
+      "transliteration": "A) Hesber ma meta'aret diagramat barzel-paḥman (re'eh nespaḥ la-she'elah 3).",
+      "ru": "А) Объясните, что описывает диаграмма железо-углерод (см. Приложение к вопросу 3)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r009",
+      "semantic_kind": "subpart",
+      "he": "א) ציין את מיקומו (באמצעות %C) של ריאקציות (מעברים) בדיאגרמה: אוטקטית, ואוטקטואידית.",
+      "he_niqqud": "אַ) צַיֵּן אֶת מִיקוּמוֹ (בְּאֶמְצָעוּת %C) שֶׁל רֵיאַקְצִיוֹת (מַעֲבָרִים) בַּדִּיאַגְרָמָה: אוֹטֶקְטִית, וְאוֹטֶקְטוֹאִידִית.",
+      "transliteration": "A) Tsayen et mikumo (be-emtsa'ut %C) shel re'aktsiyot (ma'avarim) ba-diagramah: uteḳtit, ve-uteḳto'idit.",
+      "ru": "А) Укажите местоположение (в % C) реакций (переходов) на диаграмме: эвтектической и эвтектоидной."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r010",
+      "semantic_kind": "subpart",
+      "he": "ב) עליך לבצע חיסום של פלדה SAE 4340.",
+      "he_niqqud": "בּ) עָלֶיךָ לְבַצֵּעַ חִסּוּם שֶׁל פְּלָדָה SAE 4340.",
+      "transliteration": "B) Alayikh levatsea ḥisum shel pladah SAE 4340.",
+      "ru": "Б) Вам необходимо выполнить закалку стали SAE 4340."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r011",
+      "semantic_kind": "subpart",
+      "he": "ב) היעזר בנספח של דיאגרמת ברזל-פחמן וקבע את טמפרטורת החיסום.",
+      "he_niqqud": "בּ) הֵיעָזֵר בְּנִסְפָּח שֶׁל דִּיאַגְרָמַת בַּרְזֶל-פַּחְמָן וְקַבֵּעַ אֶת טֶמְפֶּרָטוּרַת הַחִסּוּם.",
+      "transliteration": "B) Hi'ezer be-nespaḥ shel diagramat barzel-paḥman ve-kave'a et temperatura ha-ḥisum.",
+      "ru": "Б) Воспользуйтесь приложением с диаграммой железо-углерод и определите температуру закалки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r012",
+      "semantic_kind": "subpart",
+      "he": "ב) הסבר מהי החוקיות לקביעת טמפרטורה זו.",
+      "he_niqqud": "בּ) הַסְבֵּר מַהִי הַחֻקִּיּוּת לִקְבִיעַת טֶמְפֶּרָטוּרָה זוֹ.",
+      "transliteration": "B) Hesber ma hi ha-ḥuḳiyut li-ḳvi'at temperatura zo.",
+      "ru": "Б) Объясните, каков принцип определения этой температуры."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r013",
+      "semantic_kind": "subpart",
+      "he": "ג) בבדיקת נגיפה על דגם שארפי (Charpy) העשוי מפלדה SAE 4340, לאחר חיסום בלבד, התקבלה תוצאה של 6 ג'אול.",
+      "he_niqqud": "ג) בִּבְדִיקַת נְגִיפָה עַל דֶּגֶם שָׁארְפִּי (Charpy) הֶעָשׂוּי מִפְּלָדָה SAE 4340, לְאַחַר חִסּוּם בִּלְבַד, הִתְקַבְּלָה תּוֹצָאָה שֶׁל 6 ג'ָאוּל.",
+      "transliteration": "G) Bi-vdiḳat negifah al degem Sharpy (Charpy) ha-asui mi-pladah SAE 4340, aḥar ḥisum bilvad, hitḳablah totsa'ah shel 6 Joule.",
+      "ru": "В) При испытании на ударную вязкость образца Шарпи (Charpy) из стали SAE 4340, только после закалки, был получен результат 6 Джоулей."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r014",
+      "semantic_kind": "subpart",
+      "he": "ג) לאחר מכן בוצעה הרפיה לפלדה.",
+      "he_niqqud": "ג) לְאַחַר מִכֵּן בֻּצְּעָה הַרְפָּיָה לַפְּלָדָה.",
+      "transliteration": "G) Aḥar kakh buts'ah harpaya la-pladah.",
+      "ru": "В) После этого был выполнен отпуск стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r015",
+      "semantic_kind": "subpart",
+      "he": "ג) איזה מבנה מטלוגרפי התקבל לאחר החיסום, ואיזה מבנה יהיה לאחר ההרפיה.",
+      "he_niqqud": "ג) אֵיזֶה מִבְנֶה מֶטָלוֹגְרָפִי הִתְקַבֵּל לְאַחַר הַחִסּוּם, וְאֵיזֶה מִבְנֶה יִהְיֶה לְאַחַר הַהַרְפָּיָה.",
+      "transliteration": "G) Eyzeh mivne metalografi hitḳabel aḥar ha-ḥisum, ve-eyzeh mivne yihiyeh aḥar ha-harpaya.",
+      "ru": "В) Какая металлографическая структура получилась после закалки, и какая структура будет после отпуска?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r016",
+      "semantic_kind": "subpart",
+      "he": "ג) האם ערך הנגיפה לאחר ההרפיה יהיה גבוה יותר או נמוך יותר.",
+      "he_niqqud": "ג) הַאִם עֵרֶךְ הַנְּגִיפָה לְאַחַר הַהַרְפָּיָה יִהְיֶה גָּבוֹהַּ יוֹתֵר אוֹ נָמוּךְ יוֹתֵר.",
+      "transliteration": "G) Ha'im erekh ha-negifah aḥar ha-harpaya yihiyeh gavoha yoter o namukh yoter.",
+      "ru": "В) Будет ли значение ударной вязкости после отпуска выше или ниже?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q030-r017",
+      "semantic_kind": "subpart",
+      "he": "ג) נמק את תשובתך.",
+      "he_niqqud": "ג) נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "G) Nameḳ et tshuvatekha.",
+      "ru": "В) Обоснуйте свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q031-r002",
+      "semantic_kind": "subpart",
+      "he": "א) מהו המרכיב העיקרי בפלדה בעלת מבנה מרטנזיט, הקובע את הקשיות שלה, והסבר כיצד משפיעה עלייה בכמות של מרכיב זה על קשיחות הפלדה.",
+      "he_niqqud": "א) מָהוּ הַמַּרְכִּיב הָעִקָּרִי בִּפְלָדָה בַּעֲלַת מִבְנֶה מַרְטֶנְזִיט, הַקּוֹבֵעַ אֶת הַקָּשְׁיוּת שֶׁלָּהּ, וְהַסְבֵּר כֵּיצַד מַשְׁפִּיעָה עֲלִיָּה בְּכַמּוּת שֶׁל מַרְכִּיב זֶה עַל קָשִׁיחוּת הַפְּלָדָה.",
+      "transliteration": "A) Mahu ha-markiv ha-'ikari b'f'ladah ba'alat mivneh martenziṭ, ha-qove'a et ha-qashyuṭ shelah, v'hasber keytzaḍ mashpi'ah 'aliyah b'kamut shel markiv zeh 'al qashiḥuṭ ha-p'ladah.",
+      "ru": "А) Каков основной компонент в стали с мартенситной структурой, определяющий ее твердость, и объясните, как увеличение количества этого компонента влияет на вязкость стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q031-r003",
+      "semantic_kind": "subpart",
+      "he": "ב) חיסום של סוגים שונים של פלדות יכול להתבצע בקצבי קירור שונים (מהיר, בינוני, איטי).",
+      "he_niqqud": "ב) חִסּוּם שֶׁל סוּגִים שׁוֹנִים שֶׁל פְּלָדוֹת יָכוֹל לְהִתְבַּצֵּעַ בְּקִצְבֵי קִרּוּר שׁוֹנִים (מָהִיר, בֵּינוֹנִי, אִטִּי).",
+      "transliteration": "B) Ḥisum shel sugyim shonim shel p'ladot yachol l'hitbatze'a b'qitzvey qirur shonim (mahir, benoni, iṭi).",
+      "ru": "Б) Закалка различных типов стали может осуществляться при разных скоростях охлаждения (быстрой, средней, медленной)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q031-r004",
+      "semantic_kind": "subpart",
+      "he": "ב) ציין, לכל אחד מקצבי הקירור, באיזו סביבת קירור יש לבצע את החיסום: באוויר, במים או בשמן.",
+      "he_niqqud": "ב) צַיֵּין, לְכָל אֶחָד מִקִּצְבֵי הַקִּרּוּר, בְּאֵיזוֹ סְבִיבַת קִרּוּר יֵשׁ לְבַצֵּעַ אֶת הַחִסּוּם: בָּאֲוִיר, בַּמַּיִם אוֹ בַּשֶּׁמֶן.",
+      "transliteration": "B) Tzayen, l'chol eḥad miqitzvey ha-qirur, b'eizo svivat qirur yesh l'vatze'a et ha-ḥisum: ba-'avir, ba-mayim o ba-shemen.",
+      "ru": "Б) Укажите для каждой скорости охлаждения, в какой охлаждающей среде следует выполнять закалку: на воздухе, в воде или в масле."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q031-r005",
+      "semantic_kind": "subpart",
+      "he": "ג) מהו שמו של המבנה הגבישי המתקבל בפלדות לאחר שהן עוברות חיסום.",
+      "he_niqqud": "ג) מָהוּ שְׁמוֹ שֶׁל הַמִּבְנֶה הַגְּבִישִׁי הַמִּתְקַבֵּל בִּפְלָדוֹת לְאַחַר שֶׁהֵן עוֹבְרוֹת חִסּוּם.",
+      "transliteration": "C) Mahu shmo shel ha-mivneh ha-g'vishi ha-mitqabel b'p'ladot le'aḥar shehen 'ovrot ḥisum.",
+      "ru": "В) Как называется кристаллическая структура, получаемая в сталях после закалки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q031-r006",
+      "semantic_kind": "subpart",
+      "he": "ג) האם מבנה זה משיך או פריך.",
+      "he_niqqud": "ג) הַאִם מִבְנֶה זֶה מָשִׁיךְ אוֹ פָּרִיךְ.",
+      "transliteration": "C) Ha'im mivneh zeh mashikh o parikh.",
+      "ru": "В) Является ли эта структура пластичной или хрупкой."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r002",
+      "semantic_kind": "condition",
+      "he": "שלוש פלדות (מסומנות לפי התקן SAE) נבדקו במכונת מתיחה לאחר טיפול תרמי:",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r003",
+      "semantic_kind": "condition",
+      "he": "חיסום ולאחר מכן הרפיה בטמפרטורה 500°C במשך שעה אחת.",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r004",
+      "semantic_kind": "diagram_reference",
+      "he": "דיאגרמות המתיחה של הפלדות הללו מוצגות באיור לשאלה 7.",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r005",
+      "semantic_kind": "source_note",
+      "he": "שימוש בדיאגרמות וענה:",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r006",
+      "semantic_kind": "subpart",
+      "he": "א. מהי הפלדה בעלת החוזק הגבוה ביותר? נמקו את תשובתכם.",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r007",
+      "semantic_kind": "subpart",
+      "he": "ב. מדוע הפלדה שקבעתם בסעיף א' היא בעלת חוזק גבוה יותר מאשר שתי הפלדות האחרות?",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r008",
+      "semantic_kind": "subpart",
+      "he": "ג. האם מודול האלסטיות של הפלדות הללו שונה? נמקו את תשובתכם.",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r009",
+      "semantic_kind": "subpart",
+      "he": "ד. מהו המבנה המתקבל בפלדות הללו לאחר שעברו טיפול תרמי?",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-r010",
+      "semantic_kind": "subpart",
+      "he": "ה. האם צורת הדיאגרמות משתנה עם עליית טמפרטורת ההרפיה עד 500°C (זמן ההרפיה לא משתנה)? אם כן, עליך להסביר מהו השינוי. אם לא, עליך להסביר מהי הסיבה לכך.",
+      "he_niqqud": null,
+      "transliteration": null,
+      "ru": null
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r002",
+      "semantic_kind": "condition",
+      "he": "בטיפול תרמי לפלדה 1030 SAE בוצע חיסום במים ולאחריו בוצעה הרפיה בטמפרטורה של 540°C.",
+      "he_niqqud": "בְּטִפּוּל תֶּרְמִי לִפְלָדָה 1030 SAE בֻּצַּע חִסּוּם בְּמַיִם וְלְאַחֲרָיו בֻּצְּעָה הַרְפָּיָה בְּטֶמְפֶּרָטוּרָה שֶׁל 540°C.",
+      "transliteration": "B'tipul termi l'fladah 1030 SAE butza khisum b'mayim v'l'akhareiha butz'ah harpayah b'temperatura shel 540°C.",
+      "ru": "В процессе термической обработки стали SAE 1030 была проведена закалка в воде, а затем отпуск при температуре 540°C."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r003",
+      "semantic_kind": "subpart",
+      "he": "א) היעזר בדיאגרמת ברזל־פחמן שבנספח א׳ וקבע את טמפרטורת האוסטיניזציה שאליה חוממה הפלדה בשלב החיסום.",
+      "he_niqqud": "א) הֵיעָזֵר בְּדִיאַגְרָמַת בַּרְזֶל־פַּחְמָן שֶׁבְּנִסְפָּח א׳ וְקָבַע אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטִינִיזַצְיָה שֶׁאֵלֶיהָ חֻמְּמָה הַפְּלָדָה בְּשָׁלָב הַחִסּוּם.",
+      "transliteration": "A) Hi'ezer b'diagrat barzel-pakhman sheb'nespakh alef v'kava et temperaturat ha'ostenizatzya she'eleiha khummah hafladah b'shalav hakhisum.",
+      "ru": "А) Воспользуйтесь диаграммой железо-углерод, приведенной в Приложении А, и определите температуру аустенитизации, до которой сталь нагревалась на этапе закалки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r004",
+      "semantic_kind": "subpart",
+      "he": "הסבר את קביעתך.",
+      "he_niqqud": "הַסְבֵּר אֶת קְבִיעָתְךָ.",
+      "transliteration": "Hasber et kvi'atcha.",
+      "ru": "Объясните свое определение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r005",
+      "semantic_kind": "subpart",
+      "he": "ב) סרטט גרף סכמתי (טמפרטורה כתלות בזמן) המתאר את מהלך הטיפול התרמי הכולל את החיסום וההרפיה.",
+      "he_niqqud": "ב) סַרְטֵט גְּרָף סְכֵמָתִי (טֶמְפֶּרָטוּרָה כִּתְלוּת בִּזְמַן) הַמְּתָאֵר אֶת מַהֲלָךְ הַטִּפּוּל הַתֶּרְמִי הַכּוֹלֵל אֶת הַחִסּוּם וְהַהַרְפָּיָה.",
+      "transliteration": "B) Sartet graf skhemati (temperatura k'tlut b'zman) hameta'er et mahalakh hatipul hatermi hakolel et hakhisum v'haharpayah.",
+      "ru": "Б) Начертите схематический график (температура в зависимости от времени), описывающий ход термической обработки, включающей закалку и отпуск."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r006",
+      "semantic_kind": "subpart",
+      "he": "ציין על הגרף את טמפרטורת האוסטניזציה ואת טמפרטורת ההרפיה.",
+      "he_niqqud": "צַיֵּן עַל הַגְּרָף אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיזַצְיָה וְאֶת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה.",
+      "transliteration": "Tzayen al hagraf et temperaturat ha'ostenizatzya v'et temperaturat haharpayah.",
+      "ru": "Укажите на графике температуру аустенитизации и температуру отпуска."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r007",
+      "semantic_kind": "subpart",
+      "he": "ג) התכונות המכניות לאחר הרפיה ב־540°C לא תאמו, והוחלט לשנות טמפרטורת הרפיה ל־595°C.",
+      "he_niqqud": "ג) הַתְּכוּנוֹת הַמְּכָנִיּוֹת לְאַחַר הַרְפָּיָה בְּ־540°C לֹא תָּאֲמוּ, וְהֻחְלַט לְשַׁנּוֹת טֶמְפֶּרָטוּרַת הַרְפָּיָה לְ־595°C.",
+      "transliteration": "G) Hatkhunot hamekhaniyot l'akhar harpayah b'540°C lo ta'mu, v'hukhlat l'shanot temperaturat harpayah l'595°C.",
+      "ru": "В) Механические свойства после отпуска при 540°C не соответствовали требованиям, и было решено изменить температуру отпуска на 595°C."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r008",
+      "semantic_kind": "subpart",
+      "he": "לבחור לכל תכונה את הערך המתאים מבין שלושה ערכים ולהסביר.",
+      "he_niqqud": "לִבְחֹר לְכָל תְּכוּנָה אֶת הָעֵרֶךְ הַמַּתְאִים מִבֵּין שְׁלֹשָׁה עֲרָכִים וּלְהַסְבִּיר.",
+      "transliteration": "Livkhor l'khol tkhunah et ha'erech hamat'im miben shlosha arakhim ul'hasbir.",
+      "ru": "Для каждого свойства выберите соответствующее значение из трех предложенных и объясните свой выбор."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-r009",
+      "semantic_kind": "table_data",
+      "he": "נתון בטבלה עבור 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+      "he_niqqud": "נָתוּן בְּטַבְלָה עֲבוּר 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+      "transliteration": "Naton b'tavlah avur 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+      "ru": "Дано в таблице для 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r002",
+      "semantic_kind": "subpart",
+      "he": "א) תאר בקצרה את המהלך של בדיקת ג׳ומיני (Jominy)",
+      "he_niqqud": "א) תָּאֵר בְּקִצְרָה אֶת הַמַּהֲלָךְ שֶׁל בְּדִיקַת ג'וֹמִינִי (Jominy)",
+      "transliteration": "A) Ta'er be'ketzra et ha'mahalakh shel bedikat Jominy (Jominy)",
+      "ru": "А) Кратко опишите ход испытания Джомини (Jominy)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r003",
+      "semantic_kind": "subpart",
+      "he": "לווה את הסברך כציור סכמתי",
+      "he_niqqud": "לַוֵּה אֶת הֶסְבֵּרְךָ כְּצִיּוּר סְכֵמָתִי",
+      "transliteration": "Laveh et hesberkha ketziur skhemati",
+      "ru": "Сопроводите ваше объяснение схематическим рисунком"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r004",
+      "semantic_kind": "subpart",
+      "he": "ב) תאר בקצרה את המהלך של בדיקת גרוסמן",
+      "he_niqqud": "ב) תָּאֵר בְּקִצְרָה אֶת הַמַּהֲלָךְ שֶׁל בְּדִיקַת גְּרוֹסְמַן",
+      "transliteration": "B) Ta'er be'ketzra et ha'mahalakh shel bedikat Grossman",
+      "ru": "Б) Кратко опишите ход испытания Гроссмана"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r005",
+      "semantic_kind": "subpart",
+      "he": "לווה את הסברך בציור סכמתי",
+      "he_niqqud": "לַוֵּה אֶת הֶסְבֵּרְךָ בְּצִיּוּר סְכֵמָתִי",
+      "transliteration": "Laveh et hesberkha be'tziur skhemati",
+      "ru": "Сопроводите ваше объяснение схематическим рисунком"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r006",
+      "semantic_kind": "subpart",
+      "he": "ג) בדקו את כושר החיסום של שתי פלדות; SAE 1040 ו־SAE 4340",
+      "he_niqqud": "ג) בָּדְקוּ אֶת כֹּשֶׁר הַחִסּוּם שֶׁל שְׁתֵּי פְּלָדוֹת; SAE 1040 וְ־SAE 4340",
+      "transliteration": "G) Badku et kosher ha'khisum shel shtei pladot; SAE 1040 ve-SAE 4340",
+      "ru": "В) Была проверена прокаливаемость двух сталей: SAE 1040 и SAE 4340"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r007",
+      "semantic_kind": "subpart",
+      "he": "הבדיקה בוצעה בשיטת ג׳ומיני",
+      "he_niqqud": "הַבְּדִיקָה בֻּצְּעָה בְּשִׁיטַת ג'וֹמִינִי",
+      "transliteration": "Ha'bedika butz'ah be'shitat Jominy",
+      "ru": "Испытание было проведено методом Джомини"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r008",
+      "semantic_kind": "subpart",
+      "he": "עקומות הקשיות שהתקבלו מוצבות באיור לשאלה 9",
+      "he_niqqud": "עֲקֻמּוֹת הַקְּשִׁיּוּת שֶׁהִתְקַבְּלוּ מֻצָּבוֹת בְּאִיּוּר לִשְׁאֵלָה 9",
+      "transliteration": "Akumot ha'kashiyut she'hitkablu mutzavot be'iyur li'she'ela 9",
+      "ru": "Полученные кривые твердости приведены на рисунке к вопросу 9"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r009",
+      "semantic_kind": "subpart",
+      "he": "באיזו מהפלדות שבאיור תבחר, אם הדרישה היא לקבל לאחר החיסום מוט בעל קשיות גבוהה ואחידה",
+      "he_niqqud": "בְּאֵיזוֹ מֵהַפְּלָדוֹת שֶׁבְּאִיּוּר תִּבְחַר, אִם הַדְּרִישָׁה הִיא לְקַבֵּל לְאַחַר הַחִסּוּם מוֹט בַּעַל קְשִׁיּוּת גְּבוֹהָה וַאֲחִידָה",
+      "transliteration": "Be'eizo me'ha'pladot she'ba'iyur tivkhar, im ha'drisha hi lekabel lekhar ha'khisum mot ba'al kashiyut gvohah ve'akhidah",
+      "ru": "Какую из сталей, представленных на рисунке, вы выберете, если требуется получить после закалки стержень с высокой и однородной твердостью"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r010",
+      "semantic_kind": "subpart",
+      "he": "נמק את תשובתך",
+      "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ",
+      "transliteration": "Namek et tshuvatkha",
+      "ru": "Обоснуйте свой ответ"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r011",
+      "semantic_kind": "subpart",
+      "he": "ד) מבצעים חיסום מים לשני מוטות שקוטרו של כל אחד מהם הוא 5 ס״מ",
+      "he_niqqud": "ד) מְבַצְּעִים חִסּוּם מַיִם לִשְׁנֵי מוֹטוֹת שֶׁקֻּטְרוֹ שֶׁל כָּל אֶחָד מֵהֶם הוּא 5 סָּ״מ",
+      "transliteration": "D) Mevatz'im khisum mayim li'shnei motot she'kutro shel kol ekhad mehem hu 5 s\"m",
+      "ru": "Г) Проводится закалка в воде для двух стержней, диаметр каждого из которых составляет 5 см"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r012",
+      "semantic_kind": "subpart",
+      "he": "מוט אחד עשוי מפלדת SAE 1040 ומוט שני עשוי מפלדת SAE 4340",
+      "he_niqqud": "מוֹט אֶחָד עָשׂוּי מִפְּלָדַת SAE 1040 וּמוֹט שֵׁנִי עָשׂוּי מִפְּלָדַת SAE 4340",
+      "transliteration": "Mot ekhad asuy mi'peladat SAE 1040 u'mot sheni asuy mi'peladat SAE 4340",
+      "ru": "Один стержень изготовлен из стали SAE 1040, а второй стержень — из стали SAE 4340"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r013",
+      "semantic_kind": "subpart",
+      "he": "עוברים את אותו תהליך אוסטניטיזציה ואת אותו תהליך חיסום מים",
+      "he_niqqud": "עוֹבְרִים אֶת אוֹתוֹ תַּהֲלִיךְ אוֹסְטֶנִיטִיזַצְיָה וְאֶת אוֹתוֹ תַּהֲלִיךְ חִסּוּם מַיִם",
+      "transliteration": "Ovrim et oto tahalikh ostenitizatzya ve'et oto tahalikh khisum mayim",
+      "ru": "Они проходят один и тот же процесс аустенитизации и один и тот же процесс закалки в воде"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r014",
+      "semantic_kind": "subpart",
+      "he": "סרטט על מערכת צירים אחת שתי עקומות המתארות את הקשיות לאחר החיסום",
+      "he_niqqud": "סַרְטֵט עַל מַעֲרֶכֶת צִירִים אַחַת שְׁתֵּי עֲקֻמּוֹת הַמְּתָאֲרוֹת אֶת הַקְּשִׁיּוּת לְאַחַר הַחִסּוּם",
+      "transliteration": "Sartet al ma'arekhet tzirim akhat shtei akumot ha'metarot et ha'kashiyut lekhar ha'khisum",
+      "ru": "Нарисуйте на одной системе координат две кривые, описывающие твердость после закалки"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r015",
+      "semantic_kind": "subpart",
+      "he": "הקשיות כפונקציה של רדיוס המוט",
+      "he_niqqud": "הַקְּשִׁיּוּת כְּפֻנְקְצְיָה שֶׁל רַדְיוּס הַמּוֹט",
+      "transliteration": "Ha'kashiyut ke'funktzya shel radius ha'mot",
+      "ru": "Твердость как функция радиуса стержня"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-r016",
+      "semantic_kind": "subpart",
+      "he": "(עקומת גרוסמן)",
+      "he_niqqud": "(עֲקֻמַּת גְּרוֹסְמַן)",
+      "transliteration": "(Akumat Grossman)",
+      "ru": "(Кривая Гроссмана)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r002",
+      "semantic_kind": "condition",
+      "he": "עליך לאפיין תכונות מכאניות (קשיות ונגיפה) של מוט פלדה SAE 3120 בקוטר 60 מ״מ לאחר ביצוע הטיפול התרמי הבא.",
+      "he_niqqud": "עָלֶיךָ לְאַפְיֵין תְּכוּנוֹת מְכָאֲנִיּוֹת (קַשְׁיוּת וּנְגִיפָה) שֶׁל מוֹט פְּלָדָה SAE 3120 בְּקֹוטֶר 60 מ״מ לְאַחַר בִּצּוּעַ הַטִּפּוּל הַתֶּרְמִי הַבָּא.",
+      "transliteration": "Aleikha le'afyen tkhunot mekhaniyot (kashyut u-ngifah) shel mot pladah SAE 3120 be'koter 60 mm le'akhar bitsua ha-tipul ha-termi ha-ba.",
+      "ru": "Вам необходимо охарактеризовать механические свойства (твердость и ударную вязкость) стального стержня SAE 3120 диаметром 60 мм после выполнения следующей термической обработки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r003",
+      "semantic_kind": "condition",
+      "he": "חימום לטמפרטורה 830°C למשך זמן מספיק כך שכל המוט יהיה בטמפרטורה זו.",
+      "he_niqqud": "חִמּוּם לְטֶמְפֶּרָטוּרָה 830°C לְמֶשֶׁךְ זְמַן מַסְפִּיק כָּךְ שֶׁכָּל הַמּוֹט יִהְיֶה בְּטֶמְפֶּרָטוּרָה זוֹ.",
+      "transliteration": "Khimum le'temperatura 830°C lemeshekh zman maspik kakh she-kol ha-mot yihiye ba-temperatura zo.",
+      "ru": "Нагрев до температуры 830°C на достаточное время, чтобы весь стержень достиг этой температуры."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r004",
+      "semantic_kind": "condition",
+      "he": "לאחר מכן חיסום במים.",
+      "he_niqqud": "לְאַחַר מִכֵּן חִסּוּם בְּמַיִם.",
+      "transliteration": "Le'akhar miken khissum be'mayim.",
+      "ru": "Затем закалка в воде."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r005",
+      "semantic_kind": "condition",
+      "he": "בטבלה שלהלן מוצגות תוצאות בדיקת קשיות שנערכו לאחר החיסום (ראה סרטוט).",
+      "he_niqqud": "בַּטַּבְלָה שֶׁלְּהַלָּן מֻצָּגוֹת תּוֹצָאוֹת בְּדִיקַת קַשְׁיוּת שֶׁנֶּעֶרְכוּ לְאַחַר הַחִסּוּם (רְאֵה שִׂרְטוּט).",
+      "transliteration": "Ba-tavlah she-lehalan mutzagot totsa'ot bedikat kashyut she-ne'erkhu le'akhar ha-khissum (re'eh sirtut).",
+      "ru": "В таблице ниже представлены результаты испытаний на твердость, проведенных после закалки (см. чертеж)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r006",
+      "semantic_kind": "condition",
+      "he": "סרטוט סכמאתי מציג 23 נקודות לבדיקת הקשיות שנערכו על פני קוטר המוט.",
+      "he_niqqud": "שִׂרְטוּט סְכֵמָתִי מַצִּיג 23 נְקֻדּוֹת לִבְדִיקַת הַקַּשְׁיוּת שֶׁנֶּעֶרְכוּ עַל פְּנֵי קֹוטֶר הַמּוֹט.",
+      "transliteration": "Sirtut skhemati matzig 23 nekudot li'vdikat ha-kashyut she-ne'erkhu al pnei koter ha-mot.",
+      "ru": "Схематический чертеж показывает 23 точки для проверки твердости, проведенных по диаметру стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r007",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 1 הן 58.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 1 הֵן 58.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 1 hen 58.",
+      "ru": "Результаты твердости HRC в точке 1 составляют 58."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r008",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 2 הן 58.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 2 הֵן 58.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 2 hen 58.",
+      "ru": "Результаты твердости HRC в точке 2 составляют 58."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r009",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 3 הן 55.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 3 הֵן 55.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 3 hen 55.",
+      "ru": "Результаты твердости HRC в точке 3 составляют 55."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r010",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 4 הן 51.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 4 הֵן 51.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 4 hen 51.",
+      "ru": "Результаты твердости HRC в точке 4 составляют 51."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r011",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 5 הן 46.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 5 הֵן 46.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 5 hen 46.",
+      "ru": "Результаты твердости HRC в точке 5 составляют 46."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r012",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 6 הן 43.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 6 הֵן 43.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 6 hen 43.",
+      "ru": "Результаты твердости HRC в точке 6 составляют 43."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r013",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 7 הן 40.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 7 הֵן 40.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 7 hen 40.",
+      "ru": "Результаты твердости HRC в точке 7 составляют 40."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r014",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 8 הן 38.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 8 הֵן 38.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 8 hen 38.",
+      "ru": "Результаты твердости HRC в точке 8 составляют 38."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r015",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 9 הן 37.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 9 הֵן 37.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 9 hen 37.",
+      "ru": "Результаты твердости HRC в точке 9 составляют 37."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r016",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 10 הן 37.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 10 הֵן 37.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 10 hen 37.",
+      "ru": "Результаты твердости HRC в точке 10 составляют 37."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r017",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 11 הן 36.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 11 הֵן 36.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 11 hen 36.",
+      "ru": "Результаты твердости HRC в точке 11 составляют 36."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r018",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 12 הן 36.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 12 הֵן 36.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 12 hen 36.",
+      "ru": "Результаты твердости HRC в точке 12 составляют 36."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r019",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 13 הן 36.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 13 הֵן 36.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 13 hen 36.",
+      "ru": "Результаты твердости HRC в точке 13 составляют 36."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r020",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 14 הן 37.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 14 הֵן 37.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 14 hen 37.",
+      "ru": "Результаты твердости HRC в точке 14 составляют 37."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r021",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 15 הן 37.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 15 הֵן 37.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 15 hen 37.",
+      "ru": "Результаты твердости HRC в точке 15 составляют 37."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r022",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 16 הן 38.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 16 הֵן 38.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 16 hen 38.",
+      "ru": "Результаты твердости HRC в точке 16 составляют 38."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r023",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 17 הן 40.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 17 הֵן 40.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 17 hen 40.",
+      "ru": "Результаты твердости HRC в точке 17 составляют 40."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r024",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 18 הן 43.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 18 הֵן 43.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 18 hen 43.",
+      "ru": "Результаты твердости HRC в точке 18 составляют 43."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r025",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 19 הן 46.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 19 הֵן 46.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 19 hen 46.",
+      "ru": "Результаты твердости HRC в точке 19 составляют 46."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r026",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 20 הן 51.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 20 הֵן 51.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 20 hen 51.",
+      "ru": "Результаты твердости HRC в точке 20 составляют 51."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r027",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 21 הן 55.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 21 הֵן 55.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 21 hen 55.",
+      "ru": "Результаты твердости HRC в точке 21 составляют 55."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r028",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 22 הן 58.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 22 הֵן 58.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 22 hen 58.",
+      "ru": "Результаты твердости HRC в точке 22 составляют 58."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r029",
+      "semantic_kind": "table_data",
+      "he": "תוצאות קשיות HRC בנקודה 23 הן 58.",
+      "he_niqqud": "תּוֹצָאוֹת קַשְׁיוּת HRC בְּנְקֻדָּה 23 הֵן 58.",
+      "transliteration": "Totsa'ot kashyut HRC bi'nekudah 23 hen 58.",
+      "ru": "Результаты твердости HRC в точке 23 составляют 58."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r030",
+      "semantic_kind": "condition",
+      "he": "בנוסף, נחתכו מהמוט 3 דגמי נגיפה תקניים לפי תקן (ASTM E23).",
+      "he_niqqud": "בְּנוֹסָף, נֶחְתְּכוּ מֵהַמּוֹט 3 דִּגְמֵי נְגִיפָה תַּקִּינִים לְפִי תֶּקֶן (ASTM E23).",
+      "transliteration": "B'nosaf, nehtkhu me-ha-mot 3 digmei negifah takkinim lefi teken (ASTM E23).",
+      "ru": "Кроме того, из стержня были вырезаны 3 стандартных образца для испытаний на ударную вязкость согласно стандарту (ASTM E23)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r031",
+      "semantic_kind": "condition",
+      "he": "שני דגמים נחתכו מהיקף המוט.",
+      "he_niqqud": "שְׁנֵי דְּגָמִים נֶחְתְּכוּ מֵהֶיקֵף הַמּוֹט.",
+      "transliteration": "Shnei degamim nehtkhu me-hekef ha-mot.",
+      "ru": "Два образца были вырезаны по окружности стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r032",
+      "semantic_kind": "condition",
+      "he": "דגם אחד נחתך ממרכז המוט.",
+      "he_niqqud": "דֶּגֶם אֶחָד נֶחְתַּךְ מִמֶּרְכַּז הַמּוֹט.",
+      "transliteration": "Degem ehad nehtakh mi-merkaz ha-mot.",
+      "ru": "Один образец был вырезан из центра стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r033",
+      "semantic_kind": "subpart",
+      "he": "א) מהי השיטה לפיה בוצעו בדיקות הקשיות לפי הסימון שבטבלה.",
+      "he_niqqud": "א) מַהִי הַשִּׁיטָה לְפִיהָ בֻּצְּעוּ בְּדִיקוֹת הַקַּשְׁיוּת לְפִי הַסִּמּוּן שֶׁבַּטַּבְלָה.",
+      "transliteration": "A) Ma hi ha-shitah lefiha butz'u bedikot ha-kashyut lefi ha-simun she-ba-tavlah.",
+      "ru": "А) Какой метод использовался для проведения испытаний на твердость, согласно обозначению в таблице."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r034",
+      "semantic_kind": "subpart",
+      "he": "א) סרטט את התוצאות על מערכת צירים של קשיות כתלות במיקום לאורך קוטר המוט.",
+      "he_niqqud": "א) שַׂרְטֵט אֶת הַתּוֹצָאוֹת עַל מַעֲרֶכֶת צִירִים שֶׁל קַשְׁיוּת כִּתְלוּת בְּמִקּוּם לְאֹרֶךְ קֹוטֶר הַמּוֹט.",
+      "transliteration": "A) Sartet et ha-totsa'ot al ma'arekhet tzirim shel kashyut ki-tlut ba-mikum le'orekh koter ha-mot.",
+      "ru": "А) Начертите график зависимости твердости от положения вдоль диаметра стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r035",
+      "semantic_kind": "subpart",
+      "he": "ב) מה צפויה להיות אנרגיית הנגיפה של כל אחד משלושת דגמי הנגיפה.",
+      "he_niqqud": "ב) מַה צְּפוּיָה לִהְיוֹת אֶנֶרְגִּיַּת הַנְּגִיפָה שֶׁל כָּל אֶחָד מִשְּׁלֹשֶׁת דִּגְמֵי הַנְּגִיפָה.",
+      "transliteration": "B) Mah tzefuyah lihyot energeyat ha-negifah shel kol ehad mi-shloshet digmei ha-negifah.",
+      "ru": "Б) Какова ожидаемая энергия удара для каждого из трех образцов для испытаний на ударную вязкость."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q035-r036",
+      "semantic_kind": "subpart",
+      "he": "ב) קבע לכל דגם האם האנרגיה “גבוהה” או “נמוכה” ונמק.",
+      "he_niqqud": "ב) קְבַע לְכָל דֶּגֶם הַאִם הָאֶנֶרְגִּיָּה “גְּבוֹהָה” אוֹ “נְמוּכָה” וְנַמֵּק.",
+      "transliteration": "B) Kva le'khol degem ha'im ha-energeyah \"gvohah\" o \"nemukhah\" ve'namek.",
+      "ru": "Б) Определите для каждого образца, является ли энергия «высокой» или «низкой», и обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r002",
+      "semantic_kind": "condition",
+      "he": "כדי לאפיין תכונות מכניות של מוט העשוי מפלדה SAE 1040, שקוטרו 25 mm, בוצעו הפעולות האלה:",
+      "he_niqqud": "כְּדֵי לְאַפְיֵין תְּכוּנוֹת מְכָנִיּוֹת שֶׁל מוֹט הֶעָשׂוּי מִפְּלָדָה SAE 1040, שֶׁקָּטְרוֹ 25 mm, בֻּצְּעוּ הַפְּעֻלּוֹת הָאֵלֶּה:",
+      "transliteration": "Kedei le'afyen tekhunot mekhanot shel mot he'asuy mi-peladah SAE 1040, shekotro 25 mm, butz'u hape'ulot ha'eleh:",
+      "ru": "Для определения механических свойств стержня, изготовленного из стали SAE 1040, диаметром 25 мм, были выполнены следующие операции:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r003",
+      "semantic_kind": "condition",
+      "he": "1. חיסום במים מטמפרטורת האוסטניטיזציה.",
+      "he_niqqud": "1. חִסּוּם בְּמַיִם מִטֶּמְפֶּרָטוּרַת הָאוֹסְטֶנִיטִיזַצְיָה.",
+      "transliteration": "1. Khissum bemayim mi-temperaṭuraṭ ha'osṭeniṭizaẓyah.",
+      "ru": "1. Закалка в воде от температуры аустенитизации."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r004",
+      "semantic_kind": "condition",
+      "he": "2. הרפיה בטמפרטורה של 540°C.",
+      "he_niqqud": "2. הַרְפָּיָה בְּטֶמְפֶּרָטוּרָה שֶׁל 540°C.",
+      "transliteration": "2. Harpayah beṭemperaṭurah shel 540°C.",
+      "ru": "2. Отпуск при температуре 540°C."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r005",
+      "semantic_kind": "condition",
+      "he": "3. בדיקת קשיות הפלדה לאורך הקוטר של חתך המוט.",
+      "he_niqqud": "3. בְּדִיקַת קַשְׁיוּת הַפְּלָדָה לְאוֹרֶךְ הַקֹּטֶר שֶׁל חֲתַךְ הַמּוֹט.",
+      "transliteration": "3. Bediqaṭ qashyuṭ ha-peladah le'orekh haqoṭer shel ḥatakh hamoṭ.",
+      "ru": "3. Измерение твердости стали вдоль диаметра сечения стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r006",
+      "semantic_kind": "condition",
+      "he": "התוצאות שהתקבלו מהבדיקה מוצגות בטבלה שלהלן.",
+      "he_niqqud": "הַתּוֹצָאוֹת שֶׁהִתְקַבְּלוּ מֵהַבְּדִיקָה מוּצָּגוֹת בַּטַּבְלָה שֶׁלְּהַלָּן.",
+      "transliteration": "Hatoẓa'oṭ shehiṭqablu mehabediqah mutzaḥoṭ baṭablah shelehalan.",
+      "ru": "Результаты, полученные в ходе испытания, представлены в таблице ниже."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r007",
+      "semantic_kind": "table_data",
+      "he": "מיקום: משטח הפנים של המוט.",
+      "he_niqqud": "מִקּוּם: מִשְׁטָח הַפָּנִים שֶׁל הַמּוֹט.",
+      "transliteration": "Miqqum: Mishṭaḥ happanim shel hamoṭ.",
+      "ru": "Расположение: Поверхность стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r008",
+      "semantic_kind": "table_data",
+      "he": "קשיות: 50 HRC.",
+      "he_niqqud": "קַשְׁיוּת: 50 HRC.",
+      "transliteration": "Qashyuṭ: 50 HRC.",
+      "ru": "Твердость: 50 HRC."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r009",
+      "semantic_kind": "table_data",
+      "he": "מיקום: בעומק של 6.25 mm ממשטח הפנים של המוט.",
+      "he_niqqud": "מִקּוּם: בְּעֹמֶק שֶׁל 6.25 mm מִמִּשְׁטָח הַפָּנִים שֶׁל הַמּוֹט.",
+      "transliteration": "Miqqum: Be'omeq shel 6.25 mm mi-mishṭaḥ happanim shel hamoṭ.",
+      "ru": "Расположение: На глубине 6,25 мм от поверхности стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r010",
+      "semantic_kind": "table_data",
+      "he": "קשיות: 32 HRC.",
+      "he_niqqud": "קַשְׁיוּת: 32 HRC.",
+      "transliteration": "Qashyuṭ: 32 HRC.",
+      "ru": "Твердость: 32 HRC."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r011",
+      "semantic_kind": "table_data",
+      "he": "מיקום: בעומק של 12.5 mm ממשטח הפנים של המוט (מרכז המוט).",
+      "he_niqqud": "מִקּוּם: בְּעֹמֶק שֶׁל 12.5 mm מִמִּשְׁטָח הַפָּנִים שֶׁל הַמּוֹט (מֶרְכַּז הַמּוֹט).",
+      "transliteration": "Miqqum: Be'omeq shel 12.5 mm mi-mishṭaḥ happanim shel hamoṭ (merkaz hamoṭ).",
+      "ru": "Расположение: На глубине 12,5 мм от поверхности стержня (центр стержня)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r012",
+      "semantic_kind": "table_data",
+      "he": "קשיות: 28 HRC.",
+      "he_niqqud": "קַשְׁיוּת: 28 HRC.",
+      "transliteration": "Qashyuṭ: 28 HRC.",
+      "ru": "Твердость: 28 HRC."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r013",
+      "semantic_kind": "table_data",
+      "he": "נוסף על־כך, נבדקו התכונות המכניות של המוט לאחר ההרפיה והתקבלו התוצאות הבאות:",
+      "he_niqqud": "נוֹסָף עַל־כָּךְ, נִבְדְּקוּ הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל הַמּוֹט לְאַחַר הַהַרְפָּיָה וְהִתְקַבְּלוּ הַתּוֹצָאוֹת הַבָּאוֹת:",
+      "transliteration": "Nosaf al-kakh, nivdequ ha-tekhunot hamekhaniyot shel hamoṭ le'aḥar haharpayah vehiṭqablu ha-toẓa'oṭ haba'oṭ:",
+      "ru": "Кроме того, были исследованы механические свойства стержня после отпуска и получены следующие результаты:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r014",
+      "semantic_kind": "table_data",
+      "he": "σy = 541 MPa.",
+      "he_niqqud": "σy = 541 MPa.",
+      "transliteration": "σy = 541 MPa.",
+      "ru": "σy = 541 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r015",
+      "semantic_kind": "table_data",
+      "he": "εy = 0.25%.",
+      "he_niqqud": "εy = 0.25%.",
+      "transliteration": "εy = 0.25%.",
+      "ru": "εy = 0,25%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r016",
+      "semantic_kind": "table_data",
+      "he": "σUTS = 743 MPa.",
+      "he_niqqud": "σUTS = 743 MPa.",
+      "transliteration": "σUTS = 743 MPa.",
+      "ru": "σUTS = 743 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r017",
+      "semantic_kind": "table_data",
+      "he": "εUTS = 15%.",
+      "he_niqqud": "εUTS = 15%.",
+      "transliteration": "εUTS = 15%.",
+      "ru": "εUTS = 15%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r018",
+      "semantic_kind": "table_data",
+      "he": "σFracture = 640 MPa.",
+      "he_niqqud": "σFracture = 640 MPa.",
+      "transliteration": "σFracture = 640 MPa.",
+      "ru": "σFracture = 640 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r019",
+      "semantic_kind": "table_data",
+      "he": "εFracture = 23%.",
+      "he_niqqud": "εFracture = 23%.",
+      "transliteration": "εFracture = 23%.",
+      "ru": "εFracture = 23%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r020",
+      "semantic_kind": "subpart",
+      "he": "א) היעזר בדיאגרמת ברזל־פחמן (נספח ו׳) וקבע את טמפרטורת האוסטניטיזציה שלפני החיסום.",
+      "he_niqqud": "א) הֵיעָזֵר בְּדִיאַגְרָמַת בַּרְזֶל־פַּחְמָן (נִסְפָּח ו') וְקָבַע אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיטִיזַצְיָה שֶׁלִּפְנֵי הַחִסּוּם.",
+      "transliteration": "A) Hiazer bedi'agramaṭ barzel-paḥman (nespaḥ Vav) veqava' eṭ ṭemperaṭuraṭ ha'osṭeniṭizaẓyah shelifnei haḥissum.",
+      "ru": "А) Используя диаграмму «железо-углерод» (Приложение V), определите температуру аустенитизации перед закалкой."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r021",
+      "semantic_kind": "subpart",
+      "he": "א) הסבר.",
+      "he_niqqud": "א) הַסְבֵּר.",
+      "transliteration": "A) Hasber.",
+      "ru": "А) Объясните."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r022",
+      "semantic_kind": "subpart",
+      "he": "ב) סרטט גרף של מאמץ כתלות במעוות לפי הנתונים.",
+      "he_niqqud": "ב) סַרְטֵט גְּרָף שֶׁל מַאֲמָץ כְּתֵלוּת בְּמָעוֹת לְפִי הַנְּתוּנִים.",
+      "transliteration": "B) Sarṭeṭ graf shel ma'amaẓ keteluṭ bema'uṭ lefi hanneṭunim.",
+      "ru": "Б) Постройте график зависимости напряжения от деформации согласно данным."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r023",
+      "semantic_kind": "subpart",
+      "he": "ג) חשב את מודול יאנג (E) של הפלדה ביחידות MPa והצג חישוב.",
+      "he_niqqud": "ג) חַשֵּׁב אֶת מוֹדוּל יָאנְג (E) שֶׁל הַפְּלָדָה בִּיחִידוֹת MPa וְהַצֵּג חִשּׁוּב.",
+      "transliteration": "G) Hashshev eṭ modul Yang (E) shel ha-peladah biḥidoṭ MPa vehatzeig ḥishshuv.",
+      "ru": "В) Рассчитайте модуль Юнга (E) для стали в единицах МПа и представьте расчет."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r024",
+      "semantic_kind": "subpart",
+      "he": "ד) לאחר ההרפיה מתקבלת קשיות אחידה לאורך הקוטר.",
+      "he_niqqud": "ד) לְאַחַר הַהַרְפָּיָה מִתְקַבֶּלֶת קַשְׁיוּת אֲחִידָה לְאוֹרֶךְ הַקֹּטֶר.",
+      "transliteration": "D) Le'aḥar haharpayah miṭqabbeleṭ qashyuṭ aḥidah le'orekh haqoṭer.",
+      "ru": "Г) После отпуска достигается однородная твердость по всему диаметру."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r025",
+      "semantic_kind": "subpart",
+      "he": "ד) איזה ערך מתאים מבין האפשרויות 50 HRC או 32 HRC או 28 HRC.",
+      "he_niqqud": "ד) אֵיזֶה עֵרֶךְ מַתְאִים מִבֵּין הָאֶפְשָׁרוּיּוֹת 50 HRC אוֹ 32 HRC אוֹ 28 HRC.",
+      "transliteration": "D) Eizeh erekh maṭ'im mibbein ha'efsharuyyoṭ 50 HRC o 32 HRC o 28 HRC.",
+      "ru": "Г) Какое значение подходит из вариантов 50 HRC, 32 HRC или 28 HRC?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q036-r026",
+      "semantic_kind": "subpart",
+      "he": "ד) נמק.",
+      "he_niqqud": "ד) נַמֵּק.",
+      "transliteration": "D) Nameq.",
+      "ru": "Г) Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r002",
+      "semantic_kind": "subpart",
+      "he": "א) לצורך תכנון יש לקבוע את הקוטר המקסימלי של החלק המוצג באיור א׳ לשאלה 8.",
+      "he_niqqud": "א) לצורך תכנון יש לקבוע את הקוטר המקסימלי של החלק המוצג באיור א׳ לשאלה 8.",
+      "transliteration": "A) L'tzorekh tikhnon yesh likvo'a et ha'koter ha'maximali shel ha'khelek ha'mutzag ba'iyur alef li'she'elah shmonah.",
+      "ru": "A) Для целей проектирования необходимо определить максимальный диаметр детали, представленной на Рис. A к Вопросу 8."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r003",
+      "semantic_kind": "subpart",
+      "he": "א) החלק אמור להתחסם לקשיות של לא פחות מ־40HRC במרכזו.",
+      "he_niqqud": "א) החלק אמור להתחסם לקשיות של לא פחות מ־40HRC במרכזו.",
+      "transliteration": "A) Ha'khelek amur lehitkhasem le'kashyut shel lo pakhot mi-40HRC b'mer'kazo.",
+      "ru": "A) Деталь должна быть закалена до твердости не менее 40 HRC в центре."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r004",
+      "semantic_kind": "subpart",
+      "he": "א) לייצור החלק הציעו פלדה בעלת כושר החיסום המוצג באמצעות עקומת ג׳ומיני (ראה איור ב׳ לשאלה 8).",
+      "he_niqqud": "א) לייצור החלק הציעו פלדה בעלת כושר החיסום המוצג באמצעות עקומת ג׳ומיני (ראה איור ב׳ לשאלה 8).",
+      "transliteration": "A) L'yitzur ha'khelek hetzi'u pladah ba'alat kosher ha'khisum ha'mutzag be'emtza'ut akumat Jominy (re'eh iyur bet li'she'elah shmonah).",
+      "ru": "A) Для изготовления детали была предложена сталь с прокаливаемостью, показанной кривой Жомини (см. Рис. Б к Вопросу 8)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r005",
+      "semantic_kind": "subpart",
+      "he": "א) קבעו את הקוטר המקסימלי של החלק על פי כושר חיסום הפלדה.",
+      "he_niqqud": "א) קבעו את הקוטר המקסימלי של החלק על פי כושר חיסום הפלדה.",
+      "transliteration": "A) Kav'u et ha'koter ha'maximali shel ha'khelek al pi kosher khisum ha'pladah.",
+      "ru": "A) Определите максимальный диаметр детали в соответствии с прокаливаемостью стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r006",
+      "semantic_kind": "subpart",
+      "he": "ב) סמנו ב־V ״נכון״ או ״לא נכון״ לגבי כל אחד מהיגדים הבאים:",
+      "he_niqqud": "ב) סמנו ב־V ״נכון״ או ״לא נכון״ לגבי כל אחד מהיגדים הבאים:",
+      "transliteration": "B) Samnu be-V \"nakhon\" o \"lo nakhon\" legabei kol echad mehigeidim ha'ba'im:",
+      "ru": "Б) Отметьте V \"Верно\" или \"Неверно\" для каждого из следующих утверждений:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r007",
+      "semantic_kind": "subpart",
+      "he": "ב) 1 דיאגרמה ״ברזל־פחמן״ מתארת שינויים אלוטרופיים בסגסוגות ברזל.",
+      "he_niqqud": "ב) 1 דיאגרמה ״ברזל־פחמן״ מתארת שינויים אלוטרופיים בסגסוגות ברזל.",
+      "transliteration": "B) 1 Di'agramah \"barzel-pakhman\" meta'eret shinuyim allotropi'im b'sagsugot barzel.",
+      "ru": "Б) 1 Диаграмма «железо-углерод» описывает аллотропические изменения в сплавах железа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r008",
+      "semantic_kind": "subpart",
+      "he": "ב) 2 טיפול תרמי מתאים רק לפלדות המכילות יותר מ־0.3% פחמן.",
+      "he_niqqud": "ב) 2 טיפול תרמי מתאים רק לפלדות המכילות יותר מ־0.3% פחמן.",
+      "transliteration": "B) 2 Tipul tarmi mat'im rak l'pladot ha'mekhilot yoter mi-0.3% pakhman.",
+      "ru": "Б) 2 Термическая обработка подходит только для сталей, содержащих более 0,3% углерода."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r009",
+      "semantic_kind": "subpart",
+      "he": "ב) 3 מבנה מרטנסיט גמיש יותר מאשר כל מרכיב אחר של פלדה.",
+      "he_niqqud": "ב) 3 מבנה מרטנסיט גמיש יותר מאשר כל מרכיב אחר של פלדה.",
+      "transliteration": "B) 3 Mivne martensit gamish yoter me'asher kol markiv acher shel pladah.",
+      "ru": "Б) 3 Структура мартенсита более пластична (гибка), чем любой другой компонент стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r010",
+      "semantic_kind": "subpart",
+      "he": "ב) 4 פלדה SAE 1040 מתאימה לצימנוט.",
+      "he_niqqud": "ב) 4 פלדה SAE 1040 מתאימה לצימנוט.",
+      "transliteration": "B) 4 Pladah SAE 1040 mat'imah le'tzimnut.",
+      "ru": "Б) 4 Сталь SAE 1040 подходит для цементации."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r011",
+      "semantic_kind": "subpart",
+      "he": "ב) 5 טמפרטורת ההרפיה משפיעה על החוזק ועל הקשיות של פלדה לאחר חיסום.",
+      "he_niqqud": "ב) 5 טמפרטורת ההרפיה משפיעה על החוזק ועל הקשיות של פלדה לאחר חיסום.",
+      "transliteration": "B) 5 Temperatūrat ha'harpayah mashpi'ah al ha'khozek v'al ha'kashyut shel pladah akhar khisum.",
+      "ru": "Б) 5 Температура отпуска влияет на прочность и твердость стали после закалки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r012",
+      "semantic_kind": "subpart",
+      "he": "ב) 6 ככל שהקוטר הקריטי לחיסום של הפלדה גדול יותר, כך קשה יותר לחסם את החלקים הגדולים העשויים מהפלדה.",
+      "he_niqqud": "ב) 6 ככל שהקוטר הקריטי לחיסום של הפלדה גדול יותר, כך קשה יותר לחסם את החלקים הגדולים העשויים מהפלדה.",
+      "transliteration": "B) 6 Kakhol she'ha'koter ha'kriti le'khisum shel ha'pladah gadol yoter, kakh kasheh yoter l'khasem et ha'khalakim ha'gdolim ha'asuyim me'ha'pladah.",
+      "ru": "Б) 6 Чем больше критический диаметр прокаливания стали, тем сложнее закаливать крупные детали, изготовленные из этой стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q037-r013",
+      "semantic_kind": "subpart",
+      "he": "ב) 7 טיפול תרמי מיועד רק להקשיית חומרים מתכתיים.",
+      "he_niqqud": "ב) 7 טיפול תרמי מיועד רק להקשיית חומרים מתכתיים.",
+      "transliteration": "B) 7 Tipul tarmi meyu'ad rak le'hakshayyat khomarim matkhatiyim.",
+      "ru": "Б) 7 Термическая обработка предназначена только для упрочнения металлических материалов."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r002",
+      "semantic_kind": "condition",
+      "he": "באיור לשאלה 8 מוצגות 4 דיאגרמות מתיחה של דגמי פלדה לאחר הטיפולים התרמיים הבאים: חיסום, ריפוי, נירמול (ריפוי מהיר) וחיסום + הרפיה.",
+      "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 8 מֻצָּגוֹת 4 דִּיאַגְרָמוֹת מְתִיחָה שֶׁל דִּגְמֵי פְּלָדָה לְאַחַר הַטִּפּוּלִים הַתֶּרְמִיִּים הַבָּאִים: חִסּוּם, רִפּוּי, נִרְמוּל (רִפּוּי מָהִיר) וְחִסּוּם + הַרְפָּיָה.",
+      "transliteration": "Ba'iyur lish'elah 8 mutzagot 4 di'agramot metikha shel digmei peladah le'akhar hatipulim hatarmi'im haba'im: khisum, ripuy, nirmul (ripuy mahir) vekhisum + harpāyah.",
+      "ru": "На рисунке к вопросу 8 представлены 4 диаграммы растяжения образцов стали после следующих термических обработок: закалка, отжиг, нормализация (быстрый отжиг) и закалка + отпуск."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r003",
+      "semantic_kind": "condition",
+      "he": "כל הדגמים עשויים מאותה פלדה.",
+      "he_niqqud": "כֹּל הַדִּגְמֵיִם עֲשׂוּיִים מֵאוֹתָהּ פְּלָדָה.",
+      "transliteration": "Kol hadegamim asuyim me'otah peladah.",
+      "ru": "Все образцы изготовлены из одной и той же стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r004",
+      "semantic_kind": "subpart",
+      "he": "א) עליכם לזהות את הדיאגרמות ולמלא את טבלה מס' 1.",
+      "he_niqqud": "א) עֲלֵיכֶם לְזַהוֹת אֶת הַדִּיאַגְרָמוֹת וּלְמַלֵּא אֶת טַבְלָה מִסְפָּר 1.",
+      "transliteration": "A) Aleikhem lezahot et hadi'agramot ulemale et tavlah mispar 1.",
+      "ru": "А) Вам следует определить диаграммы и заполнить таблицу № 1."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r005",
+      "semantic_kind": "subpart",
+      "he": "א) נמקו לגבי כל אחת מהדיאגרמות.",
+      "he_niqqud": "א) נַמְּקוּ לְגַבֵּי כָּל אַחַת מֵהַדִּיאַגְרָמוֹת.",
+      "transliteration": "A) Namku legabei kol akhat mehadig'ramot.",
+      "ru": "А) Обоснуйте (свой выбор) для каждой из диаграмм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r006",
+      "semantic_kind": "subpart",
+      "he": "ב) מהו חיסום חיצון.",
+      "he_niqqud": "ב) מַהוּ חִסּוּם חִיצוֹן.",
+      "transliteration": "B) Mahu khisum khitzon.",
+      "ru": "Б) Что такое поверхностная закалка."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r007",
+      "semantic_kind": "subpart",
+      "he": "ב) מה תפקידו.",
+      "he_niqqud": "ב) מַה תַּפְקִידוֹ.",
+      "transliteration": "B) Mah tafkido.",
+      "ru": "Б) Какова ее функция."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p045-q038-r008",
+      "semantic_kind": "subpart",
+      "he": "ב) תארו את תהליך הביצוע של חיסום חיצון.",
+      "he_niqqud": "ב) תָּאֲרוּ אֶת תַּהֲלִיךְ הַבִּצּוּעַ שֶׁל חִסּוּם חִיצוֹן.",
+      "transliteration": "B) Ta'aru et tahalikh habitzu'a shel khisum khitzon.",
+      "ru": "Б) Опишите процесс проведения поверхностной закалки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r001",
+      "semantic_kind": "source_note",
+      "he": "בחירת הפלדה בהתאם לדרישות הנדסיות.",
+      "he_niqqud": "בְּחִירַת הַפְּלָדָה בְּהֶתְאֵם לִדְרִישׁוֹת הַנְדָּסִיּוֹת.",
+      "transliteration": "Bhirat ha'plada be'heta'm li'drishot handasiyot.",
+      "ru": "Выбор стали в соответствии с инженерными требованиями."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r003",
+      "semantic_kind": "condition",
+      "he": "מחלקת הנדסה במפעל נדרשה להמליץ על פלדה שממנה ייצרו קפיץ.",
+      "he_niqqud": "מַחְלֶקֶת הַנְדָּסָה בְּמִפְעָל נִדְרְשָׁה לְהַמְלִיץ עַל פְּלָדָה שֶׁמִּמֶּנָּה יְיַצְּרוּ קָפִיץ.",
+      "transliteration": "Mahleket handasa ba'mif'al nidresha lehamlitz al plada she'mimena yeyatzru kfitz.",
+      "ru": "Отделу проектирования (инженерному отделу) на заводе было поручено порекомендовать сталь, из которой будет изготовлена пружина."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r004",
+      "semantic_kind": "condition",
+      "he": "בבדיקה שנערכה במחסן חומרי הגלם במפעל נמצאו: פלדה עשירת פחמן 1075 SAE ופלדת 6150 SAE.",
+      "he_niqqud": "בִּבְדִיקָה שֶׁנֶּעֶרְכָה בְּמַחְסַן חָמְרֵי הַגֶּלֶם בְּמִפְעָל נִמְצְאוּ: פְּלָדָה עֲשִׁירַת פַּחְמָן 1075 SAE וּפְלָדַת 6150 SAE.",
+      "transliteration": "Ba'bdika she'ne'ercha ba'mahsan homrey ha'gelem ba'mif'al nimtzu: plada ashiret pahman 1075 SAE u'pladat 6150 SAE.",
+      "ru": "В ходе проверки, проведенной на складе сырья на заводе, были найдены: высокоуглеродистая сталь SAE 1075 и сталь SAE 6150."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r005",
+      "semantic_kind": "condition",
+      "he": "על־פי המפרט, חומר הקפיץ צריך לעמוד בדרישות האלה:",
+      "he_niqqud": "עַל־פִּי הַמִּפְרָט, חֹמֶר הַקָּפִיץ צָרִיךְ לַעֲמֹד בִּדְרִישׁוֹת הָאֵלֶּה:",
+      "transliteration": "Al-pi ha'mifrat, homer ha'kfitz tzarich la'amod bi'drishot ha'ele:",
+      "ru": "Согласно спецификации, материал пружины должен соответствовать следующим требованиям:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r006",
+      "semantic_kind": "condition",
+      "he": "מאמץ כניעה גדול מ־790 MPa.",
+      "he_niqqud": "מַאֲמַץ כְּנִיעָה גָּדוֹל מִ־790 MPa.",
+      "transliteration": "Ma'amatz kni'a gadol me-790 MPa.",
+      "ru": "Предел текучести (σ_y) больше 790 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r007",
+      "semantic_kind": "condition",
+      "he": "התארכות יחסית גדולה מ־10%.",
+      "he_niqqud": "הִתְאָרְכוּת יַחֲסִית גְּדוֹלָה מִ־10%.",
+      "transliteration": "Hit'arhut yahasit gdola me-10%.",
+      "ru": "Относительное удлинение (A) больше 10%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r008",
+      "semantic_kind": "condition",
+      "he": "קשיות גדולה מ־375 HB.",
+      "he_niqqud": "קַשִׁיּוּת גְּדוֹלָה מִ־375 HB.",
+      "transliteration": "Kashi'ut gdola me-375 HB.",
+      "ru": "Твердость (HB) больше 375 HB (по Бринеллю)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r009",
+      "semantic_kind": "condition",
+      "he": "ענה על הסעיפים א׳ ו־ב׳ בעזרת הנספחים ו׳ ו־ז׳.",
+      "he_niqqud": "עֲנֵה עַל הַסְּעִיפִים א׳ וּ־ב׳ בְּעֶזְרַת הַנִּסְפָּחִים ו׳ וּ־ז׳.",
+      "transliteration": "Ana al ha'se'ifim aleph ve-bet be'ezrat ha'nisphahim vav ve-zayin.",
+      "ru": "Ответьте на пункты А и Б, используя приложения В и З."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r010",
+      "semantic_kind": "subpart",
+      "he": "א) במחלקת ההנדסה תתקשו לבחור את הפלדה המתאימה מבין שתי הפלדות שנמצאו במחסן, על־פי דרישות המפרט. מדוע?",
+      "he_niqqud": "א) בְּמַחְלֶקֶת הַהַנְדָּסָה תִּתְקַשּׁוּ לִבְחֹר אֶת הַפְּלָדָה הַמַּתְאִימָה מִבֵּין שְׁתֵּי הַפְּלָדוֹת שֶׁנִּמְצְאוּ בְּמַחְסָן, עַל־פִּי דְּרִישׁוֹת הַמִּפְרָט. מַדּוּעַ?",
+      "transliteration": "A) Ba'mahlket ha'handasa titkashu livroach et ha'plada ha'mat'ima miben shtey ha'pladot she'nimtzu ba'mahsan, al-pi drishot ha'mifrat. Madu'a?",
+      "ru": "А) Инженерному отделу будет сложно выбрать подходящую сталь из двух найденных на складе, основываясь на требованиях спецификации. Почему?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r011",
+      "semantic_kind": "subpart",
+      "he": "ב) איזו פלדה, מבין שתי הפלדות שנמצאו במחסן, מתאימה יותר, בהתחשב בתנאי הנוסף הזה: על הקפיץ לעמוד במאמץ של 875 MPa בעת עבודתו. נמק את תשובתך.",
+      "he_niqqud": "ב) אֵיזוֹ פְּלָדָה, מִבֵּין שְׁתֵּי הַפְּלָדוֹת שֶׁנִּמְצְאוּ בְּמַחְסָן, מַתְאִימָה יוֹתֵר, בְּהִתְחַשֵּׁב בַּתְּנַאי הַנּוֹסָף הַזֶּה: עַל הַקָּפִיץ לַעֲמֹד בְּמַאֲמָץ שֶׁל 875 MPa בְּעֵת עֲבוֹדָתוֹ. נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "B) Eizo plada, miben shtey ha'pladot she'nimtzu ba'mahsan, mat'ima yoter, be'hit'hashuv ba'tnai ha'nosaf ha'ze: al ha'kfitz la'amod be'ma'amatz shel 875 MPa ba'et avodato. Namek et tshuvatecha.",
+      "ru": "Б) Какая сталь из двух найденных на складе подходит больше, учитывая это дополнительное условие: пружина должна выдерживать напряжение 875 МПа во время работы. Обоснуйте свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-p047-q038-r012",
+      "semantic_kind": "subpart",
+      "he": "ג) האם יש צורך להעשיר בפחמן את פני השטח של הפלדה שבחרת בסעיף ב׳ באמצעות צימנוט? נמק את תשובתך (היעזר בנספח ז׳).",
+      "he_niqqud": "ג) הַאִם יֵשׁ צֹרֶךְ לְהַעֲשִׁיר בְּפַחְמָן אֶת פְּנֵי הַשֶּׁטַח שֶׁל הַפְּלָדָה שֶׁבָּחַרְתָּ בְּסָעִיף ב׳ בְּאֶמְצָעוּת צִימְנוּט? נַמֵּק אֶת תְּשׁוּבָתְךָ (הֵיעָזֵר בְּנִסְפָּח ז׳).",
+      "transliteration": "G) Ha'im yesh tzorech le'ha'ashir be'pahman et pney ha'shetah shel ha'plada she'baharta be'se'if bet be'emtzaut tzimentot? Namek et tshuvatecha (hi'azer be'nisphah zayin).",
+      "ru": "В) Есть ли необходимость в обогащении поверхности стали, выбранной в пункте Б, углеродом с помощью цементации (науглероживания)? Обоснуйте свой ответ (используйте приложение З)."
+    }
+  ]
+}

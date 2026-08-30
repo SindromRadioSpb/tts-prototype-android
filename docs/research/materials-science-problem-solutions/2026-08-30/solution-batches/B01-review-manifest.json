@@ -1,0 +1,44 @@
+{
+  "schema_version": "materials_pb2_solution_batch_review_manifest.1.0.0",
+  "batch_id": "B01",
+  "status": "TECHNICAL_REVIEWED_PASS_10_OF_10_PRESENTATION_NOT_BUILT_NOT_PUBLISHED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "task_count": 10,
+  "publication_blocking_content_mismatches": 0,
+  "files": [
+    {
+      "path": "B01-source-workpack.json",
+      "bytes": 79668,
+      "sha256": "42173e7ec70b5f3959ae33123e236544d70afb761a9a78b622dc836590ae7510"
+    },
+    {
+      "path": "B01-independent-solution-ledger.ru.json",
+      "bytes": 38083,
+      "sha256": "a6203367d4dab1ac431038410481902ed00312de88b72551385b65d075a5d4cc"
+    },
+    {
+      "path": "B01-comparison-ledger.json",
+      "bytes": 6092,
+      "sha256": "12a8d89da5a43b266cb94431eef5571713f582ad53900f79da3112cc9b01372c"
+    },
+    {
+      "path": "B01-targeted-review-01.json",
+      "bytes": 3699,
+      "sha256": "4bf9624ca7d51e457332dba1695cc6de556bdaa5cbeb15ebd0f81a0ebcecb565"
+    },
+    {
+      "path": "B01-targeted-review-02.json",
+      "bytes": 2706,
+      "sha256": "68412fe542bf4b9798643281cc27f39bd80c21f1c7f1ae21621da82e0cfc7ef0"
+    }
+  ],
+  "next_artifacts": [
+    "B01-exam-solution-ledger.ru.json",
+    "B01-student-solution-table.json",
+    "B01-agent-shards",
+    "B01-print-projections"
+  ],
+  "rights_status": "UNCONFIRMED_NOT_PUBLICATION_READY",
+  "tts_status": "PROFILE_NOT_SELECTED_NO_PROVIDER_CALLS"
+}

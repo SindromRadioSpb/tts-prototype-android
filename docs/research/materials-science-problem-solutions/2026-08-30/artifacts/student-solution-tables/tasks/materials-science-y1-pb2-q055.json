@@ -1,0 +1,4025 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q055",
+  "display_alias": "55",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "e31e006c0184d0cc1ddf7a8186e1f65fb3799bfea1c2a7094399473f3547e439"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Full powder route, high-melting WC/W rationale and WC-Co liquid-phase sintering mechanisms match. Independent solution avoids unnecessary nominal process numbers not supplied in the question.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q055-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 55.",
+        "hebrew_niqqud": "שְׁאֵלָה 55.",
+        "translit": "She'ela 55.",
+        "translit_ru": "",
+        "russian": "Вопрос 55.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q055",
+            "kind": "task_heading",
+            "source_page": 63,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q055-r002",
+        "order_index": 1,
+        "hebrew_plain": "א) תאר את השלבים של ייצור מוצר בטכנולוגיית אבקות.",
+        "hebrew_niqqud": "א) תָּאֵר אֶת הַשְּׁלָבִים שֶׁל ייִצּוּר מוּצָר בְּטֶכְנוֹלוֹגְייַת אֲבָקוֹת.",
+        "translit": "A) Ta'er et hashlabim shel yitzur mutzar betechnologiyat avakot.",
+        "translit_ru": "",
+        "russian": "А) Опишите этапы производства изделия по порошковой технологии.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q055",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q055-r003",
+        "order_index": 2,
+        "hebrew_plain": "ב) הסבר מדוע מייצרים מוצר ממתק״ש (מתכת קשה) על בסיס טונגסטן (W) בשיטת הסינטור.",
+        "hebrew_niqqud": "ב) הַסְבֵּר מַדּוּעַ מְיַיצְּרִים מוּצָר מִמַּתְקָ״שׁ (מַתֶּכֶת קָשָׁה) עַל בְּסִיס טוּנְגְּסְטֶן (W) בְּשִׁיטַת הַסִּינְטוּר.",
+        "translit": "B) Hasber madua meyatzrim mutzar mimatkash (matechet kashah) al bsis tungsten (W) beshitat hasintur.",
+        "translit_ru": "",
+        "russian": "Б) Объясните, почему изделие из твердого сплава (hard metal) на основе вольфрама (W) изготавливается методом спекания.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q055",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q055-r004",
+        "order_index": 3,
+        "hebrew_plain": "ג) תאר כיצד מייצרים סכין לעיבוד שבבי (Insert) מטונגסטן קרביד (WC), בשיטת הסינטור, בפאזה נוזלית.",
+        "hebrew_niqqud": "ג) תָּאֵר כֵּיצַד מְיַיצְּרִים סַכִּין לְעִיבּוּד שְׁבָבִי (Insert) מִטּוּנְגְּסְטֶן קַרְבִּיד (WC), בְּשִׁיטַת הַסִּינְטוּר, בְּפָאזָה נוֹזְלִית.",
+        "translit": "G) Ta'er keitzad meyatzrim sakin le'ibud shvavi (Insert) mitungsten karbid (WC), beshitat hasintur, befazah nozlit.",
+        "translit_ru": "",
+        "russian": "В) Опишите, как изготавливают режущую пластину (Insert) из карбида вольфрама (WC) методом жидкофазного спекания.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q055",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      63
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q055/anchor-01-p063.jpg",
+        "sha256": "b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b",
+        "bytes": 56887,
+        "source_page": 63,
+        "normalized_bbox": [
+          0,
+          0.69,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "בקרת איכות כוללת בדיקות צפיפות, קשיות ומיקרו־מבנה.",
+        "he_niqqud": "בַּקָּרַת אֵיכוּת כּוֹלֶלֶת בְּדִיקוֹת צְפִיפוּת, קְשִׁיּוּת וּמִיקְרוֹ־מִבְנֶה.",
+        "transliteration": "Baqara't eiḫut kolelet bediqot tzfifut, qshiyyut u'miqro-mivneh.",
+        "ru": "Контроль качества включает проверку плотности, твердости и микроструктуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:64996dd47b221879bcdbc6976dfb565882e677607be3cd6419f8908873ea93fc",
+        "legacy_fields_sha256:9ce05d3cfdf2c9c0d442f94166b0069da1bfd21752cf4171a55ad5841f370881",
+        "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּקָּרַת",
+            "normalized": "בקרת"
+          },
+          {
+            "index": 1,
+            "surface": "אֵיכוּת",
+            "normalized": "איכות"
+          },
+          {
+            "index": 2,
+            "surface": "כּוֹלֶלֶת",
+            "normalized": "כוללת"
+          },
+          {
+            "index": 3,
+            "surface": "בְּדִיקוֹת",
+            "normalized": "בדיקות"
+          },
+          {
+            "index": 4,
+            "surface": "צְפִיפוּת,",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 5,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 6,
+            "surface": "וּמִיקְרוֹ־מִבְנֶה.",
+            "normalized": "ומיקרו־מבנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "לטונגסטן טמפרטורת התכה גבוהה מאוד ולכן התכה ויציקה תעשייתית הן קשות ויקרות.",
+        "he_niqqud": "לְטוּנְגְּסְטֶן טֶמְפֶּרָטוּרַת הַתָּכָה גְּבוֹהָה מְאוֹד וְלָכֵן הַתָּכָה וִיצִיקָה תַּעֲשִׂיָּתִית הֵן קָשׁוֹת וִיקָרוֹת.",
+        "transliteration": "Le'ṭungsṭen ṭemperaṭura't hattaḫah gvo'hah me'od velakhen hattaḫah vi'ytziqah ta'asiytit hen qashot vi'yqarot.",
+        "ru": "Вольфрам имеет очень высокую температуру плавления, поэтому промышленное плавление и литье являются трудными и дорогими."
+      },
+      "source_refs": [
+        "legacy_row_hash:146c743bf7bc90226e7e6f8af8f51281bdb9d9a3e906967de21500253a581547",
+        "legacy_fields_sha256:13255f6e6fee5315f5b8b4e64c3d2b828f29c50e504a79e56aa22b8e99f4c054",
+        "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְטוּנְגְּסְטֶן",
+            "normalized": "לטונגסטן"
+          },
+          {
+            "index": 1,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 2,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 3,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 4,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 5,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 7,
+            "surface": "וִיצִיקָה",
+            "normalized": "ויציקה"
+          },
+          {
+            "index": 8,
+            "surface": "תַּעֲשִׂיָּתִית",
+            "normalized": "תעשיתית"
+          },
+          {
+            "index": 9,
+            "surface": "הֵן",
+            "normalized": "הן"
+          },
+          {
+            "index": 10,
+            "surface": "קָשׁוֹת",
+            "normalized": "קשות"
+          },
+          {
+            "index": 11,
+            "surface": "וִיקָרוֹת.",
+            "normalized": "ויקרות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r004",
+      "order": 4,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) השלבים של ייצור מוצר בטכנולוגיית אבקות הם ייצור אבקה, אפיון אבקה, ערבוב עם תוספים, עיצוב בדחיסה, טיפול בגוף ירוק, סינטור, ופעולות סופיות.",
+        "he_niqqud": "א) הַשְּׁלַבִּים שֶׁל יִיצוּר מוּצָר בְּטֶכְנוֹלוֹגְיַּת אֲבָקוֹת הֵם יִיצוּר אֲבָקָה, אִפְּיוּן אֲבָקָה, עֵירּוּב עִם תּוֹסָפִים, עִיצּוּב בִּדְחִיסָה, טִיפּוּל בְּגוּף יָרוֹק, סִנְטוּר, וּפְעוּלּוֹת סוֹפִיּוֹת.",
+        "transliteration": "A) Ha'shlabim shel yiytzur mutzar be'ṭekhnologiyat avaqot hem yiytzur avaqah, ipyun avaqah, 'eruv 'im ṭosafim, 'itzuv bi'deḥisah, ṭipul be'guf yaroq, sinṭur, u'fe'ulot sofiyot.",
+        "ru": "А) Этапы производства изделия по порошковой технологии включают: производство порошка, характеризацию порошка, смешивание с добавками, формование прессованием, обработку сырой заготовки, спекание и финишные операции."
+      },
+      "source_refs": [
+        "legacy_row_hash:c9aa1958f20984186c3c8319edf96975ec1094a00917bedd9015dc32f918958f",
+        "legacy_fields_sha256:7a35774787013b4c2e74e84779aeb4950c194df59772677a7c7d86bbc25b8271",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַשְּׁלַבִּים",
+            "normalized": "השלבים"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "יִיצוּר",
+            "normalized": "ייצור"
+          },
+          {
+            "index": 4,
+            "surface": "מוּצָר",
+            "normalized": "מוצר"
+          },
+          {
+            "index": 5,
+            "surface": "בְּטֶכְנוֹלוֹגְיַּת",
+            "normalized": "בטכנולוגית"
+          },
+          {
+            "index": 6,
+            "surface": "אֲבָקוֹת",
+            "normalized": "אבקות"
+          },
+          {
+            "index": 7,
+            "surface": "הֵם",
+            "normalized": "הם"
+          },
+          {
+            "index": 8,
+            "surface": "יִיצוּר",
+            "normalized": "ייצור"
+          },
+          {
+            "index": 9,
+            "surface": "אֲבָקָה,",
+            "normalized": "אבקה"
+          },
+          {
+            "index": 10,
+            "surface": "אִפְּיוּן",
+            "normalized": "אפיון"
+          },
+          {
+            "index": 11,
+            "surface": "אֲבָקָה,",
+            "normalized": "אבקה"
+          },
+          {
+            "index": 12,
+            "surface": "עֵירּוּב",
+            "normalized": "עירוב"
+          },
+          {
+            "index": 13,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 14,
+            "surface": "תּוֹסָפִים,",
+            "normalized": "תוספים"
+          },
+          {
+            "index": 15,
+            "surface": "עִיצּוּב",
+            "normalized": "עיצוב"
+          },
+          {
+            "index": 16,
+            "surface": "בִּדְחִיסָה,",
+            "normalized": "בדחיסה"
+          },
+          {
+            "index": 17,
+            "surface": "טִיפּוּל",
+            "normalized": "טיפול"
+          },
+          {
+            "index": 18,
+            "surface": "בְּגוּף",
+            "normalized": "בגוף"
+          },
+          {
+            "index": 19,
+            "surface": "יָרוֹק,",
+            "normalized": "ירוק"
+          },
+          {
+            "index": 20,
+            "surface": "סִנְטוּר,",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 21,
+            "surface": "וּפְעוּלּוֹת",
+            "normalized": "ופעולות"
+          },
+          {
+            "index": 22,
+            "surface": "סוֹפִיּוֹת.",
+            "normalized": "סופיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מייצרים אבקות מתכת או אבקות קרביד לפי חומר היעד.",
+        "he_niqqud": "מְיַיצְּרִים אֲבָקוֹת מַתֶּכֶת אוֹ אֲבָקוֹת קַרְבִּיד לְפִי חֹמֶר הַיַּעַד.",
+        "transliteration": "Meyatzrim avaqot mattekhet o avaqot qarbid lefi ḥomer ha'ya'ad.",
+        "ru": "Производят металлические порошки или карбидные порошки в соответствии с целевым материалом."
+      },
+      "source_refs": [
+        "legacy_row_hash:03cd74aed87991e14d5807d084993caf2e494adfb72f323175717cfdf9adc10e",
+        "legacy_fields_sha256:37098c256256f9982ec15393a3325ca6fe0fc05b462c0c59efb67cc78dca298b",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְיַיצְּרִים",
+            "normalized": "מייצרים"
+          },
+          {
+            "index": 1,
+            "surface": "אֲבָקוֹת",
+            "normalized": "אבקות"
+          },
+          {
+            "index": 2,
+            "surface": "מַתֶּכֶת",
+            "normalized": "מתכת"
+          },
+          {
+            "index": 3,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 4,
+            "surface": "אֲבָקוֹת",
+            "normalized": "אבקות"
+          },
+          {
+            "index": 5,
+            "surface": "קַרְבִּיד",
+            "normalized": "קרביד"
+          },
+          {
+            "index": 6,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 7,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 8,
+            "surface": "הַיַּעַד.",
+            "normalized": "היעד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים אפיון של האבקה כגון גודל חלקיקים, צורת גרגר, זורמות, צפיפות נשפכת והרכב כימי.",
+        "he_niqqud": "מְבַצְּעִים אִפְּיוּן שֶׁל הָאֲבָקָה כְּגוֹן גֹּדֶל חַלְקִיקִים, צוּרַת גַּרְגֵּר, זוֹרְמוּת, צְפִיפוּת נִשְׁפֶּכֶת וְהֶרְכֵּב כִּימִי.",
+        "transliteration": "Mevatz'im ipyun shel ha'avaqah kegon godel ḥalṣiqim, tzurah gar'ger, zormut, tzfifut nishpekhet ve'herkev kimi.",
+        "ru": "Выполняют характеризацию порошка, такую как размер частиц, форма зерна, текучесть, насыпная плотность и химический состав."
+      },
+      "source_refs": [
+        "legacy_row_hash:50504dbac2b88baed1df2edad31c9c2af77839992f390954f5adebd19590ccf8",
+        "legacy_fields_sha256:0f8aab854efdb2887bb799fd37c404e60efc5ce57cacddbfbba7e5e76bc813ca",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "אִפְּיוּן",
+            "normalized": "אפיון"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "הָאֲבָקָה",
+            "normalized": "האבקה"
+          },
+          {
+            "index": 4,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 5,
+            "surface": "גֹּדֶל",
+            "normalized": "גדל"
+          },
+          {
+            "index": 6,
+            "surface": "חַלְקִיקִים,",
+            "normalized": "חלקיקים"
+          },
+          {
+            "index": 7,
+            "surface": "צוּרַת",
+            "normalized": "צורת"
+          },
+          {
+            "index": 8,
+            "surface": "גַּרְגֵּר,",
+            "normalized": "גרגר"
+          },
+          {
+            "index": 9,
+            "surface": "זוֹרְמוּת,",
+            "normalized": "זורמות"
+          },
+          {
+            "index": 10,
+            "surface": "צְפִיפוּת",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 11,
+            "surface": "נִשְׁפֶּכֶת",
+            "normalized": "נשפכת"
+          },
+          {
+            "index": 12,
+            "surface": "וְהֶרְכֵּב",
+            "normalized": "והרכב"
+          },
+          {
+            "index": 13,
+            "surface": "כִּימִי.",
+            "normalized": "כימי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מערבבים אבקות ומוסיפים חומרי סיכה או חומרי קישור כדי לשפר דחיסה ויציבות של הגוף הירוק.",
+        "he_niqqud": "מְעַרְבְּבִים אֲבָקוֹת וּמוֹסִיפִים חֹמְרֵי סִיכָה אוֹ חֹמְרֵי קִישׁוּר כְּדֵי לְשַׁפֵּר דְּחִיסָה וְיַצִּיבוּת שֶׁל הַגּוּף הַיָּרוֹק.",
+        "transliteration": "Me'arbeyim avaqot u'mosifim ḥomrei sikhah o ḥomrei qishur kedei leshaper deḥisah ve'yatzivut shel ha'guf ha'yaroq.",
+        "ru": "Смешивают порошки и добавляют смазочные или связующие вещества для улучшения прессования и стабильности сырой заготовки."
+      },
+      "source_refs": [
+        "legacy_row_hash:1d5ffea9d54c0b68ce3e041d82cbef6ae7ee84a3f2df785db73b990f45d9a11c",
+        "legacy_fields_sha256:5e4dad2fa111023a5b091ea7970d7a746df40bd492bf857b1917e9a3df9a24b3",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְעַרְבְּבִים",
+            "normalized": "מערבבים"
+          },
+          {
+            "index": 1,
+            "surface": "אֲבָקוֹת",
+            "normalized": "אבקות"
+          },
+          {
+            "index": 2,
+            "surface": "וּמוֹסִיפִים",
+            "normalized": "ומוסיפים"
+          },
+          {
+            "index": 3,
+            "surface": "חֹמְרֵי",
+            "normalized": "חמרי"
+          },
+          {
+            "index": 4,
+            "surface": "סִיכָה",
+            "normalized": "סיכה"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "חֹמְרֵי",
+            "normalized": "חמרי"
+          },
+          {
+            "index": 7,
+            "surface": "קִישׁוּר",
+            "normalized": "קישור"
+          },
+          {
+            "index": 8,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 9,
+            "surface": "לְשַׁפֵּר",
+            "normalized": "לשפר"
+          },
+          {
+            "index": 10,
+            "surface": "דְּחִיסָה",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 11,
+            "surface": "וְיַצִּיבוּת",
+            "normalized": "ויציבות"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 13,
+            "surface": "הַגּוּף",
+            "normalized": "הגוף"
+          },
+          {
+            "index": 14,
+            "surface": "הַיָּרוֹק.",
+            "normalized": "הירוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעצבים את החלק בדחיסה חד־צירית בתבנית או בדחיסה איזוסטטית (CIP).",
+        "he_niqqud": "מְעַצְּבִים אֶת הַחֵלֶק בִּדְחִיסָה חַד־צִירִית בְּתַבְנִית אוֹ בִּדְחִיסָה אִיזוֹסְטָטִית (CIP).",
+        "transliteration": "Me'atzvim et ha'ḥeleq bi'deḥisah ḥad-tzirit be'tavniyt o bi'deḥisah izosṭaṭit (CIP).",
+        "ru": "Формуют деталь одноосным прессованием в пресс-форме или изостатическим прессованием (CIP)."
+      },
+      "source_refs": [
+        "legacy_row_hash:ddea544bdce2e6befd62428dd32ee823634f85a778f0d65c227848bb99edaecd",
+        "legacy_fields_sha256:3e03ef990defdcdda4bb5c4108ac3476e5de87a51c8bd0f206369d0ace1b9964",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְעַצְּבִים",
+            "normalized": "מעצבים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "הַחֵלֶק",
+            "normalized": "החלק"
+          },
+          {
+            "index": 3,
+            "surface": "בִּדְחִיסָה",
+            "normalized": "בדחיסה"
+          },
+          {
+            "index": 4,
+            "surface": "חַד־צִירִית",
+            "normalized": "חד־צירית"
+          },
+          {
+            "index": 5,
+            "surface": "בְּתַבְנִית",
+            "normalized": "בתבנית"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "בִּדְחִיסָה",
+            "normalized": "בדחיסה"
+          },
+          {
+            "index": 8,
+            "surface": "אִיזוֹסְטָטִית",
+            "normalized": "איזוסטטית"
+          },
+          {
+            "index": 9,
+            "surface": "(CIP).",
+            "normalized": "CIP"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לחצי דחיסה אופייניים הם בערך 200–800 MPa בהתאם לחומר ולגרעיניות.",
+        "he_niqqud": "לַחֲצֵי דְּחִיסָה אוֹפְיָּנִיִּים הֵם בְּעֵרֶךְ 200–800 MPa בְּהֶתְאֵם לַחֹמֶר וְלַגַּרְעִינִיּוּת.",
+        "transliteration": "Laḥatzei deḥisah ofyaniim hem be'erekh 200–800 MPa be'hetem la'ḥomer vela'gar'iniyut.",
+        "ru": "Типичные давления прессования составляют примерно 200–800 МПа в зависимости от материала и зернистости."
+      },
+      "source_refs": [
+        "legacy_row_hash:b03fe15e944c4728f3c09438e5d318c5aa3ccf58b220dd6a885c7fe99f86e4d5",
+        "legacy_fields_sha256:64d98f51c8d292e5f0f72355eb9621ea605e5404ed9020c0e0590aba26bd80b2",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לַחֲצֵי",
+            "normalized": "לחצי"
+          },
+          {
+            "index": 1,
+            "surface": "דְּחִיסָה",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹפְיָּנִיִּים",
+            "normalized": "אופיניים"
+          },
+          {
+            "index": 3,
+            "surface": "הֵם",
+            "normalized": "הם"
+          },
+          {
+            "index": 4,
+            "surface": "בְּעֵרֶךְ",
+            "normalized": "בערך"
+          },
+          {
+            "index": 5,
+            "surface": "200–800",
+            "normalized": "200–800"
+          },
+          {
+            "index": 6,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 7,
+            "surface": "בְּהֶתְאֵם",
+            "normalized": "בהתאם"
+          },
+          {
+            "index": 8,
+            "surface": "לַחֹמֶר",
+            "normalized": "לחמר"
+          },
+          {
+            "index": 9,
+            "surface": "וְלַגַּרְעִינִיּוּת.",
+            "normalized": "ולגרעיניות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לעיתים מבצעים עיבוד ירוק לפני הסינטור כאשר החומר עדיין ניתן לעיבוד.",
+        "he_niqqud": "לְעִיתִּים מְבַצְּעִים עִיבּוּד יָרוֹק לִפְנֵי הַסִּנְטוּר כַּאֲשֶׁר הַחֹמֶר עֲדַיִין נִיתָּן לְעִיבּוּד.",
+        "transliteration": "Le'ittim mevatz'im 'ibud yaroq lifnei ha'sinṭur ka'asher ha'ḥomer 'adayin nittan le'ibud.",
+        "ru": "Иногда перед спеканием проводится \"зеленая обработка\" (Green machining), пока материал еще поддается обработке."
+      },
+      "source_refs": [
+        "legacy_row_hash:71eb4612bd273d217b5205793c852e9065cbd0791f6ec338cb2790ddeec46711",
+        "legacy_fields_sha256:28186e607107e894c78db72ae3d8e1d1f79d8b67d4d8303bc864dce1a2f3e192",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְעִיתִּים",
+            "normalized": "לעיתים"
+          },
+          {
+            "index": 1,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 2,
+            "surface": "עִיבּוּד",
+            "normalized": "עיבוד"
+          },
+          {
+            "index": 3,
+            "surface": "יָרוֹק",
+            "normalized": "ירוק"
+          },
+          {
+            "index": 4,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 5,
+            "surface": "הַסִּנְטוּר",
+            "normalized": "הסנטור"
+          },
+          {
+            "index": 6,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 7,
+            "surface": "הַחֹמֶר",
+            "normalized": "החמר"
+          },
+          {
+            "index": 8,
+            "surface": "עֲדַיִין",
+            "normalized": "עדיין"
+          },
+          {
+            "index": 9,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 10,
+            "surface": "לְעִיבּוּד.",
+            "normalized": "לעיבוד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסלקים חומרים אורגניים וחומרי קישור בתהליך מבוקר כדי למנוע סדקים.",
+        "he_niqqud": "מְסַלְּקִים חֳמָרִים אוֹרְגָּנִיִּים וְחֹמְרֵי קִישׁוּר בְּתַהֲלִיךְ מְבוּקָּר כְּדֵי לִמְנוֹעַ סְדָקִים.",
+        "transliteration": "Mesalqiym ḥomarim 'organiyim ve'ḥomrei qishur be'tahaliḫ mevuzar kedei limno'a sedaqim.",
+        "ru": "Удаляют органические и связующие материалы в контролируемом процессе, чтобы предотвратить образование трещин."
+      },
+      "source_refs": [
+        "legacy_row_hash:91c34c6ac3b951fab2d59c683c48e17ebba17238f531b0ea54866ff5af2887f8",
+        "legacy_fields_sha256:c17b2cd04c3e99eda4ecca77d9b19fd01ffba978ed192be756f3512229a19ffa",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְסַלְּקִים",
+            "normalized": "מסלקים"
+          },
+          {
+            "index": 1,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹרְגָּנִיִּים",
+            "normalized": "אורגניים"
+          },
+          {
+            "index": 3,
+            "surface": "וְחֹמְרֵי",
+            "normalized": "וחמרי"
+          },
+          {
+            "index": 4,
+            "surface": "קִישׁוּר",
+            "normalized": "קישור"
+          },
+          {
+            "index": 5,
+            "surface": "בְּתַהֲלִיךְ",
+            "normalized": "בתהליך"
+          },
+          {
+            "index": 6,
+            "surface": "מְבוּקָּר",
+            "normalized": "מבוקר"
+          },
+          {
+            "index": 7,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 8,
+            "surface": "לִמְנוֹעַ",
+            "normalized": "למנוע"
+          },
+          {
+            "index": 9,
+            "surface": "סְדָקִים.",
+            "normalized": "סדקים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים סינטור לקבלת דיפוזיה, הצפפה והקטנת נקבוביות.",
+        "he_niqqud": "מְבַצְּעִים סִנְטוּר לְקַבָּלַת דִּיפֻוזְיָה, הַצְפָּפָה וְהַקְטָנַת נְקֻבּוּבִיּוּת.",
+        "transliteration": "Mevatz'im sinṭur le'qabala't diffuzyah, hatzpafah ve'haqṭana't nequbuviyut.",
+        "ru": "Проводят спекание для достижения диффузии, уплотнения и уменьшения пористости."
+      },
+      "source_refs": [
+        "legacy_row_hash:912b350e402427a85006f5d001cafb555563768f491f25ba9d2b28212e004369",
+        "legacy_fields_sha256:8e440cef6d0e913b268c18102a73d51726c8af5dc262900378fd347cf8f301b8",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 2,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 3,
+            "surface": "דִּיפֻוזְיָה,",
+            "normalized": "דיפוזיה"
+          },
+          {
+            "index": 4,
+            "surface": "הַצְפָּפָה",
+            "normalized": "הצפפה"
+          },
+          {
+            "index": 5,
+            "surface": "וְהַקְטָנַת",
+            "normalized": "והקטנת"
+          },
+          {
+            "index": 6,
+            "surface": "נְקֻבּוּבִיּוּת.",
+            "normalized": "נקבוביות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r013",
+      "order": 13,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "T ≈ 0.7–0.9 Tm (K)",
+        "he_niqqud": "T ≈ 0.7–0.9 Tm (K)",
+        "transliteration": "T ≈ 0.7–0.9 Tm (K)",
+        "ru": "T ≈ 0.7–0.9 Tm (K)"
+      },
+      "source_refs": [
+        "legacy_row_hash:1353df28c2bea0f433fb7617568e681e566d8a9b1f5872c8926047cd7775086d",
+        "legacy_fields_sha256:bd504ba118956049e2512afac8370decaffec4d8dd0de79251ce40676b173fb1",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T",
+            "normalized": "T"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "0.7–0.9",
+            "normalized": "0.7–0.9"
+          },
+          {
+            "index": 3,
+            "surface": "Tm",
+            "normalized": "Tm"
+          },
+          {
+            "index": 4,
+            "surface": "(K)",
+            "normalized": "K"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T ≈ 0.7–0.9 Tm (K)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר הסינטור מבצעים פעולות סופיות כגון כיול, השחזה או עיבוד, ולעיתים טיפול תרמי, ציפוי ובקרת איכות.",
+        "he_niqqud": "לְאַחַר הַסִּנְטוּר מְבַצְּעִים פְּעוּלּוֹת סוֹפִיּוֹת כְּגוֹן כִּיּוּל, הַשְׁחָזָה אוֹ עִיבּוּד, וּלְעִיתִּים טִיפּוּל תֶּרְמִי, צִיפּוּי וּבַקָּרַת אֵיכוּת.",
+        "transliteration": "Le'aḥar ha'sinṭur mevatz'im pe'ulot sofiyot kegon kiyyul, hashḥazah o 'ibud, u'le'ittim ṭipul termi, tzipuy u'vaqara't eiḫut.",
+        "ru": "После спекания выполняются финишные операции, такие как калибровка, шлифование или обработка, а иногда термическая обработка, нанесение покрытий и контроль качества."
+      },
+      "source_refs": [
+        "legacy_row_hash:b56456ddfbca5c3bf2529ef2a8c129c312033de004c8d7f89f07f3c8c9c357dc",
+        "legacy_fields_sha256:68c1b2e438d96c7a6d9d2a392118809e18b66d877ef1ddd7619648fc71c09d4b",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "הַסִּנְטוּר",
+            "normalized": "הסנטור"
+          },
+          {
+            "index": 2,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 3,
+            "surface": "פְּעוּלּוֹת",
+            "normalized": "פעולות"
+          },
+          {
+            "index": 4,
+            "surface": "סוֹפִיּוֹת",
+            "normalized": "סופיות"
+          },
+          {
+            "index": 5,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 6,
+            "surface": "כִּיּוּל,",
+            "normalized": "כיול"
+          },
+          {
+            "index": 7,
+            "surface": "הַשְׁחָזָה",
+            "normalized": "השחזה"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 9,
+            "surface": "עִיבּוּד,",
+            "normalized": "עיבוד"
+          },
+          {
+            "index": 10,
+            "surface": "וּלְעִיתִּים",
+            "normalized": "ולעיתים"
+          },
+          {
+            "index": 11,
+            "surface": "טִיפּוּל",
+            "normalized": "טיפול"
+          },
+          {
+            "index": 12,
+            "surface": "תֶּרְמִי,",
+            "normalized": "תרמי"
+          },
+          {
+            "index": 13,
+            "surface": "צִיפּוּי",
+            "normalized": "ציפוי"
+          },
+          {
+            "index": 14,
+            "surface": "וּבַקָּרַת",
+            "normalized": "ובקרת"
+          },
+          {
+            "index": 15,
+            "surface": "אֵיכוּת.",
+            "normalized": "איכות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r015",
+      "order": 15,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "בקרת איכות כוללת בדיקות צפיפות, קשיות ומיקרו־מבנה.",
+        "he_niqqud": "בַּקָּרַת אֵיכוּת כּוֹלֶלֶת בְּדִיקוֹת צְפִיפוּת, קְשִׁיּוּת וּמִיקְרוֹ־מִבְנֶה.",
+        "transliteration": "Baqara't eiḫut kolelet bediqot tzfifut, qshiyyut u'miqro-mivneh.",
+        "ru": "Контроль качества включает проверку плотности, твердости и микроструктуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:64996dd47b221879bcdbc6976dfb565882e677607be3cd6419f8908873ea93fc",
+        "legacy_fields_sha256:9ce05d3cfdf2c9c0d442f94166b0069da1bfd21752cf4171a55ad5841f370881",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּקָּרַת",
+            "normalized": "בקרת"
+          },
+          {
+            "index": 1,
+            "surface": "אֵיכוּת",
+            "normalized": "איכות"
+          },
+          {
+            "index": 2,
+            "surface": "כּוֹלֶלֶת",
+            "normalized": "כוללת"
+          },
+          {
+            "index": 3,
+            "surface": "בְּדִיקוֹת",
+            "normalized": "בדיקות"
+          },
+          {
+            "index": 4,
+            "surface": "צְפִיפוּת,",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 5,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 6,
+            "surface": "וּמִיקְרוֹ־מִבְנֶה.",
+            "normalized": "ומיקרו־מבנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המונח התקני הוא סינטור ולא סנטור.",
+        "he_niqqud": "הַמּוּנָּח הַתַּקָּנִי הוּא סִנְטוּר וְלֹא סַנְטוּר.",
+        "transliteration": "Ha'munnaḥ ha'taqqani hu sinṭur velo sanṭur.",
+        "ru": "Стандартный термин — синтóр (спекание), а не сантóр."
+      },
+      "source_refs": [
+        "legacy_row_hash:ac5bbb407f38d3042c519c54b0f577e9cc402a19a4eeafcb273507dec5924758",
+        "legacy_fields_sha256:5d8123aca02999628f9aff97d0462b470cc97026a64340a212003451a0b07a5b",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמּוּנָּח",
+            "normalized": "המונח"
+          },
+          {
+            "index": 1,
+            "surface": "הַתַּקָּנִי",
+            "normalized": "התקני"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 4,
+            "surface": "וְלֹא",
+            "normalized": "ולא"
+          },
+          {
+            "index": 5,
+            "surface": "סַנְטוּר.",
+            "normalized": "סנטור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) מייצרים מתק״ש על בסיס טונגסטן (W) בשיטת הסינטור בגלל טמפרטורת התכה גבוהה במיוחד וקושי בייצור יציקתי.",
+        "he_niqqud": "ב) מְיַיצְּרִים מֶתֶקַ״שׁ עַל בָּסִיס טוּנְגְּסְטֶן (W) בְּשִׁיטַת הַסִּנְטוּר בִּגְלַל טֶמְפֶּרָטוּרַת הַתָּכָה גְּבוֹהָה בִּמְיוּחָד וְקֹשִׁי בְּיִיצוּר יְצִיקָתִי.",
+        "transliteration": "B) Meyatzrim meṭeqash 'al basis ṭungsṭen (W) be'shiṭat ha'sinṭur biglal ṭemperaṭura't hattaḫah gvo'hah bi'meyuḥad ve'qoshi be'yiytzur yetziqaṭi.",
+        "ru": "Б) Твердый сплав на основе вольфрама (W) изготавливается методом спекания из-за чрезвычайно высокой температуры плавления и сложности литейного производства."
+      },
+      "source_refs": [
+        "legacy_row_hash:0071916d334cc00bcb907cf3e30536df6a8497dbf9b97f86f989a058467979fb",
+        "legacy_fields_sha256:aeeaee8d9e2b658a3908b284268c01024fbe8e2d10e4a9deed786e84325db897",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "מְיַיצְּרִים",
+            "normalized": "מייצרים"
+          },
+          {
+            "index": 2,
+            "surface": "מֶתֶקַ״שׁ",
+            "normalized": "מתק״ש"
+          },
+          {
+            "index": 3,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 4,
+            "surface": "בָּסִיס",
+            "normalized": "בסיס"
+          },
+          {
+            "index": 5,
+            "surface": "טוּנְגְּסְטֶן",
+            "normalized": "טונגסטן"
+          },
+          {
+            "index": 6,
+            "surface": "(W)",
+            "normalized": "W"
+          },
+          {
+            "index": 7,
+            "surface": "בְּשִׁיטַת",
+            "normalized": "בשיטת"
+          },
+          {
+            "index": 8,
+            "surface": "הַסִּנְטוּר",
+            "normalized": "הסנטור"
+          },
+          {
+            "index": 9,
+            "surface": "בִּגְלַל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 10,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 11,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 12,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 13,
+            "surface": "בִּמְיוּחָד",
+            "normalized": "במיוחד"
+          },
+          {
+            "index": 14,
+            "surface": "וְקֹשִׁי",
+            "normalized": "וקשי"
+          },
+          {
+            "index": 15,
+            "surface": "בְּיִיצוּר",
+            "normalized": "בייצור"
+          },
+          {
+            "index": 16,
+            "surface": "יְצִיקָתִי.",
+            "normalized": "יציקתי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לטונגסטן טמפרטורת התכה גבוהה מאוד ולכן התכה ויציקה תעשייתית הן קשות ויקרות.",
+        "he_niqqud": "לְטוּנְגְּסְטֶן טֶמְפֶּרָטוּרַת הַתָּכָה גְּבוֹהָה מְאוֹד וְלָכֵן הַתָּכָה וִיצִיקָה תַּעֲשִׂיָּתִית הֵן קָשׁוֹת וִיקָרוֹת.",
+        "transliteration": "Le'ṭungsṭen ṭemperaṭura't hattaḫah gvo'hah me'od velakhen hattaḫah vi'ytziqah ta'asiytit hen qashot vi'yqarot.",
+        "ru": "Вольфрам имеет очень высокую температуру плавления, поэтому промышленное плавление и литье являются трудными и дорогими."
+      },
+      "source_refs": [
+        "legacy_row_hash:146c743bf7bc90226e7e6f8af8f51281bdb9d9a3e906967de21500253a581547",
+        "legacy_fields_sha256:13255f6e6fee5315f5b8b4e64c3d2b828f29c50e504a79e56aa22b8e99f4c054",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְטוּנְגְּסְטֶן",
+            "normalized": "לטונגסטן"
+          },
+          {
+            "index": 1,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 2,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 3,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 4,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 5,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 7,
+            "surface": "וִיצִיקָה",
+            "normalized": "ויציקה"
+          },
+          {
+            "index": 8,
+            "surface": "תַּעֲשִׂיָּתִית",
+            "normalized": "תעשיתית"
+          },
+          {
+            "index": 9,
+            "surface": "הֵן",
+            "normalized": "הן"
+          },
+          {
+            "index": 10,
+            "surface": "קָשׁוֹת",
+            "normalized": "קשות"
+          },
+          {
+            "index": 11,
+            "surface": "וִיקָרוֹת.",
+            "normalized": "ויקרות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r019",
+      "order": 19,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Tm(W) ≈ 3422°C",
+        "he_niqqud": "Tm(W) ≈ 3422°C",
+        "transliteration": "Tm(W) ≈ 3422°C",
+        "ru": "Tm(W) ≈ 3422°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:935d6ffe910486fe41560b1523d53ed663965c2db15ece375d83a354fd14a43c",
+        "legacy_fields_sha256:480d76d0a9282a5174332880b039edae27095bc154cd8e3748c55cf10a9f7d60",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Tm(W)",
+            "normalized": "Tm(W"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "3422°C",
+            "normalized": "3422°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Tm(W) ≈ 3422°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מתק״ש הוא למעשה חומר מרוכב המבוסס על קרבידים עם קושר מתכתי, ולכן תהליך דחיסה וסינטור מתאים יותר מיציקה רגילה.",
+        "he_niqqud": "מֶתֶקַ״שׁ הוּא לְמַעֲשֶׂה חֹמֶר מֻרְכָּב הַמְּבוּסָּס עַל קַרְבִּידִים עִם קוֹשֵׁר מַתַּכְתִּי, וְלָכֵן תַּהֲלִיךְ דְּחִיסָה וְסִנְטוּר מַתְאִים יוֹתֵר מִיצִיקָה רְגִילָה.",
+        "transliteration": "Meṭeqash hu le'ma'aseh ḥomer murkav ha'mevusas 'al qarbidim 'im qosher matakhti, velakhen tahaliḫ deḥisah ve'sinṭur maṭ'im yoter mi'ytziqah regilah.",
+        "ru": "Твердый сплав, по сути, представляет собой композитный материал на основе карбидов с металлической связкой, поэтому процесс прессования и спекания подходит лучше, чем обычное литье."
+      },
+      "source_refs": [
+        "legacy_row_hash:62da4074b717cb4eadea96d2e2e53782b384e48c9959b2351deac1b9ee9d68ed",
+        "legacy_fields_sha256:70ef83804fc1f8dd6e12aa7e0d7e703496929cc3316ab005a8020ea7ef745d1d",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֶתֶקַ״שׁ",
+            "normalized": "מתק״ש"
+          },
+          {
+            "index": 1,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "לְמַעֲשֶׂה",
+            "normalized": "למעשה"
+          },
+          {
+            "index": 3,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 4,
+            "surface": "מֻרְכָּב",
+            "normalized": "מרכב"
+          },
+          {
+            "index": 5,
+            "surface": "הַמְּבוּסָּס",
+            "normalized": "המבוסס"
+          },
+          {
+            "index": 6,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 7,
+            "surface": "קַרְבִּידִים",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 8,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 9,
+            "surface": "קוֹשֵׁר",
+            "normalized": "קושר"
+          },
+          {
+            "index": 10,
+            "surface": "מַתַּכְתִּי,",
+            "normalized": "מתכתי"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "תַּהֲלִיךְ",
+            "normalized": "תהליך"
+          },
+          {
+            "index": 13,
+            "surface": "דְּחִיסָה",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 14,
+            "surface": "וְסִנְטוּר",
+            "normalized": "וסנטור"
+          },
+          {
+            "index": 15,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 16,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 17,
+            "surface": "מִיצִיקָה",
+            "normalized": "מיציקה"
+          },
+          {
+            "index": 18,
+            "surface": "רְגִילָה.",
+            "normalized": "רגילה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הסינטור מאפשר להגיע לצפיפות גבוהה מאוד ולהקטין נקבוביות, עד צפיפות קרובה לתיאורטית.",
+        "he_niqqud": "הַסִּנְטוּר מְאַפְשֵׁר לְהַגִּיעַ לִצְפִיפוּת גְּבוֹהָה מְאוֹד וּלְהַקְטִין נְקֻבּוּבִיּוּת, עַד צְפִיפוּת קְרוֹבָה לַתֵּאוֹרֶטִית.",
+        "transliteration": "Ha'sinṭur me'afsher le'hagi'a li'tzfifut gvo'hah me'od u'lehaqṭin nequbuviyut, 'ad tzfifut qrovah la'te'oreṭit.",
+        "ru": "Спекание позволяет достичь очень высокой плотности и уменьшить пористость, до плотности, близкой к теоретической."
+      },
+      "source_refs": [
+        "legacy_row_hash:669b1bc60aa45ebfd0bbe31e0250f0cfd49b342b03a233a006ff5fcea831c917",
+        "legacy_fields_sha256:36d686a33a40bab5bf48f13b39d78b028f13dd5b5cdf129188ea0441275a9d2d",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַסִּנְטוּר",
+            "normalized": "הסנטור"
+          },
+          {
+            "index": 1,
+            "surface": "מְאַפְשֵׁר",
+            "normalized": "מאפשר"
+          },
+          {
+            "index": 2,
+            "surface": "לְהַגִּיעַ",
+            "normalized": "להגיע"
+          },
+          {
+            "index": 3,
+            "surface": "לִצְפִיפוּת",
+            "normalized": "לצפיפות"
+          },
+          {
+            "index": 4,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 5,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְהַקְטִין",
+            "normalized": "ולהקטין"
+          },
+          {
+            "index": 7,
+            "surface": "נְקֻבּוּבִיּוּת,",
+            "normalized": "נקבוביות"
+          },
+          {
+            "index": 8,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 9,
+            "surface": "צְפִיפוּת",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 10,
+            "surface": "קְרוֹבָה",
+            "normalized": "קרובה"
+          },
+          {
+            "index": 11,
+            "surface": "לַתֵּאוֹרֶטִית.",
+            "normalized": "לתאורטית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תהליך זה מאפשר שליטה במיקרו־מבנה, בגודל גרגר ובפיזור הפאזות, שהם קריטיים לתכונות.",
+        "he_niqqud": "תַּהֲלִיךְ זֶה מְאַפְשֵׁר שְׁלִיטָה בְּמִיקְרוֹ־מִבְנֶה, בְּגוֹדֶל גַּרְגֵּר וּבְפִּיזּוּר הַפָּאזוֹת, שֶׁהֵם קְרִיטִיִּים לַתְּכוּנוֹת.",
+        "transliteration": "Tahaliḫ zeh me'afsher shliṭah be'miqro-mivneh, be'godel gar'ger u've'pizur ha'fazot, shehem qriṭiyim la'tekhunot.",
+        "ru": "Этот процесс позволяет контролировать микроструктуру, размер зерна и распределение фаз, что критически важно для свойств."
+      },
+      "source_refs": [
+        "legacy_row_hash:d45615292cceb882df5e9d3c8ee2edd59fa34258a4d84bc3056518b4d4b79813",
+        "legacy_fields_sha256:67a91f8a5cd6420d26592cbebc4e6a8d21fdd0fc43cfbd92db2599dd4f28108c",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תַּהֲלִיךְ",
+            "normalized": "תהליך"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מְאַפְשֵׁר",
+            "normalized": "מאפשר"
+          },
+          {
+            "index": 3,
+            "surface": "שְׁלִיטָה",
+            "normalized": "שליטה"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמִיקְרוֹ־מִבְנֶה,",
+            "normalized": "במיקרו־מבנה"
+          },
+          {
+            "index": 5,
+            "surface": "בְּגוֹדֶל",
+            "normalized": "בגודל"
+          },
+          {
+            "index": 6,
+            "surface": "גַּרְגֵּר",
+            "normalized": "גרגר"
+          },
+          {
+            "index": 7,
+            "surface": "וּבְפִּיזּוּר",
+            "normalized": "ובפיזור"
+          },
+          {
+            "index": 8,
+            "surface": "הַפָּאזוֹת,",
+            "normalized": "הפאזות"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁהֵם",
+            "normalized": "שהם"
+          },
+          {
+            "index": 10,
+            "surface": "קְרִיטִיִּים",
+            "normalized": "קריטיים"
+          },
+          {
+            "index": 11,
+            "surface": "לַתְּכוּנוֹת.",
+            "normalized": "לתכונות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מתק״ש נדרש לקשיות גבוהה מאוד ולעמידות שחיקה גבוהה לשימושי חיתוך ועיבוד שבבי.",
+        "he_niqqud": "מֶתֶקַ״שׁ נִדְרָשׁ לִקְשִׁיּוּת גְּבוֹהָה מְאוֹד וְלַעֲמִידוּת שְׁחִיקָה גְּבוֹהָה לְשִׁימּוּשֵׁי חִיתּוּךְ וְעִיבּוּד שִׁבּוּבִי.",
+        "transliteration": "Meṭeqash nidrash li'qshiyyut gvo'hah me'od vela'amidut shḥiqah gvo'hah le'shimushei ḥittukh ve'ibud shibuviv.",
+        "ru": "Твердый сплав требуется для очень высокой твердости и высокой износостойкости при резке и механической обработке."
+      },
+      "source_refs": [
+        "legacy_row_hash:c6976757710c5d964f6bf43c358cd2ca00b4c11adde0e012d9d13017d4db4ca4",
+        "legacy_fields_sha256:6bf51a87f8782d6837122ef16cf121df829f2b90064c697d3e8d25f57602e83d",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֶתֶקַ״שׁ",
+            "normalized": "מתק״ש"
+          },
+          {
+            "index": 1,
+            "surface": "נִדְרָשׁ",
+            "normalized": "נדרש"
+          },
+          {
+            "index": 2,
+            "surface": "לִקְשִׁיּוּת",
+            "normalized": "לקשיות"
+          },
+          {
+            "index": 3,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 4,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 5,
+            "surface": "וְלַעֲמִידוּת",
+            "normalized": "ולעמידות"
+          },
+          {
+            "index": 6,
+            "surface": "שְׁחִיקָה",
+            "normalized": "שחיקה"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "לְשִׁימּוּשֵׁי",
+            "normalized": "לשימושי"
+          },
+          {
+            "index": 9,
+            "surface": "חִיתּוּךְ",
+            "normalized": "חיתוך"
+          },
+          {
+            "index": 10,
+            "surface": "וְעִיבּוּד",
+            "normalized": "ועיבוד"
+          },
+          {
+            "index": 11,
+            "surface": "שִׁבּוּבִי.",
+            "normalized": "שבובי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ערכי קשיות אופייניים למערכות WC–Co הם בערך 1400–2000 HV בהתאם להרכב ולמיקרו־מבנה.",
+        "he_niqqud": "עֶרְכֵי קְשִׁיּוּת אוֹפְיָּנִיִּים לְמַעֲרָכוֹת WC–Co הֵם בְּעֵרֶךְ 1400–2000 HV בְּהֶתְאֵם לְהֶרְכֵּב וְלַמִּיקְרוֹ־מִבְנֶה.",
+        "transliteration": "'Erkhei qshiyyut ofyaniim le'ma'arakhot WC–Co hem be'erekh 1400–2000 HV be'hetem le'herkev vela'miqro-mivneh.",
+        "ru": "Типичные значения твердости для систем WC–Co составляют примерно 1400–2000 HV в зависимости от состава и микроструктуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:255cd4f800fd7a92a07b9a7ee909d86c8d6a36b6cf82f57460fdc31e15a2e39c",
+        "legacy_fields_sha256:6f9d2d3e3dfe5740b69f6c95698540ef341bda776b7488e78ddf2128eb02e1e8",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֶרְכֵי",
+            "normalized": "ערכי"
+          },
+          {
+            "index": 1,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹפְיָּנִיִּים",
+            "normalized": "אופיניים"
+          },
+          {
+            "index": 3,
+            "surface": "לְמַעֲרָכוֹת",
+            "normalized": "למערכות"
+          },
+          {
+            "index": 4,
+            "surface": "WC–Co",
+            "normalized": "WC–Co"
+          },
+          {
+            "index": 5,
+            "surface": "הֵם",
+            "normalized": "הם"
+          },
+          {
+            "index": 6,
+            "surface": "בְּעֵרֶךְ",
+            "normalized": "בערך"
+          },
+          {
+            "index": 7,
+            "surface": "1400–2000",
+            "normalized": "1400–2000"
+          },
+          {
+            "index": 8,
+            "surface": "HV",
+            "normalized": "HV"
+          },
+          {
+            "index": 9,
+            "surface": "בְּהֶתְאֵם",
+            "normalized": "בהתאם"
+          },
+          {
+            "index": 10,
+            "surface": "לְהֶרְכֵּב",
+            "normalized": "להרכב"
+          },
+          {
+            "index": 11,
+            "surface": "וְלַמִּיקְרוֹ־מִבְנֶה.",
+            "normalized": "ולמיקרו־מבנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r025",
+      "order": 25,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "מכיוון שהחומר קשה מאוד לעיבוד שבבי לאחר ייצורו, אבקות מאפשרות קבלת צורה קרובה לצורה סופית והפחתת עיבוד בסוף לתהליכי השחזה מדויקים.",
+        "he_niqqud": "מִכֵּיוָן שֶׁהַחֹמֶר קָשֶׁה מְאוֹד לְעִיבּוּד שִׁבּוּבִי לְאַחַר יִיצוּרוֹ, אֲבָקוֹת מְאַפְשְׁרוֹת קַבָּלַת צוּרָה קְרוֹבָה לַצּוּרָה סוֹפִית וְהַפְחָתַת עִיבּוּד בַּסּוֹף לְתַהֲלִיכֵי הַשְׁחָזָה מְדוּיָּקִים.",
+        "transliteration": "Mi'keyvan she'ha'ḥomer qasheh me'od le'ibud shibuviv le'aḥar yiytzuro, avaqot me'afsherot qabala't tzurah qrovah la'tzurah sofiyt ve'hafḥata't 'ibud ba'sof le'tahaliḫei hashḥazah meduyaqim.",
+        "ru": "Поскольку материал очень трудно поддается механической обработке после изготовления, порошки позволяют получить форму, близкую к конечной, и сократить финишную обработку до точных процессов шлифования."
+      },
+      "source_refs": [
+        "legacy_row_hash:7dea54c447dc615cbeb1e208fd4b2ccd25f3b210b150e4aca453d07ae43de88f",
+        "legacy_fields_sha256:20f03aa7750d32994f989c8a280c7456cdf7f05b784f0aa673fd20d8f975f3ba",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִכֵּיוָן",
+            "normalized": "מכיון"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁהַחֹמֶר",
+            "normalized": "שהחמר"
+          },
+          {
+            "index": 2,
+            "surface": "קָשֶׁה",
+            "normalized": "קשה"
+          },
+          {
+            "index": 3,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 4,
+            "surface": "לְעִיבּוּד",
+            "normalized": "לעיבוד"
+          },
+          {
+            "index": 5,
+            "surface": "שִׁבּוּבִי",
+            "normalized": "שבובי"
+          },
+          {
+            "index": 6,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 7,
+            "surface": "יִיצוּרוֹ,",
+            "normalized": "ייצורו"
+          },
+          {
+            "index": 8,
+            "surface": "אֲבָקוֹת",
+            "normalized": "אבקות"
+          },
+          {
+            "index": 9,
+            "surface": "מְאַפְשְׁרוֹת",
+            "normalized": "מאפשרות"
+          },
+          {
+            "index": 10,
+            "surface": "קַבָּלַת",
+            "normalized": "קבלת"
+          },
+          {
+            "index": 11,
+            "surface": "צוּרָה",
+            "normalized": "צורה"
+          },
+          {
+            "index": 12,
+            "surface": "קְרוֹבָה",
+            "normalized": "קרובה"
+          },
+          {
+            "index": 13,
+            "surface": "לַצּוּרָה",
+            "normalized": "לצורה"
+          },
+          {
+            "index": 14,
+            "surface": "סוֹפִית",
+            "normalized": "סופית"
+          },
+          {
+            "index": 15,
+            "surface": "וְהַפְחָתַת",
+            "normalized": "והפחתת"
+          },
+          {
+            "index": 16,
+            "surface": "עִיבּוּד",
+            "normalized": "עיבוד"
+          },
+          {
+            "index": 17,
+            "surface": "בַּסּוֹף",
+            "normalized": "בסוף"
+          },
+          {
+            "index": 18,
+            "surface": "לְתַהֲלִיכֵי",
+            "normalized": "לתהליכי"
+          },
+          {
+            "index": 19,
+            "surface": "הַשְׁחָזָה",
+            "normalized": "השחזה"
+          },
+          {
+            "index": 20,
+            "surface": "מְדוּיָּקִים.",
+            "normalized": "מדויקים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) ייצור סכין לעיבוד שבבי (Insert) מ־(WC) בשיטת סינטור בפאזה נוזלית כולל הכנת תערובת אבקות, דחיסה, סילוק קושר, סינטור נוזלי, וביצוע גימור וציפוי.",
+        "he_niqqud": "ג) יִיצוּר סַכִּין לְעִיבּוּד שִׁבּוּבִי (Insert) מִ־(WC) בְּשִׁיטַת סִנְטוּר בְּפָאזָה נוֹזְלִית כּוֹלֵל הֲכָנַת תַּעֲרֹבֶת אֲבָקוֹת, דְּחִיסָה, סִילּוּק קוֹשֵׁר, סִנְטוּר נוֹזְלִי, וּבִיצּוּעַ גִּימוּר וְצִיפּוּי.",
+        "transliteration": "G) Yiytzur sakin le'ibud shibuviv (Insert) mi-(WC) be'shiṭat sinṭur be'fazah nozlit kolel hakhanat ta'arovet avaqot, deḥisah, siluq qosher, sinṭur nozli, u'bitzua' gimur ve'tzipuy.",
+        "ru": "В) Изготовление режущей пластины (Insert) из WC методом жидкофазного спекания включает подготовку порошковой смеси, прессование, удаление связующего, жидкофазное спекание, а также финишную обработку и нанесение покрытия."
+      },
+      "source_refs": [
+        "legacy_row_hash:c6f56a4fdb262412fbe9e62cb21261ee553aac3d10461b048cc8804f0970caad",
+        "legacy_fields_sha256:bc9c8c32ecf34098798573d82f1be89ba9e382ade2c9c147eb8c4d0b8b4596f5",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "יִיצוּר",
+            "normalized": "ייצור"
+          },
+          {
+            "index": 2,
+            "surface": "סַכִּין",
+            "normalized": "סכין"
+          },
+          {
+            "index": 3,
+            "surface": "לְעִיבּוּד",
+            "normalized": "לעיבוד"
+          },
+          {
+            "index": 4,
+            "surface": "שִׁבּוּבִי",
+            "normalized": "שבובי"
+          },
+          {
+            "index": 5,
+            "surface": "(Insert)",
+            "normalized": "Insert"
+          },
+          {
+            "index": 6,
+            "surface": "מִ־(WC)",
+            "normalized": "מ־(WC"
+          },
+          {
+            "index": 7,
+            "surface": "בְּשִׁיטַת",
+            "normalized": "בשיטת"
+          },
+          {
+            "index": 8,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 9,
+            "surface": "בְּפָאזָה",
+            "normalized": "בפאזה"
+          },
+          {
+            "index": 10,
+            "surface": "נוֹזְלִית",
+            "normalized": "נוזלית"
+          },
+          {
+            "index": 11,
+            "surface": "כּוֹלֵל",
+            "normalized": "כולל"
+          },
+          {
+            "index": 12,
+            "surface": "הֲכָנַת",
+            "normalized": "הכנת"
+          },
+          {
+            "index": 13,
+            "surface": "תַּעֲרֹבֶת",
+            "normalized": "תערבת"
+          },
+          {
+            "index": 14,
+            "surface": "אֲבָקוֹת,",
+            "normalized": "אבקות"
+          },
+          {
+            "index": 15,
+            "surface": "דְּחִיסָה,",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 16,
+            "surface": "סִילּוּק",
+            "normalized": "סילוק"
+          },
+          {
+            "index": 17,
+            "surface": "קוֹשֵׁר,",
+            "normalized": "קושר"
+          },
+          {
+            "index": 18,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 19,
+            "surface": "נוֹזְלִי,",
+            "normalized": "נוזלי"
+          },
+          {
+            "index": 20,
+            "surface": "וּבִיצּוּעַ",
+            "normalized": "וביצוע"
+          },
+          {
+            "index": 21,
+            "surface": "גִּימוּר",
+            "normalized": "גימור"
+          },
+          {
+            "index": 22,
+            "surface": "וְצִיפּוּי.",
+            "normalized": "וציפוי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בוחרים הרכב של אבקת (WC) עם קושר מתכתי, בדרך כלל (Co), ולעיתים מוסיפים קרבידים נוספים כגון (TiC) או (TaC) ותוספים לבקרת גדילת גרגר כגון (VC) או (Cr₃C₂).",
+        "he_niqqud": "בּוֹחֲרִים הֶרְכֵּב שֶׁל אֲבָקַת (WC) עִם קוֹשֵׁר מַתַּכְתִּי, בְּדֶרֶךְ כְּלָל (Co), וּלְעִיתִּים מוֹסִיפִים קַרְבִּידִים נוֹסָפִים כְּגוֹן (TiC) אוֹ (TaC) וְתוֹסָפִים לְבַקָּרַת גְּדִילַת גַּרְגֵּר כְּגוֹן (VC) אוֹ (Cr₃C₂).",
+        "transliteration": "Boḥarim herkev shel avaqat (WC) 'im qosher matakhti, be'derekh kelal (Co), u'le'ittim mosifim qarbidim no'safim kegon (TiC) o (TaC) ve'ṭosafim le'vaqara't gdiyla't gar'ger kegon (VC) o (Cr₃C₂).",
+        "ru": "Выбирают состав порошка (WC) с металлической связкой, обычно (Co), и иногда добавляют дополнительные карбиды, такие как (TiC) или (TaC), а также добавки для контроля роста зерна, такие как (VC) или (Cr₃C₂)."
+      },
+      "source_refs": [
+        "legacy_row_hash:f1fa783c9fb573c32b3c1dea3a40ba4509ecbaf6880b0ace0777daaf066ef8ea",
+        "legacy_fields_sha256:aae87415b1e8feecd4a4a15a9186cc8a5d14c2345c920d918cf227d4ae643f2c",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בּוֹחֲרִים",
+            "normalized": "בוחרים"
+          },
+          {
+            "index": 1,
+            "surface": "הֶרְכֵּב",
+            "normalized": "הרכב"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "אֲבָקַת",
+            "normalized": "אבקת"
+          },
+          {
+            "index": 4,
+            "surface": "(WC)",
+            "normalized": "WC"
+          },
+          {
+            "index": 5,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 6,
+            "surface": "קוֹשֵׁר",
+            "normalized": "קושר"
+          },
+          {
+            "index": 7,
+            "surface": "מַתַּכְתִּי,",
+            "normalized": "מתכתי"
+          },
+          {
+            "index": 8,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 9,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 10,
+            "surface": "(Co),",
+            "normalized": "Co"
+          },
+          {
+            "index": 11,
+            "surface": "וּלְעִיתִּים",
+            "normalized": "ולעיתים"
+          },
+          {
+            "index": 12,
+            "surface": "מוֹסִיפִים",
+            "normalized": "מוסיפים"
+          },
+          {
+            "index": 13,
+            "surface": "קַרְבִּידִים",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 14,
+            "surface": "נוֹסָפִים",
+            "normalized": "נוספים"
+          },
+          {
+            "index": 15,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 16,
+            "surface": "(TiC)",
+            "normalized": "TiC"
+          },
+          {
+            "index": 17,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 18,
+            "surface": "(TaC)",
+            "normalized": "TaC"
+          },
+          {
+            "index": 19,
+            "surface": "וְתוֹסָפִים",
+            "normalized": "ותוספים"
+          },
+          {
+            "index": 20,
+            "surface": "לְבַקָּרַת",
+            "normalized": "לבקרת"
+          },
+          {
+            "index": 21,
+            "surface": "גְּדִילַת",
+            "normalized": "גדילת"
+          },
+          {
+            "index": 22,
+            "surface": "גַּרְגֵּר",
+            "normalized": "גרגר"
+          },
+          {
+            "index": 23,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 24,
+            "surface": "(VC)",
+            "normalized": "VC"
+          },
+          {
+            "index": 25,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 26,
+            "surface": "(Cr₃C₂).",
+            "normalized": "Cr₃C₂"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r028",
+      "order": 28,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים ערבוב וטחינה לקבלת פיזור אחיד של החלקיקים ומניעת אגרגציה.",
+        "he_niqqud": "מְבַצְּעִים עֵירּוּב וּטְחִינָה לְקַבָּלַת פִּיזּוּר אָחִיד שֶׁל הַחַלְקִיקִים וּמְנִיעַת אַגְרֵגַצְיָה.",
+        "transliteration": "Mevatz'im 'eruv u'ṭḥinah le'qabala't pizur aḥid shel ha'ḥalṣiqim u'meni'a't agre'gatzya.",
+        "ru": "Выполняют смешивание и измельчение для получения однородного распределения частиц и предотвращения агрегации."
+      },
+      "source_refs": [
+        "legacy_row_hash:3f301c82f2a4004ddb67266b14c4789d225e14452701266361c027f5744e4672",
+        "legacy_fields_sha256:009a61c58f4611b822edaee61a1625936e33885899ea2853ca86f51bbc454a6a",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "עֵירּוּב",
+            "normalized": "עירוב"
+          },
+          {
+            "index": 2,
+            "surface": "וּטְחִינָה",
+            "normalized": "וטחינה"
+          },
+          {
+            "index": 3,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 4,
+            "surface": "פִּיזּוּר",
+            "normalized": "פיזור"
+          },
+          {
+            "index": 5,
+            "surface": "אָחִיד",
+            "normalized": "אחיד"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "הַחַלְקִיקִים",
+            "normalized": "החלקיקים"
+          },
+          {
+            "index": 8,
+            "surface": "וּמְנִיעַת",
+            "normalized": "ומניעת"
+          },
+          {
+            "index": 9,
+            "surface": "אַגְרֵגַצְיָה.",
+            "normalized": "אגרגציה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r029",
+      "order": 29,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מייבשים ומבצעים גרנולציה לקבלת תערובת גרגרית זורמת המתאימה לדחיסה בתבנית.",
+        "he_niqqud": "מְיַיבְּשִׁים וּמְבַצְּעִים גְּרָנוּלַצְיָה לְקַבָּלַת תַּעֲרֹבֶת גַּרְגְּרִית זוֹרֶמֶת הַמַּתְאִימָה לִדְחִיסָה בְּתַבְנִית.",
+        "transliteration": "Meyabshim u'mevatz'im granulatzyah le'qabala't ta'arovet gargeriyt zoremet ha'maṭ'imah li'deḥisah be'tavniyt.",
+        "ru": "Сушат и проводят грануляцию для получения текучей гранулированной смеси, пригодной для прессования в пресс-форме."
+      },
+      "source_refs": [
+        "legacy_row_hash:2dab8eecf94250483c99bdd87f0087f04355f14db23d0b39830c8890baa7d5dc",
+        "legacy_fields_sha256:4dbc63662599b4e33ef33230a9f54b7fbbcd15723399c6eaeba3c53bc5d1b6f8",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְיַיבְּשִׁים",
+            "normalized": "מייבשים"
+          },
+          {
+            "index": 1,
+            "surface": "וּמְבַצְּעִים",
+            "normalized": "ומבצעים"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרָנוּלַצְיָה",
+            "normalized": "גרנולציה"
+          },
+          {
+            "index": 3,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 4,
+            "surface": "תַּעֲרֹבֶת",
+            "normalized": "תערבת"
+          },
+          {
+            "index": 5,
+            "surface": "גַּרְגְּרִית",
+            "normalized": "גרגרית"
+          },
+          {
+            "index": 6,
+            "surface": "זוֹרֶמֶת",
+            "normalized": "זורמת"
+          },
+          {
+            "index": 7,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 8,
+            "surface": "לִדְחִיסָה",
+            "normalized": "לדחיסה"
+          },
+          {
+            "index": 9,
+            "surface": "בְּתַבְנִית.",
+            "normalized": "בתבנית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "דוחסים לצורת (Insert) בדחיסה חד־צירית בתבנית ולעיתים בדחיסה איזוסטטית (CIP) לקבלת גוף ירוק.",
+        "he_niqqud": "דּוֹחֲסִים לְצוּרַת (Insert) בִּדְחִיסָה חַד־צִירִית בְּתַבְנִית וּלְעִיתִּים בִּדְחִיסָה אִיזוֹסְטָטִית (CIP) לְקַבָּלַת גּוּף יָרוֹק.",
+        "transliteration": "Doḥasiym le'tzura't (Insert) bi'deḥisah ḥad-tzirit be'tavniyt u'le'ittim bi'deḥisah izosṭaṭit (CIP) le'qabala't guf yaroq.",
+        "ru": "Прессуют до формы (Insert) одноосным прессованием в пресс-форме, а иногда изостатическим прессованием (CIP) для получения сырой заготовки."
+      },
+      "source_refs": [
+        "legacy_row_hash:b7d6135f98366ceb87b7e94402a7c0929783a0b6addff78c51d97a6b1021cd84",
+        "legacy_fields_sha256:bdc784e82ac3b566ce5fb8a4a17ea1db5b1e4a9c11cec06796892a8e19bcb0a8",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "דּוֹחֲסִים",
+            "normalized": "דוחסים"
+          },
+          {
+            "index": 1,
+            "surface": "לְצוּרַת",
+            "normalized": "לצורת"
+          },
+          {
+            "index": 2,
+            "surface": "(Insert)",
+            "normalized": "Insert"
+          },
+          {
+            "index": 3,
+            "surface": "בִּדְחִיסָה",
+            "normalized": "בדחיסה"
+          },
+          {
+            "index": 4,
+            "surface": "חַד־צִירִית",
+            "normalized": "חד־צירית"
+          },
+          {
+            "index": 5,
+            "surface": "בְּתַבְנִית",
+            "normalized": "בתבנית"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְעִיתִּים",
+            "normalized": "ולעיתים"
+          },
+          {
+            "index": 7,
+            "surface": "בִּדְחִיסָה",
+            "normalized": "בדחיסה"
+          },
+          {
+            "index": 8,
+            "surface": "אִיזוֹסְטָטִית",
+            "normalized": "איזוסטטית"
+          },
+          {
+            "index": 9,
+            "surface": "(CIP)",
+            "normalized": "CIP"
+          },
+          {
+            "index": 10,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 11,
+            "surface": "גּוּף",
+            "normalized": "גוף"
+          },
+          {
+            "index": 12,
+            "surface": "יָרוֹק.",
+            "normalized": "ירוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r031",
+      "order": 31,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מתכננים את מידות התבנית תוך התחשבות בכיווץ סינטור אופייני של כ־18–22%.",
+        "he_niqqud": "מְתַכְנְנִים אֶת מִידּוֹת הַתַּבְנִית תּוֹךְ הִתְחַשְּׁבוּת בְּכִיוּוּץ סִנְטוּר אוֹפְיָּנִי שֶׁל כְּ־18–22%.",
+        "transliteration": "Metakhnenim et midot ha'tavniyt tokh hitḥashvut be'kiyyutz sinṭur ofyani shel ke-18–22%.",
+        "ru": "Размеры пресс-формы проектируются с учетом типичной усадки при спекании, составляющей около 18–22%."
+      },
+      "source_refs": [
+        "legacy_row_hash:a440e04f39bb1a85f29e4c741d87b990819799e956f06e7ae0ad6a531afcbc1c",
+        "legacy_fields_sha256:cb187ade57aadda4ac22809ec10ddfffd465770a153848d1e79e3a6448ae1d8c",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְתַכְנְנִים",
+            "normalized": "מתכננים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "מִידּוֹת",
+            "normalized": "מידות"
+          },
+          {
+            "index": 3,
+            "surface": "הַתַּבְנִית",
+            "normalized": "התבנית"
+          },
+          {
+            "index": 4,
+            "surface": "תּוֹךְ",
+            "normalized": "תוך"
+          },
+          {
+            "index": 5,
+            "surface": "הִתְחַשְּׁבוּת",
+            "normalized": "התחשבות"
+          },
+          {
+            "index": 6,
+            "surface": "בְּכִיוּוּץ",
+            "normalized": "בכיווץ"
+          },
+          {
+            "index": 7,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹפְיָּנִי",
+            "normalized": "אופיני"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 10,
+            "surface": "כְּ־18–22%.",
+            "normalized": "כ־18–22%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r032",
+      "order": 32,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במידת הצורך מבצעים עיבוד ירוק כגון פאזות, חורים וסימונים לפני הסינטור.",
+        "he_niqqud": "בְּמִידַת הַצֹּרֶךְ מְבַצְּעִים עִיבּוּד יָרוֹק כְּגוֹן פָּאזוֹת, חוֹרִים וְסִימּוּנִים לִפְנֵי הַסִּנְטוּר.",
+        "transliteration": "Bi'mida't ha'tzorekh mevatz'im 'ibud yaroq kegon fazot, ḥorim ve'simunim lifnei ha'sinṭur.",
+        "ru": "При необходимости перед спеканием проводят \"зеленую обработку\" (green machining), такую как снятие фасок, сверление отверстий и нанесение маркировки."
+      },
+      "source_refs": [
+        "legacy_row_hash:5645e127e06cb605b9cfe31dbe4368367c56a923ec34294209777634261b22d1",
+        "legacy_fields_sha256:0015b7c002dbe9066472defc046b641b7ebe12b39e8835722e0e6b504ec3bcaf",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמִידַת",
+            "normalized": "במידת"
+          },
+          {
+            "index": 1,
+            "surface": "הַצֹּרֶךְ",
+            "normalized": "הצרך"
+          },
+          {
+            "index": 2,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 3,
+            "surface": "עִיבּוּד",
+            "normalized": "עיבוד"
+          },
+          {
+            "index": 4,
+            "surface": "יָרוֹק",
+            "normalized": "ירוק"
+          },
+          {
+            "index": 5,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 6,
+            "surface": "פָּאזוֹת,",
+            "normalized": "פאזות"
+          },
+          {
+            "index": 7,
+            "surface": "חוֹרִים",
+            "normalized": "חורים"
+          },
+          {
+            "index": 8,
+            "surface": "וְסִימּוּנִים",
+            "normalized": "וסימונים"
+          },
+          {
+            "index": 9,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 10,
+            "surface": "הַסִּנְטוּר.",
+            "normalized": "הסנטור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r033",
+      "order": 33,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסלקים שעווה וחומרי קישור בתהליך מבוקר כדי למנוע היווצרות סדקים ונקבוביות כלואות.",
+        "he_niqqud": "מְסַלְּקִים שַׁעֲוָה וְחֹמְרֵי קִישׁוּר בְּתַהֲלִיךְ מְבוּקָּר כְּדֵי לִמְנוֹעַ הִיוּוּצְרוּת סְדָקִים וּנְקֻבּוּבִיּוֹת כְּלוּאוֹת.",
+        "transliteration": "Mesalqiym sha'avah ve'ḥomrei qishur be'tahaliḫ mevuzar kedei limno'a hiyvutzrut sedaqim u'nequbuviyot kelu'ot.",
+        "ru": "Удаляют воск и связующие вещества в контролируемом процессе, чтобы предотвратить образование трещин и захваченных пор."
+      },
+      "source_refs": [
+        "legacy_row_hash:cdd7f556c7264650a06d31d7ce787a503865fc6f0ca551f18622515a9dd0f52c",
+        "legacy_fields_sha256:4ac65eb8e107f26902f79a63fd9ffd67b25e34fc2ed0fbc9e2848af60447b81f",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְסַלְּקִים",
+            "normalized": "מסלקים"
+          },
+          {
+            "index": 1,
+            "surface": "שַׁעֲוָה",
+            "normalized": "שעוה"
+          },
+          {
+            "index": 2,
+            "surface": "וְחֹמְרֵי",
+            "normalized": "וחמרי"
+          },
+          {
+            "index": 3,
+            "surface": "קִישׁוּר",
+            "normalized": "קישור"
+          },
+          {
+            "index": 4,
+            "surface": "בְּתַהֲלִיךְ",
+            "normalized": "בתהליך"
+          },
+          {
+            "index": 5,
+            "surface": "מְבוּקָּר",
+            "normalized": "מבוקר"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לִמְנוֹעַ",
+            "normalized": "למנוע"
+          },
+          {
+            "index": 8,
+            "surface": "הִיוּוּצְרוּת",
+            "normalized": "היווצרות"
+          },
+          {
+            "index": 9,
+            "surface": "סְדָקִים",
+            "normalized": "סדקים"
+          },
+          {
+            "index": 10,
+            "surface": "וּנְקֻבּוּבִיּוֹת",
+            "normalized": "ונקבוביות"
+          },
+          {
+            "index": 11,
+            "surface": "כְּלוּאוֹת.",
+            "normalized": "כלואות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r034",
+      "order": 34,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים סינטור בפאזה נוזלית בתנאי ואקום או מימן, בטמפרטורה שבה הקושר (Co) נוזלי.",
+        "he_niqqud": "מְבַצְּעִים סִנְטוּר בְּפָאזָה נוֹזְלִית בְּתַנָּאֵי וָאקוּם אוֹ מֵימָן, בְּטֶמְפֶּרָטוּרָה שֶׁבָּהּ הַקּוֹשֵׁר (Co) נוֹזְלִי.",
+        "transliteration": "Mevatz'im sinṭur be'fazah nozlit be'tanna'ei vaqqum o meiman, be'ṭemperaṭurah shebah ha'qosher (Co) nozli.",
+        "ru": "Проводят жидкофазное спекание в условиях вакуума или водорода при температуре, при которой связующее (Co) находится в жидком состоянии."
+      },
+      "source_refs": [
+        "legacy_row_hash:bb1ee3284e360310bf8957ab2cfdce4ba143abb47b853c98ab77a2dedf24b1e4",
+        "legacy_fields_sha256:dac60c141acdc76fe2cc808caa0c410b00c1be9be35745fb41470a449ab40209",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 2,
+            "surface": "בְּפָאזָה",
+            "normalized": "בפאזה"
+          },
+          {
+            "index": 3,
+            "surface": "נוֹזְלִית",
+            "normalized": "נוזלית"
+          },
+          {
+            "index": 4,
+            "surface": "בְּתַנָּאֵי",
+            "normalized": "בתנאי"
+          },
+          {
+            "index": 5,
+            "surface": "וָאקוּם",
+            "normalized": "ואקום"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "מֵימָן,",
+            "normalized": "מימן"
+          },
+          {
+            "index": 8,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁבָּהּ",
+            "normalized": "שבה"
+          },
+          {
+            "index": 10,
+            "surface": "הַקּוֹשֵׁר",
+            "normalized": "הקושר"
+          },
+          {
+            "index": 11,
+            "surface": "(Co)",
+            "normalized": "Co"
+          },
+          {
+            "index": 12,
+            "surface": "נוֹזְלִי.",
+            "normalized": "נוזלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r035",
+      "order": 35,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "טמפרטורת סינטור אופיינית היא בערך 1350–1450°C בהתאם להרכב.",
+        "he_niqqud": "טֶמְפֶּרָטוּרַת סִנְטוּר אוֹפְיָּנִית הִיא בְּעֵרֶךְ 1350–1450°C בְּהֶתְאֵם לְהֶרְכֵּב.",
+        "transliteration": "Ṭemperaṭura't sinṭur ofyaniyt hi be'erekh 1350–1450°C be'hetem le'herkev.",
+        "ru": "Типичная температура спекания составляет примерно 1350–1450°C в зависимости от состава."
+      },
+      "source_refs": [
+        "legacy_row_hash:461e1bed83d4c028a4ff767b8930f03e7b1c7737ee0ad30b151e3466e7ab2e50",
+        "legacy_fields_sha256:51e8192e239ad4deccd806c78a56d3de012237455f4c71736b100b0811cc53ea",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 1,
+            "surface": "סִנְטוּר",
+            "normalized": "סנטור"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹפְיָּנִית",
+            "normalized": "אופינית"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "בְּעֵרֶךְ",
+            "normalized": "בערך"
+          },
+          {
+            "index": 5,
+            "surface": "1350–1450°C",
+            "normalized": "1350–1450°C"
+          },
+          {
+            "index": 6,
+            "surface": "בְּהֶתְאֵם",
+            "normalized": "בהתאם"
+          },
+          {
+            "index": 7,
+            "surface": "לְהֶרְכֵּב.",
+            "normalized": "להרכב"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r036",
+      "order": 36,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הפאזה הנוזלית מרטיבה את חלקיקי (WC), יוצרת כוחות קפילריים ומאיצה הצפפה וסגירת נקבוביות.",
+        "he_niqqud": "הַפָּאזָה הַנּוֹזְלִית מַרְטִיבָה אֶת חַלְקִיקֵי (WC), יוֹצֶרֶת כֹּחוֹת קָפִּילָרִיִּים וּמְאִיצָה הַצְפָּפָה וּסְגִירַת נְקֻבּוּבִיּוֹת.",
+        "transliteration": "Ha'fazah ha'nozlit marṭivah et ḥalṣiqei (WC), yotzeret koḥot qapilariyiym u'me'itzah hatzpafah u'sgira't nequbuviyot.",
+        "ru": "Жидкая фаза смачивает частицы (WC), создает капиллярные силы и ускоряет уплотнение и закрытие пор."
+      },
+      "source_refs": [
+        "legacy_row_hash:b2f9237d3313e973098399969bd2ed090407b10063cdb665d3ae87aaf01efd2d",
+        "legacy_fields_sha256:a16a338e10925b542adf4c0513a28ef009ed85c07762f4f6fd0b7c47ddcb94da",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפָּאזָה",
+            "normalized": "הפאזה"
+          },
+          {
+            "index": 1,
+            "surface": "הַנּוֹזְלִית",
+            "normalized": "הנוזלית"
+          },
+          {
+            "index": 2,
+            "surface": "מַרְטִיבָה",
+            "normalized": "מרטיבה"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "חַלְקִיקֵי",
+            "normalized": "חלקיקי"
+          },
+          {
+            "index": 5,
+            "surface": "(WC),",
+            "normalized": "WC"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹצֶרֶת",
+            "normalized": "יוצרת"
+          },
+          {
+            "index": 7,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 8,
+            "surface": "קָפִּילָרִיִּים",
+            "normalized": "קפילריים"
+          },
+          {
+            "index": 9,
+            "surface": "וּמְאִיצָה",
+            "normalized": "ומאיצה"
+          },
+          {
+            "index": 10,
+            "surface": "הַצְפָּפָה",
+            "normalized": "הצפפה"
+          },
+          {
+            "index": 11,
+            "surface": "וּסְגִירַת",
+            "normalized": "וסגירת"
+          },
+          {
+            "index": 12,
+            "surface": "נְקֻבּוּבִיּוֹת.",
+            "normalized": "נקבוביות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r037",
+      "order": 37,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "שולטים בזמן שהייה ובטמפרטורה כדי לקבוע את גודל גרגר (WC) ואת המיקרו־מבנה הסופי.",
+        "he_niqqud": "שׁוֹלְטִים בִּזְמַן שְׁהִיָּה וּבְטֶמְפֶּרָטוּרָה כְּדֵי לִקְבּוֹעַ אֶת גֹּדֶל גַּרְגֵּר (WC) וְאֶת הַמִּיקְרוֹ־מִבְנֶה הַסּוֹפִי.",
+        "transliteration": "Sholṭim bi'zman shehiyyah u've'ṭemperaṭurah kedei liqbo'a' et godel gar'ger (WC) ve'et ha'miqro-mivneh ha'sofi.",
+        "ru": "Контролируют время выдержки и температуру для определения размера зерна (WC) и конечной микроструктуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:0db246415ca6be77ef32d332f7751d48b1db2b975bc609d244b8fd86dd3561cf",
+        "legacy_fields_sha256:fc7df71117b4b8137ad45c13be61e57ba9fa4f28b98c80ceabcfd3c3fe231f2d",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "שׁוֹלְטִים",
+            "normalized": "שולטים"
+          },
+          {
+            "index": 1,
+            "surface": "בִּזְמַן",
+            "normalized": "בזמן"
+          },
+          {
+            "index": 2,
+            "surface": "שְׁהִיָּה",
+            "normalized": "שהיה"
+          },
+          {
+            "index": 3,
+            "surface": "וּבְטֶמְפֶּרָטוּרָה",
+            "normalized": "ובטמפרטורה"
+          },
+          {
+            "index": 4,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 5,
+            "surface": "לִקְבּוֹעַ",
+            "normalized": "לקבוע"
+          },
+          {
+            "index": 6,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 7,
+            "surface": "גֹּדֶל",
+            "normalized": "גדל"
+          },
+          {
+            "index": 8,
+            "surface": "גַּרְגֵּר",
+            "normalized": "גרגר"
+          },
+          {
+            "index": 9,
+            "surface": "(WC)",
+            "normalized": "WC"
+          },
+          {
+            "index": 10,
+            "surface": "וְאֶת",
+            "normalized": "ואת"
+          },
+          {
+            "index": 11,
+            "surface": "הַמִּיקְרוֹ־מִבְנֶה",
+            "normalized": "המיקרו־מבנה"
+          },
+          {
+            "index": 12,
+            "surface": "הַסּוֹפִי.",
+            "normalized": "הסופי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r038",
+      "order": 38,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "גרגר דק מעלה את הקשיות, ותכולת קושר גבוהה יותר משפרת קשיחות שבר ועמידות לשבר.",
+        "he_niqqud": "גַּרְגֵּר דַּק מַעֲלֶה אֶת הַקְּשִׁיּוּת, וּתְכוּלַת קוֹשֵׁר גְּבוֹהָה יוֹתֵר מְשַׁפֶּרֶת קְשִׁיחוּת שֶׁבֶר וַעֲמִידוּת לְשֶׁבֶר.",
+        "transliteration": "Gar'ger daq ma'aleh et ha'qshiyyut, u'tekhula't qosher gvo'hah yoter meshapperet qshihut shever va'amidut le'shever.",
+        "ru": "Мелкое зерно повышает твердость, а более высокое содержание связующего улучшает вязкость разрушения и сопротивление разрушению."
+      },
+      "source_refs": [
+        "legacy_row_hash:068606698858f94d1ef7f94860a2313475a57f6321ffda9aa791ac9ccd6f9383",
+        "legacy_fields_sha256:7cddae6d9a1c4bed99caeaa738a1f00b3ac125d6af7646a568008262b83b7562",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "גַּרְגֵּר",
+            "normalized": "גרגר"
+          },
+          {
+            "index": 1,
+            "surface": "דַּק",
+            "normalized": "דק"
+          },
+          {
+            "index": 2,
+            "surface": "מַעֲלֶה",
+            "normalized": "מעלה"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "הַקְּשִׁיּוּת,",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 5,
+            "surface": "וּתְכוּלַת",
+            "normalized": "ותכולת"
+          },
+          {
+            "index": 6,
+            "surface": "קוֹשֵׁר",
+            "normalized": "קושר"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 9,
+            "surface": "מְשַׁפֶּרֶת",
+            "normalized": "משפרת"
+          },
+          {
+            "index": 10,
+            "surface": "קְשִׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁבֶר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 12,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 13,
+            "surface": "לְשֶׁבֶר.",
+            "normalized": "לשבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r039",
+      "order": 39,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במידת הצורך מבצעים (HIP) לאחר הסינטור לסגירה סופית של נקבוביות ולשיפור אמינות.",
+        "he_niqqud": "בְּמִידַת הַצֹּרֶךְ מְבַצְּעִים (HIP) לְאַחַר הַסִּנְטוּר לִסְגִירָה סוֹפִית שֶׁל נְקֻבּוּבִיּוֹת וְלְשִׁיפּוּר אֲמִינוּת.",
+        "transliteration": "Bi'mida't ha'tzorekh mevatz'im (HIP) le'aḥar ha'sinṭur li'sgirah sofiyt shel nequbuviyot u'le'shipur aminut.",
+        "ru": "При необходимости после спекания проводят (HIP) [горячее изостатическое прессование] для окончательного закрытия пор и повышения надежности."
+      },
+      "source_refs": [
+        "legacy_row_hash:0f0b56e6b64b9069fa5206966207bed04e99f80bf811986fab5e4c49ed63a0cd",
+        "legacy_fields_sha256:95a211e9324c97098bae11d92d7c90a9610ef3376d7bceb1eae8c7c4c8478702",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמִידַת",
+            "normalized": "במידת"
+          },
+          {
+            "index": 1,
+            "surface": "הַצֹּרֶךְ",
+            "normalized": "הצרך"
+          },
+          {
+            "index": 2,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 3,
+            "surface": "(HIP)",
+            "normalized": "HIP"
+          },
+          {
+            "index": 4,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 5,
+            "surface": "הַסִּנְטוּר",
+            "normalized": "הסנטור"
+          },
+          {
+            "index": 6,
+            "surface": "לִסְגִירָה",
+            "normalized": "לסגירה"
+          },
+          {
+            "index": 7,
+            "surface": "סוֹפִית",
+            "normalized": "סופית"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "נְקֻבּוּבִיּוֹת",
+            "normalized": "נקבוביות"
+          },
+          {
+            "index": 10,
+            "surface": "וְלְשִׁיפּוּר",
+            "normalized": "ולשיפור"
+          },
+          {
+            "index": 11,
+            "surface": "אֲמִינוּת.",
+            "normalized": "אמינות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r040",
+      "order": 40,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים גימור בהשחזה של המישורים ושל החוד לקבלת דיוק גאומטרי וקצה חיתוך תקין.",
+        "he_niqqud": "מְבַצְּעִים גִּימוּר בְּהַשְׁחָזָה שֶׁל הַמִּישׁוֹרִים וְשֶׁל הַחוּד לְקַבָּלַת דִּיּוּק גֵּאוֹמֶטְרִי וְקָצֶה חִיתּוּךְ תָּקִין.",
+        "transliteration": "Mevatz'im gimur be'hashḥazah shel ha'mishorim ve'shel ha'ḥud le'qabala't diyuq ge'omeṭri ve'qatzah ḥittukh taqin.",
+        "ru": "Выполняют финишную обработку шлифованием плоскостей и острия для получения геометрической точности и правильной режущей кромки."
+      },
+      "source_refs": [
+        "legacy_row_hash:56ed01cce5ab801a3de3a516349675ea8ca52c26d198ecb621bfe18536ce70e2",
+        "legacy_fields_sha256:c9826725c2153e75747844c3b72faa1afe35b761db9430d3ea178afd2fa85212",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "גִּימוּר",
+            "normalized": "גימור"
+          },
+          {
+            "index": 2,
+            "surface": "בְּהַשְׁחָזָה",
+            "normalized": "בהשחזה"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "הַמִּישׁוֹרִים",
+            "normalized": "המישורים"
+          },
+          {
+            "index": 5,
+            "surface": "וְשֶׁל",
+            "normalized": "ושל"
+          },
+          {
+            "index": 6,
+            "surface": "הַחוּד",
+            "normalized": "החוד"
+          },
+          {
+            "index": 7,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 8,
+            "surface": "דִּיּוּק",
+            "normalized": "דיוק"
+          },
+          {
+            "index": 9,
+            "surface": "גֵּאוֹמֶטְרִי",
+            "normalized": "גאומטרי"
+          },
+          {
+            "index": 10,
+            "surface": "וְקָצֶה",
+            "normalized": "וקצה"
+          },
+          {
+            "index": 11,
+            "surface": "חִיתּוּךְ",
+            "normalized": "חיתוך"
+          },
+          {
+            "index": 12,
+            "surface": "תָּקִין.",
+            "normalized": "תקין"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r041",
+      "order": 41,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לעיתים מוסיפים ציפויים בתהליכי (CVD) או (PVD) כגון (TiN), (TiAlN) או (Al₂O₃) לשיפור עמידות שחיקה ועמידות בטמפרטורות חיתוך גבוהות.",
+        "he_niqqud": "לְעִיתִּים מוֹסִיפִים צִיפּוּיִים בְּתַהֲלִיכֵי (CVD) אוֹ (PVD) כְּגוֹן (TiN), (TiAlN) אוֹ (Al₂O₃) לְשִׁיפּוּר עֲמִידוּת שְׁחִיקָה וַעֲמִידוּת בְּטֶמְפֶּרָטוּרוֹת חִיתּוּךְ גְּבוֹהוֹת.",
+        "transliteration": "Le'ittim mosifim tzipuyim be'tahaliḫei (CVD) o (PVD) kegon (TiN), (TiAlN) o (Al₂O₃) le'shipur 'amidut shḥiqah va'amidut be'ṭemperaṭurot ḥittukh gvo'hot.",
+        "ru": "Иногда добавляют покрытия с помощью процессов (CVD) или (PVD), таких как (TiN), (TiAlN) или (Al₂O₃), для улучшения износостойкости и устойчивости при высоких температурах резания."
+      },
+      "source_refs": [
+        "legacy_row_hash:309bcf8e543df20e6935e2d8e8d5098db57b1b91bf00e77701b0cc74a53fb187",
+        "legacy_fields_sha256:229b26ef16729bf3d5a98af7c607460f691e9374670fb0e420277becdc10f277",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְעִיתִּים",
+            "normalized": "לעיתים"
+          },
+          {
+            "index": 1,
+            "surface": "מוֹסִיפִים",
+            "normalized": "מוסיפים"
+          },
+          {
+            "index": 2,
+            "surface": "צִיפּוּיִים",
+            "normalized": "ציפויים"
+          },
+          {
+            "index": 3,
+            "surface": "בְּתַהֲלִיכֵי",
+            "normalized": "בתהליכי"
+          },
+          {
+            "index": 4,
+            "surface": "(CVD)",
+            "normalized": "CVD"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "(PVD)",
+            "normalized": "PVD"
+          },
+          {
+            "index": 7,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 8,
+            "surface": "(TiN),",
+            "normalized": "TiN"
+          },
+          {
+            "index": 9,
+            "surface": "(TiAlN)",
+            "normalized": "TiAlN"
+          },
+          {
+            "index": 10,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 11,
+            "surface": "(Al₂O₃)",
+            "normalized": "Al₂O₃"
+          },
+          {
+            "index": 12,
+            "surface": "לְשִׁיפּוּר",
+            "normalized": "לשיפור"
+          },
+          {
+            "index": 13,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 14,
+            "surface": "שְׁחִיקָה",
+            "normalized": "שחיקה"
+          },
+          {
+            "index": 15,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 16,
+            "surface": "בְּטֶמְפֶּרָטוּרוֹת",
+            "normalized": "בטמפרטורות"
+          },
+          {
+            "index": 17,
+            "surface": "חִיתּוּךְ",
+            "normalized": "חיתוך"
+          },
+          {
+            "index": 18,
+            "surface": "גְּבוֹהוֹת.",
+            "normalized": "גבוהות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q055-sol-r042",
+      "order": 42,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283",
+        "comparison:MATCH_WITH_PARAMETER_SCOPE",
+        "source_page:63",
+        "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q055",
+    "display_alias": "55",
+    "source_pages": [
+      63
+    ],
+    "independent_state": "DERIVED_WITH_PROCESS_CONTROL_QUALIFICATION",
+    "answer": [
+      "а) Последовательность: получить/классифицировать powders→дозировать и смешать с lubricant/binder→заполнить форму→уплотнить (uniaxial/isostatic) в green compact→удалить binder/предварительно нагреть→спечь в контролируемой атмосфере→калибровать, пропитать/термообработать и финишно обработать по необходимости→контроль плотности и дефектов.",
+      "б) W и особенно WC имеют очень высокую температуру плавления и реакционно/технологически неудобны для обычного литья. Sintering позволяет соединить твёрдые WC grains при более низкой температуре с металлическим binder, сохранив hardness и задав toughness.",
+      "в) WC и Co powders дозируют, мокро размалывают/смешивают, сушат/гранулируют с binder, прессуют insert, debind. Нагревают в защитной/вакуумной атмосфере выше температуры появления liquid Co-rich phase, но ниже плавления WC; жидкость смачивает WC, вызывает rearrangement и solution-reprecipitation, поры закрываются и compact усаживается. Затем контролируемо охлаждают, шлифуют режущие поверхности/кромки и проверяют плотность, размеры и трещины."
+    ],
+    "engineering_picture": "В liquid-phase sintering WC остаётся твёрдым скелетом, а жидкий Co-binder смачивает grains и ускоряет перенос вещества и densification.",
+    "prerequisites": [
+      "Hard metal is a WC ceramic hard phase plus metallic binder, commonly Co.",
+      "Liquid-phase sintering is not full melting of the carbide."
+    ],
+    "roadmap": [
+      "Give full route including debind and QC.",
+      "Explain melting-point/process reason.",
+      "Describe WC-Co densification mechanisms."
+    ],
+    "main_trap": "Не писать, что WC insert отливается из полностью расплавленного tungsten carbide.",
+    "givens": [
+      "W hard metal; WC cutting insert; liquid-phase sintering."
+    ],
+    "find": [
+      "Stages and mechanism."
+    ],
+    "assumptions": [
+      "Conventional WC-Co grade and controlled atmosphere are intended."
+    ],
+    "laws": [
+      "Wetting liquid lowers pore surface energy; rearrangement and solution-reprecipitation densify the compact."
+    ],
+    "symbolic_derivation": [
+      "WC(s)+Co-rich liquid→wetting/rearrangement→solution/reprecipitation→dense WC-Co."
+    ],
+    "calculation": [],
+    "construction": [
+      "Three microstructure panels: green WC/Co, liquid binder wetting, dense WC grains in Co matrix."
+    ],
+    "checks": [
+      "Every stage names the state of WC, Co/binder, pores and dimensional change."
+    ],
+    "source_facts": [
+      "source_page:63",
+      "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
+    ],
+    "unresolved_limits": [
+      "Exact Co fraction, sintering temperature/time, grain-growth inhibitor and atmosphere require the grade specification."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

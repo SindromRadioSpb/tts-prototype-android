@@ -1,0 +1,310 @@
+{
+  "schema_version": "problem_solution_program.1.0.0",
+  "status": "LOCAL_REVIEWED_60_OF_60_PRESENTATION_RUNTIME_AND_PRINT_READY_RIGHTS_ATTESTATION_PENDING_NOT_PUBLISHED",
+  "program_id": "MATERIALS-PB2-REVIEWED-SOLUTIONS",
+  "decision_date": "2026-08-30",
+  "corpus": {
+    "title": "Материаловедение. Задачник 2",
+    "slug": "materials-science-year1-problem-book-2",
+    "subject": "Материаловедение",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_manifest_sha256": "f9910d4eba5b12fbee4d0df59aa9f20d8b726772f11a58337751c5f1dee5ed2a",
+    "expected_task_count": 60,
+    "task_identity_policy": "EXACT_TASK_ID_AND_SOURCE_EDITION_NO_FUZZY_TITLE_JOIN"
+  },
+  "inputs": {
+    "canonical_conditions": "../../materials-science-problem-corpus/2026-08-30/repair/canonical-bake-report.json",
+    "diagram_sources": [
+      {
+        "filename": "Задачник 2.pdf",
+        "sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+        "role": "CANONICAL_CONDITION_DIAGRAM_AND_EMBEDDED_SOLUTION_EVIDENCE"
+      }
+    ],
+    "answer_keys": [
+      {
+        "filename": "Решебник к Задачник2_v2026-01-15.pdf",
+        "sha256": "9ac844e637e5740d9487642438387323f32a6edd6b9bd546e3c7c246b181f00f",
+        "page_count": 148,
+        "role": "OWNER_EDITED_LEGACY_ANSWER_AND_PRESENTATION_EVIDENCE_COMPARISON_ONLY"
+      },
+      {
+        "filename": "Материаловедение_library_export_20260119.json",
+        "sha256": "2a2f3191dd73a5e5bc99b096cda704a54172b33ebd3416c969d2f03299e2cb21",
+        "candidate_cards": 58,
+        "candidate_rows": 2469,
+        "role": "LEGACY_BILINGUAL_CONDITION_AND_SOLUTION_CANDIDATES_COMPARISON_ONLY"
+      }
+    ],
+    "handwritten_solutions_default": "EXCLUDED"
+  },
+  "rights": {
+    "answer_key_facts": "UNCONFIRMED",
+    "independent_solutions": "UNCONFIRMED",
+    "bilingual_solution_derivatives": "UNCONFIRMED",
+    "solution_audio_and_timings": "UNCONFIRMED",
+    "public_display_and_print": "UNCONFIRMED",
+    "package_download": "UNCONFIRMED",
+    "agent_derivative_read": "UNCONFIRMED"
+  },
+  "truth_layers": [
+    "canonical_condition_and_diagram",
+    "literal_legacy_answer_ledger",
+    "independent_solution_ledger",
+    "comparison_and_reviewer_disposition",
+    "exam_solution_ledger",
+    "student_bilingual_table_projection",
+    "beginner_pedagogy_projection",
+    "agent_exact_edition_shard"
+  ],
+  "solution_policy": {
+    "derivation_source": "CONDITION_DIAGRAM_DECLARED_CONSTANTS_ONLY",
+    "answer_key_role": "POST_DERIVATION_COMPARISON_ONLY",
+    "standard": "ISRAELI_MECHANICAL_ENGINEERING_COLLEGE_EXAM_FULL_DERIVATION",
+    "beginner_bridge": true,
+    "symbolic_before_numeric": true,
+    "explicit_multiplication": true,
+    "round_at_end": true,
+    "missing_diagram_policy": "SOURCE_INSUFFICIENT_NEVER_INFER",
+    "legacy_solution_overwrite_allowed": false,
+    "student_and_agent_share_reviewed_content_source": true
+  },
+  "bounded_execution": {
+    "batch_count": 6,
+    "tasks_per_batch": 10,
+    "primary_independent_solution_passes_per_task": 1,
+    "maximum_targeted_repair_passes_per_task": 1,
+    "third_pass_allowed": false,
+    "open_ended_prompt_iterations_allowed": false,
+    "provider_calls_authorized": false,
+    "paid_provider_requires_separate_model_mode_cost_and_call_ceiling": true,
+    "terminal_states": [
+      "REVIEWED_PASS",
+      "MISMATCH_REVIEW_REQUIRED",
+      "SOURCE_INSUFFICIENT",
+      "DIAGRAM_INSUFFICIENT"
+    ]
+  },
+  "legacy_variant_dispositions": {
+    "materials-science-y1-pb2-q005": {
+      "type": "MANUAL_BOUNDARY",
+      "legacy_card_key_sha256": "597b65c579999f6498a5d9d7e9949491631eaffaa51dd92431bea686967aabaf",
+      "solution_start_offset": 7,
+      "basis": "VISUAL_REVIEW_OF_OWNER_PDF_PAGE_9_AND_RAW_ROWS_0_TO_13_2026_08_30"
+    },
+    "materials-science-y1-pb2-q006": {
+      "type": "EQUIVALENT_DUPLICATE",
+      "selected_legacy_card_key_sha256": "e36d3d519a99736827ec6b4f9126532e78a5ee7a1a0bd32f3409af9c6b4f64c0",
+      "duplicate_legacy_card_key_sha256": "ef12562d64cbe940cbe688f51bc085dc63e2c0f2ff27253117ce3266024779f1",
+      "basis": "IDENTICAL_30_ROW_ALIGNED_CONTENT_HASH_NO_MERGE"
+    },
+    "materials-science-y1-pb2-q016": {
+      "type": "SELECT_EXACT_LEGACY_CARD",
+      "selected_legacy_card_key_sha256": "d6ac4bc9488ae1276fe09e4db76e3ca438e483fe8bfb964fe1a6af08319250dd",
+      "rejected_legacy_card_key_sha256": "55b3ac0149498ee336f681d696f2cc88044b0463c073155801d8be1a6c3ea121",
+      "basis": "OWNER_APPROVED_SOURCE_MATCHING_50MM_SELECTED_35MM_REJECTED_NO_MERGE_2026_08_30"
+    },
+    "materials-science-y1-pb2-q030": {
+      "type": "COMPOSITE_ORDERED",
+      "components": [
+        {
+          "legacy_card_key_sha256": "ddcda77504a98bc6fb3a1cd5bd30ce2ff6aa7bccdf3512902bd62dfeb379e458",
+          "label": "38.1",
+          "solution_start_offset": 7
+        },
+        {
+          "legacy_card_key_sha256": "e11fc10ff58b05592f1ec7a3a5d7c46e4a990197f6983c417e9a6e1526408fa1",
+          "label": "38.2",
+          "solution_start_offset": 11
+        }
+      ],
+      "basis": "CANONICAL_TASK_CONTAINS_BOTH_SOURCE_COMPONENTS_IN_ORDER_NO_DEDUPLICATION"
+    }
+  },
+  "comparison_policy": {
+    "unit_normalization_required": true,
+    "exact_text_and_discrete_claims": "EXACT",
+    "decimal_policy": "HALF_LAST_PRINTED_PLACE_UNLESS_DOCUMENTED_SUBJECT_OVERRIDE",
+    "graph_and_construction_policy": "STRUCTURAL_MANUAL_REVIEW_NO_NUMERIC_FUDGE",
+    "global_tolerance_widening_allowed": false,
+    "computed_verdict_separate_from_reviewer_disposition": true
+  },
+  "student_solution_table": {
+    "purpose": "EXAM_WRITING_REHEARSAL_AND_HEBREW_SUBJECT_LEARNING",
+    "truth_source": "REVIEWED_EXAM_SOLUTION_LEDGER_ONLY",
+    "row_atomicity": "ONE_EXAM_THOUGHT_DEFINITION_FORMULA_OR_TRANSFORMATION_PER_ROW",
+    "columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "schema": "schemas/student-solution-table.schema.json",
+    "single_truth_rule": "TABLE_ROWS_ARE_PRIMARY_SOLUTION_PRESENTATION_NO_PARALLEL_FREE_TEXT_SOLUTION",
+    "visible_row_header": "STEP_NUMBER_SECTION_AND_OPTIONAL_PART_LABEL_NOT_A_LANGUAGE_COLUMN",
+    "required_section_order": [
+      "answer_first",
+      "theory",
+      "given_find",
+      "model_and_laws",
+      "derivation",
+      "calculation",
+      "construction",
+      "verification",
+      "final_answer",
+      "provenance"
+    ],
+    "long_theory_policy": "SPLIT_INTO_ATOMIC_EXAM_READY_ROWS_NO_ROW_COUNT_CAP_AND_NO_CONTENT_COMPRESSION",
+    "embedded_numeric_table_policy": "STRUCTURED_DATA_TABLE_IN_TABLE_FILL_ROW_NEVER_SPACE_ALIGNED_TEXT_OR_SCREENSHOT",
+    "diagram_policy": "PINNED_SOURCE_ASSET_PLUS_EXPLICIT_DRAWING_AND_LABEL_INSTRUCTIONS",
+    "typed_row_kinds": [
+      "solution_heading",
+      "theory_statement",
+      "definition",
+      "given",
+      "find",
+      "assumption",
+      "law_or_principle",
+      "symbolic_derivation",
+      "calculation",
+      "table_fill",
+      "diagram_instruction",
+      "result_check",
+      "final_answer",
+      "provenance_note"
+    ],
+    "hebrew_contract": "PLAIN_HEBREW_IS_EXAM_READY_COPY; NIQQUD_IS_READING_AID; FORMULAS_AND_UNITS_PRESERVED",
+    "russian_contract": "EXPLAINS_THE_SAME_VERIFIED_STEP_WITHOUT_NEW_FACTS",
+    "views": [
+      "CONDITION_TABLE",
+      "SOLUTION_TABLE",
+      "CONDITION_AND_SOLUTION_CONTINUOUS",
+      "EXAM_HEBREW_COMPACT",
+      "BILINGUAL_STUDY"
+    ],
+    "screen_behavior": {
+      "default": "CORPUS_CARD_AND_READER_EXPOSE_SHORT_ANSWER_AND_SOLUTION_ACTION_MODAL_DEFAULTS_TO_FULL_SOLUTION",
+      "desktop": "FOUR_COLUMN_TABLE_WITH_STICKY_SECTION_CONTEXT",
+      "mobile_380": "STACKED_ROW_CARD_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+      "rtl": "HEBREW_CELLS_RTL_FORMULAS_ISOLATED_LTR",
+      "keyboard_and_focus": true,
+      "minimum_touch_target_px": 44
+    },
+    "audio": {
+      "scope": "HEBREW_SOLUTION_ROWS",
+      "row_playback": true,
+      "continuous_playback": true,
+      "word_level_karaoke": true,
+      "ssml_timepoints_required": true,
+      "timing_sidecar_required": true,
+      "formula_speech_policy": "SEPARATE_REVIEWED_SPOKEN_HEBREW_TEXT_WHILE_VISUAL_FORMULA_REMAINS_EXACT",
+      "formula_karaoke_surface": "HIGHLIGHT_SEPARATE_SPOKEN_HE_NIQQUD_LINE_NOT_THE_VISUAL_FORMULA"
+    }
+  },
+  "print_outputs": {
+    "full_bilingual_a4": true,
+    "full_bilingual_orientation": "LANDSCAPE",
+    "compact_exam_hebrew_a4": true,
+    "compact_exam_hebrew_orientation": "PORTRAIT",
+    "compact_means_fewer_language_columns_not_fewer_solution_rows": true,
+    "compact_exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER",
+    "complete_content_without_opening_disclosures": true,
+    "condition_before_solution": true,
+    "source_diagrams_included_when_required": true,
+    "page_numbers": true,
+    "formula_break_guards": true,
+    "real_browser_pdf_and_visual_page_review_required": true,
+    "physical_printer_acceptance_separate": true
+  },
+  "agent_package": {
+    "same_reviewed_task_shard_as_student_ui": true,
+    "exact_edition_anchors_required": true,
+    "fuzzy_lookup_allowed": false,
+    "modes": [
+      "HINT",
+      "SOLVE_TOGETHER",
+      "FULL_SOLUTION"
+    ],
+    "required_sections": [
+      "condition",
+      "diagram_references",
+      "verified_answer",
+      "engineering_picture",
+      "prerequisites",
+      "roadmap",
+      "givens",
+      "find",
+      "assumptions",
+      "laws_and_applicability",
+      "symbolic_derivation",
+      "calculation",
+      "checks",
+      "pitfalls",
+      "provenance",
+      "unresolved_limits"
+    ],
+    "unknown_policy": "SOURCE_INSUFFICIENT_NO_HALLUCINATION",
+    "learner_state_writes_allowed": false,
+    "review_log_writes_allowed": false
+  },
+  "outputs": {
+    "answer_ledger": true,
+    "independent_solution_ledger": true,
+    "exam_solution_ledger": true,
+    "student_bilingual_solution_rows": true,
+    "beginner_pedagogy_ledger": true,
+    "per_task_agent_markdown": false,
+    "per_task_agent_grounding_json": true,
+    "premium_semantic_html": true,
+    "full_bilingual_a4_print": true,
+    "compact_exam_hebrew_a4_print": true,
+    "tutor_prompt": true,
+    "per_task_hash_verified_shards": true
+  },
+  "publication": {
+    "requested": true,
+    "source_corpus_and_solution_resources_separate_editions": true,
+    "public_read": true,
+    "public_solution_display_and_print": true,
+    "agent_data_prepare_requested": true,
+    "agent_network_access": "SEPARATE_OWNER_GATE",
+    "exact_edition_anchors": true,
+    "pilot_required": true,
+    "rollback_required": true,
+    "feature_flag_required": true,
+    "all_60_reviewed_before_full_solution_pointer": true,
+    "draft_solutions_publicly_visible": false,
+    "local_rehearsal": "PASS_PILOT_3_FULL_60_ROLLBACK_RESTORE_LEARNER_PRIVATE_REVIEW_UNCHANGED",
+    "local_browser": "PASS_DESKTOP_380_HE_RTL_NO_OVERFLOW_ZERO_PAGE_ERRORS",
+    "local_print": "PASS_A4_LANDSCAPE_4_COLUMNS_AND_A4_PORTRAIT_HEBREW_VISUALLY_REVIEWED",
+    "production_status": "BLOCKED_ONLY_BY_OWNER_RIGHTS_ATTESTATION"
+  },
+  "acceptance": {
+    "exact_task_set_equality": "60_OF_60_ACROSS_ALL_LEDGERS_AND_SHARDS",
+    "every_requested_part_resolved_or_explicitly_insufficient": true,
+    "every_number_source_trace_required": true,
+    "dimensional_or_subject_equivalent_check_required": true,
+    "all_mismatches_visible_until_disposition": true,
+    "deterministic_rebuild_and_hash_readback": true,
+    "student_and_agent_projection_parity": true,
+    "ru_en_he_ui_labels": true,
+    "desktop_1440_mobile_380_he_rtl_no_overflow": true,
+    "a4_pdf_text_and_visual_inspection": true,
+    "anonymous_etag_404_no_write_smoke": true,
+    "production_target_version_streak": true
+  },
+  "owner_decisions_needed": [
+    "CONFIRM_RIGHTS_FOR_SOURCE_TEXT_DIAGRAMS_GENERATED_COLUMNS_INDEPENDENT_SOLUTIONS_BILINGUAL_DERIVATIVES_PUBLIC_DISPLAY_PRINT_DOWNLOAD_AND_AGENT_READ",
+    "AFTER_PRODUCTION_CARD_BY_CARD_REVIEW_SELECT_SOLUTION_AND_CONDITION_TTS_PROFILE_AND_SEPARATELY_APPROVE_FULL_TTS"
+  ],
+  "stop_conditions": [
+    "SOURCE_OR_EDITION_PIN_DRIFT",
+    "TASK_ID_OR_DIAGRAM_MAPPING_AMBIGUOUS",
+    "DERIVATION_WOULD_DEPEND_ON_EXPECTED_ANSWER",
+    "UNDOCUMENTED_TOLERANCE_WIDENING_REQUIRED",
+    "PUBLICATION_BLOCKING_MISMATCH_HAS_NO_DISPOSITION",
+    "STUDENT_AND_AGENT_ARTIFACTS_DIVERGE_FROM_COMMON_REVIEWED_LEDGER",
+    "RIGHTS_BACKUP_REHEARSAL_READBACK_OR_ROLLBACK_INCOMPLETE"
+  ]
+}

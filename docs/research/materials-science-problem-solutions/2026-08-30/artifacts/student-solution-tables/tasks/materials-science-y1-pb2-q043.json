@@ -1,0 +1,3978 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q043",
+  "display_alias": "43",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "6a4780473b7b7fb43a267d82160ffad4ccad21d041414bac22c623e7491a5bfe"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "2ec96a7e3449f8827fc305ec72bb137fba51e4c2676153b371cdb68aff2fca00",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "AA2014-T4 and AA2024-T4 selection matches. Independent solution correctly scopes natural/artificial precipitation aging to the aluminum-alloy context despite the source word for steel.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q043-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 43.",
+        "hebrew_niqqud": "שְׁאֵלָה 43.",
+        "translit": "She'ela 43.",
+        "translit_ru": "",
+        "russian": "Вопрос 43.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "task_heading",
+            "source_page": 53,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. להלן שני סוגים של טיפולים תרמיים בפלדות:",
+        "hebrew_niqqud": "א. לְהַלָּן שְׁנֵי סוּגִים שֶׁל טִיפּוּלִים תֶּרְמִיִּים בִּפְלָדוֹת:",
+        "translit": "a. Lehalan shnei sugim shel tipulim termiyim bifladot:",
+        "translit_ru": "",
+        "russian": "א. Ниже приведены два вида термической обработки в сталях:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r003",
+        "order_index": 2,
+        "hebrew_plain": "זיקון טבעי",
+        "hebrew_niqqud": "זִיקּוּן טִבְעִי",
+        "translit": "zikun tiv'i",
+        "translit_ru": "",
+        "russian": "естественное старение",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r004",
+        "order_index": 3,
+        "hebrew_plain": "זיקון מלאכותי",
+        "hebrew_niqqud": "זִיקּוּן מְלָאכוּתִי",
+        "translit": "zikun melakhuti",
+        "translit_ru": "",
+        "russian": "искусственное старение",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r005",
+        "order_index": 4,
+        "hebrew_plain": "הסבר את המשמעות של כל טיפול.",
+        "hebrew_niqqud": "הַסְבֵּר אֶת הַמַּשְׁמָעוּת שֶׁל כָּל טִיפּוּל.",
+        "translit": "Hasber et hamashma'ut shel kol tipul.",
+        "translit_ru": "",
+        "russian": "Объясните значение каждой обработки.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r006",
+        "order_index": 5,
+        "hebrew_plain": "ב. סרטט במחברתך גרף המתאר תהליך זיקון מלאכותי בסגסוגת אלומיניום,",
+        "hebrew_niqqud": "ב. סַרְטֵט בְּמַחְבַּרְתְּךָ גְּרָף הַמְּתָאֵר תַּהֲלִיךְ זִיקּוּן מְלָאכוּתִי בְּסַגְסוֹגַת אַלוּמִינְיוּם,",
+        "translit": "b. Sartet bemakhbartkha graf hameta'er tahalikh zikun melakhuti besagsogat aluminiyum,",
+        "translit_ru": "",
+        "russian": "ב. Начертите в тетради график, описывающий процесс искусственного старения алюминиевого сплава,",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r007",
+        "order_index": 6,
+        "hebrew_plain": "ורשום על גביו את שמות השלבים השונים של התהליך.",
+        "hebrew_niqqud": "וּרְשֹׁום עַל גַּבָּיו אֶת שְׁמוֹת הַשְּׁלַבִּים הַשּׁוֹנִים שֶׁל הַתַּהֲלִיךְ.",
+        "translit": "urshom 'al gabav et shmot hashlabim hashonim shel hatahalikh.",
+        "translit_ru": "",
+        "russian": "и укажите на нём названия различных этапов процесса.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r008",
+        "order_index": 7,
+        "hebrew_plain": "ג. עליך להמליץ על סגסוגת אלומיניום לייצור חלק בהתאם לדרישות האלה:",
+        "hebrew_niqqud": "ג. עָלֶיךָ לְהַמְלִיץ עַל סַגְסוֹגַת אַלוּמִינְיוּם לְייִצּוּר חֵלֶק בְּהֶתְאֵם לַדְּרִישׁוֹת הָאֵלֶּה:",
+        "translit": "g. 'Alekha lehamlitz 'al sagsogat aluminiyum leyitzur ḥelek behet'em ladrishot ha'eleh:",
+        "translit_ru": "",
+        "russian": "ג. Вам необходимо рекомендовать алюминиевый сплав для изготовления детали в соответствии со следующими требованиями:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r009",
+        "order_index": 8,
+        "hebrew_plain": "החומר יהיה מסוגסג במגנזיום (Mg)",
+        "hebrew_niqqud": "הַחֹומֶר יִהְיֶה מְסֻוגְסָג בְּמַגְנֶזְיוּם (Mg)",
+        "translit": "Haḥomer yihyeh mesugsag bemagnezyum (Mg)",
+        "translit_ru": "",
+        "russian": "материал должен быть легирован магнием (Mg)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r010",
+        "order_index": 9,
+        "hebrew_plain": "חומר הגלם יהיה בצורת צינור לאחר שעבר אקסטרוזיה",
+        "hebrew_niqqud": "חֹומֶר הַגֶּלֶם יִהְיֶה בְּצוּרַת צִינּוֹר לְאַחַר שֶׁעָבַר אֶקְסְטְרוּזְיָה",
+        "translit": "ḥomer hagelem yihyeh betzurat tzinor le'aḥar she'avar ekstruzyah",
+        "translit_ru": "",
+        "russian": "сырьевой материал должен быть в виде трубы после экструзии",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r011",
+        "order_index": 10,
+        "hebrew_plain": "החלק ישמש במבנה של מטוס",
+        "hebrew_niqqud": "הַחֵלֶק יְשַׁמֵּשׁ בְּמִבְנֶה שֶׁל מָטוֹס",
+        "translit": "haḥelek yeshamesh bemivneh shel matos",
+        "translit_ru": "",
+        "russian": "деталь будет использоваться в конструкции самолёта",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r012",
+        "order_index": 11,
+        "hebrew_plain": "החלק יעבור טיפול תרמי של המסה וזיקון טבעי (T4)",
+        "hebrew_niqqud": "הַחֵלֶק יַעֲבֹור טִיפּוּל תֶּרְמִי שֶׁל הַמָּסָה וְזִיקּוּן טִבְעִי (T4)",
+        "translit": "haḥelek ya'avor tipul termi shel hamasah vezikun tiv'i (T4)",
+        "translit_ru": "",
+        "russian": "деталь пройдёт термическую обработку на раствор и естественное старение (T4)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 11,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r013",
+        "order_index": 12,
+        "hebrew_plain": "גבול ההתעייפות של החומר אשר ממנו עשוי החלק יהיה: σL > 125 MPa",
+        "hebrew_niqqud": "גְּבוּל הַהִתְעַייְּפוּת שֶׁל הַחֹומֶר אֲשֶׁר מִמֶּנּוּ עָשׂוּי הַחֵלֶק יִהְיֶה: σL > 125 MPa",
+        "translit": "gvul hahit'ayfut shel haḥomer asher mimenu 'asuy haḥelek yihyeh: σL > 125 MPa",
+        "translit_ru": "",
+        "russian": "предел усталости материала, из которого изготовлена деталь, должен составлять: σL > 125 MPa",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 12,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 12,
+        "sentence_index": 12,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r014",
+        "order_index": 13,
+        "hebrew_plain": "בחר סגסוגת או סגסוגות אלומיניום העונה/העונות על כל הדרישות שלעיל,",
+        "hebrew_niqqud": "בְּחַר סַגְסוֹגֶת אוֹ סַגְסוֹגוֹת אַלוּמִינְיוּם הָעוֹנָה/הָעוֹנוֹת עַל כָּל הַדְּרִישׁוֹת שֶׁלְּעֵיל,",
+        "translit": "beḥar sagsoget o sagsogot aluminiyum ha'onah/ha'onot 'al kol hadrishot shele'eil,",
+        "translit_ru": "",
+        "russian": "выберите алюминиевый сплав или сплавы, удовлетворяющие всем вышеуказанным требованиям,",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 13,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 13,
+        "sentence_index": 13,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r015",
+        "order_index": 14,
+        "hebrew_plain": "והצג את תהליך הבחירה.",
+        "hebrew_niqqud": "וְהַצֵּג אֶת תַּהֲלִיךְ הַבְּחִירָה.",
+        "translit": "vehatzeg et tahalikh habḥirah.",
+        "translit_ru": "",
+        "russian": "и представьте процесс выбора.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 14,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 14,
+        "sentence_index": 14,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q043-r016",
+        "order_index": 15,
+        "hebrew_plain": "היעזר בטבלאות שבנספח ג'.",
+        "hebrew_niqqud": "הֵיעָזֵר בְּטַבְלָאוֹת שֶׁבְּנִסְפָּח ג'.",
+        "translit": "He'azer betavla'ot shebenispaḥ g'.",
+        "translit_ru": "",
+        "russian": "Воспользуйтесь таблицами из приложения ג.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q043",
+            "kind": "subpart",
+            "source_page": 53,
+            "source_row_index": 15,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 15,
+        "sentence_index": 15,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      53,
+      71,
+      72,
+      73
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q043/anchor-01-p053.jpg",
+        "sha256": "5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "bytes": 235621,
+        "source_page": 53,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          0.52
+        ],
+        "role": "condition"
+      },
+      {
+        "path": "assets/reference/aluminum_alloy_appendices-p071.jpg",
+        "sha256": "7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "bytes": 387957,
+        "source_page": 71,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALUMINUM_ALLOY_APPENDICES"
+      },
+      {
+        "path": "assets/reference/aluminum_alloy_appendices-p072.jpg",
+        "sha256": "c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "bytes": 638884,
+        "source_page": 72,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALUMINUM_ALLOY_APPENDICES"
+      },
+      {
+        "path": "assets/reference/aluminum_alloy_appendices-p073.jpg",
+        "sha256": "76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "bytes": 522323,
+        "source_page": 73,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALUMINUM_ALLOY_APPENDICES"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": [
+      {
+        "dependency_kind": "ALUMINUM_ALLOY_APPENDICES",
+        "source_pages": [
+          71,
+          72,
+          73
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p071",
+          "source-reference-p072",
+          "source-reference-p073"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:2ec96a7e3449f8827fc305ec72bb137fba51e4c2676153b371cdb68aff2fca00"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) זיקון מלאכותי הוא אותו מנגנון של הזדקנות אך מואץ באמצעות חימום מבוקר בטמפרטורה מוגברת",
+        "he_niqqud": "א) זִקּוּן מְלָאכוּתִי הוּא אוֹתוֹ מַנְגָּנוֹן שֶׁל הִזְדַּקְּנוּת אַךְ מֻאֲצָן בְּאֶמְצָעוּת חִמּוּם מְבֻקָּר בְּטֶמְפֶּרָטוּרָה מֻגְבֶּרֶת",
+        "transliteration": "A) Zikkun melakhuti hu oto manganon shel hizdaknenut akh mu'atsan b'emtsa'ut khimmum mevukkar b'temperatúrah mugbéret",
+        "ru": "А) Искусственное старение — это тот же механизм старения, но ускоренный с помощью контролируемого нагрева при повышенной температуре."
+      },
+      "source_refs": [
+        "legacy_row_hash:2d9b883147997a376a7187358f672153ca47b7e6e1a894064efd5e85101bc0f6",
+        "legacy_fields_sha256:a19f7acda6465c8634ae1ecf871bcd6eca1baa2b7d23e99c3bb01dd3e3dc5d0a",
+        "independent_solution_sha256:2ec96a7e3449f8827fc305ec72bb137fba51e4c2676153b371cdb68aff2fca00"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹתוֹ",
+            "normalized": "אותו"
+          },
+          {
+            "index": 5,
+            "surface": "מַנְגָּנוֹן",
+            "normalized": "מנגנון"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "הִזְדַּקְּנוּת",
+            "normalized": "הזדקנות"
+          },
+          {
+            "index": 8,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 9,
+            "surface": "מֻאֲצָן",
+            "normalized": "מאצן"
+          },
+          {
+            "index": 10,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 11,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 12,
+            "surface": "מְבֻקָּר",
+            "normalized": "מבקר"
+          },
+          {
+            "index": 13,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 14,
+            "surface": "מֻגְבֶּרֶת",
+            "normalized": "מגברת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) בגרף של זיקון מלאכותי באלומיניום מציירים ציר X כזמן זיקון וציר Y כחוזק או קשיות או σy",
+        "he_niqqud": "ב) בַּגְּרָף שֶׁל זִקּוּן מְלָאכוּתִי בָּאַלוּמִינְיוּם מְצַיְּרִים צִיר X כִּזְמַן זִקּוּן וְצִיר Y כְּחֹזֶק אוֹ קַשְׁיוּת אוֹ σy",
+        "transliteration": "B) Ba'graf shel zikkun melakhuti ba'alúminyum metsayyerim tsir X ki'zman zikkun v'tsir Y k'khózek o kashyut o σy",
+        "ru": "Б) На графике искусственного старения алюминия ось X обозначает время старения, а ось Y — прочность, твердость или σy (предел текучести)."
+      },
+      "source_refs": [
+        "legacy_row_hash:038a18c992540761492f65ff704f0e1d9179fbe62c5960556600d58f8ec29e31",
+        "legacy_fields_sha256:4d4d97b5291f69c78fbd5a9c921e3f81f1f5e52676b50374584fa144fe38b7ad",
+        "independent_solution_sha256:2ec96a7e3449f8827fc305ec72bb137fba51e4c2676153b371cdb68aff2fca00"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "בַּגְּרָף",
+            "normalized": "בגרף"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 4,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 5,
+            "surface": "בָּאַלוּמִינְיוּם",
+            "normalized": "באלומיניום"
+          },
+          {
+            "index": 6,
+            "surface": "מְצַיְּרִים",
+            "normalized": "מצירים"
+          },
+          {
+            "index": 7,
+            "surface": "צִיר",
+            "normalized": "ציר"
+          },
+          {
+            "index": 8,
+            "surface": "X",
+            "normalized": "X"
+          },
+          {
+            "index": 9,
+            "surface": "כִּזְמַן",
+            "normalized": "כזמן"
+          },
+          {
+            "index": 10,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 11,
+            "surface": "וְצִיר",
+            "normalized": "וציר"
+          },
+          {
+            "index": 12,
+            "surface": "Y",
+            "normalized": "Y"
+          },
+          {
+            "index": 13,
+            "surface": "כְּחֹזֶק",
+            "normalized": "כחזק"
+          },
+          {
+            "index": 14,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 15,
+            "surface": "קַשְׁיוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 16,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 17,
+            "surface": "σy",
+            "normalized": "σy"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "σL > 125 MPa",
+        "he_niqqud": "σL > 125 MPa",
+        "transliteration": "σL > 125 MPa",
+        "ru": "σL > 125 МПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:34c9c59c41ece42703acee56cc1386f8b21f38caae4d770edcf3a4f58854a2ec",
+        "legacy_fields_sha256:1da37d70ef8c07f462f6300c93ad9197a874ad580875515531293054e1802560",
+        "independent_solution_sha256:2ec96a7e3449f8827fc305ec72bb137fba51e4c2676153b371cdb68aff2fca00"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σL",
+            "normalized": "σL"
+          },
+          {
+            "index": 1,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 2,
+            "surface": "125",
+            "normalized": "125"
+          },
+          {
+            "index": 3,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σL > 125 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) זיקון טבעי הוא תהליך שבו לאחר עיבוד או חיסום או דפורמציה מתרחשת עם הזמן עלייה בחוזק ובקשיות עקב שינויי מבנה מואצים בדיפוזיה איטית בטמפרטורת החדר",
+        "he_niqqud": "א) זִקּוּן טִבְעִי הוּא תַּהֲלִיךְ שֶׁבּוֹ לְאַחַר עִבּוּד אוֹ חִסּוּם אוֹ דֵּפוֹרְמַצְיָה מִתְרַחֶשֶׁת עִם הַזְּמַן עֲלִיָּה בַּחֹזֶק וּבַקַּשְׁיוּת עֵקֶב שִׁנּוּיֵי מִבְנֶה מֻאֲצִים בְּדִיפוּזְיָה אִטִּית בְּטֶמְפֶּרָטוּרַת הַחֶדֶר",
+        "transliteration": "A) Zikkun tiv'i hu tahlíkh she'bo le'akhar ibud o khissum o deformatsyah mitrakheshet im ha'zman aliyah ba'khózek u'va'kashyut ekev shinnúyey mivneh mu'atsim b'difúzyah ítit b'temperatúrat ha'khéder",
+        "ru": "А) Естественное старение — это процесс, при котором после обработки, закалки или деформации со временем происходит повышение прочности и твердости вследствие ускоренных структурных изменений при медленной диффузии при комнатной температуре."
+      },
+      "source_refs": [
+        "legacy_row_hash:6a478d7f3830a83eda3f1c1d9e8670951109d5457c248cc72a31cae12a11d9fc",
+        "legacy_fields_sha256:7544e24d7e78e341d0f655237f36c1588a739265f3a344afda6438158c6eb923",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "טִבְעִי",
+            "normalized": "טבעי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "תַּהֲלִיךְ",
+            "normalized": "תהליך"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 6,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 7,
+            "surface": "עִבּוּד",
+            "normalized": "עבוד"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 9,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 10,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 11,
+            "surface": "דֵּפוֹרְמַצְיָה",
+            "normalized": "דפורמציה"
+          },
+          {
+            "index": 12,
+            "surface": "מִתְרַחֶשֶׁת",
+            "normalized": "מתרחשת"
+          },
+          {
+            "index": 13,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 14,
+            "surface": "הַזְּמַן",
+            "normalized": "הזמן"
+          },
+          {
+            "index": 15,
+            "surface": "עֲלִיָּה",
+            "normalized": "עליה"
+          },
+          {
+            "index": 16,
+            "surface": "בַּחֹזֶק",
+            "normalized": "בחזק"
+          },
+          {
+            "index": 17,
+            "surface": "וּבַקַּשְׁיוּת",
+            "normalized": "ובקשיות"
+          },
+          {
+            "index": 18,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 19,
+            "surface": "שִׁנּוּיֵי",
+            "normalized": "שנויי"
+          },
+          {
+            "index": 20,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 21,
+            "surface": "מֻאֲצִים",
+            "normalized": "מאצים"
+          },
+          {
+            "index": 22,
+            "surface": "בְּדִיפוּזְיָה",
+            "normalized": "בדיפוזיה"
+          },
+          {
+            "index": 23,
+            "surface": "אִטִּית",
+            "normalized": "אטית"
+          },
+          {
+            "index": 24,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 25,
+            "surface": "הַחֶדֶר",
+            "normalized": "החדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בזיקון טבעי בפלדה אטומים בין מקומיים בעיקר C ו N נודדים אל דיסלוקציות",
+        "he_niqqud": "בְּזִקּוּן טִבְעִי בִּפְלָדָה אָטוֹמִים בֵּין מְקוֹמִיִּים בְּעִקָּר C וְ N נוֹדְדִים אֶל דִּיסְלוֹקַצְיוֹת",
+        "transliteration": "B'zikkun tiv'i b'fladah atómim bein mekomiyim b'ikkar C v'N nodedim el díslokatsyot",
+        "ru": "При естественном старении в стали межузельные атомы, в основном C и N, мигрируют к дислокациям."
+      },
+      "source_refs": [
+        "legacy_row_hash:10c5723d2ad3cb37498d7d7be83db4bd52a4a468cd706da236b7437ee298dc9b",
+        "legacy_fields_sha256:c33f23c7ab05942ff4eba8e80824170922fa65fd9312327147aacdb557362fca",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּזִקּוּן",
+            "normalized": "בזקון"
+          },
+          {
+            "index": 1,
+            "surface": "טִבְעִי",
+            "normalized": "טבעי"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 3,
+            "surface": "אָטוֹמִים",
+            "normalized": "אטומים"
+          },
+          {
+            "index": 4,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 5,
+            "surface": "מְקוֹמִיִּים",
+            "normalized": "מקומיים"
+          },
+          {
+            "index": 6,
+            "surface": "בְּעִקָּר",
+            "normalized": "בעקר"
+          },
+          {
+            "index": 7,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 8,
+            "surface": "וְ",
+            "normalized": "ו"
+          },
+          {
+            "index": 9,
+            "surface": "N",
+            "normalized": "N"
+          },
+          {
+            "index": 10,
+            "surface": "נוֹדְדִים",
+            "normalized": "נודדים"
+          },
+          {
+            "index": 11,
+            "surface": "אֶל",
+            "normalized": "אל"
+          },
+          {
+            "index": 12,
+            "surface": "דִּיסְלוֹקַצְיוֹת",
+            "normalized": "דיסלוקציות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הצטברות האטומים סביב דיסלוקציות יוצרת אטמוספרות קוטרל ומייצבת את הדיסלוקציות",
+        "he_niqqud": "הִצְטַבְּרוּת הָאָטוֹמִים סָבִיב דִּיסְלוֹקַצְיוֹת יוֹצֶרֶת אַטְמוֹסְפֵרוֹת קוֹטְרֵל וּמְיַצֶּבֶת אֶת הַדִּיסְלוֹקַצְיוֹת",
+        "transliteration": "Hitsabrut ha'atomim saviv díslokatsyot yotseret atmósferot Kótrél u'meyatsevet et ha'díslokatsyot",
+        "ru": "Накопление атомов вокруг дислокаций создает атмосферы Коттрелла и стабилизирует дислокации."
+      },
+      "source_refs": [
+        "legacy_row_hash:f46dfd4ee33bbda7843e02df4999bf31c549515e1a021dd79cacf865b8c2a742",
+        "legacy_fields_sha256:dec16151267b246fc9989699772f497973800ab7c851c7cb62a72cec5f1292b1",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הִצְטַבְּרוּת",
+            "normalized": "הצטברות"
+          },
+          {
+            "index": 1,
+            "surface": "הָאָטוֹמִים",
+            "normalized": "האטומים"
+          },
+          {
+            "index": 2,
+            "surface": "סָבִיב",
+            "normalized": "סביב"
+          },
+          {
+            "index": 3,
+            "surface": "דִּיסְלוֹקַצְיוֹת",
+            "normalized": "דיסלוקציות"
+          },
+          {
+            "index": 4,
+            "surface": "יוֹצֶרֶת",
+            "normalized": "יוצרת"
+          },
+          {
+            "index": 5,
+            "surface": "אַטְמוֹסְפֵרוֹת",
+            "normalized": "אטמוספרות"
+          },
+          {
+            "index": 6,
+            "surface": "קוֹטְרֵל",
+            "normalized": "קוטרל"
+          },
+          {
+            "index": 7,
+            "surface": "וּמְיַצֶּבֶת",
+            "normalized": "ומיצבת"
+          },
+          {
+            "index": 8,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 9,
+            "surface": "הַדִּיסְלוֹקַצְיוֹת",
+            "normalized": "הדיסלוקציות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "התוצאה יכולה להיות הופעת נקודת כניעה או התחזקות תופעת הכניעה",
+        "he_niqqud": "הַתּוֹצָאָה יְכוֹלָה לִהְיוֹת הוֹפָעַת נְקֻדַּת כְּנִיעָה אוֹ הִתְחַזְּקוּת תּוֹפָעַת הַכְּנִיעָה",
+        "transliteration": "Ha'totsa'ah yekholah lihyot hofá'at nekudat k'ni'ah o hitkhazkut tofá'at ha'kni'ah",
+        "ru": "Результатом может стать появление предела текучести или усиление явления текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:ef3e8d566c89383fad3bce71068eeb89a817f449f8899fd23c6537907b755ef2",
+        "legacy_fields_sha256:4bec3cb1a6afe51059064f90a63a9fe07fb055d0c9bd0f6622cc8620c73f9b3a",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַתּוֹצָאָה",
+            "normalized": "התוצאה"
+          },
+          {
+            "index": 1,
+            "surface": "יְכוֹלָה",
+            "normalized": "יכולה"
+          },
+          {
+            "index": 2,
+            "surface": "לִהְיוֹת",
+            "normalized": "להיות"
+          },
+          {
+            "index": 3,
+            "surface": "הוֹפָעַת",
+            "normalized": "הופעת"
+          },
+          {
+            "index": 4,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 5,
+            "surface": "כְּנִיעָה",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "הִתְחַזְּקוּת",
+            "normalized": "התחזקות"
+          },
+          {
+            "index": 8,
+            "surface": "תּוֹפָעַת",
+            "normalized": "תופעת"
+          },
+          {
+            "index": 9,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במקביל עלולה להתרחש ירידה בדוקטיליות והשתנות תכונות לאורך ימים עד שבועות בטמפרטורת החדר",
+        "he_niqqud": "בְּמַקְבִּיל עֲלוּלָה לְהִתְרַחֵשׁ יְרִידָה בַּדּוּקְטִילִיּוּת וְהִשְׁתַּנּוּת תְּכוּנוֹת לְאֹרֶךְ יָמִים עַד שָׁבוּעוֹת בְּטֶמְפֶּרָטוּרַת הַחֶדֶר",
+        "transliteration": "B'makbil alúlah lehitrakhesh yeridah ba'dúktíliyyut v'hishtannut tkhunot le'órekh yamim ad shavu'ot b'temperatúrat ha'khéder",
+        "ru": "Параллельно может произойти снижение пластичности и изменение свойств в течение дней или недель при комнатной температуре."
+      },
+      "source_refs": [
+        "legacy_row_hash:1317c9369e37911b922d948bab881654941794b9581a92292bda02d947d9293a",
+        "legacy_fields_sha256:5b28bb12a90fef252e5218be999c191abf5286104ebbb89fc89b42c010d45a96",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמַקְבִּיל",
+            "normalized": "במקביל"
+          },
+          {
+            "index": 1,
+            "surface": "עֲלוּלָה",
+            "normalized": "עלולה"
+          },
+          {
+            "index": 2,
+            "surface": "לְהִתְרַחֵשׁ",
+            "normalized": "להתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "יְרִידָה",
+            "normalized": "ירידה"
+          },
+          {
+            "index": 4,
+            "surface": "בַּדּוּקְטִילִיּוּת",
+            "normalized": "בדוקטיליות"
+          },
+          {
+            "index": 5,
+            "surface": "וְהִשְׁתַּנּוּת",
+            "normalized": "והשתנות"
+          },
+          {
+            "index": 6,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 7,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 8,
+            "surface": "יָמִים",
+            "normalized": "ימים"
+          },
+          {
+            "index": 9,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 10,
+            "surface": "שָׁבוּעוֹת",
+            "normalized": "שבועות"
+          },
+          {
+            "index": 11,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 12,
+            "surface": "הַחֶדֶר",
+            "normalized": "החדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) זיקון מלאכותי הוא אותו מנגנון של הזדקנות אך מואץ באמצעות חימום מבוקר בטמפרטורה מוגברת",
+        "he_niqqud": "א) זִקּוּן מְלָאכוּתִי הוּא אוֹתוֹ מַנְגָּנוֹן שֶׁל הִזְדַּקְּנוּת אַךְ מֻאֲצָן בְּאֶמְצָעוּת חִמּוּם מְבֻקָּר בְּטֶמְפֶּרָטוּרָה מֻגְבֶּרֶת",
+        "transliteration": "A) Zikkun melakhuti hu oto manganon shel hizdaknenut akh mu'atsan b'emtsa'ut khimmum mevukkar b'temperatúrah mugbéret",
+        "ru": "А) Искусственное старение — это тот же механизм старения, но ускоренный с помощью контролируемого нагрева при повышенной температуре."
+      },
+      "source_refs": [
+        "legacy_row_hash:2d9b883147997a376a7187358f672153ca47b7e6e1a894064efd5e85101bc0f6",
+        "legacy_fields_sha256:a19f7acda6465c8634ae1ecf871bcd6eca1baa2b7d23e99c3bb01dd3e3dc5d0a",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹתוֹ",
+            "normalized": "אותו"
+          },
+          {
+            "index": 5,
+            "surface": "מַנְגָּנוֹן",
+            "normalized": "מנגנון"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "הִזְדַּקְּנוּת",
+            "normalized": "הזדקנות"
+          },
+          {
+            "index": 8,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 9,
+            "surface": "מֻאֲצָן",
+            "normalized": "מאצן"
+          },
+          {
+            "index": 10,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 11,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 12,
+            "surface": "מְבֻקָּר",
+            "normalized": "מבקר"
+          },
+          {
+            "index": 13,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 14,
+            "surface": "מֻגְבֶּרֶת",
+            "normalized": "מגברת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בזיקון מלאכותי מתקבלים בפרק זמן קצר השינויים המבניים והמכניים שהיו מתרחשים באיטיות בטמפרטורת החדר",
+        "he_niqqud": "בְּזִקּוּן מְלָאכוּתִי מִתְקַבְּלִים בְּפֶרֶק זְמַן קָצָר הַשִּׁנּוּיִים הַמִּבְנִיִּים וְהַמְּכָנִיִּים שֶׁהָיוּ מִתְרַחֲשִׁים בְּאִטִּיּוּת בְּטֶמְפֶּרָטוּרַת הַחֶדֶר",
+        "transliteration": "B'zikkun melakhuti mitkabbelim b'pérekh zman katsar ha'shinnúyim ha'mivniyyim v'ha'mekhaniyyim she'hayu mitrakhashim b'íttiyyut b'temperatúrat ha'khéder",
+        "ru": "При искусственном старении за короткий промежуток времени достигаются структурные и механические изменения, которые медленно происходили бы при комнатной температуре."
+      },
+      "source_refs": [
+        "legacy_row_hash:d9e50533246cd1a3b27763d451a8b4a6008b91d7fc8a5d963efc6a9b18031767",
+        "legacy_fields_sha256:840d9c9a3470da775ffa36e43ec8e923ed8686db7e69befa6cf234b17ad1c285",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּזִקּוּן",
+            "normalized": "בזקון"
+          },
+          {
+            "index": 1,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבְּלִים",
+            "normalized": "מתקבלים"
+          },
+          {
+            "index": 3,
+            "surface": "בְּפֶרֶק",
+            "normalized": "בפרק"
+          },
+          {
+            "index": 4,
+            "surface": "זְמַן",
+            "normalized": "זמן"
+          },
+          {
+            "index": 5,
+            "surface": "קָצָר",
+            "normalized": "קצר"
+          },
+          {
+            "index": 6,
+            "surface": "הַשִּׁנּוּיִים",
+            "normalized": "השנויים"
+          },
+          {
+            "index": 7,
+            "surface": "הַמִּבְנִיִּים",
+            "normalized": "המבניים"
+          },
+          {
+            "index": 8,
+            "surface": "וְהַמְּכָנִיִּים",
+            "normalized": "והמכניים"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁהָיוּ",
+            "normalized": "שהיו"
+          },
+          {
+            "index": 10,
+            "surface": "מִתְרַחֲשִׁים",
+            "normalized": "מתרחשים"
+          },
+          {
+            "index": 11,
+            "surface": "בְּאִטִּיּוּת",
+            "normalized": "באטיות"
+          },
+          {
+            "index": 12,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 13,
+            "surface": "הַחֶדֶר",
+            "normalized": "החדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המטרה יכולה להיות ייצוב תכונות או העלאת חוזק בהתאם לסוג הפלדה ולמצב ההתחלתי",
+        "he_niqqud": "הַמַּטָּרָה יְכוֹלָה לִהְיוֹת יִצּוּב תְּכוּנוֹת אוֹ הַעֲלָאַת חֹזֶק בְּהֶתְאֵם לְסוּג הַפְּלָדָה וְלַמַּצָּב הָהַתְחָלָתִי",
+        "transliteration": "Ha'mattarah yekholah lihyot yitsuv tkhunot o ha'ala'at khózek b'het'em l'sug ha'pladah v'la'matsav ha'hatkhalati",
+        "ru": "Целью может быть стабилизация свойств или повышение прочности в зависимости от типа стали и исходного состояния."
+      },
+      "source_refs": [
+        "legacy_row_hash:66be809b27b212de5d4aee52078a4f615b91a7c4291f27f96e5d6967c5654357",
+        "legacy_fields_sha256:4e0a88de582c8e21cb0d996eebe928bee670a329dadf4377b0696f1846edb05e",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּטָּרָה",
+            "normalized": "המטרה"
+          },
+          {
+            "index": 1,
+            "surface": "יְכוֹלָה",
+            "normalized": "יכולה"
+          },
+          {
+            "index": 2,
+            "surface": "לִהְיוֹת",
+            "normalized": "להיות"
+          },
+          {
+            "index": 3,
+            "surface": "יִצּוּב",
+            "normalized": "יצוב"
+          },
+          {
+            "index": 4,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "הַעֲלָאַת",
+            "normalized": "העלאת"
+          },
+          {
+            "index": 7,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 8,
+            "surface": "בְּהֶתְאֵם",
+            "normalized": "בהתאם"
+          },
+          {
+            "index": 9,
+            "surface": "לְסוּג",
+            "normalized": "לסוג"
+          },
+          {
+            "index": 10,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 11,
+            "surface": "וְלַמַּצָּב",
+            "normalized": "ולמצב"
+          },
+          {
+            "index": 12,
+            "surface": "הָהַתְחָלָתִי",
+            "normalized": "ההתחלתי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "יש לקחת בחשבון אפשרות לפגיעה בדוקטיליות כתוצאה מהאצת תהליכי הזיקון",
+        "he_niqqud": "יֵשׁ לָקַחַת בְּחֶשְׁבּוֹן אֶפְשָׁרוּת לִפְגִיעָה בַּדּוּקְטִילִיּוּת כְּתוֹצָאָה מֵהֲאִצּוּת תַּהֲלִיכֵי הַזִּקּוּן",
+        "transliteration": "Yesh lakakhat b'kheshbon efsharut lifgi'ah ba'dúktíliyyut k'totsa'ah meha'atsat tahlíkhí ha'zikkun",
+        "ru": "Следует учитывать возможность ухудшения пластичности в результате ускорения процессов старения."
+      },
+      "source_refs": [
+        "legacy_row_hash:3cfde21e36f82a182c3951d0cf3430871da23abd3358e570c22e981d76e17455",
+        "legacy_fields_sha256:b877777cec0a3ce50eae6652ed06f67520035dff6d32572e31c7e904b2c43a46",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 1,
+            "surface": "לָקַחַת",
+            "normalized": "לקחת"
+          },
+          {
+            "index": 2,
+            "surface": "בְּחֶשְׁבּוֹן",
+            "normalized": "בחשבון"
+          },
+          {
+            "index": 3,
+            "surface": "אֶפְשָׁרוּת",
+            "normalized": "אפשרות"
+          },
+          {
+            "index": 4,
+            "surface": "לִפְגִיעָה",
+            "normalized": "לפגיעה"
+          },
+          {
+            "index": 5,
+            "surface": "בַּדּוּקְטִילִיּוּת",
+            "normalized": "בדוקטיליות"
+          },
+          {
+            "index": 6,
+            "surface": "כְּתוֹצָאָה",
+            "normalized": "כתוצאה"
+          },
+          {
+            "index": 7,
+            "surface": "מֵהֲאִצּוּת",
+            "normalized": "מהאצות"
+          },
+          {
+            "index": 8,
+            "surface": "תַּהֲלִיכֵי",
+            "normalized": "תהליכי"
+          },
+          {
+            "index": 9,
+            "surface": "הַזִּקּוּן",
+            "normalized": "הזקון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r014",
+      "order": 14,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) בגרף של זיקון מלאכותי באלומיניום מציירים ציר X כזמן זיקון וציר Y כחוזק או קשיות או σy",
+        "he_niqqud": "ב) בַּגְּרָף שֶׁל זִקּוּן מְלָאכוּתִי בָּאַלוּמִינְיוּם מְצַיְּרִים צִיר X כִּזְמַן זִקּוּן וְצִיר Y כְּחֹזֶק אוֹ קַשְׁיוּת אוֹ σy",
+        "transliteration": "B) Ba'graf shel zikkun melakhuti ba'alúminyum metsayyerim tsir X ki'zman zikkun v'tsir Y k'khózek o kashyut o σy",
+        "ru": "Б) На графике искусственного старения алюминия ось X обозначает время старения, а ось Y — прочность, твердость или σy (предел текучести)."
+      },
+      "source_refs": [
+        "legacy_row_hash:038a18c992540761492f65ff704f0e1d9179fbe62c5960556600d58f8ec29e31",
+        "legacy_fields_sha256:4d4d97b5291f69c78fbd5a9c921e3f81f1f5e52676b50374584fa144fe38b7ad",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "בַּגְּרָף",
+            "normalized": "בגרף"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 4,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 5,
+            "surface": "בָּאַלוּמִינְיוּם",
+            "normalized": "באלומיניום"
+          },
+          {
+            "index": 6,
+            "surface": "מְצַיְּרִים",
+            "normalized": "מצירים"
+          },
+          {
+            "index": 7,
+            "surface": "צִיר",
+            "normalized": "ציר"
+          },
+          {
+            "index": 8,
+            "surface": "X",
+            "normalized": "X"
+          },
+          {
+            "index": 9,
+            "surface": "כִּזְמַן",
+            "normalized": "כזמן"
+          },
+          {
+            "index": 10,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 11,
+            "surface": "וְצִיר",
+            "normalized": "וציר"
+          },
+          {
+            "index": 12,
+            "surface": "Y",
+            "normalized": "Y"
+          },
+          {
+            "index": 13,
+            "surface": "כְּחֹזֶק",
+            "normalized": "כחזק"
+          },
+          {
+            "index": 14,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 15,
+            "surface": "קַשְׁיוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 16,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 17,
+            "surface": "σy",
+            "normalized": "σy"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r015",
+      "order": 15,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "העקומה עולה בתחילת הזיקון ומייצגת תת זיקון שבו ההתקשות עולה",
+        "he_niqqud": "הָעֲקֻמָּה עוֹלָה בִּתְחִלַּת הַזִּקּוּן וּמְיַצֶּגֶת תַּת זִקּוּן שֶׁבּוֹ הַהִתְקַשּׁוּת עוֹלָה",
+        "transliteration": "Ha'akúmmah olah b'tkhillat ha'zikkun u'meyatseget tat zikkun she'bo ha'hitkashshut olah",
+        "ru": "Кривая поднимается в начале старения и представляет собой недодержку (under-aging), при которой твердость увеличивается."
+      },
+      "source_refs": [
+        "legacy_row_hash:ffc5500f92157af8da0fd15f38fc8a3a0adedc678b38a566f7d6ea590e29d742",
+        "legacy_fields_sha256:722a5d6ec925d2791eea74b0916d0c9884d32c51fbbb3979b5d87edc4701a510",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הָעֲקֻמָּה",
+            "normalized": "העקמה"
+          },
+          {
+            "index": 1,
+            "surface": "עוֹלָה",
+            "normalized": "עולה"
+          },
+          {
+            "index": 2,
+            "surface": "בִּתְחִלַּת",
+            "normalized": "בתחלת"
+          },
+          {
+            "index": 3,
+            "surface": "הַזִּקּוּן",
+            "normalized": "הזקון"
+          },
+          {
+            "index": 4,
+            "surface": "וּמְיַצֶּגֶת",
+            "normalized": "ומיצגת"
+          },
+          {
+            "index": 5,
+            "surface": "תַּת",
+            "normalized": "תת"
+          },
+          {
+            "index": 6,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 8,
+            "surface": "הַהִתְקַשּׁוּת",
+            "normalized": "ההתקשות"
+          },
+          {
+            "index": 9,
+            "surface": "עוֹלָה",
+            "normalized": "עולה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r016",
+      "order": 16,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "העקומה מגיעה לשיא ומייצגת שיא זיקון שבו מתקבל חוזק מרבי",
+        "he_niqqud": "הָעֲקֻמָּה מַגִּיעָה לְשִׂיא וּמְיַצֶּגֶת שִׂיא זִקּוּן שֶׁבּוֹ מִתְקַבֵּל חֹזֶק מֶרַבִּי",
+        "transliteration": "Ha'akúmmah magi'ah le'si u'meyatseget si zikkun she'bo mitkabbel khózek merabí",
+        "ru": "Кривая достигает пика и представляет собой пиковое старение (peak aging), при котором достигается максимальная прочность."
+      },
+      "source_refs": [
+        "legacy_row_hash:b1c5f572095af31b0a45f207ee86caa6d06c848b8124b35dee1870a575d6a490",
+        "legacy_fields_sha256:18d209b2257eba225002f1492d181de80980fbfad7c89962131a9612f69d37b0",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הָעֲקֻמָּה",
+            "normalized": "העקמה"
+          },
+          {
+            "index": 1,
+            "surface": "מַגִּיעָה",
+            "normalized": "מגיעה"
+          },
+          {
+            "index": 2,
+            "surface": "לְשִׂיא",
+            "normalized": "לשיא"
+          },
+          {
+            "index": 3,
+            "surface": "וּמְיַצֶּגֶת",
+            "normalized": "ומיצגת"
+          },
+          {
+            "index": 4,
+            "surface": "שִׂיא",
+            "normalized": "שיא"
+          },
+          {
+            "index": 5,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 7,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 8,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 9,
+            "surface": "מֶרַבִּי",
+            "normalized": "מרבי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r017",
+      "order": 17,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר השיא העקומה יורדת ומייצגת זיקון יתר שבו החוזק יורד",
+        "he_niqqud": "לְאַחַר הַשִּׂיא הָעֲקֻמָּה יוֹרֶדֶת וּמְיַצֶּגֶת זִקּוּן יֶתֶר שֶׁבּוֹ הַחֹזֶק יוֹרֵד",
+        "transliteration": "Le'akhar ha'si ha'akúmmah yoredet u'meyatseget zikkun yeter she'bo ha'khózek yored",
+        "ru": "После пика кривая опускается и представляет собой перестаривание (over-aging), при котором прочность снижается."
+      },
+      "source_refs": [
+        "legacy_row_hash:f4c7bdefd57c917f92ef6c70f943518c923c8bbb39c2cb8d84b789e14083451c",
+        "legacy_fields_sha256:cad43fb46d0969ae7c41e1c398fc408aecb34ce0c9b999a3c12680fb981595b4",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "הַשִּׂיא",
+            "normalized": "השיא"
+          },
+          {
+            "index": 2,
+            "surface": "הָעֲקֻמָּה",
+            "normalized": "העקמה"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹרֶדֶת",
+            "normalized": "יורדת"
+          },
+          {
+            "index": 4,
+            "surface": "וּמְיַצֶּגֶת",
+            "normalized": "ומיצגת"
+          },
+          {
+            "index": 5,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 6,
+            "surface": "יֶתֶר",
+            "normalized": "יתר"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 8,
+            "surface": "הַחֹזֶק",
+            "normalized": "החזק"
+          },
+          {
+            "index": 9,
+            "surface": "יוֹרֵד",
+            "normalized": "יורד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r018",
+      "order": 18,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "על הגרף מסמנים שלב טיפול המסה ולאחריו קירור מהיר לקבלת תמיסה מוצקה על רוויה",
+        "he_niqqud": "עַל הַגְּרָף מְסַמְּנִים שָׁלָב טִפּוּל הַמָּסָה וּלְאַחֲרָיו קִרּוּר מָהִיר לְקַבָּלַת תְּמִיסָה מֻצָּקָה עַל רְוִיָּה",
+        "transliteration": "Al ha'graf mesamnim shálav tipul hamasah u'le'akharav kirrur mahir le'kabbálat tmisah mutsakah al revayah",
+        "ru": "На графике отмечают стадию обработки раствором (гомогенизация/закалка), за которой следует быстрое охлаждение для получения перенасыщенного твердого раствора."
+      },
+      "source_refs": [
+        "legacy_row_hash:f0942ff9a52af97219cc17811ac1e927fe9f7ebb732cb48da1478c115bbb6765",
+        "legacy_fields_sha256:ca3bb66d4e86228963c6aef6378281319eab373ecc65798d0deebd1297672949",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 1,
+            "surface": "הַגְּרָף",
+            "normalized": "הגרף"
+          },
+          {
+            "index": 2,
+            "surface": "מְסַמְּנִים",
+            "normalized": "מסמנים"
+          },
+          {
+            "index": 3,
+            "surface": "שָׁלָב",
+            "normalized": "שלב"
+          },
+          {
+            "index": 4,
+            "surface": "טִפּוּל",
+            "normalized": "טפול"
+          },
+          {
+            "index": 5,
+            "surface": "הַמָּסָה",
+            "normalized": "המסה"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְאַחֲרָיו",
+            "normalized": "ולאחריו"
+          },
+          {
+            "index": 7,
+            "surface": "קִרּוּר",
+            "normalized": "קרור"
+          },
+          {
+            "index": 8,
+            "surface": "מָהִיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 9,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 10,
+            "surface": "תְּמִיסָה",
+            "normalized": "תמיסה"
+          },
+          {
+            "index": 11,
+            "surface": "מֻצָּקָה",
+            "normalized": "מצקה"
+          },
+          {
+            "index": 12,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 13,
+            "surface": "רְוִיָּה",
+            "normalized": "רויה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסמנים שלב דגירה והתחלת היווצרות אזורי GP",
+        "he_niqqud": "מְסַמְּנִים שָׁלָב דְּגִירָה וְהַתְחָלַת הִיוּצְּרוּת אֵזוֹרֵי GP",
+        "transliteration": "Mesamnim shálav degirah v'hatkhalat hivvatsrut ezorei GP",
+        "ru": "Отмечают стадию инкубации и начало образования зон GP (ГП)."
+      },
+      "source_refs": [
+        "legacy_row_hash:8608c1a760aeecadfe8ffab2be8811645e9c7956e8934da81eb3c310ba9c8c0c",
+        "legacy_fields_sha256:4d2fb3c17a6629ac810b07bce2c9847abcd735239efdc1b54b4c7419187c3bca",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְסַמְּנִים",
+            "normalized": "מסמנים"
+          },
+          {
+            "index": 1,
+            "surface": "שָׁלָב",
+            "normalized": "שלב"
+          },
+          {
+            "index": 2,
+            "surface": "דְּגִירָה",
+            "normalized": "דגירה"
+          },
+          {
+            "index": 3,
+            "surface": "וְהַתְחָלַת",
+            "normalized": "והתחלת"
+          },
+          {
+            "index": 4,
+            "surface": "הִיוּצְּרוּת",
+            "normalized": "היוצרות"
+          },
+          {
+            "index": 5,
+            "surface": "אֵזוֹרֵי",
+            "normalized": "אזורי"
+          },
+          {
+            "index": 6,
+            "surface": "GP",
+            "normalized": "GP"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסמנים שלב תת זיקון שבו חיזוק בהקשיית משקעים הולך וגדל",
+        "he_niqqud": "מְסַמְּנִים שָׁלָב תַּת זִקּוּן שֶׁבּוֹ חִזּוּק בְּהַקְשָׁיַת מִשְׁקָעִים הוֹלֵךְ וְגָדֵל",
+        "transliteration": "Mesamnim shálav tat zikkun she'bo khizzúk b'haksháyat mishqa'im holekh v'gadel",
+        "ru": "Отмечают стадию недодержки, на которой упрочнение за счет выделения частиц (дисперсионное твердение) постепенно возрастает."
+      },
+      "source_refs": [
+        "legacy_row_hash:cd0429a0e43ff5812f24bd136d1a0b19f1e2b235f373ecfb2e01e6f4b93c892d",
+        "legacy_fields_sha256:31c9217c7e3877512d665cca4b999322af04db12b5ba2be5be93e2de549eaa5b",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְסַמְּנִים",
+            "normalized": "מסמנים"
+          },
+          {
+            "index": 1,
+            "surface": "שָׁלָב",
+            "normalized": "שלב"
+          },
+          {
+            "index": 2,
+            "surface": "תַּת",
+            "normalized": "תת"
+          },
+          {
+            "index": 3,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 5,
+            "surface": "חִזּוּק",
+            "normalized": "חזוק"
+          },
+          {
+            "index": 6,
+            "surface": "בְּהַקְשָׁיַת",
+            "normalized": "בהקשית"
+          },
+          {
+            "index": 7,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 8,
+            "surface": "הוֹלֵךְ",
+            "normalized": "הולך"
+          },
+          {
+            "index": 9,
+            "surface": "וְגָדֵל",
+            "normalized": "וגדל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסמנים שלב שיא זיקון שבו משקעים עדינים וקוהרנטיים נותנים חוזק מרבי",
+        "he_niqqud": "מְסַמְּנִים שָׁלָב שֶׁבּוֹ מִשְׁקָעִים עֲדִינִים וְקוֹהֶרֶנְטִיִּים נוֹתְנִים חֹזֶק מֶרַבִּי",
+        "transliteration": "Mesamnim shálav si zikkun she'bo mishqa'im adinim v'kohérentiyyim notnim khózek merabí",
+        "ru": "Отмечают стадию пикового старения, где тонкие и когерентные выделения (частицы) обеспечивают максимальную прочность."
+      },
+      "source_refs": [
+        "legacy_row_hash:5617f8e10e1d3a56ae934889c681ddf701be2dd92cee7590735dcd038aa8b1c9",
+        "legacy_fields_sha256:345f7b7c366ab759b52cbecc0626c3b0a1649764bfaf9dc1a65b4c31550f5c5a",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְסַמְּנִים",
+            "normalized": "מסמנים"
+          },
+          {
+            "index": 1,
+            "surface": "שָׁלָב",
+            "normalized": "שלב"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 3,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 4,
+            "surface": "עֲדִינִים",
+            "normalized": "עדינים"
+          },
+          {
+            "index": 5,
+            "surface": "וְקוֹהֶרֶנְטִיִּים",
+            "normalized": "וקוהרנטיים"
+          },
+          {
+            "index": 6,
+            "surface": "נוֹתְנִים",
+            "normalized": "נותנים"
+          },
+          {
+            "index": 7,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 8,
+            "surface": "מֶרַבִּי",
+            "normalized": "מרבי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסמנים שלב זיקון יתר שבו המשקעים גדלים או מתלכדים ולכן החוזק יורד",
+        "he_niqqud": "מְסַמְּנִים שָׁלָב זִקּוּן יֶתֶר שֶׁבּוֹ הַמִּשְׁקָעִים גְּדֵלִים אוֹ מִתְלַכְּדִים וְלָכֵן הַחֹזֶק יוֹרֵד",
+        "transliteration": "Mesamnim shálav zikkun yeter she'bo ha'mishqa'im gdelim o mitlakhdim v'lakhen ha'khózek yored",
+        "ru": "Отмечают стадию перестаривания, где выделения укрупняются или коагулируют, и поэтому прочность снижается."
+      },
+      "source_refs": [
+        "legacy_row_hash:47a9c6e45e3234ef9ab3ca21f619520676eaa394ae28b1902097d20887db3785",
+        "legacy_fields_sha256:efe874956412f6395da8cce538ac01f150cb03723900135e2d2cd5746389e40a",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְסַמְּנִים",
+            "normalized": "מסמנים"
+          },
+          {
+            "index": 1,
+            "surface": "שָׁלָב",
+            "normalized": "שלב"
+          },
+          {
+            "index": 2,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 3,
+            "surface": "יֶתֶר",
+            "normalized": "יתר"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 5,
+            "surface": "הַמִּשְׁקָעִים",
+            "normalized": "המשקעים"
+          },
+          {
+            "index": 6,
+            "surface": "גְּדֵלִים",
+            "normalized": "גדלים"
+          },
+          {
+            "index": 7,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 8,
+            "surface": "מִתְלַכְּדִים",
+            "normalized": "מתלכדים"
+          },
+          {
+            "index": 9,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 10,
+            "surface": "הַחֹזֶק",
+            "normalized": "החזק"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹרֵד",
+            "normalized": "יורד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) סגסוגות אפשריות העונות על דרישת Mg כוללות 2014 2024 5052 6061 6063 7075",
+        "he_niqqud": "ג) סַגְסוֹגוֹת אֶפְשָׁרִיּוֹת הָעוֹנוֹת עַל דְּרִישַׁת Mg כּוֹלְלוֹת 2014 2024 5052 6061 6063 7075",
+        "transliteration": "C) Sagsogot efshariyyot ha'onot al drishat Mg kolelot 2014 2024 5052 6061 6063 7075",
+        "ru": "В) Возможные сплавы, отвечающие требованию Mg, включают 2014, 2024, 5052, 6061, 6063, 7075."
+      },
+      "source_refs": [
+        "legacy_row_hash:af66206487d689cdca83c50691f6e1ce53e356bf69b10cd0201c199065e2ec89",
+        "legacy_fields_sha256:681aa1cabe379c601237c7f24bc625dda09dbe51151030523258266d62d2b826",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "סַגְסוֹגוֹת",
+            "normalized": "סגסוגות"
+          },
+          {
+            "index": 2,
+            "surface": "אֶפְשָׁרִיּוֹת",
+            "normalized": "אפשריות"
+          },
+          {
+            "index": 3,
+            "surface": "הָעוֹנוֹת",
+            "normalized": "העונות"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "דְּרִישַׁת",
+            "normalized": "דרישת"
+          },
+          {
+            "index": 6,
+            "surface": "Mg",
+            "normalized": "Mg"
+          },
+          {
+            "index": 7,
+            "surface": "כּוֹלְלוֹת",
+            "normalized": "כוללות"
+          },
+          {
+            "index": 8,
+            "surface": "2014",
+            "normalized": "2014"
+          },
+          {
+            "index": 9,
+            "surface": "2024",
+            "normalized": "2024"
+          },
+          {
+            "index": 10,
+            "surface": "5052",
+            "normalized": "5052"
+          },
+          {
+            "index": 11,
+            "surface": "6061",
+            "normalized": "6061"
+          },
+          {
+            "index": 12,
+            "surface": "6063",
+            "normalized": "6063"
+          },
+          {
+            "index": 13,
+            "surface": "7075",
+            "normalized": "7075"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r024",
+      "order": 24,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בודקים התאמה לקבלת חומר גלם בצורת צינור לאחר אקסטרוזיה לפי טבלאות נספח ג׳",
+        "he_niqqud": "ג) בּוֹדְקִים הַתְאָמָה לְקַבָּלַת חֹמֶר גֶּלֶם בְּצוּרַת צִנּוֹר לְאַחַר אֶקְסְטְרוּזְיָה לְפִי טַבְלָאוֹת נִסְפָּח ג׳",
+        "transliteration": "C) Bodkim hat'amah le'kabbálat khomer gelem b'tsurat tsinnor le'akhar ekstrúzyah le'fi tavla'ot nispakh gimmel",
+        "ru": "В) Проверяем пригодность для получения сырья в форме трубы после экструзии согласно таблицам Приложения C."
+      },
+      "source_refs": [
+        "legacy_row_hash:bbb6f07689c867d30bf136242b2eacdaf75c5797d29c7d97e0a7e6d4ad2d8d5c",
+        "legacy_fields_sha256:e1432f4a7ed845090cb4aa153606eb04a80b2f592233b048a71f4e9a83659dad",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בּוֹדְקִים",
+            "normalized": "בודקים"
+          },
+          {
+            "index": 2,
+            "surface": "הַתְאָמָה",
+            "normalized": "התאמה"
+          },
+          {
+            "index": 3,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 4,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 5,
+            "surface": "גֶּלֶם",
+            "normalized": "גלם"
+          },
+          {
+            "index": 6,
+            "surface": "בְּצוּרַת",
+            "normalized": "בצורת"
+          },
+          {
+            "index": 7,
+            "surface": "צִנּוֹר",
+            "normalized": "צנור"
+          },
+          {
+            "index": 8,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 9,
+            "surface": "אֶקְסְטְרוּזְיָה",
+            "normalized": "אקסטרוזיה"
+          },
+          {
+            "index": 10,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 11,
+            "surface": "טַבְלָאוֹת",
+            "normalized": "טבלאות"
+          },
+          {
+            "index": 12,
+            "surface": "נִסְפָּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 13,
+            "surface": "ג׳",
+            "normalized": "ג"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) עבור שימוש במבנה מטוס מעדיפים בדרך כלל סגסוגות מוכרות לתעופה מסדרות 2xxx ו 7xxx בהתאם לטבלאות",
+        "he_niqqud": "ג) עֲבוּר שִׁמּוּשׁ בְּמִבְנֶה מָטוֹס מַעֲדִיפִים בְּדֶרֶךְ כְּלָל סַגְסוֹגוֹת מֻכָּרוֹת לַתְּעוּפָה מִסִּדְרוֹת 2xxx וְ 7xxx בְּהֶתְאֵם לַטַּבְלָאוֹת",
+        "transliteration": "C) Avur shimmush b'mivneh matos ma'adifim b'derekh klal sagsogot mukkarot la'te'ufah mi'sidrot 2xxx v' 7xxx b'het'em la'tavla'ot",
+        "ru": "В) Для использования в конструкции самолета обычно предпочитают известные в авиации сплавы серий 2xxx и 7xxx согласно таблицам."
+      },
+      "source_refs": [
+        "legacy_row_hash:d2669e60aed768144c91d0a99e32569b6abb8165c994a960cfac452c96a37df0",
+        "legacy_fields_sha256:cacf970885f61e594b52b71dfb7525eac098b7dc80bdc3bcf9d22e3c3d4ba4f7",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁמּוּשׁ",
+            "normalized": "שמוש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּמִבְנֶה",
+            "normalized": "במבנה"
+          },
+          {
+            "index": 4,
+            "surface": "מָטוֹס",
+            "normalized": "מטוס"
+          },
+          {
+            "index": 5,
+            "surface": "מַעֲדִיפִים",
+            "normalized": "מעדיפים"
+          },
+          {
+            "index": 6,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 7,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 8,
+            "surface": "סַגְסוֹגוֹת",
+            "normalized": "סגסוגות"
+          },
+          {
+            "index": 9,
+            "surface": "מֻכָּרוֹת",
+            "normalized": "מכרות"
+          },
+          {
+            "index": 10,
+            "surface": "לַתְּעוּפָה",
+            "normalized": "לתעופה"
+          },
+          {
+            "index": 11,
+            "surface": "מִסִּדְרוֹת",
+            "normalized": "מסדרות"
+          },
+          {
+            "index": 12,
+            "surface": "2xxx",
+            "normalized": "2xxx"
+          },
+          {
+            "index": 13,
+            "surface": "וְ",
+            "normalized": "ו"
+          },
+          {
+            "index": 14,
+            "surface": "7xxx",
+            "normalized": "7xxx"
+          },
+          {
+            "index": 15,
+            "surface": "בְּהֶתְאֵם",
+            "normalized": "בהתאם"
+          },
+          {
+            "index": 16,
+            "surface": "לַטַּבְלָאוֹת",
+            "normalized": "לטבלאות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) דורשים מצב (T4) שהוא טיפול המסה וזיקון טבעי ולכן מסירים סגסוגות שאינן מתקשות בהקשיית משקעים",
+        "he_niqqud": "ג) דּוֹרְשִׁים מַצָּב (T4) שֶׁהוּא טִפּוּל הַמָּסָה וְזִקּוּן טִבְעִי וְלָכֵן מְסִירִים סַגְסוֹגוֹת שֶׁאֵינָן מִתְקַשּׁוֹת בְּהַקְשָׁיַת מִשְׁקָעִים",
+        "transliteration": "C) Dorshim matsav (T4) she'hu tipul hamasah v'zikkun tiv'i v'lakhen mesirim sagsogot she'einan mitkashshot b'haksháyat mishqa'im",
+        "ru": "В) Требуется состояние (T4) — обработка раствором и естественное старение, поэтому исключаем сплавы, которые не упрочняются дисперсионным твердением."
+      },
+      "source_refs": [
+        "legacy_row_hash:ec464efbee8672946f2f85a26f5dc72c16df3bddb119abf7d420aae0faa3770f",
+        "legacy_fields_sha256:669eec1930da99d5662fd830e783e20251315be650b0c0cc6b4f2a9bfe897da8",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "דּוֹרְשִׁים",
+            "normalized": "דורשים"
+          },
+          {
+            "index": 2,
+            "surface": "מַצָּב",
+            "normalized": "מצב"
+          },
+          {
+            "index": 3,
+            "surface": "(T4)",
+            "normalized": "T4"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁהוּא",
+            "normalized": "שהוא"
+          },
+          {
+            "index": 5,
+            "surface": "טִפּוּל",
+            "normalized": "טפול"
+          },
+          {
+            "index": 6,
+            "surface": "הַמָּסָה",
+            "normalized": "המסה"
+          },
+          {
+            "index": 7,
+            "surface": "וְזִקּוּן",
+            "normalized": "וזקון"
+          },
+          {
+            "index": 8,
+            "surface": "טִבְעִי",
+            "normalized": "טבעי"
+          },
+          {
+            "index": 9,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 10,
+            "surface": "מְסִירִים",
+            "normalized": "מסירים"
+          },
+          {
+            "index": 11,
+            "surface": "סַגְסוֹגוֹת",
+            "normalized": "סגסוגות"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁאֵינָן",
+            "normalized": "שאינן"
+          },
+          {
+            "index": 13,
+            "surface": "מִתְקַשּׁוֹת",
+            "normalized": "מתקשות"
+          },
+          {
+            "index": 14,
+            "surface": "בְּהַקְשָׁיַת",
+            "normalized": "בהקשית"
+          },
+          {
+            "index": 15,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "סגסוגת 5052 אינה סגסוגת מתחסמת בהקשיית משקעים ולכן נפסלת לדרישה של (T4)",
+        "he_niqqud": "סַגְסוֹגֶת 5052 אֵינָהּ סַגְסוֹגֶת מִתְחַסֶּמֶת בְּהַקְשָׁיַת מִשְׁקָעִים וְלָכֵן נִפְסֶלֶת לִדְרִישָׁה שֶׁל (T4)",
+        "transliteration": "Sagsoget 5052 einah sagsoget mitkhassémet b'haksháyat mishqa'im v'lakhen nifsélet li'drishah shel (T4)",
+        "ru": "Сплав 5052 не является сплавом, упрочняемым дисперсионным твердением, и поэтому исключается согласно требованию (T4)."
+      },
+      "source_refs": [
+        "legacy_row_hash:0b4aef7169023043cf9a97f4b619d33c5e3b490630389e13a06d8908d04fdcbd",
+        "legacy_fields_sha256:8737ac24ad82176541330c11d41a6528213e865b9a463883753a48f7f884d3a4",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "סַגְסוֹגֶת",
+            "normalized": "סגסוגת"
+          },
+          {
+            "index": 1,
+            "surface": "5052",
+            "normalized": "5052"
+          },
+          {
+            "index": 2,
+            "surface": "אֵינָהּ",
+            "normalized": "אינה"
+          },
+          {
+            "index": 3,
+            "surface": "סַגְסוֹגֶת",
+            "normalized": "סגסוגת"
+          },
+          {
+            "index": 4,
+            "surface": "מִתְחַסֶּמֶת",
+            "normalized": "מתחסמת"
+          },
+          {
+            "index": 5,
+            "surface": "בְּהַקְשָׁיַת",
+            "normalized": "בהקשית"
+          },
+          {
+            "index": 6,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 7,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 8,
+            "surface": "נִפְסֶלֶת",
+            "normalized": "נפסלת"
+          },
+          {
+            "index": 9,
+            "surface": "לִדְרִישָׁה",
+            "normalized": "לדרישה"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "(T4)",
+            "normalized": "T4"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r028",
+      "order": 28,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) כעת בודקים את דרישת גבול ההתעייפות לפי נספח ג׳",
+        "he_niqqud": "ג) כָּעֵת בּוֹדְקִים אֶת דְּרִישַׁת גְּבוּל הַהִתְעַיְּפוּת לְפִי נִסְפָּח ג׳",
+        "transliteration": "C) Ka'et bodkim et drishat gvul ha'hit'ayefut le'fi nispakh gimmel",
+        "ru": "В) Теперь проверяем требование предела усталости согласно Приложению C."
+      },
+      "source_refs": [
+        "legacy_row_hash:c9a00a1922581e03d31b3ed47f373d645eaa2696951b728ad225e7fdbb49544f",
+        "legacy_fields_sha256:93e920192cb292f4fe0666cf69732c0e1a994df152a91cca8bdd8017725577ae",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "כָּעֵת",
+            "normalized": "כעת"
+          },
+          {
+            "index": 2,
+            "surface": "בּוֹדְקִים",
+            "normalized": "בודקים"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "דְּרִישַׁת",
+            "normalized": "דרישת"
+          },
+          {
+            "index": 5,
+            "surface": "גְּבוּל",
+            "normalized": "גבול"
+          },
+          {
+            "index": 6,
+            "surface": "הַהִתְעַיְּפוּת",
+            "normalized": "ההתעיפות"
+          },
+          {
+            "index": 7,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 8,
+            "surface": "נִסְפָּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 9,
+            "surface": "ג׳",
+            "normalized": "ג"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r029",
+      "order": 29,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σL > 125 MPa",
+        "he_niqqud": "σL > 125 MPa",
+        "transliteration": "σL > 125 MPa",
+        "ru": "σL > 125 МПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:34c9c59c41ece42703acee56cc1386f8b21f38caae4d770edcf3a4f58854a2ec",
+        "legacy_fields_sha256:1da37d70ef8c07f462f6300c93ad9197a874ad580875515531293054e1802560",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σL",
+            "normalized": "σL"
+          },
+          {
+            "index": 1,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 2,
+            "surface": "125",
+            "normalized": "125"
+          },
+          {
+            "index": 3,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σL > 125 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r030",
+      "order": 30,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לפי טבלאות נספח ג׳ ובתנאי (T4) הסגסוגות 2014 ו 2024 עומדות בדרישה ולכן הן הבחירה",
+        "he_niqqud": "לְפִי טַבְלָאוֹת נִסְפָּח ג׳ וּבִתְנַאי (T4) הַסַּגְסוֹגוֹת 2014 וְ 2024 עוֹמְדוֹת בַּדְּרִישָׁה וְלָכֵן הֵן הַבְּחִירָה",
+        "transliteration": "Le'fi tavla'ot nispakh gimmel u'vitnay (T4) ha'sagsogot 2014 v' 2024 om'dot ba'drishah v'lakhen hen ha'bkhirah",
+        "ru": "Согласно таблицам Приложения C и условию (T4), сплавы 2014 и 2024 соответствуют требованию, и, следовательно, являются выбором."
+      },
+      "source_refs": [
+        "legacy_row_hash:dcd4587a51a9a6fdf9e36d5c937f1d878c2012a2fea7956a776f84f1265d0603",
+        "legacy_fields_sha256:5d84e0255abbbc9599765c1ca8a179c5c778383846c0ab5e71e380f391aca3b2",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 1,
+            "surface": "טַבְלָאוֹת",
+            "normalized": "טבלאות"
+          },
+          {
+            "index": 2,
+            "surface": "נִסְפָּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 3,
+            "surface": "ג׳",
+            "normalized": "ג"
+          },
+          {
+            "index": 4,
+            "surface": "וּבִתְנַאי",
+            "normalized": "ובתנאי"
+          },
+          {
+            "index": 5,
+            "surface": "(T4)",
+            "normalized": "T4"
+          },
+          {
+            "index": 6,
+            "surface": "הַסַּגְסוֹגוֹת",
+            "normalized": "הסגסוגות"
+          },
+          {
+            "index": 7,
+            "surface": "2014",
+            "normalized": "2014"
+          },
+          {
+            "index": 8,
+            "surface": "וְ",
+            "normalized": "ו"
+          },
+          {
+            "index": 9,
+            "surface": "2024",
+            "normalized": "2024"
+          },
+          {
+            "index": 10,
+            "surface": "עוֹמְדוֹת",
+            "normalized": "עומדות"
+          },
+          {
+            "index": 11,
+            "surface": "בַּדְּרִישָׁה",
+            "normalized": "בדרישה"
+          },
+          {
+            "index": 12,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 13,
+            "surface": "הֵן",
+            "normalized": "הן"
+          },
+          {
+            "index": 14,
+            "surface": "הַבְּחִירָה",
+            "normalized": "הבחירה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r031",
+      "order": 31,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באלומיניום לעיתים אין גבול התעייפות אינסופי חד כמו בחלק מן הפלדות",
+        "he_niqqud": "בָּאַלוּמִינְיוּם לְעִיתִּים אֵין גְּבוּל הִתְעַיְּפוּת אִין סוֹפִי חַד כְּמוֹ בְּחֵלֶק מִן הַפְּלָדוֹת",
+        "transliteration": "Ba'alúminyum le'ittim ein gvul hit'ayefut ein sofi khad k'mo b'khelek min ha'pladot",
+        "ru": "В алюминии иногда нет четкого бесконечного предела усталости, как в некоторых сталях."
+      },
+      "source_refs": [
+        "legacy_row_hash:10d59dcdfecf1ed14a0c0e0f4d73709c37ce1fa0deb6be4892d2b94a8641adb7",
+        "legacy_fields_sha256:88c73d0d42e83700d97dbd8b8ed9499da66c1ba8bb30f23be3c00fc323ad29c1",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בָּאַלוּמִינְיוּם",
+            "normalized": "באלומיניום"
+          },
+          {
+            "index": 1,
+            "surface": "לְעִיתִּים",
+            "normalized": "לעיתים"
+          },
+          {
+            "index": 2,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 3,
+            "surface": "גְּבוּל",
+            "normalized": "גבול"
+          },
+          {
+            "index": 4,
+            "surface": "הִתְעַיְּפוּת",
+            "normalized": "התעיפות"
+          },
+          {
+            "index": 5,
+            "surface": "אִין",
+            "normalized": "אין"
+          },
+          {
+            "index": 6,
+            "surface": "סוֹפִי",
+            "normalized": "סופי"
+          },
+          {
+            "index": 7,
+            "surface": "חַד",
+            "normalized": "חד"
+          },
+          {
+            "index": 8,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 9,
+            "surface": "בְּחֵלֶק",
+            "normalized": "בחלק"
+          },
+          {
+            "index": 10,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 11,
+            "surface": "הַפְּלָדוֹת",
+            "normalized": "הפלדות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r032",
+      "order": 32,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפועל טבלאות רבות מציגות חוזק התעייפות עבור מספר מחזורים מוגדר כגון 10^7 ומסמנות אותו כ σL",
+        "he_niqqud": "בְּפוֹעַל טַבְלָאוֹת רַבּוֹת מַצִּיגוֹת חֹזֶק הִתְעַיְּפוּת עֲבוּר מִסְפַּר מַחֲזוֹרִים מוּגְדָּר כְּגוֹן 10^7 וּמְסַמְּנוֹת אוֹתוֹ כְּ σL",
+        "transliteration": "B'fo'al tavla'ot rabbot matsigot khózek hit'ayefut avur mispar makharozim múgdar k'gon 10^7 u'mesamnot oto k' σL",
+        "ru": "Фактически многие таблицы показывают предел выносливости для заданного числа циклов, например, 10^7, и обозначают его как σL."
+      },
+      "source_refs": [
+        "legacy_row_hash:ad3e9ccbcf58146148d4f8cc7128a5aa71f6eb8b894525d43c76d79018179a5d",
+        "legacy_fields_sha256:ddebece7135143a6c2de9c790718a52252207481c2e34cefdac94bb3ae410f28",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּפוֹעַל",
+            "normalized": "בפועל"
+          },
+          {
+            "index": 1,
+            "surface": "טַבְלָאוֹת",
+            "normalized": "טבלאות"
+          },
+          {
+            "index": 2,
+            "surface": "רַבּוֹת",
+            "normalized": "רבות"
+          },
+          {
+            "index": 3,
+            "surface": "מַצִּיגוֹת",
+            "normalized": "מציגות"
+          },
+          {
+            "index": 4,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 5,
+            "surface": "הִתְעַיְּפוּת",
+            "normalized": "התעיפות"
+          },
+          {
+            "index": 6,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 7,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 8,
+            "surface": "מַחֲזוֹרִים",
+            "normalized": "מחזורים"
+          },
+          {
+            "index": 9,
+            "surface": "מוּגְדָּר",
+            "normalized": "מוגדר"
+          },
+          {
+            "index": 10,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 11,
+            "surface": "10^7",
+            "normalized": "10^7"
+          },
+          {
+            "index": 12,
+            "surface": "וּמְסַמְּנוֹת",
+            "normalized": "ומסמנות"
+          },
+          {
+            "index": 13,
+            "surface": "אוֹתוֹ",
+            "normalized": "אותו"
+          },
+          {
+            "index": 14,
+            "surface": "כְּ",
+            "normalized": "כ"
+          },
+          {
+            "index": 15,
+            "surface": "σL",
+            "normalized": "σL"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r033",
+      "order": 33,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בתרגיל זה יש לפעול לפי ההגדרה שבנספח וליישם את הסף σL > 125 MPa",
+        "he_niqqud": "בְּתַרְגִּיל זֶה יֵשׁ לִפְעֹל לְפִי הַהַגְדָּרָה שֶׁבַּנִּסְפָּח וּלְיַיְשֵׁם אֶת הַסַּף σL > 125 MPa",
+        "transliteration": "B'targil zeh yesh lif'ol le'fi ha'hagdarah she'ba'nispakh u'leyayshem et ha'saf σL > 125 MPa",
+        "ru": "В этом упражнении необходимо действовать в соответствии с определением в приложении и применять порог σL > 125 МПа."
+      },
+      "source_refs": [
+        "legacy_row_hash:76d4ca983b04042fc4a462e302aafb418bf0ff6974cd258e24f6b9cbb07ede27",
+        "legacy_fields_sha256:f7c8ac87b53aaada0e08046c09998bee23b81709f4a64d62da372a25aa5d3dc3",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּתַרְגִּיל",
+            "normalized": "בתרגיל"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "לִפְעֹל",
+            "normalized": "לפעל"
+          },
+          {
+            "index": 4,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 5,
+            "surface": "הַהַגְדָּרָה",
+            "normalized": "ההגדרה"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁבַּנִּסְפָּח",
+            "normalized": "שבנספח"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְיַיְשֵׁם",
+            "normalized": "וליישם"
+          },
+          {
+            "index": 8,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 9,
+            "surface": "הַסַּף",
+            "normalized": "הסף"
+          },
+          {
+            "index": 10,
+            "surface": "σL",
+            "normalized": "σL"
+          },
+          {
+            "index": 11,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 12,
+            "surface": "125",
+            "normalized": "125"
+          },
+          {
+            "index": 13,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-sol-r034",
+      "order": 34,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:2ec96a7e3449f8827fc305ec72bb137fba51e4c2676153b371cdb68aff2fca00",
+        "comparison:EQUIVALENT_WITH_SOURCE_TERMINOLOGY_CORRECTION",
+        "source_page:53",
+        "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "declared_convention:Aluminum_Association_T4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q043",
+    "display_alias": "43",
+    "source_pages": [
+      53,
+      71,
+      72,
+      73
+    ],
+    "independent_state": "DERIVED_WITH_SOURCE_TERMINOLOGY_NOTE",
+    "answer": [
+      "а) Несмотря на слово «стали» в строке условия, естественное/искусственное старение здесь относится к упрочняемым алюминиевым сплавам: естественное — выдержка при комнатной температуре; искусственное — выдержка при повышенной температуре.",
+      "б) График искусственного старения: нагрев до растворения фаз→выдержка→быстрая закалка до комнатной→нагрев до температуры старения→выдержка (выделения)→охлаждение. Подписать solution treatment, quench, artificial-age hold, cool.",
+      "в) Удовлетворяют AA2014-T4 и AA2024-T4: оба содержат Mg, доступны как extruded tube/shapes, применяются в авиационных конструкциях, T4 означает solution treated+naturally aged, а σ_L=140 МПа>125. 5052 не имеет T4, 6061-T4 имеет95 МПа, 6063-T4 не даёт требуемого значения, 7075 в приложении приведён T6."
+    ],
+    "engineering_picture": "Выбор — пересечение пяти независимых требований: chemistry, product form, application, temper и fatigue. Один сильный показатель не компенсирует провал другого.",
+    "prerequisites": [
+      "2xxx major Cu may also contain Mg.",
+      "ES/ET product codes include extruded shapes/tubes.",
+      "T4 is naturally aged after solution treatment."
+    ],
+    "roadmap": [
+      "Исправить только терминологическую область, не текст источника.",
+      "Построить T–t sequence.",
+      "Фильтровать appendix по пяти критериям."
+    ],
+    "main_trap": "Не исключать 2xxx только потому, что Mg не является первым/главным легирующим элементом; требование говорит contains Mg.",
+    "givens": [
+      "Mg; extruded tube; aircraft;T4;σ_L>125 MPa."
+    ],
+    "find": [
+      "Aging meanings/graph and all matching alloys."
+    ],
+    "assumptions": [
+      "Aircraft construction suitability follows source application text and product codes."
+    ],
+    "laws": [
+      "All selection predicates must be true."
+    ],
+    "symbolic_derivation": [
+      "2014-T4:Mg0.5,ES/ET,T4,σ_L140>125.",
+      "2024-T4:Mg1.5,ES/ET,T4,σ_L140>125."
+    ],
+    "calculation": [],
+    "construction": [
+      "T–t staircase with two heating holds and quench; candidate filter table."
+    ],
+    "checks": [
+      "6061-T4 fails fatigue by30 MPa; both selected grades exceed threshold by15 MPa."
+    ],
+    "source_facts": [
+      "source_page:53",
+      "asset_sha256:5f7a4d590ac20aa06c825b8ac0f911d8ce2a694ff86f76749468bf090242db59",
+      "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+      "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+      "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+      "declared_convention:Aluminum_Association_T4"
+    ],
+    "unresolved_limits": [
+      "Final aerospace selection requires certified allowables, weld/joint design and corrosion/fatigue environment beyond the classroom appendix."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

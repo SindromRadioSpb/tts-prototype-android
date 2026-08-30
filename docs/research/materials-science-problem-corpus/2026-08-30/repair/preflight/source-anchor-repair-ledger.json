@@ -1,0 +1,121 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-preflight-v1.source-anchor-corrections",
+  "status": "APPLIED_TO_REPAIR_PREFLIGHT_ONLY_IMMUTABLE_BUILD_EVIDENCE_PRESERVED",
+  "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+  "discovered_by": "ALL_BATCH_CANONICAL_REPAIR_CONTACT_SHEET_VISUAL_REVIEW",
+  "entry_count": 3,
+  "entries": [
+    {
+      "task_id": "materials-science-y1-pb2-q021",
+      "before": [
+        {
+          "source_page": 27,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.39
+          ],
+          "role": "condition",
+          "prepared_filename": "materials-pb2-task-input-02.pdf",
+          "prepared_pdf_sha256": "7fc99f12252711c7e5c3eed78d129c02ca0f5ddb5daac8ba51cbb5b59fd729c5",
+          "prepared_output_page": 4,
+          "source_render_sha256": "80bca109e0d31259decf2d08da734532cb43f236faa147216c781c18fc924820"
+        }
+      ],
+      "after": [
+        {
+          "source_page": 27,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        },
+        {
+          "source_page": 28,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.22
+          ],
+          "role": "condition_continuation"
+        }
+      ],
+      "reason": "Q021_CONTINUES_AT_TOP_OF_P028",
+      "repair_preflight_contact_sheet": "B03-contact-sheet.jpg"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q022",
+      "before": [
+        {
+          "source_page": 28,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition",
+          "prepared_filename": "materials-pb2-task-input-02.pdf",
+          "prepared_pdf_sha256": "7fc99f12252711c7e5c3eed78d129c02ca0f5ddb5daac8ba51cbb5b59fd729c5",
+          "prepared_output_page": 5,
+          "source_render_sha256": "f809a1c161dfe23822c824f7f6696cb77fbf33e745a54eebbfb88eac971fd658"
+        }
+      ],
+      "after": [
+        {
+          "source_page": 28,
+          "normalized_bbox": [
+            0.0,
+            0.18,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "reason": "Q022_CROP_EXCLUDES_Q021_CONTINUATION",
+      "repair_preflight_contact_sheet": "B03-contact-sheet.jpg"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q028",
+      "before": [
+        {
+          "source_page": 36,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition",
+          "prepared_filename": "materials-pb2-task-input-02.pdf",
+          "prepared_pdf_sha256": "7fc99f12252711c7e5c3eed78d129c02ca0f5ddb5daac8ba51cbb5b59fd729c5",
+          "prepared_output_page": 11,
+          "source_render_sha256": "a75ddef178a28c8878f61372ec54789ff0cd17d103f7a9baebb113608caf7f9a"
+        }
+      ],
+      "after": [
+        {
+          "source_page": 36,
+          "normalized_bbox": [
+            0.0,
+            0.38,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "reason": "Q028_CROP_EXCLUDES_Q027_CONTINUATION",
+      "repair_preflight_contact_sheet": "B03-contact-sheet.jpg"
+    }
+  ],
+  "provider_calls_made": 0,
+  "secret_accessed": false,
+  "artifact_sha256": "14c599841bf3d11a9caaa98468d2c1ec180676e8d425bc5f65ac14266df30aea"
+}

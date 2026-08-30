@@ -1,0 +1,34 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B03-TR03-Q029-TEMPER-RANGE",
+  "task_id": "materials-science-y1-pb2-q029",
+  "status": "SOURCE_INSUFFICIENT_FOR_SINGLE_TEMPER_RANGE_DISCLOSED",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "99e24d4c18b7d0b229262945d7be850752080e1b68858ee146120cce17916817",
+  "disagreement": {
+    "independent_candidate": "Quench heat about 760 to 780 C; tempering must be selected by required properties, with low, medium and high educational bands disclosed separately.",
+    "legacy_candidate": "Quench heat about 770 C and a recommended general temper range of 150 to 650 C.",
+    "scope": "SOURCE_AUTHORITY_FOR_HEAT_TREATMENT_RECOMMENDATION"
+  },
+  "source_review": {
+    "condition_page": 37,
+    "condition_asset_sha256": "b5b153070a461cdab8998e61f40b82e91cebbbbeefc38ac33d2f35c34b31a1a5",
+    "method": "SOURCE_DIAGRAM_AND_PROMPT_SCOPE_REVIEW",
+    "finding": "The supplied Fe-C equilibrium diagram supports A1=727 C and therefore a quench-heating estimate near A1 plus 30 to 50 C. It contains no tempering-property curve and cannot select one recommended temper interval."
+  },
+  "review_reasoning": [
+    "727 plus 30 to 50 C gives 757 to 777 C, rounded to about 760 to 780 C or 770 C.",
+    "Tempering is performed below A1, but the actual temperature is selected for the required hardness, strength and toughness balance.",
+    "The legacy 150 to 650 C span is acceptable only as a broad educational envelope, not as one source-derived recommendation.",
+    "The independent answer preserves the useful bands while marking the missing design requirement explicitly."
+  ],
+  "reviewed_exam_answer_ru": [
+    "Температура нагрева под закалку: примерно 760–780 °C (около 770 °C).",
+    "Отпуск проводят ниже A1; общий учебный диапазон 150–650 °C делят на низкий, средний и высокий, а конкретную температуру выбирают по требуемому сочетанию твёрдости и вязкости. По одной диаграмме Fe–C единственный режим определить нельзя."
+  ],
+  "disposition": "QUENCH_TEMPERATURE_MATCH; LEGACY_150_TO_650_C_RETAINED_ONLY_AS_GENERAL_ENVELOPE; SINGLE_RECOMMENDED_TEMPER_RANGE_REJECTED_AS_SOURCE_INSUFFICIENT",
+  "publication_blocking": false,
+  "further_repair_allowed": false
+}

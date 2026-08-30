@@ -1,0 +1,47 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B01-TR01-Q008-SURFACE-CASE",
+  "task_id": "materials-science-y1-pb2-q008",
+  "status": "CORRECTED_AND_REVERIFIED",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "541d6a2c9f8a70a1cb08477c4403a75b1cf0920173a83bcbf95a800472d8f1b8",
+  "disagreement": {
+    "independent_candidate": "Азотирование либо иной квалифицированный процесс поверхностного упрочнения; единственный маршрут из условия не следует.",
+    "legacy_candidate": "Карбонитрирование или короткая цементация, затем закалка и отпуск; время задаёт слой около 0,1 мм.",
+    "scope": "PROCESS_SELECTION_ONLY",
+    "unchanged_results": [
+      "stress_and_strain_table",
+      "stress_strain_graph",
+      "young_modulus",
+      "service_suitability"
+    ]
+  },
+  "declared_convention_sources": [
+    {
+      "title": "ASM International — One Minute Mentor: Carbonitriding",
+      "url": "https://www.asminternational.org/news/47402816/",
+      "claim_used": "Carbonitriding is a shallow case-hardening treatment; depths above 0.5 mm are seldom specified and the cycle is commonly followed by quench-based martensitic hardening."
+    },
+    {
+      "title": "TWI — What is carburising / carbonitriding?",
+      "url": "https://www.twi-global.com/technical-knowledge/faqs/faq-what-is-carburising-carbonitriding",
+      "claim_used": "Carbonitriding is applicable to steels up to about 0.4–0.5% bulk carbon and combines carbon and nitrogen diffusion before heat treatment."
+    },
+    {
+      "title": "TWI — What is plasma carburising / plasma nitriding?",
+      "url": "https://www.twi-global.com/technical-knowledge/faqs/faq-what-is-plasma-carburising-plasma-nitriding",
+      "claim_used": "Effective nitriding depends on nitride-forming alloying elements; therefore plain SAE 1030 does not justify nitriding as the default answer from the condition alone."
+    }
+  ],
+  "review_reasoning": [
+    "SAE 1030 has approximately 0.30% carbon, which lies inside the cited carbonitriding applicability range.",
+    "The requested 100 micrometers equals 0.10 mm and is a shallow case, consistent with carbonitriding.",
+    "Plain SAE 1030 does not declare the alloying additions needed to make nitriding the default route.",
+    "The exact time, atmosphere, quench, temper and achieved 230 HB profile cannot be calculated from the problem statement and must remain process-qualification parameters."
+  ],
+  "reviewed_exam_answer_ru": "Применить контролируемое неглубокое химико-термическое упрочнение поверхности — предпочтительно карбонитрирование (допустимый учебный вариант: короткая цементация) — затем закалку и отпуск. Время и режим подбирают для эффективной глубины около 0,10 мм, после чего микротвёрдостью подтверждают примерно 230 HB на поверхности при сохранении сердцевины около 170 HB. Из условия нельзя вычислить конкретные температуру и время процесса.",
+  "disposition": "INDEPENDENT_DEFAULT_NITRIDING_REMOVED; LEGACY_PROCESS_CLASS_ACCEPTED_WITH_NON_UNIQUENESS_AND_QUALIFICATION_LIMITS",
+  "publication_blocking": false
+}

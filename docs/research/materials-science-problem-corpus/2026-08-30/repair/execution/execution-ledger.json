@@ -1,0 +1,173 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-execution-v1",
+  "status": "PASS_ALL_6_BATCHES_STRICTLY_VALIDATED_READY_FOR_LOCAL_CANONICAL_BAKE",
+  "repair_plan_sha256": "6046ba099ab62ecb01991195a43d29f1c221a897ea490b2dc81b451f6bcfeaaa",
+  "preflight_sha256": "f29d95d83b565f23711b777ee46244b4a3c8bcce7f11d911bbd8dbdf455a51a1",
+  "model": "gemini-3.7-flash",
+  "mode": "STANDARD",
+  "hard_max_usd": 2.0,
+  "maximum_provider_calls": 12,
+  "calls": [
+    {
+      "batch_id": "B01",
+      "attempt": 1,
+      "request_sha256": "a5b9acfbfdc061bf0179d58cb37f44d05628e97c6768a5371ade05c6a717d9ff",
+      "response_sha256": "f5f7fad4fa46142680da4ea4c69baadf6b032983c3699c2f37667226218dbbad",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 24607,
+        "candidate_tokens": 21344,
+        "thinking_tokens": 501,
+        "calculated_usd": 0.100374
+      },
+      "called_at": "2026-08-30T09:50:43Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B01",
+      "attempt": 2,
+      "request_sha256": "11a335723a0038bfa9a8c2a7bf8e2d39159e75a19d3d15e2edfce5db6124925e",
+      "response_sha256": "d17889cca2039e562ae354002cf46e953eae4d420188608b13cf5bdba593b10a",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 25191,
+        "candidate_tokens": 19741,
+        "thinking_tokens": 558,
+        "calculated_usd": 0.0950145
+      },
+      "called_at": "2026-08-30T09:52:05Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B02",
+      "attempt": 1,
+      "request_sha256": "67659d0d07cf0d48ea1a21cb9dddc0804cf105834b31eba9b202f384d37817d5",
+      "response_sha256": "98a205ad9890348616c7f567affbd8f3a1b53e89e1e36e666c13a0013ffc3d5a",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 37187,
+        "candidate_tokens": 27235,
+        "thinking_tokens": 5516,
+        "calculated_usd": 0.1507065
+      },
+      "called_at": "2026-08-30T10:04:36Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B02",
+      "attempt": 2,
+      "request_sha256": "da2bb4ad48d471178af4649b2f1015b91b92e823e5c44996930005d17fe1b27e",
+      "response_sha256": "0c87185157a1500efab26e476729118563a0b5e395b28d52d9f1a0193302e750",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 37242,
+        "candidate_tokens": 30197,
+        "thinking_tokens": 328,
+        "calculated_usd": 0.14240025
+      },
+      "called_at": "2026-08-30T10:06:22Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B03",
+      "attempt": 1,
+      "request_sha256": "9d8a35c26d7af805f33cc35d576f610a67483b168c08b35ca2856e84fce69055",
+      "response_sha256": "3bb1cbd00c6c3f29a0a12cc73bc93ee8fc1c1cd85040a82fd5fd038404cf4f88",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 30868,
+        "candidate_tokens": 22344,
+        "thinking_tokens": 3505,
+        "calculated_usd": 0.12008475
+      },
+      "called_at": "2026-08-30T10:10:35Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B04",
+      "attempt": 1,
+      "request_sha256": "da56bb169e5c6359ae5265beb982d14bf01d531b4bda09ca9b14e96ab465f7a4",
+      "response_sha256": "f8e9f19984bf7dee4ceb635beabca052c777039e2d9dca7602774ff2fe83d36d",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 39116,
+        "candidate_tokens": 32010,
+        "thinking_tokens": 542,
+        "calculated_usd": 0.151407
+      },
+      "called_at": "2026-08-30T10:12:24Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B04",
+      "attempt": 2,
+      "request_sha256": "7507507474171aa3c8e1a2feb03bf684999546166458eb80a44022ff86c67e3e",
+      "response_sha256": "1c21854839aa5cbe555c871cca0cedab874a0a3d6a454190b588b6b2a6d5d377",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 39176,
+        "candidate_tokens": 30955,
+        "thinking_tokens": 152,
+        "calculated_usd": 0.14603325
+      },
+      "called_at": "2026-08-30T10:14:36Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B05",
+      "attempt": 1,
+      "request_sha256": "61683fa9bcc05600750136d0b36ce992983c68d3cbed88373a0a42d17c8ead91",
+      "response_sha256": "1d232edfe9dc92d6fc1ce315caddce4dce2e8404452e318fcae4c54599479f38",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 30028,
+        "candidate_tokens": 20160,
+        "thinking_tokens": 5737,
+        "calculated_usd": 0.11963475
+      },
+      "called_at": "2026-08-30T10:15:49Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    },
+    {
+      "batch_id": "B06",
+      "attempt": 1,
+      "request_sha256": "1c6f05dccca367f1f149aabbfa1eab319c2aef3dd390606fe4a00cbc2c80d813",
+      "response_sha256": "7732caa7bfc042014ed248aba700d1657374d0c87df714cf7619fb189ee42edb",
+      "status": "HTTP_200_RAW_CACHED",
+      "usage": {
+        "prompt_tokens": 20941,
+        "candidate_tokens": 13921,
+        "thinking_tokens": 1510,
+        "calculated_usd": 0.073572
+      },
+      "called_at": "2026-08-30T10:16:56Z",
+      "worst_case_budget_commitment_usd": 0.16038
+    }
+  ],
+  "reviewed_batches": [
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06"
+  ],
+  "secret_persisted": false,
+  "unreceipted_interrupted_calls": [
+    {
+      "batch_id": "B01",
+      "attempt": 3,
+      "status": "INTERRUPTED_DURING_NETWORK_WAIT_NO_RESPONSE_NO_RAW_CACHE_NO_RECEIPT",
+      "started_on": "2026-08-30",
+      "billing_status": "UNKNOWN_CONSERVATIVELY_RESERVED",
+      "worst_case_budget_commitment_usd": 0.16038,
+      "reason": "resume guard defect detected and stopped before any response was received"
+    }
+  ],
+  "completed_at": "2026-08-30T10:16:57Z",
+  "actual_measured_cost_usd": 1.099227,
+  "provider_call_count": 9,
+  "provider_call_start_count": 10,
+  "billing_upper_bound_usd": 1.259607,
+  "secret_accessed": true
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B03-TR02-Q026-SN-OUT-OF-RANGE",
+  "task_id": "materials-science-y1-pb2-q026",
+  "status": "SOURCE_VISUAL_REVIEW_PASS_OUT_OF_RANGE_DISCLOSED",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "99e24d4c18b7d0b229262945d7be850752080e1b68858ee146120cce17916817",
+  "disagreement": {
+    "independent_candidate": "SAE 1045 about 4e5 cycles, Al 2024 about 1e4 cycles, and Red Brass is outside the plotted curve so no exact N is source-readable.",
+    "legacy_candidate": "SAE 1045 about 2.5e5 cycles, Al 2024 about 7.7e3 cycles, and Red Brass N below 1e3 cycles.",
+    "scope": "GRAPH_TOLERANCE_AND_OUT_OF_RANGE_EXTRAPOLATION"
+  },
+  "source_review": {
+    "condition_page": 33,
+    "condition_asset_sha256": "4db206fb2fff1402d656cd8a4738645a8b4d37ea22d073580ccf4d00a8ebc35e",
+    "method": "SOURCE_PIXEL_VISUAL_REVIEW_WITH_HORIZONTAL_350_MPA_CONSTRUCTION",
+    "finding": "The steel and aluminum intersections support only order-of-magnitude graph reads. The Brass curve never approaches 350 MPa in the displayed domain, so an exact cycle count or a claimed below-1e3 bound is not available from the source image."
+  },
+  "review_reasoning": [
+    "The thick raster curve makes approximately 2.5e5 to 4e5 cycles equivalent for SAE 1045 at classroom graph precision.",
+    "Approximately 0.8e4 to 1e4 cycles is equivalent for Al 2024.",
+    "Red Brass at 350 MPa requires extrapolation outside the drawn curve; the source supports only the explicit out-of-range conclusion.",
+    "The independent force result 70.69 kN and the qualitative fatigue-notch conclusion match legacy."
+  ],
+  "reviewed_exam_answer_ru": [
+    "При S=350 МПа: SAE 1045 — порядка 3·10^5 циклов; Al 2024 — порядка 10^4 циклов; для Red Brass точное N по данному графику не определяется, поскольку уровень 350 МПа лежит выше всей показанной кривой.",
+    "Для d=30 мм и σ_a=100 МПа амплитуда силы F_a≈70,7 кН; отверстие уменьшает долговечность из-за уменьшения нетто-площади и концентрации напряжений."
+  ],
+  "disposition": "STEEL_AND_AL_GRAPH_READS_EQUIVALENT_WITH_RASTER_TOLERANCE; LEGACY_BRASS_EXTRAPOLATION_REJECTED; SOURCE_OUT_OF_RANGE_RETAINED",
+  "publication_blocking": false,
+  "further_repair_allowed": false
+}

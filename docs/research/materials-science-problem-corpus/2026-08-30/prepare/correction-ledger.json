@@ -1,0 +1,47 @@
+{
+  "schema": "linguistpro-materials-pb2-correction-ledger-v1",
+  "status": "LOCAL_SOURCE_ANCHOR_CORRECTIONS_APPLIED",
+  "apply_policy": "FAIL_IF_EXPECTED_OLD_HASH_DRIFTS",
+  "entries": [
+    {
+      "correction_id": "anchor-q042-exclude-q041-solution",
+      "task_id": "materials-science-y1-pb2-q042",
+      "source_page": 52,
+      "old_normalized_bbox": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "new_normalized_bbox": [
+        0.0,
+        0.65,
+        1.0,
+        1.0
+      ],
+      "reason": "Full page includes the preceding embedded solution for question 41.",
+      "evidence": "Manual source-render readback on 2026-08-30.",
+      "meaning_changed": false
+    },
+    {
+      "correction_id": "anchor-q044-exclude-q043-solution",
+      "task_id": "materials-science-y1-pb2-q044",
+      "source_page": 54,
+      "old_normalized_bbox": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "new_normalized_bbox": [
+        0.0,
+        0.42,
+        1.0,
+        1.0
+      ],
+      "reason": "Full page includes the preceding embedded solution for question 43.",
+      "evidence": "Manual source-render readback on 2026-08-30.",
+      "meaning_changed": false
+    }
+  ]
+}

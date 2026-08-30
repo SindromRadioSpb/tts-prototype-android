@@ -1,0 +1,1553 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q057",
+  "display_alias": "57",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "10570aa87896d717c5a8f28311d1e00cf8e8d6d6f251d37eb95baf0ebaf74a9e"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "99d871bcc44eaf2abaad7387c5f42d4ad0b292d428bea143d10618e510d69faf",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Single source-image review corrected structure2 from particle-random to directionally reinforced. Only structure3 is three-axis quasi-isotropic under the stated3D-random assumption.",
+    "reviewer_disposition": "CORRECTED_AND_REVERIFIED"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q057-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 57.",
+        "hebrew_niqqud": "שְׁאֵלָה 57.",
+        "translit": "She'ela 57.",
+        "translit_ru": "",
+        "russian": "Вопрос 57.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q057",
+            "kind": "task_heading",
+            "source_page": 64,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q057-r002",
+        "order_index": 1,
+        "hebrew_plain": "האיור לשאלה מציג שלושה מבנים של חומרים מורכבים משוריינים בשכבות.",
+        "hebrew_niqqud": "הָאִיּוּר לִשְׁאֵלָה מַצִּיג שְׁלוֹשָׁה מִבְנִים שֶׁל חֳומָרִים מֻורְכָּבִים מְשֻׁורְייָנִים בִּשְׁכָבוֹת.",
+        "translit": "Ha'iyur lish'elah matzig shloshah mivnim shel chomarim murkavim meshuryanim bishkhavot.",
+        "translit_ru": "",
+        "russian": "Рисунок к вопросу показывает три структуры слоистых армированных композиционных материалов.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q057",
+            "kind": "diagram_reference",
+            "source_page": 64,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q057-r003",
+        "order_index": 2,
+        "hebrew_plain": "1. משוריינים בחלקיקים.",
+        "hebrew_niqqud": "1. מְשֻׁורְייָנִים בְּחֶלְקִיקִים.",
+        "translit": "1. Meshuryanim bechelkikim.",
+        "translit_ru": "",
+        "russian": "1. Армированные частицами.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q057",
+            "kind": "condition",
+            "source_page": 64,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q057-r004",
+        "order_index": 3,
+        "hebrew_plain": "2. משוריינים בסיבים.",
+        "hebrew_niqqud": "2. מְשֻׁורְייָנִים בְּסִיבִים.",
+        "translit": "2. Meshuryanim besivim.",
+        "translit_ru": "",
+        "russian": "2. Армированные волокнами.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q057",
+            "kind": "condition",
+            "source_page": 64,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q057-r005",
+        "order_index": 4,
+        "hebrew_plain": "א) איזה מבנה (או אילו מבנים) יציג (או יציגו) תכונות מכניות איזוטרופיות בעת הפעלת מאמץ בשלושת הצירים הראשיים.",
+        "hebrew_niqqud": "א) אֵיזֶה מִבְנֶה (אוֹ אֵילּוּ מִבְנִים) יַצִּיג (אוֹ יַצִּיגוּ) תְּכוּנוֹת מְכָנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת בְּעֵת הַפְעָלַת מַאֲמָץ בִּשְׁלוֹשֶׁת הַצִּירִים הָרָאשִׁיִּים.",
+        "translit": "A) Eizeh mivneh (o eilu mivnim) yatzig (o yatzigu) tkhunot mechaniyot izotropiyot be'et haf'alat ma'amatz bishloshet hatzirim harashiyim.",
+        "translit_ru": "",
+        "russian": "А) Какая структура (или какие структуры) будет (или будут) обладать изотропными механическими свойствами при приложении напряжения по трем основным осям.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q057",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q057-r006",
+        "order_index": 5,
+        "hebrew_plain": "נמק את תשובתך.",
+        "hebrew_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Namek et teshuvat'cha.",
+        "translit_ru": "",
+        "russian": "Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q057",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      64
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q057/anchor-01-p064.jpg",
+        "sha256": "25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1",
+        "bytes": 132811,
+        "source_page": 64,
+        "normalized_bbox": [
+          0,
+          0.54,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q057-v01",
+        "source_page": 64,
+        "kind": "COMPOSITE_REINFORCEMENT_STRUCTURE_DIAGRAM",
+        "instance_count": 3,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:99d871bcc44eaf2abaad7387c5f42d4ad0b292d428bea143d10618e510d69faf"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן רק מבנה 3 צפוי להציג תכונות מכניות איזוטרופיות תחת מאמץ בשלושת הצירים הראשיים.",
+        "he_niqqud": "לָכֵן רַק מִבְנֶה 3 צָפוּי לְהַצִּיג תְּכוּנוֹת מְכָאִנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת תַּחַת מַאֲמָץ בִּשְׁלֹשֶׁת הַצִּירִים הָרָאשִׁיִּים.",
+        "transliteration": "La-khen raq mivneh 3 tzafui lehatzig tkhunot mekhaniyot izotropiyot taḥat ma'amatz bi-shloshet ha-tzirim ha-rashi'im.",
+        "ru": "Поэтому только структура 3, как ожидается, будет демонстрировать изотропные механические свойства при напряжении по трем основным осям."
+      },
+      "source_refs": [
+        "legacy_row_hash:54684ce270c856605190f49c7b19be5afe5f83cc52209be890739cde5a1acedb",
+        "legacy_fields_sha256:58b40c2f5c23f4b64f4c0094ec96bb22dca24f1f8e437f0d95e56084cb27bcf8",
+        "independent_solution_sha256:99d871bcc44eaf2abaad7387c5f42d4ad0b292d428bea143d10618e510d69faf"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "רַק",
+            "normalized": "רק"
+          },
+          {
+            "index": 2,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 3,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 4,
+            "surface": "צָפוּי",
+            "normalized": "צפוי"
+          },
+          {
+            "index": 5,
+            "surface": "לְהַצִּיג",
+            "normalized": "להציג"
+          },
+          {
+            "index": 6,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 7,
+            "surface": "מְכָאִנִיּוֹת",
+            "normalized": "מכאניות"
+          },
+          {
+            "index": 8,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 9,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 10,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 11,
+            "surface": "בִּשְׁלֹשֶׁת",
+            "normalized": "בשלשת"
+          },
+          {
+            "index": 12,
+            "surface": "הַצִּירִים",
+            "normalized": "הצירים"
+          },
+          {
+            "index": 13,
+            "surface": "הָרָאשִׁיִּים.",
+            "normalized": "הראשיים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r003",
+      "order": 3,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) מבנה 3 בלבד יציג תכונות מכניות איזוטרופיות בעת הפעלת מאמץ בשלושת הצירים הראשיים.",
+        "he_niqqud": "א) מִבְנֶה 3 בִּלְבָד יַצִּיג תְּכוּנוֹת מְכָאִנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת בְּעֵת הַפְעָלַת מַאֲמָץ בִּשְׁלֹשֶׁת הַצִּירִים הָרָאשִׁיִּים.",
+        "transliteration": "A) Mivneh 3 bilvad yatzig tkhunot mekhaniyot izotropiyot be'et haf'alat ma'amatz bi-shloshet ha-tzirim ha-rashi'im.",
+        "ru": "А) Только структура 3 будет обладать изотропными механическими свойствами при приложении напряжения по трем основным осям."
+      },
+      "source_refs": [
+        "legacy_row_hash:f252c8f2a2ab1eeb959870dedcb8e19e00b1732d47b25174bdac16aa4b35282c",
+        "legacy_fields_sha256:8805fb44fa0e7b01ec0680e038cd0077a53e9eb28bd09d476b20ed81e0dc67a9",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 2,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 3,
+            "surface": "בִּלְבָד",
+            "normalized": "בלבד"
+          },
+          {
+            "index": 4,
+            "surface": "יַצִּיג",
+            "normalized": "יציג"
+          },
+          {
+            "index": 5,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 6,
+            "surface": "מְכָאִנִיּוֹת",
+            "normalized": "מכאניות"
+          },
+          {
+            "index": 7,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 8,
+            "surface": "בְּעֵת",
+            "normalized": "בעת"
+          },
+          {
+            "index": 9,
+            "surface": "הַפְעָלַת",
+            "normalized": "הפעלת"
+          },
+          {
+            "index": 10,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 11,
+            "surface": "בִּשְׁלֹשֶׁת",
+            "normalized": "בשלשת"
+          },
+          {
+            "index": 12,
+            "surface": "הַצִּירִים",
+            "normalized": "הצירים"
+          },
+          {
+            "index": 13,
+            "surface": "הָרָאשִׁיִּים.",
+            "normalized": "הראשיים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r004",
+      "order": 4,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "כדי שתכונות יהיו איזוטרופיות התגובה המכנית צריכה להיות זהה בכל כיוון.",
+        "he_niqqud": "כְּדֵי שֶׁתְּכוּנוֹת יִהְיוּ אִיזוֹטְרוֹפִּיּוֹת הַתְּגוּבָה הַמְּכָאִנִית צְרִיכָה לִהְיוֹת זֵהָה בְּכָל כִּוּוּן.",
+        "transliteration": "Kdei shetkhunot yihiyu izotropiyot ha-teguvah ha-mekhanit tzrikha lihiyot zehah be-khol kivun.",
+        "ru": "Чтобы свойства были изотропными, механический отклик должен быть одинаковым во всех направлениях."
+      },
+      "source_refs": [
+        "legacy_row_hash:485d7dc50dec797c9af42a320226c124bfe792e1de6be318a9fc2dc7cd79a157",
+        "legacy_fields_sha256:07f810ae0f5f0685e487d9b5c2676cdf7b05cf47057a9febedc69fd12e94a92e",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁתְּכוּנוֹת",
+            "normalized": "שתכונות"
+          },
+          {
+            "index": 2,
+            "surface": "יִהְיוּ",
+            "normalized": "יהיו"
+          },
+          {
+            "index": 3,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 4,
+            "surface": "הַתְּגוּבָה",
+            "normalized": "התגובה"
+          },
+          {
+            "index": 5,
+            "surface": "הַמְּכָאִנִית",
+            "normalized": "המכאנית"
+          },
+          {
+            "index": 6,
+            "surface": "צְרִיכָה",
+            "normalized": "צריכה"
+          },
+          {
+            "index": 7,
+            "surface": "לִהְיוֹת",
+            "normalized": "להיות"
+          },
+          {
+            "index": 8,
+            "surface": "זֵהָה",
+            "normalized": "זהה"
+          },
+          {
+            "index": 9,
+            "surface": "בְּכָל",
+            "normalized": "בכל"
+          },
+          {
+            "index": 10,
+            "surface": "כִּוּוּן.",
+            "normalized": "כוון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באלסטיות ליניארית חומר איזוטרופי מתואר על ידי שני קבועים בלתי תלויים בלבד כגון E ו־ν.",
+        "he_niqqud": "בָּאֵלַסְטִיּוּת לִינֵאָרִית חֹומֶר אִיזוֹטְרוֹפִּי מְתֹאָר עַל יְדֵי שְׁנֵי קְבוּעִים בִּלְתִּי תְּלוּיִים בִּלְבָד כְּגֹון E וְ־ν.",
+        "transliteration": "Ba-elastiyut linearit ḥomer izotropi meto'ar al yedei shney qevu'im bilti teluyim bilvad kegon E ve-ν.",
+        "ru": "В линейной упругости изотропный материал описывается только двумя независимыми константами, такими как E и ν."
+      },
+      "source_refs": [
+        "legacy_row_hash:8f7b6ccd50dd35ce2f8e97fddfc0964c8aa24f14655c9631f33fc3411e9e4d87",
+        "legacy_fields_sha256:81b6542b13f5ce989d34e777e8f9b2b1c3dc15db624861345de751c08e49dc26",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בָּאֵלַסְטִיּוּת",
+            "normalized": "באלסטיות"
+          },
+          {
+            "index": 1,
+            "surface": "לִינֵאָרִית",
+            "normalized": "לינארית"
+          },
+          {
+            "index": 2,
+            "surface": "חֹומֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 3,
+            "surface": "אִיזוֹטְרוֹפִּי",
+            "normalized": "איזוטרופי"
+          },
+          {
+            "index": 4,
+            "surface": "מְתֹאָר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 5,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 6,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 7,
+            "surface": "שְׁנֵי",
+            "normalized": "שני"
+          },
+          {
+            "index": 8,
+            "surface": "קְבוּעִים",
+            "normalized": "קבועים"
+          },
+          {
+            "index": 9,
+            "surface": "בִּלְתִּי",
+            "normalized": "בלתי"
+          },
+          {
+            "index": 10,
+            "surface": "תְּלוּיִים",
+            "normalized": "תלויים"
+          },
+          {
+            "index": 11,
+            "surface": "בִּלְבָד",
+            "normalized": "בלבד"
+          },
+          {
+            "index": 12,
+            "surface": "כְּגֹון",
+            "normalized": "כגון"
+          },
+          {
+            "index": 13,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 14,
+            "surface": "וְ־ν.",
+            "normalized": "ו־ν"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r006",
+      "order": 6,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "Ex=Ey=Ez וגם Gxy=Gyz=Gzx",
+        "he_niqqud": "Ex=Ey=Ez וְגַם Gxy=Gyz=Gzx",
+        "transliteration": "Ex=Ey=Ez ve-gam Gxy=Gyz=Gzx",
+        "ru": "Ex=Ey=Ez и Gxy=Gyz=Gzx"
+      },
+      "source_refs": [
+        "legacy_row_hash:d19192872b5169edaf46b587f3af3eca657b46fef338ed550c290ac2637ad565",
+        "legacy_fields_sha256:90c355de36ee2ba9a62cdc189f4dfefa15799fe7f0b21b21dd8c5cab35023a78",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Ex=Ey=Ez",
+            "normalized": "Ex=Ey=Ez"
+          },
+          {
+            "index": 1,
+            "surface": "וְגַם",
+            "normalized": "וגם"
+          },
+          {
+            "index": 2,
+            "surface": "Gxy=Gyz=Gzx",
+            "normalized": "Gxy=Gyz=Gzx"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Ex=Ey=Ez וגם Gxy=Gyz=Gzx"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה שכבות יוצר כיוון מועדף בין מישור השכבות לבין כיוון העובי ולכן לרוב אינו איזוטרופי.",
+        "he_niqqud": "מִבְנֶה שְׁכָבוֹת יוֹצֵר כִּוּוּן מֻעֲדָּף בֵּין מִישׁוֹר הַשְּׁכָבוֹת לְבֵין כִּוּוּן הָעֹבִי וְלָכֵן לָרֹוב אֵינוֹ אִיזוֹטְרוֹפִּי.",
+        "transliteration": "Mivneh shkhavot yotzer kivun mu'adaf ben mishor ha-shkhavot le-vein kivun ha-'ovi vela-khen larov eino izotropi.",
+        "ru": "Слоистая структура создает предпочтительное направление между плоскостью слоев и направлением толщины, и поэтому, как правило, не является изотропной."
+      },
+      "source_refs": [
+        "legacy_row_hash:dd1e87100cf86cddde4dc95176489162a13752ad866c77ca1607cff66ad8aa9c",
+        "legacy_fields_sha256:6b231ee5b057a0f499275e2c1123587e1eaef448001d22962e5edb5a9388920c",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "שְׁכָבוֹת",
+            "normalized": "שכבות"
+          },
+          {
+            "index": 2,
+            "surface": "יוֹצֵר",
+            "normalized": "יוצר"
+          },
+          {
+            "index": 3,
+            "surface": "כִּוּוּן",
+            "normalized": "כוון"
+          },
+          {
+            "index": 4,
+            "surface": "מֻעֲדָּף",
+            "normalized": "מעדף"
+          },
+          {
+            "index": 5,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 6,
+            "surface": "מִישׁוֹר",
+            "normalized": "מישור"
+          },
+          {
+            "index": 7,
+            "surface": "הַשְּׁכָבוֹת",
+            "normalized": "השכבות"
+          },
+          {
+            "index": 8,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 9,
+            "surface": "כִּוּוּן",
+            "normalized": "כוון"
+          },
+          {
+            "index": 10,
+            "surface": "הָעֹבִי",
+            "normalized": "העבי"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "לָרֹוב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 13,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 14,
+            "surface": "אִיזוֹטְרוֹפִּי.",
+            "normalized": "איזוטרופי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r008",
+      "order": 8,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "Ex≈Ey≠Ez",
+        "he_niqqud": "Ex≈Ey≠Ez",
+        "transliteration": "Ex≈Ey≠Ez",
+        "ru": "Ex≈Ey≠Ez"
+      },
+      "source_refs": [
+        "legacy_row_hash:4b9e03422e399be18b7df62ad62cc0e387fd272358ab71b97ef630b7354fb378",
+        "legacy_fields_sha256:b2ae6fd54107a2685dc8400a639ac2294471727269f0936998897e4cabb4ea3e",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Ex≈Ey≠Ez",
+            "normalized": "Ex≈Ey=Ez"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Ex≈Ey≠Ez"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן מבנה 1 מתאים להתנהגות אורתוטרופית או טרנסברסלית ולא לאיזוטרופיה תלת־ממדית.",
+        "he_niqqud": "לָכֵן מִבְנֶה 1 מַתְאִים לְהִתְנַהֲגוּת אוֹרְתוֹטְרוֹפִּית אֹו טְרַנְסְבֶרְסָלִית וְלֹא לְאִיזוֹטְרוֹפְּיָה תְּלַת־מְמַדִּית.",
+        "transliteration": "La-khen mivneh 1 mat'im lehitnahagut ortoṭropit o transverzalit velo le'izotropiyah telat-memadit.",
+        "ru": "Поэтому структура 1 подходит для ортотропного или трансверсально-изотропного поведения, но не для трехмерной изотропии."
+      },
+      "source_refs": [
+        "legacy_row_hash:05fd339ba6abd9eea7ac8a3226f1f39117ef8a7159b7262a0a8eb125b1363af4",
+        "legacy_fields_sha256:d2bb8f308faba9e9589263042891b8f8caf052a3f0d64301fb594a6959f4d68e",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 2,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 3,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 4,
+            "surface": "לְהִתְנַהֲגוּת",
+            "normalized": "להתנהגות"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹרְתוֹטְרוֹפִּית",
+            "normalized": "אורתוטרופית"
+          },
+          {
+            "index": 6,
+            "surface": "אֹו",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "טְרַנְסְבֶרְסָלִית",
+            "normalized": "טרנסברסלית"
+          },
+          {
+            "index": 8,
+            "surface": "וְלֹא",
+            "normalized": "ולא"
+          },
+          {
+            "index": 9,
+            "surface": "לְאִיזוֹטְרוֹפְּיָה",
+            "normalized": "לאיזוטרופיה"
+          },
+          {
+            "index": 10,
+            "surface": "תְּלַת־מְמַדִּית.",
+            "normalized": "תלת־ממדית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במבנה שבו קיימת אוריינטציה דומיננטית של חיזוק (כגון סיבים) מתקבל הבדל משמעותי בין הכיוון המקביל לבין הכיוון המאונך.",
+        "he_niqqud": "בְּמִבְנֶה שֶׁבֹּו קַיֶּמֶת אוֹרְיֶנְטַצְיָה דּוֹמִינַנְטִית שֶׁל חִזּוּק (כְּגֹון סִיבִים) מִתְקַבֵּל הֶבְדֵּל מַשְׁמָעוּתִי בֵּין הַכִּוּוּן הַמַּקְבִּיל לְבֵין הַכִּוּוּן הַמְאֻנָּךְ.",
+        "transliteration": "Ba-mivneh shebo qayamet oryentaẓiyah dominantit shel ḥizuq (kegon sivim) mitqabel hevdel mashma'uti ben ha-kivun ha-maqbil le-vein ha-kivun ha-me'unakh.",
+        "ru": "В структуре, где присутствует доминирующая ориентация армирования (например, волокон), возникает значительная разница между параллельным и перпендикулярным направлениями."
+      },
+      "source_refs": [
+        "legacy_row_hash:59d7bf4d9f1ac54b6229b90c961acaef1f26474030bcabdfcb6078403423a22a",
+        "legacy_fields_sha256:0095d2733fb16fae716c64265f70fc6796267f552862a2e7304526ee0f21dfa7",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמִבְנֶה",
+            "normalized": "במבנה"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁבֹּו",
+            "normalized": "שבו"
+          },
+          {
+            "index": 2,
+            "surface": "קַיֶּמֶת",
+            "normalized": "קימת"
+          },
+          {
+            "index": 3,
+            "surface": "אוֹרְיֶנְטַצְיָה",
+            "normalized": "אורינטציה"
+          },
+          {
+            "index": 4,
+            "surface": "דּוֹמִינַנְטִית",
+            "normalized": "דומיננטית"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "חִזּוּק",
+            "normalized": "חזוק"
+          },
+          {
+            "index": 7,
+            "surface": "(כְּגֹון",
+            "normalized": "כגון"
+          },
+          {
+            "index": 8,
+            "surface": "סִיבִים)",
+            "normalized": "סיבים"
+          },
+          {
+            "index": 9,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 10,
+            "surface": "הֶבְדֵּל",
+            "normalized": "הבדל"
+          },
+          {
+            "index": 11,
+            "surface": "מַשְׁמָעוּתִי",
+            "normalized": "משמעותי"
+          },
+          {
+            "index": 12,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 13,
+            "surface": "הַכִּוּוּן",
+            "normalized": "הכוון"
+          },
+          {
+            "index": 14,
+            "surface": "הַמַּקְבִּיל",
+            "normalized": "המקביל"
+          },
+          {
+            "index": 15,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 16,
+            "surface": "הַכִּוּוּן",
+            "normalized": "הכוון"
+          },
+          {
+            "index": 17,
+            "surface": "הַמְאֻנָּךְ.",
+            "normalized": "המאנך"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "E∥≫E⊥",
+        "he_niqqud": "E∥≫E⊥",
+        "transliteration": "E∥≫E⊥",
+        "ru": "E∥≫E⊥"
+      },
+      "source_refs": [
+        "legacy_row_hash:56ffe9e1d11a7d3153be3aab1beaf7b762712852ccd7e97b077e7fd8c01878e2",
+        "legacy_fields_sha256:db6a390bd84462ae00e16b13fb8155f8e709d69cad418ccf82109ab7901c29ba",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E∥≫E⊥",
+            "normalized": "E∥≫E"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן מבנה 2 מציג אנאיזוטרופיות וחוזק שונה לאורך ולרוחב.",
+        "he_niqqud": "לָכֵן מִבְנֶה 2 מַצִּיג אָנְאַיזוֹטְרוֹפִּיּוֹת וְחֹוזֶק שֹׁונֶה לְאֹרֶךְ וְלָרֹוחַב.",
+        "transliteration": "La-khen mivneh 2 matzig an'izotropiyot ve-ḥozeq shoneh le'orekh vela-roḥav.",
+        "ru": "Поэтому структура 2 демонстрирует анизотропию и различную прочность вдоль и поперек."
+      },
+      "source_refs": [
+        "legacy_row_hash:c1ee5715fcd0a7d932a66a5baed33d2a227c7aba5ce7afb0b684c2e9fb201ae3",
+        "legacy_fields_sha256:06f4d74a3a1e41140b9cc1eaa11f61f0b12bb47c7bc8ec84751b86330d9d773e",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "מַצִּיג",
+            "normalized": "מציג"
+          },
+          {
+            "index": 4,
+            "surface": "אָנְאַיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "אנאיזוטרופיות"
+          },
+          {
+            "index": 5,
+            "surface": "וְחֹוזֶק",
+            "normalized": "וחוזק"
+          },
+          {
+            "index": 6,
+            "surface": "שֹׁונֶה",
+            "normalized": "שונה"
+          },
+          {
+            "index": 7,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 8,
+            "surface": "וְלָרֹוחַב.",
+            "normalized": "ולרוחב"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר החיזוק מפוזר באופן אקראי וללא כיוון מועדף ובהנחת פיזור אחיד ומטריצה איזוטרופית מתקבלת בקירוב איזוטרופיה בתלת־ממד.",
+        "he_niqqud": "כַּאֲשֶׁר הַחִזּוּק מְפֻזָּר בְּאֹופֶן אַקְרָאִי וּלְלֹא כִּוּוּן מֻעֲדָּף וּבְהַנָּחַת פִּזּוּר אָחִיד וּמַטְרִיצָה אִיזוֹטְרוֹפִּית מִתְקַבֶּלֶת בְּקֵרוּב אִיזוֹטְרוֹפְּיָה בִּתְלַת־מֵמַד.",
+        "transliteration": "Ka'asher ha-ḥizuq mefuzar be'ofen aqra'i ulelo kivun mu'adaf u-behanḥat pizur aḥid u-matriza izotropit mitqabelet beqiruv izotropiyah bi-tlat-memad.",
+        "ru": "Когда армирование распределено случайным образом и без предпочтительного направления, и при условии однородного распределения и изотропной матрицы, получается приблизительная трехмерная изотропия."
+      },
+      "source_refs": [
+        "legacy_row_hash:e1079fbff7d85623676c92a4c9d96815ca1cc27f33c10dbefdc9b907cc823677",
+        "legacy_fields_sha256:8661db51f3db87d1fb78d23de055c566e82d28f11eca790d2cf6672a159fef14",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "הַחִזּוּק",
+            "normalized": "החזוק"
+          },
+          {
+            "index": 2,
+            "surface": "מְפֻזָּר",
+            "normalized": "מפזר"
+          },
+          {
+            "index": 3,
+            "surface": "בְּאֹופֶן",
+            "normalized": "באופן"
+          },
+          {
+            "index": 4,
+            "surface": "אַקְרָאִי",
+            "normalized": "אקראי"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְלֹא",
+            "normalized": "וללא"
+          },
+          {
+            "index": 6,
+            "surface": "כִּוּוּן",
+            "normalized": "כוון"
+          },
+          {
+            "index": 7,
+            "surface": "מֻעֲדָּף",
+            "normalized": "מעדף"
+          },
+          {
+            "index": 8,
+            "surface": "וּבְהַנָּחַת",
+            "normalized": "ובהנחת"
+          },
+          {
+            "index": 9,
+            "surface": "פִּזּוּר",
+            "normalized": "פזור"
+          },
+          {
+            "index": 10,
+            "surface": "אָחִיד",
+            "normalized": "אחיד"
+          },
+          {
+            "index": 11,
+            "surface": "וּמַטְרִיצָה",
+            "normalized": "ומטריצה"
+          },
+          {
+            "index": 12,
+            "surface": "אִיזוֹטְרוֹפִּית",
+            "normalized": "איזוטרופית"
+          },
+          {
+            "index": 13,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 14,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 15,
+            "surface": "אִיזוֹטְרוֹפְּיָה",
+            "normalized": "איזוטרופיה"
+          },
+          {
+            "index": 16,
+            "surface": "בִּתְלַת־מֵמַד.",
+            "normalized": "בתלת־ממד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן רק מבנה 3 צפוי להציג תכונות מכניות איזוטרופיות תחת מאמץ בשלושת הצירים הראשיים.",
+        "he_niqqud": "לָכֵן רַק מִבְנֶה 3 צָפוּי לְהַצִּיג תְּכוּנוֹת מְכָאִנִיּוֹת אִיזוֹטְרוֹפִּיּוֹת תַּחַת מַאֲמָץ בִּשְׁלֹשֶׁת הַצִּירִים הָרָאשִׁיִּים.",
+        "transliteration": "La-khen raq mivneh 3 tzafui lehatzig tkhunot mekhaniyot izotropiyot taḥat ma'amatz bi-shloshet ha-tzirim ha-rashi'im.",
+        "ru": "Поэтому только структура 3, как ожидается, будет демонстрировать изотропные механические свойства при напряжении по трем основным осям."
+      },
+      "source_refs": [
+        "legacy_row_hash:54684ce270c856605190f49c7b19be5afe5f83cc52209be890739cde5a1acedb",
+        "legacy_fields_sha256:58b40c2f5c23f4b64f4c0094ec96bb22dca24f1f8e437f0d95e56084cb27bcf8",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "רַק",
+            "normalized": "רק"
+          },
+          {
+            "index": 2,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 3,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 4,
+            "surface": "צָפוּי",
+            "normalized": "צפוי"
+          },
+          {
+            "index": 5,
+            "surface": "לְהַצִּיג",
+            "normalized": "להציג"
+          },
+          {
+            "index": 6,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 7,
+            "surface": "מְכָאִנִיּוֹת",
+            "normalized": "מכאניות"
+          },
+          {
+            "index": 8,
+            "surface": "אִיזוֹטְרוֹפִּיּוֹת",
+            "normalized": "איזוטרופיות"
+          },
+          {
+            "index": 9,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 10,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 11,
+            "surface": "בִּשְׁלֹשֶׁת",
+            "normalized": "בשלשת"
+          },
+          {
+            "index": 12,
+            "surface": "הַצִּירִים",
+            "normalized": "הצירים"
+          },
+          {
+            "index": 13,
+            "surface": "הָרָאשִׁיִּים.",
+            "normalized": "הראשיים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q057-sol-r015",
+      "order": 15,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:99d871bcc44eaf2abaad7387c5f42d4ad0b292d428bea143d10618e510d69faf",
+        "comparison:CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY",
+        "source_page:64",
+        "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q057",
+    "display_alias": "57",
+    "source_pages": [
+      64
+    ],
+    "independent_state": "DERIVED_AFTER_ONE_TARGETED_SOURCE_REVIEW",
+    "answer": [
+      "Только структура3 даёт приблизительно изотропные свойства по трём главным осям, если short fibers действительно распределены и ориентированы статистически равномерно в объёме. Структура1 — слоистая, структура2 — направленно армированная волокнами; обе имеют предпочтительное направление и поэтому анизотропны/ортотропны."
+    ],
+    "engineering_picture": "Isotropy возникает не из самого слова composite, а из отсутствия предпочтительного направления на representative volume. Layers создают явную material axis.",
+    "prerequisites": [
+      "Layered and aligned-fiber reinforcement create preferred material axes.",
+      "Random 3D short fibers can be quasi-isotropic; planar random fibers are only in-plane quasi-isotropic."
+    ],
+    "roadmap": [
+      "Identify preferred directions in each cube.",
+      "Test x,y,z statistical equivalence.",
+      "State scale/orientation caveat."
+    ],
+    "main_trap": "Не объявлять random-looking fibers полностью isotropic, если они фактически лежат только в плоскости слоя.",
+    "givens": [
+      "Three diagrams: layered directional, particles, random fibers."
+    ],
+    "find": [
+      "Which structures are isotropic on three axes."
+    ],
+    "assumptions": [
+      "Diagram3 denotes 3D random orientation, not a 2D mat."
+    ],
+    "laws": [
+      "Statistical rotational symmetry of microstructure yields approximate isotropy at continuum scale."
+    ],
+    "symbolic_derivation": [
+      "no preferred direction⇒Ex≈Ey≈Ez;layer/fiber axis⇒Eparallel≠Eperpendicular."
+    ],
+    "calculation": [],
+    "construction": [
+      "Draw x,y,z arrows and count whether reinforcement orientation distribution changes under axis permutation."
+    ],
+    "checks": [
+      "Structures1 and2 retain preferred directions; only3 lacks one on all visible faces."
+    ],
+    "source_facts": [
+      "source_page:64",
+      "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+    ],
+    "unresolved_limits": [
+      "If diagram3 represents planar rather than 3D random fibers, it is transversely anisotropic; the source drawing must be interpreted as volumetric random orientation for the three-axis answer."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

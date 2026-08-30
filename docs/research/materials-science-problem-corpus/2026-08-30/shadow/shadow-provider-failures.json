@@ -1,0 +1,96 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-provider-failures-v1",
+  "status": "TERMINAL_NO_MORE_GEMINI_REQUESTS",
+  "failures": [
+    {
+      "batch_id": "B01",
+      "model": "gemini-3.7-flash",
+      "http_status": 400,
+      "error_category": "WIRE_FORMAT_MIME_ENUM_REJECTED_BEFORE_INFERENCE",
+      "usage_metadata_returned": false,
+      "raw_response_cached": false,
+      "billable_cost_usd": null,
+      "conservative_cost_reserve_usd": 0.09894,
+      "correction": "TEXT_RESPONSE_FORMAT_MIME_ENUM_APPLICATION_JSON"
+    },
+    {
+      "batch_id": "B01",
+      "model": "gemini-3.7-flash",
+      "http_status": 400,
+      "error_category": "GENERIC_INVALID_ARGUMENT_BEFORE_INFERENCE",
+      "likely_causes": [
+        "DEEPLY_NESTED_STRUCTURED_OUTPUT_SCHEMA",
+        "SOURCE_PDF_BROKEN_EMBEDDED_ICC_PROFILE"
+      ],
+      "usage_metadata_returned": false,
+      "raw_response_cached": false,
+      "billable_cost_usd": null,
+      "conservative_cost_reserve_usd": 0.09894,
+      "correction": "SIMPLIFIED_WIRE_SCHEMA_PLUS_RASTER_SANITIZED_PDF_PENDING_NEW_OWNER_GATE"
+    },
+    {
+      "batch_id": "B01",
+      "model": "gemini-3.7-flash",
+      "model_version": "gemini-3.7-flash",
+      "http_status": 200,
+      "error_category": "WIRE_SCHEMA_ALLOWED_EMPTY_CASE_OBJECTS_SEMANTIC_VALIDATION_FAILED",
+      "usage_metadata_returned": true,
+      "raw_response_cached": true,
+      "request_body_sha256": "9a9cd0b9844409c8143cb42dedd284bd75a4cb90cce7686c8a55face3f9a69c1",
+      "raw_response_sha256": "e2b964078968ba06512eab3cbc36f7c6b5c5c73f7fd8c36a124e8113d80df3df",
+      "provider_text_sha256": "54598053b85ce57534d2c8206f46648f801110576113d1654e19fd9f20aeec1f",
+      "usage": {
+        "prompt_tokens": 14309,
+        "candidate_tokens": 90,
+        "thinking_tokens": 1355,
+        "total_tokens_reported": 15754,
+        "calculated_usd": 0.0161505
+      },
+      "provider_output_truth_status": "REJECTED_INVALID_NOT_NORMALIZED_NOT_CORPUS_TRUTH",
+      "correction": "FLAT_REQUIRED_WIRE_SCHEMA_WITH_DETERMINISTIC_NORMALIZATION_PENDING_NEW_OWNER_GATE"
+    },
+    {
+      "batch_id": "B01",
+      "model": "gemini-3.7-flash",
+      "model_version": "gemini-3.7-flash",
+      "http_status": 200,
+      "error_category": "FLAT_WIRE_RESPONSE_FAILED_STRICT_SEMANTIC_VALIDATION",
+      "usage_metadata_returned": true,
+      "raw_response_cached": true,
+      "request_body_sha256": "f366ff3368f7de343a7f496624eab83f0e18552b848e1db0da4c1dec0db9cb86",
+      "raw_response_sha256": "a36d3062e8b3853ace77d6055133c2c771a33fd0dfe80de2fc08095337e7a42b",
+      "provider_text_sha256": "4064d094012a7e911cc40445b73de8a71634c7da25be74a654e8bd245c961620",
+      "usage": {
+        "prompt_tokens": 14380,
+        "candidate_tokens": 10005,
+        "thinking_tokens": 409,
+        "total_tokens_reported": 24794,
+        "calculated_usd": 0.0498375
+      },
+      "returned_counts": {
+        "case_tasks": 4,
+        "task_boundaries": 4,
+        "source_rows": 22,
+        "visuals": 4,
+        "legacy_findings": 13,
+        "unknowns": 0,
+        "case_summaries": 4
+      },
+      "validation_failure_classes": [
+        "CONTROLLED_ENUM_VALUES_OUTSIDE_CANONICAL_SCHEMA",
+        "SUMMARY_VALIDATION_BLOCKED_BY_INVALID_SEVERITY_ENUMS"
+      ],
+      "provider_output_truth_status": "REJECTED_INVALID_NOT_NORMALIZED_NOT_CORPUS_TRUTH",
+      "correction": "NONE_TERMINAL_RULE_NO_MORE_GEMINI_REQUESTS"
+    }
+  ],
+  "total_provider_request_attempts": 4,
+  "total_conservative_cost_reserve_usd": 0.19788,
+  "measured_successful_http_call_cost_usd": 0.065988,
+  "reserve_plus_measured_cost_usd": 0.263868,
+  "remaining_provider_calls_authorized": 0,
+  "remaining_retry_budget": 0,
+  "batches_not_sent": ["B02", "B03"],
+  "terminal_decision": "NO_MORE_GEMINI_REQUESTS",
+  "secret_persisted": false
+}

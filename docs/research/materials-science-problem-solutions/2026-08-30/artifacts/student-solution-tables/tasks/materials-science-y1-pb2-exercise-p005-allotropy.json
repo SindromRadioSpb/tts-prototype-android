@@ -1,0 +1,2925 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+  "display_alias": "Упражнение — Аллотропия железа",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "4d68e6e5285620b4a5aad6bf8d78dbce85cd4c07a679d5eb7bcbcf8e8043a9ec"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Transition table, conventional-cell contraction, and room-temperature SAE 1040 constituents match. The independent ledger additionally distinguishes conventional-cell volume from volume per atom and flags the historical beta-iron nomenclature.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r001",
+        "order_index": 0,
+        "hebrew_plain": "תרגיל \"אלוטרופיה של ברזל\"",
+        "hebrew_niqqud": "תַּרְגִּיל \"אַלּוֹטְרוֹפְּיָה שֶׁל בַּרְזֶל\"",
+        "translit": "Targil \"Alotropyah shel barzel\"",
+        "translit_ru": "",
+        "russian": "Упражнение «Аллотропия железа»",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "task_heading",
+            "source_page": 5,
+            "source_row_index": 0,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. במהלך קירור איטי של ברזל טהור (Fe) מטמפרטורה של 1600 °C לטמפרטורת החדר, חלים בברזל ארבעה מעברים אלוטרופיים, כמתואר באיור לשאלה 8 .",
+        "hebrew_niqqud": "א. בְּמַהֲלַךְ קֵירוּר אִיטִּי שֶׁל בַּרְזֶל טָהוֹר (Fe) מִטֶּמְפֶּרָטוּרָה שֶׁל 1600 °C לְטֶמְפֶּרָטוּרַת הַחֶדֶר, חָלִים בְּבַרְזֶל אַרְבָּעָה מַעֲבָרִים אַלּוֹטְרוֹפִּיִּים, כַּמְתֹואָר בָּאִיּוּר לִשְׁאֵלָה 8 .",
+        "translit": "A. Be-mahalakh kerur iti shel barzel tahor (Fe) mi-temperaturah shel 1600 °C le-temperaturat ha-kheder, khalim be-varzel arba'ah ma'avarim alotropyiyim, kamto'ar ba-iyur li-she'elah 8 .",
+        "translit_ru": "",
+        "russian": "а. При медленном охлаждении чистого железа (Fe) от температуры 1600 °C до комнатной температуры в железе происходят четыре аллотропических превращения, как показано на рисунке к вопросу 8.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "subpart",
+            "source_page": 5,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r003",
+        "order_index": 2,
+        "hebrew_plain": "רשום בטבלה את השם של מבנה הסריג הנוצר בכל מעבר, את טמפרטורת המעבר ואת מידת תא היחידה של המבנה הנוצר בכל מעבר .",
+        "hebrew_niqqud": "רְשֹׁום בְּטַבְלָה אֶת הַשֵּׁם שֶׁל מִבְנֵה הַסָּרִיג הַנּוֹצָר בְּכָל מַעֲבָר, אֶת טֶמְפֶּרָטוּרַת הַמַּעֲבָר וְאֶת מִידַּת תָּא הַיְחִידָה שֶׁל הַמִּבְנֶה הַנּוֹצָר בְּכָל מַעֲבָר .",
+        "translit": "Reshom be-tavlah et ha-shem shel mivneh ha-sarig ha-notzar be-khol ma'avar, et temperaturat ha-ma'avar ve-et midat ta ha-yekhidah shel ha-mivneh ha-notzar be-khol ma'avar .",
+        "translit_ru": "",
+        "russian": "Запишите в таблицу название структуры решетки, образующейся при каждом переходе, температуру перехода и размер элементарной ячейки структуры, образующейся при каждом переходе.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "subpart",
+            "source_page": 5,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r004",
+        "order_index": 3,
+        "hebrew_plain": "ב. האם המעברים האלוטרופיים מברזל γ לברזל α , כרוכים בהתפשטות נפחית של תא היחידה או בהתכווצות נפחית שלו?",
+        "hebrew_niqqud": "ב. הַאִם הַמַּעֲבָרִים הָאַלּוֹטְרוֹפִּיִּים מִבַּרְזֶל γ לְבַרְזֶל α , כְּרוּכִים בְּהִתְפַּשְּׁטוּת נַפְחִית שֶׁל תָּא הַיְחִידָה אוֹ בְּהִתְכַּווְּצוּת נַפְחִית שֶׁלּוֹ?",
+        "translit": "B. Ha-im ha-ma'avarim ha-alotropiim mi-barzel γ le-varzel α , krukhim be-hitpashtut nafhyt shel ta ha-yikhidah o be-hitkavtzut nafhyt shelo?",
+        "translit_ru": "",
+        "russian": "б. Сопровождаются ли аллотропические переходы от γ-железа к α-железу объемным расширением элементарной ячейки или ее объемным сжатием?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "subpart",
+            "source_page": 5,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r005",
+        "order_index": 4,
+        "hebrew_plain": "ענה תוך התייחסות לסוג הסריג, ולמידת תא היחידה. היעזר בנתונים שבאיור לשאלה 8 .",
+        "hebrew_niqqud": "עֲנֵה תּוֹךְ הִתְייַחֲסוּת לְסוּג הַסָּרִיג, וּלְמִידַּת תָּא הַיְחִידָה. הֵיעָזֵר בַּנְּתוּנִים שֶׁבָּאִיּוּר לִשְׁאֵלָה 8 .",
+        "translit": "Aneh tokh hityakhasut le-sug ha-sarig, u-le-midat ta ha-yekhidah. He'azer ba-netunim she-ba-iyur li-she'elah 8 .",
+        "translit_ru": "",
+        "russian": "Ответьте со ссылкой на тип решетки и размер элементарной ячейки. Воспользуйтесь данными на рисунке к вопросу 8.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "subpart",
+            "source_page": 5,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r006",
+        "order_index": 5,
+        "hebrew_plain": "היעזר בנתונים שבאיור לשאלה 8",
+        "hebrew_niqqud": "הֵיעָזֵר בַּנְּתוּנִים שֶׁבְּאִיּוּר לִשְׁאֵלָה 8",
+        "translit": "Hi'azer be-netunim she-ba-iyur le-she'elah 8",
+        "translit_ru": "",
+        "russian": "Воспользуйтесь данными, приведенными на рисунке к вопросу 8.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "diagram_reference",
+            "source_page": 5,
+            "source_row_index": 5,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r007",
+        "order_index": 6,
+        "hebrew_plain": "ג. מקררים פלדה מסוג SAE 1040 באופן איטי מטמפרטורה של 900 °C לטמפרטורת החדר.",
+        "hebrew_niqqud": "ג. מְקָרְרִים פְּלָדָה מִסּוּג SAE 1040 בְּאֹופֶן אִיטִּי מִטֶּמְפֶּרָטוּרָה שֶׁל 900 °C לְטֶמְפֶּרָטוּרַת הַחֶדֶר.",
+        "translit": "G. Mekarrerim pladah mi-sug SAE 1040 be-ofen iti mi-temperaturah shel 900 °C le-temperaturat ha-kheder.",
+        "translit_ru": "",
+        "russian": "в. Медленно охлаждают сталь марки SAE 1040 от температуры 900 °C до комнатной температуры.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "subpart",
+            "source_page": 5,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-r008",
+        "order_index": 7,
+        "hebrew_plain": "מהן הפאזות שיתקבלו בפלדה זו בטמפרטורת החדר?",
+        "hebrew_niqqud": "מַהַן הַפָּאזוֹת שֶׁיִּתְקַבְּלוּ בִּפְלָדָה זוֹ בְּטֶמְפֶּרָטוּרַת הַחֶדֶר?",
+        "translit": "Mahan ha-fazot she-yitkablu bi-fladah zo be-temperaturat ha-kheder?",
+        "translit_ru": "",
+        "russian": "Какие фазы будут получены в этой стали при комнатной температуре?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+            "kind": "subpart",
+            "source_page": 5,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      5
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-exercise-p005-allotropy/anchor-01-p005.jpg",
+        "sha256": "2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa",
+        "bytes": 252173,
+        "source_page": 5,
+        "normalized_bbox": [
+          0,
+          0.22,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-exercise-p005-allotropy-v01",
+        "source_page": 5,
+        "kind": "COOLING_AND_ALLOTROPIC_TRANSITION_CURVE",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      },
+      {
+        "visual_id": "materials-science-y1-pb2-exercise-p005-allotropy-v02",
+        "source_page": 5,
+        "kind": "CRYSTAL_UNIT_CELL_SKETCH",
+        "instance_count": 4,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר נוזל→δ מתרחש ב-1539°C",
+        "he_niqqud": "מַעֲבָר נוֹזֵל→δ מִתְרַחֵשׁ בְּ-1539°C",
+        "transliteration": "Ma'avar nozel→δ mitraḥesh be-1539°C",
+        "ru": "Переход жидкость→δ происходит при 1539°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:c12c7b2dd4601581e643bb48624848c5c06e1a615021f2fec5e43975d290a022",
+        "legacy_fields_sha256:cfeb397cfaf0c21eea9b4dc72a15486cad3b5e57e02e56adcff0887857ffe17b",
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "נוֹזֵל→δ",
+            "normalized": "נוזל→δ"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-1539°C",
+            "normalized": "ב-1539°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר δ→γ מתרחש ב-(A4)=1401°C",
+        "he_niqqud": "מַעֲבָר δ→γ מִתְרַחֵשׁ בְּ-(A4)=1401°C",
+        "transliteration": "Ma'avar δ→γ mitraḥesh be-(A4)=1401°C",
+        "ru": "Переход δ→γ происходит при (A4)=1401°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:20a05b9806da866df58186cdd6aef6401af7470923a9e1a7484626954ce262d4",
+        "legacy_fields_sha256:e5c79cc2d6a91766229fcae541b5c68f667f94f3692e0ca3185e2c029b1babaf",
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "δ→γ",
+            "normalized": "δ→γ"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-(A4)=1401°C",
+            "normalized": "ב-(A4)=1401°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר γ→β מתרחש ב-(A3)=910°C",
+        "he_niqqud": "מַעֲבָר γ→β מִתְרַחֵשׁ בְּ-(A3)=910°C",
+        "transliteration": "Ma'avar γ→β mitraḥesh be-(A3)=910°C",
+        "ru": "Переход γ→β происходит при (A3)=910°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:11a79bd10e83122c8f631ec52a5cfeebae5f449d8cd20a8afed2c39a54a163ce",
+        "legacy_fields_sha256:7992907f68d2cba059d41901a1a0d10612c13618a63dbdcaff760340fdb2859e",
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "γ→β",
+            "normalized": "γ→β"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-(A3)=910°C",
+            "normalized": "ב-(A3)=910°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר β→α מתרחש ב-(A2)=768°C",
+        "he_niqqud": "מַעֲבָר β→α מִתְרַחֵשׁ בְּ-(A2)=768°C",
+        "transliteration": "Ma'avar β→α mitraḥesh be-(A2)=768°C",
+        "ru": "Переход β→α происходит при (A2)=768°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:127106c3d086b65894112e488b1961775365559b6569b894195c00c55722df47",
+        "legacy_fields_sha256:cc434830d77c4812c225ebb6f4278a502809f4f0eeb87d23aee97a92216ededb",
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "β→α",
+            "normalized": "β→α"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-(A2)=768°C",
+            "normalized": "ב-(A2)=768°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r006",
+      "order": 6,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מחשבים את נפח תא היחידה לכל מבנה לפי (a^3)",
+        "he_niqqud": "מְחַשְּׁבִים אֶת נֶפַח תָּא הַיְחִידָה לְכָל מִבְנֶה לְפִי (a^3)",
+        "transliteration": "Meḥashvim et nefah ta ha-yehida le-chol mivneh lefi (a^3)",
+        "ru": "Рассчитываем объем элементарной ячейки для каждой структуры по формуле (a^3)."
+      },
+      "source_refs": [
+        "legacy_row_hash:bbfa7253774e2903ee8a7ad0bdf8e6393ede24fe460cb82f309821cffaff9dad",
+        "legacy_fields_sha256:f58fd3795d90ddef24421c2c0ade2b224d666ba7726c13ea2ff75ace2b584220",
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְחַשְּׁבִים",
+            "normalized": "מחשבים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "נֶפַח",
+            "normalized": "נפח"
+          },
+          {
+            "index": 3,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 4,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 5,
+            "surface": "לְכָל",
+            "normalized": "לכל"
+          },
+          {
+            "index": 6,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 7,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 8,
+            "surface": "(a^3)",
+            "normalized": "a^3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r007",
+      "order": 7,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בטמפרטורת החדר בפלדה מסוג (SAE 1040) מתקבלים פריט α וצמנטיט Fe₃C",
+        "he_niqqud": "ג) בְּטֶמְפֶּרָטוּרַת הַחֶדֶר בִּפְלָדָה מִסּוּג (SAE 1040) מִתְקַבְּלִים פֶרִיט α וְצֶמֶנְטִיט Fe₃C",
+        "transliteration": "G) Be-temperaturat ha-hadar ba-pladah mi-sug (SAE 1040) mitkablim ferit α ve-tsementit Fe₃C",
+        "ru": "В) При комнатной температуре в стали типа (SAE 1040) получаются феррит α и цементит Fe₃C."
+      },
+      "source_refs": [
+        "legacy_row_hash:e6cf29a1168a219fe400892849bc82e7a73c2f8d431d3ec7ec081051a7608713",
+        "legacy_fields_sha256:c9d9a7ac96ed5b5adc22970c812f38e003d5185ea2115b57504aa9d17567efcf",
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 2,
+            "surface": "הַחֶדֶר",
+            "normalized": "החדר"
+          },
+          {
+            "index": 3,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "מִסּוּג",
+            "normalized": "מסוג"
+          },
+          {
+            "index": 5,
+            "surface": "(SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 6,
+            "surface": "1040)",
+            "normalized": "1040"
+          },
+          {
+            "index": 7,
+            "surface": "מִתְקַבְּלִים",
+            "normalized": "מתקבלים"
+          },
+          {
+            "index": 8,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 9,
+            "surface": "α",
+            "normalized": "α"
+          },
+          {
+            "index": 10,
+            "surface": "וְצֶמֶנְטִיט",
+            "normalized": "וצמנטיט"
+          },
+          {
+            "index": 11,
+            "surface": "Fe₃C",
+            "normalized": "Fe₃C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) מתקבלים ארבעה מעברים אלוטרופיים בקירור איטי מ-1600°C נוזל→δ δ→γ γ→β β→α",
+        "he_niqqud": "א) מִתְקַבְּלִים אַרְבָּעָה מַעֲבָרִים אַלּוֹטְרוֹפִּיִּים בְּקִירוּר אִטִּי מִ-1600°C נוֹזֵל→δ δ→γ γ→β β→α",
+        "transliteration": "A) Mitkablim arba'ah ma'avarim allotropiyim be-kirur iti mi-1600°C nozel→δ δ→γ γ→β β→α",
+        "ru": "А) При медленном охлаждении от 1600°C наблюдаются четыре аллотропических перехода: жидкость→δ, δ→γ, γ→β, β→α."
+      },
+      "source_refs": [
+        "legacy_row_hash:437c1b4746945be5e068a2e5ddb1533180ae3d9a20a3260d79bd3a95ea8d7544",
+        "legacy_fields_sha256:74806e6ee4d33240bbad2367fb7ede95b37c3dae96049e1b9a7160d435edd455",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "מִתְקַבְּלִים",
+            "normalized": "מתקבלים"
+          },
+          {
+            "index": 2,
+            "surface": "אַרְבָּעָה",
+            "normalized": "ארבעה"
+          },
+          {
+            "index": 3,
+            "surface": "מַעֲבָרִים",
+            "normalized": "מעברים"
+          },
+          {
+            "index": 4,
+            "surface": "אַלּוֹטְרוֹפִּיִּים",
+            "normalized": "אלוטרופיים"
+          },
+          {
+            "index": 5,
+            "surface": "בְּקִירוּר",
+            "normalized": "בקירור"
+          },
+          {
+            "index": 6,
+            "surface": "אִטִּי",
+            "normalized": "אטי"
+          },
+          {
+            "index": 7,
+            "surface": "מִ-1600°C",
+            "normalized": "מ-1600°C"
+          },
+          {
+            "index": 8,
+            "surface": "נוֹזֵל→δ",
+            "normalized": "נוזל→δ"
+          },
+          {
+            "index": 9,
+            "surface": "δ→γ",
+            "normalized": "δ→γ"
+          },
+          {
+            "index": 10,
+            "surface": "γ→β",
+            "normalized": "γ→β"
+          },
+          {
+            "index": 11,
+            "surface": "β→α",
+            "normalized": "β→α"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר נוזל→δ מתרחש ב-1539°C",
+        "he_niqqud": "מַעֲבָר נוֹזֵל→δ מִתְרַחֵשׁ בְּ-1539°C",
+        "transliteration": "Ma'avar nozel→δ mitraḥesh be-1539°C",
+        "ru": "Переход жидкость→δ происходит при 1539°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:c12c7b2dd4601581e643bb48624848c5c06e1a615021f2fec5e43975d290a022",
+        "legacy_fields_sha256:cfeb397cfaf0c21eea9b4dc72a15486cad3b5e57e02e56adcff0887857ffe17b",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "נוֹזֵל→δ",
+            "normalized": "נוזל→δ"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-1539°C",
+            "normalized": "ב-1539°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה הסריג של δ הוא (BCC) קובייתי מרוכז-גוף",
+        "he_niqqud": "מִבְנֵה הַסָּרִיג שֶׁל δ הוּא (BCC) קוּבְּיָתִי מְרֻכָּז-גּוּף",
+        "transliteration": "Mivneh ha-sarig shel δ hu (BCC) kubyati merukaz-guf",
+        "ru": "Структура решетки δ — (BCC) объемно-центрированная кубическая."
+      },
+      "source_refs": [
+        "legacy_row_hash:fdb2437a269d30f1abe236d68aafc29a21b403bfd5af342aa0b71743396756e1",
+        "legacy_fields_sha256:b703e982f19459a33ec74d67f0d03fad6f5ceac7d852d30cebab212ab6e4579b",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֵה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "הַסָּרִיג",
+            "normalized": "הסריג"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "δ",
+            "normalized": "δ"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "(BCC)",
+            "normalized": "BCC"
+          },
+          {
+            "index": 6,
+            "surface": "קוּבְּיָתִי",
+            "normalized": "קוביתי"
+          },
+          {
+            "index": 7,
+            "surface": "מְרֻכָּז-גּוּף",
+            "normalized": "מרכז-גוף"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r011",
+      "order": 11,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מידת תא היחידה של δ היא a=2.93Å",
+        "he_niqqud": "מִדַּת תָּא הַיְחִידָה שֶׁל δ הִיא a=2.93Å",
+        "transliteration": "Midat ta ha-yehida shel δ hi a=2.93Å",
+        "ru": "Размер элементарной ячейки δ составляет a=2.93Å."
+      },
+      "source_refs": [
+        "legacy_row_hash:4b935e6c43ce59aee4fa5edc8d46cecfba4c52914a0ebbd7c8b5b364a41826e2",
+        "legacy_fields_sha256:a4e814a779ff5865d898982cc6fb0902a3f629bcf57a1e50dd2d4b333bf7e6d6",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִדַּת",
+            "normalized": "מדת"
+          },
+          {
+            "index": 1,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 2,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "δ",
+            "normalized": "δ"
+          },
+          {
+            "index": 5,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 6,
+            "surface": "a=2.93Å",
+            "normalized": "a=2.93A"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r012",
+      "order": 12,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר δ→γ מתרחש ב-(A4)=1401°C",
+        "he_niqqud": "מַעֲבָר δ→γ מִתְרַחֵשׁ בְּ-(A4)=1401°C",
+        "transliteration": "Ma'avar δ→γ mitraḥesh be-(A4)=1401°C",
+        "ru": "Переход δ→γ происходит при (A4)=1401°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:20a05b9806da866df58186cdd6aef6401af7470923a9e1a7484626954ce262d4",
+        "legacy_fields_sha256:e5c79cc2d6a91766229fcae541b5c68f667f94f3692e0ca3185e2c029b1babaf",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "δ→γ",
+            "normalized": "δ→γ"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-(A4)=1401°C",
+            "normalized": "ב-(A4)=1401°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה הסריג של γ הוא (FCC) קובייתי מרוכז-פאות",
+        "he_niqqud": "מִבְנֵה הַסָּרִיג שֶׁל γ הוּא (FCC) קוּבְּיָתִי מְרֻכָּז-פֵּאוֹת",
+        "transliteration": "Mivneh ha-sarig shel γ hu (FCC) kubyati merukaz-pa'ot",
+        "ru": "Структура решетки γ — (FCC) гранецентрированная кубическая."
+      },
+      "source_refs": [
+        "legacy_row_hash:3b070deedb7ef501d73d6eddd0f03aae407150afd35abf5109cab705c781de48",
+        "legacy_fields_sha256:893d9c7c5c4fe47fa854cf65930c2423e08d7aa37bd23ca15bb3ccbfe9b227d4",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֵה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "הַסָּרִיג",
+            "normalized": "הסריג"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "γ",
+            "normalized": "γ"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "(FCC)",
+            "normalized": "FCC"
+          },
+          {
+            "index": 6,
+            "surface": "קוּבְּיָתִי",
+            "normalized": "קוביתי"
+          },
+          {
+            "index": 7,
+            "surface": "מְרֻכָּז-פֵּאוֹת",
+            "normalized": "מרכז-פאות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r014",
+      "order": 14,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מידת תא היחידה של γ היא a=3.64Å",
+        "he_niqqud": "מִדַּת תָּא הַיְחִידָה שֶׁל γ הִיא a=3.64Å",
+        "transliteration": "Midat ta ha-yehida shel γ hi a=3.64Å",
+        "ru": "Размер элементарной ячейки γ составляет a=3.64Å."
+      },
+      "source_refs": [
+        "legacy_row_hash:a8cf48a59a47a3ac1bac4f8ca0349baf0e76815eb2d6ee605507254cbfca9fc8",
+        "legacy_fields_sha256:30492cb330eae1c0d23ef37cc5f748a35637398dda773e82c28359dc22874642",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִדַּת",
+            "normalized": "מדת"
+          },
+          {
+            "index": 1,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 2,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "γ",
+            "normalized": "γ"
+          },
+          {
+            "index": 5,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 6,
+            "surface": "a=3.64Å",
+            "normalized": "a=3.64A"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r015",
+      "order": 15,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר γ→β מתרחש ב-(A3)=910°C",
+        "he_niqqud": "מַעֲבָר γ→β מִתְרַחֵשׁ בְּ-(A3)=910°C",
+        "transliteration": "Ma'avar γ→β mitraḥesh be-(A3)=910°C",
+        "ru": "Переход γ→β происходит при (A3)=910°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:11a79bd10e83122c8f631ec52a5cfeebae5f449d8cd20a8afed2c39a54a163ce",
+        "legacy_fields_sha256:7992907f68d2cba059d41901a1a0d10612c13618a63dbdcaff760340fdb2859e",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "γ→β",
+            "normalized": "γ→β"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-(A3)=910°C",
+            "normalized": "ב-(A3)=910°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה הסריג של β הוא (BCC) קובייתי מרוכז-גוף",
+        "he_niqqud": "מִבְנֵה הַסָּרִיג שֶׁל β הוּא (BCC) קוּבְּיָתִי מְרֻכָּז-גּוּף",
+        "transliteration": "Mivneh ha-sarig shel β hu (BCC) kubyati merukaz-guf",
+        "ru": "Структура решетки β — (BCC) объемно-центрированная кубическая."
+      },
+      "source_refs": [
+        "legacy_row_hash:b98df23ecee958629bcd4e96992db875b4a3808013abd39660db76cb60cddac2",
+        "legacy_fields_sha256:43396a8661c80e34d205a560992d562fdb7e3e7c80b36ec18a33c7a8873d9352",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֵה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "הַסָּרִיג",
+            "normalized": "הסריג"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "β",
+            "normalized": "β"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "(BCC)",
+            "normalized": "BCC"
+          },
+          {
+            "index": 6,
+            "surface": "קוּבְּיָתִי",
+            "normalized": "קוביתי"
+          },
+          {
+            "index": 7,
+            "surface": "מְרֻכָּז-גּוּף",
+            "normalized": "מרכז-גוף"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r017",
+      "order": 17,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מידת תא היחידה של β היא a=2.90Å",
+        "he_niqqud": "מִדַּת תָּא הַיְחִידָה שֶׁל β הִיא a=2.90Å",
+        "transliteration": "Midat ta ha-yehida shel β hi a=2.90Å",
+        "ru": "Размер элементарной ячейки β составляет a=2.90Å."
+      },
+      "source_refs": [
+        "legacy_row_hash:85d8a450a9cb3c819f6806327d172f2fa7e44eba417303a2799a5b7aa5962782",
+        "legacy_fields_sha256:efb848115d12104d6a48b959cc86b40a3ac86f7522c210e4ecdc0473fc411d0a",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִדַּת",
+            "normalized": "מדת"
+          },
+          {
+            "index": 1,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 2,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "β",
+            "normalized": "β"
+          },
+          {
+            "index": 5,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 6,
+            "surface": "a=2.90Å",
+            "normalized": "a=2.90A"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r018",
+      "order": 18,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר β→α מתרחש ב-(A2)=768°C",
+        "he_niqqud": "מַעֲבָר β→α מִתְרַחֵשׁ בְּ-(A2)=768°C",
+        "transliteration": "Ma'avar β→α mitraḥesh be-(A2)=768°C",
+        "ru": "Переход β→α происходит при (A2)=768°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:127106c3d086b65894112e488b1961775365559b6569b894195c00c55722df47",
+        "legacy_fields_sha256:cc434830d77c4812c225ebb6f4278a502809f4f0eeb87d23aee97a92216ededb",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "β→α",
+            "normalized": "β→α"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 3,
+            "surface": "בְּ-(A2)=768°C",
+            "normalized": "ב-(A2)=768°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבנה הסריג של α הוא (BCC) אותו סוג סריג ושינוי הוא מגנטי",
+        "he_niqqud": "מִבְנֵה הַסָּרִיג שֶׁל α הוּא (BCC) אוֹתוֹ סוּג סָרִיג וְשִׁנּוּי הוּא מַגְנֵטִי",
+        "transliteration": "Mivneh ha-sarig shel α hu (BCC) oto sug sarig ve-shinui hu magneti",
+        "ru": "Структура решетки α — (BCC), это тот же тип решетки, и изменение является магнитным."
+      },
+      "source_refs": [
+        "legacy_row_hash:bd3c68c8c7c89a8b8590ed2e4931394be741b303c4a7858c3bbd3c92d4abfa90",
+        "legacy_fields_sha256:74179b3997ddd025cd6ea25156045dcadce83ef01fc2729786b24b2932163c23",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִבְנֵה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 1,
+            "surface": "הַסָּרִיג",
+            "normalized": "הסריג"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "α",
+            "normalized": "α"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "(BCC)",
+            "normalized": "BCC"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹתוֹ",
+            "normalized": "אותו"
+          },
+          {
+            "index": 7,
+            "surface": "סוּג",
+            "normalized": "סוג"
+          },
+          {
+            "index": 8,
+            "surface": "סָרִיג",
+            "normalized": "סריג"
+          },
+          {
+            "index": 9,
+            "surface": "וְשִׁנּוּי",
+            "normalized": "ושנוי"
+          },
+          {
+            "index": 10,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 11,
+            "surface": "מַגְנֵטִי",
+            "normalized": "מגנטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מידת תא היחידה של α היא a=2.88Å",
+        "he_niqqud": "מִדַּת תָּא הַיְחִידָה שֶׁל α הִיא a=2.88Å",
+        "transliteration": "Midat ta ha-yehida shel α hi a=2.88Å",
+        "ru": "Размер элементарной ячейки α составляет a=2.88Å."
+      },
+      "source_refs": [
+        "legacy_row_hash:da32f865902f1dfb8ee85156de380901063d6dc3342947fd9d35f04776d5dc2b",
+        "legacy_fields_sha256:4f234e10ff71db5b6f0c47861a544e604a4031512d1ca33cfc4b801da33869e5",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִדַּת",
+            "normalized": "מדת"
+          },
+          {
+            "index": 1,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 2,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "α",
+            "normalized": "α"
+          },
+          {
+            "index": 5,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 6,
+            "surface": "a=2.88Å",
+            "normalized": "a=2.88A"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) המעבר מ-γ ל-α כרוך בהתכווצות נפחית של תא היחידה",
+        "he_niqqud": "ב) הַמַּעֲבָר מִ-γ לְ-α כָּרוּךְ בְּהִתְכַּוְּצוּת נַפְחִית שֶׁל תָּא הַיְחִידָה",
+        "transliteration": "B) Ha-ma'avar mi-γ le-α keruch be-hitkavtzut nafhit shel ta ha-yehida",
+        "ru": "Б) Переход из γ в α связан с объемным сжатием элементарной ячейки."
+      },
+      "source_refs": [
+        "legacy_row_hash:b1e10e804f073b7dbfcbdedcdd6442ef0c12fb8619b1e032fd66efa3beb77ec3",
+        "legacy_fields_sha256:15c81c93432190435aa0ff36436432f46c705efdd636326c5a3e48c3804b963b",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַמַּעֲבָר",
+            "normalized": "המעבר"
+          },
+          {
+            "index": 2,
+            "surface": "מִ-γ",
+            "normalized": "מ-γ"
+          },
+          {
+            "index": 3,
+            "surface": "לְ-α",
+            "normalized": "ל-α"
+          },
+          {
+            "index": 4,
+            "surface": "כָּרוּךְ",
+            "normalized": "כרוך"
+          },
+          {
+            "index": 5,
+            "surface": "בְּהִתְכַּוְּצוּת",
+            "normalized": "בהתכוצות"
+          },
+          {
+            "index": 6,
+            "surface": "נַפְחִית",
+            "normalized": "נפחית"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 9,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r022",
+      "order": 22,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "כדי לבדוק שינוי נפחי של תא יחידה משתמשים בנוסחה",
+        "he_niqqud": "כְּדֵי לִבְדֹּק שִׁנּוּי נַפְחִי שֶׁל תָּא יְחִידָה מִשְׁתַּמְּשִׁים בְּנוּסְחָה",
+        "transliteration": "Kedei livdok shinui nafhi shel ta yehida mishtameshym ba-nusḥah",
+        "ru": "Для проверки изменения объема элементарной ячейки используется формула:"
+      },
+      "source_refs": [
+        "legacy_row_hash:0c8b768044887814e2c40e82a745d5fde58f2ae72c1598ec1752b100d1d24e83",
+        "legacy_fields_sha256:cf5b06be63ac3aaa0d5fd01d65884e0beec7d3a8965a0b09340eda2d17d5513d",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 1,
+            "surface": "לִבְדֹּק",
+            "normalized": "לבדק"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁנּוּי",
+            "normalized": "שנוי"
+          },
+          {
+            "index": 3,
+            "surface": "נַפְחִי",
+            "normalized": "נפחי"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 6,
+            "surface": "יְחִידָה",
+            "normalized": "יחידה"
+          },
+          {
+            "index": 7,
+            "surface": "מִשְׁתַּמְּשִׁים",
+            "normalized": "משתמשים"
+          },
+          {
+            "index": 8,
+            "surface": "בְּנוּסְחָה",
+            "normalized": "בנוסחה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r023",
+      "order": 23,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "(V_{\\text{cell}}=a^3)",
+        "he_niqqud": "(V_{\\text{cell}}=a^3)",
+        "transliteration": "(V_{\\text{cell}}=a^3)",
+        "ru": "(V_{\\text{cell}}=a^3)."
+      },
+      "source_refs": [
+        "legacy_row_hash:eb7f79c2bf96f9fe4bd316ff4c8749a31a71073008167467b9e10040bb92e214",
+        "legacy_fields_sha256:42862c9d90a7e51484dcd6172ef3ed28a8d8ddb2e7b50564ba7e9542858c8726",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "(V_{\\text{cell}}=a^3)",
+            "normalized": "V_{\\text{cell}}=a^3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "(V_{\\text{cell}}=a^3)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r024",
+      "order": 24,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "מן הנתונים באיור 8 מתקבל aγ=3.64Å aβ=2.90Å aα=2.88Å",
+        "he_niqqud": "מִן הַנְּתוּנִים בְּאִיּוּר 8 מִתְקַבֵּל aγ=3.64Å aβ=2.90Å aα=2.88Å",
+        "transliteration": "Min ha-netunim she-ba-iyur 8 mitkabel aγ=3.64Å aβ=2.90Å aα=2.88Å",
+        "ru": "Из данных на рисунке 8 получаем aγ=3.64Å, aβ=2.90Å, aα=2.88Å."
+      },
+      "source_refs": [
+        "legacy_row_hash:ffa48328e7cbcb13d150889a3032ba1bdb448fb3190fd167689a4039d939dd99",
+        "legacy_fields_sha256:793e6a5e886a904568501c8925983fd0650d16b5fa485e06bfc316b62c256b50",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 1,
+            "surface": "הַנְּתוּנִים",
+            "normalized": "הנתונים"
+          },
+          {
+            "index": 2,
+            "surface": "בְּאִיּוּר",
+            "normalized": "באיור"
+          },
+          {
+            "index": 3,
+            "surface": "8",
+            "normalized": "8"
+          },
+          {
+            "index": 4,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 5,
+            "surface": "aγ=3.64Å",
+            "normalized": "aγ=3.64A"
+          },
+          {
+            "index": 6,
+            "surface": "aβ=2.90Å",
+            "normalized": "aβ=2.90A"
+          },
+          {
+            "index": 7,
+            "surface": "aα=2.88Å",
+            "normalized": "aα=2.88A"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r025",
+      "order": 25,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "מחשבים את נפח תא היחידה לכל מבנה לפי (a^3)",
+        "he_niqqud": "מְחַשְּׁבִים אֶת נֶפַח תָּא הַיְחִידָה לְכָל מִבְנֶה לְפִי (a^3)",
+        "transliteration": "Meḥashvim et nefah ta ha-yehida le-chol mivneh lefi (a^3)",
+        "ru": "Рассчитываем объем элементарной ячейки для каждой структуры по формуле (a^3)."
+      },
+      "source_refs": [
+        "legacy_row_hash:bbfa7253774e2903ee8a7ad0bdf8e6393ede24fe460cb82f309821cffaff9dad",
+        "legacy_fields_sha256:f58fd3795d90ddef24421c2c0ade2b224d666ba7726c13ea2ff75ace2b584220",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְחַשְּׁבִים",
+            "normalized": "מחשבים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "נֶפַח",
+            "normalized": "נפח"
+          },
+          {
+            "index": 3,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 4,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 5,
+            "surface": "לְכָל",
+            "normalized": "לכל"
+          },
+          {
+            "index": 6,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 7,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 8,
+            "surface": "(a^3)",
+            "normalized": "a^3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r026",
+      "order": 26,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "(V_\\gamma=3.64^3\\approx 48.23,\\text{Å}^3)",
+        "he_niqqud": "(V_\\gamma=3.64^3\\approx 48.23,\\text{Å}^3)",
+        "transliteration": "(V_\\gamma=3.64^3\\approx 48.23,\\text{Å}^3)",
+        "ru": "(V_\\gamma=3.64^3\\approx 48.23,Å^3)."
+      },
+      "source_refs": [
+        "legacy_row_hash:3ff7ed673329bbe761509969503bce991ab0132863cb49cfc0ab82cca561ce43",
+        "legacy_fields_sha256:4ccdafe768b825c612ece9e895b14e06dd1b37c7390bc80ab4f848f6a89bed51",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "(V_\\gamma=3.64^3\\approx",
+            "normalized": "V_\\gamma=3.64^3\\approx"
+          },
+          {
+            "index": 1,
+            "surface": "48.23,\\text{Å}^3)",
+            "normalized": "48.23,\\text{A}^3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "(V_\\gamma=3.64^3\\approx 48.23,\\text{Å}^3)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r027",
+      "order": 27,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "(V_\\beta=2.90^3\\approx 24.39,\\text{Å}^3)",
+        "he_niqqud": "(V_\\beta=2.90^3\\approx 24.39,\\text{Å}^3)",
+        "transliteration": "(V_\\beta=2.90^3\\approx 24.39,\\text{Å}^3)",
+        "ru": "(V_\\beta=2.90^3\\approx 24.39,Å^3)."
+      },
+      "source_refs": [
+        "legacy_row_hash:4bcaecdbe5239df23d4d6e1ccb66d787243ea68adc60ee69c6180a0b2744df35",
+        "legacy_fields_sha256:cdaaaa6d96a0b3012184f97d05bf456f303e88bd3975240b197221e107a3589c",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "(V_\\beta=2.90^3\\approx",
+            "normalized": "V_\\beta=2.90^3\\approx"
+          },
+          {
+            "index": 1,
+            "surface": "24.39,\\text{Å}^3)",
+            "normalized": "24.39,\\text{A}^3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "(V_\\beta=2.90^3\\approx 24.39,\\text{Å}^3)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r028",
+      "order": 28,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "(V_\\alpha=2.88^3\\approx 23.89,\\text{Å}^3)",
+        "he_niqqud": "(V_\\alpha=2.88^3\\approx 23.89,\\text{Å}^3)",
+        "transliteration": "(V_\\alpha=2.88^3\\approx 23.89,\\text{Å}^3)",
+        "ru": "(V_\\alpha=2.88^3\\approx 23.89,Å^3)."
+      },
+      "source_refs": [
+        "legacy_row_hash:e8f852fe99098f079f73a0fbedef745618f8701e9d6dd2f3ef56f1a995f4af51",
+        "legacy_fields_sha256:7874537b81a0a4289747dddcf2f5ad914216afd779a434dca046ed6a7ba6a25b",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "(V_\\alpha=2.88^3\\approx",
+            "normalized": "V_\\alpha=2.88^3\\approx"
+          },
+          {
+            "index": 1,
+            "surface": "23.89,\\text{Å}^3)",
+            "normalized": "23.89,\\text{A}^3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "(V_\\alpha=2.88^3\\approx 23.89,\\text{Å}^3)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r029",
+      "order": 29,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במעבר γ→β מתקבלת התכווצות נפחית חדה של תא היחידה בכ-49%↓",
+        "he_niqqud": "בַּמַּעֲבָר γ→β מִתְקַבֶּלֶת הִתְכַּוְּצוּת נַפְחִית חַדָּה שֶׁל תָּא הַיְחִידָה בְּכָ-49%↓",
+        "transliteration": "Ba-ma'avar γ→β mitkabelet hitkavtzut nafhit ḥadah shel ta ha-yehida be-che-49%↓",
+        "ru": "При переходе γ→β наблюдается резкое объемное сжатие элементарной ячейки примерно на 49%↓."
+      },
+      "source_refs": [
+        "legacy_row_hash:18f33f3fd229a3bd098fbfebb141a7e2ead86d9baea23d57894e16e0fc5145cd",
+        "legacy_fields_sha256:d6a3fb3af9de09392960ec8390efba42482ad07f9a9ff33eea1965b3c76dd092",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּמַּעֲבָר",
+            "normalized": "במעבר"
+          },
+          {
+            "index": 1,
+            "surface": "γ→β",
+            "normalized": "γ→β"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 3,
+            "surface": "הִתְכַּוְּצוּת",
+            "normalized": "התכוצות"
+          },
+          {
+            "index": 4,
+            "surface": "נַפְחִית",
+            "normalized": "נפחית"
+          },
+          {
+            "index": 5,
+            "surface": "חַדָּה",
+            "normalized": "חדה"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "תָּא",
+            "normalized": "תא"
+          },
+          {
+            "index": 8,
+            "surface": "הַיְחִידָה",
+            "normalized": "היחידה"
+          },
+          {
+            "index": 9,
+            "surface": "בְּכָ-49%↓",
+            "normalized": "בכ-49%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במעבר β→α מתקבלת התכווצות נפחית קטנה נוספת בכ-2%↓",
+        "he_niqqud": "בַּמַּעֲבָר β→α מִתְקַבֶּלֶת הִתְכַּוְּצוּת נַפְחִית קְטַנָּה נוֹסֶפֶת בְּכָ-2%↓",
+        "transliteration": "Ba-ma'avar β→α mitkabelet hitkavtzut nafhit katanah nosafet be-che-2%↓",
+        "ru": "При переходе β→α наблюдается дополнительное небольшое объемное сжатие примерно на 2%↓."
+      },
+      "source_refs": [
+        "legacy_row_hash:31d9206aa4a7790e1b1fb3c92f6e0ae256d1b00131bbab1d70e3431da297a83a",
+        "legacy_fields_sha256:82c5d68e32d9c18f42c34ffbbf8709d0b886798cc534689e813a2620adf70b9a",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּמַּעֲבָר",
+            "normalized": "במעבר"
+          },
+          {
+            "index": 1,
+            "surface": "β→α",
+            "normalized": "β→α"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 3,
+            "surface": "הִתְכַּוְּצוּת",
+            "normalized": "התכוצות"
+          },
+          {
+            "index": 4,
+            "surface": "נַפְחִית",
+            "normalized": "נפחית"
+          },
+          {
+            "index": 5,
+            "surface": "קְטַנָּה",
+            "normalized": "קטנה"
+          },
+          {
+            "index": 6,
+            "surface": "נוֹסֶפֶת",
+            "normalized": "נוספת"
+          },
+          {
+            "index": 7,
+            "surface": "בְּכָ-2%↓",
+            "normalized": "בכ-2%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r031",
+      "order": 31,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "הסיבה היא מעבר מסריג (FCC) לסריג (BCC) וירידה בפרמטר a ולכן גם (a^3) קטן",
+        "he_niqqud": "הַסִּבָּה הִיא מַעֲבָר מִסָּרִיג (FCC) לְסָרִיג (BCC) וִיְרִידָה בַּפָּרָמֶטֶר a וְלָכֵן גַּם (a^3) קָטָן",
+        "transliteration": "Ha-sibah hi ma'avar mi-sarig (FCC) le-sarig (BCC) ve-yeridah ba-parameter a ve-la-chen gam (a^3) katan",
+        "ru": "Причина — переход от решетки (FCC) к решетке (BCC) и уменьшение параметра a, следовательно, (a^3) также уменьшается."
+      },
+      "source_refs": [
+        "legacy_row_hash:a413e8b0e47fa798407a7d3bd6300ae4cd85141205a5ff83948c07370f5c262f",
+        "legacy_fields_sha256:6ce38f57703932af1a7cc87e5c88711e3e2fb7a534afaf353bf54ee70be5b3ae",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַסִּבָּה",
+            "normalized": "הסבה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 3,
+            "surface": "מִסָּרִיג",
+            "normalized": "מסריג"
+          },
+          {
+            "index": 4,
+            "surface": "(FCC)",
+            "normalized": "FCC"
+          },
+          {
+            "index": 5,
+            "surface": "לְסָרִיג",
+            "normalized": "לסריג"
+          },
+          {
+            "index": 6,
+            "surface": "(BCC)",
+            "normalized": "BCC"
+          },
+          {
+            "index": 7,
+            "surface": "וִיְרִידָה",
+            "normalized": "וירידה"
+          },
+          {
+            "index": 8,
+            "surface": "בַּפָּרָמֶטֶר",
+            "normalized": "בפרמטר"
+          },
+          {
+            "index": 9,
+            "surface": "a",
+            "normalized": "a"
+          },
+          {
+            "index": 10,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 11,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 12,
+            "surface": "(a^3)",
+            "normalized": "a^3"
+          },
+          {
+            "index": 13,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r032",
+      "order": 32,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בטמפרטורת החדר בפלדה מסוג (SAE 1040) מתקבלים פריט α וצמנטיט Fe₃C",
+        "he_niqqud": "ג) בְּטֶמְפֶּרָטוּרַת הַחֶדֶר בִּפְלָדָה מִסּוּג (SAE 1040) מִתְקַבְּלִים פֶרִיט α וְצֶמֶנְטִיט Fe₃C",
+        "transliteration": "G) Be-temperaturat ha-hadar ba-pladah mi-sug (SAE 1040) mitkablim ferit α ve-tsementit Fe₃C",
+        "ru": "В) При комнатной температуре в стали типа (SAE 1040) получаются феррит α и цементит Fe₃C."
+      },
+      "source_refs": [
+        "legacy_row_hash:e6cf29a1168a219fe400892849bc82e7a73c2f8d431d3ec7ec081051a7608713",
+        "legacy_fields_sha256:c9d9a7ac96ed5b5adc22970c812f38e003d5185ea2115b57504aa9d17567efcf",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 2,
+            "surface": "הַחֶדֶר",
+            "normalized": "החדר"
+          },
+          {
+            "index": 3,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "מִסּוּג",
+            "normalized": "מסוג"
+          },
+          {
+            "index": 5,
+            "surface": "(SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 6,
+            "surface": "1040)",
+            "normalized": "1040"
+          },
+          {
+            "index": 7,
+            "surface": "מִתְקַבְּלִים",
+            "normalized": "מתקבלים"
+          },
+          {
+            "index": 8,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 9,
+            "surface": "α",
+            "normalized": "α"
+          },
+          {
+            "index": 10,
+            "surface": "וְצֶמֶנְטִיט",
+            "normalized": "וצמנטיט"
+          },
+          {
+            "index": 11,
+            "surface": "Fe₃C",
+            "normalized": "Fe₃C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r033",
+      "order": 33,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "פלדה זו מכילה בקירוב 0.40% C ולכן היא פלדה היפו-אאוטקטואידית שבה C<0.77%",
+        "he_niqqud": "פְּלָדָה זוֹ מְכִילָה בְּקֵרוּב 0.40% C וְלָכֵן הִיא פְּלָדָה הִיפּוֹ-אֵאוּטֶקְטוֹאִידִית שֶׁבָּהּ C<0.77%",
+        "transliteration": "Pladah zo meḥilah be-kiruv 0.40% C ve-la-chen hi pladah hipo-eutekto'idit she-bah C<0.77%",
+        "ru": "Эта сталь содержит примерно 0.40% C и, следовательно, является доэвтектоидной сталью, где C<0.77%."
+      },
+      "source_refs": [
+        "legacy_row_hash:373db7d102b35eb6fdc6ed9011b5b627789948b25e3756f37476a22d1893361d",
+        "legacy_fields_sha256:a8f6374d585ddb3c8228124ad9d7d430d9fd525fcdb4beb53cca8e5abcbcb5b9",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "מְכִילָה",
+            "normalized": "מכילה"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 4,
+            "surface": "0.40%",
+            "normalized": "0.40%"
+          },
+          {
+            "index": 5,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 6,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 8,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 9,
+            "surface": "הִיפּוֹ-אֵאוּטֶקְטוֹאִידִית",
+            "normalized": "היפו-אאוטקטואידית"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁבָּהּ",
+            "normalized": "שבה"
+          },
+          {
+            "index": 11,
+            "surface": "C<0.77%",
+            "normalized": "C<0.77%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r034",
+      "order": 34,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב-900°C הפלדה נמצאת בתחום האוסטניט γ לפני פירוק בקירור איטי",
+        "he_niqqud": "בְּ-900°C הַפְּלָדָה נִמְצֵאת בִּתְחוּם הָאוֹסְטֶנִיט γ לִפְנֵי פֵּרוּק בְּקִירוּר אִטִּי",
+        "transliteration": "Be-900°C ha-pladah nimtzet bi-t'hum ha-ostenit γ lifnei peruk be-kirur iti",
+        "ru": "При 900°C сталь находится в области аустенита γ перед распадом при медленном охлаждении."
+      },
+      "source_refs": [
+        "legacy_row_hash:1e8c4417f7aa40a1567494dc2ba59c7286cd338a93a2f7ca4eca5f4fc8dc60c7",
+        "legacy_fields_sha256:dbf5b8c255e8a91991804f8f98ce85968625ceb4648e765c2dc0184f5d1056d1",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּ-900°C",
+            "normalized": "ב-900°C"
+          },
+          {
+            "index": 1,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 2,
+            "surface": "נִמְצֵאת",
+            "normalized": "נמצאת"
+          },
+          {
+            "index": 3,
+            "surface": "בִּתְחוּם",
+            "normalized": "בתחום"
+          },
+          {
+            "index": 4,
+            "surface": "הָאוֹסְטֶנִיט",
+            "normalized": "האוסטניט"
+          },
+          {
+            "index": 5,
+            "surface": "γ",
+            "normalized": "γ"
+          },
+          {
+            "index": 6,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 7,
+            "surface": "פֵּרוּק",
+            "normalized": "פרוק"
+          },
+          {
+            "index": 8,
+            "surface": "בְּקִירוּר",
+            "normalized": "בקירור"
+          },
+          {
+            "index": 9,
+            "surface": "אִטִּי",
+            "normalized": "אטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r035",
+      "order": 35,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקירור איטי מתחת לקו (A3) מתחיל להיווצר פריט פרו-אאוטקטואידי α",
+        "he_niqqud": "בְּקִירוּר אִטִּי מִתַּחַת לַקָּו (A3) מַתְחִיל לְהִוָּצֵר פֶרִיט פְּרוֹ-אֵאוּטֶקְטוֹאִידִי α",
+        "transliteration": "Be-kirur iti mi-taḥat la-kav (A3) mathil le-hivvazer ferit pro-eutekto'idi α",
+        "ru": "При медленном охлаждении ниже линии (A3) начинает образовываться доэвтектоидный феррит α."
+      },
+      "source_refs": [
+        "legacy_row_hash:9389c5f3e50133620cf2880045879d2803fe4e7ef193ac314baab33840b44013",
+        "legacy_fields_sha256:afe6df99422cdb5e016eb2674fc3622fd0c5c972a20157a17548f9162b71b2d2",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקִירוּר",
+            "normalized": "בקירור"
+          },
+          {
+            "index": 1,
+            "surface": "אִטִּי",
+            "normalized": "אטי"
+          },
+          {
+            "index": 2,
+            "surface": "מִתַּחַת",
+            "normalized": "מתחת"
+          },
+          {
+            "index": 3,
+            "surface": "לַקָּו",
+            "normalized": "לקו"
+          },
+          {
+            "index": 4,
+            "surface": "(A3)",
+            "normalized": "A3"
+          },
+          {
+            "index": 5,
+            "surface": "מַתְחִיל",
+            "normalized": "מתחיל"
+          },
+          {
+            "index": 6,
+            "surface": "לְהִוָּצֵר",
+            "normalized": "להוצר"
+          },
+          {
+            "index": 7,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 8,
+            "surface": "פְּרוֹ-אֵאוּטֶקְטוֹאִידִי",
+            "normalized": "פרו-אאוטקטואידי"
+          },
+          {
+            "index": 9,
+            "surface": "α",
+            "normalized": "α"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r036",
+      "order": 36,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "בטמפרטורת (A1) ≈727°C האוסטניט שנותר הופך לפרליט שהוא תערובת α+Fe₃C",
+        "he_niqqud": "בְּטֶמְפֶּרָטוּרַת (A1) ≈727°C הָאוֹסְטֶנִיט שֶׁנּוֹתַר הוֹפֵךְ לְפֶּרְלִיט שֶׁהוּא תַּעֲרֹבֶת α+Fe₃C",
+        "transliteration": "Be-temperaturat (A1) ≈727°C ha-ostenit she-notar hofech le-perlit she-hu ta'arovet α+Fe₃C",
+        "ru": "При температуре (A1) ≈727°C оставшийся аустенит превращается в перлит, который представляет собой смесь α+Fe₃C."
+      },
+      "source_refs": [
+        "legacy_row_hash:77d33b3342fc409e1d40336ee9a791057d4cac4ac80cb5e157868394a292c350",
+        "legacy_fields_sha256:4887bafdafd736d6ccb2626863516b106e0707964f7e43bba95fc7f6228414a9",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 1,
+            "surface": "(A1)",
+            "normalized": "A1"
+          },
+          {
+            "index": 2,
+            "surface": "≈727°C",
+            "normalized": "727°C"
+          },
+          {
+            "index": 3,
+            "surface": "הָאוֹסְטֶנִיט",
+            "normalized": "האוסטניט"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁנּוֹתַר",
+            "normalized": "שנותר"
+          },
+          {
+            "index": 5,
+            "surface": "הוֹפֵךְ",
+            "normalized": "הופך"
+          },
+          {
+            "index": 6,
+            "surface": "לְפֶּרְלִיט",
+            "normalized": "לפרליט"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁהוּא",
+            "normalized": "שהוא"
+          },
+          {
+            "index": 8,
+            "surface": "תַּעֲרֹבֶת",
+            "normalized": "תערבת"
+          },
+          {
+            "index": 9,
+            "surface": "α+Fe₃C",
+            "normalized": "α+Fe₃C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r037",
+      "order": 37,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן המיקרו-מרכיבים בטמפרטורת החדר הם פריט פרו-אאוטקטואידי ופרליט",
+        "he_niqqud": "לָכֵן הַמִּיקְרוֹ-מַרְכִּיבִים בְּטֶמְפֶּרָטוּרַת הַחֶדֶר הֵם פֶרִיט פְּרוֹ-אֵאוּטֶקְטוֹאִידִי וּפֶרְלִיט",
+        "transliteration": "La-chen ha-mikro-markivim be-temperaturat ha-hadar hem ferit pro-eutekto'idi u-perlit",
+        "ru": "Следовательно, микросоставляющими при комнатной температуре являются доэвтектоидный феррит и перлит."
+      },
+      "source_refs": [
+        "legacy_row_hash:1800ec467affec1e90dc0149146cdcc3f807caa60f090192e1f86d361945ee81",
+        "legacy_fields_sha256:0a2f76771596ef69fe4b9daa9e181883e4654d58bac66b8410e4446b02f7d387",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "הַמִּיקְרוֹ-מַרְכִּיבִים",
+            "normalized": "המיקרו-מרכיבים"
+          },
+          {
+            "index": 2,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 3,
+            "surface": "הַחֶדֶר",
+            "normalized": "החדר"
+          },
+          {
+            "index": 4,
+            "surface": "הֵם",
+            "normalized": "הם"
+          },
+          {
+            "index": 5,
+            "surface": "פֶרִיט",
+            "normalized": "פריט"
+          },
+          {
+            "index": 6,
+            "surface": "פְּרוֹ-אֵאוּטֶקְטוֹאִידִי",
+            "normalized": "פרו-אאוטקטואידי"
+          },
+          {
+            "index": 7,
+            "surface": "וּפֶרְלִיט",
+            "normalized": "ופרליט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r038",
+      "order": 38,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:fcd9d487b0f7fddf7b03883e7b992f0ce3e9036e92f031bb49c97a0dca0a7a45",
+        "comparison:EQUIVALENT_WITH_CLARIFICATION",
+        "source_page:5",
+        "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+    "display_alias": "Упражнение «Аллотропия железа»",
+    "source_pages": [
+      5
+    ],
+    "independent_state": "DERIVED_WITH_SOURCE_CONVENTION_NOTE",
+    "answer": [
+      "При 1539 °C: жидкость → δ-Fe, ОЦК, a≈2,93 Å.",
+      "При 1401 °C: δ-Fe → γ-Fe, ГЦК, a≈3,64 Å.",
+      "При 910 °C: γ-Fe → β-Fe по терминологии рисунка, ОЦК, a≈2,90 Å.",
+      "При 768 °C: β-Fe → α-Fe по терминологии рисунка, ОЦК, a≈2,88 Å.",
+      "Геометрический объём стандартной ячейки уменьшается: 3,64³≈48,23 Å³ для ГЦК против 2,90³≈24,39 Å³ для ОЦК. Но на один атом при переходе γ→ОЦК объём слегка увеличивается: (2,90³/2)/(3,64³/4)−1≈1,14%.",
+      "После медленного охлаждения SAE 1040 при комнатной температуре присутствуют фазы α-феррит и цементит Fe₃C; микроструктура — доэвтектоидный феррит и перлит."
+    ],
+    "engineering_picture": "При охлаждении чистого железа меняются кристаллическая модификация и магнитное состояние. Для сравнения объёма ГЦК и ОЦК необходимо различать объём условной ячейки и объём на атом, потому что ГЦК содержит 4 атома на ячейку, а ОЦК — 2.",
+    "prerequisites": [
+      "ОЦК: 2 атома на стандартную ячейку.",
+      "ГЦК: 4 атома на стандартную ячейку.",
+      "V=a³.",
+      "SAE 1040 — доэвтектоидная сталь примерно с 0,40% C."
+    ],
+    "roadmap": [
+      "Считать температуры и параметры a с рисунка.",
+      "Для каждого интервала назвать модификацию и решётку.",
+      "Сравнить как Vячейки, так и V/атом.",
+      "Для SAE 1040 различить фазы и микроструктурные составляющие."
+    ],
+    "main_trap": "Нельзя напрямую трактовать отношение a³ разных решёток как изменение плотности железа, не учитывая число атомов в ячейке.",
+    "givens": [
+      "1539, 1401, 910 и 768 °C.",
+      "aδ≈2,93 Å; aγ≈3,64 Å; aОЦК около 2,90 Å и 2,88 Å.",
+      "SAE 1040 охлаждается медленно от 900 °C."
+    ],
+    "find": [
+      "Таблица четырёх переходов.",
+      "Характер объёмного изменения γ→α.",
+      "Фазы SAE 1040 при комнатной температуре."
+    ],
+    "assumptions": [
+      "Для табличного ответа используется историческая номенклатура α/β/γ/δ непосредственно с рисунка.",
+      "Медленное охлаждение SAE 1040 близко к равновесному."
+    ],
+    "laws": [
+      "Vяч=a³.",
+      "Vатом,ГЦК=a³/4.",
+      "Vатом,ОЦК=a³/2."
+    ],
+    "symbolic_derivation": [
+      "Vγ,яч=aγ³; VОЦК,яч=aОЦК³.",
+      "ΔVатом/Vγ,атом=(aОЦК³/2)/(aγ³/4)−1."
+    ],
+    "calculation": [
+      "Vγ,яч=3,64³=48,23 Å³.",
+      "VОЦК,яч=2,90³=24,39 Å³.",
+      "Vγ,атом=48,23/4=12,057 Å³.",
+      "VОЦК,атом=24,39/2=12,194 Å³.",
+      "ΔVатом≈+1,14%."
+    ],
+    "construction": [
+      "Заполнить четыре строки таблицы в порядке охлаждения 1539→1401→910→768 °C."
+    ],
+    "checks": [
+      "Параметры ячейки и температуры воспроизводят подписи исходного рисунка.",
+      "Ответ отдельно называет фазы и микроструктуру SAE 1040."
+    ],
+    "source_facts": [
+      "source_page:5",
+      "asset_sha256:2988ce53120747fa547beb7e32e43daf1f311e9027c970ccdce4c6b2457cdefa"
+    ],
+    "unresolved_limits": [
+      "β-Fe в современной кристаллографии не считается отдельной аллотропной решёткой: при 768 °C происходит магнитный переход Кюри без смены ОЦК. Учебный рисунок использует историческую номенклатуру.",
+      "Фраза «объём ячейки» неоднозначна при смене ГЦК на ОЦК; поэтому приведены оба физически различающихся сравнения."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

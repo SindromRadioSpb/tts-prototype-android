@@ -1,0 +1,131 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-preflight-v1.request-blueprint",
+  "batch_id": "B06",
+  "model": "gemini-3.7-flash",
+  "mode": "STANDARD",
+  "thinking_level": "medium",
+  "pdf_filename": "materials-pb2-canonical-repair-B06.pdf",
+  "pdf_sha256": "70171746ce3d5a0d7ddb876872d81e3d97e827ab420ea04840b00f658a52c12f",
+  "candidate_filename": "B06-candidate-rows.json",
+  "candidate_sha256": "092056d3ff38f34a5f2156014b2f751f8f520c476935c056e1f8d988f2639eeb",
+  "prompt": "You are repairing bilingual learning rows for a materials-science problem corpus.\nBatch: B06. Exact row count: 69.\n\nThe attached PDF contains only source condition crops and explicitly required reference appendices.\nThe attached candidate JSON contains stable row_id values and legacy candidate columns.\n\nFor every input row, return exactly one output row with the same row_id and no extra rows.\nUse the PDF as source truth. Legacy columns are comparison evidence only.\n- he: exact plain Hebrew condition text for that row, without niqqud.\n- he_niqqud: the same Hebrew text with accurate niqqud; consonant skeleton must equal he.\n- transliteration: faithful readable Latin transliteration of he_niqqud, preserving formulas and symbols.\n- ru: faithful Russian translation of the condition, preserving formulas, units, subparts, and uncertainty.\nDo not answer, solve, explain, infer missing values, or emit status/severity fields.\nIf the row is a heading or formula-only row, preserve that semantic role and content.\nReturn JSON matching the supplied schema only.\n",
+  "prompt_sha256": "53274f0707c7fe64be8a5e0b4d8f5ad4af3ab56937b016ed8e299a45d5685ca7",
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "batch_id",
+      "rows"
+    ],
+    "properties": {
+      "batch_id": {
+        "type": "string"
+      },
+      "rows": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "row_id",
+            "he",
+            "he_niqqud",
+            "transliteration",
+            "ru"
+          ],
+          "properties": {
+            "row_id": {
+              "type": "string"
+            },
+            "he": {
+              "type": "string"
+            },
+            "he_niqqud": {
+              "type": "string"
+            },
+            "transliteration": {
+              "type": "string"
+            },
+            "ru": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "output_schema_sha256": "15a3f4389ad43a1ea822692add5ac7e997e8442805e80f37be282ee267679ebf",
+  "expected_row_ids": [
+    "materials-science-y1-pb2-q049-r001",
+    "materials-science-y1-pb2-q049-r003",
+    "materials-science-y1-pb2-q049-r004",
+    "materials-science-y1-pb2-q049-r005",
+    "materials-science-y1-pb2-q049-r006",
+    "materials-science-y1-pb2-q049-r007",
+    "materials-science-y1-pb2-q049-r008",
+    "materials-science-y1-pb2-q049-r009",
+    "materials-science-y1-pb2-q049-r010",
+    "materials-science-y1-pb2-q049-r011",
+    "materials-science-y1-pb2-q049-r012",
+    "materials-science-y1-pb2-q050-r002",
+    "materials-science-y1-pb2-q050-r003",
+    "materials-science-y1-pb2-q050-r004",
+    "materials-science-y1-pb2-q050-r005",
+    "materials-science-y1-pb2-q050-r006",
+    "materials-science-y1-pb2-q050-r007",
+    "materials-science-y1-pb2-q050-r008",
+    "materials-science-y1-pb2-q051-r002",
+    "materials-science-y1-pb2-q051-r003",
+    "materials-science-y1-pb2-q051-r004",
+    "materials-science-y1-pb2-q051-r005",
+    "materials-science-y1-pb2-q051-r006",
+    "materials-science-y1-pb2-q051-r007",
+    "materials-science-y1-pb2-q051-r008",
+    "materials-science-y1-pb2-q051-r009",
+    "materials-science-y1-pb2-q051-r010",
+    "materials-science-y1-pb2-q051-r011",
+    "materials-science-y1-pb2-q052-r001",
+    "materials-science-y1-pb2-q052-r003",
+    "materials-science-y1-pb2-q052-r004",
+    "materials-science-y1-pb2-q052-r005",
+    "materials-science-y1-pb2-q052-r006",
+    "materials-science-y1-pb2-q052-r007",
+    "materials-science-y1-pb2-q052-r008",
+    "materials-science-y1-pb2-q052-r009",
+    "materials-science-y1-pb2-q053-r002",
+    "materials-science-y1-pb2-q053-r003",
+    "materials-science-y1-pb2-q053-r004",
+    "materials-science-y1-pb2-q053-r005",
+    "materials-science-y1-pb2-q053-r006",
+    "materials-science-y1-pb2-q053-r007",
+    "materials-science-y1-pb2-q054-r001",
+    "materials-science-y1-pb2-q054-r003",
+    "materials-science-y1-pb2-q054-r004",
+    "materials-science-y1-pb2-q054-r005",
+    "materials-science-y1-pb2-q054-r006",
+    "materials-science-y1-pb2-q054-r007",
+    "materials-science-y1-pb2-q054-r008",
+    "materials-science-y1-pb2-q055-r002",
+    "materials-science-y1-pb2-q055-r003",
+    "materials-science-y1-pb2-q055-r004",
+    "materials-science-y1-pb2-q056-r001",
+    "materials-science-y1-pb2-q056-r003",
+    "materials-science-y1-pb2-q056-r004",
+    "materials-science-y1-pb2-q056-r005",
+    "materials-science-y1-pb2-q056-r006",
+    "materials-science-y1-pb2-q056-r007",
+    "materials-science-y1-pb2-q056-r008",
+    "materials-science-y1-pb2-q056-r009",
+    "materials-science-y1-pb2-q057-r002",
+    "materials-science-y1-pb2-q057-r003",
+    "materials-science-y1-pb2-q057-r004",
+    "materials-science-y1-pb2-q057-r005",
+    "materials-science-y1-pb2-q057-r006",
+    "materials-science-y1-pb2-q058-r002",
+    "materials-science-y1-pb2-q058-r003",
+    "materials-science-y1-pb2-q058-r004",
+    "materials-science-y1-pb2-q058-r005"
+  ],
+  "maximum_output_tokens": 32768,
+  "provider_calls_made": 0
+}

@@ -1,0 +1,3137 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q049",
+  "display_alias": "49",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "043779edd81666ce1a834605a20e69847f03ca925a551a3cc1f1c07f20248670"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Curve mapping1 ferritic,2 austenitic,3 duplex,4 martensitic;450 MPa threshold and duplex selection match. Independent solution keeps chemistry/environment qualification.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q049-r001",
+        "order_index": 0,
+        "hebrew_plain": "פלדות בלתי מחלידות.",
+        "hebrew_niqqud": "פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת.",
+        "translit": "Pladot bilti machlidot.",
+        "translit_ru": "",
+        "russian": "Нержавеющие стали.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "source_note",
+            "source_page": 59,
+            "source_row_index": 0,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r002",
+        "order_index": 1,
+        "hebrew_plain": "שאלה 49.",
+        "hebrew_niqqud": "שְׁאֵלָה 49.",
+        "translit": "She'ela 49.",
+        "translit_ru": "",
+        "russian": "Вопрос 49.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "task_heading",
+            "source_page": 59,
+            "source_row_index": 1,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r003",
+        "order_index": 2,
+        "hebrew_plain": "לחלקי ציוד כימי יש לבחור פלדה בלתי מחלידה.",
+        "hebrew_niqqud": "לְחֶלְקֵי צִיּוּד כִּימִי יֵשׁ לִבְחֹור פְּלָדָה בִּלְתִּי מַחְלִידָה.",
+        "translit": "L'chelkei tziyud chimi yesh livchor pladah bilti machlidah.",
+        "translit_ru": "",
+        "russian": "Для деталей химического оборудования необходимо выбрать нержавеющую сталь.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "condition",
+            "source_page": 59,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r004",
+        "order_index": 3,
+        "hebrew_plain": "לבחירתכם ארבע פלדות בלתי מחלידות:",
+        "hebrew_niqqud": "לִבְחִירַתְכֶם אַרְבַּע פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת:",
+        "translit": "Livchiratkhem arba pladot bilti machlidot:",
+        "translit_ru": "",
+        "russian": "На ваш выбор предлагаются четыре нержавеющие стали:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "condition",
+            "source_page": 59,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r005",
+        "order_index": 4,
+        "hebrew_plain": "פלדה מרטנסיטית (מסוגסגת ע״י כרום Cr).",
+        "hebrew_niqqud": "פְּלָדָה מַרְטֶנְסִיטִית (מְסֻוגְסֶגֶת ע״י כְּרוֹם Cr).",
+        "translit": "Pladah martenisitit (mesugseget a\"y chrom Cr).",
+        "translit_ru": "",
+        "russian": "Мартенситная сталь (легированная хромом Cr).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "condition",
+            "source_page": 59,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r006",
+        "order_index": 5,
+        "hebrew_plain": "פלדה פריטית (מסוגסגת ע״י כרום Cr).",
+        "hebrew_niqqud": "פְּלָדָה פֶרִיטִית (מְסֻוגְסֶגֶת ע״י כְּרוֹם Cr).",
+        "translit": "Pladah feritit (mesugseget a\"y chrom Cr).",
+        "translit_ru": "",
+        "russian": "Ферритная сталь (легированная хромом Cr).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "condition",
+            "source_page": 59,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r007",
+        "order_index": 6,
+        "hebrew_plain": "פלדה אוסטניטית (מסוגסגת ע״י כרום Cr וניקל Ni).",
+        "hebrew_niqqud": "פְּלָדָה אוֹסְטֶנִיטִית (מְסֻוגְסֶגֶת ע״י כְּרוֹם Cr וְנִיקֶל Ni).",
+        "translit": "Pladah austenitit (mesugseget a\"y chrom Cr v'nikel Ni).",
+        "translit_ru": "",
+        "russian": "Аустенитная сталь (легированная хромом Cr и никелем Ni).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "condition",
+            "source_page": 59,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r008",
+        "order_index": 7,
+        "hebrew_plain": "פלדת Duplex (שילוב פריט 50% + אוסטניט 50%) מסוגסגת ע\"י כרום (Cr), מוליבדן (Mo), ונדיום (V) ועוד.",
+        "hebrew_niqqud": "פְּלָדַת Duplex (שִׁילּוּב פֶרִיט 50% + אוֹסְטֶנִיט 50%) מְסֻוגְסֶגֶת ע\"י כְּרוֹם (Cr), מוֹלִיבְּדֶן (Mo), וָנַדְיוּם (V) וְעוֹד.",
+        "translit": "Pladat Duplex (shiluv ferit 50% + ostenit 50%) mesugseget a\"y chrom (Cr), molibden (Mo), vanadium (V) ve'od.",
+        "translit_ru": "",
+        "russian": "Дуплексная сталь Duplex (сочетание 50% феррита + 50% аустенита), легированная хромом (Cr), молибденом (Mo), ванадием (V) и др.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "condition",
+            "source_page": 59,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r009",
+        "order_index": 8,
+        "hebrew_plain": "א) עליכם להתאים את דיאגרמות המתיחה (ראו איור לשאלה 8), להשלים את הטבלה הבאה ולנמק.",
+        "hebrew_niqqud": "א) עֲלֵיכֶם לְהַתְאִים אֶת דִּיאַגְרָמוֹת הַמְּתִיחָה (רְאוּ אִיּוּר לִשְׁאֵלָה 8), לְהַשְׁלִים אֶת הַטַּבְלָה הַבָּאָה וּלְנַמֵּק.",
+        "translit": "A) Aleichem lehat'im et diagramot hametichah (re'u iyur lish'elah 8), lehashlim et hatavlah haba'ah ulenamek.",
+        "translit_ru": "",
+        "russian": "А) Вы должны сопоставить диаграммы растяжения (см. рисунок к вопросу 8), заполнить следующую таблицу и обосновать свой выбор.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "subpart",
+            "source_page": 59,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r010",
+        "order_index": 9,
+        "hebrew_plain": "ב) מדוע פלדה בלתי מחלידה עמידה יותר לקורוזיה כללית (אחידה) מאשר פלדות פחמן?",
+        "hebrew_niqqud": "ב) מַדּוּעַ פְּלָדָה בִּלְתִּי מַחְלִידָה עֲמִידָה יוֹתֵר לְקוֹרוֹזְיָה כְּלָלִית (אֲחִידָה) מֵאֲשֶׁר פְּלָדוֹת פַּחְמָן?",
+        "translit": "B) Madua pladah bilti machlidah amidah yoter lekoroziah klalit (achidah) me'asher pladot pachman?",
+        "translit_ru": "",
+        "russian": "Б) Почему нержавеющая сталь более устойчива к общей (равномерной) коррозии, чем углеродистые стали?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "subpart",
+            "source_page": 59,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r011",
+        "order_index": 10,
+        "hebrew_plain": "ג) האם פלדות בלתי מחלידות עמידות לכל סוגי הקורוזיה? (דוגמה אם \"לא\").",
+        "hebrew_niqqud": "ג) הַאִם פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת עֲמִידוֹת לְכָל סוּגֵי הַקּוֹרוֹזְיָה? (דֻּוגְמָה אִם \"לֹא\").",
+        "translit": "G) Ha'im pladot bilti machlidot amidot lechol sugei hakoroziah? (Dugmah im \"lo\").",
+        "translit_ru": "",
+        "russian": "В) Устойчивы ли нержавеющие стали ко всем типам коррозии? (Пример, если «Нет»).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "subpart",
+            "source_page": 59,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q049-r012",
+        "order_index": 11,
+        "hebrew_plain": "ד) לבחור פלדה לעבודה במאמצי מתיחה עד 300 MPa, מקדם בטיחות S=1.5, פלסטיות לפחות 12%.",
+        "hebrew_niqqud": "ד) לִבְחֹור פְּלָדָה לַעֲבוֹדָה בְּמַאֲמַצֵּי מְתִיחָה עַד 300 MPa, מְקַדֵּם בְּטִיחוּת S=1.5, פְּלַסְטִיּוּת לְפָחוֹת 12%.",
+        "translit": "D) Livchor pladah la'avodah bema'amatzei metichah ad 300 MPa, mekadem betichut S=1.5, plastiut lefachot 12%.",
+        "translit_ru": "",
+        "russian": "Г) Выбрать сталь для работы при растягивающих напряжениях до 300 МПа, коэффициенте запаса S=1.5, пластичности не менее 12%.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q049",
+            "kind": "subpart",
+            "source_page": 59,
+            "source_row_index": 11,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      59
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q049/anchor-01-p059.jpg",
+        "sha256": "a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de",
+        "bytes": 324464,
+        "source_page": 59,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q049-v01",
+        "source_page": 59,
+        "kind": "STAINLESS_STEEL_STRESS_STRAIN_CURVES",
+        "instance_count": 4,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      },
+      {
+        "visual_id": "materials-science-y1-pb2-q049-v02",
+        "source_page": 59,
+        "kind": "STEEL_ASSIGNMENT_RESPONSE_TABLE",
+        "instance_count": 1,
+        "semantic_role": "RESPONSE_STRUCTURE",
+        "required_for_solving": false,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) התאמה: פלדה מרטנסיטית לעקומה 4, פלדה פריטית לעקומה 1, פלדה אוסטניטית לעקומה 2, פלדה Duplex לעקומה 3.",
+        "he_niqqud": "א) הַתְאָמָה: פְּלָדָה מַרְטֶנְסִיטִית לַעֲקֻמָּה 4, פְּלָדָה פֶרִיטִית לַעֲקֻמָּה 1, פְּלָדָה אוֹסְטֶנִיטִית לַעֲקֻמָּה 2, פְּלָדָה Duplex לַעֲקֻמָּה 3.",
+        "transliteration": "A) Hat'amah: Pladah martenisitit la'akumah 4, pladah feritit la'akumah 1, pladah austenitit la'akumah 2, pladah Duplex la'akumah 3.",
+        "ru": "А) Соответствие: Мартенситная сталь – Кривая 4, Ферритная сталь – Кривая 1, Аустенитная сталь – Кривая 2, Дуплексная сталь – Кривая 3."
+      },
+      "source_refs": [
+        "legacy_row_hash:2406857c31cbd14807775c2d48aa24e1e9c192c5628d0b28ea79dcad0b8d8d35",
+        "legacy_fields_sha256:f8c05212e5aa566252e277e594cd48ecec6921be45d4467ae5ccac3e4affbab3",
+        "independent_solution_sha256:39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַתְאָמָה:",
+            "normalized": "התאמה"
+          },
+          {
+            "index": 2,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 3,
+            "surface": "מַרְטֶנְסִיטִית",
+            "normalized": "מרטנסיטית"
+          },
+          {
+            "index": 4,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 5,
+            "surface": "4,",
+            "normalized": "4"
+          },
+          {
+            "index": 6,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 7,
+            "surface": "פֶרִיטִית",
+            "normalized": "פריטית"
+          },
+          {
+            "index": 8,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 9,
+            "surface": "1,",
+            "normalized": "1"
+          },
+          {
+            "index": 10,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹסְטֶנִיטִית",
+            "normalized": "אוסטניטית"
+          },
+          {
+            "index": 12,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 13,
+            "surface": "2,",
+            "normalized": "2"
+          },
+          {
+            "index": 14,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 15,
+            "surface": "Duplex",
+            "normalized": "Duplex"
+          },
+          {
+            "index": 16,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 17,
+            "surface": "3.",
+            "normalized": "3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מאפיין זה מתאים לפלדה פריטית.",
+        "he_niqqud": "מַאֲפְיָן זֶה מַתְאִים לַפְּלָדָה פֶרִיטִית.",
+        "transliteration": "Ma'afyen zeh mat'im la'pladah feritit.",
+        "ru": "Эта характеристика подходит для ферритной стали."
+      },
+      "source_refs": [
+        "legacy_row_hash:3e4d1d21b5c608ce786d46017f2eb4f69a189342bff187cda98b2be7baba487e",
+        "legacy_fields_sha256:b0324b8e361346364038b2ac0903f339025a43f8014d04b8277ff5c721787f58",
+        "independent_solution_sha256:39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַאֲפְיָן",
+            "normalized": "מאפין"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 3,
+            "surface": "לַפְּלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "פֶרִיטִית.",
+            "normalized": "פריטית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "יכולה להתרחש קורוזיה בין-גרעינית לאחר סנסיטיזציה עקב שקיעת קרבידי כרום ודלדול כרום בגבולות הגרעינים.",
+        "he_niqqud": "יְכוֹלָה לְהִתְרַחֵשׁ קוֹרוֹזְיָה בֵּין-גַּרְעִינִית לְאַחַר סֶנְסִיטִיזַצְיָה עֵקֶב שְׁקִיעַת קַרְבִּידֵי כְּרוֹם וְדִלְדּוּל כְּרוֹם בִּגְבוּלוֹת הַגַּרְעִינִים.",
+        "transliteration": "Yecholah lehitrachesh koroziah bein-gar'init achar sensitizatziah ekev shki'at karbidi chrom u'dilul chrom bigvulot hagar'inim.",
+        "ru": "Может возникнуть межкристаллитная коррозия после сенсибилизации из-за осаждения карбидов хрома и обеднения хромом границ зерен."
+      },
+      "source_refs": [
+        "legacy_row_hash:e8ad7b211d1e6d60b200da3740f032b24ba9c5b08324476259e95d3438cebe77",
+        "legacy_fields_sha256:7e913cdbed1161f1f57bc534d2267c45d5ab5fe5cd0b69f1ef739ac844f643e8",
+        "independent_solution_sha256:39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "יְכוֹלָה",
+            "normalized": "יכולה"
+          },
+          {
+            "index": 1,
+            "surface": "לְהִתְרַחֵשׁ",
+            "normalized": "להתרחש"
+          },
+          {
+            "index": 2,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 3,
+            "surface": "בֵּין-גַּרְעִינִית",
+            "normalized": "בין-גרעינית"
+          },
+          {
+            "index": 4,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 5,
+            "surface": "סֶנְסִיטִיזַצְיָה",
+            "normalized": "סנסיטיזציה"
+          },
+          {
+            "index": 6,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 7,
+            "surface": "שְׁקִיעַת",
+            "normalized": "שקיעת"
+          },
+          {
+            "index": 8,
+            "surface": "קַרְבִּידֵי",
+            "normalized": "קרבידי"
+          },
+          {
+            "index": 9,
+            "surface": "כְּרוֹם",
+            "normalized": "כרום"
+          },
+          {
+            "index": 10,
+            "surface": "וְדִלְדּוּל",
+            "normalized": "ודלדול"
+          },
+          {
+            "index": 11,
+            "surface": "כְּרוֹם",
+            "normalized": "כרום"
+          },
+          {
+            "index": 12,
+            "surface": "בִּגְבוּלוֹת",
+            "normalized": "בגבולות"
+          },
+          {
+            "index": 13,
+            "surface": "הַגַּרְעִינִים.",
+            "normalized": "הגרעינים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_y,req ≥ 1.5·300 = 450 MPa",
+        "he_niqqud": "σ_y,req ≥ 1.5·300 = 450 MPa",
+        "transliteration": "σ_y,req ≥ 1.5·300 = 450 MPa",
+        "ru": "$σ_{y,req} ≥ 1.5·300 = 450\\text{ МПа}$"
+      },
+      "source_refs": [
+        "legacy_row_hash:059b4b6e875ac9e729832165220f2a14047c5de921ec55fd2b9d259368ff459c",
+        "legacy_fields_sha256:b95d3fef3ea9139082924c16ab09cba02a2ea1b5ebbc0da0ab2000bdf1898ac2",
+        "independent_solution_sha256:39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_y,req",
+            "normalized": "σ_y,req"
+          },
+          {
+            "index": 1,
+            "surface": "≥",
+            "normalized": "≥"
+          },
+          {
+            "index": 2,
+            "surface": "1.5·300",
+            "normalized": "1.5·300"
+          },
+          {
+            "index": 3,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 4,
+            "surface": "450",
+            "normalized": "450"
+          },
+          {
+            "index": 5,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_y,req ≥ 1.5·300 = 450 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r006",
+      "order": 6,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "א) התאמה: פלדה מרטנסיטית לעקומה 4, פלדה פריטית לעקומה 1, פלדה אוסטניטית לעקומה 2, פלדה Duplex לעקומה 3.",
+        "he_niqqud": "א) הַתְאָמָה: פְּלָדָה מַרְטֶנְסִיטִית לַעֲקֻמָּה 4, פְּלָדָה פֶרִיטִית לַעֲקֻמָּה 1, פְּלָדָה אוֹסְטֶנִיטִית לַעֲקֻמָּה 2, פְּלָדָה Duplex לַעֲקֻמָּה 3.",
+        "transliteration": "A) Hat'amah: Pladah martenisitit la'akumah 4, pladah feritit la'akumah 1, pladah austenitit la'akumah 2, pladah Duplex la'akumah 3.",
+        "ru": "А) Соответствие: Мартенситная сталь – Кривая 4, Ферритная сталь – Кривая 1, Аустенитная сталь – Кривая 2, Дуплексная сталь – Кривая 3."
+      },
+      "source_refs": [
+        "legacy_row_hash:2406857c31cbd14807775c2d48aa24e1e9c192c5628d0b28ea79dcad0b8d8d35",
+        "legacy_fields_sha256:f8c05212e5aa566252e277e594cd48ecec6921be45d4467ae5ccac3e4affbab3",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַתְאָמָה:",
+            "normalized": "התאמה"
+          },
+          {
+            "index": 2,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 3,
+            "surface": "מַרְטֶנְסִיטִית",
+            "normalized": "מרטנסיטית"
+          },
+          {
+            "index": 4,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 5,
+            "surface": "4,",
+            "normalized": "4"
+          },
+          {
+            "index": 6,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 7,
+            "surface": "פֶרִיטִית",
+            "normalized": "פריטית"
+          },
+          {
+            "index": 8,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 9,
+            "surface": "1,",
+            "normalized": "1"
+          },
+          {
+            "index": 10,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹסְטֶנִיטִית",
+            "normalized": "אוסטניטית"
+          },
+          {
+            "index": 12,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 13,
+            "surface": "2,",
+            "normalized": "2"
+          },
+          {
+            "index": 14,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 15,
+            "surface": "Duplex",
+            "normalized": "Duplex"
+          },
+          {
+            "index": 16,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 17,
+            "surface": "3.",
+            "normalized": "3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r007",
+      "order": 7,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומה 4 מציגה חוזק מרבי גבוה מאוד והתארכות נמוכה יחסית.",
+        "he_niqqud": "עֲקֻמָּה 4 מַצִּיגָה חֹזֶק מֵרַבִי גָּבוֹהַּ מְאוֹד וְהִתְאָרְכוּת נְמוּכָה יַחֲסִית.",
+        "transliteration": "Akumah 4 metzigah chozek meravi gavoha me'od ve'hit'archut nemuchah yachasit.",
+        "ru": "Кривая 4 демонстрирует очень высокий максимальный предел прочности и относительно низкое удлинение."
+      },
+      "source_refs": [
+        "legacy_row_hash:fefbc638391d816fecbce41ba782538d45e3aa8c67c969b485ae447776814fae",
+        "legacy_fields_sha256:10077a6382a247ed8d8baae027605429ea55eade2dfbdba2cea851d7d0952d05",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲקֻמָּה",
+            "normalized": "עקמה"
+          },
+          {
+            "index": 1,
+            "surface": "4",
+            "normalized": "4"
+          },
+          {
+            "index": 2,
+            "surface": "מַצִּיגָה",
+            "normalized": "מציגה"
+          },
+          {
+            "index": 3,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 4,
+            "surface": "מֵרַבִי",
+            "normalized": "מרבי"
+          },
+          {
+            "index": 5,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 6,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 7,
+            "surface": "וְהִתְאָרְכוּת",
+            "normalized": "והתארכות"
+          },
+          {
+            "index": 8,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 9,
+            "surface": "יַחֲסִית.",
+            "normalized": "יחסית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מאפיין זה מתאים לפלדה מרטנסיטית שמצטיינת בחוזק גבוה ומשיכות נמוכה–בינונית.",
+        "he_niqqud": "מַאֲפְיָן זֶה מַתְאִים לַפְּלָדָה מַרְטֶנְסִיטִית שֶׁמִּצְטַיֶּנֶת בְּחֹזֶק גָּבוֹהַּ וּמְשִׁיכוּת נְמוּכָה–בֵּינוֹנִית.",
+        "transliteration": "Ma'afyen zeh mat'im la'pladah martenisitit she'metztayenet bechozek gavoha u'meshihut nemuchah–beinonit.",
+        "ru": "Эта характеристика подходит для мартенситной стали, которая отличается высокой прочностью и низкой или средней пластичностью (ковкостью)."
+      },
+      "source_refs": [
+        "legacy_row_hash:46f5bbdbfa3632329cdce9f9a2bcbc8453e41b7f4459281e0f17bbf89b2478e3",
+        "legacy_fields_sha256:69a6bd81e5c69b5179f167921c589a69c22e0207fba1814a2f8f545152bfcd55",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַאֲפְיָן",
+            "normalized": "מאפין"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 3,
+            "surface": "לַפְּלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "מַרְטֶנְסִיטִית",
+            "normalized": "מרטנסיטית"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁמִּצְטַיֶּנֶת",
+            "normalized": "שמצטינת"
+          },
+          {
+            "index": 6,
+            "surface": "בְּחֹזֶק",
+            "normalized": "בחזק"
+          },
+          {
+            "index": 7,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 8,
+            "surface": "וּמְשִׁיכוּת",
+            "normalized": "ומשיכות"
+          },
+          {
+            "index": 9,
+            "surface": "נְמוּכָה–בֵּינוֹנִית.",
+            "normalized": "נמוכה–בינונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r009",
+      "order": 9,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומה 2 מציגה התארכות גדולה מאוד והקשיית עיבוד מורגשת לאורך העקומה.",
+        "he_niqqud": "עֲקֻמָּה 2 מַצִּיגָה הִתְאָרְכוּת גְּדוֹלָה מְאוֹד וְהַקְשָׁיַת עִבּוּד מוּרְגֶּשֶׁת לְאֹרֶךְ הָעֲקֻמָּה.",
+        "transliteration": "Akumah 2 metzigah hit'archut gedolah me'od ve'hakshayat ibud murgeshet le'orech ha'akumah.",
+        "ru": "Кривая 2 демонстрирует очень большое удлинение и заметное наклепывание (упрочнение) по всей длине кривой."
+      },
+      "source_refs": [
+        "legacy_row_hash:f710f51688c11b2ba93cd5e06d9fd9c460c210e8f95bb7a04f97d092c980c87c",
+        "legacy_fields_sha256:d79672d9bbc1af99e1f8050b95a4dc219d76449438da7f87f593ffa9618772d5",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲקֻמָּה",
+            "normalized": "עקמה"
+          },
+          {
+            "index": 1,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "מַצִּיגָה",
+            "normalized": "מציגה"
+          },
+          {
+            "index": 3,
+            "surface": "הִתְאָרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 4,
+            "surface": "גְּדוֹלָה",
+            "normalized": "גדולה"
+          },
+          {
+            "index": 5,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 6,
+            "surface": "וְהַקְשָׁיַת",
+            "normalized": "והקשית"
+          },
+          {
+            "index": 7,
+            "surface": "עִבּוּד",
+            "normalized": "עבוד"
+          },
+          {
+            "index": 8,
+            "surface": "מוּרְגֶּשֶׁת",
+            "normalized": "מורגשת"
+          },
+          {
+            "index": 9,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 10,
+            "surface": "הָעֲקֻמָּה.",
+            "normalized": "העקמה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מאפיין זה מתאים לפלדה אוסטניטית הידועה בדוקטיליות גבוהה מאוד.",
+        "he_niqqud": "מַאֲפְיָן זֶה מַתְאִים לַפְּלָדָה אוֹסְטֶנִיטִית הַיְּדוּעָה בְּדּוֹקְטִילִיּוּת גְּבוֹהָה מְאוֹד.",
+        "transliteration": "Ma'afyen zeh mat'im la'pladah austenitit hayedu'ah be'ductiliyut gevohah me'od.",
+        "ru": "Эта характеристика подходит для аустенитной стали, известной очень высокой пластичностью."
+      },
+      "source_refs": [
+        "legacy_row_hash:57d39bd97097d8bf24d677a7c5ce23f802857382d6f0a4ef1c676ff36afa7d76",
+        "legacy_fields_sha256:73eb8814f310ec76ce88abc245e010095fccf0c70b2c30d7ffcd83b2682973a6",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַאֲפְיָן",
+            "normalized": "מאפין"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 3,
+            "surface": "לַפְּלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹסְטֶנִיטִית",
+            "normalized": "אוסטניטית"
+          },
+          {
+            "index": 5,
+            "surface": "הַיְּדוּעָה",
+            "normalized": "הידועה"
+          },
+          {
+            "index": 6,
+            "surface": "בְּדּוֹקְטִילִיּוּת",
+            "normalized": "בדוקטיליות"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "מְאוֹד.",
+            "normalized": "מאוד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r011",
+      "order": 11,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומה 3 מציגה חוזק גבוה יותר מאוסטניטית תוך שמירה על התארכות משמעותית.",
+        "he_niqqud": "עֲקֻמָּה 3 מַצִּיגָה חֹזֶק גָּבוֹהַּ יוֹתֵר מֵאוֹסְטֶנִיטִית תּוֹךְ שְׁמִירָה עַל הִתְאָרְכוּת מַשְׁמָעוּתִית.",
+        "transliteration": "Akumah 3 metzigah chozek gavoha yoter me'austenitit toch shemirah al hit'archut mashma'utit.",
+        "ru": "Кривая 3 демонстрирует более высокую прочность, чем аустенитная, при сохранении значительного удлинения."
+      },
+      "source_refs": [
+        "legacy_row_hash:146d85ece8e9d5831898bda6e0cf902c4f5c12f88fece6cdea1342754ca8697f",
+        "legacy_fields_sha256:06861ee09db2874737c26729008639a53324c7c614af1d0eb35468bb6a9b2723",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲקֻמָּה",
+            "normalized": "עקמה"
+          },
+          {
+            "index": 1,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 2,
+            "surface": "מַצִּיגָה",
+            "normalized": "מציגה"
+          },
+          {
+            "index": 3,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 4,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 5,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 6,
+            "surface": "מֵאוֹסְטֶנִיטִית",
+            "normalized": "מאוסטניטית"
+          },
+          {
+            "index": 7,
+            "surface": "תּוֹךְ",
+            "normalized": "תוך"
+          },
+          {
+            "index": 8,
+            "surface": "שְׁמִירָה",
+            "normalized": "שמירה"
+          },
+          {
+            "index": 9,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 10,
+            "surface": "הִתְאָרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 11,
+            "surface": "מַשְׁמָעוּתִית.",
+            "normalized": "משמעותית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "שילוב זה מתאים לפלדה (Duplex) שבה מתקבלים חוזק זרימה גבוה ודוקטיליות בינונית–טובה.",
+        "he_niqqud": "שִׁילּוּב זֶה מַתְאִים לַפְּלָדָה (Duplex) שֶׁבָּהּ מִתְקַבְּלִים חֹזֶק זְרִימָה גָּבוֹהַּ וְדּוֹקְטִילִיּוּת בֵּינוֹנִית–טוֹבָה.",
+        "transliteration": "Shiluv zeh mat'im la'pladah (Duplex) shebah mitkablim chozek zrimah gavoha ve'ductiliyut beinonit–tovah.",
+        "ru": "Эта комбинация подходит для дуплексной стали (Duplex), которая обеспечивает высокий предел текучести и от средней до хорошей пластичность."
+      },
+      "source_refs": [
+        "legacy_row_hash:76f77ca3e1c40d07538a1897158984c422eee56652f6a393af941791ee39aace",
+        "legacy_fields_sha256:bc0d14e6de62e469f02153d5270374bca5f85c02f8c141064ff5ad8b10588a66",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "שִׁילּוּב",
+            "normalized": "שילוב"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 3,
+            "surface": "לַפְּלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "(Duplex)",
+            "normalized": "Duplex"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁבָּהּ",
+            "normalized": "שבה"
+          },
+          {
+            "index": 6,
+            "surface": "מִתְקַבְּלִים",
+            "normalized": "מתקבלים"
+          },
+          {
+            "index": 7,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 8,
+            "surface": "זְרִימָה",
+            "normalized": "זרימה"
+          },
+          {
+            "index": 9,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 10,
+            "surface": "וְדּוֹקְטִילִיּוּת",
+            "normalized": "ודוקטיליות"
+          },
+          {
+            "index": 11,
+            "surface": "בֵּינוֹנִית–טוֹבָה.",
+            "normalized": "בינונית–טובה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r013",
+      "order": 13,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומה 1 נשארת עם חוזק בינוני והתארכות בינונית ללא דוקטיליות קיצונית.",
+        "he_niqqud": "עֲקֻמָּה 1 נִשְׁאֶרֶת עִם חֹזֶק בֵּינוֹנִי וְהִתְאָרְכוּת בֵּינוֹנִית לְלֹא דּוֹקְטִילִיּוּת קִיצוֹנִית.",
+        "transliteration": "Akumah 1 nish'eret im chozek beinoni ve'hit'archut beinonit lelo ductiliyut kitzonit.",
+        "ru": "Кривая 1 остается со средней прочностью и средним удлинением без экстремальной пластичности."
+      },
+      "source_refs": [
+        "legacy_row_hash:1a179c6e72120dec84389a61b18553e845ce6ae7bcad7930a1a6d351d9054f22",
+        "legacy_fields_sha256:95a5b92f33b43d5b9019cbfc7d1845f5a4ec33d164bf7d1c32d556cc58e837fa",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲקֻמָּה",
+            "normalized": "עקמה"
+          },
+          {
+            "index": 1,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "נִשְׁאֶרֶת",
+            "normalized": "נשארת"
+          },
+          {
+            "index": 3,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 4,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 5,
+            "surface": "בֵּינוֹנִי",
+            "normalized": "בינוני"
+          },
+          {
+            "index": 6,
+            "surface": "וְהִתְאָרְכוּת",
+            "normalized": "והתארכות"
+          },
+          {
+            "index": 7,
+            "surface": "בֵּינוֹנִית",
+            "normalized": "בינונית"
+          },
+          {
+            "index": 8,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 9,
+            "surface": "דּוֹקְטִילִיּוּת",
+            "normalized": "דוקטיליות"
+          },
+          {
+            "index": 10,
+            "surface": "קִיצוֹנִית.",
+            "normalized": "קיצונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מאפיין זה מתאים לפלדה פריטית.",
+        "he_niqqud": "מַאֲפְיָן זֶה מַתְאִים לַפְּלָדָה פֶרִיטִית.",
+        "transliteration": "Ma'afyen zeh mat'im la'pladah feritit.",
+        "ru": "Эта характеристика подходит для ферритной стали."
+      },
+      "source_refs": [
+        "legacy_row_hash:3e4d1d21b5c608ce786d46017f2eb4f69a189342bff187cda98b2be7baba487e",
+        "legacy_fields_sha256:b0324b8e361346364038b2ac0903f339025a43f8014d04b8277ff5c721787f58",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַאֲפְיָן",
+            "normalized": "מאפין"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 3,
+            "surface": "לַפְּלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "פֶרִיטִית.",
+            "normalized": "פריטית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) פלדה בלתי מחלידה עמידה יותר לקורוזיה כללית משום שתכולת הכרום יוצרת שכבת פסיבציה מגינה.",
+        "he_niqqud": "ב) פְּלָדָה בִּלְתִּי מַחְלִידָה עֲמִידָה יוֹתֵר לְקוֹרוֹזְיָה כְּלָלִית מִשּׁוּם שֶׁתְּכוּלַת הַכְּרוֹם יוֹצֶרֶת שִׁכְבַת פַּסִּיבָצְיָה מְגִינָה.",
+        "transliteration": "B) Pladah bilti machlidah amidah yoter lekoroziah klalit mishum shetchulat hachrom yozeret shichvat pasivatziah meginah.",
+        "ru": "Б) Нержавеющая сталь более устойчива к общей коррозии, потому что содержание хрома создает защитный пассивирующий слой."
+      },
+      "source_refs": [
+        "legacy_row_hash:5637c1211468e2543013315678eb5d6fe48f5d7de14163e914135dfc1755552b",
+        "legacy_fields_sha256:ea12a067151db3c7ac25709dedf2ea3a5b25850675279fd8c7277d935d29523b",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 2,
+            "surface": "בִּלְתִּי",
+            "normalized": "בלתי"
+          },
+          {
+            "index": 3,
+            "surface": "מַחְלִידָה",
+            "normalized": "מחלידה"
+          },
+          {
+            "index": 4,
+            "surface": "עֲמִידָה",
+            "normalized": "עמידה"
+          },
+          {
+            "index": 5,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 6,
+            "surface": "לְקוֹרוֹזְיָה",
+            "normalized": "לקורוזיה"
+          },
+          {
+            "index": 7,
+            "surface": "כְּלָלִית",
+            "normalized": "כללית"
+          },
+          {
+            "index": 8,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁתְּכוּלַת",
+            "normalized": "שתכולת"
+          },
+          {
+            "index": 10,
+            "surface": "הַכְּרוֹם",
+            "normalized": "הכרום"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹצֶרֶת",
+            "normalized": "יוצרת"
+          },
+          {
+            "index": 12,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 13,
+            "surface": "פַּסִּיבָצְיָה",
+            "normalized": "פסיבציה"
+          },
+          {
+            "index": 14,
+            "surface": "מְגִינָה.",
+            "normalized": "מגינה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "השכבה היא בעיקר Cr₂O₃ והיא דקה, צפופה, נצמדת למשטח ומתחדשת לאחר פגיעה מקומית.",
+        "he_niqqud": "הַשִּׁכְבָה הִיא בְּעִקָּר Cr₂O₃ וְהִיא דַּקָּה, צְפוּפָה, נִצְמֶדֶת לַמִּשְׁטָח וּמִתְחַדֶּשֶׁת לְאַחַר פְּגִיעָה מְקוֹמִית.",
+        "transliteration": "Hashichvah hi be'ikar Cr₂O₃ ve'hi dakah, tzefufah, nitzmedet la'mishtach u'mitchadeshet achar pgi'ah mekomit.",
+        "ru": "Слой состоит в основном из Cr₂O₃, он тонкий, плотный, прилипает к поверхности и восстанавливается после локального повреждения."
+      },
+      "source_refs": [
+        "legacy_row_hash:f481b66e1ed6c7bc1df1c6de4ded04b205f6567b60f163bdb86997edaebea2ae",
+        "legacy_fields_sha256:61ae29373c8824fc5589ff9164eaf6e4ccac63a495b8fa9d6459bb3bc796abb2",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁכְבָה",
+            "normalized": "השכבה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "בְּעִקָּר",
+            "normalized": "בעקר"
+          },
+          {
+            "index": 3,
+            "surface": "Cr₂O₃",
+            "normalized": "Cr₂O₃"
+          },
+          {
+            "index": 4,
+            "surface": "וְהִיא",
+            "normalized": "והיא"
+          },
+          {
+            "index": 5,
+            "surface": "דַּקָּה,",
+            "normalized": "דקה"
+          },
+          {
+            "index": 6,
+            "surface": "צְפוּפָה,",
+            "normalized": "צפופה"
+          },
+          {
+            "index": 7,
+            "surface": "נִצְמֶדֶת",
+            "normalized": "נצמדת"
+          },
+          {
+            "index": 8,
+            "surface": "לַמִּשְׁטָח",
+            "normalized": "למשטח"
+          },
+          {
+            "index": 9,
+            "surface": "וּמִתְחַדֶּשֶׁת",
+            "normalized": "ומתחדשת"
+          },
+          {
+            "index": 10,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 11,
+            "surface": "פְּגִיעָה",
+            "normalized": "פגיעה"
+          },
+          {
+            "index": 12,
+            "surface": "מְקוֹמִית.",
+            "normalized": "מקומית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדות פחמן שכבת החלודה נקבובית ואינה אוטמת את המשטח ולכן הקורוזיה הכללית ממשיכה להתקדם.",
+        "he_niqqud": "בְּפְלָדוֹת פַּחְמָן שִׁכְבַת הַחֲלוּדָה נְקֻבּוּבִית וְאֵינָהּ אוֹטֶמֶת אֶת הַמִּשְׁטָח וְלָכֵן הַקּוֹרוֹזְיָה הַכְּלָלִית מַמְשִׁיכָה לְהִתְקַדֵּם.",
+        "transliteration": "Ba'pladot pachman shichvat hachludah nekubuvit ve'einah otemet et hamishtach velachen hakoroziah haklalit mamshichah lehitkadem.",
+        "ru": "В углеродистых сталях слой ржавчины пористый и не герметизирует поверхность, поэтому общая коррозия продолжает прогрессировать."
+      },
+      "source_refs": [
+        "legacy_row_hash:7dfaa577bb7fa3893b17174d199ef1f51f24382a2ee759a70615c5e50f3c232f",
+        "legacy_fields_sha256:34575723d66cabce76e491383ba097e76a17e18a33058586d598ffffbb3b8bcb",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּפְלָדוֹת",
+            "normalized": "בפלדות"
+          },
+          {
+            "index": 1,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 3,
+            "surface": "הַחֲלוּדָה",
+            "normalized": "החלודה"
+          },
+          {
+            "index": 4,
+            "surface": "נְקֻבּוּבִית",
+            "normalized": "נקבובית"
+          },
+          {
+            "index": 5,
+            "surface": "וְאֵינָהּ",
+            "normalized": "ואינה"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹטֶמֶת",
+            "normalized": "אוטמת"
+          },
+          {
+            "index": 7,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 8,
+            "surface": "הַמִּשְׁטָח",
+            "normalized": "המשטח"
+          },
+          {
+            "index": 9,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 10,
+            "surface": "הַקּוֹרוֹזְיָה",
+            "normalized": "הקורוזיה"
+          },
+          {
+            "index": 11,
+            "surface": "הַכְּלָלִית",
+            "normalized": "הכללית"
+          },
+          {
+            "index": 12,
+            "surface": "מַמְשִׁיכָה",
+            "normalized": "ממשיכה"
+          },
+          {
+            "index": 13,
+            "surface": "לְהִתְקַדֵּם.",
+            "normalized": "להתקדם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לא, פלדות בלתי מחלידות אינן עמידות לכל סוגי הקורוזיה.",
+        "he_niqqud": "ג) לֹא, פְּלָדוֹת בִּלְתִּי מַחְלִידוֹת אֵינָן עֲמִידוֹת לְכֹל סוּגֵי הַקּוֹרוֹזְיָה.",
+        "transliteration": "G) Lo, pladot bilti machlidot einan amidot lechol sugei hakoroziah.",
+        "ru": "В) Нет, нержавеющие стали не устойчивы ко всем типам коррозии."
+      },
+      "source_refs": [
+        "legacy_row_hash:520955103772264ad4db7c1519770ef5f9e5b993ff0c53f3cbc6f67593f8532e",
+        "legacy_fields_sha256:279feff1d0d3a0d32c3b3bf7518e1d2350ad2c8f34fda51a6a89eb63c239503f",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לֹא,",
+            "normalized": "לא"
+          },
+          {
+            "index": 2,
+            "surface": "פְּלָדוֹת",
+            "normalized": "פלדות"
+          },
+          {
+            "index": 3,
+            "surface": "בִּלְתִּי",
+            "normalized": "בלתי"
+          },
+          {
+            "index": 4,
+            "surface": "מַחְלִידוֹת",
+            "normalized": "מחלידות"
+          },
+          {
+            "index": 5,
+            "surface": "אֵינָן",
+            "normalized": "אינן"
+          },
+          {
+            "index": 6,
+            "surface": "עֲמִידוֹת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 7,
+            "surface": "לְכֹל",
+            "normalized": "לכל"
+          },
+          {
+            "index": 8,
+            "surface": "סוּגֵי",
+            "normalized": "סוגי"
+          },
+          {
+            "index": 9,
+            "surface": "הַקּוֹרוֹזְיָה.",
+            "normalized": "הקורוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "דוגמה לכך היא קורוזיה בחרירים (Pitting) בסביבות המכילות כלורידים (Cl⁻).",
+        "he_niqqud": "דֻּגְמָה לְכָךְ הִיא קוֹרוֹזְיָה בַּחֲרִירִים (Pitting) בִּסְבִיבוֹת הַמְּכִילוֹת כְּלוֹרִידִים (Cl⁻).",
+        "transliteration": "Dugma lechach hi koroziah be'charirim (Pitting) bisvivot hamechilot chloridim (Cl⁻).",
+        "ru": "Примером является точечная коррозия (Pitting) в средах, содержащих хлориды (Cl⁻)."
+      },
+      "source_refs": [
+        "legacy_row_hash:623b4f1b615262d424aef060408422ca9772eb8dc2de1f39cef69f9fe1ede619",
+        "legacy_fields_sha256:37e0e9fe89e0d07fa68ac7e0a7729303476bdf73968c35c0aa6f641f6b2ea097",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "דֻּגְמָה",
+            "normalized": "דגמה"
+          },
+          {
+            "index": 1,
+            "surface": "לְכָךְ",
+            "normalized": "לכך"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 4,
+            "surface": "בַּחֲרִירִים",
+            "normalized": "בחרירים"
+          },
+          {
+            "index": 5,
+            "surface": "(Pitting)",
+            "normalized": "Pitting"
+          },
+          {
+            "index": 6,
+            "surface": "בִּסְבִיבוֹת",
+            "normalized": "בסביבות"
+          },
+          {
+            "index": 7,
+            "surface": "הַמְּכִילוֹת",
+            "normalized": "המכילות"
+          },
+          {
+            "index": 8,
+            "surface": "כְּלוֹרִידִים",
+            "normalized": "כלורידים"
+          },
+          {
+            "index": 9,
+            "surface": "(Cl⁻).",
+            "normalized": "Cl"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "דוגמה נוספת היא קורוזיה חריצית במקומות של מרווחים צרים וחוסר חמצן.",
+        "he_niqqud": "דֻּגְמָה נוֹסֶפֶת הִיא קוֹרוֹזְיָה חֲרִיצִית בִּמְקוֹמוֹת שֶׁל מִרְוָחִים צָרִים וְחֹסֶר חַמְצָן.",
+        "transliteration": "Dugma nosefet hi koroziah charitzit bimkomot shel mirvachim tzarim ve'chossar chamtzan.",
+        "ru": "Другим примером является щелевая коррозия в местах с узкими зазорами и недостатком кислорода."
+      },
+      "source_refs": [
+        "legacy_row_hash:fd82050c72b5162463a15a827b7b67cd00cbe9cc3b42036ce8dc3acd4d29642d",
+        "legacy_fields_sha256:a32ff298debba0f76cea0fd9d8cb8a2292198a4558e72492f4bc7c1b183c0b82",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "דֻּגְמָה",
+            "normalized": "דגמה"
+          },
+          {
+            "index": 1,
+            "surface": "נוֹסֶפֶת",
+            "normalized": "נוספת"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 4,
+            "surface": "חֲרִיצִית",
+            "normalized": "חריצית"
+          },
+          {
+            "index": 5,
+            "surface": "בִּמְקוֹמוֹת",
+            "normalized": "במקומות"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "מִרְוָחִים",
+            "normalized": "מרוחים"
+          },
+          {
+            "index": 8,
+            "surface": "צָרִים",
+            "normalized": "צרים"
+          },
+          {
+            "index": 9,
+            "surface": "וְחֹסֶר",
+            "normalized": "וחסר"
+          },
+          {
+            "index": 10,
+            "surface": "חַמְצָן.",
+            "normalized": "חמצן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "קיימת גם אפשרות לסדיקה קורוזיבית במאמץ (SCC) בתנאים מתאימים של מאמץ וסביבה.",
+        "he_niqqud": "קַיֶּימֶת גַּם אֶפְשָׁרוּת לִסְדִיקָה קוֹרוֹזִיבִית בְּמַאֲמָץ (SCC) בִּתְנָאִים מַתְאִימִים שֶׁל מַאֲמָץ וּסְבִיבָה.",
+        "transliteration": "Kayemet gam efsharut lisdikah korozivit bema'amatz (SCC) bitna'im mat'imim shel ma'amatz u'svivah.",
+        "ru": "Также существует возможность коррозионного растрескивания под напряжением (SCC) при соответствующих условиях напряжения и окружающей среды."
+      },
+      "source_refs": [
+        "legacy_row_hash:31685f1790b07b4b8eabd09721dec4c2f5d18789720631763d97ec1c95078214",
+        "legacy_fields_sha256:abdfbf9da83b7e7736fe354e2fd433c0f47ea118f6f292d40abd04d7a3cdf486",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "קַיֶּימֶת",
+            "normalized": "קיימת"
+          },
+          {
+            "index": 1,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 2,
+            "surface": "אֶפְשָׁרוּת",
+            "normalized": "אפשרות"
+          },
+          {
+            "index": 3,
+            "surface": "לִסְדִיקָה",
+            "normalized": "לסדיקה"
+          },
+          {
+            "index": 4,
+            "surface": "קוֹרוֹזִיבִית",
+            "normalized": "קורוזיבית"
+          },
+          {
+            "index": 5,
+            "surface": "בְּמַאֲמָץ",
+            "normalized": "במאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "(SCC)",
+            "normalized": "SCC"
+          },
+          {
+            "index": 7,
+            "surface": "בִּתְנָאִים",
+            "normalized": "בתנאים"
+          },
+          {
+            "index": 8,
+            "surface": "מַתְאִימִים",
+            "normalized": "מתאימים"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 10,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 11,
+            "surface": "וּסְבִיבָה.",
+            "normalized": "וסביבה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "יכולה להתרחש קורוזיה בין-גרעינית לאחר סנסיטיזציה עקב שקיעת קרבידי כרום ודלדול כרום בגבולות הגרעינים.",
+        "he_niqqud": "יְכוֹלָה לְהִתְרַחֵשׁ קוֹרוֹזְיָה בֵּין-גַּרְעִינִית לְאַחַר סֶנְסִיטִיזַצְיָה עֵקֶב שְׁקִיעַת קַרְבִּידֵי כְּרוֹם וְדִלְדּוּל כְּרוֹם בִּגְבוּלוֹת הַגַּרְעִינִים.",
+        "transliteration": "Yecholah lehitrachesh koroziah bein-gar'init achar sensitizatziah ekev shki'at karbidi chrom u'dilul chrom bigvulot hagar'inim.",
+        "ru": "Может возникнуть межкристаллитная коррозия после сенсибилизации из-за осаждения карбидов хрома и обеднения хромом границ зерен."
+      },
+      "source_refs": [
+        "legacy_row_hash:e8ad7b211d1e6d60b200da3740f032b24ba9c5b08324476259e95d3438cebe77",
+        "legacy_fields_sha256:7e913cdbed1161f1f57bc534d2267c45d5ab5fe5cd0b69f1ef739ac844f643e8",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "יְכוֹלָה",
+            "normalized": "יכולה"
+          },
+          {
+            "index": 1,
+            "surface": "לְהִתְרַחֵשׁ",
+            "normalized": "להתרחש"
+          },
+          {
+            "index": 2,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 3,
+            "surface": "בֵּין-גַּרְעִינִית",
+            "normalized": "בין-גרעינית"
+          },
+          {
+            "index": 4,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 5,
+            "surface": "סֶנְסִיטִיזַצְיָה",
+            "normalized": "סנסיטיזציה"
+          },
+          {
+            "index": 6,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 7,
+            "surface": "שְׁקִיעַת",
+            "normalized": "שקיעת"
+          },
+          {
+            "index": 8,
+            "surface": "קַרְבִּידֵי",
+            "normalized": "קרבידי"
+          },
+          {
+            "index": 9,
+            "surface": "כְּרוֹם",
+            "normalized": "כרום"
+          },
+          {
+            "index": 10,
+            "surface": "וְדִלְדּוּל",
+            "normalized": "ודלדול"
+          },
+          {
+            "index": 11,
+            "surface": "כְּרוֹם",
+            "normalized": "כרום"
+          },
+          {
+            "index": 12,
+            "surface": "בִּגְבוּלוֹת",
+            "normalized": "בגבולות"
+          },
+          {
+            "index": 13,
+            "surface": "הַגַּרְעִינִים.",
+            "normalized": "הגרעינים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r023",
+      "order": 23,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) בחירה מומלצת: פלדת (Duplex) המתאימה לעקומה 3.",
+        "he_niqqud": "ד) בְּחִירָה מֻמְלֶצֶת: פְּלָדַת (Duplex) הַמַּתְאִימָה לַעֲקֻמָּה 3.",
+        "transliteration": "D) Bechira mumletzet: Pladat (Duplex) hamat'imah la'akumah 3.",
+        "ru": "Г) Рекомендуемый выбор: Дуплексная сталь (Duplex), соответствующая Кривой 3."
+      },
+      "source_refs": [
+        "legacy_row_hash:b56229d06e8590c1778e4f282241ce42a43778ac005969a630992dac27de104e",
+        "legacy_fields_sha256:54cd99b0dcdad2bb9e8e2e4ff7da6e4a991a446c96846630f2dd719c8f7a84ed",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "בְּחִירָה",
+            "normalized": "בחירה"
+          },
+          {
+            "index": 2,
+            "surface": "מֻמְלֶצֶת:",
+            "normalized": "ממלצת"
+          },
+          {
+            "index": 3,
+            "surface": "פְּלָדַת",
+            "normalized": "פלדת"
+          },
+          {
+            "index": 4,
+            "surface": "(Duplex)",
+            "normalized": "Duplex"
+          },
+          {
+            "index": 5,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 6,
+            "surface": "לַעֲקֻמָּה",
+            "normalized": "לעקמה"
+          },
+          {
+            "index": 7,
+            "surface": "3.",
+            "normalized": "3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נחשב את דרישת חוזק הכניעה לפי מקדם הבטיחות כדי להבטיח עבודה אלסטית ללא כניעה.",
+        "he_niqqud": "נְחַשֵּׁב אֶת דְּרִישַׁת חֹזֶק הַכְּנִיעָה לְפִי מְקַדֵּם הַבְּטִיחוּת כְּדֵי לְהַבְטִיחַ עֲבוֹדָה אֵלַסְטִית לְלֹא כְּנִיעָה.",
+        "transliteration": "Nechashev et drishat chozek hakni'ah lefi mekadem habetichut kedei lehavti'ach avodah elastit lelo kni'ah.",
+        "ru": "Рассчитаем требуемый предел текучести на основе коэффициента запаса, чтобы обеспечить упругую работу без текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:4616697abb407676451a639cf5befcb85b0c93a285b9a3a63e224f606cc54818",
+        "legacy_fields_sha256:de3e197bd4e6b23e9983866c8b79341b18821f609cde97db0bf6bd98634c4517",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְחַשֵּׁב",
+            "normalized": "נחשב"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "דְּרִישַׁת",
+            "normalized": "דרישת"
+          },
+          {
+            "index": 3,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 4,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 5,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 6,
+            "surface": "מְקַדֵּם",
+            "normalized": "מקדם"
+          },
+          {
+            "index": 7,
+            "surface": "הַבְּטִיחוּת",
+            "normalized": "הבטיחות"
+          },
+          {
+            "index": 8,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 9,
+            "surface": "לְהַבְטִיחַ",
+            "normalized": "להבטיח"
+          },
+          {
+            "index": 10,
+            "surface": "עֲבוֹדָה",
+            "normalized": "עבודה"
+          },
+          {
+            "index": 11,
+            "surface": "אֵלַסְטִית",
+            "normalized": "אלסטית"
+          },
+          {
+            "index": 12,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 13,
+            "surface": "כְּנִיעָה.",
+            "normalized": "כניעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r025",
+      "order": 25,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_y,req ≥ S·σ_max",
+        "he_niqqud": "σ_y,req ≥ S·σ_max",
+        "transliteration": "σ_y,req ≥ S·σ_max",
+        "ru": "$σ_{y,req} ≥ S·σ_{max}$"
+      },
+      "source_refs": [
+        "legacy_row_hash:67f786c5239c3644f6475a18217ed7874c26470668d79b5a9f220a98c32f7dd8",
+        "legacy_fields_sha256:3f04b8ab65e3420c51bd134b24b5250c68d46686c702503d0deceb009060f11e",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_y,req",
+            "normalized": "σ_y,req"
+          },
+          {
+            "index": 1,
+            "surface": "≥",
+            "normalized": "≥"
+          },
+          {
+            "index": 2,
+            "surface": "S·σ_max",
+            "normalized": "S·σ_max"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_y,req ≥ S·σ_max"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r026",
+      "order": 26,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נבצע הצבה עבור σ_max = 300 MPa ו-S = 1.5.",
+        "he_niqqud": "נְבַצֵּעַ הַצָּבָה עֲבוּר σ_max = 300 MPa וְ-S = 1.5.",
+        "transliteration": "Ne'abetz hatzavah avur σ_max = 300 MPa ve-S = 1.5.",
+        "ru": "Выполним подстановку для $\\sigma_{max} = 300\\text{ МПа}$ и $S = 1.5$."
+      },
+      "source_refs": [
+        "legacy_row_hash:4445c1c6e1cc07869b4a44faed3f667f67b62d4303ca8ca6e3ac157a6a706af6",
+        "legacy_fields_sha256:29f35099520cc333ba0721a8011f8d9975379d890ac690036d63c3f07f08a88b",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נְבַצֵּעַ",
+            "normalized": "נבצע"
+          },
+          {
+            "index": 1,
+            "surface": "הַצָּבָה",
+            "normalized": "הצבה"
+          },
+          {
+            "index": 2,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 3,
+            "surface": "σ_max",
+            "normalized": "σ_max"
+          },
+          {
+            "index": 4,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 5,
+            "surface": "300",
+            "normalized": "300"
+          },
+          {
+            "index": 6,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 7,
+            "surface": "וְ-S",
+            "normalized": "ו-S"
+          },
+          {
+            "index": 8,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 9,
+            "surface": "1.5.",
+            "normalized": "1.5"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r027",
+      "order": 27,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_y,req ≥ 1.5·300 = 450 MPa",
+        "he_niqqud": "σ_y,req ≥ 1.5·300 = 450 MPa",
+        "transliteration": "σ_y,req ≥ 1.5·300 = 450 MPa",
+        "ru": "$σ_{y,req} ≥ 1.5·300 = 450\\text{ МПа}$"
+      },
+      "source_refs": [
+        "legacy_row_hash:059b4b6e875ac9e729832165220f2a14047c5de921ec55fd2b9d259368ff459c",
+        "legacy_fields_sha256:b95d3fef3ea9139082924c16ab09cba02a2ea1b5ebbc0da0ab2000bdf1898ac2",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_y,req",
+            "normalized": "σ_y,req"
+          },
+          {
+            "index": 1,
+            "surface": "≥",
+            "normalized": "≥"
+          },
+          {
+            "index": 2,
+            "surface": "1.5·300",
+            "normalized": "1.5·300"
+          },
+          {
+            "index": 3,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 4,
+            "surface": "450",
+            "normalized": "450"
+          },
+          {
+            "index": 5,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_y,req ≥ 1.5·300 = 450 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r028",
+      "order": 28,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נדרש גם שהתארכות תהיה לפחות 12% כדי לעמוד בדרישת פלסטיות.",
+        "he_niqqud": "נִדְרָשׁ גַּם שֶׁהַהִתְאָרְכוּת תִּהְיֶה לְפָחוֹת 12% כְּדֵי לַעֲמֹד בִּדְרִישַׁת פְּלַסְטִיּוּת.",
+        "transliteration": "Nidrash gam sheha'hit'archut tihiyeh lefachot 12% kedei la'amod bidrishat plasti'ut.",
+        "ru": "Также требуется, чтобы удлинение составляло не менее 12% для выполнения требования по пластичности."
+      },
+      "source_refs": [
+        "legacy_row_hash:7ebd18a2c3facb3eda327a33f38e19ef3cb27564c9f6d5d9b706b146ae1df22b",
+        "legacy_fields_sha256:3ed4afe51942bfde6f45cc51c3eb1acc0ff257291522f2c209ecb03ae6228b2e",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִדְרָשׁ",
+            "normalized": "נדרש"
+          },
+          {
+            "index": 1,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁהַהִתְאָרְכוּת",
+            "normalized": "שההתארכות"
+          },
+          {
+            "index": 3,
+            "surface": "תִּהְיֶה",
+            "normalized": "תהיה"
+          },
+          {
+            "index": 4,
+            "surface": "לְפָחוֹת",
+            "normalized": "לפחות"
+          },
+          {
+            "index": 5,
+            "surface": "12%",
+            "normalized": "12%"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לַעֲמֹד",
+            "normalized": "לעמד"
+          },
+          {
+            "index": 8,
+            "surface": "בִּדְרִישַׁת",
+            "normalized": "בדרישת"
+          },
+          {
+            "index": 9,
+            "surface": "פְּלַסְטִיּוּת.",
+            "normalized": "פלסטיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r029",
+      "order": 29,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "מהשוואת הדיאגרמות, עקומה 3 משלבת חוזק גבוה שעולה על סף הדרישה יחד עם התארכות מעל 12%.",
+        "he_niqqud": "מֵהַשְׁוָואַת הַדִּיאַגְרָמוֹת, עֲקֻמָּה 3 מְשַׁלֶּבֶת חֹזֶק גָּבוֹהַּ שֶׁעוֹלֶה עַל סַף הַדְּרִישָׁה יַחַד עִם הִתְאָרְכוּת מֵעַל 12%.",
+        "transliteration": "Mehashva'at ha'diagramot, akumah 3 meshalvet chozek gavoha she'oleh al saf hadrishah yachad im hit'archut me'al 12%.",
+        "ru": "Сравнивая диаграммы, Кривая 3 сочетает высокую прочность, превышающую пороговое требование, с удлинением более 12%."
+      },
+      "source_refs": [
+        "legacy_row_hash:2d599c4b71d2e308af9e1930fc81de4457e285d1ff783fecd3a496951b8117fb",
+        "legacy_fields_sha256:24d261b13bab23331e8beda15d5acbcf97e47b08431337cdfd7aecbc08da3420",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֵהַשְׁוָואַת",
+            "normalized": "מהשוואת"
+          },
+          {
+            "index": 1,
+            "surface": "הַדִּיאַגְרָמוֹת,",
+            "normalized": "הדיאגרמות"
+          },
+          {
+            "index": 2,
+            "surface": "עֲקֻמָּה",
+            "normalized": "עקמה"
+          },
+          {
+            "index": 3,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 4,
+            "surface": "מְשַׁלֶּבֶת",
+            "normalized": "משלבת"
+          },
+          {
+            "index": 5,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 6,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁעוֹלֶה",
+            "normalized": "שעולה"
+          },
+          {
+            "index": 8,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 9,
+            "surface": "סַף",
+            "normalized": "סף"
+          },
+          {
+            "index": 10,
+            "surface": "הַדְּרִישָׁה",
+            "normalized": "הדרישה"
+          },
+          {
+            "index": 11,
+            "surface": "יַחַד",
+            "normalized": "יחד"
+          },
+          {
+            "index": 12,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 13,
+            "surface": "הִתְאָרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 14,
+            "surface": "מֵעַל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 15,
+            "surface": "12%.",
+            "normalized": "12%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r030",
+      "order": 30,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן פלדת (Duplex) היא הבחירה המתאימה ביותר לדרישות החוזק והפלסטיות יחד.",
+        "he_niqqud": "לָכֵן פְּלָדַת (Duplex) הִיא הַבְּחִירָה הַמַּתְאִימָה בְּיוֹתֵר לִדְרִישׁוֹת הַחֹזֶק וְהַפְּלַסְטִיּוּת יַחַד.",
+        "transliteration": "Lachen pladat (Duplex) hi habechirah hamat'imah beyoter lidrishot hachozek veha'plasti'ut yachad.",
+        "ru": "Следовательно, дуплексная сталь (Duplex) является наиболее подходящим выбором, удовлетворяющим требованиям как к прочности, так и к пластичности."
+      },
+      "source_refs": [
+        "legacy_row_hash:b22eab4e8404faf8016241665807e65c411612706f71b74ffe36164d86877c57",
+        "legacy_fields_sha256:a40b4ecd2f77b9c7b807209b84f2998cb7dd0454fccaa64278887fcc984eb81c",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלָדַת",
+            "normalized": "פלדת"
+          },
+          {
+            "index": 2,
+            "surface": "(Duplex)",
+            "normalized": "Duplex"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "הַבְּחִירָה",
+            "normalized": "הבחירה"
+          },
+          {
+            "index": 5,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 6,
+            "surface": "בְּיוֹתֵר",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 7,
+            "surface": "לִדְרִישׁוֹת",
+            "normalized": "לדרישות"
+          },
+          {
+            "index": 8,
+            "surface": "הַחֹזֶק",
+            "normalized": "החזק"
+          },
+          {
+            "index": 9,
+            "surface": "וְהַפְּלַסְטִיּוּת",
+            "normalized": "והפלסטיות"
+          },
+          {
+            "index": 10,
+            "surface": "יַחַד.",
+            "normalized": "יחד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q049-sol-r031",
+      "order": 31,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:39a3409eddb73058d8704b9921dfd5b881ad9378792b4b5cfa35eac1cae23d9e",
+        "comparison:MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION",
+        "source_page:59",
+        "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q049",
+    "display_alias": "49",
+    "source_pages": [
+      59
+    ],
+    "independent_state": "DERIVED_WITH_GRAPH_TOLERANCE",
+    "answer": [
+      "а) Соответствие кривых: 1 — ферритная, 2 — аустенитная, 3 — duplex, 4 — мартенситная. Мартенситная имеет максимальную прочность и минимальную пластичность; аустенитная — максимальное удлинение; duplex сочетает высокую прочность и заметную пластичность; ферритная занимает более низкий прочностной уровень.",
+      "б) Cr формирует тонкую самовосстанавливающуюся пассивную плёнку Cr₂O₃, поэтому равномерная коррозия обычно идёт медленнее, чем у углеродистой стали.",
+      "в) Нет: возможны точечная и щелевая коррозия в хлоридах, межкристаллитная после сенсибилизации, коррозионное растрескивание и гальваническая коррозия.",
+      "г) Расчётный порог σ_y≥S·σ_work=1,5·300=450 МПа и ε_f≥12%. По графику кривые 3 и 4 проходят пороги с учётом точности чтения; для химического оборудования выбирается duplex (кривая 3), поскольку он сохраняет существенно больший запас пластичности при достаточной прочности."
+    ],
+    "engineering_picture": "Фазовая структура определяет компромисс strength-ductility, а химическая стойкость требует отдельной проверки среды; высокая UTS сама по себе не выбирает материал для аппарата.",
+    "prerequisites": [
+      "Allowable design check uses yield/proof strength, not UTS alone.",
+      "Passivity is environment-dependent.",
+      "Graph values are approximate."
+    ],
+    "roadmap": [
+      "Назначить кривые по прочности и удлинению.",
+      "Объяснить Cr passivity и её пределы.",
+      "Перевести safety factor в порог450 MPa.",
+      "Отфильтровать по ε≥12%."
+    ],
+    "main_trap": "Не объявлять stainless неуязвимой для всех видов коррозии и не выбирать кривую только по пику UTS.",
+    "givens": [
+      "Four stainless families and curves1-4; σwork300MPa;S1.5;εmin12%."
+    ],
+    "find": [
+      "Mapping, corrosion reasoning and material selection."
+    ],
+    "assumptions": [
+      "The graph onset of plasticity is read only to its plotted resolution.",
+      "Duplex service compatibility is later confirmed for the actual chemical medium."
+    ],
+    "laws": [
+      "σ_required=S·σ_work.",
+      "Chromium-rich passive oxide slows general corrosion."
+    ],
+    "symbolic_derivation": [
+      "σ_required=1.5·300=450 MPa.",
+      "Candidate pass⇒σ_y≥450 and ε_f≥12%."
+    ],
+    "calculation": [
+      "σ_required=450 MPa."
+    ],
+    "construction": [
+      "Four-row answer table: curve number, family, strength/ductility signature; mark450 MPa and12% on the graph."
+    ],
+    "checks": [
+      "Curve3 has a visibly larger ductility reserve than curve4 while retaining the required strength."
+    ],
+    "source_facts": [
+      "source_page:59",
+      "asset_sha256:a5008c280e768bc0cb45be84e913f36dddf3bbfd941ff5e33644ffcc1c0006de"
+    ],
+    "unresolved_limits": [
+      "Actual chemical composition, chloride level, temperature, weld state and corrosion allowance are absent; final equipment qualification needs those inputs."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

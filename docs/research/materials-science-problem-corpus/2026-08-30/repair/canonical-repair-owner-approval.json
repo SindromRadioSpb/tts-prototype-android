@@ -1,0 +1,28 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-owner-approval-v1",
+  "program": "MATERIALS-PB2-SEPARATE-CANONICAL-REPAIR",
+  "approved_on": "2026-08-30",
+  "status": "OWNER_APPROVED_EXECUTION_COMPLETED_WITHIN_ENVELOPE",
+  "model": "gemini-3.7-flash",
+  "consumption_mode": "STANDARD",
+  "hard_max_usd": 2.0,
+  "maximum_provider_calls": 12,
+  "egress": "SOURCE_PAGES_AND_LEGACY_CONDITION_CANDIDATES",
+  "credential_policy": "OWNER_APPROVED_LOCAL_READ_ONLY_NO_PERSIST",
+  "execution_result": {
+    "provider_response_receipt_count": 9,
+    "provider_call_start_count": 10,
+    "measured_provider_cost_usd": 1.099227,
+    "conservative_billing_upper_bound_usd": 1.259607,
+    "secret_persisted": false,
+    "reviewed_batch_count": 6,
+    "reviewed_row_count": 642
+  },
+  "approval_token": "APPROVE MATERIALS-PB2-SEPARATE-CANONICAL-REPAIR MODEL=gemini-3.7-flash MODE=STANDARD MAX_USD=2.00 MAX_CALLS=12 EGRESS=SOURCE_PAGES_AND_LEGACY_CONDITION_CANDIDATES CREDENTIAL=OWNER_APPROVED_LOCAL_READ_ONLY_NO_PERSIST",
+  "explicitly_not_authorized": [
+    "solution_authoring_or_adjudication",
+    "audio_generation_or_apply",
+    "studio_import",
+    "publication"
+  ]
+}

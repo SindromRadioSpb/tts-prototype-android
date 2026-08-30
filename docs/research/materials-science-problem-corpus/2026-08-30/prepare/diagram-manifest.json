@@ -1,0 +1,1431 @@
+{
+  "schema": "linguistpro-materials-pb2-diagram-manifest-v1",
+  "status": "PASS_ALL_60_TASKS_SEMANTICALLY_CLASSIFIED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "review_method": "MANUAL_RENDER_READBACK_ALL_TASK_SOURCE_PAGES_AND_APPENDICES_2026_08_30",
+  "policy": "MISSING_VISUALS_MUST_BE_MARKED_NEVER_INFERRED",
+  "task_count": 60,
+  "tasks_with_semantic_visuals": 43,
+  "tasks_with_external_reference_dependencies": 12,
+  "semantic_visual_instance_count": 90,
+  "tasks": [
+    {
+      "task_id": "materials-science-y1-pb2-q001",
+      "display_alias": "1",
+      "source_pages": [
+        3
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q001-v01",
+          "source_page": 3,
+          "kind": "ATOM_MODEL_DIAGRAM",
+          "instance_count": 4,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q002",
+      "display_alias": "2",
+      "source_pages": [
+        4,
+        5
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+      "display_alias": "Упражнение — Аллотропия железа",
+      "source_pages": [
+        5
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-exercise-p005-allotropy-v01",
+          "source_page": 5,
+          "kind": "COOLING_AND_ALLOTROPIC_TRANSITION_CURVE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-exercise-p005-allotropy-v02",
+          "source_page": 5,
+          "kind": "CRYSTAL_UNIT_CELL_SKETCH",
+          "instance_count": 4,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q003",
+      "display_alias": "3",
+      "source_pages": [
+        6
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q003-v01",
+          "source_page": 6,
+          "kind": "TERM_BANK_PANEL",
+          "instance_count": 1,
+          "semantic_role": "STRUCTURED_PROMPT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q004",
+      "display_alias": "4",
+      "source_pages": [
+        6
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q005",
+      "display_alias": "5",
+      "source_pages": [
+        6
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q006",
+      "display_alias": "6",
+      "source_pages": [
+        7
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q006-v01",
+          "source_page": 7,
+          "kind": "STRESS_STRAIN_DATA_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q007",
+      "display_alias": "7",
+      "source_pages": [
+        8
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q008",
+      "display_alias": "8",
+      "source_pages": [
+        9
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q008-v01",
+          "source_page": 9,
+          "kind": "TENSILE_TEST_DATA_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q009",
+      "display_alias": "9",
+      "source_pages": [
+        12
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q009-v01",
+          "source_page": 12,
+          "kind": "MECHANICAL_PROPERTIES_DATA_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q010",
+      "display_alias": "10",
+      "source_pages": [
+        14
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q010-v01",
+          "source_page": 14,
+          "kind": "FORCE_EXTENSION_GRAPH",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q011",
+      "display_alias": "11",
+      "source_pages": [
+        15
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q011-v01",
+          "source_page": 15,
+          "kind": "TENSILE_RESULTS_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q012",
+      "display_alias": "12",
+      "source_pages": [
+        16
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q012-v01",
+          "source_page": 16,
+          "kind": "STRESS_STRAIN_GRAPH",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q013",
+      "display_alias": "13",
+      "source_pages": [
+        17
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q014",
+      "display_alias": "14",
+      "source_pages": [
+        18
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q014-v01",
+          "source_page": 18,
+          "kind": "STRESS_STRAIN_SCHEMATIC",
+          "instance_count": 4,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q015",
+      "display_alias": "15",
+      "source_pages": [
+        20
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q015-v01",
+          "source_page": 20,
+          "kind": "MECHANICAL_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q016",
+      "display_alias": "16",
+      "source_pages": [
+        21
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q016-v01",
+          "source_page": 21,
+          "kind": "ENGINEERING_REQUIREMENTS_BLOCK",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q016-v02",
+          "source_page": 21,
+          "kind": "TENSILE_TEST_RESULTS_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q017",
+      "display_alias": "17",
+      "source_pages": [
+        22
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q017-v01",
+          "source_page": 22,
+          "kind": "TEMPERATURE_DEPENDENT_STRESS_STRAIN_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q018",
+      "display_alias": "18",
+      "source_pages": [
+        23
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q018-v01",
+          "source_page": 23,
+          "kind": "HARDNESS_CONVERSION_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+          "source_pages": [
+            68,
+            69
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p068",
+            "source-reference-p069"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q019",
+      "display_alias": "19",
+      "source_pages": [
+        25
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q019-v01",
+          "source_page": 25,
+          "kind": "IMPACT_ENERGY_TEMPERATURE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q019-v02",
+          "source_page": 25,
+          "kind": "HEAT_TREATMENT_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": false,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q020",
+      "display_alias": "20",
+      "source_pages": [
+        26
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q021",
+      "display_alias": "21",
+      "source_pages": [
+        27
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q021-v01",
+          "source_page": 27,
+          "kind": "MECHANICAL_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q022",
+      "display_alias": "22",
+      "source_pages": [
+        28
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q022-v01",
+          "source_page": 28,
+          "kind": "STEEL_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q023",
+      "display_alias": "23",
+      "source_pages": [
+        29
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q023-v01",
+          "source_page": 29,
+          "kind": "IMPACT_ENERGY_TEMPERATURE_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q024",
+      "display_alias": "24",
+      "source_pages": [
+        30
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q025",
+      "display_alias": "25",
+      "source_pages": [
+        31
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q025-v01",
+          "source_page": 31,
+          "kind": "S_N_FATIGUE_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q026",
+      "display_alias": "26",
+      "source_pages": [
+        33
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q026-v01",
+          "source_page": 33,
+          "kind": "S_N_FATIGUE_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q027",
+      "display_alias": "27",
+      "source_pages": [
+        35
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q027-v01",
+          "source_page": 35,
+          "kind": "STEEL_MICROGRAPH",
+          "instance_count": 2,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q028",
+      "display_alias": "28",
+      "source_pages": [
+        36
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q028-v01",
+          "source_page": 36,
+          "kind": "STEEL_MICROGRAPH",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q029",
+      "display_alias": "29",
+      "source_pages": [
+        37
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q029-v01",
+          "source_page": 37,
+          "kind": "METALLOGRAPHIC_STRUCTURE_SCHEMATIC",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q029-v02",
+          "source_page": 37,
+          "kind": "IRON_CARBON_PHASE_DIAGRAM",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q030",
+      "display_alias": "30",
+      "source_pages": [
+        38
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q030-v01",
+          "source_page": 38,
+          "kind": "MARTENSITE_MICROGRAPH",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q031",
+      "display_alias": "31",
+      "source_pages": [
+        39
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q032",
+      "display_alias": "32",
+      "source_pages": [
+        39
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q032-v01",
+          "source_page": 39,
+          "kind": "TEMPERING_STRESS_STRAIN_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q033",
+      "display_alias": "33",
+      "source_pages": [
+        40
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q033-v01",
+          "source_page": 40,
+          "kind": "HEAT_TREATMENT_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q034",
+      "display_alias": "34",
+      "source_pages": [
+        41
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q034-v01",
+          "source_page": 41,
+          "kind": "JOMINY_HARDNESS_CURVES",
+          "instance_count": 2,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q035",
+      "display_alias": "35",
+      "source_pages": [
+        42
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q035-v01",
+          "source_page": 42,
+          "kind": "HARDNESS_MEASUREMENT_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q035-v02",
+          "source_page": 42,
+          "kind": "ROD_SAMPLING_SCHEMATIC",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q036",
+      "display_alias": "36",
+      "source_pages": [
+        43
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q036-v01",
+          "source_page": 43,
+          "kind": "HARDNESS_DEPTH_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q036-v02",
+          "source_page": 43,
+          "kind": "TENSILE_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q037",
+      "display_alias": "37",
+      "source_pages": [
+        44
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q037-v01",
+          "source_page": 44,
+          "kind": "CYLINDRICAL_PART_SCHEMATIC",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q037-v02",
+          "source_page": 44,
+          "kind": "JOMINY_HARDNESS_CURVE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q037-v03",
+          "source_page": 44,
+          "kind": "TRUE_FALSE_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": false,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-p045-q038",
+      "display_alias": "38-A",
+      "source_pages": [
+        45
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-p045-q038-v01",
+          "source_page": 45,
+          "kind": "HEAT_TREATMENT_STRESS_STRAIN_CURVES",
+          "instance_count": 4,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-p047-q038",
+      "display_alias": "38-B",
+      "source_pages": [
+        47
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "ALLOYING_ELEMENTS_APPENDIX",
+          "source_pages": [
+            67
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p067"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        },
+        {
+          "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+          "source_pages": [
+            68,
+            69
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p068",
+            "source-reference-p069"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q039",
+      "display_alias": "39",
+      "source_pages": [
+        48
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+          "source_pages": [
+            68,
+            69
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p068",
+            "source-reference-p069"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q040",
+      "display_alias": "40",
+      "source_pages": [
+        49
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+          "source_pages": [
+            68,
+            69
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p068",
+            "source-reference-p069"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        },
+        {
+          "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+          "source_pages": [
+            70
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p070"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q041",
+      "display_alias": "41",
+      "source_pages": [
+        51
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q041-v01",
+          "source_page": 51,
+          "kind": "ALUMINUM_STRESS_STRAIN_GRAPH",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q042",
+      "display_alias": "42",
+      "source_pages": [
+        52
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q043",
+      "display_alias": "43",
+      "source_pages": [
+        53
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "ALUMINUM_ALLOY_APPENDICES",
+          "source_pages": [
+            71,
+            72,
+            73
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p071",
+            "source-reference-p072",
+            "source-reference-p073"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q044",
+      "display_alias": "44",
+      "source_pages": [
+        54
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "ALUMINUM_ALLOY_APPENDICES",
+          "source_pages": [
+            71,
+            72,
+            73
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p071",
+            "source-reference-p072",
+            "source-reference-p073"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q045",
+      "display_alias": "45",
+      "source_pages": [
+        55
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q045-v01",
+          "source_page": 55,
+          "kind": "TIME_TEMPERATURE_HEAT_TREATMENT_GRAPH",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q046",
+      "display_alias": "46",
+      "source_pages": [
+        56
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q046-v01",
+          "source_page": 56,
+          "kind": "GALVANIC_RIVET_SCHEMATIC",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q047",
+      "display_alias": "47",
+      "source_pages": [
+        57
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q047-v01",
+          "source_page": 57,
+          "kind": "BOLTED_JOINT_SCHEMATIC",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": [
+        {
+          "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+          "source_pages": [
+            68,
+            69
+          ],
+          "prepared_reference_ids": [
+            "source-reference-p068",
+            "source-reference-p069"
+          ],
+          "required_for_solving": true,
+          "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+        }
+      ]
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q048",
+      "display_alias": "48",
+      "source_pages": [
+        58
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q048-v01",
+          "source_page": 58,
+          "kind": "COATING_CLASSIFICATION_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q049",
+      "display_alias": "49",
+      "source_pages": [
+        59
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q049-v01",
+          "source_page": 59,
+          "kind": "STAINLESS_STEEL_STRESS_STRAIN_CURVES",
+          "instance_count": 4,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q049-v02",
+          "source_page": 59,
+          "kind": "STEEL_ASSIGNMENT_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": false,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q050",
+      "display_alias": "50",
+      "source_pages": [
+        60
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q050-v01",
+          "source_page": 60,
+          "kind": "STEEL_STRESS_STRAIN_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q051",
+      "display_alias": "51",
+      "source_pages": [
+        61
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q051-v01",
+          "source_page": 61,
+          "kind": "STAINLESS_STEEL_STRESS_STRAIN_CURVES",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        },
+        {
+          "visual_id": "materials-science-y1-pb2-q051-v02",
+          "source_page": 61,
+          "kind": "STEEL_ASSIGNMENT_RESPONSE_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": false,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q052",
+      "display_alias": "52",
+      "source_pages": [
+        62
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q052-v01",
+          "source_page": 62,
+          "kind": "PLASTIC_PROPERTIES_COMPARISON_TABLE",
+          "instance_count": 1,
+          "semantic_role": "RESPONSE_STRUCTURE",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q053",
+      "display_alias": "53",
+      "source_pages": [
+        63
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q054",
+      "display_alias": "54",
+      "source_pages": [
+        63
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q055",
+      "display_alias": "55",
+      "source_pages": [
+        63
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "TEXT_FORMULAS_OR_USER_DRAWN_OUTPUT_ONLY",
+      "semantic_visuals": [],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q056",
+      "display_alias": "56",
+      "source_pages": [
+        64
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q056-v01",
+          "source_page": 64,
+          "kind": "COMPOSITE_PROPERTIES_TABLE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q057",
+      "display_alias": "57",
+      "source_pages": [
+        64
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q057-v01",
+          "source_page": 64,
+          "kind": "COMPOSITE_REINFORCEMENT_STRUCTURE_DIAGRAM",
+          "instance_count": 3,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q058",
+      "display_alias": "58",
+      "source_pages": [
+        65
+      ],
+      "classification_status": "MANUAL_SOURCE_RENDER_REVIEWED_2026_08_30",
+      "visual_requirement": "SEMANTIC_VISUALS_PRESENT",
+      "semantic_visuals": [
+        {
+          "visual_id": "materials-science-y1-pb2-q058-v01",
+          "source_page": 65,
+          "kind": "FIBER_REINFORCED_COMPOSITE_CUBE",
+          "instance_count": 1,
+          "semantic_role": "PROBLEM_INPUT",
+          "required_for_solving": true,
+          "required_for_faithful_presentation": true,
+          "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+        }
+      ],
+      "external_reference_dependencies": []
+    }
+  ]
+}

@@ -1,0 +1,1193 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-preflight-v1.candidate-input",
+  "batch_id": "B02",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "truth_status": "LEGACY_COMPARISON_ONLY_SOURCE_PDF_CANONICAL",
+  "solution_rows_included": false,
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q010-r002",
+      "semantic_kind": "diagram_reference",
+      "he": "א) לְפָנֶיךָ דִּיאַגְרָמַת מְתִיחָה שֶׁל דֶּגֶם הֶעָשׂוּי מֵחֹמֶר מְסֻיָּם",
+      "he_niqqud": "א) לְפָנֶיךָ דִּיאַגְרָמַת מְתִיחָה שֶׁל דֶּגֶם הֶעָשׂוּי מֵחֹמֶר מְסֻיָּם",
+      "transliteration": "A) Lefanékha di'agramat metikhah shel degem he'asuy mekhomer mesuyam.",
+      "ru": "А) Перед вами диаграмма растяжения образца, изготовленного из определенного материала."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r003",
+      "semantic_kind": "condition",
+      "he": "שֶׁטַח הַחֲתָךְ וְהָאֹרֶךְ הַתְּחִלָּתִי שֶׁל הַדֶּגֶם הַנִּבְדָּק הֵם",
+      "he_niqqud": "שֶׁטַח הַחֲתָךְ וְהָאֹרֶךְ הַתְּחִלָּתִי שֶׁל הַדֶּגֶם הַנִּבְדָּק הֵם",
+      "transliteration": "Shetaḥ hakha'taḵ veha'oreḵ ha'tkhilati shel ha'degem hanivdaq hem:",
+      "ru": "Площадь поперечного сечения и начальная длина исследуемого образца составляют:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r004",
+      "semantic_kind": "condition",
+      "he": "A0 = 200mm2",
+      "he_niqqud": "A0 = 200mm2",
+      "transliteration": "A0 = 200mm2",
+      "ru": "A0 = 200 мм2"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r005",
+      "semantic_kind": "condition",
+      "he": "L0 = 200mm",
+      "he_niqqud": "L0 = 200mm",
+      "transliteration": "L0 = 200mm",
+      "ru": "L0 = 200 мм"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r006",
+      "semantic_kind": "condition",
+      "he": "עָלֶיךָ לִקְבֹּעַ אֶת תְּכוּנוֹת הַחֹמֶר",
+      "he_niqqud": "עָלֶיךָ לִקְבֹּעַ אֶת תְּכוּנוֹת הַחֹמֶר",
+      "transliteration": "Alekha liqbo'a et tekhunot hakhome r:",
+      "ru": "Вы должны определить свойства материала:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r007",
+      "semantic_kind": "condition",
+      "he": "מַאֲמַץ הַכְּנִיעָה σy",
+      "he_niqqud": "מַאֲמַץ הַכְּנִיעָה σy",
+      "transliteration": "Ma'amaṣ hakni'ah σy",
+      "ru": "Предел текучести σy"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r008",
+      "semantic_kind": "condition",
+      "he": "חֹזֶק לִמְתִיחָה σUTS",
+      "he_niqqud": "חֹזֶק לִמְתִיחָה σUTS",
+      "transliteration": "Ḥozeq limtikhah σUTS",
+      "ru": "Предел прочности при растяжении σUTS"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r009",
+      "semantic_kind": "condition",
+      "he": "מוֹדוּל הָאֶלַסְטִיּוּת E",
+      "he_niqqud": "מוֹדוּל הָאֶלַסְטִיּוּת E",
+      "transliteration": "Modul ha'elaṣṭiyuṭ E",
+      "ru": "Модуль упругости E"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r010",
+      "semantic_kind": "condition",
+      "he": "הִתְאָרְכוּת יַחֲסִית מַקְסִימָלִית εUTS ב־%",
+      "he_niqqud": "הִתְאָרְכוּת יַחֲסִית מַקְסִימָלִית εUTS ב־%",
+      "transliteration": "Hit'arkhut yaḥasit maqsimalit εUTS be-%",
+      "ru": "Максимальное относительное удлинение εUTS в %"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r011",
+      "semantic_kind": "subpart",
+      "he": "ב) מוֹט בַּעַל חָתָךְ רִבּוּעִי 20mm×20mm עָשׂוּי מֵאוֹתוֹ חֹמֶר",
+      "he_niqqud": "ב) מוֹט בַּעַל חָתָךְ רִבּוּעִי 20mm×20mm עָשׂוּי מֵאוֹתוֹ חֹמֶר",
+      "transliteration": "B) Moṭ ba'al ḥataḵ ribua'i 20mm×20mm 'asuy me'oto ḥomer.",
+      "ru": "Б) Стержень с квадратным сечением 20мм×20мм изготовлен из того же материала."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r012",
+      "semantic_kind": "subpart",
+      "he": "1. חַשֵּׁב אֶת הַכֹּחַ הַמִּרְבִּי שֶׁהַמּוֹט יָכוֹל לַעֲמֹד בּוֹ לְלֹא שֶׁבֶר",
+      "he_niqqud": "1. חַשֵּׁב אֶת הַכֹּחַ הַמִּרְבִּי שֶׁהַמּוֹט יָכוֹל לַעֲמֹד בּוֹ לְלֹא שֶׁבֶר",
+      "transliteration": "1. Ḥashēv et hako'aḥ hamirbi sheha'moṭ yakhol la'amōd bō lelo shever.",
+      "ru": "1. Рассчитайте максимальную силу, которую стержень может выдержать без разрушения."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r013",
+      "semantic_kind": "subpart",
+      "he": "2. חַשֵּׁב אֶת הַמַּאֲמָץ הַמֻּתָּר עֲבוּר הַמּוֹט",
+      "he_niqqud": "2. חַשֵּׁב אֶת הַמַּאֲמָץ הַמֻּתָּר עֲבוּר הַמּוֹט",
+      "transliteration": "2. Ḥashēv et hama'amaṣ hamutar 'avur hamoṭ",
+      "ru": "2. Рассчитайте допустимое напряжение для стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q010-r014",
+      "semantic_kind": "subpart",
+      "he": "מִקְדַּם הַבְּטִיחוּת S = 1.5",
+      "he_niqqud": "מִקְדַּם הַבְּטִיחוּת S = 1.5",
+      "transliteration": "Miqdam habəṭiḥuṭ S = 1.5",
+      "ru": "Коэффициент безопасности S = 1.5"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r002",
+      "semantic_kind": "condition",
+      "he": "שני דגמי מתיחה שטוחים העשויים מחומרים שונים (דגם א׳ ודגם ב׳) בעלי שטח חתך 8.1mm×12.4mm ואורך התחלתי 98.1mm עברו מבחן מתיחה",
+      "he_niqqud": "שְׁנֵי דִּגְמֵי מְתִיחָה שְׁטוּחִים הָעֲשׂוּיִים מֵחֳמָרִים שׁוֹנִים (דֶּגֶם א׳ וְדֶּגֶם ב׳) בַּעֲלֵי שֶׁטַח חָתָךְ 8.1mm×12.4mm וְאֹרֶךְ הַתְחָלָתִי 98.1mm עָבְרוּ מִבְחַן מְתִיחָה",
+      "transliteration": "Shnéy digméy metichá shtuchím ha'asuyím mekhomárim shoním (degem 'Aleph ve'degem 'Bet) ba'aléy shetach chátakh 8.1mm×12.4mm ve'órekh hatchalátí 98.1mm 'avrú mivchan metichá",
+      "ru": "Два плоских образца для растяжения, изготовленные из разных материалов (Образец А и Образец Б), имеющие площадь поперечного сечения 8.1mm×12.4mm и начальную длину 98.1mm, прошли испытание на растяжение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r003",
+      "semantic_kind": "table_reference",
+      "he": "התקבלו התוצאות הנתונות בטבלה",
+      "he_niqqud": "הִתְקַבְּלוּ הַתּוֹצָאוֹת הַנְּתוּנוֹת בַּטַּבְלָה",
+      "transliteration": "Hitkablú hatotza'ót han'tunót batablá",
+      "ru": "Были получены результаты, представленные в таблице."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r004",
+      "semantic_kind": "table_data",
+      "he": "דגם א׳: ε_UTS=14.8%",
+      "he_niqqud": "דֶּגֶם א׳: ε_UTS=14.8%",
+      "transliteration": "Degem 'Aleph: ε_UTS=14.8%",
+      "ru": "Образец А: ε_UTS=14.8%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r005",
+      "semantic_kind": "table_data",
+      "he": "דגם א׳: F_UTS=64120N",
+      "he_niqqud": "דֶּגֶם א׳: F_UTS=64120N",
+      "transliteration": "Degem 'Aleph: F_UTS=64120N",
+      "ru": "Образец А: F_UTS=64120N"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r006",
+      "semantic_kind": "table_data",
+      "he": "דגם א׳: ε_y=0.60%",
+      "he_niqqud": "דֶּגֶם א׳: ε_y=0.60%",
+      "transliteration": "Degem 'Aleph: ε_y=0.60%",
+      "ru": "Образец А: ε_y=0.60%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r007",
+      "semantic_kind": "table_data",
+      "he": "דגם א׳: σ_y=490MPa",
+      "he_niqqud": "דֶּגֶם א׳: σ_y=490MPa",
+      "transliteration": "Degem 'Aleph: σ_y=490MPa",
+      "ru": "Образец А: σ_y=490MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r008",
+      "semantic_kind": "table_data",
+      "he": "דגם ב׳: ε_UTS=9.7%",
+      "he_niqqud": "דֶּגֶם ב׳: ε_UTS=9.7%",
+      "transliteration": "Degem 'Bet: ε_UTS=9.7%",
+      "ru": "Образец Б: ε_UTS=9.7%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r009",
+      "semantic_kind": "table_data",
+      "he": "דגם ב׳: F_UTS=71015N",
+      "he_niqqud": "דֶּגֶם ב׳: F_UTS=71015N",
+      "transliteration": "Degem 'Bet: F_UTS=71015N",
+      "ru": "Образец Б: F_UTS=71015N"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r010",
+      "semantic_kind": "table_data",
+      "he": "דגם ב׳: ε_y=0.45%",
+      "he_niqqud": "דֶּגֶם ב׳: ε_y=0.45%",
+      "transliteration": "Degem 'Bet: ε_y=0.45%",
+      "ru": "Образец Б: ε_y=0.45%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r011",
+      "semantic_kind": "table_data",
+      "he": "דגם ב׳: σ_y=601MPa",
+      "he_niqqud": "דֶּגֶם ב׳: σ_y=601MPa",
+      "transliteration": "Degem 'Bet: σ_y=601MPa",
+      "ru": "Образец Б: σ_y=601MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r012",
+      "semantic_kind": "subpart",
+      "he": "א) לחשב לכל דגם: כוח כניעה Fy, מאמץ מתיחה מקסימלי σ_UTS, והתארכות בנקודת הכניעה Δl_y",
+      "he_niqqud": "א) לְחַשֵּׁב לְכָל דֶּגֶם: כֹּחַ כְּנִיעָה Fy, מַאֲמָץ מְתִיחָה מַקְסִימָלִי σ_UTS, וְהִתְאָרְכוּת בְּנְקֻדַּת הַכְּנִיעָה Δl_y",
+      "transliteration": "'Aleph) Lechashev lechol degem: ko'ach kni'á Fy, ma'amatz metichá maksimáli σ_UTS, ve'hitarakhut b'nekudát hakni'á Δl_y",
+      "ru": "A) Рассчитать для каждого образца: силу текучести Fy, максимальное напряжение растяжения σ_UTS и удлинение в точке текучести Δl_y."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r013",
+      "semantic_kind": "subpart",
+      "he": "ב) לחשב מודול אלסטיות E",
+      "he_niqqud": "ב) לְחַשֵּׁב מוֹדוּל אֵלַסְטִיּוּת E",
+      "transliteration": "'Bet) Lechashev modul elástiyut E",
+      "ru": "Б) Рассчитать модуль упругости E."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r014",
+      "semantic_kind": "subpart",
+      "he": "ג) לשרטט עקומות מאמץ–מעוות ולהסביר כיצד מחשבים אנרגיה לשבר",
+      "he_niqqud": "ג) לְשַׂרְטֵט עֲקֻמּוֹת מַאֲמָץ–מְעֻוָּת וּלְהַסְבִּיר כֵּיצַד מְחַשְּׁבִים אֶנֶרְגְּיָה לְשֶׁבֶר",
+      "transliteration": "Gimmel) Lesartét 'akummót ma'amatz–me'uvvát ulehasbír kéytzad mechashvím enérgyah leshéver",
+      "ru": "В) Построить кривые напряжение–деформация и объяснить, как рассчитывается энергия разрушения."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q011-r015",
+      "semantic_kind": "subpart",
+      "he": "ד) לבחור דגם מתאים לפי: Fy(min)=48715N, σ_UTS(min)=600MPa",
+      "he_niqqud": "ד) לִבְחֹר דֶּגֶם מַתְאִים לְפִי: Fy(min)=48715N, σ_UTS(min)=600MPa",
+      "transliteration": "Dalet) Livchór degem mat'ím lefí: Fy(min)=48715N, σ_UTS(min)=600MPa",
+      "ru": "Г) Выбрать подходящий образец в соответствии с критериями: Fy(min)=48715N, σ_UTS(min)=600MPa."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r002",
+      "semantic_kind": "diagram_reference",
+      "he": "באיור לשאלה 9 מוצג גרף המתאר מאמץ (Stress) כנגד מעוות (Strain) על־פי מבחן מתיחה שנעשה למוט מסוים.",
+      "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 9 מֻצָּג גְּרָף הַמְּתָאֵר מַאֲמָץ (Stress) כְּנֶגֶד מְעֻוָּת (Strain) עַל־פִּי מִבְחַן מְתִיחָה שֶׁנַּעֲשָׂה לְמוֹט מְסֻיָּם.",
+      "transliteration": "Ba'iyur lish'elah 9 mutzag graf ha'meta'er ma'amatz (Stress) keneged me'uvvat (Strain) al-pi mivhan metihah she'na'asah l'mot masuyam.",
+      "ru": "На рисунке к вопросу 9 представлен график, описывающий зависимость напряжения (Stress) от деформации (Strain), полученный в результате испытания на растяжение, проведенного для некоторого стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r003",
+      "semantic_kind": "condition",
+      "he": "הגרף מציג את התחום האלסטי וחלק מהתחום הפלסטי.",
+      "he_niqqud": "הַגְּרָף מַצִּיג אֶת הַתְּחוּם הָאֵלַסְטִי וְחֵלֶק מֵהַתְּחוּם הַפְּלַסְטִי.",
+      "transliteration": "Ha'graf metzig et ha't'hum ha'elasti ve'helek me'ha't'hum ha'plasti.",
+      "ru": "График отображает упругую область и часть пластической области."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r004",
+      "semantic_kind": "subpart",
+      "he": "א) חשב את מודול האלסטיות (Young’s Modulus) של חומר המוט.",
+      "he_niqqud": "א) חַשֵּׁב אֶת מוֹדוּל הָאֵלַסְטִיּוּת (Young’s Modulus) שֶׁל חוֹמֶר הַמּוֹט.",
+      "transliteration": "A) Hashév et modul ha'elasti'ut (Young’s Modulus) shel hòmer ha'mot.",
+      "ru": "А) Рассчитайте модуль упругости (модуль Юнга) материала стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r005",
+      "semantic_kind": "subpart",
+      "he": "ב) על מוט פלדה שמודול האלסטיות שלו 210 GPa הופעל כוח מתיחה שגודלו 30000 N.",
+      "he_niqqud": "ב) עַל מוֹט פְּלָדָה שֶׁמּוֹדוּל הָאֵלַסְטִיּוּת שֶׁלּוֹ 210 GPa הוּפְעַל כֹּחַ מְתִיחָה שֶׁגָּדְלוֹ 30000 N.",
+      "transliteration": "B) Al mot pladah she'modul ha'elasti'ut shelo 210 GPa huf'al ko'ah metihah she'godlo 30000 N.",
+      "ru": "Б) На стальной стержень, модуль упругости которого составляет 210 ГПа, была приложена растягивающая сила величиной 30000 Н."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r006",
+      "semantic_kind": "subpart",
+      "he": "מהפעלת כוח זה התקבל מעוות בשיעור של 0.0025.",
+      "he_niqqud": "מֵהַפְעָלַת כֹּחַ זֶה הִתְקַבֵּל מְעֻוָּת בְּשִׁיעוּר שֶׁל 0.0025.",
+      "transliteration": "Me'haf'alat ko'ah zeh hitkabél me'uvvat be'shi'ur shel 0.0025.",
+      "ru": "При приложении этой силы была получена деформация (относительное удлинение) в размере 0,0025."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r007",
+      "semantic_kind": "subpart",
+      "he": "חשב את קוטרו של מוט הפלדה.",
+      "he_niqqud": "חַשֵּׁב אֶת קוּטְרוֹ שֶׁל מוֹט הַפְּלָדָה.",
+      "transliteration": "Hashév et kotro shel mot ha'pladah.",
+      "ru": "Рассчитайте диаметр стального стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r008",
+      "semantic_kind": "subpart",
+      "he": "ג) מוט פלדה אחר עבר תהליך של חיסום והרפיה.",
+      "he_niqqud": "ג) מוֹט פְּלָדָה אַחֵר עָבַר תַּהֲלִיךְ שֶׁל חִסּוּם וְהַרְפָּיָה.",
+      "transliteration": "G) Mot pladah aher avar tahlích shel hisum ve'harpayah.",
+      "ru": "В) Другой стальной стержень прошел процесс закалки и отпуска."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r009",
+      "semantic_kind": "subpart",
+      "he": "לפניך חמישה גדלים פיזיקליים שונים: מאמץ כניעה σy, מאמץ מתיחה מקסימלי σUTS, מעוות בשבר εf, מודול האלסטיות E, קשיות רוקוול HRC.",
+      "he_niqqud": "לְפָנֶיךָ חֲמִשָּׁה גְּדָלִים פִיזִיקָלִיִּים שׁוֹנִים: מַאֲמָץ כְּנִיעָה σy, מַאֲמָץ מְתִיחָה מַקְסִימָלִי σUTS, מְעֻוָּת בִּשְׁבָר εf, מוֹדוּל הָאֵלַסְטִיּוּת E, קַשִׁיוּת רוֹקְוֶול HRC.",
+      "transliteration": "Lefaneicha hamishah gdalim fizikalii shonim: ma'amatz kni'ah σy, ma'amatz metihah maksimali σUTS, me'uvvat be'shéver εf, modul ha'elasti'ut E, kashyut Rockwell HRC.",
+      "ru": "Перед вами пять различных физических величин: предел текучести σy, максимальное растягивающее напряжение σUTS, деформация при разрыве εf, модуль упругости E, твердость по Роквеллу HRC."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r010",
+      "semantic_kind": "subpart",
+      "he": "העתק למחברתך וציין מה יקרה לכל אחד בעקבות חיסום והרפיה.",
+      "he_niqqud": "הַעְתֵּק לְמַחְבַּרְתְּךָ וְצַיֵּן מַה יִּקְרֶה לְכָל אֶחָד בְּעִקְבוֹת חִסּוּם וְהַרְפָּיָה.",
+      "transliteration": "He'eték le'mahbartékha ve'tzayén mah yikreh le'kol ehad be'ikvot hisum ve'harpayah.",
+      "ru": "Скопируйте в свою тетрадь и укажите, что произойдет с каждой из них после закалки и отпуска."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r011",
+      "semantic_kind": "subpart",
+      "he": "יגדל או יקטן או יישאר ללא שינוי.",
+      "he_niqqud": "יִגְדַּל אוֹ יִקְטַן אוֹ יִשָּׁאֵר לְלֹא שִׁנּוּי.",
+      "transliteration": "Yigdal o yiktán o yish'a'er le'lo shinuy.",
+      "ru": "Увеличится, уменьшится или останется без изменений."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q012-r012",
+      "semantic_kind": "subpart",
+      "he": "נמק בקצרה.",
+      "he_niqqud": "נַמֵּק בְּקִצְרָה.",
+      "transliteration": "Namék be'ktzarah.",
+      "ru": "Кратко обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r002",
+      "semantic_kind": "condition",
+      "he": "עליך לתכנן חלק של מכונה בצורת מוט העשוי מברונזה.",
+      "he_niqqud": "עָלֶיךָ לְתַכְנֵן חֵלֶק שֶׁל מְכוֹנָה בְּצוּרַת מוֹט הֶעָשׂוּי מִבְּרוֹנְזָה.",
+      "transliteration": "Alaykha letaḥnen ḥelek shel mekhonah betzurat mot he'asuy mibronzah.",
+      "ru": "Вы должны спроектировать часть машины в форме стержня, изготовленного из бронзы."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r003",
+      "semantic_kind": "condition",
+      "he": "להלן נתוני התכונות המכניות של הברונזה:",
+      "he_niqqud": "לְהַלָן נְתוּנֵי הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל הַבְּרוֹנְזָה:",
+      "transliteration": "Lehalan netunei hatkhunot hamekhaniyot shel habronzah:",
+      "ru": "Ниже приведены данные о механических свойствах бронзы:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r004",
+      "semantic_kind": "condition",
+      "he": "מאמץ הכניעה: σ_y = 280 MPa",
+      "he_niqqud": "מַאֲמַץ הַכְּנִיעָה: σ_y = 280 MPa",
+      "transliteration": "Ma'amatz hakni'ah: σ_y = 280 MPa",
+      "ru": "Предел текучести: σ_y = 280 МПа"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r005",
+      "semantic_kind": "condition",
+      "he": "מאמץ המתיחה המרבי: σ_UTS = 385 MPa",
+      "he_niqqud": "מַאֲמַץ הַמְּתִיחָה הַמֶּרָבִי: σ_UTS = 385 MPa",
+      "transliteration": "Ma'amatz hamtiḥah hamiravi: σ_UTS = 385 MPa",
+      "ru": "Предел прочности при растяжении: σ_UTS = 385 МПа"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r006",
+      "semantic_kind": "condition",
+      "he": "העיבור (המעוות) בשבר: ε_f = 5%",
+      "he_niqqud": "הָעִיבּוּר (הַמְּעֻוָּת) בַּשֶּׁבֶר: ε_f = 5%",
+      "transliteration": "Ha'ibur (hame'uvat) bashever: ε_f = 5%",
+      "ru": "Деформация (относительное удлинение) при разрыве: ε_f = 5%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r007",
+      "semantic_kind": "condition",
+      "he": "מודול יאנג: E = 115 GPa",
+      "he_niqqud": "מוֹדוּל יָאנְג: E = 115 GPa",
+      "transliteration": "Modul Yang: E = 115 GPa",
+      "ru": "Модуль Юнга: E = 115 ГПа"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r008",
+      "semantic_kind": "subpart",
+      "he": "א) שטח החתך של מוט הברונזה הוא 325 mm².",
+      "he_niqqud": "א) שֶׁטַח הַחֲתַךְ שֶׁל מוֹט הַבְּרוֹנְזָה הוּא 325 mm².",
+      "transliteration": "A) Shetaḥ haḥataḥ shel mot habronzah hu 325 mm².",
+      "ru": "А) Площадь поперечного сечения бронзового стержня составляет 325 мм²."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r009",
+      "semantic_kind": "subpart",
+      "he": "חשב את הכוח המרבי (המקסימלי) שניתן להפעיל על המוט בלי לקבל עיוות (דפורמציה) פלסטי.",
+      "he_niqqud": "חַשֵּׁב אֶת הַכֹּחַ הַמֶּרָבִי (הַמַּקְסִימָלִי) שֶׁנִּיתָן לְהַפְעִיל עַל הַמוֹט בְּלִי לְקַבֵּל עִוּוּת (דֶּפוֹרְמַצְיָה) פְּלַסְטִי.",
+      "transliteration": "Ḥashev et hako'aḥ hamiravi (hamaksimali) shenitan lehaf'il 'al hamot bli lekabel ivut (deformatsiyah) plasti.",
+      "ru": "Рассчитайте максимальную силу, которую можно приложить к стержню без получения пластической деформации."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r010",
+      "semantic_kind": "subpart",
+      "he": "ב) אורכו של מוט הברונזה הוא 120 mm.",
+      "he_niqqud": "ב) אָרְכּוֹ שֶׁל מוֹט הַבְּרוֹנְזָה הוּא 120 mm.",
+      "transliteration": "B) Orkho shel mot habronzah hu 120 mm.",
+      "ru": "Б) Длина бронзового стержня составляет 120 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r011",
+      "semantic_kind": "subpart",
+      "he": "חשב את האורך המרבי (המקסימלי) של המוט במתיחה בתחום האלסטי.",
+      "he_niqqud": "חַשֵּׁב אֶת הָאֹרֶךְ הַמֶּרָבִי (הַמַּקְסִימָלִי) שֶׁל הַמּוֹט בִּמְתִיחָה בַּתְּחוּם הָאֶלַסְטִי.",
+      "transliteration": "Ḥashev et ha'orekh hamiravi (hamaksimali) shel hamot bimtiḥah batḥum ha'elasti.",
+      "ru": "Рассчитайте максимальную длину стержня при растяжении в упругой области."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r012",
+      "semantic_kind": "subpart",
+      "he": "ג) מוט הברונזה עבר עיבוד בקור, וקשיותו עלתה.",
+      "he_niqqud": "ג) מוֹט הַבְּרוֹנְזָה עָבַר עִבּוּד בַּקֹּר, וְקַשִּׁיּוּתוֹ עָלְתָה.",
+      "transliteration": "G) Mot habronzah 'avar 'ibud baqor, veqashiyuto 'altah.",
+      "ru": "В) Бронзовый стержень подвергся холодной обработке, и его твердость возросла."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r013",
+      "semantic_kind": "subpart",
+      "he": "ציין לגבי כל אחת מהתכונות המכניות של הברונזה (σ_UTS ; σ_y ; E ; ε_f) אם היא תגדל, תקטן או תישאר ללא שינוי.",
+      "he_niqqud": "צַיֵּן לְגַבֵּי כָּל אַחַת מֵהַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל הַבְּרוֹנְזָה (σ_UTS ; σ_y ; E ; ε_f) אִם הִיא תִּגְדַּל, תִּקְטַן אוֹ תִּשָּׁאֵר לְלֹא שִׁינּוּי.",
+      "transliteration": "Tzayen legabei kol aḥat mehatkhunot hamekhaniyot shel habronzah (σ_UTS ; σ_y ; E ; ε_f) im hi tigdal, tiqtan o tisha'er lelo shinuy.",
+      "ru": "Укажите, для каждого из механических свойств бронзы (σ_UTS ; σ_y ; E ; ε_f), увеличится ли оно, уменьшится или останется без изменений."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q013-r014",
+      "semantic_kind": "subpart",
+      "he": "נמק את תשובתך.",
+      "he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "Nammek et teshuvatekha.",
+      "ru": "Обоснуйте свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r001",
+      "semantic_kind": "task_heading",
+      "he": "שאלה 14 (911 2022)",
+      "he_niqqud": "שְׁאֵלָה 14 (911 2022)",
+      "transliteration": "Sh'ela 14 (911 2022)",
+      "ru": "Вопрос 14 (911 2022)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r002",
+      "semantic_kind": "subpart",
+      "he": "א) הסבירו מהו מאמץ שבר של מתכת (σf).",
+      "he_niqqud": "א) הַסְבִּירוּ מַהוּ מַאֲמָץ שֶׁבֶר שֶׁל מֶתֶכֶת (σf).",
+      "transliteration": "A) Hasbiru mahu ma'amats shever shel metekhet (σf).",
+      "ru": "А) Объясните, что такое напряжение разрушения металла (σf)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r003",
+      "semantic_kind": "diagram_reference",
+      "he": "ב) באיור שלפניכם מוצגות ארבע דיאגרמות מאמץ-מעוות של ארבעה חומרים שונים (4-1).",
+      "he_niqqud": "ב) בְּאִיּוּר שֶׁלִּפְנֵיכֶם מֻצָּגוֹת אַרְבַּע דִּיאַגְרָמוֹת מַאֲמָץ-מְעוּוָת שֶׁל אַרְבָּעָה חוֹמָרִים שׁוֹנִים (4-1).",
+      "transliteration": "B) Ba'iyur shelifneykhem mutsagot arba di'agramot ma'amats-me'uvvat shel arba'a khomarim shonim (4-1).",
+      "ru": "Б) На рисунке ниже представлены четыре диаграммы «напряжение–деформация» для четырех различных материалов (1-4)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r004",
+      "semantic_kind": "condition",
+      "he": "להלן תכונות החומרים:",
+      "he_niqqud": "לְהַלָּן תְּכוּנוֹת הַחוֹמָרִים:",
+      "transliteration": "Lehalan tekhunot hakhomarim:",
+      "ru": "Ниже приведены свойства материалов:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r005",
+      "semantic_kind": "condition",
+      "he": "חומר 1 - חומר פריך",
+      "he_niqqud": "חוֹמֶר 1 - חוֹמֶר פָּרִיךְ",
+      "transliteration": "Khomēr 1 - khomēr parikh",
+      "ru": "Материал 1 - хрупкий материал"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r006",
+      "semantic_kind": "condition",
+      "he": "חומר 2 - חומר משיך ללא נקודת כניעה בולטת וללא פלסטיות ניכרת",
+      "he_niqqud": "חוֹמֶר 2 - חוֹמֶר מָשִׁיךְ לְלֹא נְקֻדַּת כְּנִיעָה בּוֹלֶטֶת וּלְלֹא פְּלַסְטִיּוּת נִכֶּרֶת",
+      "transliteration": "Khomēr 2 - khomēr mashikh lelo nequdat keni'a boletet velo plastiyut nikheret",
+      "ru": "Материал 2 - пластичный материал без выраженной точки текучести и без заметной пластичности"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r007",
+      "semantic_kind": "condition",
+      "he": "חומר 3 - חומר משיך בעל נקודת כניעה ברורה",
+      "he_niqqud": "חוֹמֶר 3 - חוֹמֶר מָשִׁיךְ בַּעַל נְקֻדַּת כְּנִיעָה בְּרוּרָה",
+      "transliteration": "Khomēr 3 - khomēr mashikh ba'al nequdat keni'a berura",
+      "ru": "Материал 3 - пластичный материал с четкой точкой текучести"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r008",
+      "semantic_kind": "condition",
+      "he": "חומר 4 - חומר משיך ללא נקודת כניעה בולטת, בעל פלסטיות ניכרת",
+      "he_niqqud": "חוֹמֶר 4 - חוֹמֶר מָשִׁיךְ לְלֹא נְקֻדַּת כְּנִיעָה בּוֹלֶטֶת, בַּעַל פְּלַסְטִיּוּת נִכֶּרֶת",
+      "transliteration": "Khomēr 4 - khomēr mashikh lelo nequdat keni'a boletet, ba'al plastiyut nikheret",
+      "ru": "Материал 4 - пластичный материал без выраженной точки текучести, обладающий значительной пластичностью"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r009",
+      "semantic_kind": "subpart",
+      "he": "ציינו במחברת איזו מבין הדיאגרמות (א'-ד') מייצגת כל אחד מבין החומרים 4-1.",
+      "he_niqqud": "צַיְּנוּ בְּמַחְבֶּרֶת אֵיזוֹ מִבֵּין הַדִּיאַגְרָמוֹת (א'-ד') מְיַצֶּגֶת כָּל אֶחָד מִבֵּין הַחוֹמָרִים 4-1.",
+      "transliteration": "Tsaynu bemahkveret eizo miben hadi'agramot (A'-D') meyatzēget kol ekhad miben hakhomarim 4-1.",
+      "ru": "Укажите в тетради, какая из диаграмм (А-Г) представляет каждый из материалов 1-4."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-r010",
+      "semantic_kind": "subpart",
+      "he": "ג) ציינו באיזו מבין ארבע הדיאגרמות נעשה שימוש במעוות לודר (Luders) לפני הקשיית המאמצים.",
+      "he_niqqud": "ג) צַיְּנוּ בְּאֵיזוֹ מִבֵּין אַרְבַּע הַדִּיאַגְרָמוֹת נַעֲשָׂה שִׁמּוּשׁ בְּמְעוּוָת לוּדֶר (Luders) לִפְנֵי הַקְשָׁיַת הַמַּאֲמַצִּים.",
+      "transliteration": "G) Tsaynu be'eizo miben arba hadi'agramot na'asa shimush beme'uvvat Luders lifnei haqshayyat hama'amatsim.",
+      "ru": "В) Укажите, в какой из четырех диаграмм наблюдается деформация Людерса (Luders) до упрочнения."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r002",
+      "semantic_kind": "condition",
+      "he": "נתונים שלושה כבלי פלדה.",
+      "he_niqqud": "נְתוּנִים שְׁלֹושָׁה כַּבְלֵי פְּלָדָה.",
+      "transliteration": "Netunim shloshah kivlei peladah.",
+      "ru": "Даны три стальных троса."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r003",
+      "semantic_kind": "condition",
+      "he": "כל כבל באורך של 5 מטר.",
+      "he_niqqud": "כָּל כֶּבֶל בְּאֹורֶךְ שֶׁל 5 מֶטֶר.",
+      "transliteration": "Kol kevel ba'orekh shel 5 meter.",
+      "ru": "Каждый трос длиной 5 метров."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r004",
+      "semantic_kind": "condition",
+      "he": "כל כבל מורכב מ־96 חוטי פלדה בקטרים: 1 מ״מ, 1.5 מ״מ, 2 מ״מ.",
+      "he_niqqud": "כָּל כֶּבֶל מֻרְכָּב מִ־96 חוּטֵי פְּלָדָה בִּקְטָרִים: 1 מ״מ, 1.5 מ״מ, 2 מ״מ.",
+      "transliteration": "Kol kevel murkav mi-96 khutei peladah bekatrim: 1 mm, 1.5 mm, 2 mm.",
+      "ru": "Каждый трос состоит из 96 стальных жил диаметрами: 1 мм, 1.5 мм, 2 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r005",
+      "semantic_kind": "condition",
+      "he": "הכוח הפועל על כל אחד מכבלי הפלדה הוא 20000 ניוטון (N).",
+      "he_niqqud": "הַכֹּוחַ הַפֹּועֵל עַל כָּל אֶחָד מִכַּבְלֵי הַפְּלָדָה הוּא 20000 נְיוּטוֹן (N).",
+      "transliteration": "HaKo'akh haPo'el al kol ekhad miKivlei haPeladah hu 20000 Niwton (N).",
+      "ru": "Сила, действующая на каждый из стальных тросов, составляет 20000 Ньютон (N)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r006",
+      "semantic_kind": "condition",
+      "he": "בטבלה נתונות התכונות המכניות של הפלדה.",
+      "he_niqqud": "בַּטַּבְלָה נְתוּנוֹת הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁל הַפְּלָדָה.",
+      "transliteration": "BaTavlah netunot haTkhunot haMekhaniyot shel haPeladah.",
+      "ru": "В таблице приведены механические свойства стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r007",
+      "semantic_kind": "table_data",
+      "he": "σ_y=730 MPa",
+      "he_niqqud": "σ_y=730 MPa",
+      "transliteration": "σ_y=730 MPa",
+      "ru": "σ_y=730 МПа"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r008",
+      "semantic_kind": "table_data",
+      "he": "ε_y=3.65×10^-3",
+      "he_niqqud": "ε_y=3.65×10^-3",
+      "transliteration": "ε_y=3.65×10^-3",
+      "ru": "ε_y=3.65×10^-3"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r009",
+      "semantic_kind": "table_data",
+      "he": "σ_UTS=950 MPa",
+      "he_niqqud": "σ_UTS=950 MPa",
+      "transliteration": "σ_UTS=950 MPa",
+      "ru": "σ_UTS=950 МПа"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r010",
+      "semantic_kind": "table_data",
+      "he": "ε_UTS≈1.6×10^-1",
+      "he_niqqud": "ε_UTS≈1.6×10^-1",
+      "transliteration": "ε_UTS≈1.6×10^-1",
+      "ru": "ε_UTS≈1.6×10^-1"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r011",
+      "semantic_kind": "subpart",
+      "he": "א) חשב את מודול האלסטיות של הפלדה.",
+      "he_niqqud": "א) חַשֵּׁב אֶת מוֹדוּל הָאֵלַסְטִיּוּת שֶׁל הַפְּלָדָה.",
+      "transliteration": "A) Hashév et Modul haElastiyut shel haPeladah.",
+      "ru": "а) Рассчитайте модуль упругости стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r012",
+      "semantic_kind": "subpart",
+      "he": "ב) חשב את ההתארכות של כל אחד משלשת כבלי הפלדה.",
+      "he_niqqud": "ב) חַשֵּׁב אֶת הַהִתְאָרְכוּת שֶׁל כָּל אֶחָד מִשְּׁלֹשֶׁת כַּבְלֵי הַפְּלָדָה.",
+      "transliteration": "B) Hashév et haHita'arkhut shel kol ekhad miShloshet kivlei haPeladah.",
+      "ru": "б) Рассчитайте удлинение каждого из трех стальных тросов."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r013",
+      "semantic_kind": "subpart",
+      "he": "ג) עליך להמליץ על כבל פלדה שעומד בשתי הדרישות: התארכות מינימלית של 3 מ״מ ומאמץ מינימלי של σ=100 MPa.",
+      "he_niqqud": "ג) עָלֶיךָ לְהַמְלִיץ עַל כֶּבֶל פְּלָדָה שֶׁעוֹמֵד בִּשְׁתֵּי הַדְּרִישׁוֹת: הִתְאָרְכוּת מִינִימָלִית שֶׁל 3 מ״מ וּמַאֲמָץ מִינִימָלִי שֶׁל σ=100 MPa.",
+      "transliteration": "G) Aléikha lehamlitz al kevel peladah she'omed biShtei haDrishot: hita'arkhut minimalit shel 3 mm uMa'amatz minimali shel σ=100 MPa.",
+      "ru": "в) Вы должны порекомендовать стальной трос, соответствующий двум требованиям: минимальное удлинение 3 мм и минимальное напряжение σ=100 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q015-r014",
+      "semantic_kind": "subpart",
+      "he": "ד) הצג פיתוח של הביטוי F/A0 = E·ΔL/L0 על בסיס חוק הוק: σ=E·ε.",
+      "he_niqqud": "ד) הַצֵּג פִּתּוּחַ שֶׁל הַבִּטּוּי F/A0 = E·ΔL/L0 עַל בָּסִיס חֹוק הוּק: σ=E·ε.",
+      "transliteration": "D) Hatzeg pituakh shel haBituy F/A0 = E·ΔL/L0 al basis Khok Huk: σ=E·ε.",
+      "ru": "г) Представьте вывод выражения F/A0 = E·ΔL/L0 на основе закона Гука: σ=E·ε."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r002",
+      "semantic_kind": "condition",
+      "he": "מחלקת הנדסה במפעל הגדירה את התכונות המכאניות המינימאליות הנדרשות ממוט הפלדה לצורך התקנתו במתקן תעשייתי.",
+      "he_niqqud": "מַחְלֶקֶת הַנְדָּסָה בַּמִּפְעָל הִגְדִּירָה אֶת הַתְּכוּנוֹת הַמְּכָאֲנִיּוֹת הַמִּינִימָלִיּוֹת הַנִּדְרָשׁוֹת מִמּוֹט הַפְּלָדָה לְצֹרֶךְ הַתְקָנָתוֹ בַּמִּתְקָן תַּעֲשִׂיָּתִי.",
+      "transliteration": "Maḥleket handasah ba-mif'al higdirah et ha-tkhunot ha-mekhaniyot ha-minimaliyot ha-nidrashot mi-moṭ ha-pladah le-tzorekh hatkanato ba-mitkan ta'asiyati.",
+      "ru": "Инженерный отдел завода определил минимальные механические свойства, требуемые от стального стержня для его установки в промышленной установке."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r003",
+      "semantic_kind": "condition",
+      "he": "קוטר המוט הוא Ø50 mm.",
+      "he_niqqud": "קוֹטֶר הַמּוֹט הוּא Ø50 mm.",
+      "transliteration": "Koṭer ha-moṭ hu Ø50 mm.",
+      "ru": "Диаметр стержня составляет Ø50 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r004",
+      "semantic_kind": "condition",
+      "he": "התכונות הנדרשות הן: σ_y (כניעה) ≥ 1160 MPa.",
+      "he_niqqud": "הַתְּכוּנוֹת הַנִּדְרָשׁוֹת הֵן: σ_y (כְּנִיעָה) ≥ 1160 MPa.",
+      "transliteration": "Ha-tkhunot ha-nidrashot hen: σ_y (keni'ah) ≥ 1160 MPa.",
+      "ru": "Требуемые свойства: σ_y (предел текучести) ≥ 1160 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r005",
+      "semantic_kind": "condition",
+      "he": "σ_UTS ≥ 1300 MPa.",
+      "he_niqqud": "σ_UTS ≥ 1300 MPa.",
+      "transliteration": "σ_UTS ≥ 1300 MPa.",
+      "ru": "σ_UTS ≥ 1300 МПа."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r006",
+      "semantic_kind": "condition",
+      "he": "ε_f ≥ 9%.",
+      "he_niqqud": "ε_f ≥ 9%.",
+      "transliteration": "ε_f ≥ 9%.",
+      "ru": "ε_f ≥ 9%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r007",
+      "semantic_kind": "condition",
+      "he": "HBN ≥ 490.",
+      "he_niqqud": "HBN ≥ 490.",
+      "transliteration": "HBN ≥ 490.",
+      "ru": "HBN ≥ 490."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r008",
+      "semantic_kind": "condition",
+      "he": "לצורך בדיקת התאמת המוט לדרישות הוכנו שני דגמים לניסוי מתיחה.",
+      "he_niqqud": "לְצֹרֶךְ בְּדִיקַת הַתְּאָמַת הַמּוֹט לַדְּרִישׁוֹת הוּכְנוּ שְׁנֵי דְּגָמִים לְנִסּוּי מְתִיחָה.",
+      "transliteration": "Le-tzorekh bedikat ha-t'amat ha-moṭ la-drishot hukhnu shney degamim le-nisuy metiḥah.",
+      "ru": "Для проверки соответствия стержня требованиям были подготовлены два образца для испытания на растяжение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r009",
+      "semantic_kind": "condition",
+      "he": "הדגם הראשון ממרכז המוט.",
+      "he_niqqud": "הַדֶּגֶם הָרִאשׁוֹן מִמֶּרְכַּז הַמּוֹט.",
+      "transliteration": "Ha-degelm ha-rishon mi-merkaz ha-moṭ.",
+      "ru": "Первый образец — из центра стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r010",
+      "semantic_kind": "condition",
+      "he": "הדגם השני מאזור היקף המוט.",
+      "he_niqqud": "הַדֶּגֶם הַשֵּׁנִי מֵאֵזוֹר הֶיקֵף הַמּוֹט.",
+      "transliteration": "Ha-degelm ha-sheni me-ezor hekef ha-moṭ.",
+      "ru": "Второй образец — из периферийной зоны стержня."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r011",
+      "semantic_kind": "condition",
+      "he": "קוטר הדגם: d0 = 12 mm.",
+      "he_niqqud": "קוֹטֶר הַדֶּגֶם: d0 = 12 mm.",
+      "transliteration": "Koṭer ha-degelm: d0 = 12 mm.",
+      "ru": "Диаметр образца: d0 = 12 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r012",
+      "semantic_kind": "condition",
+      "he": "אורך מדידה התחלתי: L0 = 50 mm.",
+      "he_niqqud": "אֹרֶךְ מְדִידָה הַתְחָלָתִי: L0 = 50 mm.",
+      "transliteration": "Orekh medidah hatḥalati: L0 = 50 mm.",
+      "ru": "Начальная длина измерения: L0 = 50 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r013",
+      "semantic_kind": "condition",
+      "he": "לפניך תוצאות ניסוי המתיחה.",
+      "he_niqqud": "לְפָנֶיךָ תּוֹצָאוֹת נִסּוּי הַמְּתִיחָה.",
+      "transliteration": "Lefanekha totza'ot nisuy ha-metiḥah.",
+      "ru": "Перед вами результаты испытаний на растяжение."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r014",
+      "semantic_kind": "table_data",
+      "he": "דגם 1 מרכז המוט: HV=480.",
+      "he_niqqud": "דֶּגֶם 1 מֶרְכַּז הַמּוֹט: HV=480.",
+      "transliteration": "Degel 1 merkaz ha-moṭ: HV=480.",
+      "ru": "Образец 1 (центр стержня): HV=480."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r015",
+      "semantic_kind": "table_data",
+      "he": "דגם 1 מרכז המוט: F_y=129050 N.",
+      "he_niqqud": "דֶּגֶם 1 מֶרְכַּז הַמּוֹט: F_y=129050 N.",
+      "transliteration": "Degel 1 merkaz ha-moṭ: F_y=129050 N.",
+      "ru": "Образец 1 (центр стержня): F_y=129050 N."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r016",
+      "semantic_kind": "table_data",
+      "he": "דגם 1 מרכז המוט: F_max=144580 N.",
+      "he_niqqud": "דֶּגֶם 1 מֶרְכַּז הַמּוֹט: F_max=144580 N.",
+      "transliteration": "Degel 1 merkaz ha-moṭ: F_max=144580 N.",
+      "ru": "Образец 1 (центр стержня): F_max=144580 N."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r017",
+      "semantic_kind": "table_data",
+      "he": "דגם 1 מרכז המוט: L_f=59.2 mm.",
+      "he_niqqud": "דֶּגֶם 1 מֶרְכַּז הַמּוֹט: L_f=59.2 mm.",
+      "transliteration": "Degel 1 merkaz ha-moṭ: L_f=59.2 mm.",
+      "ru": "Образец 1 (центр стержня): L_f=59.2 mm."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r018",
+      "semantic_kind": "table_data",
+      "he": "דגם 1 מרכז המוט: ε_y≈1%.",
+      "he_niqqud": "דֶּגֶם 1 מֶרְכַּז הַמּוֹט: ε_y≈1%.",
+      "transliteration": "Degel 1 merkaz ha-moṭ: ε_y≈1%.",
+      "ru": "Образец 1 (центр стержня): ε_y≈1%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r019",
+      "semantic_kind": "table_data",
+      "he": "דגם 2 היקף המוט: HV=545.",
+      "he_niqqud": "דֶּגֶם 2 הֶיקֵף הַמּוֹט: HV=545.",
+      "transliteration": "Degel 2 hekef ha-moṭ: HV=545.",
+      "ru": "Образец 2 (периметр стержня): HV=545."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r020",
+      "semantic_kind": "table_data",
+      "he": "דגם 2 היקף המוט: F_y=133800 N.",
+      "he_niqqud": "דֶּגֶם 2 הֶיקֵף הַמּוֹט: F_y=133800 N.",
+      "transliteration": "Degel 2 hekef ha-moṭ: F_y=133800 N.",
+      "ru": "Образец 2 (периметр стержня): F_y=133800 N."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r021",
+      "semantic_kind": "table_data",
+      "he": "דגם 2 היקף המוט: F_max=150100 N.",
+      "he_niqqud": "דֶּגֶם 2 הֶיקֵף הַמּוֹט: F_max=150100 N.",
+      "transliteration": "Degel 2 hekef ha-moṭ: F_max=150100 N.",
+      "ru": "Образец 2 (периметр стержня): F_max=150100 N."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r022",
+      "semantic_kind": "table_data",
+      "he": "דגם 2 היקף המוט: L_f=55.8 mm.",
+      "he_niqqud": "דֶּגֶם 2 הֶיקֵף הַמּוֹט: L_f=55.8 mm.",
+      "transliteration": "Degel 2 hekef ha-moṭ: L_f=55.8 mm.",
+      "ru": "Образец 2 (периметр стержня): L_f=55.8 mm."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r023",
+      "semantic_kind": "table_data",
+      "he": "דגם 2 היקף המוט: ε_y≈1%.",
+      "he_niqqud": "דֶּגֶם 2 הֶיקֵף הַמּוֹט: ε_y≈1%.",
+      "transliteration": "Degel 2 hekef ha-moṭ: ε_y≈1%.",
+      "ru": "Образец 2 (периметр стержня): ε_y≈1%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r024",
+      "semantic_kind": "subpart",
+      "he": "א) האם הדגמים שנבדקו עונים על הדרישה של מחלקת הנדסה?",
+      "he_niqqud": "א) הַאִם הַדְּגָמִים שֶׁנִּבְדְּקוּ עוֹנִים עַל הַדְּרִישָׁה שֶׁל מַחְלֶקֶת הַנְדָּסָה?",
+      "transliteration": "A) Hal'im ha-degalim she-nivdeku 'onim 'al ha-drishah shel maḥleket handasah?",
+      "ru": "А) Соответствуют ли испытанные образцы требованиям инженерного отдела?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r025",
+      "semantic_kind": "subpart",
+      "he": "ב) האם אתם יכולים לשער למה התוצאות שונות?",
+      "he_niqqud": "ב) הַאִם אַתֶּם יְכוֹלִים לְשַׁעֵר לָמָּה הַתּוֹצָאוֹת שׁוֹנוֹת?",
+      "transliteration": "B) Hal'im atem yekholim le-sha'er lamah ha-totza'ot shonot?",
+      "ru": "Б) Можете ли вы предположить, почему результаты различаются?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q016-r026",
+      "semantic_kind": "subpart",
+      "he": "ג) סרטט שלוש עקומות “מאמץ–מעוות” על אותם צירים: שתי עקומות הדגמים ועקומת הדרישות.",
+      "he_niqqud": "ג) סַרְטֵט שָׁלוֹשׁ עֲקֻמּוֹת “מַאֲמָץ–מְעֻוָּת” עַל אוֹתָם צִירִים: שְׁתֵּי עֲקֻמּוֹת הַדְּגָמִים וַעֲקֻמַּת הַדְּרִישׁוֹת.",
+      "transliteration": "G) Sarṭet shalosh 'akumot “ma'amatz–me'uvat” 'al otam tzirim: shtey 'akumot ha-degalim ve-'akumat ha-drishot.",
+      "ru": "В) Начертите три кривые «напряжение–деформация» на одних осях: две кривые образцов и кривую требований."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r002",
+      "semantic_kind": "condition",
+      "he": "באיור לשאלה 1 מוצגות שלוש עקומות (מסומנות בספרות 1,2,3).",
+      "he_niqqud": "בְּאִיּוּר לִשְׁאֵלָה 1 מֻצָּגוֹת שָׁלֹשׁ עֲקֻמּוֹת (מְסֻמָּנוֹת בִּסְפָרוֹת 1,2,3).",
+      "transliteration": "Ba'iyur lish'elah 1 mutzgot shalosh akumot (mesumanot beSfarot 1, 2, 3).",
+      "ru": "На рисунке к Вопросу 1 представлены три кривые (обозначенные цифрами 1, 2, 3)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r003",
+      "semantic_kind": "condition",
+      "he": "העקומות מייצגות שלושה ניסויי מתיחה (על אותה מערכת צירים) לשלושה דגמים של אותה פלדה (פלדה פחמנית), הנבדקים בטמפרטורות הבאות:",
+      "he_niqqud": "הָעֲקֻמּוֹת מְיַצְּגוֹת שְׁלֹשָׁה נִסּוּיֵי מְתִיחָה (עַל אוֹתָהּ מַעֲרֶכֶת צִירִים) לִשְׁלֹשָׁה דְּגָמִים שֶׁל אוֹתָהּ פְּלָדָה (פְּלָדָה פַּחְמָנִית), הַנִּבְדָּקִים בְּטֶמְפֶּרָטוּרוֹת הַבָּאוֹת:",
+      "transliteration": "Ha'akumot meyatzeot shlosha nissu'ei meticha (al otah ma'arechet tzirim) lishlosha dgamim shel otah pladah (pladah pachmanit), ha'nivdakim beTemperaturot haBa'ot:",
+      "ru": "Кривые представляют три испытания на растяжение (на одной и той же системе координат) для трех образцов одной и той же стали (углеродистой стали), испытываемых при следующих температурах:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r004",
+      "semantic_kind": "condition",
+      "he": "טמפרטורת החדר: 25°C",
+      "he_niqqud": "טֶמְפֶּרָטוּרַת הַחֶדֶר: 25°C",
+      "transliteration": "Temperat sh'Tzar: 25°C",
+      "ru": "Комнатная температура: 25°C"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r005",
+      "semantic_kind": "condition",
+      "he": "טמפרטורה נמוכה: (-196°C)",
+      "he_niqqud": "טֶמְפֶּרָטוּרָה נְמוּכָה: (-196°C)",
+      "transliteration": "Temperatura nemukhah: (-196°C)",
+      "ru": "Низкая температура: (-196°C)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r006",
+      "semantic_kind": "condition",
+      "he": "טמפרטורה גבוהה: 400°C",
+      "he_niqqud": "טֶמְפֶּרָטוּרָה גְּבֹהָה: 400°C",
+      "transliteration": "Temperatura gvohah: 400°C",
+      "ru": "Высокая температура: 400°C"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r007",
+      "semantic_kind": "subpart",
+      "he": "א) התבונן בעקומות וקבע איזו עקומה שייכת לכל אחד משלושת הניסויים שבוצעו.",
+      "he_niqqud": "א) הִתְבּוֹנֵן בָּעֲקֻמּוֹת וְקָבַע אֵיזוֹ עֲקֻמָּה שַׁיֶּכֶת לְכָל אֶחָד מִשְׁלוֹשֶׁת הַנִּסּוּיִים שֶׁבֻּצְּעוּ.",
+      "transliteration": "A) Hitbonen ba'akumot vekava' eizo akumah shayecht lechol echad mishloshet ha'nissuyim sheButze'u.",
+      "ru": "А) Посмотрите на кривые и определите, какая кривая соответствует каждому из трех проведенных экспериментов."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r008",
+      "semantic_kind": "subpart",
+      "he": "ב) התבונן בעקומות וקבע מי הדגם הפריך ביותר ומי הדגם המשיך ביותר.",
+      "he_niqqud": "ב) הִתְבּוֹנֵן בָּעֲקֻמּוֹת וְקָבַע מִי הַדֶּגֶם הַפָּרִיךְ בְּיוֹתֵר וּמִי הַדֶּגֶם הַמָּשִׁיךְ בְּיוֹתֵר.",
+      "transliteration": "B) Hitbonen ba'akumot vekava' mi haDagem haParich beyoter u'mi haDagem haMashich beyoter.",
+      "ru": "Б) Посмотрите на кривые и определите, какой образец является наиболее хрупким, а какой — наиболее пластичным."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r009",
+      "semantic_kind": "subpart",
+      "he": "הסבר את תשובתך.",
+      "he_niqqud": "הַסְבֵּר אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "Hasber et tshuvatcha.",
+      "ru": "Объясните свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r010",
+      "semantic_kind": "subpart",
+      "he": "ג) חשב את ערכו של מודול יאנג (E) עבור הפלדה הנבדקת.",
+      "he_niqqud": "ג) חַשֵּׁב אֶת עֶרְכּוֹ שֶׁל מוֹדוּל יָאנְג (E) עֲבוּר הַפְּלָדָה הַנִּבְדֶּקֶת.",
+      "transliteration": "G) Chashev et erko shel Modul Yang (E) avur haPladah haNivdeket.",
+      "ru": "В) Рассчитайте значение модуля Юнга (E) для испытуемой стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r011",
+      "semantic_kind": "subpart",
+      "he": "נא להציג את התשובה ביחידות GPa.",
+      "he_niqqud": "נָא לְהַצִּיג אֶת הַתְּשׁוּבָה בִּיחִידוֹת GPa.",
+      "transliteration": "Na l'hatzig et haTshuvah biYechidot GPa.",
+      "ru": "Просьба представить ответ в единицах ГПа (GPa)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r012",
+      "semantic_kind": "subpart",
+      "he": "ד) מדוע לשלושת הדגמים הנבדקים קיים ערך מודול יאנג זהה?",
+      "he_niqqud": "ד) מַדּוּעַ לִשְׁלֹשֶׁת הַדְּגָמִים הַנִּבְדָּקִים קַיָּם עֶרֶךְ מוֹדוּל יָאנְג זֵהֶה?",
+      "transliteration": "D) Madu lishloshet haDgamim haNivdakim kayam erech Modul Yang zeheh?",
+      "ru": "Г) Почему три испытуемых образца имеют одинаковое значение модуля Юнга?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r013",
+      "semantic_kind": "subpart",
+      "he": "הסבר את תשובתך.",
+      "he_niqqud": "הַסְבֵּר אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "Hasber et tshuvatcha.",
+      "ru": "Объясните свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r014",
+      "semantic_kind": "subpart",
+      "he": "ה) שלושה דגמי נגיפה מאותה פלדה נבדקו כניסוי נגיפה בשלוש הטמפרטורות המצוינות לעיל.",
+      "he_niqqud": "ה) שְׁלֹשָׁה דִּגְמֵי נְגִיפָה מֵאוֹתָהּ פְּלָדָה נִבְדְּקוּ כְּנִסּוּי נְגִיפָה בִּשְׁלֹשׁ הַטֶּמְפֶּרָטוּרוֹת הַמְּצֻיָּנוֹת לְעֵיל.",
+      "transliteration": "H) Shlosha dmei nagifah me'otah pladah nivdeku keNissuy nagifah bishlosh haTemperaturot haMetzuyannot le'eil.",
+      "ru": "Д) Три образца для испытания на ударную вязкость из той же стали были испытаны на удар при трех вышеуказанных температурах."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r015",
+      "semantic_kind": "subpart",
+      "he": "סרטט במחברתך עקומת נגיפה סכמטית (אנרגיית נגיפה כנגד טמפרטורה) לפלדה הנבדקת.",
+      "he_niqqud": "סַרְטֵט בְּמַחְבַּרְתְּךָ עֲקֻמַּת נְגִיפָה סְכֶמָטִית (אֶנֶרְגִּיַּת נְגִיפָה כְּנֶגֶד טֶמְפֶּרָטוּרָה) לַפְּלָדָה הַנִּבְדֶּקֶת.",
+      "transliteration": "Sartet beMachbartcha akumt nagifah skhematit (energiat nagifah keneged temperatura) laPladah haNivdeket.",
+      "ru": "Нарисуйте в тетради схематическую кривую ударной вязкости (ударная вязкость в зависимости от температуры) для испытуемой стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r016",
+      "semantic_kind": "subpart",
+      "he": "סמן על העקומה את המיקום המשוער של כל אחד משלושת הדגמים.",
+      "he_niqqud": "סַמֵּן עַל הָעֲקֻמָּה אֶת הַמִּקּוּם הַמְשֹׁעָר שֶׁל כָּל אֶחָד מִשְׁלוֹשֶׁת הַדְּגָמִים.",
+      "transliteration": "Samen al ha'akumah et haMikum haMesh'ur shel kol echad mishloshet haDgamim.",
+      "ru": "Отметьте на кривой предполагаемое местоположение каждого из трех образцов."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q017-r017",
+      "semantic_kind": "subpart",
+      "he": "הסבר את תשובתך.",
+      "he_niqqud": "הַסְבֵּר אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "Hasber et tshuvatcha.",
+      "ru": "Объясните свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r002",
+      "semantic_kind": "condition",
+      "he": "קְשִׁיּוּת הַחוֹמֶר.",
+      "he_niqqud": "קְשִׁיּוּת הַחוֹמֶר.",
+      "transliteration": "K'shiyut ha'chomer.",
+      "ru": "Твердость материала."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r003",
+      "semantic_kind": "table_reference",
+      "he": "בַּטַּבְלָה שֶׁלְּהַלָּן מוּצָּגִים עֶרְכֵי קְשִׁיּוּת שֶׁל חוֹמְרִים בִּשְׁלוֹשׁ סְקָלוֹת שׁוֹנוֹת: רוֹקוֶול C, רוֹקוֶול B וּבְּרִינֶל (BHN).",
+      "he_niqqud": "בַּטַּבְלָה שֶׁלְּהַלָּן מוּצָּגִים עֶרְכֵי קְשִׁיּוּת שֶׁל חוֹמְרִים בִּשְׁלוֹשׁ סְקָלוֹת שׁוֹנוֹת: רוֹקוֶול C, רוֹקוֶול B וּבְּרִינֶל (BHN).",
+      "transliteration": "Ba'tavla shelehalan mutzagim erkhei k'shiyut shel chomarim bishlosh s'kalot shonot: Rokvel C, Rokvel B u'Brinel (BHN).",
+      "ru": "В таблице ниже представлены значения твердости материалов по трем различным шкалам: Роквелл C, Роквелл B и Бринелль (BHN)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r004",
+      "semantic_kind": "subpart",
+      "he": "א) מַדּוּעַ קַיָּמוֹת סְקָלוֹת קְשִׁיּוּת שׁוֹנוֹת?",
+      "he_niqqud": "א) מַדּוּעַ קַיָּמוֹת סְקָלוֹת קְשִׁיּוּת שׁוֹנוֹת?",
+      "transliteration": "A) Madu'a kayamot s'kalot k'shiyut shonot?",
+      "ru": "А) Почему существуют разные шкалы твердости?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r005",
+      "semantic_kind": "subpart",
+      "he": "ב) אוֹפֶן הַקְּרִיאָה (מְדִידָה) שֶׁל הַתּוֹצָאוֹת הַמִּתְקַבְּלוֹת מִבְּדִיקַת קְשִׁיּוּת בְּשִׁיטַת רוֹקוֶול שׁוֹנֶה מֵאוֹפֶן הַקְּרִיאָה שֶׁל הַתּוֹצָאוֹת הַמִּתְקַבְּלוֹת בְּשִׁיטוֹת בְּרִינֶל וְוִיקֶרְס.",
+      "he_niqqud": "ב) אוֹפֶן הַקְּרִיאָה (מְדִידָה) שֶׁל הַתּוֹצָאוֹת הַמִּתְקַבְּלוֹת מִבְּדִיקַת קְשִׁיּוּת בְּשִׁיטַת רוֹקוֶול שׁוֹנֶה מֵאוֹפֶן הַקְּרִיאָה שֶׁל הַתּוֹצָאוֹת הַמִּתְקַבְּלוֹת בְּשִׁיטוֹת בְּרִינֶל וְוִיקֶרְס.",
+      "transliteration": "B) Ofen ha'kri'ah (medidah) shel ha'totsa'ot ha'mitkablot mi'bdikat k'shiyut be'shitat Rokvel shone me'ofen ha'kri'ah shel ha'totsa'ot ha'mitkablot be'shitot Brinel ve'Vikers.",
+      "ru": "Б) Способ считывания (измерения) результатов, полученных при испытании на твердость по методу Роквелла, отличается от способа считывания результатов, полученных методами Бринелля и Виккерса."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r006",
+      "semantic_kind": "subpart",
+      "he": "ב) מַהוּ הַשּׁוֹנִי, וּבְּאֵיזֶה מֵהֶם הַתּוֹצָאוֹת מְדוּיָּקוֹת יוֹתֵר?",
+      "he_niqqud": "ב) מַהוּ הַשּׁוֹנִי, וּבְּאֵיזֶה מֵהֶם הַתּוֹצָאוֹת מְדוּיָּקוֹת יוֹתֵר?",
+      "transliteration": "B) Mahu ha'shoni, uv'eizeh mehem ha'totsa'ot meduyakot yoter?",
+      "ru": "Б) В чем различие, и в каком из них результаты более точны?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r007",
+      "semantic_kind": "subpart",
+      "he": "ב) נַמֵּק.",
+      "he_niqqud": "ב) נַמֵּק.",
+      "transliteration": "B) Namek.",
+      "ru": "Б) Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r008",
+      "semantic_kind": "subpart",
+      "he": "ג) מַחְלֶקֶת הַנְדָּסָה נִדְרְשָׁה לְזַהוֹת פְּלָדָה מִקְּבוּצַת “פְּלָדוֹת פַּחְמָן” שֶׁהִגִּיעָה לַמִּפְעָל לְלֹא תְּעוּדָה מְזַהָה.",
+      "he_niqqud": "ג) מַחְלֶקֶת הַנְדָּסָה נִדְרְשָׁה לְזַהוֹת פְּלָדָה מִקְּבוּצַת “פְּלָדוֹת פַּחְמָן” שֶׁהִגִּיעָה לַמִּפְעָל לְלֹא תְּעוּדָה מְזַהָה.",
+      "transliteration": "G) Machleket ha'handasa nidr'sha le'zahot p'lada mi'k'vutzat \"p'ladot pachman\" she'higi'ah la'mif'al lelo t'udah mezahah.",
+      "ru": "В) Отделу инженерии потребовалось идентифицировать сталь из группы «углеродистые стали», которая поступила на завод без идентифицирующего сертификата."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r009",
+      "semantic_kind": "subpart",
+      "he": "ג) לְצֹרֶךְ הַזִּהוּי נִלְקַח דְּגָם מֵהַפְּלָדָה, וְנִמְדְּדָה קְשִׁיּוּתוֹ בְּסְקָלַת רוֹקוֶול B.",
+      "he_niqqud": "ג) לְצֹרֶךְ הַזִּהוּי נִלְקַח דְּגָם מֵהַפְּלָדָה, וְנִמְדְּדָה קְשִׁיּוּתוֹ בְּסְקָלַת רוֹקוֶול B.",
+      "transliteration": "G) Le'tzorekh ha'zihuy nilkach d'gam me'ha'p'ladah, ve'nimd'dah k'shiyuto b'skalat Rokvel B.",
+      "ru": "В) Для идентификации был взят образец стали, и его твердость была измерена по шкале Роквелла B."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r010",
+      "semantic_kind": "subpart",
+      "he": "ג) מְמוּצָע הַמְּדִידוֹת: 92 HRB.",
+      "he_niqqud": "ג) מְמוּצָע הַמְּדִידוֹת: 92 HRB.",
+      "transliteration": "G) Memutza ha'medidot: 92 HRB.",
+      "ru": "В) Среднее значение измерений: 92 HRB."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r011",
+      "semantic_kind": "subpart",
+      "he": "ג) לְפְּלָדוֹת פַּחְמָן יָדוּעַ הַקֶּשֶׁר: σ_UTS(MPa)=3.6×BHN.",
+      "he_niqqud": "ג) לְפְּלָדוֹת פַּחְמָן יָדוּעַ הַקֶּשֶׁר: σ_UTS(MPa)=3.6×BHN.",
+      "transliteration": "G) Le'p'ladot pachman yadu'a ha'kesher: σ_UTS(MPa)=3.6×BHN.",
+      "ru": "В) Для углеродистых сталей известна зависимость: σ_UTS(МПа)=3.6×BHN."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q018-r012",
+      "semantic_kind": "subpart",
+      "he": "ג) הִסְתַּמֵּךְ עַל σ_UTS וּקְבַע אֶת כִּנּוּי הַפְּלָדָה לְפִי תֶּקֶן אֲמֶרִיקָאִי (הֵעָזֵר בַּנְּסָפַח).",
+      "he_niqqud": "ג) הִסְתַּמֵּךְ עַל σ_UTS וּקְבַע אֶת כִּנּוּי הַפְּלָדָה לְפִי תֶּקֶן אֲמֶרִיקָאִי (הֵעָזֵר בַּנְּסָפַח).",
+      "transliteration": "G) Histamek al σ_UTS u'k'va et kinuy ha'p'ladah le'fi teken amerik'ai (he'azer ba'n'safach).",
+      "ru": "В) Основываясь на σ_UTS, определите обозначение стали согласно американскому стандарту (воспользуйтесь приложением)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r002",
+      "semantic_kind": "subpart",
+      "he": "א) בניסוי נגיפה, אנרגיית הנגיפה, E, של הדגם הנבדק תלויה במשקל הפטיש, G, ובגבהים, H1 ו־H2, באופן הבא:",
+      "he_niqqud": "א) בניסוי נגיפה, אנרגיית הנגיפה, E, של הדגם הנבדק תלויה במשקל הפטיש, G, ובגבהים, H1 ו־H2, באופן הבא:",
+      "transliteration": "A) BaNisui Negifah, energeyat haNegifah, E, shel haDegem haNivdak teluyah beMishkal haPatish, G, uvaGevahim, H1 ve-H2, beOfen haBa:",
+      "ru": "А) В испытании на удар энергия удара, E, испытуемого образца зависит от веса маятника (молота), G, и высот H1 и H2 следующим образом:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r003",
+      "semantic_kind": "subpart",
+      "he": "E = G(H1 − H2)",
+      "he_niqqud": "E = G(H1 − H2)",
+      "transliteration": "E = G(H1 − H2)",
+      "ru": "E = G(H1 − H2)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r004",
+      "semantic_kind": "subpart",
+      "he": "1. מה מבטא הגובה H1 ומה מבטא הגובה H2?",
+      "he_niqqud": "1. מה מבטא הגובה H1 ומה מבטא הגובה H2?",
+      "transliteration": "1. Mah mevata haGova H1 uMah mevata haGova H2?",
+      "ru": "1. Что обозначает высота H1 и что обозначает высота H2?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r005",
+      "semantic_kind": "subpart",
+      "he": "2. האם החומר שממנו עשוי פגוש ברכב צריך להיות בעל אנרגיית נגיפה גבוהה או נמוכה?",
+      "he_niqqud": "2. האם החומר שממנו עשוי פגוש ברכב צריך להיות בעל אנרגיית נגיפה גבוהה או נמוכה?",
+      "transliteration": "2. Ha'im haKhomer shemiMenu asui Pagush baRekhev tzarikh liyhot ba'al energeyat negifah gevohah o nemukhah?",
+      "ru": "2. Должен ли материал, из которого изготовлен бампер автомобиля, обладать высокой или низкой ударной вязкостью (энергией удара)?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r006",
+      "semantic_kind": "subpart",
+      "he": "נמק את תשובתך.",
+      "he_niqqud": "נמק את תשובתך.",
+      "transliteration": "Namek et tshuvatkha.",
+      "ru": "Обоснуйте свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r007",
+      "semantic_kind": "subpart",
+      "he": "ב) בטבלה שלהלן מוצגים ערכים של אנרגיית שבר ממבחן נגיפה לפלדה על־פי שרפי (Charpy).",
+      "he_niqqud": "ב) בטבלה שלהלן מוצגים ערכים של אנרגיית שבר ממבחן נגיפה לפלדה על־פי שרפי (Charpy).",
+      "transliteration": "B) BaTavlah sheleHal'an mutzagim arakhim shel energeyat shever miMivkhan Negifah laPla'dah al pi Charpy.",
+      "ru": "Б) В приведенной ниже таблице представлены значения энергии разрушения при испытании стали на удар по Шарпи (Charpy)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r008",
+      "semantic_kind": "table_data",
+      "he": "המבחן בוצע בטווח הטמפרטורות שבין ‎−75°C ועד ‎+50°C.",
+      "he_niqqud": "המבחן בוצע בטווח הטמפרטורות שבין ‎−75°C ועד ‎+50°C.",
+      "transliteration": "HaMivkhan butza beTevakh haTemperaturot sheBein −75°C ve'ad +50°C.",
+      "ru": "Испытание проводилось в диапазоне температур от −75°C до +50°C."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r009",
+      "semantic_kind": "table_data",
+      "he": "טמפרטורה, °C: +50, −22, −25, −28, −75",
+      "he_niqqud": "טמפרטורה, °C: +50, −22, −25, −28, −75",
+      "transliteration": "Temperaturah, °C: +50, −22, −25, −28, −75",
+      "ru": "Температура, °C: +50, −22, −25, −28, −75"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r010",
+      "semantic_kind": "table_data",
+      "he": "אנרגית השבר, Joul: 17, 14, 12, 8, 6",
+      "he_niqqud": "אנרגית השבר, Joul: 17, 14, 12, 8, 6",
+      "transliteration": "Energiyat haShever, Joul: 17, 14, 12, 8, 6",
+      "ru": "Энергия разрушения, Джоуль: 17, 14, 12, 8, 6"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r011",
+      "semantic_kind": "table_data",
+      "he": "הצג במחברתך גרף המתאר את אנרגיית הנגיפה כפונקציה של הטמפרטורה וקבע את טמפרטורת המעבר \"פריך־משיך\".",
+      "he_niqqud": "הצג במחברתך גרף המתאר את אנרגיית הנגיפה כפונקציה של הטמפרטורה וקבע את טמפרטורת המעבר \"פריך־משיך\".",
+      "transliteration": "Hatzeg beMakhbartkha graf haMeta'er et energeyat haNegifah keFunktsiyah shel haTemperaturah veKeva et temperaturat haMa'avar \"Parikh-Mashikh\".",
+      "ru": "Изобразите в своей тетради график, описывающий энергию удара как функцию температуры, и определите температуру перехода «хрупкость-пластичность»."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r012",
+      "semantic_kind": "subpart",
+      "he": "ג) שני דגמים העשויים מן הפלדה SAE 1050 עברו טיפולים תרמיים.",
+      "he_niqqud": "ג) שני דגמים העשויים מן הפלדה SAE 1050 עברו טיפולים תרמיים.",
+      "transliteration": "G) Shnei deGamim ha'Asuyim min haPla'dah SAE 1050 avru tipulim termiyim.",
+      "ru": "В) Два образца, изготовленных из стали SAE 1050, прошли термообработку."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r013",
+      "semantic_kind": "subpart",
+      "he": "אחד הדגמים עבר חיסום במים והאחר עבר חיסום והרפיה.",
+      "he_niqqud": "אחד הדגמים עבר חיסום במים והאחר עבר חיסום והרפיה.",
+      "transliteration": "Ekhad haDegamim avar khisum beMayim veheAkher avar khisum veHarpiyah.",
+      "ru": "Один из образцов прошел закалку в воде, а другой — закалку с последующим отпуском."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r014",
+      "semantic_kind": "subpart",
+      "he": "לאחר הטיפולים התרמיים בוצע מבחן נגיפה לשני הדגמים.",
+      "he_niqqud": "לאחר הטיפולים התרמיים בוצע מבחן נגיפה לשני הדגמים.",
+      "transliteration": "Le'akhar haTipulim haTermiyim butza Mivkhan Negifah liShnei haDegamim.",
+      "ru": "После термообработки было проведено испытание на удар обоих образцов."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r015",
+      "semantic_kind": "subpart",
+      "he": "כתוצאה מהטיפולים התרמיים התקבלו שני מבני חומר – סורביט ומרטנסיט, ובמבחני הנגיפה נמדדו שתי אנרגיות שבר – 5Joul ו־78Joul.",
+      "he_niqqud": "כתוצאה מהטיפולים התרמיים התקבלו שני מבני חומר – סורביט ומרטנסיט, ובמבחני הנגיפה נמדדו שתי אנרגיות שבר – 5Joul ו־78Joul.",
+      "transliteration": "KeTotza'ah meHaTipulim haTermiyim hitkabelu shnei Mivnei khomer – Sorbit uMartenisit, uvaMivkhaneh haNegifah nimdedu shtei Energeiyot shever – 5Joul ve-78Joul.",
+      "ru": "В результате термообработки были получены две структуры материала – сорбит и мартенсит, и в испытаниях на удар были измерены две энергии разрушения – 5 Дж и 78 Дж."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r016",
+      "semantic_kind": "subpart",
+      "he": "העתק למחברתך את הטבלה שלהלן, והתאם את השמות של מבני החומר ואת הערכים של אנרגיית השבר לטיפולים התרמיים.",
+      "he_niqqud": "העתק למחברתך את הטבלה שלהלן, והתאם את השמות של מבני החומר ואת הערכים של אנרגיית השבר לטיפולים התרמיים.",
+      "transliteration": "Ha'etek laMakhbartkha et haTavlah sheleHal'an, veHeta'em et haShemot shel Mivnei haKhomer ve'et haArakhim shel Energeyat haShever laTipulim haTermiyim.",
+      "ru": "Скопируйте в тетрадь приведенную ниже таблицу и сопоставьте названия структур материала и значения энергии разрушения с видами термообработки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r017",
+      "semantic_kind": "table_data",
+      "he": "חיסום במים",
+      "he_niqqud": "חיסום במים",
+      "transliteration": "Khissum beMayim",
+      "ru": "Закалка в воде"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r018",
+      "semantic_kind": "table_data",
+      "he": "אנרגיית שבר (Joul):",
+      "he_niqqud": "אנרגיית שבר (Joul):",
+      "transliteration": "Energeyat Shever (Joul):",
+      "ru": "Энергия разрушения (Джоуль):"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r019",
+      "semantic_kind": "table_data",
+      "he": "מבנה החומר:",
+      "he_niqqud": "מבנה החומר:",
+      "transliteration": "Mivneh haKhomer:",
+      "ru": "Структура материала:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r020",
+      "semantic_kind": "table_data",
+      "he": "חיסום והרפיה",
+      "he_niqqud": "חיסום והרפיה",
+      "transliteration": "Khissum veHarpiyah",
+      "ru": "Закалка и отпуск"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r021",
+      "semantic_kind": "table_data",
+      "he": "אנרגיית שבר (Joul):",
+      "he_niqqud": "אנרגיית שבר (Joul):",
+      "transliteration": "Energeyat Shever (Joul):",
+      "ru": "Энергия разрушения (Джоуль):"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r022",
+      "semantic_kind": "table_data",
+      "he": "מבנה החומר:",
+      "he_niqqud": "מבנה החומר:",
+      "transliteration": "Mivneh haKhomer:",
+      "ru": "Структура материала:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q019-r023",
+      "semantic_kind": "subpart",
+      "he": "נמק את ההתאמות בין מבני החומר לאנרגיית השבר.",
+      "he_niqqud": "נמק את ההתאמות בין מבני החומר לאנרגיית השבר.",
+      "transliteration": "Namek et haHata'amot Bein Mivnei haKhomer leEnergeyat haShever.",
+      "ru": "Обоснуйте соответствие между структурами материала и энергией разрушения."
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-corpus-completion-audit-v1",
+  "status": "PASS_LOCAL_CANONICAL_TEXT_VISUAL_CORPUS_COMPLETE_NOT_IMPORTED_NOT_PUBLISHED",
+  "completed_on": "2026-08-30",
+  "scope": "conditions_visuals_four_learning_columns_and_agent_grounding_metadata",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "owner_approval_evidence": "canonical-repair-owner-approval.json",
+  "provider": {
+    "model": "gemini-3.7-flash",
+    "mode": "STANDARD",
+    "official_price_verified_on": "2026-08-30",
+    "official_pricing_url": "https://ai.google.dev/gemini-api/docs/pricing",
+    "provider_response_receipt_count": 9,
+    "provider_call_start_count": 10,
+    "unreceipted_interrupted_call_start_count": 1,
+    "measured_cost_usd": 1.099227,
+    "conservative_billing_upper_bound_usd": 1.259607,
+    "hard_max_usd": 2.0,
+    "maximum_call_starts": 12,
+    "secret_accessed_in_process": true,
+    "secret_persisted": false
+  },
+  "canonical_rows": {
+    "task_count": 60,
+    "row_count": 693,
+    "four_column_complete_row_count": 693,
+    "provider_reviewed_row_count": 488,
+    "source_verified_legacy_fallback_row_count": 152,
+    "source_verified_post_bake_correction_row_count": 2,
+    "existing_canonical_pass_row_count": 51,
+    "hebrew_niqqud_skeleton_normalization_count_in_repair_rows": 383,
+    "plain_hebrew_with_niqqud_count": 0,
+    "hebrew_skeleton_mismatch_count": 0,
+    "empty_required_column_count": 0
+  },
+  "visuals": {
+    "tasks_with_semantic_visuals": 43,
+    "semantic_visual_instance_count": 90,
+    "materialized_source_and_reference_asset_count": 72,
+    "asset_crc_and_hash_readback": "PASS"
+  },
+  "bundle": {
+    "filename": "Материаловедение — задачник 2-learning.zip",
+    "bytes": 15891578,
+    "sha256": "f7ef3851d1d00bae0f11343371960850d61c613e6394d8cad550a9cf9fcd8954",
+    "two_consecutive_bakes_byte_identical": true,
+    "zip_crc": "PASS",
+    "safe_paths": "PASS",
+    "android_v2_compatibility": "PASS",
+    "in_memory_import_rehearsal": {
+      "imported_texts": 60,
+      "skipped_texts": 0,
+      "errors": 0,
+      "persisted_to_studio": false
+    }
+  },
+  "post_bake_source_corrections": {
+    "count": 2,
+    "task_ids": [
+      "materials-science-y1-pb2-q005",
+      "materials-science-y1-pb2-q019"
+    ],
+    "row_ids": [
+      "materials-science-y1-pb2-q005-r002",
+      "materials-science-y1-pb2-q019-r010"
+    ],
+    "defects": [
+      "q005: missing subpart A 50-to-55 mm and duplicated subpart B 75-to-80 mm",
+      "q019: impact-energy values reversed relative to the temperature columns"
+    ],
+    "evidence": "source-condition-corrections.json",
+    "provider_calls": 0,
+    "two_corrected_bakes_byte_identical": true
+  },
+  "known_non_blocking_warning": {
+    "code": "MUPDF_CMS_PROFILE_WARNING",
+    "message": "The source PDF contains an unreadable embedded color profile; deterministic JPEG rendering, decode, CRC, and hash readback all passed."
+  },
+  "explicitly_absent_and_separately_gated": {
+    "audio_assets": 0,
+    "rows_missing_audio": 693,
+    "karaoke_timing_sidecars": 0,
+    "worked_solutions": 0,
+    "studio_imported": false,
+    "published": false
+  },
+  "verification": {
+    "python_local_build_tests": "31_PASS",
+    "python_shadow_apply_tests": "3_PASS",
+    "python_canonical_pipeline_tests": "2_PASS",
+    "node_mapping_prepare_shadow_tests": "17_PASS",
+    "deep_zip_audit": "PASS"
+  },
+  "next_owner_gates": [
+    "bounded TTS sample and exact voice/rate/pitch approval before audio APPLY",
+    "complete the authorized build-reviewed-problem-solutions program before full solution publication",
+    "isolated import rehearsal approval before any Studio persistence",
+    "publication and rights approval before any immutable public edition"
+  ]
+}

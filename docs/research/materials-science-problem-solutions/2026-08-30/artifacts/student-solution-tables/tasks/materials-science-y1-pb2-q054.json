@@ -1,0 +1,1815 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q054",
+  "display_alias": "54",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "809f64361a50582fd752d1f5a8ead430b18638c9142d218b712851b63f58fe1b"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "2f2fc4b9ee8f9eb7676d66c41094e4aaed30201944ff5f98f2743afba9ee3a26",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Ceramic definition, SiC/WC, powder-process advantages and shape/tooling/porosity limits match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q054-r001",
+        "order_index": 0,
+        "hebrew_plain": "חומרים קראמיים",
+        "hebrew_niqqud": "חֳומָרִים קֵרָאמִיִּים",
+        "translit": "Chomarim keramiyim",
+        "translit_ru": "",
+        "russian": "Керамические материалы",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "source_note",
+            "source_page": 63,
+            "source_row_index": 0,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r002",
+        "order_index": 1,
+        "hebrew_plain": "שאלה 54.",
+        "hebrew_niqqud": "שְׁאֵלָה 54.",
+        "translit": "She'ela 54.",
+        "translit_ru": "",
+        "russian": "Вопрос 54.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "task_heading",
+            "source_page": 63,
+            "source_row_index": 1,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r003",
+        "order_index": 2,
+        "hebrew_plain": "א) 1. הגדר \"חומר קרמי\".",
+        "hebrew_niqqud": "א) 1. הַגְדֵּר \"חוֹמֶר קֵרָמִי\".",
+        "translit": "A) 1. Hagder \"chomer kerami\".",
+        "translit_ru": "",
+        "russian": "А) 1. Дайте определение \"керамическому материалу\".",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r004",
+        "order_index": 3,
+        "hebrew_plain": "א) 2. רשום את הנוסחה הכימית של שני (2) חומרים קרמיים ממשפחת הקרבידים.",
+        "hebrew_niqqud": "א) 2. רְשׁוֹם אֶת הַנֻּוסְחָה הַכִּימִית שֶׁל שְׁנֵי (2) חֳומָרִים קֵרָמִיִּים מִמִּשְׁפַּחַת הַקַּרְבִּידִים.",
+        "translit": "A) 2. Reshom et hanuschah hachimit shel shnei (2) chomarim keramiyim mimishpachat hakarbidim.",
+        "translit_ru": "",
+        "russian": "А) 2. Запишите химические формулы двух (2) керамических материалов из семейства карбидов.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r005",
+        "order_index": 4,
+        "hebrew_plain": "ב) מהם שני (2) היתרונות הראשיים בייצור מוצרים בטכנולוגיית (מטלורגיית) אבקות?",
+        "hebrew_niqqud": "ב) מָהֵם שְׁנֵי (2) הַיִּתְרוֹנוֹת הָרָאשִׁיִּים בְּייִצּוּר מוּצָרִים בְּטֶכְנוֹלוֹגְייַת (מֶטָלוּרְגִּייַת) אֲבָקוֹת?",
+        "translit": "B) Mahem shnei (2) hayitronot harashiyim beyitzur mutzarim betechnologiyat (metalurgiyat) avakot?",
+        "translit_ru": "",
+        "russian": "Б) Каковы два (2) основных преимущества производства изделий по технологии (металлургии) порошков?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r006",
+        "order_index": 5,
+        "hebrew_plain": "ג) האם אפשר לייצר כל מוצר מאבקות?",
+        "hebrew_niqqud": "ג) הַאִם אֶפְשָׁר לְיַיצֵּר כָּל מוּצָר מֵאֲבָקוֹת?",
+        "translit": "G) Ha'im efshar leyatzer kol mutzar me'avakot?",
+        "translit_ru": "",
+        "russian": "В) Можно ли изготовить любое изделие из порошков?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r007",
+        "order_index": 6,
+        "hebrew_plain": "כן/לא?",
+        "hebrew_niqqud": "כֵּן/לֹא?",
+        "translit": "Ken/lo?",
+        "translit_ru": "",
+        "russian": "Да/Нет?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q054-r008",
+        "order_index": 7,
+        "hebrew_plain": "נמק את תשובתך.",
+        "hebrew_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Namek et teshuvat'cha.",
+        "translit_ru": "",
+        "russian": "Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q054",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      63
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q054/anchor-01-p063.jpg",
+        "sha256": "a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32",
+        "bytes": 141797,
+        "source_page": 63,
+        "normalized_bbox": [
+          0,
+          0.46,
+          1,
+          0.72
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:2f2fc4b9ee8f9eb7676d66c41094e4aaed30201944ff5f98f2743afba9ee3a26"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) SiC ו-WC.",
+        "he_niqqud": "א) SiC וְ-WC.",
+        "transliteration": "A) SiC ve-WC.",
+        "ru": "А) SiC и WC."
+      },
+      "source_refs": [
+        "legacy_row_hash:913527839701eef01fbce28bb6f9eb1ce6de26e06cc8d2c937822dfb6aea8e4b",
+        "legacy_fields_sha256:4fa3722d323e6218dc30ec02071d3877c49aa8cea7254775c9847953da6e68d7",
+        "independent_solution_sha256:2f2fc4b9ee8f9eb7676d66c41094e4aaed30201944ff5f98f2743afba9ee3a26"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "SiC",
+            "normalized": "SiC"
+          },
+          {
+            "index": 2,
+            "surface": "וְ-WC.",
+            "normalized": "ו-WC"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) היתרון השני הוא אפשרות לייצר חומרים וחלקים קשי־התכה או קשים לעיבוד, כגון קרבידים, עם בקרה על נקבוביות וצפיפות לאחר דחיסה וסינטור.",
+        "he_niqqud": "ב) הַיִּתְרוֹן הַשֵּׁנִי הוּא אֶפְשָׁרוּת לְיַיצֵּר חֳמָרִים וַחֲלָקִים קְשִׁי־הַתָּכָה אוֹ קָשִׁים לְעִיבּוּד, כְּגוֹן קַרְבִּידִים, עִם בַּקָּרָה עַל נְקֻבּוּבִיּוּת וּצְפִיפוּת לְאַחַר דְּחִיסָה וְסִנְטוּר.",
+        "transliteration": "B) Ha'yitron ha'sheni hu efsha'rut leiatzer ḥomarim va'ḥalaqim qeshi-hattaḫah o qashim le'ibud, kegon qarbidim, 'im baqarah 'al nequbuviyut u'tzfifut le'aḥar deḥisah ve'sinṭur.",
+        "ru": "Б) Второе преимущество — возможность производить тугоплавкие или труднообрабатываемые материалы и детали, такие как карбиды, с контролем пористости и плотности после прессования и спекания."
+      },
+      "source_refs": [
+        "legacy_row_hash:6b9ec608424837cea3cb714b8bd0b0a4f2653156446449f53a0f21e55ad5d9b6",
+        "legacy_fields_sha256:4bef76e4c5a373e5407df84e675d08211b289c737eee48729829b703fd0964fb",
+        "independent_solution_sha256:2f2fc4b9ee8f9eb7676d66c41094e4aaed30201944ff5f98f2743afba9ee3a26"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַיִּתְרוֹן",
+            "normalized": "היתרון"
+          },
+          {
+            "index": 2,
+            "surface": "הַשֵּׁנִי",
+            "normalized": "השני"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "אֶפְשָׁרוּת",
+            "normalized": "אפשרות"
+          },
+          {
+            "index": 5,
+            "surface": "לְיַיצֵּר",
+            "normalized": "לייצר"
+          },
+          {
+            "index": 6,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 7,
+            "surface": "וַחֲלָקִים",
+            "normalized": "וחלקים"
+          },
+          {
+            "index": 8,
+            "surface": "קְשִׁי־הַתָּכָה",
+            "normalized": "קשי־התכה"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 10,
+            "surface": "קָשִׁים",
+            "normalized": "קשים"
+          },
+          {
+            "index": 11,
+            "surface": "לְעִיבּוּד,",
+            "normalized": "לעיבוד"
+          },
+          {
+            "index": 12,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 13,
+            "surface": "קַרְבִּידִים,",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 14,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 15,
+            "surface": "בַּקָּרָה",
+            "normalized": "בקרה"
+          },
+          {
+            "index": 16,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 17,
+            "surface": "נְקֻבּוּבִיּוּת",
+            "normalized": "נקבוביות"
+          },
+          {
+            "index": 18,
+            "surface": "וּצְפִיפוּת",
+            "normalized": "וצפיפות"
+          },
+          {
+            "index": 19,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 20,
+            "surface": "דְּחִיסָה",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 21,
+            "surface": "וְסִנְטוּר.",
+            "normalized": "וסנטור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לא.",
+        "he_niqqud": "ג) לֹא.",
+        "transliteration": "G) Lo.",
+        "ru": "В) Нет."
+      },
+      "source_refs": [
+        "legacy_row_hash:26488d7a93f05cf00bd71a80c1874eda33b984f596e143032c9c403940f3c392",
+        "legacy_fields_sha256:a3e74a1b5a4be423c1e8fb20f60484266cd8626cb3c38aad5a3d47e655579bee",
+        "independent_solution_sha256:2f2fc4b9ee8f9eb7676d66c41094e4aaed30201944ff5f98f2743afba9ee3a26"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לֹא.",
+            "normalized": "לא"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) חומר קרמי הוא חומר אי־אורגני ולא־מתכתי, המורכב לרוב מקשרים יוניים או קוולנטיים, ומאופיין בקשיות גבוהה, נקודת התכה גבוהה, עמידות בחום ובשחיקה, אך גם בשבירות יחסית ודוקטיליות נמוכה.",
+        "he_niqqud": "א) חֹמֶר קֵרָמִי הוּא חֹמֶר אִי־אוֹרְגָּנִי וְלֹא־מַתַּכְתִּי, הַמּוּרְכָּב לָרוֹב מִקִּשְׁרִים יוֹנִיִּים אוֹ קוֹבָלֶנְטִיִּים, וּמְאוּפְיָן בִּקְשִׁיּוּת גְּבוֹהָה, נְקוּדַּת הַתָּכָה גְּבוֹהָה, עֲמִידוּת בְּחֹם וּבִשְׁחִיקָה, אַךְ גַּם בִּשְׁבִירוּת יַחֲסִית וְדּוּקְטִילִיּוּת נְמוּכָה.",
+        "transliteration": "A) Ḥomer qerami hu ḥomer i-'organi velo-mattakhti, ha'murkav larov mi'qsharim yoniyim o qovalanṭiyim, u'me'ufyan bi'qshiyyut gvo'hah, nequdat hattaḫah gvo'hah, 'amidut be'ḥom u'vishḥiqah, akh gam bi'shvirut yaḥasiyt u'doqṭiliyut nemukhah.",
+        "ru": "А) Керамический материал — это неорганический, неметаллический материал, обычно состоящий из ионных или ковалентных связей, который характеризуется высокой твердостью, высокой температурой плавления, термостойкостью и износостойкостью, но также относительной хрупкостью и низкой пластичностью."
+      },
+      "source_refs": [
+        "legacy_row_hash:80cd365c27765cd8b84ff56e10aa023f6838473a0031628cb9efe11cfb9a8047",
+        "legacy_fields_sha256:8c6f31b83e17739183e074a5c25dccb4179a2e4c53041ab5d5cbf712013d7966",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 2,
+            "surface": "קֵרָמִי",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 5,
+            "surface": "אִי־אוֹרְגָּנִי",
+            "normalized": "אי־אורגני"
+          },
+          {
+            "index": 6,
+            "surface": "וְלֹא־מַתַּכְתִּי,",
+            "normalized": "ולא־מתכתי"
+          },
+          {
+            "index": 7,
+            "surface": "הַמּוּרְכָּב",
+            "normalized": "המורכב"
+          },
+          {
+            "index": 8,
+            "surface": "לָרוֹב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 9,
+            "surface": "מִקִּשְׁרִים",
+            "normalized": "מקשרים"
+          },
+          {
+            "index": 10,
+            "surface": "יוֹנִיִּים",
+            "normalized": "יוניים"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 12,
+            "surface": "קוֹבָלֶנְטִיִּים,",
+            "normalized": "קובלנטיים"
+          },
+          {
+            "index": 13,
+            "surface": "וּמְאוּפְיָן",
+            "normalized": "ומאופין"
+          },
+          {
+            "index": 14,
+            "surface": "בִּקְשִׁיּוּת",
+            "normalized": "בקשיות"
+          },
+          {
+            "index": 15,
+            "surface": "גְּבוֹהָה,",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 16,
+            "surface": "נְקוּדַּת",
+            "normalized": "נקודת"
+          },
+          {
+            "index": 17,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 18,
+            "surface": "גְּבוֹהָה,",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 19,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 20,
+            "surface": "בְּחֹם",
+            "normalized": "בחם"
+          },
+          {
+            "index": 21,
+            "surface": "וּבִשְׁחִיקָה,",
+            "normalized": "ובשחיקה"
+          },
+          {
+            "index": 22,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 23,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 24,
+            "surface": "בִּשְׁבִירוּת",
+            "normalized": "בשבירות"
+          },
+          {
+            "index": 25,
+            "surface": "יַחֲסִית",
+            "normalized": "יחסית"
+          },
+          {
+            "index": 26,
+            "surface": "וְדּוּקְטִילִיּוּת",
+            "normalized": "ודוקטיליות"
+          },
+          {
+            "index": 27,
+            "surface": "נְמוּכָה.",
+            "normalized": "נמוכה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "דוגמאות למשפחות קרמיקה הן תחמוצות, ניטרידים, קרבידים, סיליקטים וזכוכיות.",
+        "he_niqqud": "דּוּגְמָאוֹת לְמִשְׁפְּחוֹת קֵרָמִיקָה הֵן תַּחְמוֹצוֹת, נִיטְרִידִים, קַרְבִּידִים, סִילִיקָטִים וּזְכוּכִיּוֹת.",
+        "transliteration": "Dugma'ot le'mishpeḥot qeramiqah hen taḥmotzot, niṭridim, qarbidim, siliqaṭim u'zkhukhiyyot.",
+        "ru": "Примеры семейств керамики: оксиды, нитриды, карбиды, силикаты и стекла."
+      },
+      "source_refs": [
+        "legacy_row_hash:5e40c889f8b3500739fd1bf6b509dfe21b3622ded4ef18bdeca417cb75d505cf",
+        "legacy_fields_sha256:c462a2c5f346db4c82089e979996262815fb6cba37ff2ede8a472b9cae24ef2c",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "דּוּגְמָאוֹת",
+            "normalized": "דוגמאות"
+          },
+          {
+            "index": 1,
+            "surface": "לְמִשְׁפְּחוֹת",
+            "normalized": "למשפחות"
+          },
+          {
+            "index": 2,
+            "surface": "קֵרָמִיקָה",
+            "normalized": "קרמיקה"
+          },
+          {
+            "index": 3,
+            "surface": "הֵן",
+            "normalized": "הן"
+          },
+          {
+            "index": 4,
+            "surface": "תַּחְמוֹצוֹת,",
+            "normalized": "תחמוצות"
+          },
+          {
+            "index": 5,
+            "surface": "נִיטְרִידִים,",
+            "normalized": "ניטרידים"
+          },
+          {
+            "index": 6,
+            "surface": "קַרְבִּידִים,",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 7,
+            "surface": "סִילִיקָטִים",
+            "normalized": "סיליקטים"
+          },
+          {
+            "index": 8,
+            "surface": "וּזְכוּכִיּוֹת.",
+            "normalized": "וזכוכיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) SiC ו-WC.",
+        "he_niqqud": "א) SiC וְ-WC.",
+        "transliteration": "A) SiC ve-WC.",
+        "ru": "А) SiC и WC."
+      },
+      "source_refs": [
+        "legacy_row_hash:913527839701eef01fbce28bb6f9eb1ce6de26e06cc8d2c937822dfb6aea8e4b",
+        "legacy_fields_sha256:4fa3722d323e6218dc30ec02071d3877c49aa8cea7254775c9847953da6e68d7",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "SiC",
+            "normalized": "SiC"
+          },
+          {
+            "index": 2,
+            "surface": "וְ-WC.",
+            "normalized": "ו-WC"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "SiC הוא קרביד הצורן.",
+        "he_niqqud": "SiC הוּא קַרְבִּיד הַצּוֹרָן.",
+        "transliteration": "SiC hu qarbid ha'tzoran.",
+        "ru": "SiC — это карбид кремния."
+      },
+      "source_refs": [
+        "legacy_row_hash:2be78c59110d02aa103df70c035798608fae65a4edd0f8fa4957b48658fe4ea3",
+        "legacy_fields_sha256:bc5159b7b57489819d05644731b84abe4c95102f03b27e2b30eaa00ed729deb8",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "SiC",
+            "normalized": "SiC"
+          },
+          {
+            "index": 1,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "קַרְבִּיד",
+            "normalized": "קרביד"
+          },
+          {
+            "index": 3,
+            "surface": "הַצּוֹרָן.",
+            "normalized": "הצורן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "WC הוא קרביד הטונגסטן.",
+        "he_niqqud": "WC הוּא קַרְבִּיד הַטּוּנְגְּסְטֶן.",
+        "transliteration": "WC hu qarbid ha'ṭungsṭen.",
+        "ru": "WC — это карбид вольфрама."
+      },
+      "source_refs": [
+        "legacy_row_hash:ce437fb184da0b86ced753e47500d2e5b8bc8e1336c7a1290e07fd064442ee78",
+        "legacy_fields_sha256:3e03f67b8b6bc924b760420516b2e2fa0dfebbd3720fe22b0b37a2caf2823b67",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "WC",
+            "normalized": "WC"
+          },
+          {
+            "index": 1,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "קַרְבִּיד",
+            "normalized": "קרביד"
+          },
+          {
+            "index": 3,
+            "surface": "הַטּוּנְגְּסְטֶן.",
+            "normalized": "הטונגסטן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) היתרון הראשון הוא ניצול חומר גבוה מאוד, קרוב לייצור כמעט סופי, ולכן מתקבלים מעט שבבים ופסולת וחיסכון בחומר ובעלות.",
+        "he_niqqud": "ב) הַיִּתְרוֹן הָרִאשׁוֹן הוּא נִיצּוּל חֹמֶר גָּבוֹהַּ מְאוֹד, קָרוֹב לְיִיצוּר כִּמְעַט סוֹפִי, וְלָכֵן מִתְקַבְּלִים מְעַט שְׁבָבִים וּפְסוֹלֶת וְחִסָּכוֹן בְּחֹמֶר וּבְעָלוּת.",
+        "transliteration": "B) Ha'yitron ha'rishon hu nitzul ḥomer gavoah me'od, qarov le'yiytzur kim'aṭ sofi, velakhen mitqabelim me'aṭ shvavim u'psollet ve'ḥissakhon be'ḥomer u've'alut.",
+        "ru": "Б) Первое преимущество — очень высокий коэффициент использования материала, близкий к почти окончательному производству, что приводит к образованию небольшого количества стружки и отходов, а также к экономии материала и затрат."
+      },
+      "source_refs": [
+        "legacy_row_hash:2600a23efaa135a200fae8a124466d5447406f5501f23812fd37a3b7e4a85dd4",
+        "legacy_fields_sha256:d665fbe0a82e805189c86b5e6919046127c385465583a66a5315b4f14a2e085d",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַיִּתְרוֹן",
+            "normalized": "היתרון"
+          },
+          {
+            "index": 2,
+            "surface": "הָרִאשׁוֹן",
+            "normalized": "הראשון"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "נִיצּוּל",
+            "normalized": "ניצול"
+          },
+          {
+            "index": 5,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 6,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "מְאוֹד,",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 8,
+            "surface": "קָרוֹב",
+            "normalized": "קרוב"
+          },
+          {
+            "index": 9,
+            "surface": "לְיִיצוּר",
+            "normalized": "לייצור"
+          },
+          {
+            "index": 10,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 11,
+            "surface": "סוֹפִי,",
+            "normalized": "סופי"
+          },
+          {
+            "index": 12,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 13,
+            "surface": "מִתְקַבְּלִים",
+            "normalized": "מתקבלים"
+          },
+          {
+            "index": 14,
+            "surface": "מְעַט",
+            "normalized": "מעט"
+          },
+          {
+            "index": 15,
+            "surface": "שְׁבָבִים",
+            "normalized": "שבבים"
+          },
+          {
+            "index": 16,
+            "surface": "וּפְסוֹלֶת",
+            "normalized": "ופסולת"
+          },
+          {
+            "index": 17,
+            "surface": "וְחִסָּכוֹן",
+            "normalized": "וחסכון"
+          },
+          {
+            "index": 18,
+            "surface": "בְּחֹמֶר",
+            "normalized": "בחמר"
+          },
+          {
+            "index": 19,
+            "surface": "וּבְעָלוּת.",
+            "normalized": "ובעלות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) היתרון השני הוא אפשרות לייצר חומרים וחלקים קשי־התכה או קשים לעיבוד, כגון קרבידים, עם בקרה על נקבוביות וצפיפות לאחר דחיסה וסינטור.",
+        "he_niqqud": "ב) הַיִּתְרוֹן הַשֵּׁנִי הוּא אֶפְשָׁרוּת לְיַיצֵּר חֳמָרִים וַחֲלָקִים קְשִׁי־הַתָּכָה אוֹ קָשִׁים לְעִיבּוּד, כְּגוֹן קַרְבִּידִים, עִם בַּקָּרָה עַל נְקֻבּוּבִיּוּת וּצְפִיפוּת לְאַחַר דְּחִיסָה וְסִנְטוּר.",
+        "transliteration": "B) Ha'yitron ha'sheni hu efsha'rut leiatzer ḥomarim va'ḥalaqim qeshi-hattaḫah o qashim le'ibud, kegon qarbidim, 'im baqarah 'al nequbuviyut u'tzfifut le'aḥar deḥisah ve'sinṭur.",
+        "ru": "Б) Второе преимущество — возможность производить тугоплавкие или труднообрабатываемые материалы и детали, такие как карбиды, с контролем пористости и плотности после прессования и спекания."
+      },
+      "source_refs": [
+        "legacy_row_hash:6b9ec608424837cea3cb714b8bd0b0a4f2653156446449f53a0f21e55ad5d9b6",
+        "legacy_fields_sha256:4bef76e4c5a373e5407df84e675d08211b289c737eee48729829b703fd0964fb",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַיִּתְרוֹן",
+            "normalized": "היתרון"
+          },
+          {
+            "index": 2,
+            "surface": "הַשֵּׁנִי",
+            "normalized": "השני"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "אֶפְשָׁרוּת",
+            "normalized": "אפשרות"
+          },
+          {
+            "index": 5,
+            "surface": "לְיַיצֵּר",
+            "normalized": "לייצר"
+          },
+          {
+            "index": 6,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 7,
+            "surface": "וַחֲלָקִים",
+            "normalized": "וחלקים"
+          },
+          {
+            "index": 8,
+            "surface": "קְשִׁי־הַתָּכָה",
+            "normalized": "קשי־התכה"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 10,
+            "surface": "קָשִׁים",
+            "normalized": "קשים"
+          },
+          {
+            "index": 11,
+            "surface": "לְעִיבּוּד,",
+            "normalized": "לעיבוד"
+          },
+          {
+            "index": 12,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 13,
+            "surface": "קַרְבִּידִים,",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 14,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 15,
+            "surface": "בַּקָּרָה",
+            "normalized": "בקרה"
+          },
+          {
+            "index": 16,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 17,
+            "surface": "נְקֻבּוּבִיּוּת",
+            "normalized": "נקבוביות"
+          },
+          {
+            "index": 18,
+            "surface": "וּצְפִיפוּת",
+            "normalized": "וצפיפות"
+          },
+          {
+            "index": 19,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 20,
+            "surface": "דְּחִיסָה",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 21,
+            "surface": "וְסִנְטוּר.",
+            "normalized": "וסנטור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לא.",
+        "he_niqqud": "ג) לֹא.",
+        "transliteration": "G) Lo.",
+        "ru": "В) Нет."
+      },
+      "source_refs": [
+        "legacy_row_hash:26488d7a93f05cf00bd71a80c1874eda33b984f596e143032c9c403940f3c392",
+        "legacy_fields_sha256:a3e74a1b5a4be423c1e8fb20f60484266cd8626cb3c38aad5a3d47e655579bee",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לֹא.",
+            "normalized": "לא"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r013",
+      "order": 13,
+      "section": "model_and_laws",
+      "kind": "law_or_principle",
+      "exam_copy": true,
+      "text": {
+        "he": "קיימות מגבלות טכנולוגיות והנדסיות על צורות עם חללים פנימיים מורכבים, על חלקים גדולים מאוד ועל גאומטריות עם יחס אורך־לקוטר גבוה.",
+        "he_niqqud": "קַיָּמוֹת מִגְבָּלוֹת טֶכְנוֹלוֹגְיּוֹת וְהַנְדָּסִיּוֹת עַל צוּרוֹת עִם חֲלָלִים פְּנִימִיִּים מוּרְכָּבִים, עַל חֲלָקִים גְּדוֹלִים מְאוֹד וְעַל גֵּאוֹמֶטְרִיּוֹת עִם יַחַס אֹרֶךְ־לְקֹטֶר גָּבוֹהַּ.",
+        "transliteration": "Qayyamot migbalot ṭekhnologiyot ve'handasiyot 'al tzurot 'im ḥalalim penimiyim murkavim, 'al ḥalaqim gdolim me'od ve'al ge'omeṭriyot 'im yaḥas orekh-leqoṭer gavoah.",
+        "ru": "Существуют технологические и инженерные ограничения на формы со сложными внутренними полостями, на очень крупные детали и на геометрии с высоким соотношением длины к диаметру."
+      },
+      "source_refs": [
+        "legacy_row_hash:373b442a8320bae94ba8d61ec71d82012453a549b801cd1bb8b6fddf000f0b2a",
+        "legacy_fields_sha256:5857a5c4457ee6f35f7ecc3b646acebf0c67203e244d09d93ed023ee874962b1",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "קַיָּמוֹת",
+            "normalized": "קימות"
+          },
+          {
+            "index": 1,
+            "surface": "מִגְבָּלוֹת",
+            "normalized": "מגבלות"
+          },
+          {
+            "index": 2,
+            "surface": "טֶכְנוֹלוֹגְיּוֹת",
+            "normalized": "טכנולוגיות"
+          },
+          {
+            "index": 3,
+            "surface": "וְהַנְדָּסִיּוֹת",
+            "normalized": "והנדסיות"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "צוּרוֹת",
+            "normalized": "צורות"
+          },
+          {
+            "index": 6,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 7,
+            "surface": "חֲלָלִים",
+            "normalized": "חללים"
+          },
+          {
+            "index": 8,
+            "surface": "פְּנִימִיִּים",
+            "normalized": "פנימיים"
+          },
+          {
+            "index": 9,
+            "surface": "מוּרְכָּבִים,",
+            "normalized": "מורכבים"
+          },
+          {
+            "index": 10,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 11,
+            "surface": "חֲלָקִים",
+            "normalized": "חלקים"
+          },
+          {
+            "index": 12,
+            "surface": "גְּדוֹלִים",
+            "normalized": "גדולים"
+          },
+          {
+            "index": 13,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          },
+          {
+            "index": 14,
+            "surface": "וְעַל",
+            "normalized": "ועל"
+          },
+          {
+            "index": 15,
+            "surface": "גֵּאוֹמֶטְרִיּוֹת",
+            "normalized": "גאומטריות"
+          },
+          {
+            "index": 16,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 17,
+            "surface": "יַחַס",
+            "normalized": "יחס"
+          },
+          {
+            "index": 18,
+            "surface": "אֹרֶךְ־לְקֹטֶר",
+            "normalized": "ארך־לקטר"
+          },
+          {
+            "index": 19,
+            "surface": "גָּבוֹהַּ.",
+            "normalized": "גבוה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r014",
+      "order": 14,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "קיימות גם מגבלות כאשר נדרשות תכונות חוזק או אטימות גבוהות, משום שעלולה להישאר נקבוביות או להידרש עיבוד משלים.",
+        "he_niqqud": "קַיָּמוֹת גַּם מִגְבָּלוֹת כַּאֲשֶׁר נִדְרָשׁוֹת תְּכוּנוֹת חֹזֶק אוֹ אֲטִימוּת גְּבוֹהוֹת, מִשּׁוּם שֶׁעֲלוּלָה לְהִשָּׁאֵר נְקֻבּוּבִיּוּת אוֹ לְהִדָּרֵשׁ עִיבּוּד מַשְׁלִים.",
+        "transliteration": "Qayyamot gam migbalot ka'asher nidrashot tekhunot ḥozeq o aṭimut gvo'hot, mishum she'alulah lehisha'er nequbuviyut o lehiddaresh 'ibud mashlim.",
+        "ru": "Ограничения также существуют, когда требуются высокие прочностные или герметизирующие свойства, поскольку может оставаться пористость или может потребоваться дополнительная обработка."
+      },
+      "source_refs": [
+        "legacy_row_hash:83666f59230735fdbcd38b6aaeccdc70041771e14935f82e9ddcbfe49370f44d",
+        "legacy_fields_sha256:d9951952fa1296f83cf33c079d451a3090e8b06871f3eca67bc340508ce60cf5",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "קַיָּמוֹת",
+            "normalized": "קימות"
+          },
+          {
+            "index": 1,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 2,
+            "surface": "מִגְבָּלוֹת",
+            "normalized": "מגבלות"
+          },
+          {
+            "index": 3,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 4,
+            "surface": "נִדְרָשׁוֹת",
+            "normalized": "נדרשות"
+          },
+          {
+            "index": 5,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 6,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 7,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 8,
+            "surface": "אֲטִימוּת",
+            "normalized": "אטימות"
+          },
+          {
+            "index": 9,
+            "surface": "גְּבוֹהוֹת,",
+            "normalized": "גבוהות"
+          },
+          {
+            "index": 10,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁעֲלוּלָה",
+            "normalized": "שעלולה"
+          },
+          {
+            "index": 12,
+            "surface": "לְהִשָּׁאֵר",
+            "normalized": "להשאר"
+          },
+          {
+            "index": 13,
+            "surface": "נְקֻבּוּבִיּוּת",
+            "normalized": "נקבוביות"
+          },
+          {
+            "index": 14,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 15,
+            "surface": "לְהִדָּרֵשׁ",
+            "normalized": "להדרש"
+          },
+          {
+            "index": 16,
+            "surface": "עִיבּוּד",
+            "normalized": "עיבוד"
+          },
+          {
+            "index": 17,
+            "surface": "מַשְׁלִים.",
+            "normalized": "משלים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בנוסף, הייצור לרוב דורש תבנית דחיסה ייעודית שעלותה גבוהה, ולכן לא תמיד משתלם לייצור בכמויות קטנות או לפריטים ייחודיים.",
+        "he_niqqud": "בְּנוֹסָף, הַיִּיצוּר לָרוֹב דּוֹרֵשׁ תַּבְנִית דְּחִיסָה יִיעוּדִית שֶׁעֲלוּתָהּ גְּבוֹהָה, וְלָכֵן לֹא תָּמִיד מִשְׁתַּלֵּם לְיִיצוּר בִּכְמוּיּוֹת קְטַנּוֹת אוֹ לִפְרִיטִים יִיחוּדִיִּים.",
+        "transliteration": "Beno'saf, ha'yiytzur larov doresh tavniyt deḥisah yi'udit she'alutah gvo'hah, velakhen lo tamid mishtalem leyiytzur bi'khmuyyot qeṭanot o li'friṭim yiḥu'diyim.",
+        "ru": "Кроме того, производство часто требует специальной пресс-формы, стоимость которой высока, поэтому оно не всегда выгодно для изготовления небольших партий или уникальных изделий."
+      },
+      "source_refs": [
+        "legacy_row_hash:a8116249f15bc8ef419bfae2c1896851aae2c27277bfee2376d2cec1f78f6f51",
+        "legacy_fields_sha256:07597a3bd338150477c660449b4c2ade54daf4bc9d3e8fae67b2c6ae76cdb211",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּנוֹסָף,",
+            "normalized": "בנוסף"
+          },
+          {
+            "index": 1,
+            "surface": "הַיִּיצוּר",
+            "normalized": "הייצור"
+          },
+          {
+            "index": 2,
+            "surface": "לָרוֹב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 3,
+            "surface": "דּוֹרֵשׁ",
+            "normalized": "דורש"
+          },
+          {
+            "index": 4,
+            "surface": "תַּבְנִית",
+            "normalized": "תבנית"
+          },
+          {
+            "index": 5,
+            "surface": "דְּחִיסָה",
+            "normalized": "דחיסה"
+          },
+          {
+            "index": 6,
+            "surface": "יִיעוּדִית",
+            "normalized": "ייעודית"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁעֲלוּתָהּ",
+            "normalized": "שעלותה"
+          },
+          {
+            "index": 8,
+            "surface": "גְּבוֹהָה,",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 9,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 10,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 11,
+            "surface": "תָּמִיד",
+            "normalized": "תמיד"
+          },
+          {
+            "index": 12,
+            "surface": "מִשְׁתַּלֵּם",
+            "normalized": "משתלם"
+          },
+          {
+            "index": 13,
+            "surface": "לְיִיצוּר",
+            "normalized": "לייצור"
+          },
+          {
+            "index": 14,
+            "surface": "בִּכְמוּיּוֹת",
+            "normalized": "בכמויות"
+          },
+          {
+            "index": 15,
+            "surface": "קְטַנּוֹת",
+            "normalized": "קטנות"
+          },
+          {
+            "index": 16,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 17,
+            "surface": "לִפְרִיטִים",
+            "normalized": "לפריטים"
+          },
+          {
+            "index": 18,
+            "surface": "יִיחוּדִיִּים.",
+            "normalized": "ייחודיים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q054-sol-r016",
+      "order": 16,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:2f2fc4b9ee8f9eb7676d66c41094e4aaed30201944ff5f98f2743afba9ee3a26",
+        "comparison:MATCH",
+        "source_page:63",
+        "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q054",
+    "display_alias": "54",
+    "source_pages": [
+      63
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а1) Керамика — неорганический неметаллический материал, обычно соединение металла/полуметалла с O, C, N, B и др., сформированное и уплотнённое термическим процессом. а2) Примеры carbides: SiC и WC.",
+      "б) Главные преимущества powder technology: near-net-shape с малым отходом/мехобработкой и возможность изготавливать тугоплавкие, очень твёрдые или специально пористые материалы, которые неудобно плавить/лить; дополнительно хорошо контролируются состав и повторяемость.",
+      "в) Нет. Ограничивают заполнение и извлечение из пресс-формы, направление давления, плотностные градиенты, тонкие стенки/поднутрения, размер пресса, усадка и трещины при спекании. Сложность можно расширить isostatic pressing/additive routes, но не отменить ограничения."
+    ],
+    "engineering_picture": "Порошковая заготовка сначала держится контактами частиц и binder, а после спекания — выросшими necks; геометрия должна пережить прессование, извлечение и усадку.",
+    "prerequisites": [
+      "Ceramics are not defined merely as brittle materials.",
+      "Powder metallurgy need not reach full theoretical density."
+    ],
+    "roadmap": [
+      "Give compositional/process definition.",
+      "Name two valid carbides.",
+      "Separate economic and material-enabling advantages.",
+      "List geometry physics limits."
+    ],
+    "main_trap": "Не отвечать, что из порошка можно сделать любую форму только потому, что порошок сыпучий.",
+    "givens": [
+      "Ceramic definition, two carbides, powder-technology advantages and shape feasibility."
+    ],
+    "find": [
+      "Four explanatory answers."
+    ],
+    "assumptions": [
+      "Conventional die compaction and sintering are the baseline process."
+    ],
+    "laws": [
+      "Green compact must be ejectable and mechanically stable; sintering causes shrinkage."
+    ],
+    "symbolic_derivation": [
+      "powder fill→compact→green body→sintered neck growth/densification."
+    ],
+    "calculation": [],
+    "construction": [
+      "Draw particles before pressing, green contacts and sintered necks."
+    ],
+    "checks": [
+      "SiC and WC are both carbides; advantages are not duplicates."
+    ],
+    "source_facts": [
+      "source_page:63",
+      "asset_sha256:a32f2525d55e3758d40539ce2357b2e06cff26ea9277cdef780440242336ad32"
+    ],
+    "unresolved_limits": [
+      "Advanced powder injection molding or additive manufacturing can change the shape envelope."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

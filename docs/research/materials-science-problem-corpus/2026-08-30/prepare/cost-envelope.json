@@ -1,0 +1,14 @@
+{
+  "schema": "linguistpro-materials-pb2-local-cost-envelope-v1",
+  "provider_calls_made": 0,
+  "secret_accessed": false,
+  "legacy_all_rows_upper_bound": {
+    "nonempty_rows": 2469,
+    "unique_exact_texts": 2355,
+    "all_characters": 186412,
+    "unique_characters": 181665,
+    "scope_warning": "MIXED_CONDITION_AND_SOLUTION_NOT_A_BUILD_OR_AUDIO_QUOTE"
+  },
+  "source_only_provider_token_envelope": "BLOCKED_UNTIL_REVIEWED_TASK_CROPS_AND_SHADOW_PROMPT_EXIST",
+  "tts_profile_and_cost_ceiling": "OWNER_APPROVAL_REQUIRED"
+}

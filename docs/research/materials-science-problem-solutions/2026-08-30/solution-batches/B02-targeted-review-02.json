@@ -1,0 +1,53 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B02-TR02-Q018-GRADE-IDENTIFICATION",
+  "task_id": "materials-science-y1-pb2-q018",
+  "status": "SOURCE_AND_APPENDIX_REVIEW_PASS_LEGACY_GRADE_REJECTED",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "2340bbf0cafdd4b009464fade741680b4bbbdc05d5ad7b15a21a0bd2d0e943a2",
+  "disagreement": {
+    "independent_candidate": "684 MPa overlaps SAE 1040 and SAE 1050; using both UTS and the measured 190 HB favors SAE 1040, but does not certify the grade.",
+    "legacy_candidate": "SAE/AISI 1045.",
+    "scope": "GRADE_IDENTIFICATION_AND_METROLOGY_QUALIFICATION"
+  },
+  "source_review": {
+    "condition_page": 23,
+    "appendix_pages": [68, 69],
+    "condition_asset_sha256": "ad9f66c3ee0f187026af932f72cf2a88db6cda6a9634be46456c3971eb859fdc",
+    "appendix_asset_sha256": [
+      "1dc94296ff3412c8a2c28668065c0555f87c237f6487ca0eb49ff9b1c651d6cf",
+      "7127743abaf76eabd5a62bd4ddff17c63e831edcd29b9045650a4899c869448e"
+    ],
+    "finding": "The supplied appendix lists SAE 1040 and SAE 1050 around the computed strength but does not contain a SAE 1045 row."
+  },
+  "declared_convention_sources": [
+    {
+      "title": "ASTM E140 — Standard Hardness Conversion Tables for Metals",
+      "url": "https://store.astm.org/standards/e140",
+      "claim_used": "Hardness scale conversions are approximate and material-specific; standardized indentation tests can have comparable reliability when correctly applied."
+    },
+    {
+      "title": "ISO 18265:2013 — Metallic materials — Conversion of hardness values",
+      "url": "https://www.iso.org/standard/53810.html",
+      "claim_used": "Converted values are indicators and do not replace results measured by the required method."
+    }
+  ],
+  "review_reasoning": [
+    "The source table gives 92 HRB=190 BHN and therefore sigma_UTS=3.6*190=684 MPa.",
+    "684 MPa belongs to both source appendix ranges: SAE 1040 at 620-775 MPa and SAE 1050 at 655-980 MPa, so UTS alone is non-unique.",
+    "The same appendix places 190 HB inside SAE 1040 at 183-262 HB and just below SAE 1050 at 192-321 HB; the combined classroom evidence therefore favors SAE 1040.",
+    "SAE 1045 is not a candidate row in the supplied appendix and is rejected as unsupported legacy output.",
+    "For the reading-method question, Rockwell uses residual penetration depth; Brinell and Vickers use optical indentation geometry. A universal accuracy ranking is not defensible without scale, material, surface, thickness and uncertainty conditions."
+  ],
+  "reviewed_exam_answer_ru": [
+    "92 HRB соответствует 190 BHN; σ_UTS=684 МПа.",
+    "По одному σ_UTS однозначного выбора нет: диапазоны SAE 1040 и SAE 1050 перекрываются.",
+    "Если совместно использовать измеренные 190 HB и приложение, наиболее обоснованный ответ — SAE 1040; это учебная идентификация, не сертификат марки.",
+    "Rockwell считывает глубину, Brinell/Vickers — размер отпечатка; точность определяется правильностью выбранного метода и условиями, а не названием шкалы само по себе."
+  ],
+  "disposition": "LEGACY_SAE_1045_REJECTED; SOURCE_APPENDIX_AMBIGUITY_DISCLOSED; SAE_1040_ACCEPTED_ONLY_AS_COMBINED_EVIDENCE_CLASSROOM_CHOICE",
+  "publication_blocking": false,
+  "further_repair_allowed": false
+}

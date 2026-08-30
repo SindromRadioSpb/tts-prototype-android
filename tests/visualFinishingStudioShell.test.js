@@ -94,16 +94,16 @@ test("VF3 shell locale labels are emoji-free and symmetric", () => {
   }
 });
 
-test("VF3 shell remains intact in the current 3.11.404 release and locale lock", () => {
+test("VF3 shell remains intact in the current release and locale lock", () => {
   const app = studio.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const footer = room.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && footer && worker);
-  assert.equal(app[1], "3.11.404");
+  assert.equal(app[1], "3.11.449");
   assert.equal(footer[1], app[1]);
   assert.equal(worker[1], app[1]);
   for (const code of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${code}.js?v=169`;
+    const url = `/i18n/locales/${code}.js?v=187`;
     assert.ok(studio.includes(url), `Studio must request exact ${url}`);
     assert.ok(room.includes(url), `Room must request exact ${url}`);
     assert.ok(sw.includes(JSON.stringify(url)), `SW must precache exact ${url}`);

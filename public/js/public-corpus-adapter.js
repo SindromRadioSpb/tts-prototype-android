@@ -142,5 +142,32 @@
     text(normalized.beginner.task_trap, 4000); text(normalized.beginner.hint_model, 4000); text(normalized.answer?.result, 4000);
     return Object.freeze(normalized);
   }
-  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport });
+  function normalizeMaterialsLearningSupport(payload, catalog, item) {
+    if (!payload || payload.schema_version !== "materials_pb2_learning_support.1.0.0" || payload.corpus_slug !== catalog.slug
+      || catalog.slug !== "materials-science-year1-problem-book-2" || payload.edition_id !== catalog.edition.edition_id
+      || Number(payload.edition_number) !== Number(catalog.edition.edition_number)
+      || payload.edition_manifest_sha256 !== catalog.edition.manifest_sha256 || payload.public_work_id !== item.public_work_id
+      || payload.snapshot_sha256 !== item.snapshot_sha256 || !/^materials-science-y1-pb2-/.test(String(payload.task_id || ""))
+      || payload.review?.state !== "REVIEWED_PASS" || payload.review?.publication_blocking !== false
+      || payload.rights?.public_read_allowed !== true || payload.rights?.public_solution_display_and_print_allowed !== true
+      || payload.audio_boundary?.full_tts_generated !== false || !HASH.test(String(payload.derivative_sha256 || ""))) invalid();
+    const rows = Array.isArray(payload.solution_rows) ? payload.solution_rows : invalid();
+    if (rows.length < 4 || rows.length > 160) invalid();
+    const normalizedRows = rows.map((row, index) => {
+      if (!row || count(row.order) !== index + 1 || !/^materials-science-y1-pb2-.+-sol-r\d{3}$/.test(String(row.row_id || ""))
+        || !Array.isArray(row.source_refs) || !row.source_refs.length || !row.text || !row.audio_plan
+        || row.audio_plan.state !== "DEFERRED_UNTIL_OWNER_CARD_REVIEW" || row.audio_plan.timings_present !== false
+        || !Array.isArray(row.audio_plan.karaoke_tokens) || !row.audio_plan.karaoke_tokens.length) invalid();
+      const parallel = {};
+      for (const field of ["he", "he_niqqud", "transliteration", "ru"]) parallel[field] = text(row.text[field], 12000);
+      for (const [tokenIndex, token] of row.audio_plan.karaoke_tokens.entries()) {
+        if (!token || count(token.index) !== tokenIndex || !String(token.surface || "").trim() || !String(token.normalized || "").trim()) invalid();
+      }
+      return Object.freeze({ ...clone(row), text: Object.freeze(parallel) });
+    });
+    const condition = payload.condition || {};
+    if (!Array.isArray(condition.rows) || !condition.rows.length || !Array.isArray(condition.source_pages)) invalid();
+    return Object.freeze({ ...clone(payload), solution_rows: Object.freeze(normalizedRows), condition: clone(condition) });
+  }
+  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport, normalizeMaterialsLearningSupport });
 });

@@ -1,0 +1,1618 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q003",
+  "display_alias": "3",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "454ef01467f6acf7f1a04e2068f96c865e698ad20a84242ed0847bb92d255d95"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "2e561726228bfebf17cb239aa8f8b1f29cf67b38fcfec87e1c83e11448913100",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "All three term-bank assignments and definitions match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q003-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 3: הגדר את תכונות החומר בעזרת מאגר המושגים:",
+        "hebrew_niqqud": "שְׁאֵלָה 3: הַגְדֵּר אֶת תְּכוּנוֹת הַחוֹמֶר בְּעֶזְרַת מַאֲגַר הַמּוּשָׂגִים:",
+        "translit": "Sh'ela 3: Hagder et tkhunot ha-khomer be'ezrat ma'agar ha-musagim:",
+        "translit_ru": "",
+        "russian": "Вопрос 3: Определите свойства материала с помощью банка терминов:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "task_heading",
+            "source_page": 6,
+            "source_row_index": 0,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r002",
+        "order_index": 1,
+        "hebrew_plain": "מאגר המושגים",
+        "hebrew_niqqud": "מַאֲגַר הַמֻּושָּׂגִים",
+        "translit": "Ma'agar ha-musagim",
+        "translit_ru": "",
+        "russian": "Банк понятий",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "source_note",
+            "source_page": 6,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r003",
+        "order_index": 2,
+        "hebrew_plain": "1. להתמודד",
+        "hebrew_niqqud": "1. לְהִתְמוֹדֵד",
+        "translit": "1. Lehitmoded",
+        "translit_ru": "",
+        "russian": "1. Противостоять",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "source_note",
+            "source_page": 6,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r004",
+        "order_index": 3,
+        "hebrew_plain": "2. לשנות את צורתו בלי להישבר ולהיסדק עקב",
+        "hebrew_niqqud": "2. לְשַׁנּוֹת אֶת צוּרָתוֹ בְּלִי לְהִישָּׁבֵר וּלְהִיסָּדֵק עֵקֶב",
+        "translit": "2. Leshanot et tzurato bli lehishaver u-lehissadek ekev",
+        "translit_ru": "",
+        "russian": "2. Изменять свою форму без разрушения и растрескивания вследствие",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "source_note",
+            "source_page": 6,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r005",
+        "order_index": 4,
+        "hebrew_plain": "3. לחזור למצבו המקורי אחרי הפסקת",
+        "hebrew_niqqud": "3. לַחֲזֹור לְמַצָּבוֹ הַמְּקוֹרִי אַחֲרֵי הַפְסָקַת",
+        "translit": "3. Lakhazor le-matzavo ha-mekori akharei hafsakat",
+        "translit_ru": "",
+        "russian": "3. Возвращаться в исходное состояние после прекращения",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "source_note",
+            "source_page": 6,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r006",
+        "order_index": 5,
+        "hebrew_plain": "א) חוזק הוא יכולת של החומר ________ להשפעה של כוחות חיצוניים.",
+        "hebrew_niqqud": "א) חֹוזֶק הוּא יְכֹולֶת שֶׁל הַחוֹמֶר ________ לְהַשְׁפָּעָה שֶׁל כֹּוחוֹת חִיצוֹנִיִּים.",
+        "translit": "A) Khozek hu yekholet shel ha-khomer ________ le-hashpa'ah shel kokhot khitzoniyim.",
+        "translit_ru": "",
+        "russian": "А) Прочность — это способность материала ________ воздействию внешних сил.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "subpart",
+            "source_page": 6,
+            "source_row_index": 5,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r007",
+        "order_index": 6,
+        "hebrew_plain": "ב. אלסטיות היא יכולת של החומר ................................ השפעה של כוחות חיצוניים.",
+        "hebrew_niqqud": "ב. אֵלַסְטִיּוּת הִיא יְכֹולֶת שֶׁל הַחֹומֶר ................................ הַשְׁפָּעָה שֶׁל כֹּוחוֹת חִיצוֹנִיִּים.",
+        "translit": "B. Elastiyut hi yekholet shel ha-khomer ................................ hashpa'ah shel kokhot khitzoniyim.",
+        "translit_ru": "",
+        "russian": "б. Упругость — это способность материала ................................ действие внешних сил.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "subpart",
+            "source_page": 6,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q003-r008",
+        "order_index": 7,
+        "hebrew_plain": "ג) פלסטיות היא יכולת של החומר ________ השפעה של כוחות חיצוניים.",
+        "hebrew_niqqud": "ג) פְּלַסְטִיּוּת הִיא יְכֹולֶת שֶׁל הַחוֹמֶר ________ הַשְׁפָּעָה שֶׁל כֹּוחוֹת חִיצוֹנִיִּים.",
+        "translit": "G) Plasticut hi yekholet shel ha-khomer ________ hashpa'ah shel kokhot khitzoniyim.",
+        "translit_ru": "",
+        "russian": "В) Пластичность — это способность материала ________ воздействие внешних сил.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q003",
+            "kind": "subpart",
+            "source_page": 6,
+            "source_row_index": 7,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      6
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q003/anchor-01-p006.jpg",
+        "sha256": "d999e23bd589c5f4e3c98aa6b52c066f9d2125c3694ad00ad4f218ae7f96152f",
+        "bytes": 193512,
+        "source_page": 6,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          0.52
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q003-v01",
+        "source_page": 6,
+        "kind": "TERM_BANK_PANEL",
+        "instance_count": 1,
+        "semantic_role": "STRUCTURED_PROMPT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:2e561726228bfebf17cb239aa8f8b1f29cf67b38fcfec87e1c83e11448913100"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) חוזק הוא יכולת של החומר להתמודד עם השפעת כוחות חיצוניים.",
+        "he_niqqud": "א) חֹזֶק הוּא יְכֹלֶת שֶׁל הַחוֹמֶר לְהִתְמוֹדֵד עִם הַשְׁפָּעַת כֹּחוֹת חִיצוֹנִיִּים.",
+        "transliteration": "A) Khozek hu yekholet shel ha-khomer lehitmoded 'im hashpa'at kokhot khitzoniyim.",
+        "ru": "А) Прочность — это способность материала противостоять воздействию внешних сил."
+      },
+      "source_refs": [
+        "legacy_row_hash:b520070f21c16010696df8ed9c5650a3a7e4864d9f3b5b14ce1070a05f84b977",
+        "legacy_fields_sha256:88f9b52ad37f0db16e545a48949e55e98e152550d6f5955a01f32c153b8315ce",
+        "independent_solution_sha256:2e561726228bfebf17cb239aa8f8b1f29cf67b38fcfec87e1c83e11448913100"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "הַחוֹמֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 6,
+            "surface": "לְהִתְמוֹדֵד",
+            "normalized": "להתמודד"
+          },
+          {
+            "index": 7,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 8,
+            "surface": "הַשְׁפָּעַת",
+            "normalized": "השפעת"
+          },
+          {
+            "index": 9,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 10,
+            "surface": "חִיצוֹנִיִּים.",
+            "normalized": "חיצוניים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) אלסטיות היא יכולת של החומר לחזור למצבו המקורי אחרי הפסקת השפעת כוחות חיצוניים.",
+        "he_niqqud": "ב) אֵלַסְטִיּוּת הִיא יְכֹלֶת שֶׁל הַחוֹמֶר לַחְזוֹר לְמַצָּבוֹ הַמְּקוֹרִי אַחֲרֵי הַפְסָקַת הַשְׁפָּעַת כֹּחוֹת חִיצוֹנִיִּים.",
+        "transliteration": "B) Elasticut hi yekholet shel ha-khomer lakhzor le-matzavo ha-mekori akharei hafsakat hashpa'at kokhot khitzoniyim.",
+        "ru": "Б) Упругость — это способность материала возвращаться в свое первоначальное состояние после прекращения воздействия внешних сил."
+      },
+      "source_refs": [
+        "legacy_row_hash:f9604f1c4399e72401513b6577fa0f34bfba0696cb6c09d1057710f5dc25091b",
+        "legacy_fields_sha256:e0fb90fd534f166af635331014d6c0d174a59424134a8eea5b40d839547421e3",
+        "independent_solution_sha256:2e561726228bfebf17cb239aa8f8b1f29cf67b38fcfec87e1c83e11448913100"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "אֵלַסְטִיּוּת",
+            "normalized": "אלסטיות"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "הַחוֹמֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 6,
+            "surface": "לַחְזוֹר",
+            "normalized": "לחזור"
+          },
+          {
+            "index": 7,
+            "surface": "לְמַצָּבוֹ",
+            "normalized": "למצבו"
+          },
+          {
+            "index": 8,
+            "surface": "הַמְּקוֹרִי",
+            "normalized": "המקורי"
+          },
+          {
+            "index": 9,
+            "surface": "אַחֲרֵי",
+            "normalized": "אחרי"
+          },
+          {
+            "index": 10,
+            "surface": "הַפְסָקַת",
+            "normalized": "הפסקת"
+          },
+          {
+            "index": 11,
+            "surface": "הַשְׁפָּעַת",
+            "normalized": "השפעת"
+          },
+          {
+            "index": 12,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 13,
+            "surface": "חִיצוֹנִיִּים.",
+            "normalized": "חיצוניים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) פלסטיות היא יכולת של החומר לשנות את צורתו בלי להישבר ולהיסדק עקב השפעת כוחות חיצוניים.",
+        "he_niqqud": "ג) פְּלַסְטִיּוּת הִיא יְכֹלֶת שֶׁל הַחוֹמֶר לְשַׁנּוֹת אֶת צוּרָתוֹ בְּלִי לְהִישָּׁבֵר וּלְהִיסָּדֵק עֵקֶב הַשְׁפָּעַת כֹּחוֹת חִיצוֹנִיִּים.",
+        "transliteration": "G) Plasticut hi yekholet shel ha-khomer leshanot et tzurato bli lehishaver ve-lehisedek 'ekev hashpa'at kokhot khitzoniyim.",
+        "ru": "В) Пластичность — это способность материала изменять свою форму, не ломаясь и не трескаясь вследствие воздействия внешних сил."
+      },
+      "source_refs": [
+        "legacy_row_hash:83e5adeafa2348502c17425e4fba67a1fa25badc8e4a5520bb3f68d558668d76",
+        "legacy_fields_sha256:3ed7ed1110c8b0caefd3a488c5e8b07871105e79a43090db74ded3692da8c119",
+        "independent_solution_sha256:2e561726228bfebf17cb239aa8f8b1f29cf67b38fcfec87e1c83e11448913100"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלַסְטִיּוּת",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "הַחוֹמֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 6,
+            "surface": "לְשַׁנּוֹת",
+            "normalized": "לשנות"
+          },
+          {
+            "index": 7,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 8,
+            "surface": "צוּרָתוֹ",
+            "normalized": "צורתו"
+          },
+          {
+            "index": 9,
+            "surface": "בְּלִי",
+            "normalized": "בלי"
+          },
+          {
+            "index": 10,
+            "surface": "לְהִישָּׁבֵר",
+            "normalized": "להישבר"
+          },
+          {
+            "index": 11,
+            "surface": "וּלְהִיסָּדֵק",
+            "normalized": "ולהיסדק"
+          },
+          {
+            "index": 12,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 13,
+            "surface": "הַשְׁפָּעַת",
+            "normalized": "השפעת"
+          },
+          {
+            "index": 14,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 15,
+            "surface": "חִיצוֹנִיִּים.",
+            "normalized": "חיצוניים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) חוזק הוא יכולת של החומר להתמודד עם השפעת כוחות חיצוניים.",
+        "he_niqqud": "א) חֹזֶק הוּא יְכֹלֶת שֶׁל הַחוֹמֶר לְהִתְמוֹדֵד עִם הַשְׁפָּעַת כֹּחוֹת חִיצוֹנִיִּים.",
+        "transliteration": "A) Khozek hu yekholet shel ha-khomer lehitmoded 'im hashpa'at kokhot khitzoniyim.",
+        "ru": "А) Прочность — это способность материала противостоять воздействию внешних сил."
+      },
+      "source_refs": [
+        "legacy_row_hash:b520070f21c16010696df8ed9c5650a3a7e4864d9f3b5b14ce1070a05f84b977",
+        "legacy_fields_sha256:88f9b52ad37f0db16e545a48949e55e98e152550d6f5955a01f32c153b8315ce",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "הַחוֹמֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 6,
+            "surface": "לְהִתְמוֹדֵד",
+            "normalized": "להתמודד"
+          },
+          {
+            "index": 7,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 8,
+            "surface": "הַשְׁפָּעַת",
+            "normalized": "השפעת"
+          },
+          {
+            "index": 9,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 10,
+            "surface": "חִיצוֹנִיִּים.",
+            "normalized": "חיצוניים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בביטוי \"להתמודד\" הצירוף התקין הוא \"להתמודד עם\".",
+        "he_niqqud": "בַּבִּטּוּי \"לְהִתְמוֹדֵד\" הַצֵּרוּף הַתַּקִּין הוּא \"לְהִתְמוֹדֵד עִם\".",
+        "transliteration": "Ba-bitui \"lehitmoded\" ha-tzeruf ha-takin hu \"lehitmoded 'im\".",
+        "ru": "В выражении \"להתמודד\" (справляться) правильное сочетание — \"להתמודד עם\" (справляться с)."
+      },
+      "source_refs": [
+        "legacy_row_hash:8d7063bf03655922204932c052566a81c82c05c61d48e37876698f6161e9482b",
+        "legacy_fields_sha256:e71f48729e38a4da4e44cafe4138850550eb5a4e0d6b7563991fb91c6f0b7934",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּבִּטּוּי",
+            "normalized": "בבטוי"
+          },
+          {
+            "index": 1,
+            "surface": "\"לְהִתְמוֹדֵד\"",
+            "normalized": "להתמודד"
+          },
+          {
+            "index": 2,
+            "surface": "הַצֵּרוּף",
+            "normalized": "הצרוף"
+          },
+          {
+            "index": 3,
+            "surface": "הַתַּקִּין",
+            "normalized": "התקין"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "\"לְהִתְמוֹדֵד",
+            "normalized": "להתמודד"
+          },
+          {
+            "index": 6,
+            "surface": "עִם\".",
+            "normalized": "עם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "חוזק מתאר את היכולת של חומר לעמוד או להתנגד לפעולת כוחות חיצוניים בלי כשל.",
+        "he_niqqud": "חֹזֶק מְתָאֵר אֶת הַיְּכֹלֶת שֶׁל חוֹמֶר לַעֲמוֹד אוֹ לְהִתְנַגֵּד לִפְעֻלַּת כֹּחוֹת חִיצוֹנִיִּים בְּלִי כֶּשֶׁל.",
+        "transliteration": "Khozek meta'er et ha-yekholet shel khomer la'amod o lehitnaged li-fe'ulat kokhot khitzoniyim bli keshel.",
+        "ru": "Прочность описывает способность материала выдерживать или сопротивляться действию внешних сил без разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:b1d650ede120d14431b4826cc9f92be561ef39c1dcefed8351260cbe96de0580",
+        "legacy_fields_sha256:9076feba362ba40e6798f858cefcbbc1c6364fdedea511c3707692c893b74022",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 1,
+            "surface": "מְתָאֵר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 2,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 3,
+            "surface": "הַיְּכֹלֶת",
+            "normalized": "היכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 6,
+            "surface": "לַעֲמוֹד",
+            "normalized": "לעמוד"
+          },
+          {
+            "index": 7,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 8,
+            "surface": "לְהִתְנַגֵּד",
+            "normalized": "להתנגד"
+          },
+          {
+            "index": 9,
+            "surface": "לִפְעֻלַּת",
+            "normalized": "לפעלת"
+          },
+          {
+            "index": 10,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 11,
+            "surface": "חִיצוֹנִיִּים",
+            "normalized": "חיצוניים"
+          },
+          {
+            "index": 12,
+            "surface": "בְּלִי",
+            "normalized": "בלי"
+          },
+          {
+            "index": 13,
+            "surface": "כֶּשֶׁל.",
+            "normalized": "כשל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) אלסטיות היא יכולת של החומר לחזור למצבו המקורי אחרי הפסקת השפעת כוחות חיצוניים.",
+        "he_niqqud": "ב) אֵלַסְטִיּוּת הִיא יְכֹלֶת שֶׁל הַחוֹמֶר לַחְזוֹר לְמַצָּבוֹ הַמְּקוֹרִי אַחֲרֵי הַפְסָקַת הַשְׁפָּעַת כֹּחוֹת חִיצוֹנִיִּים.",
+        "transliteration": "B) Elasticut hi yekholet shel ha-khomer lakhzor le-matzavo ha-mekori akharei hafsakat hashpa'at kokhot khitzoniyim.",
+        "ru": "Б) Упругость — это способность материала возвращаться в свое первоначальное состояние после прекращения воздействия внешних сил."
+      },
+      "source_refs": [
+        "legacy_row_hash:f9604f1c4399e72401513b6577fa0f34bfba0696cb6c09d1057710f5dc25091b",
+        "legacy_fields_sha256:e0fb90fd534f166af635331014d6c0d174a59424134a8eea5b40d839547421e3",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "אֵלַסְטִיּוּת",
+            "normalized": "אלסטיות"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "הַחוֹמֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 6,
+            "surface": "לַחְזוֹר",
+            "normalized": "לחזור"
+          },
+          {
+            "index": 7,
+            "surface": "לְמַצָּבוֹ",
+            "normalized": "למצבו"
+          },
+          {
+            "index": 8,
+            "surface": "הַמְּקוֹרִי",
+            "normalized": "המקורי"
+          },
+          {
+            "index": 9,
+            "surface": "אַחֲרֵי",
+            "normalized": "אחרי"
+          },
+          {
+            "index": 10,
+            "surface": "הַפְסָקַת",
+            "normalized": "הפסקת"
+          },
+          {
+            "index": 11,
+            "surface": "הַשְׁפָּעַת",
+            "normalized": "השפעת"
+          },
+          {
+            "index": 12,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 13,
+            "surface": "חִיצוֹנִיִּים.",
+            "normalized": "חיצוניים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אלסטיות מתארת חזרה לצורה ולממדים המקוריים לאחר הסרת העומס.",
+        "he_niqqud": "אֵלַסְטִיּוּת מְתָאֶרֶת חֲזָרָה לַצּוּרָה וְלַמְּמַדִּים הַמְּקוֹרִיִּים לְאַחַר הֲסָרַת הָעֹמֶס.",
+        "transliteration": "Elasticut meta'eret khazara la-tzurah vela-memadim ha-mekoriyim lekhar hasarat ha-'omes.",
+        "ru": "Упругость описывает возвращение к первоначальной форме и размерам после снятия нагрузки."
+      },
+      "source_refs": [
+        "legacy_row_hash:cec839481643cb539f2fed676aea788e0c207976a8e53d95cf6396696212641b",
+        "legacy_fields_sha256:2248243e7d394af7a5663ab80b849c220a7fdccfd128ca965ec4ab2c39bca326",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אֵלַסְטִיּוּת",
+            "normalized": "אלסטיות"
+          },
+          {
+            "index": 1,
+            "surface": "מְתָאֶרֶת",
+            "normalized": "מתארת"
+          },
+          {
+            "index": 2,
+            "surface": "חֲזָרָה",
+            "normalized": "חזרה"
+          },
+          {
+            "index": 3,
+            "surface": "לַצּוּרָה",
+            "normalized": "לצורה"
+          },
+          {
+            "index": 4,
+            "surface": "וְלַמְּמַדִּים",
+            "normalized": "ולממדים"
+          },
+          {
+            "index": 5,
+            "surface": "הַמְּקוֹרִיִּים",
+            "normalized": "המקוריים"
+          },
+          {
+            "index": 6,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 7,
+            "surface": "הֲסָרַת",
+            "normalized": "הסרת"
+          },
+          {
+            "index": 8,
+            "surface": "הָעֹמֶס.",
+            "normalized": "העמס"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בתחום האלסטי המעוות הוא הפיך.",
+        "he_niqqud": "בִּתְחוּם הָאֵלַסְטִי הַמְּעֻוָּת הוּא הָפִיךְ.",
+        "transliteration": "Ba-tkhum ha-elasti ha-me'uvat hu hafik.",
+        "ru": "В упругой области деформация обратима."
+      },
+      "source_refs": [
+        "legacy_row_hash:e66cea6cb1d99ea3b5a016fa403ee9b90e4f5d3eef947ed99a930576469ad930",
+        "legacy_fields_sha256:259f033117bc35b00cc2e9fb188cef13f07abec1f691aec30972415a2f1b347d",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּתְחוּם",
+            "normalized": "בתחום"
+          },
+          {
+            "index": 1,
+            "surface": "הָאֵלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּעֻוָּת",
+            "normalized": "המעות"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "הָפִיךְ.",
+            "normalized": "הפיך"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r011",
+      "order": 11,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "E=σ/ε",
+        "he_niqqud": "E=σ/ε",
+        "transliteration": "E=sigma/epsilon",
+        "ru": "E=σ/ε"
+      },
+      "source_refs": [
+        "legacy_row_hash:b00dd8ed0aecf38fa5416fce2ab43544b86097a32d6d3331bf5b4fbcd3683b7c",
+        "legacy_fields_sha256:5c93548f4d901c4ef03ae41f80994c3ecb2383932da025fb4b43e8e60bc50ce6",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E=σ/ε",
+            "normalized": "E=σ/ε"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E=σ/ε"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) פלסטיות היא יכולת של החומר לשנות את צורתו בלי להישבר ולהיסדק עקב השפעת כוחות חיצוניים.",
+        "he_niqqud": "ג) פְּלַסְטִיּוּת הִיא יְכֹלֶת שֶׁל הַחוֹמֶר לְשַׁנּוֹת אֶת צוּרָתוֹ בְּלִי לְהִישָּׁבֵר וּלְהִיסָּדֵק עֵקֶב הַשְׁפָּעַת כֹּחוֹת חִיצוֹנִיִּים.",
+        "transliteration": "G) Plasticut hi yekholet shel ha-khomer leshanot et tzurato bli lehishaver ve-lehisedek 'ekev hashpa'at kokhot khitzoniyim.",
+        "ru": "В) Пластичность — это способность материала изменять свою форму, не ломаясь и не трескаясь вследствие воздействия внешних сил."
+      },
+      "source_refs": [
+        "legacy_row_hash:83e5adeafa2348502c17425e4fba67a1fa25badc8e4a5520bb3f68d558668d76",
+        "legacy_fields_sha256:3ed7ed1110c8b0caefd3a488c5e8b07871105e79a43090db74ded3692da8c119",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלַסְטִיּוּת",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "הַחוֹמֶר",
+            "normalized": "החומר"
+          },
+          {
+            "index": 6,
+            "surface": "לְשַׁנּוֹת",
+            "normalized": "לשנות"
+          },
+          {
+            "index": 7,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 8,
+            "surface": "צוּרָתוֹ",
+            "normalized": "צורתו"
+          },
+          {
+            "index": 9,
+            "surface": "בְּלִי",
+            "normalized": "בלי"
+          },
+          {
+            "index": 10,
+            "surface": "לְהִישָּׁבֵר",
+            "normalized": "להישבר"
+          },
+          {
+            "index": 11,
+            "surface": "וּלְהִיסָּדֵק",
+            "normalized": "ולהיסדק"
+          },
+          {
+            "index": 12,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 13,
+            "surface": "הַשְׁפָּעַת",
+            "normalized": "השפעת"
+          },
+          {
+            "index": 14,
+            "surface": "כֹּחוֹת",
+            "normalized": "כחות"
+          },
+          {
+            "index": 15,
+            "surface": "חִיצוֹנִיִּים.",
+            "normalized": "חיצוניים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "פלסטיות מתארת שינוי צורה קבוע לאחר העמסה בלי שבירה או סדיקה.",
+        "he_niqqud": "פְּלַסְטִיּוּת מְתָאֶרֶת שִׁנּוּי צוּרָה קָבוּעַ לְאַחַר הַעֲמָסָה בְּלִי שְׁבִירָה אוֹ סְדִיקָה.",
+        "transliteration": "Plasticut meta'eret shinui tzurah kavu'a lekhar ha'amasa bli shvirah o sedika.",
+        "ru": "Пластичность описывает постоянное изменение формы после нагружения без разрушения или растрескивания."
+      },
+      "source_refs": [
+        "legacy_row_hash:c511faf28f1eadfa8a44cbc65e76b4cd6558b080ce572028792ca8ae9b3acb47",
+        "legacy_fields_sha256:f7a4b32c4a9e53c129ee90978f095bfcd537fa2a4bf0ec96ab432291a4467edd",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פְּלַסְטִיּוּת",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 1,
+            "surface": "מְתָאֶרֶת",
+            "normalized": "מתארת"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁנּוּי",
+            "normalized": "שנוי"
+          },
+          {
+            "index": 3,
+            "surface": "צוּרָה",
+            "normalized": "צורה"
+          },
+          {
+            "index": 4,
+            "surface": "קָבוּעַ",
+            "normalized": "קבוע"
+          },
+          {
+            "index": 5,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 6,
+            "surface": "הַעֲמָסָה",
+            "normalized": "העמסה"
+          },
+          {
+            "index": 7,
+            "surface": "בְּלִי",
+            "normalized": "בלי"
+          },
+          {
+            "index": 8,
+            "surface": "שְׁבִירָה",
+            "normalized": "שבירה"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 10,
+            "surface": "סְדִיקָה.",
+            "normalized": "סדיקה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבר לנקודת הכניעה מתחיל תחום פלסטי שבו המעוות אינו חוזר לאחר הסרת העומס.",
+        "he_niqqud": "מֵעֵבֶר לְנְקֻדַּת הַכְּנִיעָה מַתְחִיל תְּחוּם פְּלַסְטִי שֶׁבּוֹ הַמְּעֻוָּת אֵינוֹ חוֹזֵר לְאַחַר הֲסָרַת הָעֹמֶס.",
+        "transliteration": "Ma'avar le-nekudat ha-keni'ah matkhil tkhum plasti she-bo ha-me'uvat eyno khozer lekhar hasarat ha-'omes.",
+        "ru": "За точкой текучести начинается пластическая область, в которой деформация не исчезает после снятия нагрузки."
+      },
+      "source_refs": [
+        "legacy_row_hash:34f8791b9aea96959c0d22d17e7074a253ad9a17d3ac4fe321f1559596a40869",
+        "legacy_fields_sha256:f58516d50ec4ace31ff08d6908832e09866a15301b4570a0b2f04e0e609ef6f8",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֵעֵבֶר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 1,
+            "surface": "לְנְקֻדַּת",
+            "normalized": "לנקדת"
+          },
+          {
+            "index": 2,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 3,
+            "surface": "מַתְחִיל",
+            "normalized": "מתחיל"
+          },
+          {
+            "index": 4,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 5,
+            "surface": "פְּלַסְטִי",
+            "normalized": "פלסטי"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 7,
+            "surface": "הַמְּעֻוָּת",
+            "normalized": "המעות"
+          },
+          {
+            "index": 8,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 9,
+            "surface": "חוֹזֵר",
+            "normalized": "חוזר"
+          },
+          {
+            "index": 10,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 11,
+            "surface": "הֲסָרַת",
+            "normalized": "הסרת"
+          },
+          {
+            "index": 12,
+            "surface": "הָעֹמֶס.",
+            "normalized": "העמס"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q003-sol-r015",
+      "order": 15,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:2e561726228bfebf17cb239aa8f8b1f29cf67b38fcfec87e1c83e11448913100",
+        "comparison:MATCH",
+        "source_page:6",
+        "canonical_rows:q003-r002..q003-r008"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q003",
+    "display_alias": "3",
+    "source_pages": [
+      6
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "Прочность — способность материала противостоять воздействию внешних сил.",
+      "Упругость — способность материала возвращаться в исходное состояние после прекращения действия внешних сил.",
+      "Пластичность — способность материала изменять форму без разрушения и растрескивания вследствие воздействия внешних сил."
+    ],
+    "engineering_picture": "Каждому определению соответствует один фрагмент банка терминов: сопротивление, восстановление формы или необратимое изменение формы без разрушения.",
+    "prerequisites": [
+      "Различать прочность, упругость и пластичность."
+    ],
+    "roadmap": [
+      "Сопоставить смысл определения с фрагментом банка.",
+      "Проверить грамматику и отсутствие повторного использования фрагмента."
+    ],
+    "main_trap": "Не путать прочность со способностью восстанавливать форму, а упругость — с пластическим изменением формы.",
+    "givens": [
+      "Три определения с пропусками и три фрагмента банка терминов."
+    ],
+    "find": [
+      "Заполненные определения."
+    ],
+    "assumptions": [],
+    "laws": [],
+    "symbolic_derivation": [
+      "Прочность→1; упругость→3; пластичность→2."
+    ],
+    "calculation": [],
+    "construction": [],
+    "checks": [
+      "Каждый фрагмент банка использован ровно один раз."
+    ],
+    "source_facts": [
+      "source_page:6",
+      "canonical_rows:q003-r002..q003-r008"
+    ],
+    "unresolved_limits": []
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

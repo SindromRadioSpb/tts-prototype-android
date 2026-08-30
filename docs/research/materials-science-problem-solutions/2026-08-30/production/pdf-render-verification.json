@@ -1,0 +1,33 @@
+{
+  "schema_version": "materials_pb2_pdf_render_verification.1.0.0",
+  "status": "PASS_VISUALLY_REVIEWED_LOCAL_BROWSER_OUTPUT",
+  "renderer": "Chromium print plus PyMuPDF 1.6x raster review",
+  "study": {
+    "file": "output/pdf/materials-pb2-q001-study-4-columns.pdf",
+    "sha256": "995d3bdeead6480620aa61454fdcc70dccfce4d36b12fd3080ff347082e2d192",
+    "bytes": 331575,
+    "pages": 5,
+    "page_points": [841.9, 595.0],
+    "orientation": "A4_LANDSCAPE",
+    "columns": 5,
+    "content": "STEP_PLUS_HEBREW_NIQQUD_TRANSLITERATION_RUSSIAN"
+  },
+  "exam": {
+    "file": "output/pdf/materials-pb2-q001-exam-hebrew.pdf",
+    "sha256": "725822a06793d948118f21f337789288e06b6b406030978a500bcab94cdc4e44",
+    "bytes": 296801,
+    "pages": 3,
+    "page_points": [595.0, 841.9],
+    "orientation": "A4_PORTRAIT",
+    "columns": 2,
+    "content": "STEP_PLUS_PLAIN_HEBREW_ALL_EXAM_ROWS"
+  },
+  "visual_checks": {
+    "headings_and_mode_specific_subtitles": "PASS",
+    "table_headers_before_rows_and_repeated_at_page_breaks": "PASS",
+    "source_figure_present_and_legible": "PASS",
+    "hebrew_and_formulas_not_clipped": "PASS",
+    "page_numbers_and_mode_footer": "PASS",
+    "physical_printer": "NOT_RUN"
+  }
+}

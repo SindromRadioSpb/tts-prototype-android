@@ -1,0 +1,708 @@
+{
+  "batch_id": "B05",
+  "row_count": 97,
+  "row_ids_sha256": "fa5edfbf6ef22fda79af6ad8490a7924f5f13b97fb7d64f5c75f3593b93c5539",
+  "plain_hebrew_has_niqqud": false,
+  "hebrew_skeleton_mismatch_count": 0,
+  "hebrew_niqqud_skeleton_normalization_count": 67,
+  "source_verified_legacy_fallback_count": 6,
+  "source_verified_legacy_fallback_row_ids": [
+    "materials-science-y1-pb2-q039-r012",
+    "materials-science-y1-pb2-q039-r013",
+    "materials-science-y1-pb2-q039-r014",
+    "materials-science-y1-pb2-q041-r015",
+    "materials-science-y1-pb2-q041-r016",
+    "materials-science-y1-pb2-q044-r004"
+  ],
+  "minimum_provider_to_legacy_semantic_similarity": 0.72,
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q039-r002",
+      "he": "מחלקת הנדסה נדרשת להמליץ על נתך העשוי פלב\"מ (פלדה בלתי מחלידה), כחומר לייצור חלק שנתוניו צריכים להיות:",
+      "he_niqqud": "מַחְלֶקֶת הַנְדָּסָה נִדְרֶשֶׁת לְהַמְלִיץ עַל נֶתֶךְ הֶעָשׂוּי פַלְבָּ\"מ (פְּלָדָה בִּלְתִּי מַחֲלִידָה), כְּחֹומֶר לְייִצּוּר חֵלֶק שֶׁנְּתוּנָיו צְרִיכִים לִהְיוֹת:",
+      "transliteration": "Maḥleket handasah nidreshet lehamlitz 'al netakh he'asuy palba\"m (pladah bilti maḥlidah), keḥomer leyitzur ḥelek shenetunav tzrikhim lihyot:",
+      "ru": "Инженерный отдел должен рекомендовать сплав из нержавеющей стали (НЖС) в качестве материала для изготовления детали, параметры которой должны быть следующими:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r003",
+      "he": "קוטרו 50 מ\"מ ועוביו 4 מ\"מ.",
+      "he_niqqud": "קוֹטְרוֹ 50 מ\"מ וְעָובְיוֹ 4 מ\"מ.",
+      "transliteration": "Kotro 50 m\"m ve'ovyo 4 m\"m.",
+      "ru": "Её диаметр 50 мм и её толщина 4 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r004",
+      "he": "\"מאמץ הכניעה\" שלו גדול מ־240 MPa .",
+      "he_niqqud": "\"מַאֲמַץ הַכְּנִיעָה\" שֶׁלּוֹ גָּדוֹל מִ־240 MPa .",
+      "transliteration": "\"Ma'amatz hakni'ah\" shelo gadol mi-240 MPa .",
+      "ru": "Её \"предел текучести\" больше 240 MPa."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r005",
+      "he": "\"התארכותו היחסית\" גדולה מ־45% .",
+      "he_niqqud": "\"הִתְאָרְכוּתוֹ הַיַּחֲסִית\" גְּדוֹלָה מִ־45% .",
+      "transliteration": "\"Hit'arkhuto hayaḥasit\" gdolah mi-45% .",
+      "ru": "Её \"относительное удлинение\" больше 45%."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r006",
+      "he": "\"קשיותו\" גדולה מ־140 HB .",
+      "he_niqqud": "\"קַשְׁיוּתוֹ\" גְּדוֹלָה מִ־140 HB .",
+      "transliteration": "\"Kashyuto\" gdolah mi-140 HB .",
+      "ru": "Её \"твёрдость\" больше 140 HB."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r007",
+      "he": "\"כושר החישול\" שלו טוב.",
+      "he_niqqud": "\"כֹּושֶׁר הַחִישּׁוּל\" שֶׁלּוֹ טוֹב.",
+      "transliteration": "\"Kosher haḥishul\" shelo tov.",
+      "ru": "Её \"способность к ковке\" хорошая."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r008",
+      "he": "ענה על הסעיפים א' ו־ב' בעזרת הנספחים ו' ו־ז':",
+      "he_niqqud": "עֲנֵה עַל הַסְּעִיפִים א' וּ־ב' בְּעֶזְרַת הַנִּסְפָּחִים ו' וְ־ז':",
+      "transliteration": "'Aneh 'al hase'ifim a' u-b' be'ezrat hanispaḥim v' ve-z':",
+      "ru": "Ответьте на пункты א и ב с помощью приложений ו и ז:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r009",
+      "he": "א. בחר פלב\"מ בהתאם לדרישות והצג את תהליך הבחירה.",
+      "he_niqqud": "א. בְּחַר פַלְבָּ\"מ בְּהֶתְאֵם לַדְּרִישׁוֹת וְהַצֵּג אֶת תַּהֲלִיךְ הַבְּחִירָה.",
+      "transliteration": "a. Beḥar palba\"m behet'em ladrishot vehatzeg et tahalikh habḥirah.",
+      "ru": "א. Выберите нержавеющую сталь в соответствии с требованиями и представьте процесс выбора."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r010",
+      "he": "ב. לאחר שהתקיימו דיונים נוספים עם מתכנני החלק, הוחלט להגדיל את עוביו ל־8 מ\"מ.",
+      "he_niqqud": "ב. לְאַחַר שֶׁהִתְקַייְּמוּ דִּיּוּנִים נוֹסָפִים עִם מְתַכְנְנֵי הַחֵלֶק, הֻוחְלַט לְהַגְדִּיל אֶת עָובְיוֹ לְ־8 מ\"מ.",
+      "transliteration": "b. Le'aḥar shehitqaymu diyunim nosafim 'im metakhnenei haḥelek, huḥlat lehagdil et 'ovyo le-8 m\"m.",
+      "ru": "ב. После проведения дополнительных обсуждений с конструкторами детали было решено увеличить её толщину до 8 мм."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r011",
+      "he": "האם תבחר בנתך פלב\"מ אחר?",
+      "he_niqqud": "הַאִם תִּבְחַר בְּנֶתֶךְ פַלְבָּ\"מ אַחֵר?",
+      "transliteration": "Ha'im tivḥar benetekh palba\"m aḥer?",
+      "ru": "Выберете ли вы другой сплав нержавеющей стали?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r012",
+      "he": "הסבר.",
+      "he_niqqud": "הַסְבֵּר.",
+      "transliteration": "Hasber.",
+      "ru": "Объясните."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r013",
+      "he": "ג) מהי הסיבה לעמידות הטובה של פלב״מ בפני קורוזיה?",
+      "he_niqqud": "ג) מַהִי הַסִּיבָּה לַעֲמִידוּת הַטּוֹבָה שֶׁל פַלְבָּ״מ בִּפְנֵי קוֹרוֹזְיָה?",
+      "transliteration": "G) Mahi ha-sibah la-'amidut ha-tovah shel Falbam bifnei korozyah?",
+      "ru": "В) Какова причина хорошей коррозионной стойкости нержавеющей стали?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q039-r014",
+      "he": "נמק.",
+      "he_niqqud": "נַמֵּק.",
+      "transliteration": "Namek.",
+      "ru": "Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r002",
+      "he": "א. עליך להמליץ על פלדה עשירת פחמן לייצור חלק קפיצי.",
+      "he_niqqud": "א. עָלֶיךָ לְהַמְלִיץ עַל פְּלָדָה עֲשִׁירַת פַּחְמָן לְייִצּוּר חֵלֶק קְפִיצִי.",
+      "transliteration": "a. 'Alekha lehamlitz 'al pladah 'ashirat paḥman leyitzur ḥelek kfitzi.",
+      "ru": "א. Вам необходимо рекомендовать высокоуглеродистую сталь для изготовления пружинной детали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r003",
+      "he": "בחר פלדה/פלדות בהתאם לדרישות שלהלן,",
+      "he_niqqud": "בְּחַר פְּלָדָה/פְּלָדוֹת בְּהֶתְאֵם לַדְּרִישׁוֹת שֶׁלְּהַלָּן,",
+      "transliteration": "beḥar pladah/pladot behet'em ladrishot shelehalan,",
+      "ru": "выберите сталь/стали в соответствии со следующими требованиями,"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r004",
+      "he": "והצג את תהליך הבחירה.",
+      "he_niqqud": "וְהַצֵּג אֶת תַּהֲלִיךְ הַבְּחִירָה.",
+      "transliteration": "vehatzeg et tahalikh habḥirah.",
+      "ru": "и представьте процесс выбора."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r005",
+      "he": "היעזר בנספחים ד' ו־ה'.",
+      "he_niqqud": "הֵיעָזֵר בְּנִסְפָּחִים ד' וְ־ה'.",
+      "transliteration": "He'azer benispaḥim d' ve-h'.",
+      "ru": "Воспользуйтесь приложениями ד и ה."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r006",
+      "he": "נדרש שהחלק יהיה:",
+      "he_niqqud": "נִדְרָשׁ שֶׁהַחֵלֶק יִהְיֶה:",
+      "transliteration": "Nidrash shehaḥelek yihyeh:",
+      "ru": "Требуется, чтобы деталь была:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r007",
+      "he": "עשוי מפח בעובי 5 mm",
+      "he_niqqud": "עָשׂוּי מִפַּח בְּעֹובִי 5 mm",
+      "transliteration": "'Asuy mipaḥ be'ovi 5 mm",
+      "ru": "изготовлена из листового металла толщиной 5 mm"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r008",
+      "he": "בעל כושר חישול טוב מאוד",
+      "he_niqqud": "בַּעַל כֹּושֶׁר חִישּׁוּל טוֹב מְאוֹד",
+      "transliteration": "ba'al kosher ḥishul tov me'od",
+      "ru": "обладающей очень хорошей ковкостью"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r009",
+      "he": "בעל קשיות בין 30 HRc ל־35 HRc",
+      "he_niqqud": "בַּעַל קַשְׁיוּת בֵּין 30 HRc לְ־35 HRc",
+      "transliteration": "ba'al kashyut bein 30 HRc le-35 HRc",
+      "ru": "с твёрдостью от 30 HRc до 35 HRc"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r010",
+      "he": "בעל מאמץ כניעה (σy) בין 530 MPa ל־745 MPa",
+      "he_niqqud": "בַּעַל מַאֲמַץ כְּנִיעָה (σy) בֵּין 530 MPa לְ־745 MPa",
+      "transliteration": "ba'al ma'amatz kni'ah (σy) bein 530 MPa le-745 MPa",
+      "ru": "с пределом текучести (σy) от 530 MPa до 745 MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r011",
+      "he": "בעל מאמץ מתיחה מרבי (σUTS) בין 710 MPa ל־1,115 MPa",
+      "he_niqqud": "בַּעַל מַאֲמַץ מְתִיחָה מֵרַבִּי (σUTS) בֵּין 710 MPa לְ־1,115 MPa",
+      "transliteration": "ba'al ma'amatz metiḥah merabi (σUTS) bein 710 MPa le-1,115 MPa",
+      "ru": "с пределом прочности при растяжении (σUTS) от 710 MPa до 1,115 MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r012",
+      "he": "ב. קבע בעזרת נספח ו' – דיאגרמת ברזל-פחמן – את טמפרטורת האוסטניזציה לפני ביצוע חיסום (Quenching) לפלדה SAE 1040.",
+      "he_niqqud": "ב. קְבַע בְּעֶזְרַת נִסְפָּח ו' – דִּיאַגְרָמַת בַּרְזֶל-פַּחְמָן – אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיזַצְיָה לִפְנֵי בִּיצּוּעַ חִיסּוּם (Quenching) לִפְלָדָה SAE 1040.",
+      "transliteration": "b. Kva' be'ezrat nispaḥ v' – diyagramat barzel-paḥman – et temperaturat ha'ostenizatzyah lifnei bitzua' ḥisum (Quenching) lifladah SAE 1040.",
+      "ru": "ב. Определите с помощью приложения ו – диаграммы железо-углерод – температуру аустенитизации перед проведением закалки (Quenching) для стали SAE 1040."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r013",
+      "he": "הסבר את אופן הקביעה.",
+      "he_niqqud": "הַסְבֵּר אֶת אוֹפֶן הַקְּבִיעָה.",
+      "transliteration": "Hasber et ofen haqvi'ah.",
+      "ru": "Объясните способ определения."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q040-r014",
+      "he": "ג. ציין שתי סיבות עיקריות לביצוע ריפוי (Annealing) לפלדה לאחר שהיא עובדה בקור (Cold-Working).",
+      "he_niqqud": "ג. צַייֵּן שְׁתֵּי סִיבּוֹת עִיקָּרִיּוֹת לְבִיצּוּעַ רִיפּוּי (Annealing) לִפְלָדָה לְאַחַר שֶׁהִיא עֻובְּדָה בְּקוֹר (Cold-Working).",
+      "transliteration": "g. Tzayen shtei sibot 'ikariyot lebitzua' ripuy (Annealing) lifladah le'aḥar shehi 'ubdah baqor (Cold-Working).",
+      "ru": "ג. Укажите две основные причины проведения отжига (Annealing) стали после её холодной обработки (Cold-Working)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r001",
+      "he": "סגסוגות אלומיניום",
+      "he_niqqud": "סַגְסוֹגוֹת אַלוּמִינְיוּם",
+      "transliteration": "Sagsogot aluminiyum",
+      "ru": "Алюминиевые сплавы"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r003",
+      "he": "הגרף שלפניכם מתאר את תוצאות ניסוי המתיחה הסטטית של סגסוגת אלומיניום 7075 Al – T6.",
+      "he_niqqud": "הַגְּרָף שֶׁלִּפְנֵיכֶם מְתָאֵר אֶת תּוֹצְאוֹת נִיסּוּי הַמְּתִיחָה הַסְּטָטִית שֶׁל סַגְסוֹגַת אַלוּמִינְיוּם 7075 Al – T6.",
+      "transliteration": "Hagraf shelifneikhem meta'er et totz'ot nisuy hametiḥah hastatit shel sagsogat aluminiyum 7075 Al – T6.",
+      "ru": "График перед вами описывает результаты статического испытания на растяжение алюминиевого сплава Al 7075 – T6."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r004",
+      "he": "נתוני הסגסוגת:",
+      "he_niqqud": "נְתוּנֵי הַסַּגְסוֹגֶת:",
+      "transliteration": "Netunei hasagsoget:",
+      "ru": "Данные о сплаве:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r005",
+      "he": "החוזק הגבולי במתיחה: σuts = 570 MPa",
+      "he_niqqud": "הַחֹוזֶק הַגְּבוּלִי בִּמְתִיחָה: σuts = 570 MPa",
+      "transliteration": "Haḥozek hagvuli bimtiḥah: σuts = 570 MPa",
+      "ru": "Предел прочности при растяжении: σuts = 570 MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r006",
+      "he": "חוזק גבול הכניעה: σy = 530 MPa",
+      "he_niqqud": "חֹוזֶק גְּבוּל הַכְּנִיעָה: σy = 530 MPa",
+      "transliteration": "Ḥozek gvul hakni'ah: σy = 530 MPa",
+      "ru": "Предел текучести: σy = 530 MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r007",
+      "he": "חוזק גבול הפרופורציונליות: σp = 480 MPa",
+      "he_niqqud": "חֹוזֶק גְּבוּל הַפְּרוֹפּוֹרְצְיוֹנָלִיּוּת: σp = 480 MPa",
+      "transliteration": "Ḥozek gvul haproportzyonaliyut: σp = 480 MPa",
+      "ru": "Предел пропорциональности: σp = 480 MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r008",
+      "he": "מעוות (דפורמציה יחסית) הפרופורציונליות: εp = 6.2%",
+      "he_niqqud": "מְעֻווָּת (דֵּפוֹרְמַצְיָה יַחֲסִית) הַפְּרוֹפּוֹרְצְיוֹנָלִיּוּת: εp = 6.2%",
+      "transliteration": "Me'uvat (deformatzyah yaḥasit) haproportzyonaliyut: εp = 6.2%",
+      "ru": "Деформация (относительная деформация) пропорциональности: εp = 6.2%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r009",
+      "he": "המעוות בשבירת הדגם: εB = 11%",
+      "he_niqqud": "הַמְּעֻווָּת בִּשְׁבִירַת הַדֶּגֶם: εB = 11%",
+      "transliteration": "Hame'uvat bishvirat hadegem: εB = 11%",
+      "ru": "Деформация при разрушении образца: εB = 11%"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r010",
+      "he": "הקשיות: HB = 150 daN/mm²",
+      "he_niqqud": "הַקַּשְׁיוּת: HB = 150 daN/mm²",
+      "transliteration": "Haqashyut: HB = 150 daN/mm²",
+      "ru": "Твёрдость: HB = 150 daN/mm²"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r011",
+      "he": "(4 נק') א. בסגסוגת האלומיניום Al 7075 – T6, מה מציין הסימון T6?",
+      "he_niqqud": "(4 נק') א. בְּסַגְסוֹגַת הָאַלוּמִינְיוּם Al 7075 – T6, מַה מְּצַייֵּן הַסִּימוּן T6?",
+      "transliteration": "(4 nek') a. Bisgsogat ha'aluminiyum Al 7075 – T6, mah metzayen hasimun T6?",
+      "ru": "(4 балла) א. В алюминиевом сплаве Al 7075 – T6 что обозначает маркировка T6?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r012",
+      "he": "(4 נק') ב. מה מציינת מידת הקשיות, HB, כיצד היא נמדדת, ומה חשיבותה?",
+      "he_niqqud": "(4 נק') ב. מַה מְּצַייֶּנֶת מִידַּת הַקַּשְׁיוּת, HB, כֵּיצַד הִיא נִמְדֶּדֶת, וּמַה חֲשִׁיבוּתָהּ?",
+      "transliteration": "(4 nek') b. Mah metzayenet midat haqashyut, HB, keitzad hi nimdedet, umah ḥashivutah?",
+      "ru": "(4 балла) ב. Что обозначает показатель твёрдости HB, как он измеряется и в чём его важность?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r013",
+      "he": "(4 נק') ג. חשבו את מודול האלסטיות של הסגסוגת Al 7075 – T6.",
+      "he_niqqud": "(4 נק') ג. חַשְּׁבוּ אֶת מוֹדוּל הָאֵלַסְטִיּוּת שֶׁל הַסַּגְסוֹגֶת Al 7075 – T6.",
+      "transliteration": "(4 nek') g. Ḥashvu et modul ha'elastiyut shel hasagsoget Al 7075 – T6.",
+      "ru": "(4 балла) ג. Вычислите модуль упругости сплава Al 7075 – T6."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r014",
+      "he": "(4 נק') ד. העתיקו למחברת את הגרף, וציינו בו את הערכים החסרים של σ ו־ε הנתונים באיור.",
+      "he_niqqud": "(4 נק') ד. הַעְתִּיקוּ לַמַּחְבֶּרֶת אֶת הַגְּרָף, וְצַייְּנוּ בּוֹ אֶת הָעֲרָכִים הַחֲסֵרִים שֶׁל σ וְ־ε הַנְּתוּנִים בָּאִיּוּר.",
+      "transliteration": "(4 nek') d. Ha'atiku lamakhberet et hagraf, vetzaynu bo et ha'arakhim haḥaserim shel σ ve-ε hanetunim ba'iyur.",
+      "ru": "(4 балла) ד. Перечертите график в тетрадь и укажите на нём недостающие значения σ и ε, приведенные на рисунке."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r015",
+      "he": "ה) מהו המאמץ המותר?",
+      "he_niqqud": "הַ) מַהוּ הַמַּאֲמָץ הַמֻּותָּר?",
+      "transliteration": "H) Mah hu ha-ma'amatz ha-mutar?",
+      "ru": "Д) Что такое допустимое напряжение?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q041-r016",
+      "he": "בחרו תשובה נכונה: 1) σ < σp ; 2) σy < σ < σUTS ; 3) σ > σUTS",
+      "he_niqqud": "בִּחְרוּ תְּשׁוּבָה נְכוֹנָה: 1) σ < σp ; 2) σy < σ < σUTS ; 3) σ > σUTS",
+      "transliteration": "Bakhru teshuvah nekhonah: 1) σ < σp ; 2) σy < σ < σUTS ; 3) σ > σUTS",
+      "ru": "Выберите правильный ответ: 1) σ < σp ; 2) σy < σ < σUTS ; 3) σ > σUTS"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-r002",
+      "he": "א. הסבר בקצרה כל אחד מן התהליכים הרשומים להלן: חיסום בפלדה, הרפיה בפלדה, זיקון באלומיניום.",
+      "he_niqqud": "א. הַסְבֵּר בִּקְצָרָה כָּל אֶחָד מִן הַתַּהֲלִיכִים הָרְשׁוּמִים לְהַלָּן: חִיסּוּם בִּפְלָדָה, הַרְפָּיָה בִּפְלָדָה, זִיקּוּן בְּאַלוּמִינְיוּם.",
+      "transliteration": "a. Hasber biqtzarah kol eḥad min hatahalikhim hareshumim lehalan: ḥisum bifladah, harpayah bifladah, zikun be'aluminiyum.",
+      "ru": "א. Кратко объясните каждый из перечисленных ниже процессов: закалка стали, отпуск стали, старение алюминия."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-r003",
+      "he": "ב. ציין מהי המטרה של כל תהליך ואילו מבנים מתקבלים לאחר תהליך החיסום ולאחר תהליך ההרפיה בפלדה.",
+      "he_niqqud": "ב. צַייֵּן מַהִי הַמַּטָּרָה שֶׁל כָּל תַּהֲלִיךְ וְאֵילּוּ מִבְנִים מִתְקַבְּלִים לְאַחַר תַּהֲלִיךְ הַחִיסּוּם וּלְאַחַר תַּהֲלִיךְ הַהַרְפָּיָה בִּפְלָדָה.",
+      "transliteration": "b. Tzayen mahi hamatarah shel kol tahalikh ve'eilu mivnim mitkablim le'aḥar tahalikh haḥisum ule'aḥar tahalikh haharpayah bifladah.",
+      "ru": "ב. Укажите цель каждого процесса и какие структуры получаются после процесса закалки и после процесса отпуска стали."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-r004",
+      "he": "ג. הסבר מהו ההבדל בין זיקון טבעי לזיקון מלאכותי בנתך אלומיניום.",
+      "he_niqqud": "ג. הַסְבֵּר מַהוּ הַהֶבְדֵּל בֵּין זִיקּוּן טִבְעִי לְזִיקּוּן מְלָאכוּתִי בְּנֶתֶךְ אַלוּמִינְיוּם.",
+      "transliteration": "g. Hasber mahu hahevdel bein zikun tiv'i lezikun melakhuti benetekh aluminiyum.",
+      "ru": "ג. Объясните разницу между естественным старением и искусственным старением в алюминиевом сплаве."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-r005",
+      "he": "ד. הסבר מהי חשיבותו של הפחמן בפלדות פחמן.",
+      "he_niqqud": "ד. הַסְבֵּר מַהִי חֲשִׁיבוּתוֹ שֶׁל הַפַּחְמָן בְּפַלְדוֹת פַּחְמָן.",
+      "transliteration": "d. Hasber mahi ḥashivuto shel hapaḥman befoladot paḥman.",
+      "ru": "ד. Объясните значение углерода в углеродистых сталях."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r002",
+      "he": "א. להלן שני סוגים של טיפולים תרמיים בפלדות:",
+      "he_niqqud": "א. לְהַלָּן שְׁנֵי סוּגִים שֶׁל טִיפּוּלִים תֶּרְמִיִּים בִּפְלָדוֹת:",
+      "transliteration": "a. Lehalan shnei sugim shel tipulim termiyim bifladot:",
+      "ru": "א. Ниже приведены два вида термической обработки в сталях:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r003",
+      "he": "זיקון טבעי",
+      "he_niqqud": "זִיקּוּן טִבְעִי",
+      "transliteration": "zikun tiv'i",
+      "ru": "естественное старение"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r004",
+      "he": "זיקון מלאכותי",
+      "he_niqqud": "זִיקּוּן מְלָאכוּתִי",
+      "transliteration": "zikun melakhuti",
+      "ru": "искусственное старение"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r005",
+      "he": "הסבר את המשמעות של כל טיפול.",
+      "he_niqqud": "הַסְבֵּר אֶת הַמַּשְׁמָעוּת שֶׁל כָּל טִיפּוּל.",
+      "transliteration": "Hasber et hamashma'ut shel kol tipul.",
+      "ru": "Объясните значение каждой обработки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r006",
+      "he": "ב. סרטט במחברתך גרף המתאר תהליך זיקון מלאכותי בסגסוגת אלומיניום,",
+      "he_niqqud": "ב. סַרְטֵט בְּמַחְבַּרְתְּךָ גְּרָף הַמְּתָאֵר תַּהֲלִיךְ זִיקּוּן מְלָאכוּתִי בְּסַגְסוֹגַת אַלוּמִינְיוּם,",
+      "transliteration": "b. Sartet bemakhbartkha graf hameta'er tahalikh zikun melakhuti besagsogat aluminiyum,",
+      "ru": "ב. Начертите в тетради график, описывающий процесс искусственного старения алюминиевого сплава,"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r007",
+      "he": "ורשום על גביו את שמות השלבים השונים של התהליך.",
+      "he_niqqud": "וּרְשֹׁום עַל גַּבָּיו אֶת שְׁמוֹת הַשְּׁלַבִּים הַשּׁוֹנִים שֶׁל הַתַּהֲלִיךְ.",
+      "transliteration": "urshom 'al gabav et shmot hashlabim hashonim shel hatahalikh.",
+      "ru": "и укажите на нём названия различных этапов процесса."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r008",
+      "he": "ג. עליך להמליץ על סגסוגת אלומיניום לייצור חלק בהתאם לדרישות האלה:",
+      "he_niqqud": "ג. עָלֶיךָ לְהַמְלִיץ עַל סַגְסוֹגַת אַלוּמִינְיוּם לְייִצּוּר חֵלֶק בְּהֶתְאֵם לַדְּרִישׁוֹת הָאֵלֶּה:",
+      "transliteration": "g. 'Alekha lehamlitz 'al sagsogat aluminiyum leyitzur ḥelek behet'em ladrishot ha'eleh:",
+      "ru": "ג. Вам необходимо рекомендовать алюминиевый сплав для изготовления детали в соответствии со следующими требованиями:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r009",
+      "he": "החומר יהיה מסוגסג במגנזיום (Mg)",
+      "he_niqqud": "הַחֹומֶר יִהְיֶה מְסֻוגְסָג בְּמַגְנֶזְיוּם (Mg)",
+      "transliteration": "Haḥomer yihyeh mesugsag bemagnezyum (Mg)",
+      "ru": "материал должен быть легирован магнием (Mg)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r010",
+      "he": "חומר הגלם יהיה בצורת צינור לאחר שעבר אקסטרוזיה",
+      "he_niqqud": "חֹומֶר הַגֶּלֶם יִהְיֶה בְּצוּרַת צִינּוֹר לְאַחַר שֶׁעָבַר אֶקְסְטְרוּזְיָה",
+      "transliteration": "ḥomer hagelem yihyeh betzurat tzinor le'aḥar she'avar ekstruzyah",
+      "ru": "сырьевой материал должен быть в виде трубы после экструзии"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r011",
+      "he": "החלק ישמש במבנה של מטוס",
+      "he_niqqud": "הַחֵלֶק יְשַׁמֵּשׁ בְּמִבְנֶה שֶׁל מָטוֹס",
+      "transliteration": "haḥelek yeshamesh bemivneh shel matos",
+      "ru": "деталь будет использоваться в конструкции самолёта"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r012",
+      "he": "החלק יעבור טיפול תרמי של המסה וזיקון טבעי (T4)",
+      "he_niqqud": "הַחֵלֶק יַעֲבֹור טִיפּוּל תֶּרְמִי שֶׁל הַמָּסָה וְזִיקּוּן טִבְעִי (T4)",
+      "transliteration": "haḥelek ya'avor tipul termi shel hamasah vezikun tiv'i (T4)",
+      "ru": "деталь пройдёт термическую обработку на раствор и естественное старение (T4)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r013",
+      "he": "גבול ההתעייפות של החומר אשר ממנו עשוי החלק יהיה: σL > 125 MPa",
+      "he_niqqud": "גְּבוּל הַהִתְעַייְּפוּת שֶׁל הַחֹומֶר אֲשֶׁר מִמֶּנּוּ עָשׂוּי הַחֵלֶק יִהְיֶה: σL > 125 MPa",
+      "transliteration": "gvul hahit'ayfut shel haḥomer asher mimenu 'asuy haḥelek yihyeh: σL > 125 MPa",
+      "ru": "предел усталости материала, из которого изготовлена деталь, должен составлять: σL > 125 MPa"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r014",
+      "he": "בחר סגסוגת או סגסוגות אלומיניום העונה/העונות על כל הדרישות שלעיל,",
+      "he_niqqud": "בְּחַר סַגְסוֹגֶת אוֹ סַגְסוֹגוֹת אַלוּמִינְיוּם הָעוֹנָה/הָעוֹנוֹת עַל כָּל הַדְּרִישׁוֹת שֶׁלְּעֵיל,",
+      "transliteration": "beḥar sagsoget o sagsogot aluminiyum ha'onah/ha'onot 'al kol hadrishot shele'eil,",
+      "ru": "выберите алюминиевый сплав или сплавы, удовлетворяющие всем вышеуказанным требованиям,"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r015",
+      "he": "והצג את תהליך הבחירה.",
+      "he_niqqud": "וְהַצֵּג אֶת תַּהֲלִיךְ הַבְּחִירָה.",
+      "transliteration": "vehatzeg et tahalikh habḥirah.",
+      "ru": "и представьте процесс выбора."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q043-r016",
+      "he": "היעזר בטבלאות שבנספח ג'.",
+      "he_niqqud": "הֵיעָזֵר בְּטַבְלָאוֹת שֶׁבְּנִסְפָּח ג'.",
+      "transliteration": "He'azer betavla'ot shebenispaḥ g'.",
+      "ru": "Воспользуйтесь таблицами из приложения ג."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-r002",
+      "he": "השלדה של אופני הרים מורכבת ממספר מוטות העשויים מסגסוגת אלומיניום.",
+      "he_niqqud": "הַשִּׁלְדָּה שֶׁל אוֹפַנֵּי הָרִים מֻורְכֶּבֶת מִמִּסְפַּר מוֹטוֹת הָעֲשׂוּיִים מִסַּגְסוֹגַת אַלוּמִינְיוּם.",
+      "transliteration": "Hashildah shel ofanei harim murkevet mimispar motot ha'asuyim misagsogat aluminiyum.",
+      "ru": "Рама горного велосипеда состоит из нескольких стержней, изготовленных из алюминиевого сплава."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-r003",
+      "he": "המוטות מרותכים זה לזה כך שהשלדה תוכל לעמוד בעומסים דינמיים ומחזוריים גדולים.",
+      "he_niqqud": "הַמּוֹטוֹת מְרֻותָּכִים זֶה לָזֶה כָּךְ שֶׁהַשִּׁלְדָּה תּוּכַל לַעֲמֹוד בְּעוֹמָסִים דִּינָמִיִּים וּמַחֲזוֹרִיִּים גְּדוֹלִים.",
+      "transliteration": "Hamotot merutakhim zeh lazeh kakh shehashildah tukhal la'amod be'omasim dinamiyim umaḥazoriyim gdolim.",
+      "ru": "Стержни сварены друг с другом так, чтобы рама могла выдерживать большие динамические и циклические нагрузки."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-r004",
+      "he": "א) היעזר בנספח ד׳ וקבע איזו משלוש סגסוגות האלומיניום המתאימה ביותר עבור שלדת האופניים מסוג זה היא: 6061-T4, 5052-H38, 2024-T361.",
+      "he_niqqud": "א) הֵיעָזֵר בְּנִסְפָּח ד׳ וּקְבַע אֵיזוֹ מִשְּׁלוֹשׁ סִגְסוֹגוֹת הָאָלוּמִינְיוּם הַמַּתְאִימָה בְּיוֹתֵר עֲבוּר שִׁלְדַּת הָאוֹפַנַּייִם מִסּוּג זֶה הִיא: 6061-T4, 5052-H38, 2024-T361.",
+      "transliteration": "A) Hi'ezer be-nespakh D' u-kvoa eizo mi-shalosh sagsogot ha-aluminum ha-mat'ima be-yoter avur sheldet ha-ofanayim mi-sug ze hi: 6061-T4, 5052-H38, 2024-T361.",
+      "ru": "А) Используйте Приложение D и определите, какой из трех алюминиевых сплавов наиболее подходит для рамы велосипеда такого типа: 6061-T4, 5052-H38, 2024-T361."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-r005",
+      "he": "(5 נק') ב. מדוע החישוקים של אופני הרים מיוצרים מפלדה רבת־פחמן, כגון פלדת SAE 1070, ולא מסגסוגות אלומיניום?",
+      "he_niqqud": "(5 נק') ב. מַדּוּעַ הַחִישּׁוּקִים שֶׁל אוֹפַנֵּי הָרִים מְיֻוצָּרִים מִפְּלָדָה רַבַּת־פַּחְמָן, כְּגוֹן פְּלָדַת SAE 1070, וְלֹא מִסַּגְסוֹגוֹת אַלוּמִינְיוּם?",
+      "transliteration": "(5 nek') b. Madua' haḥishukim shel ofanei harim meyutzarim mipladah rabat-paḥman, kegon pladat SAE 1070, velo misagsogot aluminiyum?",
+      "ru": "(5 баллов) ב. Почему обода горных велосипедов изготавливаются из высокоуглеродистой стали, например стали SAE 1070, а не из алюминиевых сплавов?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-r006",
+      "he": "(5 נק') ג. מהי התכונה הפיזיקלית העיקרית שעל פיה בוחרים את החומר לייצור רפידות בלמים באופניים?",
+      "he_niqqud": "(5 נק') ג. מַהִי הַתְּכוּנָה הַפִיזִיקָלִית הָעִיקָּרִית שֶׁעַל פִּיהָ בּוֹחֲרִים אֶת הַחֹומֶר לְייִצּוּר רְפִידוֹת בְּלָמִים בָּאוֹפַנַּייִם?",
+      "transliteration": "(5 nek') g. Mahi hatkhunah hafizikalit ha'ikarit she'al piha boḥarim et haḥomer leyitzur refidot blamim ba'ofanayim?",
+      "ru": "(5 баллов) ג. Каково главное физическое свойство, на основе которого выбирают материал для изготовления тормозных колодок велосипеда?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-r007",
+      "he": "(5 נק') ד. על־פי איזה מבין ארבעת הקריטריונים האלה: σuts ; σy ; σfailure ; σfatigue, יש לבחור את החומר לייצור שרשרת לאופניים? נמק את תשובתך.",
+      "he_niqqud": "(5 נק') ד. עַל־פִּי אֵיזֶה מִבֵּין אַרְבַּעַת הַקְּרִיטֶרְיוֹנִים הָאֵלֶּה: σuts ; σy ; σfailure ; σfatigue, יֵשׁ לִבְחֹור אֶת הַחֹומֶר לְייִצּוּר שַׁרְשֶׁרֶת לָאוֹפַנַּייִם? נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "(5 nek') d. 'Al-pi eizeh mibein arba'at haqriteryonim ha'eleh: σuts ; σy ; σfailure ; σfatigue, yesh livḥor et haḥomer leyitzur sharsheret la'ofanayim? Namek et teshuvatekha.",
+      "ru": "(5 баллов) ד. По какому из четырёх следующих критериев: σuts ; σy ; σfailure ; σfatigue следует выбирать материал для изготовления велосипедной цепи? Обоснуйте свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r002",
+      "he": "א. הסבר אחד משני המושגים שלפניך:",
+      "he_niqqud": "א. הַסְבֵּר אֶחָד מִשְּׁנֵי הַמֻּושָּׂגִים שֶׁלְּפָנֶיךָ:",
+      "transliteration": "a. Hasber eḥad mishnei hamusagim shelefanekha:",
+      "ru": "א. Объясните одно из двух следующих понятий:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r003",
+      "he": "ריפוי",
+      "he_niqqud": "רִיפּוּי",
+      "transliteration": "ripuy",
+      "ru": "отжиг"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r004",
+      "he": "זיקון",
+      "he_niqqud": "זִיקּוּן",
+      "transliteration": "zikun",
+      "ru": "старение"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r005",
+      "he": "ב. ציין שלושה תהליכים שיש לבצע בחלק העשוי מפלדה 1020 SAE, כדי להקשות את השכבה החיצונית שלו.",
+      "he_niqqud": "ב. צַייֵּן שְׁלוֹשָׁה תַּהֲלִיכִים שֶׁיֵּשׁ לְבַצֵּעַ בְּחֵלֶק הֶעָשׂוּי מִפְּלָדָה 1020 SAE, כְּדֵי לְהַקְשׁוֹת אֶת הַשִּׁכְבָה הַחִיצוֹנִית שֶׁלּוֹ.",
+      "transliteration": "b. Tzayen shloshah tahalikhim sheyesh levatzea' beḥelek he'asuy mipladah 1020 SAE, kedei lehaqshot et hashikhvah haḥitzonit shelo.",
+      "ru": "ב. Укажите три процесса, которые необходимо выполнить на детали из стали SAE 1020, чтобы упрочнить её внешний слой."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r006",
+      "he": "ג. הגרף שבאיור לשאלה 3 מתאר טיפול תרמי בפלדה. בטיפול נעשים שני תהליכים.",
+      "he_niqqud": "ג. הַגְּרָף שֶׁבָּאִיּוּר לִשְׁאֵלָה 3 מְתָאֵר טִיפּוּל תֶּרְמִי בִּפְלָדָה. בְּטִיפּוּל נַעֲשִׂים שְׁנֵי תַּהֲלִיכִים.",
+      "transliteration": "g. Hagraf sheba'iyur lishe'elah 3 meta'er tipul termi bifladah. Betipul na'asim shnei tahalikhim.",
+      "ru": "ג. График на рисунке к вопросу 3 описывает термическую обработку стали. При обработке выполняются два процесса."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r007",
+      "he": "בטיפול נעשים שני תהליכים.",
+      "he_niqqud": "בְּטִיפּוּל נַעֲשִׂים שְׁנֵי תַּהֲלִיכִים.",
+      "transliteration": "Betipul na'asim shnei tahalikhim.",
+      "ru": "При обработке выполняются два процесса."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r008",
+      "he": "מהו התהליך המתואר בקטע הגרף ABCD ?",
+      "he_niqqud": "מַהוּ הַתַּהֲלִיךְ הַמְּתֹואָר בְּקֶטַע הַגְּרָף ABCD ?",
+      "transliteration": "Mahu hatahalikh hameto'ar beqeta' hagraf ABCD ?",
+      "ru": "Какой процесс описан на участке графика ABCD?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r009",
+      "he": "איזו פעולה מתאר כל אחד מן הקטעים AB, BC ו־CD ?",
+      "he_niqqud": "אֵיזוֹ פְּעֻולָּה מְתָאֵר כָּל אֶחָד מִן הַקְּטָעִים AB, BC וְ־CD ?",
+      "transliteration": "Eizo pe'ulah meta'er kol eḥad min haqta'im AB, BC ve-CD ?",
+      "ru": "Какое действие описывает каждый из участков AB, BC и CD?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r010",
+      "he": "ד. מהו התהליך המתואר בגרף באותיות DEFG ?",
+      "he_niqqud": "ד. מַהוּ הַתַּהֲלִיךְ הַמְּתֹואָר בַּגְּרָף בָּאוֹתִיּוֹת DEFG ?",
+      "transliteration": "d. Mahu hatahalikh hameto'ar bagraf ba'otiyot DEFG ?",
+      "ru": "ד. Какой процесс описан на графике буквами DEFG?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-r011",
+      "he": "איזו פעולה מתאר כל אחד מן הקטעים DE, EF ו־FG ?",
+      "he_niqqud": "אֵיזוֹ פְּעֻולָּה מְתָאֵר כָּל אֶחָד מִן הַקְּטָעִים DE, EF וְ־FG ?",
+      "transliteration": "Eizo pe'ulah meta'er kol eḥad min haqta'im DE, EF ve-FG ?",
+      "ru": "Какое действие описывает каждый из участков DE, EF и FG?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r001",
+      "he": "קורוזיה.",
+      "he_niqqud": "קוֹרוֹזְיָה.",
+      "transliteration": "Korozyah.",
+      "ru": "Коррозия."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r002",
+      "he": "שיטות הגנה נגד קורוזיה.",
+      "he_niqqud": "שִׁיטוֹת הֲגָנָה נֶגֶד קוֹרוֹזְיָה.",
+      "transliteration": "Shitot haganah neged korozyah.",
+      "ru": "Методы защиты от коррозии."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r004",
+      "he": "באיור לשאלה 2 מוצגים שלושה מקרים של סמרור (שלושה צמדים של חומרים שונים C, B, A).",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה 2 מוּצָגִים שְׁלוֹשָׁה מִקְרִים שֶׁל סִמְרוּר (שְׁלוֹשָׁה צְמָדִים שֶׁל חֳומָרִים שׁוֹנִים C, B, A).",
+      "transliteration": "Ba'iyur lishe'elah 2 mutzagim shloshah mikrim shel simrur (shloshah tzmadim shel ḥomarim shonim C, B, A).",
+      "ru": "На рисунке к вопросу 2 представлены три случая заклёпочного соединения (три пары различных материалов A, B, C)."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r005",
+      "he": "(7 נק') א. האם הסמרורים המוצגים באיור לשאלה 2 עמידים בפני התקפה קורוזיבית בסביבת מים? נמק את תשובתך בנוגע לכל אחד מהמקרים המוצגים.",
+      "he_niqqud": "(7 נק') א. הַאִם הַסִּמְרוּרִים הַמּוּצָגִים בָּאִיּוּר לִשְׁאֵלָה 2 עֲמִידִים בִּפְנֵי הַתְקָפָה קוֹרוֹזִיבִית בִּסְבִיבַת מַיִם? נַמֵּק אֶת תְּשׁוּבָתְךָ בְּנוֹגֵעַ לְכָל אֶחָד מֵהַמִּקְרִים הַמּוּצָגִים.",
+      "transliteration": "(7 nek') a. Ha'im hasimrurim hamutzagim ba'iyur lishe'elah 2 'amidim bifnei hatkafah korozyvit bisvivat mayim? Namek et teshuvatekha benogea' lekhol eḥad mehamikrim hamutzagim.",
+      "ru": "(7 баллов) א. Устойчивы ли заклёпочные соединения, представленные на рисунке к вопросу 2, к коррозионному воздействию в водной среде? Обоснуйте свой ответ для каждого из представленных случаев."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r006",
+      "he": "נתוני המסמרות: פוטנציאל סטנדרטי של האלקטרודות (Volt): אלומיניום 1.66V- ; פלדה 0.44V- ; פלדה בלתי מחלידה (פלב\"מ) 0.35V-",
+      "he_niqqud": "נְתוּנֵי הַמַּסְמְרוֹת: פּוֹטֶנְצִיאָל סְטַנְדַּרְטִי שֶׁל הָאֵלֶקְטְרוֹדוֹת (Volt): אַלוּמִינְיוּם 1.66V- ; פְּלָדָה 0.44V- ; פְּלָדָה בִּלְתִּי מַחֲלִידָה (פַלְבָּ\"מ) 0.35V-",
+      "transliteration": "Netunei hamasmarot: potentzi'al standarti shel ha'elektrodot (Volt): aluminiyum 1.66V- ; pladah 0.44V- ; pladah bilti maḥlidah (palba\"m) 0.35V-",
+      "ru": "Данные заклепок: Стандартный электродный потенциал (Volt): алюминий −1.66 V ; сталь −0.44 V ; нержавеющая сталь (НЖС) −0.35 V"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r007",
+      "he": "(7 נק') ב. כיצד אפשר להגן על הסמרורים או הפחים מפני שיתוך (קורוזיה)?",
+      "he_niqqud": "(7 נק') ב. כֵּיצַד אֶפְשָׁר לְהָגֵן עַל הַסִּמְרוּרִים אוֹ הַפַּחִים מִפְּנֵי שִׁיתּוּךְ (קוֹרוֹזְיָה)?",
+      "transliteration": "(7 nek') b. Keitzad efshar lehagen 'al hasimrurim o hapaḥim mipnei shitukh (korozyah)?",
+      "ru": "(7 баллов) ב. Как можно защитить заклёпочные соединения или листовой металл от коррозии?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-r008",
+      "he": "(8 נק') ג. הסבר כיצד אפשר להגביר את העמידות בפני שיתוך של אוניות (העשויות פלדה) הנמצאות במי־ים.",
+      "he_niqqud": "(8 נק') ג. הַסְבֵּר כֵּיצַד אֶפְשָׁר לְהַגְבִּיר אֶת הָעֲמִידוּת בִּפְנֵי שִׁיתּוּךְ שֶׁל אֳונִיּוֹת (הָעֲשׂוּיוֹת פְּלָדָה) הַנִּמְצָאוֹת בְּמֵי־יָם.",
+      "transliteration": "(8 nek') g. Hasber keitzad efshar lehagbir et ha'amidut bifnei shitukh shel oniyot (ha'asuyot pladah) hanimtza'ot bemei-yam.",
+      "ru": "(8 баллов) ג. Объясните, как можно повысить коррозионную стойкость судов (изготовленных из стали), находящихся в морской воде."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r002",
+      "he": "באיור לשאלה 8 מוצג תרשים סכימטי של מחבר הידוק בורגי. עיין בתרשים וענה על השאלות הבאות:",
+      "he_niqqud": "בָּאִיּוּר לִשְׁאֵלָה 8 מוּצָג תַּרְשִׁים סְכֶימָטִי שֶׁל מְחַבֵּר הִידּוּק בָּורְגִּי. עַייֵּן בַּתַּרְשִׁים וַעֲנֵה עַל הַשְּׁאֵלוֹת הַבָּאוֹת:",
+      "transliteration": "Ba'iyur lishe'elah 8 mutzag tarshim skhemati shel meḥaber hiduk borgi. 'Ayen batarshim va'aneh 'al hashe'elot haba'ot:",
+      "ru": "На рисунке к вопросу 8 представлена схематическая схема резьбового стяжного соединения. Изучите схему и ответьте на следующие вопросы:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r003",
+      "he": "עיין בתרשים וענה על השאלות הבאות:",
+      "he_niqqud": "עַייֵּן בַּתַּרְשִׁים וַעֲנֵה עַל הַשְּׁאֵלוֹת הַבָּאוֹת:",
+      "transliteration": "'Ayen batarshim va'aneh 'al hashe'elot haba'ot:",
+      "ru": "Изучите схему и ответьте на следующие вопросы:"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r004",
+      "he": "(10 נק') א. האם החיבור בוצע נכון מבחינת קורוזיה? נמק את תשובתך. היעזר בנספח המצורף לשאלה 8.",
+      "he_niqqud": "(10 נק') א. הַאִם הַחִיבּוּר בֻּוצַּע נָכוֹן מִבְּחִינַת קוֹרוֹזְיָה? נַמֵּק אֶת תְּשׁוּבָתְךָ. הֵיעָזֵר בַּנִּסְפָּח הַמְּצֹורָף לִשְׁאֵלָה 8.",
+      "transliteration": "(10 nek') a. Ha'im haḥibur butza' nakhon mibḥinat korozyah? Namek et teshuvatekha. He'azer banispaḥ hametzoraf lishe'elah 8.",
+      "ru": "(10 баллов) א. Правильно ли выполнено соединение с точки зрения коррозии? Обоснуйте свой ответ. Воспользуйтесь приложением, прикреплённым к вопросу 8."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r005",
+      "he": "(3 נק') ב. מה תפקידו של פלסטיק בחיבור זה?",
+      "he_niqqud": "(3 נק') ב. מַה תַּפְקִידוֹ שֶׁל פְּלַסְטִיק בְּחִיבּוּר זֶה?",
+      "transliteration": "(3 nek') b. Mah tafkido shel plastik beḥibur zeh?",
+      "ru": "(3 балла) ב. Какова функция пластика в этом соединении?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r006",
+      "he": "(3 נק') ג. מהם חומרי הסגסוג בפלדה SAE 30304 ומהו המבנה המיקרוסקופי של הפלדה?",
+      "he_niqqud": "(3 נק') ג. מַהֶם חָומְרֵי הַסִּגְסוּג בִּפְלָדָה SAE 30304 וּמַהוּ הַמִּבְנֶה הַמִּיקְרוֹסְקוֹפִּי שֶׁל הַפְּלָדָה?",
+      "transliteration": "(3 nek') g. Mahem ḥomrei hasigsug bifladah SAE 30304 umahu hamivneh hamikroskopi shel hapladah?",
+      "ru": "(3 балла) ג. Каковы легирующие элементы стали SAE 30304 и какова микроструктура стали?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r007",
+      "he": "(3 נק') ד. מהי הדרך להגדלת החוזק של פלדה SAE 30304?",
+      "he_niqqud": "(3 נק') ד. מַהִי הַדֶּרֶךְ לְהַגְדָּלַת הַחֹוזֶק שֶׁל פְּלָדָה SAE 30304?",
+      "transliteration": "(3 nek') d. Mahi haderekh lehagdolat haḥozek shel pladah SAE 30304?",
+      "ru": "(3 балла) ד. Каков способ повышения прочности стали SAE 30304?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r008",
+      "he": "(3 נק') ה. מהו ההרכב הכימי של פלדה SAE 1020?",
+      "he_niqqud": "(3 נק') ה. מַהוּ הַהֶרְכֵּב הַכִּימִי שֶׁל פְּלָדָה SAE 1020?",
+      "transliteration": "(3 nek') h. Mahu haherkev hakimi shel pladah SAE 1020?",
+      "ru": "(3 балла) ה. Каков химический состав стали SAE 1020?"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q047-r009",
+      "he": "(3 נק') ו. האם אפשר לחסם פלדה SAE 1020? נמק.",
+      "he_niqqud": "(3 נק') ו. הַאִם אֶפְשָׁר לְחַסֵּם פְּלָדָה SAE 1020? נַמֵּק.",
+      "transliteration": "(3 nek') v. Ha'im efshar leḥasem pladah SAE 1020? Namek.",
+      "ru": "(3 балла) ו. Можно ли закалить сталь SAE 1020? Обоснуйте."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-r002",
+      "he": "א. תאר את תהליך הציפוי באבץ - גילוון.",
+      "he_niqqud": "א. תָּאֵר אֶת תַּהֲלִיךְ הַצִּיפּוּי בְּאָבָץ - גִּילְווּן.",
+      "transliteration": "a. Ta'er et tahalikh hatzipuy be'avatz - gilvun.",
+      "ru": "א. Опишите процесс покрытия цинком – оцинкование."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-r003",
+      "he": "ב. הטבלה לשאלה 6 מרכזת שיטות של ציפויים להגנה בפני שיתוך: ציפויים לא מתכתיים וציפויים כימיים.",
+      "he_niqqud": "ב. הַטַּבְלָה לִשְׁאֵלָה 6 מְרַכֶּזֶת שִׁיטוֹת שֶׁל צִיפּוּיִים לַהֲגָנָה בִּפְנֵי שִׁיתּוּךְ: צִיפּוּיִים לֹא מַתַּכְתִּיִּים וְצִיפּוּיִים כִּימִיִּים.",
+      "transliteration": "b. Hatavlah lishe'elah 6 merakezet shitot shel tzipuyim lahaganah bifnei shitukh: tzipuyim lo mataktiyim vetzipuyim kimiyim.",
+      "ru": "ב. Таблица к вопросу 6 обобщает методы защитных покрытий от коррозии: неметаллические покрытия и химические покрытия."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-r004",
+      "he": "השלם את הנדרש בטבלה לשאלה 6, על גבי טופס הבחינה, בהתאם לדוגמה ובהתאם לשיטות ההגנה בפני שיתוך המוצגות להלן: השחמה, פוספטיזציה, צביעה, שימון, ציפוי אמייל, חימצון, אנודיזציה.",
+      "he_niqqud": "הַשְׁלֵם אֶת הַנִּדְרָשׁ בַּטַּבְלָה לִשְׁאֵלָה 6, עַל גַּבֵּי טֹופֶס הַבְּחִינָה, בְּהֶתְאֵם לַדֻּוגְמָה וּבְהֶתְאֵם לְשִׁיטוֹת הַהֲגָנָה בִּפְנֵי שִׁיתּוּךְ הַמּוּצָגוֹת לְהַלָּן: הַשְׁחָמָה, פּוֹסְפָטִיזַצְיָה, צְבִיעָה, שִׁימּוּן, צִיפּוּי אֶמַייְל, חִימְצוּן, אָנוֹדִיזַצְיָה.",
+      "transliteration": "Hashlem et hanidrash batavlah lishe'elah 6, 'al gabei tofes habḥinah, behet'em ladugmah uvhet'em leshitot hahaganah bifnei shitukh hamutzagot lehalan: hashḥamah, fosfatizatzyah, tzvi'ah, shimun, tzipuy emayl, ḥimtzun, anodizatzyah.",
+      "ru": "Заполните требуемое в таблице к вопросу 6 на экзаменационном бланке в соответствии с примером и в соответствии с приведёнными ниже методами защиты от коррозии: воронение, фосфатирование, окрашивание, смазка маслом, эмалирование, оксидирование, анодирование."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-r005",
+      "he": "(דוגמה: גירוז)",
+      "he_niqqud": "(דֻּוגְמָה: גֵּירוּז)",
+      "transliteration": "(dugmah: geruz)",
+      "ru": "(пример: смазывание консистентной смазкой)"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-r006",
+      "he": "ג. מדוע המתכות אלומיניום ונחושת אינן רגישות לשיתוך? הסבר ונמק את תשובתך.",
+      "he_niqqud": "ג. מַדּוּעַ הַמַּתָּכוֹת אַלוּמִינְיוּם וּנְחֹושֶׁת אֵינָן רְגִישׁוֹת לְשִׁיתּוּךְ? הַסְבֵּר וְנַמֵּק אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "g. Madua' hamatakhot aluminiyum uneḥoshet einan regishot leshitukh? Hasber venamek et teshuvatekha.",
+      "ru": "ג. Почему металлы алюминий и медь не чувствительны к коррозии? Объясните и обоснуйте свой ответ."
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-r007",
+      "he": "הסבר ונמק את תשובתך.",
+      "he_niqqud": "הַסְבֵּר וְנַמֵּק אֶת תְּשׁוּבָתְךָ.",
+      "transliteration": "Hasber venamek et teshuvatekha.",
+      "ru": "Объясните и обоснуйте свой ответ."
+    }
+  ],
+  "schema": "linguistpro-materials-pb2-reviewed-provider-rows-v1",
+  "status": "PASS_STRICT_LOCAL_VALIDATION_SOURCE_FIRST_PROVIDER_REVIEW",
+  "model": "gemini-3.7-flash",
+  "request_sha256": "61683fa9bcc05600750136d0b36ce992983c68d3cbed88373a0a42d17c8ead91",
+  "raw_response_sha256": "1d232edfe9dc92d6fc1ce315caddce4dce2e8404452e318fcae4c54599479f38",
+  "provider_text_sha256": "9e1717d9e464690b5a8cf046240b160ac116d4abd8c953fdff1124c53786305d",
+  "provider_calls_for_batch": 1,
+  "solution_work": false,
+  "artifact_sha256": "985e9e062a26c72220aff76a8b434fe863bdb3a387280e37fcc70bd292114495"
+}

@@ -7752,6 +7752,22 @@ async function ensurePhysicsLearningSupport(slug, item) {
   try { return await loading; } finally { physicsLearningSupportLoading.delete(key); }
 }
 
+async function ensureMaterialsLearningSupport(slug, item) {
+  const key = 'materials:' + String(slug || '') + ':' + String(item && item.public_work_id || '') + ':' + String(item && item.snapshot_sha256 || '');
+  if (physicsLearningSupportCache.has(key)) return physicsLearningSupportCache.get(key);
+  if (physicsLearningSupportLoading.has(key)) return physicsLearningSupportLoading.get(key);
+  const loading = (async () => {
+    const catalog = await ensurePublicCatalog(slug);
+    const response = await fetch('/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(item.public_work_id) + '/learning-support', { cache: 'no-cache' });
+    if (!response.ok) throw new Error('materials learning support ' + response.status);
+    const value = window.PublicCorpusAdapter.normalizeMaterialsLearningSupport(await response.json(), catalog, item);
+    physicsLearningSupportCache.set(key, value);
+    return value;
+  })();
+  physicsLearningSupportLoading.set(key, loading);
+  try { return await loading; } finally { physicsLearningSupportLoading.delete(key); }
+}
+
 function physicsRichText(value, className) {
   const node = el('span', { class: className || 'physics-rich-text' });
   const source = String(value == null ? '' : value);
@@ -7918,6 +7934,179 @@ function renderPhysicsLearningActions(slug, item) {
   wrap.append(check, understand, answer); return wrap;
 }
 
+const MATERIALS_SECTION_KEYS = Object.freeze({
+  answer_first: ['materialsSectionAnswer', 'Краткий ответ'], theory: ['materialsSectionTheory', 'Теория'],
+  given_find: ['materialsSectionGiven', 'Дано и найти'], model_and_laws: ['materialsSectionLaws', 'Модель и законы'],
+  derivation: ['materialsSectionDerivation', 'Вывод'], calculation: ['materialsSectionCalculation', 'Расчёт'],
+  construction: ['materialsSectionConstruction', 'Построение'], verification: ['materialsSectionVerification', 'Проверка'],
+  final_answer: ['materialsSectionFinal', 'Итог'], provenance: ['materialsSectionProvenance', 'Происхождение']
+});
+
+function materialsSectionName(section) {
+  const value = MATERIALS_SECTION_KEYS[section] || ['materialsSectionStep', 'Шаг решения'];
+  return tt('room.publicCorpus.' + value[0], value[1]);
+}
+
+function materialsConditionRows(support) {
+  return (support.condition.rows || []).map((row, index) => ({
+    row_id: String(row.row_id || support.task_id + '-condition-' + (index + 1)),
+    order: index + 1,
+    section: 'condition',
+    kind: String(row.meta && row.meta.materials_science && row.meta.materials_science.kind || 'condition'),
+    exam_copy: true,
+    text: {
+      he: String(row.hebrew_plain || ''), he_niqqud: String(row.hebrew_niqqud || ''),
+      transliteration: String(row.translit || row.transliteration || ''), ru: String(row.russian || '')
+    }
+  })).filter(row => Object.values(row.text).some(Boolean));
+}
+
+function materialsLearningTable(rows, type) {
+  const wrap = el('div', { class: 'materials-table-wrap' });
+  const table = el('table', { class: 'materials-learning-table ' + (type === 'condition' ? 'is-condition' : 'is-solution') });
+  const caption = el('caption', { text: type === 'condition' ? tt('room.publicCorpus.materialsCondition', 'Условие') : tt('room.publicCorpus.materialsSolution', 'Решение') });
+  const head = el('thead'); const headRow = el('tr');
+  for (const [key, fallback, className] of [
+    ['materialsStep', 'Шаг', 'materials-step-col'], ['materialsHebrew', 'Иврит', 'materials-he-col'],
+    ['materialsNiqqud', 'Иврит с огласовками', 'materials-niqqud-col'], ['materialsTransliteration', 'Транслитерация', 'materials-translit-col'],
+    ['materialsRussian', 'Русский', 'materials-ru-col']
+  ]) headRow.appendChild(el('th', { class: className, attrs: { scope: 'col' }, text: tt('room.publicCorpus.' + key, fallback) }));
+  head.appendChild(headRow); table.append(caption, head);
+  const body = el('tbody'); let lastSection = null;
+  for (const row of rows) {
+    const tr = el('tr', { class: 'materials-learning-row', attrs: { 'data-section': row.section, 'data-kind': row.kind } });
+    const label = row.section === 'condition' ? tt('room.publicCorpus.materialsConditionStep', 'Условие') : materialsSectionName(row.section);
+    const step = el('th', { class: 'materials-step-cell', attrs: { scope: 'row', 'data-label': tt('room.publicCorpus.materialsStep', 'Шаг') } });
+    if (row.section !== lastSection) step.appendChild(el('span', { class: 'materials-section-name', text: label }));
+    step.appendChild(el('span', { class: 'materials-step-number', text: String(row.order) + (row.part_label ? ' · ' + row.part_label : '') }));
+    lastSection = row.section; tr.appendChild(step);
+    for (const [field, key, fallback, className, lang, dir] of [
+      ['he', 'materialsHebrew', 'Иврит', 'materials-he-cell', 'he', 'rtl'],
+      ['he_niqqud', 'materialsNiqqud', 'Иврит с огласовками', 'materials-niqqud-cell', 'he', 'rtl'],
+      ['transliteration', 'materialsTransliteration', 'Транслитерация', 'materials-translit-cell', 'he-Latn', 'ltr'],
+      ['ru', 'materialsRussian', 'Русский', 'materials-ru-cell', 'ru', 'ltr']
+    ]) {
+      const cell = el('td', { class: className, attrs: { 'data-label': tt('room.publicCorpus.' + key, fallback), lang, dir } });
+      cell.appendChild(document.createTextNode(String(row.text[field] || '—'))); tr.appendChild(cell);
+    }
+    body.appendChild(tr);
+  }
+  table.appendChild(body); wrap.appendChild(table); return wrap;
+}
+
+function materialsSourceFigures(support) {
+  const figures = el('div', { class: 'materials-source-figures' });
+  const seen = new Set();
+  for (const asset of (support.condition.source_assets || [])) {
+    if (!asset.public_url || seen.has(asset.sha256)) continue;
+    seen.add(asset.sha256);
+    const figure = el('figure', { class: 'materials-source-figure' });
+    figure.appendChild(el('img', { attrs: { src: asset.public_url, alt: tt('room.publicCorpus.materialsSourceFigure', 'Исходная схема или таблица к задаче') + ' · p.' + asset.source_page, loading: 'lazy' } }));
+    figure.appendChild(el('figcaption', { text: tt('room.publicCorpus.materialsSourcePage', 'Источник, страница') + ' ' + asset.source_page }));
+    figures.appendChild(figure);
+  }
+  return figures;
+}
+
+const materialsPrintStates = new WeakMap();
+function prepareMaterialsPrint(viewer, mode) {
+  if (!materialsPrintStates.has(viewer)) materialsPrintStates.set(viewer, viewer.getAttribute('data-print-mode'));
+  viewer.setAttribute('data-print-mode', mode);
+  viewer.setAttribute('data-printing', 'true');
+}
+function restoreMaterialsPrint(viewer) {
+  if (!materialsPrintStates.has(viewer)) return;
+  const prior = materialsPrintStates.get(viewer); materialsPrintStates.delete(viewer);
+  if (prior) viewer.setAttribute('data-print-mode', prior); else viewer.removeAttribute('data-print-mode');
+  viewer.removeAttribute('data-printing');
+}
+function printMaterialsLearningSupport(viewer, mode) {
+  prepareMaterialsPrint(viewer, mode);
+  try { window.print(); } finally { window.setTimeout(() => restoreMaterialsPrint(viewer), 0); }
+}
+
+function openMaterialsLearningSupport(support, trigger) {
+  if (!support) return;
+  const overlay = el('div', { class: 'materials-learning-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'materialsLearningTitle' } });
+  const viewer = el('article', { class: 'materials-learning-viewer', attrs: { 'data-content-mode': 'solution', 'data-language-mode': 'study' } });
+  const head = el('header', { class: 'materials-learning-head' }); const copy = el('div');
+  copy.appendChild(el('span', { class: 'materials-learning-kicker', text: tt('room.publicCorpus.materialsLearningKicker', 'Материаловедение · проверенная редакция') }));
+  copy.appendChild(el('h2', { attrs: { id: 'materialsLearningTitle' }, text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') + ' · ' + support.display_alias }));
+  copy.appendChild(el('p', { class: 'materials-learning-subtitle-screen', text: tt('room.publicCorpus.materialsLearningSubtitle', 'Полная экзаменационная запись и четыре учебные колонки из одной проверенной версии') }));
+  copy.appendChild(el('p', { class: 'materials-learning-subtitle-print materials-study-print-only', text: tt('room.publicCorpus.materialsStudyPrintSubtitle', 'Условие и решение в четырёх параллельных учебных колонках') }));
+  copy.appendChild(el('p', { class: 'materials-learning-subtitle-print materials-exam-print-only', text: tt('room.publicCorpus.materialsExamPrintSubtitle', 'Условие и полное решение на иврите для экзаменационной записи') }));
+  const actions = el('div', { class: 'materials-learning-head-actions' });
+  const printStudy = el('button', { class: 'materials-print-study', attrs: { type: 'button' }, text: tt('room.publicCorpus.materialsPrintStudy', 'Печать · 4 колонки') });
+  const printExam = el('button', { class: 'materials-print-exam', attrs: { type: 'button' }, text: tt('room.publicCorpus.materialsPrintExam', 'Печать · экзамен') });
+  const close = el('button', { class: 'materials-learning-close', attrs: { type: 'button', 'aria-label': tt('room.publicCorpus.materialsCloseLearning', 'Закрыть решение') }, text: '×' });
+  actions.append(printStudy, printExam, close); head.append(copy, actions); viewer.appendChild(head);
+  const body = el('div', { class: 'materials-learning-body' });
+  const toolbar = el('div', { class: 'materials-learning-toolbar', attrs: { role: 'toolbar', 'aria-label': tt('room.publicCorpus.materialsViewMode', 'Режим просмотра') } });
+  const contentGroup = el('div', { class: 'materials-segmented', attrs: { role: 'group', 'aria-label': tt('room.publicCorpus.materialsContentMode', 'Содержание') } });
+  const languageGroup = el('div', { class: 'materials-segmented', attrs: { role: 'group', 'aria-label': tt('room.publicCorpus.materialsLanguageMode', 'Учебный режим') } });
+  function modeButton(mode, textValue, active) {
+    return el('button', { class: 'materials-mode-button' + (active ? ' is-active' : ''), attrs: { type: 'button', 'data-mode': mode, 'aria-pressed': active ? 'true' : 'false' }, text: textValue });
+  }
+  const conditionMode = modeButton('condition', tt('room.publicCorpus.materialsCondition', 'Условие'), false);
+  const solutionMode = modeButton('solution', tt('room.publicCorpus.materialsSolution', 'Решение'), true);
+  const continuousMode = modeButton('continuous', tt('room.publicCorpus.materialsContinuous', 'Условие + решение'), false);
+  const studyMode = modeButton('study', tt('room.publicCorpus.materialsStudyMode', 'Учёба · 4 колонки'), true);
+  const examMode = modeButton('exam', tt('room.publicCorpus.materialsExamMode', 'Экзамен · иврит'), false);
+  contentGroup.append(conditionMode, solutionMode, continuousMode); languageGroup.append(studyMode, examMode); toolbar.append(contentGroup, languageGroup); body.appendChild(toolbar);
+  const audioNote = el('p', { class: 'materials-audio-note', attrs: { role: 'note' }, text: tt('room.publicCorpus.materialsAudioDeferred', 'Аудио и пословная подсветка будут добавлены после покарточной проверки этой редакции.') });
+  body.appendChild(audioNote);
+  const condition = el('section', { class: 'materials-learning-section materials-condition-section', attrs: { 'aria-labelledby': 'materialsConditionTitle' } });
+  condition.appendChild(el('h3', { attrs: { id: 'materialsConditionTitle' }, text: tt('room.publicCorpus.materialsCondition', 'Условие') }));
+  condition.appendChild(materialsLearningTable(materialsConditionRows(support), 'condition'));
+  const figures = materialsSourceFigures(support); if (figures.childElementCount) condition.appendChild(figures);
+  const solution = el('section', { class: 'materials-learning-section materials-solution-section', attrs: { 'aria-labelledby': 'materialsSolutionTitle' } });
+  solution.appendChild(el('h3', { attrs: { id: 'materialsSolutionTitle' }, text: tt('room.publicCorpus.materialsSolution', 'Решение') }));
+  solution.appendChild(materialsLearningTable(support.solution_rows, 'solution'));
+  const provenance = el('footer', { class: 'materials-learning-provenance' });
+  provenance.appendChild(el('strong', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
+  provenance.appendChild(el('code', { text: 'edition ' + support.edition_number + ' · work ' + support.public_work_id + ' · snapshot ' + support.snapshot_sha256.slice(0, 12) + '…' }));
+  solution.appendChild(provenance); body.append(condition, solution); viewer.appendChild(body); overlay.appendChild(viewer); document.body.appendChild(overlay);
+  function setContent(mode) {
+    viewer.setAttribute('data-content-mode', mode);
+    for (const button of [conditionMode, solutionMode, continuousMode]) { const on = button.dataset.mode === mode; button.classList.toggle('is-active', on); button.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  }
+  function setLanguage(mode) {
+    viewer.setAttribute('data-language-mode', mode);
+    for (const button of [studyMode, examMode]) { const on = button.dataset.mode === mode; button.classList.toggle('is-active', on); button.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  }
+  conditionMode.addEventListener('click', () => setContent('condition')); solutionMode.addEventListener('click', () => setContent('solution')); continuousMode.addEventListener('click', () => setContent('continuous'));
+  studyMode.addEventListener('click', () => setLanguage('study')); examMode.addEventListener('click', () => setLanguage('exam'));
+  const background = roomSuspendBackground(overlay); let closed = false;
+  const beforePrint = () => prepareMaterialsPrint(viewer, viewer.getAttribute('data-language-mode') === 'exam' ? 'exam' : 'study');
+  const afterPrint = () => restoreMaterialsPrint(viewer);
+  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); restoreMaterialsPrint(viewer); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
+  const keydown = event => { if (event.key === 'Escape') { event.preventDefault(); shut(); } else if (event.key === 'Tab') roomFocusTrap(event, viewer); };
+  printStudy.addEventListener('click', () => printMaterialsLearningSupport(viewer, 'study')); printExam.addEventListener('click', () => printMaterialsLearningSupport(viewer, 'exam'));
+  close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); window.addEventListener('beforeprint', beforePrint); window.addEventListener('afterprint', afterPrint); roomFocusInto(viewer);
+}
+
+function renderMaterialsLearningActions(slug, item) {
+  const wrap = el('div', { class: 'materials-learning-actions' });
+  const check = el('button', { class: 'materials-learning-action answer', attrs: { type: 'button', 'aria-expanded': 'false' }, text: tt('room.publicCorpus.materialsCheckAnswer', 'Краткий ответ') });
+  const open = el('button', { class: 'materials-learning-action primary', attrs: { type: 'button' }, text: tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →' });
+  const answer = el('div', { class: 'materials-inline-answer', attrs: { role: 'status' } }); answer.hidden = true; let support = null;
+  async function load(button) {
+    button.disabled = true; wrap.setAttribute('data-loading', 'true');
+    try { support = support || await ensureMaterialsLearningSupport(slug, item); return support; }
+    catch (_) { roomToast(tt('room.publicCorpus.materialsLearningUnavailable', 'Проверенное решение сейчас недоступно')); return null; }
+    finally { button.disabled = false; wrap.removeAttribute('data-loading'); }
+  }
+  check.addEventListener('click', async () => {
+    if (!answer.hidden) { answer.hidden = true; check.setAttribute('aria-expanded', 'false'); return; }
+    const value = await load(check); if (!value) return;
+    const short = value.solution_rows.filter(row => row.section === 'answer_first' && row.kind === 'final_answer').slice(0, 6);
+    answer.replaceChildren(); for (const row of short) answer.appendChild(el('p', { text: row.text.ru }));
+    answer.hidden = false; answer.removeAttribute('hidden'); check.setAttribute('aria-expanded', 'true');
+  });
+  open.addEventListener('click', async () => { const value = await load(open); if (value) openMaterialsLearningSupport(value, open); });
+  wrap.append(check, open, answer); return wrap;
+}
+
 async function renderReaderTaskResources(slug, workId, epoch) {
   const box = $('readerTaskResources'); if (!box) return;
   box.replaceChildren(); box.hidden = true;
@@ -7938,15 +8127,22 @@ async function renderReaderTaskResources(slug, workId, epoch) {
 async function renderReaderTaskLearningSupport(slug, workId, epoch) {
   const box = $('readerTaskLearningSupport'); if (!box) return;
   box.replaceChildren(); box.hidden = true;
-  if (slug !== 'physics-year1-problems' || !workId) return;
+  if (!['physics-year1-problems', 'materials-science-year1-problem-book-2'].includes(slug) || !workId) return;
   try {
     const catalog = await ensurePublicCatalog(slug);
     if (epoch !== readerOpenEpoch) return;
     const item = catalog.items.find(row => row.public_work_id === String(workId)); if (!item) return;
     const head = el('div', { class: 'reader-task-learning-head' });
-    head.appendChild(el('strong', { text: tt('room.publicCorpus.physicsLearningTitle', 'Понять и решить') }));
-    head.appendChild(el('span', { text: tt('room.publicCorpus.physicsLearningReaderNote', 'Ответ для сверки и полный разбор после условия') }));
-    box.append(head, renderPhysicsLearningActions(slug, item)); box.hidden = false;
+    if (slug === 'physics-year1-problems') {
+      head.appendChild(el('strong', { text: tt('room.publicCorpus.physicsLearningTitle', 'Понять и решить') }));
+      head.appendChild(el('span', { text: tt('room.publicCorpus.physicsLearningReaderNote', 'Ответ для сверки и полный разбор после условия') }));
+      box.append(head, renderPhysicsLearningActions(slug, item));
+    } else {
+      head.appendChild(el('strong', { text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') }));
+      head.appendChild(el('span', { text: tt('room.publicCorpus.materialsLearningReaderNote', 'Таблица для учёбы и экзамена после условия') }));
+      box.append(head, renderMaterialsLearningActions(slug, item));
+    }
+    box.hidden = false;
   } catch (_) { box.hidden = true; }
 }
 
@@ -10461,6 +10657,8 @@ async function renderPublicCorpus(slug, token) {
         const resources = physics.resourcesByWork.get(item.public_work_id) || [];
         if (resources.length) identity.appendChild(renderPhysicsResourceRail(resources));
         identity.appendChild(renderPhysicsLearningActions(slug, item));
+      } else if (slug === 'materials-science-year1-problem-book-2') {
+        identity.appendChild(renderMaterialsLearningActions(slug, item));
       }
       const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
     }

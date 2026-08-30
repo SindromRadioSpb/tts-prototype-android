@@ -1,0 +1,47 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-terminal-decision-v1",
+  "decided_on": "2026-08-30",
+  "status": "NO_MORE_GEMINI_REQUESTS",
+  "reason": "TERMINAL_B01_FLAT_RESPONSE_FAILED_STRICT_SEMANTIC_VALIDATION",
+  "provider": {
+    "model": "gemini-3.7-flash",
+    "mode": "STANDARD",
+    "total_request_attempts": 4,
+    "http_200_responses": 2,
+    "semantically_valid_outputs": 0,
+    "measured_http_200_cost_usd": 0.065988,
+    "conservative_http_400_reserve_usd": 0.19788,
+    "total_conservative_envelope_usd": 0.263868,
+    "approved_ceiling_usd": 1.0
+  },
+  "terminal_b01": {
+    "request_body_sha256": "f366ff3368f7de343a7f496624eab83f0e18552b848e1db0da4c1dec0db9cb86",
+    "raw_response_sha256": "a36d3062e8b3853ace77d6055133c2c771a33fd0dfe80de2fc08095337e7a42b",
+    "provider_text_sha256": "4064d094012a7e911cc40445b73de8a71634c7da25be74a654e8bd245c961620",
+    "truth_status": "REJECTED_INVALID_NOT_NORMALIZED_NOT_CORPUS_TRUTH",
+    "failure_classes": [
+      "CONTROLLED_ENUM_VALUES_OUTSIDE_CANONICAL_SCHEMA",
+      "SUMMARY_VALIDATION_BLOCKED_BY_INVALID_SEVERITY_ENUMS"
+    ]
+  },
+  "batches_not_sent": ["B02", "B03"],
+  "prohibited_follow_up": [
+    "PROVIDER_RETRY",
+    "ENUM_PROMPT_TUNING_AND_RETRY",
+    "AUTOMATIC_ACCEPTANCE_OR_NORMALIZATION_OF_REJECTED_OUTPUT",
+    "NEW_SHADOW_RECOVERY_GATE_REQUEST"
+  ],
+  "retained_local_basis": [
+    "SOURCE_FIRST_60_TASK_MANIFEST",
+    "REVIEWED_2469_ROW_LEGACY_MAPPING",
+    "SEMANTIC_CLASSIFICATION_OF_ALL_60_TASKS_AND_90_VISUAL_INSTANCES",
+    "IMMUTABLE_RAW_PROVIDER_FAILURE_EVIDENCE"
+  ],
+  "next_program_boundary": "FUTURE_BUILD_MUST_USE_SOURCE_FIRST_BOUNDED_REVIEW_WITHOUT_REOPENING_THIS_GEMINI_SHADOW",
+  "future_provider_recovery_allowed": false,
+  "import_allowed": false,
+  "publication_allowed": false,
+  "tts_allowed": false,
+  "solution_authoring_or_adjudication_allowed": false,
+  "secret_persisted": false
+}

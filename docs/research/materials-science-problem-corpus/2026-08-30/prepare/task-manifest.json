@@ -1,0 +1,1284 @@
+{
+  "schema": "linguistpro-materials-pb2-task-manifest-v1",
+  "status": "OWNER_APPROVED_TASK_SET_LOCAL_SOURCE_ANCHORS_REVIEWED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "identity_policy": "PAGE_BOUND_TASK_IDENTITY_DISPLAY_NUMBER_IS_NOT_IDENTITY",
+  "canonical_task_count": 60,
+  "tasks": [
+    {
+      "task_id": "materials-science-y1-pb2-q001",
+      "display_number": 1,
+      "display_alias": "1",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 3,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "7fa20f795b02529119ee1022a4645ed242d2dd24926a8dc9b290fe90e256bb1d"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q002",
+      "display_number": 2,
+      "display_alias": "2",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 4,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        },
+        {
+          "source_page": 5,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.22
+          ],
+          "role": "condition_continuation"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "1438f49be5777960e2d02a077b2081991dbb89c51894814b874916c9e4904f00"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+      "display_number": null,
+      "display_alias": "Упражнение — Аллотропия железа",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 5,
+          "normalized_bbox": [
+            0.0,
+            0.22,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "OWNER_APPROVED_CANONICAL_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "mapping_note": "Unnumbered exercise begins after the continuation of question 2.",
+      "task_record_sha256": "205653a66599d7c72bc8631c18ddcb8c0a2918dc94fa8f41fc2c7db30476739d"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q003",
+      "display_number": 3,
+      "display_alias": "3",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 6,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.37
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "bb8b9de92be8d84f6543855e8afb2b48c695118d24e45734338e735d23b79cc4"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q004",
+      "display_number": 4,
+      "display_alias": "4",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 6,
+          "normalized_bbox": [
+            0.0,
+            0.35,
+            1.0,
+            0.66
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "c1b41b760399c2c66ae906bdcde7d41ed7d5c5e9963bf1556e313420084fd72a"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q005",
+      "display_number": 5,
+      "display_alias": "5",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 6,
+          "normalized_bbox": [
+            0.0,
+            0.64,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "09a592fa72b3c5ab25b28e288a45f3d846e3c4543d946f582315ab8c93071736"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q006",
+      "display_number": 6,
+      "display_alias": "6",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 7,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "5d44a5fc4870b4292f1706018a5f6ff295cca9e43ba595717b894c52ce68f9b3"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q007",
+      "display_number": 7,
+      "display_alias": "7",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 8,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "0d6150fa97e585841e80e9756fbf35b3016d966a07dac362f0acf0de0ff251d5"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q008",
+      "display_number": 8,
+      "display_alias": "8",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 9,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "fd2e4cde612b6e3f60e6b9352724ba240d7b86503b43aae8736c4f74ed6c71af"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q009",
+      "display_number": 9,
+      "display_alias": "9",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 12,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.565
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "1e19165668d59e8ec95cbdf1f7b64276c5cac0a653978106eea208d1d74995d2"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q010",
+      "display_number": 10,
+      "display_alias": "10",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 14,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "78357e4b8be7660752d3202d1dc886f3c982805c838b13d0de92c05d304fabc9"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q011",
+      "display_number": 11,
+      "display_alias": "11",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 15,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "972cb1c857c758109b21f7a97d63e986d2058c8a0301523fb1d8fafc68be4f40"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q012",
+      "display_number": 12,
+      "display_alias": "12",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 16,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "5463b87c1c0a51aa857e12e2ee7fa08fec3662c1fdd4aaa049f0a59da6eac26d"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q013",
+      "display_number": 13,
+      "display_alias": "13",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 17,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "b278328f11ed0c2abfdb29600970e0c4516f9d233b5dfc46726eca1d9edad931"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q014",
+      "display_number": 14,
+      "display_alias": "14",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 18,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "2c7f01be9f5817c60e77b08b178c9669528e446846d037c55bb64a9243aee966"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q015",
+      "display_number": 15,
+      "display_alias": "15",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 20,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "1c29e56d98133c353ea40304a06058acee9e1804f961e91492b2029ef232c6e8"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q016",
+      "display_number": 16,
+      "display_alias": "16",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 21,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "6c9b2aa2f8f70a048c6c4c34cee42914a47f0f09faa925c056d96aff04355322"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q017",
+      "display_number": 17,
+      "display_alias": "17",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 22,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "7eac943f6720d125551f20e4fd2f767b711fa640fa5ade45591e061043686cc2"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q018",
+      "display_number": 18,
+      "display_alias": "18",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 23,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "1a6cd8e560630504e5ed81ad9cb82c6ecaeb784aa66da768d8aec6900f88961b"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q019",
+      "display_number": 19,
+      "display_alias": "19",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 25,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "9173f76abb3d706dc654ab05bf4a14d7be608ea1c3f7ccee9a9d0cac03ca1b84"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q020",
+      "display_number": 20,
+      "display_alias": "20",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 26,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "e25c97756ae78f10e5f47b80b64acad739c47892198b61564a1ce22d2d0c0eaa"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q021",
+      "display_number": 21,
+      "display_alias": "21",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 27,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.39
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "2c426cdab75f20d8c7c322fcddd69d8852e126aad40df2bdf83cc00d15438b42"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q022",
+      "display_number": 22,
+      "display_alias": "22",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 28,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "38b64f722c23d13fe5082f88bc3f3c9f253b54078953cf7f05de38175b2ff003"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q023",
+      "display_number": 23,
+      "display_alias": "23",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 29,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "7f81b74b4c5dff3b60ad4a4184a1427ed4a53b836d6d22d76aa57dceb3d156ee"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q024",
+      "display_number": 24,
+      "display_alias": "24",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 30,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "fb6ec16f32bdb504eb825a32f57c25d675a5565be33a38f2619a8e495dde6897"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q025",
+      "display_number": 25,
+      "display_alias": "25",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 31,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "ed7cb36af79f0928ba0a596e77cd33ce074c518ef10efe3291a35b22224e9fcf"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q026",
+      "display_number": 26,
+      "display_alias": "26",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 33,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "96299c964c9662b75ef535df4f916ff8a62e0f686eebbed0c267cd897ef590dd"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q027",
+      "display_number": 27,
+      "display_alias": "27",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 35,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "00fedf23c6084867dd9efa1db8522713697a874cb677ff6806f274526763c8de"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q028",
+      "display_number": 28,
+      "display_alias": "28",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 36,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "aafe707e184a59b743f29ae490ebe97322b52ad63475f3af985a8a72d25ccf07"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q029",
+      "display_number": 29,
+      "display_alias": "29",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 37,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "45984f8d3ded77073084baee74778ddacf04bc5ba7e2539aeb2479d94bee27c3"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q030",
+      "display_number": 30,
+      "display_alias": "30",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 38,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "ca8753cc5cfe7bbfb60c319d969e842bd1cf02d1a084495dcca1a10fa48549b3"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q031",
+      "display_number": 31,
+      "display_alias": "31",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 39,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.34
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "54696990aecbf23077222757e31ffd0330cf7ec05ca67591811b03f8063f4f15"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q032",
+      "display_number": 32,
+      "display_alias": "32",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 39,
+          "normalized_bbox": [
+            0.0,
+            0.32,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "e5331c9cca25c560395ac7e36daa0b8af276d4a8518f83949b746e810aa33524"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q033",
+      "display_number": 33,
+      "display_alias": "33",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 40,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "08b7f60dcc233886a06a8c9a8828af36cf4b43f1ea78ac2635dcd24e9e9a9762"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q034",
+      "display_number": 34,
+      "display_alias": "34",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 41,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "739efa147d64fd4cc950c61fbcd41a7e15e854c0f361dc627fcfca51a9be6441"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q035",
+      "display_number": 35,
+      "display_alias": "35",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 42,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "7363b571b09f472e58b5d7df22d3cf11873f640af6f0a190d61cf983d1665f1f"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q036",
+      "display_number": 36,
+      "display_alias": "36",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 43,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "da246889d54acc880c18e74471f86ae91d05e9095b6d0740c65b3efd7c5f1625"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q037",
+      "display_number": 37,
+      "display_alias": "37",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 44,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "f156592ba45900a89cc4b160c22adc5b247dd079a4db2165b5f3fe995777483c"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-p045-q038",
+      "display_number": 38,
+      "display_alias": "38-A",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 45,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "OWNER_APPROVED_CANONICAL_DUPLICATE_DISPLAY_NUMBER_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "mapping_note": "First distinct source occurrence labelled question 38; topic: annealing.",
+      "task_record_sha256": "deb275e1d4783c04ea9ada1e45ac43ac5af43cb1ebda437154250a5152e70cfd"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-p047-q038",
+      "display_number": 38,
+      "display_alias": "38-B",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 47,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.46
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "OWNER_APPROVED_CANONICAL_DUPLICATE_DISPLAY_NUMBER_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "mapping_note": "Second distinct source occurrence labelled question 38; topic: steel selection.",
+      "task_record_sha256": "e84088e1a0fca3645879133f8dc95a93fbd649f6ee1ddfc251d4d4e693f09a34"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q039",
+      "display_number": 39,
+      "display_alias": "39",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 48,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.36
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "cd61e27e48e1cb2b6c28780bae45c552a9e5cee795614323621075cd12f97a78"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q040",
+      "display_number": 40,
+      "display_alias": "40",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 49,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "2ee0ef1279f9377e6d6c44d32a3cf57d40cda7ac05e5d4d931653d712b048b95"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q041",
+      "display_number": 41,
+      "display_alias": "41",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 51,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.82
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "5d3ad7b590eaf934259fa50dd8d010a645dd14082a22611a4a73856961ac4f50"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q042",
+      "display_number": 42,
+      "display_alias": "42",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 52,
+          "normalized_bbox": [
+            0.0,
+            0.65,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "mapping_note": "Condition-only crop excludes the preceding embedded solution for question 41.",
+      "task_record_sha256": "f16fe4318ecd88cab9886b1901fd6a2cce06ad2afa05e773f822d7c616ec7f77"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q043",
+      "display_number": 43,
+      "display_alias": "43",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 53,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.52
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "4a9cc1e953ce398fc76d0e2e92333d0cdf00cc51dc210ba68ca582615296eab7"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q044",
+      "display_number": 44,
+      "display_alias": "44",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 54,
+          "normalized_bbox": [
+            0.0,
+            0.42,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "mapping_note": "Condition-only crop excludes the preceding embedded solution for question 43.",
+      "task_record_sha256": "283d53a89bfd13f06a3bf20451cf32bad05254da4c95887bf8becf276ca4576f"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q045",
+      "display_number": 45,
+      "display_alias": "45",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 55,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "27aa09a8effd3430f640c53d0249c359ee110b87bf1f4eb1ebbecf727a6a23ec"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q046",
+      "display_number": 46,
+      "display_alias": "46",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 56,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "27e9ac5b233451dca271cf0f8febe4ff571f3a1b6bfa8fb27e11b9a1bcb632e5"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q047",
+      "display_number": 47,
+      "display_alias": "47",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 57,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.6
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "21e77d01374757cb341ec7e626f2ae5f56d73b414074add57ac3a491813fb925"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q048",
+      "display_number": 48,
+      "display_alias": "48",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 58,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "b953ca53d146cb48a7a46df22711ebe6d2401d596d8ce46748967ddbab97f361"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q049",
+      "display_number": 49,
+      "display_alias": "49",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 59,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "a479003b485882edd17286c6aa2c99d80025afb4a7e44b24fcd6d1421dcdd6fe"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q050",
+      "display_number": 50,
+      "display_alias": "50",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 60,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "63a135b6dfed97083ec32416bb1eb72caf8f3b7cbfd9c2cdb0995b171897748f"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q051",
+      "display_number": 51,
+      "display_alias": "51",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 61,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "049486351ae114882ff65c52a7e871a30489cb62ea6398c2ec46b2a339dcac85"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q052",
+      "display_number": 52,
+      "display_alias": "52",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 62,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "101d77ae46b451ef891b55504cb71bb6fd0535580d1730e0805bff289c133278"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q053",
+      "display_number": 53,
+      "display_alias": "53",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 63,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.48
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "80913531610423bcf06a55ca908e3f186b63f2a9d8459e2824d4f4893d8e1e66"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q054",
+      "display_number": 54,
+      "display_alias": "54",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 63,
+          "normalized_bbox": [
+            0.0,
+            0.46,
+            1.0,
+            0.72
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "003c33393ac38298fd6278fd3219dd29049e80ddceee0841ed00001986f4dada"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q055",
+      "display_number": 55,
+      "display_alias": "55",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 63,
+          "normalized_bbox": [
+            0.0,
+            0.69,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "c2759881f5f35ff683c2a2b22f78048fef125fd0faa5034ca174185d223134f4"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q056",
+      "display_number": 56,
+      "display_alias": "56",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 64,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.58
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "2f1a17cc5a94e4c13400a9b7bfcda33f464443feffd71b8cb96d4e2162a09017"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q057",
+      "display_number": 57,
+      "display_alias": "57",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 64,
+          "normalized_bbox": [
+            0.0,
+            0.54,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "48896e60126d33083df779918c377469809de2fcf2bdfa1e24d88b646ec67fac"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q058",
+      "display_number": 58,
+      "display_alias": "58",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "source_anchors": [
+        {
+          "source_page": 65,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "role": "condition"
+        }
+      ],
+      "mapping_status": "LOCAL_SOURCE_ANCHOR_REVIEWED_2026_08_30",
+      "diagram_completeness": "PRESERVED_IN_SOURCE_ANCHOR_PENDING_SEMANTIC_CLASSIFICATION",
+      "task_record_sha256": "ebc3265ee8618b6f4c80d21e83321dcb3f232e7f25ccbd656114567e1b82a346"
+    }
+  ]
+}

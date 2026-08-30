@@ -1,0 +1,26 @@
+{
+  "schema_version": "materials_pb2_rights_acceptance_receipt.1.0.0",
+  "accepted_on": "2026-08-31",
+  "owner_asserted_at": "2026-08-30",
+  "status": "PASS_ALL_CURRENT_ZERO_AUDIO_PUBLICATION_CLASSES_ATTESTED_FULL_TTS_DEFERRED",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "attestation_file": "../publication-rights-attestation.json",
+  "attestation_sha256": "c524c941ede424588102f9149055dffa34942a93b625f6744fdf2a86b77a5731",
+  "validated_by": [
+    "publish-materials-pb2-corpus.readRights",
+    "build-materials-pb2-runtime-support.validateRights"
+  ],
+  "public_permissions": {
+    "read": true,
+    "solution_display_and_print": true,
+    "package_download": true,
+    "agent_derivative_text": true,
+    "stream_current_zero_audio_edition": true
+  },
+  "audio_boundary": {
+    "physical_audio_assets": 0,
+    "timing_sidecars": 0,
+    "full_tts_authorized": false,
+    "next_audio_gate": "OWNER_REVIEW_OF_ALL_60_PRODUCTION_CARDS"
+  }
+}

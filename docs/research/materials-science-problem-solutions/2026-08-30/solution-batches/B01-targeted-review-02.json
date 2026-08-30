@@ -1,0 +1,59 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B01-TR02-Q002-THEORY",
+  "task_id": "materials-science-y1-pb2-q002",
+  "status": "SOURCE_ONLY_TECHNICAL_REVIEW_PASS",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "541d6a2c9f8a70a1cb08477c4403a75b1cf0920173a83bcbf95a800472d8f1b8",
+  "reason": "NO_LEGACY_SOLUTION_EXISTS",
+  "declared_convention_sources": [
+    {
+      "title": "NIST — Trapping and Moving Atoms on Surfaces",
+      "url": "https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=620579",
+      "claim_used": "Bulk copper has a face-centered-cubic crystal structure."
+    },
+    {
+      "title": "U.S. Department of Energy — Fundamentals Handbook, Material Science, Volume 1",
+      "url": "https://www.energy.gov/sites/default/files/2026-04/DOE-HDBK-1017-93_VOL1.pdf",
+      "claim_used": "Used for crystalline periodic order, grain and boundary definitions, real-crystal imperfections, iron BCC/FCC polymorphism, valence-electron dependence, and metallic versus ionic bonding."
+    }
+  ],
+  "verdict_audit": [
+    {
+      "part": "a",
+      "verdict": "TRUE",
+      "audit": "Copper is explicitly identified as FCC crystalline material."
+    },
+    {
+      "part": "b",
+      "verdict": "FALSE",
+      "audit": "A crystalline lattice is a periodically repeating three-dimensional array; the statement incorrectly extends that long-range lattice to liquid."
+    },
+    {
+      "part": "c",
+      "verdict": "TRUE",
+      "audit": "Iron changes between BCC ferrite and FCC austenite with temperature."
+    },
+    {
+      "part": "d",
+      "verdict": "FALSE",
+      "audit": "A grain is a continuous crystal region with an orientation, but real crystals contain point, line and interfacial imperfections; therefore 'perfect order' is too strong."
+    },
+    {
+      "part": "e",
+      "verdict": "TRUE_WITH_SCOPE_NOTE",
+      "audit": "The electronic and valence structure controls chemical electron transfer and therefore oxidation tendency; actual oxidation rate also depends on temperature, environment, transport and surface state."
+    },
+    {
+      "part": "f",
+      "verdict": "FALSE",
+      "audit": "Metallic iron is held by metallic bonding with mobile delocalized electrons; an ionic bond requires attraction between oppositely charged species and is not a bond between identical positive iron ion cores."
+    }
+  ],
+  "reviewed_answer_sequence": ["TRUE", "FALSE", "TRUE", "FALSE", "TRUE_WITH_SCOPE_NOTE", "FALSE"],
+  "changes_to_frozen_independent_solution": [],
+  "disposition": "TECHNICAL_CONTENT_REVIEWED_PASS_NO_LEGACY_KEY",
+  "publication_blocking": false
+}

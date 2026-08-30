@@ -1,0 +1,3431 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q033",
+  "display_alias": "33",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "65684e3ef3b4b37ac5fcbd647b90e4c16a010bb0e3c225a295f998e9c650a869"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "3f1ba9b537fc7dd194f14a1673aa746edffa58435d6f499215dc578849be7d1e",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "A3 plus margin, thermal cycle and all five 595 C property selections match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q033-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 33.",
+        "hebrew_niqqud": "שְׁאֵלָה 33.",
+        "translit": "She'ela 33.",
+        "translit_ru": "",
+        "russian": "Вопрос 33.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "task_heading",
+            "source_page": 40,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r002",
+        "order_index": 1,
+        "hebrew_plain": "בטיפול תרמי לפלדה SAE 1030 בוצע חיסום במים ולאחריו בוצעה הרפיה בטמפרטורה של 540°C.",
+        "hebrew_niqqud": "בְּטִיפּוּל תֶּרְמִי לִפְלָדָה SAE 1030 בֻּוצַּע חִיסּוּם בְּמַיִם וּלְאַחֲרָיו בֻּוצְּעָה הַרְפָּיָה בְּטֶמְפֶּרָטוּרָה שֶׁל 540°C.",
+        "translit": "Be-ṭipul termi le-fladah SAE 1030 butsa ḥisum be-mayim u-le-aḥarav buts'ah harpayah be-ṭemperaturah shel 540°C.",
+        "translit_ru": "",
+        "russian": "При термической обработке стали SAE 1030 была выполнена закалка в воде с последующим отпуском при температуре 540°C.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "condition",
+            "source_page": 40,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r003",
+        "order_index": 2,
+        "hebrew_plain": "א. היעזר בדיאגרמת ברזל-פחמן שבנספח א' וקבע את טמפרטורת האוסטיניזציה שאליה חוממה הפלדה בשלב החיסום.",
+        "hebrew_niqqud": "א. הֵיעָזֵר בְּדִיאַגְרָמַת בַּרְזֶל-פַּחְמָן שֶׁבְּנִסְפָּח א' וּקְבַע אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטֶינִיזַצְיָה שֶׁאֵלֶיהָ חֻומְּמָה הַפְּלָדָה בִּשְׁלַב הַחִיסּוּם.",
+        "translit": "A. He'azer be-diagramat barzel-paḥman she-be-nispaḥ A u-ḳva et ṭemperaturat ha-osṭenizatsyah she-eleha ḥummah ha-pladah bi-shlav ha-ḥisum.",
+        "translit_ru": "",
+        "russian": "А. Используя диаграмму железо-углерод в приложении А, определите температуру аустенитизации, до которой нагревалась сталь на этапе закалки.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "subpart",
+            "source_page": 40,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r004",
+        "order_index": 3,
+        "hebrew_plain": "הסבר את קביעתך.",
+        "hebrew_niqqud": "הַסְבֵּר אֶת קְבִיעָתְךָ.",
+        "translit": "Hasber et ḳvi'atkha.",
+        "translit_ru": "",
+        "russian": "Объясните свое решение.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "subpart",
+            "source_page": 40,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r005",
+        "order_index": 4,
+        "hebrew_plain": "ב. סרטט גרף סכמתי (טמפרטורה כתלות בזמן) המתאר את מהלך הטיפול התרמי הכולל את החיסום וההרפיה המתוארים בפתח השאלה.",
+        "hebrew_niqqud": "ב. סַרְטֵט גְּרָף סְכֶמָתִי (טֶמְפֶּרָטוּרָה כִּתְלוּת בִּזְמַן) הַמְּתָאֵר אֶת מַהֲלַךְ הַטִּיפּוּל הַתֶּרְמִי הַכּוֹלֵל אֶת הַחִיסּוּם וְהַהַרְפָּיָה הַמְּתוֹאָרִים בְּפֶתַח הַשְּׁאֵלָה.",
+        "translit": "B. Sarṭeṭ graf skhemati (ṭemperaturah ki-tlut bi-zman) ha-meta'er et mahalakh ha-ṭipul ha-termi ha-kolel et ha-ḥisum ve-ha-harpayah ha-meto'arim be-fetaḥ ha-she'elah.",
+        "translit_ru": "",
+        "russian": "Б. Начертите схематический график (температура в зависимости от времени), описывающий ход термической обработки, включающей закалку и отпуск, описанные в начале вопроса.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "subpart",
+            "source_page": 40,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r006",
+        "order_index": 5,
+        "hebrew_plain": "ציין על הגרף את טמפרטורת האוסטניזציה ואת טמפרטורת ההרפיה.",
+        "hebrew_niqqud": "צַייֵּן עַל הַגְּרָף אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיזַצְיָה וְאֶת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה.",
+        "translit": "Tsayen al ha-graf et ṭemperaturat ha-osṭenizatsyah ve-et ṭemperaturat ha-harpayah.",
+        "translit_ru": "",
+        "russian": "Укажите на графике температуру аустенитизации и температуру отпуска.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "subpart",
+            "source_page": 40,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r007",
+        "order_index": 6,
+        "hebrew_plain": "ג. התכונות המכניות שהתקבלו לאחר החיסום וההרפיה (540°C) לא תאמו את הדרישות ההנדסיות, והוחלט לשנות את טמפרטורת ההרפיה ל- 595°C.",
+        "hebrew_niqqud": "ג. הַתְּכוּנוֹת הַמְּכָנִיּוֹת שֶׁהִתְקַבְּלוּ לְאַחַר הַחִיסּוּם וְהַהַרְפָּיָה (540°C) לֹא תָּאֲמוּ אֶת הַדְּרִישׁוֹת הַהַנְדָּסִיּוֹת, וְהֻוחְלַט לְשַׁנּוֹת אֶת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה לְ- 595°C.",
+        "translit": "G. Ha-tkhunot ha-mekhaniyot she-hitḳablu le-aḥar ha-ḥisum ve-ha-harpayah (540°C) lo ta'amu et ha-drishot ha-handasiyot, ve-huḥlaṭ le-shanot et ṭemperaturat ha-harpayah le- 595°C.",
+        "translit_ru": "",
+        "russian": "В. Механические свойства, полученные после закалки и отпуска (540°C), не соответствовали инженерным требованиям, и было решено изменить температуру отпуска на 595°C.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "subpart",
+            "source_page": 40,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r008",
+        "order_index": 7,
+        "hebrew_plain": "לבחור לכל תכונה את הערך המתאים מבין שלושה ערכים ולהסביר.",
+        "hebrew_niqqud": "לִבְחֹור לְכָל תְּכוּנָה אֶת הָעֵרֶךְ הַמַּתְאִים מִבֵּין שְׁלֹושָׁה עֲרָכִים וּלְהַסְבִּיר.",
+        "translit": "Livkhor l'khol tkhunah et ha'erech hamat'im miben shlosha arakhim ul'hasbir.",
+        "translit_ru": "",
+        "russian": "Для каждого свойства выберите соответствующее значение из трех предложенных и объясните свой выбор.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "subpart",
+            "source_page": 40,
+            "source_row_index": 7,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q033-r009",
+        "order_index": 8,
+        "hebrew_plain": "נתון בטבלה עבור 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+        "hebrew_niqqud": "נָתוּן בְּטַבְלָה עֲבוּר 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+        "translit": "Naton b'tavlah avur 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+        "translit_ru": "",
+        "russian": "Дано в таблице для 540°C: ρ=7.8 g/cm³, HRB=88, E=200 GPa, ε=28%, σy=470 MPa.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q033",
+            "kind": "table_data",
+            "source_page": 40,
+            "source_row_index": 8,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      40,
+      70
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q033/anchor-01-p040.jpg",
+        "sha256": "69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "bytes": 246574,
+        "source_page": 40,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition"
+      },
+      {
+        "path": "assets/reference/iron_carbon_phase_diagram_appendix-p070.jpg",
+        "sha256": "88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "bytes": 715522,
+        "source_page": 70,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:IRON_CARBON_PHASE_DIAGRAM_APPENDIX"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q033-v01",
+        "source_page": 40,
+        "kind": "HEAT_TREATMENT_PROPERTIES_TABLE",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": [
+      {
+        "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+        "source_pages": [
+          70
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p070"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:3f1ba9b537fc7dd194f14a1673aa746edffa58435d6f499215dc578849be7d1e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "T_aust ≈ 870°C",
+        "he_niqqud": "T_aust ≈ 870°C",
+        "transliteration": "T_aust ≈ 870°C",
+        "ru": "T_aust ≈ 870°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:df73419d8f8c7fbb08582cd65231340b647f942507e82ef34a04c8d2b7274953",
+        "legacy_fields_sha256:849612017b1109414521aefb742ae9adfc84ccb986f5461acba92a6b12378abd",
+        "independent_solution_sha256:3f1ba9b537fc7dd194f14a1673aa746edffa58435d6f499215dc578849be7d1e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T_aust",
+            "normalized": "T_aust"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "870°C",
+            "normalized": "870°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T_aust ≈ 870°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "T_temp = 540°C",
+        "he_niqqud": "T_temp = 540°C",
+        "transliteration": "T_temp = 540°C",
+        "ru": "T_temp = 540°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:055f437d4318937a3af4b2a3890a7b9170e8ce577efb8211a48a90ee1b279e24",
+        "legacy_fields_sha256:6ebdabdff7d29627b06d01c5622b96339bbed3e5d3962691c14b29d11c3450fe",
+        "independent_solution_sha256:3f1ba9b537fc7dd194f14a1673aa746edffa58435d6f499215dc578849be7d1e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T_temp",
+            "normalized": "T_temp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "540°C",
+            "normalized": "540°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T_temp = 540°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "HRB = 86",
+        "he_niqqud": "HRB = 86",
+        "transliteration": "HRB = 86",
+        "ru": "HRB = 86"
+      },
+      "source_refs": [
+        "legacy_row_hash:3531fa8adb99e57407b07d73a42f2a90af450dc88706d7b365c965ea956a365c",
+        "legacy_fields_sha256:3f996e25e6add95939eadf07c9574df04c83702a64c9ac1fe588ff79bd792b3c",
+        "independent_solution_sha256:3f1ba9b537fc7dd194f14a1673aa746edffa58435d6f499215dc578849be7d1e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "HRB",
+            "normalized": "HRB"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "86",
+            "normalized": "86"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "HRB = 86"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) פלדה SAE 1030 היא פלדת פחמן פשוטה עם כ־0.30% C ולכן היא פלדה היפו־אאוטקטואידית.",
+        "he_niqqud": "א) פְּלָדָה SAE 1030 הִיא פְּלָדַת פַּחְמָן פְּשׁוּטָה עִם כְּ־0.30% C וְלָכֵן הִיא פְּלָדָה הִיפּוֹ־אֵאוּטֶקְטוֹאִידִית.",
+        "transliteration": "A) Pladah SAE 1030 hi pladat pakhman pshutah im k'~0.30% C v'lakhen hi pladah hipo-eutekto'idit.",
+        "ru": "А) Сталь SAE 1030 — это простая углеродистая сталь с содержанием около 0.30% C, и поэтому она является доэвтектоидной сталью (гипоэвтектоидной)."
+      },
+      "source_refs": [
+        "legacy_row_hash:5b72292a93b47a9211910d2134c2dc15d132ce67fb590d9457d742443a2512f5",
+        "legacy_fields_sha256:5047450a8348997d6715dd169c44459ee2ed4cbe5a0b025564414c82eb3e900a",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 2,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 3,
+            "surface": "1030",
+            "normalized": "1030"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "פְּלָדַת",
+            "normalized": "פלדת"
+          },
+          {
+            "index": 6,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 7,
+            "surface": "פְּשׁוּטָה",
+            "normalized": "פשוטה"
+          },
+          {
+            "index": 8,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 9,
+            "surface": "כְּ־0.30%",
+            "normalized": "כ־0.30%"
+          },
+          {
+            "index": 10,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 13,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 14,
+            "surface": "הִיפּוֹ־אֵאוּטֶקְטוֹאִידִית.",
+            "normalized": "היפו־אאוטקטואידית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה היפו־אאוטקטואידית יש לבצע אוסטניזציה מלאה לפני החיסום.",
+        "he_niqqud": "בַּפְּלָדָה הִיפּוֹ־אֵאוּטֶקְטוֹאִידִית יֵשׁ לְבַצֵּעַ אוֹסְטֶנִיזַצְיָה מְלֵאָה לִפְנֵי הַחִסּוּם.",
+        "transliteration": "B'fladah hipo-eutekto'idit yesh l'vatzēa ostenizatzya m'le'ah lifnei hakhisum.",
+        "ru": "В доэвтектоидной стали перед закалкой необходимо проводить полную аустенитизацию."
+      },
+      "source_refs": [
+        "legacy_row_hash:f8faa442c9ded5b30f39cc87c639ea080a810c5060a54539fbabf9712ac1aeb6",
+        "legacy_fields_sha256:c65e1abe7928f36353e8a0605b3fa3fdbf162382dc051cbf3a87c56213471681",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּפְּלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיפּוֹ־אֵאוּטֶקְטוֹאִידִית",
+            "normalized": "היפו־אאוטקטואידית"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "לְבַצֵּעַ",
+            "normalized": "לבצע"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹסְטֶנִיזַצְיָה",
+            "normalized": "אוסטניזציה"
+          },
+          {
+            "index": 5,
+            "surface": "מְלֵאָה",
+            "normalized": "מלאה"
+          },
+          {
+            "index": 6,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 7,
+            "surface": "הַחִסּוּם.",
+            "normalized": "החסום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r007",
+      "order": 7,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "כדי לקבל אוסטניט מלא יש לחמם מעל קו A3 בדיאגרמת ברזל־פחמן.",
+        "he_niqqud": "כְּדֵי לְקַבֵּל אוֹסְטֶנִיט מָלֵא יֵשׁ לְחַמֵּם מֵעַל קַו A3 בְּדִיאַגְרָמַת בַּרְזֶל־פַּחְמָן.",
+        "transliteration": "K'dei l'kabel ostenit male yesh l'khamem me'al kav A3 b'diagrat barzel-pakhman.",
+        "ru": "Чтобы получить полный аустенит, необходимо нагреть выше линии A3 на диаграмме железо-углерод."
+      },
+      "source_refs": [
+        "legacy_row_hash:646dfae51a49fa9def59310794102e5d9ddd78039e0fbe1ca6251f7f9c3edf8a",
+        "legacy_fields_sha256:04a97ddc872470baf757f38f1464bdf7d3f1d10ec4ae336543a1448007d56bd6",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 1,
+            "surface": "לְקַבֵּל",
+            "normalized": "לקבל"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹסְטֶנִיט",
+            "normalized": "אוסטניט"
+          },
+          {
+            "index": 3,
+            "surface": "מָלֵא",
+            "normalized": "מלא"
+          },
+          {
+            "index": 4,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 5,
+            "surface": "לְחַמֵּם",
+            "normalized": "לחמם"
+          },
+          {
+            "index": 6,
+            "surface": "מֵעַל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 7,
+            "surface": "קַו",
+            "normalized": "קו"
+          },
+          {
+            "index": 8,
+            "surface": "A3",
+            "normalized": "A3"
+          },
+          {
+            "index": 9,
+            "surface": "בְּדִיאַגְרָמַת",
+            "normalized": "בדיאגרמת"
+          },
+          {
+            "index": 10,
+            "surface": "בַּרְזֶל־פַּחְמָן.",
+            "normalized": "ברזל־פחמן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r008",
+      "order": 8,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיאגרמת Fe–C טיפוסית עבור 0.30% C קו A3 נמצא בערך בתחום 830–850°C.",
+        "he_niqqud": "בְּדִיאַגְרָמַת Fe–C טִיפּוּסִית עֲבוּר 0.30% C קַו A3 נִמְצָא בְּעֵרֶךְ בַּתְּחוּם 830–850°C.",
+        "transliteration": "B'diagrat Fe–C tipusit avur 0.30% C kav A3 nimtza b'erekh batkhum 830–850°C.",
+        "ru": "На типичной диаграмме Fe–C для 0.30% C линия A3 находится примерно в диапазоне 830–850°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:63b1a31733c8c82d110e29934870c564d3c493b8250c3cce5990b7c059d9a189",
+        "legacy_fields_sha256:92d405bd37be37b108f73078020ed65dddb0d6cd71dcd5a347b2180a1d9c8e83",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיאַגְרָמַת",
+            "normalized": "בדיאגרמת"
+          },
+          {
+            "index": 1,
+            "surface": "Fe–C",
+            "normalized": "Fe–C"
+          },
+          {
+            "index": 2,
+            "surface": "טִיפּוּסִית",
+            "normalized": "טיפוסית"
+          },
+          {
+            "index": 3,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 4,
+            "surface": "0.30%",
+            "normalized": "0.30%"
+          },
+          {
+            "index": 5,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 6,
+            "surface": "קַו",
+            "normalized": "קו"
+          },
+          {
+            "index": 7,
+            "surface": "A3",
+            "normalized": "A3"
+          },
+          {
+            "index": 8,
+            "surface": "נִמְצָא",
+            "normalized": "נמצא"
+          },
+          {
+            "index": 9,
+            "surface": "בְּעֵרֶךְ",
+            "normalized": "בערך"
+          },
+          {
+            "index": 10,
+            "surface": "בַּתְּחוּם",
+            "normalized": "בתחום"
+          },
+          {
+            "index": 11,
+            "surface": "830–850°C.",
+            "normalized": "830–850°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כדי להבטיח אוסטניזציה מלאה נהוג לבחור טמפרטורת אוסטניזציה הגבוהה מ־A3 בכ־30–50°C.",
+        "he_niqqud": "כְּדֵי לְהַבְטִיחַ אוֹסְטֶנִיזַצְיָה מְלֵאָה נָהוּג לִבְחֹר טֶמְפֶּרָטוּרַת אוֹסְטֶנִיזַצְיָה הַגְּבוֹהָה מִ־A3 בְּכְ־30–50°C.",
+        "transliteration": "K'dei l'havti'akh ostenizatzya m'le'ah nahug livkhor temperaturat ostenizatzya hagvohah mi-A3 b'khe-30–50°C.",
+        "ru": "Чтобы обеспечить полную аустенитизацию, принято выбирать температуру аустенитизации, которая выше A3 примерно на 30–50°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:a037973a467bf8f8abf967cdcf35ec6545dcba29f013744a658a814f0b949f9d",
+        "legacy_fields_sha256:6d476ac2a7c5c38a9f6182553cbee63e7bb2a941ffd6c4503adbbf0a036c6334",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 1,
+            "surface": "לְהַבְטִיחַ",
+            "normalized": "להבטיח"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹסְטֶנִיזַצְיָה",
+            "normalized": "אוסטניזציה"
+          },
+          {
+            "index": 3,
+            "surface": "מְלֵאָה",
+            "normalized": "מלאה"
+          },
+          {
+            "index": 4,
+            "surface": "נָהוּג",
+            "normalized": "נהוג"
+          },
+          {
+            "index": 5,
+            "surface": "לִבְחֹר",
+            "normalized": "לבחר"
+          },
+          {
+            "index": 6,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 7,
+            "surface": "אוֹסְטֶנִיזַצְיָה",
+            "normalized": "אוסטניזציה"
+          },
+          {
+            "index": 8,
+            "surface": "הַגְּבוֹהָה",
+            "normalized": "הגבוהה"
+          },
+          {
+            "index": 9,
+            "surface": "מִ־A3",
+            "normalized": "מ־A3"
+          },
+          {
+            "index": 10,
+            "surface": "בְּכְ־30–50°C.",
+            "normalized": "בכ־30–50°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r010",
+      "order": 10,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "T_aust ≈ A3 + (30–50)°C",
+        "he_niqqud": "T_aust ≈ A3 + (30–50)°C",
+        "transliteration": "T_aust ≈ A3 + (30–50)°C",
+        "ru": "T_aust ≈ A3 + (30–50)°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:d9b2c7850fb4ff3d92c0fc43d790640fcf2a71091ddd761e9712178c4414c4af",
+        "legacy_fields_sha256:69984f89fce96525001a4a2011c5763e445728172c3c2711fcdf7cca9f720796",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T_aust",
+            "normalized": "T_aust"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "A3",
+            "normalized": "A3"
+          },
+          {
+            "index": 3,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 4,
+            "surface": "(30–50)°C",
+            "normalized": "30–50)°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T_aust ≈ A3 + (30–50)°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r011",
+      "order": 11,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עבור פלדת 1030 SAE מתקבל תחום מומלץ של כ־860–900°C.",
+        "he_niqqud": "לָכֵן עֲבוּר פְּלָדַת 1030 SAE מִתְקַבֵּל תְּחוּם מֻמְלָץ שֶׁל כְּ־860–900°C.",
+        "transliteration": "Lakhen avur pladat 1030 SAE mitkabel tkhum mumlatz shel k'~860–900°C.",
+        "ru": "Следовательно, для стали SAE 1030 получается рекомендуемый диапазон около 860–900°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:e6093650c7a4727938f1fd7b3f52a6163587e9d7fafdf46fc7bebf27278e326c",
+        "legacy_fields_sha256:58d21ae68d7106b1b6739b955208358ce950cfb0fd18ec444ddd62accddd9c22",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "פְּלָדַת",
+            "normalized": "פלדת"
+          },
+          {
+            "index": 3,
+            "surface": "1030",
+            "normalized": "1030"
+          },
+          {
+            "index": 4,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 5,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 6,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 7,
+            "surface": "מֻמְלָץ",
+            "normalized": "ממלץ"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "כְּ־860–900°C.",
+            "normalized": "כ־860–900°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נבחר ערך יחיד למחברת בתוך התחום המומלץ.",
+        "he_niqqud": "נִבְחַר עֵרֶךְ יָחִיד לְמַחְבֶּרֶת בְּתוֹךְ הַתְּחוּם הַמֻּמְלָץ.",
+        "transliteration": "Nivkhar erekh yakhid l'makhberet b'tokh hatkhum hamumlatz.",
+        "ru": "Выберем единственное значение для записи в пределах рекомендуемого диапазона."
+      },
+      "source_refs": [
+        "legacy_row_hash:35e3fb1f5c9d4c9bbb42421a8d6e224dceff70a5885b2831674627375213b5cf",
+        "legacy_fields_sha256:8684a0eb7b67f47d0d08bb2a7049a0c40dc8e701a283144d8a36453b5202167d",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 1,
+            "surface": "עֵרֶךְ",
+            "normalized": "ערך"
+          },
+          {
+            "index": 2,
+            "surface": "יָחִיד",
+            "normalized": "יחיד"
+          },
+          {
+            "index": 3,
+            "surface": "לְמַחְבֶּרֶת",
+            "normalized": "למחברת"
+          },
+          {
+            "index": 4,
+            "surface": "בְּתוֹךְ",
+            "normalized": "בתוך"
+          },
+          {
+            "index": 5,
+            "surface": "הַתְּחוּם",
+            "normalized": "התחום"
+          },
+          {
+            "index": 6,
+            "surface": "הַמֻּמְלָץ.",
+            "normalized": "הממלץ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r013",
+      "order": 13,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "T_aust ≈ 870°C",
+        "he_niqqud": "T_aust ≈ 870°C",
+        "transliteration": "T_aust ≈ 870°C",
+        "ru": "T_aust ≈ 870°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:df73419d8f8c7fbb08582cd65231340b647f942507e82ef34a04c8d2b7274953",
+        "legacy_fields_sha256:849612017b1109414521aefb742ae9adfc84ccb986f5461acba92a6b12378abd",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T_aust",
+            "normalized": "T_aust"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "870°C",
+            "normalized": "870°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T_aust ≈ 870°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r014",
+      "order": 14,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "במסמך המצורף אין את נספח א׳ ולכן אם בדיאגרמה שלכם מתקבל A3 מעט שונה יש להמשיך לפי אותו כלל של A3+(30–50)°C.",
+        "he_niqqud": "בְּמִסְמָךְ הַמְּצֹרָף אֵין אֶת נִסְפָּח א׳ וְלָכֵן אִם בְּדִיאַגְרָמָה שֶׁלָּכֶם מִתְקַבֵּל A3 מְעַט שׁוֹנֶה יֵשׁ לְהַמְשִׁיךְ לְפִי אוֹתוֹ כְּלָל שֶׁל A3+(30–50)°C.",
+        "transliteration": "B'mismakh hametzoraf ein et nispakh alef v'lakhen im b'diagrah shelakhem mitkabel A3 me'at shone yesh l'hamshikh l'fi oto klal shel A3+(30–50)°C.",
+        "ru": "В приложенном документе нет Приложения А, поэтому, если по вашей диаграмме A3 получается немного другим, следует продолжать следовать тому же правилу A3+(30–50)°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:7389d4b09be49ca46477219f70244c7980251513ee0dda01fe7dcc0edee8b23a",
+        "legacy_fields_sha256:63320625e939557f3143d91da037c0fc0a6bafa86bca8bd861b0d208c03ed976",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמִסְמָךְ",
+            "normalized": "במסמך"
+          },
+          {
+            "index": 1,
+            "surface": "הַמְּצֹרָף",
+            "normalized": "המצרף"
+          },
+          {
+            "index": 2,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "נִסְפָּח",
+            "normalized": "נספח"
+          },
+          {
+            "index": 5,
+            "surface": "א׳",
+            "normalized": "א"
+          },
+          {
+            "index": 6,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "אִם",
+            "normalized": "אם"
+          },
+          {
+            "index": 8,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁלָּכֶם",
+            "normalized": "שלכם"
+          },
+          {
+            "index": 10,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 11,
+            "surface": "A3",
+            "normalized": "A3"
+          },
+          {
+            "index": 12,
+            "surface": "מְעַט",
+            "normalized": "מעט"
+          },
+          {
+            "index": 13,
+            "surface": "שׁוֹנֶה",
+            "normalized": "שונה"
+          },
+          {
+            "index": 14,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 15,
+            "surface": "לְהַמְשִׁיךְ",
+            "normalized": "להמשיך"
+          },
+          {
+            "index": 16,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 17,
+            "surface": "אוֹתוֹ",
+            "normalized": "אותו"
+          },
+          {
+            "index": 18,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 19,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 20,
+            "surface": "A3+(30–50)°C.",
+            "normalized": "A3+(30–50)°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) מהלך הטיפול התרמי כולל חימום עד טמפרטורת האוסטניזציה ושהייה.",
+        "he_niqqud": "ב) מַהֲלָךְ הַטִּפּוּל הַתֶּרְמִי כּוֹלֵל חִמּוּם עַד טֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיזַצְיָה וּשְׁהִיָּה.",
+        "transliteration": "B) Mahalakh hatipul hatermi kolel khimum ad temperaturat ha'ostenizatzya u'sh'hiyah.",
+        "ru": "Б) Ход термической обработки включает нагрев до температуры аустенитизации и выдержку."
+      },
+      "source_refs": [
+        "legacy_row_hash:07c0f64770f39791f830d62b4fa6e1ec61ba8e9b5bce506439e28c08c97ccd0c",
+        "legacy_fields_sha256:a856f1e4df42c21f20f0f795a82ca5d152fcd65f1659701b6c4a8cecb323f1b8",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "מַהֲלָךְ",
+            "normalized": "מהלך"
+          },
+          {
+            "index": 2,
+            "surface": "הַטִּפּוּל",
+            "normalized": "הטפול"
+          },
+          {
+            "index": 3,
+            "surface": "הַתֶּרְמִי",
+            "normalized": "התרמי"
+          },
+          {
+            "index": 4,
+            "surface": "כּוֹלֵל",
+            "normalized": "כולל"
+          },
+          {
+            "index": 5,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 6,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 7,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 8,
+            "surface": "הָאוֹסְטֶנִיזַצְיָה",
+            "normalized": "האוסטניזציה"
+          },
+          {
+            "index": 9,
+            "surface": "וּשְׁהִיָּה.",
+            "normalized": "ושהיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר מכן מבוצע חיסום במים כלומר קירור חד עד לטמפרטורת חדר.",
+        "he_niqqud": "לְאַחַר מִכֵּן מְבֻצָּע חִסּוּם בְּמַיִם כְּלוֹמַר קֵרוּר חַד עַד לְטֶמְפֶּרָטוּרַת חֶדֶר.",
+        "transliteration": "L'akhar mikken m'vutza khisum b'mayim klomar kirur khad ad l'temperaturat kheder.",
+        "ru": "Затем проводится закалка в воде, то есть резкое охлаждение до комнатной температуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:c07c5868c928b9faba62718aa69f55d1688330cb66159e100a34fa78c38f8b3a",
+        "legacy_fields_sha256:ab76d5c840756bbb0b0ea6cf2254d37912e45fdb100f82d92f3025a0f89b8ebb",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 2,
+            "surface": "מְבֻצָּע",
+            "normalized": "מבצע"
+          },
+          {
+            "index": 3,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמַיִם",
+            "normalized": "במים"
+          },
+          {
+            "index": 5,
+            "surface": "כְּלוֹמַר",
+            "normalized": "כלומר"
+          },
+          {
+            "index": 6,
+            "surface": "קֵרוּר",
+            "normalized": "קרור"
+          },
+          {
+            "index": 7,
+            "surface": "חַד",
+            "normalized": "חד"
+          },
+          {
+            "index": 8,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 9,
+            "surface": "לְטֶמְפֶּרָטוּרַת",
+            "normalized": "לטמפרטורת"
+          },
+          {
+            "index": 10,
+            "surface": "חֶדֶר.",
+            "normalized": "חדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר החיסום מבוצע חימום מחדש להרפיה בטמפרטורה של 540°C ושהייה.",
+        "he_niqqud": "לְאַחַר הַחִסּוּם מְבֻצָּע חִמּוּם מֵחָדָשׁ לְהַרְפָּיָה בְּטֶמְפֶּרָטוּרָה שֶׁל 540°C וּשְׁהִיָּה.",
+        "transliteration": "L'akhar hakhisum m'vutza khimum mekhadash l'harpayah b'temperatura shel 540°C u'sh'hiyah.",
+        "ru": "После закалки проводится повторный нагрев для отпуска при температуре 540°C и выдержка."
+      },
+      "source_refs": [
+        "legacy_row_hash:b7de37565d88d1f0f92cd5cf72e03f3a1d7ecb72cacfe5db916917a09eaf3a94",
+        "legacy_fields_sha256:31ad4cfefe34d62c103852b5b43f8a3997049a58dc612579236dcf9d4318a8c0",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          },
+          {
+            "index": 2,
+            "surface": "מְבֻצָּע",
+            "normalized": "מבצע"
+          },
+          {
+            "index": 3,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 4,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 5,
+            "surface": "לְהַרְפָּיָה",
+            "normalized": "להרפיה"
+          },
+          {
+            "index": 6,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "540°C",
+            "normalized": "540°C"
+          },
+          {
+            "index": 9,
+            "surface": "וּשְׁהִיָּה.",
+            "normalized": "ושהיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בסיום ההרפיה מבוצע קירור באוויר עד לטמפרטורת חדר.",
+        "he_niqqud": "בְּסִיּוּם הַהַרְפָּיָה מְבֻצָּע קֵרוּר בָּאֲוִיר עַד לְטֶמְפֶּרָטוּרַת חֶדֶר.",
+        "transliteration": "B'siyum haharpayah m'vutza kirur ba'avir ad l'temperaturat kheder.",
+        "ru": "По окончании отпуска проводится охлаждение на воздухе до комнатной температуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:2ae72177c163fc7ab4c408c1d0964837c1bd0de1c5c0cd0628ac47c3540a1251",
+        "legacy_fields_sha256:2508e5c0e90e562402f7d78ad9914fdce9c5399f63f046eab0eb67603d73a187",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּסִיּוּם",
+            "normalized": "בסיום"
+          },
+          {
+            "index": 1,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 2,
+            "surface": "מְבֻצָּע",
+            "normalized": "מבצע"
+          },
+          {
+            "index": 3,
+            "surface": "קֵרוּר",
+            "normalized": "קרור"
+          },
+          {
+            "index": 4,
+            "surface": "בָּאֲוִיר",
+            "normalized": "באויר"
+          },
+          {
+            "index": 5,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 6,
+            "surface": "לְטֶמְפֶּרָטוּרַת",
+            "normalized": "לטמפרטורת"
+          },
+          {
+            "index": 7,
+            "surface": "חֶדֶר.",
+            "normalized": "חדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r019",
+      "order": 19,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "על הגרף יש לסמן את טמפרטורת האוסטניזציה ואת טמפרטורת ההרפיה.",
+        "he_niqqud": "עַל הַגְּרָף יֵשׁ לְסַמֵּן אֶת טֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיזַצְיָה וְאֶת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה.",
+        "transliteration": "Al hagraf yesh l'samen et temperaturat ha'ostenizatzya v'et temperaturat haharpayah.",
+        "ru": "На графике необходимо обозначить температуру аустенитизации и температуру отпуска."
+      },
+      "source_refs": [
+        "legacy_row_hash:293e5aeb6204252757f7563bfc7bc38fe6f0c0253b0de576020cc20547df3585",
+        "legacy_fields_sha256:8e9c5958637d8aab0dba21121d2c1ed6c990143a005efe7d0e11a02da11ee088",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 1,
+            "surface": "הַגְּרָף",
+            "normalized": "הגרף"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "לְסַמֵּן",
+            "normalized": "לסמן"
+          },
+          {
+            "index": 4,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 5,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 6,
+            "surface": "הָאוֹסְטֶנִיזַצְיָה",
+            "normalized": "האוסטניזציה"
+          },
+          {
+            "index": 7,
+            "surface": "וְאֶת",
+            "normalized": "ואת"
+          },
+          {
+            "index": 8,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 9,
+            "surface": "הַהַרְפָּיָה.",
+            "normalized": "ההרפיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "T_aust ≈ 870°C",
+        "he_niqqud": "T_aust ≈ 870°C",
+        "transliteration": "T_aust ≈ 870°C",
+        "ru": "T_aust ≈ 870°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:df73419d8f8c7fbb08582cd65231340b647f942507e82ef34a04c8d2b7274953",
+        "legacy_fields_sha256:849612017b1109414521aefb742ae9adfc84ccb986f5461acba92a6b12378abd",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T_aust",
+            "normalized": "T_aust"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "870°C",
+            "normalized": "870°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T_aust ≈ 870°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r021",
+      "order": 21,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "T_temp = 540°C",
+        "he_niqqud": "T_temp = 540°C",
+        "transliteration": "T_temp = 540°C",
+        "ru": "T_temp = 540°C"
+      },
+      "source_refs": [
+        "legacy_row_hash:055f437d4318937a3af4b2a3890a7b9170e8ce577efb8211a48a90ee1b279e24",
+        "legacy_fields_sha256:6ebdabdff7d29627b06d01c5622b96339bbed3e5d3962691c14b29d11c3450fe",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "T_temp",
+            "normalized": "T_temp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "540°C",
+            "normalized": "540°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "T_temp = 540°C"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) העלאת טמפרטורת ההרפיה מ־540°C ל־595°C מגבירה את מידת ההרפיה של המבנה המחוסם.",
+        "he_niqqud": "ג) הַעֲלָאַת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה מִ־540°C לְ־595°C מַגְבִּירָה אֶת מִדַּת הַהַרְפָּיָה שֶׁל הַמִּבְנֶה הַמְחֻסָּם.",
+        "transliteration": "G) Ha'ala'at temperaturat haharpayah mi-540°C l'595°C magbirah et midat haharpayah shel hamivne hamekhasam.",
+        "ru": "В) Повышение температуры отпуска с 540°C до 595°C увеличивает степень отпуска закаленной структуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:e4ef44bdd22f8fad3939b4c92a26f10ab4fad87d1d0c298f39e7a59fd58fd4e4",
+        "legacy_fields_sha256:9bf4885f9a7df2aa6e38d2904b22cde90358b3831f4091f6f82ba86292817417",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַעֲלָאַת",
+            "normalized": "העלאת"
+          },
+          {
+            "index": 2,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "מִ־540°C",
+            "normalized": "מ־540°C"
+          },
+          {
+            "index": 5,
+            "surface": "לְ־595°C",
+            "normalized": "ל־595°C"
+          },
+          {
+            "index": 6,
+            "surface": "מַגְבִּירָה",
+            "normalized": "מגבירה"
+          },
+          {
+            "index": 7,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 8,
+            "surface": "מִדַּת",
+            "normalized": "מדת"
+          },
+          {
+            "index": 9,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "הַמִּבְנֶה",
+            "normalized": "המבנה"
+          },
+          {
+            "index": 12,
+            "surface": "הַמְחֻסָּם.",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עם עליית טמפרטורת ההרפיה הקשיות יורדת וחוזק הכניעה σy יורד.",
+        "he_niqqud": "עִם עֲלִיַּת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה הַקְּשִׁיּוּת יוֹרֶדֶת וְחֹזֶק הַכְּנִיעָה σy יוֹרֵד.",
+        "transliteration": "Im aliyat temperaturat haharpayah hakashiyut yoredet v'khozek hakni'ah σy yored.",
+        "ru": "С повышением температуры отпуска твердость снижается, и предел текучести σy снижается."
+      },
+      "source_refs": [
+        "legacy_row_hash:98be6480d6042a6d524b7514702d7355e8127ef2708be6d429b567f5a99d05dd",
+        "legacy_fields_sha256:2ff44323732e651728b7ba831048e4f658776cd19776f0e12a7641f20a4261d0",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 1,
+            "surface": "עֲלִיַּת",
+            "normalized": "עלית"
+          },
+          {
+            "index": 2,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 5,
+            "surface": "יוֹרֶדֶת",
+            "normalized": "יורדת"
+          },
+          {
+            "index": 6,
+            "surface": "וְחֹזֶק",
+            "normalized": "וחזק"
+          },
+          {
+            "index": 7,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 8,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 9,
+            "surface": "יוֹרֵד.",
+            "normalized": "יורד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עם עליית טמפרטורת ההרפיה הדוקטיליות וההתארכות בשבר ε עולות.",
+        "he_niqqud": "עִם עֲלִיַּת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה הַדּוֹקְטִילִיּוּת וְהַהִתְאָרְכוּת בְּשֶׁבֶר ε עוֹלוֹת.",
+        "transliteration": "Im aliyat temperaturat haharpayah hadoktiliyut v'haheetarkhut b'shever ε olot.",
+        "ru": "С повышением температуры отпуска пластичность и относительное удлинение при разрыве ε увеличиваются."
+      },
+      "source_refs": [
+        "legacy_row_hash:5119448c6ad1195cf2645480b88a153c01661d6fe466d8d46b199ad5ce4a0486",
+        "legacy_fields_sha256:8efa9cc08443664dcd32424ad63929c68857cfd33f8a12ffdd713e01ef7bbe4f",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 1,
+            "surface": "עֲלִיַּת",
+            "normalized": "עלית"
+          },
+          {
+            "index": 2,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "הַדּוֹקְטִילִיּוּת",
+            "normalized": "הדוקטיליות"
+          },
+          {
+            "index": 5,
+            "surface": "וְהַהִתְאָרְכוּת",
+            "normalized": "וההתארכות"
+          },
+          {
+            "index": 6,
+            "surface": "בְּשֶׁבֶר",
+            "normalized": "בשבר"
+          },
+          {
+            "index": 7,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 8,
+            "surface": "עוֹלוֹת.",
+            "normalized": "עולות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "צפיפות ρ ומודול יאנג E כמעט שאינם משתנים כתוצאה מהרפיה בטווח זה.",
+        "he_niqqud": "צְפִיפוּת ρ וּמוֹדוּל יָאנְג E כִּמְעַט שֶׁאֵינָם מִשְׁתַּנִּים כְּתוֹצָאָה מֵהַרְפָּיָה בְּטֶוַח זֶה.",
+        "transliteration": "Tzfiyut ρ u'modul yang E kim'at she'einam mishtanim k'totza'ah meharpayah b'tevakh zeh.",
+        "ru": "Плотность ρ и модуль Юнга E почти не меняются в результате отпуска в этом диапазоне."
+      },
+      "source_refs": [
+        "legacy_row_hash:b1626a5eae6100ac7f1b2111fb98ac795d916fefbfb5659fd7120b9cdcbd48f9",
+        "legacy_fields_sha256:ec1a65de6749e6070855014fc6c4d4eb227191e498fc1436ea6c1f49364874b5",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צְפִיפוּת",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 1,
+            "surface": "ρ",
+            "normalized": "ρ"
+          },
+          {
+            "index": 2,
+            "surface": "וּמוֹדוּל",
+            "normalized": "ומודול"
+          },
+          {
+            "index": 3,
+            "surface": "יָאנְג",
+            "normalized": "יאנג"
+          },
+          {
+            "index": 4,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 5,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁאֵינָם",
+            "normalized": "שאינם"
+          },
+          {
+            "index": 7,
+            "surface": "מִשְׁתַּנִּים",
+            "normalized": "משתנים"
+          },
+          {
+            "index": 8,
+            "surface": "כְּתוֹצָאָה",
+            "normalized": "כתוצאה"
+          },
+          {
+            "index": 9,
+            "surface": "מֵהַרְפָּיָה",
+            "normalized": "מהרפיה"
+          },
+          {
+            "index": 10,
+            "surface": "בְּטֶוַח",
+            "normalized": "בטוח"
+          },
+          {
+            "index": 11,
+            "surface": "זֶה.",
+            "normalized": "זה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r026",
+      "order": 26,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עבור צפיפות נבחר את הערך של פלדה שהוא 7.8 g/cm³ מבין האפשרויות.",
+        "he_niqqud": "לָכֵן עֲבוּר צְפִיפוּת נִבְחַר אֶת הָעֵרֶךְ שֶׁל פְּלָדָה שֶׁהוּא 7.8 g/cm³ מִבֵּין הָאֶפְשָׁרוּיּוֹת.",
+        "transliteration": "Lakhen avur tzfiytut nivkhar et ha'erekh shel pladah shehu 7.8 g/cm³ miben ha'efsharuyot.",
+        "ru": "Следовательно, для плотности выбираем значение стали 7.8 g/cm³ из предложенных вариантов."
+      },
+      "source_refs": [
+        "legacy_row_hash:2df60aa1f7e5532411601300cf153c2d22ef98a1aac44a8ed7a0c5ab577fec96",
+        "legacy_fields_sha256:fc0f305276db426cd719069d22415b356d98010bcbcd065806970248703cd5bb",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "צְפִיפוּת",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 3,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 4,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 5,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁהוּא",
+            "normalized": "שהוא"
+          },
+          {
+            "index": 9,
+            "surface": "7.8",
+            "normalized": "7.8"
+          },
+          {
+            "index": 10,
+            "surface": "g/cm³",
+            "normalized": "g/cm³"
+          },
+          {
+            "index": 11,
+            "surface": "מִבֵּין",
+            "normalized": "מבין"
+          },
+          {
+            "index": 12,
+            "surface": "הָאֶפְשָׁרוּיּוֹת.",
+            "normalized": "האפשרויות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r027",
+      "order": 27,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ρ = 7.8 g/cm³",
+        "he_niqqud": "ρ = 7.8 g/cm³",
+        "transliteration": "ρ = 7.8 g/cm³",
+        "ru": "ρ = 7.8 g/cm³"
+      },
+      "source_refs": [
+        "legacy_row_hash:c6169e9a82f412d3c6f32ec933c7b3fde047521527e76ea7a17839af440dd597",
+        "legacy_fields_sha256:44bc4f4193a2fea296ddc9508634d5269faf13dd4fe8638a21ef2d9220563319",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ρ",
+            "normalized": "ρ"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "7.8",
+            "normalized": "7.8"
+          },
+          {
+            "index": 3,
+            "surface": "g/cm³",
+            "normalized": "g/cm³"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ρ = 7.8 g/cm³"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r028",
+      "order": 28,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עבור מודול יאנג נבחר את הערך הטיפוסי של פלדה 200 GPa מבין האפשרויות.",
+        "he_niqqud": "לָכֵן עֲבוּר מוֹדוּל יָאנְג נִבְחַר אֶת הָעֵרֶךְ הַטִּיפּוּסִי שֶׁל פְּלָדָה 200 GPa מִבֵּין הָאֶפְשָׁרוּיּוֹת.",
+        "transliteration": "Lakhen avur modul yang nivkhar et ha'erekh hatipusi shel pladah 200 GPa miben ha'efsharuyot.",
+        "ru": "Следовательно, для модуля Юнга выбираем типичное значение для стали 200 GPa из предложенных вариантов."
+      },
+      "source_refs": [
+        "legacy_row_hash:ede1ed8b23a290d2eed09429e2f253997ac82603a4102af5ff2477ddb355d95d",
+        "legacy_fields_sha256:ce761204261a259f487f511937f151a6707b2a9a300f83141d1e96d84a28da8a",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "מוֹדוּל",
+            "normalized": "מודול"
+          },
+          {
+            "index": 3,
+            "surface": "יָאנְג",
+            "normalized": "יאנג"
+          },
+          {
+            "index": 4,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 5,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 6,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 7,
+            "surface": "הַטִּיפּוּסִי",
+            "normalized": "הטיפוסי"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 10,
+            "surface": "200",
+            "normalized": "200"
+          },
+          {
+            "index": 11,
+            "surface": "GPa",
+            "normalized": "GPa"
+          },
+          {
+            "index": 12,
+            "surface": "מִבֵּין",
+            "normalized": "מבין"
+          },
+          {
+            "index": 13,
+            "surface": "הָאֶפְשָׁרוּיּוֹת.",
+            "normalized": "האפשרויות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r029",
+      "order": 29,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E = 200 GPa",
+        "he_niqqud": "E = 200 GPa",
+        "transliteration": "E = 200 GPa",
+        "ru": "E = 200 GPa"
+      },
+      "source_refs": [
+        "legacy_row_hash:c6402ea8484da3dd54f3e921f8227196f85c6b938fe7e8b418a66977360b54c9",
+        "legacy_fields_sha256:a1451e580e6aa21a62cef9fae569a47524bea0c0868259973b32e0b10a1dfa87",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "200",
+            "normalized": "200"
+          },
+          {
+            "index": 3,
+            "surface": "GPa",
+            "normalized": "GPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E = 200 GPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r030",
+      "order": 30,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עבור קשיות HRB נבחר ערך נמוך מעט מ־88 משום שהקשיות יורדת עם עליית טמפרטורת ההרפיה.",
+        "he_niqqud": "לָכֵן עֲבוּר קְשִׁיּוּת HRB נִבְחַר עֵרֶךְ נָמוּךְ מְעַט מִ־88 מִשּׁוּם שֶׁהַקְּשִׁיּוּת יוֹרֶדֶת עִם עֲלִיַּת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה.",
+        "transliteration": "Lakhen avur kashiyut HRB nivkhar erekh namukh me'at mi-88 mishum shehakashiyut yoredet im aliyat temperaturat haharpayah.",
+        "ru": "Следовательно, для твердости HRB выбираем значение немного ниже 88, поскольку твердость снижается с повышением температуры отпуска."
+      },
+      "source_refs": [
+        "legacy_row_hash:37c4fa7e399a041bcdacc7e70df9a64f3e85a1990e1b0e7aa48d720f571fe801",
+        "legacy_fields_sha256:a1514d3aed432ef5efd9bbe9e4e40fbbae2d3077345ecec26a5ca97f2e810e1d",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 3,
+            "surface": "HRB",
+            "normalized": "HRB"
+          },
+          {
+            "index": 4,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 5,
+            "surface": "עֵרֶךְ",
+            "normalized": "ערך"
+          },
+          {
+            "index": 6,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 7,
+            "surface": "מְעַט",
+            "normalized": "מעט"
+          },
+          {
+            "index": 8,
+            "surface": "מִ־88",
+            "normalized": "מ־88"
+          },
+          {
+            "index": 9,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁהַקְּשִׁיּוּת",
+            "normalized": "שהקשיות"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹרֶדֶת",
+            "normalized": "יורדת"
+          },
+          {
+            "index": 12,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 13,
+            "surface": "עֲלִיַּת",
+            "normalized": "עלית"
+          },
+          {
+            "index": 14,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 15,
+            "surface": "הַהַרְפָּיָה.",
+            "normalized": "ההרפיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r031",
+      "order": 31,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "HRB = 86",
+        "he_niqqud": "HRB = 86",
+        "transliteration": "HRB = 86",
+        "ru": "HRB = 86"
+      },
+      "source_refs": [
+        "legacy_row_hash:3531fa8adb99e57407b07d73a42f2a90af450dc88706d7b365c965ea956a365c",
+        "legacy_fields_sha256:3f996e25e6add95939eadf07c9574df04c83702a64c9ac1fe588ff79bd792b3c",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "HRB",
+            "normalized": "HRB"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "86",
+            "normalized": "86"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "HRB = 86"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r032",
+      "order": 32,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עבור ההתארכות ε נבחר ערך גבוה מעט מ־28% משום שהפלסטיות עולה עם עליית טמפרטורת ההרפיה.",
+        "he_niqqud": "לָכֵן עֲבוּר הַהִתְאָרְכוּת ε נִבְחַר עֵרֶךְ גָּבוֹהַּ מְעַט מִ־28% מִשּׁוּם שֶׁהַפְּלַסְטִיּוּת עוֹלָה עִם עֲלִיַּת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה.",
+        "transliteration": "Lakhen avur haheetarkhut ε nivkhar erekh gavoha me'at mi-28% mishum shehaplastiyut olah im aliyat temperaturat haharpayah.",
+        "ru": "Следовательно, для относительного удлинения ε выбираем значение немного выше 28%, поскольку пластичность возрастает с повышением температуры отпуска."
+      },
+      "source_refs": [
+        "legacy_row_hash:3a42585cdd67b81595a8fa7a09145656b1402a657ff9f65b7d02a63bd83839e8",
+        "legacy_fields_sha256:52d7ba2434fdefbedd6ebc9c017f8bfb7c88c953690f97da35a46bdc628fd748",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "הַהִתְאָרְכוּת",
+            "normalized": "ההתארכות"
+          },
+          {
+            "index": 3,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 4,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 5,
+            "surface": "עֵרֶךְ",
+            "normalized": "ערך"
+          },
+          {
+            "index": 6,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "מְעַט",
+            "normalized": "מעט"
+          },
+          {
+            "index": 8,
+            "surface": "מִ־28%",
+            "normalized": "מ־28%"
+          },
+          {
+            "index": 9,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁהַפְּלַסְטִיּוּת",
+            "normalized": "שהפלסטיות"
+          },
+          {
+            "index": 11,
+            "surface": "עוֹלָה",
+            "normalized": "עולה"
+          },
+          {
+            "index": 12,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 13,
+            "surface": "עֲלִיַּת",
+            "normalized": "עלית"
+          },
+          {
+            "index": 14,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 15,
+            "surface": "הַהַרְפָּיָה.",
+            "normalized": "ההרפיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r033",
+      "order": 33,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ε = 29%",
+        "he_niqqud": "ε = 29%",
+        "transliteration": "ε = 29%",
+        "ru": "ε = 29%"
+      },
+      "source_refs": [
+        "legacy_row_hash:cfde19abcf92dfb2a2870c196415054d13299c7824529655ab87421c46709731",
+        "legacy_fields_sha256:947b89a0f5b8e54e7d5864e29a1d5803938d5b9136af2e313ceb50b2bf47089f",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "29%",
+            "normalized": "29%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ε = 29%"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r034",
+      "order": 34,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הערך 128% אינו סביר עבור פלדה והערך 16% סותר את מגמת העלייה בפלסטיות.",
+        "he_niqqud": "הָעֵרֶךְ 128% אֵינוֹ סָבִיר עֲבוּר פְּלָדָה וְהָעֵרֶךְ 16% סוֹתֵר אֶת מְגַמַּת הָעֲלִיָּה בַּפְּלַסְטִיּוּת.",
+        "transliteration": "Ha'erekh 128% eino savir avur pladah v'ha'erekh 16% soter et megamat ha'aliyah baplastiyut.",
+        "ru": "Значение 128% не является реалистичным для стали, а значение 16% противоречит тенденции роста пластичности."
+      },
+      "source_refs": [
+        "legacy_row_hash:1dde9e587a5922c1ef9a4727f610c5db2855ae051de4eeba646021830b795937",
+        "legacy_fields_sha256:8ac019da82101be87cc8c15ea6c5d00169389b8a251be36787d4b7911c72c4ac",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 1,
+            "surface": "128%",
+            "normalized": "128%"
+          },
+          {
+            "index": 2,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 3,
+            "surface": "סָבִיר",
+            "normalized": "סביר"
+          },
+          {
+            "index": 4,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 5,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 6,
+            "surface": "וְהָעֵרֶךְ",
+            "normalized": "והערך"
+          },
+          {
+            "index": 7,
+            "surface": "16%",
+            "normalized": "16%"
+          },
+          {
+            "index": 8,
+            "surface": "סוֹתֵר",
+            "normalized": "סותר"
+          },
+          {
+            "index": 9,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 10,
+            "surface": "מְגַמַּת",
+            "normalized": "מגמת"
+          },
+          {
+            "index": 11,
+            "surface": "הָעֲלִיָּה",
+            "normalized": "העליה"
+          },
+          {
+            "index": 12,
+            "surface": "בַּפְּלַסְטִיּוּת.",
+            "normalized": "בפלסטיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r035",
+      "order": 35,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עבור חוזק הכניעה σy נבחר ערך נמוך מ־470 MPa משום שחוזק הכניעה יורד עם עליית טמפרטורת ההרפיה אך לא אמור לעלות.",
+        "he_niqqud": "לָכֵן עֲבוּר חֹזֶק הַכְּנִיעָה σy נִבְחַר עֵרֶךְ נָמוּךְ מִ־470 MPa מִשּׁוּם שֶׁחֹזֶק הַכְּנִיעָה יוֹרֵד עִם עֲלִיַּת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה אַךְ לֹא אָמוּר לַעֲלוֹת.",
+        "transliteration": "Lakhen avur khozek hakni'ah σy nivkhar erekh namukh mi-470 MPa mishum shekhozek hakni'ah yored im aliyat temperaturat haharpayah akh lo amur la'alot.",
+        "ru": "Следовательно, для предела текучести σy выбираем значение ниже 470 МПа, поскольку предел текучести снижается с повышением температуры отпуска, но не должен увеличиваться."
+      },
+      "source_refs": [
+        "legacy_row_hash:2a5c78cf08bf1054562343cd8a266ea126c2b1ea9deebaa8e4fde0713e1e62a7",
+        "legacy_fields_sha256:9fa78dd312ec08efb3bf99153439bfcc87e5147c99c44ad524a626f4edb4290a",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 2,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 3,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 4,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 5,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 6,
+            "surface": "עֵרֶךְ",
+            "normalized": "ערך"
+          },
+          {
+            "index": 7,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 8,
+            "surface": "מִ־470",
+            "normalized": "מ־470"
+          },
+          {
+            "index": 9,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 10,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁחֹזֶק",
+            "normalized": "שחזק"
+          },
+          {
+            "index": 12,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 13,
+            "surface": "יוֹרֵד",
+            "normalized": "יורד"
+          },
+          {
+            "index": 14,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 15,
+            "surface": "עֲלִיַּת",
+            "normalized": "עלית"
+          },
+          {
+            "index": 16,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 17,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 18,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 19,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 20,
+            "surface": "אָמוּר",
+            "normalized": "אמור"
+          },
+          {
+            "index": 21,
+            "surface": "לַעֲלוֹת.",
+            "normalized": "לעלות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r036",
+      "order": 36,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σy = 435 MPa",
+        "he_niqqud": "σy = 435 MPa",
+        "transliteration": "σy = 435 MPa",
+        "ru": "σy = 435 MPa"
+      },
+      "source_refs": [
+        "legacy_row_hash:b79193bd2e664ad3879e73d926270f61d411e946ec5d779056dfd84bdd0a19ec",
+        "legacy_fields_sha256:31b6c133d87f24cf484d993a08ea88a74f98a9c627bb5b53d23c410aa39ae919",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "435",
+            "normalized": "435"
+          },
+          {
+            "index": 3,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σy = 435 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r037",
+      "order": 37,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הערך 185 MPa מייצג ירידה חריגה מאוד ביחס לנתון והערך 605 MPa סותר את מגמת ההרפיה.",
+        "he_niqqud": "הָעֵרֶךְ 185 MPa מְיַצֵּג יְרִידָה חֲרִיגָה מְאֹד בְּיַחַס לַנָּתוּן וְהָעֵרֶךְ 605 MPa סוֹתֵר אֶת מְגַמַּת הַהַרְפָּיָה.",
+        "transliteration": "Ha'erekh 185 MPa m'yatzeig yeridah kharigah me'od b'yakhas lanatun v'ha'erekh 605 MPa soter et megamat haharpayah.",
+        "ru": "Значение 185 МПа представляет собой слишком резкое снижение по сравнению с исходными данными, а значение 605 МПа противоречит тенденции отпуска."
+      },
+      "source_refs": [
+        "legacy_row_hash:3cb850607751031102d74f52fe20049b654614de29867aab805895d430233961",
+        "legacy_fields_sha256:3b8c63ee2adcc488f5e6c75c35d71e3bf5f69b94922883597a76aa4dbb83e9fe",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 1,
+            "surface": "185",
+            "normalized": "185"
+          },
+          {
+            "index": 2,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 3,
+            "surface": "מְיַצֵּג",
+            "normalized": "מיצג"
+          },
+          {
+            "index": 4,
+            "surface": "יְרִידָה",
+            "normalized": "ירידה"
+          },
+          {
+            "index": 5,
+            "surface": "חֲרִיגָה",
+            "normalized": "חריגה"
+          },
+          {
+            "index": 6,
+            "surface": "מְאֹד",
+            "normalized": "מאד"
+          },
+          {
+            "index": 7,
+            "surface": "בְּיַחַס",
+            "normalized": "ביחס"
+          },
+          {
+            "index": 8,
+            "surface": "לַנָּתוּן",
+            "normalized": "לנתון"
+          },
+          {
+            "index": 9,
+            "surface": "וְהָעֵרֶךְ",
+            "normalized": "והערך"
+          },
+          {
+            "index": 10,
+            "surface": "605",
+            "normalized": "605"
+          },
+          {
+            "index": 11,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 12,
+            "surface": "סוֹתֵר",
+            "normalized": "סותר"
+          },
+          {
+            "index": 13,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 14,
+            "surface": "מְגַמַּת",
+            "normalized": "מגמת"
+          },
+          {
+            "index": 15,
+            "surface": "הַהַרְפָּיָה.",
+            "normalized": "ההרפיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q033-sol-r038",
+      "order": 38,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:3f1ba9b537fc7dd194f14a1673aa746edffa58435d6f499215dc578849be7d1e",
+        "comparison:MATCH",
+        "source_page:40",
+        "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+        "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q033",
+    "display_alias": "33",
+    "source_pages": [
+      40,
+      70
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а) Для SAE1030 (около 0,30%C) по приложению A₃≈825 °C; аустенитизация A₃+(30…50)≈855…875 °C, учебно около 860–870 °C.",
+      "б) T–t: нагрев и выдержка при T_ауст≈860–870 °C → резкое охлаждение в воде до комнатной → повторный нагрев/выдержка 540 °C → охлаждение.",
+      "в) При отпуске 595 °C вместо 540 °C: ρ=7,8 г/см³; HRB=86; E=200 ГПа; ε=29%; σ_y=435 МПа."
+    ],
+    "engineering_picture": "Повышение температуры отпуска ускоряет распад мартенсита и укрупнение карбидов: прочность/твёрдость снижаются, пластичность растёт; плотность и E почти не меняются.",
+    "prerequisites": [
+      "SAE1030≈0,30%C.",
+      "T_ауст≈A₃+30…50 °C.",
+      "Tempering temperature↑⇒hardness/strength↓, ductility↑."
+    ],
+    "roadmap": [
+      "Считать A₃.",
+      "Добавить перегрев.",
+      "Построить полный T–t цикл.",
+      "Выбрать из каждого столбца физически согласованный вариант."
+    ],
+    "main_trap": "Не выбирать экстремальные изменения плотности или E: отпуск не меняет их в разы.",
+    "givens": [
+      "540 °C row: ρ7,8; HRB88; E200; ε28%; σ_y470.",
+      "595 °C candidates from source table."
+    ],
+    "find": [
+      "T_ауст, thermal-cycle graph and five properties at 595 °C."
+    ],
+    "assumptions": [
+      "A₃ source read is approximate.",
+      "Одинаковы выдержка и прочие условия."
+    ],
+    "laws": [
+      "T_ауст≈A₃+(30…50) °C."
+    ],
+    "symbolic_derivation": [
+      "A₃≈825 °C⇒T_ауст≈855…875 °C.",
+      "T_temper↑⇒HRB↓,σ_y↓,ε↑;ρ,E≈const."
+    ],
+    "calculation": [
+      "825+(30…50)=855…875 °C."
+    ],
+    "construction": [
+      "Оси t вправо, T вверх; полки аустенитизации и 540 °C, между ними крутая водяная закалка."
+    ],
+    "checks": [
+      "Выбранные 86 HRB<88, 435<470 МПа, 29>28%, а ρ и E неизменны."
+    ],
+    "source_facts": [
+      "source_page:40",
+      "asset_sha256:69d537a7455629fa1d0db98760c9a794ec130db1ccde2fadabf74190a5960333",
+      "asset_sha256:88116d2cf3662a05cc52b74bda98e3be6495ddbd0907bdf1184c48c43973bb44",
+      "declared_convention:ASM_tempering"
+    ],
+    "unresolved_limits": [
+      "Точная производственная температура требует таблицы режима SAE1030, не только равновесной диаграммы."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

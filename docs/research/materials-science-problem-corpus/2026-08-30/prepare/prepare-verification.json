@@ -1,0 +1,27 @@
+{
+  "schema": "linguistpro-materials-pb2-prepare-verification-v1",
+  "status": "PASS_OWNER_IDENTITIES_APPROVED_ROW_MAPPING_AND_DIAGRAM_REVIEW_NEXT",
+  "checks": {
+    "source_hashes_match": true,
+    "source_page_count_73": true,
+    "canonical_task_count_60": true,
+    "numbered_occurrence_count_59": true,
+    "unique_display_number_count_58": true,
+    "duplicate_display_number_38_preserved": true,
+    "prepared_pdfs_under_internal_ceiling": true,
+    "prepared_pages_nonblank": true,
+    "legacy_projection_is_hash_only": true,
+    "provider_calls": 0,
+    "secret_access": false,
+    "import_or_publication": false
+  },
+  "resolved_owner_decisions": [
+    "unnumbered page 5 exercise included as the 60th canonical unit",
+    "both source question 38 occurrences retained as aliases 38-A and 38-B"
+  ],
+  "unresolved": [
+    "row-level legacy-to-source mapping review",
+    "semantic diagram classification per task",
+    "rights, provider shadow, TTS, solutions, import, and publication remain unauthorized"
+  ]
+}

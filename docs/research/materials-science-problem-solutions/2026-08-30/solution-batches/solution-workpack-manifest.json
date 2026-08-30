@@ -1,0 +1,123 @@
+{
+  "schema": "linguistpro.materials-pb2.independent-solution-source-workpack-manifest.1",
+  "status": "PASS_6_BATCHES_X_10_TASKS_SOURCE_ONLY",
+  "generated_at": "2026-08-30T00:00:00Z",
+  "canonical_bundle": {
+    "filename": "materials-pb2-q043-rebake.zip",
+    "sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "manifest_sha256": "35cb755642b714d3a61f84c58ea6bd2952826c107610cad9ab20966cc6b083b7",
+    "library_sha256": "23d09c8144b141d85f845f4339173f03b84dab9ed265fb8ed12b5de7f7b61ecc"
+  },
+  "batch_count": 6,
+  "task_count": 60,
+  "outputs": [
+    {
+      "batch_id": "B01",
+      "filename": "B01-source-workpack.json",
+      "sha256": "42173e7ec70b5f3959ae33123e236544d70afb761a9a78b622dc836590ae7510",
+      "task_count": 10,
+      "task_ids": [
+        "materials-science-y1-pb2-q001",
+        "materials-science-y1-pb2-q002",
+        "materials-science-y1-pb2-exercise-p005-allotropy",
+        "materials-science-y1-pb2-q003",
+        "materials-science-y1-pb2-q004",
+        "materials-science-y1-pb2-q005",
+        "materials-science-y1-pb2-q006",
+        "materials-science-y1-pb2-q007",
+        "materials-science-y1-pb2-q008",
+        "materials-science-y1-pb2-q009"
+      ]
+    },
+    {
+      "batch_id": "B02",
+      "filename": "B02-source-workpack.json",
+      "sha256": "f07e764b53aef961892ba18d5ce5e9e1063e96250686182b8fced9400e2c3638",
+      "task_count": 10,
+      "task_ids": [
+        "materials-science-y1-pb2-q010",
+        "materials-science-y1-pb2-q011",
+        "materials-science-y1-pb2-q012",
+        "materials-science-y1-pb2-q013",
+        "materials-science-y1-pb2-q014",
+        "materials-science-y1-pb2-q015",
+        "materials-science-y1-pb2-q016",
+        "materials-science-y1-pb2-q017",
+        "materials-science-y1-pb2-q018",
+        "materials-science-y1-pb2-q019"
+      ]
+    },
+    {
+      "batch_id": "B03",
+      "filename": "B03-source-workpack.json",
+      "sha256": "bc706644e4a2f06ed8ff9a2fcea625d86f0b725735fe43cd403c42432e3c505a",
+      "task_count": 10,
+      "task_ids": [
+        "materials-science-y1-pb2-q020",
+        "materials-science-y1-pb2-q021",
+        "materials-science-y1-pb2-q022",
+        "materials-science-y1-pb2-q023",
+        "materials-science-y1-pb2-q024",
+        "materials-science-y1-pb2-q025",
+        "materials-science-y1-pb2-q026",
+        "materials-science-y1-pb2-q027",
+        "materials-science-y1-pb2-q028",
+        "materials-science-y1-pb2-q029"
+      ]
+    },
+    {
+      "batch_id": "B04",
+      "filename": "B04-source-workpack.json",
+      "sha256": "36ff41ce35072f209b8909b12dd745e95971db1c2a11ba9ea7e7b8da62ac8a57",
+      "task_count": 10,
+      "task_ids": [
+        "materials-science-y1-pb2-q030",
+        "materials-science-y1-pb2-q031",
+        "materials-science-y1-pb2-q032",
+        "materials-science-y1-pb2-q033",
+        "materials-science-y1-pb2-q034",
+        "materials-science-y1-pb2-q035",
+        "materials-science-y1-pb2-q036",
+        "materials-science-y1-pb2-q037",
+        "materials-science-y1-pb2-p045-q038",
+        "materials-science-y1-pb2-p047-q038"
+      ]
+    },
+    {
+      "batch_id": "B05",
+      "filename": "B05-source-workpack.json",
+      "sha256": "3ec9284f711fd396e79befdec3f7969a4563c7ac81a23116c44b7a84612eff0e",
+      "task_count": 10,
+      "task_ids": [
+        "materials-science-y1-pb2-q039",
+        "materials-science-y1-pb2-q040",
+        "materials-science-y1-pb2-q041",
+        "materials-science-y1-pb2-q042",
+        "materials-science-y1-pb2-q043",
+        "materials-science-y1-pb2-q044",
+        "materials-science-y1-pb2-q045",
+        "materials-science-y1-pb2-q046",
+        "materials-science-y1-pb2-q047",
+        "materials-science-y1-pb2-q048"
+      ]
+    },
+    {
+      "batch_id": "B06",
+      "filename": "B06-source-workpack.json",
+      "sha256": "156b24cab34b0fc414686aaa9eaaee265a4d58239256ad50091de8b640b5a039",
+      "task_count": 10,
+      "task_ids": [
+        "materials-science-y1-pb2-q049",
+        "materials-science-y1-pb2-q050",
+        "materials-science-y1-pb2-q051",
+        "materials-science-y1-pb2-q052",
+        "materials-science-y1-pb2-q053",
+        "materials-science-y1-pb2-q054",
+        "materials-science-y1-pb2-q055",
+        "materials-science-y1-pb2-q056",
+        "materials-science-y1-pb2-q057",
+        "materials-science-y1-pb2-q058"
+      ]
+    }
+  ]
+}

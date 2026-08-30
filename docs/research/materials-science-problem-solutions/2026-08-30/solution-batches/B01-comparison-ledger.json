@@ -1,0 +1,122 @@
+{
+  "schema_version": "materials_pb2_solution_comparison.1.0.0",
+  "status": "REVIEWED_PASS_10_OF_10",
+  "batch_id": "B01",
+  "independent_solution_ledger": {
+    "path": "B01-independent-solution-ledger.ru.json",
+    "sha256": "a6203367d4dab1ac431038410481902ed00312de88b72551385b65d075a5d4cc"
+  },
+  "legacy_source": "../legacy-solution-candidate-ledger.json",
+  "comparison_policy": {
+    "legacy_role": "COMPARISON_ONLY_NEVER_PREMISE",
+    "numeric_equivalence": "SAME_FORMULA_AND_RESULT_WITH_EXPLAINED_ROUNDING_OR_FIT_METHOD",
+    "theory_equivalence": "SAME_VERDICT_AND_CAUSAL_CLAIM",
+    "silent_overwrite_allowed": false,
+    "maximum_targeted_repair_passes": 1
+  },
+  "summary": {
+    "task_count": 10,
+    "match_or_equivalent_count": 8,
+    "no_legacy_solution_count": 1,
+    "partial_mismatch_count": 1,
+    "corrected_and_reverified_count": 1,
+    "source_only_review_pass_count": 1,
+    "publication_blocking_count": 0
+  },
+  "entries": [
+    {
+      "task_id": "materials-science-y1-pb2-q001",
+      "legacy_candidate_rows": 25,
+      "legacy_candidate_rows_sha256": "80f282e9329d4eca6103160ea55451925f68038f201b36defe5dba77e053dfb4",
+      "computed_verdict": "MATCH",
+      "comparison_note": "Four elements and the identification principle match exactly: C, Fe, Li, Be.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q002",
+      "legacy_candidate_rows": 0,
+      "legacy_candidate_rows_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "computed_verdict": "NO_LEGACY_SOLUTION",
+      "comparison_note": "The independent six-part true/false solution has no legacy answer for comparison.",
+      "reviewer_disposition": "SOURCE_ONLY_TECHNICAL_REVIEW_PASS",
+      "review_evidence": "B01-targeted-review-02.json",
+      "publication_blocking": false,
+      "targeted_repair": "COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+      "legacy_candidate_rows": 30,
+      "legacy_candidate_rows_sha256": "61d879271e892f23f30975a4dab024c52ec74b5ed417871d52092dc818e9d7b8",
+      "computed_verdict": "EQUIVALENT_WITH_CLARIFICATION",
+      "comparison_note": "Transition table, conventional-cell contraction, and room-temperature SAE 1040 constituents match. The independent ledger additionally distinguishes conventional-cell volume from volume per atom and flags the historical beta-iron nomenclature.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q003",
+      "legacy_candidate_rows": 10,
+      "legacy_candidate_rows_sha256": "a66ba0aed53a94664805a91c39d81e3d2c16076d74ec2e771c477030ef6cdad8",
+      "computed_verdict": "MATCH",
+      "comparison_note": "All three term-bank assignments and definitions match.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q004",
+      "legacy_candidate_rows": 21,
+      "legacy_candidate_rows_sha256": "bb45ae2eabca2760e72b6424ff79b418ae7db943118444b066e2544772225391",
+      "computed_verdict": "MATCH",
+      "comparison_note": "Areas, stresses 191 and 97.4 MPa, ratio 1.96, and inverse-square explanation match.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q005",
+      "legacy_candidate_rows": 33,
+      "legacy_candidate_rows_sha256": "0e467e1b834966bf6c773ca9f319092db3996dcc5d8a6a6398e169f0b6e7c766",
+      "computed_verdict": "MATCH",
+      "comparison_note": "Absolute and relative elongations, comparison, and the conditional material-identification conclusion match.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q006",
+      "legacy_candidate_rows": 20,
+      "legacy_candidate_rows_sha256": "30bb59ea58667faf1698684eeb1d9203af244ec8f403b9d7070d9ee79da1bf3a",
+      "computed_verdict": "MATCH",
+      "comparison_note": "Graph points, 220 MPa yield stress, 330 MPa UTS, plastic workability, and rejection at 300 MPa all match.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q007",
+      "legacy_candidate_rows": 24,
+      "legacy_candidate_rows_sha256": "cb826b725320f3b07fa90f385fcbb27a3616a8083307b93dc620993aea5b2014",
+      "computed_verdict": "MATCH",
+      "comparison_note": "490 MPa yield, 840 MPa UTS, about 189 GPa modulus, rejection at 550 MPa, and 331 HB selection match.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q008",
+      "legacy_candidate_rows": 36,
+      "legacy_candidate_rows_sha256": "42a20479d3fd425daf626f98aa44eed6886b0350fdae37f914183260a153e25b",
+      "computed_verdict": "PARTIAL_MISMATCH_REVIEW_REQUIRED",
+      "comparison_note": "All calculated table values, graph interpretation, modulus magnitude, and service rejection agree. The process recommendation differs: independent derivation names nitriding as one possible shallow process and refuses uniqueness; legacy proposes carbonitriding or short carburizing plus quench and temper. The condition does not provide enough process constraints to choose silently.",
+      "reviewer_disposition": "CORRECTED_AND_REVERIFIED",
+      "review_evidence": "B01-targeted-review-01.json",
+      "publication_blocking": false,
+      "targeted_repair": "COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q009",
+      "legacy_candidate_rows": 30,
+      "legacy_candidate_rows_sha256": "7da4f9c22ef2a1c08eff6f95fd6d2985719b1b3f4fe2b3e76c69e67aa061c6e1",
+      "computed_verdict": "MATCH",
+      "comparison_note": "Graph points, disclosed fit E approximately 169 GPa, inferred yield 240 MPa, allowable stress 120 MPa, area 750 mm2, and minimum diameter 30.9 mm match.",
+      "publication_blocking": false,
+      "targeted_repair": null
+    }
+  ]
+}

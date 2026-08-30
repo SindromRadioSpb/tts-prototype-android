@@ -1,0 +1,36 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "review_id": "B02-TR01-Q010-OFFSET-YIELD",
+  "task_id": "materials-science-y1-pb2-q010",
+  "status": "CORRECTED_AND_REVERIFIED",
+  "repair_pass": 1,
+  "maximum_repair_passes": 1,
+  "third_pass_allowed": false,
+  "frozen_independent_ledger_sha256": "2340bbf0cafdd4b009464fade741680b4bbbdc05d5ad7b15a21a0bd2d0e943a2",
+  "disagreement": {
+    "independent_candidate": "Yield was estimated from the visible knee near 80 kN and 1.0 mm, giving about 400 MPa.",
+    "legacy_candidate": "Uses a 0.2% offset parallel to the initial slope and reads Fy about 97.53 kN, giving about 487.7 MPa.",
+    "scope": "GRAPH_METHOD_AND_RESULTING_STRENGTH_VALUES"
+  },
+  "source_review": {
+    "source_page": 14,
+    "asset_sha256": "0c446032592948ff8f8c74fb612a1328ca39a9bed558540a71f3338cf148e9a3",
+    "finding": "The curve has no explicit yield plateau. The offset construction is the defensible method; its numerical reads remain approximate because the source is a raster graph."
+  },
+  "review_reasoning": [
+    "The initial force-extension slope is about 78.12 kN/mm, so E=(L0/A0)(dF/dDeltaL) is about 78.1 GPa.",
+    "A 0.2% strain offset corresponds to 0.002*200=0.4 mm on the extension axis.",
+    "A parallel line offset by 0.4 mm intersects the graph around DeltaL=1.65 mm and Fy=97.53 kN, giving sigma_y about 487.7 MPa.",
+    "The graph maximum is about 141.25 kN and occurs near DeltaL=8.04 mm, giving sigma_UTS about 706 MPa and epsilon_UTS about 4.02%.",
+    "Final published values must be rounded to graph precision rather than retaining false hundredths."
+  ],
+  "reviewed_exam_answer_ru": [
+    "E≈78 ГПа.",
+    "По методу смещения 0,2%: σ_y≈488 МПа.",
+    "σ_UTS≈706 МПа; ε_UTS≈4,0%.",
+    "Для A=400 мм²: F_max≈282 кН; [σ]=σ_y/1,5≈325 МПа."
+  ],
+  "disposition": "KNEE_ESTIMATE_REPLACED_BY_0_2_PERCENT_OFFSET_METHOD; GRAPH_VALUES_ROUNDED_TO_SOURCE_PRECISION",
+  "publication_blocking": false,
+  "further_repair_allowed": false
+}

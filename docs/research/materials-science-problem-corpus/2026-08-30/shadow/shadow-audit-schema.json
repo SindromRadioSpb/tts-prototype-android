@@ -1,0 +1,288 @@
+{
+  "title": "materials-pb2-shadow-source-audit-schema-v1",
+  "description": "Source-corpus audit only; worked solutions and answer adjudication are forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "batch_id",
+    "cases",
+    "batch_summary"
+  ],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "enum": [
+        "materials-pb2-shadow-source-audit-schema-v1"
+      ]
+    },
+    "batch_id": {
+      "type": "string",
+      "enum": [
+        "B01",
+        "B02",
+        "B03"
+      ]
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "tasks",
+          "audit_summary"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "tasks": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "task_id",
+                "boundary_status",
+                "source_rows",
+                "visuals",
+                "legacy_findings",
+                "unknowns"
+              ],
+              "properties": {
+                "task_id": {
+                  "type": "string"
+                },
+                "boundary_status": {
+                  "type": "string",
+                  "enum": [
+                    "exact",
+                    "ambiguous",
+                    "not_found"
+                  ]
+                },
+                "source_rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "row_kind",
+                      "he",
+                      "he_niqqud",
+                      "transliteration",
+                      "ru",
+                      "source_page",
+                      "confidence"
+                    ],
+                    "properties": {
+                      "row_kind": {
+                        "type": "string",
+                        "enum": [
+                          "task_heading",
+                          "condition",
+                          "subpart",
+                          "note",
+                          "source_note",
+                          "diagram_reference"
+                        ]
+                      },
+                      "he": {
+                        "type": "string"
+                      },
+                      "he_niqqud": {
+                        "type": "string"
+                      },
+                      "transliteration": {
+                        "type": "string"
+                      },
+                      "ru": {
+                        "type": "string"
+                      },
+                      "source_page": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 73
+                      },
+                      "confidence": {
+                        "type": "string",
+                        "enum": [
+                          "high",
+                          "medium",
+                          "low",
+                          "not_found"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "visuals": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "source_page",
+                      "kind",
+                      "required_for_solving",
+                      "readability",
+                      "labels_or_values"
+                    ],
+                    "properties": {
+                      "source_page": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 73
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "required_for_solving": {
+                        "type": "boolean"
+                      },
+                      "readability": {
+                        "type": "string",
+                        "enum": [
+                          "readable",
+                          "partial",
+                          "unreadable",
+                          "not_found"
+                        ]
+                      },
+                      "labels_or_values": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "legacy_findings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "legacy_row_ref_sha256",
+                      "field",
+                      "severity",
+                      "category",
+                      "source_page",
+                      "recommended_reviewed_value"
+                    ],
+                    "properties": {
+                      "legacy_row_ref_sha256": {
+                        "type": "string"
+                      },
+                      "field": {
+                        "type": "string",
+                        "enum": [
+                          "boundary",
+                          "he",
+                          "he_niqqud",
+                          "transliteration",
+                          "ru",
+                          "formula",
+                          "unit",
+                          "visual",
+                          "identity"
+                        ]
+                      },
+                      "severity": {
+                        "type": "string",
+                        "enum": [
+                          "critical",
+                          "major",
+                          "minor",
+                          "none"
+                        ]
+                      },
+                      "category": {
+                        "type": "string"
+                      },
+                      "source_page": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 73
+                      },
+                      "recommended_reviewed_value": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "unknowns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "audit_summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "critical_count",
+              "major_count",
+              "minor_count",
+              "solution_content_generated"
+            ],
+            "properties": {
+              "critical_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "major_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minor_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "solution_content_generated": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "batch_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "critical_count",
+        "major_count",
+        "minor_count",
+        "solution_content_generated"
+      ],
+      "properties": {
+        "critical_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "major_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minor_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "solution_content_generated": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.448";
+const CACHE_VERSION = "v3.11.449";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=425",
+  "/js/library-ui.js?v=426",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=417",
+  "/js/public-corpus-adapter.js?v=418",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
@@ -219,9 +219,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=186",
-  "/i18n/locales/en.js?v=186",
-  "/i18n/locales/he.js?v=186",
+  "/i18n/locales/ru.js?v=187",
+  "/i18n/locales/en.js?v=187",
+  "/i18n/locales/he.js?v=187",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
@@ -384,7 +384,8 @@ self.addEventListener("fetch", (event) => {
     // app shell must not silently consume the resource-storage quota.
     if (/\/resources\/[A-Za-z0-9_.:-]+\/file$/.test(url.pathname)) return;
     const asset = /\/assets\/[0-9a-f]{64}$/.test(url.pathname);
-    const immutable = /\/works\/[^/]+$/.test(url.pathname) || asset;
+    const learningSupport = /\/works\/[^/]+\/learning-support$/.test(url.pathname);
+    const immutable = /\/works\/[^/]+$/.test(url.pathname) || learningSupport || asset;
     event.respondWith(asset ? publicCorpusAsset(req) : immutable ? publicCorpusCacheFirst(req) : networkFirst(req, PUBLIC_CORPUS_CACHE, NETWORK_FIRST_TIMEOUT_MS));
     return;
   }

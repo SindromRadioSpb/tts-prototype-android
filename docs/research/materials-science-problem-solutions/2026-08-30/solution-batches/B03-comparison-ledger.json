@@ -1,0 +1,37 @@
+{
+  "schema_version": "materials_pb2_solution_comparison.1.0.0",
+  "status": "REVIEWED_PASS_10_OF_10",
+  "batch_id": "B03",
+  "independent_solution_ledger": {
+    "path": "B03-independent-solution-ledger.ru.json",
+    "sha256": "cd390cf5571145e5fdb967c123bb3877bec555376b518900fa45266f94b79dbf"
+  },
+  "legacy_source": "../legacy-solution-candidate-ledger.json",
+  "comparison_policy": {
+    "legacy_role": "COMPARISON_ONLY_NEVER_PREMISE",
+    "numeric_equivalence": "SAME_METHOD_AND_RESULT_WITH_EXPLAINED_ROUNDING_OR_SOURCE_GRAPH_TOLERANCE",
+    "theory_equivalence": "SAME_CAUSAL_CLAIM_WITH_EXPLICIT_SCOPE_LIMITS",
+    "silent_overwrite_allowed": false,
+    "maximum_targeted_repair_passes": 1
+  },
+  "summary": {
+    "task_count": 10,
+    "match_or_equivalent_count": 7,
+    "targeted_source_review_count": 3,
+    "legacy_graph_read_rejected_count": 2,
+    "source_insufficient_single_recommendation_count": 1,
+    "publication_blocking_count": 0
+  },
+  "entries": [
+    {"task_id":"materials-science-y1-pb2-q020","legacy_candidate_rows":22,"legacy_candidate_rows_sha256":"f682974dbc4a2765ec237315ae4c04e15ea3b53c0c99c52da78e91a0e8a2923f","computed_verdict":"MATCH","comparison_note":"Impact-test purpose, pendulum-energy comparison, material curves and classification match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q021","legacy_candidate_rows":28,"legacy_candidate_rows_sha256":"1cd41fc4198f24b37de68c798c7be5f20bb2ab26d2d31b411ce80983e9d40305","computed_verdict":"MATCH","comparison_note":"Plot points, rolling assignment and toughness conclusion match; legacy trapezoid estimate corroborates the qualitative area comparison.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q022","legacy_candidate_rows":41,"legacy_candidate_rows_sha256":"be69a4994ef81fd4d0f6109c4bdc431eb6cab985d6a6bfbf1fe5702d1911347b","computed_verdict":"MATCH_WITH_PROCESS_QUALIFICATION","comparison_note":"Curves, energy ordering, 799.7 MPa stress and SAE 3310 selection match. Independent solution deliberately avoids presenting the legacy 900-950 C process range as source-mandated and requires case-depth qualification.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q023","legacy_candidate_rows":18,"legacy_candidate_rows_sha256":"311eed06e4286aff6781ab58641c6f705c4a34151b6e14c2d86295025663e6cb","computed_verdict":"MATCH","comparison_note":"Only steel A, BCC interpretation and brittle-material options 2, 4 and 6 match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q024","legacy_candidate_rows":19,"legacy_candidate_rows_sha256":"7a95d5c9f87cacad3b23b8135534ba40321f267d76b427ee7ef5d62bcfa49991","computed_verdict":"MATCH","comparison_note":"Surface initiation, three fracture zones, S-N axes and endurance-limit meaning match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q025","legacy_candidate_rows":30,"legacy_candidate_rows_sha256":"1f73e6f33ea6347bf046d194afccd53f77d7d469b55eddfbbfb37fef8d06c473","computed_verdict":"LEGACY_GRAPH_READ_REJECTED_SOURCE_VISUAL_REVIEW_PASS","comparison_note":"Legacy cycle intersections are inconsistent with the logarithmic source graph; independent ranges are retained. The 310-315 MPa plateau difference is source tolerance and both round to a 19 mm minimum diameter.","reviewer_disposition":"SOURCE_VISUAL_REVIEW_PASS_LEGACY_GRAPH_READ_REJECTED","review_evidence":"B03-targeted-review-01.json","publication_blocking":false,"targeted_repair":"COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"},
+    {"task_id":"materials-science-y1-pb2-q026","legacy_candidate_rows":27,"legacy_candidate_rows_sha256":"9912c360825e06b54321a10688cd84520a242dbf44181dee00d0c583b9cee38d","computed_verdict":"GRAPH_TOLERANCE_MATCH_LEGACY_OUT_OF_RANGE_EXTRAPOLATION_REJECTED","comparison_note":"Steel and aluminum reads agree to raster graph precision, force and hole effects match; a precise Brass N is not visible and legacy below-1e3 extrapolation is rejected.","reviewer_disposition":"SOURCE_VISUAL_REVIEW_PASS_OUT_OF_RANGE_DISCLOSED","review_evidence":"B03-targeted-review-02.json","publication_blocking":false,"targeted_repair":"COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"},
+    {"task_id":"materials-science-y1-pb2-q027","legacy_candidate_rows":40,"legacy_candidate_rows_sha256":"3531b17133c4438e4abde0cef7c2b3f3c3a36ce2ac4cdfaf63952b4441af203d","computed_verdict":"MATCH","comparison_note":"Carbon ordering, ductility, Acm meaning, SAE 1040 ferrite-pearlite structure and absence of martensite from the equilibrium diagram match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q028","legacy_candidate_rows":21,"legacy_candidate_rows_sha256":"fb41e441970e82d36137a0c7393450085e0582bb737ef72e5316f2c1147ec26c","computed_verdict":"MATCH_WITH_SOURCE_LABEL_TOLERANCE","comparison_note":"Microstructure identification and Fe-C values match. Source figure labels 2.14 percent at 1147 C while legacy uses the common rounded 2.11 percent; the student result will preserve the source figure value and note the convention.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q029","legacy_candidate_rows":16,"legacy_candidate_rows_sha256":"77b82c68d7fa933d53076b185f10e8d4ea848d2dbddee1e12eaa9575e32b387e","computed_verdict":"QUENCH_MATCH_TEMPER_RECOMMENDATION_SOURCE_INSUFFICIENT","comparison_note":"Phase labels and approximately 770 C quench heat match. The broad 150-650 C temper span is retained only as a general educational envelope because the source diagram cannot select a single recommended temper range.","reviewer_disposition":"SOURCE_INSUFFICIENT_FOR_SINGLE_TEMPER_RANGE_DISCLOSED","review_evidence":"B03-targeted-review-03.json","publication_blocking":false,"targeted_repair":"COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"}
+  ]
+}

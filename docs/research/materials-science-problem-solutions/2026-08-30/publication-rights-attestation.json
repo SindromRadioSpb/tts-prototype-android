@@ -1,0 +1,20 @@
+{
+  "schema_version": "materials_pb2_publication_rights.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "owner_attested": true,
+  "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+  "asserted_at": "2026-08-30",
+  "classes": {
+    "source_text_and_diagrams": true,
+    "generated_learning_columns": true,
+    "independent_solutions": true,
+    "bilingual_solution_derivatives": true,
+    "public_read": true,
+    "public_solution_display_and_print": true,
+    "public_stream_current_zero_audio_edition": true,
+    "package_download": true,
+    "agent_derivative_text": true,
+    "full_tts_audio_and_timings": false
+  },
+  "scope_note": "Owner attestation received in the corpus production thread. public_stream_current_zero_audio_edition permits only the stream capability of this exact edition with zero audio assets. Full TTS generation, audio publication and timing sidecars remain explicitly deferred until the owner reviews all 60 production cards."
+}

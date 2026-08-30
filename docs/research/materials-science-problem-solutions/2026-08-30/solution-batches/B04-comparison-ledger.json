@@ -1,0 +1,36 @@
+{
+  "schema_version": "materials_pb2_solution_comparison.1.0.0",
+  "status": "REVIEWED_PASS_10_OF_10",
+  "batch_id": "B04",
+  "independent_solution_ledger": {
+    "path": "B04-independent-solution-ledger.ru.json",
+    "sha256": "d9ad36970fc793106882854e707b3adda8abec9fb007b51eb04e235274e6653e"
+  },
+  "legacy_source": "../legacy-solution-candidate-ledger.json",
+  "comparison_policy": {
+    "legacy_role": "COMPARISON_ONLY_NEVER_PREMISE",
+    "numeric_equivalence": "SAME_METHOD_AND_RESULT_WITH_EXPLAINED_ROUNDING_OR_SOURCE_GRAPH_TOLERANCE",
+    "theory_equivalence": "SAME_CAUSAL_CLAIM_WITH_EXPLICIT_SCOPE_LIMITS",
+    "silent_overwrite_allowed": false,
+    "maximum_targeted_repair_passes": 1
+  },
+  "summary": {
+    "task_count": 10,
+    "match_or_equivalent_count": 9,
+    "no_legacy_source_only_review_count": 1,
+    "targeted_source_review_count": 0,
+    "publication_blocking_count": 0
+  },
+  "entries": [
+    {"task_id":"materials-science-y1-pb2-q030","legacy_candidate_rows":53,"legacy_candidate_rows_sha256":"dc525804edf571f201da6af44c2aa75529f8238fde3ca1789834f8671a556729","computed_verdict":"MATCH_WITH_PRODUCTION_PROCESS_QUALIFICATION","comparison_note":"Allotropy, eutectic/eutectoid reactions, 830-850 C austenitization, martensite and improved Charpy after tempering match. Independent solution keeps exact quench medium/time section-dependent.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q031","legacy_candidate_rows":17,"legacy_candidate_rows_sha256":"042ef658043dbed15b999d6eb56e585a4d1b93a8041a0e75acac8f8b2e9b5a6f","computed_verdict":"MATCH","comparison_note":"Carbon effect, water-oil-air ordering and martensite brittleness match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q032","legacy_candidate_rows":0,"legacy_candidate_rows_sha256":"4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945","computed_verdict":"SOURCE_ONLY_TECHNICAL_REVIEW_PASS_NO_LEGACY_CARD","comparison_note":"No legacy solution exists. Source graph directly supports SAE4150>4140>4130 strength, common E, tempered martensite and the strength-ductility tempering trend.","reviewer_disposition":"SOURCE_ONLY_TECHNICAL_REVIEW_PASS","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q033","legacy_candidate_rows":33,"legacy_candidate_rows_sha256":"820ce04b2a6a48bb052ea0455482154b8f58ef5d29c8229f6b6ab37cd22886e4","computed_verdict":"MATCH","comparison_note":"A3 plus margin, thermal cycle and all five 595 C property selections match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q034","legacy_candidate_rows":38,"legacy_candidate_rows_sha256":"4dc7bf294df475567f891878a14670a5f4e00edadea57296220ddd47e9005085","computed_verdict":"MATCH_WITH_STANDARD_SCOPE_NOTE","comparison_note":"Jominy/Grossmann descriptions, SAE4340 choice and qualitative diameter profiles match. Independent solution explicitly prevents direct universal Jominy-to-radius conversion.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q035","legacy_candidate_rows":46,"legacy_candidate_rows_sha256":"9acb6d98fef85d0476c29261be089794297bf77a7968bd319e837a1ee7a3a8f9","computed_verdict":"MATCH_WITH_SOURCE_INSUFFICIENT_ABSOLUTE_CHARPY_DISCLOSURE","comparison_note":"Rockwell C, all 23 positions and the edge-low/center-high impact ranking match; both solutions avoid inventing absolute Joules.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q036","legacy_candidate_rows":35,"legacy_candidate_rows_sha256":"8399d91ff21c31cf0d157042035febdcd05ad6ecfc7faba0426eb3a7a996454c","computed_verdict":"MATCH_WITH_SOURCE_WORDING_NOTE","comparison_note":"Austenitization, graph points, E=216400 MPa and hypothetical uniform 28 HRC result match; source's post-treatment uniformity inconsistency remains disclosed.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q037","legacy_candidate_rows":29,"legacy_candidate_rows_sha256":"2f9e6d48c8a63b0fb0e01f7de163dbaf356acce50adb30248aeb860672ccb0ae","computed_verdict":"EQUIVALENT_WITH_GRAPH_AND_EDUCATIONAL_MAPPING_TOLERANCE","comparison_note":"Legacy 23 mm lies inside the independent 24-25 mm source-line tolerance; both use the problem's simplified d about 2x mapping and the seven truth values match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-p045-q038","legacy_candidate_rows":38,"legacy_candidate_rows_sha256":"61f8d423d24ed90afc96a2da1e9e33d13712f02768eba93fe9353b3b0c16605f","computed_verdict":"MATCH","comparison_note":"Curve assignment 1 quench, 2 quench+temper, 3 normalize, 4 anneal and the surface-hardening process match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-p047-q038","legacy_candidate_rows":13,"legacy_candidate_rows_sha256":"5737acc425cb09806a627fb1aa3eb2e023fcf94a27ebf76c76435a80b6ecb3ee","computed_verdict":"MATCH_WITH_PROPERTY_RANGE_QUALIFICATION","comparison_note":"Initial ambiguity, SAE6150 choice at 875 MPa and no carburizing match. Independent solution adds the required condition-dependent range and certification caveat.","publication_blocking":false,"targeted_repair":null}
+  ]
+}

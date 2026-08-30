@@ -1,0 +1,22 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-recovery-approval-v1",
+  "status": "OWNER_APPROVED_APPLY",
+  "approved_on": "2026-08-30",
+  "owner_reply": "утверждаю стартуй",
+  "accepted_gate": {
+    "program": "MATERIALS-PB2-SHADOW-RECOVERY",
+    "model": "gemini-3.7-flash",
+    "mode": "STANDARD",
+    "additional_calls": 3,
+    "retries": 0,
+    "total_max_usd": 1.0
+  },
+  "egress_scope": "UNCHANGED_SELECTED_SOURCE_PAGES_AND_HASH_BOUND_LEGACY_CONDITION_CANDIDATES",
+  "still_forbidden": [
+    "CORPUS_IMPORT",
+    "PUBLICATION",
+    "TTS",
+    "SOLUTION_AUTHORING",
+    "ANSWER_ADJUDICATION"
+  ]
+}

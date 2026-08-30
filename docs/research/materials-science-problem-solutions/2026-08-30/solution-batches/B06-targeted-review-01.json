@@ -1,0 +1,14 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "batch_id": "B06",
+  "task_id": "materials-science-y1-pb2-q057",
+  "status": "PASS_ONE_REVIEW_CLOSED",
+  "trigger": "INDEPENDENT_STRUCTURE_2_PARTICLE_MISREAD",
+  "source_assets": [
+    "asset_sha256:25a887d02f9aa21c5d54f2cb4d88f2a6cfd6bcde90c99aabad9e4a906be4d3e1"
+  ],
+  "finding": "The source drawing shows structure1 as layered, structure2 with preferred aligned reinforcement, and structure3 with random short-fiber orientation. Only structure3 lacks a preferred direction across the three axes.",
+  "disposition": "REPAIR_ANSWER_TO_STRUCTURE_3_ONLY_WITH_3D_RANDOM_ORIENTATION_QUALIFICATION",
+  "repair_passes_used": 1,
+  "further_repair_allowed": false
+}

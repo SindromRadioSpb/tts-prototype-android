@@ -1,0 +1,25 @@
+{
+  "schema_version": "materials_pb2_solution_batch_review_manifest.1.0.0",
+  "batch_id": "B03",
+  "status": "TECHNICAL_REVIEWED_PASS_10_OF_10_PRESENTATION_NOT_BUILT_NOT_PUBLISHED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "task_count": 10,
+  "publication_blocking_content_mismatches": 0,
+  "files": [
+    {"path":"B03-source-workpack.json","bytes":98961,"sha256":"bc706644e4a2f06ed8ff9a2fcea625d86f0b725735fe43cd403c42432e3c505a"},
+    {"path":"B03-independent-solution-ledger.ru.json","bytes":40927,"sha256":"cd390cf5571145e5fdb967c123bb3877bec555376b518900fa45266f94b79dbf"},
+    {"path":"B03-comparison-ledger.json","bytes":5984,"sha256":"e95305ce5d8677b16492c4fc49366b9a28b2217c2dbf2dac36f126852e01688e"},
+    {"path":"B03-targeted-review-01.json","bytes":2422,"sha256":"5c97aaa410503d043e820d35f0222d4c940c691d75dd7764d40cc7cb911221e9"},
+    {"path":"B03-targeted-review-02.json","bytes":2574,"sha256":"8896466ac31bbfa3f91633fe7d6d96e2e41e374e4a44f22794f7b9ddc58d3964"},
+    {"path":"B03-targeted-review-03.json","bytes":2551,"sha256":"b8b724b44e3b77036761df1c0cdc56680833c773fde9be4e0e00fd76ac7e1c1d"}
+  ],
+  "next_artifacts": [
+    "B03-exam-solution-ledger.ru.json",
+    "B03-student-solution-table.json",
+    "B03-agent-shards",
+    "B03-print-projections"
+  ],
+  "rights_status": "UNCONFIRMED_NOT_PUBLICATION_READY",
+  "tts_status": "ROW_LEVEL_TTS_KARAOKE_CONTRACT_VERIFICATION_AUTHORIZED_FULL_AUDIO_DEFERRED_UNTIL_POST_PRODUCTION_OWNER_CARD_REVIEW"
+}

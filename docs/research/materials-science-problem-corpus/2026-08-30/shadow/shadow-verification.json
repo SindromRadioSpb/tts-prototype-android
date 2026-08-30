@@ -1,0 +1,17 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-plan-verification-v1",
+  "status": "PASS_PLAN_ONLY_APPLY_BLOCKED",
+  "checks": {
+    "exactly_12_cases": true,
+    "exactly_13_unique_tasks": true,
+    "exactly_3_batches": true,
+    "planned_page_exposures_20": true,
+    "planned_pdf_tokens_5160": true,
+    "q2_and_q32_have_no_legacy": true,
+    "duplicate_38_is_paired": true,
+    "cost_formula_below_proposed_ceiling": true,
+    "provider_calls_zero": true,
+    "secret_access_zero": true,
+    "solution_generation_forbidden": true
+  }
+}

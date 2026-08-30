@@ -1,0 +1,1497 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-sample-v1",
+  "status": "PLAN_COMPLETE_APPLY_BLOCKED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "base_head": "6804b515ad94dd4f2b9ed2c572ac3b6f3dff69be",
+  "source_manifest_sha256": {
+    "task-manifest.json": "3c5dc42794c61cd50c5762c530f7a8cff69a20598111681ed8d34d270a96501e",
+    "diagram-manifest.json": "85299a8f99bf8bbbd7b4ce99e64c57999584c07a8afbe1916f19a3c566bfae55",
+    "reviewed-legacy-row-mapping.json": "cbd7d890b7c6f265ce44492cde9ee50c5e9f68b806b06a56be361505636538e5",
+    "prepared-input-manifest.json": "580068026346e94354f2ecd72757484cea64ad546b96a0e399d4ea98866e8142"
+  },
+  "sample_policy": "12_STRATIFIED_CASES_SOURCE_CORPUS_ONLY_NO_SOLUTION_ADJUDICATION",
+  "case_count": 12,
+  "task_count": 13,
+  "cases": [
+    {
+      "case_id": "S01-FIRST-VISUAL",
+      "task_ids": [
+        "materials-science-y1-pb2-q001"
+      ],
+      "risk_tags": [
+        "FIRST_TASK",
+        "ATOM_DIAGRAMS",
+        "VISUAL_LABEL_FIDELITY"
+      ],
+      "reason": "First canonical task and four required atom-model diagrams.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q001",
+          "display_alias": "1",
+          "task_record_sha256": "7fa20f795b02529119ee1022a4645ed242d2dd24926a8dc9b290fe90e256bb1d",
+          "source_anchors": [
+            {
+              "source_page": 3,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q001-v01",
+              "source_page": 3,
+              "kind": "ATOM_MODEL_DIAGRAM",
+              "instance_count": 4,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        3
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 29,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "9d6fbba2a3f707c7d171ddc4cf278413969e55e2d55ff9fb7241ee619f55e76e",
+          "legacy_title": "Задачник 2. Страница 3",
+          "row_start": 0,
+          "row_end": 28,
+          "row_count": 29,
+          "aligned_row_sha256": [
+            "f4a480fdf0b8cc4aaeec973f9710c5c2955f689c725b5ccf82c7a4c6196fd380",
+            "6ecfeddf48b5f2d5e9caf8680b5bfa5a96835a117806907b2f657943e1e9adfd",
+            "597009281668e24c5a7643e275107aeac003d1e46b8a6e2a1347903af9321635",
+            "bcefabcb5041327d8daf8a68e46c14755062008e21f1e76d85f673c0c5ccd4c8",
+            "0717e4e8818b9d8631c313797826d5acae3d94c9fda79a48fe46076ac57a97ff",
+            "59cd52807c936e7500fcbfdd9fe9ec7eb6b361c25893a8c02f01acbea472de6e",
+            "51e6b47252553159fe23408025e33cd892974b768069c6370214686de339a1ec",
+            "1907226f452f4979d69d449a54357d6ed7d79c1ade8d3ed5945b6e0d2c368210",
+            "c15a5d273460158565b18ffb92b45e5994ddfffedb661de218b22db8217e6e82",
+            "8feb32bcf7742a64c2053187c9c72e5b5f4246976f473c5016ddd6b99c31aaa3",
+            "5b9b19163050c14c59542cb5669cf4e5cd2d5dfcc35846606ddbe38a8fecb581",
+            "b667e68c699d25d344a035710c161b70f744aef6d3c6cd01c3ad67a457ab062a",
+            "f1dfd407bd5f055002698d760d85072c7f612aef2d648d5307c1855e36c7f83b",
+            "e9fc8248576ffbeafb5af5059e19e5becd452ad6a48abc92fd8b946b579ce48f",
+            "e1d262de5cb4d6c1b550b5a6ede538b548253856be9eee7071d5c4fa10ea6664",
+            "58597da974dff673ac5b35ecd885dec84046e038d71aa4a3fe938d96f0c4ab59",
+            "708e159f2e4404937a0e327326491cde0ffa2e5414d043cec1f795719b99d172",
+            "c2f975bd7e2302eea3c62f40ce30e08528b767921b1f94a9279e31ba244cb7bb",
+            "3a8fce56a9b8007f0d0a2116fed35e175441f79278589b7844284eeacccef368",
+            "0803c36ced290e5ea6f7b4e759767a5835d2f57581671a34be532c5c517c48c4",
+            "81c5acbf4916b8282460b8c53896d49c4777574534bd14e35c16355fa91b18ac",
+            "43d569ed75fc48f7c633ef1519a5feff802987dc2e69777f21e920743961a40b",
+            "f57bd1d12112687817e7a1da24cc7f9d70742b2a5e79317d68e14e926ee2838f",
+            "4eac29b063ad0f4d8c1ac87fda35d4e0a1dd08d3b720ab97928a37b573509d1c",
+            "e8cdd1e7db085c42059d9bea65ad5991180669f479f215229424c697efc92177",
+            "74e56fd83c5376ce4d9dbfe54ce5742c8d30b76e35ba052738ca1c3723a21c7f",
+            "9e744b626148c3ae95a593a04eaa9830c6ffef3449d3ecc91763f23d768a9ada",
+            "9d073751f15e274cbb1fd02c9d7d0eeb3a49298ecfca85b7eb22e460f6c5f66d",
+            "0f074c1d9022e4717e722979a5fc4e6b44d54f5f32723696e4558fd5a2775fe0"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S02-UNNUMBERED-EXERCISE",
+      "task_ids": [
+        "materials-science-y1-pb2-exercise-p005-allotropy"
+      ],
+      "risk_tags": [
+        "OWNER_APPROVED_UNNUMBERED_IDENTITY",
+        "CURVE",
+        "UNIT_CELL_SKETCHES"
+      ],
+      "reason": "Owner-approved unnumbered exercise with five semantic visuals.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+          "display_alias": "Упражнение — Аллотропия железа",
+          "task_record_sha256": "205653a66599d7c72bc8631c18ddcb8c0a2918dc94fa8f41fc2c7db30476739d",
+          "source_anchors": [
+            {
+              "source_page": 5,
+              "normalized_bbox": [
+                0.0,
+                0.22,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-exercise-p005-allotropy-v01",
+              "source_page": 5,
+              "kind": "COOLING_AND_ALLOTROPIC_TRANSITION_CURVE",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            },
+            {
+              "visual_id": "materials-science-y1-pb2-exercise-p005-allotropy-v02",
+              "source_page": 5,
+              "kind": "CRYSTAL_UNIT_CELL_SKETCH",
+              "instance_count": 4,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        5
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 39,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "84d3246443e1c9d0852af88e0ff94cfb78673ead06cf5987ebda76b1cbc0794b",
+          "legacy_title": "Задачник 2. Страница 5",
+          "row_start": 0,
+          "row_end": 38,
+          "row_count": 39,
+          "aligned_row_sha256": [
+            "5ba8c1174598c8ef8c2f54434425e177d598a58f8de764f1d104db9f7182ccfa",
+            "0d7278bbe39c456e33f1fed86b06c7af47476cfdc25bde237c588f36d1ce221b",
+            "8c07cb4c87baec7940a957c2e788f94046f840e06ce0b50482e12d4bf34f714c",
+            "d477e579596076684ec733e6f205fc613243b9a5982b2eba91d4f0aaacd8f964",
+            "d0b937ec6e25444ccae69114157a11ae02fe0d1b98cb118c0049e3cd2630b03f",
+            "cb2fd260c821fe06d8ef527a0a7ee509b03cb29c9b5927ddcd0f4a2c1444cb85",
+            "8ed7f083bf14eba217c0ce92907f01207e05f6e844808ccf4bdc6a673ac2fa7d",
+            "c30070ed47ce8ddb01c1116ed1570e42acc66fd6f1895854864b2183a6428573",
+            "75843d12c51ce8b024c7b00fe2b26642702c83a2bfd6e10d4391cc9fe94943a0",
+            "8faa0e472c04ba26bdebb78fe76e8b9ffd7643e22b071f6d72f587f6dab98c21",
+            "8f921214268eae55bb24cedb381c0f57ca54ef87075dc2b03764c73c55b5ba50",
+            "3b1037f426e40b66221a5c2ebafa4c9227b97847280b05428440949d951923f3",
+            "863a00700928a33bd5117a6f737802d96e61b605ce1fdadd8634231182f2efe2",
+            "fc127e712566ae859b6ee8eff544354de408d003a9bb75382f16baf91a88f7b1",
+            "e1b1d16655cae8615df0c379558746f1fc6754918ae1885cf97487e01c36db40",
+            "3b4a3a53461a647c7a1bcf0b10d7f1bcd1f7cfb9dbcc5980a4d6dc420082348d",
+            "5ff8e3e35132626e7cac10f01404c338df24996b9917cf4abc2467dd2a1e8f90",
+            "3d28f5d19e13b0f9ec7ef146ac1af430185b4b238d008e1f529786afb9f1013d",
+            "1773cc892dcda4995ce71f5597314e0461c5ce5fbfb953e4fb42ecbdf09f85f8",
+            "cc91b963dbb4898de9631d171483a3a985bd822806ee68390dc5b1442ca5d664",
+            "1cad64f9702dc9eda5de0cf2d91ab72ed8f8189f1e8301a01ac7cb526ca71b0a",
+            "ad665bae741ba74ed4e7fb43b6d1b1fe43bc45b0fd06b6f28faa5e39f7338e34",
+            "3c2e66549f6f3966429000f6bfa0f29a1c17f979e3dd8d03b155bf96e8045fa3",
+            "1c825a5fdab1fc9f36ac3c4d65556b2cb8c1694163765d6ea684d7e2baede829",
+            "6027c4792caf4a3b94c3d8d914a1390b0c76c9bc649dca83ebe69fbde27fc0bd",
+            "8da8a8be07550165e9258ffb0fce0ca33be98462471faf3a3b2b656631502e43",
+            "a520285bb6bed1df68e1226c0156fbaa88322285de77b2cb668124506da46b29",
+            "beaff3808ba27d6d5183c156679aabf291da7a3f198234700d099e49496232fd",
+            "412ceb1a115f94bf2902335c0e3d403b2cf87706318b385d516c3999b9bb0586",
+            "f6339cd2592a94ee3367c285f446c0600caa37b7522835503f591daaf504cf79",
+            "8fd7e1cff7c6c3b02f6efdb88f975f6bb6b71b21fb5148bec3bcefc364906bad",
+            "7c88f9fa448bfbfa0d50bf197cc71024464b3e220808b6fd4654ab5c82bb9c39",
+            "726fc0a65654189f93ef3ebf2acd7fea666acf61933c0d2c86dc21bbe534cc26",
+            "afca2977706cec51a2e78b5594568fe8eddf968d7e63518bd3c7cc92a8662a6c",
+            "d47795a65d30d1f9287d20fd0a92be741e3ccc46d364a422168779b2399f9e3e",
+            "42082fd76e98a0dfa5dcadc75813c4f94e583a23737699aff285db8b30143626",
+            "ba52ca25d90f7cdaf62e3070fbb148fcfac3a59862a05d7532699054ad9e0a59",
+            "7b9fe84492700fc480a54cb3085bd48a089b9c7fe02de0ff7d2c0bce6478b0de",
+            "208e82be2474593a8d6c0bedf9905fbceed7fdc0f8f27c1dec34d8a485bcfc0a"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S03-MULTIPAGE-NO-LEGACY",
+      "task_ids": [
+        "materials-science-y1-pb2-q002"
+      ],
+      "risk_tags": [
+        "MULTIPAGE_BOUNDARY",
+        "NO_LEGACY_ROWS",
+        "CONTINUATION_CROP"
+      ],
+      "reason": "Two-page condition; absence from legacy must never trigger a neighbor fallback.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q002",
+          "display_alias": "2",
+          "task_record_sha256": "1438f49be5777960e2d02a077b2081991dbb89c51894814b874916c9e4904f00",
+          "source_anchors": [
+            {
+              "source_page": 4,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            },
+            {
+              "source_page": 5,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                0.22
+              ],
+              "role": "condition_continuation"
+            }
+          ],
+          "semantic_visuals": [],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        4,
+        5
+      ],
+      "legacy_state": "NO_LEGACY_ROWS",
+      "legacy_row_count": 0,
+      "legacy_references": [],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S04-TITLE-PAGE-OVERRIDE",
+      "task_ids": [
+        "materials-science-y1-pb2-q010"
+      ],
+      "risk_tags": [
+        "LEGACY_TITLE_PAGE_MISMATCH",
+        "GRAPH",
+        "NUMERIC_LABELS"
+      ],
+      "reason": "Source page 14 is mapped from a legacy title that says page 13.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "task_record_sha256": "78357e4b8be7660752d3202d1dc886f3c982805c838b13d0de92c05d304fabc9",
+          "source_anchors": [
+            {
+              "source_page": 14,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q010-v01",
+              "source_page": 14,
+              "kind": "FORCE_EXTENSION_GRAPH",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        14
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 49,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "4a561c3b882916e08a0019c022b0b0004f16c950eb4fc68baa5f1fc4709c515d",
+          "legacy_title": "Задачник 2. Страница 13",
+          "row_start": 0,
+          "row_end": 48,
+          "row_count": 49,
+          "aligned_row_sha256": [
+            "f22c4e31ad2a86049db896e93ff042922bb55ccedc897cbf18f220c433407961",
+            "e75f116c0200523f7b71fce48250ac4156574b9e2878377407d1da9aa1fa92f5",
+            "061dbda90e77ce1af3018a1e53b65a162a678aa36a2766e7f397349ad86e0215",
+            "32aa4954d1ed87c2548234aca0c3e672888e4d6e1eceb8f51bc9fe1f9954b3f1",
+            "469d0b9da984918ad2fe58397fe98ac93a3127c43d64733c0da137f4c057c59a",
+            "72825b11b5b9e59cd5088000bee6a0921afa0ccfc3441870c21b6f531d3e5bc5",
+            "8447d2e92d35d513341d17e51553878d057b1b5b4ab342d7261be7b6e8311c1c",
+            "460b32e202145153973c372b024fd0bede2c26502eea0f49bea5e3bc276198da",
+            "1a7343b5ae290fd19967af8671f16011fa47985bcf5132463dd45cc024cc2e93",
+            "f2f77313a042d6d0ed2462bf4eea994513ed6dede7f877a54a8510abe63c62e0",
+            "af901664e01f26baee379ca5c247aa868e3b9b678f1c0acbf7b4ef0192162d01",
+            "d096c4eba2716716fef27657278a38505f0ea6b7719f64277ea7b919d96db4ab",
+            "94026a201090e24c6091aa1379f50718a6725420de7b60726bc7f627991b80f5",
+            "898a965822fc80f317a50dbe5c1e32fbeb5c76f5571181a2b48cd158bbeb9b88",
+            "7ce2380a9af93407b22c58a1e80baef3685d3497d2d3bbf9487e63fcf06abb58",
+            "41b90534f7c2f8488c98ccb708582abd7cbd08542402b1df1cfc84f37142405f",
+            "fb50782740334970e3384078fce034defdc927dc341e041689822f6c3728795e",
+            "56289cec57c73c45b0ba1ed48ef42005cef683a11f0c7b1b3ef178181d029168",
+            "eb9bde73367b9a659130c7df5cc329136d3a97b80e435b101b386e65bd24630f",
+            "d220e095aabe7fcaa9733125de22e812cf3bed36a870ffbf7f23feb76e1ea708",
+            "d1d5524ead14d7b6ddd9567df9258f57637df8c041de3ab3508b4bf08b9175af",
+            "cf6a11407a9cca9e0c3640ee4d27f020421b798e66c05176d4b2537a643337fb",
+            "c7ce6d8b5ab518ad2807cb63d8c6b842270798b6bd66041674bc82c316a58700",
+            "fe56e028d2cc44229cc0caffe647d3e0cfe3c7855db9a3111134cc916e04337e",
+            "81e60af1af1981c066a5b2df190a1a856fd83e3894403f24b0ee66d1f484efb9",
+            "d625259e99958c1c0e98b123b95a48c4d7dbc79a86a18be2149165b357108a2c",
+            "e99d5c894bde0205a036004c5ec5132ae1f4ebb3aa542a38d10ca4ce8dc16937",
+            "362be1f59fd0ff5efc7fb580ec0a80d03aec89915ce402c354703258d5f2aa2f",
+            "a13de4ccd84b214c1e8b10b85c923cee3fc108f05543d8b2570a0a7d8ef2ce6b",
+            "9e4c73df8f900a4a169bfa66ac1352e51e87dfc50ba44e50284109b6dc3947ea",
+            "cd636ed10217af7a5d1439459b19ca5c064008d5a16f28de29316271a4488f7d",
+            "1d4f908fd830d9096b8e99028fde5d11342fc6adb074f42bd0f5f11a3c902cc9",
+            "5d124b1f5deb9e96d66cafaef099c83c81c1013a66a3cab84f64142ec3fce410",
+            "96a7a74841a2694ce8d2246d17ecf5be788dac9994504330354190dbeaa5c85b",
+            "9dd34504723703670d7b6070be122506210abeb5a6af344e838c46a53138e006",
+            "2c2d123ef719362a45a7d66696c152ae659a213d7acba619ea94c2291013351f",
+            "8a0684fa2f852cf3fa0efc8bbbf5c34c2696847ad1e26cf6084e221dcb896a81",
+            "46aec8969ba85e77e47ce4fbe44e376c0d99a6aa7ec251ad78646dd6f51acb88",
+            "8a3f08eee16b5e62a1354f5ca31c485be70d072bff8a322fe613d056692dc6f5",
+            "1bc1c89937ebe394e12ed30c417822520999977bd457b29a87eb409392548a1e",
+            "ea807c1d8d288e72fbe7b68e9537402f393af4ac3c975ceae764cb6cc81fc81f",
+            "10f6fb22872aeb96fca82b37ad8603aba759d77a42344fe221fe5fb734ca07dd",
+            "e079937cf284116a4e4bd66b329b636f39a374cee3213acf0903ade4d23c34d6",
+            "43977bd85e98f29b25d0108f391da07f1627a935495e28a74068af40347daa5d",
+            "aa704bb8556e1d7889c1063562a04fbbbf59d668e85eb20f98e54d5d1a7579ca",
+            "6ae1f1961cea442648d8a2239704020227cd9bc88681cd94cfa6fb5d90a08603",
+            "462c7ee8885cde10065623e8d4a1506fff34b3c241407823f2ccd2111a042d9d",
+            "3fc7680f0f09933553ba36f35fbfdea45a4fd8dd890eff57135e7bdca1446066",
+            "715b869d3677015ff6415140ef7e900685a2103ee5ecf737ed2f66c7925d7a3f"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S05-DUPLICATE-LEGACY-CARDS",
+      "task_ids": [
+        "materials-science-y1-pb2-q016"
+      ],
+      "risk_tags": [
+        "DUPLICATE_NONIDENTICAL_LEGACY_CARDS",
+        "TABLE",
+        "REQUIREMENTS_BLOCK"
+      ],
+      "reason": "Two nonidentical legacy cards target one source task; neither may silently win.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "task_record_sha256": "6c9b2aa2f8f70a048c6c4c34cee42914a47f0f09faa925c056d96aff04355322",
+          "source_anchors": [
+            {
+              "source_page": 21,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q016-v01",
+              "source_page": 21,
+              "kind": "ENGINEERING_REQUIREMENTS_BLOCK",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            },
+            {
+              "visual_id": "materials-science-y1-pb2-q016-v02",
+              "source_page": 21,
+              "kind": "TENSILE_TEST_RESULTS_TABLE",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        21
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 126,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "d6ac4bc9488ae1276fe09e4db76e3ca438e483fe8bfb964fe1a6af08319250dd",
+          "legacy_title": "Задачник 2. Страница 21",
+          "row_start": 0,
+          "row_end": 62,
+          "row_count": 63,
+          "aligned_row_sha256": [
+            "9a31f1b36d409bb5bca5e922bb15e40f673fbeb230f1ee347125d07cea4a3516",
+            "a26c97108ac5102cbd6d9525ff03f43f8da0ed7d87095ff1b101426ae14a28c7",
+            "81c4353f1efafe4e6b38f899801188c62f9d482735a49bf9deb6547f862b33dd",
+            "a236648b557708509a7e4684913e8290676ad8113f8cf8aa73531de79bbdba11",
+            "216198f1401250c2220957ed29a87250117a3e286d07b2e7568ddd464f4e15e6",
+            "1debe55d484c908c459c9917d4155fe710d4a2fae7daf2f56693e6371a04050a",
+            "10dfe5f5683cc4208cf306d22637f58295e7a50493b89d5d108c4ba9f3964f09",
+            "5ed349489e38259524c8e6da4cda163bcb7a10bdf48d7703d862d4089d842db0",
+            "73c5a14ae087dc84c315898c8d97d3e9408daffe807568b95bffcc86a97c3d98",
+            "ac83006203f7e20bdcd2c116fd54ae79ae20e39f095d8ef271f3138da62a010b",
+            "56e5a59c583e86e9b682f256d8efb77e0fe3acb274175b92d32f4d00fc8ecbd8",
+            "d135d45cbf8a8205a659da2ee819585fb2a7388a9477bc3ca49ce5099cbafa2a",
+            "bf8deffaf05579262a90c13069a328385b89c0ed0ca46f7e7db6e2f213fd9d17",
+            "4a966b87a464c6642d6ddc4b2e55e62d81479196403cc7cc498181bc92e2139d",
+            "a57a3ebf4992a0fdb3842e9aea85208fe35409212d0bf6ca3380c4c8212283fb",
+            "61f9cc7e61a72a8b1386f347e471da3a6ec58a2b1ae623b843ceda3bdab9ee22",
+            "d55b54e4265cfca76ba4706050d7f4aa79ec3381f27b2f9ed2db9f6044030664",
+            "08c1481d4bc8cd0b70536e8c747f281ab99734c1ca5b05a3dbc5caf76059ea95",
+            "7f12701be675a63e7f66f35c8d25aa2987ede452a08d9502dbd21892181b2f17",
+            "c7249ac5e7f4874bab49af143b39c4adbb436a8de0e0d558c384fe4dea08f5e4",
+            "3ed4823e7e59c2876f3cfb5993c64f9f69e93829780d1c863a5784103b026b37",
+            "c9ee8be601e6306354d0b7b540916cc6a54e8627e26d0b29e4d899bdff7ce675",
+            "33877c6fc6f62676c726d65e7e5178746255fd2549697fef09f2682535acf571",
+            "c02172d9f1847f31cb5bdfee14520d6f868c0147b62b3181415401d126e75017",
+            "3b7ae6bfda5919552d2d0b940b8be7bcd71eef58ca27ae9d050fb1162c52e819",
+            "c355c36a4c0d3b3fd62491bbc036fcb19a2a2223824e13b19a3ef37640880732",
+            "84a9b77da558e7d44b31f7bffa45014001c75037609fdc101185b3d99e2d1090",
+            "5fc3d433d65459698d978faf8388b49084512eb74d7a7cb7bff7b97e399ee05b",
+            "d3ced0b321b7dfef5dcbc93493e0708997cece6616d6cd830951429edb1fb4a6",
+            "8d96b677539ee1bf470de9785b29f18aa053fe625eaf885cec69d706944af504",
+            "51794381a4a2ae4476d4d617c1728e1805a279825c5eca43be0be0d6728c92a5",
+            "4592e49ba8e5f9bea6c4280f3e6b9ddc5d54d97192c9146fde1fdc40c16d44c2",
+            "0ecc23dcabd36991aab206c7d3cf1ab9c1bc63c0cd7c71fb48324e2218147c8d",
+            "517877169d51b082a00b856b9061443fcf16b5be8d547794c3436ad9ab22292d",
+            "e300ca0e929ee15d338474309278758e09c060952e52e1452741fed6ee1975dc",
+            "271f614922da585db82cc9ea71e9d2e493b648c32f02761cd43b818b87c48393",
+            "5901fb30098ae2f142ff74213b4c6bf8a502eb94078ec22f06b0dd8a67227dd9",
+            "bcfae84eae760a9044a561af07de34eec39535981048b286d14210ae9982b69a",
+            "f2dd24723ac7c6a794a75b54d49847bd6490d6b8823450656568a31e8086b1fd",
+            "0d2aae40ef84eea384d8d1af9413bf73f6e3cf282691afde4274f406df9968f1",
+            "2144037c2b7f37cdc928e7a18eea1f7d80ceab59c9f9968d7554cb136a1c526b",
+            "0aa4252d57ee626ec3d982fc4310d340a9af9905c029d66adc485616ee7279d8",
+            "da3c14b8e3fa3b4cca4f9091c4cc9e0f8104dc7a63a721c0d2fbe0bedc8bc48c",
+            "c368e3c6eba0d765aa48ceebaef845a69bde968e395782f4d02d0761c2ff0b39",
+            "ca7f4d68e21608eba3325e253d84277958eacada28f44c1cfb9cca3b06100e17",
+            "ed772c1eaeb69c3a8bfbb49be544080d8def21b6bf303c280e1979262c9274dc",
+            "53a5652a3cedb3bb70b59d52a97787eb3fbb5237d6673787bb79d112c8414293",
+            "170c26e646cc69a5551ac8944b27a78ecd46ca752ad202c9bcb09ce90299f356",
+            "175e221f2fdeb1876989afd5b0ad3546a7e967813779adba79277d0671914c3d",
+            "2c9ca01ef91a2aea1f5b71e5f18480180961b07b1aa78a369e71f88fa8661190",
+            "bb11d014328f142458c26200dee4019e6cf522103d13deeb788f5be27f470896",
+            "1e2dde26e0fdd65525003f6564219c1185090d931b1f963323ff3fcda3d81112",
+            "5901487f9a865395dad2893db629b2241ef083114ea61e9606b59e81b9dd857f",
+            "678676aae7777565982c5411770df57fb082b177f2b646ccd44ccc0a3deae03f",
+            "306c033aecb10a16f904dc7b70eab3ff572f2d91765e4e11c35117b46b8a44f2",
+            "6035677022c06db37465bd305d5808ccfcf019f4764d0b4f1664e8004c306679",
+            "d79cf449e029fc8264f9873dd34f3be5af8b2bc6ca031958ae7f2c44e42b5252",
+            "ca2dcf122e498fdb2ec6ea6e1c7edccfe70d951ed19ae7724a5b3d2a4c287ac9",
+            "a388ca0333e5a037ebaf3f65c57d894d7e8c34512394b1f17016d1e283ba30f9",
+            "6a9ca4d60e13a02a2123dd2202a7cbaf5ee16fd82844ca54d5efcb71559be7df",
+            "890803babf4cab4cd6f26dc165414ada1af93ef5847115bae7843d07b91d5f14",
+            "2672dcfc3228423fe7c3e6b3aa218603b47563000bec58c0713af24c4f97bf6c",
+            "1b5e2eb581dfd9e21eb36bc6d57df5a3a9b1760326a918db3df0c957fd503ac0"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        },
+        {
+          "legacy_card_key_sha256": "55b3ac0149498ee336f681d696f2cc88044b0463c073155801d8be1a6c3ea121",
+          "legacy_title": "Задачник 2. Страница 21",
+          "row_start": 0,
+          "row_end": 62,
+          "row_count": 63,
+          "aligned_row_sha256": [
+            "e3a8b94018548488f7be87ddaf2a496a7691fa0de9e9d7b527cc350c866149f6",
+            "47c1fac3cd3f379db675796884721c385a99963af92c68513ce707e344eaf744",
+            "bb366d25dd6fb3453b59764ea8f7336ff85777f278b5de51569c0588f2952902",
+            "398f637c46901a2afc06dc56cef4e908d818ac1f7159a07dd93bd44cfe2ba2f2",
+            "a236648b557708509a7e4684913e8290676ad8113f8cf8aa73531de79bbdba11",
+            "216198f1401250c2220957ed29a87250117a3e286d07b2e7568ddd464f4e15e6",
+            "1debe55d484c908c459c9917d4155fe710d4a2fae7daf2f56693e6371a04050a",
+            "aec3adbdf4dc280b7ee7771f98ccf6c06b455c6090db50ed0e30a16fc9a6e2e3",
+            "f9139a3e3989336ea7e69045454a38c967d6be8235db9e9cfe8fba2593295d06",
+            "bc25cdf79b4d1feef8153fa94e458a8fd4e8763b53f7ded44d55a2f898549e09",
+            "31ea0b779205b7de19067d56deff4ed9c2ac1a9a9c1cc3422e67ea36a995b92b",
+            "75937f36103ff25f727d254bd847c9b47c0939261f5e1ff4ff858b74f0674bbf",
+            "46d2a6090a56d60d4bd39b2f4d4ba6309ab241dc1cf534669fa6864a19693619",
+            "65c43ec52938b4f426539aad1c7c3f51958c02de6d2d6a703a777609e8d91ca8",
+            "29c47fde48e8e0a0eb9f78f0838f914c488cea96a66ea8b30a648edc80075700",
+            "55378f33042c9e5c6100a1b058a80e112812d324b94b97b40dac32824ab08929",
+            "42c4ef93917b58569ad0f515b7195c7687beec5ff5bd2a0aa4b102bbb7147b50",
+            "84b5f26269c1bb89debb8dd1c6d5c47400794b41d3ba144b98354c35b75a6bd6",
+            "a7981305b155bf7198fc0ba18fef10eed3e92098729967107d85b5ea2488c675",
+            "38d60848d55a00c50816ab45ea42c86cb0aac4b1afe8759f2d4e425f7443deab",
+            "b652110f06414653869210890c4ca6fe52528c851162c0f711ca4258931b3839",
+            "b469357f678581f529e10f2a67daf56db4edd9ccde2575592c00e98bb2dd21f1",
+            "5ebd556f8fae63768e73967aeee9286e4860f4c3fb0e11222ee9e654a5c548de",
+            "add21de56d16a3f85445a4b777af5a3d28d4df45d0b77e5964f9f4d76176c5a8",
+            "03d52bb04817249a9a5213b375c4b803cedbafeda23c81d591454bffadaf9ea0",
+            "8bbff787a02819eb7e2f2d87f0f5cd30a5e58d137deb716eadb749bb73e50e9f",
+            "97bc3b7d1340072ad528ac0e65924207c789f8a350a8ee41df8f1e6b2364412d",
+            "1a0b0714dba4f5e329c59eaf9d8e354d89aace354d2fdfd0eec50b9fc6ef8b14",
+            "d3ced0b321b7dfef5dcbc93493e0708997cece6616d6cd830951429edb1fb4a6",
+            "72d7c0993d307948a169911f53d54d3d4ba1f8494469a65a50b5e6dfd29db15d",
+            "bfa722d9afb344c901dcd77061bc064905deb5b618e5ca8061d251d7870e1ee3",
+            "4592e49ba8e5f9bea6c4280f3e6b9ddc5d54d97192c9146fde1fdc40c16d44c2",
+            "38eedaed362a7d56f298a9fd93707347428536c659330fe9d1e7c61333b70baf",
+            "2dc35e3159fe6da5c8117ab66a0fa3b3f9e285667d8ada69d7019cb86dc9545d",
+            "e300ca0e929ee15d338474309278758e09c060952e52e1452741fed6ee1975dc",
+            "54aaee5ef7a909dab329aa0ed212c9006a8d482ffcfaf44c853a1c809658cbd4",
+            "e7d270bc4b06d6451f81ed83a4ccf47195833140236f6445675390d3cdeb48e1",
+            "bcfae84eae760a9044a561af07de34eec39535981048b286d14210ae9982b69a",
+            "cb4ac28e7ecb50f72782f77af949c963138ba7bb2f7e9e5df687e38f0f7315d4",
+            "bbc49522e063fb88f78cdb67b4b39ee1300330b3d434da569e124e338e2238e2",
+            "2144037c2b7f37cdc928e7a18eea1f7d80ceab59c9f9968d7554cb136a1c526b",
+            "d9491b8daa8571a5f3056510faf2ca0ab4141c2adc537f8d201f9534b7b87e47",
+            "fa56d3e11388f868cd2e2287effb4218d30d23ccc70d3049a403186c35698355",
+            "c368e3c6eba0d765aa48ceebaef845a69bde968e395782f4d02d0761c2ff0b39",
+            "38104b754dfa6d2daf1e319a04554f4cb90595821fda10bc6007ca8a7bb1ecd0",
+            "7303a7a792cff560d72962128d81ccd81aa15b5c191028717440e25dae6df313",
+            "53a5652a3cedb3bb70b59d52a97787eb3fbb5237d6673787bb79d112c8414293",
+            "6a6325a478b938e7b7c1281f988bbe32a3e90fbc766f34085973aabf18edf78e",
+            "262aa175b4ec6b72b0b681ad760ee7ff4bae56b451ad750b1181ef1f6f2820db",
+            "2c9ca01ef91a2aea1f5b71e5f18480180961b07b1aa78a369e71f88fa8661190",
+            "34490f2ff4b8e04e42199944e0804870359d135573711311a9a6597c8e68460c",
+            "14ba9ed16576e63b5c55123ba94f5c01f4bcd6cfa13b9cf7822420356ca8e668",
+            "5901487f9a865395dad2893db629b2241ef083114ea61e9606b59e81b9dd857f",
+            "0c202b799edb8243bccc4b73573834324b9733d7398da4c3349c1eeb936a927a",
+            "703873cf73b7ebee7836f874e6f9e1c3daf9a857712a0901fd223dbde29dcd02",
+            "cbd4e683486337d2dd4c921a111a701ef9651a0fd9d4b6f8fa2305b007e484b6",
+            "37aa6a10f975a6490c83d55730ad1917cab565e126fa0186a1490e7b34698257",
+            "74454f0bbb376d8de3c63c0798995b1913d77d62e4164e02399d917369e44625",
+            "ffd9829b28aa9e4ada49bd7a9ab5a7dcc2e4f2dd8b9d71e9a27b7fd31ddc6e1a",
+            "133ec9716139ec4015ea8e0ed447272224ae6e4fa600ba5dc29ddda6924e5de3",
+            "e051d2e3c656233361ea195e79026aee65dfcb8459593c5ec37326721bc8227c",
+            "eef591caa7534ee2f98d961120ec227c6c1a5bd0148ce628b217b2ccc1a5bbae",
+            "d7fe9dd6d61d917973241dc888ba8afabeb0498a0be765f1c958b24ed030d28e"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S06-IMPORTANT-TITLE",
+      "task_ids": [
+        "materials-science-y1-pb2-q024"
+      ],
+      "risk_tags": [
+        "LEGACY_IMPORTANT_TITLE",
+        "FORMULAS",
+        "UNITS"
+      ],
+      "reason": "Tests the legacy 'page 30 IMPORTANT' title and formula/unit preservation.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q024",
+          "display_alias": "24",
+          "task_record_sha256": "fb6ec16f32bdb504eb825a32f57c25d675a5565be33a38f2619a8e495dde6897",
+          "source_anchors": [
+            {
+              "source_page": 30,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        30
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 30,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "3aa2f7b456649473aefc45b2ccab32f0a522138e5098f0c0d469194628544cdc",
+          "legacy_title": "Задачник 2. Страница 30 ВАЖНО!",
+          "row_start": 0,
+          "row_end": 29,
+          "row_count": 30,
+          "aligned_row_sha256": [
+            "06f242fd14e4d67cc57cb3672e7cc0cc9e47c397ce2b20d232842e0d7a1ef73c",
+            "8605b28477e47d345d5a32bf2bdc68547d7cce1ab2a82a22129f5700028fcf83",
+            "cee81c41b737ef4690e96557137f55ed61a87e45f4c2602e514278d9024d05e0",
+            "80998089746bf3ac99e1ae7427c7048a046480a8f3c7d5e5418e51de248b3cbd",
+            "d9d19ec07675dba346993a48fd57c58ea455802228fbe82b6537d9fc64e07f46",
+            "04979f762cc5b72dd367ffb6cd8d2e180ea2cf545457308611658036cd157c43",
+            "a691a65ab3c02bd991d3083c8b1914c2507c0de68080922fab6ffc407092cb98",
+            "dcafb8e252b043243cfb09f8f39507f9e61ac0de9f0cfaec9261c0ebf0039929",
+            "8a324225f8d5857aaba7003e82833f0ee5b1526a57d37b6b9e8fa754bd0f6b9a",
+            "b4780c1c64e33e1935fbaf22910470a6c8959d06ab47b7ddbdb66e54877b5772",
+            "b5fff663aeab54ec6b2f0ad2012526ee99acbf1e5cc9080ba62ac0a22464757e",
+            "99f9d4e7a899de26820ce67381834d59258c5321951ccb0270b4a9375ea6128f",
+            "e262afa2645a614926c7fcab7b6909997a2bfd332dd6dd82a75276294e9f83ce",
+            "554c99d5a15857c4526558fafbe4da9dbf165408e653f0469ea528d6eeb70d2b",
+            "88c791a1934187a2baddfa525cee64fdd3254bd36cd1a31c2f57423fb51fecba",
+            "2c955324b7ebc3e777ee4a19f7d9d364a6c4435e0558fc801f9d22a9e8e05ad9",
+            "129033d8899ea2cc6f12c9a3eb384446b172e4e286327c5c42445a528d272af9",
+            "af649c2b858b2564bd474aefe488c9478035f70f5e1af57a0f0a58616ede3b2a",
+            "b1646bbe83a9980617dac9d198727dd0908ccb624929da4ca7664782e96a7b80",
+            "edec0f382f1e670439af6afd3ce5094c7e5b3fe2c8f6ba2632baa812e0a66cfd",
+            "abc8b73826f183c3d4a7bb459e7f18a85344fa99cae66a838d4c2833c5416fbb",
+            "e6439a3f838e3b458b2d70f0f4b59766249e77135f693f2b2226f2b2d70dc76f",
+            "307ee79aa47c6e51574053b4b9e8bfd43c192524df45218d3e93768cd279f562",
+            "f4028a5c492493ef88798ea4258623f2e88e211f7e5c49aa7f276646b9535990",
+            "7fc150783420a3eff60dfc9a615fca2d0f1a6c8172b3ecdb1fd24c462c3f7f11",
+            "9ffafef74b22ca91eeffbf5cc23241aa2858d3da40c7330b7b7b74b0411242dd",
+            "56b0b2f0e87d7bb62c72d5b7eb809238282fd0323638d8ae5a1659d52ece65ec",
+            "6b36969f75466ebe5822d385aef3f4d863ed9df7a25add865c592697ff1d6838",
+            "beccf8874183b0a00bbacfd56f51f682d969c1ce5b4eb9c5e0be5d7b0ae2e32f",
+            "6af48cc353bf687b98894b659532dc6fd65db4bf86b8c0a5e5267c527c8932d3"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S07-MULTICARD-APPENDIX",
+      "task_ids": [
+        "materials-science-y1-pb2-q030"
+      ],
+      "risk_tags": [
+        "MULTIPLE_LEGACY_CARDS",
+        "MICROGRAPH",
+        "PHASE_DIAGRAM_APPENDIX"
+      ],
+      "reason": "Two legacy cards, a required micrograph, and a page-70 appendix dependency.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "task_record_sha256": "ca8753cc5cfe7bbfb60c319d969e842bd1cf02d1a084495dcca1a10fa48549b3",
+          "source_anchors": [
+            {
+              "source_page": 38,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q030-v01",
+              "source_page": 38,
+              "kind": "MARTENSITE_MICROGRAPH",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": [
+            {
+              "dependency_kind": "IRON_CARBON_PHASE_DIAGRAM_APPENDIX",
+              "source_pages": [
+                70
+              ],
+              "prepared_reference_ids": [
+                "source-reference-p070"
+              ],
+              "required_for_solving": true,
+              "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+            }
+          ]
+        }
+      ],
+      "input_source_pages": [
+        38,
+        70
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 71,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "e11fc10ff58b05592f1ec7a3a5d7c46e4a990197f6983c417e9a6e1526408fa1",
+          "legacy_title": "Задачник 2. Страница 38.2",
+          "row_start": 0,
+          "row_end": 32,
+          "row_count": 33,
+          "aligned_row_sha256": [
+            "8d992586225a052324e9e02ba2a8ae91462d15521382cb6e1de265d5e3e331a9",
+            "c8bc3d91d5e3b8ef5183a22cecf39161083cd23113f40f81b70d17ad174fedbe",
+            "f98d3649f83ef411b6b763d9dd53f49e080a4eabb413a2234d2e6a1491c2ab37",
+            "e631a13ed8aec49663a4c5d03d6c49074152364ba5b69d713748273228ff10d8",
+            "5ac7fcd022a877adb9fb6e5ff0836d6fc1b725c98288e6dfe118b46fcbfd2c80",
+            "644ba743e0f500d296c274c1a93a26a4547e0ebd72ae83080a2d19b181225ed4",
+            "e10accfbd70889a0d7c4fb00e5b9d588797bb2e0eb88fdabc85789629b5c3ab7",
+            "2d338e9cb5fc035501d7cd256ef376650047093eb00db76dfcc147b34a791e53",
+            "3a046a4066042feb6a9615fbf9e67b5505600b3b5917a849229212831e2fc492",
+            "2ccc4f2c8c81f9f40ae4a63f223e832db4ed595d36024da9e1aafb5c21ebae51",
+            "69775ae3d1a15c2cb15ff8e67e348180c358f4d96f7a6a60a3ce56635ee340c7",
+            "b8da8279f208cb6548c4f420ea8df67c6de7e5b485a4438b3f79f8001db01d56",
+            "7a7e245e05589b50760e9b4fab45be167ca7901e431e76d7153a9d6e37ea4a76",
+            "4b331146f24a57e76121c9392308b4b1482ba0978b50e90e18f26f6c8f5ca16a",
+            "b68a3cd929d33c2ba3ff22d3b9b432fb7219eb2929d89c105db0ef6c132d74a7",
+            "07a560c98d371e475002ee2f10765d1e7a40824af15798832b52c64f2d84a873",
+            "55f2af8516537839dd4fecb1da312ad252d4f85869ae3b4775c8029e2c8adb9d",
+            "2d67c9f1eb2ba0c629acc7483281ee548b698f08280db0c85e4820d33b789097",
+            "5107713129d368322bdc2c22556d6c4c8ee7a8ebbdf0b0039117484771445332",
+            "d2a910d79b08039040df79ba1c20de6ff5a26f3ce81ec8a2e3cd4820c16b1b4c",
+            "a37f65f3fd391b6c082bca48b124934a54173ad545ee336e57b335d7ed5b3f86",
+            "5f80c3ab67982b6012d722bcfc3fb329f349dbd05f466f8a9640812f4101dabb",
+            "022af2bb316529027739263d4814dafd86538bca4f7aa6ff740d84d50bcb5854",
+            "b9eb3a39fb08eb53785982041cb36958e868db7ddbd4f66943dd4a4c11ec8dd7",
+            "31f449a3e556a686fc533040403cf3ba75c07a4adf07e872b4c669a2b02440ac",
+            "772f558d9b06b29d33850e905dd3db7b67703acb8c31e741142159e322543444",
+            "c7535a4d148760d54f338a6c48a0db678e09e4cc0abd0223b57ae4b42d30fe73",
+            "865f43b46295742427f1063cb7c07df483d7982350f69a4df9a50b67a3b25075",
+            "2ac7454f88f4f848bf490cad14015e0f94ac2e47f342b35a1dc6a165159c44cd",
+            "7438dbbc0b151bbf49128b05e76391d024aa687e0370162a9dcaeececa17331b",
+            "eec5f90f56c4d43f48e8ca7bf2457177040a9303b49bafe91a46ff9e3937eef9",
+            "6ad98153387c7afd87f26e7aa4e944b8571981b4ee1294a69268fcda7c0beafa",
+            "826e13eb74bd5e6d0c53ff004f952744334bb7c7b1217c568ad343c896d604ce"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        },
+        {
+          "legacy_card_key_sha256": "ddcda77504a98bc6fb3a1cd5bd30ce2ff6aa7bccdf3512902bd62dfeb379e458",
+          "legacy_title": "Задачник 2. Страница 38.1",
+          "row_start": 0,
+          "row_end": 37,
+          "row_count": 38,
+          "aligned_row_sha256": [
+            "baa2168204ed7d44e1ac78de8d7c9f71d5c119464371b50ea6bc4e58e6df2865",
+            "8c483c3fa1907f63f376f37c14f61997f7e28da60e41f5d8463a79debbee2d8f",
+            "9defc0a12b786782f3e299d26eb7a9f7a58e4b25be6667bf3b0a632cf7e2289f",
+            "db2ffc9610045bc9d36996746aca4935616e9b9b6f71be7f70b93b21c147098b",
+            "e5d4c13ffa27ccf95a295bc1dfd2f23c68b7124f5c754a52458629433085ae82",
+            "976a152fa51e6359c11a000d848d3751c7741a65267d7a946125ae2e6a0f2d06",
+            "deb6f1aa07ee55e2c4fa02ef5aedee36ee009054e6cd99c20c133256d03db803",
+            "61a481f5a8825fd84f2c7ed6e5b96fa288652ae26a3be55a78b51a030ba4c6ab",
+            "2fb38f2557eb9b07a7e1567bac32e0e61b7eb36995e3673c7e3c79bcbe390d1f",
+            "96b037811c46839e1edc95d615b55c83b1ba064a4e3ed60cd4348ac31f051995",
+            "f310a3bc17712689b30ca6ece1a805c9065a9d4186b97fbf31fe3dacde2de196",
+            "754a5bdb8beebe96b799e9b47887b17155885c1019722d5bfcbc014d67f544d0",
+            "05a2609a564a5609d84c28000e62830913321b0706bb07ffcdea24214b8306ff",
+            "e68348d51bda9f1b9703b085903d9c84c7a076aeaf5d0e2dc8d026dd12e7fea0",
+            "ac4425a5ac76f542be5b55b14565acaece2347cabf3049ef5a68a041975ced5e",
+            "6bbffd5ae7733d604427393dafb1fb6a7347859b698339fcb0d177f9e13fd418",
+            "b002cf14e8f5dec892fa6333e865120de9d258633263f0472632d29d5bf2a7b4",
+            "25b8fd57f8ea1ea7781f128d62195dbe4fbc07bc7be5a3eab7a52dd0c9681b21",
+            "074de5bcb08491d546688304977f021e1d3818cef4f8e14f39e219fc3327e070",
+            "df32d757913bc16c6148067deb7a6610db1d9e4edb1bbd70aaf0f1f96759effa",
+            "b5346dee3969ac57e244c4eaaf850198b4448042f0296ad66ccbdc72127b558f",
+            "cbeb49182dc5ed0f7c35d50b62a1e139c758c256dac69c080372183dc563d31c",
+            "1599a91a1c479771b180f671707dd005b85fe2a1b06e5d82cf70c4ee6b1da6ec",
+            "1e74ba866a2756f1c954cd22ceb8e554e19829b17f04398a75588c9d2dcea447",
+            "4ea2464818c3d10fb4fbfaff76336723c6bbe33c66610fe157bf02c45aea2b29",
+            "30b75c10ddb0edb7f0f9bebc310ffb6b342551fc58f11342ddf3473739aaba99",
+            "d572eb36672b62a92f7543a8616b1e3a5f43ed726178e4b58222345e685d60a5",
+            "3c9570b17b88397085ea111089cecc8daf4387e51e22f9fe3fd787416b80d76e",
+            "bf9d991750c4b759cb668d52e55a4c06bdddac3d7183d42b06545963b335b435",
+            "d79f0cfa2c56dda688fbcba75d064d7e0dfb31b6bcb575d2d551eec9f20b5da5",
+            "c27313399b16421d43080e089aebfef2a59d6e051a53e55bc1a0284d761b0402",
+            "3ea1ddc852949dae19aca87f5677c5edbea96b288fba7487e21014a64fc4095f",
+            "a729792c3e42556f56179ab799be0fb1fb825c41bf0470a3bf4bb548d07040e5",
+            "e62081fe5b49bdbb7e99683aba5099df1a8f70a55512b58117b780263b42b20e",
+            "69eb0390fe67737e8ae02c8f1b08f4a68873702728d6fe522b4e11d572f81a7e",
+            "e2f18d5b89b84ca4bfba390cc0c36ec564336a49100fcbc89909ca58b75c5c51",
+            "8c06605f742b95de3ffdabc35302e254b951eb432656838f1560dfa76d20f9c0",
+            "f66894c9f152e94acfb0b528d46c0b0d5433bfc1dd45c661443bb7211108e431"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S08-VISUAL-NO-LEGACY",
+      "task_ids": [
+        "materials-science-y1-pb2-q032"
+      ],
+      "risk_tags": [
+        "NO_LEGACY_ROWS",
+        "THREE_CURVES",
+        "SOURCE_ONLY_EXTRACTION"
+      ],
+      "reason": "Second source-only gap; three curves make invention or omission visible.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q032",
+          "display_alias": "32",
+          "task_record_sha256": "e5331c9cca25c560395ac7e36daa0b8af276d4a8518f83949b746e810aa33524",
+          "source_anchors": [
+            {
+              "source_page": 39,
+              "normalized_bbox": [
+                0.0,
+                0.32,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q032-v01",
+              "source_page": 39,
+              "kind": "TEMPERING_STRESS_STRAIN_CURVES",
+              "instance_count": 3,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        39
+      ],
+      "legacy_state": "NO_LEGACY_ROWS",
+      "legacy_row_count": 0,
+      "legacy_references": [],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S09-TABLE-SCHEMATIC-OVERRIDE",
+      "task_ids": [
+        "materials-science-y1-pb2-q035"
+      ],
+      "risk_tags": [
+        "LEGACY_MARKER_CONFLICT",
+        "DATA_TABLE",
+        "SAMPLING_SCHEMATIC"
+      ],
+      "reason": "Legacy marker conflict plus two different semantic visual types.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q035",
+          "display_alias": "35",
+          "task_record_sha256": "7363b571b09f472e58b5d7df22d3cf11873f640af6f0a190d61cf983d1665f1f",
+          "source_anchors": [
+            {
+              "source_page": 42,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q035-v01",
+              "source_page": 42,
+              "kind": "HARDNESS_MEASUREMENT_TABLE",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            },
+            {
+              "visual_id": "materials-science-y1-pb2-q035-v02",
+              "source_page": 42,
+              "kind": "ROD_SAMPLING_SCHEMATIC",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        42
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 83,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "8ab14612296ccc7521d4593f93fd9e946f24a8e86ac8e2202db36070fe1b98f4",
+          "legacy_title": "Задачник 2. Страница 42 (Распечатать задачу к решению!)",
+          "row_start": 0,
+          "row_end": 82,
+          "row_count": 83,
+          "aligned_row_sha256": [
+            "6ce13c2c1f00ee0ef0913f2563bd754047fe3f490ee19e43a7cbcfa9d430c58c",
+            "e9a61cc2bac94407ae48cb40066012358b4f71d13f2386979aa2d907b546abd6",
+            "4dc78c82525848af87e08845a6bf57522c9583db19a48f01a50e8875bfecde33",
+            "6f21ed7912e474ec635f9d907480e34e6e8637c909d354f40c17da210fecfa04",
+            "060fd6f863da4ef859b42da39fd57e744b3d7c5f26aeec9341b40c4e25226e6f",
+            "8b19cff76771ab16e73435f358929422fe927fc0b6958feda32ea55978b62eb1",
+            "a4ca1e106200fb7f6c44d76bcb8463992ba6a1b8b0b9ab7ab7e507a1f9fbf818",
+            "c80eec85a35724a2cad688177a40d9c046254cc3d4988e3edbcc2eb396b0cd83",
+            "e8d778e85fb07ddc4a6826b0045b2fc57f98f109c6e34496fda5981cd72fd904",
+            "71f3bf8935942ca064ce4b197013fa4ccceb35228afb43f1668af33dd5ba0cd7",
+            "1583d71a950d95551ac26d3e59aad80c848d9820645a289f1ffec701c40ce389",
+            "7b5acfdd1311e51c54e6b33295b9c38c06d87b59ec64421f35588928065e44c7",
+            "60eaac4191f88074c4e8e3a189523b30bb569f31b07114945e102f04480b95f2",
+            "39f1f1199589dd786993eae951b2f3bb83b950dc9a58c4a1da74b9c26247201d",
+            "07557aa1633b9fb3e621d995eb9f044804d331c98c0ff529e287e75f9be7a9f6",
+            "8f7838b6dc5233a240a24c3968795dd3d110946530c03575387fb15de1b7eff5",
+            "b404a37c484f6d5c7730d122f76add2484a83ea5a6f7894e2097ec4c7433e5e6",
+            "d63fba4f929726ff34c5f32cc6d5254f45ea7ffc5b6e56d0833c7a955ce20534",
+            "7b61002c8ce1fc2d47560f0349a9e0bf11a7b81a7a547507dd884e00faef2616",
+            "ecf372f6dc2a2b37c4005c393c295500849c1dbc4a7d946895502cbea412fcb9",
+            "55c583d532cb6778a83af309bc1d5a3c3c757759acff738170535b2a7643273e",
+            "c18d09cf5d07e4d65284c90dc0fc3b95b913fc01170ef57941bdb4bbe379db64",
+            "cd0fa3c96e6d99b012b958c5ddd37d0bfbcf199e0b0642c08f1cd763cebb629c",
+            "d7b6bdf4260d1e28673afed5653ee75be7cfe78cdd40049206edca1dc8bf6b3e",
+            "090e0eb9a98986d3f14959b43fbd87887656451a46eb7595e4ed28343f25c93c",
+            "02db26cc78679695a1f676232a7c40d46c40b4a6514adac7c2a2bbc3629d1a61",
+            "f5d49a1a7db539588ee81a99b8fef1cdb7e804d904131d7bff0526fd0c2d1e6e",
+            "e538c86a07e95ad28031ff36eb56b6d4c62b08e2c600720eb595e3350a8191b8",
+            "9113c8882e003d0a1662493c8ed18a0f8e1072ea6186d37032087116d777a042",
+            "0be7747952e29f0cd3028bdbfd836bbb9074e44cf85f8b7af384b81277ec73f3",
+            "996782548dc8df94d3375bccc660ef97f21399604e049bf4c697a0fc1c874c14",
+            "53d18d31a14abc7e2cee83da5a1fad08660f03f85d4916a59b8136080b835ef2",
+            "0b33be3174058b4f9292610bbff3fecd611a19883c8648eafed38d7dccdbe382",
+            "5e29176c4585e5eb3f6f3593ca89892ccdba6819f090dfa9c2dc7f80bcc70687",
+            "9f210556d1dd5326b488c29e4e634338c565ee3e66d7f7aa7c5bcba93bbe0115",
+            "d173552f1b8b17cd04cad86d39d69230a64c2ba2e4123073071ad1074717763f",
+            "46f54706e8f6aaa42ff56b0990bc12ce8529ebce1151b7b4a31ee4bb381c3afb",
+            "543705e3a6f52d35a350fcb73de0ba785078cd59dec72d5a9ff355ba227ebdf3",
+            "60c5f93dbf7c02992bc2e8aae50338a85fe7e78226156eecd68ab1650a90e127",
+            "204c114774ee40ff615ea2292a1940d48b864baf1a9a30e92042542d578f3a80",
+            "1d22273fd4e7de85f01f939d9f9eabf7269546d798a4008d5ca2978b1f55dd05",
+            "fd011a41831b9cb44304701a597d1660fc39ed519b92e4112b80212ee3485087",
+            "5e6fa70edffbf38b41be46ca6e4e8cedeff6734839d4cd2d2f14f7553f436d46",
+            "2eda7e852faca03d7a69d191d538423d4b033247ef522102248a1c58e2b5a3bd",
+            "02b2714a7c5c465144959e6252a4896e40e1cff8f3dba9de8df6b9852359274c",
+            "b803fc37229389ef56d135956c74e86265810d9a8ef9412167d66330e10d729a",
+            "a6cbf67efcf689cc83ae1b676095af8181c6f5574a864576570c5229a7b9d8db",
+            "ac1ce60beb375d35586321f9c077dde9d4d4adcf1a74e439968f79465fcba4a4",
+            "416e977e1dacf5d61757f728defada899067092de54ccf7b212c1713e8a397bb",
+            "d817d8e90a4edcb4a51e3f345502be4726a78a0ef39946b859b9d6f7d5a29611",
+            "187f88842b9e08791391e32dee5077489780c354ec4e4b0fe8cb1a4d0d61eadd",
+            "a4d0d8fb12d378f05e6c2dca4e79fad5728976cd00bb1e71f7a19885cc2f0e31",
+            "94297ffe4aa97a3a030666daa5c00182731f95f6b078c979e2aac9668e586648",
+            "20416429ee896aa3b7cde5ea7880615bd8a751a111c2e3ce7724f3f60c24a247",
+            "18cf7748676b781aada6b5a1fc10435720c9223afe3681304750fc8147bab2e2",
+            "704d8c8c32a5eea63cd253efd9ab67bc912f10ecc6c82edd2fdfcd1dbd47d00b",
+            "06bd94a8c94409b3affc8cd4223327e1dfa3619d748259397a12eb48e98af033",
+            "58cd10e875fc7b86ee1ae8b37d6aa97fba8f204b71ff1f397bd069d1882399c5",
+            "1791c95d241fab26f95ddce558ab634254cf9618f443a9396897a3888f267b94",
+            "2befbc1d53d0e894253bcd23522e807c3c1212b5bda55a47b6ec9135f952ed62",
+            "81ff19148fb555cb84fa1918b3d2d7316a0011a79cf850ee867894b58e585740",
+            "3628fa3d8387a20405dd8cd27ea89369f5caa3a74cde0761bea44e435c8e89cd",
+            "1d89777f3272d4b374786b865fdc9c0e9b6f8349212291621dab15379cda5377",
+            "12a501cbd8d9318db867b8ea2554c02907e7caf45d5c8fd665884d82e1573ad2",
+            "ed27564ebb48384c7e1ffd72a0e229ae1cc6471156c107648d6b2f33bbc8cba3",
+            "bea184bed90f2b0b0e0ea517ad3962f22a07a2a064538033b58cb34188a86941",
+            "8b04a424e6b19947e54b2c2e66559b0b5ba34db05323e71d6c7450a368befd28",
+            "e26f6ac43a997138913517aae22cc791a1716496b39702dbd957b6e910a79c2e",
+            "25d498e11cfc4dce048d3c765339dfab8b5795abfc45dc2262bdb060f4994071",
+            "5ab0a59f32c143b3c9ab8d000d0c1ea368cd78692b5237e374f935a9de69d734",
+            "d4b7b6446349025a42e05e800f5bed4655d35912a8db0b7f76556efaa3e8cc2f",
+            "035ed2a8358d17e7ec023103c1f9853c923912664bc1b38743e2c1972e45a850",
+            "95ba189284874849384d49ee78f23e3a31e0d89e55375e5c87af933e50470103",
+            "76a75b774da4d1999a3d8b5b1876c92a3b15a4a814fe066f21956192fcaef30c",
+            "e00f79516b9696b49e95e5324eab07e10d3206f1ed557acbd1edc6c0b4bb2c89",
+            "40315e633b54fd7f1c5230ee2eb0ff554c9d44825ff6b4441d18fe4c83dd32b9",
+            "6ceefac2f0bab1b84ebe82568afb108ed92e680cb3dc0da115fa60b1b8606fe6",
+            "746fb2d9174f573561f23896f0d42a028fefc2053f9a22d0b1366c086db3c924",
+            "4c874b80b9eef812230d5a18e78e19749e1eb3721196d112906b7d93aea87de0",
+            "ec01873f34732baeb08dabc0cfed8ecff4421528bfbd5812553e0bfd2d4549e3",
+            "308090343e3741dfc86ef2418ffb4bd791001224b6d7bb52f8a642d0edf5dad0",
+            "446aef5824bcd8d06742c9efbe77e68ae9293f77bb0d4abac4ef45f51eb59c3e",
+            "c7119fa86e0c7fae76199fd25d74d33be43d12d88af56a59acd5842ab7cb1fe0"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S10-DUPLICATE-SOURCE-NUMBER-38",
+      "task_ids": [
+        "materials-science-y1-pb2-p045-q038",
+        "materials-science-y1-pb2-p047-q038"
+      ],
+      "risk_tags": [
+        "OWNER_APPROVED_38_A_38_B",
+        "ROTATED_APPENDICES",
+        "IDENTITY_COLLISION"
+      ],
+      "reason": "Paired identity test: distinct 38-A/38-B and rotated pages 68-69.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-p045-q038",
+          "display_alias": "38-A",
+          "task_record_sha256": "deb275e1d4783c04ea9ada1e45ac43ac5af43cb1ebda437154250a5152e70cfd",
+          "source_anchors": [
+            {
+              "source_page": 45,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-p045-q038-v01",
+              "source_page": 45,
+              "kind": "HEAT_TREATMENT_STRESS_STRAIN_CURVES",
+              "instance_count": 4,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        },
+        {
+          "task_id": "materials-science-y1-pb2-p047-q038",
+          "display_alias": "38-B",
+          "task_record_sha256": "e84088e1a0fca3645879133f8dc95a93fbd649f6ee1ddfc251d4d4e693f09a34",
+          "source_anchors": [
+            {
+              "source_page": 47,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                0.46
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [],
+          "external_reference_dependencies": [
+            {
+              "dependency_kind": "ALLOYING_ELEMENTS_APPENDIX",
+              "source_pages": [
+                67
+              ],
+              "prepared_reference_ids": [
+                "source-reference-p067"
+              ],
+              "required_for_solving": true,
+              "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+            },
+            {
+              "dependency_kind": "STEEL_PROPERTIES_APPENDIX",
+              "source_pages": [
+                68,
+                69
+              ],
+              "prepared_reference_ids": [
+                "source-reference-p068",
+                "source-reference-p069"
+              ],
+              "required_for_solving": true,
+              "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+            }
+          ]
+        }
+      ],
+      "input_source_pages": [
+        45,
+        47,
+        67,
+        68,
+        69
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 72,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "3cc5fce8580b8e57ab2e67f9f5c327d864112fa493dafef5c6134eba115c01a8",
+          "legacy_title": "Задачник 2. Страница 47",
+          "row_start": 0,
+          "row_end": 25,
+          "row_count": 26,
+          "aligned_row_sha256": [
+            "be686cceccc36828988d6bc43944cebbd9c581bb1979880064873b4bc9867bfe",
+            "4dd93a74af538361e5279f173592c8c7fec985bcf0d3db564f21e4cb49debbf4",
+            "99e740870591fd029654917d7d585978fdcd46702a79c834b78f870164deae3c",
+            "956ab82a4550b79c330d1ddbe9f1fe96d5dd9a461bcb730202f32f2aff271f89",
+            "bf6aa89b1d889f51b214e85e5ab4ea33478e9f97f98726a26570088eb2d6c59a",
+            "6fdab1518eaea6011e7db1e7c8b0ab03644e91b7f730193a475e036e496fb057",
+            "3cf6ea7e9c61f946cfc2199947ba5456d01d08a8924cf81aff261efc612cab7c",
+            "f3e4249db5611dd255c26621bd12907fa61d304ba86a725ecb17b30a47250b4a",
+            "33dd882b9fc5374ed2106e6cbd85ff61de6122dedf55f60eb946f490e460dc72",
+            "fa67a895fb7ebf10ef13aecf4f6137ae252376098359976ae1cc301436836b2f",
+            "07594a7437b5a3f989e8207f88c42479939966a686d6d6a4c7b6631c8454146f",
+            "35a639937c6a4d14f14d204d1c0f278b03a7828bbb7d1de9ac6bc0e74f1e1d7d",
+            "8f87308a811ecaf2a79e7c14ab1dff345e6b166c36aa7e584bacf27632e96023",
+            "332f65bf21f576d19e46ab22ca4b48be19243810af0609e6acee0cd72b2746d6",
+            "96bdbcd2c18e2eb08b9807b82886bc153df60a7fd99e91fa08bc3a5b58ebd089",
+            "8c70b0efbfc5e3b8d31add07c12c607285bc98a4dfe6ed30a2e7b3c9c813586a",
+            "bd36064e3a3ed99fe088f11161ed0f2bf5d1a1cf8d291a3f5f9f348ecf182f19",
+            "445a174904cc2b90bce312e5571a17e0c0e331b373944473ac4b361d296eda7e",
+            "afd31d805832f8d9a51d84b1911a6ff3419b76eaeec158afb8100f246e6c7aaa",
+            "7fe07dfd9b3cf52c38f313be020f0feb048bf885f9b1066f4fa56b2500f25391",
+            "d67c978c70cd98026bc91bf03405b08a60d46d920a8a6c195397ed231f0a7b03",
+            "b8eb40b5281da25b530022af725ba55801af9a5cd564dbf34f7b2ed0d7a83c8e",
+            "84ddb62774117318b621f81c02a235ecf8767e66ef5ce4dc7f7c449556b6f52c",
+            "c21347ca5a1c85a020c844ecd2524ab95269f5dbc3db3bf0f5db17663e1ed944",
+            "c328bc12ca6ba6bff83a2b77d948932f0106d472ec3936c22fa9cb6949865c33",
+            "60459bf89fdff9651f508ae3f3b007bba2b4597dcd71cf4aa24fc73c7ff2d550"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        },
+        {
+          "legacy_card_key_sha256": "27414d7bc74bd268ba5f0bd170b8e91ae251828c4b3b33c09d53f21765ede71e",
+          "legacy_title": "Задачник 2. Страница 45-46",
+          "row_start": 0,
+          "row_end": 45,
+          "row_count": 46,
+          "aligned_row_sha256": [
+            "194c071c5979a715079ad0b456da9105c6a4577ccde466b11f6e8c3c188b3f26",
+            "73bccaec06ecc24098878b4d9dd09e19ca7209c5f4a73de9fb9f156657be25f9",
+            "85b4f0cb6186069bcf0b5ae4e6e31251495fc010f0d09dde209fb01dbe1b1c34",
+            "9a0f2d0a631f4d1f4ad1279d78d9310536515bcfcf55f2e82aa8ac0498ee7a4e",
+            "3e0b51828964ac8ed0c67ff22bca2bc05e1b40743406b9889e0f09e6836cf1ae",
+            "7e4c0a88c67dc008b3243d8d2c911bebf64b062a581359321eed3c2858e5d596",
+            "49b17327480155d3856c5bea1608b10c25b9c10e212894cc55748ccd1bd3081f",
+            "8e011af03c13bde05a4ff87315e43d9de5802990d6d77c919b99bc7990edb869",
+            "4dc47a16e21b54e53f551a4cf9b27405daec126b5e87a09ff813d3518f8f6aee",
+            "e81445e3d1dd16c63a047b2c030a92f7ed7acbe888d4e7770697fb83adfd657e",
+            "cf682f104a058ec1df862f537ceed1e2cddbe8b39c1d6cad115d2503076903c8",
+            "787f9c54c795f3f6de87c093d20b024f688622c50a219412a66eab5d531301db",
+            "ce44bb90f8817a8259b94f10a8bd236d5889b5c89be311f241a307778e6e9157",
+            "c9c9aaeeb86380539782aee6725cc0eafc2e802d36970e453583e38f1310360d",
+            "377a0653b76d0c150154045822198d7e56eef0cf616aa1c4e16d8c9f2616f3ee",
+            "a631b56c2d68037246557b669fd72ec84231dc4649755a9dac2e4ea97bb53201",
+            "e1a80e653848803f5326d6232443578d2f08102cf13de4975bfa627e9e4ab823",
+            "6e05cbb268c9fed49237d3e71f266fb7e477146aea9a8f0a360f483928a3509a",
+            "02447413d8d03003240fd907f3c2ca41f0eb866c018273a123a9c0cd1133e623",
+            "61da8938fd66c453b1c3982fff48d0f2bbdad32d2a67afaa14b9c1ad1903701f",
+            "7a9ae0732f9ad2a96c4f23020bc46fde40168f2c0a06e805f9216a5b150df419",
+            "6a59bc47aae2cc7219d147798e4562d4d61a5e66412ec986203d2adb10084c23",
+            "d63b52ac222a01a63ae3271e4e919b3c74950fa5ddc189c0f507a0107f21e607",
+            "a93d1a132064728959e9967e9ecf30ef987d51f44c2d9863cb6862c897a3f964",
+            "5f05849fcbcde49856b085578ec5751acc06a83fe5980773089b8bf241e3b302",
+            "ef361cee21ece157ffd2aa59357145fae21012e0a09ffa61db84edea408e8f6d",
+            "2089a5d04f3cf7c358503bdc77e22565e54c40d609fff9636e367c04eb286466",
+            "865f3d2d194dd63f17741aa25f762477ee231f521fab8a3d845debe1569d98d5",
+            "fcba0597587db4bf6738828b65bb76e19d1951249cc9331493f6095fd584c305",
+            "abccf2bf57689310a40da7483a7871dee439e6f54c040f248a379735c603e25c",
+            "780dd91cf100231ed1ce22e037b86a009f6fba25a4db434ac6f6f8ae3b2bce73",
+            "dbaaa76d9e3d6b16e401cee9d60a2e3009d6681b32361ccd66e319994cea7cb6",
+            "fc196a38a0f66dacc6be3e4158b8d1bedb50490bf3274b2a036ac5a7de7512ae",
+            "efc1b06770ea6553efb5f0b0663e5b1ff972b126cf4e6544ea9715251b7d1aae",
+            "869981c3e66657950fdb2562ae6c59b4a08be9e2ac84abcad3fd4f7bd1fc324d",
+            "80788f394827a1e43e66cae1a35bdf82228fe458c2913be35d5909f5658a52a1",
+            "91cb60a5ea2a55fb0dd10a105a1c0a26f8bee59391965935bc61472e388b3269",
+            "c8ccb6047adfd0083172b972bb840ff612496e232f4fb3cd0a765ebb5c303d3a",
+            "0c5240c00e6d438e20cd23c92d1b0664ff1ad19a62b9e9fc2fc275d31e038c12",
+            "3173060773b079a9654a238ce3ff4fcc172c5bebf7792b2fa26b21e874684cd2",
+            "32aa822efe36b0998bd74fd4db06daefc669efaa59e1e4c35b99553409a2dd05",
+            "5239ee33b114c0c24961bb457848079a0b4e801ea88ec8ae7585b2c4967b08a1",
+            "cfb3f9430d0032fe567e8c5d60ab392c2070ba3d8f8009f6bc02351fc98cc42c",
+            "be913d22d1e9ce6304b08d1c5352ab16e8e8af8bfb2b144173f4fb1c41f06811",
+            "6974ba85d9f352b69a0f5ad9b7375e2b3718ebf3f0c1259909347b511a282f93",
+            "8ec170a3c38a14ffade44edf1629e9d779590c2345540da507b0e2196d33fefe"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S11-CORRECTED-CROP-APPENDICES",
+      "task_ids": [
+        "materials-science-y1-pb2-q044"
+      ],
+      "risk_tags": [
+        "REVIEWED_CROP_FIX",
+        "THREE_APPENDICES",
+        "NO_PREVIOUS_SOLUTION_LEAK"
+      ],
+      "reason": "Corrected page-54 crop plus aluminum appendices 71-73.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q044",
+          "display_alias": "44",
+          "task_record_sha256": "283d53a89bfd13f06a3bf20451cf32bad05254da4c95887bf8becf276ca4576f",
+          "source_anchors": [
+            {
+              "source_page": 54,
+              "normalized_bbox": [
+                0.0,
+                0.42,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [],
+          "external_reference_dependencies": [
+            {
+              "dependency_kind": "ALUMINUM_ALLOY_APPENDICES",
+              "source_pages": [
+                71,
+                72,
+                73
+              ],
+              "prepared_reference_ids": [
+                "source-reference-p071",
+                "source-reference-p072",
+                "source-reference-p073"
+              ],
+              "required_for_solving": true,
+              "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+            }
+          ]
+        }
+      ],
+      "input_source_pages": [
+        54,
+        71,
+        72,
+        73
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 32,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "53949b37f68594b2b65f7acf5e305498978e3f51cae03174059c4ab3c121b80e",
+          "legacy_title": "Задачник 2. Страница 54",
+          "row_start": 0,
+          "row_end": 31,
+          "row_count": 32,
+          "aligned_row_sha256": [
+            "64e428129ab161332e446303617a25eb3099a4abd0ebdaef0562458e675034a9",
+            "b825c23adecaaed653bf48653f613ca71dd7d3b0974e098cc01e7e157a723b37",
+            "63e66bb3173b1fa5cb457b4f243b9db53f2a55978be74a8480d8c76ce4f1e418",
+            "cc01246f6b9ba44fbfa3b917350c73be90604ea42fef57ff93eacb92107eb73b",
+            "fc858d3beccafe0e8ef32ec50579421ff82c01d83385d34b0d6a3becbf5a6e2e",
+            "e5759f95adcb8f779c9ae7d631cb736d2432b066bfddbd21f29d2b8461a6f4b5",
+            "13a9a64a5b2d0af9d1833870e8b5f45aa997ad1306025670bcddac130d0504d0",
+            "0c8bd4e55e1caca4bb7022a15d205a695d68099b4666adf960ceb97ff82baf96",
+            "25dce2a9bd8f82e3978965a27f1132f52c076e993da3748e140fde29783bc58d",
+            "9e81c005c61d96b43f3210ec7da80bb631dcc492f45f32d7a2c1994d8bfcbd6a",
+            "45cb74605b3b0f5c47b3720085643c4b6382c2df19aefc5d496fca184c11f2e5",
+            "4cc5e829be85106b0b4d39700657614351fd1ad6f171698516efc97336604bae",
+            "8af8284909807ac52e5f89395063d14e2095b83db2af6760b1f82f1ffc573b6b",
+            "4aee51aa69ffd9f20f8c7000c0bbe2e884544a85e909018f7225370cdb82a6b5",
+            "f6fa5a9410747e9c8fd2b5bd71c51bc682387015f415d192792ed997080d5789",
+            "2dfc5bfee39d1b33db36ab45a8be1777f093efce27779e814af968cb9aabe31f",
+            "8e0e436fe4d347d12c950dcaa3ccfe89197277c7593423315657ff2cc6f82b72",
+            "f162ed62571dde0334c6d054a1df903394485ebf5619c334bcb2aee70d508633",
+            "002d5511f0dea0f8406ec62d3e61cb343098eb40c393d6713c7bead92c561818",
+            "84a36616b685c7d628c16b3434ac4ca3a8aae4de9f5c3aac509b54a1bf925b6e",
+            "f193c65d1c90260e06ea43ff2dacf2d1149ce2f65b0ca7e175da487df78893bd",
+            "2db12413568f7b1a195b0f62436e771971048b7e793c615750dccef0b0bd8195",
+            "7e1ce4b74faa30ffd40617db2a0e284f03d8f75ce720173c567cedf66b60c1be",
+            "630c2260a5e261a49b07010702931d93748ecb44cb92746897c4d9893e7b1849",
+            "0dced5fb7150ba07bc91b393c9ec78b08474d4084f45f3cc4badbb6d48009bad",
+            "e0c6c5e74e6c809f09b62974ca77ded68f5e297056f6653a2a51c022873a6549",
+            "561d048a145cc244914af0af7af7bd28891ce60000c9cdb506ea3866848c2949",
+            "58186f0331a965491cb228ea7f67338da665cdf1f71d84773fcd726632e53f0c",
+            "b1c8b254ed784b9295072e0f33242ecd716bff98d94bbe169bfe9a83e6d54f82",
+            "831f6670add719c709d2dd6bf0f66318ba2230acd5a7e74a435704f6ab1feabe",
+            "129097a4a2eed44d9c57648714ec8a403900cc0dfaaba9a2c922802e818b7731",
+            "56f16d7ab7101d98e9ce3ada3a4281ecfbf1f961f17de312b9018ad204a2b138"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    },
+    {
+      "case_id": "S12-LAST-MULTITASK-SPLIT",
+      "task_ids": [
+        "materials-science-y1-pb2-q058"
+      ],
+      "risk_tags": [
+        "LAST_TASK",
+        "LEGACY_MULTITASK_CARD_SPLIT",
+        "COMPOSITE_CUBE"
+      ],
+      "reason": "Last task; legacy rows are a reviewed tail segment of a three-task card.",
+      "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+      "tasks": [
+        {
+          "task_id": "materials-science-y1-pb2-q058",
+          "display_alias": "58",
+          "task_record_sha256": "ebc3265ee8618b6f4c80d21e83321dcb3f232e7f25ccbd656114567e1b82a346",
+          "source_anchors": [
+            {
+              "source_page": 65,
+              "normalized_bbox": [
+                0.0,
+                0.0,
+                1.0,
+                1.0
+              ],
+              "role": "condition"
+            }
+          ],
+          "semantic_visuals": [
+            {
+              "visual_id": "materials-science-y1-pb2-q058-v01",
+              "source_page": 65,
+              "kind": "FIBER_REINFORCED_COMPOSITE_CUBE",
+              "instance_count": 1,
+              "semantic_role": "PROBLEM_INPUT",
+              "required_for_solving": true,
+              "required_for_faithful_presentation": true,
+              "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+            }
+          ],
+          "external_reference_dependencies": []
+        }
+      ],
+      "input_source_pages": [
+        65
+      ],
+      "legacy_state": "HASH_BOUND_COMPARISON_ROWS_AVAILABLE",
+      "legacy_row_count": 32,
+      "legacy_references": [
+        {
+          "legacy_card_key_sha256": "ab5a4c9fc33efe057d366a83cf1e8ca4d04842d2b7fb1f957664245642602a60",
+          "legacy_title": "Задачник 2. Страница 64 (1 и 2), 65",
+          "row_start": 50,
+          "row_end": 81,
+          "row_count": 32,
+          "aligned_row_sha256": [
+            "40d5f95ff27055965cb98c595e8d4ba159ea61b7ebc5c574bdebcb6cdb267d7f",
+            "9eda29d253eb83686b956fc7221a3309ebbfec43b956513c6307a5c1f95ea8dd",
+            "44444f2ff001837d1a2092490063069b18f22dd879438d2aa4cd70fe00e28e90",
+            "d7393b8bcb723a96d1310a3b8de4516449be18cb835f48cd19e3989a2ae11a28",
+            "f34e8a0938c41f46513b019cf56409800bdb0d21f01720cf2a8f531d543a07ee",
+            "4475636f9ef981791953b3a6196c1a0c82d2222ca3d62a565191cca1a8822414",
+            "45a1c9d7dd59037073be69e4fa7bad3671381259eda2574169b495cb834d45ac",
+            "831602adab8e052d07de352c039bc7f4b0c9326bc8072d2454c2ab45df6c1efe",
+            "12a5b7eac24d95b0b270bf4ee7122e50b3ba00dcc33381d1bb35c417036de51f",
+            "c55e31b63d2d778a1e4c500999fb1588387cb555e2e24f40d1187abc550a1c2d",
+            "24e656e864ef8d982336fe2391ba2cd0a0dd738aad2c5c17f1a5c7fd5e8e827f",
+            "1bcdc70c298f1f801015ceabe46ae48007d7bbc2c3c319b466afd72ae0af984b",
+            "be1ea84799ebc486ee8762b58881003763baaa1e0630b68dd4ba907164faba28",
+            "5ee3fce3e1b73b9b73862525b6ded79c4e55068a2c940a7298ea9a381e0a3801",
+            "016d49c996834da01619f57dac5bb320d2fe2ce539fa0ca360e91aba6bf94b4f",
+            "a3e29806d5950cba4f6af98c8c695420f25cfb96ec79de7e077b616eb5ffbf2f",
+            "fc0ce94456177958342548aff86abe51bc91ba6213ec44ba55619ef9e3449060",
+            "18e5c5946e78aef3033b608015c9b27d7f44ef022e246c8ee8cc877dd34019c8",
+            "d7d44de36d9c040ee23d872692444a5543ae2c4b051a621204f239e34356c522",
+            "09abf4fc3a0d7d5b0e0a62d0691fa570df816597591b5ec2f23dfea8bd018de4",
+            "a54cd8e1981e44ec0d84913481525722a20b3fb482e02f65c2fd35ab3cb6013c",
+            "878596fcbaa3760a6796bfc56c9e1605db77a054a54e0a014e2d1076259a5460",
+            "919ea1cabc6b92abcfba35b3ebbb0de84ba42bf6dab522f3f1f2bed1772da520",
+            "3fce472ad9394e3a3a5400dcd3c1f36463e53e5d04995fe6cae4387c3e940e96",
+            "262dec4167aab5979b4bed9d152d6bf0052495bb614d76452801107cbde6b847",
+            "f447ba8c040c4f77aa9104b74a013f04a1cb95876179277a98daa7b3631bae66",
+            "2a0e2b34a26340dc2697647b28fff62f33deffe02189c3bcc0dd0ffcbc41920d",
+            "c58aef48962011218e33e975012e03d6736b6a04915ea8fc9531a440eeb049bc",
+            "b895211465ed05e0a97ca4e7848ebed3c00cb5aac553822ff1651caf68213c77",
+            "d45747d6a8a576d3dcc602a1d06e32403cc868ef8841d8aee4a6c8299c9f4437",
+            "c946d9666718016fc2de0dfd9378c83a797fcda5abcff53845a7ddfe3eb91eb4",
+            "846d82b18b86a81823b2898e12e12ac1224aa47b5b8f32b15a14a0df912805e9"
+          ],
+          "truth_status": "COMPARISON_ONLY_UNVALIDATED_NOT_CANONICAL"
+        }
+      ],
+      "provider_output_truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY"
+    }
+  ],
+  "batches": [
+    {
+      "batch_id": "B01",
+      "case_ids": [
+        "S01-FIRST-VISUAL",
+        "S02-UNNUMBERED-EXERCISE",
+        "S03-MULTIPAGE-NO-LEGACY",
+        "S04-TITLE-PAGE-OVERRIDE"
+      ],
+      "source_pages_once_per_batch": [
+        3,
+        4,
+        5,
+        14
+      ],
+      "pdf_page_exposures": 4,
+      "estimated_pdf_image_tokens": 1032,
+      "request_status": "BLOCKED_PENDING_OWNER_APPLY"
+    },
+    {
+      "batch_id": "B02",
+      "case_ids": [
+        "S05-DUPLICATE-LEGACY-CARDS",
+        "S06-IMPORTANT-TITLE",
+        "S07-MULTICARD-APPENDIX",
+        "S08-VISUAL-NO-LEGACY"
+      ],
+      "source_pages_once_per_batch": [
+        21,
+        30,
+        38,
+        39,
+        70
+      ],
+      "pdf_page_exposures": 5,
+      "estimated_pdf_image_tokens": 1290,
+      "request_status": "BLOCKED_PENDING_OWNER_APPLY"
+    },
+    {
+      "batch_id": "B03",
+      "case_ids": [
+        "S09-TABLE-SCHEMATIC-OVERRIDE",
+        "S10-DUPLICATE-SOURCE-NUMBER-38",
+        "S11-CORRECTED-CROP-APPENDICES",
+        "S12-LAST-MULTITASK-SPLIT"
+      ],
+      "source_pages_once_per_batch": [
+        42,
+        45,
+        47,
+        54,
+        65,
+        67,
+        68,
+        69,
+        71,
+        72,
+        73
+      ],
+      "pdf_page_exposures": 11,
+      "estimated_pdf_image_tokens": 2838,
+      "request_status": "BLOCKED_PENDING_OWNER_APPLY"
+    }
+  ]
+}

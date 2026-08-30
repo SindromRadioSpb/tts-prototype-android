@@ -1,0 +1,2356 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q056",
+  "display_alias": "56",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "ff70da2c554bcf0d01eefd1b5c65b5a2aa8bf70406a191c909cc77769ba1dbc8"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "b1aec204b3dd56269ae145f1548a4ba45f4143bbd3e4e02f2df2223975eaa1e3",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Composite conditions, reinforcement mechanism and specific strengths4.35/7.69 match. Independent solution also reports1.77x gain and preserves the source's unusual printed unit.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q056-r001",
+        "order_index": 0,
+        "hebrew_plain": "חומרים מרוכבים",
+        "hebrew_niqqud": "חֳומָרִים מְרֻוכָּבִים",
+        "translit": "Chomarim merukavim",
+        "translit_ru": "",
+        "russian": "Композиционные материалы",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "source_note",
+            "source_page": 64,
+            "source_row_index": 0,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r002",
+        "order_index": 1,
+        "hebrew_plain": "שאלה 56.",
+        "hebrew_niqqud": "שְׁאֵלָה 56.",
+        "translit": "She'ela 56.",
+        "translit_ru": "",
+        "russian": "Вопрос 56.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "task_heading",
+            "source_page": 64,
+            "source_row_index": 1,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r003",
+        "order_index": 2,
+        "hebrew_plain": "א) הגדר ארבע תנאים עיקריים הנדרשים מחומר מרוכב.",
+        "hebrew_niqqud": "א) הַגְדֵּר אַרְבַּע תְּנָאִים עִיקָּרִיִּים הַנִּדְרָשִׁים מֵחוֹמֶר מְרֻוכָּב.",
+        "translit": "A) Hagder arba tna'im ikariyim hanidrashim mechomer merukav.",
+        "translit_ru": "",
+        "russian": "A) Определите четыре основных условия, которым должен соответствовать композиционный материал.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r004",
+        "order_index": 3,
+        "hebrew_plain": "ב) מהי המשמעות של חוזק סגולי גבוה בחומרים מרוכבים?",
+        "hebrew_niqqud": "ב) מַהִי הַמַּשְׁמָעוּת שֶׁל חֹוזֶק סְגֻולִּי גָּבוֹהַּ בַּחֳומָרִים מְרֻוכָּבִים?",
+        "translit": "B) Mahi hamashma'ut shel chozek seguli gavoah bachomarim merukavim?",
+        "translit_ru": "",
+        "russian": "Б) Каково значение высокой удельной прочности в композиционных материалах?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r005",
+        "order_index": 4,
+        "hebrew_plain": "הסבר את תשובתך.",
+        "hebrew_niqqud": "הַסְבֵּר אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Hasber et teshuvat'cha.",
+        "translit_ru": "",
+        "russian": "Объясните свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r006",
+        "order_index": 5,
+        "hebrew_plain": "ג) נתונות התכונות המכאניות של פוליסטירן ושל פוליסטירן משוריין.",
+        "hebrew_niqqud": "ג) נְתוּנוֹת הַתְּכוּנוֹת הַמְּכָאנִיּוֹת שֶׁל פּוֹלִיסְטִירֶן וְשֶׁל פּוֹלִיסְטִירֶן מְשֻׁורְייָן.",
+        "translit": "G) Netunot hatkhunot hamechaniyot shel polistiren veshel polistiren meshuryan.",
+        "translit_ru": "",
+        "russian": "В) Даны механические свойства полистирола и армированного полистирола.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r007",
+        "order_index": 6,
+        "hebrew_plain": "ג) 1) הסבר מהו תפקידו של המשריין, וללא חישוב, קבע ונמק לאיזה חומר יהיה חוזק סגולי גבוה יותר.",
+        "hebrew_niqqud": "ג) 1) הַסְבֵּר מַהוּ תַּפְקִידוֹ שֶׁל הַמְשָׁרְייֵן, וּלְלֹא חִישּׁוּב, קְבַע וְנַמֵּק לְאֵיזֶה חוֹמֶר יִהְיֶה חֹוזֶק סְגֻולִּי גָּבוֹהַּ יוֹתֵר.",
+        "translit": "G) 1) Hasber mahu tafkido shel hamashryen, ulelo chishuv, keva venamek le'eizeh chomer yihyeh chozek seguli gavoah yoter.",
+        "translit_ru": "",
+        "russian": "В) 1) Объясните роль армирующего наполнителя и без расчетов определите и обоснуйте, какой материал будет иметь более высокую удельную прочность.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r008",
+        "order_index": 7,
+        "hebrew_plain": "ג) 2) חשב את החוזק הסגולי של כל אחד מהחומרים.",
+        "hebrew_niqqud": "ג) 2) חַשֵּׁב אֶת הַחֹוזֶק הַסְּגֻולִּי שֶׁל כָּל אֶחָד מֵהַחֳומָרִים.",
+        "translit": "G) 2) Chashev et hachozek haseguli shel kol echad mehachomarim.",
+        "translit_ru": "",
+        "russian": "В) 2) Рассчитайте удельную прочность для каждого из материалов.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q056-r009",
+        "order_index": 8,
+        "hebrew_plain": "(נתונים: משקל סגולי 1050/1280; חוזק משיכה 4570/9843; התארכות 2%/1.1%)",
+        "hebrew_niqqud": "(נְתוּנִים: מִשְׁקָל סְגֻולִּי 1050/1280; חֹוזֶק מְשִׁיכָה 4570/9843; הִתְאָרְכוּת 2%/1.1%)",
+        "translit": "(Netunim: mishkal seguli 1050/1280; chozek meshichah 4570/9843; hit'archut 2%/1.1%)",
+        "translit_ru": "",
+        "russian": "(Данные: удельный вес 1050/1280; прочность на растяжение 4570/9843; удлинение 2%/1.1%)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q056",
+            "kind": "subpart",
+            "source_page": 64,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      64
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q056/anchor-01-p064.jpg",
+        "sha256": "e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042",
+        "bytes": 162952,
+        "source_page": 64,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          0.58
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q056-v01",
+        "source_page": 64,
+        "kind": "COMPOSITE_PROPERTIES_TABLE",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:b1aec204b3dd56269ae145f1548a4ba45f4143bbd3e4e02f2df2223975eaa1e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) ארבעה תנאים עיקריים לחומר מרוכב הם:",
+        "he_niqqud": "א) אַרְבָּעָה תְנָאִים עִקָּרִיִּים לְחֹומֶר מְרֻכָּב הֵם:",
+        "transliteration": "A) Arba'ah tena'im ikari'im le-ḥomer merukav hem:",
+        "ru": "A) Четыре основных условия для композиционного материала:"
+      },
+      "source_refs": [
+        "legacy_row_hash:e73f33ab481080c0f574daee3eacf20ac93bc8e2a25163395fb1331aedd65318",
+        "legacy_fields_sha256:68bbea4b7e59ee6943d1ead7796d7df1b0ac04eb2be2803380115787cf19d2b0",
+        "independent_solution_sha256:b1aec204b3dd56269ae145f1548a4ba45f4143bbd3e4e02f2df2223975eaa1e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "אַרְבָּעָה",
+            "normalized": "ארבעה"
+          },
+          {
+            "index": 2,
+            "surface": "תְנָאִים",
+            "normalized": "תנאים"
+          },
+          {
+            "index": 3,
+            "surface": "עִקָּרִיִּים",
+            "normalized": "עקריים"
+          },
+          {
+            "index": 4,
+            "surface": "לְחֹומֶר",
+            "normalized": "לחומר"
+          },
+          {
+            "index": 5,
+            "surface": "מְרֻכָּב",
+            "normalized": "מרכב"
+          },
+          {
+            "index": 6,
+            "surface": "הֵם:",
+            "normalized": "הם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "A"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "תכונה זו חשובה במיוחד במבנים קלי-משקל.",
+        "he_niqqud": "תְּכוּנָה זֹו חֲשׁוּבָה בִּמְיֻחָד בְּמִבְנִים קַלֵּי-מִשְׁקָל.",
+        "transliteration": "Tkhunah zo ḥashuvah bimeyuḥad be-mivnim qalei-mishqal.",
+        "ru": "Это свойство особенно важно в легких конструкциях."
+      },
+      "source_refs": [
+        "legacy_row_hash:637fe2a2c0b8c3e0a97dc2f93be006f1e5a96c472d0e6e63403e54e253c0af08",
+        "legacy_fields_sha256:ee24bcd2872f0e7e2d1832614b73bb266d8df4ecd3f0274a491a0a61db1800f7",
+        "independent_solution_sha256:b1aec204b3dd56269ae145f1548a4ba45f4143bbd3e4e02f2df2223975eaa1e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תְּכוּנָה",
+            "normalized": "תכונה"
+          },
+          {
+            "index": 1,
+            "surface": "זֹו",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "חֲשׁוּבָה",
+            "normalized": "חשובה"
+          },
+          {
+            "index": 3,
+            "surface": "בִּמְיֻחָד",
+            "normalized": "במיחד"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמִבְנִים",
+            "normalized": "במבנים"
+          },
+          {
+            "index": 5,
+            "surface": "קַלֵּי-מִשְׁקָל.",
+            "normalized": "קלי-משקל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+        "he_niqqud": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+        "transliteration": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+        "ru": "σ_sp = 4570/1050 = 4.352 ≈ 4.35"
+      },
+      "source_refs": [
+        "legacy_row_hash:fa8b82f3e12625dc64dc7cae05ead4d747426c8a59c00601a881f62784cd50b0",
+        "legacy_fields_sha256:61b4b4d740c1de421a2266864193c737d7080676129819657e4c08cdf509436a",
+        "independent_solution_sha256:b1aec204b3dd56269ae145f1548a4ba45f4143bbd3e4e02f2df2223975eaa1e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_sp",
+            "normalized": "σ_sp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "4570/1050",
+            "normalized": "4570/1050"
+          },
+          {
+            "index": 3,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 4,
+            "surface": "4.352",
+            "normalized": "4.352"
+          },
+          {
+            "index": 5,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 6,
+            "surface": "4.35",
+            "normalized": "4.35"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_sp = 4570/1050 = 4.352 ≈ 4.35"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) ארבעה תנאים עיקריים לחומר מרוכב הם:",
+        "he_niqqud": "א) אַרְבָּעָה תְנָאִים עִקָּרִיִּים לְחֹומֶר מְרֻכָּב הֵם:",
+        "transliteration": "A) Arba'ah tena'im ikari'im le-ḥomer merukav hem:",
+        "ru": "A) Четыре основных условия для композиционного материала:"
+      },
+      "source_refs": [
+        "legacy_row_hash:e73f33ab481080c0f574daee3eacf20ac93bc8e2a25163395fb1331aedd65318",
+        "legacy_fields_sha256:68bbea4b7e59ee6943d1ead7796d7df1b0ac04eb2be2803380115787cf19d2b0",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "אַרְבָּעָה",
+            "normalized": "ארבעה"
+          },
+          {
+            "index": 2,
+            "surface": "תְנָאִים",
+            "normalized": "תנאים"
+          },
+          {
+            "index": 3,
+            "surface": "עִקָּרִיִּים",
+            "normalized": "עקריים"
+          },
+          {
+            "index": 4,
+            "surface": "לְחֹומֶר",
+            "normalized": "לחומר"
+          },
+          {
+            "index": 5,
+            "surface": "מְרֻכָּב",
+            "normalized": "מרכב"
+          },
+          {
+            "index": 6,
+            "surface": "הֵם:",
+            "normalized": "הם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "A"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נדרשים לפחות שני מרכיבים או פאזות נבדלים, מטריצה רציפה וחיזוק כגון סיבים או חלקיקים.",
+        "he_niqqud": "נִדְרָשִׁים לְפָחוֹת שְׁנֵי מַרְכִּיבִים אֹו פָאזוֹת נִבְדָּלִים, מַטְרִיצָה רְצִיפָה וְחִזּוּק כְּגֹון סִיבִים אֹו חֶלְקִיקִים.",
+        "transliteration": "Nidrashim lefaḥot shney markivim o fazot nivdalim, matriza retzifah ve-ḥizuq kegon sivim o ḥalqiqim.",
+        "ru": "Требуется наличие как минимум двух различных компонентов или фаз, непрерывной матрицы и армирующего наполнителя (например, волокон или частиц)."
+      },
+      "source_refs": [
+        "legacy_row_hash:54b687c5f32c04143ef49d493b4809987a826305eef93146c8199e3956a272ae",
+        "legacy_fields_sha256:4242d797dfd76993c1c26b1e4f87f1031d046f32f78e646a4bde61f8776fc96c",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִדְרָשִׁים",
+            "normalized": "נדרשים"
+          },
+          {
+            "index": 1,
+            "surface": "לְפָחוֹת",
+            "normalized": "לפחות"
+          },
+          {
+            "index": 2,
+            "surface": "שְׁנֵי",
+            "normalized": "שני"
+          },
+          {
+            "index": 3,
+            "surface": "מַרְכִּיבִים",
+            "normalized": "מרכיבים"
+          },
+          {
+            "index": 4,
+            "surface": "אֹו",
+            "normalized": "או"
+          },
+          {
+            "index": 5,
+            "surface": "פָאזוֹת",
+            "normalized": "פאזות"
+          },
+          {
+            "index": 6,
+            "surface": "נִבְדָּלִים,",
+            "normalized": "נבדלים"
+          },
+          {
+            "index": 7,
+            "surface": "מַטְרִיצָה",
+            "normalized": "מטריצה"
+          },
+          {
+            "index": 8,
+            "surface": "רְצִיפָה",
+            "normalized": "רציפה"
+          },
+          {
+            "index": 9,
+            "surface": "וְחִזּוּק",
+            "normalized": "וחזוק"
+          },
+          {
+            "index": 10,
+            "surface": "כְּגֹון",
+            "normalized": "כגון"
+          },
+          {
+            "index": 11,
+            "surface": "סִיבִים",
+            "normalized": "סיבים"
+          },
+          {
+            "index": 12,
+            "surface": "אֹו",
+            "normalized": "או"
+          },
+          {
+            "index": 13,
+            "surface": "חֶלְקִיקִים.",
+            "normalized": "חלקיקים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המטריצה חייבת לקבע את החיזוק, להגן עליו מהסביבה, ולשמור על רציפות וצורת המוצר.",
+        "he_niqqud": "הַמַּטְרִיצָה חַיֶּבֶת לְקַבֵּעַ אֶת הַחִזּוּק, לְהָגֵן עָלָיו מֵהַסְּבִיבָה, וְלִשְׁמֹר עַל רְצִיפוּת וְצוּרַת הַמּוּצָר.",
+        "transliteration": "Ha-matriza ḥayavet leqabe'a et ha-ḥizuq, lehagen alav me-ha-svivah, velishmor al retzifut ve-tzurat ha-mutzar.",
+        "ru": "Матрица должна фиксировать армирование, защищать его от окружающей среды, а также сохранять непрерывность и форму изделия."
+      },
+      "source_refs": [
+        "legacy_row_hash:0efea719cee88411dc52b2f909d0faaae24b8823b3e887acd7b202705e23f581",
+        "legacy_fields_sha256:f1dd14d8084983b9073bd956428f8d88261a4eaa5af8b31239bbc45c834dc829",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּטְרִיצָה",
+            "normalized": "המטריצה"
+          },
+          {
+            "index": 1,
+            "surface": "חַיֶּבֶת",
+            "normalized": "חיבת"
+          },
+          {
+            "index": 2,
+            "surface": "לְקַבֵּעַ",
+            "normalized": "לקבע"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "הַחִזּוּק,",
+            "normalized": "החזוק"
+          },
+          {
+            "index": 5,
+            "surface": "לְהָגֵן",
+            "normalized": "להגן"
+          },
+          {
+            "index": 6,
+            "surface": "עָלָיו",
+            "normalized": "עליו"
+          },
+          {
+            "index": 7,
+            "surface": "מֵהַסְּבִיבָה,",
+            "normalized": "מהסביבה"
+          },
+          {
+            "index": 8,
+            "surface": "וְלִשְׁמֹר",
+            "normalized": "ולשמר"
+          },
+          {
+            "index": 9,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 10,
+            "surface": "רְצִיפוּת",
+            "normalized": "רציפות"
+          },
+          {
+            "index": 11,
+            "surface": "וְצוּרַת",
+            "normalized": "וצורת"
+          },
+          {
+            "index": 12,
+            "surface": "הַמּוּצָר.",
+            "normalized": "המוצר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נדרש ממשק חזק בין המטריצה לחיזוק כדי לאפשר העברת מאמץ יעילה.",
+        "he_niqqud": "נִדְרָשׁ מִמְשָׁק חָזָק בֵּין הַמַּטְרִיצָה לְחִזּוּק כְּדֵי לְאַפְשֵׁר הַעֲבָרַת מַאֲמָץ יְעִילָה.",
+        "transliteration": "Nidrash mimshaq ḥazaq ben ha-matriza le-ḥizuq kdei le'afsher ha'avarat ma'amatz ye'ilah.",
+        "ru": "Требуется сильный межфазный контакт (интерфейс) между матрицей и армированием, чтобы обеспечить эффективную передачу напряжения."
+      },
+      "source_refs": [
+        "legacy_row_hash:126a9439a5e489bb2143a4aaf3541fd6917fa0c65d5b92bb6c8c5d3943a01aac",
+        "legacy_fields_sha256:c89e68d197f6b25ab7235e583418250846bddd8fafa79fae70759c7eab073bd8",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִדְרָשׁ",
+            "normalized": "נדרש"
+          },
+          {
+            "index": 1,
+            "surface": "מִמְשָׁק",
+            "normalized": "ממשק"
+          },
+          {
+            "index": 2,
+            "surface": "חָזָק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 3,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 4,
+            "surface": "הַמַּטְרִיצָה",
+            "normalized": "המטריצה"
+          },
+          {
+            "index": 5,
+            "surface": "לְחִזּוּק",
+            "normalized": "לחזוק"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַפְשֵׁר",
+            "normalized": "לאפשר"
+          },
+          {
+            "index": 8,
+            "surface": "הַעֲבָרַת",
+            "normalized": "העברת"
+          },
+          {
+            "index": 9,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 10,
+            "surface": "יְעִילָה.",
+            "normalized": "יעילה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נדרשים פיזור, כיוון ואחוז נפח מתאימים של החיזוק, וכן מינימום פגמים ונקבוביות, כדי לקבל תכונות מתוכננות.",
+        "he_niqqud": "נִדְרָשִׁים פִּזּוּר, כִּוּוּן וְאֲחֻז נֶפַח מַתְאִימִים שֶׁל הַחִזּוּק, וְכֵן מִינִימוּם פְּגָמִים וּנְקֻבִּיּוּת, כְּדֵי לְקַבֵּל תְּכוּנוֹת מְתֻכְנָנוֹת.",
+        "transliteration": "Nidrashim pizur, kivun ve'aḥuz nefaḥ mat'imim shel ha-ḥizuq, ve-khen minimum pegamim u-neqbu'iyot, kdei leqabel tkhunot metukhnanot.",
+        "ru": "Требуется соответствующее распределение, ориентация и объемная доля армирующего наполнителя, а также минимум дефектов и пористости, для получения заданных свойств."
+      },
+      "source_refs": [
+        "legacy_row_hash:da81e6d367d4f394c8f45bba074875e8cbd521e2e6799aec5f2ba0cbcf6c7fb1",
+        "legacy_fields_sha256:49978147af0d697083de7e1570863ebd85339086636dd9444eeb6fdc282733a9",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִדְרָשִׁים",
+            "normalized": "נדרשים"
+          },
+          {
+            "index": 1,
+            "surface": "פִּזּוּר,",
+            "normalized": "פזור"
+          },
+          {
+            "index": 2,
+            "surface": "כִּוּוּן",
+            "normalized": "כוון"
+          },
+          {
+            "index": 3,
+            "surface": "וְאֲחֻז",
+            "normalized": "ואחז"
+          },
+          {
+            "index": 4,
+            "surface": "נֶפַח",
+            "normalized": "נפח"
+          },
+          {
+            "index": 5,
+            "surface": "מַתְאִימִים",
+            "normalized": "מתאימים"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "הַחִזּוּק,",
+            "normalized": "החזוק"
+          },
+          {
+            "index": 8,
+            "surface": "וְכֵן",
+            "normalized": "וכן"
+          },
+          {
+            "index": 9,
+            "surface": "מִינִימוּם",
+            "normalized": "מינימום"
+          },
+          {
+            "index": 10,
+            "surface": "פְּגָמִים",
+            "normalized": "פגמים"
+          },
+          {
+            "index": 11,
+            "surface": "וּנְקֻבִּיּוּת,",
+            "normalized": "ונקביות"
+          },
+          {
+            "index": 12,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 13,
+            "surface": "לְקַבֵּל",
+            "normalized": "לקבל"
+          },
+          {
+            "index": 14,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 15,
+            "surface": "מְתֻכְנָנוֹת.",
+            "normalized": "מתכננות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) חוזק סגולי גבוה פירושו יחס גבוה בין חוזק, לרוב חוזק משיכה, לבין צפיפות או משקל סגולי.",
+        "he_niqqud": "ב) חֹוזֶק סְגֻלִּי גָּבֹוהַ פֵּירוּשׁוֹ יַחַס גָּבֹוהַ בֵּין חֹוזֶק, לָרֹוב חֹוזֶק מְשִׁיכָה, לְבֵין צְפִיפוּת אֹו מִשְׁקָל סְגֻלִּי.",
+        "transliteration": "B) Ḥozeq seguli gavoha perusho yaḥas gavoha ben ḥozeq, larov ḥozeq meshikha, le-vein tzfi'fut o mishqal seguli.",
+        "ru": "Б) Высокая удельная прочность означает высокое отношение прочности (обычно прочности на растяжение) к плотности или удельному весу."
+      },
+      "source_refs": [
+        "legacy_row_hash:b09f02a221dee68b7803ffe263d5586d6bbde241be8d6bcd3d0bc9a82d51eacb",
+        "legacy_fields_sha256:28c0563424eb29a2bf034a469099955a89794f308a1e9a1f8d253af6d742279d",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 2,
+            "surface": "סְגֻלִּי",
+            "normalized": "סגלי"
+          },
+          {
+            "index": 3,
+            "surface": "גָּבֹוהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 4,
+            "surface": "פֵּירוּשׁוֹ",
+            "normalized": "פירושו"
+          },
+          {
+            "index": 5,
+            "surface": "יַחַס",
+            "normalized": "יחס"
+          },
+          {
+            "index": 6,
+            "surface": "גָּבֹוהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 8,
+            "surface": "חֹוזֶק,",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 9,
+            "surface": "לָרֹוב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 10,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 11,
+            "surface": "מְשִׁיכָה,",
+            "normalized": "משיכה"
+          },
+          {
+            "index": 12,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 13,
+            "surface": "צְפִיפוּת",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 14,
+            "surface": "אֹו",
+            "normalized": "או"
+          },
+          {
+            "index": 15,
+            "surface": "מִשְׁקָל",
+            "normalized": "משקל"
+          },
+          {
+            "index": 16,
+            "surface": "סְגֻלִּי.",
+            "normalized": "סגלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r011",
+      "order": 11,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_sp = σ/ρ",
+        "he_niqqud": "σ_sp = σ/ρ",
+        "transliteration": "σ_sp = σ/ρ",
+        "ru": "σ_sp = σ/ρ"
+      },
+      "source_refs": [
+        "legacy_row_hash:cd5fa8a8f794898b3d3f7f0d8d1641abd47b3bdaa32deed5c49cf0655b56fd49",
+        "legacy_fields_sha256:b76a7f584a8257d6caaaddc98dc3448b798d3d86d4b4e6a64115917699b85bbf",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_sp",
+            "normalized": "σ_sp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "σ/ρ",
+            "normalized": "σ/ρ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_sp = σ/ρ"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "משמעות הנדסית היא נשיאת עומס גדול יותר עבור אותה מסה, או הקטנת מסה עבור אותו עומס.",
+        "he_niqqud": "מַשְׁמָעוּת הַנְדָּסִית הִיא נְשִׂיאַת עֹומֶס גָּדוֹל יוֹתֵר עֲבֹור אֹותָהּ מַסָּה, אֹו הַקְטָנַת מַסָּה עֲבֹור אֹותֹו עֹומֶס.",
+        "transliteration": "Mashma'ut handasit hi nesi'at omes gadol yoter avur otah masah, o haqtanat masah avur oto omes.",
+        "ru": "Инженерное значение состоит в способности выдерживать бóльшую нагрузку при той же массе, или в уменьшении массы при той же нагрузке."
+      },
+      "source_refs": [
+        "legacy_row_hash:bf68860f7f632d1e015cff30bf43acbeeec1a384ca4bac0b3c6ac708431d5a39",
+        "legacy_fields_sha256:a5278a868fb1fef30d9e489eebc3c574e4c721d756ff6fe9a2491246b4bb05a8",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַשְׁמָעוּת",
+            "normalized": "משמעות"
+          },
+          {
+            "index": 1,
+            "surface": "הַנְדָּסִית",
+            "normalized": "הנדסית"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "נְשִׂיאַת",
+            "normalized": "נשיאת"
+          },
+          {
+            "index": 4,
+            "surface": "עֹומֶס",
+            "normalized": "עומס"
+          },
+          {
+            "index": 5,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 7,
+            "surface": "עֲבֹור",
+            "normalized": "עבור"
+          },
+          {
+            "index": 8,
+            "surface": "אֹותָהּ",
+            "normalized": "אותה"
+          },
+          {
+            "index": 9,
+            "surface": "מַסָּה,",
+            "normalized": "מסה"
+          },
+          {
+            "index": 10,
+            "surface": "אֹו",
+            "normalized": "או"
+          },
+          {
+            "index": 11,
+            "surface": "הַקְטָנַת",
+            "normalized": "הקטנת"
+          },
+          {
+            "index": 12,
+            "surface": "מַסָּה",
+            "normalized": "מסה"
+          },
+          {
+            "index": 13,
+            "surface": "עֲבֹור",
+            "normalized": "עבור"
+          },
+          {
+            "index": 14,
+            "surface": "אֹותֹו",
+            "normalized": "אותו"
+          },
+          {
+            "index": 15,
+            "surface": "עֹומֶס.",
+            "normalized": "עומס"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תכונה זו חשובה במיוחד במבנים קלי-משקל.",
+        "he_niqqud": "תְּכוּנָה זֹו חֲשׁוּבָה בִּמְיֻחָד בְּמִבְנִים קַלֵּי-מִשְׁקָל.",
+        "transliteration": "Tkhunah zo ḥashuvah bimeyuḥad be-mivnim qalei-mishqal.",
+        "ru": "Это свойство особенно важно в легких конструкциях."
+      },
+      "source_refs": [
+        "legacy_row_hash:637fe2a2c0b8c3e0a97dc2f93be006f1e5a96c472d0e6e63403e54e253c0af08",
+        "legacy_fields_sha256:ee24bcd2872f0e7e2d1832614b73bb266d8df4ecd3f0274a491a0a61db1800f7",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תְּכוּנָה",
+            "normalized": "תכונה"
+          },
+          {
+            "index": 1,
+            "surface": "זֹו",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "חֲשׁוּבָה",
+            "normalized": "חשובה"
+          },
+          {
+            "index": 3,
+            "surface": "בִּמְיֻחָד",
+            "normalized": "במיחד"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמִבְנִים",
+            "normalized": "במבנים"
+          },
+          {
+            "index": 5,
+            "surface": "קַלֵּי-מִשְׁקָל.",
+            "normalized": "קלי-משקל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) 1) תפקיד המשריין הוא לשאת חלק גדול מהמאמץ, להעלות חוזק וקשיחות, ולעיתים לבלום התפשטות סדקים.",
+        "he_niqqud": "ג) 1) תַפְקִיד הַמְשָׁרְיָן הוּא לָשֵׂאת חֵלֶק גָּדוֹל מֵהַמַּאֲמָץ, לְהַעֲלוֹת חֹוזֶק וְקַשִּׁיחוּת, וּלְעִתִּים לִבְלֹום הִתְפַּשְּׁטוּת סְדָקִים.",
+        "transliteration": "G) 1) Tafqid ha-mesharyen hu laset ḥeleq gadol me-ha-ma'amatz, leha'alot ḥozeq ve-qashiḥut, ule'itim livlom hitpashtut seda'im.",
+        "ru": "В) 1) Роль армирующего наполнителя состоит в том, чтобы нести значительную часть напряжения, повышать прочность и жесткость, а иногда и блокировать распространение трещин."
+      },
+      "source_refs": [
+        "legacy_row_hash:bac3ce2519cf15cb9352d0f096cd872df8853e15d29f1caf99f36bba895bbf7b",
+        "legacy_fields_sha256:b4d6e6963622caaaf780f62fc6147d7301e73d6f25f1c49c779f0f89c8dc66d5",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "1)",
+            "normalized": "1"
+          },
+          {
+            "index": 2,
+            "surface": "תַפְקִיד",
+            "normalized": "תפקיד"
+          },
+          {
+            "index": 3,
+            "surface": "הַמְשָׁרְיָן",
+            "normalized": "המשרין"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "לָשֵׂאת",
+            "normalized": "לשאת"
+          },
+          {
+            "index": 6,
+            "surface": "חֵלֶק",
+            "normalized": "חלק"
+          },
+          {
+            "index": 7,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 8,
+            "surface": "מֵהַמַּאֲמָץ,",
+            "normalized": "מהמאמץ"
+          },
+          {
+            "index": 9,
+            "surface": "לְהַעֲלוֹת",
+            "normalized": "להעלות"
+          },
+          {
+            "index": 10,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 11,
+            "surface": "וְקַשִּׁיחוּת,",
+            "normalized": "וקשיחות"
+          },
+          {
+            "index": 12,
+            "surface": "וּלְעִתִּים",
+            "normalized": "ולעתים"
+          },
+          {
+            "index": 13,
+            "surface": "לִבְלֹום",
+            "normalized": "לבלום"
+          },
+          {
+            "index": 14,
+            "surface": "הִתְפַּשְּׁטוּת",
+            "normalized": "התפשטות"
+          },
+          {
+            "index": 15,
+            "surface": "סְדָקִים.",
+            "normalized": "סדקים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מהנתונים רואים שהחוזק עולה מ-4570 ל-9843 בעוד שהמשקל הסגולי עולה מ-1050 ל-1280.",
+        "he_niqqud": "מֵהַנְּתוּנִים רֹואִים שֶׁהַחֹוזֶק עוֹלֶה מִ-4570 לְ-9843 בְּעֹוד שֶׁהַמִּשְׁקָל הַסְּגֻלִּי עוֹלֶה מִ-1050 לְ-1280.",
+        "transliteration": "Me-ha-netunim ro'im sheha-ḥozeq oleh mi-4570 le-9843 be'od sheha-mishqal ha-seguli oleh mi-1050 le-1280.",
+        "ru": "Из данных видно, что прочность увеличивается с 4570 до 9843, в то время как удельный вес увеличивается с 1050 до 1280."
+      },
+      "source_refs": [
+        "legacy_row_hash:5a74026a79c3a0974ff93565ec18fbe683a656eae3fab8924ec37bcb878faeea",
+        "legacy_fields_sha256:8fe119e12e43a164a07fdcff40378695c91cb391582618ef989d2d6b770e6271",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מֵהַנְּתוּנִים",
+            "normalized": "מהנתונים"
+          },
+          {
+            "index": 1,
+            "surface": "רֹואִים",
+            "normalized": "רואים"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁהַחֹוזֶק",
+            "normalized": "שהחוזק"
+          },
+          {
+            "index": 3,
+            "surface": "עוֹלֶה",
+            "normalized": "עולה"
+          },
+          {
+            "index": 4,
+            "surface": "מִ-4570",
+            "normalized": "מ-4570"
+          },
+          {
+            "index": 5,
+            "surface": "לְ-9843",
+            "normalized": "ל-9843"
+          },
+          {
+            "index": 6,
+            "surface": "בְּעֹוד",
+            "normalized": "בעוד"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁהַמִּשְׁקָל",
+            "normalized": "שהמשקל"
+          },
+          {
+            "index": 8,
+            "surface": "הַסְּגֻלִּי",
+            "normalized": "הסגלי"
+          },
+          {
+            "index": 9,
+            "surface": "עוֹלֶה",
+            "normalized": "עולה"
+          },
+          {
+            "index": 10,
+            "surface": "מִ-1050",
+            "normalized": "מ-1050"
+          },
+          {
+            "index": 11,
+            "surface": "לְ-1280.",
+            "normalized": "ל-1280"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r016",
+      "order": 16,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ההתארכות יורדת מ-2% ל-1.1% ולכן הדוקטיליות פוחתת.",
+        "he_niqqud": "הַהִתְאָרְכוּת יֹורֶדֶת מִ-2% לְ-1.1% וְלָכֵן הַדּוּקְטִילִיּוּת פּוֹחֶתֶת.",
+        "transliteration": "Ha-hit'arḥut yoredet mi-2% le-1.1% vela-khen ha-doqṭiliyut poḥetet.",
+        "ru": "Удлинение уменьшается с 2% до 1.1%, и, следовательно, пластичность снижается."
+      },
+      "source_refs": [
+        "legacy_row_hash:0883e872e2b8ae7490f54c10b16e8d9d078c55a9d4b12f07cccf9c14beb30ae3",
+        "legacy_fields_sha256:e9494477ffe8d5ee5f15f951bd5a5a8d54ab3919b7389f106fcfb84d7831d64e",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַהִתְאָרְכוּת",
+            "normalized": "ההתארכות"
+          },
+          {
+            "index": 1,
+            "surface": "יֹורֶדֶת",
+            "normalized": "יורדת"
+          },
+          {
+            "index": 2,
+            "surface": "מִ-2%",
+            "normalized": "מ-2%"
+          },
+          {
+            "index": 3,
+            "surface": "לְ-1.1%",
+            "normalized": "ל-1.1%"
+          },
+          {
+            "index": 4,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 5,
+            "surface": "הַדּוּקְטִילִיּוּת",
+            "normalized": "הדוקטיליות"
+          },
+          {
+            "index": 6,
+            "surface": "פּוֹחֶתֶת.",
+            "normalized": "פוחתת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r017",
+      "order": 17,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ללא חישוב, לפוליסטירן משוריין 30% יהיה חוזק סגולי גבוה יותר, כי העלייה בחוזק גדולה מהעלייה במשקל הסגולי.",
+        "he_niqqud": "לְלֹא חִשּׁוּב, לְפּוֹלִיסְטִירֶן מְשֻׁרְיָן 30% יִהְיֶה חֹוזֶק סְגֻלִּי גָּבֹוהַ יוֹתֵר, כִּי הָעֲלִיָּה בְּחֹוזֶק גְּדוֹלָה מֵהָעֲלִיָּה בְּמִשְׁקָל הַסְּגֻלִּי.",
+        "transliteration": "Lelo ḥishuv, le-polistiren meshuryan 30% yihiyeh ḥozeq seguli gavoha yoter, ki ha-'aliyah be-ḥozeq gedolah me-ha-'aliyah be-mishqal ha-seguli.",
+        "ru": "Без расчетов, армированный 30% полистирол будет иметь более высокую удельную прочность, поскольку увеличение прочности больше, чем увеличение удельного веса."
+      },
+      "source_refs": [
+        "legacy_row_hash:99c0ba66fecc9077b179db32a5e1893436442bb197dc9cd73bffee989d9fca04",
+        "legacy_fields_sha256:e376352f2d582235114632792edc548837f3d2fb4984a2cc13d7c7e63e852c57",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 1,
+            "surface": "חִשּׁוּב,",
+            "normalized": "חשוב"
+          },
+          {
+            "index": 2,
+            "surface": "לְפּוֹלִיסְטִירֶן",
+            "normalized": "לפוליסטירן"
+          },
+          {
+            "index": 3,
+            "surface": "מְשֻׁרְיָן",
+            "normalized": "משרין"
+          },
+          {
+            "index": 4,
+            "surface": "30%",
+            "normalized": "30%"
+          },
+          {
+            "index": 5,
+            "surface": "יִהְיֶה",
+            "normalized": "יהיה"
+          },
+          {
+            "index": 6,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 7,
+            "surface": "סְגֻלִּי",
+            "normalized": "סגלי"
+          },
+          {
+            "index": 8,
+            "surface": "גָּבֹוהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 9,
+            "surface": "יוֹתֵר,",
+            "normalized": "יותר"
+          },
+          {
+            "index": 10,
+            "surface": "כִּי",
+            "normalized": "כי"
+          },
+          {
+            "index": 11,
+            "surface": "הָעֲלִיָּה",
+            "normalized": "העליה"
+          },
+          {
+            "index": 12,
+            "surface": "בְּחֹוזֶק",
+            "normalized": "בחוזק"
+          },
+          {
+            "index": 13,
+            "surface": "גְּדוֹלָה",
+            "normalized": "גדולה"
+          },
+          {
+            "index": 14,
+            "surface": "מֵהָעֲלִיָּה",
+            "normalized": "מהעליה"
+          },
+          {
+            "index": 15,
+            "surface": "בְּמִשְׁקָל",
+            "normalized": "במשקל"
+          },
+          {
+            "index": 16,
+            "surface": "הַסְּגֻלִּי.",
+            "normalized": "הסגלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r018",
+      "order": 18,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) 2) מחשבים חוזק סגולי כיחס בין חוזק משיכה לבין משקל סגולי.",
+        "he_niqqud": "ג) 2) מְחַשְּׁבִים חֹוזֶק סְגֻלִּי כְּיַחַס בֵּין חֹוזֶק מְשִׁיכָה לְבֵין מִשְׁקָל סְגֻלִּי.",
+        "transliteration": "G) 2) Meḥashvim ḥozeq seguli ke-yaḥas ben ḥozeq meshikha le-vein mishqal seguli.",
+        "ru": "В) 2) Удельная прочность рассчитывается как отношение прочности на растяжение к удельному весу."
+      },
+      "source_refs": [
+        "legacy_row_hash:e2688c13f6787530359a8b7bc38b9d2650a84719c5519dcda7234884c658c7de",
+        "legacy_fields_sha256:bcb449573fbef52a9621a1d20dce2e3d85240a4fc4b8063611e52fa4ead0c85e",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "2)",
+            "normalized": "2"
+          },
+          {
+            "index": 2,
+            "surface": "מְחַשְּׁבִים",
+            "normalized": "מחשבים"
+          },
+          {
+            "index": 3,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 4,
+            "surface": "סְגֻלִּי",
+            "normalized": "סגלי"
+          },
+          {
+            "index": 5,
+            "surface": "כְּיַחַס",
+            "normalized": "כיחס"
+          },
+          {
+            "index": 6,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 7,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 8,
+            "surface": "מְשִׁיכָה",
+            "normalized": "משיכה"
+          },
+          {
+            "index": 9,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 10,
+            "surface": "מִשְׁקָל",
+            "normalized": "משקל"
+          },
+          {
+            "index": 11,
+            "surface": "סְגֻלִּי.",
+            "normalized": "סגלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r019",
+      "order": 19,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_sp = σ_t/ρ",
+        "he_niqqud": "σ_sp = σ_t/ρ",
+        "transliteration": "σ_sp = σ_t/ρ",
+        "ru": "σ_sp = σ_t/ρ"
+      },
+      "source_refs": [
+        "legacy_row_hash:29490002d677ace7f458a8d197b7be4b55f451bfaebb84c72a94611786171de4",
+        "legacy_fields_sha256:b08426a92de3587848e4abcd06963245b906837812ed0940c3a9e15bdd583b29",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_sp",
+            "normalized": "σ_sp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "σ_t/ρ",
+            "normalized": "σ_t/ρ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_sp = σ_t/ρ"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לפוליסטירן:",
+        "he_niqqud": "לְפּוֹלִיסְטִירֶן:",
+        "transliteration": "Le-polistiren:",
+        "ru": "Для полистирола:"
+      },
+      "source_refs": [
+        "legacy_row_hash:34afdb97e1d7be811e2c22ab78bb8fa15deda751c562f600b64651e914f3d420",
+        "legacy_fields_sha256:e01bbc612e3c9b13e0a892188a04db00de3a7da315671788a7d43029ff24e067",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְפּוֹלִיסְטִירֶן:",
+            "normalized": "לפוליסטירן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r021",
+      "order": 21,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+        "he_niqqud": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+        "transliteration": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+        "ru": "σ_sp = 4570/1050 = 4.352 ≈ 4.35"
+      },
+      "source_refs": [
+        "legacy_row_hash:fa8b82f3e12625dc64dc7cae05ead4d747426c8a59c00601a881f62784cd50b0",
+        "legacy_fields_sha256:61b4b4d740c1de421a2266864193c737d7080676129819657e4c08cdf509436a",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_sp",
+            "normalized": "σ_sp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "4570/1050",
+            "normalized": "4570/1050"
+          },
+          {
+            "index": 3,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 4,
+            "surface": "4.352",
+            "normalized": "4.352"
+          },
+          {
+            "index": 5,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 6,
+            "surface": "4.35",
+            "normalized": "4.35"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_sp = 4570/1050 = 4.352 ≈ 4.35"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לפוליסטירן משוריין 30%:",
+        "he_niqqud": "לְפּוֹלִיסְטִירֶן מְשֻׁרְיָן 30%:",
+        "transliteration": "Le-polistiren meshuryan 30%:",
+        "ru": "Для армированного 30% полистирола:"
+      },
+      "source_refs": [
+        "legacy_row_hash:97a15cc8bb48d10eb454194fde64ab896a76b29cb5230c5ab465f215e5c400cc",
+        "legacy_fields_sha256:e50cd7b8c0b897b410d04315c81fded9035a167d7e47142a3bd385023b5de1b6",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְפּוֹלִיסְטִירֶן",
+            "normalized": "לפוליסטירן"
+          },
+          {
+            "index": 1,
+            "surface": "מְשֻׁרְיָן",
+            "normalized": "משרין"
+          },
+          {
+            "index": 2,
+            "surface": "30%:",
+            "normalized": "30%"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r023",
+      "order": 23,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_sp = 9843/1280 = 7.6898 ≈ 7.69",
+        "he_niqqud": "σ_sp = 9843/1280 = 7.6898 ≈ 7.69",
+        "transliteration": "σ_sp = 9843/1280 = 7.6898 ≈ 7.69",
+        "ru": "σ_sp = 9843/1280 = 7.6898 ≈ 7.69"
+      },
+      "source_refs": [
+        "legacy_row_hash:4cc30dd9fdd5fcc1bac92f563cdf0fe41cfd49fbcfb50b53792969543b3dd5a1",
+        "legacy_fields_sha256:d20e060470d72fbe334d77f4ce6dacb070479cb377d7a54a1c13bdff3346fa9a",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_sp",
+            "normalized": "σ_sp"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "9843/1280",
+            "normalized": "9843/1280"
+          },
+          {
+            "index": 3,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 4,
+            "surface": "7.6898",
+            "normalized": "7.6898"
+          },
+          {
+            "index": 5,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 6,
+            "surface": "7.69",
+            "normalized": "7.69"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_sp = 9843/1280 = 7.6898 ≈ 7.69"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסקנה שהחומר המשוריין בעל חוזק סגולי גבוה יותר, בערך 7.69 לעומת 4.35.",
+        "he_niqqud": "מַסְקָנָה שֶׁהַחֹומֶר הַמְשֻׁרְיָן בַּעַל חֹוזֶק סְגֻלִּי גָּבֹוהַ יוֹתֵר, בְּעֵרֶךְ 7.69 לְעֻמַּת 4.35.",
+        "transliteration": "Masqana sheha-ḥomer ha-meshuryan ba'al ḥozeq seguli gavoha yoter, be'erekh 7.69 le'umat 4.35.",
+        "ru": "Вывод: армированный материал обладает более высокой удельной прочностью, примерно 7.69 по сравнению с 4.35."
+      },
+      "source_refs": [
+        "legacy_row_hash:1f15d507df65013f9f675586f139e5aff86e1e745bf322d3aa91c15f534da707",
+        "legacy_fields_sha256:3b8e8746e9ce509e28e239d64e35f1cefc04d23301186691d2afa7894c0d4569",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַסְקָנָה",
+            "normalized": "מסקנה"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁהַחֹומֶר",
+            "normalized": "שהחומר"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְשֻׁרְיָן",
+            "normalized": "המשרין"
+          },
+          {
+            "index": 3,
+            "surface": "בַּעַל",
+            "normalized": "בעל"
+          },
+          {
+            "index": 4,
+            "surface": "חֹוזֶק",
+            "normalized": "חוזק"
+          },
+          {
+            "index": 5,
+            "surface": "סְגֻלִּי",
+            "normalized": "סגלי"
+          },
+          {
+            "index": 6,
+            "surface": "גָּבֹוהַ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "יוֹתֵר,",
+            "normalized": "יותר"
+          },
+          {
+            "index": 8,
+            "surface": "בְּעֵרֶךְ",
+            "normalized": "בערך"
+          },
+          {
+            "index": 9,
+            "surface": "7.69",
+            "normalized": "7.69"
+          },
+          {
+            "index": 10,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 11,
+            "surface": "4.35.",
+            "normalized": "4.35"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q056-sol-r025",
+      "order": 25,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:b1aec204b3dd56269ae145f1548a4ba45f4143bbd3e4e02f2df2223975eaa1e3",
+        "comparison:MATCH_WITH_PRINTED_UNIT_NOTE",
+        "source_page:64",
+        "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q056",
+    "display_alias": "56",
+    "source_pages": [
+      64
+    ],
+    "independent_state": "DERIVED_WITH_PRINTED_UNIT_NOTE",
+    "answer": [
+      "а) Четыре условия учебного определения: не менее двух физически/химически различимых материалов; одна фаза образует matrix, другая reinforcement; между ними существует interface и они сохраняют различимость; объединение спроектировано так, чтобы дать полезные/лучшие свойства, недоступные каждой фазе отдельно.",
+      "б) Высокая specific strength σ/ρ означает большую несущую способность на единицу массы: при той же требуемой силе конструкция может быть легче, что важно для транспорта, авиации и вращающихся деталей.",
+      "в1) Reinforcement принимает и перераспределяет load через interface, ограничивает deformation/crack growth; поэтому reinforced polystyrene должен иметь более высокую specific strength. в2) По напечатанным числам: plain=4570/1050=4,35; reinforced30%=9843/1280=7,69 в согласованных отношениях исходных единиц; reinforced выше примерно в1,77 раза."
+    ],
+    "engineering_picture": "Matrix задаёт форму, передаёт нагрузку и защищает reinforcement; reinforcement несёт большую долю tensile load. Рост density меньше относительного роста strength.",
+    "prerequisites": [
+      "Specific strength is strength divided by density.",
+      "Use the source's paired units consistently; do not relabel the printed kg/m2 strength as Pa without a conversion basis."
+    ],
+    "roadmap": [
+      "Define phases/interface/property gain.",
+      "Explain weight-normalized performance.",
+      "Compare ratios before computing.",
+      "Calculate both and ratio."
+    ],
+    "main_trap": "Не сравнивать только strengths 9843 и4570, игнорируя разные densities и странную печатную единицу.",
+    "givens": [
+      "ρ=1050/1280 kg/m3;strength=4570/9843 kg/m2 as printed;elongation2/1.1%."
+    ],
+    "find": [
+      "Composite conditions, meaning, reinforcement role and specific strengths."
+    ],
+    "assumptions": [
+      "Both strength numbers use the same printed unit so their normalized ratio is comparable."
+    ],
+    "laws": [
+      "specific strength=σ_t/ρ."
+    ],
+    "symbolic_derivation": [
+      "R_plain=4570/1050.",
+      "R_reinf=9843/1280.",
+      "gain=R_reinf/R_plain."
+    ],
+    "calculation": [
+      "R_plain=4.352≈4.35.",
+      "R_reinf=7.690≈7.69.",
+      "gain=1.767≈1.77."
+    ],
+    "construction": [
+      "Two-column table: density, strength, elongation, specific strength and role."
+    ],
+    "checks": [
+      "Reinforcement strength rises by2.15x while density rises by1.22x, so specific strength must rise; computed1.77x is consistent."
+    ],
+    "source_facts": [
+      "source_page:64",
+      "asset_sha256:e4109a9551ea664eb3ea9859b5fb913be9c6be032dd8883f1c613398ceb6e042"
+    ],
+    "unresolved_limits": [
+      "The source prints tensile strength in kg/m2; absolute SI units require clarification, but the requested ratio remains reproducible."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

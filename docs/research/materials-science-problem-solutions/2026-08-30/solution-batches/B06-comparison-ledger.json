@@ -1,0 +1,36 @@
+{
+  "schema_version": "materials_pb2_solution_comparison.1.0.0",
+  "status": "REVIEWED_PASS_10_OF_10",
+  "batch_id": "B06",
+  "independent_solution_ledger": {
+    "path": "B06-independent-solution-ledger.ru.json",
+    "sha256": "d1c650a6c09e4f779317f9893e4b9cba9747bc69b73573506c79f4062eedec2c"
+  },
+  "legacy_source": "../legacy-solution-candidate-ledger.json",
+  "comparison_policy": {
+    "legacy_role": "COMPARISON_ONLY_NEVER_PREMISE",
+    "numeric_equivalence": "SAME_SOURCE_VALUE_WITH_GRAPH_OR_PRINTED_UNIT_TOLERANCE",
+    "theory_equivalence": "SAME_MECHANISM_AND_SERVICE_VERDICT_WITH_SCOPE_LIMITS",
+    "silent_overwrite_allowed": false,
+    "maximum_targeted_repair_passes": 1
+  },
+  "summary": {
+    "task_count": 10,
+    "match_or_equivalent_count": 9,
+    "targeted_source_review_count": 1,
+    "targeted_source_review_pass_count": 1,
+    "publication_blocking_count": 0
+  },
+  "entries": [
+    {"task_id":"materials-science-y1-pb2-q049","legacy_candidate_rows":25,"legacy_candidate_rows_sha256":"c73891885429c07cc8e7cb033b2f5b05856ddef2693798b8c343f0dc4ef2a840","computed_verdict":"MATCH_WITH_GRAPH_AND_SERVICE_QUALIFICATION","comparison_note":"Curve mapping1 ferritic,2 austenitic,3 duplex,4 martensitic;450 MPa threshold and duplex selection match. Independent solution keeps chemistry/environment qualification.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q050","legacy_candidate_rows":20,"legacy_candidate_rows_sha256":"34111ed4ac40fa672970d81454df99babea74176a1a3014ca5116b80aaae89ca","computed_verdict":"MATCH","comparison_note":"150 MPa threshold, all-strength-pass finding,304L service choice and added corrosion/weld/hygiene/cost criteria match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q051","legacy_candidate_rows":22,"legacy_candidate_rows_sha256":"020991c800714cdacfc8efc71d38e075c6c1afa4c2109f62539cad3d6b6ec4b9","computed_verdict":"MATCH_WITH_GRAPH_TOLERANCE","comparison_note":"Curve mapping, approximately200 GPa common modulus, UTS near1000/550-580/350 MPa and ferritic corrosion advantage match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q052","legacy_candidate_rows":25,"legacy_candidate_rows_sha256":"24bd0b77bc1d0777764515484211a80bb76324ef87288b20e9323fcf6dd6ab71","computed_verdict":"MATCH","comparison_note":"Thermoplastic/thermoset distinction, EBM/ISBM routes and all seven high-low comparisons match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q053","legacy_candidate_rows":19,"legacy_candidate_rows_sha256":"a12c53cdcef5e90d10eff26cda47534cd5d0eeeae6b1cae5d383323cc95dc300","computed_verdict":"MATCH_WITH_ROUTE_QUALIFICATION","comparison_note":"Crosslink explanation, injection-molded frame and product-process mappings match; alternatives remain explicitly conditional.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q054","legacy_candidate_rows":11,"legacy_candidate_rows_sha256":"e6cfae3298fbbdfec67053e37f648c479c08b9a603d30830bdde61a542264ded","computed_verdict":"MATCH","comparison_note":"Ceramic definition, SiC/WC, powder-process advantages and shape/tooling/porosity limits match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q055","legacy_candidate_rows":38,"legacy_candidate_rows_sha256":"bf2229a6b80ec4ab4d38bb12b9e8200d2a587d6833e21b3caadbc75d3150ccd4","computed_verdict":"MATCH_WITH_PARAMETER_SCOPE","comparison_note":"Full powder route, high-melting WC/W rationale and WC-Co liquid-phase sintering mechanisms match. Independent solution avoids unnecessary nominal process numbers not supplied in the question.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q056","legacy_candidate_rows":20,"legacy_candidate_rows_sha256":"33baddb2fe2d6f84d429782fb744c9a604927558730195049997f259a74958a5","computed_verdict":"MATCH_WITH_PRINTED_UNIT_NOTE","comparison_note":"Composite conditions, reinforcement mechanism and specific strengths4.35/7.69 match. Independent solution also reports1.77x gain and preserves the source's unusual printed unit.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q057","legacy_candidate_rows":12,"legacy_candidate_rows_sha256":"ba2caaf1102450a136ae022a20e942e28d0510e55f3d905fed9418b9c7c55b9a","computed_verdict":"CORRECTED_TO_SOURCE_STRUCTURE_3_ONLY","comparison_note":"Single source-image review corrected structure2 from particle-random to directionally reinforced. Only structure3 is three-axis quasi-isotropic under the stated3D-random assumption.","reviewer_disposition":"CORRECTED_AND_REVERIFIED","review_evidence":"B06-targeted-review-01.json","publication_blocking":false,"targeted_repair":"B06-targeted-review-01.json"},
+    {"task_id":"materials-science-y1-pb2-q058","legacy_candidate_rows":25,"legacy_candidate_rows_sha256":"307cc6f2af47d916397fdd364eb392b5e4733e706513645bc2942f31ff80ab0f","computed_verdict":"MATCH_WITH_CURVE_ORDER_SCOPE","comparison_note":"Statistical isotropy and the ceramic/composite/polymer slope and fracture-strain order match; independent solution keeps interface and volume-fraction limits visible.","publication_blocking":false,"targeted_repair":null}
+  ]
+}

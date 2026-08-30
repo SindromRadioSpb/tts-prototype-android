@@ -1,0 +1,24 @@
+{
+  "schema_version": "materials_pb2_solution_batch_review_manifest.1.0.0",
+  "batch_id": "B05",
+  "status": "TECHNICAL_REVIEWED_PASS_10_OF_10_PRESENTATION_NOT_BUILT_NOT_PUBLISHED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "task_count": 10,
+  "publication_blocking_content_mismatches": 0,
+  "files": [
+    {"path":"B05-source-workpack.json","bytes":96383,"sha256":"3ec9284f711fd396e79befdec3f7969a4563c7ac81a23116c44b7a84612eff0e"},
+    {"path":"B05-independent-solution-ledger.ru.json","bytes":39455,"sha256":"b8f9aba92425ef9436197b9a85e4cd4c184e10cf1b69f9a0533e62a2c5e4fe5a"},
+    {"path":"B05-comparison-ledger.json","bytes":5849,"sha256":"c7c6b8d9607a08b28a66feaf5a82f2f95355a4c0f9e3abdcb5cba7d7e36cc2c9"},
+    {"path":"B05-targeted-review-01.json","bytes":912,"sha256":"36ab8078e1bf343690deffec085ab0804a0d68d108f626fa5c5986eabd324a65"},
+    {"path":"B05-targeted-review-02.json","bytes":1001,"sha256":"48c7f3362b3340c763e4b4fbe4df426b4717dd8f43f975a47f157483ade33f1b"},
+    {"path":"B05-targeted-review-03.json","bytes":639,"sha256":"3bf24b9a74c9d6604b547efe9e75f0a73a654b66bd5d212d0f6dc114da4968bd"}
+  ],
+  "next_artifacts": [
+    "B05-student-solution-table.json",
+    "B05-agent-shards",
+    "B05-print-projections"
+  ],
+  "rights_status": "UNCONFIRMED_NOT_PUBLICATION_READY",
+  "tts_status": "FULL_AUDIO_DEFERRED_UNTIL_OWNER_CARD_REVIEW_ROW_CONTRACT_ONLY"
+}

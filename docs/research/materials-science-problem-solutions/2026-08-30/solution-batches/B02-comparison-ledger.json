@@ -1,0 +1,37 @@
+{
+  "schema_version": "materials_pb2_solution_comparison.1.0.0",
+  "status": "REVIEWED_PASS_10_OF_10",
+  "batch_id": "B02",
+  "independent_solution_ledger": {
+    "path": "B02-independent-solution-ledger.ru.json",
+    "sha256": "8ffaf12c88d8b0bcf7ce0bec6c7a9fd6931289557b6effd274494624efa963a9"
+  },
+  "legacy_source": "../legacy-solution-candidate-ledger.json",
+  "comparison_policy": {
+    "legacy_role": "COMPARISON_ONLY_NEVER_PREMISE",
+    "numeric_equivalence": "SAME_METHOD_AND_RESULT_WITH_EXPLAINED_ROUNDING_OR_SOURCE_GRAPH_TOLERANCE",
+    "theory_equivalence": "SAME_CAUSAL_CLAIM_WITH_EXPLICIT_SCOPE_LIMITS",
+    "silent_overwrite_allowed": false,
+    "maximum_targeted_repair_passes": 1
+  },
+  "summary": {
+    "task_count": 10,
+    "match_or_equivalent_count": 8,
+    "partial_mismatch_count": 2,
+    "corrected_and_reverified_count": 1,
+    "source_appendix_review_pass_count": 1,
+    "publication_blocking_count": 0
+  },
+  "entries": [
+    {"task_id":"materials-science-y1-pb2-q010","legacy_candidate_rows":35,"legacy_candidate_rows_sha256":"723789aff43f5ef7abe3a43c0579de3af83cca670435e2a3496a36879637bb28","computed_verdict":"CORRECTED_AFTER_METHOD_MISMATCH","comparison_note":"Legacy correctly introduced the 0.2% offset method absent from the first knee estimate; final values are source-rounded.","reviewer_disposition":"CORRECTED_AND_REVERIFIED","review_evidence":"B02-targeted-review-01.json","publication_blocking":false,"targeted_repair":"COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"},
+    {"task_id":"materials-science-y1-pb2-q011","legacy_candidate_rows":46,"legacy_candidate_rows_sha256":"8006e20533704ebb3b0faeee16c7c79cfb649fdb3132a1bee81ac51312f8809c","computed_verdict":"MATCH","comparison_note":"Forces, stresses, elongations, moduli, energy method and selection match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q012","legacy_candidate_rows":19,"legacy_candidate_rows_sha256":"3cd2736dc2f3b61f5725f422770379450cc1f9034663c2dec8e789e33c1815cc","computed_verdict":"EQUIVALENT_WITH_GRAPH_READING_TOLERANCE","comparison_note":"Direct source reading supports about 200 GPa; legacy reads about 210 GPa. The 5% difference is within the raster graph resolution and must remain approximate. Diameter and heat-treatment trends match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q013","legacy_candidate_rows":34,"legacy_candidate_rows_sha256":"20efa24025f65663917f7e0d9c3e9bc616385ab37484a0b28b6a2af5fc3f992c","computed_verdict":"MATCH","comparison_note":"Force, elastic length and cold-work trends match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q014","legacy_candidate_rows":21,"legacy_candidate_rows_sha256":"7b757ea6a82f655c5dd8a72ace21d40dd1e421bdbf0dafe79c327523afb05cda","computed_verdict":"MATCH","comparison_note":"Fracture-stress definition, diagram mapping and Luders identification match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q015","legacy_candidate_rows":60,"legacy_candidate_rows_sha256":"7ebacef7ec7ec2ab52887d3d92cf225fe0b69d0bceddc0b585e130eda7486ca5","computed_verdict":"MATCH","comparison_note":"All areas, stresses, elongations, literal criteria and Hooke-law derivation match.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q016","legacy_candidate_rows":38,"legacy_candidate_rows_sha256":"c6bdbb62c84ac4f9de1f6aae9e2c84e5d1d57bdfb3fb23710078ad514d4fdc95","computed_verdict":"MATCH_WITH_HARDNESS_CONVERSION_QUALIFICATION","comparison_note":"Mechanical calculations and pass/fail result match. Independent solution adds the required ASTM/ISO caveat that HV-to-HB conversion is approximate and direct HBW acceptance is preferable.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q017","legacy_candidate_rows":30,"legacy_candidate_rows_sha256":"ca897b0e0e68ade8a0cd751f913bb2bc2bc6c1499a3a5aad6924b44c5ec0effc","computed_verdict":"EQUIVALENT_WITH_GRAPH_READING_TOLERANCE","comparison_note":"Temperature mapping, brittleness, modulus mechanism and Charpy schematic match. 200 versus 210 GPa is a source-reading tolerance, not a physics disagreement.","publication_blocking":false,"targeted_repair":null},
+    {"task_id":"materials-science-y1-pb2-q018","legacy_candidate_rows":18,"legacy_candidate_rows_sha256":"788ab112455d00c0007411034b18b276ca09ecabb5551ce5b6e5c027750df002","computed_verdict":"LEGACY_GRADE_REJECTED_SOURCE_APPENDIX_REVIEW_PASS","comparison_note":"Legacy SAE 1045 is unsupported by the supplied appendix. UTS alone overlaps SAE 1040/1050; combined UTS and 190 HB favor SAE 1040 with an explicit non-certification caveat.","reviewer_disposition":"SOURCE_AND_APPENDIX_REVIEW_PASS_LEGACY_GRADE_REJECTED","review_evidence":"B02-targeted-review-02.json","publication_blocking":false,"targeted_repair":"COMPLETED_PASS_1_NO_FURTHER_REPAIR_ALLOWED"},
+    {"task_id":"materials-science-y1-pb2-q019","legacy_candidate_rows":28,"legacy_candidate_rows_sha256":"9adc1254a5b92bc2dd4a047552c5fca731f1181d63721dd56b4cd725c34f8e60","computed_verdict":"MATCH","comparison_note":"Pendulum meanings, bumper criterion, repaired temperature-energy pairing, midpoint DBTT interpolation and heat-treatment mapping match.","publication_blocking":false,"targeted_repair":null}
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "linguistpro-materials-pb2-canonical-repair-preflight-determinism-v1",
+  "status": "PASS_TWO_CONSECUTIVE_REBUILDS_BYTE_IDENTICAL",
+  "verified_on": "2026-08-30",
+  "manifest_artifact_sha256": "f29d95d83b565f23711b777ee46244b4a3c8bcce7f11d911bbd8dbdf455a51a1",
+  "batches": [
+    {
+      "batch_id": "B01",
+      "pdf_sha256": "4c270c161e2bc1982560947618678a0a548d6a4e3b7136437d2e433a7f9dfcb5",
+      "request_blueprint_sha256": "bc899c2b05d53aaf322399e0af30d02d946b9b3226dbcc04c1c6c12d7424719b"
+    },
+    {
+      "batch_id": "B02",
+      "pdf_sha256": "ced4885a1b8142f1618092caba5fc4bcb62573670826098710ac0d66be27b41f",
+      "request_blueprint_sha256": "f244ee2ea8579215ad5c13751a9161c84dd426115555e1f5e646b2bc5e28610e"
+    },
+    {
+      "batch_id": "B03",
+      "pdf_sha256": "4b5ec0efa52805c9280a83525144e14e6ffa8b5f38d8a924b44b300dadb3f04f",
+      "request_blueprint_sha256": "1b8ae40ce794b858388e59ed600d531628a2d985e04d8e85649cf1df8c672c92"
+    },
+    {
+      "batch_id": "B04",
+      "pdf_sha256": "00f2de8dd1e9af1f368c9c8cafe1c194d1e5bb5dd78824f9a5794fe445bb21fe",
+      "request_blueprint_sha256": "e95ebbbe91598e480c556dab48ab054867615185cc09c669a5932e9b9f26411f"
+    },
+    {
+      "batch_id": "B05",
+      "pdf_sha256": "7b4eed7421ee2d2f56563f4a79dc76dda85651219879b57c124ba0dbd274543b",
+      "request_blueprint_sha256": "a15b67a7f907c8473dd6b7e19b8cc3951d4b25590dce08924cd3e01c1f814e0f"
+    },
+    {
+      "batch_id": "B06",
+      "pdf_sha256": "70171746ce3d5a0d7ddb876872d81e3d97e827ab420ea04840b00f658a52c12f",
+      "request_blueprint_sha256": "a5a3f317d7142df56f819923b4476a8e36dd9f872b31f94197a2d1fdaf207f22"
+    }
+  ],
+  "provider_calls_made": 0,
+  "secret_accessed": false
+}

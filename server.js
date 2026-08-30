@@ -1066,11 +1066,11 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=425",
+  "/js/library-ui.js?v=426",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=417",
+  "/js/public-corpus-adapter.js?v=418",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
@@ -1081,9 +1081,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=186",
-  "/i18n/locales/en.js?v=186",
-  "/i18n/locales/he.js?v=186",
+  "/i18n/locales/ru.js?v=187",
+  "/i18n/locales/en.js?v=187",
+  "/i18n/locales/he.js?v=187",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3820,6 +3820,11 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
 const { getPublicationRepo } = require("./db/publicationRepo");
 const { getPhysicsTaskResourceRepo } = require("./db/physicsTaskResourceRepo");
 const { resolveLearningSupport: resolvePhysicsLearningSupport } = require("./physics/physicsYear1LearningSupport");
+const {
+  loadManifest: loadMaterialsPb2LearningSupportManifest,
+  resolveLearningSupport: resolveMaterialsPb2LearningSupport,
+  resolveAsset: resolveMaterialsPb2LearningAsset,
+} = require("./materials/materialsPb2LearningSupport");
 const rlPublicationRead = makeRateLimiter({ windowMs: 60_000, max: 180, name: "publication-read" });
 const rlPublicationWrite = makeRateLimiter({ windowMs: 60_000, max: 90, name: "publication-write" });
 
@@ -3899,7 +3904,8 @@ async function publicCorpusRead(res, action) {
   try { return await action(getPublicationRepo()); }
   catch (error) {
     if (error && (error.code === "CORPUS_NOT_FOUND" || error.code === "PUBLICATION_INPUT_INVALID"
-      || error.code === "PHYSICS_LEARNING_SUPPORT_NOT_FOUND")) return publicCorpusNotFound(res);
+      || error.code === "PHYSICS_LEARNING_SUPPORT_NOT_FOUND"
+      || error.code === "MATERIALS_PB2_LEARNING_SUPPORT_NOT_FOUND")) return publicCorpusNotFound(res);
     console.error("[public-corpus] read failed:", error && error.message);
     return res.status(500).json({ ok: false, error: "PUBLIC_MATERIAL_UNAVAILABLE" });
   }
@@ -3998,16 +4004,33 @@ app.get("/api/public-corpora/:slug/works/:workId", rlPublicCorpusRead, (req, res
   res.set("Cache-Control", "public, max-age=31536000, immutable");
   return res.json({ ok: true, schema_version: "public_corpus_work.1.0.0", ...published });
 }));
-function physicsLearningSupportEnabled() {
-  return String(process.env.PHYSICS_TASK_LEARNING_SUPPORT_PUBLIC_READ || "") === "1";
+function materialsPb2LearningSupportPublicReadEnabled() {
+  const configured = String(process.env.MATERIALS_PB2_LEARNING_SUPPORT_PUBLIC_READ || "").trim();
+  if (configured === "0") return false;
+  if (configured === "1") return true;
+  if (configured) return false;
+  try {
+    loadMaterialsPb2LearningSupportManifest();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+function publicLearningSupportResolver(slug) {
+  if (slug === "physics-year1-problems" && String(process.env.PHYSICS_TASK_LEARNING_SUPPORT_PUBLIC_READ || "") === "1")
+    return resolvePhysicsLearningSupport;
+  if (slug === "materials-science-year1-problem-book-2" && materialsPb2LearningSupportPublicReadEnabled())
+    return resolveMaterialsPb2LearningSupport;
+  return null;
 }
 app.get("/api/public-corpora/:slug/works/:workId/learning-support", rlPublicCorpusRead, (req, res) => {
   // A rollout-gated negative response must never survive the flag transition in
   // a browser HTTP cache. Exact enabled derivatives remain immutable below.
-  if (!physicsLearningSupportEnabled()) return publicCorpusNotFound(res, "no-store");
+  const resolver = publicLearningSupportResolver(req.params.slug);
+  if (!resolver) return publicCorpusNotFound(res, "no-store");
   return publicCorpusRead(res, async repo => {
     const published = await repo.getPublicWork(req.params.slug, req.params.workId);
-    const body = resolvePhysicsLearningSupport({
+    const body = resolver({
       slug: req.params.slug,
       editionId: published.edition.edition_id,
       editionNumber: published.edition.edition_number,
@@ -4023,6 +4046,20 @@ app.get("/api/public-corpora/:slug/works/:workId/learning-support", rlPublicCorp
     res.set("X-Content-Type-Options", "nosniff");
     if (etag && req.headers["if-none-match"] === etag) return res.status(304).end();
     return res.json({ ok: true, ...body });
+  });
+});
+app.get("/api/public-corpora/:slug/learning-support/assets/:assetSha256", rlPublicCorpusRead, (req, res) => {
+  if (req.params.slug !== "materials-science-year1-problem-book-2"
+    || !materialsPb2LearningSupportPublicReadEnabled()) return publicCorpusNotFound(res, "no-store");
+  return publicCorpusRead(res, async () => {
+    const found = resolveMaterialsPb2LearningAsset(req.params.assetSha256);
+    const etag = publicCorpusEtag(res, found.sha256);
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+    res.set("Cross-Origin-Resource-Policy", "same-origin");
+    res.set("X-Content-Type-Options", "nosniff");
+    if (etag && req.headers["if-none-match"] === etag) return res.status(304).end();
+    res.type(found.mime);
+    return res.sendFile(found.absolute_path);
   });
 });
 app.get("/api/public-corpora/:slug/assets/:assetKey", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {

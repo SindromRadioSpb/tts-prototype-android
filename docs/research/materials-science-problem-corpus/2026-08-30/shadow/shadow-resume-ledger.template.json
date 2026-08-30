@@ -1,0 +1,42 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-resume-ledger-v1",
+  "status": "TEMPLATE_NO_PROVIDER_WORK",
+  "cache_root": "gemini-cache/materials-science-pb2-shadow/",
+  "raw_cache_policy": "WRITE_ONCE_ATOMIC_NEVER_EDIT_IN_PLACE",
+  "cache_identity_fields": [
+    "model",
+    "model_version",
+    "prompt_sha256",
+    "schema_sha256",
+    "request_body_sha256",
+    "source_input_sha256"
+  ],
+  "batches": [
+    {
+      "batch_id": "B01",
+      "state": "PLANNED",
+      "attempt_count": 0,
+      "raw_response_sha256": null,
+      "usage": null,
+      "error_code": null
+    },
+    {
+      "batch_id": "B02",
+      "state": "PLANNED",
+      "attempt_count": 0,
+      "raw_response_sha256": null,
+      "usage": null,
+      "error_code": null
+    },
+    {
+      "batch_id": "B03",
+      "state": "PLANNED",
+      "attempt_count": 0,
+      "raw_response_sha256": null,
+      "usage": null,
+      "error_code": null
+    }
+  ],
+  "resume_rule": "SKIP_ONLY_WHEN_IDENTITY_FIELDS_AND_RAW_RESPONSE_HASH_ALL_MATCH",
+  "retry_rule": "ONE_TOTAL_RETRY_ONLY_FOR_TRANSPORT_OR_SCHEMA_FAILURE_NEVER_FOR_DISAGREEMENT"
+}

@@ -1,0 +1,1133 @@
+{
+  "schema": "linguistpro-materials-pb2-mapping-ledger-v1",
+  "status": "PROVISIONAL_ALL_ROWS_REQUIRE_REVIEW",
+  "entries": [
+    {
+      "legacy_card_key_sha256": "d3dae89bff8a39cdc6bcf6e2f73fd297138f5b47437681d6dab2b6001869b46e",
+      "legacy_title": "Задачник 2. Страница 41 (Закалка. Нужна схема Гроссман, Джемини)",
+      "title_pages": [
+        2,
+        41
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9,
+        34
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q034"
+      ],
+      "candidate_source_display_numbers": [
+        34
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "2a2eae8836bc3b0c34c7f340b73a3dd9b090cdaef1d0eeb6252ed0d8780c6b99",
+      "legacy_title": "Задачник 2. Страница 46 (алеф)",
+      "title_pages": [
+        2,
+        46
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [],
+      "candidate_source_display_numbers": [],
+      "mapping_status": "NO_SOURCE_TASK_ON_TITLED_PAGE",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "ab5a4c9fc33efe057d366a83cf1e8ca4d04842d2b7fb1f957664245642602a60",
+      "legacy_title": "Задачник 2. Страница 64 (1 и 2), 65",
+      "title_pages": [
+        2,
+        64
+      ],
+      "legacy_task_markers_first_12_rows": [
+        56
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q056",
+        "materials-science-y1-pb2-q057"
+      ],
+      "candidate_source_display_numbers": [
+        56,
+        57
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "9d6fbba2a3f707c7d171ddc4cf278413969e55e2d55ff9fb7241ee619f55e76e",
+      "legacy_title": "Задачник 2. Страница 3",
+      "title_pages": [
+        2,
+        3
+      ],
+      "legacy_task_markers_first_12_rows": [
+        1
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q001"
+      ],
+      "candidate_source_display_numbers": [
+        1
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "d89993948774ba56a46c233fd64cbca6a5cfbf30b9c714fe9904fbd42ec7a319",
+      "legacy_title": "Задачник 2. Страница 48-49",
+      "title_pages": [
+        2,
+        48,
+        49
+      ],
+      "legacy_task_markers_first_12_rows": [
+        39
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q039",
+        "materials-science-y1-pb2-q040"
+      ],
+      "candidate_source_display_numbers": [
+        39,
+        40
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "e712cfc6c1af46c4ede2e23cbdd5537360bad60512346d7527095c71a17eaa88",
+      "legacy_title": "Задачник 2. Страница 46 (бет, гимель)",
+      "title_pages": [
+        2,
+        46
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [],
+      "candidate_source_display_numbers": [],
+      "mapping_status": "NO_SOURCE_TASK_ON_TITLED_PAGE",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "8613241b1793382d0ebe7a400768b798c530ab4f32a995ce4e677533f954cd7a",
+      "legacy_title": "Задачник 2. Страница 63 (1,2 и 3)",
+      "title_pages": [
+        2,
+        63
+      ],
+      "legacy_task_markers_first_12_rows": [
+        53
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q053",
+        "materials-science-y1-pb2-q054",
+        "materials-science-y1-pb2-q055"
+      ],
+      "candidate_source_display_numbers": [
+        53,
+        54,
+        55
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "e6c4ae0c5ff6087e28d9aeda9900662fa79ccce40ddd7bee952e75322870bb50",
+      "legacy_title": "Задачник 2. Страница 61",
+      "title_pages": [
+        2,
+        61
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8,
+        51
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q051"
+      ],
+      "candidate_source_display_numbers": [
+        51
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "8d3299fb1b2913b50fbbd59441315f19749d26f1e039da8b524f22a71d4aba60",
+      "legacy_title": "Задачник 2. Страница 59",
+      "title_pages": [
+        2,
+        59
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8,
+        49
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q049"
+      ],
+      "candidate_source_display_numbers": [
+        49
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "247f7dbee5f30755c97c884be950ac70460da35df70ac5d1125ccefe9ac6f137",
+      "legacy_title": "Задачник 2. Страница 62",
+      "title_pages": [
+        2,
+        62
+      ],
+      "legacy_task_markers_first_12_rows": [
+        52
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q052"
+      ],
+      "candidate_source_display_numbers": [
+        52
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "ca72b87e2428105ec67d1964564bff497f8d44078d370e9299b0b9b9ec031839",
+      "legacy_title": "Задачник 2. Страница 60",
+      "title_pages": [
+        2,
+        60
+      ],
+      "legacy_task_markers_first_12_rows": [
+        7,
+        50
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q050"
+      ],
+      "candidate_source_display_numbers": [
+        50
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "5ad7f30bb8e87d58c6b2ec6a44d60db40c4324eded08006288240da0b434f891",
+      "legacy_title": "Задачник 2. Страница 58",
+      "title_pages": [
+        2,
+        58
+      ],
+      "legacy_task_markers_first_12_rows": [
+        6,
+        48
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q048"
+      ],
+      "candidate_source_display_numbers": [
+        48
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "88f06937aae8a468f37484d2758d247923d30f361a65e1bcf21ed11b4906fe98",
+      "legacy_title": "Задачник 2. Страница 57",
+      "title_pages": [
+        2,
+        57
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8,
+        47
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q047"
+      ],
+      "candidate_source_display_numbers": [
+        47
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "686d317dca61647b5404024ab10ebda12dfc1586161b2daba0807438b56a0125",
+      "legacy_title": "Задачник 2. Страница 55",
+      "title_pages": [
+        2,
+        55
+      ],
+      "legacy_task_markers_first_12_rows": [
+        3,
+        45
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q045"
+      ],
+      "candidate_source_display_numbers": [
+        45
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "6cb38275e880962011164beece686d3227c0f3c92d573a36240a55dfc3d93686",
+      "legacy_title": "Задачник 2. Страница 56",
+      "title_pages": [
+        2,
+        56
+      ],
+      "legacy_task_markers_first_12_rows": [
+        2,
+        46
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q046"
+      ],
+      "candidate_source_display_numbers": [
+        46
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "53949b37f68594b2b65f7acf5e305498978e3f51cae03174059c4ab3c121b80e",
+      "legacy_title": "Задачник 2. Страница 54",
+      "title_pages": [
+        2,
+        54
+      ],
+      "legacy_task_markers_first_12_rows": [
+        44
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q044"
+      ],
+      "candidate_source_display_numbers": [
+        44
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "6894da2869511d3a011384a9ad203197d5ba9f2035b579c3b23cfb149fa9a0ac",
+      "legacy_title": "Задачник 2. Страница 53",
+      "title_pages": [
+        2,
+        53
+      ],
+      "legacy_task_markers_first_12_rows": [
+        43
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q043"
+      ],
+      "candidate_source_display_numbers": [
+        43
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "3a92239938f1697ba56d59755de262d381423fddda4acbb9001db5db71def38e",
+      "legacy_title": "Задачник 2. Страница 51",
+      "title_pages": [
+        2,
+        51
+      ],
+      "legacy_task_markers_first_12_rows": [
+        41
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q041"
+      ],
+      "candidate_source_display_numbers": [
+        41
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "6b7c1dec4ddd29ebc76912faf21be2b5435b23fb1367984d98ab7b6d09bc4fd0",
+      "legacy_title": "Задачник 2. Страница 52",
+      "title_pages": [
+        2,
+        52
+      ],
+      "legacy_task_markers_first_12_rows": [
+        42
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q042"
+      ],
+      "candidate_source_display_numbers": [
+        42
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "3cc5fce8580b8e57ab2e67f9f5c327d864112fa493dafef5c6134eba115c01a8",
+      "legacy_title": "Задачник 2. Страница 47",
+      "title_pages": [
+        2,
+        47
+      ],
+      "legacy_task_markers_first_12_rows": [
+        38
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-p047-q038"
+      ],
+      "candidate_source_display_numbers": [
+        38
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "27414d7bc74bd268ba5f0bd170b8e91ae251828c4b3b33c09d53f21765ede71e",
+      "legacy_title": "Задачник 2. Страница 45-46",
+      "title_pages": [
+        2,
+        45,
+        46
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-p045-q038"
+      ],
+      "candidate_source_display_numbers": [
+        38
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "352f03872bd7755f25864b47d3d0cc0a8c87de342315c326fbb5796cfcc0a616",
+      "legacy_title": "Задачник 2. Страница 44",
+      "title_pages": [
+        2,
+        44
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8,
+        37
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q037"
+      ],
+      "candidate_source_display_numbers": [
+        37
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "916782bddf8844e34eab31c604d033acfbe173c0138a8f70e003b3db5c8bc32c",
+      "legacy_title": "Задачник 2. Страница 43",
+      "title_pages": [
+        2,
+        43
+      ],
+      "legacy_task_markers_first_12_rows": [
+        36
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q036"
+      ],
+      "candidate_source_display_numbers": [
+        36
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "8ab14612296ccc7521d4593f93fd9e946f24a8e86ac8e2202db36070fe1b98f4",
+      "legacy_title": "Задачник 2. Страница 42 (Распечатать задачу к решению!)",
+      "title_pages": [
+        2,
+        42
+      ],
+      "legacy_task_markers_first_12_rows": [
+        34
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q035"
+      ],
+      "candidate_source_display_numbers": [
+        35
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "c1256cc13f183ad4028d101d406bf568834c075d11d8b5faa620b53791fe47df",
+      "legacy_title": "Задачник 2. Страница 40",
+      "title_pages": [
+        2,
+        40
+      ],
+      "legacy_task_markers_first_12_rows": [
+        33
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q033"
+      ],
+      "candidate_source_display_numbers": [
+        33
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "3ad507b98b26dbcc96dd8dc2d277909b3d0d38826e9cf4792490207b4e58a96a",
+      "legacy_title": "Задачник 2. Страница 39.1",
+      "title_pages": [
+        2,
+        39,
+        1
+      ],
+      "legacy_task_markers_first_12_rows": [
+        31
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q031",
+        "materials-science-y1-pb2-q032"
+      ],
+      "candidate_source_display_numbers": [
+        31,
+        32
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "e11fc10ff58b05592f1ec7a3a5d7c46e4a990197f6983c417e9a6e1526408fa1",
+      "legacy_title": "Задачник 2. Страница 38.2",
+      "title_pages": [
+        2,
+        38,
+        2
+      ],
+      "legacy_task_markers_first_12_rows": [
+        3
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q030"
+      ],
+      "candidate_source_display_numbers": [
+        30
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "8fc1f1d67c337f1eecfd67aa316a7b959cc6ab65bc7ab99013bb4c60de002990",
+      "legacy_title": "Задачник 2. Страница 35-36",
+      "title_pages": [
+        2,
+        35,
+        36
+      ],
+      "legacy_task_markers_first_12_rows": [
+        27
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q027",
+        "materials-science-y1-pb2-q028"
+      ],
+      "candidate_source_display_numbers": [
+        27,
+        28
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "ddcda77504a98bc6fb3a1cd5bd30ce2ff6aa7bccdf3512902bd62dfeb379e458",
+      "legacy_title": "Задачник 2. Страница 38.1",
+      "title_pages": [
+        2,
+        38,
+        1
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q030"
+      ],
+      "candidate_source_display_numbers": [
+        30
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "60d644eaf756d80044bf776f18bb505539ad14550545ea5ed96e3bb63bc3be56",
+      "legacy_title": "Задачник 2. Страница 37",
+      "title_pages": [
+        2,
+        37
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8,
+        29
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q029"
+      ],
+      "candidate_source_display_numbers": [
+        29
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "15f6b4a64a3c4bc3f31d37534d7c83fbd380c24e4d88652651ff182f656d06f0",
+      "legacy_title": "Задачник 2. Страница 36",
+      "title_pages": [
+        2,
+        36
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9,
+        28
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q028"
+      ],
+      "candidate_source_display_numbers": [
+        28
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "4113ba5e5314202ab0fbacfb6c22dbdbb32523530d2cb2383944e1a0f2f144a4",
+      "legacy_title": "Задачник 2. Страница 33",
+      "title_pages": [
+        2,
+        33
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q026"
+      ],
+      "candidate_source_display_numbers": [
+        26
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "1a444d3223f097ba5ef271e73f660ba027acd3a05a2c54c1453e32a23cfc720d",
+      "legacy_title": "Задачник 2. Страница 31",
+      "title_pages": [
+        2,
+        31
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q025"
+      ],
+      "candidate_source_display_numbers": [
+        25
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "3aa2f7b456649473aefc45b2ccab32f0a522138e5098f0c0d469194628544cdc",
+      "legacy_title": "Задачник 2. Страница 30 ВАЖНО!",
+      "title_pages": [
+        2,
+        30
+      ],
+      "legacy_task_markers_first_12_rows": [
+        24
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q024"
+      ],
+      "candidate_source_display_numbers": [
+        24
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "be66643e68944f06b4f614aecedd24983db1c1806856a94bf1cf71a0984c819e",
+      "legacy_title": "Задачник 2. Страница 29",
+      "title_pages": [
+        2,
+        29
+      ],
+      "legacy_task_markers_first_12_rows": [
+        7,
+        23
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q023"
+      ],
+      "candidate_source_display_numbers": [
+        23
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "4b2e019604b4ef86e100f923443b57e4c2f3bf90fe7dcdf668370b7cb9300c62",
+      "legacy_title": "Задачник 2. Страница 28",
+      "title_pages": [
+        2,
+        28
+      ],
+      "legacy_task_markers_first_12_rows": [
+        22
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q022"
+      ],
+      "candidate_source_display_numbers": [
+        22
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "5dedb4f79f8059214ccab20af3b02896094cfbc1e3304b3cb1df018b675a2adc",
+      "legacy_title": "Задачник 2. Страница 27",
+      "title_pages": [
+        2,
+        27
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9,
+        21
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q021"
+      ],
+      "candidate_source_display_numbers": [
+        21
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "c7d4d2f1ca41f3242630e4ed561eea1a5a9bab0f406212c2a15c56c667bd171c",
+      "legacy_title": "Задачник 2. Страница 26",
+      "title_pages": [
+        2,
+        26
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q020"
+      ],
+      "candidate_source_display_numbers": [
+        20
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "828ecffc39c124373fb538609645adac8338b27f777029e8ef7635b4c8fd3718",
+      "legacy_title": "Задачник 2. Страница 25",
+      "title_pages": [
+        2,
+        25
+      ],
+      "legacy_task_markers_first_12_rows": [
+        19
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q019"
+      ],
+      "candidate_source_display_numbers": [
+        19
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "1acc6e451e45908a23b4eeba322ec79c6cc84e65da9e78d8308eeea2e869e0a7",
+      "legacy_title": "Задачник 2. Страница 22",
+      "title_pages": [
+        2,
+        22
+      ],
+      "legacy_task_markers_first_12_rows": [
+        1
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q017"
+      ],
+      "candidate_source_display_numbers": [
+        17
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "d6ac4bc9488ae1276fe09e4db76e3ca438e483fe8bfb964fe1a6af08319250dd",
+      "legacy_title": "Задачник 2. Страница 21",
+      "title_pages": [
+        2,
+        21
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q016"
+      ],
+      "candidate_source_display_numbers": [
+        16
+      ],
+      "mapping_status": "AMBIGUOUS_DUPLICATE_LEGACY_TITLE",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "55b3ac0149498ee336f681d696f2cc88044b0463c073155801d8be1a6c3ea121",
+      "legacy_title": "Задачник 2. Страница 21",
+      "title_pages": [
+        2,
+        21
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q016"
+      ],
+      "candidate_source_display_numbers": [
+        16
+      ],
+      "mapping_status": "AMBIGUOUS_DUPLICATE_LEGACY_TITLE",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "72d690c78734eadefcb53b0f1dc790c8ffeeb4f92ea5250856895dba6ebafefb",
+      "legacy_title": "Задачник 2. Страница 23",
+      "title_pages": [
+        2,
+        23
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q018"
+      ],
+      "candidate_source_display_numbers": [
+        18
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "e56e244c9a569bf753c97325b9ca04b97bce6d79512717a5109a11469ffed8bd",
+      "legacy_title": "Задачник 2. Страница 20",
+      "title_pages": [
+        2,
+        20
+      ],
+      "legacy_task_markers_first_12_rows": [
+        19
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q015"
+      ],
+      "candidate_source_display_numbers": [
+        15
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "b4c5ab536ef30ace97688f4e03cc4ea1d49d092cb964db90daed6b4d9802cbc8",
+      "legacy_title": "Задачник 2. Страница 17",
+      "title_pages": [
+        2,
+        17
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q013"
+      ],
+      "candidate_source_display_numbers": [
+        13
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "17713862a5a1d918fdc8eb31008ade513a50709bbf1f912064b5b1d7ffadf177",
+      "legacy_title": "Задачник 2. Страница 18",
+      "title_pages": [
+        2,
+        18
+      ],
+      "legacy_task_markers_first_12_rows": [
+        14
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q014"
+      ],
+      "candidate_source_display_numbers": [
+        14
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "68e9337bc34e54e7d743663d0ddf57d5f4553257a23b2e0cfdd51b7cd494b47f",
+      "legacy_title": "Задачник 2. Страница 16",
+      "title_pages": [
+        2,
+        16
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q012"
+      ],
+      "candidate_source_display_numbers": [
+        12
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "62b8e2218efb2d249090e53ad0596f799d427d2921e7f513f54ab73bb98f1839",
+      "legacy_title": "Задачник 2. Страница 12",
+      "title_pages": [
+        2,
+        12
+      ],
+      "legacy_task_markers_first_12_rows": [
+        9
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q009"
+      ],
+      "candidate_source_display_numbers": [
+        9
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "0c70026de469fb6afc44db61e350d345ea3bcbaa06b36afdfc941c586c04568e",
+      "legacy_title": "Задачник 2. Страница 15",
+      "title_pages": [
+        2,
+        15
+      ],
+      "legacy_task_markers_first_12_rows": [
+        11
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q011"
+      ],
+      "candidate_source_display_numbers": [
+        11
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "4a561c3b882916e08a0019c022b0b0004f16c950eb4fc68baa5f1fc4709c515d",
+      "legacy_title": "Задачник 2. Страница 13",
+      "title_pages": [
+        2,
+        13
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [],
+      "candidate_source_display_numbers": [],
+      "mapping_status": "NO_SOURCE_TASK_ON_TITLED_PAGE",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "0215cb8bb81183144e275fae972fcb95b5d5b90064a641b5e813fbf518c02911",
+      "legacy_title": "Задачник 2. Страница 9",
+      "title_pages": [
+        2,
+        9
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q008"
+      ],
+      "candidate_source_display_numbers": [
+        8
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "62a5d1d2c816d669ccb843eb6b3b992946e5fc2385e342dda3362b5089bd8110",
+      "legacy_title": "Задачник 2. Страница 8",
+      "title_pages": [
+        2,
+        8
+      ],
+      "legacy_task_markers_first_12_rows": [],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q007"
+      ],
+      "candidate_source_display_numbers": [
+        7
+      ],
+      "mapping_status": "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "ef12562d64cbe940cbe688f51bc085dc63e2c0f2ff27253117ce3266024779f1",
+      "legacy_title": "Задачник 2. Страница 7_",
+      "title_pages": [
+        2,
+        7
+      ],
+      "legacy_task_markers_first_12_rows": [
+        6
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q006"
+      ],
+      "candidate_source_display_numbers": [
+        6
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "597b65c579999f6498a5d9d7e9949491631eaffaa51dd92431bea686967aabaf",
+      "legacy_title": "Задачник 2. Страница 6.3",
+      "title_pages": [
+        2,
+        6,
+        3
+      ],
+      "legacy_task_markers_first_12_rows": [
+        5
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q003",
+        "materials-science-y1-pb2-q004",
+        "materials-science-y1-pb2-q005",
+        "materials-science-y1-pb2-q001"
+      ],
+      "candidate_source_display_numbers": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "e36d3d519a99736827ec6b4f9126532e78a5ee7a1a0bd32f3409af9c6b4f64c0",
+      "legacy_title": "Задачник 2. Страница 7",
+      "title_pages": [
+        2,
+        7
+      ],
+      "legacy_task_markers_first_12_rows": [
+        6
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q006"
+      ],
+      "candidate_source_display_numbers": [
+        6
+      ],
+      "mapping_status": "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "28450bb449a7908306ba1db8918ae9ef07467e6596e7efe4fdae4050bb56ef26",
+      "legacy_title": "Задачник 2. Страница 6.2",
+      "title_pages": [
+        2,
+        6,
+        2
+      ],
+      "legacy_task_markers_first_12_rows": [
+        4
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q003",
+        "materials-science-y1-pb2-q004",
+        "materials-science-y1-pb2-q005"
+      ],
+      "candidate_source_display_numbers": [
+        3,
+        4,
+        5
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "74d7d2f20e73a75b12f87119054e590261bad84eb5de29f779a61cd390f485ed",
+      "legacy_title": "Задачник 2. Страница 6.1",
+      "title_pages": [
+        2,
+        6,
+        1
+      ],
+      "legacy_task_markers_first_12_rows": [
+        3
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q003",
+        "materials-science-y1-pb2-q004",
+        "materials-science-y1-pb2-q005"
+      ],
+      "candidate_source_display_numbers": [
+        3,
+        4,
+        5
+      ],
+      "mapping_status": "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT",
+      "reviewer_disposition": null
+    },
+    {
+      "legacy_card_key_sha256": "84d3246443e1c9d0852af88e0ff94cfb78673ead06cf5987ebda76b1cbc0794b",
+      "legacy_title": "Задачник 2. Страница 5",
+      "title_pages": [
+        2,
+        5
+      ],
+      "legacy_task_markers_first_12_rows": [
+        8
+      ],
+      "candidate_source_task_ids": [
+        "materials-science-y1-pb2-q002",
+        "materials-science-y1-pb2-exercise-p005-allotropy"
+      ],
+      "candidate_source_display_numbers": [
+        2
+      ],
+      "mapping_status": "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW",
+      "reviewer_disposition": null
+    }
+  ],
+  "status_counts": {
+    "AMBIGUOUS_DUPLICATE_LEGACY_TITLE": 2,
+    "HEURISTIC_TASK_MARKER_CONFLICT_REQUIRES_MANUAL_REVIEW": 9,
+    "NO_SOURCE_TASK_ON_TITLED_PAGE": 3,
+    "PAGE_AND_MARKER_CANDIDATE_REQUIRES_ROW_REVIEW": 18,
+    "PAGE_ONLY_CANDIDATE_REQUIRES_ROW_REVIEW": 18,
+    "SOURCE_PAGE_HAS_MULTIPLE_TASKS_REQUIRES_ROW_SPLIT": 8
+  }
+}

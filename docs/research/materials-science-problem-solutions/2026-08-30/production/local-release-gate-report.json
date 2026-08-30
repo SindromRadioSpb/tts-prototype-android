@@ -1,0 +1,56 @@
+{
+  "schema_version": "materials_pb2_local_release_gate_report.1.0.0",
+  "evaluated_at": "2026-08-30",
+  "status": "LOCAL_RELEASE_GATES_PASS_PRODUCTION_RIGHTS_ATTESTED",
+  "release_lock": {
+    "app_version": "3.11.449",
+    "room_module_version": "426",
+    "public_corpus_adapter_version": "418",
+    "locale_version": "187"
+  },
+  "corpus": {
+    "task_count": 60,
+    "condition_row_count": 693,
+    "solution_row_count": 1919,
+    "source_asset_count": 72,
+    "audio_asset_count": 0,
+    "timing_sidecar_count": 0,
+    "formula_speech_review_required_count": 275,
+    "source_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5"
+  },
+  "gates": {
+    "focused_node": { "passed": 78, "failed": 0 },
+    "materials_python": { "passed": 36, "failed": 0 },
+    "i18n_and_cache_lock": { "passed": 233, "failed": 0 },
+    "syntax_checks": { "passed": 8, "failed": 0 },
+    "local_browser": { "passed": true, "page_errors": 0, "failed_public_responses": 0 },
+    "local_print_render": { "passed": true, "study_pages": 5, "exam_pages": 3 },
+    "repository_node_suite": {
+      "passed": 1215,
+      "failed": 6,
+      "disposition": "NON_MATERIALS_BASELINE_FAILURES_OUTSIDE_RELEASE_ALLOWLIST",
+      "failures": [
+        "classic mode keeps table fine-tuning in a secondary advanced area",
+        "classic mode provides trust-focused result workspace and static mode toggle",
+        "classic mode keeps a contextual mobile edit FAB and deeper mobile disclosure",
+        "Add Material keeps one recent shortcut and routes the complete list to Import Center",
+        "D1 gives global journey projections to L0 and keeps Ben corpus-local",
+        "D5 shares typed disclosure semantics and repaints them after locale changes"
+      ]
+    }
+  },
+  "audio_boundary": {
+    "row_token_contract_checked": true,
+    "word_timing_schema_contract_checked": true,
+    "word_timing_asset_count_checked": 0,
+    "full_tts_generated": false,
+    "full_tts_authorized": false,
+    "next_gate": "AFTER_PRODUCTION_OWNER_REVIEW_OF_ALL_60_CARDS"
+  },
+  "production_rights": {
+    "status": "ATTESTED",
+    "attestation": "../publication-rights-attestation.json",
+    "receipt": "rights-acceptance-receipt.json",
+    "full_tts_authorized": false
+  }
+}

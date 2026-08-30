@@ -1,0 +1,17 @@
+{
+  "schema_version": "materials_pb2_targeted_solution_review.1.0.0",
+  "batch_id": "B05",
+  "task_id": "materials-science-y1-pb2-q044",
+  "status": "PASS_ONE_REVIEW_CLOSED",
+  "trigger": "INDEPENDENT_5052_H38_VS_LEGACY_6061_T4_FRAME_SELECTION",
+  "source_assets": [
+    "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+    "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+    "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+    "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+  ],
+  "finding": "The frame is explicitly welded from tubes. The appendix lists 6061 in extruded-tube forms with good weldability; H38 strength is cold-work-derived and is not preserved through a fusion-weld heat-affected zone.",
+  "disposition": "REPAIR_SELECTION_TO_AA6061_T4_WITH_EXPLICIT_95_MPA_AND_WELDED_ZONE_QUALIFICATION",
+  "repair_passes_used": 1,
+  "further_repair_allowed": false
+}

@@ -1,0 +1,3242 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q048",
+  "display_alias": "48",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "1cacbdec006c97a92750c7f08dbcf0916031d219d780776e628a9520781aba1e"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "77a17e5d956049e19df07470d123b8c65828e76de796d157aa6a02f745c30465",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Hot-dip galvanizing sequence, coating classes and Al/Cu passive films match. Independent solution rejects universal corrosion immunity.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q048-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 48.",
+        "hebrew_niqqud": "שְׁאֵלָה 48.",
+        "translit": "She'ela 48.",
+        "translit_ru": "",
+        "russian": "Вопрос 48.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "task_heading",
+            "source_page": 58,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q048-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. תאר את תהליך הציפוי באבץ - גילוון.",
+        "hebrew_niqqud": "א. תָּאֵר אֶת תַּהֲלִיךְ הַצִּיפּוּי בְּאָבָץ - גִּילְווּן.",
+        "translit": "a. Ta'er et tahalikh hatzipuy be'avatz - gilvun.",
+        "translit_ru": "",
+        "russian": "א. Опишите процесс покрытия цинком – оцинкование.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "subpart",
+            "source_page": 58,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q048-r003",
+        "order_index": 2,
+        "hebrew_plain": "ב. הטבלה לשאלה 6 מרכזת שיטות של ציפויים להגנה בפני שיתוך: ציפויים לא מתכתיים וציפויים כימיים.",
+        "hebrew_niqqud": "ב. הַטַּבְלָה לִשְׁאֵלָה 6 מְרַכֶּזֶת שִׁיטוֹת שֶׁל צִיפּוּיִים לַהֲגָנָה בִּפְנֵי שִׁיתּוּךְ: צִיפּוּיִים לֹא מַתַּכְתִּיִּים וְצִיפּוּיִים כִּימִיִּים.",
+        "translit": "b. Hatavlah lishe'elah 6 merakezet shitot shel tzipuyim lahaganah bifnei shitukh: tzipuyim lo mataktiyim vetzipuyim kimiyim.",
+        "translit_ru": "",
+        "russian": "ב. Таблица к вопросу 6 обобщает методы защитных покрытий от коррозии: неметаллические покрытия и химические покрытия.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "subpart",
+            "source_page": 58,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q048-r004",
+        "order_index": 3,
+        "hebrew_plain": "השלם את הנדרש בטבלה לשאלה 6, על גבי טופס הבחינה, בהתאם לדוגמה ובהתאם לשיטות ההגנה בפני שיתוך המוצגות להלן: השחמה, פוספטיזציה, צביעה, שימון, ציפוי אמייל, חימצון, אנודיזציה.",
+        "hebrew_niqqud": "הַשְׁלֵם אֶת הַנִּדְרָשׁ בַּטַּבְלָה לִשְׁאֵלָה 6, עַל גַּבֵּי טֹופֶס הַבְּחִינָה, בְּהֶתְאֵם לַדֻּוגְמָה וּבְהֶתְאֵם לְשִׁיטוֹת הַהֲגָנָה בִּפְנֵי שִׁיתּוּךְ הַמּוּצָגוֹת לְהַלָּן: הַשְׁחָמָה, פּוֹסְפָטִיזַצְיָה, צְבִיעָה, שִׁימּוּן, צִיפּוּי אֶמַייְל, חִימְצוּן, אָנוֹדִיזַצְיָה.",
+        "translit": "Hashlem et hanidrash batavlah lishe'elah 6, 'al gabei tofes habḥinah, behet'em ladugmah uvhet'em leshitot hahaganah bifnei shitukh hamutzagot lehalan: hashḥamah, fosfatizatzyah, tzvi'ah, shimun, tzipuy emayl, ḥimtzun, anodizatzyah.",
+        "translit_ru": "",
+        "russian": "Заполните требуемое в таблице к вопросу 6 на экзаменационном бланке в соответствии с примером и в соответствии с приведёнными ниже методами защиты от коррозии: воронение, фосфатирование, окрашивание, смазка маслом, эмалирование, оксидирование, анодирование.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "subpart",
+            "source_page": 58,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q048-r005",
+        "order_index": 4,
+        "hebrew_plain": "(דוגמה: גירוז)",
+        "hebrew_niqqud": "(דֻּוגְמָה: גֵּירוּז)",
+        "translit": "(dugmah: geruz)",
+        "translit_ru": "",
+        "russian": "(пример: смазывание консистентной смазкой)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "subpart",
+            "source_page": 58,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q048-r006",
+        "order_index": 5,
+        "hebrew_plain": "ג. מדוע המתכות אלומיניום ונחושת אינן רגישות לשיתוך? הסבר ונמק את תשובתך.",
+        "hebrew_niqqud": "ג. מַדּוּעַ הַמַּתָּכוֹת אַלוּמִינְיוּם וּנְחֹושֶׁת אֵינָן רְגִישׁוֹת לְשִׁיתּוּךְ? הַסְבֵּר וְנַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "g. Madua' hamatakhot aluminiyum uneḥoshet einan regishot leshitukh? Hasber venamek et teshuvatekha.",
+        "translit_ru": "",
+        "russian": "ג. Почему металлы алюминий и медь не чувствительны к коррозии? Объясните и обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "subpart",
+            "source_page": 58,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q048-r007",
+        "order_index": 6,
+        "hebrew_plain": "הסבר ונמק את תשובתך.",
+        "hebrew_niqqud": "הַסְבֵּר וְנַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Hasber venamek et teshuvatekha.",
+        "translit_ru": "",
+        "russian": "Объясните и обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q048",
+            "kind": "subpart",
+            "source_page": 58,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      58
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q048/anchor-01-p058.jpg",
+        "sha256": "ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "bytes": 246709,
+        "source_page": 58,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q048-v01",
+        "source_page": 58,
+        "kind": "COATING_CLASSIFICATION_RESPONSE_TABLE",
+        "instance_count": 1,
+        "semantic_role": "RESPONSE_STRUCTURE",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:77a17e5d956049e19df07470d123b8c65828e76de796d157aa6a02f745c30465"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים פלוקס לשיפור ההרטבה ולהסרת שאריות תחמוצות מן המשטח.",
+        "he_niqqud": "מְבַצְּעִים פְּלוּקְס לְשִׁפּוּר הַהַרְטָבָה וּלְהַסָּרַת שְׁאֵרִיּוֹת תַּחְמְצוֹת מִן הַמִּשְׁטָח.",
+        "transliteration": "Mevatze'im fluks le-shipur ha-hartavah u-le-hasarat she'eriyot taĥmutzot min ha-mishtaĥ.",
+        "ru": "Проводят флюсование для улучшения смачиваемости и удаления остатков оксидов с поверхности."
+      },
+      "source_refs": [
+        "legacy_row_hash:725e274f97419b5170f11ddee26cc4aa45981ea0fc5ce08293b16edf80de6704",
+        "legacy_fields_sha256:b3f2260ab184d001cedc937b4c1ac3e92828812d3e7b4fbe09007c1a6d78f3f2",
+        "independent_solution_sha256:77a17e5d956049e19df07470d123b8c65828e76de796d157aa6a02f745c30465"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלוּקְס",
+            "normalized": "פלוקס"
+          },
+          {
+            "index": 2,
+            "surface": "לְשִׁפּוּר",
+            "normalized": "לשפור"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְטָבָה",
+            "normalized": "ההרטבה"
+          },
+          {
+            "index": 4,
+            "surface": "וּלְהַסָּרַת",
+            "normalized": "ולהסרת"
+          },
+          {
+            "index": 5,
+            "surface": "שְׁאֵרִיּוֹת",
+            "normalized": "שאריות"
+          },
+          {
+            "index": 6,
+            "surface": "תַּחְמְצוֹת",
+            "normalized": "תחמצות"
+          },
+          {
+            "index": 7,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 8,
+            "surface": "הַמִּשְׁטָח.",
+            "normalized": "המשטח"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים לא מתכתיים: צביעה.",
+        "he_niqqud": "ב) צִפּוּיִים לֹא מַתַּכְתִּיִּים: צְבִיעָה.",
+        "transliteration": "B) Tzipu'im lo matikhti'im: Tzvi'ah.",
+        "ru": "Б) Неметаллические покрытия: Окрашивание."
+      },
+      "source_refs": [
+        "legacy_row_hash:eb3274c95b771afccc6377cee12722e7dea20c5bf206ec1b2e93eb0823cc2bcf",
+        "legacy_fields_sha256:17bd4be004479d916d969468187c241c01e9068018bf08a7f2a2f2c63ea96560",
+        "independent_solution_sha256:77a17e5d956049e19df07470d123b8c65828e76de796d157aa6a02f745c30465"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מַתַּכְתִּיִּים:",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 4,
+            "surface": "צְבִיעָה.",
+            "normalized": "צביעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) אלומיניום אינו רגיש לשיתוך משום שעל פניו נוצרת במהירות שכבת פסיבציה צפופה והדוקה של Al₂O₃.",
+        "he_niqqud": "ג) אָלוּמִינְיוּם אֵינוֹ רָגִישׁ לְשִׁתּוּךְ מִשּׁוּם שֶׁעַל פָּנָיו נוֹצֶרֶת בִּמְהִירוּת שִׁכְבַת פָּסִיבַצְיָה צְפוּפָה וַהֲדוּקָה שֶׁל Al₂O₃.",
+        "transliteration": "G) Aluminiyum eyno ragish le-shittukh mishum she-'al panav notzeret bi-mhirut shikhvat pasivatz'yah tzefufah va-haddukah shel Al₂O₃.",
+        "ru": "В) Алюминий не подвержен коррозии, потому что на его поверхности быстро образуется плотный и герметичный пассивирующий слой Al₂O₃."
+      },
+      "source_refs": [
+        "legacy_row_hash:9ea049c12979a2f833bcea5d199463b733e7d6e34fb8061981c9b082c3e3e7d1",
+        "legacy_fields_sha256:513fac0014a01b3bf5fbee5f421cbc08be42289538391f3cf89819c5cfec0306",
+        "independent_solution_sha256:77a17e5d956049e19df07470d123b8c65828e76de796d157aa6a02f745c30465"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "אָלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 2,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 3,
+            "surface": "רָגִישׁ",
+            "normalized": "רגיש"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׁתּוּךְ",
+            "normalized": "לשתוך"
+          },
+          {
+            "index": 5,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁעַל",
+            "normalized": "שעל"
+          },
+          {
+            "index": 7,
+            "surface": "פָּנָיו",
+            "normalized": "פניו"
+          },
+          {
+            "index": 8,
+            "surface": "נוֹצֶרֶת",
+            "normalized": "נוצרת"
+          },
+          {
+            "index": 9,
+            "surface": "בִּמְהִירוּת",
+            "normalized": "במהירות"
+          },
+          {
+            "index": 10,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 11,
+            "surface": "פָּסִיבַצְיָה",
+            "normalized": "פסיבציה"
+          },
+          {
+            "index": 12,
+            "surface": "צְפוּפָה",
+            "normalized": "צפופה"
+          },
+          {
+            "index": 13,
+            "surface": "וַהֲדוּקָה",
+            "normalized": "והדוקה"
+          },
+          {
+            "index": 14,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 15,
+            "surface": "Al₂O₃.",
+            "normalized": "Al₂O₃"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) גילוון הוא יצירת שכבת אבץ על פלדה או ברזל כדי להגן מפני שיתוך.",
+        "he_niqqud": "א) גִּלְווּן הוּא יְצִירַת שִׁכְבַת אָבָץ עַל פְּלָדָה אוֹ בַּרְזֶל כְּדֵי לְהָגֵן מִפְּנֵי שִׁתּוּךְ.",
+        "transliteration": "A) Gilvun hu yetzirat shikhvat avatz al peladah o barzel k'dey lehagen mipney shittukh.",
+        "ru": "А) Гальванизация — это создание слоя цинка на стали или железе для защиты от коррозии."
+      },
+      "source_refs": [
+        "legacy_row_hash:a375667d91150c07008b5d3672439e4773c3c467482b76deddd997dbbbb5e21d",
+        "legacy_fields_sha256:cb7ea85f96b8a49e7220c0f0efdb79b4d3b6e720441ebd29ed6078c5f0a4cd05",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "גִּלְווּן",
+            "normalized": "גלוון"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 4,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 5,
+            "surface": "אָבָץ",
+            "normalized": "אבץ"
+          },
+          {
+            "index": 6,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 7,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 9,
+            "surface": "בַּרְזֶל",
+            "normalized": "ברזל"
+          },
+          {
+            "index": 10,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 11,
+            "surface": "לְהָגֵן",
+            "normalized": "להגן"
+          },
+          {
+            "index": 12,
+            "surface": "מִפְּנֵי",
+            "normalized": "מפני"
+          },
+          {
+            "index": 13,
+            "surface": "שִׁתּוּךְ.",
+            "normalized": "שתוך"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "השכבה מספקת הגנה מחסומית בכך שהיא מפרידה את המתכת מהסביבה.",
+        "he_niqqud": "הַשִּׁכְבָה מְסַפֶּקֶת הֲגַנָּה מַחְסוֹמִית בְּכָךְ שֶׁהִיא מַפְרִידָה אֶת הַמַּתֶּכֶת מֵהַסְּבִיבָה.",
+        "transliteration": "Ha-shikhvah mesappeket haganah maĥsumit be-khakh she-hi mafridah et ha-metekhet me-ha-sevivah.",
+        "ru": "Слой обеспечивает барьерную защиту, отделяя металл от окружающей среды."
+      },
+      "source_refs": [
+        "legacy_row_hash:24c5429d97df637de227342073740f1f26437e20f71f96fccc11c8896e91b8d8",
+        "legacy_fields_sha256:87438cfce571cd0377fb92ca52c91fe3dd0ac0eaa41451dbb357b367532f5b76",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁכְבָה",
+            "normalized": "השכבה"
+          },
+          {
+            "index": 1,
+            "surface": "מְסַפֶּקֶת",
+            "normalized": "מספקת"
+          },
+          {
+            "index": 2,
+            "surface": "הֲגַנָּה",
+            "normalized": "הגנה"
+          },
+          {
+            "index": 3,
+            "surface": "מַחְסוֹמִית",
+            "normalized": "מחסומית"
+          },
+          {
+            "index": 4,
+            "surface": "בְּכָךְ",
+            "normalized": "בכך"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁהִיא",
+            "normalized": "שהיא"
+          },
+          {
+            "index": 6,
+            "surface": "מַפְרִידָה",
+            "normalized": "מפרידה"
+          },
+          {
+            "index": 7,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 8,
+            "surface": "הַמַּתֶּכֶת",
+            "normalized": "המתכת"
+          },
+          {
+            "index": 9,
+            "surface": "מֵהַסְּבִיבָה.",
+            "normalized": "מהסביבה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r007",
+      "order": 7,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "השכבה מספקת גם הגנה קתודית באמצעות אנודה קורבנית, משום שהאבץ פעיל יותר מן הברזל ומתחמצן ראשון.",
+        "he_niqqud": "הַשִּׁכְבָה מְסַפֶּקֶת גַּם הֲגַנָּה קָתוֹדִית בְּאֶמְצָעוּת אָנוֹדָה קָרְבָּנִית, מִשּׁוּם שֶׁהָאָבָץ פָּעִיל יוֹתֵר מִן הַבַּרְזֶל וּמִתְחַמְצֵן רִאשׁוֹן.",
+        "transliteration": "Ha-shikhvah mesappeket gam haganah katodit be-emtzaut anodah korbanit, mishum she-ha-avatz pa'il yoter min ha-barzel u-mitĥamtzan rishon.",
+        "ru": "Слой также обеспечивает катодную защиту посредством жертвенного анода, поскольку цинк более активен, чем железо, и окисляется первым."
+      },
+      "source_refs": [
+        "legacy_row_hash:e7230bff7548b48d3b50bfb4ca75d7a25309056695772df0b11853524d98945b",
+        "legacy_fields_sha256:a66611494128840bfcc89658c6e739057d3e9b101ca959933b7e2f2efc6c236d",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁכְבָה",
+            "normalized": "השכבה"
+          },
+          {
+            "index": 1,
+            "surface": "מְסַפֶּקֶת",
+            "normalized": "מספקת"
+          },
+          {
+            "index": 2,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 3,
+            "surface": "הֲגַנָּה",
+            "normalized": "הגנה"
+          },
+          {
+            "index": 4,
+            "surface": "קָתוֹדִית",
+            "normalized": "קתודית"
+          },
+          {
+            "index": 5,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 6,
+            "surface": "אָנוֹדָה",
+            "normalized": "אנודה"
+          },
+          {
+            "index": 7,
+            "surface": "קָרְבָּנִית,",
+            "normalized": "קרבנית"
+          },
+          {
+            "index": 8,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁהָאָבָץ",
+            "normalized": "שהאבץ"
+          },
+          {
+            "index": 10,
+            "surface": "פָּעִיל",
+            "normalized": "פעיל"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 12,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 13,
+            "surface": "הַבַּרְזֶל",
+            "normalized": "הברזל"
+          },
+          {
+            "index": 14,
+            "surface": "וּמִתְחַמְצֵן",
+            "normalized": "ומתחמצן"
+          },
+          {
+            "index": 15,
+            "surface": "רִאשׁוֹן.",
+            "normalized": "ראשון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בגילוון חם מבצעים ניקוי שומנים של החלק.",
+        "he_niqqud": "בְּגִלְווּן חַם מְבַצְּעִים נִקּוּי שׁוּמָנִים שֶׁל הַחֵלֶק.",
+        "transliteration": "Be-gilvun ĥam mevatze'im nikkuy shumanim shel ha-ĥelek.",
+        "ru": "При горячей гальванизации проводят обезжиривание детали."
+      },
+      "source_refs": [
+        "legacy_row_hash:c4ab7879bf7a5e96291013e91ae1bf12144713122724d86fed1806351b060482",
+        "legacy_fields_sha256:fe63be28166e999f8976468fd9038722ace3ce3d8c5dab1543940818ea493b6d",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּגִלְווּן",
+            "normalized": "בגלוון"
+          },
+          {
+            "index": 1,
+            "surface": "חַם",
+            "normalized": "חם"
+          },
+          {
+            "index": 2,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 3,
+            "surface": "נִקּוּי",
+            "normalized": "נקוי"
+          },
+          {
+            "index": 4,
+            "surface": "שׁוּמָנִים",
+            "normalized": "שומנים"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "הַחֵלֶק.",
+            "normalized": "החלק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר מכן מבצעים שטיפה.",
+        "he_niqqud": "לְאַחַר מִכֵּן מְבַצְּעִים שְׁטִיפָה.",
+        "transliteration": "Le'aĥar ken mevatze'im shtifah.",
+        "ru": "После этого проводят промывку."
+      },
+      "source_refs": [
+        "legacy_row_hash:73f394bbc07562a4fafe8023c17d566e8b94e18f92c268f4d8da478dae57c40c",
+        "legacy_fields_sha256:5e23e41d7005c62df4943dcd0f78cf50e5251881bf5627aba51a916fb92c0e49",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 2,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 3,
+            "surface": "שְׁטִיפָה.",
+            "normalized": "שטיפה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים כבישה בחומצה להסרת חלודה ואבנית.",
+        "he_niqqud": "מְבַצְּעִים כְּבִישָׁה בְּחֻמְצָה לְהַסָּרַת חֲלוּדָה וְאַבְנִית.",
+        "transliteration": "Mevatze'im kevishah be-ĥumtzah le-hasarat ĥaludah v'avnit.",
+        "ru": "Выполняют травление в кислоте для удаления ржавчины и накипи."
+      },
+      "source_refs": [
+        "legacy_row_hash:c8c7ac83a8294df5900fe0a137ec32a320be99cd6bb55816f2f9e3d05eedafe6",
+        "legacy_fields_sha256:58ab5247c071a0cf296c928be0a6597eec381b74e0cd92d32a9715c5745b3106",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "כְּבִישָׁה",
+            "normalized": "כבישה"
+          },
+          {
+            "index": 2,
+            "surface": "בְּחֻמְצָה",
+            "normalized": "בחמצה"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַסָּרַת",
+            "normalized": "להסרת"
+          },
+          {
+            "index": 4,
+            "surface": "חֲלוּדָה",
+            "normalized": "חלודה"
+          },
+          {
+            "index": 5,
+            "surface": "וְאַבְנִית.",
+            "normalized": "ואבנית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים שטיפה נוספת.",
+        "he_niqqud": "מְבַצְּעִים שְׁטִיפָה נוֹסֶפֶת.",
+        "transliteration": "Mevatze'im shtifah nossefet.",
+        "ru": "Выполняют дополнительную промывку."
+      },
+      "source_refs": [
+        "legacy_row_hash:2c525625902481df0db23c2bd2f92e29b331d75e02af140cbb6ed57789f8f95f",
+        "legacy_fields_sha256:f8bcb75ea16d7116b07c34933ebbc56ed7138ddc87c50fefd10a4e074f8d6684",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "שְׁטִיפָה",
+            "normalized": "שטיפה"
+          },
+          {
+            "index": 2,
+            "surface": "נוֹסֶפֶת.",
+            "normalized": "נוספת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים פלוקס לשיפור ההרטבה ולהסרת שאריות תחמוצות מן המשטח.",
+        "he_niqqud": "מְבַצְּעִים פְּלוּקְס לְשִׁפּוּר הַהַרְטָבָה וּלְהַסָּרַת שְׁאֵרִיּוֹת תַּחְמְצוֹת מִן הַמִּשְׁטָח.",
+        "transliteration": "Mevatze'im fluks le-shipur ha-hartavah u-le-hasarat she'eriyot taĥmutzot min ha-mishtaĥ.",
+        "ru": "Проводят флюсование для улучшения смачиваемости и удаления остатков оксидов с поверхности."
+      },
+      "source_refs": [
+        "legacy_row_hash:725e274f97419b5170f11ddee26cc4aa45981ea0fc5ce08293b16edf80de6704",
+        "legacy_fields_sha256:b3f2260ab184d001cedc937b4c1ac3e92828812d3e7b4fbe09007c1a6d78f3f2",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלוּקְס",
+            "normalized": "פלוקס"
+          },
+          {
+            "index": 2,
+            "surface": "לְשִׁפּוּר",
+            "normalized": "לשפור"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְטָבָה",
+            "normalized": "ההרטבה"
+          },
+          {
+            "index": 4,
+            "surface": "וּלְהַסָּרַת",
+            "normalized": "ולהסרת"
+          },
+          {
+            "index": 5,
+            "surface": "שְׁאֵרִיּוֹת",
+            "normalized": "שאריות"
+          },
+          {
+            "index": 6,
+            "surface": "תַּחְמְצוֹת",
+            "normalized": "תחמצות"
+          },
+          {
+            "index": 7,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 8,
+            "surface": "הַמִּשְׁטָח.",
+            "normalized": "המשטח"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "טובלים את החלק באבץ מותך בטמפרטורה אופיינית של כ־450°C.",
+        "he_niqqud": "טוֹבְלִים אֶת הַחֵלֶק בְּאָבָץ מֻתָּךְ בְּטֶמְפֶּרָטוּרָה אוֹפְיָנִית שֶׁל כְּ-450°C.",
+        "transliteration": "Tovlim et ha-ĥelek be-avatz muttakh be-temperatura ofyenit shel k'a-450°C.",
+        "ru": "Деталь погружают в расплавленный цинк при типичной температуре около 450°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:3ff06c0847debf51df91d143425d70fd6df4cb8acf2d75e6b2b5d1d9b774528c",
+        "legacy_fields_sha256:0832efebaabb01a415241fd59a1cd6607f48c4eb05031d0617da3e09d1dea11d",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "טוֹבְלִים",
+            "normalized": "טובלים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "הַחֵלֶק",
+            "normalized": "החלק"
+          },
+          {
+            "index": 3,
+            "surface": "בְּאָבָץ",
+            "normalized": "באבץ"
+          },
+          {
+            "index": 4,
+            "surface": "מֻתָּךְ",
+            "normalized": "מתך"
+          },
+          {
+            "index": 5,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹפְיָנִית",
+            "normalized": "אופינית"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "כְּ-450°C.",
+            "normalized": "כ-450°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מנקזים ומסירים עודפי אבץ.",
+        "he_niqqud": "מְנַקְּזִים וּמְסִירִים עוֹדְפֵי אָבָץ.",
+        "transliteration": "Menakkezim u-mesirim odfey avatz.",
+        "ru": "Сливают и удаляют излишки цинка."
+      },
+      "source_refs": [
+        "legacy_row_hash:5551e06faf2b3500815fb762e3f4c6c653dfe2d78506f28f7ad04b93692966b6",
+        "legacy_fields_sha256:5badaf18887d4778f1718d1fa6e5ddfd85a2fc028be69780a5ff1fd2def6ea74",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְנַקְּזִים",
+            "normalized": "מנקזים"
+          },
+          {
+            "index": 1,
+            "surface": "וּמְסִירִים",
+            "normalized": "ומסירים"
+          },
+          {
+            "index": 2,
+            "surface": "עוֹדְפֵי",
+            "normalized": "עודפי"
+          },
+          {
+            "index": 3,
+            "surface": "אָבָץ.",
+            "normalized": "אבץ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מקררים ולעיתים מבצעים פסיבציה לשיפור העמידות.",
+        "he_niqqud": "מְקָרְרִים וּלְעִתִּים מְבַצְּעִים פָּסִיבַצְיָה לְשִׁפּוּר הָעֲמִידוּת.",
+        "transliteration": "Mekarrerim v'le'itim mevatze'im pasivatz'yah le-shipur ha-amidut.",
+        "ru": "Охлаждают и иногда проводят пассивацию для улучшения стойкости."
+      },
+      "source_refs": [
+        "legacy_row_hash:3294056f57b0ce59382e6a32c37a4d8cc463f5633566195695bda305a9f31731",
+        "legacy_fields_sha256:a3c38d65dc1bd00298698db320a2567d3f382a32ea71baad8408790752441d00",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְקָרְרִים",
+            "normalized": "מקררים"
+          },
+          {
+            "index": 1,
+            "surface": "וּלְעִתִּים",
+            "normalized": "ולעתים"
+          },
+          {
+            "index": 2,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 3,
+            "surface": "פָּסִיבַצְיָה",
+            "normalized": "פסיבציה"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׁפּוּר",
+            "normalized": "לשפור"
+          },
+          {
+            "index": 5,
+            "surface": "הָעֲמִידוּת.",
+            "normalized": "העמידות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במהלך התהליך מתקבלת שכבת אבץ חיצונית.",
+        "he_niqqud": "בְּמַהֲלַךְ הַתַּהֲלִיךְ מִתְקַבֶּלֶת שִׁכְבַת אָבָץ חִיצוֹנִית.",
+        "transliteration": "Be-mahalakh ha-tahaliĥ mitkabelet shikhvat avatz ĥitzonit.",
+        "ru": "В ходе процесса получается внешний слой цинка."
+      },
+      "source_refs": [
+        "legacy_row_hash:0efef0ea07439fb1fb36f11380bd71a586967f892522ed12941df83014c1e9c5",
+        "legacy_fields_sha256:08111313f70926dec3aa9fc00fd45378039ad4ad45e23b2586a5464439d9e3f9",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמַהֲלַךְ",
+            "normalized": "במהלך"
+          },
+          {
+            "index": 1,
+            "surface": "הַתַּהֲלִיךְ",
+            "normalized": "התהליך"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 4,
+            "surface": "אָבָץ",
+            "normalized": "אבץ"
+          },
+          {
+            "index": 5,
+            "surface": "חִיצוֹנִית.",
+            "normalized": "חיצונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בנוסף מתקבלות שכבות בין־מתכתיות Fe-Zn הנוצרות כתוצאה מדיפוזיה ותגובה מטלורגית.",
+        "he_niqqud": "בְּנוֹסָף מִתְקַבְּלוֹת שִׁכְבוֹת בֵּין־מַתַּכְתִּיּוֹת Fe-Zn הַנּוֹצָרוֹת כְּתוֹצָאָה מִדִּיפוּזְיָה וּתְגוּבָה מֵטַלוּרְגִּית.",
+        "transliteration": "Be-nosaf mitkabbelot shkhavot bein-matikhti'ot Fe-Zn ha-notzrot k'totza'ah mi-difuzyah u-t'guvah metallurgit.",
+        "ru": "Кроме того, образуются интерметаллические слои Fe-Zn, которые возникают в результате диффузии и металлургической реакции."
+      },
+      "source_refs": [
+        "legacy_row_hash:b09a2caa7cc93051f1a02660a10e8dcdbcd5d11635bcbdce3d2633a61fadfe42",
+        "legacy_fields_sha256:7be13e562703d1135227d9602dfec305f9b93633c63bf8e5b769a85f9cabcc96",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּנוֹסָף",
+            "normalized": "בנוסף"
+          },
+          {
+            "index": 1,
+            "surface": "מִתְקַבְּלוֹת",
+            "normalized": "מתקבלות"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁכְבוֹת",
+            "normalized": "שכבות"
+          },
+          {
+            "index": 3,
+            "surface": "בֵּין־מַתַּכְתִּיּוֹת",
+            "normalized": "בין־מתכתיות"
+          },
+          {
+            "index": 4,
+            "surface": "Fe-Zn",
+            "normalized": "Fe-Zn"
+          },
+          {
+            "index": 5,
+            "surface": "הַנּוֹצָרוֹת",
+            "normalized": "הנוצרות"
+          },
+          {
+            "index": 6,
+            "surface": "כְּתוֹצָאָה",
+            "normalized": "כתוצאה"
+          },
+          {
+            "index": 7,
+            "surface": "מִדִּיפוּזְיָה",
+            "normalized": "מדיפוזיה"
+          },
+          {
+            "index": 8,
+            "surface": "וּתְגוּבָה",
+            "normalized": "ותגובה"
+          },
+          {
+            "index": 9,
+            "surface": "מֵטַלוּרְגִּית.",
+            "normalized": "מטלורגית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "השכבות הבין־מתכתיות משפרות את ההיצמדות של הציפוי למצע.",
+        "he_niqqud": "הַשִּׁכְבוֹת הַבֵּין־מַתַּכְתִּיּוֹת מְשַׁפְּרוֹת אֶת הַהִצַּמְּדוּת שֶׁל הַצִּפּוּי לַמַּצָּע.",
+        "transliteration": "Ha-shkhavot ha-bein-matikhti'ot meshapperot et ha-hitzammdut shel ha-tzipuy la-matza.",
+        "ru": "Интерметаллические слои улучшают адгезию покрытия к подложке."
+      },
+      "source_refs": [
+        "legacy_row_hash:7301152471de71550688f33927ae670b17dd7c185e649b022072c29431e2c78e",
+        "legacy_fields_sha256:370ec776a414c332448a55035a31261ce17731b6003d99afa9bbb65711ff5c52",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁכְבוֹת",
+            "normalized": "השכבות"
+          },
+          {
+            "index": 1,
+            "surface": "הַבֵּין־מַתַּכְתִּיּוֹת",
+            "normalized": "הבין־מתכתיות"
+          },
+          {
+            "index": 2,
+            "surface": "מְשַׁפְּרוֹת",
+            "normalized": "משפרות"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "הַהִצַּמְּדוּת",
+            "normalized": "ההצמדות"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "הַצִּפּוּי",
+            "normalized": "הצפוי"
+          },
+          {
+            "index": 7,
+            "surface": "לַמַּצָּע.",
+            "normalized": "למצע"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הסיבה שהאבץ מגן גם כאשר יש פגיעה מקומית בציפוי היא שהאבץ משמש אנודה קורבנית ומגן קתודית על הפלדה הסמוכה.",
+        "he_niqqud": "הַסִּבָּה שֶׁהָאָבָץ מֵגֵן גַּם כַּאֲשֶׁר יֵשׁ פְּגִיעָה מְקוֹמִית בַּצִּפּוּי הִיא שֶׁהָאָבָץ מְשַׁמֵּשׁ אָנוֹדָה קָרְבָּנִית וּמֵגֵן קָתוֹדִית עַל הַפְּלָדָה הַסְּמוּכָה.",
+        "transliteration": "Ha-sivah she-ha-avatz magen gam ka'asher yesh pegi'ah mekomit ba-tzipuy hi she-ha-avatz meshamesh anodah korbanit u-magen katodit al ha-peladah ha-semukhah.",
+        "ru": "Причина, по которой цинк защищает даже при локальном повреждении покрытия, заключается в том, что цинк служит жертвенным анодом и обеспечивает катодную защиту близлежащей стали."
+      },
+      "source_refs": [
+        "legacy_row_hash:f4040dbf32b30953b8759a73366f63a9058e7b5fb53b3ff2bc597517731f9b91",
+        "legacy_fields_sha256:ffca032aa40d5e6060a61fa84c7b8079f1a618be01cca69eff510440a061b6ae",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַסִּבָּה",
+            "normalized": "הסבה"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁהָאָבָץ",
+            "normalized": "שהאבץ"
+          },
+          {
+            "index": 2,
+            "surface": "מֵגֵן",
+            "normalized": "מגן"
+          },
+          {
+            "index": 3,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 4,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 5,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 6,
+            "surface": "פְּגִיעָה",
+            "normalized": "פגיעה"
+          },
+          {
+            "index": 7,
+            "surface": "מְקוֹמִית",
+            "normalized": "מקומית"
+          },
+          {
+            "index": 8,
+            "surface": "בַּצִּפּוּי",
+            "normalized": "בצפוי"
+          },
+          {
+            "index": 9,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁהָאָבָץ",
+            "normalized": "שהאבץ"
+          },
+          {
+            "index": 11,
+            "surface": "מְשַׁמֵּשׁ",
+            "normalized": "משמש"
+          },
+          {
+            "index": 12,
+            "surface": "אָנוֹדָה",
+            "normalized": "אנודה"
+          },
+          {
+            "index": 13,
+            "surface": "קָרְבָּנִית",
+            "normalized": "קרבנית"
+          },
+          {
+            "index": 14,
+            "surface": "וּמֵגֵן",
+            "normalized": "ומגן"
+          },
+          {
+            "index": 15,
+            "surface": "קָתוֹדִית",
+            "normalized": "קתודית"
+          },
+          {
+            "index": 16,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 17,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 18,
+            "surface": "הַסְּמוּכָה.",
+            "normalized": "הסמוכה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים לא מתכתיים הם שכבות אורגניות, קרמיות או שומניות היוצרות מחסום בין המתכת לבין הסביבה.",
+        "he_niqqud": "ב) צִפּוּיִים לֹא מַתַּכְתִּיִּים הֵם שִׁכְבוֹת אוֹרְגָּנִיּוֹת, קֵרָמִיּוֹת אוֹ שֻׁמָנִיּוֹת הַיּוֹצְרוֹת מַחְסוֹם בֵּין הַמַּתֶּכֶת לְבֵין הַסְּבִיבָה.",
+        "transliteration": "B) Tzipu'im lo matikhti'im hem shkhavot organiyyot, kerami'ot o shumanniyyot ha-yotzrot maĥsom bein ha-metekhet l'vein ha-sevivah.",
+        "ru": "Б) Неметаллические покрытия — это органические, керамические или жировые слои, которые создают барьер между металлом и окружающей средой."
+      },
+      "source_refs": [
+        "legacy_row_hash:8b77ba97142f4b61c4a16cf2f7990006f17e89c650f69e1d595e7ff016c56b29",
+        "legacy_fields_sha256:614aa1a75091508df3f18cb20539ef1f207b8f158a6377905aa1c19a35b7b45f",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מַתַּכְתִּיִּים",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 4,
+            "surface": "הֵם",
+            "normalized": "הם"
+          },
+          {
+            "index": 5,
+            "surface": "שִׁכְבוֹת",
+            "normalized": "שכבות"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹרְגָּנִיּוֹת,",
+            "normalized": "אורגניות"
+          },
+          {
+            "index": 7,
+            "surface": "קֵרָמִיּוֹת",
+            "normalized": "קרמיות"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 9,
+            "surface": "שֻׁמָנִיּוֹת",
+            "normalized": "שמניות"
+          },
+          {
+            "index": 10,
+            "surface": "הַיּוֹצְרוֹת",
+            "normalized": "היוצרות"
+          },
+          {
+            "index": 11,
+            "surface": "מַחְסוֹם",
+            "normalized": "מחסום"
+          },
+          {
+            "index": 12,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 13,
+            "surface": "הַמַּתֶּכֶת",
+            "normalized": "המתכת"
+          },
+          {
+            "index": 14,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 15,
+            "surface": "הַסְּבִיבָה.",
+            "normalized": "הסביבה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ציפויים כימיים הם שכבות המרה (conversion) הנוצרות בתגובה כימית או אלקטרוכימית על פני המתכת.",
+        "he_niqqud": "צִפּוּיִים כִּימִיִּים הֵם שִׁכְבוֹת הֲמָרָה (conversion) הַנּוֹצָרוֹת בִּתְגוּבָה כִּימִית אוֹ אֶלֶקְטְרוֹכִימִית עַל פְּנֵי הַמַּתֶּכֶת.",
+        "transliteration": "Tzipu'im khimi'im hem shkhavot hamarah (conversion) ha-notzrot bi-tguvah khimit o elektrokhimit al pney ha-metekhet.",
+        "ru": "Химические покрытия — это конверсионные слои, образующиеся в результате химической или электрохимической реакции на поверхности металла."
+      },
+      "source_refs": [
+        "legacy_row_hash:255dea88ff4e39755c12a18af2745e5429940edcba63dc3ab591afa3571c1dd1",
+        "legacy_fields_sha256:f1a50ebea587e8969f6274e83610e0f85b2189bfbf4677c2a84cbe10deb3ece4",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 1,
+            "surface": "כִּימִיִּים",
+            "normalized": "כימיים"
+          },
+          {
+            "index": 2,
+            "surface": "הֵם",
+            "normalized": "הם"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁכְבוֹת",
+            "normalized": "שכבות"
+          },
+          {
+            "index": 4,
+            "surface": "הֲמָרָה",
+            "normalized": "המרה"
+          },
+          {
+            "index": 5,
+            "surface": "(conversion)",
+            "normalized": "conversion"
+          },
+          {
+            "index": 6,
+            "surface": "הַנּוֹצָרוֹת",
+            "normalized": "הנוצרות"
+          },
+          {
+            "index": 7,
+            "surface": "בִּתְגוּבָה",
+            "normalized": "בתגובה"
+          },
+          {
+            "index": 8,
+            "surface": "כִּימִית",
+            "normalized": "כימית"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 10,
+            "surface": "אֶלֶקְטְרוֹכִימִית",
+            "normalized": "אלקטרוכימית"
+          },
+          {
+            "index": 11,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 12,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 13,
+            "surface": "הַמַּתֶּכֶת.",
+            "normalized": "המתכת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים לא מתכתיים: צביעה.",
+        "he_niqqud": "ב) צִפּוּיִים לֹא מַתַּכְתִּיִּים: צְבִיעָה.",
+        "transliteration": "B) Tzipu'im lo matikhti'im: Tzvi'ah.",
+        "ru": "Б) Неметаллические покрытия: Окрашивание."
+      },
+      "source_refs": [
+        "legacy_row_hash:eb3274c95b771afccc6377cee12722e7dea20c5bf206ec1b2e93eb0823cc2bcf",
+        "legacy_fields_sha256:17bd4be004479d916d969468187c241c01e9068018bf08a7f2a2f2c63ea96560",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מַתַּכְתִּיִּים:",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 4,
+            "surface": "צְבִיעָה.",
+            "normalized": "צביעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים לא מתכתיים: שימון.",
+        "he_niqqud": "ב) צִפּוּיִים לֹא מַתַּכְתִּיִּים: שִׁמּוּן.",
+        "transliteration": "B) Tzipu'im lo matikhti'im: Shimun.",
+        "ru": "Б) Неметаллические покрытия: Смазывание (маслом)."
+      },
+      "source_refs": [
+        "legacy_row_hash:04f9110d7137d5e4492852a1fce04b83ad0ee148f70e5d98f29f2de22cce8982",
+        "legacy_fields_sha256:f22bd2be467c60ade2844e881241afe5d07d406b353b566ae62ddc88184608a9",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מַתַּכְתִּיִּים:",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 4,
+            "surface": "שִׁמּוּן.",
+            "normalized": "שמון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים לא מתכתיים: גירוז.",
+        "he_niqqud": "ב) צִפּוּיִים לֹא מַתַּכְתִּיִּים: גִּירוּז.",
+        "transliteration": "B) Tzipu'im lo matikhti'im: Girruz.",
+        "ru": "Б) Неметаллические покрытия: Смазывание (густой смазкой)."
+      },
+      "source_refs": [
+        "legacy_row_hash:5159494173b7501440373b19dafc8abc0a26d4489e9771efc86465b44b39cfbe",
+        "legacy_fields_sha256:a36cd476cdd751723558c021a981060309b9e19df8e4033d1213db8385c21ec2",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מַתַּכְתִּיִּים:",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 4,
+            "surface": "גִּירוּז.",
+            "normalized": "גירוז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים לא מתכתיים: ציפוי אמייל.",
+        "he_niqqud": "ב) צִפּוּיִים לֹא מַתַּכְתִּיִּים: צִפּוּי אֵמַיְיל.",
+        "transliteration": "B) Tzipu'im lo matikhti'im: Tzipuy emayil.",
+        "ru": "Б) Неметаллические покрытия: Эмалирование."
+      },
+      "source_refs": [
+        "legacy_row_hash:248a7c0a9d91f71d3010088ee1419ac4b2d5c9a044982edd1a8d07579ae095c3",
+        "legacy_fields_sha256:b89c15142c9348a46d1c32a67e9727c3768bc231e5332664f29da274489c0236",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 3,
+            "surface": "מַתַּכְתִּיִּים:",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 4,
+            "surface": "צִפּוּי",
+            "normalized": "צפוי"
+          },
+          {
+            "index": 5,
+            "surface": "אֵמַיְיל.",
+            "normalized": "אמייל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים כימיים: השחמה.",
+        "he_niqqud": "ב) צִפּוּיִים כִּימִיִּים: הַשְׁחָמָה.",
+        "transliteration": "B) Tzipu'im khimi'im: Hashĥamah.",
+        "ru": "Б) Химические покрытия: Чернение."
+      },
+      "source_refs": [
+        "legacy_row_hash:089db846bda066184eb6666d06b6b2e7430a5319a69680256c36a9118819d65d",
+        "legacy_fields_sha256:c9fab1a49a7c19c9ca2eb47de116965d9043f31c44fcc27fca8f4a319a2e0b68",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "כִּימִיִּים:",
+            "normalized": "כימיים"
+          },
+          {
+            "index": 3,
+            "surface": "הַשְׁחָמָה.",
+            "normalized": "השחמה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים כימיים: פוספטיוציה.",
+        "he_niqqud": "ב) צִפּוּיִים כִּימִיִּים: פוֹסְפָטְיוּצְיָה.",
+        "transliteration": "B) Tzipu'im khimi'im: Fosfatiyutz'yah.",
+        "ru": "Б) Химические покрытия: Фосфатирование."
+      },
+      "source_refs": [
+        "legacy_row_hash:656122787442c47c2e0460a9b687d1db9dfa4070dbc6d90433631a9577f93547",
+        "legacy_fields_sha256:0bdc9cfd38cf455a522ffda3e00d0098ec1b3415cbbb5e8c46f430ca5bc44b79",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "כִּימִיִּים:",
+            "normalized": "כימיים"
+          },
+          {
+            "index": 3,
+            "surface": "פוֹסְפָטְיוּצְיָה.",
+            "normalized": "פוספטיוציה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r028",
+      "order": 28,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים כימיים: חימצון.",
+        "he_niqqud": "ב) צִפּוּיִים כִּימִיִּים: חִמְצוּן.",
+        "transliteration": "B) Tzipu'im khimi'im: Ĥimtzun.",
+        "ru": "Б) Химические покрытия: Оксидирование."
+      },
+      "source_refs": [
+        "legacy_row_hash:543b3119446a69ae5d27f4eb29430e59ff2ff73442c158b951664de049d55571",
+        "legacy_fields_sha256:01627d0157f11b62d45fb321dc3e6dfe51ec82104d2d16b94ca3bc073814a0bd",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "כִּימִיִּים:",
+            "normalized": "כימיים"
+          },
+          {
+            "index": 3,
+            "surface": "חִמְצוּן.",
+            "normalized": "חמצון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r029",
+      "order": 29,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ציפויים כימיים: אנודיזציה.",
+        "he_niqqud": "ב) צִפּוּיִים כִּימִיִּים: אָנוֹדִיזַצְיָה.",
+        "transliteration": "B) Tzipu'im khimi'im: Anodizatz'yah.",
+        "ru": "Б) Химические покрытия: Анодирование."
+      },
+      "source_refs": [
+        "legacy_row_hash:746a2c6364f8015e383e4048436ad147796cc70a50efc8ad365adec2efc85bac",
+        "legacy_fields_sha256:91a634700512f6e0c7ab6acf57c11dc6406e9fcb6aae0c8014c84d52eb5e4679",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "צִפּוּיִים",
+            "normalized": "צפויים"
+          },
+          {
+            "index": 2,
+            "surface": "כִּימִיִּים:",
+            "normalized": "כימיים"
+          },
+          {
+            "index": 3,
+            "surface": "אָנוֹדִיזַצְיָה.",
+            "normalized": "אנודיזציה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) אלומיניום אינו רגיש לשיתוך משום שעל פניו נוצרת במהירות שכבת פסיבציה צפופה והדוקה של Al₂O₃.",
+        "he_niqqud": "ג) אָלוּמִינְיוּם אֵינוֹ רָגִישׁ לְשִׁתּוּךְ מִשּׁוּם שֶׁעַל פָּנָיו נוֹצֶרֶת בִּמְהִירוּת שִׁכְבַת פָּסִיבַצְיָה צְפוּפָה וַהֲדוּקָה שֶׁל Al₂O₃.",
+        "transliteration": "G) Aluminiyum eyno ragish le-shittukh mishum she-'al panav notzeret bi-mhirut shikhvat pasivatz'yah tzefufah va-haddukah shel Al₂O₃.",
+        "ru": "В) Алюминий не подвержен коррозии, потому что на его поверхности быстро образуется плотный и герметичный пассивирующий слой Al₂O₃."
+      },
+      "source_refs": [
+        "legacy_row_hash:9ea049c12979a2f833bcea5d199463b733e7d6e34fb8061981c9b082c3e3e7d1",
+        "legacy_fields_sha256:513fac0014a01b3bf5fbee5f421cbc08be42289538391f3cf89819c5cfec0306",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "אָלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 2,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 3,
+            "surface": "רָגִישׁ",
+            "normalized": "רגיש"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׁתּוּךְ",
+            "normalized": "לשתוך"
+          },
+          {
+            "index": 5,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁעַל",
+            "normalized": "שעל"
+          },
+          {
+            "index": 7,
+            "surface": "פָּנָיו",
+            "normalized": "פניו"
+          },
+          {
+            "index": 8,
+            "surface": "נוֹצֶרֶת",
+            "normalized": "נוצרת"
+          },
+          {
+            "index": 9,
+            "surface": "בִּמְהִירוּת",
+            "normalized": "במהירות"
+          },
+          {
+            "index": 10,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 11,
+            "surface": "פָּסִיבַצְיָה",
+            "normalized": "פסיבציה"
+          },
+          {
+            "index": 12,
+            "surface": "צְפוּפָה",
+            "normalized": "צפופה"
+          },
+          {
+            "index": 13,
+            "surface": "וַהֲדוּקָה",
+            "normalized": "והדוקה"
+          },
+          {
+            "index": 14,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 15,
+            "surface": "Al₂O₃.",
+            "normalized": "Al₂O₃"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r031",
+      "order": 31,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "השכבה דקה אך מגינה, נצמדת היטב למתכת ומקטינה מעבר של חמצן ומים אל פני המתכת.",
+        "he_niqqud": "הַשִּׁכְבָה דַּקָּה אַךְ מְגִנָּה, נִצְמֶדֶת הֵיטֵב לַמַּתֶּכֶת וּמַקְטִינָה מַעֲבָר שֶׁל חַמְצָן וּמַיִם אֶל פְּנֵי הַמַּתֶּכֶת.",
+        "transliteration": "Ha-shikhvah dakkah akh meginnah, nitzmedet heytev la-metekhet u-maķtinah ma'avar shel ĥamtzan u-mayim el pney ha-metekhet.",
+        "ru": "Слой тонкий, но защитный, он хорошо прилегает к металлу и уменьшает прохождение кислорода и воды к поверхности металла."
+      },
+      "source_refs": [
+        "legacy_row_hash:ddad689c651f8e7634e947b96c5449fc48701051502828314679bbc27391e35d",
+        "legacy_fields_sha256:d39924f936815f3fb5a590572643f659ce815bca26cbf4790659e0d05c5f3587",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁכְבָה",
+            "normalized": "השכבה"
+          },
+          {
+            "index": 1,
+            "surface": "דַּקָּה",
+            "normalized": "דקה"
+          },
+          {
+            "index": 2,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 3,
+            "surface": "מְגִנָּה,",
+            "normalized": "מגנה"
+          },
+          {
+            "index": 4,
+            "surface": "נִצְמֶדֶת",
+            "normalized": "נצמדת"
+          },
+          {
+            "index": 5,
+            "surface": "הֵיטֵב",
+            "normalized": "היטב"
+          },
+          {
+            "index": 6,
+            "surface": "לַמַּתֶּכֶת",
+            "normalized": "למתכת"
+          },
+          {
+            "index": 7,
+            "surface": "וּמַקְטִינָה",
+            "normalized": "ומקטינה"
+          },
+          {
+            "index": 8,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 10,
+            "surface": "חַמְצָן",
+            "normalized": "חמצן"
+          },
+          {
+            "index": 11,
+            "surface": "וּמַיִם",
+            "normalized": "ומים"
+          },
+          {
+            "index": 12,
+            "surface": "אֶל",
+            "normalized": "אל"
+          },
+          {
+            "index": 13,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 14,
+            "surface": "הַמַּתֶּכֶת.",
+            "normalized": "המתכת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r032",
+      "order": 32,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר השכבה נשרטת היא יכולה להתחדש בתנאים מתאימים ולכן הקצב הכולל של השיתוך קטן.",
+        "he_niqqud": "כַּאֲשֶׁר הַשִּׁכְבָה נִשְׂרֶטֶת הִיא יְכוֹלָה לְהִתְחַדֵּשׁ בִּתְנָאִים מַתְאִימִים וְלָכֵן הַקֶּצֶב הַכּוֹלֵל שֶׁל הַשִּׁתּוּךְ קָטָן.",
+        "transliteration": "Ka'asher ha-shikhvah nisreṭet hi yekholah le-hitĥaddesh bi-tna'im mat'imim v'lakhen ha-ketzev ha-kolel shel ha-shittukh katan.",
+        "ru": "Когда слой царапается, он может восстанавливаться в подходящих условиях, поэтому общая скорость коррозии низка."
+      },
+      "source_refs": [
+        "legacy_row_hash:b7ba064b2ce03bee89a303f92baa221076bf3b641e6b7fd5fb97d12364cb9516",
+        "legacy_fields_sha256:3037e68c532817e3f62f09f7552b7c6ec2f3c46935208a22e956a58e2ccfe00d",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "הַשִּׁכְבָה",
+            "normalized": "השכבה"
+          },
+          {
+            "index": 2,
+            "surface": "נִשְׂרֶטֶת",
+            "normalized": "נשרטת"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "יְכוֹלָה",
+            "normalized": "יכולה"
+          },
+          {
+            "index": 5,
+            "surface": "לְהִתְחַדֵּשׁ",
+            "normalized": "להתחדש"
+          },
+          {
+            "index": 6,
+            "surface": "בִּתְנָאִים",
+            "normalized": "בתנאים"
+          },
+          {
+            "index": 7,
+            "surface": "מַתְאִימִים",
+            "normalized": "מתאימים"
+          },
+          {
+            "index": 8,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 9,
+            "surface": "הַקֶּצֶב",
+            "normalized": "הקצב"
+          },
+          {
+            "index": 10,
+            "surface": "הַכּוֹלֵל",
+            "normalized": "הכולל"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 12,
+            "surface": "הַשִּׁתּוּךְ",
+            "normalized": "השתוך"
+          },
+          {
+            "index": 13,
+            "surface": "קָטָן.",
+            "normalized": "קטן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r033",
+      "order": 33,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "4Al + 3O₂ → 2Al₂O₃",
+        "he_niqqud": "4Al + 3O₂ → 2Al₂O₃",
+        "transliteration": "4Al + 3O₂ → 2Al₂O₃",
+        "ru": "4Al + 3O₂ → 2Al₂O₃"
+      },
+      "source_refs": [
+        "legacy_row_hash:c7b13ea48ca5cc9c992796c1e6fbd78d6a60c3a06af34b948286de71d9cd7184",
+        "legacy_fields_sha256:8e287f52a5ae39636a2910f1ab830562345d4274435c1680a1a8a7b5a068086a",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "4Al",
+            "normalized": "4Al"
+          },
+          {
+            "index": 1,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 2,
+            "surface": "3O₂",
+            "normalized": "3O₂"
+          },
+          {
+            "index": 3,
+            "surface": "→",
+            "normalized": "→"
+          },
+          {
+            "index": 4,
+            "surface": "2Al₂O₃",
+            "normalized": "2Al₂O₃"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "4Al + 3O₂ → 2Al₂O₃"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r034",
+      "order": 34,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) נחושת אינה רגישה לשיתוך באותה מידה משום שהיא מתכת אצילה יותר יחסית לברזל.",
+        "he_niqqud": "ג) נְחֹשֶׁת אֵינָהּ רְגִישָׁה לְשִׁתּוּךְ בְּאוֹתָהּ מִדָּה מִשּׁוּם שֶׁהִיא מַתֶּכֶת אֲצִילָה יוֹתֵר יַחֲסִית לְבַרְזֶל.",
+        "transliteration": "G) Neĥoshet einah regishah le-shittukh be-otah middah mishum she-hi metekhet atzilah yoter yaĥasit le-barzel.",
+        "ru": "В) Медь не подвержена коррозии в той же степени, потому что она более благородный металл по сравнению с железом."
+      },
+      "source_refs": [
+        "legacy_row_hash:17f93b05db43c6662f213ca48bfb36d9a175c2a2a69f014c6211e26cac26b427",
+        "legacy_fields_sha256:5691928e46121afba3efc248cfecf3ecfc8b694cfe5de5ec9764f3ec7c60b66f",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "נְחֹשֶׁת",
+            "normalized": "נחשת"
+          },
+          {
+            "index": 2,
+            "surface": "אֵינָהּ",
+            "normalized": "אינה"
+          },
+          {
+            "index": 3,
+            "surface": "רְגִישָׁה",
+            "normalized": "רגישה"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׁתּוּךְ",
+            "normalized": "לשתוך"
+          },
+          {
+            "index": 5,
+            "surface": "בְּאוֹתָהּ",
+            "normalized": "באותה"
+          },
+          {
+            "index": 6,
+            "surface": "מִדָּה",
+            "normalized": "מדה"
+          },
+          {
+            "index": 7,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁהִיא",
+            "normalized": "שהיא"
+          },
+          {
+            "index": 9,
+            "surface": "מַתֶּכֶת",
+            "normalized": "מתכת"
+          },
+          {
+            "index": 10,
+            "surface": "אֲצִילָה",
+            "normalized": "אצילה"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 12,
+            "surface": "יַחֲסִית",
+            "normalized": "יחסית"
+          },
+          {
+            "index": 13,
+            "surface": "לְבַרְזֶל.",
+            "normalized": "לברזל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r035",
+      "order": 35,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "על פני נחושת נוצרת שכבת תחמוצות כגון Cu₂O ו־CuO ובהמשך פטינה, שיכולה להאט את קצב השיתוך.",
+        "he_niqqud": "עַל פְּנֵי נְחֹשֶׁת נוֹצֶרֶת שִׁכְבַת תַּחְמְצוֹת כְּגוֹן Cu₂O וּ-CuO וּבְהֶמְשֵׁךְ פָּטִינָה, שֶׁיְּכוֹלָה לְהָאֵט אֶת קֶצֶב הַשִּׁתּוּךְ.",
+        "transliteration": "Al pney neĥoshet notzeret shikhvat taĥmutzot k'gon Cu₂O ve-CuO u-v'hemshekh patinah, she-yekholah leha'eṭ et ketzev ha-shittukh.",
+        "ru": "На поверхности меди образуется слой оксидов, таких как Cu₂O и CuO, а затем патина, которая может замедлять скорость коррозии."
+      },
+      "source_refs": [
+        "legacy_row_hash:3dc3745c43254398e721e4406fd4f7391f6db144767221df6d03de0e456d6600",
+        "legacy_fields_sha256:1705a01ea66c4326b991bab19b146f072e8ca8d5b13ad14d5f5074b9d6f2caac",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 1,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 2,
+            "surface": "נְחֹשֶׁת",
+            "normalized": "נחשת"
+          },
+          {
+            "index": 3,
+            "surface": "נוֹצֶרֶת",
+            "normalized": "נוצרת"
+          },
+          {
+            "index": 4,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 5,
+            "surface": "תַּחְמְצוֹת",
+            "normalized": "תחמצות"
+          },
+          {
+            "index": 6,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 7,
+            "surface": "Cu₂O",
+            "normalized": "Cu₂O"
+          },
+          {
+            "index": 8,
+            "surface": "וּ-CuO",
+            "normalized": "ו-CuO"
+          },
+          {
+            "index": 9,
+            "surface": "וּבְהֶמְשֵׁךְ",
+            "normalized": "ובהמשך"
+          },
+          {
+            "index": 10,
+            "surface": "פָּטִינָה,",
+            "normalized": "פטינה"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁיְּכוֹלָה",
+            "normalized": "שיכולה"
+          },
+          {
+            "index": 12,
+            "surface": "לְהָאֵט",
+            "normalized": "להאט"
+          },
+          {
+            "index": 13,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 14,
+            "surface": "קֶצֶב",
+            "normalized": "קצב"
+          },
+          {
+            "index": 15,
+            "surface": "הַשִּׁתּוּךְ.",
+            "normalized": "השתוך"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r036",
+      "order": 36,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "השכבה משמשת מחסום ומקטינה את קצב התקדמות הקורוזיה.",
+        "he_niqqud": "הַשִּׁכְבָה מְשַׁמֶּשֶׁת מַחְסוֹם וּמַקְטִינָה אֶת קֶצֶב הִתְקַדְּמוּת הַקּוֹרוֹזְיָה.",
+        "transliteration": "Ha-shikhvah meshameshet maĥsom u-maķtinah et ketzev hitķadmut ha-korozyah.",
+        "ru": "Слой служит барьером и уменьшает скорость развития коррозии."
+      },
+      "source_refs": [
+        "legacy_row_hash:6e30f4018eaea4582a10b3707375c12b75a34c200a4f8e232dea3135facb2f14",
+        "legacy_fields_sha256:de57de201f5a21b1a3605b0293be7d5365183ac3a66da6a690dc50059fef2958",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׁכְבָה",
+            "normalized": "השכבה"
+          },
+          {
+            "index": 1,
+            "surface": "מְשַׁמֶּשֶׁת",
+            "normalized": "משמשת"
+          },
+          {
+            "index": 2,
+            "surface": "מַחְסוֹם",
+            "normalized": "מחסום"
+          },
+          {
+            "index": 3,
+            "surface": "וּמַקְטִינָה",
+            "normalized": "ומקטינה"
+          },
+          {
+            "index": 4,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 5,
+            "surface": "קֶצֶב",
+            "normalized": "קצב"
+          },
+          {
+            "index": 6,
+            "surface": "הִתְקַדְּמוּת",
+            "normalized": "התקדמות"
+          },
+          {
+            "index": 7,
+            "surface": "הַקּוֹרוֹזְיָה.",
+            "normalized": "הקורוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r037",
+      "order": 37,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לעומת זאת, במתכות כמו ברזל תוצרי הקורוזיה לעיתים נקבוביים ומתקלפים, ולכן מתכת טרייה נחשפת שוב ושוב והקורוזיה נמשכת.",
+        "he_niqqud": "ג) לְעֻמַּת זֹאת, בְּמַתָּכוֹת כְּמוֹ בַּרְזֶל תּוֹצָרֵי הַקּוֹרוֹזְיָה לְעִתִּים נִקְבּוּבִיִּים וּמִתְקַלְּפִים, וְלָכֵן מַתֶּכֶת טְרִיָּה נֶחְשֶׂפֶת שׁוּב וָשׁוּב וְהַקּוֹרוֹזְיָה נִמְשֶׁכֶת.",
+        "transliteration": "G) Le'ummat zot, be-mattakhot kmo barzel totzarey ha-korozyah le'itim nikbuvi'im u-mitkalefim, v'lakhen metekhet triyah neĥsef̣t shuv va-shuv v'ha-korozyah nimshekhet.",
+        "ru": "В) В отличие от этого, в таких металлах, как железо, продукты коррозии часто являются пористыми и отслаиваются, поэтому свежий металл снова и снова подвергается воздействию, и коррозия продолжается."
+      },
+      "source_refs": [
+        "legacy_row_hash:23857fc1a0de069d373df41a286d2853fcf2b787beaff28c114da90d2ffc126d",
+        "legacy_fields_sha256:5f2e9fad3466e15304a88ea5e8f4fda8c6083dc055e035a77de64b402273daa1",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 2,
+            "surface": "זֹאת,",
+            "normalized": "זאת"
+          },
+          {
+            "index": 3,
+            "surface": "בְּמַתָּכוֹת",
+            "normalized": "במתכות"
+          },
+          {
+            "index": 4,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 5,
+            "surface": "בַּרְזֶל",
+            "normalized": "ברזל"
+          },
+          {
+            "index": 6,
+            "surface": "תּוֹצָרֵי",
+            "normalized": "תוצרי"
+          },
+          {
+            "index": 7,
+            "surface": "הַקּוֹרוֹזְיָה",
+            "normalized": "הקורוזיה"
+          },
+          {
+            "index": 8,
+            "surface": "לְעִתִּים",
+            "normalized": "לעתים"
+          },
+          {
+            "index": 9,
+            "surface": "נִקְבּוּבִיִּים",
+            "normalized": "נקבוביים"
+          },
+          {
+            "index": 10,
+            "surface": "וּמִתְקַלְּפִים,",
+            "normalized": "ומתקלפים"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "מַתֶּכֶת",
+            "normalized": "מתכת"
+          },
+          {
+            "index": 13,
+            "surface": "טְרִיָּה",
+            "normalized": "טריה"
+          },
+          {
+            "index": 14,
+            "surface": "נֶחְשֶׂפֶת",
+            "normalized": "נחשפת"
+          },
+          {
+            "index": 15,
+            "surface": "שׁוּב",
+            "normalized": "שוב"
+          },
+          {
+            "index": 16,
+            "surface": "וָשׁוּב",
+            "normalized": "ושוב"
+          },
+          {
+            "index": 17,
+            "surface": "וְהַקּוֹרוֹזְיָה",
+            "normalized": "והקורוזיה"
+          },
+          {
+            "index": 18,
+            "surface": "נִמְשֶׁכֶת.",
+            "normalized": "נמשכת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q048-sol-r038",
+      "order": 38,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:77a17e5d956049e19df07470d123b8c65828e76de796d157aa6a02f745c30465",
+        "comparison:MATCH_WITH_PASSIVITY_SCOPE_NOTE",
+        "source_page:58",
+        "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+        "declared_convention:AMPP_galvanized_coating"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q048",
+    "display_alias": "48",
+    "source_pages": [
+      58
+    ],
+    "independent_state": "DERIVED_WITH_PASSIVITY_SCOPE_NOTE",
+    "answer": [
+      "а) Горячее цинкование: обезжиривание/очистка→травление оксидов→промывка/флюсование→погружение стали в расплав Zn→извлечение/стекание/охлаждение→контроль. Формируются Fe–Zn слои и наружный Zn; покрытие даёт барьер и жертвенную защиту стали при небольшом повреждении.",
+      "б) Неметаллические покрытия: окрашивание, смазка маслом/консистентной смазкой, эмалирование. Химические/конверсионные (включая электрохимические): воронение, фосфатирование, оксидирование, анодирование.",
+      "в) Алюминий и медь не «нечувствительны», но часто самопассивируются: Al быстро покрывается плотной Al₂O₃, Cu — оксидной/патинной плёнкой, замедляющей дальнейшую реакцию. Хлориды, кислоты, щели, гальваническая пара и разрушение плёнки могут снова ускорить коррозию."
+    ],
+    "engineering_picture": "Покрытие либо отделяет металл от среды, либо превращает поверхность в защитный слой, либо жертвенно корродирует вместо основы.",
+    "prerequisites": [
+      "Zinc is more active than steel.",
+      "Conversion coatings are formed from the substrate surface.",
+      "Passivity is environment-dependent."
+    ],
+    "roadmap": [
+      "Write hot-dip sequence.",
+      "Classify seven methods.",
+      "Explain passive-film kinetics and limits."
+    ],
+    "main_trap": "Анодирование является электрохимическим конверсионным покрытием, а не нанесённой краской; Al/Cu всё равно могут корродировать.",
+    "givens": [
+      "Seven methods and two table categories."
+    ],
+    "find": [
+      "Galvanizing, classification, Al/Cu resistance."
+    ],
+    "assumptions": [
+      "The exam groups electrochemical conversion under chemical coatings."
+    ],
+    "laws": [
+      "Barrier limits electrolyte access; sacrificial Zn remains anodic to exposed steel."
+    ],
+    "symbolic_derivation": [
+      "Zn coating intact⇒barrier;scratch with Zn present⇒Zn anodic dissolution protects steel."
+    ],
+    "calculation": [],
+    "construction": [
+      "Two-column table with every named method exactly once; hot-dip cross-section Fe|Fe-Zn|Zn."
+    ],
+    "checks": [
+      "All seven requested methods are classified and grease example remains nonmetallic."
+    ],
+    "source_facts": [
+      "source_page:58",
+      "asset_sha256:ea72c7f3e48552111b4bb25b1f8c3bdb89627323b47872c40cccb96673fe4c77",
+      "declared_convention:AMPP_galvanized_coating"
+    ],
+    "unresolved_limits": [
+      "Passivity and zinc life depend on environment, coating thickness and defects; no universal immunity is claimed."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

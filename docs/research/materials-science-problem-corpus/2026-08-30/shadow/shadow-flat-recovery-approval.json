@@ -1,0 +1,23 @@
+{
+  "schema": "linguistpro-materials-pb2-shadow-flat-recovery-approval-v1",
+  "status": "OWNER_APPROVED_TERMINAL_BOUNDED_APPLY",
+  "approved_on": "2026-08-30",
+  "owner_reply": "стартуй только так чтобы это не превратилось в бесконечные правки для бесконечных запросов",
+  "accepted_gate": {
+    "program": "MATERIALS-PB2-SHADOW-FLAT-RECOVERY",
+    "model": "gemini-3.7-flash",
+    "mode": "STANDARD",
+    "additional_calls": 3,
+    "retries": 0,
+    "total_max_usd": 1.0
+  },
+  "terminal_rule": "IF_B01_FAILS_API_OR_SEMANTIC_VALIDATION_STOP_SHADOW_AND_SET_NO_MORE_GEMINI_REQUESTS; IF_B01_PASSES_CONTINUE_B02_THEN_B03_WITH_THE_SAME_RULE",
+  "egress_scope": "UNCHANGED_SELECTED_SOURCE_PAGES_AND_HASH_BOUND_LEGACY_CONDITION_CANDIDATES",
+  "still_forbidden": [
+    "CORPUS_IMPORT",
+    "PUBLICATION",
+    "TTS",
+    "SOLUTION_AUTHORING",
+    "ANSWER_ADJUDICATION"
+  ]
+}

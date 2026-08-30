@@ -1,0 +1,1290 @@
+{
+  "schema": "linguistpro-materials-pb2-prepared-input-manifest-v1",
+  "status": "LOCAL_OWNER_ONLY_NOT_PROVIDER_SUBMITTED_NOT_FOR_PUBLICATION",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "internal_pdf_size_ceiling_bytes": 6291456,
+  "crop_policy": "SOURCE_CONDITION_ONLY_WHERE_SOLUTION_SHARES_A_PAGE_FULL_PAGE_OTHERWISE",
+  "batches": [
+    {
+      "filename": "materials-pb2-task-input-01.pdf",
+      "bytes": 1363220,
+      "sha256": "e4beb4a73677bfed7db254d0f7cc936947dd0529ad3aa36c77185803bd876f96",
+      "page_count": 19,
+      "min_ink_ratio": 0.025289,
+      "contact_sheet": "materials-pb2-task-input-01-contact.jpg",
+      "pages": [
+        {
+          "output_page": 1,
+          "item_id": "materials-science-y1-pb2-q001",
+          "item_kind": "task_condition",
+          "source_page": 3,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.118513,
+          "render_sha256": "d5c306cbb5b22209aa0d92c5087bf2a79e20dc7dd1cf2c809c25fc9e3891486c"
+        },
+        {
+          "output_page": 2,
+          "item_id": "materials-science-y1-pb2-q002",
+          "item_kind": "task_condition",
+          "source_page": 4,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.0433,
+          "render_sha256": "11d3a8e48bb85425dad905b9f2361528ba80b4dd7e9ce38e74e93c8ae548caa8"
+        },
+        {
+          "output_page": 3,
+          "item_id": "materials-science-y1-pb2-q002",
+          "item_kind": "task_condition",
+          "source_page": 5,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.22
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 349,
+          "ink_ratio": 0.035229,
+          "render_sha256": "2cf4ffbb51cf34d39f1c82d120286df13a779b2d98aeb11930863ffd1fc325d0"
+        },
+        {
+          "output_page": 4,
+          "item_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+          "item_kind": "task_condition",
+          "source_page": 5,
+          "normalized_bbox": [
+            0.0,
+            0.22,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1236,
+          "ink_ratio": 0.047761,
+          "render_sha256": "0e1d4e5ff0b7937b066a24ccf19aba6bb0cc033efd88213f4b983943bf07da5a"
+        },
+        {
+          "output_page": 5,
+          "item_id": "materials-science-y1-pb2-q003",
+          "item_kind": "task_condition",
+          "source_page": 6,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.37
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 587,
+          "ink_ratio": 0.337706,
+          "render_sha256": "5ca2342d4da81b939c1c0db2c8bbe62d2ac529ae5cfae2e7911d1a79a3a6395c"
+        },
+        {
+          "output_page": 6,
+          "item_id": "materials-science-y1-pb2-q004",
+          "item_kind": "task_condition",
+          "source_page": 6,
+          "normalized_bbox": [
+            0.0,
+            0.35,
+            1.0,
+            0.66
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 492,
+          "ink_ratio": 0.640448,
+          "render_sha256": "93c8a0ab2451ae9b8e2f8dc7a81d287909fb483da07474f20158f6e69ddf9e94"
+        },
+        {
+          "output_page": 7,
+          "item_id": "materials-science-y1-pb2-q005",
+          "item_kind": "task_condition",
+          "source_page": 6,
+          "normalized_bbox": [
+            0.0,
+            0.64,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 571,
+          "ink_ratio": 0.419022,
+          "render_sha256": "7c0307da1c7945ac4a89f03358de4b6a26e81bc226d8b6ec6da8477215835f61"
+        },
+        {
+          "output_page": 8,
+          "item_id": "materials-science-y1-pb2-q006",
+          "item_kind": "task_condition",
+          "source_page": 7,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.305226,
+          "render_sha256": "d63edae11bf9fc0750e8011df7dbbd577e3a81c26dc42062a2928c10cec00bab"
+        },
+        {
+          "output_page": 9,
+          "item_id": "materials-science-y1-pb2-q007",
+          "item_kind": "task_condition",
+          "source_page": 8,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.054268,
+          "render_sha256": "6bfd9a290470a867189714d3d8ff91827856da276da71b31e10496413370b2ed"
+        },
+        {
+          "output_page": 10,
+          "item_id": "materials-science-y1-pb2-q008",
+          "item_kind": "task_condition",
+          "source_page": 9,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.489334,
+          "render_sha256": "3b867c760100385dbd64ddf7b5ce57fa74d7e8dd112f5a67f7261288d42e9545"
+        },
+        {
+          "output_page": 11,
+          "item_id": "materials-science-y1-pb2-q009",
+          "item_kind": "task_condition",
+          "source_page": 12,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.565
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 895,
+          "ink_ratio": 0.053422,
+          "render_sha256": "25ec3c9e7a9cd3b2a99c7765c8d35b4cbe97663d98c16e7996404b62483f621b"
+        },
+        {
+          "output_page": 12,
+          "item_id": "materials-science-y1-pb2-q010",
+          "item_kind": "task_condition",
+          "source_page": 14,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.044172,
+          "render_sha256": "b97f0d5438c99d344cda7c02249f4de22b277b95a3b93a48bcdcdee44289be0d"
+        },
+        {
+          "output_page": 13,
+          "item_id": "materials-science-y1-pb2-q011",
+          "item_kind": "task_condition",
+          "source_page": 15,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.060777,
+          "render_sha256": "16cd7a8f92c7a479418abf9904dc8ee049a08aba09aaa5963b1cc184d9cf3a9d"
+        },
+        {
+          "output_page": 14,
+          "item_id": "materials-science-y1-pb2-q012",
+          "item_kind": "task_condition",
+          "source_page": 16,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.039524,
+          "render_sha256": "974dce35a7565105d032b628aa9c89683d2c0036c0021edfaba24e90a8d01c27"
+        },
+        {
+          "output_page": 15,
+          "item_id": "materials-science-y1-pb2-q013",
+          "item_kind": "task_condition",
+          "source_page": 17,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.025289,
+          "render_sha256": "b918c5eaa8c24d78a9f129c6525b8cde59ffb159c12b0fb39cddb87dc5f95650"
+        },
+        {
+          "output_page": 16,
+          "item_id": "materials-science-y1-pb2-q014",
+          "item_kind": "task_condition",
+          "source_page": 18,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.034461,
+          "render_sha256": "3b8e6198d678c11531c2e0d009c3352201a1f9f336aef2fd5c046a430dbdcbf1"
+        },
+        {
+          "output_page": 17,
+          "item_id": "materials-science-y1-pb2-q015",
+          "item_kind": "task_condition",
+          "source_page": 20,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.03645,
+          "render_sha256": "b5fa7eed75393c9ac7c21838aaa0c34c74b15e316fc2b9acf095d2ac2f73f989"
+        },
+        {
+          "output_page": 18,
+          "item_id": "materials-science-y1-pb2-q016",
+          "item_kind": "task_condition",
+          "source_page": 21,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.075493,
+          "render_sha256": "0781ddccf62e2f88f9f29e796968a5c429dd6af7d373f823406ae265f83dc955"
+        },
+        {
+          "output_page": 19,
+          "item_id": "materials-science-y1-pb2-q017",
+          "item_kind": "task_condition",
+          "source_page": 22,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.068347,
+          "render_sha256": "a82a55727ae41055bcc2013ec7173bf5dd621298a35e8d6139be1aa36f8a2e3c"
+        }
+      ]
+    },
+    {
+      "filename": "materials-pb2-task-input-02.pdf",
+      "bytes": 1751885,
+      "sha256": "7fc99f12252711c7e5c3eed78d129c02ca0f5ddb5daac8ba51cbb5b59fd729c5",
+      "page_count": 20,
+      "min_ink_ratio": 0.028262,
+      "contact_sheet": "materials-pb2-task-input-02-contact.jpg",
+      "pages": [
+        {
+          "output_page": 1,
+          "item_id": "materials-science-y1-pb2-q018",
+          "item_kind": "task_condition",
+          "source_page": 23,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.050136,
+          "render_sha256": "b2bd86ae122bc22fcce354f83e3622ab4a79b222ec4873b281fa3f6dce7b6bea"
+        },
+        {
+          "output_page": 2,
+          "item_id": "materials-science-y1-pb2-q019",
+          "item_kind": "task_condition",
+          "source_page": 25,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.075322,
+          "render_sha256": "d0d0b0efd5d57a4558b4f5d34472c44c28f460d3ca2f1049cc0b9637896f1e37"
+        },
+        {
+          "output_page": 3,
+          "item_id": "materials-science-y1-pb2-q020",
+          "item_kind": "task_condition",
+          "source_page": 26,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.038972,
+          "render_sha256": "181c9b3158f94d948555e55ecb9baa6fb99f53e3aeca2b1b04490079d3e9f391"
+        },
+        {
+          "output_page": 4,
+          "item_id": "materials-science-y1-pb2-q021",
+          "item_kind": "task_condition",
+          "source_page": 27,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.39
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 618,
+          "ink_ratio": 0.055833,
+          "render_sha256": "80bca109e0d31259decf2d08da734532cb43f236faa147216c781c18fc924820"
+        },
+        {
+          "output_page": 5,
+          "item_id": "materials-science-y1-pb2-q022",
+          "item_kind": "task_condition",
+          "source_page": 28,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.048684,
+          "render_sha256": "f809a1c161dfe23822c824f7f6696cb77fbf33e745a54eebbfb88eac971fd658"
+        },
+        {
+          "output_page": 6,
+          "item_id": "materials-science-y1-pb2-q023",
+          "item_kind": "task_condition",
+          "source_page": 29,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.060612,
+          "render_sha256": "96f9800014461d8058a5867a80a8be57aeb7cbc7e8681f0547e63d285f348dc1"
+        },
+        {
+          "output_page": 7,
+          "item_id": "materials-science-y1-pb2-q024",
+          "item_kind": "task_condition",
+          "source_page": 30,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.028262,
+          "render_sha256": "0344e198500d943378da999cea657ae93ea848c46205c21879af7df432ec3351"
+        },
+        {
+          "output_page": 8,
+          "item_id": "materials-science-y1-pb2-q025",
+          "item_kind": "task_condition",
+          "source_page": 31,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.056503,
+          "render_sha256": "81a67b0c623bf2af176528107d04fd50d0f6c3bf8c4bf3325488efa417287769"
+        },
+        {
+          "output_page": 9,
+          "item_id": "materials-science-y1-pb2-q026",
+          "item_kind": "task_condition",
+          "source_page": 33,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.051294,
+          "render_sha256": "baacd8d6a258ae1c2db7cb1522ee3968a5b10390d1502c4f73e253283d6c7271"
+        },
+        {
+          "output_page": 10,
+          "item_id": "materials-science-y1-pb2-q027",
+          "item_kind": "task_condition",
+          "source_page": 35,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.091192,
+          "render_sha256": "a2a06b18d96692c8cce643717663b65f9a0ed04f7e202c68d29dd113ef67ed81"
+        },
+        {
+          "output_page": 11,
+          "item_id": "materials-science-y1-pb2-q028",
+          "item_kind": "task_condition",
+          "source_page": 36,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.103217,
+          "render_sha256": "a75ddef178a28c8878f61372ec54789ff0cd17d103f7a9baebb113608caf7f9a"
+        },
+        {
+          "output_page": 12,
+          "item_id": "materials-science-y1-pb2-q029",
+          "item_kind": "task_condition",
+          "source_page": 37,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.055885,
+          "render_sha256": "f7af05d37e1030adf41d8fad94493ea925ed244d2f9bc3a46a4c4739e1fc095b"
+        },
+        {
+          "output_page": 13,
+          "item_id": "materials-science-y1-pb2-q030",
+          "item_kind": "task_condition",
+          "source_page": 38,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.150873,
+          "render_sha256": "aa6f1b8aa88dd97c4213a9c667ce5a7349059b14cc53f31399b1cd1365192752"
+        },
+        {
+          "output_page": 14,
+          "item_id": "materials-science-y1-pb2-q031",
+          "item_kind": "task_condition",
+          "source_page": 39,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.34
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 539,
+          "ink_ratio": 0.061728,
+          "render_sha256": "f9a41b679c186327d07848bee7fdc4c7491fc58c8e0fd2f9646bd20b885af3ec"
+        },
+        {
+          "output_page": 15,
+          "item_id": "materials-science-y1-pb2-q032",
+          "item_kind": "task_condition",
+          "source_page": 39,
+          "normalized_bbox": [
+            0.0,
+            0.32,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1078,
+          "ink_ratio": 0.061673,
+          "render_sha256": "29b40436f9be309b21a048376820133279286def010432e09360540554a0167a"
+        },
+        {
+          "output_page": 16,
+          "item_id": "materials-science-y1-pb2-q033",
+          "item_kind": "task_condition",
+          "source_page": 40,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.071442,
+          "render_sha256": "d5b62a990689208f79d3074e1be1a10435d1078b6ae4fd598fe8554d6e0c5644"
+        },
+        {
+          "output_page": 17,
+          "item_id": "materials-science-y1-pb2-q034",
+          "item_kind": "task_condition",
+          "source_page": 41,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.055624,
+          "render_sha256": "d49890ed0577c52573ae55ec78f877a668594043a4c5299b0cb481e16733d75c"
+        },
+        {
+          "output_page": 18,
+          "item_id": "materials-science-y1-pb2-q035",
+          "item_kind": "task_condition",
+          "source_page": 42,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.106861,
+          "render_sha256": "68359f5abf5e77ba63354cbd9ad492affd5b491c90a2c796b3c728db7a46608d"
+        },
+        {
+          "output_page": 19,
+          "item_id": "materials-science-y1-pb2-q036",
+          "item_kind": "task_condition",
+          "source_page": 43,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.067418,
+          "render_sha256": "63b0ee7fd049d28995ac3788567318ffee46bdb195ecb2ee3412c3d8e853b4ff"
+        },
+        {
+          "output_page": 20,
+          "item_id": "materials-science-y1-pb2-q037",
+          "item_kind": "task_condition",
+          "source_page": 44,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.069576,
+          "render_sha256": "3fad161c1924960d94064e82e25dbba72ede8b3ca7e15f0dfe6f01886459125a"
+        }
+      ]
+    },
+    {
+      "filename": "materials-pb2-task-input-03.pdf",
+      "bytes": 1323530,
+      "sha256": "ab7b95ba9b2de208dc5a8ff82d81d5506a75b04baed4510a5c1cac48d09e2714",
+      "page_count": 22,
+      "min_ink_ratio": 0.024127,
+      "contact_sheet": "materials-pb2-task-input-03-contact.jpg",
+      "pages": [
+        {
+          "output_page": 1,
+          "item_id": "materials-science-y1-pb2-p045-q038",
+          "item_kind": "task_condition",
+          "source_page": 45,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.068035,
+          "render_sha256": "0587ad233edd102421ee09e13e80364ea65684564b87f4dc53ba824841785c13"
+        },
+        {
+          "output_page": 2,
+          "item_id": "materials-science-y1-pb2-p047-q038",
+          "item_kind": "task_condition",
+          "source_page": 47,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.46
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 729,
+          "ink_ratio": 0.069586,
+          "render_sha256": "45affe3fbd9ad2b8858968d9fb5a9293306b2a170e115a084ece4a0773e83134"
+        },
+        {
+          "output_page": 3,
+          "item_id": "materials-science-y1-pb2-q039",
+          "item_kind": "task_condition",
+          "source_page": 48,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.36
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 571,
+          "ink_ratio": 0.035401,
+          "render_sha256": "df7757d6e009ff62bdb1582624d74d57a2e7a6a2cf5c81dcba502460985287b8"
+        },
+        {
+          "output_page": 4,
+          "item_id": "materials-science-y1-pb2-q040",
+          "item_kind": "task_condition",
+          "source_page": 49,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.024127,
+          "render_sha256": "d693dc04bf6d70106aa9d0b0a940866c01e7ec635fa49609df5d08019cbd1862"
+        },
+        {
+          "output_page": 5,
+          "item_id": "materials-science-y1-pb2-q041",
+          "item_kind": "task_condition",
+          "source_page": 51,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.82
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1299,
+          "ink_ratio": 0.051001,
+          "render_sha256": "f0b89c99d0c476755952eb8a7818b8a0c2772500b7794367e33544d83995a295"
+        },
+        {
+          "output_page": 6,
+          "item_id": "materials-science-y1-pb2-q042",
+          "item_kind": "task_condition",
+          "source_page": 52,
+          "normalized_bbox": [
+            0.0,
+            0.65,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 555,
+          "ink_ratio": 0.037617,
+          "render_sha256": "fb6824ee6d20996fac460344c49418666c7de69792a144d864c264bc83edeede"
+        },
+        {
+          "output_page": 7,
+          "item_id": "materials-science-y1-pb2-q043",
+          "item_kind": "task_condition",
+          "source_page": 53,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.52
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 824,
+          "ink_ratio": 0.052368,
+          "render_sha256": "cea7afddff6c5531b8e044a6d25eead7344a58251b440f96477e49c15d80b5fd"
+        },
+        {
+          "output_page": 8,
+          "item_id": "materials-science-y1-pb2-q044",
+          "item_kind": "task_condition",
+          "source_page": 54,
+          "normalized_bbox": [
+            0.0,
+            0.42,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 919,
+          "ink_ratio": 0.049025,
+          "render_sha256": "5943f8bdc9bb96b038cf0a018fe5cb40be8b361487801524df57abc25fbca5f5"
+        },
+        {
+          "output_page": 9,
+          "item_id": "materials-science-y1-pb2-q045",
+          "item_kind": "task_condition",
+          "source_page": 55,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.025409,
+          "render_sha256": "22a78053729667c13c83d5e0c86c52341135170e66f767f011daf337566b97c3"
+        },
+        {
+          "output_page": 10,
+          "item_id": "materials-science-y1-pb2-q046",
+          "item_kind": "task_condition",
+          "source_page": 56,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.041638,
+          "render_sha256": "c323021b9418a188abbb63ad5dbc51f47ada75629398250c1d51ddc5a764d4a5"
+        },
+        {
+          "output_page": 11,
+          "item_id": "materials-science-y1-pb2-q047",
+          "item_kind": "task_condition",
+          "source_page": 57,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.6
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 951,
+          "ink_ratio": 0.065922,
+          "render_sha256": "672eb96913533956ec15d18b8253d36c84fd39e918e83425c7503aea31662f69"
+        },
+        {
+          "output_page": 12,
+          "item_id": "materials-science-y1-pb2-q048",
+          "item_kind": "task_condition",
+          "source_page": 58,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.031195,
+          "render_sha256": "e0063b533c3b7cb5adffedbdcf0d39c1318032bb3ce97ef1beaa95875156f2b3"
+        },
+        {
+          "output_page": 13,
+          "item_id": "materials-science-y1-pb2-q049",
+          "item_kind": "task_condition",
+          "source_page": 59,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.082507,
+          "render_sha256": "a54bcbaa86b02768a9fcbc75ac71e181115fc959374bd4dae51d24f2bc0a2694"
+        },
+        {
+          "output_page": 14,
+          "item_id": "materials-science-y1-pb2-q050",
+          "item_kind": "task_condition",
+          "source_page": 60,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.03585,
+          "render_sha256": "1f82323ea9d2abbbda9f5ff0071187c320103a8543b5c6b4ed2e2211ba459271"
+        },
+        {
+          "output_page": 15,
+          "item_id": "materials-science-y1-pb2-q051",
+          "item_kind": "task_condition",
+          "source_page": 61,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.050549,
+          "render_sha256": "bdcf2304a4e044716e3e5b80065e7249de03806ec55141136d5713e6a11d3a83"
+        },
+        {
+          "output_page": 16,
+          "item_id": "materials-science-y1-pb2-q052",
+          "item_kind": "task_condition",
+          "source_page": 62,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.050278,
+          "render_sha256": "97e649712824f71bade2f1a82e4107b285dc2d627b744d878705d5f23d0bbb29"
+        },
+        {
+          "output_page": 17,
+          "item_id": "materials-science-y1-pb2-q053",
+          "item_kind": "task_condition",
+          "source_page": 63,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.48
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 761,
+          "ink_ratio": 0.063725,
+          "render_sha256": "d47f6a229b3eb11c1e74f8ea3a4f271bfcdd91b52b4d598ef70f53e20b4f7703"
+        },
+        {
+          "output_page": 18,
+          "item_id": "materials-science-y1-pb2-q054",
+          "item_kind": "task_condition",
+          "source_page": 63,
+          "normalized_bbox": [
+            0.0,
+            0.46,
+            1.0,
+            0.72
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 412,
+          "ink_ratio": 0.079762,
+          "render_sha256": "1c01b4396513669cda7ee3f2906d8e6e5d542d83256046e967fa3124298b2110"
+        },
+        {
+          "output_page": 19,
+          "item_id": "materials-science-y1-pb2-q055",
+          "item_kind": "task_condition",
+          "source_page": 63,
+          "normalized_bbox": [
+            0.0,
+            0.69,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 492,
+          "ink_ratio": 0.030332,
+          "render_sha256": "37321b40f621eca3b8957f2b3df61fc2886f2f4422217852f4fcec893307dc89"
+        },
+        {
+          "output_page": 20,
+          "item_id": "materials-science-y1-pb2-q056",
+          "item_kind": "task_condition",
+          "source_page": 64,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            0.58
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 919,
+          "ink_ratio": 0.038819,
+          "render_sha256": "0ba557e87ff2ac61d0bb2f60ac6730a4f4467668fdc485ee60cbb4d509a9fb35"
+        },
+        {
+          "output_page": 21,
+          "item_id": "materials-science-y1-pb2-q057",
+          "item_kind": "task_condition",
+          "source_page": 64,
+          "normalized_bbox": [
+            0.0,
+            0.54,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 729,
+          "ink_ratio": 0.085819,
+          "render_sha256": "04595ef999601c41d5418c280f69f1510304c4d5749eac6b233d6b13e803fdfe"
+        },
+        {
+          "output_page": 22,
+          "item_id": "materials-science-y1-pb2-q058",
+          "item_kind": "task_condition",
+          "source_page": 65,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.034291,
+          "render_sha256": "d57407430f7de34f7d6b7ec36ad7ab452cf08d1dc296b6d77a654c45c8f78fe2"
+        }
+      ]
+    },
+    {
+      "filename": "materials-pb2-reference-input-04.pdf",
+      "bytes": 2071164,
+      "sha256": "6f21b19c8520f249b09e38bb6e00c095e44fb0734bc1096843fc6e2f0038d8ae",
+      "page_count": 12,
+      "min_ink_ratio": 0.039924,
+      "contact_sheet": "materials-pb2-reference-input-04-contact.jpg",
+      "pages": [
+        {
+          "output_page": 1,
+          "item_id": "source-reference-p001",
+          "item_kind": "source_reference",
+          "source_page": 1,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.039924,
+          "render_sha256": "4cec7102a78687130cc5ca0865c32833227fe200fb97fc3176f185d7bfbe33f7"
+        },
+        {
+          "output_page": 2,
+          "item_id": "source-reference-p002",
+          "item_kind": "source_reference",
+          "source_page": 2,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.216962,
+          "render_sha256": "6449c47344437edf45d0e889ab11b57c8c19c9d70ef428a22f32cff7fa7fb080"
+        },
+        {
+          "output_page": 3,
+          "item_id": "source-reference-p034",
+          "item_kind": "source_reference",
+          "source_page": 34,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.067845,
+          "render_sha256": "a00309755eb4fbfa6a9e17c373c68cd3a9078e165f30b172005730bd21f6237a"
+        },
+        {
+          "output_page": 4,
+          "item_id": "source-reference-p046",
+          "item_kind": "source_reference",
+          "source_page": 46,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.04877,
+          "render_sha256": "85fe1cf35d39c8d9ea23ba38ec38f4678c71c0aaeb883077d07fd11ffd0aef3f"
+        },
+        {
+          "output_page": 5,
+          "item_id": "source-reference-p066",
+          "item_kind": "source_reference",
+          "source_page": 66,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.070358,
+          "render_sha256": "926c27bd9c3ac829e01e92182be5aabb7c8f87b0726b2d0a208e06888f896d1e"
+        },
+        {
+          "output_page": 6,
+          "item_id": "source-reference-p067",
+          "item_kind": "source_reference",
+          "source_page": 67,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1224,
+          "height": 1584,
+          "ink_ratio": 0.118111,
+          "render_sha256": "eba85f67988e3cff4a03ae69ca731a72cba5061342fa644948bcbf189cb76beb"
+        },
+        {
+          "output_page": 7,
+          "item_id": "source-reference-p068",
+          "item_kind": "source_reference",
+          "source_page": 68,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 2064,
+          "height": 1458,
+          "ink_ratio": 0.118149,
+          "render_sha256": "99eb06cfa5ba50a3ce3602a83291ecb404ddd56fce9f61e3c71466b8f78cdbf4"
+        },
+        {
+          "output_page": 8,
+          "item_id": "source-reference-p069",
+          "item_kind": "source_reference",
+          "source_page": 69,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 2064,
+          "height": 1458,
+          "ink_ratio": 0.091503,
+          "render_sha256": "fc0298a5364bec5a7b1f7274f9b0436d08cf50930ac0aa77a6e38143a90d9bba"
+        },
+        {
+          "output_page": 9,
+          "item_id": "source-reference-p070",
+          "item_kind": "source_reference",
+          "source_page": 70,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1871,
+          "height": 1361,
+          "ink_ratio": 0.097603,
+          "render_sha256": "a87718ff399fbc09da755780873632cbbb4e53f8739b3f3282537d2c9f9aa0ae"
+        },
+        {
+          "output_page": 10,
+          "item_id": "source-reference-p071",
+          "item_kind": "source_reference",
+          "source_page": 71,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1191,
+          "height": 1684,
+          "ink_ratio": 0.179421,
+          "render_sha256": "6f001094532d1132567aec770c83110c3cc2d17a35511777995dee6d30d86fc2"
+        },
+        {
+          "output_page": 11,
+          "item_id": "source-reference-p072",
+          "item_kind": "source_reference",
+          "source_page": 72,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1191,
+          "height": 1684,
+          "ink_ratio": 0.150241,
+          "render_sha256": "ff55d35275e03507fcdb104e54df173139fa99a8d7b6a353b2b508ad2626b460"
+        },
+        {
+          "output_page": 12,
+          "item_id": "source-reference-p073",
+          "item_kind": "source_reference",
+          "source_page": 73,
+          "normalized_bbox": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "source_pdf_sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+          "width": 1191,
+          "height": 1684,
+          "ink_ratio": 0.199549,
+          "render_sha256": "d747db989d5ce407be8b0f96469d52116e506b6dbde3e1ffc65d7bf0df9ad425"
+        }
+      ]
+    }
+  ]
+}

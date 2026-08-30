@@ -33,7 +33,7 @@ function ruleBody(source, selectorPattern) {
 }
 
 test("PPF2 implementation is bound to the exact owner approval and stop list", () => {
-  assert.match(packet, /Status: `APPROVED_IMPLEMENTATION_IN_PROGRESS`/);
+  assert.match(packet, /Status: `CLOSED_OWNER_ACCEPTED_PRODUCTION_3\.11\.404`/);
   assert.match(packet, /P1=ACCESSIBILITY_NECESSITY_ONLY;/);
   assert.match(packet, /P3=ONE_CONTRAST_SLICE_PPF2_01_TO_04_BACKLOG_PPF2_05_06;/);
   assert.match(packet, /SCOPE=EXACT_PPF2_CONTRAST_ALLOWLIST_ONLY;/);
@@ -71,8 +71,8 @@ test("approved semantic foregrounds meet AA on every exact light background", ()
   }
 });
 
-test("PPF2 release keeps Studio Room and service worker at one version", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.404"/);
-  assert.match(room, /id="roomFooterVersion"[^>]*>v3\.11\.404<\/button>/);
-  assert.match(sw, /const CACHE_VERSION\s*=\s*"v3\.11\.404"/);
+test("current release keeps Studio Room and service worker at one version", () => {
+  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.449"/);
+  assert.match(room, /id="roomFooterVersion"[^>]*>v3\.11\.449<\/button>/);
+  assert.match(sw, /const CACHE_VERSION\s*=\s*"v3\.11\.449"/);
 });

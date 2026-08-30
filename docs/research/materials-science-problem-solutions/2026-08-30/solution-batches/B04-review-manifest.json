@@ -1,0 +1,17 @@
+{
+  "schema_version": "materials_pb2_solution_batch_review_manifest.1.0.0",
+  "batch_id": "B04",
+  "status": "TECHNICAL_REVIEWED_PASS_10_OF_10_PRESENTATION_NOT_BUILT_NOT_PUBLISHED",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "task_count": 10,
+  "publication_blocking_content_mismatches": 0,
+  "files": [
+    {"path":"B04-source-workpack.json","bytes":132959,"sha256":"36ff41ce35072f209b8909b12dd745e95971db1c2a11ba9ea7e7b8da62ac8a57"},
+    {"path":"B04-independent-solution-ledger.ru.json","bytes":40143,"sha256":"d9ad36970fc793106882854e707b3adda8abec9fb007b51eb04e235274e6653e"},
+    {"path":"B04-comparison-ledger.json","bytes":5374,"sha256":"88d7d730b3ad4dc20869effeb9470c4baa377d43efd68c2a2f753d29f2dc89bc"}
+  ],
+  "next_artifacts": ["B04-exam-solution-ledger.ru.json", "B04-student-solution-table.json", "B04-agent-shards", "B04-print-projections"],
+  "rights_status": "UNCONFIRMED_NOT_PUBLICATION_READY",
+  "tts_status": "ROW_LEVEL_TTS_KARAOKE_CONTRACT_VERIFICATION_AUTHORIZED_FULL_AUDIO_DEFERRED_UNTIL_POST_PRODUCTION_OWNER_CARD_REVIEW"
+}

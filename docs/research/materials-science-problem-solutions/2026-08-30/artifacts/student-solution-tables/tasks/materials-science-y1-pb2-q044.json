@@ -1,0 +1,3247 @@
+{
+  "schema_version": "materials_pb2_student_solution_table.1.0.0",
+  "task_id": "materials-science-y1-pb2-q044",
+  "display_alias": "44",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "c1f8b5a4b9101987c1913448228ba88b1abbad0d5a8a167d26c7e27d3c155c8e"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "e31833321a5a17c4a43a869775022db830b312bd711eb4ab93c68f038a481a9e",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Single source review restores the welded extruded-tube and HAZ criteria. AA6061-T4 is selected while its lower listed 95 MPa fatigue value remains an explicit design qualification.",
+    "reviewer_disposition": "CORRECTED_AND_REVERIFIED"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q044-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 44.",
+        "hebrew_niqqud": "שְׁאֵלָה 44.",
+        "translit": "She'ela 44.",
+        "translit_ru": "",
+        "russian": "Вопрос 44.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "task_heading",
+            "source_page": 54,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q044-r002",
+        "order_index": 1,
+        "hebrew_plain": "השלדה של אופני הרים מורכבת ממספר מוטות העשויים מסגסוגת אלומיניום.",
+        "hebrew_niqqud": "הַשִּׁלְדָּה שֶׁל אוֹפַנֵּי הָרִים מֻורְכֶּבֶת מִמִּסְפַּר מוֹטוֹת הָעֲשׂוּיִים מִסַּגְסוֹגַת אַלוּמִינְיוּם.",
+        "translit": "Hashildah shel ofanei harim murkevet mimispar motot ha'asuyim misagsogat aluminiyum.",
+        "translit_ru": "",
+        "russian": "Рама горного велосипеда состоит из нескольких стержней, изготовленных из алюминиевого сплава.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "subpart",
+            "source_page": 54,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q044-r003",
+        "order_index": 2,
+        "hebrew_plain": "המוטות מרותכים זה לזה כך שהשלדה תוכל לעמוד בעומסים דינמיים ומחזוריים גדולים.",
+        "hebrew_niqqud": "הַמּוֹטוֹת מְרֻותָּכִים זֶה לָזֶה כָּךְ שֶׁהַשִּׁלְדָּה תּוּכַל לַעֲמֹוד בְּעוֹמָסִים דִּינָמִיִּים וּמַחֲזוֹרִיִּים גְּדוֹלִים.",
+        "translit": "Hamotot merutakhim zeh lazeh kakh shehashildah tukhal la'amod be'omasim dinamiyim umaḥazoriyim gdolim.",
+        "translit_ru": "",
+        "russian": "Стержни сварены друг с другом так, чтобы рама могла выдерживать большие динамические и циклические нагрузки.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "subpart",
+            "source_page": 54,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q044-r004",
+        "order_index": 3,
+        "hebrew_plain": "א) היעזר בנספח ד׳ וקבע איזו משלוש סגסוגות האלומיניום המתאימה ביותר עבור שלדת האופניים מסוג זה היא: 6061-T4, 5052-H38, 2024-T361.",
+        "hebrew_niqqud": "א) הֵיעָזֵר בְּנִסְפָּח ד׳ וּקְבַע אֵיזוֹ מִשְּׁלוֹשׁ סִגְסוֹגוֹת הָאָלוּמִינְיוּם הַמַּתְאִימָה בְּיוֹתֵר עֲבוּר שִׁלְדַּת הָאוֹפַנַּייִם מִסּוּג זֶה הִיא: 6061-T4, 5052-H38, 2024-T361.",
+        "translit": "A) Hi'ezer be-nespakh D' u-kvoa eizo mi-shalosh sagsogot ha-aluminum ha-mat'ima be-yoter avur sheldet ha-ofanayim mi-sug ze hi: 6061-T4, 5052-H38, 2024-T361.",
+        "translit_ru": "",
+        "russian": "А) Используйте Приложение D и определите, какой из трех алюминиевых сплавов наиболее подходит для рамы велосипеда такого типа: 6061-T4, 5052-H38, 2024-T361.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "subpart",
+            "source_page": 54,
+            "source_row_index": 3,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q044-r005",
+        "order_index": 4,
+        "hebrew_plain": "(5 נק') ב. מדוע החישוקים של אופני הרים מיוצרים מפלדה רבת־פחמן, כגון פלדת SAE 1070, ולא מסגסוגות אלומיניום?",
+        "hebrew_niqqud": "(5 נק') ב. מַדּוּעַ הַחִישּׁוּקִים שֶׁל אוֹפַנֵּי הָרִים מְיֻוצָּרִים מִפְּלָדָה רַבַּת־פַּחְמָן, כְּגוֹן פְּלָדַת SAE 1070, וְלֹא מִסַּגְסוֹגוֹת אַלוּמִינְיוּם?",
+        "translit": "(5 nek') b. Madua' haḥishukim shel ofanei harim meyutzarim mipladah rabat-paḥman, kegon pladat SAE 1070, velo misagsogot aluminiyum?",
+        "translit_ru": "",
+        "russian": "(5 баллов) ב. Почему обода горных велосипедов изготавливаются из высокоуглеродистой стали, например стали SAE 1070, а не из алюминиевых сплавов?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "subpart",
+            "source_page": 54,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q044-r006",
+        "order_index": 5,
+        "hebrew_plain": "(5 נק') ג. מהי התכונה הפיזיקלית העיקרית שעל פיה בוחרים את החומר לייצור רפידות בלמים באופניים?",
+        "hebrew_niqqud": "(5 נק') ג. מַהִי הַתְּכוּנָה הַפִיזִיקָלִית הָעִיקָּרִית שֶׁעַל פִּיהָ בּוֹחֲרִים אֶת הַחֹומֶר לְייִצּוּר רְפִידוֹת בְּלָמִים בָּאוֹפַנַּייִם?",
+        "translit": "(5 nek') g. Mahi hatkhunah hafizikalit ha'ikarit she'al piha boḥarim et haḥomer leyitzur refidot blamim ba'ofanayim?",
+        "translit_ru": "",
+        "russian": "(5 баллов) ג. Каково главное физическое свойство, на основе которого выбирают материал для изготовления тормозных колодок велосипеда?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "subpart",
+            "source_page": 54,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q044-r007",
+        "order_index": 6,
+        "hebrew_plain": "(5 נק') ד. על־פי איזה מבין ארבעת הקריטריונים האלה: σuts ; σy ; σfailure ; σfatigue, יש לבחור את החומר לייצור שרשרת לאופניים? נמק את תשובתך.",
+        "hebrew_niqqud": "(5 נק') ד. עַל־פִּי אֵיזֶה מִבֵּין אַרְבַּעַת הַקְּרִיטֶרְיוֹנִים הָאֵלֶּה: σuts ; σy ; σfailure ; σfatigue, יֵשׁ לִבְחֹור אֶת הַחֹומֶר לְייִצּוּר שַׁרְשֶׁרֶת לָאוֹפַנַּייִם? נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "(5 nek') d. 'Al-pi eizeh mibein arba'at haqriteryonim ha'eleh: σuts ; σy ; σfailure ; σfatigue, yesh livḥor et haḥomer leyitzur sharsheret la'ofanayim? Namek et teshuvatekha.",
+        "translit_ru": "",
+        "russian": "(5 баллов) ד. По какому из четырёх следующих критериев: σuts ; σy ; σfailure ; σfatigue следует выбирать материал для изготовления велосипедной цепи? Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q044",
+            "kind": "subpart",
+            "source_page": 54,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      54,
+      71,
+      72,
+      73
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q044/anchor-01-p054.jpg",
+        "sha256": "68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "bytes": 146255,
+        "source_page": 54,
+        "normalized_bbox": [
+          0,
+          0.42,
+          1,
+          1
+        ],
+        "role": "condition"
+      },
+      {
+        "path": "assets/reference/aluminum_alloy_appendices-p071.jpg",
+        "sha256": "7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "bytes": 387957,
+        "source_page": 71,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALUMINUM_ALLOY_APPENDICES"
+      },
+      {
+        "path": "assets/reference/aluminum_alloy_appendices-p072.jpg",
+        "sha256": "c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "bytes": 638884,
+        "source_page": 72,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALUMINUM_ALLOY_APPENDICES"
+      },
+      {
+        "path": "assets/reference/aluminum_alloy_appendices-p073.jpg",
+        "sha256": "76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a",
+        "bytes": 522323,
+        "source_page": 73,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "external_reference:ALUMINUM_ALLOY_APPENDICES"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": [
+      {
+        "dependency_kind": "ALUMINUM_ALLOY_APPENDICES",
+        "source_pages": [
+          71,
+          72,
+          73
+        ],
+        "prepared_reference_ids": [
+          "source-reference-p071",
+          "source-reference-p072",
+          "source-reference-p073"
+        ],
+        "required_for_solving": true,
+        "mapping_basis": "SOURCE_PROMPT_AND_APPENDIX_CONTENT_LOCAL_REVIEW_2026_08_30"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:e31833321a5a17c4a43a869775022db830b312bd711eb4ab93c68f038a481a9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) הסגסוגת המתאימה ביותר לשלדת אופני הרים מרותכת בעומסים מחזוריים גדולים היא 6061-T4.",
+        "he_niqqud": "א) הַסִּגְסֹגֶת הַמַּתְאִימָה בְּיוֹתֵר לְשִׁלְדַּת אוֹפַנֵּי הָרִים מְרֻתֶּכֶת בְּעוֹמָסִים מַחְזוֹרִיִּים גְּדוֹלִים הִיא 6061-T4.",
+        "transliteration": "A) Ha-sagsoget ha-mat'ima be-yoter le-sheldet ofney harim merutékhet be-omasim makhzoriyim gdolim hi 6061-T4.",
+        "ru": "А) Наиболее подходящим сплавом для сварной рамы горного велосипеда при высоких циклических нагрузках является 6061-T4."
+      },
+      "source_refs": [
+        "legacy_row_hash:81af9cb82d430e28ee704794e39121383e5307ded4432001ff91a0c9b29c4d9c",
+        "legacy_fields_sha256:cf28b731105faf4b81d32a755eb4c6bf8b94f44460490f4a470c2ee0592d2e8a",
+        "independent_solution_sha256:e31833321a5a17c4a43a869775022db830b312bd711eb4ab93c68f038a481a9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַסִּגְסֹגֶת",
+            "normalized": "הסגסגת"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 3,
+            "surface": "בְּיוֹתֵר",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׁלְדַּת",
+            "normalized": "לשלדת"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹפַנֵּי",
+            "normalized": "אופני"
+          },
+          {
+            "index": 6,
+            "surface": "הָרִים",
+            "normalized": "הרים"
+          },
+          {
+            "index": 7,
+            "surface": "מְרֻתֶּכֶת",
+            "normalized": "מרתכת"
+          },
+          {
+            "index": 8,
+            "surface": "בְּעוֹמָסִים",
+            "normalized": "בעומסים"
+          },
+          {
+            "index": 9,
+            "surface": "מַחְזוֹרִיִּים",
+            "normalized": "מחזוריים"
+          },
+          {
+            "index": 10,
+            "surface": "גְּדוֹלִים",
+            "normalized": "גדולים"
+          },
+          {
+            "index": 11,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 12,
+            "surface": "6061-T4.",
+            "normalized": "6061-T4"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) החישוקים מיוצרים מפלדה רבת-פחמן כגון SAE 1070 משום שנדרשות קשיחות גבוהה ועמידות לעייפות תחת עומסי כיפוף מחזוריים.",
+        "he_niqqud": "ב) הַחִשּׁוּקִים מְיֻצָּרִים מִפְּלָדָה רַבַּת-פַּחְמָן כְּגוֹן SAE 1070 מִשּׁוּם שֶׁנִּדְרָשׁוֹת קְשִׁיחוּת גְּבוֹהָה וַעֲמִידוּת לְעֲיֵפוּת תַּחַת עוֹמְסֵי כִּפּוּף מַחְזוֹרִיִּים.",
+        "transliteration": "B) Ha-hishukim meyu'tzarim mi-plada ravta-fakhmán ke-gon SAE 1070 mishum she-nidrashot kishihut gevoha ve-amidut le-ayefut takhat omasey kifuf makhzoriyim.",
+        "ru": "Б) Обода изготавливаются из высокоуглеродистой стали, такой как SAE 1070, поскольку требуются высокая жесткость и усталостная прочность при циклических изгибающих нагрузках."
+      },
+      "source_refs": [
+        "legacy_row_hash:282f91968b1cfe1b28f4d16e5e5d9c6ca9607e507ee391f6de84b41414ce102c",
+        "legacy_fields_sha256:e0d52431408da64c7b3fffb4cf01180d2c014b6895dd4e0792ec6d4922d6a02e",
+        "independent_solution_sha256:e31833321a5a17c4a43a869775022db830b312bd711eb4ab93c68f038a481a9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַחִשּׁוּקִים",
+            "normalized": "החשוקים"
+          },
+          {
+            "index": 2,
+            "surface": "מְיֻצָּרִים",
+            "normalized": "מיצרים"
+          },
+          {
+            "index": 3,
+            "surface": "מִפְּלָדָה",
+            "normalized": "מפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "רַבַּת-פַּחְמָן",
+            "normalized": "רבת-פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 6,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 7,
+            "surface": "1070",
+            "normalized": "1070"
+          },
+          {
+            "index": 8,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁנִּדְרָשׁוֹת",
+            "normalized": "שנדרשות"
+          },
+          {
+            "index": 10,
+            "surface": "קְשִׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 11,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 12,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 13,
+            "surface": "לְעֲיֵפוּת",
+            "normalized": "לעיפות"
+          },
+          {
+            "index": 14,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 15,
+            "surface": "עוֹמְסֵי",
+            "normalized": "עומסי"
+          },
+          {
+            "index": 16,
+            "surface": "כִּפּוּף",
+            "normalized": "כפוף"
+          },
+          {
+            "index": 17,
+            "surface": "מַחְזוֹרִיִּים.",
+            "normalized": "מחזוריים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) התכונה הפיזיקלית העיקרית לבחירת חומר לרפידות בלמים היא מקדם החיכוך μ בין הרפידה למשטח הבלימה.",
+        "he_niqqud": "ג) הַתְּכוּנָה הַפִיזִיקָלִית הָעִיקָרִית לִבְחִירַת חֹמֶר לְרַפִּידוֹת בְּלָמִים הִיא מְקַדֵּם הַחִכּוּךְ μ בֵּין הָרַפִּידָה לְמִשְׁטַח הַבְּלִימָה.",
+        "transliteration": "G) Ha-tkhuna ha-fizikalit ha-ikkarit li-vkhirat khomer le-rapidot blamim hi mekadem ha-khikhukh μ ben ha-rapida la-mishtakh ha-blima.",
+        "ru": "В) Основным физическим свойством для выбора материала тормозных колодок является коэффициент трения μ между колодкой и тормозной поверхностью."
+      },
+      "source_refs": [
+        "legacy_row_hash:791b51a269c97af3bbb61c7fdf227fc6dbab7cd9d929b53ee0aa0de76aee633d",
+        "legacy_fields_sha256:79dbc6c032945d50d1dacfd6e84008df0ed10531388ba4c06973013f89e562b3",
+        "independent_solution_sha256:e31833321a5a17c4a43a869775022db830b312bd711eb4ab93c68f038a481a9e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַתְּכוּנָה",
+            "normalized": "התכונה"
+          },
+          {
+            "index": 2,
+            "surface": "הַפִיזִיקָלִית",
+            "normalized": "הפיזיקלית"
+          },
+          {
+            "index": 3,
+            "surface": "הָעִיקָרִית",
+            "normalized": "העיקרית"
+          },
+          {
+            "index": 4,
+            "surface": "לִבְחִירַת",
+            "normalized": "לבחירת"
+          },
+          {
+            "index": 5,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 6,
+            "surface": "לְרַפִּידוֹת",
+            "normalized": "לרפידות"
+          },
+          {
+            "index": 7,
+            "surface": "בְּלָמִים",
+            "normalized": "בלמים"
+          },
+          {
+            "index": 8,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 9,
+            "surface": "מְקַדֵּם",
+            "normalized": "מקדם"
+          },
+          {
+            "index": 10,
+            "surface": "הַחִכּוּךְ",
+            "normalized": "החכוך"
+          },
+          {
+            "index": 11,
+            "surface": "μ",
+            "normalized": "μ"
+          },
+          {
+            "index": 12,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 13,
+            "surface": "הָרַפִּידָה",
+            "normalized": "הרפידה"
+          },
+          {
+            "index": 14,
+            "surface": "לְמִשְׁטַח",
+            "normalized": "למשטח"
+          },
+          {
+            "index": 15,
+            "surface": "הַבְּלִימָה.",
+            "normalized": "הבלימה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) הסגסוגת המתאימה ביותר לשלדת אופני הרים מרותכת בעומסים מחזוריים גדולים היא 6061-T4.",
+        "he_niqqud": "א) הַסִּגְסֹגֶת הַמַּתְאִימָה בְּיוֹתֵר לְשִׁלְדַּת אוֹפַנֵּי הָרִים מְרֻתֶּכֶת בְּעוֹמָסִים מַחְזוֹרִיִּים גְּדוֹלִים הִיא 6061-T4.",
+        "transliteration": "A) Ha-sagsoget ha-mat'ima be-yoter le-sheldet ofney harim merutékhet be-omasim makhzoriyim gdolim hi 6061-T4.",
+        "ru": "А) Наиболее подходящим сплавом для сварной рамы горного велосипеда при высоких циклических нагрузках является 6061-T4."
+      },
+      "source_refs": [
+        "legacy_row_hash:81af9cb82d430e28ee704794e39121383e5307ded4432001ff91a0c9b29c4d9c",
+        "legacy_fields_sha256:cf28b731105faf4b81d32a755eb4c6bf8b94f44460490f4a470c2ee0592d2e8a",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַסִּגְסֹגֶת",
+            "normalized": "הסגסגת"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּתְאִימָה",
+            "normalized": "המתאימה"
+          },
+          {
+            "index": 3,
+            "surface": "בְּיוֹתֵר",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׁלְדַּת",
+            "normalized": "לשלדת"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹפַנֵּי",
+            "normalized": "אופני"
+          },
+          {
+            "index": 6,
+            "surface": "הָרִים",
+            "normalized": "הרים"
+          },
+          {
+            "index": 7,
+            "surface": "מְרֻתֶּכֶת",
+            "normalized": "מרתכת"
+          },
+          {
+            "index": 8,
+            "surface": "בְּעוֹמָסִים",
+            "normalized": "בעומסים"
+          },
+          {
+            "index": 9,
+            "surface": "מַחְזוֹרִיִּים",
+            "normalized": "מחזוריים"
+          },
+          {
+            "index": 10,
+            "surface": "גְּדוֹלִים",
+            "normalized": "גדולים"
+          },
+          {
+            "index": 11,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 12,
+            "surface": "6061-T4.",
+            "normalized": "6061-T4"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ההעמסה היא דינמית מחזורית והחיבורים מרותכים ולכן נדרשות עמידות לעייפות באזור התפר ובאזור המושפע מחום (HAZ) וכן יכולת ריתוך טובה ועמידות לקורוזיה.",
+        "he_niqqud": "הָהַעֲמָסָה הִיא דִּינָמִית מַחְזוֹרִית וְהַחִבּוּרִים מְרֻתָּכִים וְלָכֵן נִדְרָשׁוֹת עֲמִידוּת לְעֲיֵפוּת בַּאֲזוֹר הַתֶּפֶר וּבָאֲזוֹר הַמֻּשְׁפָּע מֵחֹם (HAZ) וְכֵן יְכֹלֶת רִיתּוּךְ טוֹבָה וַעֲמִידוּת לְקוֹרוֹזְיָה.",
+        "transliteration": "Ha-ha'amasa hi dinamit makhzorit ve-ha-khiburim merutakhim ve-lakhen nidrashot amidut le-ayefut ba-ezor ha-tefer u-ve-ezor ha-mushpa me-khom (HAZ) ve-khen yekholet ritukh tova ve-amidut le-korozia.",
+        "ru": "Нагрузка является динамической циклической, а соединения — сварными, поэтому требуется усталостная прочность в зоне шва и в зоне термического влияния (HAZ), а также хорошая свариваемость и коррозионная стойкость."
+      },
+      "source_refs": [
+        "legacy_row_hash:e7c23f8d3119448ca06e7b407dee8c6c2d5b890807bda29aaeaedc9a8b03f0de",
+        "legacy_fields_sha256:f955fd417448452e19111429868f82288154dce6079acd27157794f268de592d",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הָהַעֲמָסָה",
+            "normalized": "ההעמסה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "דִּינָמִית",
+            "normalized": "דינמית"
+          },
+          {
+            "index": 3,
+            "surface": "מַחְזוֹרִית",
+            "normalized": "מחזורית"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַחִבּוּרִים",
+            "normalized": "והחבורים"
+          },
+          {
+            "index": 5,
+            "surface": "מְרֻתָּכִים",
+            "normalized": "מרתכים"
+          },
+          {
+            "index": 6,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "נִדְרָשׁוֹת",
+            "normalized": "נדרשות"
+          },
+          {
+            "index": 8,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 9,
+            "surface": "לְעֲיֵפוּת",
+            "normalized": "לעיפות"
+          },
+          {
+            "index": 10,
+            "surface": "בַּאֲזוֹר",
+            "normalized": "באזור"
+          },
+          {
+            "index": 11,
+            "surface": "הַתֶּפֶר",
+            "normalized": "התפר"
+          },
+          {
+            "index": 12,
+            "surface": "וּבָאֲזוֹר",
+            "normalized": "ובאזור"
+          },
+          {
+            "index": 13,
+            "surface": "הַמֻּשְׁפָּע",
+            "normalized": "המשפע"
+          },
+          {
+            "index": 14,
+            "surface": "מֵחֹם",
+            "normalized": "מחם"
+          },
+          {
+            "index": 15,
+            "surface": "(HAZ)",
+            "normalized": "HAZ"
+          },
+          {
+            "index": 16,
+            "surface": "וְכֵן",
+            "normalized": "וכן"
+          },
+          {
+            "index": 17,
+            "surface": "יְכֹלֶת",
+            "normalized": "יכלת"
+          },
+          {
+            "index": 18,
+            "surface": "רִיתּוּךְ",
+            "normalized": "ריתוך"
+          },
+          {
+            "index": 19,
+            "surface": "טוֹבָה",
+            "normalized": "טובה"
+          },
+          {
+            "index": 20,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 21,
+            "surface": "לְקוֹרוֹזְיָה.",
+            "normalized": "לקורוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "סגסוגת 2024-T361 מאופיינת בחוזק סטטי גבוה אך כושר הריתוך שלה נמוך יותר והיא רגישה יותר לקורוזיה, ותפרי ריתוך פוגעים משמעותית בעמידות לעייפות.",
+        "he_niqqud": "סִגְסֹגֶת 2024-T361 מְאֻפְיֶינֶת בְּחֹזֶק סְטָטִי גָּבוֹהַּ אַךְ כֹּשֶׁר הָרִיתּוּךְ שֶׁלָּהּ נָמוּךְ יוֹתֵר וְהִיא רַגִּישָׁה יוֹתֵר לְקוֹרוֹזְיָה, וּתְפָרֵי רִיתּוּךְ פּוֹגְעִים מַשְׁמָעוּתִית בַּעֲמִידוּת לְעֲיֵפוּת.",
+        "transliteration": "Sagsoget 2024-T361 me'ufyenet be-khozek stati gavoha akh kosher ha-ritukh shela namukh yoter ve-hi ragisha yoter le-korozia, u-taferey ritukh pog'im mashma'utit ba-amidut le-ayefut.",
+        "ru": "Сплав 2024-T361 характеризуется высокой статической прочностью, но его свариваемость ниже, он более чувствителен к коррозии, а сварные швы значительно ухудшают усталостную прочность."
+      },
+      "source_refs": [
+        "legacy_row_hash:fc497b5235f7845f2b4dea0dfe5185a143b0c51f3618366b05bcafd0c95ccd31",
+        "legacy_fields_sha256:0b5b5286d2fc9c734fb7346a0ef33f4f640405b63c563c56aa9237465899dbcc",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "סִגְסֹגֶת",
+            "normalized": "סגסגת"
+          },
+          {
+            "index": 1,
+            "surface": "2024-T361",
+            "normalized": "2024-T361"
+          },
+          {
+            "index": 2,
+            "surface": "מְאֻפְיֶינֶת",
+            "normalized": "מאפיינת"
+          },
+          {
+            "index": 3,
+            "surface": "בְּחֹזֶק",
+            "normalized": "בחזק"
+          },
+          {
+            "index": 4,
+            "surface": "סְטָטִי",
+            "normalized": "סטטי"
+          },
+          {
+            "index": 5,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 6,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 7,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 8,
+            "surface": "הָרִיתּוּךְ",
+            "normalized": "הריתוך"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁלָּהּ",
+            "normalized": "שלה"
+          },
+          {
+            "index": 10,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 12,
+            "surface": "וְהִיא",
+            "normalized": "והיא"
+          },
+          {
+            "index": 13,
+            "surface": "רַגִּישָׁה",
+            "normalized": "רגישה"
+          },
+          {
+            "index": 14,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 15,
+            "surface": "לְקוֹרוֹזְיָה,",
+            "normalized": "לקורוזיה"
+          },
+          {
+            "index": 16,
+            "surface": "וּתְפָרֵי",
+            "normalized": "ותפרי"
+          },
+          {
+            "index": 17,
+            "surface": "רִיתּוּךְ",
+            "normalized": "ריתוך"
+          },
+          {
+            "index": 18,
+            "surface": "פּוֹגְעִים",
+            "normalized": "פוגעים"
+          },
+          {
+            "index": 19,
+            "surface": "מַשְׁמָעוּתִית",
+            "normalized": "משמעותית"
+          },
+          {
+            "index": 20,
+            "surface": "בַּעֲמִידוּת",
+            "normalized": "בעמידות"
+          },
+          {
+            "index": 21,
+            "surface": "לְעֲיֵפוּת.",
+            "normalized": "לעיפות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "סגסוגת 5052-H38 מקבלת חוזק בעיקר מהקשיית עיבוד קר, ובריתוך אזור ה-HAZ מתרכך עקב איבוד ההקשייה ולכן החוזק בסביבת התפר יורד.",
+        "he_niqqud": "סִגְסֹגֶת 5052-H38 מְקַבֶּלֶת חֹזֶק בְּעִקָּר מֵהַקְשָׁיַית עִבּוּד קַר, וּבְרִיתּוּךְ אֲזוֹר הַ-HAZ מִתְרַכֵּךְ עֵקֶב אִבּוּד הָהַקְשָׁיָה וְלָכֵן הַחֹזֶק בִּסְבִיבַת הַתֶּפֶר יוֹרֵד.",
+        "transliteration": "Sagsoget 5052-H38 mekabelet khozek be-ikar me-hakshiyat ibud kar, u-va-ritukh ezor ha-HAZ mitrakhekh ekev ibud ha-hakshiya ve-lakhen ha-khozek bi-svivat ha-tefer yored.",
+        "ru": "Сплав 5052-H38 приобретает прочность в основном за счет холодного наклепа, а при сварке зона термического влияния (HAZ) размягчается из-за потери наклепа, и поэтому прочность в области шва снижается."
+      },
+      "source_refs": [
+        "legacy_row_hash:fa1e4b04b6ac841cbd021ce586915bfe267a5871e1242b8b36ecd637e6150fb1",
+        "legacy_fields_sha256:728970fde060964f47b33722d24d4fe3be104ca4c5256e36e4f382616308e6e3",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "סִגְסֹגֶת",
+            "normalized": "סגסגת"
+          },
+          {
+            "index": 1,
+            "surface": "5052-H38",
+            "normalized": "5052-H38"
+          },
+          {
+            "index": 2,
+            "surface": "מְקַבֶּלֶת",
+            "normalized": "מקבלת"
+          },
+          {
+            "index": 3,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 4,
+            "surface": "בְּעִקָּר",
+            "normalized": "בעקר"
+          },
+          {
+            "index": 5,
+            "surface": "מֵהַקְשָׁיַית",
+            "normalized": "מהקשיית"
+          },
+          {
+            "index": 6,
+            "surface": "עִבּוּד",
+            "normalized": "עבוד"
+          },
+          {
+            "index": 7,
+            "surface": "קַר,",
+            "normalized": "קר"
+          },
+          {
+            "index": 8,
+            "surface": "וּבְרִיתּוּךְ",
+            "normalized": "ובריתוך"
+          },
+          {
+            "index": 9,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 10,
+            "surface": "הַ-HAZ",
+            "normalized": "ה-HAZ"
+          },
+          {
+            "index": 11,
+            "surface": "מִתְרַכֵּךְ",
+            "normalized": "מתרכך"
+          },
+          {
+            "index": 12,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 13,
+            "surface": "אִבּוּד",
+            "normalized": "אבוד"
+          },
+          {
+            "index": 14,
+            "surface": "הָהַקְשָׁיָה",
+            "normalized": "ההקשיה"
+          },
+          {
+            "index": 15,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 16,
+            "surface": "הַחֹזֶק",
+            "normalized": "החזק"
+          },
+          {
+            "index": 17,
+            "surface": "בִּסְבִיבַת",
+            "normalized": "בסביבת"
+          },
+          {
+            "index": 18,
+            "surface": "הַתֶּפֶר",
+            "normalized": "התפר"
+          },
+          {
+            "index": 19,
+            "surface": "יוֹרֵד.",
+            "normalized": "יורד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "סגסוגת 6061-T4 היא מסדרה Al-Mg-Si עם כושר ריתוך טוב יחסית ויכולת שיקום ושיפור תכונות לאחר ריתוך באמצעות הזדקנות במצבי T, ולכן היא עדיפה למסגרת מרותכת בעייפות.",
+        "he_niqqud": "סִגְסֹגֶת 6061-T4 הִיא מִסִּדְרָה Al-Mg-Si עִם כֹּשֶׁר רִיתּוּךְ טוֹב יַחֲסִית וִיכֹלֶת שִׁקּוּם וְשִׁפּוּר תְּכוּנוֹת אַחַר רִיתּוּךְ בְּאֶמְצָעוּת הִזְדַּקְּנוּת בְּמַצָּבֵי T, וְלָכֵן הִיא עֲדִיפָה לְמִסְגֶּרֶת מְרֻתֶּכֶת בַּעֲיֵפוּת.",
+        "transliteration": "Sagsoget 6061-T4 hi mi-sedra Al-Mg-Si im kosher ritukh tov yikhasit vi-yekholet shikum ve-shipur tkhunot akhar ritukh be-emtzaut hizdakenut be-matzvey T, ve-lakhen hi adifa le-misgeret merutékhet be-ayefut.",
+        "ru": "Сплав 6061-T4 относится к серии Al-Mg-Si, обладает относительно хорошей свариваемостью и способностью восстанавливать и улучшать свойства после сварки посредством старения в состояниях T, поэтому он предпочтителен для сварных рам, подверженных усталости."
+      },
+      "source_refs": [
+        "legacy_row_hash:4eed36d630b501edb393f2f91be99aa8ff8e30da1cfdc773c158711abbd620d0",
+        "legacy_fields_sha256:ac5be2ceb1561813e6743d2d6784c17e1be01ff4aea86d777953fc11514eff4f",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "סִגְסֹגֶת",
+            "normalized": "סגסגת"
+          },
+          {
+            "index": 1,
+            "surface": "6061-T4",
+            "normalized": "6061-T4"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "מִסִּדְרָה",
+            "normalized": "מסדרה"
+          },
+          {
+            "index": 4,
+            "surface": "Al-Mg-Si",
+            "normalized": "Al-Mg-Si"
+          },
+          {
+            "index": 5,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 6,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 7,
+            "surface": "רִיתּוּךְ",
+            "normalized": "ריתוך"
+          },
+          {
+            "index": 8,
+            "surface": "טוֹב",
+            "normalized": "טוב"
+          },
+          {
+            "index": 9,
+            "surface": "יַחֲסִית",
+            "normalized": "יחסית"
+          },
+          {
+            "index": 10,
+            "surface": "וִיכֹלֶת",
+            "normalized": "ויכלת"
+          },
+          {
+            "index": 11,
+            "surface": "שִׁקּוּם",
+            "normalized": "שקום"
+          },
+          {
+            "index": 12,
+            "surface": "וְשִׁפּוּר",
+            "normalized": "ושפור"
+          },
+          {
+            "index": 13,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 14,
+            "surface": "אַחַר",
+            "normalized": "אחר"
+          },
+          {
+            "index": 15,
+            "surface": "רִיתּוּךְ",
+            "normalized": "ריתוך"
+          },
+          {
+            "index": 16,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 17,
+            "surface": "הִזְדַּקְּנוּת",
+            "normalized": "הזדקנות"
+          },
+          {
+            "index": 18,
+            "surface": "בְּמַצָּבֵי",
+            "normalized": "במצבי"
+          },
+          {
+            "index": 19,
+            "surface": "T,",
+            "normalized": "T"
+          },
+          {
+            "index": 20,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 21,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 22,
+            "surface": "עֲדִיפָה",
+            "normalized": "עדיפה"
+          },
+          {
+            "index": 23,
+            "surface": "לְמִסְגֶּרֶת",
+            "normalized": "למסגרת"
+          },
+          {
+            "index": 24,
+            "surface": "מְרֻתֶּכֶת",
+            "normalized": "מרתכת"
+          },
+          {
+            "index": 25,
+            "surface": "בַּעֲיֵפוּת.",
+            "normalized": "בעיפות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r010",
+      "order": 10,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) החישוקים מיוצרים מפלדה רבת-פחמן כגון SAE 1070 משום שנדרשות קשיחות גבוהה ועמידות לעייפות תחת עומסי כיפוף מחזוריים.",
+        "he_niqqud": "ב) הַחִשּׁוּקִים מְיֻצָּרִים מִפְּלָדָה רַבַּת-פַּחְמָן כְּגוֹן SAE 1070 מִשּׁוּם שֶׁנִּדְרָשׁוֹת קְשִׁיחוּת גְּבוֹהָה וַעֲמִידוּת לְעֲיֵפוּת תַּחַת עוֹמְסֵי כִּפּוּף מַחְזוֹרִיִּים.",
+        "transliteration": "B) Ha-hishukim meyu'tzarim mi-plada ravta-fakhmán ke-gon SAE 1070 mishum she-nidrashot kishihut gevoha ve-amidut le-ayefut takhat omasey kifuf makhzoriyim.",
+        "ru": "Б) Обода изготавливаются из высокоуглеродистой стали, такой как SAE 1070, поскольку требуются высокая жесткость и усталостная прочность при циклических изгибающих нагрузках."
+      },
+      "source_refs": [
+        "legacy_row_hash:282f91968b1cfe1b28f4d16e5e5d9c6ca9607e507ee391f6de84b41414ce102c",
+        "legacy_fields_sha256:e0d52431408da64c7b3fffb4cf01180d2c014b6895dd4e0792ec6d4922d6a02e",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַחִשּׁוּקִים",
+            "normalized": "החשוקים"
+          },
+          {
+            "index": 2,
+            "surface": "מְיֻצָּרִים",
+            "normalized": "מיצרים"
+          },
+          {
+            "index": 3,
+            "surface": "מִפְּלָדָה",
+            "normalized": "מפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "רַבַּת-פַּחְמָן",
+            "normalized": "רבת-פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 6,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 7,
+            "surface": "1070",
+            "normalized": "1070"
+          },
+          {
+            "index": 8,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁנִּדְרָשׁוֹת",
+            "normalized": "שנדרשות"
+          },
+          {
+            "index": 10,
+            "surface": "קְשִׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 11,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 12,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 13,
+            "surface": "לְעֲיֵפוּת",
+            "normalized": "לעיפות"
+          },
+          {
+            "index": 14,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 15,
+            "surface": "עוֹמְסֵי",
+            "normalized": "עומסי"
+          },
+          {
+            "index": 16,
+            "surface": "כִּפּוּף",
+            "normalized": "כפוף"
+          },
+          {
+            "index": 17,
+            "surface": "מַחְזוֹרִיִּים.",
+            "normalized": "מחזוריים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בעומסים של מכות וקפיצות נוצרים מאמצים מחזוריים בכיפוף ולכן קשיחות החומר קריטית למניעת עיוותים ולשמירת צורה.",
+        "he_niqqud": "בְּעוֹמָסִים שֶׁל מַכּוֹת וּקְפִיצוֹת נוֹצָרִים מַאֲמַצִּים מַחְזוֹרִיִּים בְּכִפּוּף וְלָכֵן קְשִׁיחוּת הַחֹמֶר קְרִיטִית לִמְנִיעַת עִוּוּתִים וְלִשְׁמִירַת צוּרָה.",
+        "transliteration": "Be-omasim shel makot u-kfitzot notzrim ma'amatzim makhzoriyim ba-kifuf ve-lakhen kishihut ha-khomer kritit li-meni'at ivutim ve-li-shmirat tzura.",
+        "ru": "При ударных нагрузках и прыжках возникают циклические напряжения при изгибе, поэтому жесткость материала критически важна для предотвращения деформаций и сохранения формы."
+      },
+      "source_refs": [
+        "legacy_row_hash:7d768670972faca917b5a83803ef17ac678b39e615b3f0326c78791987ac24fd",
+        "legacy_fields_sha256:4923952cd0a9ab3987fc8be25b258e142a4259e205cba04788ef17650cf3bbdf",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּעוֹמָסִים",
+            "normalized": "בעומסים"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 2,
+            "surface": "מַכּוֹת",
+            "normalized": "מכות"
+          },
+          {
+            "index": 3,
+            "surface": "וּקְפִיצוֹת",
+            "normalized": "וקפיצות"
+          },
+          {
+            "index": 4,
+            "surface": "נוֹצָרִים",
+            "normalized": "נוצרים"
+          },
+          {
+            "index": 5,
+            "surface": "מַאֲמַצִּים",
+            "normalized": "מאמצים"
+          },
+          {
+            "index": 6,
+            "surface": "מַחְזוֹרִיִּים",
+            "normalized": "מחזוריים"
+          },
+          {
+            "index": 7,
+            "surface": "בְּכִפּוּף",
+            "normalized": "בכפוף"
+          },
+          {
+            "index": 8,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 9,
+            "surface": "קְשִׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 10,
+            "surface": "הַחֹמֶר",
+            "normalized": "החמר"
+          },
+          {
+            "index": 11,
+            "surface": "קְרִיטִית",
+            "normalized": "קריטית"
+          },
+          {
+            "index": 12,
+            "surface": "לִמְנִיעַת",
+            "normalized": "למניעת"
+          },
+          {
+            "index": 13,
+            "surface": "עִוּוּתִים",
+            "normalized": "עוותים"
+          },
+          {
+            "index": 14,
+            "surface": "וְלִשְׁמִירַת",
+            "normalized": "ולשמירת"
+          },
+          {
+            "index": 15,
+            "surface": "צוּרָה.",
+            "normalized": "צורה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r012",
+      "order": 12,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E(פלדה) ≈ 210 GPa לעומת E(אלומיניום) ≈ 70 GPa.",
+        "he_niqqud": "E(פְּלָדָה) ≈ 210 GPa לְעֻמַּת E(אָלוּמִינְיוּם) ≈ 70 GPa.",
+        "transliteration": "E(plada) ≈ 210 GPa le'umat E(aluminum) ≈ 70 GPa.",
+        "ru": "E(сталь) ≈ 210 ГПа по сравнению с E(алюминий) ≈ 70 ГПа."
+      },
+      "source_refs": [
+        "legacy_row_hash:2f632e631e0160e7f31fc6a9f184a0e96f7f534eb46a98946c39eaac1aac530a",
+        "legacy_fields_sha256:951e3e357a77c921d86f31b501b418e64361def63445993b666498327639412e",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E(פְּלָדָה)",
+            "normalized": "E(פלדה"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "210",
+            "normalized": "210"
+          },
+          {
+            "index": 3,
+            "surface": "GPa",
+            "normalized": "GPa"
+          },
+          {
+            "index": 4,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 5,
+            "surface": "E(אָלוּמִינְיוּם)",
+            "normalized": "E(אלומיניום"
+          },
+          {
+            "index": 6,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 7,
+            "surface": "70",
+            "normalized": "70"
+          },
+          {
+            "index": 8,
+            "surface": "GPa.",
+            "normalized": "GPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r013",
+      "order": 13,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן באותה גיאומטריה פלדה קשיחה בערך פי 3 מאלומיניום.",
+        "he_niqqud": "לָכֵן בְּאוֹתָהּ גֵּאוֹמֶטְרְיָה פְּלָדָה קְשִׁיחָה בְּעֵרֶךְ פִּי 3 מֵאָלוּמִינְיוּם.",
+        "transliteration": "Lakhen be-ota geometrya plada kshiha be-erekh pi 3 me-aluminum.",
+        "ru": "Следовательно, при одинаковой геометрии сталь примерно в 3 раза жестче алюминия."
+      },
+      "source_refs": [
+        "legacy_row_hash:87b9e3283947198f0d7c272527e3f617524348a663b2961895feb5faf0a78b67",
+        "legacy_fields_sha256:131cb4dfff6edabfd0bdab0c0667c1303420cba9d336d257c1a5ee57908d83f4",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "בְּאוֹתָהּ",
+            "normalized": "באותה"
+          },
+          {
+            "index": 2,
+            "surface": "גֵּאוֹמֶטְרְיָה",
+            "normalized": "גאומטריה"
+          },
+          {
+            "index": 3,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 4,
+            "surface": "קְשִׁיחָה",
+            "normalized": "קשיחה"
+          },
+          {
+            "index": 5,
+            "surface": "בְּעֵרֶךְ",
+            "normalized": "בערך"
+          },
+          {
+            "index": 6,
+            "surface": "פִּי",
+            "normalized": "פי"
+          },
+          {
+            "index": 7,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 8,
+            "surface": "מֵאָלוּמִינְיוּם.",
+            "normalized": "מאלומיניום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בנוסף פלדות עתירות פחמן מציגות עמידות עייפות גבוהה ולעיתים גבול עייפות ברור, בעוד שלאלומיניום אין גבול עייפות אמיתי ולכן קשה יותר להבטיח חיי עייפות ארוכים בריבוי מחזורים.",
+        "he_niqqud": "בְּנוֹסָף פְּלָדוֹת עֲתִירוֹת פַּחְמָן מַצִּיגוֹת עֲמִידוּת עֲיֵפוּת גְּבוֹהָה וּלְעִתִּים גְּבוּל עֲיֵפוּת בָּרוּר, בְּעוֹד שֶׁלְּאָלוּמִינְיוּם אֵין גְּבוּל עֲיֵפוּת אֲמִתִּי וְלָכֵן קָשֶׁה יוֹתֵר לְהַבְטִיחַ חַיֵּי עֲיֵפוּת אֲרֻכִּים בְּרִבּוּי מַחְזוֹרִים.",
+        "transliteration": "Benosaf pladot atirot pakhman metzigot amidut ayefut gevoha ve-le'itim gvul ayefut barur, be-od she-le-aluminum ein gvul ayefut amiti ve-lakhen kashe yoter le-havtiakh khayei ayefut arukim bi-rivui makhzorim.",
+        "ru": "Кроме того, высокоуглеродистые стали обладают высокой усталостной прочностью и часто имеют четкий предел усталости, в то время как алюминий не имеет истинного предела усталости, и поэтому сложнее обеспечить долгий срок службы при большом количестве циклов."
+      },
+      "source_refs": [
+        "legacy_row_hash:584fc8eab3374354a878400b267f22788952085d73f9b4e678cae487d7092e73",
+        "legacy_fields_sha256:3ab76f693441e7ccc2955ff76020477c8da72096e3a109d2a377b4485e1c093a",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּנוֹסָף",
+            "normalized": "בנוסף"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלָדוֹת",
+            "normalized": "פלדות"
+          },
+          {
+            "index": 2,
+            "surface": "עֲתִירוֹת",
+            "normalized": "עתירות"
+          },
+          {
+            "index": 3,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 4,
+            "surface": "מַצִּיגוֹת",
+            "normalized": "מציגות"
+          },
+          {
+            "index": 5,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 6,
+            "surface": "עֲיֵפוּת",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְעִתִּים",
+            "normalized": "ולעתים"
+          },
+          {
+            "index": 9,
+            "surface": "גְּבוּל",
+            "normalized": "גבול"
+          },
+          {
+            "index": 10,
+            "surface": "עֲיֵפוּת",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 11,
+            "surface": "בָּרוּר,",
+            "normalized": "ברור"
+          },
+          {
+            "index": 12,
+            "surface": "בְּעוֹד",
+            "normalized": "בעוד"
+          },
+          {
+            "index": 13,
+            "surface": "שֶׁלְּאָלוּמִינְיוּם",
+            "normalized": "שלאלומיניום"
+          },
+          {
+            "index": 14,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 15,
+            "surface": "גְּבוּל",
+            "normalized": "גבול"
+          },
+          {
+            "index": 16,
+            "surface": "עֲיֵפוּת",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 17,
+            "surface": "אֲמִתִּי",
+            "normalized": "אמתי"
+          },
+          {
+            "index": 18,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 19,
+            "surface": "קָשֶׁה",
+            "normalized": "קשה"
+          },
+          {
+            "index": 20,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 21,
+            "surface": "לְהַבְטִיחַ",
+            "normalized": "להבטיח"
+          },
+          {
+            "index": 22,
+            "surface": "חַיֵּי",
+            "normalized": "חיי"
+          },
+          {
+            "index": 23,
+            "surface": "עֲיֵפוּת",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 24,
+            "surface": "אֲרֻכִּים",
+            "normalized": "ארכים"
+          },
+          {
+            "index": 25,
+            "surface": "בְּרִבּוּי",
+            "normalized": "ברבוי"
+          },
+          {
+            "index": 26,
+            "surface": "מַחְזוֹרִים.",
+            "normalized": "מחזורים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) התכונה הפיזיקלית העיקרית לבחירת חומר לרפידות בלמים היא מקדם החיכוך μ בין הרפידה למשטח הבלימה.",
+        "he_niqqud": "ג) הַתְּכוּנָה הַפִיזִיקָלִית הָעִיקָרִית לִבְחִירַת חֹמֶר לְרַפִּידוֹת בְּלָמִים הִיא מְקַדֵּם הַחִכּוּךְ μ בֵּין הָרַפִּידָה לְמִשְׁטַח הַבְּלִימָה.",
+        "transliteration": "G) Ha-tkhuna ha-fizikalit ha-ikkarit li-vkhirat khomer le-rapidot blamim hi mekadem ha-khikhukh μ ben ha-rapida la-mishtakh ha-blima.",
+        "ru": "В) Основным физическим свойством для выбора материала тормозных колодок является коэффициент трения μ между колодкой и тормозной поверхностью."
+      },
+      "source_refs": [
+        "legacy_row_hash:791b51a269c97af3bbb61c7fdf227fc6dbab7cd9d929b53ee0aa0de76aee633d",
+        "legacy_fields_sha256:79dbc6c032945d50d1dacfd6e84008df0ed10531388ba4c06973013f89e562b3",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַתְּכוּנָה",
+            "normalized": "התכונה"
+          },
+          {
+            "index": 2,
+            "surface": "הַפִיזִיקָלִית",
+            "normalized": "הפיזיקלית"
+          },
+          {
+            "index": 3,
+            "surface": "הָעִיקָרִית",
+            "normalized": "העיקרית"
+          },
+          {
+            "index": 4,
+            "surface": "לִבְחִירַת",
+            "normalized": "לבחירת"
+          },
+          {
+            "index": 5,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 6,
+            "surface": "לְרַפִּידוֹת",
+            "normalized": "לרפידות"
+          },
+          {
+            "index": 7,
+            "surface": "בְּלָמִים",
+            "normalized": "בלמים"
+          },
+          {
+            "index": 8,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 9,
+            "surface": "מְקַדֵּם",
+            "normalized": "מקדם"
+          },
+          {
+            "index": 10,
+            "surface": "הַחִכּוּךְ",
+            "normalized": "החכוך"
+          },
+          {
+            "index": 11,
+            "surface": "μ",
+            "normalized": "μ"
+          },
+          {
+            "index": 12,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 13,
+            "surface": "הָרַפִּידָה",
+            "normalized": "הרפידה"
+          },
+          {
+            "index": 14,
+            "surface": "לְמִשְׁטַח",
+            "normalized": "למשטח"
+          },
+          {
+            "index": 15,
+            "surface": "הַבְּלִימָה.",
+            "normalized": "הבלימה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כוח הבלימה תלוי ישירות במקדם החיכוך ובכוח הנורמלי.",
+        "he_niqqud": "כֹּחַ הַבְּלִימָה תָּלוּי יְשִׁירוֹת בְּמְקַדֵּם הַחִכּוּךְ וּבְכֹחַ הַנּוֹרְמָלִי.",
+        "transliteration": "Koakh ha-blima talui yeshirut be-mekadem ha-khikhukh u-ve-koakh ha-normali.",
+        "ru": "Тормозное усилие напрямую зависит от коэффициента трения и нормальной силы."
+      },
+      "source_refs": [
+        "legacy_row_hash:1309e1812e847062ac40460dc0bbfa7442328bb39a533a06c7f9bc56698a7ea2",
+        "legacy_fields_sha256:841080b35b1488ed138fe5781afadb41bc76e3faced837771bca0e61bfd52537",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כֹּחַ",
+            "normalized": "כח"
+          },
+          {
+            "index": 1,
+            "surface": "הַבְּלִימָה",
+            "normalized": "הבלימה"
+          },
+          {
+            "index": 2,
+            "surface": "תָּלוּי",
+            "normalized": "תלוי"
+          },
+          {
+            "index": 3,
+            "surface": "יְשִׁירוֹת",
+            "normalized": "ישירות"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמְקַדֵּם",
+            "normalized": "במקדם"
+          },
+          {
+            "index": 5,
+            "surface": "הַחִכּוּךְ",
+            "normalized": "החכוך"
+          },
+          {
+            "index": 6,
+            "surface": "וּבְכֹחַ",
+            "normalized": "ובכח"
+          },
+          {
+            "index": 7,
+            "surface": "הַנּוֹרְמָלִי.",
+            "normalized": "הנורמלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r017",
+      "order": 17,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "Fbrake = μ·N.",
+        "he_niqqud": "Fbrake = μ·N.",
+        "transliteration": "Fbrake = μ·N.",
+        "ru": "Fbrake = μ·N."
+      },
+      "source_refs": [
+        "legacy_row_hash:6c218ea8230016053b0301bffc53926cde8f2ad5abfab1a409ef5223c2566982",
+        "legacy_fields_sha256:6845f9ed83937b04b1b23ba6fe56a2e74f874b8e6884189825eaed44dfdcbfbe",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Fbrake",
+            "normalized": "Fbrake"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "μ·N.",
+            "normalized": "μ·N"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Fbrake = μ·N."
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r018",
+      "order": 18,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן נדרש μ גבוה ויציב בתנאים משתנים של רטוב/יבש וחם/קר.",
+        "he_niqqud": "לָכֵן נִדְרָשׁ μ גָּבוֹהַּ וְיָצִיב בִּתְנָאִים מִשְׁתַּנִּים שֶׁל רָטוֹב/יָבֵשׁ וְחַם/קַר.",
+        "transliteration": "Lakhen nidrash μ gavoha ve-yatziv bi-tnaiym mishtanim shel ratov/yavesh ve-kham/kar.",
+        "ru": "Следовательно, требуется высокий и стабильный μ в меняющихся условиях: мокрый/сухой и горячий/холодный."
+      },
+      "source_refs": [
+        "legacy_row_hash:0a9e0eba299d027c101d4f171721b7f13dd35cbef41d697337a1e311edd2db6d",
+        "legacy_fields_sha256:b46017bf8d73eb914e1f8faa2f88db4a5ae991b2cdd44df643bc613d7b1f6a28",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "נִדְרָשׁ",
+            "normalized": "נדרש"
+          },
+          {
+            "index": 2,
+            "surface": "μ",
+            "normalized": "μ"
+          },
+          {
+            "index": 3,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 4,
+            "surface": "וְיָצִיב",
+            "normalized": "ויציב"
+          },
+          {
+            "index": 5,
+            "surface": "בִּתְנָאִים",
+            "normalized": "בתנאים"
+          },
+          {
+            "index": 6,
+            "surface": "מִשְׁתַּנִּים",
+            "normalized": "משתנים"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "רָטוֹב/יָבֵשׁ",
+            "normalized": "רטוב/יבש"
+          },
+          {
+            "index": 9,
+            "surface": "וְחַם/קַר.",
+            "normalized": "וחם/קר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בנוסף חשובות גם עמידות לשחיקה ויציבות תרמית כדי שמקדם החיכוך לא ירד בהתחממות.",
+        "he_niqqud": "בְּנוֹסָף חֲשׁוּבוֹת גַּם עֲמִידוּת לִשְׁחִיקָה וְיַצִּיבוּת תֶּרְמִית כְּדֵי שֶׁמְּקַדֵּם הַחִכּוּךְ לֹא יֵרֵד בְּהִתְחַמְּמוּת.",
+        "transliteration": "Benosaf khashuvot gam amidut li-shkhika ve-yatzivut termit kedei she-mekadem ha-khikhukh lo yered ba-hitkhamemut.",
+        "ru": "Кроме того, важны также износостойкость и термическая стабильность, чтобы коэффициент трения не снижался при нагревании."
+      },
+      "source_refs": [
+        "legacy_row_hash:b97d8453f62a00b9fac94ed0a4b5f09d33db4a0e3dd2a617d61ce29ce3422723",
+        "legacy_fields_sha256:0de1e9c14d84d2c0c2440a8186d21447f9a9d082e7ca17b9d1921a7a9dfdd30e",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּנוֹסָף",
+            "normalized": "בנוסף"
+          },
+          {
+            "index": 1,
+            "surface": "חֲשׁוּבוֹת",
+            "normalized": "חשובות"
+          },
+          {
+            "index": 2,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 3,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 4,
+            "surface": "לִשְׁחִיקָה",
+            "normalized": "לשחיקה"
+          },
+          {
+            "index": 5,
+            "surface": "וְיַצִּיבוּת",
+            "normalized": "ויציבות"
+          },
+          {
+            "index": 6,
+            "surface": "תֶּרְמִית",
+            "normalized": "תרמית"
+          },
+          {
+            "index": 7,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁמְּקַדֵּם",
+            "normalized": "שמקדם"
+          },
+          {
+            "index": 9,
+            "surface": "הַחִכּוּךְ",
+            "normalized": "החכוך"
+          },
+          {
+            "index": 10,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 11,
+            "surface": "יֵרֵד",
+            "normalized": "ירד"
+          },
+          {
+            "index": 12,
+            "surface": "בְּהִתְחַמְּמוּת.",
+            "normalized": "בהתחממות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) הקריטריון הראשי לבחירת חומר לשרשרת אופניים הוא σfatigue.",
+        "he_niqqud": "ד) הַקְּרִיטֶרְיוֹן הָרָאשִׁי לִבְחִירַת חֹמֶר לְשַׁרְשֶׁרֶת אוֹפַנַּיִם הוּא σfatigue.",
+        "transliteration": "D) Ha-kriteriyon ha-rashi li-vkhirat khomer le-sharsheret ofanayim hu σfatigue.",
+        "ru": "Г) Основным критерием для выбора материала велосипедной цепи является σfatigue (предел усталости)."
+      },
+      "source_refs": [
+        "legacy_row_hash:3b90f88db0a3da43377bc70dd42b6fdc18bed1163297195cfbf428e652598c5b",
+        "legacy_fields_sha256:94e51312432d6bd24c0012cfe0d5dc1ee775ff3ad419e2fa6e6940b9be0d84eb",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הַקְּרִיטֶרְיוֹן",
+            "normalized": "הקריטריון"
+          },
+          {
+            "index": 2,
+            "surface": "הָרָאשִׁי",
+            "normalized": "הראשי"
+          },
+          {
+            "index": 3,
+            "surface": "לִבְחִירַת",
+            "normalized": "לבחירת"
+          },
+          {
+            "index": 4,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 5,
+            "surface": "לְשַׁרְשֶׁרֶת",
+            "normalized": "לשרשרת"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹפַנַּיִם",
+            "normalized": "אופנים"
+          },
+          {
+            "index": 7,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 8,
+            "surface": "σfatigue.",
+            "normalized": "σfatigue"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "השרשרת עובדת בעומס מתיחה מחזורי וכל סיבוב פדלים יוצר מחזור מאמץ, ולכן מנגנון הכשל השכיח הוא עייפות.",
+        "he_niqqud": "הַשַׁרְשֶׁרֶת עוֹבֶדֶת בְּעוֹמֶס מְתִיחָה מַחְזוֹרִי וְכָל סִבּוּב פֶּדָלִים יוֹצֵר מַחְזוֹר מַאֲמָץ, וְלָכֵן מַנְגָּנוֹן הַכֶּשֶׁל הַשָּׁכִיחַ הוּא עֲיֵפוּת.",
+        "transliteration": "Ha-sharsheret ovedet be-omes metikha makhzori ve-kol sivuv pedalim yotzer makhzor ma'amatz, ve-lakhen manganon ha-keshel ha-shakhiakh hu ayefut.",
+        "ru": "Цепь работает под циклической растягивающей нагрузкой, и каждый оборот педалей создает цикл напряжения, поэтому наиболее распространенным механизмом отказа является усталость."
+      },
+      "source_refs": [
+        "legacy_row_hash:fea509a1c35bcb3a8357253008fbe4fc751bb4fb9b0935865254eb847798e479",
+        "legacy_fields_sha256:c70a36949436fcc0091ef13dc1584730e3049ddde4511755c395baeff35d407b",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשַׁרְשֶׁרֶת",
+            "normalized": "השרשרת"
+          },
+          {
+            "index": 1,
+            "surface": "עוֹבֶדֶת",
+            "normalized": "עובדת"
+          },
+          {
+            "index": 2,
+            "surface": "בְּעוֹמֶס",
+            "normalized": "בעומס"
+          },
+          {
+            "index": 3,
+            "surface": "מְתִיחָה",
+            "normalized": "מתיחה"
+          },
+          {
+            "index": 4,
+            "surface": "מַחְזוֹרִי",
+            "normalized": "מחזורי"
+          },
+          {
+            "index": 5,
+            "surface": "וְכָל",
+            "normalized": "וכל"
+          },
+          {
+            "index": 6,
+            "surface": "סִבּוּב",
+            "normalized": "סבוב"
+          },
+          {
+            "index": 7,
+            "surface": "פֶּדָלִים",
+            "normalized": "פדלים"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹצֵר",
+            "normalized": "יוצר"
+          },
+          {
+            "index": 9,
+            "surface": "מַחְזוֹר",
+            "normalized": "מחזור"
+          },
+          {
+            "index": 10,
+            "surface": "מַאֲמָץ,",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "מַנְגָּנוֹן",
+            "normalized": "מנגנון"
+          },
+          {
+            "index": 13,
+            "surface": "הַכֶּשֶׁל",
+            "normalized": "הכשל"
+          },
+          {
+            "index": 14,
+            "surface": "הַשָּׁכִיחַ",
+            "normalized": "השכיח"
+          },
+          {
+            "index": 15,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 16,
+            "surface": "עֲיֵפוּת.",
+            "normalized": "עיפות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן יש להעדיף חומר על פי חוזק או גבול עייפות ולא על פי σUTS או σy בלבד.",
+        "he_niqqud": "לָכֵן יֵשׁ לְהַעֲדִיף חֹמֶר עַל פִּי חֹזֶק אוֹ גְּבוּל עֲיֵפוּת וְלֹא עַל פִּי σUTS אוֹ σy בִּלְבָד.",
+        "transliteration": "Lakhen yesh leha'adif khomer al pi khozek o gvul ayefut ve-lo al pi σUTS o σy bilvad.",
+        "ru": "Поэтому следует отдавать предпочтение материалу, исходя из прочности или предела усталости, а не только на основе σUTS или σy."
+      },
+      "source_refs": [
+        "legacy_row_hash:906749b2d70c323bac941d3c6965a792832f2f479fa8ccb01879b313bc5f1f9f",
+        "legacy_fields_sha256:adb47c619fe37427b1797f86007aebfeddf00d8dd656746174aa8ca6ac82e0cb",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "לְהַעֲדִיף",
+            "normalized": "להעדיף"
+          },
+          {
+            "index": 3,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "פִּי",
+            "normalized": "פי"
+          },
+          {
+            "index": 6,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 7,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 8,
+            "surface": "גְּבוּל",
+            "normalized": "גבול"
+          },
+          {
+            "index": 9,
+            "surface": "עֲיֵפוּת",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 10,
+            "surface": "וְלֹא",
+            "normalized": "ולא"
+          },
+          {
+            "index": 11,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 12,
+            "surface": "פִּי",
+            "normalized": "פי"
+          },
+          {
+            "index": 13,
+            "surface": "σUTS",
+            "normalized": "σUTS"
+          },
+          {
+            "index": 14,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 15,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 16,
+            "surface": "בִּלְבָד.",
+            "normalized": "בלבד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בבדיקת עייפות מתייחסים למאמץ ממוצע ולמאמץ מחזורי.",
+        "he_niqqud": "בִּבְדִיקַת עֲיֵפוּת מִתְיַחֲסִים לַמַּאֲמָץ מְמֻצָּע וְלַמַּאֲמָץ מַחְזוֹרִי.",
+        "transliteration": "Bi-vdikat ayefut mityakhasim la-ma'amatz memutza ve-la-ma'amatz makhzori.",
+        "ru": "При анализе усталости учитываются среднее напряжение и циклическое напряжение."
+      },
+      "source_refs": [
+        "legacy_row_hash:680f262ac1745a6753dbcd724e7a7a5392843d5efaa5936649c24670c84274c0",
+        "legacy_fields_sha256:cea4ba4179f68b1259ee9798fa90f9faa3f683e23a94a171deac224131b91d43",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּבְדִיקַת",
+            "normalized": "בבדיקת"
+          },
+          {
+            "index": 1,
+            "surface": "עֲיֵפוּת",
+            "normalized": "עיפות"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְיַחֲסִים",
+            "normalized": "מתיחסים"
+          },
+          {
+            "index": 3,
+            "surface": "לַמַּאֲמָץ",
+            "normalized": "למאמץ"
+          },
+          {
+            "index": 4,
+            "surface": "מְמֻצָּע",
+            "normalized": "ממצע"
+          },
+          {
+            "index": 5,
+            "surface": "וְלַמַּאֲמָץ",
+            "normalized": "ולמאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "מַחְזוֹרִי.",
+            "normalized": "מחזורי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r024",
+      "order": 24,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σm=(σmax+σmin)/2.",
+        "he_niqqud": "σm=(σmax+σmin)/2.",
+        "transliteration": "σm=(σmax+σmin)/2.",
+        "ru": "σm=(σmax+σmin)/2."
+      },
+      "source_refs": [
+        "legacy_row_hash:a01d290fd463728c8a781bae9f4624221a3ec7d5369316a57d3a110bda55aed3",
+        "legacy_fields_sha256:4ce7139e91f757bdff9765592dc9027d33038e9c2d72047ef29dfa7fa216bb98",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σm=(σmax+σmin)/2.",
+            "normalized": "σm=(σmax+σmin)/2"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σm=(σmax+σmin)/2."
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r025",
+      "order": 25,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σa=(σmax−σmin)/2.",
+        "he_niqqud": "σa=(σmax−σmin)/2.",
+        "transliteration": "σa=(σmax−σmin)/2.",
+        "ru": "σa=(σmax−σmin)/2."
+      },
+      "source_refs": [
+        "legacy_row_hash:6c057ed786faceafb5a943c801d6a59532b2fd95ad353d6fab325d572006a0e1",
+        "legacy_fields_sha256:cbb3657c467d608a3fbf4f54426c65f245d97cb5bb9a90f0786bac5581ca8f9a",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σa=(σmax−σmin)/2.",
+            "normalized": "σa=(σmax−σmin)/2"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σa=(σmax−σmin)/2."
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r026",
+      "order": 26,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "משווים לקו תכן כגון Goodman כדי לוודא עמידות בעייפות.",
+        "he_niqqud": "מַשְׁוִים לְקוֹ תֶּכֶן כְּגוֹן Goodman כְּדֵי לְוַדֵּא עֲמִידוּת בַּעֲיֵפוּת.",
+        "transliteration": "Mashvim le-kav tikken ke-gon Goodman kedei levaded amidut ba-ayefut.",
+        "ru": "Сравнивают с расчетной линией, такой как Гудман (Goodman), чтобы проверить усталостную прочность."
+      },
+      "source_refs": [
+        "legacy_row_hash:60f8db519783d5cabf60422f703202060ac158d14c4d73d6a1b0712a4018dad5",
+        "legacy_fields_sha256:9bcc601abe8e2a28581a909d03e317f626802a2d8ada650839f5501c6760d763",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַשְׁוִים",
+            "normalized": "משוים"
+          },
+          {
+            "index": 1,
+            "surface": "לְקוֹ",
+            "normalized": "לקו"
+          },
+          {
+            "index": 2,
+            "surface": "תֶּכֶן",
+            "normalized": "תכן"
+          },
+          {
+            "index": 3,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 4,
+            "surface": "Goodman",
+            "normalized": "Goodman"
+          },
+          {
+            "index": 5,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 6,
+            "surface": "לְוַדֵּא",
+            "normalized": "לודא"
+          },
+          {
+            "index": 7,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 8,
+            "surface": "בַּעֲיֵפוּת.",
+            "normalized": "בעיפות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "σa/σe + σm/σUTS ≤ 1.",
+        "he_niqqud": "σa/σe + σm/σUTS ≤ 1.",
+        "transliteration": "σa/σe + σm/σUTS ≤ 1.",
+        "ru": "σa/σe + σm/σUTS ≤ 1."
+      },
+      "source_refs": [
+        "legacy_row_hash:8f9868a197f1a6acaf8e2ed8f172c5388b517f9a5c3c770109ed66858cc0cb50",
+        "legacy_fields_sha256:d669cb201cb3b10bff94c3ab7e362d21e15c160503679c360e437b425a413447",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σa/σe",
+            "normalized": "σa/σe"
+          },
+          {
+            "index": 1,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 2,
+            "surface": "σm/σUTS",
+            "normalized": "σm/σUTS"
+          },
+          {
+            "index": 3,
+            "surface": "≤",
+            "normalized": "≤"
+          },
+          {
+            "index": 4,
+            "surface": "1.",
+            "normalized": "1"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r028",
+      "order": 28,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עם זאת σy חשוב כתנאי סף כדי למנוע התארכות פלסטית של השרשרת ואובדן אורך או קפיצה, אך הוא אינו הקריטריון הראשי לחיי שירות.",
+        "he_niqqud": "עִם זֹאת σy חָשׁוּב כִּתְנַאי סַף כְּדֵי לִמְנֹעַ הִתְאָרְכוּת פְּלַסְטִית שֶׁל הַשַׁרְשֶׁרֶת וְאֹבְדַן אֹרֶךְ אוֹ קְפִיצָה, אַךְ הוּא אֵינוֹ הַקְּרִיטֶרְיוֹן הָרָאשִׁי לְחַיֵּי שֵׁרוּת.",
+        "transliteration": "Im zot σy khashuv ki-tnay saf kedei limnoa hitarkhut plastit shel ha-sharsheret ve-ovdan orekh o kfitza, akh hu eino ha-kriteriyon ha-rashi le-khayei sherut.",
+        "ru": "Тем не менее, σy (предел текучести) важен как пороговое условие для предотвращения пластического удлинения цепи, потери длины или проскока, но это не главный критерий срока службы."
+      },
+      "source_refs": [
+        "legacy_row_hash:e8e8f3eeed58ff3c815f8fea062516d0a32155a11ab76dbc8afc84927ba9d2d5",
+        "legacy_fields_sha256:ebe6c90c4a00702ebc5763cc802da1f82d39022d9ac19fb7616ba9496cfaa9d8",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 1,
+            "surface": "זֹאת",
+            "normalized": "זאת"
+          },
+          {
+            "index": 2,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 3,
+            "surface": "חָשׁוּב",
+            "normalized": "חשוב"
+          },
+          {
+            "index": 4,
+            "surface": "כִּתְנַאי",
+            "normalized": "כתנאי"
+          },
+          {
+            "index": 5,
+            "surface": "סַף",
+            "normalized": "סף"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לִמְנֹעַ",
+            "normalized": "למנע"
+          },
+          {
+            "index": 8,
+            "surface": "הִתְאָרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 9,
+            "surface": "פְּלַסְטִית",
+            "normalized": "פלסטית"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "הַשַׁרְשֶׁרֶת",
+            "normalized": "השרשרת"
+          },
+          {
+            "index": 12,
+            "surface": "וְאֹבְדַן",
+            "normalized": "ואבדן"
+          },
+          {
+            "index": 13,
+            "surface": "אֹרֶךְ",
+            "normalized": "ארך"
+          },
+          {
+            "index": 14,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 15,
+            "surface": "קְפִיצָה,",
+            "normalized": "קפיצה"
+          },
+          {
+            "index": 16,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 17,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 18,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 19,
+            "surface": "הַקְּרִיטֶרְיוֹן",
+            "normalized": "הקריטריון"
+          },
+          {
+            "index": 20,
+            "surface": "הָרָאשִׁי",
+            "normalized": "הראשי"
+          },
+          {
+            "index": 21,
+            "surface": "לְחַיֵּי",
+            "normalized": "לחיי"
+          },
+          {
+            "index": 22,
+            "surface": "שֵׁרוּת.",
+            "normalized": "שרות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q044-sol-r029",
+      "order": 29,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:e31833321a5a17c4a43a869775022db830b312bd711eb4ab93c68f038a481a9e",
+        "comparison:CORRECTED_TO_SOURCE_AND_LEGACY_AA6061_T4",
+        "source_page:54",
+        "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+        "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+        "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+        "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q044",
+    "display_alias": "44",
+    "source_pages": [
+      54,
+      71,
+      72,
+      73
+    ],
+    "independent_state": "DERIVED_AFTER_ONE_TARGETED_SOURCE_REVIEW",
+    "answer": [
+      "а) Для сварной трубчатой рамы из трёх вариантов наиболее подходящ AA6061-T4: приложение указывает extruded tube/shapes и хорошую свариваемость, а состояние T4 допускает последующее старение. 2024-T361 имеет плохую пригодность к fusion welding; 5052-H38 имеет более высокий табличный σ_L, но наклёп H38 разупрочняется в зоне термического влияния сварки. Табличные 95 МПа для 6061-T4 требуют проверки сварного узла, геометрии и запаса.",
+      "б) В логике задачи SAE1070 выбирают для обода из-за большей твёрдости, прочности, износостойкости и усталостной стойкости при контактных/циклических нагрузках; цена — большая плотность и риск коррозии. Утверждение не универсально для современных ободов.",
+      "в) Главное свойство тормозной колодки — стабильный высокий коэффициент трения с ободом/диском в рабочем диапазоне температур; дополнительно нужны износо- и теплостойкость.",
+      "г) Цепь выбирают прежде всего по σ_fatigue, потому что звенья многократно нагружаются и могут разрушиться при напряжениях ниже σ_y/σ_UTS; затем проверяют статические критерии."
+    ],
+    "engineering_picture": "Сварная рама — система с циклической нагрузкой, поэтому усталость и weldability важнее одной максимальной UTS. Трение тормозит, а повторяемость нагружения разрушает цепь.",
+    "prerequisites": [
+      "Fatigue threshold from appendix.",
+      "Fusion welding suitability differs strongly among Al alloys."
+    ],
+    "roadmap": [
+      "Сравнить fatigue and weldability.",
+      "Обосновать rim material by service demands.",
+      "Назвать primary brake interface property.",
+      "Select chain criterion from load history."
+    ],
+    "main_trap": "Не выбирать 2024 только по прочности, игнорируя запрет/плохую пригодность к сварке и fatigue value.",
+    "givens": [
+      "6061-T4,5052-H38,2024-T361; welded frame; dynamic/cyclic loads."
+    ],
+    "find": [
+      "Frame alloy and material criteria for rim, pad, chain."
+    ],
+    "assumptions": [
+      "Source appendix properties are compared in the listed tempers and welded design is mandatory."
+    ],
+    "laws": [
+      "Repeated service load⇒fatigue criterion governs."
+    ],
+    "symbolic_derivation": [
+      "6061:ET product form+good fusion weldability;5052-H38:σL140 but H38 cold-work strength is heat-affected;2024-T361:σL125 but fusion welding is not recommended."
+    ],
+    "calculation": [],
+    "construction": [
+      "Three-candidate decision table: tube form, fatigue, weldability, heat-affected temper, strength."
+    ],
+    "checks": [
+      "6061 is the only candidate explicitly supplied as extruded tube with good weldability; the lower base-material fatigue value remains visible as a design check."
+    ],
+    "source_facts": [
+      "source_page:54",
+      "asset_sha256:68321b5c9d654f5c2ea5f5a64a4909f77a3bfd4e36ae084eaac4d6a9c5e64233",
+      "asset_sha256:7ca2e035edc198268a9e4485391a44a35e90187659f2d041b65d6d655ba5caf8",
+      "asset_sha256:c57c58a5690c2f3841d46babb159c7b54e0a7bbdc4523f390f94b3c8c9587da2",
+      "asset_sha256:76a80f3609609f0bd52f51b20c94b12838a263eeb194be0bdc9f783771d5387a"
+    ],
+    "unresolved_limits": [
+      "The source omits welded-zone fatigue and frame stiffness; final product selection cannot be certified from these typical values alone."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  }
+}

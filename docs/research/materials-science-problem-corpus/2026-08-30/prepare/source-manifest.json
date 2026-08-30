@@ -1,0 +1,42 @@
+{
+  "schema": "linguistpro-materials-pb2-source-manifest-v1",
+  "generated_on": "2026-08-30",
+  "source_commit": "6804b515ad94dd4f2b9ed2c572ac3b6f3dff69be",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+  "owner_path_policy": "SOURCE_DIR_ACCEPTED_AT_RUNTIME_NOT_STORED",
+  "inputs": {
+    "Задачник 2.pdf": {
+      "filename": "Задачник 2.pdf",
+      "bytes": 6556604,
+      "sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435"
+    },
+    "Материаловедение_library_export_20260119.json": {
+      "filename": "Материаловедение_library_export_20260119.json",
+      "bytes": 5440492,
+      "sha256": "2a2f3191dd73a5e5bc99b096cda704a54172b33ebd3416c969d2f03299e2cb21"
+    },
+    "Решебник к Задачник2_v2026-01-15.pdf": {
+      "filename": "Решебник к Задачник2_v2026-01-15.pdf",
+      "bytes": 7664344,
+      "sha256": "9ac844e637e5740d9487642438387323f32a6edd6b9bd546e3c7c246b181f00f"
+    }
+  },
+  "source_pdf_pages": 73,
+  "canonical_task_units": 60,
+  "numbered_task_occurrences": 59,
+  "unique_display_numbers": 58,
+  "duplicate_display_numbers": [
+    38
+  ],
+  "unnumbered_canonical_units": 1,
+  "owner_identity_decision": {
+    "approved_on": "2026-08-30",
+    "unnumbered_page_5_exercise_included": true,
+    "duplicate_38_aliases": {
+      "source_page_45": "38-A",
+      "source_page_47": "38-B"
+    }
+  },
+  "rights_status": "UNCONFIRMED_NO_PUBLICATION_AUTHORITY"
+}

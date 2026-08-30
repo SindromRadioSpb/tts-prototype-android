@@ -942,6 +942,56 @@
     .physics-math-op { display: inline-block; margin-inline: .16em; font-weight: 700; }
     .physics-learning-final-answer { margin-top: 15px; padding: 14px 16px; border: 2px solid var(--accent); background: color-mix(in srgb,var(--accent) 6%,var(--bg-card)); font: 700 15px/1.55 "Cambria Math",Cambria,serif; }
     .physics-learning-provenance code { display: block; overflow-wrap: anywhere; white-space: normal; color: var(--text-secondary); font-size: 10px; }
+    .materials-learning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 9px; }
+    .materials-learning-action { width: auto; min-width: 0; min-height: 44px; padding: 9px 12px; border: 1px solid color-mix(in srgb,#0f6f74 42%,var(--border-soft)); border-radius: 9px; background: var(--bg-card); color: #0f6f74; font: 800 12px/1.25 system-ui,sans-serif; cursor: pointer; }
+    .materials-learning-action.primary { border-color: #0f6f74; background: #0f6f74; color: #fff; }
+    .materials-learning-action:hover,.materials-learning-action:focus-visible,.materials-mode-button:focus-visible,.materials-print-study:focus-visible,.materials-print-exam:focus-visible,.materials-learning-close:focus-visible { outline: 3px solid color-mix(in srgb,#0f6f74 34%,transparent); outline-offset: 2px; }
+    .materials-learning-action:disabled { opacity: .58; cursor: wait; }
+    .materials-inline-answer { flex-basis: 100%; padding: 11px 13px; border-inline-start: 4px solid #c07c21; background: color-mix(in srgb,#fbbf24 12%,var(--bg-card)); color: var(--text-primary); }
+    .materials-inline-answer p { margin: 4px 0; font: 650 14px/1.55 "Cambria Math",Cambria,serif; }
+    .materials-inline-answer[hidden] { display: none; }
+    .materials-learning-overlay { position: fixed; inset: 0; z-index: 10031; display: grid; place-items: center; padding: 14px; background: rgba(5,18,23,.86); }
+    .materials-learning-viewer { width: min(1180px,100%); height: min(95vh,980px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 16px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 30px 100px rgba(0,0,0,.42); }
+    .materials-learning-head { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px 24px 20px; border-bottom: 1px solid color-mix(in srgb,#0f6f74 35%,var(--border-soft)); background: linear-gradient(125deg,color-mix(in srgb,#0f6f74 14%,var(--bg-card)),color-mix(in srgb,#c07c21 10%,var(--bg-card))); }
+    .materials-learning-head > div:first-child { min-width: 0; }
+    .materials-learning-kicker { color: #0f6f74; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .materials-learning-head h2 { margin: 4px 0 3px; font: 800 clamp(23px,4vw,35px)/1.08 Georgia,"Times New Roman",serif; letter-spacing: -.02em; }
+    .materials-learning-head p { max-width: 68ch; margin: 0; color: var(--text-secondary); font-size: 12px; }
+    .materials-learning-subtitle-print { display: none; }
+    .materials-learning-head-actions { flex: none; display: flex; align-items: center; gap: 7px; }
+    .materials-print-study,.materials-print-exam { width: auto; min-height: 44px; padding: 9px 12px; border: 1px solid color-mix(in srgb,#0f6f74 48%,var(--border-soft)); border-radius: 999px; background: var(--bg-card); color: #0f6f74; font: 800 11px/1.2 system-ui,sans-serif; cursor: pointer; }
+    .materials-learning-close { flex: 0 0 44px; min-width: 44px; min-height: 44px; border: 1px solid var(--border-soft); border-radius: 50%; background: var(--bg-card); color: var(--text-primary); font-size: 28px; line-height: 1; cursor: pointer; }
+    .materials-learning-body { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 18px 22px 34px; }
+    .materials-learning-toolbar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -18px -22px 18px; padding: 11px 22px; border-bottom: 1px solid var(--border-soft); background: color-mix(in srgb,var(--bg-card) 94%,transparent); backdrop-filter: blur(12px); }
+    .materials-segmented { display: inline-flex; max-width: 100%; padding: 3px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); }
+    .materials-mode-button { width: auto; min-height: 44px; padding: 7px 11px; border: 0; border-radius: 7px; background: transparent; color: var(--text-secondary); font: 750 11px/1.25 system-ui,sans-serif; cursor: pointer; white-space: nowrap; }
+    .materials-mode-button.is-active { background: var(--bg-card); color: #0f6f74; box-shadow: 0 1px 4px rgba(15,23,42,.12); }
+    .materials-audio-note { margin: 0 0 16px; padding: 10px 13px; border-inline-start: 4px solid #c07c21; background: color-mix(in srgb,#fbbf24 10%,var(--bg-card)); color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+    .materials-learning-section > h3 { margin: 20px 0 10px; color: var(--text-primary); font: 800 22px/1.2 Georgia,"Times New Roman",serif; }
+    .materials-table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 11px; background: var(--bg-card); }
+    .materials-learning-table { width: 100%; min-width: 930px; border-collapse: collapse; table-layout: fixed; }
+    .materials-learning-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .materials-learning-table th,.materials-learning-table td { padding: 10px 11px; border-bottom: 1px solid var(--border-soft); border-inline-end: 1px solid var(--border-soft); vertical-align: top; overflow-wrap: anywhere; }
+    .materials-learning-table thead th { position: sticky; top: 0; z-index: 1; background: color-mix(in srgb,#0f6f74 8%,var(--bg-card)); color: var(--text-primary); font: 850 11px/1.3 system-ui,sans-serif; text-align: start; }
+    .materials-learning-table tbody tr:last-child > * { border-bottom: 0; }
+    .materials-learning-table tr > *:last-child { border-inline-end: 0; }
+    .materials-step-col,.materials-step-cell { width: 112px; }
+    .materials-step-cell { background: color-mix(in srgb,var(--bg-muted) 72%,var(--bg-card)); text-align: start; }
+    .materials-section-name { display: block; color: #0f6f74; font: 850 10px/1.3 system-ui,sans-serif; letter-spacing: .045em; text-transform: uppercase; }
+    .materials-step-number { display: block; margin-top: 5px; color: var(--text-secondary); font: 750 11px/1.3 system-ui,sans-serif; }
+    .materials-he-cell,.materials-niqqud-cell { text-align: right; font: 500 15px/1.7 Arial,"Noto Sans Hebrew",sans-serif; }
+    .materials-translit-cell { color: var(--text-secondary); font: 500 13px/1.65 system-ui,sans-serif; }
+    .materials-ru-cell { font: 500 14px/1.6 system-ui,sans-serif; }
+    .materials-learning-row[data-kind="formula"] td,.materials-learning-row[data-kind="calculation"] td { direction: ltr; unicode-bidi: isolate; font-family: "Cambria Math",Cambria,"Times New Roman",serif; }
+    .materials-learning-viewer[data-content-mode="condition"] .materials-solution-section,.materials-learning-viewer[data-content-mode="solution"] .materials-condition-section { display: none; }
+    .materials-learning-viewer[data-language-mode="exam"] .materials-niqqud-col,.materials-learning-viewer[data-language-mode="exam"] .materials-niqqud-cell,.materials-learning-viewer[data-language-mode="exam"] .materials-translit-col,.materials-learning-viewer[data-language-mode="exam"] .materials-translit-cell,.materials-learning-viewer[data-language-mode="exam"] .materials-ru-col,.materials-learning-viewer[data-language-mode="exam"] .materials-ru-cell { display: none; }
+    .materials-learning-viewer[data-language-mode="exam"] .materials-learning-table { min-width: 0; }
+    .materials-source-figures { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; margin-top: 12px; }
+    .materials-source-figure { margin: 0; padding: 10px; border: 1px solid var(--border-soft); background: #fff; }
+    .materials-source-figure img { display: block; width: 100%; max-height: 440px; object-fit: contain; }
+    .materials-source-figure figcaption { margin-top: 6px; color: #475569; font-size: 10px; }
+    .materials-learning-provenance { display: grid; gap: 5px; margin-top: 18px; padding: 12px 14px; border-top: 2px solid #0f6f74; color: var(--text-secondary); font-size: 11px; }
+    .materials-learning-provenance code { overflow-wrap: anywhere; white-space: normal; color: inherit; font-size: 10px; }
     .group-corpus-head { position: relative; padding: 4px 0 12px; }
     .group-corpus-count { color: var(--text-secondary); font-size: 13px; font-weight: 700; margin-top: 6px; }
     .group-corpus-admin { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; margin: 2px 0 12px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-muted); }
@@ -1082,6 +1132,29 @@
       .physics-learning-block { padding: 12px; }
       .physics-learning-disclosure-body { padding: 12px; }
       .reader-task-resources-head { align-items: flex-start; flex-direction: column; gap: 2px; }
+      .materials-learning-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .materials-inline-answer { grid-column: 1 / -1; }
+      .materials-learning-overlay { padding: 0; }
+      .materials-learning-viewer { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+      .materials-learning-head { padding: 15px 13px; }
+      .materials-learning-head h2 { font-size: 24px; }
+      .materials-learning-head-actions { display: grid; grid-template-columns: 1fr 1fr 44px; width: 100%; }
+      .materials-learning-head { display: grid; }
+      .materials-print-study,.materials-print-exam { min-width: 0; padding-inline: 7px; }
+      .materials-learning-body { padding: 12px 10px 28px; }
+      .materials-learning-toolbar { position: sticky; margin: -12px -10px 12px; padding: 9px 10px; align-items: stretch; flex-direction: column; }
+      .materials-segmented { display: flex; overflow-x: auto; }
+      .materials-mode-button { flex: 1 0 auto; min-height: 44px; }
+      .materials-table-wrap { overflow: visible; border: 0; background: transparent; }
+      .materials-learning-table { min-width: 0; border-collapse: separate; border-spacing: 0 9px; table-layout: auto; }
+      .materials-learning-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .materials-learning-table tbody,.materials-learning-table tr,.materials-learning-table th,.materials-learning-table td { display: block; width: auto; }
+      .materials-learning-table tr { overflow: hidden; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
+      .materials-learning-table th,.materials-learning-table td { padding: 9px 11px; border-inline-end: 0; }
+      .materials-learning-table td::before { display: block; margin-bottom: 3px; color: #0f6f74; content: attr(data-label); font: 850 9px/1.25 system-ui,sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+      .materials-step-cell { box-sizing: border-box; }
+      .materials-learning-viewer[data-language-mode="exam"] .materials-learning-table td.materials-he-cell { display: block; }
+      .materials-source-figures { grid-template-columns: 1fr; }
     }
     /* Multi-corpus: shared in-corpus identity/capabilities + the switcher pill.
        The retired L0 .hub-card wall has no compatibility CSS after B2. */
@@ -2770,9 +2843,11 @@
       @bottom-left { content: "LinguistPro · Physics Year 1"; color: #64748b; font: 8pt/1.2 system-ui,sans-serif; }
       @bottom-right { content: counter(page) " / " counter(pages); color: #64748b; font: 8pt/1.2 system-ui,sans-serif; }
     }
+    @page materials-study { size: A4 landscape; margin: 11mm 9mm 15mm; @bottom-left { content: "LinguistPro · Materials Science · Study"; color: #64748b; font: 8pt/1.2 system-ui,sans-serif; } @bottom-right { content: counter(page) " / " counter(pages); color: #64748b; font: 8pt/1.2 system-ui,sans-serif; } }
+    @page materials-exam { size: A4 portrait; margin: 13mm 12mm 16mm; @bottom-left { content: "LinguistPro · Materials Science · Exam"; color: #64748b; font: 8pt/1.2 system-ui,sans-serif; } @bottom-right { content: counter(page) " / " counter(pages); color: #64748b; font: 8pt/1.2 system-ui,sans-serif; } }
     @media print {
       html,body { height: auto !important; overflow: visible !important; background: #fff !important; color: #111827 !important; }
-      body > :not(.physics-learning-overlay) { display: none !important; }
+      body > :not(.physics-learning-overlay):not(.materials-learning-overlay) { display: none !important; }
       .physics-learning-overlay { position: static !important; inset: auto !important; z-index: auto !important; display: block !important; padding: 0 !important; background: #fff !important; }
       .physics-learning-viewer { width: auto !important; height: auto !important; max-height: none !important; display: block !important; overflow: visible !important; border: 0 !important; border-radius: 0 !important; background: #fff !important; color: #111827 !important; box-shadow: none !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .physics-learning-head { padding: 0 0 7mm !important; border-bottom: 2px solid #0f4c6e !important; background: #fff !important; color: #111827 !important; }
@@ -2796,6 +2871,37 @@
       .physics-learning-block h4,.physics-learning-picture h4,.physics-learning-disclosure>summary,.physics-learning-conditions-head h3 { break-after: avoid; }
       .physics-learning-block li,.physics-learning-condition-body p { orphans: 3; widows: 3; }
       .physics-learning-provenance code { color: #475569 !important; }
+      .materials-learning-overlay { position: static !important; inset: auto !important; z-index: auto !important; display: block !important; padding: 0 !important; background: #fff !important; }
+      .materials-learning-viewer { width: auto !important; height: auto !important; max-height: none !important; display: block !important; overflow: visible !important; border: 0 !important; border-radius: 0 !important; background: #fff !important; color: #111827 !important; box-shadow: none !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .materials-learning-viewer[data-print-mode="study"] { page: materials-study; }
+      .materials-learning-viewer[data-print-mode="exam"] { page: materials-exam; }
+      .materials-learning-head { padding: 0 0 6mm !important; border-bottom: 2px solid #0f6f74 !important; background: #fff !important; color: #111827 !important; }
+      .materials-learning-head h2 { margin-top: 2mm; font-size: 23pt; }
+      .materials-learning-head p { max-width: none; color: #475569 !important; font-size: 9pt; }
+      .materials-learning-subtitle-screen { display: none !important; }
+      .materials-learning-subtitle-print { display: none !important; }
+      .materials-learning-viewer[data-print-mode="study"] .materials-study-print-only { display: block !important; }
+      .materials-learning-viewer[data-print-mode="exam"] .materials-exam-print-only { display: block !important; }
+      .materials-learning-kicker { color: #0f6f74 !important; }
+      .materials-learning-head-actions,.materials-learning-toolbar,.materials-audio-note { display: none !important; }
+      .materials-learning-body { overflow: visible !important; padding: 6mm 0 0 !important; }
+      .materials-condition-section,.materials-solution-section { display: block !important; }
+      .materials-learning-section > h3 { margin: 5mm 0 2mm; font-size: 16pt; break-after: avoid; }
+      .materials-table-wrap { overflow: visible !important; border-color: #94a3b8 !important; }
+      .materials-learning-table { min-width: 0 !important; border-collapse: collapse !important; border-spacing: 0 !important; table-layout: fixed !important; font-size: 7.5pt; }
+      .materials-learning-table thead { display: table-header-group !important; position: static !important; width: auto !important; height: auto !important; overflow: visible !important; clip: auto !important; }
+      .materials-learning-table thead th { position: static !important; top: auto !important; }
+      .materials-learning-table tbody { display: table-row-group !important; }
+      .materials-learning-table tr { display: table-row !important; break-inside: avoid; border: 0 !important; }
+      .materials-learning-table th,.materials-learning-table td { display: table-cell !important; width: auto !important; padding: 2.2mm 2mm !important; border-color: #cbd5e1 !important; background: #fff !important; color: #111827 !important; }
+      .materials-learning-table td::before { display: none !important; }
+      .materials-step-col,.materials-step-cell { width: 23mm !important; }
+      .materials-he-cell,.materials-niqqud-cell { font-size: 8.5pt; line-height: 1.5; }
+      .materials-translit-cell,.materials-ru-cell { font-size: 7.5pt; line-height: 1.45; }
+      .materials-learning-viewer[data-print-mode="exam"] .materials-niqqud-col,.materials-learning-viewer[data-print-mode="exam"] .materials-niqqud-cell,.materials-learning-viewer[data-print-mode="exam"] .materials-translit-col,.materials-learning-viewer[data-print-mode="exam"] .materials-translit-cell,.materials-learning-viewer[data-print-mode="exam"] .materials-ru-col,.materials-learning-viewer[data-print-mode="exam"] .materials-ru-cell { display: none !important; }
+      .materials-learning-viewer[data-print-mode="study"] .materials-niqqud-col,.materials-learning-viewer[data-print-mode="study"] .materials-niqqud-cell,.materials-learning-viewer[data-print-mode="study"] .materials-translit-col,.materials-learning-viewer[data-print-mode="study"] .materials-translit-cell,.materials-learning-viewer[data-print-mode="study"] .materials-ru-col,.materials-learning-viewer[data-print-mode="study"] .materials-ru-cell { display: table-cell !important; }
+      .materials-source-figure { break-inside: avoid; }
+      .materials-learning-provenance { break-inside: avoid; color: #475569 !important; }
       a { color: inherit !important; text-decoration: none !important; }
     }
 
@@ -2950,7 +3056,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.448</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.449</button>
   </div>
 </footer>
 
@@ -3138,9 +3244,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=186"></script>
-    <script src="/i18n/locales/en.js?v=186"></script>
-    <script src="/i18n/locales/he.js?v=186"></script>
+    <script src="/i18n/locales/ru.js?v=187"></script>
+    <script src="/i18n/locales/en.js?v=187"></script>
+    <script src="/i18n/locales/he.js?v=187"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3216,7 +3322,7 @@
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=417"></script>
-<script type="module" src="/js/library-ui.js?v=425"></script>
+<script src="/js/public-corpus-adapter.js?v=418"></script>
+<script type="module" src="/js/library-ui.js?v=426"></script>
 </body>
 </html>

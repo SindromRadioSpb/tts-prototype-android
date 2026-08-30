@@ -1,0 +1,16 @@
+{
+  "schema": "linguistpro-materials-pb2-determinism-verification-v1",
+  "verified_on": "2026-08-30",
+  "method": "SECOND_PREPARE_AND_LOCAL_MAPPING_GENERATOR_RUN_IN_SEPARATE_TEMP_OUTPUT_AND_SHA256_COMPARISON",
+  "generated_files_compared": 20,
+  "matching_files": 20,
+  "mismatches": [],
+  "result": "PASS",
+  "prepared_pdf_sha256": {
+    "materials-pb2-task-input-01.pdf": "e4beb4a73677bfed7db254d0f7cc936947dd0529ad3aa36c77185803bd876f96",
+    "materials-pb2-task-input-02.pdf": "7fc99f12252711c7e5c3eed78d129c02ca0f5ddb5daac8ba51cbb5b59fd729c5",
+    "materials-pb2-task-input-03.pdf": "ab7b95ba9b2de208dc5a8ff82d81d5506a75b04baed4510a5c1cac48d09e2714",
+    "materials-pb2-reference-input-04.pdf": "6f21b19c8520f249b09e38bb6e00c095e44fb0734bc1096843fc6e2f0038d8ae"
+  },
+  "evidence_boundary": "LOCAL_REBUILD_ONLY_NO_PROVIDER_IMPORT_OR_PUBLICATION"
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": "problem_corpus_recon_evidence.1.0.0",
+  "captured_at": "2026-08-30",
+  "mode": "READ_ONLY_LOCAL_RECON",
+  "source_commit": "6804b515ad94dd4f2b9ed2c572ac3b6f3dff69be",
+  "inputs": {
+    "problem_pdf": {
+      "filename": "Задачник 2.pdf",
+      "sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+      "bytes": 6556604,
+      "pages": 73,
+      "encrypted": false,
+      "extracted_text_characters": 16360,
+      "numbered_questions_observed": 58,
+      "numbered_task_occurrences_observed_after_prepare": 59,
+      "duplicate_display_numbers_observed_after_prepare": [38],
+      "unnumbered_exercise_observed": true,
+      "appendix_pages_observed": [66, 67, 68, 69, 70, 71, 72, 73],
+      "orientation_sensitive_pages_observed": [68, 69, 70]
+    },
+    "studio_export": {
+      "filename": "Материаловедение_library_export_20260119.json",
+      "sha256": "2a2f3191dd73a5e5bc99b096cda704a54172b33ebd3416c969d2f03299e2cb21",
+      "bytes": 5440492,
+      "export_type": "linguist-pro-library",
+      "export_version": 1,
+      "exported_at": "2026-01-19T00:54:28.690Z",
+      "all_texts": 115,
+      "exact_topic_materials_science": 75,
+      "candidate_title_prefix_cards": 58,
+      "candidate_exact_topic_cards": 52,
+      "candidate_blank_topic_cards": 6,
+      "candidate_rows": 2469,
+      "unique_titles": 57,
+      "duplicate_titles": ["Задачник 2. Страница 21"],
+      "legacy_provider_metadata_cards": 56,
+      "cards_without_legacy_provider_metadata": [
+        "Задачник 2. Страница 6.3",
+        "Задачник 2. Страница 7_"
+      ],
+      "cards_with_condition_markers": 50,
+      "cards_with_solution_markers": 48,
+      "rows_with_typed_meta_json": 0,
+      "rows_with_audio_asset_key": 1,
+      "local_heuristic_only": {
+        "he_niqqud_rows_without_niqqud_marks": 147,
+        "transliteration_rows_containing_hebrew": 3,
+        "russian_rows_containing_hebrew": 1,
+        "hebrew_base_letter_mismatches_between_plain_and_niqqud": 1221,
+        "warning": "QUEUE_FOR_REVIEW_NOT_AUTOMATIC_ERROR_CLASSIFICATION"
+      },
+      "tts_local_count_only": {
+        "nonempty_rows": 2469,
+        "unique_exact_texts": 2355,
+        "all_characters": 186412,
+        "unique_characters": 181665,
+        "warning": "MIXED_LEGACY_ROWS_NOT_FINAL_SOURCE_CORPUS"
+      }
+    },
+    "solution_pdf": {
+      "filename": "Решебник к Задачник2_v2026-01-15.pdf",
+      "sha256": "9ac844e637e5740d9487642438387323f32a6edd6b9bd546e3c7c246b181f00f",
+      "bytes": 7664344,
+      "pages": 148,
+      "encrypted": false,
+      "extracted_text_characters": 500792,
+      "unique_title_sections": 54,
+      "visually_blank_or_decoration_only_pages_present": true,
+      "title_join_is_one_to_one": false,
+      "json_only_title_suffixes": ["13", "30 ВАЖНО!", "58", "59", "7_"],
+      "pdf_only_title_suffixes": ["14", "30"]
+    }
+  },
+  "negative_evidence": {
+    "external_provider_calls": 0,
+    "secret_file_read_copied_or_hashed": false,
+    "imports": 0,
+    "publications": 0,
+    "database_writes": 0,
+    "learner_state_writes": 0,
+    "solution_generation_runs": 0
+  },
+  "evidence_limits": [
+    "CONTACT_SHEET_VISUAL_RECON_IS_NOT_PER_TASK_OCR_ACCEPTANCE",
+    "LOCAL_HEURISTICS_DO_NOT_ESTABLISH_LINGUISTIC_ERRORS",
+    "LEGACY_TITLE_MATCHES_DO_NOT_ESTABLISH_TASK_IDENTITY",
+    "NO_OWNER_LIVE_PHYSICAL_DEVICE_AT_OR_PRODUCTION_ACCEPTANCE"
+  ]
+}

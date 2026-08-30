@@ -1,0 +1,538 @@
+{
+  "schema_version": "problem_corpus_program.1.0.0",
+  "status": "LOCAL_CANONICAL_CORPUS_COMPLETE_NOT_IMPORTED_NOT_PUBLISHED",
+  "program_stage": "TEXT_VISUAL_CORPUS_BAKED_AND_VERIFIED_AUDIO_SOLUTIONS_IMPORT_PUBLICATION_SEPARATELY_GATED",
+  "recon_date": "2026-08-30",
+  "corpus": {
+    "title": "Материаловедение. Задачник 2",
+    "slug": "materials-science-year1-problem-book-2",
+    "subject": "Материаловедение",
+    "source_language": "he",
+    "learning_language": "ru",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "expected_task_count": 60,
+    "candidate_numbered_task_count": 59,
+    "unique_source_display_numbers": 58,
+    "duplicate_source_display_numbers": [38],
+    "unnumbered_exercises_need_owner_decision": false,
+    "owner_identity_decision": {
+      "approved_on": "2026-08-30",
+      "page_5_allotropy_exercise_included": true,
+      "duplicate_38_aliases": {
+        "source_page_45": "38-A",
+        "source_page_47": "38-B"
+      }
+    }
+  },
+  "inputs": {
+    "problem_books": [
+      {
+        "filename": "Задачник 2.pdf",
+        "sha256": "3d87b9f5b2b0f6f6a44e004e2013f226073a22e33d6f25e42373c621cef6d435",
+        "bytes": 6556604,
+        "page_count": 73,
+        "content_mode": "mixed_raster_vector",
+        "logical_roles": [
+          "problem_book",
+          "embedded_solution_pages",
+          "reference_appendices"
+        ],
+        "mapping_status": "SOURCE_FIRST_MANIFEST_REQUIRED"
+      }
+    ],
+    "diagram_sources": [
+      {
+        "filename": "Задачник 2.pdf",
+        "status": "ALL_60_TASKS_SEMANTICALLY_CLASSIFIED_LOCAL_READBACK_COMPLETE",
+        "orientation_sensitive_pages_observed": [68, 69, 70]
+      }
+    ],
+    "legacy_tables": [
+      {
+        "filename": "Материаловедение_library_export_20260119.json",
+        "sha256": "2a2f3191dd73a5e5bc99b096cda704a54172b33ebd3416c969d2f03299e2cb21",
+        "bytes": 5440492,
+        "exported_at": "2026-01-19T00:54:28.690Z",
+        "candidate_cards": 58,
+        "candidate_rows": 2469,
+        "usage": "COMPARISON_ONLY_NEVER_CANONICAL_OVERWRITE",
+        "known_anomalies": [
+          "six_candidate_cards_have_blank_topic",
+          "duplicate_title_page_21_has_nonidentical_content",
+          "condition_and_solution_rows_are_mixed",
+          "row_semantics_are_untyped",
+          "audio_coverage_is_one_row_only",
+          "two_cards_lack_provider_metadata",
+          "json_and_solution_pdf_titles_do_not_join_one_to_one"
+        ]
+      }
+    ],
+    "answer_keys_out_of_scope": [
+      {
+        "filename": "Решебник к Задачник2_v2026-01-15.pdf",
+        "sha256": "9ac844e637e5740d9487642438387323f32a6edd6b9bd546e3c7c246b181f00f",
+        "bytes": 7664344,
+        "page_count": 148,
+        "role": "OWNER_EDITED_LEGACY_SOLUTION_DERIVATIVE",
+        "status": "SEPARATE_REVIEWED_SOLUTION_PROGRAM_REQUIRED"
+      },
+      {
+        "filename": "Задачник 2.pdf",
+        "role": "EMBEDDED_SOLUTION_PAGES",
+        "status": "SEPARATE_SOLUTION_EVIDENCE_LAYER_REQUIRED"
+      }
+    ]
+  },
+  "truth_domains": [
+    "source_bytes",
+    "page_and_task_manifest",
+    "raw_provider_cache",
+    "reviewed_corrections",
+    "source_learning_rows",
+    "canonical_task_records",
+    "reviewed_solutions",
+    "agent_derivatives",
+    "audio_and_timing_assets",
+    "immutable_publication_snapshot",
+    "learner_state"
+  ],
+  "rights": {
+    "source_text_and_diagrams": "UNCONFIRMED",
+    "generated_learning_columns": "UNCONFIRMED",
+    "generated_audio": "UNCONFIRMED",
+    "public_read": "UNCONFIRMED",
+    "package_download": "UNCONFIRMED",
+    "source_text": "UNCONFIRMED",
+    "diagrams_and_images": "UNCONFIRMED",
+    "bilingual_derivatives": "UNCONFIRMED",
+    "audio_and_timings": "UNCONFIRMED",
+    "answers_and_solutions": "UNCONFIRMED",
+    "agent_derivatives_and_future_textbook": "UNCONFIRMED"
+  },
+  "processing": {
+    "current_mode": "BUILD_LOCAL_SOURCE_FIRST_ALL_60_TERMINALLY_CLASSIFIED_AGGREGATE_AUDITED",
+    "prepare_authorized": true,
+    "prepare_completed": true,
+    "build_authorized": true,
+    "build_batch_policy": "6_BATCHES_X_10_TASKS_MAXIMUM_2_PASSES_NO_THIRD_PASS",
+    "external_provider_allowed": false,
+    "secret_access_allowed": false,
+    "import_allowed": false,
+    "publication_allowed": false,
+    "solution_authoring_allowed": false,
+    "provider_profile": "TERMINAL_NO_MORE_GEMINI_REQUESTS_AFTER_B01_FLAT_RESPONSE_FAILED_STRICT_SEMANTIC_VALIDATION",
+    "recommended_decision_method": "LOCAL_SOURCE_FIRST_BOUNDED_REVIEW_USING_EXISTING_MAPPING_AND_DIAGRAM_CLASSIFICATION",
+    "full_rerun_default": false,
+    "reuse_raw_caches": true,
+    "batch_and_resume": true,
+    "legacy_comparison_only": true,
+    "raw_cache_required": true,
+    "resume_required": true,
+    "batch_preferred_if_full_rerun_approved": true,
+    "cost_ceiling_required_before_apply": true,
+    "legacy_overwrite_allowed": false
+  },
+  "local_mapping": {
+    "status": "PASS",
+    "reviewed_legacy_cards": 58,
+    "reviewed_legacy_rows": 2469,
+    "mapped_rows": 2469,
+    "unmapped_rows": 0,
+    "task_targets_with_legacy_rows": 58,
+    "task_ids_without_legacy_rows": [
+      "materials-science-y1-pb2-q002",
+      "materials-science-y1-pb2-q032"
+    ],
+    "multi_task_card_splits": [
+      "legacy pages 48-49: rows 0-36 to q039, rows 37-68 to q040",
+      "legacy page 63: rows 0-27 to q053, 28-47 to q054, 48-90 to q055",
+      "legacy pages 64-65: rows 0-29 to q056, 30-49 to q057, 50-81 to q058"
+    ],
+    "legacy_solution_truth_status": "UNVALIDATED_COMPARISON_EVIDENCE_NOT_CANONICAL",
+    "diagram_classification": {
+      "task_entries": 60,
+      "tasks_with_semantic_visuals": 43,
+      "semantic_visual_instances": 90,
+      "tasks_with_external_reference_dependencies": 11
+    }
+  },
+  "shadow_plan": {
+    "status": "TERMINAL_NO_MORE_GEMINI_REQUESTS",
+    "stable_path": "shadow/",
+    "model": "gemini-3.7-flash",
+    "consumption_mode": "STANDARD",
+    "thinking_level": "medium",
+    "sample_cases": 12,
+    "sample_task_ids": 13,
+    "request_batches": 3,
+    "total_retry_budget": 0,
+    "max_provider_calls": 6,
+    "planned_pdf_page_exposures": 20,
+    "planned_pdf_image_tokens": 5160,
+    "input_token_cap_per_call": 50000,
+    "output_token_cap_per_call_including_thinking": 16384,
+    "calculated_worst_case_usd_at_2026_08_30_rates": 0.5108505,
+    "owner_approved_hard_ceiling_usd": 1.0,
+    "provider_request_attempts_made": 4,
+    "successful_http_inference_calls": 2,
+    "semantically_valid_provider_outputs": 0,
+    "provider_usage_metadata_returned": true,
+    "conservative_failed_call_cost_reserve_usd": 0.19788,
+    "measured_provider_cost_usd": 0.065988,
+    "reserve_plus_measured_cost_usd": 0.263868,
+    "secret_accessed": true,
+    "secret_persisted": false,
+    "truth_status": "GENERATED_UNREVIEWED_ADVISORY_ONLY",
+    "solution_generation_or_adjudication_allowed": false,
+    "decision_states": [
+      "LEGACY_REPAIR",
+      "FULL_RERUN",
+      "EXPAND_SHADOW"
+    ],
+    "completed_apply_preconditions": [
+      "owner_approval_model_mode_max_usd_1_00_and_selected_egress",
+      "fresh_official_price_recheck_2026_08_30",
+      "three_raster_sanitized_input_pdfs_rendered_and_manually_reviewed",
+      "request_hash_token_cap_and_cache_resume_preflight"
+    ],
+    "provider_failures": [
+      "HTTP_400_TEXT_RESPONSE_FORMAT_MIME_ENUM_REJECTED_BEFORE_INFERENCE",
+      "HTTP_400_GENERIC_INVALID_ARGUMENT_BEFORE_INFERENCE",
+      "HTTP_200_EMPTY_CASE_OBJECTS_REJECTED_BY_INDEPENDENT_SEMANTIC_VALIDATOR",
+      "HTTP_200_FLAT_RESPONSE_INVALID_ENUMS_AND_CANONICAL_SUMMARY_VALIDATION_BLOCKED_REJECTED_BY_INDEPENDENT_SEMANTIC_VALIDATOR"
+    ],
+    "recovery_correction": "FLAT_REQUIRED_WIRE_SCHEMA_WITH_DETERMINISTIC_NORMALIZATION_STRICT_LOCAL_VALIDATOR_AND_RASTER_SANITIZED_216DPI_PDFS",
+    "terminal_decision": "NO_MORE_GEMINI_REQUESTS",
+    "batches_not_sent": ["B02", "B03"],
+    "recovery_requires": [],
+    "future_provider_recovery_allowed": false
+  },
+  "local_build": {
+    "status": "ALL_6_BATCHES_TERMINAL_AGGREGATE_AUDITED_NOT_CANONICAL_NOT_IMPORTABLE",
+    "approved_on": "2026-08-30",
+    "batch_count": 6,
+    "tasks_per_batch": 10,
+    "maximum_passes_per_batch": 2,
+    "provider_calls_allowed": 0,
+    "batches_completed": 6,
+    "current_batch": "B06",
+    "current_pass": 2,
+    "b01": {
+      "task_count": 10,
+      "candidate_row_count": 82,
+      "legacy_candidate_row_count": 73,
+      "manual_source_transcription_row_count": 9,
+      "rows_with_niqqud_marks": 72,
+      "he_niqqud_consonant_skeleton_mismatch_count": 43,
+      "pass1_structurally_clear_task_count": 1,
+      "pass1_incomplete_task_count": 9,
+      "open_discrepancy_count": 15,
+      "pass2_final_pass_task_count": 1,
+      "pass2_final_incomplete_task_count": 9,
+      "pass2_reviewed_row_count": 2,
+      "pass2_blocked_row_count": 80,
+      "pass2_source_backed_correction_count": 6,
+      "pass2_final_discrepancy_entry_count": 16,
+      "third_pass_allowed": false,
+      "solution_rows_included": 0,
+      "provider_calls": 0
+    },
+    "b02": {
+      "task_count": 10,
+      "candidate_row_count": 157,
+      "legacy_candidate_row_count": 150,
+      "manual_source_transcription_row_count": 7,
+      "rows_with_niqqud_marks": 118,
+      "plain_hebrew_rows_with_niqqud_marks": 22,
+      "he_niqqud_consonant_skeleton_mismatch_count": 39,
+      "pass1_incomplete_task_count": 10,
+      "open_discrepancy_count": 15,
+      "q016_duplicate_disposition": "SOURCE_MATCHING_50MM_SELECTED_35MM_REJECTED_NO_MERGE",
+      "q018_external_appendix_pages": [68, 69],
+      "pass2_final_pass_task_count": 0,
+      "pass2_final_incomplete_task_count": 10,
+      "pass2_reviewed_heading_row_count": 9,
+      "pass2_blocked_row_count": 148,
+      "pass2_source_backed_correction_count": 9,
+      "pass2_final_discrepancy_entry_count": 25,
+      "pass2_remaining": 0,
+      "third_pass_allowed": false,
+      "solution_rows_included": 0,
+      "provider_calls": 0
+    },
+    "aggregate": {
+      "task_count": 60,
+      "row_count": 693,
+      "legacy_candidate_row_count": 656,
+      "manual_source_transcription_row_count": 37,
+      "reviewed_row_count": 51,
+      "blocked_row_count": 642,
+      "final_pass_task_count": 1,
+      "final_incomplete_task_count": 59,
+      "source_backed_correction_count": 54,
+      "source_anchor_correction_task_count": 7,
+      "canonical_package_ready": false,
+      "canonical_package_emitted": false,
+      "aggregate_audit": "build/aggregate-terminal-audit.json",
+      "terminal_task_index": "build/terminal-task-index.json",
+      "separate_repair_gate": "build/separate-canonical-repair-gate.json",
+      "separate_repair_execution_plan": "build/separate-canonical-repair-execution-plan.json"
+    },
+    "next_action": "SEPARATE_CANONICAL_REPAIR_OWNER_DECISION_REQUIRED",
+    "import_allowed": false,
+    "publication_allowed": false,
+    "solution_authoring_or_adjudication_allowed": false,
+    "audio_allowed": false
+  },
+  "canonical_repair_plan": {
+    "status": "PASS_ALL_6_BATCHES_STRICTLY_VALIDATED_AND_LOCAL_CANONICAL_BUNDLE_BAKED",
+    "program": "MATERIALS-PB2-SEPARATE-CANONICAL-REPAIR",
+    "model": "gemini-3.7-flash",
+    "consumption_mode": "STANDARD",
+    "thinking_level": "medium",
+    "incomplete_task_count": 59,
+    "blocked_row_count": 642,
+    "primary_generation_passes": 1,
+    "failed_row_repair_passes": 1,
+    "primary_call_count": 6,
+    "maximum_failed_row_repair_calls": 6,
+    "maximum_provider_calls": 12,
+    "estimated_primary_cost_usd": 0.501151,
+    "hard_max_usd": 2.0,
+    "no_third_pass": true,
+    "no_open_ended_iterations": true,
+    "provider_returns_status_enums": false,
+    "local_validator_owns_statuses": true,
+    "source_page_and_legacy_candidate_egress_approved": true,
+    "credential_access_approved": true,
+    "owner_approval_on": "2026-08-30",
+    "owner_approval_evidence": "repair/canonical-repair-owner-approval.json",
+    "provider_calls_made": 9,
+    "provider_call_starts": 10,
+    "measured_provider_cost_usd": 1.099227,
+    "conservative_billing_upper_bound_usd": 1.259607,
+    "secret_accessed": true,
+    "secret_persisted": false,
+    "solution_audio_import_publication_authorized": false,
+    "offline_preflight": {
+      "status": "PASS_OFFLINE_PREFLIGHT_AWAITING_OWNER_APPROVAL_NO_PROVIDER_CALLS",
+      "batch_count": 6,
+      "task_count": 59,
+      "row_count": 642,
+      "pdf_page_exposure_count": 77,
+      "contact_sheets_visually_reviewed": 6,
+      "post_build_source_anchor_correction_task_count": 3,
+      "corrected_task_ids": [
+        "materials-science-y1-pb2-q021",
+        "materials-science-y1-pb2-q022",
+        "materials-science-y1-pb2-q028"
+      ],
+      "manifest": "repair/preflight/canonical-repair-preflight-manifest.json",
+      "provider_calls_made": 0,
+      "secret_accessed": false
+    },
+    "synthetic_pipeline_rehearsal": {
+      "status": "PASS_MECHANISM_ONLY_NOT_CORPUS_TRUTH",
+      "cached_batch_count": 6,
+      "reviewed_row_count": 642,
+      "canonical_text_count": 60,
+      "canonical_row_count": 693,
+      "two_bakes_byte_identical": true,
+      "source_and_reference_asset_readback": true,
+      "credential_accessed": false,
+      "live_provider_calls": 0,
+      "synthetic_bundle_retained": false,
+      "real_provider_review_still_required": false,
+      "real_provider_review_completed_after_rehearsal": true,
+      "evidence": "repair/canonical-pipeline-synthetic-rehearsal.json"
+    },
+    "goal_blocked_audit": {
+      "status": "HISTORICAL_BLOCK_CLEARED_BY_EXACT_OWNER_APPROVAL_2026_08_30",
+      "consecutive_goal_turns": 3,
+      "completion_claim_allowed": true,
+      "evidence": "repair/goal-blocked-audit-2026-08-30.json"
+    },
+    "execution": {
+      "status": "PASS_ALL_6_BATCHES_STRICTLY_VALIDATED_READY_FOR_LOCAL_CANONICAL_BAKE",
+      "reviewed_batch_count": 6,
+      "reviewed_row_count": 642,
+      "provider_reviewed_row_count": 490,
+      "source_verified_legacy_fallback_row_count": 152,
+      "existing_canonical_pass_row_count": 51,
+      "hebrew_niqqud_skeleton_normalization_count": 383,
+      "provider_response_receipt_count": 9,
+      "provider_call_start_count": 10,
+      "measured_provider_cost_usd": 1.099227,
+      "conservative_billing_upper_bound_usd": 1.259607,
+      "secret_persisted": false,
+      "evidence": "repair/execution/execution-ledger.json"
+    },
+    "canonical_bake": {
+      "status": "PASS_LOCAL_CANONICAL_BUNDLE_DETERMINISTIC_READBACK_NOT_IMPORTED_NOT_PUBLISHED",
+      "task_count": 60,
+      "row_count": 693,
+      "asset_count": 72,
+      "audio_count": 0,
+      "missing_audio": 693,
+      "solution_count": 0,
+      "bundle_bytes": 15891578,
+      "bundle_sha256": "f7ef3851d1d00bae0f11343371960850d61c613e6394d8cad550a9cf9fcd8954",
+      "provider_reviewed_row_count": 488,
+      "source_verified_legacy_fallback_row_count": 152,
+      "source_verified_post_bake_correction_row_count": 2,
+      "existing_canonical_pass_row_count": 51,
+      "two_consecutive_bakes_byte_identical": true,
+      "android_v2_compatible": true,
+      "in_memory_import_rehearsal": "PASS_60_IMPORTED_0_SKIPPED_0_ERRORS",
+      "imported": false,
+      "published": false,
+      "evidence": "repair/canonical-bake-report.json"
+    },
+    "post_bake_source_correction": {
+      "status": "PASS_TWO_EXACT_SOURCE_CONDITION_CORRECTIONS_DETERMINISTIC_REBAKE",
+      "task_ids": [
+        "materials-science-y1-pb2-q005",
+        "materials-science-y1-pb2-q019"
+      ],
+      "row_ids": [
+        "materials-science-y1-pb2-q005-r002",
+        "materials-science-y1-pb2-q019-r010"
+      ],
+      "provider_calls": 0,
+      "evidence": "repair/source-condition-corrections.json"
+    }
+  },
+  "learning_table": {
+    "columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "typed_row_kinds": [
+      "task_heading",
+      "condition",
+      "subpart",
+      "note",
+      "source_note",
+      "diagram_reference"
+    ],
+    "solution_rows_allowed": false,
+    "missing_diagram_policy": "MARK_INCOMPLETE_NEVER_INFER",
+    "missing_value_policy": "EXPLICIT_NOT_FOUND_OR_BLOCKED_NO_INFERENCE",
+    "source_anchor_required": true
+  },
+  "task_identity": {
+    "proposed_pattern": "materials-science-y1-pb2-qNNN",
+    "join_policy": "SOURCE_PAGE_AND_CONTENT_ANCHOR_NOT_FUZZY_TITLE",
+    "edition_bound": true,
+    "unresolved_count_allowed_at_publication": 0,
+    "owner_approved_aliases": {
+      "materials-science-y1-pb2-exercise-p005-allotropy": "Упражнение — Аллотропия железа",
+      "materials-science-y1-pb2-p045-q038": "38-A",
+      "materials-science-y1-pb2-p047-q038": "38-B"
+    }
+  },
+  "solutions": {
+    "included_in_this_program": false,
+    "separate_program": "../../materials-science-problem-solutions/2026-08-30/solution-program-spec.json",
+    "program_authorized": true,
+    "program_status": "DESIGN_FROZEN_LEGACY_CANDIDATES_EXTRACTED_INDEPENDENT_REVIEW_IN_PROGRESS",
+    "source_edition_must_be_frozen_first": true,
+    "independent_derivation_required": true,
+    "legacy_discrepancy_ledger_required": true,
+    "critical_unresolved_allowed": 0
+  },
+  "agent_package": {
+    "enabled_in_future_solution_program": true,
+    "exact_task_and_edition_binding_required": true,
+    "fuzzy_title_lookup_allowed": false,
+    "required_sections": [
+      "condition",
+      "diagram_references",
+      "answer",
+      "exam_grade_solution",
+      "beginner_walkthrough",
+      "assumptions",
+      "formulas",
+      "units",
+      "common_pitfalls",
+      "provenance"
+    ],
+    "unknown_policy": "NOT_FOUND_NO_HALLUCINATION",
+    "future_textbook_policy": "SEPARATE_VERSIONED_REFERENCE_CORPUS_WITH_SECTION_ANCHORS"
+  },
+  "audio": {
+    "enabled": true,
+    "required_experience": "ROW_PLAYBACK_WITH_WORD_LEVEL_KARAOKE",
+    "voice": "OWNER_SELECTION_REQUIRED",
+    "language_code": "he-IL",
+    "rate": null,
+    "pitch": null,
+    "legacy_profile_is_approved": false,
+    "synthesis_input": "APPROVED_HE_NIQQUD_ONLY",
+    "ssml_timepoints_required": true,
+    "timing_sidecar_required": true,
+    "exact_text_and_profile_deduplication_required": true,
+    "plan_before_apply_required": true,
+    "apply_cost_ceiling": null,
+    "apply_cost_ceiling_usd": null,
+    "legacy_all_rows_local_estimate": {
+      "rows": 2469,
+      "unique_exact_texts": 2355,
+      "unique_characters": 181665,
+      "scope_warning": "MIXED_CONDITION_AND_SOLUTION_UPPER_BOUND_NOT_FINAL_CORPUS"
+    },
+    "acceptance": {
+      "eligible_row_audio_coverage": 1.0,
+      "eligible_row_timing_coverage": 1.0,
+      "timepoint_token_count_must_match": true,
+      "strictly_monotonic_offsets_required": true,
+      "decode_and_hash_readback_required": true,
+      "http_range_and_timing_fetch_required": true,
+      "mobile_rtl_380px_smoke_required": true,
+      "physical_device_and_at_evidence_separate": true
+    }
+  },
+  "publication": {
+    "requested": true,
+    "immutable_editions": true,
+    "pilot_size": 3,
+    "anonymous_read": true,
+    "solutions_access": "PUBLIC_AFTER_REVIEWED_SOLUTION_EDITION_GATE",
+    "agent_files_access": "DATA_PREPARE_REQUESTED_NETWORK_ACCESS_SEPARATE_GATE",
+    "future_textbook_access": null,
+    "isolated_import_rehearsal_required": true,
+    "readback_required": true,
+    "rollback_required": true,
+    "learner_state_writes_allowed": false,
+    "review_log_writes_allowed": false,
+    "b9_changes_allowed": false
+  },
+  "owner_decisions_needed": [
+    "approve_title_and_slug",
+    "page_5_exercise_and_duplicate_38_identity_recommendations_approved_2026_08_30",
+    "local_row_mapping_and_diagram_classification_completed_without_providers_2026_08_30",
+    "confirm_rights_per_content_class",
+    "prepare_phase_approved_and_completed_2026_08_30",
+    "shadow_apply_terminated_2026_08_30_no_more_gemini_requests",
+    "local_build_6x10_two_passes_zero_providers_approved_and_all_6_batches_terminally_closed_2026_08_30",
+    "separate_finite_canonical_repair_owner_approved_and_completed_2026_08_30_within_2_usd_and_12_call_ceiling",
+    "local_canonical_bundle_baked_and_verified_2026_08_30_not_imported_not_published",
+    "separate_solution_program_authorized_and_design_frozen_2026_08_30",
+    "later_select_tts_voice_rate_pitch_from_a_bounded_sample",
+    "later_choose_access_policy_for_source_solutions_audio_agent_files_and_textbook"
+  ],
+  "stop_conditions": [
+    "ambiguous_task_mapping_requires_guessing",
+    "source_or_required_diagram_is_unreadable_or_missing",
+    "correction_changes_meaning_without_exact_evidence_anchor",
+    "external_call_import_tts_apply_solution_work_or_publication_lacks_explicit_authorization",
+    "cost_would_exceed_approved_ceiling",
+    "cache_or_resume_behavior_is_not_proven",
+    "required_rights_are_unconfirmed",
+    "operation_would_write_learner_private_group_truth_review_log_or_b9",
+    "package_readback_or_rollback_is_not_reproducible",
+    "any_batch_would_require_a_third_pass_instead_of_pass_or_explicit_incomplete"
+  ]
+}
