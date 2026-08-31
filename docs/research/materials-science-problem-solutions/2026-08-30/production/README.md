@@ -1,6 +1,6 @@
 # Materials PB2 production release evidence
 
-Status: `PRODUCTION_LIVE_VERIFIED / OWNER_CARD_REVIEW_PENDING / FULL_TTS_DEFERRED`.
+Status: `PRODUCTION_LIVE_VERIFIED / HERMES_TECHNICAL_PASS / OWNER_CHAT_AND_CARD_REVIEW_PENDING / FULL_TTS_DEFERRED`.
 
 Completed locally on real corpus bytes:
 
@@ -36,6 +36,15 @@ verification are complete. The public catalog exposes 48 + 12 cards; all 60
 support payloads, 1,919 solution rows and 72 source assets passed readback.
 Explicitly deferred: physical printer acceptance, owner review of all 60 live
 cards and full TTS.
+
+Agent Access addendum (2026-08-31): release `3.11.451` exposes all 60 exact-
+edition reviewed derivatives through the shared publication MCP after explicit
+`DISCOVER` and `DERIVATIVE_TEXT` rights. Hermes has a fresh consent-v5 token,
+discovers 31 tools, and passed content-safe live discovery plus representative
+derivative reads. `SOURCE_TEXT` and `SOURCE_BINARY` remain ungranted, and audio
+payloads remain absent. See `materials-pb2-agent-access-production-evidence.json`.
+Final owner acceptance still requires a fresh ordinary Hermes chat that invokes
+the target tool and is recorded as `OWNER_REPORTED_PASS`.
 
 The owner explicitly attested every class in
 `publication-rights-attestation.json`, including

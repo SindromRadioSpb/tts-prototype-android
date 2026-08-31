@@ -1,0 +1,85 @@
+{
+  "schema_version": "materials_pb2_agent_access_production_evidence.1.0.0",
+  "verified_at": "2026-08-31",
+  "status": "HERMES_TECHNICAL_PASS_OWNER_CHAT_PENDING",
+  "release": {
+    "version": "3.11.451",
+    "commit": "3f8f42f8a1986fb7fa356822ee5f9cfb1ee1bb70",
+    "stable_health_responses": 3,
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_percent_used_after_release": 92,
+    "disk_warning": true,
+    "cleanup_performed": false
+  },
+  "pre_apply_backup": {
+    "artifact": "materials-pb2-agent-rights-preapply-20260831.db.gz",
+    "method": "sqlite_online_backup_api_db_only",
+    "sqlite_integrity_check": "ok",
+    "raw_bytes": 507486208,
+    "raw_sha256": "99335a7a2552c6d3c3deb19c9d6746e9bda73cb963ced395da0540b87422f0a4",
+    "archive_bytes": 54421392,
+    "archive_sha256": "402ca0cdb5af90b0e38c99603bb24ecc8eb7c91b2e8de6d2bde535e35c2db48a",
+    "restored_rehearsal": "PASS"
+  },
+  "publication_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+    "edition_number": 2,
+    "manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+    "item_count": 60
+  },
+  "agent_rights": {
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "plan_sha256": "c2dcd4fc2110896d42ee19a2037d832670389ef46e2ab81f6c7b030051124160",
+    "idempotent_batches": 2,
+    "facts_applied": 120,
+    "readback": {
+      "DISCOVER": 60,
+      "DERIVATIVE_TEXT": 60,
+      "SOURCE_TEXT": 0,
+      "SOURCE_BINARY": 0
+    }
+  },
+  "protected_truth": {
+    "tables_fingerprinted": 15,
+    "before_sha256": "1485a9a0b4cda23aee00099f26d4b2c3941fabbcd741722d9e173871fb21930a",
+    "after_sha256": "1485a9a0b4cda23aee00099f26d4b2c3941fabbcd741722d9e173871fb21930a",
+    "unchanged": true
+  },
+  "hermes_oauth": {
+    "consent_version": "agent-access-consent-v5",
+    "retention_notice_version": "downstream-retention-v3",
+    "configured_scope_count": 27,
+    "token_pair_stored": true,
+    "gateway_restarted": true,
+    "mcp_connection_test": "PASS",
+    "tools_discovered": 31
+  },
+  "live_mcp": {
+    "items_discovered": 60,
+    "discovery_pages": 12,
+    "page_size": 5,
+    "sample_positions": [1, 30, 60],
+    "sample_task_labels": ["1", "29", "58"],
+    "sample_markdown_bytes": [5685, 7679, 10208],
+    "sample_sweep_sha256": "b70315566bd07b2a2447c1a6a86670ccde054f47dc448974159ecea7c91ffaa3",
+    "required_sections_present": true,
+    "source_text_closed": true,
+    "source_binary_descriptors_closed": true,
+    "audio_payloads": 0,
+    "content_printed_to_evidence": false
+  },
+  "acceptance_boundary": {
+    "sdk_cli_evidence": "PASS",
+    "owner_fresh_ordinary_hermes_chat": "PENDING",
+    "required_final_label": "OWNER_REPORTED_PASS",
+    "inspector_openai_claude_or_community_readiness_claimed": false
+  },
+  "deferred": [
+    "owner review of all 60 Reading Room cards",
+    "full TTS generation and publication",
+    "row-level audio and karaoke timing assets",
+    "physical printer acceptance"
+  ]
+}

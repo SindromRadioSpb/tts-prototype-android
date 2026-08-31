@@ -66,3 +66,33 @@ Status: `LIVE / 60 CARDS / PREMIUM SOLUTION TABLES / ZERO AUDIO`.
 
 Не заявлено как выполненное: содержательная owner-проверка всех 60 карточек,
 физическая печать на конкретном принтере, полный TTS и karaoke timing assets.
+
+## MCP и Hermes · дополнение 2026-08-31
+
+- Общий read-only publication MCP расширен exact-slug provider для этого
+  корпуса; отдельный MCP-сервер или отдельное семейство инструментов не
+  создавались.
+- Production `3.11.451`, commit `3f8f42f8`: три последовательных health-readback
+  подтвердили эту версию, готовую БД и готовые миграции.
+- Перед правами сделан DB-only snapshot через SQLite Online Backup API,
+  восстановлен и проверен rehearsal. После apply readback равен
+  `DISCOVER=60`, `DERIVATIVE_TEXT=60`, `SOURCE_TEXT=0`, `SOURCE_BINARY=0`.
+- Fingerprint 15 learner/private/group/review таблиц до и после одинаков:
+  `1485a9a0b4cda23aee00099f26d4b2c3941fabbcd741722d9e173871fb21930a`.
+- Hermes повторно авторизован с `agent-access-consent-v5`; gateway перезапущен,
+  CLI connection test обнаруживает 31 инструмент.
+- Живой content-safe MCP sweep нашёл все 60 карточек за 12 страниц. Проверены
+  производные позиций 1, 30 и 60: условия RU/HE, reviewed solution и provenance
+  присутствуют; ни текст решений, ни токены OAuth в evidence не печатались.
+- Негативные границы подтверждены: source-text read закрыт, resource descriptors
+  без `SOURCE_BINARY` пусты, audio/TTS/timing payloads отсутствуют.
+- Технический статус: `HERMES_TECHNICAL_PASS`. Финальный
+  `OWNER_REPORTED_PASS` требует нового обычного чата Hermes с фактическим
+  вызовом `read_published_learning_support`; SDK/CLI smoke его не заменяет.
+
+Полная машинно-читаемая квитанция:
+`materials-pb2-agent-access-production-evidence.json`.
+
+Эксплуатационное замечание: после release production disk health показывает
+92% и warning. Очистка backup/Docker cache не выполнялась, поскольку она не
+входила в разрешённый scope.
