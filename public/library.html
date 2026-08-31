@@ -970,6 +970,9 @@
     .materials-mode-button { width: auto; min-height: 44px; padding: 7px 11px; border: 0; border-radius: 7px; background: transparent; color: var(--text-secondary); font: 750 11px/1.25 system-ui,sans-serif; cursor: pointer; white-space: nowrap; }
     .materials-mode-button.is-active { background: var(--bg-card); color: #0f6f74; box-shadow: 0 1px 4px rgba(15,23,42,.12); }
     .materials-audio-note { margin: 0 0 16px; padding: 10px 13px; border-inline-start: 4px solid #c07c21; background: color-mix(in srgb,#fbbf24 10%,var(--bg-card)); color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+    .materials-listen-section { margin: 8px 10px; min-height: 48px; padding: 9px 14px; border: 1px solid #0f6f74; border-radius: 999px; background: transparent; color: #0f6f74; font: 800 12px/1 system-ui,sans-serif; cursor: pointer; }
+    .materials-audio-col,.materials-audio-cell { width: 58px; text-align: center !important; }
+    .materials-audio-cell .row-tts-btn { width: 48px; min-width: 48px; height: 48px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-card); color: #0f6f74; cursor: pointer; }
     .materials-learning-section > h3 { margin: 20px 0 10px; color: var(--text-primary); font: 800 22px/1.2 Georgia,"Times New Roman",serif; }
     .materials-table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 11px; background: var(--bg-card); }
     .materials-learning-table { width: 100%; min-width: 930px; border-collapse: collapse; table-layout: fixed; }
@@ -1162,6 +1165,7 @@
       .materials-learning-table tr { overflow: hidden; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
       .materials-learning-table th,.materials-learning-table td { padding: 9px 11px; border-inline-end: 0; }
       .materials-learning-table td::before { display: block; margin-bottom: 3px; color: #0f6f74; content: attr(data-label); font: 850 9px/1.25 system-ui,sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+      .materials-learning-table .materials-audio-cell { width: auto; text-align: start !important; }
       .materials-step-cell { padding-inline-start: 15px !important; }
       .materials-step-cell { box-sizing: border-box; }
       .materials-learning-viewer[data-language-mode="exam"] .materials-learning-table td.materials-he-cell { display: block; }
@@ -2894,7 +2898,7 @@
       .materials-learning-viewer[data-print-mode="study"] .materials-study-print-only { display: block !important; }
       .materials-learning-viewer[data-print-mode="exam"] .materials-exam-print-only { display: block !important; }
       .materials-learning-kicker { color: #0f6f74 !important; }
-      .materials-learning-head-actions,.materials-learning-toolbar,.materials-audio-note { display: none !important; }
+      .materials-learning-head-actions,.materials-learning-toolbar,.materials-audio-note,.materials-listen-section,.materials-audio-col,.materials-audio-cell { display: none !important; }
       .materials-learning-body { overflow: visible !important; padding: 6mm 0 0 !important; }
       .materials-condition-section,.materials-solution-section { display: block !important; }
       .materials-learning-section > h3 { margin: 5mm 0 2mm; font-size: 16pt; break-after: avoid; }
@@ -3069,7 +3073,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.452</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.453</button>
   </div>
 </footer>
 
@@ -3257,9 +3261,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=188"></script>
-    <script src="/i18n/locales/en.js?v=188"></script>
-    <script src="/i18n/locales/he.js?v=188"></script>
+    <script src="/i18n/locales/ru.js?v=189"></script>
+    <script src="/i18n/locales/en.js?v=189"></script>
+    <script src="/i18n/locales/he.js?v=189"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3329,13 +3333,14 @@
 <script src="/js/studio-portable-learning-package.js"></script>
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
-<script src="/js/morph-host.js?v=415"></script>
+<script src="/js/public-word-audio.js?v=453"></script>
+<script src="/js/morph-host.js?v=416"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=419"></script>
-<script type="module" src="/js/library-ui.js?v=427"></script>
+<script src="/js/public-corpus-adapter.js?v=420"></script>
+<script type="module" src="/js/library-ui.js?v=428"></script>
 </body>
 </html>

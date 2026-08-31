@@ -127,5 +127,9 @@ test("Materials PB2 rights validator refuses full TTS and incomplete content-cla
     assert.throws(() => validateRights({ ...fixture.rights, classes: { ...fixture.rights.classes, full_tts_audio_and_timings: true } }), /FULL_TTS_MUST_REMAIN_DEFERRED/);
     assert.throws(() => validateRights({ ...fixture.rights, classes: { ...fixture.rights.classes, independent_solutions: false } }), /RIGHTS_CLASS_NOT_COVERED:independent_solutions/);
     assert.throws(() => validateRights({ ...fixture.rights, classes: { ...fixture.rights.classes, public_stream_current_zero_audio_edition: false } }), /RIGHTS_CLASS_NOT_COVERED:public_stream_current_zero_audio_edition/);
+    const full = { ...fixture.rights, classes: { ...fixture.rights.classes,
+      public_stream_current_zero_audio_edition: false, full_tts_audio_and_timings: true } };
+    assert.equal(validateRights(full, { fullTts: true }).full_tts_audio_and_timings_allowed, true);
+    assert.throws(() => validateRights(fixture.rights, { fullTts: true }), /FULL_TTS_RIGHTS_REQUIRED/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });

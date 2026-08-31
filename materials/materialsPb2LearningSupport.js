@@ -118,8 +118,47 @@ function createResolver(root = DEFAULT_ROOT) {
     if (manifest?.schema_version !== "materials_pb2_learning_support_manifest.1.0.0"
       || manifest.corpus_slug !== SLUG || !Array.isArray(manifest.tasks) || manifest.tasks.length !== 60
       || manifest.rights?.public_read_allowed !== true || manifest.rights?.public_solution_display_and_print_allowed !== true) notFound();
+    const fullTts = manifest.audio_boundary?.full_tts_generated === true;
+    if (fullTts) {
+      const audio = manifest.public_tts;
+      if (manifest.rights?.full_tts_audio_and_timings_allowed !== true
+        || audio?.schema_version !== "materials_pb2_public_tts_reference.1.0.0"
+        || !String(audio.profile_id || "") || !HASH.test(String(audio.asset_manifest_sha256 || ""))
+        || !Array.isArray(audio.assets) || !Array.isArray(audio.word_index)) notFound();
+      const assets = new Set();
+      for (const asset of audio.assets) {
+        if (!HASH.test(String(asset?.asset_key || "")) || !["row", "word"].includes(asset.asset_type)
+          || assets.has(asset.asset_key)) notFound();
+        assets.add(asset.asset_key);
+      }
+      const words = new Set();
+      for (const word of audio.word_index) {
+        const normalized = String(word?.text || "").normalize("NFC").replace(/\s+/g, " ").trim();
+        if (!normalized || normalized !== word.text || !HASH.test(String(word.asset_key || ""))
+          || !assets.has(word.asset_key) || words.has(normalized)) notFound();
+        words.add(normalized);
+      }
+    } else if (manifest.audio_boundary?.full_tts_generated !== false) notFound();
     manifestCache = Object.freeze(manifest);
     return manifestCache;
+  }
+  function resolveWordAudioIndex(anchor = {}) {
+    const manifest = loadManifest();
+    if (anchor.slug !== SLUG || anchor.editionId !== manifest.edition.edition_id
+      || Number(anchor.editionNumber) !== Number(manifest.edition.edition_number)
+      || anchor.editionManifestSha256 !== manifest.edition.manifest_sha256
+      || manifest.audio_boundary?.full_tts_generated !== true) notFound();
+    const audio = manifest.public_tts;
+    return Object.freeze({
+      schema_version: "materials_pb2_public_word_audio.1.0.0", corpus_slug: SLUG,
+      edition_id: manifest.edition.edition_id, edition_number: Number(manifest.edition.edition_number),
+      edition_manifest_sha256: manifest.edition.manifest_sha256,
+      profile_id: audio.profile_id, profile: audio.profile,
+      asset_manifest_sha256: audio.asset_manifest_sha256,
+      words: Object.freeze(audio.word_index.map(word => Object.freeze({
+        text: word.text, asset_key: word.asset_key, audio_url: `/api/audio/${encodeURIComponent(word.asset_key)}`,
+      }))),
+    });
   }
   function resolveLearningSupport(anchor = {}) {
     const manifest = loadManifest();
@@ -165,7 +204,7 @@ function createResolver(root = DEFAULT_ROOT) {
     assetCache.set(assetSha256, result);
     return result;
   }
-  return Object.freeze({ loadManifest, resolveLearningSupport, resolveAsset });
+  return Object.freeze({ loadManifest, resolveLearningSupport, resolveAsset, resolveWordAudioIndex });
 }
 
 const defaultResolver = createResolver();
@@ -177,5 +216,6 @@ module.exports = {
   loadManifest: defaultResolver.loadManifest,
   resolveLearningSupport: defaultResolver.resolveLearningSupport,
   resolveAsset: defaultResolver.resolveAsset,
+  resolveWordAudioIndex: defaultResolver.resolveWordAudioIndex,
   toAgentMarkdown
 };

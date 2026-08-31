@@ -260,7 +260,7 @@ test("VF0 precaches foundation assets and remains locked to the current served r
   const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker, "all public version surfaces must exist");
-  assert.equal(app[1], "3.11.452");
+  assert.equal(app[1], "3.11.453");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
 });

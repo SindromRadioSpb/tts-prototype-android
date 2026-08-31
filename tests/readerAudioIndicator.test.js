@@ -57,6 +57,14 @@ test("attachRowAudio exposes one successful-asset callback instead of a second p
   assert.match(String(core.attachRowAudio), /onAssetReady/);
 });
 
+test("public cached-only playback cannot fall through to BYOK or browser speech", async () => {
+  const core = await readerCore();
+  const source = String(core.attachRowAudio);
+  assert.match(source, /fallbackPolicy/);
+  assert.match(source, /cached-only/);
+  assert.match(source, /CACHED_AUDIO_REQUIRED/);
+});
+
 test("row TTS action names and ARIA state change atomically without exposing provider errors", async () => {
   const core = await readerCore();
   const button = fakeButton();

@@ -86,6 +86,10 @@
     async function speakWord(text) {
       var he = String(text || "").trim();
       if (!he) return;
+      try {
+        var publicAsset = env.resolvePublicWordAudio ? await env.resolvePublicWordAudio(he) : null;
+        if (publicAsset && publicAsset.audio_url) { await playUrl(publicAsset.audio_url); return; }
+      } catch (_) {}
       var key = "";
       try { key = env.getTtsKey ? env.getTtsKey() : ""; } catch (_) { key = ""; }
       if (!key) { _browserSpeakWord(he); return; }

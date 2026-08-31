@@ -10,7 +10,7 @@
 //                                            [--dir .tmp/benyehuda-audio/audio-cache]
 //                                            [--concurrency 6] [--limit N] [--dry-run]
 //
-// Upload contract: POST /api/audio/cache/upload { assetKey, mp3Base64 }. As of
+// Upload contract: POST /api/audio/cache/upload { assetKey, mp3Base64, timingJson? }. As of
 // BRR-P0-010 the endpoint is OWNER-TOKEN gated: send header X-Audio-Upload-Token =
 // process.env.AUDIO_UPLOAD_TOKEN (must match the server's env). X-Local-Mode no
 // longer authorizes writes. So the prod env var MUST be set first (set it in
@@ -43,22 +43,26 @@ function parseArgs(argv) {
 
 const KEY_RE = /^[a-f0-9]{64}\.mp3$/;
 
-async function headPresent(base, key) {
+async function headPresent(base, key, needTiming) {
   try {
     const r = await fetch(base + "/api/audio/" + key, { method: "HEAD" });
-    return r.ok;
+    if (!r.ok) return false;
+    if (!needTiming) return true;
+    const timing = await fetch(base + "/api/audio/" + key + "/timing", { method: "HEAD" });
+    return timing.ok;
   } catch (_) { return false; }
 }
 
-async function uploadOne(base, key, filePath, tries = 3) {
+async function uploadOne(base, key, filePath, timingPath, tries = 3) {
   const mp3Base64 = fs.readFileSync(filePath).toString("base64");
+  const timingJson = timingPath && fs.existsSync(timingPath) ? JSON.parse(fs.readFileSync(timingPath, "utf8")) : null;
   let lastErr = null;
   for (let attempt = 1; attempt <= tries; attempt++) {
     try {
       const r = await fetch(base + "/api/audio/cache/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Audio-Upload-Token": TOKEN },
-        body: JSON.stringify({ assetKey: key, mp3Base64 }),
+        body: JSON.stringify({ assetKey: key, mp3Base64, ...(timingJson ? { timingJson } : {}) }),
       });
       const body = await r.json().catch(() => ({}));
       if (r.ok && body && body.ok) return { ok: true, alreadyExisted: !!body.alreadyExisted };
@@ -103,11 +107,13 @@ async function main() {
 
   await runPool(files, args.concurrency, async (f) => {
     const key = f.replace(/\.mp3$/, "");
+    const timingPath = path.join(args.dir, key + ".timing.json");
+    const needTiming = fs.existsSync(timingPath);
     try {
-      if (await headPresent(args.base, key)) { present++; }
+      if (await headPresent(args.base, key, needTiming)) { present++; }
       else if (args.dryRun) { /* would upload */ }
       else {
-        const res = await uploadOne(args.base, key, path.join(args.dir, f));
+        const res = await uploadOne(args.base, key, path.join(args.dir, f), needTiming ? timingPath : null);
         if (res.alreadyExisted) already++; else uploaded++;
       }
     } catch (e) {
@@ -131,4 +137,5 @@ async function main() {
   console.log("\n✓ push complete." + (args.dryRun ? " (dry run — nothing uploaded)" : " Prod cache now serves these keyless via /api/audio/:key."));
 }
 
-main().catch((e) => { console.error("FATAL:", (e && e.stack) || e); process.exit(1); });
+if (require.main === module) main().catch((e) => { console.error("FATAL:", (e && e.stack) || e); process.exit(1); });
+module.exports = { parseArgs, headPresent, uploadOne, runPool };

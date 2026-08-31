@@ -29,18 +29,22 @@ function parseArgs(argv) {
   }
   return result;
 }
-function validateRights(rights) {
+function validateRights(rights, { fullTts = false } = {}) {
   invariant(rights?.schema_version === "materials_pb2_publication_rights.1.0.0", "RIGHTS_SCHEMA_INVALID");
   invariant(rights.corpus_slug === SLUG && rights.owner_attested === true && String(rights.basis || "").trim(), "RIGHTS_ATTESTATION_MISSING");
-  for (const key of ["source_text_and_diagrams", "generated_learning_columns", "independent_solutions", "bilingual_solution_derivatives", "public_read", "public_solution_display_and_print", "public_stream_current_zero_audio_edition"])
+  for (const key of ["source_text_and_diagrams", "generated_learning_columns", "independent_solutions", "bilingual_solution_derivatives", "public_read", "public_solution_display_and_print"])
     invariant(rights.classes?.[key] === true, `RIGHTS_CLASS_NOT_COVERED:${key}`);
-  invariant(rights.classes.full_tts_audio_and_timings === false, "FULL_TTS_MUST_REMAIN_DEFERRED");
+  if (fullTts) invariant(rights.classes.full_tts_audio_and_timings === true, "FULL_TTS_RIGHTS_REQUIRED");
+  else {
+    invariant(rights.classes?.public_stream_current_zero_audio_edition === true, "RIGHTS_CLASS_NOT_COVERED:public_stream_current_zero_audio_edition");
+    invariant(rights.classes.full_tts_audio_and_timings === false, "FULL_TTS_MUST_REMAIN_DEFERRED");
+  }
   return Object.freeze({
     public_read_allowed: true,
     public_solution_display_and_print_allowed: true,
     package_download_allowed: rights.classes.package_download === true,
     agent_derivative_text_allowed: rights.classes.agent_derivative_text === true,
-    full_tts_audio_and_timings_allowed: false,
+    full_tts_audio_and_timings_allowed: fullTts,
     basis: rights.basis,
     asserted_at: rights.asserted_at
   });
@@ -50,16 +54,30 @@ function assetMime(extension) {
   if (extension === ".png") return "image/png";
   throw new Error(`SOURCE_ASSET_TYPE_NOT_ALLOWED:${extension}`);
 }
-function build({ anchorPath = DEFAULT_ANCHOR, rightsPath = DEFAULT_RIGHTS, bundlePath = DEFAULT_BUNDLE, output = DEFAULT_OUTPUT } = {}) {
+function build({ anchorPath = DEFAULT_ANCHOR, rightsPath = DEFAULT_RIGHTS, bundlePath = DEFAULT_BUNDLE, ttsManifestPath, output = DEFAULT_OUTPUT } = {}) {
   const tableManifest = readJson(path.join(TABLE_ROOT, "manifest.json"));
   const anchor = readJson(anchorPath);
-  const rights = validateRights(readJson(rightsPath));
+  const ttsManifestBytes = ttsManifestPath ? fs.readFileSync(path.resolve(ttsManifestPath)) : null;
+  const ttsManifest = ttsManifestBytes ? JSON.parse(ttsManifestBytes.toString("utf8")) : null;
+  const fullTts = !!ttsManifest;
+  const rights = validateRights(readJson(rightsPath), { fullTts });
   invariant(tableManifest.corpus_slug === SLUG && tableManifest.tasks.length === 60, "TABLE_MANIFEST_INVALID");
   invariant(anchor.schema_version === "materials_pb2_production_publication_anchor.1.0.0" && anchor.corpus_slug === SLUG
     && anchor.items?.length === 60 && HASH.test(anchor.edition?.manifest_sha256), "PUBLICATION_ANCHOR_INVALID");
   const anchorByTask = new Map(anchor.items.map(item => [item.task_id, item]));
   invariant(anchorByTask.size === 60, "PUBLICATION_ANCHOR_TASK_DUPLICATE");
   const zip = new AdmZip(path.resolve(bundlePath));
+  let ttsRefs = null, ttsAssets = null;
+  if (fullTts) {
+    invariant(ttsManifest.schema_version === "materials_pb2_public_tts_assets.1.0.0" && ttsManifest.corpus_slug === SLUG
+      && ttsManifest.profile_id && Array.isArray(ttsManifest.assets) && Array.isArray(ttsManifest.references)
+      && Array.isArray(ttsManifest.word_index), "TTS_MANIFEST_INVALID");
+    ttsAssets = new Map(ttsManifest.assets.map(asset => [asset.asset_key, asset]));
+    invariant(ttsAssets.size === ttsManifest.assets.length && [...ttsAssets.values()].every(asset => HASH.test(String(asset.asset_key || ""))
+      && ["row", "word"].includes(asset.asset_type)), "TTS_ASSET_INDEX_INVALID");
+    ttsRefs = new Map(ttsManifest.references.map(ref => [`${ref.task_id}:${ref.row_id}`, ref]));
+    invariant(ttsRefs.size === ttsManifest.references.length, "TTS_ROW_REFERENCE_DUPLICATE");
+  }
   const staging = `${path.resolve(output)}.staging-${process.pid}`;
   fs.rmSync(staging, { recursive: true, force: true });
   const taskOutput = path.join(staging, "tasks");
@@ -74,6 +92,13 @@ function build({ anchorPath = DEFAULT_ANCHOR, rightsPath = DEFAULT_RIGHTS, bundl
     invariant(pinned && pinned.source_canonical_task_sha256 === entry.canonical_task_sha256
       && HASH.test(String(pinned.canonical_task_sha256 || "")), `ANCHOR_TASK_DRIFT:${entry.task_id}`);
     const condition = clone(table.condition);
+    if (fullTts) condition.rows = condition.rows.map(row => {
+      const ref = ttsRefs.get(`${entry.task_id}:${row.row_id}`);
+      invariant(ref?.source_kind === "condition" && ttsAssets.get(ref.asset_key)?.asset_type === "row", `TTS_CONDITION_REFERENCE_MISSING:${row.row_id}`);
+      return { ...row, audio_asset_key: ref.asset_key, audio_tts_profile: ttsManifest.profile,
+        audio_plan: { state: "READY", synthesis_field: "hebrew_niqqud", spoken_he_niqqud: ref.spoken_he_niqqud,
+          tts_profile: ttsManifest.profile, timings_present: true, timing_url: `/api/audio/${ref.asset_key}/timing` } };
+    });
     condition.source_assets = (condition.source_assets || []).map(sourceAsset => {
       invariant(HASH.test(String(sourceAsset.sha256 || "")) && Number(sourceAsset.bytes) > 0, `SOURCE_ASSET_CONTRACT_INVALID:${entry.task_id}`);
       const archivePath = String(sourceAsset.path || "").replaceAll("\\", "/");
@@ -105,13 +130,21 @@ function build({ anchorPath = DEFAULT_ANCHOR, rightsPath = DEFAULT_RIGHTS, bundl
       publication_anchor: { canonical_task_sha256: pinned.canonical_task_sha256, source_canonical_task_sha256: pinned.source_canonical_task_sha256 },
       review: table.review,
       condition,
-      solution_rows: table.rows,
+      solution_rows: fullTts ? table.rows.map(row => {
+        const ref = ttsRefs.get(`${entry.task_id}:${row.row_id}`);
+        invariant(ref?.source_kind === "solution" && ttsAssets.get(ref.asset_key)?.asset_type === "row", `TTS_SOLUTION_REFERENCE_MISSING:${row.row_id}`);
+        return { ...row, audio_plan: { ...row.audio_plan, state: "READY", audio_asset_key: ref.asset_key,
+          spoken_he_niqqud: ref.spoken_he_niqqud, tts_profile: ttsManifest.profile,
+          timings_present: true, timing_url: `/api/audio/${ref.asset_key}/timing` } };
+      }) : table.rows,
       agent_grounding: table.agent_grounding,
       render_contract: table.render_contract,
       audio_boundary: {
-        full_tts_generated: false,
-        timing_sidecars_present: false,
+        full_tts_generated: fullTts,
+        timing_sidecars_present: fullTts,
         row_karaoke_contract_checked: true,
+        profile_id: fullTts ? ttsManifest.profile_id : null,
+        profile: fullTts ? ttsManifest.profile : null,
         formula_speech_review_required_count: table.rows.filter(row => row.audio_plan.formula_speech_review_required).length
       },
       rights
@@ -139,7 +172,17 @@ function build({ anchorPath = DEFAULT_ANCHOR, rightsPath = DEFAULT_RIGHTS, bundl
     edition: anchor.edition,
     rights,
     review: { task_count: 60, publication_blocking_count: 0, open_mismatch_count: 0 },
-    audio_boundary: tableManifest.audio_boundary,
+    audio_boundary: fullTts ? { ...tableManifest.audio_boundary, full_tts_generated: true,
+      audio_asset_count: ttsManifest.assets.length,
+      timing_sidecar_count: ttsManifest.assets.filter(asset => asset.asset_type === "row").length,
+      profile_id: ttsManifest.profile_id } : tableManifest.audio_boundary,
+    public_tts: fullTts ? {
+      schema_version: "materials_pb2_public_tts_reference.1.0.0", profile_id: ttsManifest.profile_id,
+      profile: ttsManifest.profile, asset_manifest_sha256: sha256(ttsManifestBytes),
+      assets: ttsManifest.assets.map(asset => ({ asset_key: asset.asset_key, asset_type: asset.asset_type,
+        bytes: asset.bytes, sha256: asset.sha256, timing: asset.timing })),
+      word_index: ttsManifest.word_index,
+    } : undefined,
     student_table_manifest_sha256: sha256(fs.readFileSync(path.join(TABLE_ROOT, "manifest.json"))),
     assets: [...assets.values()].sort((a, b) => a.sha256.localeCompare(b.sha256)),
     tasks: files
@@ -159,6 +202,7 @@ function main() {
     anchorPath: args.anchor ? path.resolve(args.anchor) : DEFAULT_ANCHOR,
     rightsPath: args.rights ? path.resolve(args.rights) : DEFAULT_RIGHTS,
     bundlePath: args.bundle ? path.resolve(args.bundle) : DEFAULT_BUNDLE,
+    ttsManifestPath: args["tts-manifest"] ? path.resolve(args["tts-manifest"]) : undefined,
     output: args.output ? path.resolve(args.output) : DEFAULT_OUTPUT
   });
   process.stdout.write(stableJson({ ok: true, ...result }));

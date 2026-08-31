@@ -9,7 +9,7 @@
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
 import * as localDb from '/db/local-db.js';
-import * as readerCore from '/js/reader-core.js?v=399';
+import * as readerCore from '/js/reader-core.js?v=400';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js';
@@ -1797,6 +1797,7 @@ const morphHost = window.MorphHost.createHost({
     try { refreshDueBadge(); } catch (_) {}
   },
   getTtsKey: () => gcpTtsKey(),
+  resolvePublicWordAudio: text => window.PublicWordAudio && window.PublicWordAudio.resolve(text),
   dayStr: () => _localDayStr(),
   getDueNowCount: () => (_dueCounts && _dueCounts.dueNow) || 0,
   getContextOverlay: () => _ctxOverlay,
@@ -4848,7 +4849,9 @@ function attachReaderAudio() {
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
     audioUrlForAssetKey: readerPublicCorpusSlug
-      ? (key) => '/api/public-corpora/' + encodeURIComponent(readerPublicCorpusSlug) + '/assets/' + encodeURIComponent(key)
+      ? (key, row) => readerPublicCorpusSlug === 'materials-science-year1-problem-book-2' && row && row._roomPublicAudioAssetKey === key
+        ? '/api/audio/' + encodeURIComponent(key)
+        : '/api/public-corpora/' + encodeURIComponent(readerPublicCorpusSlug) + '/assets/' + encodeURIComponent(key)
       : readerGroupCorpusId
       ? (key, row) => row && row._roomPublicAudioAssetKey === key
         ? '/api/audio/' + encodeURIComponent(key)
@@ -7963,7 +7966,7 @@ function materialsConditionRows(support) {
     order: index + 1,
     section: 'condition',
     kind: String(row.meta && row.meta.materials_science && row.meta.materials_science.kind || 'condition'),
-    exam_copy: true, audio_plan: row.audio_plan || null,
+    exam_copy: true, audio_asset_key: row.audio_asset_key || null, audio_plan: row.audio_plan || null,
     text: {
       he: String(row.hebrew_plain || ''), he_niqqud: String(row.hebrew_niqqud || ''),
       transliteration: String(row.translit || row.transliteration || ''), ru: String(row.russian || '')
@@ -7971,11 +7974,14 @@ function materialsConditionRows(support) {
   })).filter(row => Object.values(row.text).some(Boolean));
 }
 
-function materialsLearningTable(rows, type) {
+function materialsLearningTable(rows, type, fullTts) {
   const wrap = el('div', { class: 'materials-table-wrap' });
+  if (fullTts) wrap.appendChild(el('button', { class: 'materials-listen-section', attrs: { type: 'button', 'data-audio-action': 'play-all' },
+    text: '▶ ' + tt('room.publicCorpus.materialsListenSection', 'Прослушать раздел') }));
   const table = el('table', { class: 'materials-learning-table ' + (type === 'condition' ? 'is-condition' : 'is-solution'), attrs: { 'data-learning-source': type } });
   const caption = el('caption', { text: type === 'condition' ? tt('room.publicCorpus.materialsCondition', 'Условие') : tt('room.publicCorpus.materialsSolution', 'Решение') });
   const head = el('thead'); const headRow = el('tr');
+  if (fullTts) headRow.appendChild(el('th', { class: 'materials-audio-col', attrs: { scope: 'col', 'aria-label': tt('room.reader.audio.play', 'Озвучить строку') }, text: '▶' }));
   for (const [key, fallback, className] of [
     ['materialsStep', 'Шаг', 'materials-step-col'], ['materialsHebrew', 'Иврит', 'materials-he-col'],
     ['materialsNiqqud', 'Иврит с огласовками', 'materials-niqqud-col'], ['materialsTransliteration', 'Транслитерация', 'materials-translit-col'],
@@ -7988,6 +7994,16 @@ function materialsLearningTable(rows, type) {
       'data-row-idx': rowIndex, 'data-row-id': row.row_id, 'data-source-kind': type,
       'data-audio-state': row.audio_plan && row.audio_plan.state || 'unavailable' } });
     tr.__materialsRow = row;
+    const audioKey = String(row.audio_asset_key || row.audio_plan && row.audio_plan.audio_asset_key || '');
+    tr.__materialsAudioRow = { he: String(row.text.he || ''), he_niqqud: String(row.text.he_niqqud || ''),
+      _v3_ttsText: String(row.audio_plan && row.audio_plan.spoken_he_niqqud || row.text.he_niqqud || row.text.he || ''),
+      _v3_audioAssetKey: audioKey, _v3_audioTtsProfileJson: JSON.stringify(row.audio_plan && row.audio_plan.tts_profile || {}) };
+    if (fullTts) {
+      const audioCell = el('td', { class: 'materials-audio-cell', attrs: { 'data-label': tt('room.reader.audio.play', 'Озвучить строку'), 'data-col': 'action' } });
+      audioCell.appendChild(el('button', { class: 'row-tts-btn', attrs: { type: 'button', 'data-row-idx': rowIndex,
+        'aria-label': tt('room.reader.audio.play', 'Озвучить строку'), 'aria-pressed': 'false' }, text: '▶' }));
+      tr.appendChild(audioCell);
+    }
     const label = row.section === 'condition' ? tt('room.publicCorpus.materialsConditionStep', 'Условие') : materialsSectionName(row.section);
     const step = el('th', { class: 'materials-step-cell', attrs: { scope: 'row', 'data-label': tt('room.publicCorpus.materialsStep', 'Шаг') } });
     if (row.section !== lastSection) step.appendChild(el('span', { class: 'materials-section-name', text: label }));
@@ -8070,7 +8086,7 @@ function openMaterialsLearningSupport(support, trigger) {
   const initialRowId = initialParams.get('materials_row') || '';
   const overlay = el('div', { class: 'materials-learning-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'materialsLearningTitle' } });
   const viewer = el('article', { class: 'materials-learning-viewer', attrs: { 'data-content-mode': initialMode, 'data-language-mode': 'study',
-    'data-full-tts-generated': support.audio_boundary && support.audio_boundary.full_tts_generated === false ? 'false' : 'invalid' } });
+    'data-full-tts-generated': support.audio_boundary && support.audio_boundary.full_tts_generated === true ? 'true' : 'false' } });
   const head = el('header', { class: 'materials-learning-head' }); const copy = el('div');
   copy.appendChild(el('span', { class: 'materials-learning-kicker', text: tt('room.publicCorpus.materialsLearningKicker', 'Материаловедение · проверенная редакция') }));
   copy.appendChild(el('h2', { attrs: { id: 'materialsLearningTitle' }, text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') + ' · ' + support.display_alias }));
@@ -8095,15 +8111,18 @@ function openMaterialsLearningSupport(support, trigger) {
   const studyMode = modeButton('study', tt('room.publicCorpus.materialsStudyMode', 'Учёба · 4 колонки'), true);
   const examMode = modeButton('exam', tt('room.publicCorpus.materialsExamMode', 'Экзамен · иврит'), false);
   contentGroup.append(conditionMode, solutionMode, continuousMode); languageGroup.append(studyMode, examMode); toolbar.append(contentGroup, languageGroup); body.appendChild(toolbar);
-  const audioNote = el('p', { class: 'materials-audio-note', attrs: { role: 'note' }, text: tt('room.publicCorpus.materialsAudioDeferred', 'Аудио и пословная подсветка будут добавлены после покарточной проверки этой редакции.') });
+  const fullTts = support.audio_boundary && support.audio_boundary.full_tts_generated === true;
+  const audioNote = el('p', { class: 'materials-audio-note', attrs: { role: 'note' }, text: fullTts
+    ? tt('room.publicCorpus.materialsAudioReady', 'Публичное аудио готово: строки, непрерывное чтение и пословная подсветка.')
+    : tt('room.publicCorpus.materialsAudioDeferred', 'Аудио и пословная подсветка будут добавлены после покарточной проверки этой редакции.') });
   body.appendChild(audioNote);
   const condition = el('section', { class: 'materials-learning-section materials-condition-section', attrs: { 'aria-labelledby': 'materialsConditionTitle' } });
   condition.appendChild(el('h3', { attrs: { id: 'materialsConditionTitle' }, text: tt('room.publicCorpus.materialsCondition', 'Условие') }));
-  condition.appendChild(materialsLearningTable(materialsConditionRows(support), 'condition'));
+  condition.appendChild(materialsLearningTable(materialsConditionRows(support), 'condition', fullTts));
   const figures = materialsSourceFigures(support); if (figures.childElementCount) condition.appendChild(figures);
   const solution = el('section', { class: 'materials-learning-section materials-solution-section', attrs: { 'aria-labelledby': 'materialsSolutionTitle' } });
   solution.appendChild(el('h3', { attrs: { id: 'materialsSolutionTitle' }, text: tt('room.publicCorpus.materialsSolution', 'Решение') }));
-  solution.appendChild(materialsLearningTable(support.solution_rows, 'solution'));
+  solution.appendChild(materialsLearningTable(support.solution_rows, 'solution', fullTts));
   const provenance = el('footer', { class: 'materials-learning-provenance' });
   provenance.appendChild(el('strong', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
   provenance.appendChild(el('code', { text: 'edition ' + support.edition_number + ' · work ' + support.public_work_id + ' · snapshot ' + support.snapshot_sha256.slice(0, 12) + '…' }));
@@ -8120,6 +8139,23 @@ function openMaterialsLearningSupport(support, trigger) {
   conditionMode.addEventListener('click', () => setContent('condition')); solutionMode.addEventListener('click', () => setContent('solution')); continuousMode.addEventListener('click', () => setContent('continuous'));
   studyMode.addEventListener('click', () => setLanguage('study')); examMode.addEventListener('click', () => setLanguage('exam'));
   setMaterialsReaderUrl(support, initialMode, initialRowId);
+  const audioHandles = [];
+  if (fullTts) for (const table of viewer.querySelectorAll('.materials-learning-table')) {
+    const tableRows = Array.from(table.querySelectorAll('.materials-learning-row'));
+    const handle = readerCore.attachRowAudio(table, {
+      getRow: index => tableRows[index] && tableRows[index].__materialsAudioRow,
+      rowCount: () => tableRows.length, fallbackPolicy: 'cached-only',
+      profile: { voiceId: 'he-IL-Standard-A', rate: 0.8, pitch: 2.5 }, gcpKey: '',
+      audioUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key),
+      timingUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key) + '/timing',
+      tapToHearExcludeCols: ['he', 'niqqud'],
+      onBeforePlay: () => { morphHost.stopAudio(); for (const other of audioHandles) if (other !== handle) other.stop(); },
+      t: (key) => tt(key, key), rowTtsLabels: roomRowTtsLabels(),
+    });
+    audioHandles.push(handle);
+    const listen = table.parentElement && table.parentElement.querySelector('[data-audio-action="play-all"]');
+    if (listen) listen.addEventListener('click', () => { for (const other of audioHandles) if (other !== handle) other.stop(); morphHost.stopAudio(); handle.playAll(0); });
+  }
   const materialsMorph = attachReaderMorph(viewer, {
     cellSelector: '.materials-learning-table tbody td[data-col="he"], .materials-learning-table tbody td[data-col="niqqud"]',
     rowSelector: '.materials-learning-row[data-row-idx]', rowIndexAttribute: 'data-row-idx', rovingFocus: true,
@@ -8139,6 +8175,7 @@ function openMaterialsLearningSupport(support, trigger) {
       viewer.setAttribute('data-active-row', row.row_id);
       setMaterialsReaderUrl(support, viewer.getAttribute('data-content-mode'), row.row_id);
     },
+    speakWord: async text => { for (const handle of audioHandles) handle.stop(); return speakWord(text); },
   });
   const anchoredRow = initialRowId && Array.from(viewer.querySelectorAll('[data-row-id]')).find(row => row.getAttribute('data-row-id') === initialRowId);
   if (anchoredRow) {
@@ -8148,7 +8185,7 @@ function openMaterialsLearningSupport(support, trigger) {
   const background = roomSuspendBackground(overlay); let closed = false;
   const beforePrint = () => prepareMaterialsPrint(viewer, viewer.getAttribute('data-language-mode') === 'exam' ? 'exam' : 'study');
   const afterPrint = () => restoreMaterialsPrint(viewer);
-  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); restoreMaterialsPrint(viewer); try { materialsMorph && materialsMorph.detach(); } catch (_) {} overlay.remove(); document.body.classList.remove('materials-learning-open'); clearMaterialsReaderUrl(); roomRestoreBackground(background); attachReaderMorph($('roomReaderTable')); try { trigger && trigger.focus(); } catch (_) {} };
+  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); restoreMaterialsPrint(viewer); for (const handle of audioHandles) { try { handle.detach(); } catch (_) {} } try { materialsMorph && materialsMorph.detach(); } catch (_) {} overlay.remove(); document.body.classList.remove('materials-learning-open'); clearMaterialsReaderUrl(); roomRestoreBackground(background); attachReaderMorph($('roomReaderTable')); try { trigger && trigger.focus(); } catch (_) {} };
   const keydown = event => { if (event.key === 'Escape') { event.preventDefault(); shut(); } else if (event.key === 'Tab') roomFocusTrap(event, viewer); };
   printStudy.addEventListener('click', () => printMaterialsLearningSupport(viewer, 'study')); printExam.addEventListener('click', () => printMaterialsLearningSupport(viewer, 'exam'));
   close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); window.addEventListener('beforeprint', beforePrint); window.addEventListener('afterprint', afterPrint); roomFocusInto(viewer);
@@ -8207,6 +8244,25 @@ async function renderReaderTaskLearningSupport(slug, workId, epoch) {
       head.appendChild(el('span', { text: tt('room.publicCorpus.physicsLearningReaderNote', 'Ответ для сверки и полный разбор после условия') }));
       box.append(head, renderPhysicsLearningActions(slug, item));
     } else {
+      const support = await ensureMaterialsLearningSupport(slug, item);
+      if (epoch !== readerOpenEpoch) return;
+      if (support.audio_boundary && support.audio_boundary.full_tts_generated === true) {
+        const conditionRows = materialsConditionRows(support);
+        const normalize = value => String(value || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+        const aligned = conditionRows.length === readerRows.length && conditionRows.every((row, index) =>
+          normalize(row.text.he_niqqud || row.text.he) === normalize(readerRows[index] && (readerRows[index].he_niqqud || readerRows[index].he))
+          && /^[a-f0-9]{64}$/.test(String(row.audio_asset_key || row.audio_plan && row.audio_plan.audio_asset_key || '')));
+        if (aligned) {
+          for (const [index, row] of conditionRows.entries()) {
+            const key = String(row.audio_asset_key || row.audio_plan.audio_asset_key);
+            readerRows[index]._v3_audioAssetKey = key;
+            readerRows[index]._roomPublicAudioAssetKey = key;
+            readerRows[index]._v3_ttsText = String(row.audio_plan && row.audio_plan.spoken_he_niqqud || row.text.he_niqqud || row.text.he);
+            readerRows[index]._v3_audioTtsProfileJson = JSON.stringify(row.audio_plan && row.audio_plan.tts_profile || support.audio_boundary.profile || {});
+          }
+          attachReaderAudio();
+        }
+      }
       head.appendChild(el('strong', { text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') }));
       head.appendChild(el('span', { text: tt('room.publicCorpus.materialsLearningReaderNote', 'Таблица для учёбы и экзамена после условия') }));
       box.append(head, renderMaterialsLearningActions(slug, item));

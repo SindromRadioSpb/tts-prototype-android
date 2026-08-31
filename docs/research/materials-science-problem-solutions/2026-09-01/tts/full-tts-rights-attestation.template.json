@@ -1,0 +1,21 @@
+{
+  "schema_version": "materials_pb2_publication_rights.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "status": "OWNER_CONFIRMATION_REQUIRED_DO_NOT_USE_FOR_PUBLICATION",
+  "owner_attested": false,
+  "basis": "",
+  "asserted_at": null,
+  "classes": {
+    "source_text_and_diagrams": true,
+    "generated_learning_columns": true,
+    "independent_solutions": true,
+    "bilingual_solution_derivatives": true,
+    "public_read": true,
+    "public_solution_display_and_print": true,
+    "public_stream_current_zero_audio_edition": false,
+    "package_download": true,
+    "agent_derivative_text": true,
+    "full_tts_audio_and_timings": false
+  },
+  "note": "Template only. The operator bake requires owner_attested=true, full_tts_audio_and_timings=true, a non-empty basis and asserted_at. Do not overwrite the valid zero-audio attestation."
+}

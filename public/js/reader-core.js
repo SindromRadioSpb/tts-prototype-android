@@ -90,6 +90,8 @@ export function buildRowTtsCacheKey(text, lang, cfg) {
 // here guarantees audio parity across the SBL↔ru-phonetic translit switch.
 export function getRowTtsTextForRow(row) {
   if (!row || typeof row !== "object") return "";
+  const reviewedSpeech = String(row._v3_ttsText || "").trim();
+  if (reviewedSpeech) return reviewedSpeech;
   const niqqud = String(row.he_niqqud || "").trim();
   if (niqqud) return niqqud;
   const he = String(row.he || "").trim();
@@ -697,6 +699,7 @@ export function paintRowAudioIndicator(mount, rowIdx, row, currentProfile, label
 //   }
 export function attachRowAudio(mount, opts) {
   opts = opts || {};
+  const cachedOnly = opts.fallbackPolicy === "cached-only";
   const rowTtsLabels = normalizeRowTtsLabels(opts.rowTtsLabels);
   if (!mount) return { detach() {} };
   const getRow = typeof opts.getRow === "function" ? opts.getRow : () => null;
@@ -844,6 +847,7 @@ export function attachRowAudio(mount, opts) {
     const p = ensurePlayer();
     // toggle: tapping the playing row stops it.
     if (playingIdx === idx) { stopAll(); clearPlaying(); return; }
+    if (typeof opts.onBeforePlay === "function") { try { opts.onBeforePlay(idx); } catch (_) {} }
     stopAll(); clearPlaying();
     const text = getRowTtsTextForRow(row);
     if (!text) return;
@@ -866,6 +870,7 @@ export function attachRowAudio(mount, opts) {
           await p.play(); return;
         }
       }
+      if (cachedOnly) throw new Error("CACHED_AUDIO_REQUIRED");
       // tier 2 — BYOK GCP fresh synth (only if a key is present)
       if (gcpKeyOf()) {
         const res = await postTts(text, prof, row);
@@ -902,7 +907,7 @@ export function attachRowAudio(mount, opts) {
       speakBrowser(text, idx, prof);
     } catch (err) {
       // last-ditch: if a network/synth tier threw, still try browser speech once.
-      try { if (mode !== "speech") { speakBrowser(text, idx, prof); return; } } catch (_) {}
+      try { if (!cachedOnly && mode !== "speech") { speakBrowser(text, idx, prof); return; } } catch (_) {}
       clearPlaying();
       setError(idx, (err && err.message) || "audio error");
       if (opts.onError) { try { opts.onError(err); } catch (_) {} }

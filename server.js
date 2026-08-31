@@ -1066,26 +1066,27 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=427",
+  "/js/library-ui.js?v=428",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=419",
+  "/js/public-corpus-adapter.js?v=420",
   "/js/reader-morph.js?v=452",
-  "/js/morph-host.js?v=415",
+  "/js/public-word-audio.js?v=453",
+  "/js/morph-host.js?v=416",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
-  "/js/reader-core.js?v=399",
+  "/js/reader-core.js?v=400",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=188",
-  "/i18n/locales/en.js?v=188",
-  "/i18n/locales/he.js?v=188",
+  "/i18n/locales/ru.js?v=189",
+  "/i18n/locales/en.js?v=189",
+  "/i18n/locales/he.js?v=189",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3829,6 +3830,7 @@ const {
   loadManifest: loadMaterialsPb2LearningSupportManifest,
   resolveLearningSupport: resolveMaterialsPb2LearningSupport,
   resolveAsset: resolveMaterialsPb2LearningAsset,
+  resolveWordAudioIndex: resolveMaterialsPb2WordAudioIndex,
 } = require("./materials/materialsPb2LearningSupport");
 const rlPublicationRead = makeRateLimiter({ windowMs: 60_000, max: 180, name: "publication-read" });
 const rlPublicationWrite = makeRateLimiter({ windowMs: 60_000, max: 90, name: "publication-write" });
@@ -4065,6 +4067,24 @@ app.get("/api/public-corpora/:slug/learning-support/assets/:assetSha256", rlPubl
     if (etag && req.headers["if-none-match"] === etag) return res.status(304).end();
     res.type(found.mime);
     return res.sendFile(found.absolute_path);
+  });
+});
+app.get("/api/public-corpora/:slug/learning-support/word-audio-index", rlPublicCorpusRead, (req, res) => {
+  if (req.params.slug !== "materials-science-year1-problem-book-2"
+    || !materialsPb2LearningSupportPublicReadEnabled()) return publicCorpusNotFound(res, "no-store");
+  return publicCorpusRead(res, async repo => {
+    const published = await repo.getPublicCorpus(req.params.slug);
+    const body = resolveMaterialsPb2WordAudioIndex({
+      slug: req.params.slug, editionId: published.edition.edition_id,
+      editionNumber: published.edition.edition_number,
+      editionManifestSha256: published.edition.manifest_sha256,
+    });
+    const etag = publicCorpusEtag(res, body.asset_manifest_sha256);
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+    res.set("Cross-Origin-Resource-Policy", "same-origin");
+    res.set("X-Content-Type-Options", "nosniff");
+    if (etag && req.headers["if-none-match"] === etag) return res.status(304).end();
+    return res.json({ ok: true, ...body });
   });
 });
 app.get("/api/public-corpora/:slug/assets/:assetKey", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {

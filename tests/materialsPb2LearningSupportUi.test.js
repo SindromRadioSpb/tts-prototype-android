@@ -8,20 +8,27 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "..");
 const read = file => fs.readFileSync(path.join(ROOT, file), "utf8");
 
-test("Materials PB2 Room exposes reviewed condition and solution tables without claiming full TTS", () => {
+test("Materials PB2 Room keeps zero-audio honesty and enables exact cached TTS only for a full manifest", () => {
   const room = read("public/js/library-ui.js"), html = read("public/library.html"), server = read("server.js"), worker = read("public/sw.js");
   assert.match(room, /renderMaterialsLearningActions/);
   assert.match(room, /materials-science-year1-problem-book-2[\s\S]*renderMaterialsLearningActions/);
-  assert.match(room, /materialsLearningTable\(materialsConditionRows\(support\), 'condition'\)/);
-  assert.match(room, /materialsLearningTable\(support\.solution_rows, 'solution'\)/);
+  assert.match(room, /materialsLearningTable\(materialsConditionRows\(support\), 'condition', fullTts\)/);
+  assert.match(room, /materialsLearningTable\(support\.solution_rows, 'solution', fullTts\)/);
   assert.match(room, /materialsPrintStudy/);
   assert.match(room, /materialsPrintExam/);
   assert.match(room, /materialsAudioDeferred/);
+  assert.match(room, /materialsAudioReady/);
+  assert.match(room, /fallbackPolicy: 'cached-only'/);
+  assert.match(room, /materials-listen-section/);
+  assert.match(room, /ensureMaterialsLearningSupport\(slug, item\)[\s\S]*_roomPublicAudioAssetKey[\s\S]*attachReaderAudio\(\)/,
+    "the ordinary condition card must hydrate the same exact-edition public cache without mutating the source snapshot");
   assert.doesNotMatch(room, /generateMaterials.*TTS|materials.*synthesize/i);
   assert.match(html, /@page materials-study[\s\S]*A4 landscape/);
   assert.match(html, /@page materials-exam[\s\S]*A4 portrait/);
   assert.match(html, /data-print-mode="exam"[\s\S]*materials-niqqud-cell/);
   assert.match(html, /@media \(max-width: 480px\)[\s\S]*materials-learning-table td::before/);
+  assert.match(html, /materials-listen-section[^}]*min-height:\s*48px/);
+  assert.match(html, /materials-audio-cell \.row-tts-btn[^}]*width:\s*48px[^}]*height:\s*48px/);
   assert.match(server, /MATERIALS_PB2_LEARNING_SUPPORT_PUBLIC_READ/);
   assert.match(server, /configured === "0"[\s\S]*loadMaterialsPb2LearningSupportManifest\(\)/,
     "runtime support must auto-enable only after its validated exact-edition manifest is installed, while retaining a kill switch");
@@ -32,7 +39,7 @@ test("Materials PB2 Room exposes reviewed condition and solution tables without 
 test("Materials PB2 learning surface is localized in all Room locales", () => {
   for (const locale of ["ru", "en", "he"]) {
     const dictionary = read(`public/i18n/locales/${locale}.js`);
-    for (const key of ["materialsLearningTitle", "materialsPrintStudy", "materialsPrintExam", "materialsAudioDeferred", "materialsNiqqud", "materialsOpenSolution"])
+    for (const key of ["materialsLearningTitle", "materialsPrintStudy", "materialsPrintExam", "materialsAudioDeferred", "materialsAudioReady", "materialsListenSection", "materialsNiqqud", "materialsOpenSolution"])
       assert.ok(dictionary.includes(key + ":"), `${locale}: ${key}`);
   }
 });
@@ -50,6 +57,18 @@ test("Materials PB2 adapter accepts only sequential karaoke-token plans pinned t
   assert.equal(adapter.normalizeMaterialsLearningSupport(payload, catalog, item).solution_rows.length, 4);
   const broken = JSON.parse(JSON.stringify(payload)); broken.solution_rows[0].audio_plan.karaoke_tokens[0].index = 2;
   assert.throws(() => adapter.normalizeMaterialsLearningSupport(broken, catalog, item), /PUBLIC_CORPUS_PAYLOAD_INVALID/);
+
+  const full = JSON.parse(JSON.stringify(payload));
+  full.rights.full_tts_audio_and_timings_allowed = true;
+  full.audio_boundary = { full_tts_generated: true, profile_id: "materials-pb2-standard-a" };
+  full.condition.rows[0].audio_asset_key = "d".repeat(64);
+  full.condition.rows[0].audio_plan = { state: "READY", timings_present: true };
+  for (const solutionRow of full.solution_rows) Object.assign(solutionRow.audio_plan, {
+    state: "READY", timings_present: true, audio_asset_key: "e".repeat(64), spoken_he_niqqud: solutionRow.text.he_niqqud,
+  });
+  assert.equal(adapter.normalizeMaterialsLearningSupport(full, catalog, item).audio_boundary.full_tts_generated, true);
+  delete full.solution_rows[0].audio_plan.audio_asset_key;
+  assert.throws(() => adapter.normalizeMaterialsLearningSupport(full, catalog, item), /PUBLIC_CORPUS_PAYLOAD_INVALID/);
 });
 
 test("Materials solution word anchors are exact-edition, row-stable and fail closed", () => {
@@ -100,7 +119,7 @@ test("Materials Task Learning Reader attaches shared morphology to condition and
   assert.match(room, /materialsSolutionOccurrence/);
   assert.match(room, /verifyMaterialsSolutionOccurrence/);
   assert.match(room, /formula_only|formula-only|hasHebrew/i);
-  assert.match(room, /full_tts_generated[^\n]+false/);
+  assert.match(room, /full_tts_generated[^\n]+true/);
   const openBlock = room.slice(room.indexOf('function openMaterialsLearningSupport'), room.indexOf('function renderMaterialsLearningActions'));
   assert.doesNotMatch(openBlock, /appendReviewLog|review_log|setWordStatus|updateSrs/,
     "opening, switching and anchoring the learning reader must not mutate learner truth");

@@ -82,3 +82,28 @@ test('an invalid external derivative is never relabelled as the open condition i
   assert.equal(appended.length, 1);
   assert.equal(appended[0].meta.text_key, undefined);
 });
+
+test('MorphHost plays one shared public word asset before BYOK or browser synthesis', async () => {
+  const previousAudio = global.Audio;
+  const previousWindow = global.window;
+  let played = '', resolved = 0, keyReads = 0;
+  global.Audio = class {
+    pause() {}
+    set src(value) { played = value; }
+    async play() {}
+  };
+  global.window = { speechSynthesis: { cancel() {}, speak() { throw new Error('browser fallback must not run'); } } };
+  try {
+    const host = MorphHost.createHost({
+      resolvePublicWordAudio: async text => { resolved += 1; return { audio_url: '/api/audio/public-word', text }; },
+      getTtsKey: () => { keyReads += 1; return 'private-key-must-not-be-read'; },
+    });
+    await host.speakWord('מִלָּה');
+  } finally {
+    global.Audio = previousAudio;
+    global.window = previousWindow;
+  }
+  assert.equal(resolved, 1);
+  assert.equal(played, '/api/audio/public-word');
+  assert.equal(keyReads, 0);
+});

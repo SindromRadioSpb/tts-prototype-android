@@ -77,6 +77,9 @@
         try { return (typeof window.gcpTtsKeyGet === "function") ? window.gcpTtsKeyGet() : (localStorage.getItem("v3.gcpTtsApiKey") || ""); }
         catch (_) { return ""; }
       },
+      resolvePublicWordAudio: function (text) {
+        return window.PublicWordAudio && window.PublicWordAudio.resolve(text);
+      },
       dayStr: function () { return _localDayStr(); },
       getDueNowCount: function () { return 0; },      // студийного due-бейджа нет (v1)
       getContextOverlay: function () { return null; }, // baked-оверлеи — корпусная механика Зала

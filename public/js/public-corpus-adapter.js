@@ -143,6 +143,7 @@
     return Object.freeze(normalized);
   }
   function normalizeMaterialsLearningSupport(payload, catalog, item) {
+    const fullTts = payload && payload.audio_boundary && payload.audio_boundary.full_tts_generated;
     if (!payload || payload.schema_version !== "materials_pb2_learning_support.1.0.0" || payload.corpus_slug !== catalog.slug
       || catalog.slug !== "materials-science-year1-problem-book-2" || payload.edition_id !== catalog.edition.edition_id
       || Number(payload.edition_number) !== Number(catalog.edition.edition_number)
@@ -150,13 +151,17 @@
       || payload.snapshot_sha256 !== item.snapshot_sha256 || !/^materials-science-y1-pb2-/.test(String(payload.task_id || ""))
       || payload.review?.state !== "REVIEWED_PASS" || payload.review?.publication_blocking !== false
       || payload.rights?.public_read_allowed !== true || payload.rights?.public_solution_display_and_print_allowed !== true
-      || payload.audio_boundary?.full_tts_generated !== false || !HASH.test(String(payload.derivative_sha256 || ""))) invalid();
+      || (fullTts !== false && fullTts !== true) || !HASH.test(String(payload.derivative_sha256 || ""))) invalid();
+    if (fullTts && (payload.rights?.full_tts_audio_and_timings_allowed !== true
+      || !String(payload.audio_boundary.profile_id || ""))) invalid();
     const rows = Array.isArray(payload.solution_rows) ? payload.solution_rows : invalid();
     if (rows.length < 4 || rows.length > 160) invalid();
     const normalizedRows = rows.map((row, index) => {
       if (!row || count(row.order) !== index + 1 || !/^materials-science-y1-pb2-.+-sol-r\d{3}$/.test(String(row.row_id || ""))
         || !Array.isArray(row.source_refs) || !row.source_refs.length || !row.text || !row.audio_plan
-        || row.audio_plan.state !== "DEFERRED_UNTIL_OWNER_CARD_REVIEW" || row.audio_plan.timings_present !== false
+        || (!fullTts && (row.audio_plan.state !== "DEFERRED_UNTIL_OWNER_CARD_REVIEW" || row.audio_plan.timings_present !== false))
+        || (fullTts && (row.audio_plan.state !== "READY" || row.audio_plan.timings_present !== true
+          || !HASH.test(String(row.audio_plan.audio_asset_key || "")) || !String(row.audio_plan.spoken_he_niqqud || "").trim()))
         || !Array.isArray(row.audio_plan.karaoke_tokens) || !row.audio_plan.karaoke_tokens.length) invalid();
       const parallel = {};
       for (const field of ["he", "he_niqqud", "transliteration", "ru"]) parallel[field] = text(row.text[field], 12000);
@@ -167,6 +172,8 @@
     });
     const condition = payload.condition || {};
     if (!Array.isArray(condition.rows) || !condition.rows.length || !Array.isArray(condition.source_pages)) invalid();
+    if (fullTts && condition.rows.some(row => !HASH.test(String(row.audio_asset_key || ""))
+      || row.audio_plan?.state !== "READY" || row.audio_plan?.timings_present !== true)) invalid();
     return Object.freeze({ ...clone(payload), solution_rows: Object.freeze(normalizedRows), condition: clone(condition) });
   }
   function materialsSolutionTextKey(support) {
