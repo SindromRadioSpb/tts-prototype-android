@@ -184,7 +184,7 @@ async function surfaceReport(page) {
     const report = {
       schema_version: "materials_pb2_production_browser_verification.1.0.0",
       verified_at: "2026-08-31",
-      release_version: "3.11.450",
+      release_version: "3.11.451",
       anonymous: true,
       publication: { item_count: 60, first_page_items: cardCount, second_page_items: secondPageCount, edition_number: catalog.edition.edition_number, manifest_sha256: catalog.edition.manifest_sha256, audio_assets: 0 },
       desktop_ru: desktop,

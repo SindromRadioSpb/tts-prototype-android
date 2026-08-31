@@ -36,6 +36,14 @@ function createPublicPublicationReadService(options = {}) {
   const rightsRepo = options.rightsRepo;
   const physicsRepo = options.physicsRepo || null;
   const physicsLearningSupport = options.physicsLearningSupport || null;
+  const learningSupportProviders = new Map();
+  if (physicsLearningSupport) learningSupportProviders.set("physics-year1-problems", physicsLearningSupport);
+  for (const [slug, provider] of Object.entries(options.learningSupportProviders || {})) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || !provider
+      || typeof provider.resolveLearningSupport !== "function" || typeof provider.toAgentMarkdown !== "function")
+      fail("AA_PUBLICATION_DEPENDENCY_MISSING");
+    learningSupportProviders.set(slug, provider);
+  }
   const origin = String(options.canonicalOrigin || "").replace(/\/$/, "");
   if (!/^https:\/\//.test(origin)) fail("AA_PUBLICATION_ORIGIN_INVALID");
   const cursorKey = bounded(options.cursorKey, 256);
@@ -156,21 +164,26 @@ function createPublicPublicationReadService(options = {}) {
   }
 
   async function readLearningSupport(input = {}) {
-    if (!physicsLearningSupport || typeof rightsRepo.getDerivativeReadableItem !== "function") fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
+    if (typeof rightsRepo.getDerivativeReadableItem !== "function") fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
     const row = await rightsRepo.getDerivativeReadableItem({
       slug: bounded(input.corpusSlug, 80), editionId: bounded(input.editionId, 160), editionItemId: bounded(input.editionItemId, 160),
     });
     if (!row) fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
+    const provider = learningSupportProviders.get(row.slug);
+    if (!provider) fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
     let body;
     try {
-      body = physicsLearningSupport.resolveLearningSupport({
+      body = provider.resolveLearningSupport({
         slug: row.slug, editionId: row.edition_id, editionNumber: row.edition_number,
         editionManifestSha256: row.manifest_sha256, editionItemId: row.edition_item_id,
         publicWorkId: row.public_work_id, snapshotSha256: row.snapshot_sha256, snapshot: row.snapshot_json,
       });
     } catch (_) { fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND"); }
-    const markdown = physicsLearningSupport.toAgentMarkdown(body);
-    return { schema_version: "aa.published_learning_support.1.0.0", item: projection(row), task_number: body.task_number,
+    let markdown;
+    try { markdown = provider.toAgentMarkdown(body); } catch (_) { fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND"); }
+    const taskNumber = String(body.task_number || body.display_alias || body.task_id || "").trim();
+    if (!taskNumber) fail("AA_PUBLICATION_DERIVATIVE_NOT_FOUND");
+    return { schema_version: "aa.published_learning_support.1.0.0", item: projection(row), task_number: taskNumber,
       locale: "ru", content_markdown: markdown, derivative_sha256: body.derivative_sha256, generated_at: now() };
   }
 

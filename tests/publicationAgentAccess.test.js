@@ -282,6 +282,25 @@ test("Physics discovery reuses exact existing PUBLIC_READ and AGENT_READ facts w
   } finally { await close(fx.db); fs.rmSync(fx.root, { recursive: true, force: true }); }
 });
 
+test("reviewed derivative providers are selected by exact corpus slug without schema widening", async () => {
+  const item = { corpus_id: "pc-materials", slug: "materials-science-year1-problem-book-2", corpus_title: "Материаловедение",
+    edition_id: "ed-materials-2", edition_number: 2, manifest_sha256: "a".repeat(64), edition_item_id: "ei-materials-1",
+    public_work_id: "work-materials-1", position_no: 1, title: "Задача 1", creator: null,
+    snapshot_sha256: "b".repeat(64), snapshot_json: JSON.stringify({ library: { texts: [] } }) };
+  const rightsRepo = { async getDerivativeReadableItem() { return item; } };
+  const provider = {
+    resolveLearningSupport(anchor) { assert.equal(anchor.slug, item.slug); return { display_alias: "1", derivative_sha256: "c".repeat(64) }; },
+    toAgentMarkdown() { return "# Материаловедение — задача 1\n\nПроверенное решение."; },
+  };
+  const { createPublicPublicationReadService } = require(READ_SERVICE);
+  const service = createPublicPublicationReadService({ rightsRepo, learningSupportProviders: { [item.slug]: provider },
+    canonicalOrigin: "https://linguistpro.kolosei.com", cursorKey: "test-cursor-key-32-bytes-minimum-000" });
+  const result = await service.readLearningSupport({ corpusSlug: item.slug, editionId: item.edition_id, editionItemId: item.edition_item_id });
+  assert.equal(result.task_number, "1");
+  assert.match(result.content_markdown, /Проверенное решение/);
+  assert.equal(require(CONTRACTS).validateOutput("read_published_learning_support", result).schema_version, result.schema_version);
+});
+
 test("Study Songs rights writer is dry-run by default and applies an idempotent exact-manifest plan only on --apply", async () => {
   const fx = await fixture();
   const dbPath = path.join(fx.root, "app.db");

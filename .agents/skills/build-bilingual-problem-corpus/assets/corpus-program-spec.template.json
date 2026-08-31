@@ -49,6 +49,13 @@
     "anonymous_read": null,
     "rollback_required": true
   },
+  "runtime_profile": {
+    "condition_only_item_snapshot": null,
+    "reviewed_solutions_separate_derivative": null,
+    "exact_edition_anchor_required": true,
+    "zero_audio_publication_allowed": null,
+    "future_row_audio_contract_only": null
+  },
   "owner_decisions_needed": [],
   "stop_conditions": []
 }

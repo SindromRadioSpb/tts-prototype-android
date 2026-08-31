@@ -9,6 +9,7 @@ const DEFAULT_ROOT = process.env.MATERIALS_PB2_LEARNING_SUPPORT_ROOT
   : path.join(__dirname, "pb2-support");
 const SLUG = "materials-science-year1-problem-book-2";
 const HASH = /^[a-f0-9]{64}$/;
+const MAX_AGENT_MARKDOWN_BYTES = 20 * 1024;
 
 function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
 function stableJson(value) { return JSON.stringify(value, null, 2) + "\n"; }
@@ -26,6 +27,84 @@ function notFound() {
 function snapshotObject(value) {
   if (value && typeof value === "object" && !Array.isArray(value)) return value;
   try { return JSON.parse(String(value || "")); } catch (_) { notFound(); }
+}
+function bullets(values) {
+  return (Array.isArray(values) ? values : []).filter(value => String(value || "").trim())
+    .map(value => `- ${String(value).trim()}`).join("\n");
+}
+function numbered(values) {
+  return (Array.isArray(values) ? values : []).filter(value => String(value || "").trim())
+    .map((value, index) => `${index + 1}. ${String(value).trim()}`).join("\n");
+}
+function solutionRows(rows) {
+  return (Array.isArray(rows) ? rows : []).map(row => {
+    const text = String(row?.text?.ru || "").trim();
+    if (!text) notFound();
+    const label = [row.section, row.kind].filter(Boolean).join(" / ");
+    return `${Number(row.order)}. ${label ? `[${label}] ` : ""}${text}`;
+  }).join("\n");
+}
+function toAgentMarkdown(support) {
+  if (!support || support.corpus_slug !== SLUG || support.review?.publication_blocking !== false
+    || support.rights?.agent_derivative_text_allowed !== true || !Array.isArray(support.solution_rows)) notFound();
+  const grounding = support.agent_grounding || {};
+  const conditionRu = (support.condition?.rows || []).map(row => row.russian).filter(Boolean);
+  const conditionHe = (support.condition?.rows || []).map(row => row.hebrew_plain || row.hebrew_niqqud).filter(Boolean);
+  const limitations = bullets(grounding.unresolved_limits);
+  const explanationMap = `## Карта объяснения
+
+- Инженерная картина: ${String(grounding.engineering_picture || "не выделена отдельно")}
+- Главная ловушка: ${String(grounding.main_trap || "не выделена отдельно")}
+
+### Дано
+
+${bullets(grounding.givens)}
+
+### Найти
+
+${bullets(grounding.find)}
+
+### Законы и определения
+
+${bullets(grounding.laws)}
+
+### Символьный вывод
+
+${numbered(grounding.symbolic_derivation)}
+
+### Проверки
+
+${bullets(grounding.checks)}
+${limitations ? `\n### Нерешённые ограничения\n\n${limitations}\n` : ""}`;
+  const beforeMap = `# Материаловедение — задача ${support.display_alias}
+
+## Каноническое условие на русском
+
+${bullets(conditionRu)}
+
+## Оригинал на иврите
+
+${bullets(conditionHe)}
+
+## Проверенное решение
+
+Ниже все строки русской проекции проверенной студенческой таблицы в исходном порядке. Метки раздела и типа строки помогают не смешивать ответ, теорию, вывод и проверку.
+
+${solutionRows(support.solution_rows)}
+`;
+  const afterMap = `## Происхождение и инструкция агенту
+
+- Reviewed state: ${support.review.state}; legacy comparison: ${support.review.legacy_comparison}.
+- Exact edition ${support.edition_number}; item ${support.edition_item_id}; work ${support.public_work_id}; snapshot ${support.snapshot_sha256}.
+- SHA-256 производной: ${support.derivative_sha256}.
+- Объясняй на выбранном пользователем уровне, но используй только условие, рисунки и проверенное решение выше. Не придумывай недостающие размеры, свойства материала, формулы, числа или выводы. Если запрос выходит за эти данные, прямо обозначь границу и предложи открыть карточку в Читальном зале.
+`;
+  const full = `${beforeMap}\n${explanationMap}\n${afterMap}`;
+  const markdown = Buffer.byteLength(full, "utf8") <= MAX_AGENT_MARKDOWN_BYTES
+    ? full
+    : `${beforeMap}\n> Карта объяснения не дублируется в этом ограниченном MCP-ответе: все проверенные строки решения сохранены полностью.\n\n${afterMap}`;
+  if (Buffer.byteLength(markdown, "utf8") > MAX_AGENT_MARKDOWN_BYTES) notFound();
+  return markdown;
 }
 function createResolver(root = DEFAULT_ROOT) {
   const supportRoot = path.resolve(root);
@@ -93,8 +172,10 @@ const defaultResolver = createResolver();
 module.exports = {
   DEFAULT_ROOT,
   SLUG,
+  MAX_AGENT_MARKDOWN_BYTES,
   createResolver,
   loadManifest: defaultResolver.loadManifest,
   resolveLearningSupport: defaultResolver.resolveLearningSupport,
-  resolveAsset: defaultResolver.resolveAsset
+  resolveAsset: defaultResolver.resolveAsset,
+  toAgentMarkdown
 };

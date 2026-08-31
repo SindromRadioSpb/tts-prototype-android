@@ -33,6 +33,9 @@ or source provenance are not yet stable.
    or handwritten evidence, read [solution truth and ledgers](references/solution-truth-and-ledgers.md).
 5. For beginner explanations, agent support, premium HTML, print, Agent Access, or
    production rollout, read [pedagogy, rendering, and release](references/pedagogy-rendering-and-release.md).
+6. When solutions must be a bilingual row table for study/exam copying, with deferred
+   row-level karaoke and a bounded Hermes/MCP grounding derivative, read
+   [row-table runtime profile](references/row-table-runtime-profile.md).
 
 ## Select the operating mode
 
@@ -122,6 +125,10 @@ Before local acceptance, prove:
 - pedagogy introduces no new numbers, formulas, answer claims, or review states;
 - Markdown, HTML, tutor prompt, per-task shards, and manifest rebuild deterministically
   from the same ledgers;
+- any student row-table projection preserves every reviewed solution row in source
+  order, and its exam projection is exactly the rows explicitly marked for copying;
+- Agent Access discovery and derivative rights are independently materialized and read
+  back; public visibility alone does not authorize the agent;
 - desktop, 380 px RU/LTR and HE/RTL, keyboard/focus, reduced motion, and real A4 print
   preserve all content without horizontal overflow or clipped formulas.
 

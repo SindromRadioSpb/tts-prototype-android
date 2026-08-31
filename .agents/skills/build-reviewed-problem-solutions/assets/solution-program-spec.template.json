@@ -46,6 +46,24 @@
     "full_a4_print": true,
     "tutor_prompt": true
   },
+  "student_row_table": {
+    "enabled": null,
+    "columns": ["step", "he", "he_niqqud", "transliteration", "ru"],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER",
+    "row_karaoke_contract": null,
+    "full_tts_deferred": null,
+    "formula_spoken_form_review_required": null
+  },
+  "agent_access": {
+    "shared_publication_mcp": true,
+    "provider_registered_by_exact_slug": null,
+    "discover_rights_per_item": null,
+    "derivative_text_rights_per_item": null,
+    "source_text_rights_per_item": "UNCONFIRMED",
+    "source_binary_rights_per_item": "UNCONFIRMED",
+    "bounded_markdown_preserves_all_reviewed_solution_rows": true,
+    "fresh_owner_chat_acceptance_required": true
+  },
   "publication": {
     "requested": null,
     "public_read": null,

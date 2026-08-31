@@ -32,6 +32,9 @@ source pins are stable.
    read [intake and truth boundaries](references/intake-and-truth-boundaries.md).
 5. When building, generating TTS, importing, publishing, or verifying production,
    read [workflow and gates](references/workflow-and-gates.md).
+6. When the source edition is published as condition-only task cards while reviewed
+   solutions, row-level learning data, or audio arrive as separate exact-edition
+   derivatives, read [condition-card publication profile](references/condition-card-publication-profile.md).
 
 ## Select the operating mode
 
@@ -86,6 +89,9 @@ Before calling a local corpus complete, prove:
   canonical records after import;
 - public publication, if authorized, is immutable-edition-bound, anonymous-read-only,
   rollback-tested, and does not change learner/private/review fingerprints.
+- a zero-audio edition is accepted only as an explicit product state: it has zero audio
+  references and controls, preserves row-level future-audio contracts separately, and
+  cannot be described as complete-audio.
 
 For TTS, the owner selects the profile. PLAN must report unique missing assets and the
 cost ceiling before APPLY. Cache keys bind exact text plus profile. Verify every asset's

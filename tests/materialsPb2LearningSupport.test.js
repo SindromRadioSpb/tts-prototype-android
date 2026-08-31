@@ -73,6 +73,12 @@ test("Materials PB2 runtime is exact-edition bound, carries reviewed tables and 
     });
     assert.equal(support.task_id, fixture.tableManifest.tasks[0].task_id);
     assert.equal(support.solution_rows.length > 10, true);
+    const markdown = require("../materials/materialsPb2LearningSupport.js").toAgentMarkdown(support);
+    assert.match(markdown, /Каноническое условие на русском/);
+    assert.match(markdown, /Проверенное решение/);
+    assert.match(markdown, new RegExp(support.snapshot_sha256));
+    for (const row of support.solution_rows) assert.ok(markdown.includes(row.text.ru), `missing reviewed row ${row.row_id}`);
+    assert.ok(Buffer.byteLength(markdown, "utf8") <= require("../materials/materialsPb2LearningSupport.js").MAX_AGENT_MARKDOWN_BYTES);
     assert.match(support.condition.source_assets[0].public_url, /\/learning-support\/assets\/[a-f0-9]{64}$/);
     const asset = resolver.resolveAsset(support.condition.source_assets[0].sha256);
     assert.equal(asset.bytes, support.condition.source_assets[0].bytes);
@@ -83,6 +89,34 @@ test("Materials PB2 runtime is exact-edition bound, carries reviewed tables and 
       publicWorkId: pinned.public_work_id, snapshotSha256: "f".repeat(64), snapshot: { library: { texts: [canonical] } },
     }), /MATERIALS_PB2_LEARNING_SUPPORT_NOT_FOUND/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
+
+test("all 60 production Materials PB2 derivatives fit the immutable MCP Markdown envelope", () => {
+  const runtime = require("../materials/materialsPb2LearningSupport.js");
+  const manifest = runtime.loadManifest();
+  assert.equal(manifest.tasks.length, 60);
+  let maximum = 0;
+  for (const entry of manifest.tasks) {
+    const body = JSON.parse(fs.readFileSync(path.join(runtime.DEFAULT_ROOT, entry.file), "utf8"));
+    const markdown = runtime.toAgentMarkdown({ ...body, derivative_sha256: entry.sha256 });
+    const bytes = Buffer.byteLength(markdown, "utf8");
+    maximum = Math.max(maximum, bytes);
+    assert.ok(bytes <= runtime.MAX_AGENT_MARKDOWN_BYTES, `${entry.task_id} exceeds MCP output envelope`);
+    for (const row of body.solution_rows) assert.ok(markdown.includes(row.text.ru), `${entry.task_id} dropped ${row.row_id}`);
+    assert.doesNotMatch(markdown, /karaoke_tokens|audio_asset_key|timing_sidecars/);
+  }
+  assert.ok(maximum > 1000);
+});
+
+test("Materials PB2 agent-rights plan grants only discovery and reviewed derivative text", () => {
+  const manifest = require("../materials/materialsPb2LearningSupport.js").loadManifest();
+  const { buildFacts } = require("../scripts/premium/apply-materials-pb2-agent-rights.js");
+  const discover = buildFacts(manifest, "DISCOVER");
+  const derivative = buildFacts(manifest, "DERIVATIVE_TEXT");
+  assert.equal(discover.length, 60);
+  assert.equal(derivative.length, 60);
+  assert.deepEqual(new Set([...discover, ...derivative].map(row => row.useClass)), new Set(["DISCOVER", "DERIVATIVE_TEXT"]));
+  assert.throws(() => buildFacts(manifest, "SOURCE_BINARY"), /USE_CLASS_INVALID/);
 });
 
 test("Materials PB2 rights validator refuses full TTS and incomplete content-class authority", () => {

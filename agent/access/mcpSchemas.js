@@ -490,7 +490,7 @@ const DESCRIPTIONS = Object.freeze({
   get_published_public_item: "Return immutable corpus, edition and item identity metadata for one owner-approved published item. No source body, learner state, notes, group data or private data is returned.",
   list_published_item_resources: "Return bounded HTTPS descriptors for owner-approved source resources: stable IDs, MIME, bytes and SHA-256. Binary/base64, previews, server fetches, packages and unapproved derivatives are never returned through MCP.",
   read_published_text_window: "Return at most 20 rows and 16 KiB from an explicitly SOURCE_TEXT-approved immutable publication item. Only library text is projected; notes, progress, bookmarks and review_log are structurally excluded.",
-  read_published_learning_support: "Return one owner-reviewed, task-pinned Physics learning derivative only after an explicit DERIVATIVE_TEXT right. The Markdown contains the canonical condition, beginner bridge, complete exam solution, answer, checks and provenance; it never contains learner state, grades, notes or private/group data. Use it as the grounding source when explaining the selected task, and do not invent missing facts.",
+  read_published_learning_support: "Return one owner-reviewed, task-pinned STEM learning derivative only after an explicit DERIVATIVE_TEXT right. The Markdown contains the canonical condition, reviewed solution, checks and provenance; it never contains learner state, grades, notes or private/group data. Use it as the grounding source when explaining the selected task, and do not invent missing facts.",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action", "propose_import_text", "propose_track_word", "propose_goal"]));

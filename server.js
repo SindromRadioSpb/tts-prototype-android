@@ -1948,7 +1948,10 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         publicPublicationReadService: createPublicPublicationReadService({
           rightsRepo: getPublicationAgentRightsRepo(),
           physicsRepo: getPhysicsTaskResourceRepoForAgentAccess(),
-          physicsLearningSupport: require("./physics/physicsYear1LearningSupport"),
+          learningSupportProviders: {
+            "physics-year1-problems": require("./physics/physicsYear1LearningSupport"),
+            "materials-science-year1-problem-book-2": require("./materials/materialsPb2LearningSupport"),
+          },
           canonicalOrigin: "https://linguistpro.kolosei.com",
           // Domain separation over the already-required MCP audit secret; no
           // cursor is accepted across filters/editions or another environment.
