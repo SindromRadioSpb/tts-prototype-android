@@ -304,3 +304,13 @@ Evidence is stored in
 `production-live-browser-and-print-verification.json` and the matching
 `materials-pb2-production-*` screenshots/PDFs. This is not an inferred
 `OWNER_REPORTED` or `PHYSICAL_DEVICE_AT` pass; those rows remain separate.
+
+`CONNECTED_CHROME` cache acceptance was also executed separately from the
+service-worker-blocked smoke. The ordinary client first loaded `3.11.451`,
+displayed the real update action, and was advanced through that action to
+`3.11.452`. In the updated client the reviewed solution contained the shared
+`.rm-w` tokens; tapping `פִּתְרוֹן` opened the morphology sheet, set the URL
+anchor to `materials-science-y1-pb2-q001-sol-r001`, and first Escape closed the
+sheet while leaving the solution viewer open and restoring focus to that word.
+No grade/status/save action was invoked. This is agent-observed connected-client
+evidence, not an owner-reported acceptance claim.
