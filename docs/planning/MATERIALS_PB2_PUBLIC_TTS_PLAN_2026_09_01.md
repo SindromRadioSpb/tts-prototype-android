@@ -1,7 +1,7 @@
 # MATERIALS PB2 — PUBLIC TTS RELEASE SLICE
 
 Date: 2026-09-01
-Status: `TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED`
+Status: `FRAMEWORK_PROD_VERIFIED · TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED`
 
 ## 1. Outcome
 
@@ -121,6 +121,9 @@ All of the following are mandatory:
    `COMPLETE_LOCAL_VERIFIED` on 2026-09-01: 91 MP3 assets, 29 complete timing
    sidecars, 91/91 decode pass, manifest
    `1441fc7ad5f8709f965cea825af049e0e67c788abcbea9661e3d0c7830748365`.
+   The fail-closed framework is production-verified at `3.11.453`; the same
+   production shell passed an isolated Task 1 audio/morphology pilot without
+   exposing the partial asset set to public users.
 5. Full release: all 60 tasks after all 275 formula records pass.
 
 ## 8. Allowlist for this slice

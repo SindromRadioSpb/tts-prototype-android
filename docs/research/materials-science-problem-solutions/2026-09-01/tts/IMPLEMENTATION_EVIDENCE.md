@@ -1,7 +1,7 @@
 # Materials PB2 public TTS — implementation evidence
 
 Date: 2026-09-01
-Status: `TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED · PUBLICATION_NOT_STARTED`
+Status: `FRAMEWORK_PROD_VERIFIED · TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED · PUBLICATION_NOT_STARTED`
 
 ## Delivered contract
 
@@ -70,6 +70,28 @@ first remaining unreviewed formula row:
   catalog contains no Materials edition, so this is intentionally shell
   regression evidence, not a claim that gated audio is live.
 
+### Production framework and isolated Task 1 pilot
+
+- Commits `15d01d3b` and `6cf8f13e` are on `origin/main`; Coolify deployed the
+  exact latter revision as application version `3.11.453`.
+- The stale pre-cleanup deployment was cancelled, the duplicate manual rollout
+  was removed, and the single exact webhook rollout completed successfully.
+- Eight consecutive post-cleanup public probes returned `3.11.453`, `ok=true`,
+  DB ready, `disk_pct_used=79`, `disk_warn=false`.
+- The public edition remains intentionally honest: Task 1 reports
+  `full_tts_generated=false`, and its word-audio index returns `404`. No partial
+  pilot asset was published.
+- `materials-pb2-tts-pilot-browser-smoke.js` exercised the real production
+  `3.11.453` shell with the verified Task 1 MP3/timing cache injected only into
+  an isolated browser route. It proved 2 condition row buttons, 31 solution row
+  buttons, two section-play controls, a complete timing fetch, and morphology
+  word playback through the one shared public word resolver.
+- Mobile 380 x 844: no document/viewer overflow, zero controls below 44 px, all
+  33 row-audio buttons present. Page errors: zero.
+- Reproducible report and screenshots:
+  `production-pilot/task-001-production-shell-browser-verification.json` and
+  `production-pilot/screenshots/`.
+
 ## Docker cleanup for deploy capacity
 
 Local Docker context: `desktop-linux`.
@@ -94,10 +116,14 @@ Removed image layers are recoverable only by pulling or rebuilding them.
   build cache 1.143 GB. The same 9 container IDs remained running.
 - Three independent public `/healthz` probes returned `ok=true`, DB and
   migrations ready, `disk_pct_used=79`, `disk_warn=false`.
+- The `3.11.453` build temporarily raised disk use to 87%. A post-deploy prune
+  removed 2.121 GB of unused builder cache (13.24 kB unused image data), restored
+  7.9 GB available / 79% used, and retained the same nine running services on
+  their required active images.
 
 Unused production image/cache layers can be restored only by pulling or
-rebuilding them. The pre-existing media-acquisition container health failure is
-outside this TTS slice; the main LinguistPro container remained running.
+rebuilding them. The media-acquisition and main LinguistPro containers were both
+running healthy after the final cleanup.
 
 ## Remaining formula review compression
 

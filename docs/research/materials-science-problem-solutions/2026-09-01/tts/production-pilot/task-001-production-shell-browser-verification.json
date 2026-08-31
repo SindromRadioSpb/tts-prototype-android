@@ -1,0 +1,48 @@
+{
+  "schema_version": "materials_pb2_task1_production_shell_tts_pilot.1.0.0",
+  "verified_at": "2026-09-01",
+  "release_version": "3.11.453",
+  "boundary": {
+    "public_edition_full_tts_generated": false,
+    "public_word_audio_index_status": 404,
+    "task1_assets_injected_only_into_isolated_browser": true,
+    "production_publication_performed": false
+  },
+  "pilot": {
+    "task_id": "materials-science-y1-pb2-q001",
+    "row_references": 33,
+    "assets": 91,
+    "row_assets": 29,
+    "word_assets": 62,
+    "condition_audio_buttons": 2,
+    "solution_audio_buttons": 31,
+    "section_audio_buttons": 2,
+    "word_index_entries": 120,
+    "first_row_asset_key": "b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103",
+    "first_word_asset_key": "31bfad22d6235389d4080e72a1b024f1ef0cda75d06dcd3c8d3a6857b393c3b0",
+    "fetch_proof": {
+      "row_bytes": 12864,
+      "timing_n": 2,
+      "timing_got": 2,
+      "word_bytes": 9408
+    }
+  },
+  "network": {
+    "rowHead": 1,
+    "timingGet": 2,
+    "audioGet": 4,
+    "wordIndex": 1
+  },
+  "mobile": {
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "tiny_controls": 0,
+    "audio_buttons": 33
+  },
+  "page_errors": [],
+  "screenshots": [
+    "task-001-tts-morphology-desktop-ru.png",
+    "task-001-tts-solution-380-ru.png",
+    "task-001-tts-solution-desktop-ru.png"
+  ]
+}
