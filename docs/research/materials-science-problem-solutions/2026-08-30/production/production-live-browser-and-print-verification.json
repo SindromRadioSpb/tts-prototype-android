@@ -1,0 +1,98 @@
+{
+  "schema_version": "materials_pb2_production_browser_verification.1.0.0",
+  "verified_at": "2026-08-31",
+  "release_version": "3.11.450",
+  "anonymous": true,
+  "publication": {
+    "item_count": 60,
+    "first_page_items": 48,
+    "second_page_items": 12,
+    "edition_number": 2,
+    "manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+    "audio_assets": 0
+  },
+  "desktop_ru": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_controls": 0,
+    "audio_deferred": true
+  },
+  "exam_desktop_ru": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 2,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_controls": 0,
+    "audio_deferred": true
+  },
+  "mobile_ru": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_controls": 0,
+    "audio_deferred": true
+  },
+  "mobile_he": {
+    "lang": "he",
+    "dir": "rtl",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_controls": 0,
+    "audio_deferred": true
+  },
+  "full_sweep": {
+    "support_cards": 60,
+    "condition_rows": 693,
+    "solution_rows": 1919,
+    "source_assets": 72,
+    "formula_speech_review_required_rows": 275,
+    "audio_assets": 0,
+    "timing_sidecars": 0
+  },
+  "api": {
+    "works": 200,
+    "learning_support": 200,
+    "source_asset": 200,
+    "etag": "\"c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee\""
+  },
+  "pdf": {
+    "study": {
+      "file": "output/pdf/materials-pb2-production-q001-study-4-columns.pdf",
+      "bytes": 331575,
+      "sha256": "06343a45eb3c36195bd6daf7ef81b0db78f0afc77ca2dd111cafab2e8ae92692"
+    },
+    "exam": {
+      "file": "output/pdf/materials-pb2-production-q001-exam-hebrew.pdf",
+      "bytes": 296801,
+      "sha256": "5cae3f63785b468731887a82ebf8cbac12c6462cba26a909487804992135a478"
+    }
+  },
+  "page_errors": [],
+  "failed_public_responses": [],
+  "screenshots": [
+    "materials-pb2-production-card-answer-desktop-ru.png",
+    "materials-pb2-production-exam-desktop-ru.png",
+    "materials-pb2-production-solution-380-he-rtl.png",
+    "materials-pb2-production-solution-380-ru.png",
+    "materials-pb2-production-solution-desktop-ru.png"
+  ]
+}

@@ -1,6 +1,6 @@
 # Materials PB2 production release evidence
 
-Status: `PRODUCTION_EDITION_PUBLISHED / EXACT_RUNTIME_BUILT / FINAL_DEPLOY_IN_PROGRESS`.
+Status: `PRODUCTION_LIVE_VERIFIED / OWNER_CARD_REVIEW_PENDING / FULL_TTS_DEFERRED`.
 
 Completed locally on real corpus bytes:
 
@@ -30,11 +30,12 @@ test mechanics. Production apply must use the separately validated owner file
 `publication-rights-attestation.json` (SHA-256 recorded in
 `rights-acceptance-receipt.json`).
 
-Production backup, 3-item pilot, 60-item full publication and real pointer
-rollback/restore are complete. The exact-edition runtime has been built from
-the production anchor. Still pending in this release: final runtime deploy and
-live anonymous verification. Explicitly deferred: physical printer acceptance,
-owner review of all 60 live cards and full TTS.
+Production backup, 3-item pilot, 60-item full publication, real pointer
+rollback/restore, exact-edition runtime deployment and anonymous live
+verification are complete. The public catalog exposes 48 + 12 cards; all 60
+support payloads, 1,919 solution rows and 72 source assets passed readback.
+Explicitly deferred: physical printer acceptance, owner review of all 60 live
+cards and full TTS.
 
 The owner explicitly attested every class in
 `publication-rights-attestation.json`, including

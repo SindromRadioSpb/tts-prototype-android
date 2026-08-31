@@ -2,6 +2,8 @@
   "schema_version": "materials_pb2_production_publication_evidence.1.0.0",
   "executed_at": "2026-08-31",
   "release_commit": "e682a806cd13b166fdca7a22d6426e5c7ed3903c",
+  "runtime_commit": "a2a4a627c67e2541b1fe93a2a68a6a4d0346ba60",
+  "release_version": "3.11.450",
   "source_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
   "rights_attestation_sha256": "c524c941ede424588102f9149055dffa34942a93b625f6744fdf2a86b77a5731",
   "backup": {
@@ -41,6 +43,19 @@
     "audio_asset_count": 0,
     "timing_sidecar_count": 0,
     "exact_edition_bound": true
+  },
+  "live_verification": {
+    "target_version_streak": 3,
+    "anonymous_catalog_pages": [48, 12],
+    "support_cards_read_back": 60,
+    "condition_rows_read_back": 693,
+    "solution_rows_read_back": 1919,
+    "source_assets_hash_verified": 72,
+    "package_sha256_verified": true,
+    "etag_conditional_status": 304,
+    "page_errors": 0,
+    "failed_public_responses": 0,
+    "evidence": "production-live-browser-and-print-verification.json"
   },
   "audio_boundary": {
     "full_tts_authorized": false,

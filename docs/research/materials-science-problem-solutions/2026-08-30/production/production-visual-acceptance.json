@@ -1,0 +1,40 @@
+{
+  "schema_version": "materials_pb2_production_visual_acceptance.1.0.0",
+  "reviewed_at": "2026-08-31",
+  "status": "AGENT_VISUAL_PASS_OWNER_CONTENT_REVIEW_PENDING",
+  "surfaces": {
+    "desktop_ru_study": "PASS",
+    "desktop_ru_exam": "PASS",
+    "mobile_380_ru": "PASS",
+    "mobile_380_he_rtl": "PASS"
+  },
+  "checks": {
+    "modal_hierarchy_and_controls": "PASS",
+    "five_column_study_table": "PASS",
+    "two_column_exam_table": "PASS",
+    "mobile_stacked_labels": "PASS",
+    "rtl_direction_and_alignment": "PASS",
+    "source_figure_visibility": "PASS",
+    "audio_deferred_notice": "PASS",
+    "audio_controls_absent": "PASS",
+    "horizontal_clipping": "PASS_NONE_FOUND"
+  },
+  "print": {
+    "study": {
+      "format": "A4 landscape",
+      "pages": 5,
+      "first_and_last_page_reviewed": true,
+      "clipping_found": false,
+      "sha256": "06343a45eb3c36195bd6daf7ef81b0db78f0afc77ca2dd111cafab2e8ae92692"
+    },
+    "exam": {
+      "format": "A4 portrait",
+      "pages": 3,
+      "first_and_last_page_reviewed": true,
+      "clipping_found": false,
+      "sha256": "5cae3f63785b468731887a82ebf8cbac12c6462cba26a909487804992135a478"
+    },
+    "physical_printer_tested": false
+  },
+  "owner_boundary": "The owner must review the technical content of all 60 live cards before any full TTS, audio or timing generation."
+}
