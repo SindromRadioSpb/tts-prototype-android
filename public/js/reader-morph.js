@@ -939,7 +939,8 @@
   // per-row state). value is taken from the DATA MODEL so display text is exact.
   // niqqudForCell: aligned [{surface,niqqud}] for a he cell, or null for a niqqud cell
   // (whose own tokens already carry the vowels).
-  function wrapCellHtml(value, niqqudForCell) {
+  function wrapCellHtml(value, niqqudForCell, opts) {
+    opts = opts || {};
     var toks = tokenize(value);
     var wIdx = 0, html = "";
     for (var i = 0; i < toks.length; i++) {
@@ -949,7 +950,9 @@
       if (niqqudForCell) { var pair = niqqudForCell[wIdx] || {}; surface = pair.surface || tk.text; niqqud = pair.niqqud || ""; }
       else { surface = stripNiqqud(tk.text); niqqud = tk.text; }
       var off = wIdx; wIdx++;   // word offset within the row/sentence (for note occurrences)
-      html += '<span class="rm-w" role="button" tabindex="0"' +
+      var tabIndex = opts.rovingFocus && wIdx > 1 ? "-1" : "0";
+      html += '<span class="rm-w" role="button" tabindex="' + tabIndex + '"' +
+        (opts.rovingFocus ? ' data-rm-roving="1"' : '') +
         ' data-surface="' + escapeHtml(surface) + '"' +
         ' data-niqqud="' + escapeHtml(niqqud) + '"' +
         ' data-w-offset="' + off + '">' + escapeHtml(tk.text) + "</span>";
@@ -957,22 +960,29 @@
     return html;
   }
 
-  function wrapMount(mount, getRow) {
+  function wrapMount(mount, getRow, opts) {
     if (!mount) return;
-    var cells = mount.querySelectorAll('#proTable tbody td[data-col="he"], #proTable tbody td[data-col="niqqud"]');
+    opts = opts || {};
+    var cellSelector = opts.cellSelector || '#proTable tbody td[data-col="he"], #proTable tbody td[data-col="niqqud"]';
+    var cells = mount.querySelectorAll(cellSelector);
     for (var i = 0; i < cells.length; i++) {
       var td = cells[i];
       if (td.getAttribute(WRAP_FLAG)) continue;
-      var tr = td.closest("tr[data-row-idx]");
-      var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
-      var row = (typeof getRow === "function" && Number.isFinite(rowIdx)) ? getRow(rowIdx) : null;
+      var tr = td.closest(opts.rowSelector || "tr[data-row-idx]");
+      var rowIdx = tr ? Number(tr.getAttribute(opts.rowIndexAttribute || "data-row-idx")) : NaN;
+      var row = typeof opts.getRowForCell === "function" ? opts.getRowForCell(td, tr) :
+        ((typeof getRow === "function" && Number.isFinite(rowIdx)) ? getRow(rowIdx) : null);
       if (!row) continue;
       var col = td.getAttribute("data-col");
-      if (col === "he") {
-        var aligned = alignSurfaceNiqqud(String(row.he || ""), String(row.he_niqqud || ""));
-        td.innerHTML = wrapCellHtml(String(row.he || ""), aligned);
+      var plain = typeof opts.getPlainText === "function" ? opts.getPlainText(row) : row.he;
+      var vocalized = typeof opts.getVocalizedText === "function" ? opts.getVocalizedText(row) : row.he_niqqud;
+      var value = col === (opts.plainColumn || "he") ? String(plain || "") : String(vocalized || "");
+      if (typeof opts.shouldWrap === "function" && !opts.shouldWrap(row, td, col, value)) continue;
+      if (col === (opts.plainColumn || "he")) {
+        var aligned = alignSurfaceNiqqud(String(plain || ""), String(vocalized || ""));
+        td.innerHTML = wrapCellHtml(String(plain || ""), aligned, opts);
       } else { // niqqud cell — tokens are self-vocalized
-        td.innerHTML = wrapCellHtml(String(row.he_niqqud || ""), null);
+        td.innerHTML = wrapCellHtml(String(vocalized || ""), null, opts);
       }
       td.setAttribute(WRAP_FLAG, "1");
     }
@@ -1120,6 +1130,7 @@
     try { if (_cardReturnFocus && _cardReturnFocus.focus) _cardReturnFocus.focus(); } catch (_) {}   // WCAG 2.4.3 — restore focus
     _cardReturnFocus = null;
   }
+  function isSheetOpen() { return !!(_sheet && !_sheet.hidden && _sheet.classList.contains("rm-open")); }
   // Root-family «‹ Назад» — pop the previous card and re-render it (sequential, multi-level).
   function onCardBack() {
     var prev = _cardStack.pop();
@@ -1864,17 +1875,24 @@
     var getRow = typeof opts.getRow === "function" ? opts.getRow : function () { return null; };
     _attachOpts = opts;
 
-    var refresh = function () { try { wrapMount(mount, getRow); } catch (_) {} };
+    var refresh = function () { try { wrapMount(mount, getRow, opts); } catch (_) {} };
     refresh();
+
+    var rowForSpan = function (span) {
+      var tr = span && span.closest ? span.closest(opts.rowSelector || "tr[data-row-idx]") : null;
+      var rowIdx = tr ? Number(tr.getAttribute(opts.rowIndexAttribute || "data-row-idx")) : NaN;
+      var row = typeof opts.getRowForCell === "function" ? opts.getRowForCell(span.closest("td"), tr) :
+        ((Number.isFinite(rowIdx) && typeof getRow === "function") ? getRow(rowIdx) : null);
+      return { tr: tr, rowIdx: rowIdx, row: row };
+    };
 
     // Occurrence context for a tapped word: where it appears (text/sentence/offset) so a
     // saved note records a real occurrence. Baked corpus rows carry _v3_textId/_v3_sentenceId.
     var computeOcc = function (span) {
       try {
-        var tr = span.closest("tr[data-row-idx]");
-        var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
-        var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
+        var resolved = rowForSpan(span), row = resolved.row, rowIdx = resolved.rowIdx;
         var off = Number(span.getAttribute("data-w-offset"));
+        if (typeof opts.buildOccurrence === "function") return opts.buildOccurrence(span, row, rowIdx);
         return {
           text_id: row && row._v3_textId ? String(row._v3_textId) : null,
           sentence_id: row && row._v3_sentenceId ? String(row._v3_sentenceId) : null,
@@ -1897,12 +1915,12 @@
       try {
         // The sentence (for any Tier-3 reach) + the word's resolve inputs, stashed so the
         // per-card refine can RE-resolve this exact word later (Epic-2 #2).
-        var tr = span.closest("tr[data-row-idx]");
-        var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
-        var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
-        var sentence = row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "";
+        var resolved = rowForSpan(span), row = resolved.row;
+        var sentence = typeof opts.getSentence === "function" ? String(opts.getSentence(row) || "") :
+          (row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "");
         _activeWordCtx = { surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence,
           orderIndex: occ && occ.order_index != null ? occ.order_index : null };   // PAS-A4 — якорь для explain-word
+        if (typeof opts.onOccurrenceActive === "function") { try { opts.onOccurrenceActive(span, row, occ); } catch (_) {} }
         _cardStack = [];   // a fresh word tap starts a new drill history
         // Tier-3 «точный режим» (opt-in, GLOBAL auto): when a contextProvider is wired it
         // gates on the user's standing consent and returns the context reading (or null when
@@ -1965,11 +1983,23 @@
       }
     };
     var onKey = function (e) {
-      if (e.key !== "Enter" && e.key !== " ") return;
       var span = e.target && e.target.closest ? e.target.closest(".rm-w") : null;
-      if (span && mount.contains(span)) { e.preventDefault(); e.stopPropagation(); onActivate(span); }
+      if (!span || !mount.contains(span)) return;
+      if (opts.rovingFocus && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        var cell = span.closest("td"), wordsInCell = cell ? Array.prototype.slice.call(cell.querySelectorAll(".rm-w")) : [];
+        var at = wordsInCell.indexOf(span), rtl = cell && String(cell.getAttribute("dir") || "").toLowerCase() === "rtl";
+        var delta = e.key === "ArrowLeft" ? (rtl ? 1 : -1) : (rtl ? -1 : 1);
+        var next = wordsInCell[at + delta];
+        if (next) {
+          e.preventDefault(); e.stopPropagation();
+          wordsInCell.forEach(function (word) { word.setAttribute("tabindex", word === next ? "0" : "-1"); });
+          try { next.focus(); } catch (_) {}
+        }
+        return;
+      }
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onActivate(span); }
     };
-    var onDocKey = function (e) { if (e.key === "Escape") { closeStatPop(); closeSheet(); } };
+    var onDocKey = function (e) { if (e.key === "Escape" && isSheetOpen()) { e.preventDefault(); e.stopImmediatePropagation(); closeStatPop(); closeSheet(); } };
     var onDocDown = function (e) { if (_statpop && !_statpop.hidden && e.target && e.target.closest && !e.target.closest(".rm-statpop")) closeStatPop(); };
     var onScroll = function () { closeStatPop(); };
 
@@ -2673,7 +2703,7 @@
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight,
     acceptStrictAnswer: acceptStrictAnswer, acceptReadAnswer: acceptReadAnswer, attach: attach,
     setProcliticOverlay: setProcliticOverlay,
-    closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
+    closeSheet: closeSheet, isSheetOpen: isSheetOpen, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
     decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,
     openWordCard: openWordCard,
     // Epic 4.3b — recall-loop / cloze

@@ -15,7 +15,33 @@
     "visible_columns": 5,
     "source_figures": 1,
     "tiny_controls": [],
-    "audio_deferred": true
+    "audio_deferred": true,
+    "audio_controls": 0,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
+  },
+  "morphology": {
+    "card": {
+      "viewer_open": true,
+      "sheet_open": true,
+      "sheet_topmost": true,
+      "sheet_z": "10040",
+      "overlay_z": "10031",
+      "top_class": "rm-sheet-card",
+      "anchored_row": "materials-science-y1-pb2-q001-sol-r001",
+      "active_row": "materials-science-y1-pb2-q001-sol-r001"
+    },
+    "escape": {
+      "viewer_open": true,
+      "sheet_open": false,
+      "focus_returned": true
+    },
+    "restored_anchor": {
+      "row": "materials-science-y1-pb2-q001-sol-r001",
+      "focused_row": "materials-science-y1-pb2-q001-sol-r001"
+    },
+    "review_log_delta": 0
   },
   "exam_desktop_ru": {
     "lang": "ru",
@@ -26,7 +52,11 @@
     "visible_columns": 2,
     "source_figures": 1,
     "tiny_controls": [],
-    "audio_deferred": true
+    "audio_deferred": true,
+    "audio_controls": 0,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
   },
   "mobile_ru": {
     "lang": "ru",
@@ -37,7 +67,31 @@
     "visible_columns": 5,
     "source_figures": 1,
     "tiny_controls": [],
-    "audio_deferred": true
+    "audio_deferred": true,
+    "audio_controls": 0,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
+  },
+  "mobile_ru_200pct": {
+    "lang": "ru",
+    "dir": "ltr",
+    "document_overflow": false,
+    "viewer_overflow": false,
+    "table_rows": 31,
+    "visible_columns": 5,
+    "source_figures": 1,
+    "tiny_controls": [],
+    "audio_deferred": true,
+    "audio_controls": 0,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
+  },
+  "mobile_morphology_ru": {
+    "document_overflow": false,
+    "card_within_viewport": true,
+    "sheet_topmost": true
   },
   "mobile_he": {
     "lang": "he",
@@ -48,7 +102,11 @@
     "visible_columns": 5,
     "source_figures": 1,
     "tiny_controls": [],
-    "audio_deferred": true
+    "audio_deferred": true,
+    "audio_controls": 0,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
   },
   "api": {
     "learning_support": 200,
@@ -64,7 +122,15 @@
   "screenshots": [
     "materials-pb2-card-answer-desktop-ru.png",
     "materials-pb2-exam-desktop-ru.png",
+    "materials-pb2-morphology-380-ru.png",
+    "materials-pb2-morphology-desktop-ru.png",
+    "materials-pb2-production-card-answer-desktop-ru.png",
+    "materials-pb2-production-exam-desktop-ru.png",
+    "materials-pb2-production-solution-380-he-rtl.png",
+    "materials-pb2-production-solution-380-ru.png",
+    "materials-pb2-production-solution-desktop-ru.png",
     "materials-pb2-solution-380-he-rtl.png",
+    "materials-pb2-solution-380-ru-200pct.png",
     "materials-pb2-solution-380-ru.png",
     "materials-pb2-solution-desktop-ru.png"
   ]

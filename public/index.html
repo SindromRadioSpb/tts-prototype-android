@@ -13348,9 +13348,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=187"></script>
-    <script src="/i18n/locales/en.js?v=187"></script>
-    <script src="/i18n/locales/he.js?v=187"></script>
+    <script src="/i18n/locales/ru.js?v=188"></script>
+    <script src="/i18n/locales/en.js?v=188"></script>
+    <script src="/i18n/locales/he.js?v=188"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13422,7 +13422,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js"></script>
+<script src="/js/reader-morph.js?v=452"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13473,7 +13473,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-host.js?v=403"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
-<script src="/js/morph-host.js?v=414"></script>
+<script src="/js/morph-host.js?v=415"></script>
 <script src="/js/studio-morph.js"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
@@ -13528,7 +13528,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.451";
+    window.APP_VERSION = "3.11.452";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

@@ -35,6 +35,10 @@ async function surfaceReport(page) {
       }).map(node => node.textContent.trim()),
       audio_controls: viewer.querySelectorAll("audio, [data-materials-audio], .materials-audio-play").length,
       audio_deferred: /Аудио|Audio|שמע/.test(viewer.querySelector(".materials-audio-note")?.textContent || ""),
+      morph_tokens: viewer.querySelectorAll(".materials-learning-table .rm-w").length,
+      roving_cells_invalid: [...viewer.querySelectorAll('.materials-learning-table td[data-col="he"], .materials-learning-table td[data-col="niqqud"]')]
+        .filter(cell => cell.querySelectorAll('.rm-w').length && cell.querySelectorAll('.rm-w[tabindex="0"]').length !== 1).length,
+      derivation_rail: getComputedStyle(viewer.querySelector('.materials-solution-section .materials-step-cell')).borderInlineStartWidth,
     };
   });
 }
@@ -55,6 +59,7 @@ async function surfaceReport(page) {
       localStorage.setItem("v3OnboardingSeenV1", "1");
       localStorage.setItem("onboardingSeen_v1", "1");
       localStorage.setItem("appLocale", "ru");
+      localStorage.setItem("room.contextConsent", "declined");
     });
     await page.goto(`${BASE}/library.html?canon=skip&public_corpus=${SLUG}&cb=${Date.now()}`, { waitUntil: "domcontentloaded" });
     await page.locator(`[data-public-corpus="${SLUG}"]`).waitFor({ timeout: 30000 });
@@ -78,10 +83,39 @@ async function surfaceReport(page) {
     assert.equal(desktop.document_overflow, false);
     assert.equal(desktop.viewer_overflow, false);
     assert.equal(desktop.visible_columns, 5);
-    assert.ok(desktop.table_rows > 10 && desktop.source_figures > 0 && desktop.audio_deferred);
+    assert.ok(desktop.table_rows > 10 && desktop.source_figures > 0 && desktop.audio_deferred && desktop.morph_tokens > 0);
     assert.equal(desktop.audio_controls, 0);
+    assert.equal(desktop.roving_cells_invalid, 0);
+    assert.equal(desktop.derivation_rail, "3px");
     assert.deepEqual(desktop.tiny_controls, []);
     await page.screenshot({ path: path.join(SHOTS, "materials-pb2-production-solution-desktop-ru.png") });
+
+    const firstMorphToken = page.locator('.materials-solution-section .materials-niqqud-cell .rm-w[tabindex="0"]').first();
+    await firstMorphToken.focus();
+    await page.keyboard.press("Enter");
+    await page.locator(".rm-sheet.rm-open").waitFor({ timeout: 30000 });
+    await page.waitForFunction(() => !document.querySelector('.rm-sheet.rm-open .rm-loading'), null, { timeout: 30000 });
+    const morphology = await page.evaluate(() => {
+      const viewer = document.querySelector('.materials-learning-viewer');
+      const sheet = document.querySelector('.rm-sheet.rm-open');
+      const card = sheet?.querySelector('.rm-sheet-card');
+      const rect = card?.getBoundingClientRect();
+      const top = rect && document.elementFromPoint(rect.left + rect.width / 2, rect.top + 12);
+      return {
+        viewer_open: !!viewer, sheet_open: !!sheet, sheet_topmost: !!top?.closest('.rm-sheet'),
+        anchored_row: new URL(location.href).searchParams.get('materials_row'),
+        active_row: viewer?.getAttribute('data-active-row') || null,
+      };
+    });
+    assert.ok(morphology.viewer_open && morphology.sheet_open && morphology.sheet_topmost);
+    assert.ok(morphology.anchored_row && morphology.anchored_row === morphology.active_row);
+    await page.screenshot({ path: path.join(SHOTS, "materials-pb2-production-morphology-desktop-ru.png") });
+    await page.keyboard.press("Escape");
+    assert.deepEqual(await page.evaluate(() => ({
+      viewer_open: !!document.querySelector('.materials-learning-viewer'),
+      sheet_open: !!document.querySelector('.rm-sheet.rm-open'),
+      focus_returned: document.activeElement?.classList.contains('rm-w') || false,
+    })), { viewer_open: true, sheet_open: false, focus_returned: true });
 
     await page.locator('[data-mode="exam"]').click();
     const exam = await surfaceReport(page);
@@ -184,10 +218,11 @@ async function surfaceReport(page) {
     const report = {
       schema_version: "materials_pb2_production_browser_verification.1.0.0",
       verified_at: "2026-08-31",
-      release_version: "3.11.451",
+      release_version: "3.11.452",
       anonymous: true,
       publication: { item_count: 60, first_page_items: cardCount, second_page_items: secondPageCount, edition_number: catalog.edition.edition_number, manifest_sha256: catalog.edition.manifest_sha256, audio_assets: 0 },
       desktop_ru: desktop,
+      morphology,
       exam_desktop_ru: exam,
       mobile_ru: mobileRu,
       mobile_he: mobileHe,

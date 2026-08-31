@@ -51,3 +51,85 @@ test("Materials PB2 adapter accepts only sequential karaoke-token plans pinned t
   const broken = JSON.parse(JSON.stringify(payload)); broken.solution_rows[0].audio_plan.karaoke_tokens[0].index = 2;
   assert.throws(() => adapter.normalizeMaterialsLearningSupport(broken, catalog, item), /PUBLIC_CORPUS_PAYLOAD_INVALID/);
 });
+
+test("Materials solution word anchors are exact-edition, row-stable and fail closed", () => {
+  const adapter = require("../public/js/public-corpus-adapter.js");
+  const support = {
+    corpus_slug: "materials-science-year1-problem-book-2",
+    edition_id: "materials-pb2-edition-2",
+    edition_number: 2,
+    edition_manifest_sha256: "a".repeat(64),
+    public_work_id: "materials-science-y1-pb2-q001",
+    snapshot_sha256: "b".repeat(64),
+    derivative_sha256: "c".repeat(64),
+    task_id: "materials-science-y1-pb2-q001",
+    solution_rows: [{
+      row_id: "materials-science-y1-pb2-q001-sol-r001", order: 1,
+      text: { he: "פתרון בדוק", he_niqqud: "פִּתְרוֹן בָּדוּק" },
+      audio_plan: { state: "DEFERRED_UNTIL_OWNER_CARD_REVIEW", timings_present: false,
+        karaoke_tokens: [{ index: 0, surface: "פתרון", normalized: "פתרון" }, { index: 1, surface: "A4", normalized: "a4" }, { index: 2, surface: "בדוק", normalized: "בדוק" }] },
+    }],
+  };
+  const occ = adapter.materialsSolutionOccurrence(support, support.solution_rows[0], 1, "בדוק");
+  assert.equal(occ.source_kind, "reviewed_solution");
+  assert.equal(occ.sentence_id, support.solution_rows[0].row_id);
+  assert.equal(occ.order_index, 1);
+  assert.equal(occ.audio_token_index, 2, "morphology offsets skip formula tokens while retaining the exact future TTS token coordinate");
+  assert.equal(occ.text_key.includes(support.derivative_sha256), true, "the persisted source key must identify the full derivative, not the condition text");
+  assert.deepEqual(adapter.verifyMaterialsSolutionOccurrence(occ, support), {
+    textKey: occ.text_key, sentenceId: support.solution_rows[0].row_id, orderIndex: 1, surface: "בדוק",
+  });
+  assert.equal(adapter.verifyMaterialsSolutionOccurrence({ ...occ, derivative_sha256: "d".repeat(64) }, support), null);
+  assert.equal(adapter.verifyMaterialsSolutionOccurrence({ ...occ, sentence_id: "missing-row" }, support), null);
+});
+
+test("shared ReaderMorph supports a roving-focus table adapter without changing the legacy default", () => {
+  const morph = require("../public/js/reader-morph.js");
+  const legacy = morph.wrapCellHtml("פתרון בדוק", null);
+  const roving = morph.wrapCellHtml("פִּתְרוֹן בָּדוּק", null, { rovingFocus: true });
+  assert.equal((legacy.match(/tabindex="0"/g) || []).length, 2, "legacy reader remains byte-compatible in keyboard reachability");
+  assert.equal((roving.match(/tabindex="0"/g) || []).length, 1, "one Hebrew token per cell enters the global Tab order");
+  assert.equal((roving.match(/tabindex="-1"/g) || []).length, 1);
+  assert.match(roving, /data-rm-roving="1"/);
+});
+
+test("Materials Task Learning Reader attaches shared morphology to condition and solution, never formula-only cells", () => {
+  const room = read("public/js/library-ui.js");
+  assert.match(room, /attachReaderMorph\(viewer,[\s\S]*materials-learning-table/);
+  assert.match(room, /data-col[^\n]+(?:he|niqqud)/);
+  assert.match(room, /materialsSolutionOccurrence/);
+  assert.match(room, /verifyMaterialsSolutionOccurrence/);
+  assert.match(room, /formula_only|formula-only|hasHebrew/i);
+  assert.match(room, /full_tts_generated[^\n]+false/);
+  const openBlock = room.slice(room.indexOf('function openMaterialsLearningSupport'), room.indexOf('function renderMaterialsLearningActions'));
+  assert.doesNotMatch(openBlock, /appendReviewLog|review_log|setWordStatus|updateSrs/,
+    "opening, switching and anchoring the learning reader must not mutate learner truth");
+  const morph = read("public/js/reader-morph.js");
+  assert.match(morph, /stopImmediatePropagation\(\)[\s\S]*closeSheet/,
+    "first Escape is owned by the morphology card before the parent reader dialog");
+});
+
+test("every reviewed solution Hebrew word round-trips through an exact anchor independently of formula-token timing", () => {
+  const adapter = require("../public/js/public-corpus-adapter.js");
+  const morph = require("../public/js/reader-morph.js");
+  const dir = path.join(ROOT, "docs/research/materials-science-problem-solutions/2026-08-30/artifacts/student-solution-tables/tasks");
+  let rows = 0, words = 0, audioMapped = 0;
+  for (const file of fs.readdirSync(dir).filter(name => name.endsWith(".json"))) {
+    const artifact = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+    const support = { corpus_slug: "materials-science-year1-problem-book-2", edition_id: "materials-pb2-edition-2", edition_number: 2,
+      edition_manifest_sha256: "a".repeat(64), public_work_id: artifact.task_id, snapshot_sha256: "b".repeat(64),
+      derivative_sha256: "c".repeat(64), task_id: artifact.task_id, solution_rows: artifact.rows };
+    for (const row of artifact.rows) {
+      rows += 1;
+      for (const [offset, surface] of morph.words(row.text.he).entries()) {
+        words += 1;
+        const occ = adapter.materialsSolutionOccurrence(support, row, offset, surface);
+        if (occ.audio_token_index != null) audioMapped += 1;
+        assert.ok(adapter.verifyMaterialsSolutionOccurrence(occ, support), `${file}:${row.row_id}:${offset}`);
+      }
+    }
+  }
+  assert.equal(rows, 1919);
+  assert.equal(words, 14941);
+  assert.equal(audioMapped, 11836, "only unambiguous current TTS-token mappings are asserted; the rest remain safely null");
+});

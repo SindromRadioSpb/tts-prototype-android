@@ -8,6 +8,7 @@
 //   env = {
 //     ldb: async () => localDbNamespace,   // OPFS local-db (Зал: module-import; Студия: ensureLocalDB)
 //     getTextKey: async () => string|null, // texts.text_key открытого текста (или null — несохранённый)
+//     verifyOccurrence: async (occ) => source|null, // exact external derivative; invalid => no fallback
 //     toast: (msg) => void,
 //     onProfileChanged: () => void,        // инвалидации + перекраска поверхности (host уже сбросил свой кэш)
 //     getTtsKey: () => string,             // localStorage v3.gcpTtsApiKey (общий слот)
@@ -49,6 +50,7 @@
     var onProfileChanged = typeof env.onProfileChanged === "function" ? env.onProfileChanged : function () {};
     var applyI18n = typeof env.applyI18n === "function" ? env.applyI18n : function () {};
     var getTextKey = typeof env.getTextKey === "function" ? env.getTextKey : async function () { return null; };
+    var verifyOccurrence = typeof env.verifyOccurrence === "function" ? env.verifyOccurrence : null;
     var getDueNowCount = typeof env.getDueNowCount === "function" ? env.getDueNowCount : function () { return 0; };
     var getContextOverlay = typeof env.getContextOverlay === "function" ? env.getContextOverlay : function () { return null; };
 
@@ -336,10 +338,14 @@
     // ── source-at-mark (R1, ROOM_DUE_CONTINUITY §3) — verified-only ────────────
     async function occToVerifiedSource(occ) {
       if (!occ || !occ.surface) return null;
+      if (occ.source_kind) {
+        if (!verifyOccurrence) return null;
+        try { return (await verifyOccurrence(occ)) || null; } catch (_) { return null; }
+      }
       var sid = occ.sentence_id != null ? String(occ.sentence_id) : null;
       var oix = occ.order_index != null ? Number(occ.order_index) : null;
       var tk = null;
-      try { tk = (await getTextKey()) || null; } catch (_) { tk = null; }
+      try { tk = (await getTextKey(occ)) || null; } catch (_) { tk = null; }
       if (!sid && !(tk && oix != null)) return null;
       try { var ldb = await ldbOf(); if (!(await ldb.getSentenceForReview(sid, tk, oix))) return null; } catch (_) { return null; }
       return { textKey: tk, sentenceId: sid, orderIndex: oix, surface: String(occ.surface) };
@@ -420,7 +426,10 @@
               meta: seedMeta,
             });
           }
-          var tk = null; try { tk = (await getTextKey()) || null; } catch (_) {}
+          var tk = src && src.textKey ? src.textKey : null;
+          // An explicit external source is all-or-nothing. If its immutable anchor did
+          // not verify, never relabel the encounter as the currently open condition.
+          if (!tk && !(occ && occ.source_kind)) { try { tk = (await getTextKey(occ)) || null; } catch (_) {} }
           var row = {
             item_key: card.lemmaKey, kind: "review",
             reviewed_at: new Date(now).toISOString(), grade: correct ? 3 : 1,

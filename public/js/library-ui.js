@@ -1775,6 +1775,14 @@ function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || '
 const morphHost = window.MorphHost.createHost({
   ldb: async () => localDb,
   getTextKey: async () => readerTextKey || null,
+  verifyOccurrence: async (occ) => {
+    if (!occ || occ.source_kind !== 'reviewed_solution' || !window.PublicCorpusAdapter) return null;
+    for (const support of physicsLearningSupportCache.values()) {
+      const verified = window.PublicCorpusAdapter.verifyMaterialsSolutionOccurrence(occ, support);
+      if (verified) return verified;
+    }
+    return null;
+  },
   toast: (m) => roomToast(m),
   onProfileChanged: () => {
     // объединённый хук поверхности: исходные пути имели подмножества этих действий
@@ -6778,7 +6786,7 @@ const gradeReadingTap = (card, occ, correct, prev) => morphHost.gradeReadingTap(
 // into tappable spans (post-render, parity-safe — the reader-core builder is untouched)
 // → a tap shows a light root/binyan/POS/gloss card with honest provenance. The 3.3 MB
 // offline Pealim dataset loads lazily on the FIRST tap, never at text-open.
-function attachReaderMorph(mount) {
+function attachReaderMorph(mount, overrides) {
   if (!mount || !window.ReaderMorph) return;
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   morphHost.clearCtxCache();   // fresh per (re)attach
@@ -6837,8 +6845,10 @@ function attachReaderMorph(mount) {
   // PAS-A4 — «🤖 Объяснить (наставник)» на карточке: слово В ЭТОМ предложении. Источник
   // (личный/корпус) и все честные состояния решает host; reader-morph только рендерит.
   opts.explainWord = explainWordFromCard;
+  Object.assign(opts, overrides || {});
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
-  applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
+  if (!overrides) applyDecorations();   // default reader only: custom tables own their selector/focus
+  return readerMorph;
 }
 
 function readerStateBox(i18nKey, icon) {
@@ -7953,7 +7963,7 @@ function materialsConditionRows(support) {
     order: index + 1,
     section: 'condition',
     kind: String(row.meta && row.meta.materials_science && row.meta.materials_science.kind || 'condition'),
-    exam_copy: true,
+    exam_copy: true, audio_plan: row.audio_plan || null,
     text: {
       he: String(row.hebrew_plain || ''), he_niqqud: String(row.hebrew_niqqud || ''),
       transliteration: String(row.translit || row.transliteration || ''), ru: String(row.russian || '')
@@ -7963,7 +7973,7 @@ function materialsConditionRows(support) {
 
 function materialsLearningTable(rows, type) {
   const wrap = el('div', { class: 'materials-table-wrap' });
-  const table = el('table', { class: 'materials-learning-table ' + (type === 'condition' ? 'is-condition' : 'is-solution') });
+  const table = el('table', { class: 'materials-learning-table ' + (type === 'condition' ? 'is-condition' : 'is-solution'), attrs: { 'data-learning-source': type } });
   const caption = el('caption', { text: type === 'condition' ? tt('room.publicCorpus.materialsCondition', 'Условие') : tt('room.publicCorpus.materialsSolution', 'Решение') });
   const head = el('thead'); const headRow = el('tr');
   for (const [key, fallback, className] of [
@@ -7973,8 +7983,11 @@ function materialsLearningTable(rows, type) {
   ]) headRow.appendChild(el('th', { class: className, attrs: { scope: 'col' }, text: tt('room.publicCorpus.' + key, fallback) }));
   head.appendChild(headRow); table.append(caption, head);
   const body = el('tbody'); let lastSection = null;
-  for (const row of rows) {
-    const tr = el('tr', { class: 'materials-learning-row', attrs: { 'data-section': row.section, 'data-kind': row.kind } });
+  for (const [rowIndex, row] of rows.entries()) {
+    const tr = el('tr', { class: 'materials-learning-row', attrs: { 'data-section': row.section, 'data-kind': row.kind,
+      'data-row-idx': rowIndex, 'data-row-id': row.row_id, 'data-source-kind': type,
+      'data-audio-state': row.audio_plan && row.audio_plan.state || 'unavailable' } });
+    tr.__materialsRow = row;
     const label = row.section === 'condition' ? tt('room.publicCorpus.materialsConditionStep', 'Условие') : materialsSectionName(row.section);
     const step = el('th', { class: 'materials-step-cell', attrs: { scope: 'row', 'data-label': tt('room.publicCorpus.materialsStep', 'Шаг') } });
     if (row.section !== lastSection) step.appendChild(el('span', { class: 'materials-section-name', text: label }));
@@ -7986,7 +7999,8 @@ function materialsLearningTable(rows, type) {
       ['transliteration', 'materialsTransliteration', 'Транслитерация', 'materials-translit-cell', 'he-Latn', 'ltr'],
       ['ru', 'materialsRussian', 'Русский', 'materials-ru-cell', 'ru', 'ltr']
     ]) {
-      const cell = el('td', { class: className, attrs: { 'data-label': tt('room.publicCorpus.' + key, fallback), lang, dir } });
+      const cell = el('td', { class: className, attrs: { 'data-label': tt('room.publicCorpus.' + key, fallback),
+        'data-col': field === 'he_niqqud' ? 'niqqud' : field, lang, dir } });
       cell.appendChild(document.createTextNode(String(row.text[field] || '—'))); tr.appendChild(cell);
     }
     body.appendChild(tr);
@@ -8025,10 +8039,38 @@ function printMaterialsLearningSupport(viewer, mode) {
   try { window.print(); } finally { window.setTimeout(() => restoreMaterialsPrint(viewer), 0); }
 }
 
+function materialsHasHebrew(value) { return /[\u05d0-\u05ea]/.test(String(value || '')); }
+
+function setMaterialsReaderUrl(support, mode, rowId) {
+  try {
+    const url = new URL(location.href);
+    url.searchParams.set('public_corpus', support.corpus_slug);
+    url.searchParams.set('public_work', support.public_work_id);
+    url.searchParams.set('materials_reader', '1');
+    url.searchParams.set('materials_view', mode || 'solution');
+    if (rowId) url.searchParams.set('materials_row', rowId); else url.searchParams.delete('materials_row');
+    history.replaceState(history.state, '', url.pathname + '?' + url.searchParams.toString() + url.hash);
+  } catch (_) {}
+}
+
+function clearMaterialsReaderUrl() {
+  try {
+    const url = new URL(location.href);
+    for (const key of ['materials_reader', 'materials_view', 'materials_row']) url.searchParams.delete(key);
+    history.replaceState(history.state, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+  } catch (_) {}
+}
+
 function openMaterialsLearningSupport(support, trigger) {
   if (!support) return;
+  const alreadyOpen = document.querySelector('.materials-learning-viewer');
+  if (alreadyOpen) { try { alreadyOpen.focus({ preventScroll: true }); } catch (_) {} return; }
+  const initialParams = (() => { try { return new URLSearchParams(location.search); } catch (_) { return new URLSearchParams(); } })();
+  const initialMode = ['condition', 'solution', 'continuous'].includes(initialParams.get('materials_view')) ? initialParams.get('materials_view') : 'solution';
+  const initialRowId = initialParams.get('materials_row') || '';
   const overlay = el('div', { class: 'materials-learning-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'materialsLearningTitle' } });
-  const viewer = el('article', { class: 'materials-learning-viewer', attrs: { 'data-content-mode': 'solution', 'data-language-mode': 'study' } });
+  const viewer = el('article', { class: 'materials-learning-viewer', attrs: { 'data-content-mode': initialMode, 'data-language-mode': 'study',
+    'data-full-tts-generated': support.audio_boundary && support.audio_boundary.full_tts_generated === false ? 'false' : 'invalid' } });
   const head = el('header', { class: 'materials-learning-head' }); const copy = el('div');
   copy.appendChild(el('span', { class: 'materials-learning-kicker', text: tt('room.publicCorpus.materialsLearningKicker', 'Материаловедение · проверенная редакция') }));
   copy.appendChild(el('h2', { attrs: { id: 'materialsLearningTitle' }, text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') + ' · ' + support.display_alias }));
@@ -8047,9 +8089,9 @@ function openMaterialsLearningSupport(support, trigger) {
   function modeButton(mode, textValue, active) {
     return el('button', { class: 'materials-mode-button' + (active ? ' is-active' : ''), attrs: { type: 'button', 'data-mode': mode, 'aria-pressed': active ? 'true' : 'false' }, text: textValue });
   }
-  const conditionMode = modeButton('condition', tt('room.publicCorpus.materialsCondition', 'Условие'), false);
-  const solutionMode = modeButton('solution', tt('room.publicCorpus.materialsSolution', 'Решение'), true);
-  const continuousMode = modeButton('continuous', tt('room.publicCorpus.materialsContinuous', 'Условие + решение'), false);
+  const conditionMode = modeButton('condition', tt('room.publicCorpus.materialsCondition', 'Условие'), initialMode === 'condition');
+  const solutionMode = modeButton('solution', tt('room.publicCorpus.materialsSolution', 'Решение'), initialMode === 'solution');
+  const continuousMode = modeButton('continuous', tt('room.publicCorpus.materialsContinuous', 'Условие + решение'), initialMode === 'continuous');
   const studyMode = modeButton('study', tt('room.publicCorpus.materialsStudyMode', 'Учёба · 4 колонки'), true);
   const examMode = modeButton('exam', tt('room.publicCorpus.materialsExamMode', 'Экзамен · иврит'), false);
   contentGroup.append(conditionMode, solutionMode, continuousMode); languageGroup.append(studyMode, examMode); toolbar.append(contentGroup, languageGroup); body.appendChild(toolbar);
@@ -8065,10 +8107,11 @@ function openMaterialsLearningSupport(support, trigger) {
   const provenance = el('footer', { class: 'materials-learning-provenance' });
   provenance.appendChild(el('strong', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
   provenance.appendChild(el('code', { text: 'edition ' + support.edition_number + ' · work ' + support.public_work_id + ' · snapshot ' + support.snapshot_sha256.slice(0, 12) + '…' }));
-  solution.appendChild(provenance); body.append(condition, solution); viewer.appendChild(body); overlay.appendChild(viewer); document.body.appendChild(overlay);
+  solution.appendChild(provenance); body.append(condition, solution); viewer.appendChild(body); overlay.appendChild(viewer); document.body.appendChild(overlay); document.body.classList.add('materials-learning-open');
   function setContent(mode) {
     viewer.setAttribute('data-content-mode', mode);
     for (const button of [conditionMode, solutionMode, continuousMode]) { const on = button.dataset.mode === mode; button.classList.toggle('is-active', on); button.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+    setMaterialsReaderUrl(support, mode, viewer.getAttribute('data-active-row'));
   }
   function setLanguage(mode) {
     viewer.setAttribute('data-language-mode', mode);
@@ -8076,10 +8119,36 @@ function openMaterialsLearningSupport(support, trigger) {
   }
   conditionMode.addEventListener('click', () => setContent('condition')); solutionMode.addEventListener('click', () => setContent('solution')); continuousMode.addEventListener('click', () => setContent('continuous'));
   studyMode.addEventListener('click', () => setLanguage('study')); examMode.addEventListener('click', () => setLanguage('exam'));
+  setMaterialsReaderUrl(support, initialMode, initialRowId);
+  const materialsMorph = attachReaderMorph(viewer, {
+    cellSelector: '.materials-learning-table tbody td[data-col="he"], .materials-learning-table tbody td[data-col="niqqud"]',
+    rowSelector: '.materials-learning-row[data-row-idx]', rowIndexAttribute: 'data-row-idx', rovingFocus: true,
+    getRowForCell: (_cell, tr) => tr && tr.__materialsRow || null,
+    getPlainText: row => row && row.text && row.text.he,
+    getVocalizedText: row => row && row.text && row.text.he_niqqud,
+    getSentence: row => row && row.text && (row.text.he_niqqud || row.text.he),
+    shouldWrap: (_row, _cell, _col, value) => materialsHasHebrew(value),
+    buildOccurrence: (span, row) => {
+      const tr = span.closest('.materials-learning-row');
+      if (!tr || tr.getAttribute('data-source-kind') !== 'solution') return null;
+      try { return window.PublicCorpusAdapter.materialsSolutionOccurrence(support, row, Number(span.getAttribute('data-w-offset')), span.getAttribute('data-surface')); }
+      catch (_) { return null; }
+    },
+    onOccurrenceActive: (span, row) => {
+      const tr = span.closest('.materials-learning-row'); if (!tr) return;
+      viewer.setAttribute('data-active-row', row.row_id);
+      setMaterialsReaderUrl(support, viewer.getAttribute('data-content-mode'), row.row_id);
+    },
+  });
+  const anchoredRow = initialRowId && Array.from(viewer.querySelectorAll('[data-row-id]')).find(row => row.getAttribute('data-row-id') === initialRowId);
+  if (anchoredRow) {
+    viewer.setAttribute('data-active-row', initialRowId);
+    requestAnimationFrame(() => { anchoredRow.scrollIntoView({ block: 'center' }); const token = anchoredRow.querySelector('.rm-w[tabindex="0"]'); if (token) token.focus({ preventScroll: true }); });
+  }
   const background = roomSuspendBackground(overlay); let closed = false;
   const beforePrint = () => prepareMaterialsPrint(viewer, viewer.getAttribute('data-language-mode') === 'exam' ? 'exam' : 'study');
   const afterPrint = () => restoreMaterialsPrint(viewer);
-  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); restoreMaterialsPrint(viewer); overlay.remove(); roomRestoreBackground(background); try { trigger && trigger.focus(); } catch (_) {} };
+  const shut = () => { if (closed) return; closed = true; document.removeEventListener('keydown', keydown); window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); restoreMaterialsPrint(viewer); try { materialsMorph && materialsMorph.detach(); } catch (_) {} overlay.remove(); document.body.classList.remove('materials-learning-open'); clearMaterialsReaderUrl(); roomRestoreBackground(background); attachReaderMorph($('roomReaderTable')); try { trigger && trigger.focus(); } catch (_) {} };
   const keydown = event => { if (event.key === 'Escape') { event.preventDefault(); shut(); } else if (event.key === 'Tab') roomFocusTrap(event, viewer); };
   printStudy.addEventListener('click', () => printMaterialsLearningSupport(viewer, 'study')); printExam.addEventListener('click', () => printMaterialsLearningSupport(viewer, 'exam'));
   close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); window.addEventListener('beforeprint', beforePrint); window.addEventListener('afterprint', afterPrint); roomFocusInto(viewer);
@@ -13397,8 +13466,13 @@ async function boot() {
           if (publicWorkId) {
             const publicCatalog = await ensurePublicCatalog(publicSlug);
             const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
-            if (publicWork) await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
-            else roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
+            if (publicWork) {
+              await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
+              if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
+                const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);
+                openMaterialsLearningSupport(support, document.querySelector('.reader-task-learning-support .materials-learning-action.primary'));
+              }
+            } else roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
           }
         }
       }

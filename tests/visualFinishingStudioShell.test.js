@@ -99,11 +99,11 @@ test("VF3 shell remains intact in the current release and locale lock", () => {
   const footer = room.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && footer && worker);
-  assert.equal(app[1], "3.11.449");
+  assert.equal(app[1], "3.11.452");
   assert.equal(footer[1], app[1]);
   assert.equal(worker[1], app[1]);
   for (const code of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${code}.js?v=187`;
+    const url = `/i18n/locales/${code}.js?v=188`;
     assert.ok(studio.includes(url), `Studio must request exact ${url}`);
     assert.ok(room.includes(url), `Room must request exact ${url}`);
     assert.ok(sw.includes(JSON.stringify(url)), `SW must precache exact ${url}`);

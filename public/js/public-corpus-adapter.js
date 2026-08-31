@@ -169,5 +169,73 @@
     if (!Array.isArray(condition.rows) || !condition.rows.length || !Array.isArray(condition.source_pages)) invalid();
     return Object.freeze({ ...clone(payload), solution_rows: Object.freeze(normalizedRows), condition: clone(condition) });
   }
-  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport, normalizeMaterialsLearningSupport });
+  function materialsSolutionTextKey(support) {
+    const value = support || {};
+    const parts = [
+      "reviewed-solution-v1", text(value.corpus_slug, 80, SLUG), text(value.edition_id, 160, ID),
+      text(value.edition_manifest_sha256, 64, HASH), text(value.public_work_id, 160, ID),
+      text(value.snapshot_sha256, 64, HASH), text(value.derivative_sha256, 64, HASH),
+      text(value.task_id, 160, ID),
+    ];
+    return parts.map(part => encodeURIComponent(part)).join(":");
+  }
+  function materialsHebrewWords(value) {
+    return String(value || "").match(/[֑-ׇֽֿׁׂׅׄא-ת׳״]+/g) || [];
+  }
+  function materialsAudioTokenForWord(tokens, surface) {
+    const strip = value => String(value || "").replace(/[֑-ׇ]/g, "").trim();
+    const word = strip(surface);
+    const matches = (tokens || []).filter(token => {
+      const tokenSurface = strip(token && token.surface), normalized = strip(token && token.normalized);
+      return tokenSurface === word || normalized === word || tokenSurface.includes(word) || normalized.includes(word);
+    });
+    return matches.length === 1 ? matches[0] : null;
+  }
+  function materialsSolutionOccurrence(support, row, wordOffset, surface) {
+    const value = support || {}, rows = Array.isArray(value.solution_rows) ? value.solution_rows : invalid();
+    const exact = rows.find(candidate => candidate && String(candidate.row_id) === String(row && row.row_id));
+    const offset = Number(wordOffset), cleanSurface = String(surface || "").trim();
+    if (!exact || exact !== row || !Number.isInteger(offset) || offset < 0 || !cleanSurface) invalid();
+    const rowWords = materialsHebrewWords(exact.text && exact.text.he);
+    const strip = value => String(value || "").replace(/[֑-ׇ]/g, "").trim();
+    if (!rowWords[offset] || strip(rowWords[offset]) !== strip(cleanSurface)) invalid();
+    const tokens = exact.audio_plan && Array.isArray(exact.audio_plan.karaoke_tokens) ? exact.audio_plan.karaoke_tokens : [];
+    const audioToken = materialsAudioTokenForWord(tokens, cleanSurface);
+    const textKey = materialsSolutionTextKey(value);
+    return Object.freeze({
+      source_kind: "reviewed_solution", corpus_slug: value.corpus_slug,
+      edition_id: value.edition_id, edition_number: Number(value.edition_number),
+      edition_manifest_sha256: value.edition_manifest_sha256, public_work_id: value.public_work_id,
+      snapshot_sha256: value.snapshot_sha256, derivative_sha256: value.derivative_sha256,
+      task_id: value.task_id, row_id: exact.row_id, row_order: Number(exact.order),
+      text_key: textKey, text_id: textKey, sentence_id: exact.row_id,
+      order_index: Number(exact.order), word_offset: offset,
+      audio_token_index: audioToken ? Number(audioToken.index) : null, surface: cleanSurface,
+    });
+  }
+  function verifyMaterialsSolutionOccurrence(occ, support) {
+    if (!occ || occ.source_kind !== "reviewed_solution" || !support) return null;
+    try {
+      const textKey = materialsSolutionTextKey(support);
+      if (occ.text_key !== textKey || occ.text_id !== textKey
+        || occ.corpus_slug !== support.corpus_slug || occ.edition_id !== support.edition_id
+        || Number(occ.edition_number) !== Number(support.edition_number)
+        || occ.edition_manifest_sha256 !== support.edition_manifest_sha256
+        || occ.public_work_id !== support.public_work_id || occ.snapshot_sha256 !== support.snapshot_sha256
+        || occ.derivative_sha256 !== support.derivative_sha256 || occ.task_id !== support.task_id) return null;
+      const row = (support.solution_rows || []).find(candidate => candidate && candidate.row_id === occ.sentence_id);
+      if (!row || row.row_id !== occ.row_id || Number(row.order) !== Number(occ.order_index)
+        || Number(row.order) !== Number(occ.row_order)) return null;
+      const offset = Number(occ.word_offset), tokens = row.audio_plan && row.audio_plan.karaoke_tokens;
+      if (!Number.isInteger(offset) || offset < 0 || !Array.isArray(tokens)) return null;
+      const strip = value => String(value || "").replace(/[֑-ׇ]/g, "").trim();
+      const rowWords = materialsHebrewWords(row.text && row.text.he);
+      if (!rowWords[offset] || strip(rowWords[offset]) !== strip(occ.surface)) return null;
+      const audioToken = materialsAudioTokenForWord(tokens, occ.surface);
+      const expectedAudioIndex = audioToken ? Number(audioToken.index) : null;
+      if (occ.audio_token_index !== expectedAudioIndex) return null;
+      return { textKey, sentenceId: row.row_id, orderIndex: Number(row.order), surface: String(occ.surface) };
+    } catch (_) { return null; }
+  }
+  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport, normalizeMaterialsLearningSupport, materialsSolutionTextKey, materialsSolutionOccurrence, verifyMaterialsSolutionOccurrence });
 });

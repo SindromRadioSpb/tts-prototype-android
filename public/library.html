@@ -951,7 +951,10 @@
     .materials-inline-answer p { margin: 4px 0; font: 650 14px/1.55 "Cambria Math",Cambria,serif; }
     .materials-inline-answer[hidden] { display: none; }
     .materials-learning-overlay { position: fixed; inset: 0; z-index: 10031; display: grid; place-items: center; padding: 14px; background: rgba(5,18,23,.86); }
-    .materials-learning-viewer { width: min(1180px,100%); height: min(95vh,980px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 16px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 30px 100px rgba(0,0,0,.42); }
+    body.materials-learning-open .rm-sheet { z-index: 10040; }
+    body.materials-learning-open .rm-statpop { z-index: 10042; }
+    body.materials-learning-open .room-consent-overlay { z-index: 10044; }
+    .materials-learning-viewer { --materials-teal:#0f6f74; --materials-amber:#c07c21; --materials-graphite:#172033; --materials-steel:#e7eef0; --materials-paper:#fbfcfd; width: min(1180px,100%); height: min(95vh,980px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-soft); border-radius: 16px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 30px 100px rgba(0,0,0,.42); }
     .materials-learning-head { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px 24px 20px; border-bottom: 1px solid color-mix(in srgb,#0f6f74 35%,var(--border-soft)); background: linear-gradient(125deg,color-mix(in srgb,#0f6f74 14%,var(--bg-card)),color-mix(in srgb,#c07c21 10%,var(--bg-card))); }
     .materials-learning-head > div:first-child { min-width: 0; }
     .materials-learning-kicker { color: #0f6f74; font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
@@ -976,10 +979,14 @@
     .materials-learning-table tbody tr:last-child > * { border-bottom: 0; }
     .materials-learning-table tr > *:last-child { border-inline-end: 0; }
     .materials-step-col,.materials-step-cell { width: 112px; }
-    .materials-step-cell { background: color-mix(in srgb,var(--bg-muted) 72%,var(--bg-card)); text-align: start; }
+    .materials-step-cell { position: relative; border-inline-start: 3px solid color-mix(in srgb,var(--materials-teal) 72%,var(--border-soft)); background: color-mix(in srgb,var(--bg-muted) 72%,var(--bg-card)); text-align: start; }
+    .materials-step-cell::before { content: ""; position: absolute; inline-size: 9px; block-size: 9px; inset-inline-start: -6px; inset-block-start: 15px; box-sizing: border-box; border: 2px solid var(--materials-paper); border-radius: 50%; background: var(--materials-teal); box-shadow: 0 0 0 1px color-mix(in srgb,var(--materials-teal) 55%,var(--border-soft)); }
     .materials-section-name { display: block; color: #0f6f74; font: 850 10px/1.3 system-ui,sans-serif; letter-spacing: .045em; text-transform: uppercase; }
     .materials-step-number { display: block; margin-top: 5px; color: var(--text-secondary); font: 750 11px/1.3 system-ui,sans-serif; }
     .materials-he-cell,.materials-niqqud-cell { text-align: right; font: 500 15px/1.7 Arial,"Noto Sans Hebrew",sans-serif; }
+    .materials-learning-viewer .rm-w { border-radius: 4px; text-decoration-thickness: 1px; text-underline-offset: .18em; }
+    .materials-learning-viewer .rm-w:hover { background: color-mix(in srgb,var(--materials-teal) 10%,transparent); }
+    .materials-learning-viewer .rm-w:focus-visible { outline: 3px solid color-mix(in srgb,var(--materials-teal) 48%,transparent); outline-offset: 2px; background: color-mix(in srgb,var(--materials-teal) 12%,transparent); }
     .materials-translit-cell { color: var(--text-secondary); font: 500 13px/1.65 system-ui,sans-serif; }
     .materials-ru-cell { font: 500 14px/1.6 system-ui,sans-serif; }
     .materials-learning-row[data-kind="formula"] td,.materials-learning-row[data-kind="calculation"] td { direction: ltr; unicode-bidi: isolate; font-family: "Cambria Math",Cambria,"Times New Roman",serif; }
@@ -992,6 +999,9 @@
     .materials-source-figure figcaption { margin-top: 6px; color: #475569; font-size: 10px; }
     .materials-learning-provenance { display: grid; gap: 5px; margin-top: 18px; padding: 12px 14px; border-top: 2px solid #0f6f74; color: var(--text-secondary); font-size: 11px; }
     .materials-learning-provenance code { overflow-wrap: anywhere; white-space: normal; color: inherit; font-size: 10px; }
+    @media (prefers-reduced-motion: reduce) {
+      .materials-learning-viewer .rm-w { transition: none !important; }
+    }
     .group-corpus-head { position: relative; padding: 4px 0 12px; }
     .group-corpus-count { color: var(--text-secondary); font-size: 13px; font-weight: 700; margin-top: 6px; }
     .group-corpus-admin { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; margin: 2px 0 12px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-muted); }
@@ -1152,6 +1162,7 @@
       .materials-learning-table tr { overflow: hidden; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
       .materials-learning-table th,.materials-learning-table td { padding: 9px 11px; border-inline-end: 0; }
       .materials-learning-table td::before { display: block; margin-bottom: 3px; color: #0f6f74; content: attr(data-label); font: 850 9px/1.25 system-ui,sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+      .materials-step-cell { padding-inline-start: 15px !important; }
       .materials-step-cell { box-sizing: border-box; }
       .materials-learning-viewer[data-language-mode="exam"] .materials-learning-table td.materials-he-cell { display: block; }
       .materials-source-figures { grid-template-columns: 1fr; }
@@ -2895,6 +2906,8 @@
       .materials-learning-table tr { display: table-row !important; break-inside: avoid; border: 0 !important; }
       .materials-learning-table th,.materials-learning-table td { display: table-cell !important; width: auto !important; padding: 2.2mm 2mm !important; border-color: #cbd5e1 !important; background: #fff !important; color: #111827 !important; }
       .materials-learning-table td::before { display: none !important; }
+      .materials-learning-table .rm-w { color: inherit !important; background: transparent !important; outline: 0 !important; box-shadow: none !important; text-decoration: none !important; }
+      body.materials-learning-open .rm-sheet,body.materials-learning-open .rm-statpop,body.materials-learning-open .room-consent-overlay { display: none !important; }
       .materials-step-col,.materials-step-cell { width: 23mm !important; }
       .materials-he-cell,.materials-niqqud-cell { font-size: 8.5pt; line-height: 1.5; }
       .materials-translit-cell,.materials-ru-cell { font-size: 7.5pt; line-height: 1.45; }
@@ -3056,7 +3069,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.451</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.452</button>
   </div>
 </footer>
 
@@ -3244,9 +3257,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=187"></script>
-    <script src="/i18n/locales/en.js?v=187"></script>
-    <script src="/i18n/locales/he.js?v=187"></script>
+    <script src="/i18n/locales/ru.js?v=188"></script>
+    <script src="/i18n/locales/en.js?v=188"></script>
+    <script src="/i18n/locales/he.js?v=188"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3281,7 +3294,7 @@
 <!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
      reader-morph.js so ensureEngine can build its lexicon. -->
 <script src="/js/proclitic-segment.js"></script>
-<script src="/js/reader-morph.js"></script>
+<script src="/js/reader-morph.js?v=452"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
@@ -3316,13 +3329,13 @@
 <script src="/js/studio-portable-learning-package.js"></script>
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
-<script src="/js/morph-host.js?v=414"></script>
+<script src="/js/morph-host.js?v=415"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=418"></script>
-<script type="module" src="/js/library-ui.js?v=426"></script>
+<script src="/js/public-corpus-adapter.js?v=419"></script>
+<script type="module" src="/js/library-ui.js?v=427"></script>
 </body>
 </html>
