@@ -1,0 +1,1804 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_8730f0d4417f1c2c9d78c286",
+  "public_work_id": "work-1ea55e830e7a41580d6db4a3",
+  "snapshot_sha256": "8bf6cf51381171c4d996bb1f445b30242c227eda89d4b5022f0a6b7f4884837f",
+  "task_id": "materials-science-y1-pb2-q032",
+  "display_alias": "32",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "5e5c332791e52268a86f15e7bf8a4cb2c2fd8471336a4d4cd11513acdac56e45"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "16dd0e1d264743e02a8811f8bb12b40cfa326d23a016d774ecaaab1e8a575b21",
+    "source_canonical_task_sha256": "5e5c332791e52268a86f15e7bf8a4cb2c2fd8471336a4d4cd11513acdac56e45"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+    "legacy_comparison": "NO_LEGACY_SOLUTION",
+    "publication_blocking": false,
+    "reviewer_note": "No legacy solution exists. Source graph directly supports SAE4150>4140>4130 strength, common E, tempered martensite and the strength-ductility tempering trend.",
+    "reviewer_disposition": "SOURCE_ONLY_TECHNICAL_REVIEW_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q032-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 32.",
+        "hebrew_niqqud": "שְׁאֵלָה 32.",
+        "translit": "She'ela 32.",
+        "translit_ru": "",
+        "russian": "Вопрос 32.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "task_heading",
+            "source_page": 39,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r002",
+        "order_index": 1,
+        "hebrew_plain": "שלוש פלדות (מסומנות לפי תקן SAE) נבדקות במכונת מתיחה לאחר טיפול תרמי:",
+        "hebrew_niqqud": "שָׁלוֹשׁ פְּלָדוֹת (מְסֻומָּנוֹת לְפִי תֶּקֶן SAE) נִבְדָּקוֹת בִּמְכוֹנַת מְתִיחָה לְאַחַר טִיפּוּל תֶּרְמִי:",
+        "translit": "Shalosh pladot (mesumanot lefi teḳen SAE) nivdaḳot bi-mkhonat metiḥah le-aḥar ṭipul termi:",
+        "translit_ru": "",
+        "russian": "Три стали (обозначенные по стандарту SAE) испытываются на разрывной машине после термической обработки:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "condition",
+            "source_page": 39,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r003",
+        "order_index": 2,
+        "hebrew_plain": "חיסום ולאחר מכן הרפיה בטמפרטורה 500°C במשך שעה אחת.",
+        "hebrew_niqqud": "חִיסּוּם וּלְאַחַר מִכֵּן הַרְפָּיָה בְּטֶמְפֶּרָטוּרָה 500°C בְּמֶשֶׁךְ שָׁעָה אַחַת.",
+        "translit": "Ḥisum u-le-aḥar mi-ken harpayah be-ṭemperaturah 500°C be-meshekh sha'ah aḥat.",
+        "translit_ru": "",
+        "russian": "Закалка и последующий отпуск при температуре 500°C в течение одного часа.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "condition",
+            "source_page": 39,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r004",
+        "order_index": 3,
+        "hebrew_plain": "דיאגרמות המתיחה של הפלדות הללו מוצגות באיור לשאלה 7.",
+        "hebrew_niqqud": "דִּיאַגְרָמוֹת הַמְּתִיחָה שֶׁל הַפְּלָדוֹת הַלָּלוּ מֻוצָּגוֹת בְּאִיּוּר לִשְׁאֵלָה 7.",
+        "translit": "Diagramot ha-metiḥah shel ha-pladot ha-lalu mutsagot be-iyur li-she'elah 7.",
+        "translit_ru": "",
+        "russian": "Диаграммы растяжения этих сталей представлены на рисунке к вопросу 7.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "diagram_reference",
+            "source_page": 39,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r005",
+        "order_index": 4,
+        "hebrew_plain": "שימוש בדיאגרמות חובה!",
+        "hebrew_niqqud": "שִׁימּוּשׁ בְּדִיאַגְרָמוֹת חוֹבָה!",
+        "translit": "Shimush be-diagramot ḥovah!",
+        "translit_ru": "",
+        "russian": "Использование диаграмм обязательно!",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "source_note",
+            "source_page": 39,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r006",
+        "order_index": 5,
+        "hebrew_plain": "א. מהי הפלדה בעלת החוזק הגבוה ביותר? נמקו את תשובתכם.",
+        "hebrew_niqqud": "א. מַהִי הַפְּלָדָה בַּעֲלַת הַחֹוזֶק הַגָּבוֹהַּ בְּיוֹתֵר? נַמְּקוּ אֶת תְּשׁוּבַתְכֶם.",
+        "translit": "A. Mahi ha-pladah ba'alat ha-ḥozeḳ ha-gavoah be-yoter? Namḳu et tshuvatkem.",
+        "translit_ru": "",
+        "russian": "А. Какая сталь обладает наибольшей прочностью? Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "subpart",
+            "source_page": 39,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r007",
+        "order_index": 6,
+        "hebrew_plain": "ב. מדוע הפלדה שקבעתם בסעיף א' היא בעלת חוזק גבוה יותר מאשר שתי הפלדות האחרות?",
+        "hebrew_niqqud": "ב. מַדּוּעַ הַפְּלָדָה שֶׁקְּבַעְתֶּם בִּסְעִיף א' הִיא בַּעֲלַת חֹוזֶק גָּבוֹהַּ יוֹתֵר מֵאֲשֶׁר שְׁתֵּי הַפְּלָדוֹת הָאֲחֵרוֹת?",
+        "translit": "B. Madu'a ha-pladah she-ḳeva'tem bi-se'if A hi ba'alat ḥozeḳ gavoah yoter me-asher shtey ha-pladot ha-aḥerot?",
+        "translit_ru": "",
+        "russian": "Б. Почему сталь, определенная вами в пункте А, обладает более высокой прочностью, чем две другие стали?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "subpart",
+            "source_page": 39,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r008",
+        "order_index": 7,
+        "hebrew_plain": "ג. האם מודול האלסטיות של הפלדות הללו שונה? נמקו את תשובתכם.",
+        "hebrew_niqqud": "ג. הַאִם מוֹדוּל הָאֶלַסְטִיּוּת שֶׁל הַפְּלָדוֹת הַלָּלוּ שׁוֹנֶה? נַמְּקוּ אֶת תְּשׁוּבַתְכֶם.",
+        "translit": "G. Ha'im modul ha-elasṭiyut shel ha-pladot ha-lalu shoneh? Namḳu et tshuvatkem.",
+        "translit_ru": "",
+        "russian": "Г. Различается ли модуль упругости этих сталей? Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "subpart",
+            "source_page": 39,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r009",
+        "order_index": 8,
+        "hebrew_plain": "ד. מהו המבנה המתקבל בפלדות הללו לאחר שנעשה טיפול תרמי?",
+        "hebrew_niqqud": "ד. מַהוּ הַמִּבְנֶה הַמִּתְקַבֵּל בִּפְלָדוֹת הַלָּלוּ לְאַחַר שֶׁנַּעֲשָׂה טִיפּוּל תֶּרְמִי?",
+        "translit": "D. Mahu ha-mivneh ha-mitḳabel bi-fladot ha-lalu le-aḥar she-na'asah ṭipul termi?",
+        "translit_ru": "",
+        "russian": "Д. Какая структура образуется в этих сталях после проведения термической обработки?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "subpart",
+            "source_page": 39,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q032-r010",
+        "order_index": 9,
+        "hebrew_plain": "ה. האם צורת הדיאגרמות משתנה עם עליית טמפרטורת ההרפיה עד 500°C (זמן ההרפיה לא משתנה)? אם כן, עליך להסביר מהו השינוי. אם לא, עליך להסביר מהי הסיבה לכך.",
+        "hebrew_niqqud": "ה. הַאִם צוּרַת הַדִּיאַגְרָמוֹת מִשְׁתַּנָּה עִם עֲלִייַּת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה עַד 500°C (זְמַן הַהַרְפָּיָה לֹא מִשְׁתַּנֶּה)? אִם כֵּן, עָלֶיךָ לְהַסְבִּיר מַהוּ הַשִּׁינּוּי. אִם לֹא, עָלֶיךָ לְהַסְבִּיר מַהִי הַסִּיבָּה לְכָךְ.",
+        "translit": "H. Ha'im tsurat ha-diagramot mishtanah im aliyat ṭemperaturat ha-harpayah ad 500°C (zman ha-harpayah lo mishtaneh)? Im ken, alekha le-hasbir mahu ha-shinuy. Im lo, alekha le-hasbir mahi ha-sibah le-khakh.",
+        "translit_ru": "",
+        "russian": "Е. Изменяется ли форма диаграмм с повышением температуры отпуска до 500°C (время отпуска не меняется)? Если да, вам следует объяснить, в чем состоит изменение. Если нет, вам следует объяснить причину этого.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q032",
+            "kind": "subpart",
+            "source_page": 39,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      39
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q032/anchor-01-p039.jpg",
+        "sha256": "6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "bytes": 242808,
+        "source_page": 39,
+        "normalized_bbox": [
+          0,
+          0.32,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q032-v01",
+        "source_page": 39,
+        "kind": "TEMPERING_STRESS_STRAIN_CURVES",
+        "instance_count": 3,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) SAE 4150 היא החזקה ביותר: UTS בקירוב 2200 MPa, לעומת 1950 MPa ל־4140 ו־1650 MPa ל־4130.",
+        "he_niqqud": "א) SAE 4150 הִיא הַחֲזָקָה בְּיוֹתֵר: UTS בְּקֵרוּב 2200 MPa, לְעֻמַּת 1950 MPa לְ־4140 וְ־1650 MPa לְ־4130.",
+        "transliteration": "A) SAE 4150 hi ha-hazaqah be-yoter: UTS be-qeruv 2200 MPa, le'umat 1950 MPa le-4140 ve-1650 MPa le-4130.",
+        "ru": "А) SAE 4150 — самая прочная: UTS около 2200 МПа против 1950 МПа у 4140 и 1650 МПа у 4130."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "4150",
+            "normalized": "4150"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "הַחֲזָקָה",
+            "normalized": "החזקה"
+          },
+          {
+            "index": 5,
+            "surface": "בְּיוֹתֵר:",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 6,
+            "surface": "UTS",
+            "normalized": "UTS"
+          },
+          {
+            "index": 7,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 8,
+            "surface": "2200",
+            "normalized": "2200"
+          },
+          {
+            "index": 9,
+            "surface": "MPa,",
+            "normalized": "MPa"
+          },
+          {
+            "index": 10,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 11,
+            "surface": "1950",
+            "normalized": "1950"
+          },
+          {
+            "index": 12,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 13,
+            "surface": "לְ־4140",
+            "normalized": "ל־4140"
+          },
+          {
+            "index": 14,
+            "surface": "וְ־1650",
+            "normalized": "ו־1650"
+          },
+          {
+            "index": 15,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 16,
+            "surface": "לְ־4130.",
+            "normalized": "ל־4130"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) מודול האלסטיות כמעט זהה, כ־200 GPa, כי השיפועים האלסטיים ההתחלתיים חופפים.",
+        "he_niqqud": "ג) מוֹדוּל הָאֶלַסְטִיּוּת כִּמְעַט זֵהֶה, כְּ־200 GPa, כִּי הַשִּׁפּוּעִים הָאֶלַסְטִיִּים הַהַתְחָלָתִיִּים חוֹפְפִים.",
+        "transliteration": "G) Modul ha-elastiyut kim'at zeheh, ke-200 GPa, ki ha-shipu'im ha-elastiyim ha-hathalatiyim hofefim.",
+        "ru": "В) Модуль упругости почти одинаков, около 200 ГПа, поскольку начальные упругие наклоны совпадают."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "מוֹדוּל",
+            "normalized": "מודול"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֶלַסְטִיּוּת",
+            "normalized": "האלסטיות"
+          },
+          {
+            "index": 3,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 4,
+            "surface": "זֵהֶה,",
+            "normalized": "זהה"
+          },
+          {
+            "index": 5,
+            "surface": "כְּ־200",
+            "normalized": "כ־200"
+          },
+          {
+            "index": 6,
+            "surface": "GPa,",
+            "normalized": "GPa"
+          },
+          {
+            "index": 7,
+            "surface": "כִּי",
+            "normalized": "כי"
+          },
+          {
+            "index": 8,
+            "surface": "הַשִּׁפּוּעִים",
+            "normalized": "השפועים"
+          },
+          {
+            "index": 9,
+            "surface": "הָאֶלַסְטִיִּים",
+            "normalized": "האלסטיים"
+          },
+          {
+            "index": 10,
+            "surface": "הַהַתְחָלָתִיִּים",
+            "normalized": "ההתחלתיים"
+          },
+          {
+            "index": 11,
+            "surface": "חוֹפְפִים.",
+            "normalized": "חופפים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) לאחר חיסום והרפיה ב־500°C המבנה הוא מרטנזיט מורפה עם קרבידים.",
+        "he_niqqud": "ד) לְאַחַר חִסּוּם וְהַרְפָּיָה בְּ־500°C הַמִּבְנֶה הוּא מַרְטֶנְזִיט מֻרְפֶּה עִם קַרְבִּידִים.",
+        "transliteration": "D) Le-ahar hisum ve-harpayah be-500°C ha-mivneh hu martenzit murpeh im qarbidim.",
+        "ru": "Г) После закалки и отпуска при 500 °C структура — отпущенный мартенсит с карбидами."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:5"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 2,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 3,
+            "surface": "וְהַרְפָּיָה",
+            "normalized": "והרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "בְּ־500°C",
+            "normalized": "ב־500°C"
+          },
+          {
+            "index": 5,
+            "surface": "הַמִּבְנֶה",
+            "normalized": "המבנה"
+          },
+          {
+            "index": 6,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 7,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 8,
+            "surface": "מֻרְפֶּה",
+            "normalized": "מרפה"
+          },
+          {
+            "index": 9,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 10,
+            "surface": "קַרְבִּידִים.",
+            "normalized": "קרבידים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ה) העלאת טמפרטורת ההרפיה מורידה חוזק וקשיות ומעלה בדרך כלל משיכות וקשיחות; E כמעט אינו משתנה.",
+        "he_niqqud": "ה) הַעֲלָאַת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה מוֹרִידָה חֹזֶק וְקָשִׁיּוּת וּמַעֲלָה בְּדֶרֶךְ כְּלָל מְשִׁיכוּת וּקְשִׁיחוּת; E כִּמְעַט אֵינוֹ מִשְׁתַּנֶּה.",
+        "transliteration": "H) Ha'ala'at temperaturat ha-harpayah moridah hozeq ve-qashiyut u-ma'alah be-derekh klal meshikhut u-qeshihut; E kim'at eino mishtaneh.",
+        "ru": "Д) Повышение температуры отпуска снижает прочность и твёрдость и обычно повышает пластичность и вязкость; E почти не меняется."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:6"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ה)",
+            "normalized": "ה"
+          },
+          {
+            "index": 1,
+            "surface": "הַעֲלָאַת",
+            "normalized": "העלאת"
+          },
+          {
+            "index": 2,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "מוֹרִידָה",
+            "normalized": "מורידה"
+          },
+          {
+            "index": 5,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 6,
+            "surface": "וְקָשִׁיּוּת",
+            "normalized": "וקשיות"
+          },
+          {
+            "index": 7,
+            "surface": "וּמַעֲלָה",
+            "normalized": "ומעלה"
+          },
+          {
+            "index": 8,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 9,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 10,
+            "surface": "מְשִׁיכוּת",
+            "normalized": "משיכות"
+          },
+          {
+            "index": 11,
+            "surface": "וּקְשִׁיחוּת;",
+            "normalized": "וקשיחות"
+          },
+          {
+            "index": 12,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 13,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 14,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 15,
+            "surface": "מִשְׁתַּנֶּה.",
+            "normalized": "משתנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Д"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדות Cr–Mo קרובות, יותר פחמן מעלה את חוזק המרטנזיט לאחר אותו חיסום והרפיה.",
+        "he_niqqud": "בִּפְלָדוֹת Cr–Mo קְרוֹבוֹת, יוֹתֵר פַּחְמָן מַעֲלֶה אֶת חֹזֶק הַמַּרְטֶנְזִיט לְאַחַר אוֹתוֹ חִסּוּם וְהַרְפָּיָה.",
+        "transliteration": "Bi-feladot Cr–Mo qerovot, yoter pahman ma'aleh et hozeq ha-martenzit le-ahar oto hisum ve-harpayah.",
+        "ru": "В близких Cr–Mo-сталях большее содержание углерода повышает прочность мартенсита после одинаковых закалки и отпуска."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:1"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּפְלָדוֹת",
+            "normalized": "בפלדות"
+          },
+          {
+            "index": 1,
+            "surface": "Cr–Mo",
+            "normalized": "Cr–Mo"
+          },
+          {
+            "index": 2,
+            "surface": "קְרוֹבוֹת,",
+            "normalized": "קרובות"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 4,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 5,
+            "surface": "מַעֲלֶה",
+            "normalized": "מעלה"
+          },
+          {
+            "index": 6,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 7,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 8,
+            "surface": "הַמַּרְטֶנְזִיט",
+            "normalized": "המרטנזיט"
+          },
+          {
+            "index": 9,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 10,
+            "surface": "אוֹתוֹ",
+            "normalized": "אותו"
+          },
+          {
+            "index": 11,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 12,
+            "surface": "וְהַרְפָּיָה.",
+            "normalized": "והרפיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r007",
+      "order": 7,
+      "section": "final_answer",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) SAE 4150 היא החזקה ביותר: UTS בקירוב 2200 MPa, לעומת 1950 MPa ל־4140 ו־1650 MPa ל־4130.",
+        "he_niqqud": "א) SAE 4150 הִיא הַחֲזָקָה בְּיוֹתֵר: UTS בְּקֵרוּב 2200 MPa, לְעֻמַּת 1950 MPa לְ־4140 וְ־1650 MPa לְ־4130.",
+        "transliteration": "A) SAE 4150 hi ha-hazaqah be-yoter: UTS be-qeruv 2200 MPa, le'umat 1950 MPa le-4140 ve-1650 MPa le-4130.",
+        "ru": "А) SAE 4150 — самая прочная: UTS около 2200 МПа против 1950 МПа у 4140 и 1650 МПа у 4130."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "4150",
+            "normalized": "4150"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "הַחֲזָקָה",
+            "normalized": "החזקה"
+          },
+          {
+            "index": 5,
+            "surface": "בְּיוֹתֵר:",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 6,
+            "surface": "UTS",
+            "normalized": "UTS"
+          },
+          {
+            "index": 7,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 8,
+            "surface": "2200",
+            "normalized": "2200"
+          },
+          {
+            "index": 9,
+            "surface": "MPa,",
+            "normalized": "MPa"
+          },
+          {
+            "index": 10,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 11,
+            "surface": "1950",
+            "normalized": "1950"
+          },
+          {
+            "index": 12,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 13,
+            "surface": "לְ־4140",
+            "normalized": "ל־4140"
+          },
+          {
+            "index": 14,
+            "surface": "וְ־1650",
+            "normalized": "ו־1650"
+          },
+          {
+            "index": 15,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 16,
+            "surface": "לְ־4130.",
+            "normalized": "ל־4130"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "א"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r008",
+      "order": 8,
+      "section": "model_and_laws",
+      "kind": "law_or_principle",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) הסיבה היא בקירוב 0.50% C ב־4150, לעומת 0.40% ו־0.30% C.",
+        "he_niqqud": "ב) הַסִּבָּה הִיא בְּקֵרוּב 0.50% C בְּ־4150, לְעֻמַּת 0.40% וְ־0.30% C.",
+        "transliteration": "B) Ha-sibah hi be-qeruv 0.50% C be-4150, le'umat 0.40% ve-0.30% C.",
+        "ru": "Б) Причина — около 0,50% C в 4150 против 0,40% и 0,30% C."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַסִּבָּה",
+            "normalized": "הסבה"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקֵרוּב",
+            "normalized": "בקרוב"
+          },
+          {
+            "index": 4,
+            "surface": "0.50%",
+            "normalized": "0.50%"
+          },
+          {
+            "index": 5,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 6,
+            "surface": "בְּ־4150,",
+            "normalized": "ב־4150"
+          },
+          {
+            "index": 7,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 8,
+            "surface": "0.40%",
+            "normalized": "0.40%"
+          },
+          {
+            "index": 9,
+            "surface": "וְ־0.30%",
+            "normalized": "ו־0.30%"
+          },
+          {
+            "index": 10,
+            "surface": "C.",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "ב"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r009",
+      "order": 9,
+      "section": "final_answer",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) מודול האלסטיות כמעט זהה, כ־200 GPa, כי השיפועים האלסטיים ההתחלתיים חופפים.",
+        "he_niqqud": "ג) מוֹדוּל הָאֶלַסְטִיּוּת כִּמְעַט זֵהֶה, כְּ־200 GPa, כִּי הַשִּׁפּוּעִים הָאֶלַסְטִיִּים הַהַתְחָלָתִיִּים חוֹפְפִים.",
+        "transliteration": "G) Modul ha-elastiyut kim'at zeheh, ke-200 GPa, ki ha-shipu'im ha-elastiyim ha-hathalatiyim hofefim.",
+        "ru": "В) Модуль упругости почти одинаков, около 200 ГПа, поскольку начальные упругие наклоны совпадают."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "מוֹדוּל",
+            "normalized": "מודול"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֶלַסְטִיּוּת",
+            "normalized": "האלסטיות"
+          },
+          {
+            "index": 3,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 4,
+            "surface": "זֵהֶה,",
+            "normalized": "זהה"
+          },
+          {
+            "index": 5,
+            "surface": "כְּ־200",
+            "normalized": "כ־200"
+          },
+          {
+            "index": 6,
+            "surface": "GPa,",
+            "normalized": "GPa"
+          },
+          {
+            "index": 7,
+            "surface": "כִּי",
+            "normalized": "כי"
+          },
+          {
+            "index": 8,
+            "surface": "הַשִּׁפּוּעִים",
+            "normalized": "השפועים"
+          },
+          {
+            "index": 9,
+            "surface": "הָאֶלַסְטִיִּים",
+            "normalized": "האלסטיים"
+          },
+          {
+            "index": 10,
+            "surface": "הַהַתְחָלָתִיִּים",
+            "normalized": "ההתחלתיים"
+          },
+          {
+            "index": 11,
+            "surface": "חוֹפְפִים.",
+            "normalized": "חופפים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "ג"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r010",
+      "order": 10,
+      "section": "final_answer",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) לאחר חיסום והרפיה ב־500°C המבנה הוא מרטנזיט מורפה עם קרבידים.",
+        "he_niqqud": "ד) לְאַחַר חִסּוּם וְהַרְפָּיָה בְּ־500°C הַמִּבְנֶה הוּא מַרְטֶנְזִיט מֻרְפֶּה עִם קַרְבִּידִים.",
+        "transliteration": "D) Le-ahar hisum ve-harpayah be-500°C ha-mivneh hu martenzit murpeh im qarbidim.",
+        "ru": "Г) После закалки и отпуска при 500 °C структура — отпущенный мартенсит с карбидами."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:5"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 2,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 3,
+            "surface": "וְהַרְפָּיָה",
+            "normalized": "והרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "בְּ־500°C",
+            "normalized": "ב־500°C"
+          },
+          {
+            "index": 5,
+            "surface": "הַמִּבְנֶה",
+            "normalized": "המבנה"
+          },
+          {
+            "index": 6,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 7,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 8,
+            "surface": "מֻרְפֶּה",
+            "normalized": "מרפה"
+          },
+          {
+            "index": 9,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 10,
+            "surface": "קַרְבִּידִים.",
+            "normalized": "קרבידים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "ד"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r011",
+      "order": 11,
+      "section": "final_answer",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ה) העלאת טמפרטורת ההרפיה מורידה חוזק וקשיות ומעלה בדרך כלל משיכות וקשיחות; E כמעט אינו משתנה.",
+        "he_niqqud": "ה) הַעֲלָאַת טֶמְפֶּרָטוּרַת הַהַרְפָּיָה מוֹרִידָה חֹזֶק וְקָשִׁיּוּת וּמַעֲלָה בְּדֶרֶךְ כְּלָל מְשִׁיכוּת וּקְשִׁיחוּת; E כִּמְעַט אֵינוֹ מִשְׁתַּנֶּה.",
+        "transliteration": "H) Ha'ala'at temperaturat ha-harpayah moridah hozeq ve-qashiyut u-ma'alah be-derekh klal meshikhut u-qeshihut; E kim'at eino mishtaneh.",
+        "ru": "Д) Повышение температуры отпуска снижает прочность и твёрдость и обычно повышает пластичность и вязкость; E почти не меняется."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:6"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ה)",
+            "normalized": "ה"
+          },
+          {
+            "index": 1,
+            "surface": "הַעֲלָאַת",
+            "normalized": "העלאת"
+          },
+          {
+            "index": 2,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 3,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 4,
+            "surface": "מוֹרִידָה",
+            "normalized": "מורידה"
+          },
+          {
+            "index": 5,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 6,
+            "surface": "וְקָשִׁיּוּת",
+            "normalized": "וקשיות"
+          },
+          {
+            "index": 7,
+            "surface": "וּמַעֲלָה",
+            "normalized": "ומעלה"
+          },
+          {
+            "index": 8,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 9,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 10,
+            "surface": "מְשִׁיכוּת",
+            "normalized": "משיכות"
+          },
+          {
+            "index": 11,
+            "surface": "וּקְשִׁיחוּת;",
+            "normalized": "וקשיחות"
+          },
+          {
+            "index": 12,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 13,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 14,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 15,
+            "surface": "מִשְׁתַּנֶּה.",
+            "normalized": "משתנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "ה"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r012",
+      "order": 12,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בגרף יש לסמן: עקומה עליונה 4150, אמצעית 4140 ותחתונה 4130, וכן שיפוע התחלתי משותף.",
+        "he_niqqud": "בַּגְּרָף יֵשׁ לְסַמֵּן: עֲקֻמָּה עֶלְיוֹנָה 4150, אֶמְצָעִית 4140 וְתַחְתּוֹנָה 4130, וְכֵן שִׁפּוּעַ הַתְחָלָתִי מְשֻׁתָּף.",
+        "transliteration": "Ba-graf yesh lesamen: aqumah elyonah 4150, emtsa'it 4140 ve-tahtonah 4130, ve-khen shipu'a hathalati meshutaf.",
+        "ru": "На графике подписать верхнюю кривую 4150, среднюю 4140, нижнюю 4130 и общий начальный наклон."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:7"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּגְּרָף",
+            "normalized": "בגרף"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "לְסַמֵּן:",
+            "normalized": "לסמן"
+          },
+          {
+            "index": 3,
+            "surface": "עֲקֻמָּה",
+            "normalized": "עקמה"
+          },
+          {
+            "index": 4,
+            "surface": "עֶלְיוֹנָה",
+            "normalized": "עליונה"
+          },
+          {
+            "index": 5,
+            "surface": "4150,",
+            "normalized": "4150"
+          },
+          {
+            "index": 6,
+            "surface": "אֶמְצָעִית",
+            "normalized": "אמצעית"
+          },
+          {
+            "index": 7,
+            "surface": "4140",
+            "normalized": "4140"
+          },
+          {
+            "index": 8,
+            "surface": "וְתַחְתּוֹנָה",
+            "normalized": "ותחתונה"
+          },
+          {
+            "index": 9,
+            "surface": "4130,",
+            "normalized": "4130"
+          },
+          {
+            "index": 10,
+            "surface": "וְכֵן",
+            "normalized": "וכן"
+          },
+          {
+            "index": 11,
+            "surface": "שִׁפּוּעַ",
+            "normalized": "שפוע"
+          },
+          {
+            "index": 12,
+            "surface": "הַתְחָלָתִי",
+            "normalized": "התחלתי"
+          },
+          {
+            "index": 13,
+            "surface": "מְשֻׁתָּף.",
+            "normalized": "משתף"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r013",
+      "order": 13,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיקה: סדר החוזק אינו משמש להסיק מודולי E שונים.",
+        "he_niqqud": "בְּדִיקָה: סֵדֶר הַחֹזֶק אֵינוֹ מְשַׁמֵּשׁ לְהַסִּיק מוֹדוּלֵי E שׁוֹנִים.",
+        "transliteration": "Bediqah: seder ha-hozeq eino meshamesh le-hasiq modulei E shonim.",
+        "ru": "Проверка: порядок прочности не используется для вывода разных модулей E."
+      },
+      "source_refs": [
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering",
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "curated_row:8"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיקָה:",
+            "normalized": "בדיקה"
+          },
+          {
+            "index": 1,
+            "surface": "סֵדֶר",
+            "normalized": "סדר"
+          },
+          {
+            "index": 2,
+            "surface": "הַחֹזֶק",
+            "normalized": "החזק"
+          },
+          {
+            "index": 3,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 4,
+            "surface": "מְשַׁמֵּשׁ",
+            "normalized": "משמש"
+          },
+          {
+            "index": 5,
+            "surface": "לְהַסִּיק",
+            "normalized": "להסיק"
+          },
+          {
+            "index": 6,
+            "surface": "מוֹדוּלֵי",
+            "normalized": "מודולי"
+          },
+          {
+            "index": 7,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 8,
+            "surface": "שׁוֹנִים.",
+            "normalized": "שונים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q032-sol-r014",
+      "order": 14,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:ba6881d6f51f43678bb603cc8981a7af8c9fe9c4a20a8dbda846df4ebf254752",
+        "comparison:SOURCE_ONLY_TECHNICAL_REVIEW_PASS_NO_LEGACY_CARD",
+        "source_page:39",
+        "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+        "declared_convention:ASM_tempering"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q032",
+    "display_alias": "32",
+    "source_pages": [
+      39
+    ],
+    "independent_state": "DERIVED_WITH_GRAPH_READING_TOLERANCE",
+    "answer": [
+      "а) SAE4150: её кривая лежит выше, UTS около 2200 МПа против примерно 1950 МПа у SAE4140 и 1650 МПа у SAE4130.",
+      "б) В одной Cr–Mo-серии 4150 содержит больше C (около 0,50% против 0,40% и 0,30%), поэтому после одинаковой закалки и отпуска отпущенный мартенсит сохраняет большую прочность.",
+      "г) Модуль упругости практически одинаков, около 200 ГПа: начальные упругие наклоны совпадают, а термообработка сильнее меняет текучесть/прочность, чем межатомную упругую жёсткость.",
+      "д) После закалки и отпуска при 500 °C — отпущенный мартенсит (с выделившимися карбидами).",
+      "е) При повышении температуры отпуска до 500 °C кривые опускаются по σ_y/σ_UTS и обычно удлиняются вправо: твёрдость и прочность падают, пластичность и вязкость растут; начальный E почти не меняется."
+    ],
+    "engineering_picture": "У трёх близких легированных сталей углерод задаёт уровень прочности мартенсита, а отпуск управляет компромиссом прочность–пластичность.",
+    "prerequisites": [
+      "SAE4130/4140/4150 приблизительно 0,30/0,40/0,50%C.",
+      "E — начальный наклон σ–ε."
+    ],
+    "roadmap": [
+      "Считать вертикальный порядок кривых.",
+      "Связать марки с C.",
+      "Сравнить начальные наклоны.",
+      "Назвать структуру и направление изменения при отпуске."
+    ],
+    "main_trap": "Не определять E по высоте UTS: модуль — только начальный упругий наклон.",
+    "givens": [
+      "Все стали: quench+temper 500 °C, 1 h; source stress-strain graph."
+    ],
+    "find": [
+      "Самая прочная марка, причина, E, структура и эффект температуры отпуска."
+    ],
+    "assumptions": [
+      "Кривые являются инженерными и считываются приблизительно."
+    ],
+    "laws": [
+      "E=dσ/dε in elastic region.",
+      "Higher tempering temperature generally lowers strength and raises ductility."
+    ],
+    "symbolic_derivation": [
+      "C_4150>C_4140>C_4130⇒σ_4150>σ_4140>σ_4130 при общем режиме."
+    ],
+    "calculation": [],
+    "construction": [
+      "На копии графика подписать верхнюю 4150, среднюю 4140, нижнюю 4130; отметить общий начальный наклон."
+    ],
+    "checks": [
+      "Порядок прочности совпадает с подписями на источнике и не используется для вывода различного E."
+    ],
+    "source_facts": [
+      "source_page:39",
+      "asset_sha256:6f081aab165b889cf3d5fd5b586a9e57b3a8ce21e5e3493844a6e8e67a66445d",
+      "declared_convention:ASM_tempering"
+    ],
+    "unresolved_limits": [
+      "График не даёт точного E из-за масштаба упругого участка; используется сравнительный вывод."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 0
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

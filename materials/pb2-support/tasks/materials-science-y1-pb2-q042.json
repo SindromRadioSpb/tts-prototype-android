@@ -1,0 +1,2959 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_eb0235eb99e92fd21011156b",
+  "public_work_id": "work-6119f7ad8ce77c388b76a2fc",
+  "snapshot_sha256": "47f93696700bbd91f044a34653521e538102093b4461cfaef9ba8a903f383e15",
+  "task_id": "materials-science-y1-pb2-q042",
+  "display_alias": "42",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "435d060323b8fd3b5da72b350f9e15c09cfe8aeaf93de959b265c726500799a8"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "8ae71bd9abd26598c5562e0d08a70859def12334563bb1c3aa2cfe6d627d5306",
+    "source_canonical_task_sha256": "435d060323b8fd3b5da72b350f9e15c09cfe8aeaf93de959b265c726500799a8"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "f91132c129a1d4ae236b26273847dfee96eef670a3b4da5b74f2565535766d4b",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Quench, temper, aluminum aging, natural/artificial aging and carbon effects match with the independent structure scope.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q042-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 42.",
+        "hebrew_niqqud": "שְׁאֵלָה 42.",
+        "translit": "She'ela 42.",
+        "translit_ru": "",
+        "russian": "Вопрос 42.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q042",
+            "kind": "task_heading",
+            "source_page": 52,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q042-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. הסבר בקצרה כל אחד מן התהליכים הרשומים להלן: חיסום בפלדה, הרפיה בפלדה, זיקון באלומיניום.",
+        "hebrew_niqqud": "א. הַסְבֵּר בִּקְצָרָה כָּל אֶחָד מִן הַתַּהֲלִיכִים הָרְשׁוּמִים לְהַלָּן: חִיסּוּם בִּפְלָדָה, הַרְפָּיָה בִּפְלָדָה, זִיקּוּן בְּאַלוּמִינְיוּם.",
+        "translit": "a. Hasber biqtzarah kol eḥad min hatahalikhim hareshumim lehalan: ḥisum bifladah, harpayah bifladah, zikun be'aluminiyum.",
+        "translit_ru": "",
+        "russian": "א. Кратко объясните каждый из перечисленных ниже процессов: закалка стали, отпуск стали, старение алюминия.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q042",
+            "kind": "subpart",
+            "source_page": 52,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q042-r003",
+        "order_index": 2,
+        "hebrew_plain": "ב. ציין מהי המטרה של כל תהליך ואילו מבנים מתקבלים לאחר תהליך החיסום ולאחר תהליך ההרפיה בפלדה.",
+        "hebrew_niqqud": "ב. צַייֵּן מַהִי הַמַּטָּרָה שֶׁל כָּל תַּהֲלִיךְ וְאֵילּוּ מִבְנִים מִתְקַבְּלִים לְאַחַר תַּהֲלִיךְ הַחִיסּוּם וּלְאַחַר תַּהֲלִיךְ הַהַרְפָּיָה בִּפְלָדָה.",
+        "translit": "b. Tzayen mahi hamatarah shel kol tahalikh ve'eilu mivnim mitkablim le'aḥar tahalikh haḥisum ule'aḥar tahalikh haharpayah bifladah.",
+        "translit_ru": "",
+        "russian": "ב. Укажите цель каждого процесса и какие структуры получаются после процесса закалки и после процесса отпуска стали.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q042",
+            "kind": "subpart",
+            "source_page": 52,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q042-r004",
+        "order_index": 3,
+        "hebrew_plain": "ג. הסבר מהו ההבדל בין זיקון טבעי לזיקון מלאכותי בנתך אלומיניום.",
+        "hebrew_niqqud": "ג. הַסְבֵּר מַהוּ הַהֶבְדֵּל בֵּין זִיקּוּן טִבְעִי לְזִיקּוּן מְלָאכוּתִי בְּנֶתֶךְ אַלוּמִינְיוּם.",
+        "translit": "g. Hasber mahu hahevdel bein zikun tiv'i lezikun melakhuti benetekh aluminiyum.",
+        "translit_ru": "",
+        "russian": "ג. Объясните разницу между естественным старением и искусственным старением в алюминиевом сплаве.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q042",
+            "kind": "subpart",
+            "source_page": 52,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q042-r005",
+        "order_index": 4,
+        "hebrew_plain": "ד. הסבר מהי חשיבותו של הפחמן בפלדות פחמן.",
+        "hebrew_niqqud": "ד. הַסְבֵּר מַהִי חֲשִׁיבוּתוֹ שֶׁל הַפַּחְמָן בְּפַלְדוֹת פַּחְמָן.",
+        "translit": "d. Hasber mahi ḥashivuto shel hapaḥman befoladot paḥman.",
+        "translit_ru": "",
+        "russian": "ד. Объясните значение углерода в углеродистых сталях.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q042",
+            "kind": "subpart",
+            "source_page": 52,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      52
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q042/anchor-01-p052.jpg",
+        "sha256": "569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "bytes": 114794,
+        "source_page": 52,
+        "normalized_bbox": [
+          0,
+          0.65,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:f91132c129a1d4ae236b26273847dfee96eef670a3b4da5b74f2565535766d4b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) הרפיה בפלדה היא חימום מחדש של פלדה מחוסמת לטמפרטורה מתחת ל-A1, החזקה וקירור.",
+        "he_niqqud": "א) הַרְפָּיָה בִּפְלָדָה הִיא חִמּוּם מֵחָדָשׁ שֶׁל פְּלָדָה מְחֻסֶּמֶת לְטֶמְפֶּרָטוּרָה מִתַּחַת לְ-A1, הַחְזָקָה וְקִירּוּר.",
+        "transliteration": "A) Harpáyá bi-f'ladá hí ḥimmúm me-ḥadásh shel p'ladá meḥussémet le-ṭemperatúrá mittáḥat l'A1, haḥzaqá v'qirrúr.",
+        "ru": "А) Отпуск стали — это повторный нагрев закаленной стали до температуры ниже A1, выдержка и охлаждение."
+      },
+      "source_refs": [
+        "legacy_row_hash:09014d4c7984f31560c25438d27969f82c49f4383f0e3b29393f84487a07e97d",
+        "legacy_fields_sha256:666cb071eadc85e155363eca7771d42576ca132cb42b4cf5f881ea722b1df2c9",
+        "independent_solution_sha256:f91132c129a1d4ae236b26273847dfee96eef670a3b4da5b74f2565535766d4b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 5,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 8,
+            "surface": "מְחֻסֶּמֶת",
+            "normalized": "מחסמת"
+          },
+          {
+            "index": 9,
+            "surface": "לְטֶמְפֶּרָטוּרָה",
+            "normalized": "לטמפרטורה"
+          },
+          {
+            "index": 10,
+            "surface": "מִתַּחַת",
+            "normalized": "מתחת"
+          },
+          {
+            "index": 11,
+            "surface": "לְ-A1,",
+            "normalized": "ל-A1"
+          },
+          {
+            "index": 12,
+            "surface": "הַחְזָקָה",
+            "normalized": "החזקה"
+          },
+          {
+            "index": 13,
+            "surface": "וְקִירּוּר.",
+            "normalized": "וקירור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) זיקון טבעי הוא הזדקנות בטמפרטורת חדר לאחר כיבוי.",
+        "he_niqqud": "ג) זִקּוּן טִבְעִי הוּא הִזְדַּקְּנוּת בְּטֶמְפֶּרָטוּרַת חֶדֶר לְאַחַר כִּבּוּי.",
+        "transliteration": "G) Ziqqún tiv'í hu hizdaqnut b'ṭemperatúrat ḥéder le'aḥar kibbúy.",
+        "ru": "В) Естественное старение — это старение при комнатной температуре после гашения."
+      },
+      "source_refs": [
+        "legacy_row_hash:87ec83c7ad44cffd44aca78e326dc87945fe0dff5970282bfea59aeb6406e24e",
+        "legacy_fields_sha256:88e2b30333e7bf8e7399d83f25d363ee8c5dfd4c1cfb844ebb62ef3a5aaaf329",
+        "independent_solution_sha256:f91132c129a1d4ae236b26273847dfee96eef670a3b4da5b74f2565535766d4b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "טִבְעִי",
+            "normalized": "טבעי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "הִזְדַּקְּנוּת",
+            "normalized": "הזדקנות"
+          },
+          {
+            "index": 5,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 6,
+            "surface": "חֶדֶר",
+            "normalized": "חדר"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "כִּבּוּי.",
+            "normalized": "כבוי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "הפחמן משפיע ישירות על קשיות וחוזק באמצעות פתרון בין-סריגי, יצירת קרבידים והקשחת המרטנסיט.",
+        "he_niqqud": "הַפַּחְמָן מַשְׁפִּיעַ יָשִׁירוֹת עַל קַשִּׁיּוּת וְחֹזֶק בְּאֶמְצָעוּת פִּתְרוֹן בֵּין-סָרִיגִי, יְצִירַת קַרְבִּידִים וְהַקְשָׁחַת הַמַּרְטֶנְסִיט.",
+        "transliteration": "Ha-paḥmán mashpía' yashírót 'al qashíyyut v'ḥózeq b'emtzá'ut pitrón beyn-sarígí, yetziráṭ karbídim v'haqshaḥaṭ ha-marṭensíṭ.",
+        "ru": "Углерод напрямую влияет на твердость и прочность за счет междоузельного раствора, образования карбидов и упрочнения мартенсита."
+      },
+      "source_refs": [
+        "legacy_row_hash:38413f8fee416a73b1d3becb3f65357778cd7269dc7a026107eea6bd4a60a5f9",
+        "legacy_fields_sha256:de7904cb926bb1077eb35023a5d791bd53104064d2791371749b78854af9a8e9",
+        "independent_solution_sha256:f91132c129a1d4ae236b26273847dfee96eef670a3b4da5b74f2565535766d4b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפַּחְמָן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 1,
+            "surface": "מַשְׁפִּיעַ",
+            "normalized": "משפיע"
+          },
+          {
+            "index": 2,
+            "surface": "יָשִׁירוֹת",
+            "normalized": "ישירות"
+          },
+          {
+            "index": 3,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 4,
+            "surface": "קַשִּׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 5,
+            "surface": "וְחֹזֶק",
+            "normalized": "וחזק"
+          },
+          {
+            "index": 6,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 7,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 8,
+            "surface": "בֵּין-סָרִיגִי,",
+            "normalized": "בין-סריגי"
+          },
+          {
+            "index": 9,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 10,
+            "surface": "קַרְבִּידִים",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 11,
+            "surface": "וְהַקְשָׁחַת",
+            "normalized": "והקשחת"
+          },
+          {
+            "index": 12,
+            "surface": "הַמַּרְטֶנְסִיט.",
+            "normalized": "המרטנסיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) חיסום בפלדה הוא חימום הפלדה לאזור האוסטניט ולאחר מכן קירור מהיר (כיבוי) כדי למנוע טרנספורמציות דיפוזיוניות.",
+        "he_niqqud": "א) חִיסּוּם בִּפְלָדָה הוּא חִמּוּם הַפְּלָדָה לְאֵזוֹר הָאוֹסְטֶנִיט וּלְאַחַר מִכֵּן קִירּוּר מָהִיר (כִּיבּוּי) כְּדֵי לִמְנֹעַ טְרַנְסְפוֹרְמַצְיוֹת דִּיפוּזְיוֹנִיּוֹת.",
+        "transliteration": "A) Khissúm bi-f'ladá hu ḥimmúm ha-p'ladá l'ezór ha-osteníṭ v'le'aḥar mikén qirrúr mahír (kibbúy) k'dey limnóa' ṭransfortmatzyót difúziyoníyyót.",
+        "ru": "А) Закалка стали — это нагрев стали до области аустенита с последующим быстрым охлаждением (гашением) для предотвращения диффузионных превращений."
+      },
+      "source_refs": [
+        "legacy_row_hash:1859ec0e111246f4b78532a88b7c7284bfec22824e62a59b7ab18c2348f72d41",
+        "legacy_fields_sha256:64dee4a8365e9e004e7711ebcb124a7ed27a2584a7709b34e16cdd4a62f93895",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "חִיסּוּם",
+            "normalized": "חיסום"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 5,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 6,
+            "surface": "לְאֵזוֹר",
+            "normalized": "לאזור"
+          },
+          {
+            "index": 7,
+            "surface": "הָאוֹסְטֶנִיט",
+            "normalized": "האוסטניט"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 9,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 10,
+            "surface": "קִירּוּר",
+            "normalized": "קירור"
+          },
+          {
+            "index": 11,
+            "surface": "מָהִיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 12,
+            "surface": "(כִּיבּוּי)",
+            "normalized": "כיבוי"
+          },
+          {
+            "index": 13,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 14,
+            "surface": "לִמְנֹעַ",
+            "normalized": "למנע"
+          },
+          {
+            "index": 15,
+            "surface": "טְרַנְסְפוֹרְמַצְיוֹת",
+            "normalized": "טרנספורמציות"
+          },
+          {
+            "index": 16,
+            "surface": "דִּיפוּזְיוֹנִיּוֹת.",
+            "normalized": "דיפוזיוניות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בחיסום מבצעים אוסטניטיזציה ולאחריה כיבוי במים או בשמן או בפולימר או באוויר, לפי דרישת קצב הקירור.",
+        "he_niqqud": "בְּחִיסּוּם מְבַצְּעִים אוֹסְטֶנִיטִיזַצְיָה וּלְאַחֲרֶיהָ כִּיבּוּי בְּמַיִם אוֹ בְּשֶׁמֶן אוֹ בְּפוֹלִימֶר אוֹ בָּאֲוִיר, לְפִי דְּרִישַׁת קֶצֶב הַקִּירוּר.",
+        "transliteration": "Ba-khissúm mevatz'ím osṭenitizatzya v'le'aḥarehá kibbúy b'máyyim o b'shémen o b'folímer o ba-avír, lefí drishat qétzev ha-qirrúr.",
+        "ru": "При закалке проводят аустенитизацию, а затем гашение в воде, масле, полимере или на воздухе, в зависимости от требуемой скорости охлаждения."
+      },
+      "source_refs": [
+        "legacy_row_hash:8e9f51b745d762b8c9ed8f4f0136747e21171cc6a739beb5c93bf9787b59791d",
+        "legacy_fields_sha256:1d58fcf505c82e7311a770d854a44e3bb995c5fd80e3e90b9ae67dd173403c56",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּחִיסּוּם",
+            "normalized": "בחיסום"
+          },
+          {
+            "index": 1,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "אוסטניטיזציה"
+          },
+          {
+            "index": 3,
+            "surface": "וּלְאַחֲרֶיהָ",
+            "normalized": "ולאחריה"
+          },
+          {
+            "index": 4,
+            "surface": "כִּיבּוּי",
+            "normalized": "כיבוי"
+          },
+          {
+            "index": 5,
+            "surface": "בְּמַיִם",
+            "normalized": "במים"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "בְּשֶׁמֶן",
+            "normalized": "בשמן"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 9,
+            "surface": "בְּפוֹלִימֶר",
+            "normalized": "בפולימר"
+          },
+          {
+            "index": 10,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 11,
+            "surface": "בָּאֲוִיר,",
+            "normalized": "באויר"
+          },
+          {
+            "index": 12,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 13,
+            "surface": "דְּרִישַׁת",
+            "normalized": "דרישת"
+          },
+          {
+            "index": 14,
+            "surface": "קֶצֶב",
+            "normalized": "קצב"
+          },
+          {
+            "index": 15,
+            "surface": "הַקִּירוּר.",
+            "normalized": "הקירור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מטרת החיסום היא להעלות קשיות וחוזק באמצעות יצירת מבנה ללא דיפוזיה.",
+        "he_niqqud": "מַטְרַת הַחִיסּוּם הִיא לְהַעֲלוֹת קַשִּׁיּוּת וְחֹזֶק בְּאֶמְצָעוּת יְצִירַת מִבְנֶה לְלֹא דִּיפוּזְיָה.",
+        "transliteration": "Maṭrát ha-khissúm hí leha'alót qashíyyut v'ḥózeq b'emtzá'ut yetziráṭ mivnéh leló difúzyá.",
+        "ru": "Цель закалки — повышение твердости и прочности за счет создания бездиффузионной структуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:191663716c3eae7903307537330bf18bf94380ebb3a98cd4634e259ee75ab20f",
+        "legacy_fields_sha256:64107b902840f089bb83cedf767121b8e2eb3adcc522ad401f9cfd754f7253f0",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 1,
+            "surface": "הַחִיסּוּם",
+            "normalized": "החיסום"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַעֲלוֹת",
+            "normalized": "להעלות"
+          },
+          {
+            "index": 4,
+            "surface": "קַשִּׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 5,
+            "surface": "וְחֹזֶק",
+            "normalized": "וחזק"
+          },
+          {
+            "index": 6,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 7,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 8,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 9,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 10,
+            "surface": "דִּיפוּזְיָה.",
+            "normalized": "דיפוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) הרפיה בפלדה היא חימום מחדש של פלדה מחוסמת לטמפרטורה מתחת ל-A1, החזקה וקירור.",
+        "he_niqqud": "א) הַרְפָּיָה בִּפְלָדָה הִיא חִמּוּם מֵחָדָשׁ שֶׁל פְּלָדָה מְחֻסֶּמֶת לְטֶמְפֶּרָטוּרָה מִתַּחַת לְ-A1, הַחְזָקָה וְקִירּוּר.",
+        "transliteration": "A) Harpáyá bi-f'ladá hí ḥimmúm me-ḥadásh shel p'ladá meḥussémet le-ṭemperatúrá mittáḥat l'A1, haḥzaqá v'qirrúr.",
+        "ru": "А) Отпуск стали — это повторный нагрев закаленной стали до температуры ниже A1, выдержка и охлаждение."
+      },
+      "source_refs": [
+        "legacy_row_hash:09014d4c7984f31560c25438d27969f82c49f4383f0e3b29393f84487a07e97d",
+        "legacy_fields_sha256:666cb071eadc85e155363eca7771d42576ca132cb42b4cf5f881ea722b1df2c9",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 5,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 8,
+            "surface": "מְחֻסֶּמֶת",
+            "normalized": "מחסמת"
+          },
+          {
+            "index": 9,
+            "surface": "לְטֶמְפֶּרָטוּרָה",
+            "normalized": "לטמפרטורה"
+          },
+          {
+            "index": 10,
+            "surface": "מִתַּחַת",
+            "normalized": "מתחת"
+          },
+          {
+            "index": 11,
+            "surface": "לְ-A1,",
+            "normalized": "ל-A1"
+          },
+          {
+            "index": 12,
+            "surface": "הַחְזָקָה",
+            "normalized": "החזקה"
+          },
+          {
+            "index": 13,
+            "surface": "וְקִירּוּר.",
+            "normalized": "וקירור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מטרת ההרפיה היא להפחית שבריריות ומאמצים פנימיים ולייצב את המבנה.",
+        "he_niqqud": "מַטְרַת הַהַרְפָּיָה הִיא לְהַפְחִית שְׁבִירִירוּת וּמַאֲמַצִּים פְּנִימִיִּים וּלְיַצֵּב אֶת הַמִּבְנֶה.",
+        "transliteration": "Maṭrát ha-harpáyá hí lehafḥít shvirirúyót u-ma'amatzím pnimíyyím u-leyatzév et ha-mivnéh.",
+        "ru": "Цель отпуска — снижение хрупкости и внутренних напряжений, а также стабилизация структуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:aac34c976a94ceb213d4f0dc5f9d98e92ac9cdd831afebedf68b22af5cb9ca69",
+        "legacy_fields_sha256:d037dc2c2684ccd9de7ea3031c61e02d105788f2a90c5995ad1d15cba3368fcf",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 1,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַפְחִית",
+            "normalized": "להפחית"
+          },
+          {
+            "index": 4,
+            "surface": "שְׁבִירִירוּת",
+            "normalized": "שבירירות"
+          },
+          {
+            "index": 5,
+            "surface": "וּמַאֲמַצִּים",
+            "normalized": "ומאמצים"
+          },
+          {
+            "index": 6,
+            "surface": "פְּנִימִיִּים",
+            "normalized": "פנימיים"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְיַצֵּב",
+            "normalized": "וליצב"
+          },
+          {
+            "index": 8,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 9,
+            "surface": "הַמִּבְנֶה.",
+            "normalized": "המבנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ההרפיה מאפשרת לקבל שילוב מבוקר של חוזק וקשיחות והתנהגות טובה יותר בעייפות.",
+        "he_niqqud": "הַהַרְפָּיָה מְאַפְשֶׁרֶת לְקַבֵּל שִׁלּוּב מְבֻקָּר שֶׁל חֹזֶק וְקַשִּׁיחוּת וְהִתְנַהֲגוּת טוֹבָה יוֹתֵר בַּעֲיֵיפוּת.",
+        "transliteration": "Ha-harpáyá me'afshéret leqabél shillúv mevúqqar shel ḥózeq v'qashíḥut v'hitnahagút ṭová yotér ba'ayeifúṭ.",
+        "ru": "Отпуск позволяет получить контролируемое сочетание прочности и ударной вязкости, а также улучшенное поведение при усталости."
+      },
+      "source_refs": [
+        "legacy_row_hash:19bd34aa13d941508729c51288e925f70dfdbd701dfb7baed1c0bd0fb6772146",
+        "legacy_fields_sha256:990792212f193ccafc7bbe7731fe96b9540df83450dd86531b8eb0b328508686",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 1,
+            "surface": "מְאַפְשֶׁרֶת",
+            "normalized": "מאפשרת"
+          },
+          {
+            "index": 2,
+            "surface": "לְקַבֵּל",
+            "normalized": "לקבל"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁלּוּב",
+            "normalized": "שלוב"
+          },
+          {
+            "index": 4,
+            "surface": "מְבֻקָּר",
+            "normalized": "מבקר"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 7,
+            "surface": "וְקַשִּׁיחוּת",
+            "normalized": "וקשיחות"
+          },
+          {
+            "index": 8,
+            "surface": "וְהִתְנַהֲגוּת",
+            "normalized": "והתנהגות"
+          },
+          {
+            "index": 9,
+            "surface": "טוֹבָה",
+            "normalized": "טובה"
+          },
+          {
+            "index": 10,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 11,
+            "surface": "בַּעֲיֵיפוּת.",
+            "normalized": "בעייפות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) זיקון באלומיניום הוא תהליך הקשיית משקעים שבו לאחר טיפול תמיסה וכיבוי מתקבלת תמיסה רוויה-יתר, ובהמשך נוצרים משקעים שמחזקים.",
+        "he_niqqud": "א) זִקּוּן בְּאַלוּמִינְיוּם הוּא תַּהֲלִיךְ הַקְשָׁיַית מִשְׁקָעִים שֶׁבּוֹ לְאַחַר טִפּוּל תְּמִיסָה וְכִבּוּי מִתְקַבֶּלֶת תְּמִיסָה רְוּיָּה-יֶתֶר, וּבְהֶמְשֵׁךְ נוֹצָרִים מִשְׁקָעִים שֶׁמְּחַזְּקִים.",
+        "transliteration": "A) Ziqqún ba-alumíniyúm hu tahlíkh haqsháyat mishqá'ím she-bo le'aḥar ṭipúl tmisá v'kibbúy miṭqabbélet tmisá revuyyá-yéter, u-v'hemshekh notzárím mishqá'ím she-meḥazzqím.",
+        "ru": "А) Старение алюминия — это процесс дисперсионного твердения, при котором после обработки твердого раствора и гашения образуется пересыщенный твердый раствор, а затем возникают упрочняющие выделения (преципитаты)."
+      },
+      "source_refs": [
+        "legacy_row_hash:77da0bede53f110108f7448d5eb4f6210ef46a24d968617e6cf06d559f20f75f",
+        "legacy_fields_sha256:94f5eb28341a3c2b20172c9599d7a2dbb70314d45e3a8e852988f551b5b76fe4",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "בְּאַלוּמִינְיוּם",
+            "normalized": "באלומיניום"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "תַּהֲלִיךְ",
+            "normalized": "תהליך"
+          },
+          {
+            "index": 5,
+            "surface": "הַקְשָׁיַית",
+            "normalized": "הקשיית"
+          },
+          {
+            "index": 6,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 8,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 9,
+            "surface": "טִפּוּל",
+            "normalized": "טפול"
+          },
+          {
+            "index": 10,
+            "surface": "תְּמִיסָה",
+            "normalized": "תמיסה"
+          },
+          {
+            "index": 11,
+            "surface": "וְכִבּוּי",
+            "normalized": "וכבוי"
+          },
+          {
+            "index": 12,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 13,
+            "surface": "תְּמִיסָה",
+            "normalized": "תמיסה"
+          },
+          {
+            "index": 14,
+            "surface": "רְוּיָּה-יֶתֶר,",
+            "normalized": "רויה-יתר"
+          },
+          {
+            "index": 15,
+            "surface": "וּבְהֶמְשֵׁךְ",
+            "normalized": "ובהמשך"
+          },
+          {
+            "index": 16,
+            "surface": "נוֹצָרִים",
+            "normalized": "נוצרים"
+          },
+          {
+            "index": 17,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 18,
+            "surface": "שֶׁמְּחַזְּקִים.",
+            "normalized": "שמחזקים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מטרת הזיקון היא להעלות חוזק וקשיות בסגסוגות אלומיניום באמצעות משקעים המפריעים לתנועת דיסלוקציות.",
+        "he_niqqud": "מַטְרַת הַזִּקּוּן הִיא לְהַעֲלוֹת חֹזֶק וְקַשִּׁיּוּת בְּסִגְסוּגוֹת אַלוּמִינְיוּם בְּאֶמְצָעוּת מִשְׁקָעִים הַמַּפְרִיעִים לִתְנוּעַת דִּיסְלוֹקַצְיוֹת.",
+        "transliteration": "Maṭrát ha-ziqqún hí leha'alót ḥózeq v'qashíyyut b'sigsugót alumíniyúm b'emtzá'ut mishqá'ím ha-mafrí'ím litnu'at díslocatzýót.",
+        "ru": "Цель старения — повышение прочности и твердости в алюминиевых сплавах за счет выделений, препятствующих движению дислокаций."
+      },
+      "source_refs": [
+        "legacy_row_hash:d5032c39d917e3839fad68f6fcc9eca53df33aefd04ea6419d1f2fcec5d9674c",
+        "legacy_fields_sha256:1615e05cb4b018bea7e4d037f8c95fc6f7dfba074156c55f833b590f65877426",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 1,
+            "surface": "הַזִּקּוּן",
+            "normalized": "הזקון"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַעֲלוֹת",
+            "normalized": "להעלות"
+          },
+          {
+            "index": 4,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 5,
+            "surface": "וְקַשִּׁיּוּת",
+            "normalized": "וקשיות"
+          },
+          {
+            "index": 6,
+            "surface": "בְּסִגְסוּגוֹת",
+            "normalized": "בסגסוגות"
+          },
+          {
+            "index": 7,
+            "surface": "אַלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 8,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 9,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 10,
+            "surface": "הַמַּפְרִיעִים",
+            "normalized": "המפריעים"
+          },
+          {
+            "index": 11,
+            "surface": "לִתְנוּעַת",
+            "normalized": "לתנועת"
+          },
+          {
+            "index": 12,
+            "surface": "דִּיסְלוֹקַצְיוֹת.",
+            "normalized": "דיסלוקציות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) מטרת החיסום בפלדה היא השגת קשיות וחוזק גבוהים באמצעות יצירת מרטנסיט.",
+        "he_niqqud": "ב) מַטְרַת הַחִיסּוּם בִּפְלָדָה הִיא הַשָּׂגַת קַשִּׁיּוּת וְחֹזֶק גְּבוֹהִים בְּאֶמְצָעוּת יְצִירַת מַרְטֶנְסִיט.",
+        "transliteration": "B) Maṭrát ha-khissúm bi-f'ladá hí hassagáṭ qashíyyut v'ḥózeq g'vohím b'emtzá'ut yetziráṭ marṭensíṭ.",
+        "ru": "Б) Цель закалки стали — достижение высокой твердости и прочности за счет образования мартенсита."
+      },
+      "source_refs": [
+        "legacy_row_hash:f2d59513148a47c624b64a024c23e45a4f17b6eb592f7a6c78843eabe14022b3",
+        "legacy_fields_sha256:57e087b925635d31fb3741395538e4f463dbb27105402cc2de0fe805e4bba958",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 2,
+            "surface": "הַחִיסּוּם",
+            "normalized": "החיסום"
+          },
+          {
+            "index": 3,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "הַשָּׂגַת",
+            "normalized": "השגת"
+          },
+          {
+            "index": 6,
+            "surface": "קַשִּׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 7,
+            "surface": "וְחֹזֶק",
+            "normalized": "וחזק"
+          },
+          {
+            "index": 8,
+            "surface": "גְּבוֹהִים",
+            "normalized": "גבוהים"
+          },
+          {
+            "index": 9,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 10,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 11,
+            "surface": "מַרְטֶנְסִיט.",
+            "normalized": "מרטנסיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר חיסום מתקבל בעיקר מבנה מרטנסיטי, ולעיתים מתקבל גם אוסטניט שאריתי.",
+        "he_niqqud": "לְאַחַר חִיסּוּם מִתְקַבֵּל בְּעִקָּר מִבְנֶה מַרְטֶנְסִיטִי, וּלְעִתִּים מִתְקַבֵּל גַּם אוֹסְטֶנִיט שְׁאֵרִיתִי.",
+        "transliteration": "Le'aḥar khissúm miṭqabbél be'iqqár mivnéh marṭensíṭi, u-le'ittím miṭqabbél gam osṭeníṭ sh'eiríṭi.",
+        "ru": "После закалки получается в основном мартенситная структура, а иногда также остаточный аустенит."
+      },
+      "source_refs": [
+        "legacy_row_hash:ca3b415e45f34c9479f237ca1dde38ba4a6b282057f967bb4633493d24ad4137",
+        "legacy_fields_sha256:c5f37e89c3689ded99af14f91db1138fadb822513ce88e7805e05a8eab5a3c0f",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "חִיסּוּם",
+            "normalized": "חיסום"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 3,
+            "surface": "בְּעִקָּר",
+            "normalized": "בעקר"
+          },
+          {
+            "index": 4,
+            "surface": "מִבְנֶה",
+            "normalized": "מבנה"
+          },
+          {
+            "index": 5,
+            "surface": "מַרְטֶנְסִיטִי,",
+            "normalized": "מרטנסיטי"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְעִתִּים",
+            "normalized": "ולעתים"
+          },
+          {
+            "index": 7,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 8,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹסְטֶנִיט",
+            "normalized": "אוסטניט"
+          },
+          {
+            "index": 10,
+            "surface": "שְׁאֵרִיתִי.",
+            "normalized": "שאריתי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במבנה מרטנסיטי הפחמן נלכד בסריג, ולכן מתקבלת קשיות גבוהה.",
+        "he_niqqud": "בַּמִּבְנֶה מַרְטֶנְסִיטִי הַפַּחְמָן נִלְכַּד בְּסָרִיג, וְלָכֵן מִתְקַבֶּלֶת קַשִּׁיּוּת גְּבוֹהָה.",
+        "transliteration": "Ba-mivnéh marṭensíṭi ha-paḥmán nilkad b'saríg, v'lakhén miṭqabbélet qashíyyut g'vohá.",
+        "ru": "В мартенситной структуре углерод захвачен решеткой, вследствие чего достигается высокая твердость."
+      },
+      "source_refs": [
+        "legacy_row_hash:62d1c3ca5d3418c264f8e0f6b1d5c2b88971fc75316da1a70e796a5527848004",
+        "legacy_fields_sha256:5360a9c9a95170fac0fe669c0e40d7a24cba8a6e0991c244a90523ad50f412b7",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּמִּבְנֶה",
+            "normalized": "במבנה"
+          },
+          {
+            "index": 1,
+            "surface": "מַרְטֶנְסִיטִי",
+            "normalized": "מרטנסיטי"
+          },
+          {
+            "index": 2,
+            "surface": "הַפַּחְמָן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 3,
+            "surface": "נִלְכַּד",
+            "normalized": "נלכד"
+          },
+          {
+            "index": 4,
+            "surface": "בְּסָרִיג,",
+            "normalized": "בסריג"
+          },
+          {
+            "index": 5,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 7,
+            "surface": "קַשִּׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 8,
+            "surface": "גְּבוֹהָה.",
+            "normalized": "גבוהה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) מטרת ההרפיה בפלדה היא להקטין שבריריות ולהפחית מאמצים פנימיים תוך שמירה על רמת חוזק נדרשת.",
+        "he_niqqud": "ב) מַטְרַת הַהַרְפָּיָה בִּפְלָדָה הִיא לְהַקְטִין שְׁבִירִירוּת וּלְהַפְחִית מַאֲמַצִּים פְּנִימִיִּים תּוֹךְ שְׁמִירָה עַל רָמַת חֹזֶק נִדְרֶשֶׁת.",
+        "transliteration": "B) Maṭrát ha-harpáyá bi-f'ladá hí lehaqṭín shvirirúyót u-lehafḥít ma'amatzím pnimíyyím tokh shmírá 'al rámat ḥózeq nidréshet.",
+        "ru": "Б) Цель отпуска стали — уменьшение хрупкости и снижение внутренних напряжений при сохранении необходимого уровня прочности."
+      },
+      "source_refs": [
+        "legacy_row_hash:ab335d757a929aba735b257a1af4e87af7dca4208e686936c96a091773f97124",
+        "legacy_fields_sha256:ce21b73442919e1f3cd022d3c507bafd03bec4881c33f71257f92b681eb7310d",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 2,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 3,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "לְהַקְטִין",
+            "normalized": "להקטין"
+          },
+          {
+            "index": 6,
+            "surface": "שְׁבִירִירוּת",
+            "normalized": "שבירירות"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְהַפְחִית",
+            "normalized": "ולהפחית"
+          },
+          {
+            "index": 8,
+            "surface": "מַאֲמַצִּים",
+            "normalized": "מאמצים"
+          },
+          {
+            "index": 9,
+            "surface": "פְּנִימִיִּים",
+            "normalized": "פנימיים"
+          },
+          {
+            "index": 10,
+            "surface": "תּוֹךְ",
+            "normalized": "תוך"
+          },
+          {
+            "index": 11,
+            "surface": "שְׁמִירָה",
+            "normalized": "שמירה"
+          },
+          {
+            "index": 12,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 13,
+            "surface": "רָמַת",
+            "normalized": "רמת"
+          },
+          {
+            "index": 14,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 15,
+            "surface": "נִדְרֶשֶׁת.",
+            "normalized": "נדרשת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר הרפיה מתקבל מרטנסיט מרופה המורכב מפריט ומשקעים עדינים של קרבידים כגון Fe₃C.",
+        "he_niqqud": "לְאַחַר הַרְפָּיָה מִתְקַבֵּל מַרְטֶנְסִיט מְרֻפֶּה הַמֻּרְכָּב מִפֶּרִיט וּמִשְׁקָעִים עֲדִינִים שֶׁל קַרְבִּידִים כְּגוֹן Fe₃C.",
+        "transliteration": "Le'aḥar harpáyá miṭqabbél marṭensíṭ merupéh ha-murkáv mi-féríṭ u-mishqá'ím adiním shel karbídim k'gón Fe₃C.",
+        "ru": "После отпуска получается отпущенный мартенсит, состоящий из феррита и тонких выделений карбидов, таких как Fe₃C."
+      },
+      "source_refs": [
+        "legacy_row_hash:01e1fae81be5e130297b5ac09e6bb1ef05e225598ccd41fad71683df37323754",
+        "legacy_fields_sha256:a5c4422ca993a620db9a05a4ac6aacacc19991ca68ce22400b7746f18ac6d1c9",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 3,
+            "surface": "מַרְטֶנְסִיט",
+            "normalized": "מרטנסיט"
+          },
+          {
+            "index": 4,
+            "surface": "מְרֻפֶּה",
+            "normalized": "מרפה"
+          },
+          {
+            "index": 5,
+            "surface": "הַמֻּרְכָּב",
+            "normalized": "המרכב"
+          },
+          {
+            "index": 6,
+            "surface": "מִפֶּרִיט",
+            "normalized": "מפריט"
+          },
+          {
+            "index": 7,
+            "surface": "וּמִשְׁקָעִים",
+            "normalized": "ומשקעים"
+          },
+          {
+            "index": 8,
+            "surface": "עֲדִינִים",
+            "normalized": "עדינים"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 10,
+            "surface": "קַרְבִּידִים",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 11,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 12,
+            "surface": "Fe₃C.",
+            "normalized": "Fe₃C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "טמפרטורת וזמן ההרפיה קובעים את מידת פירוק המרטנסיט ואת התכונות הסופיות.",
+        "he_niqqud": "טֶמְפֶּרָטוּרַת וּזְמַן הַהַרְפָּיָה קוֹבְעִים אֶת מִידַת פֵּירוּק הַמַּרְטֶנְסִיט וְאֶת הַתְּכוּנוֹת הַסּוֹפִיּוֹת.",
+        "transliteration": "Ṭemperatúra u-zman ha-harpáyá qov'ím et míddaṭ peirúq ha-marṭensíṭ v'et ha-tkhunót ha-sofíyyót.",
+        "ru": "Температура и время отпуска определяют степень распада мартенсита и окончательные свойства."
+      },
+      "source_refs": [
+        "legacy_row_hash:97e06384522899ab6642e1c8de1bc5200685d4222cdd201542803a780b059d2d",
+        "legacy_fields_sha256:bf6ad5f8332eade2d1a860d8a7403cd9cb72f08942f9af46b87ccead2b7036a3",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 1,
+            "surface": "וּזְמַן",
+            "normalized": "וזמן"
+          },
+          {
+            "index": 2,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 3,
+            "surface": "קוֹבְעִים",
+            "normalized": "קובעים"
+          },
+          {
+            "index": 4,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 5,
+            "surface": "מִידַת",
+            "normalized": "מידת"
+          },
+          {
+            "index": 6,
+            "surface": "פֵּירוּק",
+            "normalized": "פירוק"
+          },
+          {
+            "index": 7,
+            "surface": "הַמַּרְטֶנְסִיט",
+            "normalized": "המרטנסיט"
+          },
+          {
+            "index": 8,
+            "surface": "וְאֶת",
+            "normalized": "ואת"
+          },
+          {
+            "index": 9,
+            "surface": "הַתְּכוּנוֹת",
+            "normalized": "התכונות"
+          },
+          {
+            "index": 10,
+            "surface": "הַסּוֹפִיּוֹת.",
+            "normalized": "הסופיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) מטרת הזיקון באלומיניום היא חיזוק באמצעות משקעים תוך שמירה על משקל נמוך.",
+        "he_niqqud": "ב) מַטְרַת הַזִּקּוּן בְּאַלוּמִינְיוּם הִיא חִיזּוּק בְּאֶמְצָעוּת מִשְׁקָעִים תּוֹךְ שְׁמִירָה עַל מִשְׁקָל נָמוּךְ.",
+        "transliteration": "B) Maṭrát ha-ziqqún ba-alumíniyúm hí ḥizzúq b'emtzá'ut mishqá'ím tokh shmírá 'al mishqál namúkh.",
+        "ru": "Б) Цель старения алюминия — упрочнение за счет выделений при сохранении низкого веса."
+      },
+      "source_refs": [
+        "legacy_row_hash:7166fb1d3ccb89ff41996fba84043f03cc412d7cc75289281c6bd55847c981fc",
+        "legacy_fields_sha256:99f03230478cc7bd07307fb282eca0476048c95f806ea1306df5ee13fa16f48e",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 2,
+            "surface": "הַזִּקּוּן",
+            "normalized": "הזקון"
+          },
+          {
+            "index": 3,
+            "surface": "בְּאַלוּמִינְיוּם",
+            "normalized": "באלומיניום"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "חִיזּוּק",
+            "normalized": "חיזוק"
+          },
+          {
+            "index": 6,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 7,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 8,
+            "surface": "תּוֹךְ",
+            "normalized": "תוך"
+          },
+          {
+            "index": 9,
+            "surface": "שְׁמִירָה",
+            "normalized": "שמירה"
+          },
+          {
+            "index": 10,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 11,
+            "surface": "מִשְׁקָל",
+            "normalized": "משקל"
+          },
+          {
+            "index": 12,
+            "surface": "נָמוּךְ.",
+            "normalized": "נמוך"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) זיקון טבעי הוא הזדקנות בטמפרטורת חדר לאחר כיבוי.",
+        "he_niqqud": "ג) זִקּוּן טִבְעִי הוּא הִזְדַּקְּנוּת בְּטֶמְפֶּרָטוּרַת חֶדֶר לְאַחַר כִּבּוּי.",
+        "transliteration": "G) Ziqqún tiv'í hu hizdaqnut b'ṭemperatúrat ḥéder le'aḥar kibbúy.",
+        "ru": "В) Естественное старение — это старение при комнатной температуре после гашения."
+      },
+      "source_refs": [
+        "legacy_row_hash:87ec83c7ad44cffd44aca78e326dc87945fe0dff5970282bfea59aeb6406e24e",
+        "legacy_fields_sha256:88e2b30333e7bf8e7399d83f25d363ee8c5dfd4c1cfb844ebb62ef3a5aaaf329",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "טִבְעִי",
+            "normalized": "טבעי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "הִזְדַּקְּנוּת",
+            "normalized": "הזדקנות"
+          },
+          {
+            "index": 5,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 6,
+            "surface": "חֶדֶר",
+            "normalized": "חדר"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "כִּבּוּי.",
+            "normalized": "כבוי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בזיקון טבעי ההתחזקות מתרחשת בהדרגה ותלויה בזמן של שעות עד ימים ואף שבועות.",
+        "he_niqqud": "בְּזִקּוּן טִבְעִי הַהִתְחַזְּקוּת מִתְרַחֶשֶׁת בְּהַדְרָגָה וּתְלוּיָה בַּזְּמַן שֶׁל שָׁעוֹת עַד יָמִים וְאַף שָׁבוּעוֹת.",
+        "transliteration": "Bi-ziqqún tiv'í ha-hitḥazzqúṭ mitraḥéshet b'hadragá u-t'luyyá ba-zman shel sha'ót 'ad yamím v'af shavu'ót.",
+        "ru": "При естественном старении упрочнение происходит постепенно и зависит от времени (от часов до дней и даже недель)."
+      },
+      "source_refs": [
+        "legacy_row_hash:a1643fb61f0575b04c729694bd5efcb47166674ac4a5f03b5c28cea81b981277",
+        "legacy_fields_sha256:66d8a9fde2c29d553effd8d6014869bb8a178b348718f54dde99714b916598e1",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּזִקּוּן",
+            "normalized": "בזקון"
+          },
+          {
+            "index": 1,
+            "surface": "טִבְעִי",
+            "normalized": "טבעי"
+          },
+          {
+            "index": 2,
+            "surface": "הַהִתְחַזְּקוּת",
+            "normalized": "ההתחזקות"
+          },
+          {
+            "index": 3,
+            "surface": "מִתְרַחֶשֶׁת",
+            "normalized": "מתרחשת"
+          },
+          {
+            "index": 4,
+            "surface": "בְּהַדְרָגָה",
+            "normalized": "בהדרגה"
+          },
+          {
+            "index": 5,
+            "surface": "וּתְלוּיָה",
+            "normalized": "ותלויה"
+          },
+          {
+            "index": 6,
+            "surface": "בַּזְּמַן",
+            "normalized": "בזמן"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "שָׁעוֹת",
+            "normalized": "שעות"
+          },
+          {
+            "index": 9,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 10,
+            "surface": "יָמִים",
+            "normalized": "ימים"
+          },
+          {
+            "index": 11,
+            "surface": "וְאַף",
+            "normalized": "ואף"
+          },
+          {
+            "index": 12,
+            "surface": "שָׁבוּעוֹת.",
+            "normalized": "שבועות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) זיקון מלאכותי הוא הזדקנות בטמפרטורה מוגברת כדי להאיץ דיפוזיה ויצירת משקעים.",
+        "he_niqqud": "ג) זִקּוּן מְלָאכוּתִי הוּא הִזְדַּקְּנוּת בְּטֶמְפֶּרָטוּרָה מֻגְבֶּרֶת כְּדֵי לְהָאִיץ דִּיפוּזְיָה וִיצִירַת מִשְׁקָעִים.",
+        "transliteration": "G) Ziqqún melaḥutí hu hizdaqnut b'ṭemperatúrá mugbéret k'dey leha'ítz difúzyá vi-ytziráṭ mishqá'ím.",
+        "ru": "В) Искусственное старение — это старение при повышенной температуре для ускорения диффузии и образования выделений."
+      },
+      "source_refs": [
+        "legacy_row_hash:d8c572720bb9f0cf267f83629e2b72234c2cfe770981974d51aa9456b014b251",
+        "legacy_fields_sha256:69427b3fae5abad4c628d546127328b26f98932b1b46fab91e18e9e92d69b9c9",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "זִקּוּן",
+            "normalized": "זקון"
+          },
+          {
+            "index": 2,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "הִזְדַּקְּנוּת",
+            "normalized": "הזדקנות"
+          },
+          {
+            "index": 5,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 6,
+            "surface": "מֻגְבֶּרֶת",
+            "normalized": "מגברת"
+          },
+          {
+            "index": 7,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 8,
+            "surface": "לְהָאִיץ",
+            "normalized": "להאיץ"
+          },
+          {
+            "index": 9,
+            "surface": "דִּיפוּזְיָה",
+            "normalized": "דיפוזיה"
+          },
+          {
+            "index": 10,
+            "surface": "וִיצִירַת",
+            "normalized": "ויצירת"
+          },
+          {
+            "index": 11,
+            "surface": "מִשְׁקָעִים.",
+            "normalized": "משקעים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בזיקון מלאכותי ניתן להגיע לשיא תכונות בזמן קצר יותר.",
+        "he_niqqud": "בְּזִקּוּן מְלָאכוּתִי נִיתָּן לְהַגִּיעַ לְשִׂיא תְּכוּנוֹת בִּזְמַן קָצָר יוֹתֵר.",
+        "transliteration": "Bi-ziqqún melaḥutí níttan lehagía' le-sí tkhunót bi-zman qatzár yotér.",
+        "ru": "При искусственном старении можно достичь пика свойств за более короткое время."
+      },
+      "source_refs": [
+        "legacy_row_hash:4bf718010a05902ec71387aec0ccc9f8d67455f70bab9f2dba548e8dbd560a29",
+        "legacy_fields_sha256:2ddc248c9531ae60044a8db4599328407ce549e80bb36755bef82491f666e194",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּזִקּוּן",
+            "normalized": "בזקון"
+          },
+          {
+            "index": 1,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 2,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַגִּיעַ",
+            "normalized": "להגיע"
+          },
+          {
+            "index": 4,
+            "surface": "לְשִׂיא",
+            "normalized": "לשיא"
+          },
+          {
+            "index": 5,
+            "surface": "תְּכוּנוֹת",
+            "normalized": "תכונות"
+          },
+          {
+            "index": 6,
+            "surface": "בִּזְמַן",
+            "normalized": "בזמן"
+          },
+          {
+            "index": 7,
+            "surface": "קָצָר",
+            "normalized": "קצר"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אם ממשיכים בזיקון מעבר לאופטימום מתקבל Over-Aging שבו המשקעים מתגסים והחוזק יורד.",
+        "he_niqqud": "אִם מַמְשִׁיכִים בְּזִקּוּן מֵעֵבֶר לָאוֹפְּטִימוּם מִתְקַבֵּל Over-Aging שֶׁבּוֹ הַמִּשְׁקָעִים מִתְגַּסִּים וְהַחֹזֶק יוֹרֵד.",
+        "transliteration": "Im mamshikhím b'ziqqún me'evér la-opṭímum miṭqabbél Over-Aging she-bo ha-mishqá'ím miṭgassím v'ha-ḥózeq yoréd.",
+        "ru": "Если продолжить старение за пределами оптимума, наступает перестаривание (Over-Aging), при котором выделения укрупняются, и прочность снижается."
+      },
+      "source_refs": [
+        "legacy_row_hash:4126ba02be029a58055ed2193bd04dbd939d564d6f5d31774636e6c0fd49f81b",
+        "legacy_fields_sha256:05b57c4888b52086530185aa4b0ca5169175c9fcd744b41dbca7fe9ce51e78b3",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אִם",
+            "normalized": "אם"
+          },
+          {
+            "index": 1,
+            "surface": "מַמְשִׁיכִים",
+            "normalized": "ממשיכים"
+          },
+          {
+            "index": 2,
+            "surface": "בְּזִקּוּן",
+            "normalized": "בזקון"
+          },
+          {
+            "index": 3,
+            "surface": "מֵעֵבֶר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 4,
+            "surface": "לָאוֹפְּטִימוּם",
+            "normalized": "לאופטימום"
+          },
+          {
+            "index": 5,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 6,
+            "surface": "Over-Aging",
+            "normalized": "Over-Aging"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 8,
+            "surface": "הַמִּשְׁקָעִים",
+            "normalized": "המשקעים"
+          },
+          {
+            "index": 9,
+            "surface": "מִתְגַּסִּים",
+            "normalized": "מתגסים"
+          },
+          {
+            "index": 10,
+            "surface": "וְהַחֹזֶק",
+            "normalized": "והחזק"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹרֵד.",
+            "normalized": "יורד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) הפחמן הוא היסוד המרכזי הקובע את המבנים בפלדות פחמן ואת האפשרות ליצירת פרליט, צמנטיט ומרטנסיט.",
+        "he_niqqud": "ד) הַפַּחְמָן הוּא הַיְסוֹד הַמֶּרְכָּזִי הַקּוֹבֵעַ אֶת הַמִּבְנִים בְּפְלָדוֹת פַּחְמָן וְאֶת הָאֶפְשָׁרוּת לִיצִירַת פֶּרְלִיט, צֶמֶנְטִיט וּמַרְטֶנְסִיט.",
+        "transliteration": "D) Ha-paḥmán hu ha-yesód ha-merkazí ha-qovéa' et ha-mivníim bi-f'ladót paḥmán v'et ha-efsharút li-ytziráṭ perlíṭ, tsementíṭ u-marṭensíṭ.",
+        "ru": "Г) Углерод — это центральный элемент, который определяет структуры в углеродистых сталях и возможность образования перлита, цементита и мартенсита."
+      },
+      "source_refs": [
+        "legacy_row_hash:d8cb53cd44a239790b189f31d7e46980a5eca6cd9a693c1b3ca129a4fea771f4",
+        "legacy_fields_sha256:c9dd421dc0233cc9bd087d6f069684bb07e524b7ea7e6012559f842f78edca37",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הַפַּחְמָן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "הַיְסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 4,
+            "surface": "הַמֶּרְכָּזִי",
+            "normalized": "המרכזי"
+          },
+          {
+            "index": 5,
+            "surface": "הַקּוֹבֵעַ",
+            "normalized": "הקובע"
+          },
+          {
+            "index": 6,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 7,
+            "surface": "הַמִּבְנִים",
+            "normalized": "המבנים"
+          },
+          {
+            "index": 8,
+            "surface": "בְּפְלָדוֹת",
+            "normalized": "בפלדות"
+          },
+          {
+            "index": 9,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 10,
+            "surface": "וְאֶת",
+            "normalized": "ואת"
+          },
+          {
+            "index": 11,
+            "surface": "הָאֶפְשָׁרוּת",
+            "normalized": "האפשרות"
+          },
+          {
+            "index": 12,
+            "surface": "לִיצִירַת",
+            "normalized": "ליצירת"
+          },
+          {
+            "index": 13,
+            "surface": "פֶּרְלִיט,",
+            "normalized": "פרליט"
+          },
+          {
+            "index": 14,
+            "surface": "צֶמֶנְטִיט",
+            "normalized": "צמנטיט"
+          },
+          {
+            "index": 15,
+            "surface": "וּמַרְטֶנְסִיט.",
+            "normalized": "ומרטנסיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הפחמן משפיע ישירות על קשיות וחוזק באמצעות פתרון בין-סריגי, יצירת קרבידים והקשחת המרטנסיט.",
+        "he_niqqud": "הַפַּחְמָן מַשְׁפִּיעַ יָשִׁירוֹת עַל קַשִּׁיּוּת וְחֹזֶק בְּאֶמְצָעוּת פִּתְרוֹן בֵּין-סָרִיגִי, יְצִירַת קַרְבִּידִים וְהַקְשָׁחַת הַמַּרְטֶנְסִיט.",
+        "transliteration": "Ha-paḥmán mashpía' yashírót 'al qashíyyut v'ḥózeq b'emtzá'ut pitrón beyn-sarígí, yetziráṭ karbídim v'haqshaḥaṭ ha-marṭensíṭ.",
+        "ru": "Углерод напрямую влияет на твердость и прочность за счет междоузельного раствора, образования карбидов и упрочнения мартенсита."
+      },
+      "source_refs": [
+        "legacy_row_hash:38413f8fee416a73b1d3becb3f65357778cd7269dc7a026107eea6bd4a60a5f9",
+        "legacy_fields_sha256:de7904cb926bb1077eb35023a5d791bd53104064d2791371749b78854af9a8e9",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפַּחְמָן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 1,
+            "surface": "מַשְׁפִּיעַ",
+            "normalized": "משפיע"
+          },
+          {
+            "index": 2,
+            "surface": "יָשִׁירוֹת",
+            "normalized": "ישירות"
+          },
+          {
+            "index": 3,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 4,
+            "surface": "קַשִּׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 5,
+            "surface": "וְחֹזֶק",
+            "normalized": "וחזק"
+          },
+          {
+            "index": 6,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 7,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 8,
+            "surface": "בֵּין-סָרִיגִי,",
+            "normalized": "בין-סריגי"
+          },
+          {
+            "index": 9,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 10,
+            "surface": "קַרְבִּידִים",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 11,
+            "surface": "וְהַקְשָׁחַת",
+            "normalized": "והקשחת"
+          },
+          {
+            "index": 12,
+            "surface": "הַמַּרְטֶנְסִיט.",
+            "normalized": "המרטנסיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עלייה באחוז הפחמן מעלה קשיות וחוזק אך מפחיתה משיכות וקשיחות ומגדילה נטייה לשבר פריך.",
+        "he_niqqud": "עֲלִיָּה בְּאָחוּז הַפַּחְמָן מַעֲלָה קַשִּׁיּוּת וְחֹזֶק אַךְ מַפְחִיתָה מְשִׁיכוּת וְקַשִּׁיחוּת וּמַגְדִּילָה נְטִיָּה לְשֶׁבֶר פָּרִיךְ.",
+        "transliteration": "Alíyyá b'aḥúz ha-paḥmán ma'alá qashíyyut v'ḥózeq akh mafḥitá meshikhúṭ v'qashíḥut u-magdilá n'ṭiyyá le-shéver paríkh.",
+        "ru": "Увеличение процентного содержания углерода повышает твердость и прочность, но снижает пластичность и ударную вязкость, а также увеличивает склонность к хрупкому разрушению."
+      },
+      "source_refs": [
+        "legacy_row_hash:5393a193bea9e0d473d9f93fca0834184ff0a087913c6f228ff695f44082ee1f",
+        "legacy_fields_sha256:8f48374d74350c55b3b206bb39b3247cc17ce4e1e15662e1b652ddd43cbbff14",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲלִיָּה",
+            "normalized": "עליה"
+          },
+          {
+            "index": 1,
+            "surface": "בְּאָחוּז",
+            "normalized": "באחוז"
+          },
+          {
+            "index": 2,
+            "surface": "הַפַּחְמָן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 3,
+            "surface": "מַעֲלָה",
+            "normalized": "מעלה"
+          },
+          {
+            "index": 4,
+            "surface": "קַשִּׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 5,
+            "surface": "וְחֹזֶק",
+            "normalized": "וחזק"
+          },
+          {
+            "index": 6,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 7,
+            "surface": "מַפְחִיתָה",
+            "normalized": "מפחיתה"
+          },
+          {
+            "index": 8,
+            "surface": "מְשִׁיכוּת",
+            "normalized": "משיכות"
+          },
+          {
+            "index": 9,
+            "surface": "וְקַשִּׁיחוּת",
+            "normalized": "וקשיחות"
+          },
+          {
+            "index": 10,
+            "surface": "וּמַגְדִּילָה",
+            "normalized": "ומגדילה"
+          },
+          {
+            "index": 11,
+            "surface": "נְטִיָּה",
+            "normalized": "נטיה"
+          },
+          {
+            "index": 12,
+            "surface": "לְשֶׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 13,
+            "surface": "פָּרִיךְ.",
+            "normalized": "פריך"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r028",
+      "order": 28,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "הפחמן משפיע גם על טמפרטורות הטרנספורמציה כגון A1 ו-Ms ולכן על תכנון הטיפול התרמי.",
+        "he_niqqud": "הַפַּחְמָן מַשְׁפִּיעַ גַּם עַל טֶמְפֶּרָטוּרוֹת הַטְּרַנְסְפוֹרְמַצְיָה כְּגוֹן A1 וְ-Ms וְלָכֵן עַל תִּכְנוּן הַטִּפּוּל הַתֶּרְמִי.",
+        "transliteration": "Ha-paḥmán mashpía' gam 'al ṭemperatúróṭ ha-ṭransfortmatzyá k'gón A1 v-Ms v'lakhén 'al tikhún ha-ṭippúl ha-termí.",
+        "ru": "Углерод также влияет на температуры превращения, такие как A1 и Ms, и, следовательно, на планирование термической обработки."
+      },
+      "source_refs": [
+        "legacy_row_hash:1552c3bd39fb889f17fbc7e8d46e0d6e91ffe65211a31c07e2070d90f7519578",
+        "legacy_fields_sha256:5c99438f745be7d78de1941775dc42c5f9b0de42aa787939de642a2f2ebd005e",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפַּחְמָן",
+            "normalized": "הפחמן"
+          },
+          {
+            "index": 1,
+            "surface": "מַשְׁפִּיעַ",
+            "normalized": "משפיע"
+          },
+          {
+            "index": 2,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 3,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 4,
+            "surface": "טֶמְפֶּרָטוּרוֹת",
+            "normalized": "טמפרטורות"
+          },
+          {
+            "index": 5,
+            "surface": "הַטְּרַנְסְפוֹרְמַצְיָה",
+            "normalized": "הטרנספורמציה"
+          },
+          {
+            "index": 6,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 7,
+            "surface": "A1",
+            "normalized": "A1"
+          },
+          {
+            "index": 8,
+            "surface": "וְ-Ms",
+            "normalized": "ו-Ms"
+          },
+          {
+            "index": 9,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 10,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 11,
+            "surface": "תִּכְנוּן",
+            "normalized": "תכנון"
+          },
+          {
+            "index": 12,
+            "surface": "הַטִּפּוּל",
+            "normalized": "הטפול"
+          },
+          {
+            "index": 13,
+            "surface": "הַתֶּרְמִי.",
+            "normalized": "התרמי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q042-sol-r029",
+      "order": 29,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:f91132c129a1d4ae236b26273847dfee96eef670a3b4da5b74f2565535766d4b",
+        "comparison:MATCH",
+        "source_page:52",
+        "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+        "declared_convention:Aluminum_Association_temper"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q042",
+    "display_alias": "42",
+    "source_pages": [
+      52
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а-б) Закалка стали: аустенитизация и быстрое охлаждение для мартенсита, цель — высокая твёрдость/прочность. Отпуск: повторный нагрев ниже A₁, выдержка и охлаждение, цель — уменьшить напряжения/хрупкость; структура — отпущенный мартенсит с карбидами. Старение Al: после растворной обработки и закалки выдержка, при которой мелкие выделения препятствуют дислокациям и повышают прочность.",
+      "в) Естественное старение идёт при комнатной температуре медленно; искусственное — при повышенной контролируемой температуре быстрее, с управляемой дисперсностью и риском перестаривания при чрезмерных T/t.",
+      "г) Углерод повышает достижимую твёрдость/прочность мартенсита и долю карбидов, влияет на фазовый состав, свариваемость и пластичность; при росте C обычно растут твёрдость/прочность, но падают пластичность/вязкость и растёт риск трещин."
+    ],
+    "engineering_picture": "Сталь упрочняется бездиффузионным мартенситом и затем балансируется отпуском; упрочняемые Al-сплавы — дисперсными выделениями из пересыщенного раствора.",
+    "prerequisites": [
+      "Quench and temper are distinct.",
+      "Precipitation aging follows solution treatment and quench."
+    ],
+    "roadmap": [
+      "Для каждого процесса: действия→цель→структура.",
+      "Сравнить температуры aging.",
+      "Связать C с решёткой и свойствами."
+    ],
+    "main_trap": "Не называть отпуск повторной закалкой и не переносить martensite mechanism на алюминиевое старение.",
+    "givens": [
+      "Steel quench/temper; aluminum aging; carbon role."
+    ],
+    "find": [
+      "Definitions, purposes, structures and natural/artificial difference."
+    ],
+    "assumptions": [
+      "Aging refers to precipitation-hardenable aluminum alloys."
+    ],
+    "laws": [
+      "Precipitates impede dislocations; tempering reduces as-quenched brittleness."
+    ],
+    "symbolic_derivation": [
+      "Solution+quench⇒supersaturated solid solution; age⇒fine precipitates⇒strength↑."
+    ],
+    "calculation": [],
+    "construction": [
+      "Three-row process table with temperature path, objective and final structure."
+    ],
+    "checks": [
+      "Each named structure follows the correct process and alloy family."
+    ],
+    "source_facts": [
+      "source_page:52",
+      "asset_sha256:569f769849b2804ca76d4702df8286a3c1973578c661acd74ec5adafad8ab0c8",
+      "declared_convention:Aluminum_Association_temper"
+    ],
+    "unresolved_limits": [
+      "Specific aging temperature/time depends on alloy and temper specification."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 0
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

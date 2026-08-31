@@ -1,0 +1,2559 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_bfb7bb1b23658a752a56f542",
+  "public_work_id": "work-bc586414e4a2275e2aa7ae39",
+  "snapshot_sha256": "01f138edf7a60c5c241ac1e9d1f105f60078f2f7688fc29d95e73bad8facc950",
+  "task_id": "materials-science-y1-pb2-q045",
+  "display_alias": "45",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "173b21cb89137f5c96f1610ac741434b56a535534a267a904332e40fd9b63e04"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "39aee6f670d8c1b87b8eadbd8fd4f845790b3e9292335aec4ee8e6ba9a468f65",
+    "source_canonical_task_sha256": "173b21cb89137f5c96f1610ac741434b56a535534a267a904332e40fd9b63e04"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Annealing/aging, SAE1020 carburize-quench-temper and ABCD/DEFG graph segments match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q045-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 45.",
+        "hebrew_niqqud": "שְׁאֵלָה 45.",
+        "translit": "She'ela 45.",
+        "translit_ru": "",
+        "russian": "Вопрос 45.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "task_heading",
+            "source_page": 55,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. הסבר אחד משני המושגים שלפניך:",
+        "hebrew_niqqud": "א. הַסְבֵּר אֶחָד מִשְּׁנֵי הַמֻּושָּׂגִים שֶׁלְּפָנֶיךָ:",
+        "translit": "a. Hasber eḥad mishnei hamusagim shelefanekha:",
+        "translit_ru": "",
+        "russian": "א. Объясните одно из двух следующих понятий:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r003",
+        "order_index": 2,
+        "hebrew_plain": "ריפוי",
+        "hebrew_niqqud": "רִיפּוּי",
+        "translit": "ripuy",
+        "translit_ru": "",
+        "russian": "отжиг",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r004",
+        "order_index": 3,
+        "hebrew_plain": "זיקון",
+        "hebrew_niqqud": "זִיקּוּן",
+        "translit": "zikun",
+        "translit_ru": "",
+        "russian": "старение",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r005",
+        "order_index": 4,
+        "hebrew_plain": "ב. ציין שלושה תהליכים שיש לבצע בחלק העשוי מפלדה 1020 SAE, כדי להקשות את השכבה החיצונית שלו.",
+        "hebrew_niqqud": "ב. צַייֵּן שְׁלוֹשָׁה תַּהֲלִיכִים שֶׁיֵּשׁ לְבַצֵּעַ בְּחֵלֶק הֶעָשׂוּי מִפְּלָדָה 1020 SAE, כְּדֵי לְהַקְשׁוֹת אֶת הַשִּׁכְבָה הַחִיצוֹנִית שֶׁלּוֹ.",
+        "translit": "b. Tzayen shloshah tahalikhim sheyesh levatzea' beḥelek he'asuy mipladah 1020 SAE, kedei lehaqshot et hashikhvah haḥitzonit shelo.",
+        "translit_ru": "",
+        "russian": "ב. Укажите три процесса, которые необходимо выполнить на детали из стали SAE 1020, чтобы упрочнить её внешний слой.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r006",
+        "order_index": 5,
+        "hebrew_plain": "ג. הגרף שבאיור לשאלה 3 מתאר טיפול תרמי בפלדה. בטיפול נעשים שני תהליכים.",
+        "hebrew_niqqud": "ג. הַגְּרָף שֶׁבָּאִיּוּר לִשְׁאֵלָה 3 מְתָאֵר טִיפּוּל תֶּרְמִי בִּפְלָדָה. בְּטִיפּוּל נַעֲשִׂים שְׁנֵי תַּהֲלִיכִים.",
+        "translit": "g. Hagraf sheba'iyur lishe'elah 3 meta'er tipul termi bifladah. Betipul na'asim shnei tahalikhim.",
+        "translit_ru": "",
+        "russian": "ג. График на рисунке к вопросу 3 описывает термическую обработку стали. При обработке выполняются два процесса.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r007",
+        "order_index": 6,
+        "hebrew_plain": "בטיפול נעשים שני תהליכים.",
+        "hebrew_niqqud": "בְּטִיפּוּל נַעֲשִׂים שְׁנֵי תַּהֲלִיכִים.",
+        "translit": "Betipul na'asim shnei tahalikhim.",
+        "translit_ru": "",
+        "russian": "При обработке выполняются два процесса.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r008",
+        "order_index": 7,
+        "hebrew_plain": "מהו התהליך המתואר בקטע הגרף ABCD ?",
+        "hebrew_niqqud": "מַהוּ הַתַּהֲלִיךְ הַמְּתֹואָר בְּקֶטַע הַגְּרָף ABCD ?",
+        "translit": "Mahu hatahalikh hameto'ar beqeta' hagraf ABCD ?",
+        "translit_ru": "",
+        "russian": "Какой процесс описан на участке графика ABCD?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r009",
+        "order_index": 8,
+        "hebrew_plain": "איזו פעולה מתאר כל אחד מן הקטעים AB, BC ו־CD ?",
+        "hebrew_niqqud": "אֵיזוֹ פְּעֻולָּה מְתָאֵר כָּל אֶחָד מִן הַקְּטָעִים AB, BC וְ־CD ?",
+        "translit": "Eizo pe'ulah meta'er kol eḥad min haqta'im AB, BC ve-CD ?",
+        "translit_ru": "",
+        "russian": "Какое действие описывает каждый из участков AB, BC и CD?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r010",
+        "order_index": 9,
+        "hebrew_plain": "ד. מהו התהליך המתואר בגרף באותיות DEFG ?",
+        "hebrew_niqqud": "ד. מַהוּ הַתַּהֲלִיךְ הַמְּתֹואָר בַּגְּרָף בָּאוֹתִיּוֹת DEFG ?",
+        "translit": "d. Mahu hatahalikh hameto'ar bagraf ba'otiyot DEFG ?",
+        "translit_ru": "",
+        "russian": "ד. Какой процесс описан на графике буквами DEFG?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q045-r011",
+        "order_index": 10,
+        "hebrew_plain": "איזו פעולה מתאר כל אחד מן הקטעים DE, EF ו־FG ?",
+        "hebrew_niqqud": "אֵיזוֹ פְּעֻולָּה מְתָאֵר כָּל אֶחָד מִן הַקְּטָעִים DE, EF וְ־FG ?",
+        "translit": "Eizo pe'ulah meta'er kol eḥad min haqta'im DE, EF ve-FG ?",
+        "translit_ru": "",
+        "russian": "Какое действие описывает каждый из участков DE, EF и FG?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q045",
+            "kind": "subpart",
+            "source_page": 55,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      55
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q045/anchor-01-p055.jpg",
+        "sha256": "469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297",
+        "bytes": 143860,
+        "source_page": 55,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q045-v01",
+        "source_page": 55,
+        "kind": "TIME_TEMPERATURE_HEAT_TREATMENT_GRAPH",
+        "instance_count": 1,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע FG מתואר קירור בדרך כלל באוויר עד טמפרטורת חדר.",
+        "he_niqqud": "בְּקֶטַע FG מְתֹאָר קִירּוּר בְּדֶרֶךְ כְּלָל בָּאֲוִיר עַד טֶמְפֶּרָטוּרַת חֶדֶר.",
+        "transliteration": "Be-qeta FG meto'ar qirur be-derekh klal ba-avir ad temperaturat hader.",
+        "ru": "На участке FG описано охлаждение, как правило, на воздухе, до комнатной температуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:5aa49d8f45cbcfa3e58bd2021ea13f63bfdedbf4a105f89de3248011b13cfe55",
+        "legacy_fields_sha256:d7813f7dbb0919057aed4da76fb4b8a2d782f5b6113da56160843b47877b5af7",
+        "independent_solution_sha256:9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "FG",
+            "normalized": "FG"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 3,
+            "surface": "קִירּוּר",
+            "normalized": "קירור"
+          },
+          {
+            "index": 4,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 5,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 6,
+            "surface": "בָּאֲוִיר",
+            "normalized": "באויר"
+          },
+          {
+            "index": 7,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 8,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 9,
+            "surface": "חֶדֶר.",
+            "normalized": "חדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) פחמון או צמנטציה להעשיר פחמן בשכבה החיצונית כדי להעלות את %C בפני השטח וליצור שכבת מעטפת קשה.",
+        "he_niqqud": "ב) פַּחְמוּן אוֹ צֶמֶנְטַצְיָה לְהַעֲשִׁיר פַּחְמָן בַּשִׁכְבָה הַחִיצוֹנִית כְּדֵי לְהַעֲלוֹת אֶת %C בִּפְנֵי הַשֶּׁטַח וְלִיצוֹר שִׁכְבַת מַעֲטֶפֶת קָשָׁה.",
+        "transliteration": "B) Pahmon o tzementatziah leha'ashir pahman ba-shikhvah ha-hitzonit kedei leha'alot et %C bifnei ha-shetah ve-litzor shikhvat ma'atefet qasha.",
+        "ru": "Б) Цементация или науглероживание для обогащения внешнего слоя углеродом с целью повышения %C на поверхности и создания твердого поверхностного слоя."
+      },
+      "source_refs": [
+        "legacy_row_hash:d5a9211199c8e0a8feacda9ce0625441e01c075d62880e9214cec2ae3dba3c8b",
+        "legacy_fields_sha256:3e134c5de6705e6bdc595c595a10be92f8ea7242aeeb17b638cd7d7de015367f",
+        "independent_solution_sha256:9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "פַּחְמוּן",
+            "normalized": "פחמון"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 3,
+            "surface": "צֶמֶנְטַצְיָה",
+            "normalized": "צמנטציה"
+          },
+          {
+            "index": 4,
+            "surface": "לְהַעֲשִׁיר",
+            "normalized": "להעשיר"
+          },
+          {
+            "index": 5,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 6,
+            "surface": "בַּשִׁכְבָה",
+            "normalized": "בשכבה"
+          },
+          {
+            "index": 7,
+            "surface": "הַחִיצוֹנִית",
+            "normalized": "החיצונית"
+          },
+          {
+            "index": 8,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 9,
+            "surface": "לְהַעֲלוֹת",
+            "normalized": "להעלות"
+          },
+          {
+            "index": 10,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 11,
+            "surface": "%C",
+            "normalized": "C"
+          },
+          {
+            "index": 12,
+            "surface": "בִּפְנֵי",
+            "normalized": "בפני"
+          },
+          {
+            "index": 13,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 14,
+            "surface": "וְלִיצוֹר",
+            "normalized": "וליצור"
+          },
+          {
+            "index": 15,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 16,
+            "surface": "מַעֲטֶפֶת",
+            "normalized": "מעטפת"
+          },
+          {
+            "index": 17,
+            "surface": "קָשָׁה.",
+            "normalized": "קשה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) התהליך המתואר בקטע ABCD הוא הקשיה.",
+        "he_niqqud": "ג) הַתַּהֲלִיךְ הַמְּתֹאָר בְּקֶטַע ABCD הוּא הַקְשָׁיָה.",
+        "transliteration": "G) Ha-tahalikh ha-meto'ar be-qeta ABCD hu haqshayyah.",
+        "ru": "В) Процесс, описанный на участке ABCD, — это закалка."
+      },
+      "source_refs": [
+        "legacy_row_hash:f84da8fab34fde8124850e70fb0bf174cd5a847c78e7bc0390db1eb33b281311",
+        "legacy_fields_sha256:1249124adc54129e0b313a92cf410e32422146f67c028e926216304a3cb398b8",
+        "independent_solution_sha256:9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַתַּהֲלִיךְ",
+            "normalized": "התהליך"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּתֹאָר",
+            "normalized": "המתאר"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 4,
+            "surface": "ABCD",
+            "normalized": "ABCD"
+          },
+          {
+            "index": 5,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 6,
+            "surface": "הַקְשָׁיָה.",
+            "normalized": "הקשיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) התהליך המתואר בקטע DEFG הוא הרפיה לאחר הקשיה.",
+        "he_niqqud": "ד) הַתַּהֲלִיךְ הַמְּתֹאָר בְּקֶטַע DEFG הוּא הַרְפָּיָה לְאַחַר הַקְשָׁיָה.",
+        "transliteration": "D) Ha-tahalikh ha-meto'ar be-qeta DEFG hu harpayyah le'ahar haqshayyah.",
+        "ru": "Г) Процесс, описанный на участке DEFG, — это отпуск после закалки."
+      },
+      "source_refs": [
+        "legacy_row_hash:977c6f2ceeaaf6c604c5abe199e2e9bf06320f645d1c96dde852d776959c4e2d",
+        "legacy_fields_sha256:09038b2c27a9083a079bc8688cac3c98c26a976608c78aedf37b8ae7b9379b0d",
+        "independent_solution_sha256:9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הַתַּהֲלִיךְ",
+            "normalized": "התהליך"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּתֹאָר",
+            "normalized": "המתאר"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 4,
+            "surface": "DEFG",
+            "normalized": "DEFG"
+          },
+          {
+            "index": 5,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 6,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "הַקְשָׁיָה.",
+            "normalized": "הקשיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) זִיקוּן הוא תהליך תרמי-זמני שבו מחזיקים חומר בטמפרטורה קבועה או בטמפרטורת חדר כדי לאפשר דיפוזיה ויצירת משקעים עדינים שמעלים חוזק וקשיות.",
+        "he_niqqud": "א) זִיקוּן הוּא תַּהֲלִיךְ תֶּרְמִי-זְמַנִּי שֶׁבּוֹ מַחְזִיקִים חוֹמֶר בְּטֶמְפֶּרָטוּרָה קְבוּעָה אוֹ בְּטֶמְפֶּרָטוּרַת חֶדֶר כְּדֵי לְאַפְשֵׁר דִּיפוּזְיָה וִיצִירַת מִשְׁקָעִים עֲדִינִים שֶׁמַּעֲלִים חֹזֶק וְקַשְׁיוּת.",
+        "transliteration": "A) Zikun hu tahalikh termi-zmanni she-bo mahziqim homer be-temperatura qevu'a o be-temperaturat hader kedei le'afsher difuzyah vi-yetzirat mishqa'im adinim she-ma'alim hozeq ve-qashyut.",
+        "ru": "А) Старение — это термо-временной процесс, при котором материал выдерживается при постоянной или комнатной температуре, чтобы обеспечить диффузию и образование тонких осадков, повышающих прочность и твердость."
+      },
+      "source_refs": [
+        "legacy_row_hash:7c752015ea48a0cc3e30de1ec68f7d06e4f901ee3e563140639b20a17cf289d9",
+        "legacy_fields_sha256:2050eb9e63fc0e5be342d794ed12962d8ab5c3950c1d791e47c3f204c3e13303",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "זִיקוּן",
+            "normalized": "זיקון"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "תַּהֲלִיךְ",
+            "normalized": "תהליך"
+          },
+          {
+            "index": 4,
+            "surface": "תֶּרְמִי-זְמַנִּי",
+            "normalized": "תרמי-זמני"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 6,
+            "surface": "מַחְזִיקִים",
+            "normalized": "מחזיקים"
+          },
+          {
+            "index": 7,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 8,
+            "surface": "בְּטֶמְפֶּרָטוּרָה",
+            "normalized": "בטמפרטורה"
+          },
+          {
+            "index": 9,
+            "surface": "קְבוּעָה",
+            "normalized": "קבועה"
+          },
+          {
+            "index": 10,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 11,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 12,
+            "surface": "חֶדֶר",
+            "normalized": "חדר"
+          },
+          {
+            "index": 13,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 14,
+            "surface": "לְאַפְשֵׁר",
+            "normalized": "לאפשר"
+          },
+          {
+            "index": 15,
+            "surface": "דִּיפוּזְיָה",
+            "normalized": "דיפוזיה"
+          },
+          {
+            "index": 16,
+            "surface": "וִיצִירַת",
+            "normalized": "ויצירת"
+          },
+          {
+            "index": 17,
+            "surface": "מִשְׁקָעִים",
+            "normalized": "משקעים"
+          },
+          {
+            "index": 18,
+            "surface": "עֲדִינִים",
+            "normalized": "עדינים"
+          },
+          {
+            "index": 19,
+            "surface": "שֶׁמַּעֲלִים",
+            "normalized": "שמעלים"
+          },
+          {
+            "index": 20,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 21,
+            "surface": "וְקַשְׁיוּת.",
+            "normalized": "וקשיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המשקעים חוסמים תנועת דיסלוקציות ולכן עולה מאמץ הזרימה וגבול הכניעה.",
+        "he_niqqud": "הַמִּשְׁקָעִים חוֹסְמִים תְּנוּעַת דִּיסְלוֹקַצְיוֹת וְלָכֵן עוֹלֶה מַאֲמָץ הַזְּרִימָה וּגְבוּל הַכְּנִיעָה.",
+        "transliteration": "Ha-mishqa'im hosmim tnu'at disloqatziiot ve-lakhen oleh ma'amatz ha-zrimah u-gvul ha-keni'ah.",
+        "ru": "Осадки блокируют движение дислокаций, и вследствие этого увеличиваются напряжение течения и предел текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:11fc33ee76e2e209c1ea90ab60237c6a943ebb2dbe566a4c5a650e8023b0f87a",
+        "legacy_fields_sha256:6092bafa4f0e70d01fa66e6adfc3dda4d9b6f13e26e5fcadcc0e88f66f58abb2",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמִּשְׁקָעִים",
+            "normalized": "המשקעים"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹסְמִים",
+            "normalized": "חוסמים"
+          },
+          {
+            "index": 2,
+            "surface": "תְּנוּעַת",
+            "normalized": "תנועת"
+          },
+          {
+            "index": 3,
+            "surface": "דִּיסְלוֹקַצְיוֹת",
+            "normalized": "דיסלוקציות"
+          },
+          {
+            "index": 4,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 5,
+            "surface": "עוֹלֶה",
+            "normalized": "עולה"
+          },
+          {
+            "index": 6,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 7,
+            "surface": "הַזְּרִימָה",
+            "normalized": "הזרימה"
+          },
+          {
+            "index": 8,
+            "surface": "וּגְבוּל",
+            "normalized": "וגבול"
+          },
+          {
+            "index": 9,
+            "surface": "הַכְּנִיעָה.",
+            "normalized": "הכניעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "דוגמה טיפוסית היא סגסוגות אלומיניום שעוברות זיקון מלאכותי סביב 150–200°C לאחר המסה וקירור מהיר.",
+        "he_niqqud": "דּוּגְמָה טִיפּוּסִית הִיא סַגְסוֹגוֹת אָלוּמִינְיוּם שֶׁעוֹבְרוֹת זִיקוּן מְלָאכוּתִי סָבִיב 150–200°C לְאַחַר הַמְסָה וְקִירוּר מָהִיר.",
+        "transliteration": "Dugma tipusit hi sagsogot aluminum she-ovrot zikun melakhuti saviv 150–200°C le'ahar hamasah ve-qirur mahir.",
+        "ru": "Типичным примером являются алюминиевые сплавы, которые подвергаются искусственному старению при температуре около 150–200°C после расплавления и быстрого охлаждения."
+      },
+      "source_refs": [
+        "legacy_row_hash:dad57299cb84be285747f7077e5503cbae93890a4e86b3c3c6b141935c261024",
+        "legacy_fields_sha256:bdcc9c665eb769789f5c185d038905655fbe64dd2dd015ae58e7595d6c7a75df",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "דּוּגְמָה",
+            "normalized": "דוגמה"
+          },
+          {
+            "index": 1,
+            "surface": "טִיפּוּסִית",
+            "normalized": "טיפוסית"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "סַגְסוֹגוֹת",
+            "normalized": "סגסוגות"
+          },
+          {
+            "index": 4,
+            "surface": "אָלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁעוֹבְרוֹת",
+            "normalized": "שעוברות"
+          },
+          {
+            "index": 6,
+            "surface": "זִיקוּן",
+            "normalized": "זיקון"
+          },
+          {
+            "index": 7,
+            "surface": "מְלָאכוּתִי",
+            "normalized": "מלאכותי"
+          },
+          {
+            "index": 8,
+            "surface": "סָבִיב",
+            "normalized": "סביב"
+          },
+          {
+            "index": 9,
+            "surface": "150–200°C",
+            "normalized": "150–200°C"
+          },
+          {
+            "index": 10,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 11,
+            "surface": "הַמְסָה",
+            "normalized": "המסה"
+          },
+          {
+            "index": 12,
+            "surface": "וְקִירוּר",
+            "normalized": "וקירור"
+          },
+          {
+            "index": 13,
+            "surface": "מָהִיר.",
+            "normalized": "מהיר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) פחמון או צמנטציה להעשיר פחמן בשכבה החיצונית כדי להעלות את %C בפני השטח וליצור שכבת מעטפת קשה.",
+        "he_niqqud": "ב) פַּחְמוּן אוֹ צֶמֶנְטַצְיָה לְהַעֲשִׁיר פַּחְמָן בַּשִׁכְבָה הַחִיצוֹנִית כְּדֵי לְהַעֲלוֹת אֶת %C בִּפְנֵי הַשֶּׁטַח וְלִיצוֹר שִׁכְבַת מַעֲטֶפֶת קָשָׁה.",
+        "transliteration": "B) Pahmon o tzementatziah leha'ashir pahman ba-shikhvah ha-hitzonit kedei leha'alot et %C bifnei ha-shetah ve-litzor shikhvat ma'atefet qasha.",
+        "ru": "Б) Цементация или науглероживание для обогащения внешнего слоя углеродом с целью повышения %C на поверхности и создания твердого поверхностного слоя."
+      },
+      "source_refs": [
+        "legacy_row_hash:d5a9211199c8e0a8feacda9ce0625441e01c075d62880e9214cec2ae3dba3c8b",
+        "legacy_fields_sha256:3e134c5de6705e6bdc595c595a10be92f8ea7242aeeb17b638cd7d7de015367f",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "פַּחְמוּן",
+            "normalized": "פחמון"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 3,
+            "surface": "צֶמֶנְטַצְיָה",
+            "normalized": "צמנטציה"
+          },
+          {
+            "index": 4,
+            "surface": "לְהַעֲשִׁיר",
+            "normalized": "להעשיר"
+          },
+          {
+            "index": 5,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 6,
+            "surface": "בַּשִׁכְבָה",
+            "normalized": "בשכבה"
+          },
+          {
+            "index": 7,
+            "surface": "הַחִיצוֹנִית",
+            "normalized": "החיצונית"
+          },
+          {
+            "index": 8,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 9,
+            "surface": "לְהַעֲלוֹת",
+            "normalized": "להעלות"
+          },
+          {
+            "index": 10,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 11,
+            "surface": "%C",
+            "normalized": "C"
+          },
+          {
+            "index": 12,
+            "surface": "בִּפְנֵי",
+            "normalized": "בפני"
+          },
+          {
+            "index": 13,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 14,
+            "surface": "וְלִיצוֹר",
+            "normalized": "וליצור"
+          },
+          {
+            "index": 15,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 16,
+            "surface": "מַעֲטֶפֶת",
+            "normalized": "מעטפת"
+          },
+          {
+            "index": 17,
+            "surface": "קָשָׁה.",
+            "normalized": "קשה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הקשיה באמצעות אוסטניטיזציה ולאחריה קירור מהיר כדי ליצור מרטנזיט בשכבת המעטפת ולהעלות קשיות.",
+        "he_niqqud": "הַקְשָׁיָה בְּאֶמְצָעוּת אוֹסְטֶנִיטִיזַצְיָה וּלְאַחֲרֶיהָ קִירּוּר מָהִיר כְּדֵי לִיצוֹר מַרְטֶנְזִיט בְּשִׁכְבַת הַמַּעֲטֶפֶת וּלְהַעֲלוֹת קַשְׁיוּת.",
+        "transliteration": "Ha-qshayyah be'emtzaut ostenitizatziah ve-lehahareha qirur mahir kedei litzor martenzit be-shikhvat ha-ma'atefet u-leha'alot qashyut.",
+        "ru": "Закалка путем аустенитизации с последующим быстрым охлаждением для создания мартенсита в поверхностном слое и повышения твердости."
+      },
+      "source_refs": [
+        "legacy_row_hash:b66c204b9ce4118365009878e7fbb49748d0d6229ed2063d2d6a7677f11945a9",
+        "legacy_fields_sha256:42242e65f9a74bf582d5597139861105de5b78b9d5ff38cbefaee3f4c3607c53",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַקְשָׁיָה",
+            "normalized": "הקשיה"
+          },
+          {
+            "index": 1,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 2,
+            "surface": "אוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "אוסטניטיזציה"
+          },
+          {
+            "index": 3,
+            "surface": "וּלְאַחֲרֶיהָ",
+            "normalized": "ולאחריה"
+          },
+          {
+            "index": 4,
+            "surface": "קִירּוּר",
+            "normalized": "קירור"
+          },
+          {
+            "index": 5,
+            "surface": "מָהִיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לִיצוֹר",
+            "normalized": "ליצור"
+          },
+          {
+            "index": 8,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 9,
+            "surface": "בְּשִׁכְבַת",
+            "normalized": "בשכבת"
+          },
+          {
+            "index": 10,
+            "surface": "הַמַּעֲטֶפֶת",
+            "normalized": "המעטפת"
+          },
+          {
+            "index": 11,
+            "surface": "וּלְהַעֲלוֹת",
+            "normalized": "ולהעלות"
+          },
+          {
+            "index": 12,
+            "surface": "קַשְׁיוּת.",
+            "normalized": "קשיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r011",
+      "order": 11,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "הרפיה לאחר ההקשיה בחימום מתון מתחת ל-A1≈727°C כדי להפחית פריכות, לשחרר מאמצים פנימיים ולשפר קשיחות.",
+        "he_niqqud": "הַרְפָּיָה לְאַחַר הַהַקְשָׁיָה בְּחִמּוּם מָתוֹן מִתַּחַת לְ-A1≈727°C כְּדֵי לְהַפְחִית פְּרִיכוּת, לְשַׁחְרֵר מַאֲמָצִים פְּנִימִיִּים וּלְשַׁפֵּר קְשִׁיחוּת.",
+        "transliteration": "Harpayah le'ahar ha-haqshayyah be-himum maton mittahat le-A1≈727°C kedei lehafhit prikhut, leshahrer ma'amatzim penimi'im u-leshaper qshihut.",
+        "ru": "Отпуск после закалки путем умеренного нагрева ниже A1≈727°C для снижения хрупкости, снятия внутренних напряжений и улучшения ударной вязкости."
+      },
+      "source_refs": [
+        "legacy_row_hash:afdabd6b6544a1b3bc5c374518235dc3c5157261f37d10f08b6ec336bfd0768b",
+        "legacy_fields_sha256:6a9e2e28c364e8f978aec6b766c491c9a3b25cc0867ed7c85f6b94f1f1c21bed",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 1,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 2,
+            "surface": "הַהַקְשָׁיָה",
+            "normalized": "ההקשיה"
+          },
+          {
+            "index": 3,
+            "surface": "בְּחִמּוּם",
+            "normalized": "בחמום"
+          },
+          {
+            "index": 4,
+            "surface": "מָתוֹן",
+            "normalized": "מתון"
+          },
+          {
+            "index": 5,
+            "surface": "מִתַּחַת",
+            "normalized": "מתחת"
+          },
+          {
+            "index": 6,
+            "surface": "לְ-A1≈727°C",
+            "normalized": "ל-A1≈727°C"
+          },
+          {
+            "index": 7,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 8,
+            "surface": "לְהַפְחִית",
+            "normalized": "להפחית"
+          },
+          {
+            "index": 9,
+            "surface": "פְּרִיכוּת,",
+            "normalized": "פריכות"
+          },
+          {
+            "index": 10,
+            "surface": "לְשַׁחְרֵר",
+            "normalized": "לשחרר"
+          },
+          {
+            "index": 11,
+            "surface": "מַאֲמָצִים",
+            "normalized": "מאמצים"
+          },
+          {
+            "index": 12,
+            "surface": "פְּנִימִיִּים",
+            "normalized": "פנימיים"
+          },
+          {
+            "index": 13,
+            "surface": "וּלְשַׁפֵּר",
+            "normalized": "ולשפר"
+          },
+          {
+            "index": 14,
+            "surface": "קְשִׁיחוּת.",
+            "normalized": "קשיחות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדה דלת-פחמן כמו SAE 1020 ההקשיה לעומק מוגבלת ללא העשרת פחמן ולכן מבצעים הקשיית מעטפת לקבלת משטח קשה וליבה קשיחה-פלסטית.",
+        "he_niqqud": "בִּפְלָדָה דַּלַּת-פַּחְמָן כְּמוֹ SAE 1020 הַהַקְשָׁיָה לְעֹמֶק מֻגְבֶּלֶת לְלֹא הַעֲשָׁרַת פַּחְמָן וְלָכֵן מְבַצְּעִים הַקְשָׁיַת מַעֲטֶפֶת לְקַבָּלַת מִשְׁטָח קָשֶׁה וְלִיבָּה קְשִׁיחָה-פְּלַסְטִית.",
+        "transliteration": "Be-pladah dalat-pahman kmo SAE 1020 ha-haqshayyah le-omeq mugbelet lelo ha'asharat pahman ve-lakhen mevatz'im haqshayyat ma'atefet le-qabbalat mishtah qasheh ve-libah qshiha-plastit.",
+        "ru": "В низкоуглеродистой стали, такой как SAE 1020, закалка на глубину ограничена без обогащения углеродом, поэтому выполняют поверхностную закалку для получения твердой поверхности и вязко-пластичной сердцевины."
+      },
+      "source_refs": [
+        "legacy_row_hash:ad3153db2eeee475b1c72d5051fdb5301722c94b651eff000bc183bea3a995fc",
+        "legacy_fields_sha256:82f5ba0d1854c1159f67d037388af6e9a7ebc0fad4998e2a66f4d74e35506829",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּפְלָדָה",
+            "normalized": "בפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "דַּלַּת-פַּחְמָן",
+            "normalized": "דלת-פחמן"
+          },
+          {
+            "index": 2,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 3,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 4,
+            "surface": "1020",
+            "normalized": "1020"
+          },
+          {
+            "index": 5,
+            "surface": "הַהַקְשָׁיָה",
+            "normalized": "ההקשיה"
+          },
+          {
+            "index": 6,
+            "surface": "לְעֹמֶק",
+            "normalized": "לעמק"
+          },
+          {
+            "index": 7,
+            "surface": "מֻגְבֶּלֶת",
+            "normalized": "מגבלת"
+          },
+          {
+            "index": 8,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 9,
+            "surface": "הַעֲשָׁרַת",
+            "normalized": "העשרת"
+          },
+          {
+            "index": 10,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 11,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 12,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 13,
+            "surface": "הַקְשָׁיַת",
+            "normalized": "הקשית"
+          },
+          {
+            "index": 14,
+            "surface": "מַעֲטֶפֶת",
+            "normalized": "מעטפת"
+          },
+          {
+            "index": 15,
+            "surface": "לְקַבָּלַת",
+            "normalized": "לקבלת"
+          },
+          {
+            "index": 16,
+            "surface": "מִשְׁטָח",
+            "normalized": "משטח"
+          },
+          {
+            "index": 17,
+            "surface": "קָשֶׁה",
+            "normalized": "קשה"
+          },
+          {
+            "index": 18,
+            "surface": "וְלִיבָּה",
+            "normalized": "וליבה"
+          },
+          {
+            "index": 19,
+            "surface": "קְשִׁיחָה-פְּלַסְטִית.",
+            "normalized": "קשיחה-פלסטית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) התהליך המתואר בקטע ABCD הוא הקשיה.",
+        "he_niqqud": "ג) הַתַּהֲלִיךְ הַמְּתֹאָר בְּקֶטַע ABCD הוּא הַקְשָׁיָה.",
+        "transliteration": "G) Ha-tahalikh ha-meto'ar be-qeta ABCD hu haqshayyah.",
+        "ru": "В) Процесс, описанный на участке ABCD, — это закалка."
+      },
+      "source_refs": [
+        "legacy_row_hash:f84da8fab34fde8124850e70fb0bf174cd5a847c78e7bc0390db1eb33b281311",
+        "legacy_fields_sha256:1249124adc54129e0b313a92cf410e32422146f67c028e926216304a3cb398b8",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַתַּהֲלִיךְ",
+            "normalized": "התהליך"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּתֹאָר",
+            "normalized": "המתאר"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 4,
+            "surface": "ABCD",
+            "normalized": "ABCD"
+          },
+          {
+            "index": 5,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 6,
+            "surface": "הַקְשָׁיָה.",
+            "normalized": "הקשיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע AB מתואר חימום עד טמפרטורת אוסטניטיזציה מעל Ac3.",
+        "he_niqqud": "בְּקֶטַע AB מְתֹאָר חִמּוּם עַד טֶמְפֶּרָטוּרַת אוֹסְטֶנִיטִיזַצְיָה מֵעַל Ac3.",
+        "transliteration": "Be-qeta AB meto'ar himum ad temperaturat ostenitizatziah me'al Ac3.",
+        "ru": "На участке AB описан нагрев до температуры аустенитизации выше Ac3."
+      },
+      "source_refs": [
+        "legacy_row_hash:a78e9ae910655d34ba1f6d40117cfce0110b091c52ca40c0c11ccc2581ba3b37",
+        "legacy_fields_sha256:1bc37e22a4be8f53f9340ec94fb93c741c6c8418afb8f0e30a532b32c93adfde",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "AB",
+            "normalized": "AB"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 3,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 4,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 5,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "אוסטניטיזציה"
+          },
+          {
+            "index": 7,
+            "surface": "מֵעַל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 8,
+            "surface": "Ac3.",
+            "normalized": "Ac3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע BC מתוארת שהייה בטמפרטורת האוסטניטיזציה להשוואת טמפרטורה ולהשלמת הטרנספורמציה למבנה אוסטניטי.",
+        "he_niqqud": "בְּקֶטַע BC מְתֹאָרֶת שְׁהִיָּה בְּטֶמְפֶּרָטוּרַת הָאוֹסְטֶנִיטִיזַצְיָה לְהַשְׁוָאַת טֶמְפֶּרָטוּרָה וּלְהַשְׁלָמַת הַטְּרַנְסְפוֹרְמַצְיָה לְמִבְנֶה אוֹסְטֶנִיטִי.",
+        "transliteration": "Be-qeta BC meto'eret shehiyah be-temperaturat ha-ostenitizatziah le-hashva'at temperatura u-lehashlamat ha-transformatziah le-mivne osteniti.",
+        "ru": "На участке BC описана выдержка при температуре аустенитизации для выравнивания температуры и завершения превращения в аустенитную структуру."
+      },
+      "source_refs": [
+        "legacy_row_hash:6e122f2da8ab63f2501c2079be80ebc82f7c181a369a77f46fc4a958cd5ae23e",
+        "legacy_fields_sha256:2a8a1204c445aae56517b6147f6c612cb74e58e628e64012148ac5deca85cd37",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "BC",
+            "normalized": "BC"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָרֶת",
+            "normalized": "מתארת"
+          },
+          {
+            "index": 3,
+            "surface": "שְׁהִיָּה",
+            "normalized": "שהיה"
+          },
+          {
+            "index": 4,
+            "surface": "בְּטֶמְפֶּרָטוּרַת",
+            "normalized": "בטמפרטורת"
+          },
+          {
+            "index": 5,
+            "surface": "הָאוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "האוסטניטיזציה"
+          },
+          {
+            "index": 6,
+            "surface": "לְהַשְׁוָאַת",
+            "normalized": "להשואת"
+          },
+          {
+            "index": 7,
+            "surface": "טֶמְפֶּרָטוּרָה",
+            "normalized": "טמפרטורה"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְהַשְׁלָמַת",
+            "normalized": "ולהשלמת"
+          },
+          {
+            "index": 9,
+            "surface": "הַטְּרַנְסְפוֹרְמַצְיָה",
+            "normalized": "הטרנספורמציה"
+          },
+          {
+            "index": 10,
+            "surface": "לְמִבְנֶה",
+            "normalized": "למבנה"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹסְטֶנִיטִי.",
+            "normalized": "אוסטניטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע CD מתואר קירור מהיר המוביל ליצירת מרטנזיט ולקשיות גבוהה אך גם לפריכות ולמאמצים פנימיים.",
+        "he_niqqud": "בְּקֶטַע CD מְתֹאָר קִירּוּר מָהִיר הַמּוֹבִיל לִיצִירַת מַרְטֶנְזִיט וּלְקַשְׁיוּת גְּבוֹהָה אַךְ גַּם לִפְרִיכוּת וּלְמַאֲמָצִים פְּנִימִיִּים.",
+        "transliteration": "Be-qeta CD meto'ar qirur mahir ha-movil li-ytzirat martenzit u-le-qashyut gevohah akh gam li-frikhut u-le-ma'amatzim penimi'im.",
+        "ru": "На участке CD описано быстрое охлаждение, которое приводит к образованию мартенсита и высокой твердости, но также к хрупкости и внутренним напряжениям."
+      },
+      "source_refs": [
+        "legacy_row_hash:6506f4db747a82e344d64200a3741a8507680b98c506a8026f5a220c372cf437",
+        "legacy_fields_sha256:e948a1dc0e1a5cadbfac084c2a20b77b044246e5512c6b3a202e73b1664ab551",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "CD",
+            "normalized": "CD"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 3,
+            "surface": "קִירּוּר",
+            "normalized": "קירור"
+          },
+          {
+            "index": 4,
+            "surface": "מָהִיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 5,
+            "surface": "הַמּוֹבִיל",
+            "normalized": "המוביל"
+          },
+          {
+            "index": 6,
+            "surface": "לִיצִירַת",
+            "normalized": "ליצירת"
+          },
+          {
+            "index": 7,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְקַשְׁיוּת",
+            "normalized": "ולקשיות"
+          },
+          {
+            "index": 9,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 10,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 11,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 12,
+            "surface": "לִפְרִיכוּת",
+            "normalized": "לפריכות"
+          },
+          {
+            "index": 13,
+            "surface": "וּלְמַאֲמָצִים",
+            "normalized": "ולמאמצים"
+          },
+          {
+            "index": 14,
+            "surface": "פְּנִימִיִּים.",
+            "normalized": "פנימיים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) התהליך המתואר בקטע DEFG הוא הרפיה לאחר הקשיה.",
+        "he_niqqud": "ד) הַתַּהֲלִיךְ הַמְּתֹאָר בְּקֶטַע DEFG הוּא הַרְפָּיָה לְאַחַר הַקְשָׁיָה.",
+        "transliteration": "D) Ha-tahalikh ha-meto'ar be-qeta DEFG hu harpayyah le'ahar haqshayyah.",
+        "ru": "Г) Процесс, описанный на участке DEFG, — это отпуск после закалки."
+      },
+      "source_refs": [
+        "legacy_row_hash:977c6f2ceeaaf6c604c5abe199e2e9bf06320f645d1c96dde852d776959c4e2d",
+        "legacy_fields_sha256:09038b2c27a9083a079bc8688cac3c98c26a976608c78aedf37b8ae7b9379b0d",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הַתַּהֲלִיךְ",
+            "normalized": "התהליך"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּתֹאָר",
+            "normalized": "המתאר"
+          },
+          {
+            "index": 3,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 4,
+            "surface": "DEFG",
+            "normalized": "DEFG"
+          },
+          {
+            "index": 5,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 6,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "הַקְשָׁיָה.",
+            "normalized": "הקשיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r018",
+      "order": 18,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע DE מתואר חימום מחדש לטמפרטורת הרפיה הנמוכה מ-A1≈727°C.",
+        "he_niqqud": "בְּקֶטַע DE מְתֹאָר חִמּוּם מֵחָדָשׁ לְטֶמְפֶּרָטוּרַת הַרְפָּיָה הַנְּמוּכָה מִ-A1≈727°C.",
+        "transliteration": "Be-qeta DE meto'ar himum me-hadash le-temperaturat harpayyah ha-nemukhah mi-A1≈727°C.",
+        "ru": "На участке DE описан повторный нагрев до температуры отпуска, которая ниже A1≈727°C."
+      },
+      "source_refs": [
+        "legacy_row_hash:8aed644cb00e62e95a8f737aa2aede33974014f06a5f0f42449884b12d03cb1c",
+        "legacy_fields_sha256:7cbdf4edaf59e7f083836229e92d9f65962d46c374e97ae99ff8574106206e51",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "DE",
+            "normalized": "DE"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 3,
+            "surface": "חִמּוּם",
+            "normalized": "חמום"
+          },
+          {
+            "index": 4,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 5,
+            "surface": "לְטֶמְפֶּרָטוּרַת",
+            "normalized": "לטמפרטורת"
+          },
+          {
+            "index": 6,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 7,
+            "surface": "הַנְּמוּכָה",
+            "normalized": "הנמוכה"
+          },
+          {
+            "index": 8,
+            "surface": "מִ-A1≈727°C.",
+            "normalized": "מ-A1≈727°C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע EF מתוארת שהייה שבה מתרחש פירוק חלקי של מרטנזיט, נוצרת מיקרוסטרוקטורה של מרטנזיט מחוסם ונשקעים קרבידים עדינים.",
+        "he_niqqud": "בְּקֶטַע EF מְתֹאָרֶת שְׁהִיָּה שֶׁבָּהּ מִתְרַחֵשׁ פֵּרוּק חֶלְקִי שֶׁל מַרְטֶנְזִיט, נוֹצֶרֶת מִיקְרוֹסְטְרוּקְטוּרָה שֶׁל מַרְטֶנְזִיט מְחֻסָּם וְנִשְׁקָעִים קַרְבִּידִים עֲדִינִים.",
+        "transliteration": "Be-qeta EF meto'eret shehiyah she-bah mitrahesh peruq helqi shel martenzit, notzeret microstructurah shel martenzit mehusam ve-nishqa'im qarbitim adinim.",
+        "ru": "На участке EF описана выдержка, во время которой происходит частичное разложение мартенсита, формируется микроструктура отпущенного мартенсита и выпадают мелкие карбиды."
+      },
+      "source_refs": [
+        "legacy_row_hash:c0c506f29264302d99c1c5d5ebbeb053db26c740d32fc7ed8049e14c9828efba",
+        "legacy_fields_sha256:1f38847d7fd01af1688492d290bf97663d9034f7b93f448a15e0186526549638",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "EF",
+            "normalized": "EF"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָרֶת",
+            "normalized": "מתארת"
+          },
+          {
+            "index": 3,
+            "surface": "שְׁהִיָּה",
+            "normalized": "שהיה"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁבָּהּ",
+            "normalized": "שבה"
+          },
+          {
+            "index": 5,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 6,
+            "surface": "פֵּרוּק",
+            "normalized": "פרוק"
+          },
+          {
+            "index": 7,
+            "surface": "חֶלְקִי",
+            "normalized": "חלקי"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "מַרְטֶנְזִיט,",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 10,
+            "surface": "נוֹצֶרֶת",
+            "normalized": "נוצרת"
+          },
+          {
+            "index": 11,
+            "surface": "מִיקְרוֹסְטְרוּקְטוּרָה",
+            "normalized": "מיקרוסטרוקטורה"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 13,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 14,
+            "surface": "מְחֻסָּם",
+            "normalized": "מחסם"
+          },
+          {
+            "index": 15,
+            "surface": "וְנִשְׁקָעִים",
+            "normalized": "ונשקעים"
+          },
+          {
+            "index": 16,
+            "surface": "קַרְבִּידִים",
+            "normalized": "קרבידים"
+          },
+          {
+            "index": 17,
+            "surface": "עֲדִינִים.",
+            "normalized": "עדינים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקטע FG מתואר קירור בדרך כלל באוויר עד טמפרטורת חדר.",
+        "he_niqqud": "בְּקֶטַע FG מְתֹאָר קִירּוּר בְּדֶרֶךְ כְּלָל בָּאֲוִיר עַד טֶמְפֶּרָטוּרַת חֶדֶר.",
+        "transliteration": "Be-qeta FG meto'ar qirur be-derekh klal ba-avir ad temperaturat hader.",
+        "ru": "На участке FG описано охлаждение, как правило, на воздухе, до комнатной температуры."
+      },
+      "source_refs": [
+        "legacy_row_hash:5aa49d8f45cbcfa3e58bd2021ea13f63bfdedbf4a105f89de3248011b13cfe55",
+        "legacy_fields_sha256:d7813f7dbb0919057aed4da76fb4b8a2d782f5b6113da56160843b47877b5af7",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּקֶטַע",
+            "normalized": "בקטע"
+          },
+          {
+            "index": 1,
+            "surface": "FG",
+            "normalized": "FG"
+          },
+          {
+            "index": 2,
+            "surface": "מְתֹאָר",
+            "normalized": "מתאר"
+          },
+          {
+            "index": 3,
+            "surface": "קִירּוּר",
+            "normalized": "קירור"
+          },
+          {
+            "index": 4,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 5,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 6,
+            "surface": "בָּאֲוִיר",
+            "normalized": "באויר"
+          },
+          {
+            "index": 7,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 8,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 9,
+            "surface": "חֶדֶר.",
+            "normalized": "חדר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r021",
+      "order": 21,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "ההרפיה נדרשת משום שלאחר ההקשיה מתקבלות פריכות ומאמצים פנימיים והיא מאזנת בין קשיות, חוזק וקשיחות.",
+        "he_niqqud": "הַהַרְפָּיָה נִדְרֶשֶׁת מִשׁוּם שֶׁלְּאַחַר הַהַקְשָׁיָה מִתְקַבְּלוֹת פְּרִיכוּת וּמַאֲמָצִים פְּנִימִיִּים וְהִיא מְאַזֶּנֶת בֵּין קַשְׁיוּת, חֹזֶק וּקְשִׁיחוּת.",
+        "transliteration": "Ha-harpayyah nidreshet mishum she-le'ahar ha-haqshayyah mitqablot prikhut u-ma'amatzim penimi'im ve-hi me'azzenet bein qashyut, hozeq u-qshihut.",
+        "ru": "Отпуск необходим, поскольку после закалки наблюдаются хрупкость и внутренние напряжения, и он обеспечивает баланс между твердостью, прочностью и ударной вязкостью."
+      },
+      "source_refs": [
+        "legacy_row_hash:2633229f881bdc292f7fc77e7cd3e41e803d7b80f773970be685c74dddbb82c9",
+        "legacy_fields_sha256:f0fef4f36490f55b9a6acf36dad6fc2e53dc7658e6376f087275038541e337b4",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַהַרְפָּיָה",
+            "normalized": "ההרפיה"
+          },
+          {
+            "index": 1,
+            "surface": "נִדְרֶשֶׁת",
+            "normalized": "נדרשת"
+          },
+          {
+            "index": 2,
+            "surface": "מִשׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁלְּאַחַר",
+            "normalized": "שלאחר"
+          },
+          {
+            "index": 4,
+            "surface": "הַהַקְשָׁיָה",
+            "normalized": "ההקשיה"
+          },
+          {
+            "index": 5,
+            "surface": "מִתְקַבְּלוֹת",
+            "normalized": "מתקבלות"
+          },
+          {
+            "index": 6,
+            "surface": "פְּרִיכוּת",
+            "normalized": "פריכות"
+          },
+          {
+            "index": 7,
+            "surface": "וּמַאֲמָצִים",
+            "normalized": "ומאמצים"
+          },
+          {
+            "index": 8,
+            "surface": "פְּנִימִיִּים",
+            "normalized": "פנימיים"
+          },
+          {
+            "index": 9,
+            "surface": "וְהִיא",
+            "normalized": "והיא"
+          },
+          {
+            "index": 10,
+            "surface": "מְאַזֶּנֶת",
+            "normalized": "מאזנת"
+          },
+          {
+            "index": 11,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 12,
+            "surface": "קַשְׁיוּת,",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 13,
+            "surface": "חֹזֶק",
+            "normalized": "חזק"
+          },
+          {
+            "index": 14,
+            "surface": "וּקְשִׁיחוּת.",
+            "normalized": "וקשיחות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q045-sol-r022",
+      "order": 22,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:9ac3ac2245936985c1fe5276752f51741d3f582c46c9bc16bfb72150e6825f1a",
+        "comparison:MATCH",
+        "source_page:55",
+        "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q045",
+    "display_alias": "45",
+    "source_pages": [
+      55
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а) Отжиг: нагрев до заданной температуры, выдержка и медленное контролируемое охлаждение для размягчения, снятия напряжений и восстановления пластичности. Старение: выдержка пересыщенного раствора при комнатной/повышенной температуре для дисперсионного упрочнения.",
+      "б) Для SAE1020: науглероживание (цементация) поверхности→закалка для мартенситного слоя→низкий отпуск для снижения напряжений/хрупкости.",
+      "в) ABCD — закалка: AB нагрев до860 °C; BC выдержка/аустенитизация; CD быстрое охлаждение до комнатной.",
+      "г) DEFG — отпуск: DE повторный нагрев до200 °C; EF выдержка; FG охлаждение до комнатной."
+    ],
+    "engineering_picture": "Низкоуглеродистая сердцевина сохраняет вязкость, а углеродный слой после закалки становится твёрдым; отпуск делает слой менее трещиноопасным.",
+    "prerequisites": [
+      "SAE1020 low carbon.",
+      "Carburizing changes surface composition.",
+      "Tempering below A1 follows quench."
+    ],
+    "roadmap": [
+      "Дать definition.",
+      "Назвать three case-hardening operations.",
+      "Read each T–t segment by slope/plateau."
+    ],
+    "main_trap": "Не называть CD медленным охлаждением: почти вертикальный спад — закалка.",
+    "givens": [
+      "Graph ABCD at860 C and DEFG at200 C; SAE1020."
+    ],
+    "find": [
+      "Definitions, three steps and segment meanings."
+    ],
+    "assumptions": [
+      "ABCD is austenitize+quench;DEFG low temper."
+    ],
+    "laws": [
+      "Slope up=heating;horizontal=hold;steep down=quench."
+    ],
+    "symbolic_derivation": [
+      "A→B heat;B→C hold;C→D quench;D→E reheat;E→F hold;F→G cool."
+    ],
+    "calculation": [],
+    "construction": [
+      "Annotate every segment directly on the source T–t graph."
+    ],
+    "checks": [
+      "Tempering plateau200 °C is below A1 and follows quench."
+    ],
+    "source_facts": [
+      "source_page:55",
+      "asset_sha256:469290f2c3cf7bd9cbccb36933bc05b25e9fbd7c7f2ae93368ac6eaa80842297"
+    ],
+    "unresolved_limits": [
+      "Carburizing temperature/time and case depth require a separate specification."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 0
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

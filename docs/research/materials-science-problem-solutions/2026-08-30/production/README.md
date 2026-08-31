@@ -1,6 +1,6 @@
 # Materials PB2 production release evidence
 
-Status: `LOCAL_GATES_PASS / OWNER_RIGHTS_ATTESTED / PROD_ROLLOUT_IN_PROGRESS`.
+Status: `PRODUCTION_EDITION_PUBLISHED / EXACT_RUNTIME_BUILT / FINAL_DEPLOY_IN_PROGRESS`.
 
 Completed locally on real corpus bytes:
 
@@ -30,8 +30,11 @@ test mechanics. Production apply must use the separately validated owner file
 `publication-rights-attestation.json` (SHA-256 recorded in
 `rights-acceptance-receipt.json`).
 
-Not run: production backup/apply/deploy/live anonymous verification, physical
-printer acceptance, owner review of all 60 live cards, full TTS.
+Production backup, 3-item pilot, 60-item full publication and real pointer
+rollback/restore are complete. The exact-edition runtime has been built from
+the production anchor. Still pending in this release: final runtime deploy and
+live anonymous verification. Explicitly deferred: physical printer acceptance,
+owner review of all 60 live cards and full TTS.
 
 The owner explicitly attested every class in
 `publication-rights-attestation.json`, including

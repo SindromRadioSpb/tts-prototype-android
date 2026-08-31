@@ -1,0 +1,2546 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_eebdd99abe0cca0324b25be4",
+  "public_work_id": "work-1d7b549af6cb75e0f1372031",
+  "snapshot_sha256": "af0477e25729a0215b7c9b37346f1bdb98ef934372592e327b5d020e1650b895",
+  "task_id": "materials-science-y1-pb2-q024",
+  "display_alias": "24",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "8587f760f691f8e3bc53861ef41029735adde56af2f8b5e75e3233adb6699a7f"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "ebe5d11224b64cd687bd8b597bafb669b6b12251a33f3444ec0783f098ba6c38",
+    "source_canonical_task_sha256": "8587f760f691f8e3bc53861ef41029735adde56af2f8b5e75e3233adb6699a7f"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "ff6a0f46417086c8c1b0b72d4c7008297b55da168f926cb829e724e73444d10b",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Surface initiation, three fracture zones, S-N axes and endurance-limit meaning match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q024-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 24.",
+        "hebrew_niqqud": "שְׁאֵלָה 24.",
+        "translit": "She'ela 24.",
+        "translit_ru": "",
+        "russian": "Вопрос 24.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "source_note",
+            "source_page": 30,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r002",
+        "order_index": 1,
+        "hebrew_plain": "שאלה 24",
+        "hebrew_niqqud": "שְׁאֵלָה 24",
+        "translit": "She'ela 24",
+        "translit_ru": "",
+        "russian": "Вопрос 24",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "task_heading",
+            "source_page": 30,
+            "source_row_index": 1,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r003",
+        "order_index": 2,
+        "hebrew_plain": "ב. שבר במוט גלילי עלול להיווצר באחד מן האופנים האלה:",
+        "hebrew_niqqud": "ב. שֶׁבֶר בְּמוֹט גְּלִילִי עָלוּל לְהִיוָּוצֵר בְּאַחַד מִן הָאוֹפַנִּים הָאֵלֶּה:",
+        "translit": "b. Shever be-mot glili alul lehivatser be-akhad min ha-ofanim ha-eleh:",
+        "translit_ru": "",
+        "russian": "б. Разрушение цилиндрического стержня может произойти одним из следующих путей:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r004",
+        "order_index": 3,
+        "hebrew_plain": "- מסדק במרכז המוט המתפשט אל שטח פני המוט.",
+        "hebrew_niqqud": "- מִסֶּדֶק בְּמֶרְכַּז הַמּוֹט הַמִּתְפַּשֵּׁט אֶל שֶׁטַח פְּנֵי הַמּוֹט.",
+        "translit": "- mi-sedek be-merkaz ha-mot ha-mitpashet el shetakh pnei ha-mot.",
+        "translit_ru": "",
+        "russian": "- от трещины в центре стержня, распространяющейся к поверхности стержня.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r005",
+        "order_index": 4,
+        "hebrew_plain": "- מסדק על פני המוט המתפשט אל מרכז המוט.",
+        "hebrew_niqqud": "- מִסֶּדֶק עַל פְּנֵי הַמּוֹט הַמִּתְפַּשֵּׁט אֶל מֶרְכַּז הַמּוֹט.",
+        "translit": "- mi-sedek al pnei ha-mot ha-mitpashet el merkaz ha-mot.",
+        "translit_ru": "",
+        "russian": "- от трещины на поверхности стержня, распространяющейся к центру стержня.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r006",
+        "order_index": 5,
+        "hebrew_plain": "באיזה אופן מבין השניים, נוצר שבר \"התעייפות\"?",
+        "hebrew_niqqud": "בְּאֵיזֶה אוֹפֶן מִבֵּין הַשְּׁנַייִם, נוֹצָר שֶׁבֶר \"הִתְעַייְּפוּת\"?",
+        "translit": "Be-eizeh ofen mi-bein ha-shnayim, notsar shever \"hit'ayfut\"?",
+        "translit_ru": "",
+        "russian": "Каким из двух способов возникает «усталостный» излом?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r007",
+        "order_index": 6,
+        "hebrew_plain": "צייר חתך ערב (ניצב לציר) של מוט גלילי והראה עליו את שלושת האזורים המאפיינים שבר \"התעייפות\": אזור תחילת השבר, אזור התקדמות השבר ואזור השבר.",
+        "hebrew_niqqud": "צַייֵּר חֲתַךְ עֶרֶב (נִיצָּב לַצִּיר) שֶׁל מוֹט גְּלִילִי וְהַרְאֵה עָלָיו אֶת שְׁלוֹשֶׁת הָאֲזוֹרִים הַמְּאַפְיְינִים שֶׁבֶר \"הִתְעַייְּפוּת\": אֲזוֹר תְּחִילַּת הַשֶּׁבֶר, אֲזוֹר הִתְקַדְּמוּת הַשֶּׁבֶר וַאֲזוֹר הַשֶּׁבֶר.",
+        "translit": "Tsayer khatakh erev (nitsav la-tsir) shel mot glili ve-har'eh alav et shloshet ha-azorim ha-me'afyenim shever \"hit'ayfut\": azor tkhilat ha-shever, azor hitkadmut ha-shever va-azor ha-shever.",
+        "translit_ru": "",
+        "russian": "Нарисуйте поперечное сечение (перпендикулярное оси) цилиндрического стержня и укажите на нем три характерные зоны усталостного излома: зону зарождения усталостной трещины, зону развития усталостного разрушения и зону долома.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r008",
+        "order_index": 7,
+        "hebrew_plain": "ג. 1. בנה מערכת צירים המתארת מאמץ מחזורי כתלות במספר מחזורים לכשל וסמן את הצירים באותיות המתאימות.",
+        "hebrew_niqqud": "ג. 1. בְּנֵה מַעֲרֶכֶת צִירִים הַמְּתָאֶרֶת מַאֲמָץ מַחְזוֹרִי כִּתְלוּת בְּמִסְפַּר מַחְזוֹרִים לְכֶשֶׁל וְסַמֵּן אֶת הַצִּירִים בָּאוֹתִיּוֹת הַמַּתְאִימוֹת.",
+        "translit": "g. 1. Bneh ma'arekhet tsirim ha-meta'eret ma'amats makhzori ki-tlut be-mispar makhzorim le-kheshel ve-samen et ha-tsirim ba-otiyot ha-mat'imot.",
+        "translit_ru": "",
+        "russian": "в. 1. Постройте систему координат, показывающую циклическое напряжение в зависимости от числа циклов до разрушения, и обозначьте оси соответствующими буквами.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r009",
+        "order_index": 8,
+        "hebrew_plain": "הצג על מערכת הצירים עקום המתאר כשל של פלדה עקב \"התעייפות\".",
+        "hebrew_niqqud": "הַצֵּג עַל מַעֲרֶכֶת הַצִּירִים עָקֹום הַמְּתָאֵר כֶּשֶׁל שֶׁל פְּלָדָה עֵקֶב \"הִתְעַייְּפוּת\".",
+        "translit": "Hatseg al ma'arekhet ha-tsirim akom ha-meta'er keshel shel pladah ekev \"hit'ayfut\".",
+        "translit_ru": "",
+        "russian": "Изобразите на системе координат кривую, описывающую разрушение стали в результате «усталости».",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q024-r010",
+        "order_index": 9,
+        "hebrew_plain": "2. סמן בגרף את אזור \"גבול ההתעייפות\", והסבר מהי המשמעות ההנדסית של אזור זה.",
+        "hebrew_niqqud": "2. סַמֵּן בַּגְּרָף אֶת אֲזוֹר \"גְּבוּל הַהִתְעַייְּפוּת\", וְהַסְבֵּר מַהִי הַמַּשְׁמָעוּת הַהַנְדָּסִית שֶׁל אֲזוֹר זֶה.",
+        "translit": "2. Samen ba-graf et azor \"gvul ha-hit'ayfut\", ve-hasber mahi ha-mashma'ut ha-handasit shel azor zeh.",
+        "translit_ru": "",
+        "russian": "2. Отметьте на графике область «предела выносливости (усталости)» и объясните инженерное значение этой области.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q024",
+            "kind": "subpart",
+            "source_page": 30,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      30
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q024/anchor-01-p030.jpg",
+        "sha256": "8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2",
+        "bytes": 155561,
+        "source_page": 30,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:ff6a0f46417086c8c1b0b72d4c7008297b55da168f926cb829e724e73444d10b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "בעומס מחזורי המאמצים המתיחהיים המקסימליים מופיעים לרוב בפני השטח.",
+        "he_niqqud": "בְּעוֹמֶס מַחְזוֹרִי הַמַּאֲמָצִים הַמְּתִיחָהִיִּים הַמַּקְסִימָלִיִּים מֹופִיעִים לָרֹוב בִּפְנֵי הַשֶּׁטַח.",
+        "transliteration": "Be-ómes machzorí ha-ma'amatzím ha-metichayi'im ha-maksimáli'im mofi'ím laróv bifnéi ha-shétach.",
+        "ru": "При циклической нагрузке максимальные растягивающие напряжения чаще всего возникают на поверхности."
+      },
+      "source_refs": [
+        "legacy_row_hash:260492055c5446cb9b6737b44bbe31d4095a78ac4db95c432c23d7ab4fb448d2",
+        "legacy_fields_sha256:7865e3055e25ba07c093bd7d1142fec0e4c816f925beb402e61b27dc2df47f50",
+        "independent_solution_sha256:ff6a0f46417086c8c1b0b72d4c7008297b55da168f926cb829e724e73444d10b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּעוֹמֶס",
+            "normalized": "בעומס"
+          },
+          {
+            "index": 1,
+            "surface": "מַחְזוֹרִי",
+            "normalized": "מחזורי"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּאֲמָצִים",
+            "normalized": "המאמצים"
+          },
+          {
+            "index": 3,
+            "surface": "הַמְּתִיחָהִיִּים",
+            "normalized": "המתיחהיים"
+          },
+          {
+            "index": 4,
+            "surface": "הַמַּקְסִימָלִיִּים",
+            "normalized": "המקסימליים"
+          },
+          {
+            "index": 5,
+            "surface": "מֹופִיעִים",
+            "normalized": "מופיעים"
+          },
+          {
+            "index": 6,
+            "surface": "לָרֹוב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 7,
+            "surface": "בִּפְנֵי",
+            "normalized": "בפני"
+          },
+          {
+            "index": 8,
+            "surface": "הַשֶּׁטַח.",
+            "normalized": "השטח"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ציר X מייצג מספר מחזורים לכשל (Nf) ובדרך כלל מוצג בסקלה לוגריתמית.",
+        "he_niqqud": "צִיר X מְיַיצֵג מִסְפַּר מַחְזוֹרִים לְכֶשֶׁל (Nf) וּבְדֶרֶךְ כְּלָל מוּצָג בְּסְקָלָה לוֹגָרִיתְמִית.",
+        "transliteration": "Tzir X meyatztzég mispar machzorím le-késhel (Nf) u-v'déresh klal mutzág b'skalá logarítmit.",
+        "ru": "Ось X представляет число циклов до разрушения (Nf) и обычно отображается в логарифмическом масштабе."
+      },
+      "source_refs": [
+        "legacy_row_hash:1635c1316ee9d33067c26c47276f66e23cbc2ecd04e59ed0f3606261f84fc423",
+        "legacy_fields_sha256:a39a869512a9111643abd4d9ff60503935e8eaa185507177a04c15ffa7ef35fb",
+        "independent_solution_sha256:ff6a0f46417086c8c1b0b72d4c7008297b55da168f926cb829e724e73444d10b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צִיר",
+            "normalized": "ציר"
+          },
+          {
+            "index": 1,
+            "surface": "X",
+            "normalized": "X"
+          },
+          {
+            "index": 2,
+            "surface": "מְיַיצֵג",
+            "normalized": "מייצג"
+          },
+          {
+            "index": 3,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 4,
+            "surface": "מַחְזוֹרִים",
+            "normalized": "מחזורים"
+          },
+          {
+            "index": 5,
+            "surface": "לְכֶשֶׁל",
+            "normalized": "לכשל"
+          },
+          {
+            "index": 6,
+            "surface": "(Nf)",
+            "normalized": "Nf"
+          },
+          {
+            "index": 7,
+            "surface": "וּבְדֶרֶךְ",
+            "normalized": "ובדרך"
+          },
+          {
+            "index": 8,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 9,
+            "surface": "מוּצָג",
+            "normalized": "מוצג"
+          },
+          {
+            "index": 10,
+            "surface": "בְּסְקָלָה",
+            "normalized": "בסקלה"
+          },
+          {
+            "index": 11,
+            "surface": "לוֹגָרִיתְמִית.",
+            "normalized": "לוגריתמית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "המשמעות ההנדסית היא שמתחת ל-σₑ, בתנאי הבדיקה הנתונים, אין כשל התעייפות עבור מספר מחזורים גדול מאוד.",
+        "he_niqqud": "הַמַּשְׁמָעוּת הַהַנְדָּסִית הִיא שֶׁמִּתַּחַת לְ-σₑ, בִּתְנָאֵי הַבְּדִיקָה הַנְּתוּנִים, אֵין כֶּשֶׁל הִתְעַיְפוּת עֲבוּר מִסְפַּר מַחְזוֹרִים גָּדוֹל מְאֹד.",
+        "transliteration": "Ha-mashma'út ha-handasít hi she-mitáchat le-σₑ, bi-tna'éi ha-bdikáh ha-netuním, ein késhel hit'ayefut avúr mispar machzorím gadól me'ód.",
+        "ru": "Инженерное значение состоит в том, что ниже σₑ, при заданных условиях испытаний, не происходит усталостного разрушения при очень большом числе циклов."
+      },
+      "source_refs": [
+        "legacy_row_hash:04ced2b62c5f279f2b846510a3a4d8b6e2f2f9f026ec934d7d497281a4669970",
+        "legacy_fields_sha256:919d5cd6b230adb82572c02247f521e7e72f7171b00ad8ee5a115179b37bf692",
+        "independent_solution_sha256:ff6a0f46417086c8c1b0b72d4c7008297b55da168f926cb829e724e73444d10b"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּשְׁמָעוּת",
+            "normalized": "המשמעות"
+          },
+          {
+            "index": 1,
+            "surface": "הַהַנְדָּסִית",
+            "normalized": "ההנדסית"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁמִּתַּחַת",
+            "normalized": "שמתחת"
+          },
+          {
+            "index": 4,
+            "surface": "לְ-σₑ,",
+            "normalized": "ל-σₑ"
+          },
+          {
+            "index": 5,
+            "surface": "בִּתְנָאֵי",
+            "normalized": "בתנאי"
+          },
+          {
+            "index": 6,
+            "surface": "הַבְּדִיקָה",
+            "normalized": "הבדיקה"
+          },
+          {
+            "index": 7,
+            "surface": "הַנְּתוּנִים,",
+            "normalized": "הנתונים"
+          },
+          {
+            "index": 8,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 9,
+            "surface": "כֶּשֶׁל",
+            "normalized": "כשל"
+          },
+          {
+            "index": 10,
+            "surface": "הִתְעַיְפוּת",
+            "normalized": "התעיפות"
+          },
+          {
+            "index": 11,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 12,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 13,
+            "surface": "מַחְזוֹרִים",
+            "normalized": "מחזורים"
+          },
+          {
+            "index": 14,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 15,
+            "surface": "מְאֹד.",
+            "normalized": "מאד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) שבר התעייפות נוצר בדרך כלל מסדק על פני המוט המתפשט פנימה אל מרכז המוט.",
+        "he_niqqud": "ב) שֶׁבֶר הִתְעַיְפוּת נוֹצָר בְּדֶרֶךְ כְּלָל מִסֶּדֶק עַל פְּנֵי הַמּוֹט הַמִּתְפַּשֵּׁט פְּנִימָה אֶל מֶרְכַּז הַמּוֹט.",
+        "transliteration": "B) Shéver hit'ayefut notzar b'déresh klal mi-sédék al pnei ha-mot ha-mitpashet p'nimáh el merkáz ha-mot.",
+        "ru": "Б) Усталостное разрушение обычно возникает из-за трещины на поверхности стержня, распространяющейся внутрь к центру стержня."
+      },
+      "source_refs": [
+        "legacy_row_hash:a2dd523627ea605c70588f67793dc8305f3761a3ccc780061be667012ad7859b",
+        "legacy_fields_sha256:4f7d0343579450f84952be0b31a4b73125a47b2b7e8242dbb4dbc0e6094d0765",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁבֶר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 2,
+            "surface": "הִתְעַיְפוּת",
+            "normalized": "התעיפות"
+          },
+          {
+            "index": 3,
+            "surface": "נוֹצָר",
+            "normalized": "נוצר"
+          },
+          {
+            "index": 4,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 5,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 6,
+            "surface": "מִסֶּדֶק",
+            "normalized": "מסדק"
+          },
+          {
+            "index": 7,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 8,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 9,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 10,
+            "surface": "הַמִּתְפַּשֵּׁט",
+            "normalized": "המתפשט"
+          },
+          {
+            "index": 11,
+            "surface": "פְּנִימָה",
+            "normalized": "פנימה"
+          },
+          {
+            "index": 12,
+            "surface": "אֶל",
+            "normalized": "אל"
+          },
+          {
+            "index": 13,
+            "surface": "מֶרְכַּז",
+            "normalized": "מרכז"
+          },
+          {
+            "index": 14,
+            "surface": "הַמּוֹט.",
+            "normalized": "המוט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בעומס מחזורי המאמצים המתיחהיים המקסימליים מופיעים לרוב בפני השטח.",
+        "he_niqqud": "בְּעוֹמֶס מַחְזוֹרִי הַמַּאֲמָצִים הַמְּתִיחָהִיִּים הַמַּקְסִימָלִיִּים מֹופִיעִים לָרֹוב בִּפְנֵי הַשֶּׁטַח.",
+        "transliteration": "Be-ómes machzorí ha-ma'amatzím ha-metichayi'im ha-maksimáli'im mofi'ím laróv bifnéi ha-shétach.",
+        "ru": "При циклической нагрузке максимальные растягивающие напряжения чаще всего возникают на поверхности."
+      },
+      "source_refs": [
+        "legacy_row_hash:260492055c5446cb9b6737b44bbe31d4095a78ac4db95c432c23d7ab4fb448d2",
+        "legacy_fields_sha256:7865e3055e25ba07c093bd7d1142fec0e4c816f925beb402e61b27dc2df47f50",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּעוֹמֶס",
+            "normalized": "בעומס"
+          },
+          {
+            "index": 1,
+            "surface": "מַחְזוֹרִי",
+            "normalized": "מחזורי"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּאֲמָצִים",
+            "normalized": "המאמצים"
+          },
+          {
+            "index": 3,
+            "surface": "הַמְּתִיחָהִיִּים",
+            "normalized": "המתיחהיים"
+          },
+          {
+            "index": 4,
+            "surface": "הַמַּקְסִימָלִיִּים",
+            "normalized": "המקסימליים"
+          },
+          {
+            "index": 5,
+            "surface": "מֹופִיעִים",
+            "normalized": "מופיעים"
+          },
+          {
+            "index": 6,
+            "surface": "לָרֹוב",
+            "normalized": "לרוב"
+          },
+          {
+            "index": 7,
+            "surface": "בִּפְנֵי",
+            "normalized": "בפני"
+          },
+          {
+            "index": 8,
+            "surface": "הַשֶּׁטַח.",
+            "normalized": "השטח"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפני השטח קיימים ריכוזי מאמץ כתוצאה משריטות, חספוס, חריצים או קורוזיה.",
+        "he_niqqud": "בִּפְנֵי הַשֶּׁטַח קַיָּימִים רִכּוּזֵי מַאֲמָץ כְּתוֹצָאָה מִשְּׁרִיטוֹת, חִסְפּוּס, חֲרִיצִים אוֹ קוֹרוֹזְיָה.",
+        "transliteration": "Bifnéi ha-shétach kayamím rikuzéi ma'amatz k'totza'áh mi-sritót, chispús, charitzím o korózyah.",
+        "ru": "На поверхности существуют концентрации напряжений в результате царапин, шероховатости, выемок или коррозии."
+      },
+      "source_refs": [
+        "legacy_row_hash:0cf2cb62acd76a31b95c5eed2287106f25f480cdde4dc2ad58b1b947c8d613ef",
+        "legacy_fields_sha256:6ab8a644ae7634cb1bed98b3c21be87e662fa15c567aa72e49faff5f4beb557b",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּפְנֵי",
+            "normalized": "בפני"
+          },
+          {
+            "index": 1,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 2,
+            "surface": "קַיָּימִים",
+            "normalized": "קיימים"
+          },
+          {
+            "index": 3,
+            "surface": "רִכּוּזֵי",
+            "normalized": "רכוזי"
+          },
+          {
+            "index": 4,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 5,
+            "surface": "כְּתוֹצָאָה",
+            "normalized": "כתוצאה"
+          },
+          {
+            "index": 6,
+            "surface": "מִשְּׁרִיטוֹת,",
+            "normalized": "משריטות"
+          },
+          {
+            "index": 7,
+            "surface": "חִסְפּוּס,",
+            "normalized": "חספוס"
+          },
+          {
+            "index": 8,
+            "surface": "חֲרִיצִים",
+            "normalized": "חריצים"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 10,
+            "surface": "קוֹרוֹזְיָה.",
+            "normalized": "קורוזיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן ייזום הסדק מתרחש בדרך כלל על פני השטח ולא במרכז.",
+        "he_niqqud": "לָכֵן יִיזוּם הַסֶּדֶק מִתְרַחֵשׁ בְּדֶרֶךְ כְּלָל עַל פְּנֵי הַשֶּׁטַח וְלֹא בַּמֶּרְכָּז.",
+        "transliteration": "Lachén yizzúm ha-sédék mitrachésh b'déresh klal al pnei ha-shétach veló ba-merkáz.",
+        "ru": "Поэтому зарождение трещины обычно происходит на поверхности, а не в центре."
+      },
+      "source_refs": [
+        "legacy_row_hash:19fb449ecf48af813b14108790ff64782dff238269efc49e165a4b7be7f9f19a",
+        "legacy_fields_sha256:76ccd165ff43baebb50c9df2b0f4d54a6880474c87b8080802861d9336bc1a63",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "יִיזוּם",
+            "normalized": "ייזום"
+          },
+          {
+            "index": 2,
+            "surface": "הַסֶּדֶק",
+            "normalized": "הסדק"
+          },
+          {
+            "index": 3,
+            "surface": "מִתְרַחֵשׁ",
+            "normalized": "מתרחש"
+          },
+          {
+            "index": 4,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 5,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 6,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 7,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 8,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 9,
+            "surface": "וְלֹא",
+            "normalized": "ולא"
+          },
+          {
+            "index": 10,
+            "surface": "בַּמֶּרְכָּז.",
+            "normalized": "במרכז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) בחתך ניצב לציר יש להראות שלושה אזורים אופייניים לשבר התעייפות.",
+        "he_niqqud": "ב) בְּחֲתַךְ נִיצָּב לַצִּיר יֵשׁ לְהַרְאוֹת שְׁלוֹשָׁה אֲזוֹרִים אוֹפְיָינִיִּים לְשֶׁבֶר הִתְעַיְפוּת.",
+        "transliteration": "B) B'chátach nitzáv la-tzir yesh le-har'ót shlosháh azórim ofyaní'im le-shéver hit'ayefut.",
+        "ru": "Б) На поперечном сечении должны быть показаны три характерные зоны усталостного разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:18bd39e8d0cfc1458121dd0a9fad4541a6476a89fccb2d4e5fe08fff7296eba7",
+        "legacy_fields_sha256:fbda3f9c5bed058df18c161e105363584fdb3a3f9cc00e058eb0395f3050fb83",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "בְּחֲתַךְ",
+            "normalized": "בחתך"
+          },
+          {
+            "index": 2,
+            "surface": "נִיצָּב",
+            "normalized": "ניצב"
+          },
+          {
+            "index": 3,
+            "surface": "לַצִּיר",
+            "normalized": "לציר"
+          },
+          {
+            "index": 4,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 5,
+            "surface": "לְהַרְאוֹת",
+            "normalized": "להראות"
+          },
+          {
+            "index": 6,
+            "surface": "שְׁלוֹשָׁה",
+            "normalized": "שלושה"
+          },
+          {
+            "index": 7,
+            "surface": "אֲזוֹרִים",
+            "normalized": "אזורים"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹפְיָינִיִּים",
+            "normalized": "אופייניים"
+          },
+          {
+            "index": 9,
+            "surface": "לְשֶׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 10,
+            "surface": "הִתְעַיְפוּת.",
+            "normalized": "התעיפות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אזור תחילת השבר נמצא על ההיקף בנקודת מקור הסדק.",
+        "he_niqqud": "אֲזוֹר תְּחִילַת הַשֶּׁבֶר נִמְצָא עַל הַהֶקֵּף בִּנְקֻדַּת מְקוֹר הַסֶּדֶק.",
+        "transliteration": "Azór techilát ha-shéver nimtzá al ha-hekéf bi-nekudát mekor ha-sédék.",
+        "ru": "Зона начала разрушения находится на периметре, в точке зарождения трещины."
+      },
+      "source_refs": [
+        "legacy_row_hash:4a0a32082cf609415e5a876a07e65605d65fd3ca4eecbb239c6cf2f79d06dc3d",
+        "legacy_fields_sha256:723925178504a997a130a4d5c1c577e2c2c5d4113e8bc08f18b617e0ffa3ade6",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 1,
+            "surface": "תְּחִילַת",
+            "normalized": "תחילת"
+          },
+          {
+            "index": 2,
+            "surface": "הַשֶּׁבֶר",
+            "normalized": "השבר"
+          },
+          {
+            "index": 3,
+            "surface": "נִמְצָא",
+            "normalized": "נמצא"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "הַהֶקֵּף",
+            "normalized": "ההקף"
+          },
+          {
+            "index": 6,
+            "surface": "בִּנְקֻדַּת",
+            "normalized": "בנקדת"
+          },
+          {
+            "index": 7,
+            "surface": "מְקוֹר",
+            "normalized": "מקור"
+          },
+          {
+            "index": 8,
+            "surface": "הַסֶּדֶק.",
+            "normalized": "הסדק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אזור התקדמות השבר הוא אזור חלק יחסית שבו נראות קשתות התקדמות של הסדק.",
+        "he_niqqud": "אֲזוֹר הִתְקַדְּמוּת הַשֶּׁבֶר הוּא אֲזוֹר חָלָק יַחֲסִית שֶׁבּוֹ נִרְאוֹת קַשְׁתוֹת הִתְקַדְּמוּת שֶׁל הַסֶּדֶק.",
+        "transliteration": "Azór hitkadmút ha-shéver hu azór chalák yachasít she-bó nir'ót kashtót hitkadmút shel ha-sédék.",
+        "ru": "Зона развития разрушения — это относительно гладкая область, на которой видны дуги развития трещины."
+      },
+      "source_refs": [
+        "legacy_row_hash:37b386eb8358c7ced8a032d8e23f188d12572f2995eeacc453940c9eb6a8fd7e",
+        "legacy_fields_sha256:5c29e8386274a4429474a92ab00c0773f16fa26efcb24a1e134271e051cb4630",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 1,
+            "surface": "הִתְקַדְּמוּת",
+            "normalized": "התקדמות"
+          },
+          {
+            "index": 2,
+            "surface": "הַשֶּׁבֶר",
+            "normalized": "השבר"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 5,
+            "surface": "חָלָק",
+            "normalized": "חלק"
+          },
+          {
+            "index": 6,
+            "surface": "יַחֲסִית",
+            "normalized": "יחסית"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 8,
+            "surface": "נִרְאוֹת",
+            "normalized": "נראות"
+          },
+          {
+            "index": 9,
+            "surface": "קַשְׁתוֹת",
+            "normalized": "קשתות"
+          },
+          {
+            "index": 10,
+            "surface": "הִתְקַדְּמוּת",
+            "normalized": "התקדמות"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 12,
+            "surface": "הַסֶּדֶק.",
+            "normalized": "הסדק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אזור השבר הסופי הוא אזור מחוספס יותר שנוצר כאשר השטח הנותר קטן ואינו מסוגל לשאת את העומס.",
+        "he_niqqud": "אֲזוֹר הַשֶּׁבֶר הַסּוֹפִי הוּא אֲזוֹר מְחֻסְפָּס יוֹתֵר שֶׁנּוֹצַר כַּאֲשֶׁר הַשֶּׁטַח הַנּוֹתָר קָטָן וְאֵינוֹ מְסֻגָּל לָשֵׂאת אֶת הָעוֹמֶס.",
+        "transliteration": "Azór ha-shéver ha-sofí hu azór mechuspás yotér she-notzar ka'ashér ha-shétach ha-notár katán ve-einó mesugál la-sét et ha-ómes.",
+        "ru": "Зона окончательного разрушения — это более шероховатая область, которая образуется, когда оставшаяся площадь становится слишком малой и неспособна выдержать нагрузку."
+      },
+      "source_refs": [
+        "legacy_row_hash:3a0c9d6f4a7326fa798fb88a86aa511b713c52e480fb8c1384321f6a4832a855",
+        "legacy_fields_sha256:e15a1952e70858f4f4ebade5dab9ef0d1217186ddb7dd38b9457a1159451cff9",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 1,
+            "surface": "הַשֶּׁבֶר",
+            "normalized": "השבר"
+          },
+          {
+            "index": 2,
+            "surface": "הַסּוֹפִי",
+            "normalized": "הסופי"
+          },
+          {
+            "index": 3,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 4,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 5,
+            "surface": "מְחֻסְפָּס",
+            "normalized": "מחספס"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁנּוֹצַר",
+            "normalized": "שנוצר"
+          },
+          {
+            "index": 8,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 9,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 10,
+            "surface": "הַנּוֹתָר",
+            "normalized": "הנותר"
+          },
+          {
+            "index": 11,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 12,
+            "surface": "וְאֵינוֹ",
+            "normalized": "ואינו"
+          },
+          {
+            "index": 13,
+            "surface": "מְסֻגָּל",
+            "normalized": "מסגל"
+          },
+          {
+            "index": 14,
+            "surface": "לָשֵׂאת",
+            "normalized": "לשאת"
+          },
+          {
+            "index": 15,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 16,
+            "surface": "הָעוֹמֶס.",
+            "normalized": "העומס"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r013",
+      "order": 13,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ג)1 ציר Y מייצג מאמץ מחזורי או אמפליטודת מאמץ σₐ (S).",
+        "he_niqqud": "ג)1 צִיר Y מְיַיצֵג מַאֲמָץ מַחְזוֹרִי אוֹ אַמְפְּלִיטוּדַת מַאֲמָץ σₐ (S).",
+        "transliteration": "G)1 Tzir Y meyatztzég ma'amatz machzorí o amplitúdat ma'amatz σₐ (S).",
+        "ru": "В)1 Ось Y представляет циклическое напряжение или амплитуду напряжения σₐ (S)."
+      },
+      "source_refs": [
+        "legacy_row_hash:fba85b13e529a8ed4c6bf43ae583ea0b3ffb72091323cf23fae2f27890758315",
+        "legacy_fields_sha256:aefe24887fc8046a906ad831f1aecfdc210ee0d406daf976574309c7b77e879a",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)1",
+            "normalized": "ג)1"
+          },
+          {
+            "index": 1,
+            "surface": "צִיר",
+            "normalized": "ציר"
+          },
+          {
+            "index": 2,
+            "surface": "Y",
+            "normalized": "Y"
+          },
+          {
+            "index": 3,
+            "surface": "מְיַיצֵג",
+            "normalized": "מייצג"
+          },
+          {
+            "index": 4,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 5,
+            "surface": "מַחְזוֹרִי",
+            "normalized": "מחזורי"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "אַמְפְּלִיטוּדַת",
+            "normalized": "אמפליטודת"
+          },
+          {
+            "index": 8,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 9,
+            "surface": "σₐ",
+            "normalized": "σₐ"
+          },
+          {
+            "index": 10,
+            "surface": "(S).",
+            "normalized": "S"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r014",
+      "order": 14,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ציר X מייצג מספר מחזורים לכשל (Nf) ובדרך כלל מוצג בסקלה לוגריתמית.",
+        "he_niqqud": "צִיר X מְיַיצֵג מִסְפַּר מַחְזוֹרִים לְכֶשֶׁל (Nf) וּבְדֶרֶךְ כְּלָל מוּצָג בְּסְקָלָה לוֹגָרִיתְמִית.",
+        "transliteration": "Tzir X meyatztzég mispar machzorím le-késhel (Nf) u-v'déresh klal mutzág b'skalá logarítmit.",
+        "ru": "Ось X представляет число циклов до разрушения (Nf) и обычно отображается в логарифмическом масштабе."
+      },
+      "source_refs": [
+        "legacy_row_hash:1635c1316ee9d33067c26c47276f66e23cbc2ecd04e59ed0f3606261f84fc423",
+        "legacy_fields_sha256:a39a869512a9111643abd4d9ff60503935e8eaa185507177a04c15ffa7ef35fb",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "צִיר",
+            "normalized": "ציר"
+          },
+          {
+            "index": 1,
+            "surface": "X",
+            "normalized": "X"
+          },
+          {
+            "index": 2,
+            "surface": "מְיַיצֵג",
+            "normalized": "מייצג"
+          },
+          {
+            "index": 3,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 4,
+            "surface": "מַחְזוֹרִים",
+            "normalized": "מחזורים"
+          },
+          {
+            "index": 5,
+            "surface": "לְכֶשֶׁל",
+            "normalized": "לכשל"
+          },
+          {
+            "index": 6,
+            "surface": "(Nf)",
+            "normalized": "Nf"
+          },
+          {
+            "index": 7,
+            "surface": "וּבְדֶרֶךְ",
+            "normalized": "ובדרך"
+          },
+          {
+            "index": 8,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 9,
+            "surface": "מוּצָג",
+            "normalized": "מוצג"
+          },
+          {
+            "index": 10,
+            "surface": "בְּסְקָלָה",
+            "normalized": "בסקלה"
+          },
+          {
+            "index": 11,
+            "surface": "לוֹגָרִיתְמִית.",
+            "normalized": "לוגריתמית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r015",
+      "order": 15,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקום (S–N) של פלדה יורד עם העלייה ב-(Nf) ולאחר מכן מתקרב לערך כמעט קבוע.",
+        "he_niqqud": "עֲקוּם (S–N) שֶׁל פְּלָדָה יוֹרֵד עִם הָעֲלִיָּה בְּ-(Nf) וּלְאַחַר מִכֵּן מִתְקָרֵב לְעֵרֶךְ כִּמְעַט קָבוּעַ.",
+        "transliteration": "Akúm (S–N) shel pládah yoréd im ha-aliyah b'(Nf) u-le'achár mikén mitkarév le-érech kim'at kavú'a.",
+        "ru": "Кривая (S–N) для стали снижается с увеличением (Nf), а затем приближается к почти постоянному значению."
+      },
+      "source_refs": [
+        "legacy_row_hash:393cdd8824e7747a45073b13950859636fa56b57f79a8943f526233b8b77d98c",
+        "legacy_fields_sha256:1c9d766bec5b46b9669a251186c3bce26a1097ac0270e7051d277b43e3767fbc",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲקוּם",
+            "normalized": "עקום"
+          },
+          {
+            "index": 1,
+            "surface": "(S–N)",
+            "normalized": "S–N"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 4,
+            "surface": "יוֹרֵד",
+            "normalized": "יורד"
+          },
+          {
+            "index": 5,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 6,
+            "surface": "הָעֲלִיָּה",
+            "normalized": "העליה"
+          },
+          {
+            "index": 7,
+            "surface": "בְּ-(Nf)",
+            "normalized": "ב-(Nf"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 9,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 10,
+            "surface": "מִתְקָרֵב",
+            "normalized": "מתקרב"
+          },
+          {
+            "index": 11,
+            "surface": "לְעֵרֶךְ",
+            "normalized": "לערך"
+          },
+          {
+            "index": 12,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 13,
+            "surface": "קָבוּעַ.",
+            "normalized": "קבוע"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r016",
+      "order": 16,
+      "section": "model_and_laws",
+      "kind": "law_or_principle",
+      "exam_copy": true,
+      "text": {
+        "he": "להגדרת האמפליטודה והמאמץ הממוצע ניתן להשתמש בנוסחאות הבאות.",
+        "he_niqqud": "לְהַגְדָּרַת הָאַמְפְּלִיטוּדָה וְהַמַּאֲמָץ הַמְּמֻצָּע נִיתָּן לְהִשְׁתַּמֵּשׁ בַּנּוּסְחָאוֹת הַבָּאוֹת.",
+        "transliteration": "Le-hagdarát ha-amplitúdah ve-ha-ma'amatz ha-memutzá nitán le-hishtamésh ba-nuscha'ót ha-ba'ót.",
+        "ru": "Для определения амплитуды и среднего напряжения можно использовать следующие формулы."
+      },
+      "source_refs": [
+        "legacy_row_hash:14148e8ebd1010bbf71840d0988e53ba41cb0c69d2b10b391967afdb132d5e63",
+        "legacy_fields_sha256:99f67be174e4689e3a60b277884f0bd68825a35e6c64b408c1fb302d81a9275c",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְהַגְדָּרַת",
+            "normalized": "להגדרת"
+          },
+          {
+            "index": 1,
+            "surface": "הָאַמְפְּלִיטוּדָה",
+            "normalized": "האמפליטודה"
+          },
+          {
+            "index": 2,
+            "surface": "וְהַמַּאֲמָץ",
+            "normalized": "והמאמץ"
+          },
+          {
+            "index": 3,
+            "surface": "הַמְּמֻצָּע",
+            "normalized": "הממצע"
+          },
+          {
+            "index": 4,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 5,
+            "surface": "לְהִשְׁתַּמֵּשׁ",
+            "normalized": "להשתמש"
+          },
+          {
+            "index": 6,
+            "surface": "בַּנּוּסְחָאוֹת",
+            "normalized": "בנוסחאות"
+          },
+          {
+            "index": 7,
+            "surface": "הַבָּאוֹת.",
+            "normalized": "הבאות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r017",
+      "order": 17,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σₐ = (σ_max − σ_min)/2",
+        "he_niqqud": "σₐ = (σ_max − σ_min)/2",
+        "transliteration": "σₐ = (σ_max − σ_min)/2",
+        "ru": "σₐ = (σ_max − σ_min)/2"
+      },
+      "source_refs": [
+        "legacy_row_hash:af8b7fc27e6fcead33c5c56df237f718d574683adf434ace5975371da2cb2722",
+        "legacy_fields_sha256:276c98ff226fdcbb6b546b594d8ac88ec9904aec11da5f6094e122dd96314bb0",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σₐ",
+            "normalized": "σₐ"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(σ_max",
+            "normalized": "σ_max"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "σ_min)/2",
+            "normalized": "σ_min)/2"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r018",
+      "order": 18,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ_m = (σ_max + σ_min)/2",
+        "he_niqqud": "σ_m = (σ_max + σ_min)/2",
+        "transliteration": "σ_m = (σ_max + σ_min)/2",
+        "ru": "σ_m = (σ_max + σ_min)/2"
+      },
+      "source_refs": [
+        "legacy_row_hash:2e2a1bc98601b5653be3e150b096d2a5721e54cef416a59da91968df75ef54c5",
+        "legacy_fields_sha256:894a3b7f926ecd40cdfd3653a9d47fd853df4b63553ed7b563477f58744233ef",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ_m",
+            "normalized": "σ_m"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(σ_max",
+            "normalized": "σ_max"
+          },
+          {
+            "index": 3,
+            "surface": "+",
+            "normalized": "+"
+          },
+          {
+            "index": 4,
+            "surface": "σ_min)/2",
+            "normalized": "σ_min)/2"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ_m = (σ_max + σ_min)/2"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r019",
+      "order": 19,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ג)2 אזור גבול ההתעייפות מסומן במקום שבו עקום (S–N) מתיישר כמעט אופקית סביב σₑ (Se).",
+        "he_niqqud": "ג)2 אֲזוֹר גְּבוּל הַהִתְעַיְפוּת מְסֻמָּן בַּמָּקוֹם שֶׁבּוֹ עָקוּם (S–N) מִתְיַשֵּׁר כִּמְעַט אוֹפְקִית סָבִיב σₑ (Se).",
+        "transliteration": "G)2 Azór gvul ha-hit'ayefut mesumán ba-makóm she-bó akúm (S–N) mityashér kim'at ofkít savív σₑ (Se).",
+        "ru": "В)2 Область предела усталости отмечается там, где кривая (S–N) выпрямляется почти горизонтально около σₑ (Se)."
+      },
+      "source_refs": [
+        "legacy_row_hash:58ef84e3d391aa60ba30f47a27aabb7fbf2204fcf114190550e976f79ce66565",
+        "legacy_fields_sha256:d69c1a20c97b6d1662e404eac29cf8a50aa09e571e1daf9305a6f60c609ddbe9",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)2",
+            "normalized": "ג)2"
+          },
+          {
+            "index": 1,
+            "surface": "אֲזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 2,
+            "surface": "גְּבוּל",
+            "normalized": "גבול"
+          },
+          {
+            "index": 3,
+            "surface": "הַהִתְעַיְפוּת",
+            "normalized": "ההתעיפות"
+          },
+          {
+            "index": 4,
+            "surface": "מְסֻמָּן",
+            "normalized": "מסמן"
+          },
+          {
+            "index": 5,
+            "surface": "בַּמָּקוֹם",
+            "normalized": "במקום"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁבּוֹ",
+            "normalized": "שבו"
+          },
+          {
+            "index": 7,
+            "surface": "עָקוּם",
+            "normalized": "עקום"
+          },
+          {
+            "index": 8,
+            "surface": "(S–N)",
+            "normalized": "S–N"
+          },
+          {
+            "index": 9,
+            "surface": "מִתְיַשֵּׁר",
+            "normalized": "מתישר"
+          },
+          {
+            "index": 10,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹפְקִית",
+            "normalized": "אופקית"
+          },
+          {
+            "index": 12,
+            "surface": "סָבִיב",
+            "normalized": "סביב"
+          },
+          {
+            "index": 13,
+            "surface": "σₑ",
+            "normalized": "σₑ"
+          },
+          {
+            "index": 14,
+            "surface": "(Se).",
+            "normalized": "Se"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המשמעות ההנדסית היא שמתחת ל-σₑ, בתנאי הבדיקה הנתונים, אין כשל התעייפות עבור מספר מחזורים גדול מאוד.",
+        "he_niqqud": "הַמַּשְׁמָעוּת הַהַנְדָּסִית הִיא שֶׁמִּתַּחַת לְ-σₑ, בִּתְנָאֵי הַבְּדִיקָה הַנְּתוּנִים, אֵין כֶּשֶׁל הִתְעַיְפוּת עֲבוּר מִסְפַּר מַחְזוֹרִים גָּדוֹל מְאֹד.",
+        "transliteration": "Ha-mashma'út ha-handasít hi she-mitáchat le-σₑ, bi-tna'éi ha-bdikáh ha-netuním, ein késhel hit'ayefut avúr mispar machzorím gadól me'ód.",
+        "ru": "Инженерное значение состоит в том, что ниже σₑ, при заданных условиях испытаний, не происходит усталостного разрушения при очень большом числе циклов."
+      },
+      "source_refs": [
+        "legacy_row_hash:04ced2b62c5f279f2b846510a3a4d8b6e2f2f9f026ec934d7d497281a4669970",
+        "legacy_fields_sha256:919d5cd6b230adb82572c02247f521e7e72f7171b00ad8ee5a115179b37bf692",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּשְׁמָעוּת",
+            "normalized": "המשמעות"
+          },
+          {
+            "index": 1,
+            "surface": "הַהַנְדָּסִית",
+            "normalized": "ההנדסית"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁמִּתַּחַת",
+            "normalized": "שמתחת"
+          },
+          {
+            "index": 4,
+            "surface": "לְ-σₑ,",
+            "normalized": "ל-σₑ"
+          },
+          {
+            "index": 5,
+            "surface": "בִּתְנָאֵי",
+            "normalized": "בתנאי"
+          },
+          {
+            "index": 6,
+            "surface": "הַבְּדִיקָה",
+            "normalized": "הבדיקה"
+          },
+          {
+            "index": 7,
+            "surface": "הַנְּתוּנִים,",
+            "normalized": "הנתונים"
+          },
+          {
+            "index": 8,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 9,
+            "surface": "כֶּשֶׁל",
+            "normalized": "כשל"
+          },
+          {
+            "index": 10,
+            "surface": "הִתְעַיְפוּת",
+            "normalized": "התעיפות"
+          },
+          {
+            "index": 11,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 12,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 13,
+            "surface": "מַחְזוֹרִים",
+            "normalized": "מחזורים"
+          },
+          {
+            "index": 14,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 15,
+            "surface": "מְאֹד.",
+            "normalized": "מאד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r021",
+      "order": 21,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "בדרך כלל מתייחסים לסדר גודל של (Nf) ≥ 10^6–10^7 כמספר מחזורים מעשי לעמידה ללא כשל.",
+        "he_niqqud": "בְּדֶרֶךְ כְּלָל מִתְיַחֲסִים לְסֵדֶר גֹּודֶל שֶׁל (Nf) ≥ 10^6–10^7 כְּמִסְפַּר מַחְזוֹרִים מַעֲשִׂי לַעֲמִידָה לְלֹא כֶּשֶׁל.",
+        "transliteration": "B'déresh klal mityachasím le-séder gódel shel (Nf) ≥ 10^6–10^7 k'mispar machzorím ma'así la-amidáh le-ló késhel.",
+        "ru": "Обычно порядок величины (Nf) ≥ 10^6–10^7 считается практическим числом циклов для выносливости без разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:a4420e516236b867c9a8a0d24aa8a698889bdd011ea7aa463ab80ad2bfde0ee2",
+        "legacy_fields_sha256:e8151bff5135b4600e00ea8405d871fd4eb8aab12dbdee6353b2c26bc6a8391b",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 1,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְיַחֲסִים",
+            "normalized": "מתיחסים"
+          },
+          {
+            "index": 3,
+            "surface": "לְסֵדֶר",
+            "normalized": "לסדר"
+          },
+          {
+            "index": 4,
+            "surface": "גֹּודֶל",
+            "normalized": "גודל"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "(Nf)",
+            "normalized": "Nf"
+          },
+          {
+            "index": 7,
+            "surface": "≥",
+            "normalized": "≥"
+          },
+          {
+            "index": 8,
+            "surface": "10^6–10^7",
+            "normalized": "10^6–10^7"
+          },
+          {
+            "index": 9,
+            "surface": "כְּמִסְפַּר",
+            "normalized": "כמספר"
+          },
+          {
+            "index": 10,
+            "surface": "מַחְזוֹרִים",
+            "normalized": "מחזורים"
+          },
+          {
+            "index": 11,
+            "surface": "מַעֲשִׂי",
+            "normalized": "מעשי"
+          },
+          {
+            "index": 12,
+            "surface": "לַעֲמִידָה",
+            "normalized": "לעמידה"
+          },
+          {
+            "index": 13,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 14,
+            "surface": "כֶּשֶׁל.",
+            "normalized": "כשל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בתכן לעייפות בוחרים σₐ,תכן < Se/n ומשתמשים במקדם בטיחות n.",
+        "he_niqqud": "בְּתֶכֶן לַעֲיֵיפוּת בּוֹחֲרִים σₐ,תֶכֶן < Se/n וּמִשְׁתַּמְּשִׁים בְּמִקְדָּם בְּטִיחוּת n.",
+        "transliteration": "B'téchen la-ayefút bocharím σₐ, téchen < Se/n u-mishtamshím b'mikdám btichút n.",
+        "ru": "При расчете на усталость выбирают σₐ, расчетное < Se/n и используют коэффициент безопасности n."
+      },
+      "source_refs": [
+        "legacy_row_hash:60fbb41bc9ac49e21c8ccf94e58f9ff6971563ed603bc5ab9130b1955d73ffa6",
+        "legacy_fields_sha256:7a0f195298092b24001b30f36c230da1b6a91a1f873b008facd137df1214fb90",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּתֶכֶן",
+            "normalized": "בתכן"
+          },
+          {
+            "index": 1,
+            "surface": "לַעֲיֵיפוּת",
+            "normalized": "לעייפות"
+          },
+          {
+            "index": 2,
+            "surface": "בּוֹחֲרִים",
+            "normalized": "בוחרים"
+          },
+          {
+            "index": 3,
+            "surface": "σₐ,תֶכֶן",
+            "normalized": "σₐ,תכן"
+          },
+          {
+            "index": 4,
+            "surface": "<",
+            "normalized": "<"
+          },
+          {
+            "index": 5,
+            "surface": "Se/n",
+            "normalized": "Se/n"
+          },
+          {
+            "index": 6,
+            "surface": "וּמִשְׁתַּמְּשִׁים",
+            "normalized": "ומשתמשים"
+          },
+          {
+            "index": 7,
+            "surface": "בְּמִקְדָּם",
+            "normalized": "במקדם"
+          },
+          {
+            "index": 8,
+            "surface": "בְּטִיחוּת",
+            "normalized": "בטיחות"
+          },
+          {
+            "index": 9,
+            "surface": "n.",
+            "normalized": "n"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפועל מתקנים את הערך לפי חספוס, גודל, ריכוזי מאמץ, קורוזיה ודרישת אמינות.",
+        "he_niqqud": "בַּפּוֹעַל מְתַקְּנִים אֶת הָעֵרֶךְ לְפִי חִסְפּוּס, גֹּדֶל, רִכּוּזֵי מַאֲמָץ, קוֹרוֹזְיָה וּדְרִישַׁת אֲמִינוּת.",
+        "transliteration": "Ba-pó'al metakním et ha-érech le-fí chispús, gódel, rikuzéi ma'amatz, korózyah u-drishát aminút.",
+        "ru": "Фактически значение корректируется с учетом шероховатости, размера, концентрации напряжений, коррозии и требований к надежности."
+      },
+      "source_refs": [
+        "legacy_row_hash:0862c28dfb6d37e04c70798d43534cfb4ca4ec96c4296c65744f9bbc2c46b514",
+        "legacy_fields_sha256:0010b5fcf57c26c26ce0defb8007a7a49c4d7db4a3f48fc7ed84ab6bf00417e5",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּפּוֹעַל",
+            "normalized": "בפועל"
+          },
+          {
+            "index": 1,
+            "surface": "מְתַקְּנִים",
+            "normalized": "מתקנים"
+          },
+          {
+            "index": 2,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 3,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 4,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 5,
+            "surface": "חִסְפּוּס,",
+            "normalized": "חספוס"
+          },
+          {
+            "index": 6,
+            "surface": "גֹּדֶל,",
+            "normalized": "גדל"
+          },
+          {
+            "index": 7,
+            "surface": "רִכּוּזֵי",
+            "normalized": "רכוזי"
+          },
+          {
+            "index": 8,
+            "surface": "מַאֲמָץ,",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 9,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 10,
+            "surface": "וּדְרִישַׁת",
+            "normalized": "ודרישת"
+          },
+          {
+            "index": 11,
+            "surface": "אֲמִינוּת.",
+            "normalized": "אמינות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q024-sol-r024",
+      "order": 24,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:ff6a0f46417086c8c1b0b72d4c7008297b55da168f926cb829e724e73444d10b",
+        "comparison:MATCH",
+        "source_page:30",
+        "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q024",
+    "display_alias": "24",
+    "source_pages": [
+      30
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "б) Типичный усталостный излом зарождается у поверхности, где действуют максимальные циклические напряжения и находятся дефекты/царапины, затем трещина растёт к центру; остаточное сечение разрушается быстрым доломом.",
+      "На поперечном изломе отметить: 1) очаг у поверхности; 2) зону постепенного распространения с дугами/бороздками; 3) шероховатую зону окончательного долома напротив очага.",
+      "в1) S–N: по вертикали амплитуда циклического напряжения σ_a (или S), по горизонтали число циклов N в логарифмическом масштабе. Для стали кривая падает и выходит на горизонтальную полку.",
+      "в2) Предел выносливости σ_e — горизонтальный уровень, ниже которого в идеализированной учебной модели сталь не разрушается от усталости при очень большом числе циклов."
+    ],
+    "engineering_picture": "Усталость — накопительное зарождение и рост трещины при циклах, часто при напряжениях ниже статической прочности. Поверхностное состояние и концентраторы критичны.",
+    "prerequisites": [
+      "Циклическая амплитуда σ_a.",
+      "S–N/Wöhler curve.",
+      "Поверхностные концентраторы повышают локальное напряжение."
+    ],
+    "roadmap": [
+      "Выбрать направление зарождения.",
+      "Разметить три зоны излома.",
+      "Подписать оси S–N.",
+      "Объяснить полку выносливости и её инженерную границу."
+    ],
+    "main_trap": "Предел выносливости не является универсальной гарантией: он зависит от поверхности, размера, среды, среднего напряжения и концентрации.",
+    "givens": [
+      "Два возможных направления трещины и требование построить S–N для стали."
+    ],
+    "find": [
+      "Механизм излома, зоны, график и инженерный смысл σ_e."
+    ],
+    "assumptions": [
+      "Обычное осевое/изгибное циклическое нагружение без внутреннего доминирующего дефекта."
+    ],
+    "laws": [
+      "Для стали σ_a(N) убывает и асимптотически приближается к σ_e."
+    ],
+    "symbolic_derivation": [],
+    "calculation": [],
+    "construction": [
+      "Поперечный круг: очаг на краю, концентрические фронты роста внутрь, зона долома на оставшемся сечении.",
+      "S–N: y=σ_a, x=log N; нисходящая кривая с горизонтальной полкой σ_e."
+    ],
+    "checks": [
+      "Зона долома расположена после зоны постепенного роста по направлению трещины."
+    ],
+    "source_facts": [
+      "source_page:30",
+      "asset_sha256:8ca5728d6472e85c7efdede96d88911cca76caef5c7a40b1a1d6a2d06409a0a2"
+    ],
+    "unresolved_limits": [
+      "Редкий внутренний дефект или контактная нагрузка может дать внутренний очаг; задача запрашивает типичный поверхностный случай."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 1
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

@@ -1,0 +1,552 @@
+{
+  "schema_version": "materials_pb2_production_publication_anchor.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "source_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "edition": {
+    "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+    "edition_number": 2,
+    "manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0"
+  },
+  "items": [
+    {
+      "task_id": "materials-science-y1-pb2-q001",
+      "position_no": 1,
+      "edition_item_id": "ei_194321b3f980dbabcae05917",
+      "public_work_id": "work-445df27bcb7be80bdc77996b",
+      "snapshot_sha256": "b6e46091587600302bacdd66763d73359d70e2458c94c4d85d214ead869bcb80",
+      "canonical_task_sha256": "fda49e9d94eaff353c1009357eefc7369146296827e8b8a69dd617dc33061bbb",
+      "source_canonical_task_sha256": "de470d8ebae98a0f839888d7abe333a7728a1d99ac1b57294c9417ff4146bd00"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q002",
+      "position_no": 2,
+      "edition_item_id": "ei_4640878b00e22184ad866d6e",
+      "public_work_id": "work-ea4605bd18c8a7963a4f0502",
+      "snapshot_sha256": "c1e372a6fd5972868b61e8dd59ef8bf48e300324bdfba3f3a8724cf5feee7358",
+      "canonical_task_sha256": "4d91baeba51b32802e9d8b5d27a9ad5dfad4d32d5933dc11ce2ef4ae5912c9b2",
+      "source_canonical_task_sha256": "7092e77b717aa2bc501e430c729badda5dd627a595c13bcbc8a7cd950d0289fa"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+      "position_no": 3,
+      "edition_item_id": "ei_6012b7014e81fe781672fc4e",
+      "public_work_id": "work-d183b09d409dc05d28a4d199",
+      "snapshot_sha256": "c28baafb13bc1c303a0245e5f63e72d466620f9d5b5725fb16ab10aaece40eab",
+      "canonical_task_sha256": "d2ecd029004afb0c9c84a8c884db92ffb4f136819e2a69db965ccd97bda9ddeb",
+      "source_canonical_task_sha256": "4d68e6e5285620b4a5aad6bf8d78dbce85cd4c07a679d5eb7bcbcf8e8043a9ec"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q003",
+      "position_no": 4,
+      "edition_item_id": "ei_fe9138a04468a89af3933342",
+      "public_work_id": "work-c24d02e16c621a7b737fb80e",
+      "snapshot_sha256": "ee8c2bcf2e449a8b82cab916f21508641fbfb88b62b445fd6f34c9744753f72d",
+      "canonical_task_sha256": "4ec06f32c493919dca79ec8e1ef74e2d2c4acfeb5436518918f9e08ca3b95b36",
+      "source_canonical_task_sha256": "454ef01467f6acf7f1a04e2068f96c865e698ad20a84242ed0847bb92d255d95"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q004",
+      "position_no": 5,
+      "edition_item_id": "ei_7eddcdd574381c5c19cd2714",
+      "public_work_id": "work-6eef389fe8ff728c3a845625",
+      "snapshot_sha256": "d4b2d15ab7155fe83ea7791cc16bd5d1415c710e294980c518b4545d8c152b92",
+      "canonical_task_sha256": "29daa0596a6b2ec7b6db5ac27e11a03b932377724a96dd7f49c63304b8a84df7",
+      "source_canonical_task_sha256": "8739a85678313d7eb7689c7743ab384a59b8a686a2fa8e4d12cf469bea3e2d9b"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q005",
+      "position_no": 6,
+      "edition_item_id": "ei_6ce13cd33837d9adda4e121b",
+      "public_work_id": "work-3c147ed02bc5e70074a266f6",
+      "snapshot_sha256": "18be741109901da1ecf812abc8476285a9a477ff30122b5748890c44ba7d01ff",
+      "canonical_task_sha256": "1e76f77805488a799b278a61342141a88d8b4e10195bcd56240fbf4dc66d04c9",
+      "source_canonical_task_sha256": "33fe31bf13dd4fb76d7a659f06942ec8838eb1859e53c3ac9392c4d23267dc49"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q006",
+      "position_no": 7,
+      "edition_item_id": "ei_75a96fc2168ffdae2e517828",
+      "public_work_id": "work-e1ee3d690e9d52de415799d2",
+      "snapshot_sha256": "da37d4b959bc5ec9ccc6bc0f0ef4104eb298f34a176455123364fc35d4e7d30c",
+      "canonical_task_sha256": "4a667cbff79ce08e691afa53268aff18209064f47479d5d2d6ebcb6addfea35b",
+      "source_canonical_task_sha256": "041baa24a020ae9e28f080704e092bd2c9531ba0950e93148da8778779e0b208"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q007",
+      "position_no": 8,
+      "edition_item_id": "ei_f50ac93ccb8a2391676e53ec",
+      "public_work_id": "work-d45da2f71ffbaabff6dcd8bd",
+      "snapshot_sha256": "c7e7588f98748a64dff1cd5b76e0a362651cc9b8ac276bf782f07742ec4c96a1",
+      "canonical_task_sha256": "66071f64e942d7341ecc4a5c8721a0db7f9b2bd63a211394a3d587746debf363",
+      "source_canonical_task_sha256": "9ac98d2d9805943819256f80c2df8f7b4906bdbba054d3ffb8f770684cc11e29"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q008",
+      "position_no": 9,
+      "edition_item_id": "ei_be76fb6c69dea82fe33f804a",
+      "public_work_id": "work-01ec07110b4d0b723c4a58fe",
+      "snapshot_sha256": "b6541709d6089f04993df91c5a489d34fc35b7c53c3939d5c983440ee971dd0a",
+      "canonical_task_sha256": "fbb26757cc4b58ce179803bb8c9bde17ebf4ccd4e49285455728118150ce8754",
+      "source_canonical_task_sha256": "6e26441649854483b9b4124e672dd3c8e9d20ee5e1d6c5e5654ba7e4a35832a9"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q009",
+      "position_no": 10,
+      "edition_item_id": "ei_d51d57a1d20e15784f7abf9d",
+      "public_work_id": "work-2328d2eb48a8a96bc4f4a73f",
+      "snapshot_sha256": "e24cb860221a557fb9b75632aca980d8225e2511eb45cee29178f5b340acc8bc",
+      "canonical_task_sha256": "45ae7fa4c78b71bc2edf79a0cff60cf64f92dac2bc898498a11a454db9f4bcae",
+      "source_canonical_task_sha256": "07e169e89fd13454af0518a0793d78220748d69fe7e90e83e22ad8e54023142e"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q010",
+      "position_no": 11,
+      "edition_item_id": "ei_f571cdc4909890c317dead6b",
+      "public_work_id": "work-d49bf9b7520476332eee774e",
+      "snapshot_sha256": "faa23f7663a87ed7bdbbb91eab3daf85f5dc564b783436f28c4f9ebe89284252",
+      "canonical_task_sha256": "c13dd5b635b0e0b04dfeffc2f65d72c5b1ed22fc289c7185afde1c427e256ced",
+      "source_canonical_task_sha256": "53feb65baf1caaf1daf7f0439d1d34a6f8b987985d873968b5116591279b6468"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q011",
+      "position_no": 12,
+      "edition_item_id": "ei_c638ae38e16598bff3c0f728",
+      "public_work_id": "work-4faf74f9ff556a0324e48636",
+      "snapshot_sha256": "d060d0b6fcfb3beac72c269864b9c591517910c6752f1d530c95e8d79d13ecd9",
+      "canonical_task_sha256": "a5e2c3810417af9603312e66b846e061e892baa5beae1c768564aaf82c149cde",
+      "source_canonical_task_sha256": "d8d9fe487e02ea7150e280112b8cea3daed257b2b35334f7e2b68064be10fa34"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q012",
+      "position_no": 13,
+      "edition_item_id": "ei_ca2df0a86e758663c7beb874",
+      "public_work_id": "work-e49bf5a178ef111e151583b6",
+      "snapshot_sha256": "7b013a4300d3c8d16fa031e8cee448b8ef2a91b8f7edf704265becd2407150c6",
+      "canonical_task_sha256": "96a5c1df968c10b2db4a43755dc38cf74567a1692b5ad4e48ac86c5239ba718e",
+      "source_canonical_task_sha256": "a0a225f0944367239e4ca827095c0fab04d4730712cd46f9d7703a277e421339"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q013",
+      "position_no": 14,
+      "edition_item_id": "ei_49a67fe4cbc6e13bea81ccdb",
+      "public_work_id": "work-177afd6e074985b1af9dc568",
+      "snapshot_sha256": "ed3faf4a5668a1703b19c857ce0565c010af1bdfd0f1d6b9059c2e4603e63f47",
+      "canonical_task_sha256": "2855358ffb64af931ea178327872cca5555cc9dfa2fe31e5502a82134a88346e",
+      "source_canonical_task_sha256": "333eb1cb9f36a507e76ebbbaed3d6bdd37bfa14c369f936695bea689b740531d"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q014",
+      "position_no": 15,
+      "edition_item_id": "ei_f4124d160cda479700dd3699",
+      "public_work_id": "work-a5eba0734058efd6a6bf5c80",
+      "snapshot_sha256": "c47a1289d6994ce2beacf7972b23356c3c5d5f90f701e60f3f6f96f84467518e",
+      "canonical_task_sha256": "679de4ea4dac6fd13ed4b5d7dc424c5c61ccd709aacdcffa94df4bd37c0c2325",
+      "source_canonical_task_sha256": "96e86fee213210840e739df2caa5af0d9a9b273f2021167ccd6424f053e9b1f6"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q015",
+      "position_no": 16,
+      "edition_item_id": "ei_8ef1d5a990865bdf4736f8f7",
+      "public_work_id": "work-255efd3e9cca014f4d3f3bfd",
+      "snapshot_sha256": "c68171b836c063568737ca1aa6acf9a2096b0ae8dea82be44e5f0f6b34431f56",
+      "canonical_task_sha256": "02a4382790c1309603197f70de15ee0111ec3fdf17906bc814163e068ad742cd",
+      "source_canonical_task_sha256": "a327bac7bd3d0dd1d71b35f597268cb4aa908a255b760733e587bcae9ba4dd0f"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q016",
+      "position_no": 17,
+      "edition_item_id": "ei_dcd38212bcefc2864bdb6697",
+      "public_work_id": "work-a564df8b7c540962f45be16c",
+      "snapshot_sha256": "7a3e0bfdc03c78c20ea8a3d7d1856e69f9cc01eea954c41001510917ce9357e7",
+      "canonical_task_sha256": "c5e695ea9eb7232f6c219509fdee11960ae57fa73aa68b5a47ea13ec5dbd9655",
+      "source_canonical_task_sha256": "1cdd441d6ea51235bbf62883ffd0c0dae159f0007ecbb5b9e31aa9f0feecaaf2"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q017",
+      "position_no": 18,
+      "edition_item_id": "ei_a6580d228d76dab77e652176",
+      "public_work_id": "work-0846027d23d2cad6e3c253a7",
+      "snapshot_sha256": "203a86f1a082aa454eef90902070ead32bd2350bdcdef33ceec7c51f3c8045bb",
+      "canonical_task_sha256": "a2c734dcac654ff0a8970bae947a482a97391e0d7b7581849b3121c2041c61af",
+      "source_canonical_task_sha256": "eb1a764f5427e93bc425c039a8b483e931dff6c25c038071598ee04f163d188b"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q018",
+      "position_no": 19,
+      "edition_item_id": "ei_f5275d635d8d4d7c4a82bce8",
+      "public_work_id": "work-a1ba79a9af52c849dc5b4b34",
+      "snapshot_sha256": "186630dfcdf45f11cd6744e891c7c9b62fc19e8370e651ac7456d5e2f78d7f29",
+      "canonical_task_sha256": "2b775864ad7cb97dc9901558ebd082afa69cab561f94ef6b39d93c12281ab64c",
+      "source_canonical_task_sha256": "3ad7dc1ccb62488a1ad788d90e75f61ba374b4117f8909e79ac42f4c79966ce7"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q019",
+      "position_no": 20,
+      "edition_item_id": "ei_cefadef2e359583f228d3935",
+      "public_work_id": "work-c0cefcb176bedf0f06a457c4",
+      "snapshot_sha256": "cc2b314a34a1001b05f1c1c1b68f9b013af81d4b561977fa1d5b5032e8259d2f",
+      "canonical_task_sha256": "b92cff78e52896b17597d39d4671746a9f4d1922d770389c7a5f902be415f290",
+      "source_canonical_task_sha256": "74a47ba1d87668b6626ba4cb16ea0efef98a10279ce6f6e7ac4b2b2a555a9ea6"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q020",
+      "position_no": 21,
+      "edition_item_id": "ei_8eda55e43ca3d1748d210d9d",
+      "public_work_id": "work-4773193c6717231b9062b115",
+      "snapshot_sha256": "ed81895144a0d1cfe8bd05aabbc919665803fb52bf1631c872d4752cefd7484d",
+      "canonical_task_sha256": "df1efde07da51538e30eda00a018f1affffa25851a177801ef73f2647fee4d52",
+      "source_canonical_task_sha256": "fe2ec458a153687c6e8f2a9d69d3e98fc1a7409e46c7aa8b1ee6a3622c50fa5a"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q021",
+      "position_no": 22,
+      "edition_item_id": "ei_cc28c92160f3dd610e7798f3",
+      "public_work_id": "work-1bc1d502cb46f57905d9e5ad",
+      "snapshot_sha256": "b39cef89f9e3047d824f10a2d7be4a3e4e577341470e69fdfaa471d75c043574",
+      "canonical_task_sha256": "923d54332cbdafb35ca312d56156369ae493c2d7991aae57ce984b5158169e7d",
+      "source_canonical_task_sha256": "8120032876399bb1fa201892944cdc434f3a7726c2dc9c6d6ea83a048c459857"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q022",
+      "position_no": 23,
+      "edition_item_id": "ei_59e766213f196fcc8e0cba81",
+      "public_work_id": "work-b33ad8e158e7722ebdfda89e",
+      "snapshot_sha256": "4371c5020c3557129da09afd95852f5cac501a8134336b6d1ec36fb2fb204d65",
+      "canonical_task_sha256": "338828361c045aebaf03ab1169e8a42bd0cf5a05139a2f189efd1e9fa9d99638",
+      "source_canonical_task_sha256": "0dd69a8771293bad2df0125b1fb5f394b3334178a9b4929fb369a3911e6140c0"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q023",
+      "position_no": 24,
+      "edition_item_id": "ei_b4ce834cd03c323e787af842",
+      "public_work_id": "work-cadb53324809475be16c2feb",
+      "snapshot_sha256": "4fcde54272fa873f8dd85f98a28c2df7b0f2bced7769f5fc5903c4e59e862db6",
+      "canonical_task_sha256": "a025e85ad9575fc6a7524500b732f2880066626aa1a4b0262c80cf3e7027a227",
+      "source_canonical_task_sha256": "174d973e1013a6b0c37ab17f5080f4b79e9d181dcfe04498a7b1b5d7b48d599c"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q024",
+      "position_no": 25,
+      "edition_item_id": "ei_eebdd99abe0cca0324b25be4",
+      "public_work_id": "work-1d7b549af6cb75e0f1372031",
+      "snapshot_sha256": "af0477e25729a0215b7c9b37346f1bdb98ef934372592e327b5d020e1650b895",
+      "canonical_task_sha256": "ebe5d11224b64cd687bd8b597bafb669b6b12251a33f3444ec0783f098ba6c38",
+      "source_canonical_task_sha256": "8587f760f691f8e3bc53861ef41029735adde56af2f8b5e75e3233adb6699a7f"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q025",
+      "position_no": 26,
+      "edition_item_id": "ei_6c7a3d4ff65f4ff9dcad5dfd",
+      "public_work_id": "work-e8ddd25584a7e3b986daa66d",
+      "snapshot_sha256": "4decceeed62971d285c18a29db398c9d1ae55b58d0e9ccd21de84e39fa0a24fb",
+      "canonical_task_sha256": "27cca8b07959cc30d40f46258a9971b62e0ef96bc3b71944bb70108aeab901c6",
+      "source_canonical_task_sha256": "2cd5370b0af8beea4d5cca9a254f835d0a5e7e10e0c386d0649f3a540be60f7b"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q026",
+      "position_no": 27,
+      "edition_item_id": "ei_56a71b86a9c4918759adf6ca",
+      "public_work_id": "work-4c3618a26655898f379a4741",
+      "snapshot_sha256": "850275ccd9ae60b6ffabc70b56fe234d48687c169f5c4cd7d8d7c710991772e7",
+      "canonical_task_sha256": "be49230ae5e95b615cff04d6c809731c0bf4c4ca90372e2ed1cf63c2f2a4f08f",
+      "source_canonical_task_sha256": "126b016aa42f13db325f5f531ef86228fea1222e1995ec109830f8c3f30e3e48"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q027",
+      "position_no": 28,
+      "edition_item_id": "ei_4c8a2123c1b34407e3dc09cd",
+      "public_work_id": "work-3efcbb165c430f877b97b133",
+      "snapshot_sha256": "9224c8267ffcfcb8625b4305d5b55757aab4efb563951159536756bd7039209b",
+      "canonical_task_sha256": "43f7a9e6ebcf2e18bda7e1e15b8418754d06a7471c0ec3a98365e24e16a6428f",
+      "source_canonical_task_sha256": "688b2d799ad7da8b942ba0d5aab095ca55101fcd920632ee5fcf0e097be1bebc"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q028",
+      "position_no": 29,
+      "edition_item_id": "ei_83dacbce6f63f9f72d1d582c",
+      "public_work_id": "work-5b8d290efc200c245cc0fef6",
+      "snapshot_sha256": "5c0071dd161a00eda9cc10ea15c63b2ff9178363da905b7073a5495274097741",
+      "canonical_task_sha256": "a36ac34f97bdaad69b7eaa675258ddb9094c0af956f40a8a5f8f14de23cfeea4",
+      "source_canonical_task_sha256": "88473204e9edde45c2ca11e8d0256b7c66d77b7a910b6e54fccb2cdd23d5551f"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q029",
+      "position_no": 30,
+      "edition_item_id": "ei_986ac9479277ab29a88212f3",
+      "public_work_id": "work-4c5edff943d2e876cb95c9a0",
+      "snapshot_sha256": "42bd0a9aa808e5351c0f6699df10d540d4729802b65a5cfec44c1b7afe91acfa",
+      "canonical_task_sha256": "0b205ee59a4c1f0a04ef183646dddb4c6e2388b9d04e3bc8825a05d4587789fe",
+      "source_canonical_task_sha256": "fd61933a943ab7c4a29fb9731e18bcd29c5caa217dcd81a99ee62a874f9babe2"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q030",
+      "position_no": 31,
+      "edition_item_id": "ei_557a8fcda95ac20ba31182e1",
+      "public_work_id": "work-b57734b56e25fe2f9a39736f",
+      "snapshot_sha256": "1e055cc554f4990745f83914e5566b195c142ae095fdc9765a5527f177583bce",
+      "canonical_task_sha256": "a189e2d69e48949180d0d239a6e2ca72fc516ba6889454be4f487ed9a1ff262e",
+      "source_canonical_task_sha256": "ca7788349d4dbb602735901244c9de27e208586e26e5de4ad5b2740fd6344adc"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q031",
+      "position_no": 32,
+      "edition_item_id": "ei_4af3efdd842367533223dcdd",
+      "public_work_id": "work-ff115730ba02146940d4065d",
+      "snapshot_sha256": "af2b83cddf7ccc60e7082d17bc24b98a81993f80ac589eb893adc9ef8ffa5ac0",
+      "canonical_task_sha256": "8c912b022122de2bed939fd974094a2aad7d5b6f3495101750b045d68dd04bd0",
+      "source_canonical_task_sha256": "1c3ac8b33e131c88f1f6373ff0eae620bd27b9e5ca3fe4e9465600bb1bbed4e5"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q032",
+      "position_no": 33,
+      "edition_item_id": "ei_8730f0d4417f1c2c9d78c286",
+      "public_work_id": "work-1ea55e830e7a41580d6db4a3",
+      "snapshot_sha256": "8bf6cf51381171c4d996bb1f445b30242c227eda89d4b5022f0a6b7f4884837f",
+      "canonical_task_sha256": "16dd0e1d264743e02a8811f8bb12b40cfa326d23a016d774ecaaab1e8a575b21",
+      "source_canonical_task_sha256": "5e5c332791e52268a86f15e7bf8a4cb2c2fd8471336a4d4cd11513acdac56e45"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q033",
+      "position_no": 34,
+      "edition_item_id": "ei_a439fb592d56966aca134af4",
+      "public_work_id": "work-2d7759f245b88d071eed1375",
+      "snapshot_sha256": "041b21c51962e1c160fe20609e199c430672d5bbbd72da4c08be398dcc97448b",
+      "canonical_task_sha256": "6b480f4fd1f7829d0915e2eb7d0fe9bf4deeaebacde18f12b3997913083abea0",
+      "source_canonical_task_sha256": "65684e3ef3b4b37ac5fcbd647b90e4c16a010bb0e3c225a295f998e9c650a869"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q034",
+      "position_no": 35,
+      "edition_item_id": "ei_5d5a82e1affa49626f6223e2",
+      "public_work_id": "work-9457fae56ae01c8cd28bf246",
+      "snapshot_sha256": "34dbf34bcc12ce58a1d2e66efadb7f253207cf0cbd6624de078716075bca4417",
+      "canonical_task_sha256": "7c57ef046fe8ef77e485965b3e71e974d40bc5837575d4dad3d3bb23f2e6f4d7",
+      "source_canonical_task_sha256": "750de6a9af6199d407fa02e95e2bf8b00d531bead24fc611c4934dc94920b4a6"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q035",
+      "position_no": 36,
+      "edition_item_id": "ei_8a2dc79022d28b0c7a27416c",
+      "public_work_id": "work-71f58d652ed3084fb2ead809",
+      "snapshot_sha256": "9e2ea855913e508e8bdb83e8662b27e2fb282c517f5580da09ad1d001132c19f",
+      "canonical_task_sha256": "632d90f87c95065b7dfda0a0d9cea2c34259c1d78e5ea25c7501a2c1c514fc79",
+      "source_canonical_task_sha256": "fb5fce3c8131366ffa03b1f3ead9de51ec32869a55cc8fbe4719f2cabf387924"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q036",
+      "position_no": 37,
+      "edition_item_id": "ei_7f5c6873de1983bcbc19acf4",
+      "public_work_id": "work-a3cc9bc0afcf286aabb37257",
+      "snapshot_sha256": "e30026c9e60d5c8f35d7b697f7be099f8087fc1b97b03660e997be7f92064642",
+      "canonical_task_sha256": "d41d46ab5b36ba7b46aef227a133a001d8bbbd8389ea7fd25214a731a77ab2e1",
+      "source_canonical_task_sha256": "d56854e398bda0ffeaef735af58d556f1ac27d93215e6fd7971326535969d002"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q037",
+      "position_no": 38,
+      "edition_item_id": "ei_71909804050401f127959a8c",
+      "public_work_id": "work-6adb0b93ca000aa751d43ec8",
+      "snapshot_sha256": "fa7df6d67d3fb84b4347dc8bf85740d68e93b0872f9d73f9ca92acd3fd792100",
+      "canonical_task_sha256": "bb91261b6cbb6c39dec276917367ce94acacc4ba1da551fadad07bd8f754a466",
+      "source_canonical_task_sha256": "a2f8e4d00494772288ef1f431e9d83bbe376547c89a3b5282236b688dc88a99d"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-p045-q038",
+      "position_no": 39,
+      "edition_item_id": "ei_14f4be9b392580a5688ccfc6",
+      "public_work_id": "work-ed2eb9191a7a11d4c474ed78",
+      "snapshot_sha256": "edd6ee757732dcd965154df57f0a7a3823b1a597fdd1123743d635d6ef9d5353",
+      "canonical_task_sha256": "71283a4a8abb2687273756d025baf178ad9e904bbe90e9102cdd11dcb8ba365e",
+      "source_canonical_task_sha256": "3e2097983967b491f89df40b7ea4acfdeb57d19b1c0160022b8e8d8b46741200"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-p047-q038",
+      "position_no": 40,
+      "edition_item_id": "ei_b1f1cf1dce1d7e5384970187",
+      "public_work_id": "work-be9355eec26a2d7df85ac24c",
+      "snapshot_sha256": "53880c6c39b9bb75f0df6baf7efa2d07e126699584c96161843749ec1909beda",
+      "canonical_task_sha256": "bd40f4c506946ae105a95066f80b625a74255d6ef61acabd2eb978c81b0f8827",
+      "source_canonical_task_sha256": "a680e1ac565ea85be0345906640df090a162fdf0a16131aec73b4e3245ccde0d"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q039",
+      "position_no": 41,
+      "edition_item_id": "ei_6b9f3fe454cb8369befb4122",
+      "public_work_id": "work-74c2def8db4ae262775cdc65",
+      "snapshot_sha256": "6d7630310342461108e254305cdec16d94d4f58748ec8a922fa6270fd8fb5adf",
+      "canonical_task_sha256": "a115f7857ee613314d005b8de4117f1c2cf6d53016f14178e9a3be9ae1010628",
+      "source_canonical_task_sha256": "e31f9536e901db8b687fa199b9488beff6163b5d38dd1f2fd06a31122b53a92e"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q040",
+      "position_no": 42,
+      "edition_item_id": "ei_428669fa3939291c997a2a4d",
+      "public_work_id": "work-bb9a3cbcd4194b2be440bad8",
+      "snapshot_sha256": "0680baeb8404698debf4b205d3122337ebcd0775aeaca71c0746db52acd02576",
+      "canonical_task_sha256": "a53a841f245352b719b9a38b8f9e01f7c7e91a994b557c669292ea92fc9f6714",
+      "source_canonical_task_sha256": "c1ada0779136a35c154da2083629d57a501f578a294329be96b1ad1b20dc68ca"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q041",
+      "position_no": 43,
+      "edition_item_id": "ei_87d54e9874147b5af89d398d",
+      "public_work_id": "work-e46d63ee9c4380c026fdb1a2",
+      "snapshot_sha256": "b27071ed9c6bd60b92c8026009f153c4baa184ce8a165cdc817f13c74cad825c",
+      "canonical_task_sha256": "a2b883b6ca8c6c885bcfcd9478371e18bfd616225ada3758750f45d987c684a9",
+      "source_canonical_task_sha256": "87f144a1c71e684c5534a0fa1838229434c1862558e6854a0e05e7ab507927e8"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q042",
+      "position_no": 44,
+      "edition_item_id": "ei_eb0235eb99e92fd21011156b",
+      "public_work_id": "work-6119f7ad8ce77c388b76a2fc",
+      "snapshot_sha256": "47f93696700bbd91f044a34653521e538102093b4461cfaef9ba8a903f383e15",
+      "canonical_task_sha256": "8ae71bd9abd26598c5562e0d08a70859def12334563bb1c3aa2cfe6d627d5306",
+      "source_canonical_task_sha256": "435d060323b8fd3b5da72b350f9e15c09cfe8aeaf93de959b265c726500799a8"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q043",
+      "position_no": 45,
+      "edition_item_id": "ei_e126cf2a189678520db58853",
+      "public_work_id": "work-1d900d3c1194066e998086a7",
+      "snapshot_sha256": "077c3929e090e46363f2ebec298b23479769cb214962846f6d04685b53478f73",
+      "canonical_task_sha256": "4f635be9b3b1f013e4bcbee1943f90c3032a8bd75c5bcd3749004d4e8c1d0922",
+      "source_canonical_task_sha256": "6a4780473b7b7fb43a267d82160ffad4ccad21d041414bac22c623e7491a5bfe"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q044",
+      "position_no": 46,
+      "edition_item_id": "ei_b9e468927c0092df096711bd",
+      "public_work_id": "work-9d21ab337dfc39903078834d",
+      "snapshot_sha256": "ae0b72c078c2913cc095616ce498c668e3874750706098c3fc55fa11042d017c",
+      "canonical_task_sha256": "894fc2490cc19365e2f382318658aaac4a5265ca471068bb6c7c1f03e43208e7",
+      "source_canonical_task_sha256": "c1f8b5a4b9101987c1913448228ba88b1abbad0d5a8a167d26c7e27d3c155c8e"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q045",
+      "position_no": 47,
+      "edition_item_id": "ei_bfb7bb1b23658a752a56f542",
+      "public_work_id": "work-bc586414e4a2275e2aa7ae39",
+      "snapshot_sha256": "01f138edf7a60c5c241ac1e9d1f105f60078f2f7688fc29d95e73bad8facc950",
+      "canonical_task_sha256": "39aee6f670d8c1b87b8eadbd8fd4f845790b3e9292335aec4ee8e6ba9a468f65",
+      "source_canonical_task_sha256": "173b21cb89137f5c96f1610ac741434b56a535534a267a904332e40fd9b63e04"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q046",
+      "position_no": 48,
+      "edition_item_id": "ei_e1c84ce085e93b35361b8b53",
+      "public_work_id": "work-f3696c967d3a7d2f0ff4078f",
+      "snapshot_sha256": "d93b9a5a3f89340f742784fa4fb6b59632a43acf61181cff16c9c948667f0e9b",
+      "canonical_task_sha256": "adf898a7914dc59be4cc4c5a4be77f8f52e5190811a4519cc7495c320c1b28b9",
+      "source_canonical_task_sha256": "6384aa205c0ea7fce996970230ba1f9d8f490aa6c9a73843feea9d14f9eb75a7"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q047",
+      "position_no": 49,
+      "edition_item_id": "ei_06b3dd1aa94ba1cbf63430b5",
+      "public_work_id": "work-ae6cba01393f1506032a992e",
+      "snapshot_sha256": "e405d6d621ef5673cce0fdffbd2c31145235282016201c68bd171614137abe7a",
+      "canonical_task_sha256": "d617e79fc0138238b4756d15a96493dfdafcdf940da1c83c3ac4ecec8bf51862",
+      "source_canonical_task_sha256": "b3ff044e191ea1add284dd725787bf21412f3de546aa69ac97f65073b2ce97ae"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q048",
+      "position_no": 50,
+      "edition_item_id": "ei_756591c124f993136994144c",
+      "public_work_id": "work-90fa632f8973bf194fad9070",
+      "snapshot_sha256": "73c60737407f40e5848036ad9d251c03a1b7bbdaffcc8962ee9b5692578582f1",
+      "canonical_task_sha256": "3c7e736f498fe608cc7bfec5b1053df42fc104be0b452de57b92c81133492462",
+      "source_canonical_task_sha256": "1cacbdec006c97a92750c7f08dbcf0916031d219d780776e628a9520781aba1e"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q049",
+      "position_no": 51,
+      "edition_item_id": "ei_fd48558a2d1914f52ba07da4",
+      "public_work_id": "work-42223b47dbc7bb4f47c3c561",
+      "snapshot_sha256": "5ed74d0ca578da515006e3bf008404de8c4c18a8eea7009ab129ecc8f020aad8",
+      "canonical_task_sha256": "317c0c4cd7351dc596fbca83ef6246ec7d453d76bf930716190f0ebdc1465f22",
+      "source_canonical_task_sha256": "043779edd81666ce1a834605a20e69847f03ca925a551a3cc1f1c07f20248670"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q050",
+      "position_no": 52,
+      "edition_item_id": "ei_73a99dd8e86fc905b72d7833",
+      "public_work_id": "work-0cac2be20b1f0f2a516ffb9b",
+      "snapshot_sha256": "dbd646e77b08fa8a27ad2d7d81d8edff3d9e594be640782d1bb167c94fb7a58c",
+      "canonical_task_sha256": "9fa927ee5b4d97c8efb09d76e6379a72f44cb6d14e7ddef5f64b40ea528f086f",
+      "source_canonical_task_sha256": "5cc84513e05d06bdead9bbc2bb86d5fa3b282be96dc639a3d59795f7c7516e4a"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q051",
+      "position_no": 53,
+      "edition_item_id": "ei_b6ae8fa4dbc5c133ff04e618",
+      "public_work_id": "work-144eafa1a289541f5cf4fa40",
+      "snapshot_sha256": "d1a10a3a51675c55a60220fc45563802d116a572ab212a7f176866580810e48e",
+      "canonical_task_sha256": "d7e37e4d8c958e71d8c3a4221b1588709d21f42f36529b97b130c0ec8f424d74",
+      "source_canonical_task_sha256": "a7460654647611ad020bdbf892ef137f85adfe3d0ee13ca2517ba5b636db0d68"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q052",
+      "position_no": 54,
+      "edition_item_id": "ei_5ec737fbedc6541cb791a958",
+      "public_work_id": "work-a86d5c9396dcf6b3e3ae9d1b",
+      "snapshot_sha256": "fda8d454350f14ef1b5ac39db4997c4d7750e331837701eea8267bc0d077b53f",
+      "canonical_task_sha256": "cb9abe405991b10782e2c0d22ab0a79eb4558252a34f48cfcbca53fcbf2ebdca",
+      "source_canonical_task_sha256": "6976af7c1c59956e5c4dad2b830c2178a3de777837cef767d18ac5658e03dfb1"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q053",
+      "position_no": 55,
+      "edition_item_id": "ei_c7ef9734a44d598707ced1ba",
+      "public_work_id": "work-ee125492b7eeb7d64a9cb3a1",
+      "snapshot_sha256": "515395e992b079040eb74e1999927302653970fc7e19391eed71fb4e039e69b3",
+      "canonical_task_sha256": "31abfa1b9dbc657d834056ab351b0f63cc4b08483d0e0cb5bdc4b69336e51a46",
+      "source_canonical_task_sha256": "0703a4f8cbc994e886d6b934a3f89ce888778b2cb71f7751a5fd3653ddccab36"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q054",
+      "position_no": 56,
+      "edition_item_id": "ei_0bd85eeae2fa198af864cc7e",
+      "public_work_id": "work-d5e4daab85d1b995f63df1bc",
+      "snapshot_sha256": "460ac14fac5b06ec506bf352102c724a2cd792bbef4ad712d0a5b23197323340",
+      "canonical_task_sha256": "bcd950f6345ba462574724aa780d9643715400cad6ebe88c59720b8ba2e12538",
+      "source_canonical_task_sha256": "809f64361a50582fd752d1f5a8ead430b18638c9142d218b712851b63f58fe1b"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q055",
+      "position_no": 57,
+      "edition_item_id": "ei_96db2f30d0d7a9bc78ea129f",
+      "public_work_id": "work-4f24de92a8d379d0d63d5ac3",
+      "snapshot_sha256": "14f556a20cc51e85e29866748cda2149dd4853efc57f3560f1bc47cacf4de811",
+      "canonical_task_sha256": "90d48c92a2880022a4000305969911c26a901639d2f7fc825a658bb368d79c13",
+      "source_canonical_task_sha256": "e31e006c0184d0cc1ddf7a8186e1f65fb3799bfea1c2a7094399473f3547e439"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q056",
+      "position_no": 58,
+      "edition_item_id": "ei_f8316b94747065e7ca00043c",
+      "public_work_id": "work-4a9854f896e488c40a63efaa",
+      "snapshot_sha256": "7c25253a8635e0e9dd9136d7bb58b16960767a79703f202f3f531519776fafb2",
+      "canonical_task_sha256": "4ac275bcc5cc0a8251af17386b71c3a11e4fb8fbb496875b86ba48502e6d4eff",
+      "source_canonical_task_sha256": "ff70da2c554bcf0d01eefd1b5c65b5a2aa8bf70406a191c909cc77769ba1dbc8"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q057",
+      "position_no": 59,
+      "edition_item_id": "ei_544f20a87b805318b7dbcb8d",
+      "public_work_id": "work-a2e5f2be55351dff8422fe20",
+      "snapshot_sha256": "fb7dffdb20f77ab1ee8f3ac2dbfb613acffcd960dd64fc6462579c8a3afc5aad",
+      "canonical_task_sha256": "cb8b19e54dc5354b70488f08e0010dd9eb5f31833e61b9969ff29080ef335eb2",
+      "source_canonical_task_sha256": "10570aa87896d717c5a8f28311d1e00cf8e8d6d6f251d37eb95baf0ebaf74a9e"
+    },
+    {
+      "task_id": "materials-science-y1-pb2-q058",
+      "position_no": 60,
+      "edition_item_id": "ei_ea1d71419feab1a80be2e1aa",
+      "public_work_id": "work-213540260904223be877fdf8",
+      "snapshot_sha256": "31e193e971d8e636ba75e73143bd84a1a177493055bc656834447ca2d96e152c",
+      "canonical_task_sha256": "61ce6893ab3efa57c89acffc4ba97d82d9b38eeab936cc79a02c840870b7cd08",
+      "source_canonical_task_sha256": "e29ebe07723ca1c98e75e3dcdc6b2238a97547ef4b9c054085ebdb5cf46440aa"
+    }
+  ]
+}

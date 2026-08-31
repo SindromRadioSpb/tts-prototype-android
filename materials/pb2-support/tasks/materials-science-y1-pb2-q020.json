@@ -1,0 +1,2881 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_8eda55e43ca3d1748d210d9d",
+  "public_work_id": "work-4773193c6717231b9062b115",
+  "snapshot_sha256": "ed81895144a0d1cfe8bd05aabbc919665803fb52bf1631c872d4752cefd7484d",
+  "task_id": "materials-science-y1-pb2-q020",
+  "display_alias": "20",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "fe2ec458a153687c6e8f2a9d69d3e98fc1a7409e46c7aa8b1ee6a3622c50fa5a"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "df1efde07da51538e30eda00a018f1affffa25851a177801ef73f2647fee4d52",
+    "source_canonical_task_sha256": "fe2ec458a153687c6e8f2a9d69d3e98fc1a7409e46c7aa8b1ee6a3622c50fa5a"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "9a0df976dfa60efbe12a59e87706b2351fb2e539213a1fb03dd27e8d6c7d91e3",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Impact-test purpose, pendulum-energy comparison, material curves and classification match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q020-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 20.",
+        "hebrew_niqqud": "שְׁאֵלָה 20.",
+        "translit": "She'ela 20.",
+        "translit_ru": "",
+        "russian": "Вопрос 20.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "task_heading",
+            "source_page": 26,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. מהי המטרה של בדיקת נגיפה?",
+        "hebrew_niqqud": "א. מַהִי הַמַּטָּרָה שֶׁל בְּדִיקַת נְגִיפָה?",
+        "translit": "a. Mahi ha-matarah shel bdikat negifah?",
+        "translit_ru": "",
+        "russian": "а. Какова цель испытания на ударный изгиб (ударную вязкость)?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r003",
+        "order_index": 2,
+        "hebrew_plain": "ב. ניתוח תוצאות של בדיקת נגיפה הראה שלאחר שבירת דגם מחומר א', המשיך פטיש־המטוטלת לנוע לגובה h.",
+        "hebrew_niqqud": "ב. נִיתּוּחַ תּוֹצָאוֹת שֶׁל בְּדִיקַת נְגִיפָה הֶרְאָה שֶׁלְּאַחַר שְׁבִירַת דֶּגֶם מֵחֹומֶר א', הִמְשִׁיךְ פַּטִּישׁ־הַמְּטוֹטֶלֶת לָנוּעַ לְגֹובַהּ h.",
+        "translit": "b. Nitu'akh totsa'ot shel bdikat negifah her'ah she-le'akhar shvirat degem me-khomer alef, himshikh patish-ha-metotelet lanu'a le-govah h.",
+        "translit_ru": "",
+        "russian": "б. Анализ результатов испытания на ударный изгиб показал, что после излома образца из материала А маятник копра продолжил движение до высоты h.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r004",
+        "order_index": 3,
+        "hebrew_plain": "לאחר שבירת דגם מחומר ב', המשיך פטיש המטוטלת לגובה קטן מ־h.",
+        "hebrew_niqqud": "לְאַחַר שְׁבִירַת דֶּגֶם מֵחֹומֶר ב', הִמְשִׁיךְ פַּטִּישׁ הַמְּטוֹטֶלֶת לְגֹובַהּ קָטָן מִ־h.",
+        "translit": "le'akhar shvirat degem me-khomer bet, himshikh patish ha-metotelet le-govah katan mi-h.",
+        "translit_ru": "",
+        "russian": "После излома образца из материала Б маятник копра поднялся на высоту меньше h.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r005",
+        "order_index": 4,
+        "hebrew_plain": "איזה מבין החומרים א' ו־ב' מתאים יותר לשמש כפגוש במכונית?",
+        "hebrew_niqqud": "אֵיזֶה מִבֵּין הַחֳומָרִים א' וְ־ב' מַתְאִים יוֹתֵר לְשַׁמֵּשׁ כְּפָגוֹשׁ בִּמְכוֹנִית?",
+        "translit": "Eizeh mi-bein ha-khomarim alef ve-bet mat'im yoter le-shamesh ke-fagosh bi-mkhonit?",
+        "translit_ru": "",
+        "russian": "Какой из материалов (А или Б) лучше подходит для изготовления автомобильного бампера?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r006",
+        "order_index": 5,
+        "hebrew_plain": "נמק את תשובתך בהתבסס על הקשר הבא:",
+        "hebrew_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ בְּהִתְבַּסֵּס עַל הַקֶּשֶׁר הַבָּא:",
+        "translit": "Namek et tshuvatkha be-hitbases al ha-kesher ha-ba:",
+        "translit_ru": "",
+        "russian": "Обоснуйте свой ответ, опираясь на следующее соотношение:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r007",
+        "order_index": 6,
+        "hebrew_plain": "E = G (h0 - h)",
+        "hebrew_niqqud": "E = G (h0 - h)",
+        "translit": "E = G (h0 - h)",
+        "translit_ru": "",
+        "russian": "E = G (h0 - h)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "source_note",
+            "source_page": 26,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r008",
+        "order_index": 7,
+        "hebrew_plain": "E — אנרגיית הנגיפה",
+        "hebrew_niqqud": "E — אֶנֶרְגִּייַּת הַנְּגִיפָה",
+        "translit": "E — energiyat ha-negifah",
+        "translit_ru": "",
+        "russian": "E — работа удара (энергия удара)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "source_note",
+            "source_page": 26,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r009",
+        "order_index": 8,
+        "hebrew_plain": "G — משקל פטיש־המטוטלת",
+        "hebrew_niqqud": "G — מִשְׁקַל פַּטִּישׁ־הַמְּטוֹטֶלֶת",
+        "translit": "G — mishkal patish-ha-metotelet",
+        "translit_ru": "",
+        "russian": "G — вес маятника копра",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "source_note",
+            "source_page": 26,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r010",
+        "order_index": 9,
+        "hebrew_plain": "h0 — הגובה של פטיש־המטוטלת לפני הבדיקה. (זהה בשני המקרים.)",
+        "hebrew_niqqud": "h0 — הַגֹּובַהּ שֶׁל פַּטִּישׁ־הַמְּטוֹטֶלֶת לִפְנֵי הַבְּדִיקָה. (זֶהֶה בִּשְׁנֵי הַמִּקְרִים.)",
+        "translit": "h0 — ha-govah shel patish-ha-metotelet lifnei ha-bdikah. (zeheh bi-shnei ha-mikrim.)",
+        "translit_ru": "",
+        "russian": "h0 — высота маятника копра перед испытанием (одинакова в обоих случаях).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "source_note",
+            "source_page": 26,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r011",
+        "order_index": 10,
+        "hebrew_plain": "h — הגובה שאליו מתרומם פטיש־המטוטלת לאחר הבדיקה.",
+        "hebrew_niqqud": "h — הַגֹּובַהּ שֶׁאֵלָיו מִתְרוֹמֵם פַּטִּישׁ־הַמְּטוֹטֶלֶת לְאַחַר הַבְּדִיקָה.",
+        "translit": "h — ha-govah she-elav mitromem patish-ha-metotelet le'akhar ha-bdikah.",
+        "translit_ru": "",
+        "russian": "h — высота, на которую поднимается маятник копра после испытания.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "source_note",
+            "source_page": 26,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r012",
+        "order_index": 11,
+        "hebrew_plain": "ג. צייר שלוש עקומות מאמץ־מעוות סכימתיות (על אותם צירים), המתארות חומר מתכתי, חומר קרמי וחומר פולימרי.",
+        "hebrew_niqqud": "ג. צַייֵּר שָׁלוֹשׁ עֲקֻומּוֹת מַאֲמָץ־מַעֲווָת סְכֵימָתִיּוֹת (עַל אוֹתָם צִירִים), הַמְּתָאֲרוֹת חֹומֶר מַתַּכְתִּי, חֹומֶר קֵרָמִי וְחֹומֶר פּוֹלִימֶרִי.",
+        "translit": "g. Tsayer shalosh akumot ma'amats-ma'avat skhematiyot (al otam tsirim), ha-meta'arot khomer matakhti, khomer kerami ve-khomer polimeri.",
+        "translit_ru": "",
+        "russian": "г. Начертите схематично три кривые напряжение–деформация (на одних и тех же осях), описывающие металлический материал, керамический материал и полимерный материал.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 11,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r013",
+        "order_index": 12,
+        "hebrew_plain": "ד. נתונה רשימת חומרים: אלומינה (Al2O3), פוליסטירן (PS), אלומיניום (Al), מגנזיה (MgO), פוליווינילכלוריד (PVC), טונגסטן (W).",
+        "hebrew_niqqud": "ד. נְתוּנָה רְשִׁימַת חֳומָרִים: אֲלוּמִינָה (Al2O3), פּוֹלִיסְטִירֶן (PS), אָלוּמִינְיוּם (Al), מַגְנֶזְיָה (MgO), פּוֹלִיוִוינִילכְּלוֹרִיד (PVC), טוּנְגְּסְטֶן (W).",
+        "translit": "d. Netunah reshimat khomarim: aluminah (Al2O3), polistiren (PS), alyuminyum (Al), magnezyah (MgO), polivinilkhlorid (PVC), tungsten (W).",
+        "translit_ru": "",
+        "russian": "д. Дан список материалов: оксид алюминия (Al2O3), полистирол (PS), алюминий (Al), оксид магния (MgO), поливинилхлорид (PVC), вольфрам (W).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "condition",
+            "source_page": 26,
+            "source_row_index": 12,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 12,
+        "sentence_index": 12,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q020-r014",
+        "order_index": 13,
+        "hebrew_plain": "מיין את החומרים שברשימה והצג אותם בטבלה על־פי השתייכותם לכל אחת מקבוצות החומרים הבאות: חומרים מתכתיים, חומרים קרמיים, חומרים פולימריים.",
+        "hebrew_niqqud": "מַייֵּן אֶת הַחֳומָרִים שֶׁבָּרְשִׁימָה וְהַצֵּג אוֹתָם בְּטַבְלָה עַל־פִּי הִשְׁתַּייְּכוּתָם לְכָל אַחַת מִקְּבוּצוֹת הַחֳומָרִים הַבָּאוֹת: חֳומָרִים מַתַּכְתִּיִּים, חֳומָרִים קֵרָמִיִּים, חֳומָרִים פּוֹלִימֶרִיִּים.",
+        "translit": "Mayen et ha-khomarim she-ba-reshimah ve-hatseg otam be-tavlah al-pi hishtaykhutam le-khol akhat mi-kvutsot ha-khomarim ha-ba'ot: khomarim matakhtiyim, khomarim keramiyim, khomarim polimeriyim.",
+        "translit_ru": "",
+        "russian": "Классифицируйте материалы из списка и представьте их в таблице в соответствии с их принадлежностью к каждой из следующих групп материалов: металлические материалы, керамические материалы, полимерные материалы.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q020",
+            "kind": "subpart",
+            "source_page": 26,
+            "source_row_index": 13,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 13,
+        "sentence_index": 13,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      26
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q020/anchor-01-p026.jpg",
+        "sha256": "262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c",
+        "bytes": 203280,
+        "source_page": 26,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:9a0df976dfa60efbe12a59e87706b2351fb2e539213a1fb03dd27e8d6c7d91e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיקה זו מאפשרת להעריך קשיחות לנגיפה ועמידות לשבר בתנאי פגיעה.",
+        "he_niqqud": "בְּדִיקָה זוֹ מְאַפְשֶׁרֶת לְהַעֲרִיךְ קַשִּׁיחוּת לִנְגִיפָה וַעֲמִידוּת לִשְׁבָר בִּתְנָאֵי פְּגִיעָה.",
+        "transliteration": "B'diqah zo me'afsheret le-ha'arikh qashiḥut li-negifah va'amidut li-shvar bi-tna'ei p'gi'ah.",
+        "ru": "Это испытание позволяет оценить вязкость при ударе и стойкость к разрушению в условиях воздействия."
+      },
+      "source_refs": [
+        "legacy_row_hash:a59fc2dfad354fb2459dae43552b1807679b80d9f7ef9dcc1e94c4bee6665048",
+        "legacy_fields_sha256:8c746f02191bfbd34f6a536492a2055329649866c45c4763b353068979aace9e",
+        "independent_solution_sha256:9a0df976dfa60efbe12a59e87706b2351fb2e539213a1fb03dd27e8d6c7d91e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיקָה",
+            "normalized": "בדיקה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "מְאַפְשֶׁרֶת",
+            "normalized": "מאפשרת"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַעֲרִיךְ",
+            "normalized": "להעריך"
+          },
+          {
+            "index": 4,
+            "surface": "קַשִּׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 5,
+            "surface": "לִנְגִיפָה",
+            "normalized": "לנגיפה"
+          },
+          {
+            "index": 6,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 7,
+            "surface": "לִשְׁבָר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 8,
+            "surface": "בִּתְנָאֵי",
+            "normalized": "בתנאי"
+          },
+          {
+            "index": 9,
+            "surface": "פְּגִיעָה.",
+            "normalized": "פגיעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מכאן שחומר ב׳ ספג יותר אנרגיה בזמן הפגיעה לפני השבר.",
+        "he_niqqud": "מִכָּאן שֶׁחֹמֶר ב׳ סָפַג יוֹתֵר אֶנֶרְגִּיָּה בִּזְמַן הַפְּגִיעָה לִפְנֵי הַשֶּׁבֶר.",
+        "transliteration": "Mikan she-ḥomer B' safag yoter ener'gyah bizman ha-p'gi'ah lifnei ha-shever.",
+        "ru": "Отсюда следует, что материал Б поглотил больше энергии во время удара до разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:a6de15741dcab6c9d2b5e784d5fc573a2a1558e90a68997ee34f277f0e6c1cb2",
+        "legacy_fields_sha256:8db6c463959490a8c3f9287495b3ee93b374e963cd1acfa6cf3f1c113b22d1ee",
+        "independent_solution_sha256:9a0df976dfa60efbe12a59e87706b2351fb2e539213a1fb03dd27e8d6c7d91e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִכָּאן",
+            "normalized": "מכאן"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁחֹמֶר",
+            "normalized": "שחמר"
+          },
+          {
+            "index": 2,
+            "surface": "ב׳",
+            "normalized": "ב"
+          },
+          {
+            "index": 3,
+            "surface": "סָפַג",
+            "normalized": "ספג"
+          },
+          {
+            "index": 4,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 5,
+            "surface": "אֶנֶרְגִּיָּה",
+            "normalized": "אנרגיה"
+          },
+          {
+            "index": 6,
+            "surface": "בִּזְמַן",
+            "normalized": "בזמן"
+          },
+          {
+            "index": 7,
+            "surface": "הַפְּגִיעָה",
+            "normalized": "הפגיעה"
+          },
+          {
+            "index": 8,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 9,
+            "surface": "הַשֶּׁבֶר.",
+            "normalized": "השבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) חומרים קרמיים: אלומינה (Al₂O₃), מגנזיה (MgO).",
+        "he_niqqud": "ד) חֳמָרִים קֵרָמִיִּים: אֲלוּמִינָה (Al₂O₃), מַגְנֶזְיָה (MgO).",
+        "transliteration": "d) Ḥomarim kerami'im: Alumina (Al₂O₃), Magnezya (MgO).",
+        "ru": "Г) Керамические материалы: Оксид алюминия (Al₂O₃), Оксид магния (MgO)."
+      },
+      "source_refs": [
+        "legacy_row_hash:583e141276190e9eb411d585a4613eb59371baadf7e71814d27f2d2203ab2f28",
+        "legacy_fields_sha256:1a5f6ae1181c3219fe9da9c776343624b1747dbbbd6a877594a7718130ca972b",
+        "independent_solution_sha256:9a0df976dfa60efbe12a59e87706b2351fb2e539213a1fb03dd27e8d6c7d91e3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 2,
+            "surface": "קֵרָמִיִּים:",
+            "normalized": "קרמיים"
+          },
+          {
+            "index": 3,
+            "surface": "אֲלוּמִינָה",
+            "normalized": "אלומינה"
+          },
+          {
+            "index": 4,
+            "surface": "(Al₂O₃),",
+            "normalized": "Al₂O₃"
+          },
+          {
+            "index": 5,
+            "surface": "מַגְנֶזְיָה",
+            "normalized": "מגנזיה"
+          },
+          {
+            "index": 6,
+            "surface": "(MgO).",
+            "normalized": "MgO"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) מטרת בדיקת נגיפה היא למדוד את האנרגיה שהחומר סופג בזמן שבר מהיר תחת עומס דינמי.",
+        "he_niqqud": "א) מַטְּרַת בְּדִיקַת נְגִיפָה הִיא לִמְדּוֹד אֶת הָאֶנֶרְגִּיָּה שֶׁהַחֹמֶר סוֹפֵג בִּזְמַן שֶׁבֶר מָהִיר תַּחַת עֹמֶס דִּינָמִי.",
+        "transliteration": "a) Maṭṭrat b'dikat negifah hi limdod et ha-ener'gyah she-ha-ḥomer sofe'g bizman shever mahir taḥat omes dinami.",
+        "ru": "А) Цель испытания на ударную вязкость состоит в том, чтобы измерить энергию, поглощаемую материалом во время быстрого разрушения под динамической нагрузкой."
+      },
+      "source_refs": [
+        "legacy_row_hash:f9c88818dbbc59f425f3cf471764a28988c2e80ce7fddfa13ec60b8078fccb18",
+        "legacy_fields_sha256:b1f9980265a2872ad63a7e8e89636e2adb3dc40830e71fefb605988d0881bb18",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "מַטְּרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 2,
+            "surface": "בְּדִיקַת",
+            "normalized": "בדיקת"
+          },
+          {
+            "index": 3,
+            "surface": "נְגִיפָה",
+            "normalized": "נגיפה"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "לִמְדּוֹד",
+            "normalized": "למדוד"
+          },
+          {
+            "index": 6,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 7,
+            "surface": "הָאֶנֶרְגִּיָּה",
+            "normalized": "האנרגיה"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁהַחֹמֶר",
+            "normalized": "שהחמר"
+          },
+          {
+            "index": 9,
+            "surface": "סוֹפֵג",
+            "normalized": "סופג"
+          },
+          {
+            "index": 10,
+            "surface": "בִּזְמַן",
+            "normalized": "בזמן"
+          },
+          {
+            "index": 11,
+            "surface": "שֶׁבֶר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 12,
+            "surface": "מָהִיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 13,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 14,
+            "surface": "עֹמֶס",
+            "normalized": "עמס"
+          },
+          {
+            "index": 15,
+            "surface": "דִּינָמִי.",
+            "normalized": "דינמי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיקה זו מאפשרת להעריך קשיחות לנגיפה ועמידות לשבר בתנאי פגיעה.",
+        "he_niqqud": "בְּדִיקָה זוֹ מְאַפְשֶׁרֶת לְהַעֲרִיךְ קַשִּׁיחוּת לִנְגִיפָה וַעֲמִידוּת לִשְׁבָר בִּתְנָאֵי פְּגִיעָה.",
+        "transliteration": "B'diqah zo me'afsheret le-ha'arikh qashiḥut li-negifah va'amidut li-shvar bi-tna'ei p'gi'ah.",
+        "ru": "Это испытание позволяет оценить вязкость при ударе и стойкость к разрушению в условиях воздействия."
+      },
+      "source_refs": [
+        "legacy_row_hash:a59fc2dfad354fb2459dae43552b1807679b80d9f7ef9dcc1e94c4bee6665048",
+        "legacy_fields_sha256:8c746f02191bfbd34f6a536492a2055329649866c45c4763b353068979aace9e",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיקָה",
+            "normalized": "בדיקה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "מְאַפְשֶׁרֶת",
+            "normalized": "מאפשרת"
+          },
+          {
+            "index": 3,
+            "surface": "לְהַעֲרִיךְ",
+            "normalized": "להעריך"
+          },
+          {
+            "index": 4,
+            "surface": "קַשִּׁיחוּת",
+            "normalized": "קשיחות"
+          },
+          {
+            "index": 5,
+            "surface": "לִנְגִיפָה",
+            "normalized": "לנגיפה"
+          },
+          {
+            "index": 6,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 7,
+            "surface": "לִשְׁבָר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 8,
+            "surface": "בִּתְנָאֵי",
+            "normalized": "בתנאי"
+          },
+          {
+            "index": 9,
+            "surface": "פְּגִיעָה.",
+            "normalized": "פגיעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הבדיקה רגישה לחריץ ולריכוז מאמצים ולכן מתאימה להשוואה בין התנהגות פריכה להתנהגות דוקטילית.",
+        "he_niqqud": "הַבְּדִיקָה רַגִּישָׁה לֶחָרִיץ וּלְרִכּוּז מַאֲמַצִּים וְלָכֵן מַתְאִימָה לְהַשְׁוָאָה בֵּין הִתְנַהֲגוּת פְּרִיכָה לְהִתְנַהֲגוּת דוּקְטִילִית.",
+        "transliteration": "Ha-b'diqah ragishah la-ḥaritz u-le-rikuz ma'amatzim ve-lakhen mat'imah le-hashva'ah bein hitnahagut perikhah le-hitnahagut doqṭilit.",
+        "ru": "Испытание чувствительно к надрезу и концентрации напряжений и поэтому подходит для сравнения хрупкого и пластичного поведения."
+      },
+      "source_refs": [
+        "legacy_row_hash:38bbea19f3ee8d8734ca1c5e7260bb0fc1b037ff5a9608468d2d9dc6d5b6cd15",
+        "legacy_fields_sha256:8471776ba76853cf6491d93c5109c83bd06761c4e217bb115678ecf24e59ecd6",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַבְּדִיקָה",
+            "normalized": "הבדיקה"
+          },
+          {
+            "index": 1,
+            "surface": "רַגִּישָׁה",
+            "normalized": "רגישה"
+          },
+          {
+            "index": 2,
+            "surface": "לֶחָרִיץ",
+            "normalized": "לחריץ"
+          },
+          {
+            "index": 3,
+            "surface": "וּלְרִכּוּז",
+            "normalized": "ולרכוז"
+          },
+          {
+            "index": 4,
+            "surface": "מַאֲמַצִּים",
+            "normalized": "מאמצים"
+          },
+          {
+            "index": 5,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 6,
+            "surface": "מַתְאִימָה",
+            "normalized": "מתאימה"
+          },
+          {
+            "index": 7,
+            "surface": "לְהַשְׁוָאָה",
+            "normalized": "להשואה"
+          },
+          {
+            "index": 8,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 9,
+            "surface": "הִתְנַהֲגוּת",
+            "normalized": "התנהגות"
+          },
+          {
+            "index": 10,
+            "surface": "פְּרִיכָה",
+            "normalized": "פריכה"
+          },
+          {
+            "index": 11,
+            "surface": "לְהִתְנַהֲגוּת",
+            "normalized": "להתנהגות"
+          },
+          {
+            "index": 12,
+            "surface": "דוּקְטִילִית.",
+            "normalized": "דוקטילית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לעיתים משתמשים בה גם כדי לזהות מעבר פריך–דוקטילי לפי שינוי ביכולת ספיגת האנרגיה.",
+        "he_niqqud": "לְעִיתִים מִשְׁתַּמְּשִׁים בָּהּ גַּם כְּדֵי לְזַהוֹת מַעֲבָר פָּרִיךְ–דּוּקְטִילִי לְפִי שִׁנּוּי בִּיכֹלֶת סְפִיגַת הָאֶנֶרְגִּיָּה.",
+        "transliteration": "Le'itim mishtamshim bah gam k'dei lezahot ma'avar parikh–doqṭili lefi shinui bi-ykholet s'figat ha-ener'gyah.",
+        "ru": "Иногда его также используют для обнаружения перехода хрупкость–пластичность по изменению способности поглощать энергию."
+      },
+      "source_refs": [
+        "legacy_row_hash:4326e3692f426f37b5e5b9318b99181355485f5cd1d60723e92848064f09e79e",
+        "legacy_fields_sha256:3333ff1c88ab9148b3fbc2fea346ad03647b4715c52391cf53b32884095e836b",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְעִיתִים",
+            "normalized": "לעיתים"
+          },
+          {
+            "index": 1,
+            "surface": "מִשְׁתַּמְּשִׁים",
+            "normalized": "משתמשים"
+          },
+          {
+            "index": 2,
+            "surface": "בָּהּ",
+            "normalized": "בה"
+          },
+          {
+            "index": 3,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 4,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 5,
+            "surface": "לְזַהוֹת",
+            "normalized": "לזהות"
+          },
+          {
+            "index": 6,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 7,
+            "surface": "פָּרִיךְ–דּוּקְטִילִי",
+            "normalized": "פריך–דוקטילי"
+          },
+          {
+            "index": 8,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 9,
+            "surface": "שִׁנּוּי",
+            "normalized": "שנוי"
+          },
+          {
+            "index": 10,
+            "surface": "בִּיכֹלֶת",
+            "normalized": "ביכלת"
+          },
+          {
+            "index": 11,
+            "surface": "סְפִיגַת",
+            "normalized": "ספיגת"
+          },
+          {
+            "index": 12,
+            "surface": "הָאֶנֶרְגִּיָּה.",
+            "normalized": "האנרגיה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) החומר המתאים יותר לשמש כפגוש במכונית הוא חומר ב׳.",
+        "he_niqqud": "ב) הַחֹמֶר הַמַּתְאִים יוֹתֵר לְשַׁמֵּשׁ כְּפָגוּשׁ בִּמְכוֹנִית הוּא חֹמֶר ב׳.",
+        "transliteration": "b) Ha-ḥomer ha-mat'im yoter le-sham'esh ke-fagush ba-mekhonit hu ḥomer B'.",
+        "ru": "Б) Материал, который лучше подходит для использования в качестве бампера автомобиля, — это материал Б."
+      },
+      "source_refs": [
+        "legacy_row_hash:bd23a45e59e894743465ab4c1316deb468cb022f7954ac392eb10b07f862d316",
+        "legacy_fields_sha256:83145fdbf1c620a2dbb11d2b0948b06b3d055ffe36ba58cf4e173048ecda9e5d",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַחֹמֶר",
+            "normalized": "החמר"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּתְאִים",
+            "normalized": "המתאים"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 4,
+            "surface": "לְשַׁמֵּשׁ",
+            "normalized": "לשמש"
+          },
+          {
+            "index": 5,
+            "surface": "כְּפָגוּשׁ",
+            "normalized": "כפגוש"
+          },
+          {
+            "index": 6,
+            "surface": "בִּמְכוֹנִית",
+            "normalized": "במכונית"
+          },
+          {
+            "index": 7,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 8,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 9,
+            "surface": "ב׳.",
+            "normalized": "ב"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r010",
+      "order": 10,
+      "section": "model_and_laws",
+      "kind": "law_or_principle",
+      "exam_copy": true,
+      "text": {
+        "he": "נשתמש בקשר בין אנרגיית הנגיפה לבין הפרש הגבהים לפני ואחרי השבר.",
+        "he_niqqud": "נִשְׁתַּמֵּשׁ בַּקֶּשֶׁר בֵּין אֶנֶרְגִּיַּת הַנְּגִיפָה לְבֵין הֶפְרֵשׁ הַגֳּבָהִים לִפְנֵי וְאַחֲרֵי הַשֶּׁבֶר.",
+        "transliteration": "Nishtamesh ba-qesher bein ener'giyat ha-negifah le-vein hefresh ha-gova'im lifnei ve'aḥarei ha-shever.",
+        "ru": "Воспользуемся соотношением между энергией удара и разницей высот до и после разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:217536b100909629eecdfa24ed6935e8776ca6ba6f57008415bf0cee3368be99",
+        "legacy_fields_sha256:768dc6409b4b835ddf98c855715fa0b9287f2c8e1797ce4342ddd03f8a4b9768",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִשְׁתַּמֵּשׁ",
+            "normalized": "נשתמש"
+          },
+          {
+            "index": 1,
+            "surface": "בַּקֶּשֶׁר",
+            "normalized": "בקשר"
+          },
+          {
+            "index": 2,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 3,
+            "surface": "אֶנֶרְגִּיַּת",
+            "normalized": "אנרגית"
+          },
+          {
+            "index": 4,
+            "surface": "הַנְּגִיפָה",
+            "normalized": "הנגיפה"
+          },
+          {
+            "index": 5,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 6,
+            "surface": "הֶפְרֵשׁ",
+            "normalized": "הפרש"
+          },
+          {
+            "index": 7,
+            "surface": "הַגֳּבָהִים",
+            "normalized": "הגבהים"
+          },
+          {
+            "index": 8,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 9,
+            "surface": "וְאַחֲרֵי",
+            "normalized": "ואחרי"
+          },
+          {
+            "index": 10,
+            "surface": "הַשֶּׁבֶר.",
+            "normalized": "השבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r011",
+      "order": 11,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E = G(h0 − h)",
+        "he_niqqud": "E = G(h0 − h)",
+        "transliteration": "E = G(h0 − h)",
+        "ru": "E = G(h0 − h)"
+      },
+      "source_refs": [
+        "legacy_row_hash:256b21adac021da2946dfb9f5494e20eee43d6afc37e97ddf57d794735224513",
+        "legacy_fields_sha256:b1a87fbdeadac3d3bbdec679a11cdfce30ad7bb9c3152db896fffbe41d51fcf8",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "G(h0",
+            "normalized": "G(h0"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "h)",
+            "normalized": "h"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E = G(h0 − h)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r012",
+      "order": 12,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר h0 זהה בשני המקרים, אנרגיית הנגיפה תלויה בגובה h לאחר השבר.",
+        "he_niqqud": "כַּאֲשֶׁר h0 זֵהֶה בִּשְׁנֵי הַמִּקְרִים, אֶנֶרְגִּיַּת הַנְּגִיפָה תְּלוּיָה בַּגֹּבַהּ h לְאַחַר הַשֶּׁבֶר.",
+        "transliteration": "Ka'asher h0 zeheh bi-shnei ha-miqrim, ener'giyat ha-negifah tluyah ba-gova h le'aḥar ha-shever.",
+        "ru": "Поскольку h0 одинакова в обоих случаях, энергия удара зависит от высоты h после разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:beb78b5d45d4a95413abc9e3be0452b830a48da0955e4f56c560c0a2682ff22f",
+        "legacy_fields_sha256:737e99ccead4ca9ab68b8cc0ec446c7880ded1af6542d28cd17ccbc77aad2ce0",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "h0",
+            "normalized": "h0"
+          },
+          {
+            "index": 2,
+            "surface": "זֵהֶה",
+            "normalized": "זהה"
+          },
+          {
+            "index": 3,
+            "surface": "בִּשְׁנֵי",
+            "normalized": "בשני"
+          },
+          {
+            "index": 4,
+            "surface": "הַמִּקְרִים,",
+            "normalized": "המקרים"
+          },
+          {
+            "index": 5,
+            "surface": "אֶנֶרְגִּיַּת",
+            "normalized": "אנרגית"
+          },
+          {
+            "index": 6,
+            "surface": "הַנְּגִיפָה",
+            "normalized": "הנגיפה"
+          },
+          {
+            "index": 7,
+            "surface": "תְּלוּיָה",
+            "normalized": "תלויה"
+          },
+          {
+            "index": 8,
+            "surface": "בַּגֹּבַהּ",
+            "normalized": "בגבה"
+          },
+          {
+            "index": 9,
+            "surface": "h",
+            "normalized": "h"
+          },
+          {
+            "index": 10,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 11,
+            "surface": "הַשֶּׁבֶר.",
+            "normalized": "השבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בחומר ב׳ פטיש־המטוטלת הגיע לגובה קטן יותר לאחר השבר, כלומר h קטן יותר.",
+        "he_niqqud": "בְּחֹמֶר ב׳ פַּטִּישׁ־הַמַּטּוֹטֶלֶת הִגִּיעַ לְגֹבַהּ קָטָן יוֹתֵר לְאַחַר הַשֶּׁבֶר, כְּלוֹמַר h קָטָן יוֹתֵר.",
+        "transliteration": "Be-ḥomer B' paṭṭish ha-maṭṭotelet higi'a le-gova qatan yoter le'aḥar ha-shever, k'lomar h qatan yoter.",
+        "ru": "В материале Б маятниковый копер достиг меньшей высоты после разрушения, то есть h меньше."
+      },
+      "source_refs": [
+        "legacy_row_hash:5f80238e0506af852185e52d63949d08b01bfc109e25c996af74175f1e9782b2",
+        "legacy_fields_sha256:0a27dad2dce5cd8f7aca05d9a3dffad9e8886342a65aa7d15b17ddf03f9a1391",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּחֹמֶר",
+            "normalized": "בחמר"
+          },
+          {
+            "index": 1,
+            "surface": "ב׳",
+            "normalized": "ב"
+          },
+          {
+            "index": 2,
+            "surface": "פַּטִּישׁ־הַמַּטּוֹטֶלֶת",
+            "normalized": "פטיש־המטוטלת"
+          },
+          {
+            "index": 3,
+            "surface": "הִגִּיעַ",
+            "normalized": "הגיע"
+          },
+          {
+            "index": 4,
+            "surface": "לְגֹבַהּ",
+            "normalized": "לגבה"
+          },
+          {
+            "index": 5,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "הַשֶּׁבֶר,",
+            "normalized": "השבר"
+          },
+          {
+            "index": 9,
+            "surface": "כְּלוֹמַר",
+            "normalized": "כלומר"
+          },
+          {
+            "index": 10,
+            "surface": "h",
+            "normalized": "h"
+          },
+          {
+            "index": 11,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 12,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r014",
+      "order": 14,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר h קטן יותר, ההפרש (h0 − h) גדול יותר ולכן E גדול יותר.",
+        "he_niqqud": "כַּאֲשֶׁר h קָטָן יוֹתֵר, הַהֶפְרֵשׁ (h0 − h) גָּדוֹל יוֹתֵר וְלָכֵן E גָּדוֹל יוֹתֵר.",
+        "transliteration": "Ka'asher h qatan yoter, ha-hefresh (h0 − h) gadol yoter ve-lakhen E gadol yoter.",
+        "ru": "Когда h меньше, разница (h0 − h) больше, и, следовательно, E больше."
+      },
+      "source_refs": [
+        "legacy_row_hash:e080e9daa906bbf16ed863be543418a00987b3ab1a1f3872bf2aae286684810f",
+        "legacy_fields_sha256:9209083a9700c3b84f863309c61b506667d453d0abc33d12d02cb080bf3608cb",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "h",
+            "normalized": "h"
+          },
+          {
+            "index": 2,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 3,
+            "surface": "יוֹתֵר,",
+            "normalized": "יותר"
+          },
+          {
+            "index": 4,
+            "surface": "הַהֶפְרֵשׁ",
+            "normalized": "ההפרש"
+          },
+          {
+            "index": 5,
+            "surface": "(h0",
+            "normalized": "h0"
+          },
+          {
+            "index": 6,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 7,
+            "surface": "h)",
+            "normalized": "h"
+          },
+          {
+            "index": 8,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 9,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 10,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 11,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 12,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 13,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r015",
+      "order": 15,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)",
+        "he_niqqud": "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)",
+        "transliteration": "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)",
+        "ru": "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)"
+      },
+      "source_refs": [
+        "legacy_row_hash:0e5ad96d9f86ce46e9a094c02f613e2e508f192f1c06f720f3cddd8292c23b6d",
+        "legacy_fields_sha256:4ae87e3d546de8a2352fccbed7b6afe78297bc0df4d71bae36eeff961d62624e",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E_B",
+            "normalized": "E_B"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "G(h0",
+            "normalized": "G(h0"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "h_B)",
+            "normalized": "h_B"
+          },
+          {
+            "index": 5,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 6,
+            "surface": "E_A",
+            "normalized": "E_A"
+          },
+          {
+            "index": 7,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 8,
+            "surface": "G(h0",
+            "normalized": "G(h0"
+          },
+          {
+            "index": 9,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 10,
+            "surface": "h_A)",
+            "normalized": "h_A"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מכאן שחומר ב׳ ספג יותר אנרגיה בזמן הפגיעה לפני השבר.",
+        "he_niqqud": "מִכָּאן שֶׁחֹמֶר ב׳ סָפַג יוֹתֵר אֶנֶרְגִּיָּה בִּזְמַן הַפְּגִיעָה לִפְנֵי הַשֶּׁבֶר.",
+        "transliteration": "Mikan she-ḥomer B' safag yoter ener'gyah bizman ha-p'gi'ah lifnei ha-shever.",
+        "ru": "Отсюда следует, что материал Б поглотил больше энергии во время удара до разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:a6de15741dcab6c9d2b5e784d5fc573a2a1558e90a68997ee34f277f0e6c1cb2",
+        "legacy_fields_sha256:8db6c463959490a8c3f9287495b3ee93b374e963cd1acfa6cf3f1c113b22d1ee",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִכָּאן",
+            "normalized": "מכאן"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁחֹמֶר",
+            "normalized": "שחמר"
+          },
+          {
+            "index": 2,
+            "surface": "ב׳",
+            "normalized": "ב"
+          },
+          {
+            "index": 3,
+            "surface": "סָפַג",
+            "normalized": "ספג"
+          },
+          {
+            "index": 4,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 5,
+            "surface": "אֶנֶרְגִּיָּה",
+            "normalized": "אנרגיה"
+          },
+          {
+            "index": 6,
+            "surface": "בִּזְמַן",
+            "normalized": "בזמן"
+          },
+          {
+            "index": 7,
+            "surface": "הַפְּגִיעָה",
+            "normalized": "הפגיעה"
+          },
+          {
+            "index": 8,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 9,
+            "surface": "הַשֶּׁבֶר.",
+            "normalized": "השבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "פגוש במכונית צריך לספוג אנרגיית פגיעה ולהפחית נזק ולכן חומר שסופג יותר אנרגיה מתאים יותר.",
+        "he_niqqud": "פָּגוּשׁ בִּמְכוֹנִית צָרִיךְ לִסְפֹּג אֶנֶרְגִּיַּת פְּגִיעָה וּלְהַפְחִית נֶזֶק וְלָכֵן חֹמֶר שֶׁסּוֹפֵג יוֹתֵר אֶנֶרְגִּיָּה מַתְאִים יוֹתֵר.",
+        "transliteration": "Fagush ba-mekhonit tzarikh lispo'g ener'giyat p'gi'ah u-lehafḥit nezeq ve-lakhen ḥomer she-sofe'g yoter ener'gyah mat'im yoter.",
+        "ru": "Автомобильный бампер должен поглощать энергию удара и уменьшать ущерб, поэтому материал, поглощающий больше энергии, подходит лучше."
+      },
+      "source_refs": [
+        "legacy_row_hash:1fe22cc781aa93e33d434911bac05e5ba170f651070a98a2507391bd3fd097ce",
+        "legacy_fields_sha256:00bc405fd4c71fba9aa67e25242ed17033fdcc914fddc847575547b391b54c85",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פָּגוּשׁ",
+            "normalized": "פגוש"
+          },
+          {
+            "index": 1,
+            "surface": "בִּמְכוֹנִית",
+            "normalized": "במכונית"
+          },
+          {
+            "index": 2,
+            "surface": "צָרִיךְ",
+            "normalized": "צריך"
+          },
+          {
+            "index": 3,
+            "surface": "לִסְפֹּג",
+            "normalized": "לספג"
+          },
+          {
+            "index": 4,
+            "surface": "אֶנֶרְגִּיַּת",
+            "normalized": "אנרגית"
+          },
+          {
+            "index": 5,
+            "surface": "פְּגִיעָה",
+            "normalized": "פגיעה"
+          },
+          {
+            "index": 6,
+            "surface": "וּלְהַפְחִית",
+            "normalized": "ולהפחית"
+          },
+          {
+            "index": 7,
+            "surface": "נֶזֶק",
+            "normalized": "נזק"
+          },
+          {
+            "index": 8,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 9,
+            "surface": "חֹמֶר",
+            "normalized": "חמר"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁסּוֹפֵג",
+            "normalized": "שסופג"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 12,
+            "surface": "אֶנֶרְגִּיָּה",
+            "normalized": "אנרגיה"
+          },
+          {
+            "index": 13,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 14,
+            "surface": "יוֹתֵר.",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r018",
+      "order": 18,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בעקומות מאמץ־מעוות (σ–ε) מציגים מאמץ σ מול מעוות ε על אותם צירים.",
+        "he_niqqud": "ג) בַּעֲקֻמּוֹת מַאֲמָץ־מָעוֹת (σ–ε) מַצִּיגִים מַאֲמָץ σ מוּל מָעוֹת ε עַל אוֹתָם צִירִים.",
+        "transliteration": "g) Ba-aq'umot ma'amatz-ma'oet (σ–ε) matzigim ma'amatz σ mul ma'oet ε al otam tzirim.",
+        "ru": "В) На кривых напряжение-деформация (σ–ε) напряжение σ отображается против деформации ε на одних и тех же осях."
+      },
+      "source_refs": [
+        "legacy_row_hash:056147fab37bab5c31641ee93178b6ab222988d72709d811ccad36ee60dc319d",
+        "legacy_fields_sha256:3cd2092c9fa2ad79dcdc267d3bfb54e31dac47cf36613d8170085ace931c7a99",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בַּעֲקֻמּוֹת",
+            "normalized": "בעקמות"
+          },
+          {
+            "index": 2,
+            "surface": "מַאֲמָץ־מָעוֹת",
+            "normalized": "מאמץ־מעות"
+          },
+          {
+            "index": 3,
+            "surface": "(σ–ε)",
+            "normalized": "σ–ε"
+          },
+          {
+            "index": 4,
+            "surface": "מַצִּיגִים",
+            "normalized": "מציגים"
+          },
+          {
+            "index": 5,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "σ",
+            "normalized": "σ"
+          },
+          {
+            "index": 7,
+            "surface": "מוּל",
+            "normalized": "מול"
+          },
+          {
+            "index": 8,
+            "surface": "מָעוֹת",
+            "normalized": "מעות"
+          },
+          {
+            "index": 9,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 10,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 11,
+            "surface": "אוֹתָם",
+            "normalized": "אותם"
+          },
+          {
+            "index": 12,
+            "surface": "צִירִים.",
+            "normalized": "צירים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r019",
+      "order": 19,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ = F/A0",
+        "he_niqqud": "σ = F/A0",
+        "transliteration": "σ = F/A0",
+        "ru": "σ = F/A0"
+      },
+      "source_refs": [
+        "legacy_row_hash:345acc2b0f6cd8a4f9dd7e83cecd35f8b073027918f9ad479a5813ad030c2599",
+        "legacy_fields_sha256:a5dd6d7d3d49aff4998de89d10cfc924e0ee5a4e8bc9585238f0a8b201e44fa1",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ",
+            "normalized": "σ"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "F/A0",
+            "normalized": "F/A0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ = F/A0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ε = ΔL/L0",
+        "he_niqqud": "ε = ΔL/L0",
+        "transliteration": "ε = ΔL/L0",
+        "ru": "ε = ΔL/L0"
+      },
+      "source_refs": [
+        "legacy_row_hash:28d39c59e787f64fb5f48f1abd5c8d2cd76792e2a9f04ed3ba71346c891932bd",
+        "legacy_fields_sha256:e0bf6abbfb9b57ba5569131a78812feb8b4458cb8b9f40157dacf25bb1195a38",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ε",
+            "normalized": "ε"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "ΔL/L0",
+            "normalized": "ΔL/L0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ε = ΔL/L0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לחומר מתכתי יש תחילה אזור אלסטי לינארי, לאחריו כניעה וזרימה פלסטית, ולאחר מכן התקשות בעיוות עד לשבר לאחר מעוות ניכר.",
+        "he_niqqud": "לְחֹמֶר מַתַּכְתִּי יֵשׁ תְּחִלָּה אֵזוֹר אֵלַסְטִי לִינֵאָרִי, לְאַחֲרָיו כְּנִיעָה וּזְרִימָה פְּלַסְטִית, וּלְאַחַר מִכֵּן הִתְקַשּׁוּת בְּעִוּוּת עַד לַשֶּׁבֶר לְאַחַר מָעוֹת נִיכָּר.",
+        "transliteration": "Le-ḥomer mat'khti yesh t'ḥilah ezor elasti linear, le'aḥarav kni'ah u-zrimah plastit, u-le'aḥar mikken hitqashut be'ivut ad la-shever le'aḥar ma'oet nikkar.",
+        "ru": "Металлический материал сначала имеет линейную упругую область, за которой следуют текучесть и пластическое течение, а затем деформационное упрочнение вплоть до разрушения после значительной деформации."
+      },
+      "source_refs": [
+        "legacy_row_hash:7d099ea3900868eccfc83e33da8259af5e8633e2ab0fc1f5709000e2fe4cb8c5",
+        "legacy_fields_sha256:22d4fe67719713d293699ec4c2f97e2f53971788ec589289bfddcc1b3420b421",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְחֹמֶר",
+            "normalized": "לחמר"
+          },
+          {
+            "index": 1,
+            "surface": "מַתַּכְתִּי",
+            "normalized": "מתכתי"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "תְּחִלָּה",
+            "normalized": "תחלה"
+          },
+          {
+            "index": 4,
+            "surface": "אֵזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 5,
+            "surface": "אֵלַסְטִי",
+            "normalized": "אלסטי"
+          },
+          {
+            "index": 6,
+            "surface": "לִינֵאָרִי,",
+            "normalized": "לינארי"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחֲרָיו",
+            "normalized": "לאחריו"
+          },
+          {
+            "index": 8,
+            "surface": "כְּנִיעָה",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 9,
+            "surface": "וּזְרִימָה",
+            "normalized": "וזרימה"
+          },
+          {
+            "index": 10,
+            "surface": "פְּלַסְטִית,",
+            "normalized": "פלסטית"
+          },
+          {
+            "index": 11,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 12,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 13,
+            "surface": "הִתְקַשּׁוּת",
+            "normalized": "התקשות"
+          },
+          {
+            "index": 14,
+            "surface": "בְּעִוּוּת",
+            "normalized": "בעוות"
+          },
+          {
+            "index": 15,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 16,
+            "surface": "לַשֶּׁבֶר",
+            "normalized": "לשבר"
+          },
+          {
+            "index": 17,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 18,
+            "surface": "מָעוֹת",
+            "normalized": "מעות"
+          },
+          {
+            "index": 19,
+            "surface": "נִיכָּר.",
+            "normalized": "ניכר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לחומר קרמי יש שיפוע אלסטי גבוה מאוד, כמעט ללא פלסטיות, ושבר פתאומי במעוות קטן.",
+        "he_niqqud": "לְחֹמֶר קֵרָמִי יֵשׁ שִׁיפּוּעַ אֵלַסְטִי גָּבֹהַּ מְאֹד, כִּמְעַט לְלֹא פְּלַסְטִיּוּת, וְשֶׁבֶר פִּתְאוֹמִי בְּמָעוֹת קָטָן.",
+        "transliteration": "Le-ḥomer kerami yesh shipu'a elasti gavoah me'od, kim'at lelo plastiyut, ve-shever pit'omi be-ma'oet qatan.",
+        "ru": "Керамический материал имеет очень высокий упругий наклон (модуль Юнга), почти не обладает пластичностью и характеризуется внезапным разрушением при малой деформации."
+      },
+      "source_refs": [
+        "legacy_row_hash:85d914847ada748884570ae3a8e3078841ff199320687da37b12fd07d8d5169a",
+        "legacy_fields_sha256:befa7a47ef8e93b4858ad5a34c3ea3c24ad874ccdfee73cdce8629ce9160953f",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְחֹמֶר",
+            "normalized": "לחמר"
+          },
+          {
+            "index": 1,
+            "surface": "קֵרָמִי",
+            "normalized": "קרמי"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁיפּוּעַ",
+            "normalized": "שיפוע"
+          },
+          {
+            "index": 4,
+            "surface": "אֵלַסְטִי",
+            "normalized": "אלסטי"
+          },
+          {
+            "index": 5,
+            "surface": "גָּבֹהַּ",
+            "normalized": "גבה"
+          },
+          {
+            "index": 6,
+            "surface": "מְאֹד,",
+            "normalized": "מאד"
+          },
+          {
+            "index": 7,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 8,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 9,
+            "surface": "פְּלַסְטִיּוּת,",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 10,
+            "surface": "וְשֶׁבֶר",
+            "normalized": "ושבר"
+          },
+          {
+            "index": 11,
+            "surface": "פִּתְאוֹמִי",
+            "normalized": "פתאומי"
+          },
+          {
+            "index": 12,
+            "surface": "בְּמָעוֹת",
+            "normalized": "במעות"
+          },
+          {
+            "index": 13,
+            "surface": "קָטָן.",
+            "normalized": "קטן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לחומר פולימרי יש שיפוע אלסטי נמוך יחסית, התנהגות לא־לינארית ולעיתים ויסקו־אלסטית, ויכולת למעוות גדול לפני שבר.",
+        "he_niqqud": "לְחֹמֶר פּוֹלִימֶרִי יֵשׁ שִׁיפּוּעַ אֵלַסְטִי נָמוּךְ יַחֲסִית, הִתְנַהֲגוּת לֹא־לִינֵאָרִית וּלְעִיתִים וִיסְקוֹ־אֵלַסְטִית, וְיְכֹלֶת לְמָעוֹת גָּדוֹל לִפְנֵי שֶׁבֶר.",
+        "transliteration": "Le-ḥomer polimeri yesh shipu'a elasti namukh yaḥasit, hitnahagut lo-linearit u-le'itim visqo-elastit, vi-ykholet le-ma'oet gadol lifnei shever.",
+        "ru": "Полимерный материал имеет относительно низкий упругий наклон, нелинейное, а иногда и вязкоупругое поведение, а также способность к большим деформациям до разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:a0cb85df4e03b969bf057c13df6313b38e898295ad7f234d99c160d55f1c0291",
+        "legacy_fields_sha256:930849a94ba1457f4e57f159ec2c43222b91a306caab85b894d75a551e5a5300",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְחֹמֶר",
+            "normalized": "לחמר"
+          },
+          {
+            "index": 1,
+            "surface": "פּוֹלִימֶרִי",
+            "normalized": "פולימרי"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁיפּוּעַ",
+            "normalized": "שיפוע"
+          },
+          {
+            "index": 4,
+            "surface": "אֵלַסְטִי",
+            "normalized": "אלסטי"
+          },
+          {
+            "index": 5,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 6,
+            "surface": "יַחֲסִית,",
+            "normalized": "יחסית"
+          },
+          {
+            "index": 7,
+            "surface": "הִתְנַהֲגוּת",
+            "normalized": "התנהגות"
+          },
+          {
+            "index": 8,
+            "surface": "לֹא־לִינֵאָרִית",
+            "normalized": "לא־לינארית"
+          },
+          {
+            "index": 9,
+            "surface": "וּלְעִיתִים",
+            "normalized": "ולעיתים"
+          },
+          {
+            "index": 10,
+            "surface": "וִיסְקוֹ־אֵלַסְטִית,",
+            "normalized": "ויסקו־אלסטית"
+          },
+          {
+            "index": 11,
+            "surface": "וְיְכֹלֶת",
+            "normalized": "ויכלת"
+          },
+          {
+            "index": 12,
+            "surface": "לְמָעוֹת",
+            "normalized": "למעות"
+          },
+          {
+            "index": 13,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 14,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 15,
+            "surface": "שֶׁבֶר.",
+            "normalized": "שבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) חומרים מתכתיים: אלומיניום (Al), טונגסטן (W).",
+        "he_niqqud": "ד) חֳמָרִים מַתַּכְתִּיִּים: אָלוּמִינְיוּם (Al), טוּנְגְּסְטֶן (W).",
+        "transliteration": "d) Ḥomarim mat'khtiyim: Aluminium (Al), Tungsten (W).",
+        "ru": "Г) Металлические материалы: Алюминий (Al), Вольфрам (W)."
+      },
+      "source_refs": [
+        "legacy_row_hash:a0dfa7d26f24385b9b7f96582004e4ad82d9458189e4d016749a1b02022b1cab",
+        "legacy_fields_sha256:485f968f33570170b832d2f3dd205ea66262ec503993d07e3ceddd9d0dd6548d",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 2,
+            "surface": "מַתַּכְתִּיִּים:",
+            "normalized": "מתכתיים"
+          },
+          {
+            "index": 3,
+            "surface": "אָלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 4,
+            "surface": "(Al),",
+            "normalized": "Al"
+          },
+          {
+            "index": 5,
+            "surface": "טוּנְגְּסְטֶן",
+            "normalized": "טונגסטן"
+          },
+          {
+            "index": 6,
+            "surface": "(W).",
+            "normalized": "W"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) חומרים קרמיים: אלומינה (Al₂O₃), מגנזיה (MgO).",
+        "he_niqqud": "ד) חֳמָרִים קֵרָמִיִּים: אֲלוּמִינָה (Al₂O₃), מַגְנֶזְיָה (MgO).",
+        "transliteration": "d) Ḥomarim kerami'im: Alumina (Al₂O₃), Magnezya (MgO).",
+        "ru": "Г) Керамические материалы: Оксид алюминия (Al₂O₃), Оксид магния (MgO)."
+      },
+      "source_refs": [
+        "legacy_row_hash:583e141276190e9eb411d585a4613eb59371baadf7e71814d27f2d2203ab2f28",
+        "legacy_fields_sha256:1a5f6ae1181c3219fe9da9c776343624b1747dbbbd6a877594a7718130ca972b",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 2,
+            "surface": "קֵרָמִיִּים:",
+            "normalized": "קרמיים"
+          },
+          {
+            "index": 3,
+            "surface": "אֲלוּמִינָה",
+            "normalized": "אלומינה"
+          },
+          {
+            "index": 4,
+            "surface": "(Al₂O₃),",
+            "normalized": "Al₂O₃"
+          },
+          {
+            "index": 5,
+            "surface": "מַגְנֶזְיָה",
+            "normalized": "מגנזיה"
+          },
+          {
+            "index": 6,
+            "surface": "(MgO).",
+            "normalized": "MgO"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) חומרים פולימריים: פוליסטירן (PS), פוליוויניל כלוריד (PVC).",
+        "he_niqqud": "ד) חֳמָרִים פּוֹלִימֶרִיִּים: פּוֹלִיסְטִירֵן (PS), פּוֹלִיוִינִיל כְּלוֹרִיד (PVC).",
+        "transliteration": "d) Ḥomarim polimeri'im: Polistiren (PS), Polivynil Khlorid (PVC).",
+        "ru": "Г) Полимерные материалы: Полистирол (PS), Поливинилхлорид (PVC)."
+      },
+      "source_refs": [
+        "legacy_row_hash:0dbf5e4460e1dfcd0dd870ac896df61098ff630c3415c5111b3aba4ac18db8e0",
+        "legacy_fields_sha256:0ac101156a683c851aa1d597de444f19d6946e512c414407362b4df1e9053f9d",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 2,
+            "surface": "פּוֹלִימֶרִיִּים:",
+            "normalized": "פולימריים"
+          },
+          {
+            "index": 3,
+            "surface": "פּוֹלִיסְטִירֵן",
+            "normalized": "פוליסטירן"
+          },
+          {
+            "index": 4,
+            "surface": "(PS),",
+            "normalized": "PS"
+          },
+          {
+            "index": 5,
+            "surface": "פּוֹלִיוִינִיל",
+            "normalized": "פוליויניל"
+          },
+          {
+            "index": 6,
+            "surface": "כְּלוֹרִיד",
+            "normalized": "כלוריד"
+          },
+          {
+            "index": 7,
+            "surface": "(PVC).",
+            "normalized": "PVC"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q020-sol-r027",
+      "order": 27,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:9a0df976dfa60efbe12a59e87706b2351fb2e539213a1fb03dd27e8d6c7d91e3",
+        "comparison:MATCH",
+        "source_page:26",
+        "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q020",
+    "display_alias": "20",
+    "source_pages": [
+      26
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а) Испытание на ударный изгиб определяет энергию, поглощаемую образцом при быстром разрушении, и характеризует сопротивление динамическому и хрупкому разрушению; при серии температур оно позволяет оценить переход хрупкость–вязкость.",
+      "б) Материал Б лучше для бампера: после его разрушения маятник поднимается ниже, поэтому E_Б=G(h₀−h_Б) больше и образец поглотил больше энергии.",
+      "г) Керамика: крутой почти линейный участок и разрушение при малой ε; металл: линейная упругость, текучесть и пластическая область; полимер: малый начальный наклон и большая, часто нелинейная деформация.",
+      "д) Металлы: Al, W. Керамика: Al₂O₃, MgO. Полимеры: PS, PVC."
+    ],
+    "engineering_picture": "Высота обратного подъёма маятника показывает оставшуюся энергию: чем она меньше, тем больше энергии забрал образец. Формы σ–ε отражают жёсткость, текучесть и деформацию разрушения классов материалов.",
+    "prerequisites": [
+      "E_abs=G(h₀−h).",
+      "Ударная вязкость — поглощённая энергия при динамическом разрушении.",
+      "E-модуль задаётся начальным наклоном σ–ε."
+    ],
+    "roadmap": [
+      "Определить измеряемую величину.",
+      "Сравнить h при общем h₀.",
+      "Нарисовать три качественно различающиеся кривые.",
+      "Классифицировать вещества по типу материала."
+    ],
+    "main_trap": "Более высокая конечная высота маятника означает не большую, а меньшую поглощённую образцом энергию.",
+    "givens": [
+      "Для A конечная высота h; для Б высота меньше h; h₀ одинаково.",
+      "Список Al₂O₃, PS, Al, MgO, PVC, W."
+    ],
+    "find": [
+      "Цель испытания, материал бампера, три схемы σ–ε и классификация."
+    ],
+    "assumptions": [
+      "Потери установки одинаковы для двух испытаний.",
+      "Кривые классов являются типовыми, а не универсальными для каждого состава."
+    ],
+    "laws": [
+      "E_abs=G(h₀−h)."
+    ],
+    "symbolic_derivation": [
+      "h_Б<h_A при одинаковых G,h₀ ⇒ h₀−h_Б>h₀−h_A ⇒ E_Б>E_A."
+    ],
+    "calculation": [],
+    "construction": [
+      "Оси: σ вверх, ε вправо; керамика — самая крутая и короткая, металл — с пластической областью, полимер — пологая и протяжённая.",
+      "Таблица из трёх классов по два материала."
+    ],
+    "checks": [
+      "Al и W — элементы-металлы; Al₂O₃ и MgO — оксидная керамика; PS и PVC — полимеры."
+    ],
+    "source_facts": [
+      "source_page:26",
+      "asset_sha256:262286faa43eafabb702773f6610000af46c9569ae7360f81d431d2253d6a46c"
+    ],
+    "unresolved_limits": [
+      "Реальные полимеры могут быть хрупкими, а металлы — почти хрупкими; рисунок должен быть подписан как типовой."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 4
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

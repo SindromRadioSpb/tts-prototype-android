@@ -1,0 +1,4594 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_5d5a82e1affa49626f6223e2",
+  "public_work_id": "work-9457fae56ae01c8cd28bf246",
+  "snapshot_sha256": "34dbf34bcc12ce58a1d2e66efadb7f253207cf0cbd6624de078716075bca4417",
+  "task_id": "materials-science-y1-pb2-q034",
+  "display_alias": "34",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "750de6a9af6199d407fa02e95e2bf8b00d531bead24fc611c4934dc94920b4a6"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "7c57ef046fe8ef77e485965b3e71e974d40bc5837575d4dad3d3bb23f2e6f4d7",
+    "source_canonical_task_sha256": "750de6a9af6199d407fa02e95e2bf8b00d531bead24fc611c4934dc94920b4a6"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "179895e5d28c52a327771023fcfac2a599e14afa880354e8d53bbfec6ea63082",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Jominy/Grossmann descriptions, SAE4340 choice and qualitative diameter profiles match. Independent solution explicitly prevents direct universal Jominy-to-radius conversion.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q034-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 34.",
+        "hebrew_niqqud": "שְׁאֵלָה 34.",
+        "translit": "She'ela 34.",
+        "translit_ru": "",
+        "russian": "Вопрос 34.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "task_heading",
+            "source_page": 41,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. תאר בקצרה את המהלך של בדיקת ג'ומיני (Jominy).",
+        "hebrew_niqqud": "א. תָּאֵר בִּקְצָרָה אֶת הַמַּהֲלָךְ שֶׁל בְּדִיקַת גּ'וֹמִינִי (Jominy).",
+        "translit": "A. Ta'er bi-ḳtsarah et ha-mahalakh shel bdikat Jominy (Jominy).",
+        "translit_ru": "",
+        "russian": "А. Кратко опишите ход проведения испытания Джомини (Jominy).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r003",
+        "order_index": 2,
+        "hebrew_plain": "לווה את הסברך בציור סכמתי.",
+        "hebrew_niqqud": "לַווֵּה אֶת הֶסְבֵּרְךָ בְּצִיּוּר סְכֶמָתִי.",
+        "translit": "Laveh et hesberkha be-tsiyur skhemati.",
+        "translit_ru": "",
+        "russian": "Сопроводите свое объяснение схематическим рисунком.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r004",
+        "order_index": 3,
+        "hebrew_plain": "ב. תאר בקצרה את המהלך של בדיקת גרוסמן.",
+        "hebrew_niqqud": "ב. תָּאֵר בִּקְצָרָה אֶת הַמַּהֲלָךְ שֶׁל בְּדִיקַת גְּרוֹסְמַן.",
+        "translit": "B. Ta'er bi-ḳtsarah et ha-mahalakh shel bdikat Grosman.",
+        "translit_ru": "",
+        "russian": "Б. Кратко опишите ход проведения испытания Гроссмана.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r005",
+        "order_index": 4,
+        "hebrew_plain": "לווה את הסברך בציור סכמתי.",
+        "hebrew_niqqud": "לַווֵּה אֶת הֶסְבֵּרְךָ בְּצִיּוּר סְכֶמָתִי.",
+        "translit": "Laveh et hesberkha be-tsiyur skhemati.",
+        "translit_ru": "",
+        "russian": "Сопроводите свое объяснение схематическим рисунком.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r006",
+        "order_index": 5,
+        "hebrew_plain": "ג. בדקו את כושר החיסום של שתי פלדות: SAE 1040 ו-SAE 4340,",
+        "hebrew_niqqud": "ג. בָּדְקוּ אֶת כֹּושֶׁר הַחִיסּוּם שֶׁל שְׁתֵּי פְּלָדוֹת: SAE 1040 וְ-SAE 4340,",
+        "translit": "G. Badḳu et kosher ha-ḥisum shel shtey pladot: SAE 1040 ve-SAE 4340,",
+        "translit_ru": "",
+        "russian": "В. Исследовали прокаливаемость двух сталей: SAE 1040 и SAE 4340,",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r007",
+        "order_index": 6,
+        "hebrew_plain": "הבדיקה בוצעה בשיטת ג׳ומיני",
+        "hebrew_niqqud": "הַבְּדִיקָה בֻּוצְּעָה בְּשִׁיטַת ג׳וֹמִינִי",
+        "translit": "Ha'bedika butz'ah be'shitat Jominy",
+        "translit_ru": "",
+        "russian": "Испытание было проведено методом Джомини",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 6,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r008",
+        "order_index": 7,
+        "hebrew_plain": "הקשיות שהתקבלו מוצגות באיור לשאלה 9.",
+        "hebrew_niqqud": "הַקַּשְׁיוּת שֶׁהִתְקַבְּלוּ מֻוצָּגוֹת בְּאִיּוּר לִשְׁאֵלָה 9.",
+        "translit": "ha-ḳashyut she-hitḳablu mutsagot be-iyur li-she'elah 9.",
+        "translit_ru": "",
+        "russian": "твердости, которые были получены, представлены на рисунке к вопросу 9.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r009",
+        "order_index": 8,
+        "hebrew_plain": "באיזו מהפלדות שבאיור תבחר, אם הדרישה היא לקבל לאחר החיסום מוט בעל קשיות גבוהה ואחידה?",
+        "hebrew_niqqud": "בְּאֵיזוֹ מֵהַפְּלָדוֹת שֶׁבָּאִיּוּר תִּבְחַר, אִם הַדְּרִישָׁה הִיא לְקַבֵּל לְאַחַר הַחִיסּוּם מוֹט בַּעַל קַשְׁיוּת גְּבוֹהָה וַאֲחִידָה?",
+        "translit": "Be-eyzo me-ha-pladot she-ba-iyur tivḥar, im ha-drishah hi le-ḳabel le-aḥar ha-ḥisum moṭ ba'al ḳashyut gvoah va-aḥidah?",
+        "translit_ru": "",
+        "russian": "Какую из сталей на рисунке вы выберете, если требованием является получение после закалки прутка с высокой и равномерной твердостью?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r010",
+        "order_index": 9,
+        "hebrew_plain": "נמק את תשובתך.",
+        "hebrew_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Nameḳ et tshuvatkha.",
+        "translit_ru": "",
+        "russian": "Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r011",
+        "order_index": 10,
+        "hebrew_plain": "ד. מבצעים חיסום מים לשני מוטות שקוטרו של כל אחד מהם הוא 5 ס\"מ.",
+        "hebrew_niqqud": "ד. מְבַצְּעִים חִיסּוּם מַיִם לִשְׁנֵי מוֹטוֹת שֶׁקָּוטְרוֹ שֶׁל כָּל אֶחָד מֵהֶם הוּא 5 ס\"מ.",
+        "translit": "D. Mevats'im ḥisum mayim li-shney moṭot she-ḳoṭro shel kol eḥad mehem hu 5 s\"m.",
+        "translit_ru": "",
+        "russian": "Г. Выполняют закалку в воде двух прутков, диаметр каждого из которых равен 5 см.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 10,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r012",
+        "order_index": 11,
+        "hebrew_plain": "אחד המוטות עשוי מפלדה SAE 1040, והשני - מפלדה SAE 4340.",
+        "hebrew_niqqud": "אֶחָד הַמּוֹטוֹת עָשׂוּי מִפְּלָדָה SAE 1040, וְהַשֵּׁנִי - מִפְּלָדָה SAE 4340.",
+        "translit": "Eḥad ha-moṭot asuy mi-fladah SAE 1040, ve-ha-sheni - mi-fladah SAE 4340.",
+        "translit_ru": "",
+        "russian": "Один из прутков изготовлен из стали SAE 1040, а второй — из стали SAE 4340.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 11,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r013",
+        "order_index": 12,
+        "hebrew_plain": "עוברים את אותו תהליך אוסטניטיזציה ואת אותו תהליך חיסום מים",
+        "hebrew_niqqud": "עוֹבְרִים אֶת אוֹתוֹ תַּהֲלִיךְ אוֹסְטֶנִיטִיזַצְיָה וְאֶת אוֹתוֹ תַּהֲלִיךְ חִיסּוּם מַיִם",
+        "translit": "Ovrim et oto tahalikh ostenitizatzya ve'et oto tahalikh khisum mayim",
+        "translit_ru": "",
+        "russian": "Они проходят один и тот же процесс аустенитизации и один и тот же процесс закалки в воде",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 12,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 12,
+        "sentence_index": 12,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r014",
+        "order_index": 13,
+        "hebrew_plain": "סרטט על מערכת צירים אחת שתי עקומות, המתארות את הקשיות המתקבלת בכל אחד מהמוטות לאחר החיסום -",
+        "hebrew_niqqud": "סַרְטֵט עַל מַעֲרֶכֶת צִירִים אַחַת שְׁתֵּי עֲקֻומּוֹת, הַמְּתָאֲרוֹת אֶת הַקַּשְׁיוּת הַמִּתְקַבֶּלֶת בְּכָל אֶחָד מֵהַמּוֹטוֹת לְאַחַר הַחִיסּוּם -",
+        "translit": "Sarṭeṭ al ma'arekhet tsirim aḥat shtey aḳumot, ha-meta'arot et ha-ḳashyut ha-mitḳabelet be-khol eḥad me-ha-moṭot le-aḥar ha-ḥisum -",
+        "translit_ru": "",
+        "russian": "Постройте в одной системе координат две кривые, описывающие твердость, полученную в каждом из прутков после закалки, —",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 13,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 13,
+        "sentence_index": 13,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r015",
+        "order_index": 14,
+        "hebrew_plain": "כפונקציה של רדיוס המוט.",
+        "hebrew_niqqud": "כִּפְוּנְקְצִיָּה שֶׁל רַדְיוּס הַמּוֹט.",
+        "translit": "ki-funḳtsyah shel radyuws ha-moṭ.",
+        "translit_ru": "",
+        "russian": "как функцию радиуса прутка.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 14,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 14,
+        "sentence_index": 14,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q034-r016",
+        "order_index": 15,
+        "hebrew_plain": "(עקומת גרוסמן).",
+        "hebrew_niqqud": "(עֲקֻומַּת גְּרוֹסְמַן).",
+        "translit": "(aḳumat Grosman).",
+        "translit_ru": "",
+        "russian": "(кривая Гроссмана).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q034",
+            "kind": "subpart",
+            "source_page": 41,
+            "source_row_index": 15,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 15,
+        "sentence_index": 15,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      41
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q034/anchor-01-p041.jpg",
+        "sha256": "fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "bytes": 238317,
+        "source_page": 41,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q034-v01",
+        "source_page": 41,
+        "kind": "JOMINY_HARDNESS_CURVES",
+        "instance_count": 2,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:179895e5d28c52a327771023fcfac2a599e14afa880354e8d53bbfec6ea63082"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "מודדים קשיות (HRC) בנקודות במרחקים קבועים מהקצה המחוסם",
+        "he_niqqud": "מוֹדְדִים קְשִׁיּוּת (HRC) בִּנְקֻדּוֹת בְּמֶרְחַקִּים קְבוּעִים מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Moddim kashiyut (HRC) bi'nkudot be'merkhakim kvu'im me'ha'katze ha'mekhusam",
+        "ru": "Твердость (HRC) измеряют в точках на фиксированных расстояниях от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:b34bdb775533e5d95f134c89be2b10cc3ee33c9d8c4ebd7f5c318c2df4e294b6",
+        "legacy_fields_sha256:b76c93272a17b1f6425621bd11aeb08449fc247702d8d35af07751a82471c834",
+        "independent_solution_sha256:179895e5d28c52a327771023fcfac2a599e14afa880354e8d53bbfec6ea63082"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מוֹדְדִים",
+            "normalized": "מודדים"
+          },
+          {
+            "index": 1,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 2,
+            "surface": "(HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 3,
+            "surface": "בִּנְקֻדּוֹת",
+            "normalized": "בנקדות"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמֶרְחַקִּים",
+            "normalized": "במרחקים"
+          },
+          {
+            "index": 5,
+            "surface": "קְבוּעִים",
+            "normalized": "קבועים"
+          },
+          {
+            "index": 6,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 7,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) בדיקת ג׳ומיני (Jominy) היא בדיקת כושר חיסום באמצעות כיבוי בקצה אחד ומדידת קשיות לאורך הדוגם",
+        "he_niqqud": "א) בְּדִיקַת ג'וֹמִינִי (Jominy) הִיא בְּדִיקַת כֹּשֶׁר חִסּוּם בְּאֶמְצָעוּת כִּבּוּי בְּקָצֶה אֶחָד וּמְדִידַת קְשִׁיּוּת לְאֹרֶךְ הַדּוֹגֵם",
+        "transliteration": "A) Bedikat Jominy (Jominy) hi bedikat kosher khisum be'emtza'ut kibuy be'katze ekhad u'medidat kashiyut le'orekh ha'dogem",
+        "ru": "А) Испытание Джомини (Jominy) — это испытание на прокаливаемость путем закалки с одного торца и измерения твердости вдоль образца"
+      },
+      "source_refs": [
+        "legacy_row_hash:e9ee8bca7cf29346e3fb19328398b77930ed325e8fbf0c98a9087e8e637a60fc",
+        "legacy_fields_sha256:c26225b8edca8361fa8f0201a4f1376e4d2f836968e02b5c57a27bab48a29a6f",
+        "independent_solution_sha256:179895e5d28c52a327771023fcfac2a599e14afa880354e8d53bbfec6ea63082"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בְּדִיקַת",
+            "normalized": "בדיקת"
+          },
+          {
+            "index": 2,
+            "surface": "ג'וֹמִינִי",
+            "normalized": "ג'ומיני"
+          },
+          {
+            "index": 3,
+            "surface": "(Jominy)",
+            "normalized": "Jominy"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "בְּדִיקַת",
+            "normalized": "בדיקת"
+          },
+          {
+            "index": 6,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 7,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 8,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 9,
+            "surface": "כִּבּוּי",
+            "normalized": "כבוי"
+          },
+          {
+            "index": 10,
+            "surface": "בְּקָצֶה",
+            "normalized": "בקצה"
+          },
+          {
+            "index": 11,
+            "surface": "אֶחָד",
+            "normalized": "אחד"
+          },
+          {
+            "index": 12,
+            "surface": "וּמְדִידַת",
+            "normalized": "ומדידת"
+          },
+          {
+            "index": 13,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 14,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 15,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "לעומת זאת בפלדת SAE 1040 הקשיות יורדת במהירות עם הגדלת המרחק מהקצה המחוסם",
+        "he_niqqud": "לְעֻמַּת זֹאת בִּפְלָדַת SAE 1040 הַקְּשִׁיּוּת יוֹרֶדֶת בִּמְהִירוּת עִם הַגְדָּלַת הַמֶּרְחָק מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Le'umat zot bi'feladat SAE 1040 ha'kashiyut yoredet bi'mheyrut im hagdalat ha'merkhak me'ha'katze ha'mekhusam",
+        "ru": "Напротив, в стали SAE 1040 твердость быстро падает с увеличением расстояния от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:aa0e331d81cd0394d37bc588d5ea37ce5614530e1537862d55e13f187b32ae7f",
+        "legacy_fields_sha256:fc12ca48305574ccd6577e98a9019125bac31f7e08172c6eb91f2e8498d3afd1",
+        "independent_solution_sha256:179895e5d28c52a327771023fcfac2a599e14afa880354e8d53bbfec6ea63082"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 1,
+            "surface": "זֹאת",
+            "normalized": "זאת"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדַת",
+            "normalized": "בפלדת"
+          },
+          {
+            "index": 3,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 4,
+            "surface": "1040",
+            "normalized": "1040"
+          },
+          {
+            "index": 5,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹרֶדֶת",
+            "normalized": "יורדת"
+          },
+          {
+            "index": 7,
+            "surface": "בִּמְהִירוּת",
+            "normalized": "במהירות"
+          },
+          {
+            "index": 8,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 9,
+            "surface": "הַגְדָּלַת",
+            "normalized": "הגדלת"
+          },
+          {
+            "index": 10,
+            "surface": "הַמֶּרְחָק",
+            "normalized": "המרחק"
+          },
+          {
+            "index": 11,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 12,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) בדיקת ג׳ומיני (Jominy) היא בדיקת כושר חיסום באמצעות כיבוי בקצה אחד ומדידת קשיות לאורך הדוגם",
+        "he_niqqud": "א) בְּדִיקַת ג'וֹמִינִי (Jominy) הִיא בְּדִיקַת כֹּשֶׁר חִסּוּם בְּאֶמְצָעוּת כִּבּוּי בְּקָצֶה אֶחָד וּמְדִידַת קְשִׁיּוּת לְאֹרֶךְ הַדּוֹגֵם",
+        "transliteration": "A) Bedikat Jominy (Jominy) hi bedikat kosher khisum be'emtza'ut kibuy be'katze ekhad u'medidat kashiyut le'orekh ha'dogem",
+        "ru": "А) Испытание Джомини (Jominy) — это испытание на прокаливаемость путем закалки с одного торца и измерения твердости вдоль образца"
+      },
+      "source_refs": [
+        "legacy_row_hash:e9ee8bca7cf29346e3fb19328398b77930ed325e8fbf0c98a9087e8e637a60fc",
+        "legacy_fields_sha256:c26225b8edca8361fa8f0201a4f1376e4d2f836968e02b5c57a27bab48a29a6f",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בְּדִיקַת",
+            "normalized": "בדיקת"
+          },
+          {
+            "index": 2,
+            "surface": "ג'וֹמִינִי",
+            "normalized": "ג'ומיני"
+          },
+          {
+            "index": 3,
+            "surface": "(Jominy)",
+            "normalized": "Jominy"
+          },
+          {
+            "index": 4,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 5,
+            "surface": "בְּדִיקַת",
+            "normalized": "בדיקת"
+          },
+          {
+            "index": 6,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 7,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 8,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 9,
+            "surface": "כִּבּוּי",
+            "normalized": "כבוי"
+          },
+          {
+            "index": 10,
+            "surface": "בְּקָצֶה",
+            "normalized": "בקצה"
+          },
+          {
+            "index": 11,
+            "surface": "אֶחָד",
+            "normalized": "אחד"
+          },
+          {
+            "index": 12,
+            "surface": "וּמְדִידַת",
+            "normalized": "ומדידת"
+          },
+          {
+            "index": 13,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 14,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 15,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המטרה היא לקבוע את כושר החיסום לפי שינוי הקשיות כפונקציה של המרחק מהקצה המחוסם",
+        "he_niqqud": "הַמַּטָּרָה הִיא לִקְבּוֹעַ אֶת כֹּשֶׁר הַחִסּוּם לְפִי שִׁנּוּי הַקְּשִׁיּוּת כְּפֻנְקְצְיָה שֶׁל הַמֶּרְחָק מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Ha'matara hi likvo'a et kosher ha'khisum lefi shinuy ha'kashiyut ke'funktzya shel ha'merkhak me'ha'katze ha'mekhusam",
+        "ru": "Цель состоит в том, чтобы определить прокаливаемость по изменению твердости как функции расстояния от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:41f0a892ffb5425d7743bb01900ea4308dd9aa6cd60c9aaff86653aae177c8f9",
+        "legacy_fields_sha256:373ef936679a8223c44d71fbad4116c71d6d55fc37b88d17e17849353a5c1b7c",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּטָּרָה",
+            "normalized": "המטרה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "לִקְבּוֹעַ",
+            "normalized": "לקבוע"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 5,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          },
+          {
+            "index": 6,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 7,
+            "surface": "שִׁנּוּי",
+            "normalized": "שנוי"
+          },
+          {
+            "index": 8,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 9,
+            "surface": "כְּפֻנְקְצְיָה",
+            "normalized": "כפנקציה"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "הַמֶּרְחָק",
+            "normalized": "המרחק"
+          },
+          {
+            "index": 12,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 13,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מכינים דוגם סטנדרטי גלילי למדידה",
+        "he_niqqud": "מְכִינִים דּוֹגֵם סְטַנְדַּרְטִי גְּלִילִי לִמְדִידָה",
+        "transliteration": "Mekhinim dogem standartiy gliliy li'medida",
+        "ru": "Для измерения готовят стандартный цилиндрический образец"
+      },
+      "source_refs": [
+        "legacy_row_hash:a99a69ebc8b8d6f783cdc3b5c29f2bf40d82424d1b217410754d20d4236743ef",
+        "legacy_fields_sha256:d09b0135b966eb271810653db36f576ed996096ffeb4df45dad7d350293b58b1",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְכִינִים",
+            "normalized": "מכינים"
+          },
+          {
+            "index": 1,
+            "surface": "דּוֹגֵם",
+            "normalized": "דוגם"
+          },
+          {
+            "index": 2,
+            "surface": "סְטַנְדַּרְטִי",
+            "normalized": "סטנדרטי"
+          },
+          {
+            "index": 3,
+            "surface": "גְּלִילִי",
+            "normalized": "גלילי"
+          },
+          {
+            "index": 4,
+            "surface": "לִמְדִידָה",
+            "normalized": "למדידה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מחממים את הדוגם לטמפרטורת אוסטניטיזציה לפי סוג הפלדה וזמן החזקה מתאים",
+        "he_niqqud": "מְחַמְּמִים אֶת הַדּוֹגֵם לְטֶמְפֶּרָטוּרַת אוֹסְטֶנִיטִיזַצְיָה לְפִי סוּג הַפְּלָדָה וּזְמַן הַחְזָקָה מַתְאִים",
+        "transliteration": "Mekhammim et ha'dogem le'temperatūrat ostenitizatzya lefi sug ha'plada u'zman hakhzaka mat'im",
+        "ru": "Образец нагревают до температуры аустенитизации в соответствии с типом стали и подходящим временем выдержки"
+      },
+      "source_refs": [
+        "legacy_row_hash:2310ef7411f7f1c7140fce5fae2cdf8b2231513dc26e231e4fa355858c495060",
+        "legacy_fields_sha256:136a2256e415a1162c490b0f68d7cc5eca277bfe71ff24937d104221ea8ea7ba",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְחַמְּמִים",
+            "normalized": "מחממים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          },
+          {
+            "index": 3,
+            "surface": "לְטֶמְפֶּרָטוּרַת",
+            "normalized": "לטמפרטורת"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "אוסטניטיזציה"
+          },
+          {
+            "index": 5,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 6,
+            "surface": "סוּג",
+            "normalized": "סוג"
+          },
+          {
+            "index": 7,
+            "surface": "הַפְּלָדָה",
+            "normalized": "הפלדה"
+          },
+          {
+            "index": 8,
+            "surface": "וּזְמַן",
+            "normalized": "וזמן"
+          },
+          {
+            "index": 9,
+            "surface": "הַחְזָקָה",
+            "normalized": "החזקה"
+          },
+          {
+            "index": 10,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מטרת האוסטניטיזציה היא לקבל אוסטניט אחיד בכל נפח הדוגם",
+        "he_niqqud": "מַטְרַת הָאוֹסְטֶנִיטִיזַצְיָה הִיא לְקַבֵּל אוֹסְטֶנִיט אָחִיד בְּכָל נֶפַח הַדּוֹגֵם",
+        "transliteration": "Matrat ha'ostenitizatzya hi lekabel ostenit akhid be'khol nefakh ha'dogem",
+        "ru": "Цель аустенитизации — получить однородный аустенит по всему объему образца"
+      },
+      "source_refs": [
+        "legacy_row_hash:1ea7a4b5cf80b90a638e57007d3dda7d7f753311288d342502c0500746004261",
+        "legacy_fields_sha256:3169b4b7a167cd0bc4b3ef88385a886970af90b35ebab37e4b474b92c8f2b411",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַטְרַת",
+            "normalized": "מטרת"
+          },
+          {
+            "index": 1,
+            "surface": "הָאוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "האוסטניטיזציה"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "לְקַבֵּל",
+            "normalized": "לקבל"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹסְטֶנִיט",
+            "normalized": "אוסטניט"
+          },
+          {
+            "index": 5,
+            "surface": "אָחִיד",
+            "normalized": "אחיד"
+          },
+          {
+            "index": 6,
+            "surface": "בְּכָל",
+            "normalized": "בכל"
+          },
+          {
+            "index": 7,
+            "surface": "נֶפַח",
+            "normalized": "נפח"
+          },
+          {
+            "index": 8,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעבירים את הדוגם למתקן ג׳ומיני ומבצעים כיבוי באמצעות סילון מים סטנדרטי על קצה אחד בלבד",
+        "he_niqqud": "מַעֲבִירִים אֶת הַדּוֹגֵם לְמִתְקַן ג'וֹמִינִי וּמְבַצְּעִים כִּבּוּי בְּאֶמְצָעוּת סִילוֹן מַיִם סְטַנְדַּרְטִי עַל קָצֶה אֶחָד בִּלְבַד",
+        "transliteration": "Ma'avirim et ha'dogem le'mitkan Jominy u'mevatz'im kibuy be'emtza'ut silon mayim standartiy al katze ekhad bilvad",
+        "ru": "Образец переносят в приспособление Джомини и выполняют закалку с помощью стандартной струи воды только на один торец"
+      },
+      "source_refs": [
+        "legacy_row_hash:bf11c799e813f61e69d706679e7f86488d439a3db92df55b8bdead70d6642cc7",
+        "legacy_fields_sha256:093afdc3f61475b7473f438b2789857e4102339b0edc8d2181158d281456f66a",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַעֲבִירִים",
+            "normalized": "מעבירים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          },
+          {
+            "index": 3,
+            "surface": "לְמִתְקַן",
+            "normalized": "למתקן"
+          },
+          {
+            "index": 4,
+            "surface": "ג'וֹמִינִי",
+            "normalized": "ג'ומיני"
+          },
+          {
+            "index": 5,
+            "surface": "וּמְבַצְּעִים",
+            "normalized": "ומבצעים"
+          },
+          {
+            "index": 6,
+            "surface": "כִּבּוּי",
+            "normalized": "כבוי"
+          },
+          {
+            "index": 7,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 8,
+            "surface": "סִילוֹן",
+            "normalized": "סילון"
+          },
+          {
+            "index": 9,
+            "surface": "מַיִם",
+            "normalized": "מים"
+          },
+          {
+            "index": 10,
+            "surface": "סְטַנְדַּרְטִי",
+            "normalized": "סטנדרטי"
+          },
+          {
+            "index": 11,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 12,
+            "surface": "קָצֶה",
+            "normalized": "קצה"
+          },
+          {
+            "index": 13,
+            "surface": "אֶחָד",
+            "normalized": "אחד"
+          },
+          {
+            "index": 14,
+            "surface": "בִּלְבַד",
+            "normalized": "בלבד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "נוצר גרדיאנט קירור לאורך הדוגם",
+        "he_niqqud": "נוֹצָר גְּרָדִיאַנְט קֵרוּר לְאֹרֶךְ הַדּוֹגֵם",
+        "transliteration": "Notzar gradient kerur le'orekh ha'dogem",
+        "ru": "Вдоль образца создается градиент охлаждения"
+      },
+      "source_refs": [
+        "legacy_row_hash:f361f9f0ed152d729d4d67ab9b0dd600da32091b5488380c82c19aa92481b676",
+        "legacy_fields_sha256:ad7f54a2e250ff61c980df81d2784ade508c5b53bab163ba0d419bd2f2c07a69",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נוֹצָר",
+            "normalized": "נוצר"
+          },
+          {
+            "index": 1,
+            "surface": "גְּרָדִיאַנְט",
+            "normalized": "גרדיאנט"
+          },
+          {
+            "index": 2,
+            "surface": "קֵרוּר",
+            "normalized": "קרור"
+          },
+          {
+            "index": 3,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 4,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בסמוך לקצה המחוסם מתקבל קירור מהיר מאוד",
+        "he_niqqud": "בִּסְמוּךְ לַקָּצֶה הַמְּחֻסָּם מִתְקַבֵּל קֵרוּר מָהִיר מְאוֹד",
+        "transliteration": "Bi'smukh la'katze ha'mekhusam mitkabel kerur mahir me'od",
+        "ru": "Вблизи закаленного торца получается очень быстрое охлаждение"
+      },
+      "source_refs": [
+        "legacy_row_hash:133cf51c3772d8b4ae6e07bb2de1587e1d71d6a90f6e966a05473c01d47bbef8",
+        "legacy_fields_sha256:2209b17a56e32ff564e8a8dc1f9e9e84b6fdc18990cb3636b2037cb45f4acc9a",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּסְמוּךְ",
+            "normalized": "בסמוך"
+          },
+          {
+            "index": 1,
+            "surface": "לַקָּצֶה",
+            "normalized": "לקצה"
+          },
+          {
+            "index": 2,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          },
+          {
+            "index": 3,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 4,
+            "surface": "קֵרוּר",
+            "normalized": "קרור"
+          },
+          {
+            "index": 5,
+            "surface": "מָהִיר",
+            "normalized": "מהיר"
+          },
+          {
+            "index": 6,
+            "surface": "מְאוֹד",
+            "normalized": "מאוד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במרחקים גדולים יותר מתקבל קירור איטי יותר",
+        "he_niqqud": "בַּמֶּרְחַקִּים גְּדוֹלִים יוֹתֵר מִתְקַבֵּל קֵרוּר אִטִּי יוֹתֵר",
+        "transliteration": "Ba'merkhakim gdolim yoter mitkabel kerur iti yoter",
+        "ru": "На больших расстояниях получается более медленное охлаждение"
+      },
+      "source_refs": [
+        "legacy_row_hash:d0a5f01f6b92a407a50a6e58eafef4bb89dcfedaea89b88c3b1afd71a2b1b8fd",
+        "legacy_fields_sha256:61f35630c8c18be2c11c5f2bd291b6341d0070b3f177093076beb3c13e7459f0",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּמֶּרְחַקִּים",
+            "normalized": "במרחקים"
+          },
+          {
+            "index": 1,
+            "surface": "גְּדוֹלִים",
+            "normalized": "גדולים"
+          },
+          {
+            "index": 2,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 3,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 4,
+            "surface": "קֵרוּר",
+            "normalized": "קרור"
+          },
+          {
+            "index": 5,
+            "surface": "אִטִּי",
+            "normalized": "אטי"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר הכיבוי משייפים או משחיזים משטחים מתאימים לאורך הדוגם לצורך מדידות קשיות",
+        "he_niqqud": "לְאַחַר הַכִּבּוּי מְשַׁיְּפִים אוֹ מַשְׁחִיזִים מִשְׁטָחִים מַתְאִימִים לְאֹרֶךְ הַדּוֹגֵם לְצֹרֶךְ מְדִידוֹת קְשִׁיּוּת",
+        "transliteration": "Lekhar ha'kibuy meshayfim o mashkhizim mishtakhim mat'imim le'orekh ha'dogem le'tzorekh medidot kashiyut",
+        "ru": "После закалки вдоль образца шлифуют или затачивают подходящие поверхности для измерения твердости"
+      },
+      "source_refs": [
+        "legacy_row_hash:44ab73aabb978382acbb708ff94186a640e12e9fa13ad03ace095f6bec8f4d4b",
+        "legacy_fields_sha256:9809c22e8db3adedb493d99126875301f66bec838d7e94a96e567c1e0cb7b74f",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "הַכִּבּוּי",
+            "normalized": "הכבוי"
+          },
+          {
+            "index": 2,
+            "surface": "מְשַׁיְּפִים",
+            "normalized": "משיפים"
+          },
+          {
+            "index": 3,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 4,
+            "surface": "מַשְׁחִיזִים",
+            "normalized": "משחיזים"
+          },
+          {
+            "index": 5,
+            "surface": "מִשְׁטָחִים",
+            "normalized": "משטחים"
+          },
+          {
+            "index": 6,
+            "surface": "מַתְאִימִים",
+            "normalized": "מתאימים"
+          },
+          {
+            "index": 7,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 8,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          },
+          {
+            "index": 9,
+            "surface": "לְצֹרֶךְ",
+            "normalized": "לצרך"
+          },
+          {
+            "index": 10,
+            "surface": "מְדִידוֹת",
+            "normalized": "מדידות"
+          },
+          {
+            "index": 11,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מודדים קשיות (HRC) בנקודות במרחקים קבועים מהקצה המחוסם",
+        "he_niqqud": "מוֹדְדִים קְשִׁיּוּת (HRC) בִּנְקֻדּוֹת בְּמֶרְחַקִּים קְבוּעִים מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Moddim kashiyut (HRC) bi'nkudot be'merkhakim kvu'im me'ha'katze ha'mekhusam",
+        "ru": "Твердость (HRC) измеряют в точках на фиксированных расстояниях от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:b34bdb775533e5d95f134c89be2b10cc3ee33c9d8c4ebd7f5c318c2df4e294b6",
+        "legacy_fields_sha256:b76c93272a17b1f6425621bd11aeb08449fc247702d8d35af07751a82471c834",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מוֹדְדִים",
+            "normalized": "מודדים"
+          },
+          {
+            "index": 1,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 2,
+            "surface": "(HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 3,
+            "surface": "בִּנְקֻדּוֹת",
+            "normalized": "בנקדות"
+          },
+          {
+            "index": 4,
+            "surface": "בְּמֶרְחַקִּים",
+            "normalized": "במרחקים"
+          },
+          {
+            "index": 5,
+            "surface": "קְבוּעִים",
+            "normalized": "קבועים"
+          },
+          {
+            "index": 6,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 7,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r016",
+      "order": 16,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "מציירים עקומת קשיות HRC כפונקציה של המרחק x מהקצה המחוסם",
+        "he_niqqud": "מְצַיְּרִים עֲקֻמַּת קְשִׁיּוּת HRC כְּפֻנְקְצְיָה שֶׁל הַמֶּרְחָק x מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Metzayyrim akumat kashiyut HRC ke'funktzya shel ha'merkhak x me'ha'katze ha'mekhusam",
+        "ru": "Строят кривую твердости HRC как функцию расстояния x от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:12e2a4ac3693e99c00d8e0f286632802876b0f619e5f5181a5ec8121dbb93533",
+        "legacy_fields_sha256:e7d09a47634ff5bca3d944b39937f7ce72b9d48976bedfc40483cfe5ae319b36",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְצַיְּרִים",
+            "normalized": "מצירים"
+          },
+          {
+            "index": 1,
+            "surface": "עֲקֻמַּת",
+            "normalized": "עקמת"
+          },
+          {
+            "index": 2,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 3,
+            "surface": "HRC",
+            "normalized": "HRC"
+          },
+          {
+            "index": 4,
+            "surface": "כְּפֻנְקְצְיָה",
+            "normalized": "כפנקציה"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "הַמֶּרְחָק",
+            "normalized": "המרחק"
+          },
+          {
+            "index": 7,
+            "surface": "x",
+            "normalized": "x"
+          },
+          {
+            "index": 8,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 9,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הציור הסכמתי כולל תנור לאוסטניטיזציה, דוגם גלילי, סילון מים בקצה אחד, ומדידות קשיות לאורך הדוגם",
+        "he_niqqud": "הַצִּיּוּר הַסְּכֵמָתִי כּוֹלֵל תַּנּוּר לְאוֹסְטֶנִיטִיזַצְיָה, דּוֹגֵם גְּלִילִי, סִילוֹן מַיִם בְּקָצֶה אֶחָד, וּמְדִידוֹת קְשִׁיּוּת לְאֹרֶךְ הַדּוֹגֵם",
+        "transliteration": "Ha'tziur ha'skhemati kolel tanur le'ostenitizatzya, dogem gliliy, silon mayim be'katze ekhad, u'medidot kashiyut le'orekh ha'dogem",
+        "ru": "Схематический рисунок включает печь для аустенитизации, цилиндрический образец, струю воды на одном торце и измерения твердости вдоль образца"
+      },
+      "source_refs": [
+        "legacy_row_hash:e58b7f510a98eb53373884ad5b6d891fbe8df3a23fdf6b02f3b5831b619b3470",
+        "legacy_fields_sha256:9bfcb497de33d4fd47f82c1ae77c96a3cef3feb47f4c325b819639276a0890b8",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַצִּיּוּר",
+            "normalized": "הציור"
+          },
+          {
+            "index": 1,
+            "surface": "הַסְּכֵמָתִי",
+            "normalized": "הסכמתי"
+          },
+          {
+            "index": 2,
+            "surface": "כּוֹלֵל",
+            "normalized": "כולל"
+          },
+          {
+            "index": 3,
+            "surface": "תַּנּוּר",
+            "normalized": "תנור"
+          },
+          {
+            "index": 4,
+            "surface": "לְאוֹסְטֶנִיטִיזַצְיָה,",
+            "normalized": "לאוסטניטיזציה"
+          },
+          {
+            "index": 5,
+            "surface": "דּוֹגֵם",
+            "normalized": "דוגם"
+          },
+          {
+            "index": 6,
+            "surface": "גְּלִילִי,",
+            "normalized": "גלילי"
+          },
+          {
+            "index": 7,
+            "surface": "סִילוֹן",
+            "normalized": "סילון"
+          },
+          {
+            "index": 8,
+            "surface": "מַיִם",
+            "normalized": "מים"
+          },
+          {
+            "index": 9,
+            "surface": "בְּקָצֶה",
+            "normalized": "בקצה"
+          },
+          {
+            "index": 10,
+            "surface": "אֶחָד,",
+            "normalized": "אחד"
+          },
+          {
+            "index": 11,
+            "surface": "וּמְדִידוֹת",
+            "normalized": "ומדידות"
+          },
+          {
+            "index": 12,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 13,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 14,
+            "surface": "הַדּוֹגֵם",
+            "normalized": "הדוגם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) בדיקת גרוסמן היא שיטה לכימות כושר החיסום באמצעות מושגים של קוטר קריטי וקוטר אידיאלי",
+        "he_niqqud": "ב) בְּדִיקַת גְּרוֹסְמַן הִיא שִׁיטָה לְכִמּוּת כֹּשֶׁר הַחִסּוּם בְּאֶמְצָעוּת מוּשָׂגִים שֶׁל קֹטֶר קְרִיטִי וְקֹטֶר אִידֵאָלִי",
+        "transliteration": "B) Bedikat Grossman hi shita le'kium kosher ha'khisum be'emtza'ut musagim shel koter kritiy ve'koter ide'ali",
+        "ru": "Б) Испытание Гроссмана — это метод количественной оценки прокаливаемости с использованием понятий критического диаметра и идеального диаметра"
+      },
+      "source_refs": [
+        "legacy_row_hash:949b2767a129ab8a44a75e234228d428a2e9ebcf397e655d6f93a76f2eae7439",
+        "legacy_fields_sha256:550ce81f191d497550832d5723de80c3b3ec3724ffd49e94e8372b67afe9dac1",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "בְּדִיקַת",
+            "normalized": "בדיקת"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרוֹסְמַן",
+            "normalized": "גרוסמן"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "שִׁיטָה",
+            "normalized": "שיטה"
+          },
+          {
+            "index": 5,
+            "surface": "לְכִמּוּת",
+            "normalized": "לכמות"
+          },
+          {
+            "index": 6,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 7,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          },
+          {
+            "index": 8,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 9,
+            "surface": "מוּשָׂגִים",
+            "normalized": "מושגים"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 11,
+            "surface": "קֹטֶר",
+            "normalized": "קטר"
+          },
+          {
+            "index": 12,
+            "surface": "קְרִיטִי",
+            "normalized": "קריטי"
+          },
+          {
+            "index": 13,
+            "surface": "וְקֹטֶר",
+            "normalized": "וקטר"
+          },
+          {
+            "index": 14,
+            "surface": "אִידֵאָלִי",
+            "normalized": "אידאלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המטרה היא לקשור בין תוצאת החיסום לבין גודל החלק וחריפות הכיבוי H",
+        "he_niqqud": "הַמַּטָּרָה הִיא לִקְשׁוֹר בֵּין תּוֹצָאַת הַחִסּוּם לְבֵין גֹּדֶל הַחֵלֶק וַחֲרִיפוּת הַכִּבּוּי H",
+        "transliteration": "Ha'matara hi likshor bein totza'at ha'khisum le'vein godel ha'khelek va'kharifut ha'kibuy H",
+        "ru": "Цель состоит в том, чтобы связать результат закалки с размером детали и интенсивностью охлаждения H"
+      },
+      "source_refs": [
+        "legacy_row_hash:f6e8d303fd3f60ecd32069274ac94b3ab9a5d97bc052923f2981517b9cb94f11",
+        "legacy_fields_sha256:3612d2ce5330910ee67fc8aa0a5911b68986755298f0d8170393fd708b90cf0c",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּטָּרָה",
+            "normalized": "המטרה"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "לִקְשׁוֹר",
+            "normalized": "לקשור"
+          },
+          {
+            "index": 3,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 4,
+            "surface": "תּוֹצָאַת",
+            "normalized": "תוצאת"
+          },
+          {
+            "index": 5,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          },
+          {
+            "index": 6,
+            "surface": "לְבֵין",
+            "normalized": "לבין"
+          },
+          {
+            "index": 7,
+            "surface": "גֹּדֶל",
+            "normalized": "גדל"
+          },
+          {
+            "index": 8,
+            "surface": "הַחֵלֶק",
+            "normalized": "החלק"
+          },
+          {
+            "index": 9,
+            "surface": "וַחֲרִיפוּת",
+            "normalized": "וחריפות"
+          },
+          {
+            "index": 10,
+            "surface": "הַכִּבּוּי",
+            "normalized": "הכבוי"
+          },
+          {
+            "index": 11,
+            "surface": "H",
+            "normalized": "H"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מכינים סדרה של מוטות גליליים בקטרים שונים מאותה פלדה",
+        "he_niqqud": "מְכִינִים סִדְרָה שֶׁל מוֹטוֹת גְּלִילִיִּים בְּקֻטָּרִים שׁוֹנִים מֵאוֹתָהּ פְּלָדָה",
+        "transliteration": "Mekhinim sidra shel motot gliliy'im be'kutarim shonim me'otah plada",
+        "ru": "Готовят серию цилиндрических стержней разного диаметра из одной и той же стали"
+      },
+      "source_refs": [
+        "legacy_row_hash:a18a0914f5612f009014b4e1ce9375f75e6324c93ce8d5789ba6b6b6b5318e9f",
+        "legacy_fields_sha256:e3745ade09a1a6d92a0f588ee20edf975c1f7b01c51fd04108edd43708c3fd04",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְכִינִים",
+            "normalized": "מכינים"
+          },
+          {
+            "index": 1,
+            "surface": "סִדְרָה",
+            "normalized": "סדרה"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 3,
+            "surface": "מוֹטוֹת",
+            "normalized": "מוטות"
+          },
+          {
+            "index": 4,
+            "surface": "גְּלִילִיִּים",
+            "normalized": "גליליים"
+          },
+          {
+            "index": 5,
+            "surface": "בְּקֻטָּרִים",
+            "normalized": "בקטרים"
+          },
+          {
+            "index": 6,
+            "surface": "שׁוֹנִים",
+            "normalized": "שונים"
+          },
+          {
+            "index": 7,
+            "surface": "מֵאוֹתָהּ",
+            "normalized": "מאותה"
+          },
+          {
+            "index": 8,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מבצעים לכל המוטות אוסטניטיזציה זהה בתנאים זהים",
+        "he_niqqud": "מְבַצְּעִים לְכָל הַמּוֹטוֹת אוֹסְטֶנִיטִיזַצְיָה זֵהָה בִּתְנָאִים זֵהִים",
+        "transliteration": "Mevatz'im le'khol ha'motot ostenitizatzya zehah bi'tna'im zehim",
+        "ru": "Для всех стержней проводят одинаковую аустенитизацию в одинаковых условиях"
+      },
+      "source_refs": [
+        "legacy_row_hash:14f8c889074403d6f8d10fcc0f4d4a8fe23da1820cb525987b8b36cd2d1137bd",
+        "legacy_fields_sha256:dd161b0df6609eeefcb82f3a538c5b304289efe822342dd3c85057fa14510d35",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְבַצְּעִים",
+            "normalized": "מבצעים"
+          },
+          {
+            "index": 1,
+            "surface": "לְכָל",
+            "normalized": "לכל"
+          },
+          {
+            "index": 2,
+            "surface": "הַמּוֹטוֹת",
+            "normalized": "המוטות"
+          },
+          {
+            "index": 3,
+            "surface": "אוֹסְטֶנִיטִיזַצְיָה",
+            "normalized": "אוסטניטיזציה"
+          },
+          {
+            "index": 4,
+            "surface": "זֵהָה",
+            "normalized": "זהה"
+          },
+          {
+            "index": 5,
+            "surface": "בִּתְנָאִים",
+            "normalized": "בתנאים"
+          },
+          {
+            "index": 6,
+            "surface": "זֵהִים",
+            "normalized": "זהים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מכבים את המוטות במדיום כיבוי ידוע ובתנאים ידועים הקובעים את חריפות הכיבוי H",
+        "he_niqqud": "מְכַבִּים אֶת הַמּוֹטוֹת בְּמֶדְיוּם כִּבּוּי יָדוּעַ וּבִתְנָאִים יְדוּעִים הַקּוֹבְעִים אֶת חֲרִיפוּת הַכִּבּוּי H",
+        "transliteration": "Mekhabim et ha'motot be'medium kibuy yadu'a u'vi'tna'im yedu'im ha'kov'im et kharifut ha'kibuy H",
+        "ru": "Стержни закаливают в известной закалочной среде и в известных условиях, определяющих интенсивность охлаждения H"
+      },
+      "source_refs": [
+        "legacy_row_hash:7f31912720505cd871fb610ce24372f5f99b8ee29397e8f3fbe23a7a9d387c6b",
+        "legacy_fields_sha256:6866e4271ac7eb569039ef7ce9426ced83976e8152e3416ba1fc8030e5888907",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְכַבִּים",
+            "normalized": "מכבים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "הַמּוֹטוֹת",
+            "normalized": "המוטות"
+          },
+          {
+            "index": 3,
+            "surface": "בְּמֶדְיוּם",
+            "normalized": "במדיום"
+          },
+          {
+            "index": 4,
+            "surface": "כִּבּוּי",
+            "normalized": "כבוי"
+          },
+          {
+            "index": 5,
+            "surface": "יָדוּעַ",
+            "normalized": "ידוע"
+          },
+          {
+            "index": 6,
+            "surface": "וּבִתְנָאִים",
+            "normalized": "ובתנאים"
+          },
+          {
+            "index": 7,
+            "surface": "יְדוּעִים",
+            "normalized": "ידועים"
+          },
+          {
+            "index": 8,
+            "surface": "הַקּוֹבְעִים",
+            "normalized": "הקובעים"
+          },
+          {
+            "index": 9,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 10,
+            "surface": "חֲרִיפוּת",
+            "normalized": "חריפות"
+          },
+          {
+            "index": 11,
+            "surface": "הַכִּבּוּי",
+            "normalized": "הכבוי"
+          },
+          {
+            "index": 12,
+            "surface": "H",
+            "normalized": "H"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר הכיבוי מודדים קשיות או אחוז מרטנזיט בחתך, כולל במרכז המוט",
+        "he_niqqud": "לְאַחַר הַכִּבּוּי מוֹדְדִים קְשִׁיּוּת אוֹ אֲחוּז מַרְטֶנְזִיט בַּחֲתָךְ, כּוֹלֵל בְּמֶרְכַּז הַמּוֹט",
+        "transliteration": "Lekhar ha'kibuy moddim kashiyut o akhuz martenzit ba'khatakh, kolel be'merkaz ha'mot",
+        "ru": "После закалки измеряют твердость или процентное содержание мартенсита в сечении, в том числе в центре стержня"
+      },
+      "source_refs": [
+        "legacy_row_hash:f4df719792799e3df8fcc1b7b94e3510ca5f5f530d0201eba19ad8e7871fc8e2",
+        "legacy_fields_sha256:1eaba30e6f05475650f0ccef20f2a68241576241fc844f3d782b10c1487563d8",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "הַכִּבּוּי",
+            "normalized": "הכבוי"
+          },
+          {
+            "index": 2,
+            "surface": "מוֹדְדִים",
+            "normalized": "מודדים"
+          },
+          {
+            "index": 3,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 5,
+            "surface": "אֲחוּז",
+            "normalized": "אחוז"
+          },
+          {
+            "index": 6,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 7,
+            "surface": "בַּחֲתָךְ,",
+            "normalized": "בחתך"
+          },
+          {
+            "index": 8,
+            "surface": "כּוֹלֵל",
+            "normalized": "כולל"
+          },
+          {
+            "index": 9,
+            "surface": "בְּמֶרְכַּז",
+            "normalized": "במרכז"
+          },
+          {
+            "index": 10,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מזהים קוטר קריטי Dc לפי קריטריון של מצב מרכזי נתון",
+        "he_niqqud": "מְזַהִים קֹטֶר קְרִיטִי Dc לְפִי קְרִיטֶרְיוֹן שֶׁל מַצָּב מֶרְכָּזִי נָתוּן",
+        "transliteration": "Mezahim koter kritiy Dc lefi kriteriyon shel matzav merkazi natun",
+        "ru": "Определяют критический диаметр Dc в соответствии с критерием заданного центрального состояния"
+      },
+      "source_refs": [
+        "legacy_row_hash:8bb8da7f66568ba66b0a8d6b5f1f5ffc12917e7eb6b66e055cc5437aafbb914f",
+        "legacy_fields_sha256:31513cf08f912e52b4808f011b82f2499d3b7156fb036f6ed5ea827aa9df19aa",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְזַהִים",
+            "normalized": "מזהים"
+          },
+          {
+            "index": 1,
+            "surface": "קֹטֶר",
+            "normalized": "קטר"
+          },
+          {
+            "index": 2,
+            "surface": "קְרִיטִי",
+            "normalized": "קריטי"
+          },
+          {
+            "index": 3,
+            "surface": "Dc",
+            "normalized": "Dc"
+          },
+          {
+            "index": 4,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 5,
+            "surface": "קְרִיטֶרְיוֹן",
+            "normalized": "קריטריון"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "מַצָּב",
+            "normalized": "מצב"
+          },
+          {
+            "index": 8,
+            "surface": "מֶרְכָּזִי",
+            "normalized": "מרכזי"
+          },
+          {
+            "index": 9,
+            "surface": "נָתוּן",
+            "normalized": "נתון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מחשבים או מסיקים קוטר אידיאלי Di המתאר מצב של כיבוי אידיאלי",
+        "he_niqqud": "מְחַשְּׁבִים אוֹ מְסִיקִים קֹטֶר אִידֵאָלִי Di הַמְּתָאֵר מַצָּב שֶׁל כִּבּוּי אִידֵאָלִי",
+        "transliteration": "Mekhashvim o mesikim koter ide'ali Di ha'meta'er matzav shel kibuy ide'ali",
+        "ru": "Вычисляют или выводят идеальный диаметр Di, описывающий состояние идеальной закалки"
+      },
+      "source_refs": [
+        "legacy_row_hash:edded785de1049acf7501b696aeb074a2997670ef5ed056051bffbc901fb7ae2",
+        "legacy_fields_sha256:2df9849e65eb3f95b319c85acbf58a7f6adad05fe760dc8bcd0d4b2cfa573357",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְחַשְּׁבִים",
+            "normalized": "מחשבים"
+          },
+          {
+            "index": 1,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 2,
+            "surface": "מְסִיקִים",
+            "normalized": "מסיקים"
+          },
+          {
+            "index": 3,
+            "surface": "קֹטֶר",
+            "normalized": "קטר"
+          },
+          {
+            "index": 4,
+            "surface": "אִידֵאָלִי",
+            "normalized": "אידאלי"
+          },
+          {
+            "index": 5,
+            "surface": "Di",
+            "normalized": "Di"
+          },
+          {
+            "index": 6,
+            "surface": "הַמְּתָאֵר",
+            "normalized": "המתאר"
+          },
+          {
+            "index": 7,
+            "surface": "מַצָּב",
+            "normalized": "מצב"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "כִּבּוּי",
+            "normalized": "כבוי"
+          },
+          {
+            "index": 10,
+            "surface": "אִידֵאָלִי",
+            "normalized": "אידאלי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הציור הסכמתי כולל סדרת קטרים, כיבוי במיכל, חתך רוחב, ופרופיל קשיות מהמעטפת עד המרכז",
+        "he_niqqud": "הַצִּיּוּר הַסְּכֵמָתִי כּוֹלֵל סִדְרַת קֻטָּרִים, כִּבּוּי בְּמֵיכָל, חֲתַךְ רֹחַב, וּפְרוֹפִיל קְשִׁיּוּת מֵהַמַּעֲטֶפֶת עַד הַמֶּרְכָּז",
+        "transliteration": "Ha'tziur ha'skhemati kolel sidrat kutarim, kibuy be'meikhal, khatakh rokhav, u'profil kashiyut me'ha'ma'atefet ad ha'merkaz",
+        "ru": "Схематический рисунок включает серию диаметров, закалку в резервуаре, поперечное сечение и профиль твердости от поверхности до центра"
+      },
+      "source_refs": [
+        "legacy_row_hash:678f8fb07a0752d23d716665db6dbe164bbe785229fe41ea79c65550d39f264c",
+        "legacy_fields_sha256:5753f83494f577357f67b579e6786f08b0268560837d4df491d5cd7cd1315a90",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַצִּיּוּר",
+            "normalized": "הציור"
+          },
+          {
+            "index": 1,
+            "surface": "הַסְּכֵמָתִי",
+            "normalized": "הסכמתי"
+          },
+          {
+            "index": 2,
+            "surface": "כּוֹלֵל",
+            "normalized": "כולל"
+          },
+          {
+            "index": 3,
+            "surface": "סִדְרַת",
+            "normalized": "סדרת"
+          },
+          {
+            "index": 4,
+            "surface": "קֻטָּרִים,",
+            "normalized": "קטרים"
+          },
+          {
+            "index": 5,
+            "surface": "כִּבּוּי",
+            "normalized": "כבוי"
+          },
+          {
+            "index": 6,
+            "surface": "בְּמֵיכָל,",
+            "normalized": "במיכל"
+          },
+          {
+            "index": 7,
+            "surface": "חֲתַךְ",
+            "normalized": "חתך"
+          },
+          {
+            "index": 8,
+            "surface": "רֹחַב,",
+            "normalized": "רחב"
+          },
+          {
+            "index": 9,
+            "surface": "וּפְרוֹפִיל",
+            "normalized": "ופרופיל"
+          },
+          {
+            "index": 10,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 11,
+            "surface": "מֵהַמַּעֲטֶפֶת",
+            "normalized": "מהמעטפת"
+          },
+          {
+            "index": 12,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 13,
+            "surface": "הַמֶּרְכָּז",
+            "normalized": "המרכז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) נבחר בפלדת SAE 4340 כדי לקבל לאחר החיסום מוט בעל קשיות גבוהה ואחידה",
+        "he_niqqud": "ג) נִבְחַר בִּפְלָדַת SAE 4340 כְּדֵי לְקַבֵּל לְאַחַר הַחִסּוּם מוֹט בַּעַל קְשִׁיּוּת גְּבוֹהָה וַאֲחִידָה",
+        "transliteration": "G) Nivkhar bi'feladat SAE 4340 kedei lekabel lekhar ha'khisum mot ba'al kashiyut gvohah ve'akhidah",
+        "ru": "В) Мы выберем сталь SAE 4340, чтобы получить после закалки стержень с высокой и однородной твердостью"
+      },
+      "source_refs": [
+        "legacy_row_hash:fe0cce18bbc86e1e980a22d531c9c9c4585066a7ae8a0997f6b72197e7de4fe4",
+        "legacy_fields_sha256:5874391ee3ba2628410efd5ef8d7ed30a89f0680d376a68628bf99951843647b",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "נִבְחַר",
+            "normalized": "נבחר"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדַת",
+            "normalized": "בפלדת"
+          },
+          {
+            "index": 3,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 4,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 5,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 6,
+            "surface": "לְקַבֵּל",
+            "normalized": "לקבל"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          },
+          {
+            "index": 9,
+            "surface": "מוֹט",
+            "normalized": "מוט"
+          },
+          {
+            "index": 10,
+            "surface": "בַּעַל",
+            "normalized": "בעל"
+          },
+          {
+            "index": 11,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 12,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 13,
+            "surface": "וַאֲחִידָה",
+            "normalized": "ואחידה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r028",
+      "order": 28,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "לפי איור 9 עקומת הקשיות של SAE 4340 נשארת גבוהה וכמעט שטוחה לאורך תחום המרחקים",
+        "he_niqqud": "לְפִי אִיּוּר 9 עֲקֻמַּת הַקְּשִׁיּוּת שֶׁל SAE 4340 נִשְׁאֶרֶת גְּבוֹהָה וּכְמַעַט שְׁטוּחָה לְאֹרֶךְ תְּחוּם הַמֶּרְחַקִּים",
+        "transliteration": "Lepi iyur 9 akumat ha'kashiyut shel SAE 4340 nish'eret gvohah u'kim'at shtukhah le'orekh tkhum ha'merkhakim",
+        "ru": "Согласно рисунку 9, кривая твердости SAE 4340 остается высокой и почти плоской по всему диапазону расстояний"
+      },
+      "source_refs": [
+        "legacy_row_hash:a535ab4800f9547c38a373be2b55be955213def0c65e9ae3a9b0dfbe5420f932",
+        "legacy_fields_sha256:e847eb0ef51a2693ea5342a3af548071b24a087fac40e800c3a29dfd9c9c5805",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 1,
+            "surface": "אִיּוּר",
+            "normalized": "איור"
+          },
+          {
+            "index": 2,
+            "surface": "9",
+            "normalized": "9"
+          },
+          {
+            "index": 3,
+            "surface": "עֲקֻמַּת",
+            "normalized": "עקמת"
+          },
+          {
+            "index": 4,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 7,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 8,
+            "surface": "נִשְׁאֶרֶת",
+            "normalized": "נשארת"
+          },
+          {
+            "index": 9,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 10,
+            "surface": "וּכְמַעַט",
+            "normalized": "וכמעט"
+          },
+          {
+            "index": 11,
+            "surface": "שְׁטוּחָה",
+            "normalized": "שטוחה"
+          },
+          {
+            "index": 12,
+            "surface": "לְאֹרֶךְ",
+            "normalized": "לארך"
+          },
+          {
+            "index": 13,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 14,
+            "surface": "הַמֶּרְחַקִּים",
+            "normalized": "המרחקים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r029",
+      "order": 29,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "המשמעות היא שכושר החיסום של SAE 4340 גבוה יותר ולכן מתקבלת קשיות גבוהה גם במרחקים גדולים מהקצה המחוסם",
+        "he_niqqud": "הַמַּשְׁמָעוּת הִיא שֶׁכֹּשֶׁר הַחִסּוּם שֶׁל SAE 4340 גָּבוֹהַּ יוֹתֵר וְלָכֵן מִתְקַבֶּלֶת קְשִׁיּוּת גְּבוֹהָה גַּם בַּמֶּרְחַקִּים גְּדוֹלִים מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Ha'mashma'ut hi she'kosher ha'khisum shel SAE 4340 gavoah yoter ve'lakhen mitkabelet kashiyut gvohah gam ba'merkhakim gdolim me'ha'katze ha'mekhusam",
+        "ru": "Это означает, что прокаливаемость SAE 4340 выше, и, следовательно, высокая твердость достигается даже на больших расстояниях от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:e437e963a0c15f8260368c8b9682b19fb01e72d40ece27663b0f208e4a3d4f2c",
+        "legacy_fields_sha256:de620cdc2ddf8ffb1b5b9ce700929610f955c43abeddf90305547c524b9d5846",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּשְׁמָעוּת",
+            "normalized": "המשמעות"
+          },
+          {
+            "index": 1,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁכֹּשֶׁר",
+            "normalized": "שכשר"
+          },
+          {
+            "index": 3,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 6,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 7,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 9,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 10,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 11,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 12,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 13,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 14,
+            "surface": "בַּמֶּרְחַקִּים",
+            "normalized": "במרחקים"
+          },
+          {
+            "index": 15,
+            "surface": "גְּדוֹלִים",
+            "normalized": "גדולים"
+          },
+          {
+            "index": 16,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 17,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לעומת זאת בפלדת SAE 1040 הקשיות יורדת במהירות עם הגדלת המרחק מהקצה המחוסם",
+        "he_niqqud": "לְעֻמַּת זֹאת בִּפְלָדַת SAE 1040 הַקְּשִׁיּוּת יוֹרֶדֶת בִּמְהִירוּת עִם הַגְדָּלַת הַמֶּרְחָק מֵהַקָּצֶה הַמְּחֻסָּם",
+        "transliteration": "Le'umat zot bi'feladat SAE 1040 ha'kashiyut yoredet bi'mheyrut im hagdalat ha'merkhak me'ha'katze ha'mekhusam",
+        "ru": "Напротив, в стали SAE 1040 твердость быстро падает с увеличением расстояния от закаленного торца"
+      },
+      "source_refs": [
+        "legacy_row_hash:aa0e331d81cd0394d37bc588d5ea37ce5614530e1537862d55e13f187b32ae7f",
+        "legacy_fields_sha256:fc12ca48305574ccd6577e98a9019125bac31f7e08172c6eb91f2e8498d3afd1",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְעֻמַּת",
+            "normalized": "לעמת"
+          },
+          {
+            "index": 1,
+            "surface": "זֹאת",
+            "normalized": "זאת"
+          },
+          {
+            "index": 2,
+            "surface": "בִּפְלָדַת",
+            "normalized": "בפלדת"
+          },
+          {
+            "index": 3,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 4,
+            "surface": "1040",
+            "normalized": "1040"
+          },
+          {
+            "index": 5,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 6,
+            "surface": "יוֹרֶדֶת",
+            "normalized": "יורדת"
+          },
+          {
+            "index": 7,
+            "surface": "בִּמְהִירוּת",
+            "normalized": "במהירות"
+          },
+          {
+            "index": 8,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 9,
+            "surface": "הַגְדָּלַת",
+            "normalized": "הגדלת"
+          },
+          {
+            "index": 10,
+            "surface": "הַמֶּרְחָק",
+            "normalized": "המרחק"
+          },
+          {
+            "index": 11,
+            "surface": "מֵהַקָּצֶה",
+            "normalized": "מהקצה"
+          },
+          {
+            "index": 12,
+            "surface": "הַמְּחֻסָּם",
+            "normalized": "המחסם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r031",
+      "order": 31,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ירידה חדה ב־HRC מעידה על כושר חיסום נמוך יותר ועל מעבר למבנים רכים יותר בעומק",
+        "he_niqqud": "יְרִידָה חַדָּה בְּ־HRC מְעִידָה עַל כֹּשֶׁר חִסּוּם נָמוּךְ יוֹתֵר וְעַל מַעֲבָר לְמִבְנִים רַכִּים יוֹתֵר בָּעֹמֶק",
+        "transliteration": "Yeridah khadah be-HRC me'idah al kosher khisum namukh yoter ve'al ma'avar li'mivnim rakhim yoter ba'omek",
+        "ru": "Резкое падение HRC свидетельствует о более низкой прокаливаемости и переходе к более мягким структурам в глубине"
+      },
+      "source_refs": [
+        "legacy_row_hash:90767e5fe650be6ed4c784aeca680f73ad5d344b2e7341f28337e36b2f5ec6cc",
+        "legacy_fields_sha256:408a83e2fae400ce771166a9bafa185def652db74487c0de9b72d01da856336d",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "יְרִידָה",
+            "normalized": "ירידה"
+          },
+          {
+            "index": 1,
+            "surface": "חַדָּה",
+            "normalized": "חדה"
+          },
+          {
+            "index": 2,
+            "surface": "בְּ־HRC",
+            "normalized": "ב־HRC"
+          },
+          {
+            "index": 3,
+            "surface": "מְעִידָה",
+            "normalized": "מעידה"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 6,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 7,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 9,
+            "surface": "וְעַל",
+            "normalized": "ועל"
+          },
+          {
+            "index": 10,
+            "surface": "מַעֲבָר",
+            "normalized": "מעבר"
+          },
+          {
+            "index": 11,
+            "surface": "לְמִבְנִים",
+            "normalized": "למבנים"
+          },
+          {
+            "index": 12,
+            "surface": "רַכִּים",
+            "normalized": "רכים"
+          },
+          {
+            "index": 13,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 14,
+            "surface": "בָּעֹמֶק",
+            "normalized": "בעמק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r032",
+      "order": 32,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הנימוק המטלורגי הוא שתוספי סגסוגת כגון Cr, Ni, Mo בפלדת SAE 4340 מעכבים טרנספורמציות דיפוזיוניות",
+        "he_niqqud": "הַנִּמּוּק הַמֶּטַלּוּרְגִּי הוּא שֶׁתּוֹסְפֵי סִגְסוּגֶת כְּגוֹן Cr, Ni, Mo בִּפְלָדַת SAE 4340 מְעַכְּבִים טְרַנְסְפוֹרְמַצְיוֹת דִּיפוּזְיוֹנִיּוֹת",
+        "transliteration": "Ha'nimuk ha'metalurgiy hu she'tosfei sigsoget kegon Cr, Ni, Mo bi'feladat SAE 4340 me'akvim transformatziyot difuzyoniyot",
+        "ru": "Металлургическое обоснование состоит в том, что легирующие добавки, такие как Cr, Ni, Mo в стали SAE 4340, замедляют диффузионные превращения"
+      },
+      "source_refs": [
+        "legacy_row_hash:99ba716122663cec3692dcb93fc7565fbf52131ef1897db77035b69ca5351500",
+        "legacy_fields_sha256:f86fd71eecb81065636c03306d510415601da30bf611497cb3be4b49e806a9d5",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַנִּמּוּק",
+            "normalized": "הנמוק"
+          },
+          {
+            "index": 1,
+            "surface": "הַמֶּטַלּוּרְגִּי",
+            "normalized": "המטלורגי"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁתּוֹסְפֵי",
+            "normalized": "שתוספי"
+          },
+          {
+            "index": 4,
+            "surface": "סִגְסוּגֶת",
+            "normalized": "סגסוגת"
+          },
+          {
+            "index": 5,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 6,
+            "surface": "Cr,",
+            "normalized": "Cr"
+          },
+          {
+            "index": 7,
+            "surface": "Ni,",
+            "normalized": "Ni"
+          },
+          {
+            "index": 8,
+            "surface": "Mo",
+            "normalized": "Mo"
+          },
+          {
+            "index": 9,
+            "surface": "בִּפְלָדַת",
+            "normalized": "בפלדת"
+          },
+          {
+            "index": 10,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 11,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 12,
+            "surface": "מְעַכְּבִים",
+            "normalized": "מעכבים"
+          },
+          {
+            "index": 13,
+            "surface": "טְרַנְסְפוֹרְמַצְיוֹת",
+            "normalized": "טרנספורמציות"
+          },
+          {
+            "index": 14,
+            "surface": "דִּיפוּזְיוֹנִיּוֹת",
+            "normalized": "דיפוזיוניות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r033",
+      "order": 33,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עיכוב הטרנספורמציות הדיפוזיוניות מאפשר יצירת מרטנזיט בעומק גדול יותר לאחר הכיבוי",
+        "he_niqqud": "עִכּוּב הַטְּרַנְסְפוֹרְמַצְיוֹת הַדִּיפוּזְיוֹנִיּוֹת מְאַפְשֵׁר יְצִירַת מַרְטֶנְזִיט בְּעֹמֶק גָּדוֹל יוֹתֵר לְאַחַר הַכִּבּוּי",
+        "transliteration": "Ikuv ha'transformatziyot ha'difuzyoniyot me'afsher yetzirat martenzit be'omek gadol yoter lekhar ha'kibuy",
+        "ru": "Замедление диффузионных превращений позволяет образовываться мартенситу на большей глубине после закалки"
+      },
+      "source_refs": [
+        "legacy_row_hash:44c42989ab9a3fa4390a4d3e844ed7e03198d97bdba2bd76383eb0bdf88ab958",
+        "legacy_fields_sha256:11d8dd4b2681e5d2244fb64f4a7194da41fd41eab94f55e38435c1588fc08047",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עִכּוּב",
+            "normalized": "עכוב"
+          },
+          {
+            "index": 1,
+            "surface": "הַטְּרַנְסְפוֹרְמַצְיוֹת",
+            "normalized": "הטרנספורמציות"
+          },
+          {
+            "index": 2,
+            "surface": "הַדִּיפוּזְיוֹנִיּוֹת",
+            "normalized": "הדיפוזיוניות"
+          },
+          {
+            "index": 3,
+            "surface": "מְאַפְשֵׁר",
+            "normalized": "מאפשר"
+          },
+          {
+            "index": 4,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 5,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 6,
+            "surface": "בְּעֹמֶק",
+            "normalized": "בעמק"
+          },
+          {
+            "index": 7,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 8,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 9,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 10,
+            "surface": "הַכִּבּוּי",
+            "normalized": "הכבוי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r034",
+      "order": 34,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן מתקבלת קשיות גבוהה ואחידה יותר במוט לאחר החיסום",
+        "he_niqqud": "לָכֵן מִתְקַבֶּלֶת קְשִׁיּוּת גְּבוֹהָה וַאֲחִידָה יוֹתֵר בַּמּוֹט לְאַחַר הַחִסּוּם",
+        "transliteration": "Lakhen mitkabelet kashiyut gvohah ve'akhidah yoter ba'mot lekhar ha'khisum",
+        "ru": "Поэтому после закалки в стержне достигается более высокая и однородная твердость"
+      },
+      "source_refs": [
+        "legacy_row_hash:f1f407ebe8d9d1982d50ab9300cd57576cdf1643b185a09d0845fa5f8b5ad05a",
+        "legacy_fields_sha256:781dde7bb0f8f57cda27d2b292af0197c4dd451cb36f8446972f005d8a1d3c71",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 2,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 3,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 4,
+            "surface": "וַאֲחִידָה",
+            "normalized": "ואחידה"
+          },
+          {
+            "index": 5,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 6,
+            "surface": "בַּמּוֹט",
+            "normalized": "במוט"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "הַחִסּוּם",
+            "normalized": "החסום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r035",
+      "order": 35,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) בעקומת גרוסמן נשרטט קשיות (HRC) כפונקציה של רדיוס המוט r על אותה מערכת צירים עבור שתי הפלדות",
+        "he_niqqud": "ד) בַּעֲקֻמַּת גְּרוֹסְמַן נְשַׂרְטֵט קְשִׁיּוּת (HRC) כְּפֻנְקְצְיָה שֶׁל רַדְיוּס הַמּוֹט r עַל אוֹתָהּ מַעֲרֶכֶת צִירִים עֲבוּר שְׁתֵּי הַפְּלָדוֹת",
+        "transliteration": "D) Be'akumat Grossman nesartet kashiyut (HRC) ke'funktzya shel radius ha'mot r al otah ma'arekhet tzirim avur shtei ha'pladot",
+        "ru": "Г) На кривой Гроссмана мы нарисуем твердость (HRC) как функцию радиуса стержня r на одной системе координат для обеих сталей"
+      },
+      "source_refs": [
+        "legacy_row_hash:b5f5e66e28c324b49789c77e2266efe02b66f26d82a412d36d6780717ed1927f",
+        "legacy_fields_sha256:416e93670a16050d8ae9fa2df066f34182340a2602571c80a9ec1ce6ddb9b80b",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "בַּעֲקֻמַּת",
+            "normalized": "בעקמת"
+          },
+          {
+            "index": 2,
+            "surface": "גְּרוֹסְמַן",
+            "normalized": "גרוסמן"
+          },
+          {
+            "index": 3,
+            "surface": "נְשַׂרְטֵט",
+            "normalized": "נשרטט"
+          },
+          {
+            "index": 4,
+            "surface": "קְשִׁיּוּת",
+            "normalized": "קשיות"
+          },
+          {
+            "index": 5,
+            "surface": "(HRC)",
+            "normalized": "HRC"
+          },
+          {
+            "index": 6,
+            "surface": "כְּפֻנְקְצְיָה",
+            "normalized": "כפנקציה"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 8,
+            "surface": "רַדְיוּס",
+            "normalized": "רדיוס"
+          },
+          {
+            "index": 9,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 10,
+            "surface": "r",
+            "normalized": "r"
+          },
+          {
+            "index": 11,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 12,
+            "surface": "אוֹתָהּ",
+            "normalized": "אותה"
+          },
+          {
+            "index": 13,
+            "surface": "מַעֲרֶכֶת",
+            "normalized": "מערכת"
+          },
+          {
+            "index": 14,
+            "surface": "צִירִים",
+            "normalized": "צירים"
+          },
+          {
+            "index": 15,
+            "surface": "עֲבוּר",
+            "normalized": "עבור"
+          },
+          {
+            "index": 16,
+            "surface": "שְׁתֵּי",
+            "normalized": "שתי"
+          },
+          {
+            "index": 17,
+            "surface": "הַפְּלָדוֹת",
+            "normalized": "הפלדות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r036",
+      "order": 36,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "נגדיר r=0 במרכז המוט ו־r=R במעטפת כאשר R=2.5 cm",
+        "he_niqqud": "נַגְדִּיר r=0 בְּמֶרְכַּז הַמּוֹט וְ־r=R בַּמַּעֲטֶפֶת כַּאֲשֶׁר R=2.5 cm",
+        "transliteration": "Nagdir r=0 be'merkaz ha'mot ve-r=R ba'ma'atefet ka'asher R=2.5 cm",
+        "ru": "Мы определим r=0 в центре стержня и r=R на поверхности, где R=2.5 см"
+      },
+      "source_refs": [
+        "legacy_row_hash:e53f5102d6149be0ceafc2943389b01c9b7b8c639f4e7499e99dda6854fdcd46",
+        "legacy_fields_sha256:2673a9aee0a9cdf8715a2e3cbec4228669f5bb70a726eb7303943b7eccd06577",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נַגְדִּיר",
+            "normalized": "נגדיר"
+          },
+          {
+            "index": 1,
+            "surface": "r=0",
+            "normalized": "r=0"
+          },
+          {
+            "index": 2,
+            "surface": "בְּמֶרְכַּז",
+            "normalized": "במרכז"
+          },
+          {
+            "index": 3,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 4,
+            "surface": "וְ־r=R",
+            "normalized": "ו־r=R"
+          },
+          {
+            "index": 5,
+            "surface": "בַּמַּעֲטֶפֶת",
+            "normalized": "במעטפת"
+          },
+          {
+            "index": 6,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 7,
+            "surface": "R=2.5",
+            "normalized": "R=2.5"
+          },
+          {
+            "index": 8,
+            "surface": "cm",
+            "normalized": "cm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r037",
+      "order": 37,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדת SAE 4340 בגלל כושר חיסום גבוה רוב החתך יעבור ליצירת מרטנזיט גם סמוך למרכז",
+        "he_niqqud": "בִּפְלָדַת SAE 4340 בִּגְלַל כֹּשֶׁר חִסּוּם גָּבוֹהַּ רֹב הַחֲתָךְ יַעֲבֹר לִיצִירַת מַרְטֶנְזִיט גַּם סָמוּךְ לַמֶּרְכָּז",
+        "transliteration": "Bi'feladat SAE 4340 biglal kosher khisum gavoah rov ha'khatakh ya'avor li'ytzirat martenzit gam samukh la'merkaz",
+        "ru": "В стали SAE 4340, благодаря высокой прокаливаемости, большая часть сечения перейдет в мартенсит, даже ближе к центру"
+      },
+      "source_refs": [
+        "legacy_row_hash:f75fbec6552826d1043c6e4e129f2d71f71191a28cd2acec84ead629d7671b56",
+        "legacy_fields_sha256:73cb599ddf52a988d2db36850a6604240f144bf3b88ad30a9186de5f3e4df989",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּפְלָדַת",
+            "normalized": "בפלדת"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 3,
+            "surface": "בִּגְלַל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 4,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 5,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 6,
+            "surface": "גָּבוֹהַּ",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 7,
+            "surface": "רֹב",
+            "normalized": "רב"
+          },
+          {
+            "index": 8,
+            "surface": "הַחֲתָךְ",
+            "normalized": "החתך"
+          },
+          {
+            "index": 9,
+            "surface": "יַעֲבֹר",
+            "normalized": "יעבר"
+          },
+          {
+            "index": 10,
+            "surface": "לִיצִירַת",
+            "normalized": "ליצירת"
+          },
+          {
+            "index": 11,
+            "surface": "מַרְטֶנְזִיט",
+            "normalized": "מרטנזיט"
+          },
+          {
+            "index": 12,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 13,
+            "surface": "סָמוּךְ",
+            "normalized": "סמוך"
+          },
+          {
+            "index": 14,
+            "surface": "לַמֶּרְכָּז",
+            "normalized": "למרכז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r038",
+      "order": 38,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עקומת הקשיות של SAE 4340 תהיה גבוהה יחסית וכמעט שטוחה מהמעטפת אל המרכז",
+        "he_niqqud": "לָכֵן עֲקֻמַּת הַקְּשִׁיּוּת שֶׁל SAE 4340 תִּהְיֶה גְּבוֹהָה יַחֲסִית וּכְמַעַט שְׁטוּחָה מֵהַמַּעֲטֶפֶת אֶל הַמֶּרְכָּז",
+        "transliteration": "Lakhen akumat ha'kashiyut shel SAE 4340 tihiye gvohah yakhasit u'kim'at shtukhah me'ha'ma'atefet el ha'merkaz",
+        "ru": "Поэтому кривая твердости SAE 4340 будет относительно высокой и почти плоской от поверхности до центра"
+      },
+      "source_refs": [
+        "legacy_row_hash:dcfa76cd8cf21a55d5b884f54bbcc45c0d69865252447be91db313b6ede982c1",
+        "legacy_fields_sha256:d1d192deab8f5a514c6156212750a81fcef32d62047941e435e5787a9f705a60",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲקֻמַּת",
+            "normalized": "עקמת"
+          },
+          {
+            "index": 2,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 5,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 6,
+            "surface": "תִּהְיֶה",
+            "normalized": "תהיה"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "יַחֲסִית",
+            "normalized": "יחסית"
+          },
+          {
+            "index": 9,
+            "surface": "וּכְמַעַט",
+            "normalized": "וכמעט"
+          },
+          {
+            "index": 10,
+            "surface": "שְׁטוּחָה",
+            "normalized": "שטוחה"
+          },
+          {
+            "index": 11,
+            "surface": "מֵהַמַּעֲטֶפֶת",
+            "normalized": "מהמעטפת"
+          },
+          {
+            "index": 12,
+            "surface": "אֶל",
+            "normalized": "אל"
+          },
+          {
+            "index": 13,
+            "surface": "הַמֶּרְכָּז",
+            "normalized": "המרכז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r039",
+      "order": 39,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפלדת SAE 1040 בגלל כושר חיסום נמוך המרכז יתקרר לאט יותר ותתקבל טרנספורמציה למבנים רכים יותר",
+        "he_niqqud": "בִּפְלָדַת SAE 1040 בִּגְלַל כֹּשֶׁר חִסּוּם נָמוּךְ הַמֶּרְכָּז יִתְקָרֵר לְאַט יוֹתֵר וְתִתְקַבֵּל טְרַנְסְפוֹרְמַצְיָה לְמִבְנִים רַכִּים יוֹתֵר",
+        "transliteration": "Bi'feladat SAE 1040 biglal kosher khisum namukh ha'merkaz yitkarer le'at yoter ve'titkabel transformatzya li'mivnim rakhim yoter",
+        "ru": "В стали SAE 1040, из-за низкой прокаливаемости, центр будет охлаждаться медленнее, и произойдет превращение в более мягкие структуры"
+      },
+      "source_refs": [
+        "legacy_row_hash:217d482076dfb9253ac407c305a79570f0e245827e27360f32361206ffd9a988",
+        "legacy_fields_sha256:aec01a5596b4dbb710d7f742dc7f9707ff5ac7d4dc4688940d660194dbcb99a1",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּפְלָדַת",
+            "normalized": "בפלדת"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "1040",
+            "normalized": "1040"
+          },
+          {
+            "index": 3,
+            "surface": "בִּגְלַל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 4,
+            "surface": "כֹּשֶׁר",
+            "normalized": "כשר"
+          },
+          {
+            "index": 5,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 6,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 7,
+            "surface": "הַמֶּרְכָּז",
+            "normalized": "המרכז"
+          },
+          {
+            "index": 8,
+            "surface": "יִתְקָרֵר",
+            "normalized": "יתקרר"
+          },
+          {
+            "index": 9,
+            "surface": "לְאַט",
+            "normalized": "לאט"
+          },
+          {
+            "index": 10,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 11,
+            "surface": "וְתִתְקַבֵּל",
+            "normalized": "ותתקבל"
+          },
+          {
+            "index": 12,
+            "surface": "טְרַנְסְפוֹרְמַצְיָה",
+            "normalized": "טרנספורמציה"
+          },
+          {
+            "index": 13,
+            "surface": "לְמִבְנִים",
+            "normalized": "למבנים"
+          },
+          {
+            "index": 14,
+            "surface": "רַכִּים",
+            "normalized": "רכים"
+          },
+          {
+            "index": 15,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r040",
+      "order": 40,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן עקומת הקשיות של SAE 1040 תהיה גבוהה במעטפת אך תרד באופן משמעותי לכיוון המרכז",
+        "he_niqqud": "לָכֵן עֲקֻמַּת הַקְּשִׁיּוּת שֶׁל SAE 1040 תִּהְיֶה גְּבוֹהָה בַּמַּעֲטֶפֶת אַךְ תֵּרֵד בְּאוֹפֶן מַשְׁמָעוּתִי לְכִוּוּן הַמֶּרְכָּז",
+        "transliteration": "Lakhen akumat ha'kashiyut shel SAE 1040 tihiye gvohah ba'ma'atefet akh tered be'ofen mashma'utiy le'kivun ha'merkaz",
+        "ru": "Поэтому кривая твердости SAE 1040 будет высокой на поверхности, но значительно снизится по направлению к центру"
+      },
+      "source_refs": [
+        "legacy_row_hash:b8bd27baf509d61154bf1bfda9debbcb5a2f9d1a81dee5a57e419f1942e8d18d",
+        "legacy_fields_sha256:2f0f3c7fcd49d91aeca7958a54440ad3422b8fbc824709735a3b3f351588bec6",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "עֲקֻמַּת",
+            "normalized": "עקמת"
+          },
+          {
+            "index": 2,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 3,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 4,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 5,
+            "surface": "1040",
+            "normalized": "1040"
+          },
+          {
+            "index": 6,
+            "surface": "תִּהְיֶה",
+            "normalized": "תהיה"
+          },
+          {
+            "index": 7,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 8,
+            "surface": "בַּמַּעֲטֶפֶת",
+            "normalized": "במעטפת"
+          },
+          {
+            "index": 9,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 10,
+            "surface": "תֵּרֵד",
+            "normalized": "תרד"
+          },
+          {
+            "index": 11,
+            "surface": "בְּאוֹפֶן",
+            "normalized": "באופן"
+          },
+          {
+            "index": 12,
+            "surface": "מַשְׁמָעוּתִי",
+            "normalized": "משמעותי"
+          },
+          {
+            "index": 13,
+            "surface": "לְכִוּוּן",
+            "normalized": "לכוון"
+          },
+          {
+            "index": 14,
+            "surface": "הַמֶּרְכָּז",
+            "normalized": "המרכז"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r041",
+      "order": 41,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "השרטוט הנדרש הוא איכותי ומדגיש את ההבדל בצורת העקומות",
+        "he_niqqud": "הַשִּׂרְטוּט הַנִּדְרָשׁ הוּא אֵיכוּתִי וּמַדְגִּישׁ אֶת הַהֶבְדֵּל בְּצוּרַת הָעֲקֻמּוֹת",
+        "transliteration": "Ha'sirtut ha'nidrash hu eikhutiy u'madgish et ha'hevdel be'tzurat ha'akumot",
+        "ru": "Требуемый чертеж является качественным и подчеркивает разницу в форме кривых"
+      },
+      "source_refs": [
+        "legacy_row_hash:980ca6bc5915ef405d842774d8bd2f13509b4bc5416120aba13da7bf66e38ce8",
+        "legacy_fields_sha256:35e26b3bb8ac6c5dd3bb32b29ec9efef3342b115c9c023bff81bfdef9d618c21",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַשִּׂרְטוּט",
+            "normalized": "השרטוט"
+          },
+          {
+            "index": 1,
+            "surface": "הַנִּדְרָשׁ",
+            "normalized": "הנדרש"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "אֵיכוּתִי",
+            "normalized": "איכותי"
+          },
+          {
+            "index": 4,
+            "surface": "וּמַדְגִּישׁ",
+            "normalized": "ומדגיש"
+          },
+          {
+            "index": 5,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 6,
+            "surface": "הַהֶבְדֵּל",
+            "normalized": "ההבדל"
+          },
+          {
+            "index": 7,
+            "surface": "בְּצוּרַת",
+            "normalized": "בצורת"
+          },
+          {
+            "index": 8,
+            "surface": "הָעֲקֻמּוֹת",
+            "normalized": "העקמות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r042",
+      "order": 42,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "עקומת SAE 4340 מעל עקומת SAE 1040 ובעלת ירידה מתונה יותר כפונקציה של r",
+        "he_niqqud": "עֲקֻמַּת SAE 4340 מֵעַל עֲקֻמַּת SAE 1040 וּבַעֲלַת יְרִידָה מְתוּנָה יוֹתֵר כְּפֻנְקְצְיָה שֶׁל r",
+        "transliteration": "Akumat SAE 4340 me'al akumat SAE 1040 u'va'alat yeridah metunah yoter ke'funktzya shel r",
+        "ru": "Кривая SAE 4340 находится выше кривой SAE 1040 и имеет более плавное падение как функция r"
+      },
+      "source_refs": [
+        "legacy_row_hash:1b1a543fb8fcc302a218b24d2228b9b77ffb05e9653c6f9477f2b92cd8e25398",
+        "legacy_fields_sha256:2707c3558304fe223de5270f11474bdaf55403029b6312c67485c6e290d5842e",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲקֻמַּת",
+            "normalized": "עקמת"
+          },
+          {
+            "index": 1,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 2,
+            "surface": "4340",
+            "normalized": "4340"
+          },
+          {
+            "index": 3,
+            "surface": "מֵעַל",
+            "normalized": "מעל"
+          },
+          {
+            "index": 4,
+            "surface": "עֲקֻמַּת",
+            "normalized": "עקמת"
+          },
+          {
+            "index": 5,
+            "surface": "SAE",
+            "normalized": "SAE"
+          },
+          {
+            "index": 6,
+            "surface": "1040",
+            "normalized": "1040"
+          },
+          {
+            "index": 7,
+            "surface": "וּבַעֲלַת",
+            "normalized": "ובעלת"
+          },
+          {
+            "index": 8,
+            "surface": "יְרִידָה",
+            "normalized": "ירידה"
+          },
+          {
+            "index": 9,
+            "surface": "מְתוּנָה",
+            "normalized": "מתונה"
+          },
+          {
+            "index": 10,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 11,
+            "surface": "כְּפֻנְקְצְיָה",
+            "normalized": "כפנקציה"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 13,
+            "surface": "r",
+            "normalized": "r"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q034-sol-r043",
+      "order": 43,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:179895e5d28c52a327771023fcfac2a599e14afa880354e8d53bbfec6ea63082",
+        "comparison:MATCH_WITH_STANDARD_SCOPE_NOTE",
+        "source_page:41",
+        "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+        "declared_convention:ASTM_A255",
+        "declared_convention:ASM_hardness_hardenability"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q034",
+    "display_alias": "34",
+    "source_pages": [
+      41
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а) Джомини: стандартный цилиндр аустенитизируют, вертикально охлаждают струёй воды только с одного торца, затем шлифуют продольные площадки и измеряют твёрдость через заданные расстояния от охлаждённого торца; строят HRC(x).",
+      "б) Подход Гроссмана характеризует прокаливаемость через распределение твёрдости/мартенсита по сечению круглых образцов при заданной интенсивности закалки и критический диаметр, где центр достигает принятого критерия; схема — ряд диаметров, закалка и HRC(r).",
+      "в) SAE4340: её HRC остаётся примерно 45–55 на всей длине Джомини, тогда как SAE1040 быстро падает примерно до 30 и ниже; 4340 даст более высокую и равномерную сквозную твёрдость.",
+      "г) Для Ø50 мм обе кривые симметричны относительно центра: SAE4340 высокая и пологая; SAE1040 высокая у обеих поверхностей и резко падает к мягкому центру."
+    ],
+    "engineering_picture": "Джомини превращает один образец в непрерывный набор скоростей охлаждения; Гроссман переносит прокаливаемость на реальное сечение и закалочную среду.",
+    "prerequisites": [
+      "Hardenability is depth, not surface hardness.",
+      "Поверхность охлаждается быстрее центра.",
+      "Легирование SAE4340 повышает прокаливаемость."
+    ],
+    "roadmap": [
+      "Описать установку Джомини.",
+      "Отделить её от Grossmann diameter method.",
+      "Сравнить спад HRC.",
+      "Зеркально построить HRC(r) для двух прутков."
+    ],
+    "main_trap": "Нельзя превращать ось расстояния Джомини напрямую в радиус детали без калибровки среды/геометрии; здесь требуется только качественная кривая Гроссмана.",
+    "givens": [
+      "Jominy curves SAE1040/SAE4340; two water-quenched bars Ø5 cm."
+    ],
+    "find": [
+      "Methods, steel selection and two radial hardness profiles."
+    ],
+    "assumptions": [
+      "Обе детали имеют одинаковую геометрию и quench severity."
+    ],
+    "laws": [
+      "Jominy HRC decreases with distance as cooling rate decreases."
+    ],
+    "symbolic_derivation": [
+      "4340: |dHRC/dx| small⇒deep hardening; 1040: large early drop⇒shallow hardening."
+    ],
+    "calculation": [],
+    "construction": [
+      "Jominy sketch: vertical cylinder, bottom water jet, measurement line.",
+      "Grossmann sketch: x from −25 to +25 mm; two symmetric curves, 4340 above/flatter, 1040 deep U-shaped."
+    ],
+    "checks": [
+      "Обе HRC(r) кривые имеют одинаковые значения на r и −r; минимум в центре."
+    ],
+    "source_facts": [
+      "source_page:41",
+      "asset_sha256:fe6da6b1b7c4d8eff3450620af403c00b78d0a4d965f6903632d54cd80b8230b",
+      "declared_convention:ASTM_A255",
+      "declared_convention:ASM_hardness_hardenability"
+    ],
+    "unresolved_limits": [
+      "Численные HRC(r) требуют таблиц соответствия Jominy distance↔bar position и quench severity; источник просит схематическое построение."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 0
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

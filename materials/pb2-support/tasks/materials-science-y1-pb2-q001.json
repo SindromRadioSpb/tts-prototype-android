@@ -1,0 +1,1858 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_194321b3f980dbabcae05917",
+  "public_work_id": "work-445df27bcb7be80bdc77996b",
+  "snapshot_sha256": "b6e46091587600302bacdd66763d73359d70e2458c94c4d85d214ead869bcb80",
+  "task_id": "materials-science-y1-pb2-q001",
+  "display_alias": "1",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "de470d8ebae98a0f839888d7abe333a7728a1d99ac1b57294c9417ff4146bd00"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "fda49e9d94eaff353c1009357eefc7369146296827e8b8a69dd617dc33061bbb",
+    "source_canonical_task_sha256": "de470d8ebae98a0f839888d7abe333a7728a1d99ac1b57294c9417ff4146bd00"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Four elements and the identification principle match exactly: C, Fe, Li, Be.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q001-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 1.",
+        "hebrew_niqqud": "שְׁאֵלָה 1.",
+        "translit": "She'ela 1.",
+        "translit_ru": "",
+        "russian": "Вопрос 1.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q001",
+            "kind": "task_heading",
+            "source_page": 3,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q001-r002",
+        "order_index": 1,
+        "hebrew_plain": "האטומים של איזה יסודות מתוארים על התמונות?",
+        "hebrew_niqqud": "הָאֲטוֹמִים שֶׁל אֵיזֶה יְסוֹדוֹת מְתוֹאָרִים עַל הַתְּמוּנוֹת?",
+        "translit": "Ha-atomim shel eize yesodot meto'arim 'al ha-tmunot?",
+        "translit_ru": "",
+        "russian": "Атомы каких элементов изображены на рисунках?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q001",
+            "kind": "condition",
+            "source_page": 3,
+            "source_row_index": 1,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      3
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q001/anchor-01-p003.jpg",
+        "sha256": "c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee",
+        "bytes": 182482,
+        "source_page": 3,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q001-v01",
+        "source_page": 3,
+        "kind": "ATOM_MODEL_DIAGRAM",
+        "instance_count": 4,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) היסוד הוא פחמן (C)",
+        "he_niqqud": "א) הַיְּסוֹד הוּא פַּחְמָן (C)",
+        "transliteration": "A) Ha-yesod hu paḥman (C)",
+        "ru": "А) Элемент — Углерод (C)"
+      },
+      "source_refs": [
+        "legacy_row_hash:0a6b30933c27dfd35ebdd7215c6f880f09a17c1ef0ec3875ddac8397024b66f8",
+        "legacy_fields_sha256:185799b8e23b9d17fa526399aa3de90c64b5f96017a1ceca92ad51d889afc20a",
+        "independent_solution_sha256:6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 4,
+            "surface": "(C)",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) היסוד הוא ברזל (Fe)",
+        "he_niqqud": "ב) הַיְּסוֹד הוּא בַּרְזֶל (Fe)",
+        "transliteration": "B) Ha-yesod hu barzel (Fe)",
+        "ru": "Б) Элемент — Железо (Fe)"
+      },
+      "source_refs": [
+        "legacy_row_hash:002d775f96a641efc63d2abd0714f0641ec08f303512fa25c20a0162469ca78e",
+        "legacy_fields_sha256:8f1883af0e38c18c3fc90c794c88cc350d53e59b64827d8b32f1765a0aa7748a",
+        "independent_solution_sha256:6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "בַּרְזֶל",
+            "normalized": "ברזל"
+          },
+          {
+            "index": 4,
+            "surface": "(Fe)",
+            "normalized": "Fe"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) היסוד הוא ליתיום (Li)",
+        "he_niqqud": "ג) הַיְּסוֹד הוּא לִיתְיוּם (Li)",
+        "transliteration": "G) Ha-yesod hu litium (Li)",
+        "ru": "В) Элемент — Литий (Li)"
+      },
+      "source_refs": [
+        "legacy_row_hash:f545f7582e7abfef342b7ce87a120a8b3eb2b837f82de7da2f0e35e358c44522",
+        "legacy_fields_sha256:c92f7121c94802182a6661cb4c51fe816c4b92d18fe80a08070e5daeccb197fe",
+        "independent_solution_sha256:6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "לִיתְיוּם",
+            "normalized": "ליתיום"
+          },
+          {
+            "index": 4,
+            "surface": "(Li)",
+            "normalized": "Li"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) היסוד הוא בריליום (Be)",
+        "he_niqqud": "ד) הַיְּסוֹד הוּא בֶּרִילְיוּם (Be)",
+        "transliteration": "D) Ha-yesod hu berilyum (Be)",
+        "ru": "Г) Элемент — Бериллий (Be)"
+      },
+      "source_refs": [
+        "legacy_row_hash:4e7789fe34d1c6c97481cb8c94d2adbefa2dbdebac32b4786b3d987ffd2ba7d1",
+        "legacy_fields_sha256:939158379ba1fbd22085278a7932b27e30c87aaf614f52c82d75a8bb70212b0c",
+        "independent_solution_sha256:6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "בֶּרִילְיוּם",
+            "normalized": "בריליום"
+          },
+          {
+            "index": 4,
+            "surface": "(Be)",
+            "normalized": "Be"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עיקרון זיהוי",
+        "he_niqqud": "עִקָּרוֹן זִהוּי",
+        "transliteration": "Ikarōn zihūy",
+        "ru": "Принцип идентификации"
+      },
+      "source_refs": [
+        "legacy_row_hash:c0762bc72a0e75095ec77b09d1ae7db55fe9aa7ed430d3e4d735532c5aac7577",
+        "legacy_fields_sha256:61a6fd6496a1e0c4916cd6fefc07c055e899e3b5d7e02a79dd28c4465cabf138",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עִקָּרוֹן",
+            "normalized": "עקרון"
+          },
+          {
+            "index": 1,
+            "surface": "זִהוּי",
+            "normalized": "זהוי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r007",
+      "order": 7,
+      "section": "model_and_laws",
+      "kind": "law_or_principle",
+      "exam_copy": true,
+      "text": {
+        "he": "היסוד נקבע לפי מספר הפרוטונים בגרעין (Z)",
+        "he_niqqud": "הַיְּסוֹד נִקְבַּע לְפִי מִסְפַּר הַפְּרוֹטוֹנִים בַּגַּרְעִין (Z)",
+        "transliteration": "Ha-yesod niqba lefi mispar ha-proṭonim ba-gar'in (Z)",
+        "ru": "Элемент определяется по числу протонов в ядре (Z)"
+      },
+      "source_refs": [
+        "legacy_row_hash:6891fb7790b4f95a604add1c5477725ca01904257597ea8007674be72715a273",
+        "legacy_fields_sha256:fb23de95476e409cfcf4b5499e9eb55dd1cdf39ba7a7c2bc8ed862cada66bfd8",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 1,
+            "surface": "נִקְבַּע",
+            "normalized": "נקבע"
+          },
+          {
+            "index": 2,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 3,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 4,
+            "surface": "הַפְּרוֹטוֹנִים",
+            "normalized": "הפרוטונים"
+          },
+          {
+            "index": 5,
+            "surface": "בַּגַּרְעִין",
+            "normalized": "בגרעין"
+          },
+          {
+            "index": 6,
+            "surface": "(Z)",
+            "normalized": "Z"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באטום ניטרלי מספר האלקטרונים שווה ל־Z",
+        "he_niqqud": "בָּאָטוֹם נֵיטְרָלִי מִסְפַּר הָאֶלֶקְטְרוֹנִים שָׁוֶה לְ־Z",
+        "transliteration": "Ba-atom neiṭrali mispar ha-elekṭronim shāve le-Z",
+        "ru": "В нейтральном атоме число электронов равно Z"
+      },
+      "source_refs": [
+        "legacy_row_hash:f2649eeda640886574f0d083ef4bdf5729e314bc08678ca0fa6231c2a81d0d0a",
+        "legacy_fields_sha256:0cb840b6ab241b33210b0c67adcab966069bc232a7d6cfc0d9b0dde82f8efa4d",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בָּאָטוֹם",
+            "normalized": "באטום"
+          },
+          {
+            "index": 1,
+            "surface": "נֵיטְרָלִי",
+            "normalized": "ניטרלי"
+          },
+          {
+            "index": 2,
+            "surface": "מִסְפַּר",
+            "normalized": "מספר"
+          },
+          {
+            "index": 3,
+            "surface": "הָאֶלֶקְטְרוֹנִים",
+            "normalized": "האלקטרונים"
+          },
+          {
+            "index": 4,
+            "surface": "שָׁוֶה",
+            "normalized": "שוה"
+          },
+          {
+            "index": 5,
+            "surface": "לְ־Z",
+            "normalized": "ל־Z"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תמונה עליונה שמאלית",
+        "he_niqqud": "תְּמוּנָה עֶלְיוֹנָה שְׂמָאלִית",
+        "transliteration": "Tmunah 'elyonah smalit",
+        "ru": "Верхний левый рисунок"
+      },
+      "source_refs": [
+        "legacy_row_hash:49a928d89f330b8dfe7ee21a20a3e5052f02b2c9994228ad0553297b3e8d131f",
+        "legacy_fields_sha256:bfc1f3a881b8d2685a7cd2458091c1db8a5b9198a97b6054449761e5754fa73d",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 1,
+            "surface": "עֶלְיוֹנָה",
+            "normalized": "עליונה"
+          },
+          {
+            "index": 2,
+            "surface": "שְׂמָאלִית",
+            "normalized": "שמאלית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בגרעין 6P ו־6N",
+        "he_niqqud": "בַּגַּרְעִין 6P וּ־6N",
+        "transliteration": "Ba-gar'in 6P ve-6N",
+        "ru": "В ядре 6P и 6N"
+      },
+      "source_refs": [
+        "legacy_row_hash:1040a2dafb8e9c6421efe1abc71d8fe446bb1f0e90cf124d3a8721716b80c33e",
+        "legacy_fields_sha256:5482190b824ead5fb262ac864401c2011997edc5e3a279720da7eed9d71865b1",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּגַּרְעִין",
+            "normalized": "בגרעין"
+          },
+          {
+            "index": 1,
+            "surface": "6P",
+            "normalized": "6P"
+          },
+          {
+            "index": 2,
+            "surface": "וּ־6N",
+            "normalized": "ו־6N"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r011",
+      "order": 11,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Z=6",
+        "he_niqqud": "Z=6",
+        "transliteration": "Z=6",
+        "ru": "Z=6"
+      },
+      "source_refs": [
+        "legacy_row_hash:7605227af76fceff13e9756d992a3ba10953a40d9a8f8c291fcad21bbf349121",
+        "legacy_fields_sha256:92039b91e92089fc73beb4c4cd29ffde6fa42165ab1d7fb130d9aaf7d8e05a01",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Z=6",
+            "normalized": "Z=6"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Z=6"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) היסוד הוא פחמן (C)",
+        "he_niqqud": "א) הַיְּסוֹד הוּא פַּחְמָן (C)",
+        "transliteration": "A) Ha-yesod hu paḥman (C)",
+        "ru": "А) Элемент — Углерод (C)"
+      },
+      "source_refs": [
+        "legacy_row_hash:0a6b30933c27dfd35ebdd7215c6f880f09a17c1ef0ec3875ddac8397024b66f8",
+        "legacy_fields_sha256:185799b8e23b9d17fa526399aa3de90c64b5f96017a1ceca92ad51d889afc20a",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "פַּחְמָן",
+            "normalized": "פחמן"
+          },
+          {
+            "index": 4,
+            "surface": "(C)",
+            "normalized": "C"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במודל קליפות יש 2 אלקטרונים בקליפה פנימית ו־4 אלקטרונים בקליפה חיצונית",
+        "he_niqqud": "בְּמוֹדֶל קְלִיפוֹת יֵשׁ 2 אֶלֶקְטְרוֹנִים בַּקְּלִיפָה פְּנִימִית וּ־4 אֶלֶקְטְרוֹנִים בַּקְּלִיפָה חִיצוֹנִית",
+        "transliteration": "Be-model qlipot yesh 2 elekṭronim ba-qlippah penimit ve-4 elekṭronim ba-qlippah ḥiẓonit",
+        "ru": "В оболочечной модели 2 электрона во внутренней оболочке и 4 электрона во внешней оболочке"
+      },
+      "source_refs": [
+        "legacy_row_hash:cc55532cb3933bd67b6736be400e80c2154093a52cd6fde038aa882bf89c3ed8",
+        "legacy_fields_sha256:879e6e43a012e76d37f342ea3554b75b5068d9d54d84a2b7083e0399e809c195",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמוֹדֶל",
+            "normalized": "במודל"
+          },
+          {
+            "index": 1,
+            "surface": "קְלִיפוֹת",
+            "normalized": "קליפות"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 4,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 5,
+            "surface": "בַּקְּלִיפָה",
+            "normalized": "בקליפה"
+          },
+          {
+            "index": 6,
+            "surface": "פְּנִימִית",
+            "normalized": "פנימית"
+          },
+          {
+            "index": 7,
+            "surface": "וּ־4",
+            "normalized": "ו־4"
+          },
+          {
+            "index": 8,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 9,
+            "surface": "בַּקְּלִיפָה",
+            "normalized": "בקליפה"
+          },
+          {
+            "index": 10,
+            "surface": "חִיצוֹנִית",
+            "normalized": "חיצונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תמונה עליונה ימנית",
+        "he_niqqud": "תְּמוּנָה עֶלְיוֹנָה יְמָנִית",
+        "transliteration": "Tmunah 'elyonah yemanit",
+        "ru": "Верхний правый рисунок"
+      },
+      "source_refs": [
+        "legacy_row_hash:57fbd2e0bd4b9ac0ded50b658084a9af1017ea16c22c90aa4ce6517ebb6783f0",
+        "legacy_fields_sha256:942edc882d28d4d4c8b7a50d35eddb2f55922a71827195a19c0e193c5934d5db",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 1,
+            "surface": "עֶלְיוֹנָה",
+            "normalized": "עליונה"
+          },
+          {
+            "index": 2,
+            "surface": "יְמָנִית",
+            "normalized": "ימנית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בגרעין 26P ו־30N",
+        "he_niqqud": "בַּגַּרְעִין 26P וּ־30N",
+        "transliteration": "Ba-gar'in 26P ve-30N",
+        "ru": "В ядре 26P и 30N"
+      },
+      "source_refs": [
+        "legacy_row_hash:fd89dd21ded0f64d1d1c28479486cc93a66f782cf0f129095d3fbe6a8151c03c",
+        "legacy_fields_sha256:951ef195f5c1e3d4b476cc7a5061af1cb4168fd96de2590c61e7d902ba530302",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּגַּרְעִין",
+            "normalized": "בגרעין"
+          },
+          {
+            "index": 1,
+            "surface": "26P",
+            "normalized": "26P"
+          },
+          {
+            "index": 2,
+            "surface": "וּ־30N",
+            "normalized": "ו־30N"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r016",
+      "order": 16,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Z=26",
+        "he_niqqud": "Z=26",
+        "transliteration": "Z=26",
+        "ru": "Z=26"
+      },
+      "source_refs": [
+        "legacy_row_hash:95e016afd44ebd05c85a5173073c7f8af5250b846ebe7d03d47f92fa31cfcf66",
+        "legacy_fields_sha256:6c2b43dfd7aae4b93e2a8857cbe813ef76d2ae52c73bf080d1dc54b3f50f9a5d",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Z=26",
+            "normalized": "Z=26"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Z=26"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) היסוד הוא ברזל (Fe)",
+        "he_niqqud": "ב) הַיְּסוֹד הוּא בַּרְזֶל (Fe)",
+        "transliteration": "B) Ha-yesod hu barzel (Fe)",
+        "ru": "Б) Элемент — Железо (Fe)"
+      },
+      "source_refs": [
+        "legacy_row_hash:002d775f96a641efc63d2abd0714f0641ec08f303512fa25c20a0162469ca78e",
+        "legacy_fields_sha256:8f1883af0e38c18c3fc90c794c88cc350d53e59b64827d8b32f1765a0aa7748a",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "בַּרְזֶל",
+            "normalized": "ברזל"
+          },
+          {
+            "index": 4,
+            "surface": "(Fe)",
+            "normalized": "Fe"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במודל קליפות יש 2,8,14,2 אלקטרונים",
+        "he_niqqud": "בְּמוֹדֶל קְלִיפוֹת יֵשׁ 2,8,14,2 אֶלֶקְטְרוֹנִים",
+        "transliteration": "Be-model qlipot yesh 2,8,14,2 elekṭronim",
+        "ru": "В оболочечной модели [присутствуют] 2, 8, 14, 2 электрона"
+      },
+      "source_refs": [
+        "legacy_row_hash:2937969034b4c5c5d0e853bdbba53ede01010e35c7a0413b3938216852ffedc1",
+        "legacy_fields_sha256:1d1158869171cc91a9ba9042ac116e42bf5b0537b9c3420df316510bb42318e7",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמוֹדֶל",
+            "normalized": "במודל"
+          },
+          {
+            "index": 1,
+            "surface": "קְלִיפוֹת",
+            "normalized": "קליפות"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "2,8,14,2",
+            "normalized": "2,8,14,2"
+          },
+          {
+            "index": 4,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תמונה תחתונה שמאלית",
+        "he_niqqud": "תְּמוּנָה תַּחְתּוֹנָה שְׂמָאלִית",
+        "transliteration": "Tmunah taḥtonah smalit",
+        "ru": "Нижний левый рисунок"
+      },
+      "source_refs": [
+        "legacy_row_hash:af0251756fb834bbb3490c91142a386984fee7e94846b19af8fa798e5399b83a",
+        "legacy_fields_sha256:b404ddf8a471fbf0f0cd3535b9cdaf6867f03ba6a8943a4a26ba26691fd13e93",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 1,
+            "surface": "תַּחְתּוֹנָה",
+            "normalized": "תחתונה"
+          },
+          {
+            "index": 2,
+            "surface": "שְׂמָאלִית",
+            "normalized": "שמאלית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בגרעין נראים 3 פרוטונים",
+        "he_niqqud": "בַּגַּרְעִין נִרְאִים 3 פְּרוֹטוֹנִים",
+        "transliteration": "Ba-gar'in nir'im 3 proṭonim",
+        "ru": "В ядре видно 3 протона"
+      },
+      "source_refs": [
+        "legacy_row_hash:56ddf5453d4969553be16cb4d5b3985ffb7f3b0be9cf6f63d575a79ad64418f8",
+        "legacy_fields_sha256:703d10670a536e508005c253c76633231117b8c11d4d1ccc1d204134b18d9a44",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּגַּרְעִין",
+            "normalized": "בגרעין"
+          },
+          {
+            "index": 1,
+            "surface": "נִרְאִים",
+            "normalized": "נראים"
+          },
+          {
+            "index": 2,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 3,
+            "surface": "פְּרוֹטוֹנִים",
+            "normalized": "פרוטונים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r021",
+      "order": 21,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Z=3",
+        "he_niqqud": "Z=3",
+        "transliteration": "Z=3",
+        "ru": "Z=3"
+      },
+      "source_refs": [
+        "legacy_row_hash:9eab8fea071ce2e485a35001a1de33aaed62c7312e56785ace2440c7ddd45a3d",
+        "legacy_fields_sha256:202cf042b842bd90d5fc9bc893372bac5f056da6b80a74b964c8c7dbac43262c",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Z=3",
+            "normalized": "Z=3"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Z=3"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) היסוד הוא ליתיום (Li)",
+        "he_niqqud": "ג) הַיְּסוֹד הוּא לִיתְיוּם (Li)",
+        "transliteration": "G) Ha-yesod hu litium (Li)",
+        "ru": "В) Элемент — Литий (Li)"
+      },
+      "source_refs": [
+        "legacy_row_hash:f545f7582e7abfef342b7ce87a120a8b3eb2b837f82de7da2f0e35e358c44522",
+        "legacy_fields_sha256:c92f7121c94802182a6661cb4c51fe816c4b92d18fe80a08070e5daeccb197fe",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "לִיתְיוּם",
+            "normalized": "ליתיום"
+          },
+          {
+            "index": 4,
+            "surface": "(Li)",
+            "normalized": "Li"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "באטום ניטרלי יש 3 אלקטרונים",
+        "he_niqqud": "בָּאָטוֹם נֵיטְרָלִי יֵשׁ 3 אֶלֶקְטְרוֹנִים",
+        "transliteration": "Ba-atom neiṭrali yesh 3 elekṭronim",
+        "ru": "В нейтральном атоме 3 электрона"
+      },
+      "source_refs": [
+        "legacy_row_hash:4c952710ef2bac7abf2f9691875417572cf9ae124bbb9a8537b1078cd74ebddd",
+        "legacy_fields_sha256:8d408fc4c4feda34cff40989bd69e667d760af91921d719b909da08b2ac63c8f",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בָּאָטוֹם",
+            "normalized": "באטום"
+          },
+          {
+            "index": 1,
+            "surface": "נֵיטְרָלִי",
+            "normalized": "ניטרלי"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 4,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במודל קליפות יש 2 אלקטרונים בקליפה פנימית ו־1 אלקטרון בקליפה חיצונית",
+        "he_niqqud": "בְּמוֹדֶל קְלִיפוֹת יֵשׁ 2 אֶלֶקְטְרוֹנִים בַּקְּלִיפָה פְּנִימִית וּ־1 אֶלֶקְטְרוֹן בַּקְּלִיפָה חִיצוֹנִית",
+        "transliteration": "Be-model qlipot yesh 2 elekṭronim ba-qlippah penimit ve-1 elekṭron ba-qlippah ḥiẓonit",
+        "ru": "В оболочечной модели 2 электрона во внутренней оболочке и 1 электрон во внешней оболочке"
+      },
+      "source_refs": [
+        "legacy_row_hash:2297703a1fc7f0d87a608d908295c6890d1c2b8ab095933c1f277304f41f7ede",
+        "legacy_fields_sha256:1003f88e38ae6ea0f4c0409197fe47276b3345427cd18e7e4c60c063f9ab4c52",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמוֹדֶל",
+            "normalized": "במודל"
+          },
+          {
+            "index": 1,
+            "surface": "קְלִיפוֹת",
+            "normalized": "קליפות"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 4,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 5,
+            "surface": "בַּקְּלִיפָה",
+            "normalized": "בקליפה"
+          },
+          {
+            "index": 6,
+            "surface": "פְּנִימִית",
+            "normalized": "פנימית"
+          },
+          {
+            "index": 7,
+            "surface": "וּ־1",
+            "normalized": "ו־1"
+          },
+          {
+            "index": 8,
+            "surface": "אֶלֶקְטְרוֹן",
+            "normalized": "אלקטרון"
+          },
+          {
+            "index": 9,
+            "surface": "בַּקְּלִיפָה",
+            "normalized": "בקליפה"
+          },
+          {
+            "index": 10,
+            "surface": "חִיצוֹנִית",
+            "normalized": "חיצונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "תמונה תחתונה ימנית",
+        "he_niqqud": "תְּמוּנָה תַּחְתּוֹנָה יְמָנִית",
+        "transliteration": "Tmunah taḥtonah yemanit",
+        "ru": "Нижний правый рисунок"
+      },
+      "source_refs": [
+        "legacy_row_hash:df4a32fa0a6a830d395af91ac29c764d6026961dcae81978777f3752dede81b6",
+        "legacy_fields_sha256:9715a39d16c52294cf4362b7f73f3218fce962328a382d20e40d09cffa25b611",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "תְּמוּנָה",
+            "normalized": "תמונה"
+          },
+          {
+            "index": 1,
+            "surface": "תַּחְתּוֹנָה",
+            "normalized": "תחתונה"
+          },
+          {
+            "index": 2,
+            "surface": "יְמָנִית",
+            "normalized": "ימנית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בגרעין יש 4 פרוטונים ו־4 נויטרונים",
+        "he_niqqud": "בַּגַּרְעִין יֵשׁ 4 פְּרוֹטוֹנִים וּ־4 נוֹיטְרוֹנִים",
+        "transliteration": "Ba-gar'in yesh 4 proṭonim ve-4 neiṭronim",
+        "ru": "В ядре 4 протона и 4 нейтрона"
+      },
+      "source_refs": [
+        "legacy_row_hash:72ea31659d77d4fbffea9457a2873b9318197e5c3f48d0e9b515af027a706a36",
+        "legacy_fields_sha256:88cbfe2fe3d4f74c68802519bd4b57e78e7361525fedf35d7cd1b562eacaf9d9",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּגַּרְעִין",
+            "normalized": "בגרעין"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "4",
+            "normalized": "4"
+          },
+          {
+            "index": 3,
+            "surface": "פְּרוֹטוֹנִים",
+            "normalized": "פרוטונים"
+          },
+          {
+            "index": 4,
+            "surface": "וּ־4",
+            "normalized": "ו־4"
+          },
+          {
+            "index": 5,
+            "surface": "נוֹיטְרוֹנִים",
+            "normalized": "נויטרונים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בקליפות יש 2 אלקטרונים פנימיים ו־2 אלקטרונים ערכיים",
+        "he_niqqud": "בַּקְּלִיפוֹת יֵשׁ 2 אֶלֶקְטְרוֹנִים פְּנִימִיִּים וּ־2 אֶלֶקְטְרוֹנִים עֶרְכִּיִּים",
+        "transliteration": "Ba-qlippot yesh 2 elekṭronim penimiyim ve-2 elekṭronim 'arkhiyim",
+        "ru": "В оболочках 2 внутренних электрона и 2 валентных электрона"
+      },
+      "source_refs": [
+        "legacy_row_hash:96fae510cb4e5aeb93017b4d74bf35def49be24f9978c4b90b8e81f898d20571",
+        "legacy_fields_sha256:ef0d1ad4c2cbbb0558d6f05f10389f232c0352085a42838a507846de8db3a3a9",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּקְּלִיפוֹת",
+            "normalized": "בקליפות"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 4,
+            "surface": "פְּנִימִיִּים",
+            "normalized": "פנימיים"
+          },
+          {
+            "index": 5,
+            "surface": "וּ־2",
+            "normalized": "ו־2"
+          },
+          {
+            "index": 6,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 7,
+            "surface": "עֶרְכִּיִּים",
+            "normalized": "ערכיים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r028",
+      "order": 28,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "Z=4",
+        "he_niqqud": "Z=4",
+        "transliteration": "Z=4",
+        "ru": "Z=4"
+      },
+      "source_refs": [
+        "legacy_row_hash:0e6165c077ced28b6118029222d836462e0e4ddc37d09464b579ed47484dcdb0",
+        "legacy_fields_sha256:9d895f4d92beb757db9b74ea5f00024c540f0eb08c2b5c6708429418db845a0f",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Z=4",
+            "normalized": "Z=4"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "Z=4"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r029",
+      "order": 29,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) היסוד הוא בריליום (Be)",
+        "he_niqqud": "ד) הַיְּסוֹד הוּא בֶּרִילְיוּם (Be)",
+        "transliteration": "D) Ha-yesod hu berilyum (Be)",
+        "ru": "Г) Элемент — Бериллий (Be)"
+      },
+      "source_refs": [
+        "legacy_row_hash:4e7789fe34d1c6c97481cb8c94d2adbefa2dbdebac32b4786b3d987ffd2ba7d1",
+        "legacy_fields_sha256:939158379ba1fbd22085278a7932b27e30c87aaf614f52c82d75a8bb70212b0c",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הַיְּסוֹד",
+            "normalized": "היסוד"
+          },
+          {
+            "index": 2,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 3,
+            "surface": "בֶּרִילְיוּם",
+            "normalized": "בריליום"
+          },
+          {
+            "index": 4,
+            "surface": "(Be)",
+            "normalized": "Be"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במודל קליפות יש 2 אלקטרונים בקליפה פנימית ו־2 אלקטרונים בקליפה חיצונית",
+        "he_niqqud": "בְּמוֹדֶל קְלִיפוֹת יֵשׁ 2 אֶלֶקְטְרוֹנִים בַּקְּלִיפָה פְּנִימִית וּ־2 אֶלֶקְטְרוֹנִים בַּקְּלִיפָה חִיצוֹנִית",
+        "transliteration": "Be-model qlipot yesh 2 elekṭronim ba-qlippah penimit ve-2 elekṭronim ba-qlippah ḥiẓonit",
+        "ru": "В оболочечной модели 2 электрона во внутренней оболочке и 2 электрона во внешней оболочке"
+      },
+      "source_refs": [
+        "legacy_row_hash:f906d17c875b9877e7f370b667a997f22622bba35f4924b36cc6dffe0c615ce1",
+        "legacy_fields_sha256:a426a606a5693d8439a0efe7d043a9eeda9af7ad128e59236bccaaaa1830ab0a",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמוֹדֶל",
+            "normalized": "במודל"
+          },
+          {
+            "index": 1,
+            "surface": "קְלִיפוֹת",
+            "normalized": "קליפות"
+          },
+          {
+            "index": 2,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 3,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 4,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 5,
+            "surface": "בַּקְּלִיפָה",
+            "normalized": "בקליפה"
+          },
+          {
+            "index": 6,
+            "surface": "פְּנִימִית",
+            "normalized": "פנימית"
+          },
+          {
+            "index": 7,
+            "surface": "וּ־2",
+            "normalized": "ו־2"
+          },
+          {
+            "index": 8,
+            "surface": "אֶלֶקְטְרוֹנִים",
+            "normalized": "אלקטרונים"
+          },
+          {
+            "index": 9,
+            "surface": "בַּקְּלִיפָה",
+            "normalized": "בקליפה"
+          },
+          {
+            "index": 10,
+            "surface": "חִיצוֹנִית",
+            "normalized": "חיצונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q001-sol-r031",
+      "order": 31,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:6448bcafff7f02b602f5f368cc509196d6e7fdce4637bf041f45d93c3fe6165c",
+        "comparison:MATCH",
+        "source_page:3",
+        "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q001",
+    "display_alias": "1",
+    "source_pages": [
+      3
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "Сверху слева: углерод C, Z=6.",
+      "Сверху справа: железо Fe, Z=26.",
+      "Снизу слева: литий Li, Z=3.",
+      "Снизу справа: бериллий Be, Z=4."
+    ],
+    "engineering_picture": "Для нейтрального атома число электронов равно числу протонов; элемент определяется атомным номером Z, то есть числом протонов.",
+    "prerequisites": [
+      "Атомный номер Z равен числу протонов.",
+      "У нейтрального атома число электронов равно Z."
+    ],
+    "roadmap": [
+      "Считать указанное число протонов или электроны на оболочках.",
+      "Сопоставить Z с химическим элементом.",
+      "Проверить электронейтральность рисунка."
+    ],
+    "main_trap": "Не определять элемент по числу нейтронов: оно задаёт изотоп, а не химический элемент.",
+    "givens": [
+      "Рисунок 1: ядро 6P, 6N.",
+      "Рисунок 2: ядро 26P, 30N.",
+      "Рисунок 3: три электрона.",
+      "Рисунок 4: четыре электрона."
+    ],
+    "find": [
+      "Названия четырёх элементов в порядке расположения рисунков."
+    ],
+    "assumptions": [
+      "Изображены нейтральные атомы, а не ионы."
+    ],
+    "laws": [
+      "Z=N_p.",
+      "Для нейтрального атома N_e=N_p."
+    ],
+    "symbolic_derivation": [
+      "6P → Z=6 → C.",
+      "26P → Z=26 → Fe.",
+      "3e⁻ → Z=3 → Li.",
+      "4e⁻ → Z=4 → Be."
+    ],
+    "calculation": [],
+    "construction": [
+      "Подписать изображения слева направо по строкам: C, Fe, Li, Be."
+    ],
+    "checks": [
+      "Число электронов на оболочках согласуется с Z для каждого нейтрального атома."
+    ],
+    "source_facts": [
+      "source_page:3",
+      "asset_sha256:c6c24ed83a71ebed9c650f7deec8f23bfb935c6cb03bb0ba979c68c6909f11ee"
+    ],
+    "unresolved_limits": []
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 4
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

@@ -1,0 +1,2874 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_f50ac93ccb8a2391676e53ec",
+  "public_work_id": "work-d45da2f71ffbaabff6dcd8bd",
+  "snapshot_sha256": "c7e7588f98748a64dff1cd5b76e0a362651cc9b8ac276bf782f07742ec4c96a1",
+  "task_id": "materials-science-y1-pb2-q007",
+  "display_alias": "7",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "9ac98d2d9805943819256f80c2df8f7b4906bdbba054d3ffb8f770684cc11e29"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "66071f64e942d7341ecc4a5c8721a0db7f9b2bd63a211394a3d587746debf363",
+    "source_canonical_task_sha256": "9ac98d2d9805943819256f80c2df8f7b4906bdbba054d3ffb8f770684cc11e29"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "490 MPa yield, 840 MPa UTS, about 189 GPa modulus, rejection at 550 MPa, and 331 HB selection match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q007-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 7.",
+        "hebrew_niqqud": "שְׁאֵלָה 7.",
+        "translit": "She'ela 7.",
+        "translit_ru": "",
+        "russian": "Вопрос 7.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "task_heading",
+            "source_page": 8,
+            "source_row_index": 0,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r002",
+        "order_index": 1,
+        "hebrew_plain": "נתון דגם מתיחה סטנדרטי העשוי פלדה SAE 4340, ללא טיפול תרמי של חיסום והרפיה.",
+        "hebrew_niqqud": "נָתוּן דֶּגֶם מְתִיחָה סְטַנְדַּרְטִי הֶעָשׂוּי פְּלָדָה SAE 4340, לְלֹא טִיפּוּל תֶּרְמִי שֶׁל חִיסּוּם וְהַרְפָּיָה.",
+        "translit": "Natún dégem metiḥá standartí he'asúy peladá SAE 4340, leló tipúl termí shel ḥisúm ve-harpayá.",
+        "translit_ru": "",
+        "russian": "Дан стандартный образец для испытаний на растяжение, изготовленный из стали SAE 4340, без термообработки в виде закалки и отпуска.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "condition",
+            "source_page": 8,
+            "source_row_index": 1,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r003",
+        "order_index": 2,
+        "hebrew_plain": "שטח החתך של הדגם הוא 200 [מ״מ²], ואורכו הנבדק הוא 50 mm.",
+        "hebrew_niqqud": "שֶׁטַח הַחֵתֶךְ שֶׁל הַדֶּגֶם הוּא 200 [מ״מ²], וְאׇורְכּוֹ הַנִּבְדָּק הוּא 50 mm.",
+        "translit": "Shétaḥ ha-ḥatakh shel ha-détem hú 200 [mm²], ve-orkó ha-nivdák hú 50 mm.",
+        "translit_ru": "",
+        "russian": "Площадь поперечного сечения образца составляет 200 [мм²], а его испытательная длина — 50 мм.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "condition",
+            "source_page": 8,
+            "source_row_index": 2,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r004",
+        "order_index": 3,
+        "hebrew_plain": "הדגם נבחן בניסוי מתיחה, ונמדדו התוצאות הבאות:",
+        "hebrew_niqqud": "הַדֶּגֶם נִבְחָן בְּנִיסּוּי מְתִיחָה, וְנִמְדְּדוּ הַתּוֹצָאוֹת הַבָּאוֹת:",
+        "translit": "Ha-détem nivḥán be-nisúy metiḥá, ve-nimdedú ha-totsa'ót ha-ba'ót:",
+        "translit_ru": "",
+        "russian": "Образец был испытан на растяжение, и были измерены следующие результаты:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "source_note",
+            "source_page": 8,
+            "source_row_index": 3,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r005",
+        "order_index": 4,
+        "hebrew_plain": "Fy = 98000 N",
+        "hebrew_niqqud": "Fy = 98000 N",
+        "translit": "Fy = 98000 N",
+        "translit_ru": "",
+        "russian": "Fy = 98000 H",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "table_data",
+            "source_page": 8,
+            "source_row_index": 4,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r006",
+        "order_index": 5,
+        "hebrew_plain": "אורך הדגם בעומס הכניעה: Ly = 50.13 mm",
+        "hebrew_niqqud": "אֹורֶךְ הַדֶּגֶם בְּעֹומֶס הַכְּנִיעָה: Ly = 50.13 mm",
+        "translit": "Órekh ha-détem be-ómes ha-kníya: Ly = 50.13 mm",
+        "translit_ru": "",
+        "russian": "Длина образца при пределе текучести: Ly = 50.13 мм",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "table_data",
+            "source_page": 8,
+            "source_row_index": 5,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r007",
+        "order_index": 6,
+        "hebrew_plain": "כוח המתיחה המקסימלי: FUTS = 168000 N",
+        "hebrew_niqqud": "כֹּוחַ הַמְּתִיחָה הַמַּקְסִימָלִי: FUTS = 168000 N",
+        "translit": "Kóaḥ ha-metiḥá ha-maksimalí: FUTS = 168000 N",
+        "translit_ru": "",
+        "russian": "Максимальная сила растяжения: FUTS = 168000 H",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "table_data",
+            "source_page": 8,
+            "source_row_index": 6,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r008",
+        "order_index": 7,
+        "hebrew_plain": "אורך הדגם בעומס המתיחה המקסימלי: Luts = 64.00 mm",
+        "hebrew_niqqud": "אֹורֶךְ הַדֶּגֶם בְּעֹומֶס הַמְּתִיחָה הַמַּקְסִימָלִי: Luts = 64.00 mm",
+        "translit": "Órekh ha-détem be-ómes ha-metiḥá ha-maksimalí: Luts = 64.00 mm",
+        "translit_ru": "",
+        "russian": "Длина образца при максимальной силе растяжения: Luts = 64.00 мм",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "table_data",
+            "source_page": 8,
+            "source_row_index": 7,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r009",
+        "order_index": 8,
+        "hebrew_plain": "קשיות הפלדה: HB 217",
+        "hebrew_niqqud": "קְשִׁיּוּת הַפְּלָדָה: HB 217",
+        "translit": "Qashyút ha-peladá: HB 217",
+        "translit_ru": "",
+        "russian": "Твердость стали: HB 217",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "table_data",
+            "source_page": 8,
+            "source_row_index": 8,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r010",
+        "order_index": 9,
+        "hebrew_plain": "א) חשב את מאמץ הכניעה (σy) ואת מאמץ המתיחה המקסימלי (σUTS).",
+        "hebrew_niqqud": "א) חַשֵּׁב אֶת מַאֲמָץ הַכְּנִיעָה (σy) וְאֶת מַאֲמָץ הַמְּתִיחָה הַמַּקְסִימָלִי (σUTS).",
+        "translit": "A) Ḥashév et ma'amatz ha-kníya (σy) ve-et ma'amatz ha-metiḥá ha-maksimalí (σUTS).",
+        "translit_ru": "",
+        "russian": "A) Рассчитайте предел текучести (σy) и максимальное напряжение растяжения (σUTS).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "subpart",
+            "source_page": 8,
+            "source_row_index": 9,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r011",
+        "order_index": 10,
+        "hebrew_plain": "ב) חשב את מודול יאנג (E) של הפלדה SAE 4340.",
+        "hebrew_niqqud": "ב) חַשֵּׁב אֶת מוֹדוּל יַאנְג (E) שֶׁל הַפְּלָדָה SAE 4340.",
+        "translit": "B) Ḥashév et módul Yáng (E) shel ha-peladá SAE 4340.",
+        "translit_ru": "",
+        "russian": "Б) Рассчитайте модуль Юнга (E) стали SAE 4340.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "subpart",
+            "source_page": 8,
+            "source_row_index": 10,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 10,
+        "sentence_index": 10,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r012",
+        "order_index": 11,
+        "hebrew_plain": "ג) דרישת הלקוח לשאת מאמץ מתיחה חד־צירי של 550 MPa לאורך המוט.",
+        "hebrew_niqqud": "ג) דְּרִישַׁת הַלָּקוֹחַ לָשֵׂאת מַאֲמָץ מְתִיחָה חַד־צִירִי שֶׁל 550 MPa לְאֹורֶךְ הַמּוֹט.",
+        "translit": "G) Derishát ha-laqóaḥ laśét ma'amatz metiḥá ḥad-tsirí shel 550 MPa le'órekh ha-moṭ.",
+        "translit_ru": "",
+        "russian": "В) Требование заказчика — выдержать одноосное напряжение растяжения 550 МПа по длине стержня.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "subpart",
+            "source_page": 8,
+            "source_row_index": 11,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 11,
+        "sentence_index": 11,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r013",
+        "order_index": 12,
+        "hebrew_plain": "קבע אם ניתן להשתמש בפלדה זו למוט, ונמק.",
+        "hebrew_niqqud": "קְבַע אִם נִיתָּן לְהִשְׁתַּמֵּשׁ בִּפְלָדָה זוֹ לַמּוֹט, וְנַמֵּק.",
+        "translit": "Qva ímm nitán lehishtamésh ba-peladá zó la-moṭ, ve-naméq.",
+        "translit_ru": "",
+        "russian": "Определите, можно ли использовать эту сталь для стержня, и обоснуйте.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "subpart",
+            "source_page": 8,
+            "source_row_index": 12,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 12,
+        "sentence_index": 12,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r014",
+        "order_index": 13,
+        "hebrew_plain": "ד) לאחר טיפול תרמי של חיסום והרפיה התקבלו ערכי קשיות 180 HB, 217 HB, 331 HB.",
+        "hebrew_niqqud": "ד) לְאַחַר טִיפּוּל תֶּרְמִי שֶׁל חִיסּוּם וְהַרְפָּיָה הִתְקַבְּלוּ עֶרְכֵי קְשִׁיּוּת 180 HB, 217 HB, 331 HB.",
+        "translit": "D) Le'aḥar tipúl termí shel ḥisúm ve-harpayá hitqablú erkhéi qashyút 180 HB, 217 HB, 331 HB.",
+        "translit_ru": "",
+        "russian": "Г) После термообработки в виде закалки и отпуска были получены значения твердости 180 HB, 217 HB, 331 HB.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "subpart",
+            "source_page": 8,
+            "source_row_index": 13,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 13,
+        "sentence_index": 13,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q007-r015",
+        "order_index": 14,
+        "hebrew_plain": "איזה ערך קשיות אמור להתקבל, ונמק.",
+        "hebrew_niqqud": "אֵיזֶה עֶרֶךְ קְשִׁיּוּת אָמוּר לְהִתְקַבֵּל, וְנַמֵּק.",
+        "translit": "Éizeh érekh qashyút amúr lehitqabél, ve-naméq.",
+        "translit_ru": "",
+        "russian": "Какое значение твердости должно быть получено, и обоснуйте.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q007",
+            "kind": "subpart",
+            "source_page": 8,
+            "source_row_index": 14,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 14,
+        "sentence_index": 14,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      8
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q007/anchor-01-p008.jpg",
+        "sha256": "af0cc2b3915367088c411ec09bcc5eedf7c32297d1e2e70fc368fb38d7e16d79",
+        "bytes": 299957,
+        "source_page": 8,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/af0cc2b3915367088c411ec09bcc5eedf7c32297d1e2e70fc368fb38d7e16d79"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) σy = 490 MPa ו־σUTS = 840 MPa.",
+        "he_niqqud": "א) σy = 490 MPa וְ־σUTS = 840 MPa.",
+        "transliteration": "A) σy = 490 MPa ve-σUTS = 840 MPa.",
+        "ru": "А) σy = 490 МПа и σUTS = 840 МПа."
+      },
+      "source_refs": [
+        "legacy_row_hash:10af9811536291b7dfbe782196496376e2c90d734af778644e392eaf50fb7eea",
+        "legacy_fields_sha256:17a425cc5d2f21cc18f44873d5c0ca8a77439272976ed408a1d0b75b05ca7174",
+        "independent_solution_sha256:2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 2,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 3,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 4,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 5,
+            "surface": "וְ־σUTS",
+            "normalized": "ו־σUTS"
+          },
+          {
+            "index": 6,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 7,
+            "surface": "840",
+            "normalized": "840"
+          },
+          {
+            "index": 8,
+            "surface": "MPa.",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+        "he_niqqud": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+        "transliteration": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+        "ru": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026"
+      },
+      "source_refs": [
+        "legacy_row_hash:2a03503b1ae54287a6950a4de44ef46126ebf7adfbc9127c849fcfc56df72cd7",
+        "legacy_fields_sha256:10d7efcb9bb2b89a08a62d3ea279ad7f9a88da258f2b500213a3b2d8a203648d",
+        "independent_solution_sha256:2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "εy",
+            "normalized": "εy"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(50.13",
+            "normalized": "50.13"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "50.00)",
+            "normalized": "50.00"
+          },
+          {
+            "index": 5,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 6,
+            "surface": "50.00",
+            "normalized": "50.00"
+          },
+          {
+            "index": 7,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 8,
+            "surface": "0.13",
+            "normalized": "0.13"
+          },
+          {
+            "index": 9,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 10,
+            "surface": "50",
+            "normalized": "50"
+          },
+          {
+            "index": 11,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 12,
+            "surface": "0.0026",
+            "normalized": "0.0026"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "550 MPa > 490 MPa",
+        "he_niqqud": "550 MPa > 490 MPa",
+        "transliteration": "550 MPa > 490 MPa",
+        "ru": "550 МПа > 490 МПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:ef5d5a4c94ca788c77286e8fcd94a059d34cc46f6b9fdf79220bea654a554365",
+        "legacy_fields_sha256:b952b7dec261532a961dc751e6dc50d192d175685cd42eb0a7d4fda326dffc28",
+        "independent_solution_sha256:2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "550",
+            "normalized": "550"
+          },
+          {
+            "index": 1,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 2,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 3,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 4,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "550 MPa > 490 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r005",
+      "order": 5,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) הערך הצפוי לאחר חיסום והרפיה הוא 331 HB.",
+        "he_niqqud": "ד) הָעֵרֶךְ הַצָּפוּי לְאַחַר חִסּוּם וְהַרְפָּיָה הוּא 331 HB.",
+        "transliteration": "D) Ha-erékh ha-tsafúy le'aḥar ḥisúm ve-harpayá hú 331 HB.",
+        "ru": "Г) Ожидаемое значение после закалки и отпуска составляет 331 HB."
+      },
+      "source_refs": [
+        "legacy_row_hash:4e5d0417e8b51a05c97b6858cda5b1ebe7e7cd2d95b3f1492fbbc7fe673df5a5",
+        "legacy_fields_sha256:fad7bfe60bc2a458b2249d208290c9d472df2935c646478b2607624bd88a0c7e",
+        "independent_solution_sha256:2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 2,
+            "surface": "הַצָּפוּי",
+            "normalized": "הצפוי"
+          },
+          {
+            "index": 3,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 4,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 5,
+            "surface": "וְהַרְפָּיָה",
+            "normalized": "והרפיה"
+          },
+          {
+            "index": 6,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 7,
+            "surface": "331",
+            "normalized": "331"
+          },
+          {
+            "index": 8,
+            "surface": "HB.",
+            "normalized": "HB"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r006",
+      "order": 6,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "א) σy = 490 MPa ו־σUTS = 840 MPa.",
+        "he_niqqud": "א) σy = 490 MPa וְ־σUTS = 840 MPa.",
+        "transliteration": "A) σy = 490 MPa ve-σUTS = 840 MPa.",
+        "ru": "А) σy = 490 МПа и σUTS = 840 МПа."
+      },
+      "source_refs": [
+        "legacy_row_hash:10af9811536291b7dfbe782196496376e2c90d734af778644e392eaf50fb7eea",
+        "legacy_fields_sha256:17a425cc5d2f21cc18f44873d5c0ca8a77439272976ed408a1d0b75b05ca7174",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 2,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 3,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 4,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 5,
+            "surface": "וְ־σUTS",
+            "normalized": "ו־σUTS"
+          },
+          {
+            "index": 6,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 7,
+            "surface": "840",
+            "normalized": "840"
+          },
+          {
+            "index": 8,
+            "surface": "MPa.",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בפתרון זה משתמשים במאמץ הנדסי לפי שטח חתך התחלתי A0.",
+        "he_niqqud": "בַּפִּתְרוֹן זֶה מִשְׁתַּמְּשִׁים בְּמַאֲמָץ הַנְדָּסִי לְפִי שֶׁטַח חֵתֶךְ הַתְחָלָתִי A0.",
+        "transliteration": "Ba-pitrón zéh mishtamshim be-ma'amatz handasí lefí shétaḥ ḥatakh hatḥalatí A0.",
+        "ru": "В этом решении используется инженерное напряжение, основанное на начальной площади поперечного сечения A0."
+      },
+      "source_refs": [
+        "legacy_row_hash:c92419f1790a314878a66f2c08be8f522cdd2f402529b94ec72a79b2b67acaa9",
+        "legacy_fields_sha256:2a9b1623d622cd4ec897da774a446d65cad729d7145841a0399d85b1d0b4d4cb",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בַּפִּתְרוֹן",
+            "normalized": "בפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "זֶה",
+            "normalized": "זה"
+          },
+          {
+            "index": 2,
+            "surface": "מִשְׁתַּמְּשִׁים",
+            "normalized": "משתמשים"
+          },
+          {
+            "index": 3,
+            "surface": "בְּמַאֲמָץ",
+            "normalized": "במאמץ"
+          },
+          {
+            "index": 4,
+            "surface": "הַנְדָּסִי",
+            "normalized": "הנדסי"
+          },
+          {
+            "index": 5,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁטַח",
+            "normalized": "שטח"
+          },
+          {
+            "index": 7,
+            "surface": "חֵתֶךְ",
+            "normalized": "חתך"
+          },
+          {
+            "index": 8,
+            "surface": "הַתְחָלָתִי",
+            "normalized": "התחלתי"
+          },
+          {
+            "index": 9,
+            "surface": "A0.",
+            "normalized": "A0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r008",
+      "order": 8,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σ = F / A0",
+        "he_niqqud": "σ = F / A0",
+        "transliteration": "σ = F / A0",
+        "ru": "σ = F / A0"
+      },
+      "source_refs": [
+        "legacy_row_hash:033b036db21bcbedde6b38abbf9364574f9aa7ee086299ece6f28322c5d2abbb",
+        "legacy_fields_sha256:c64b27e736bc4d1b4f359ac5a36117cc4e7c5bbe9ed528d1338ee3ca4a93ca2a",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σ",
+            "normalized": "σ"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "F",
+            "normalized": "F"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "A0",
+            "normalized": "A0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σ = F / A0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r009",
+      "order": 9,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "A0 = 200 mm²",
+        "he_niqqud": "A0 = 200 mm²",
+        "transliteration": "A0 = 200 mm²",
+        "ru": "A0 = 200 мм²"
+      },
+      "source_refs": [
+        "legacy_row_hash:bd7e8e1493652584efcc8ab81e349768b4b666871dc49a4aa20c9760c3a8a765",
+        "legacy_fields_sha256:2005b7920097952b32a867f8c7321635cda8d4ecdb90066bd2f7af620ffce486",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "A0",
+            "normalized": "A0"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "200",
+            "normalized": "200"
+          },
+          {
+            "index": 3,
+            "surface": "mm²",
+            "normalized": "mm²"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "A0 = 200 mm²"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r010",
+      "order": 10,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σy = Fy / A0",
+        "he_niqqud": "σy = Fy / A0",
+        "transliteration": "σy = Fy / A0",
+        "ru": "σy = Fy / A0"
+      },
+      "source_refs": [
+        "legacy_row_hash:6e3a3993ac415af116f9bcb78d3b8774d42e7c60999444e0f6a0b09feb8a110b",
+        "legacy_fields_sha256:1076ee7d0b7f0cfc1673007ea5455986fe540d838dd9501662ae441ff4809565",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "Fy",
+            "normalized": "Fy"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "A0",
+            "normalized": "A0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σy = Fy / A0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r011",
+      "order": 11,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σy = 98000 / 200 = 490 N/mm² = 490 MPa",
+        "he_niqqud": "σy = 98000 / 200 = 490 N/mm² = 490 MPa",
+        "transliteration": "σy = 98000 / 200 = 490 N/mm² = 490 MPa",
+        "ru": "σy = 98000 / 200 = 490 Н/мм² = 490 МПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:cc050cea5e10d8efe4c3c55b0262f2455ee931506b6ad0b3e38e3dee4308d057",
+        "legacy_fields_sha256:85a1971dbf3ed98867cce872c53736d444a753be4e3012be00e83dc364d19b1f",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "98000",
+            "normalized": "98000"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "200",
+            "normalized": "200"
+          },
+          {
+            "index": 5,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 6,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 7,
+            "surface": "N/mm²",
+            "normalized": "N/mm²"
+          },
+          {
+            "index": 8,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 9,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 10,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σy = 98000 / 200 = 490 N/mm² = 490 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r012",
+      "order": 12,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σUTS = FUTS / A0",
+        "he_niqqud": "σUTS = FUTS / A0",
+        "transliteration": "σUTS = FUTS / A0",
+        "ru": "σUTS = FUTS / A0"
+      },
+      "source_refs": [
+        "legacy_row_hash:dea79d62b26cc1a14ec45da7d9a47b1cdd9fa79de4e8771f780f1faabc14899a",
+        "legacy_fields_sha256:993e95bfce8db9bd0bc699e3e5a9bf64204da8d4ee039ac6720f1ef07d9f005f",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σUTS",
+            "normalized": "σUTS"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "FUTS",
+            "normalized": "FUTS"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "A0",
+            "normalized": "A0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σUTS = FUTS / A0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r013",
+      "order": 13,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σUTS = 168000 / 200 = 840 N/mm² = 840 MPa",
+        "he_niqqud": "σUTS = 168000 / 200 = 840 N/mm² = 840 MPa",
+        "transliteration": "σUTS = 168000 / 200 = 840 N/mm² = 840 MPa",
+        "ru": "σUTS = 168000 / 200 = 840 Н/мм² = 840 МПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:81afb3bb50b7a3ae047fac80924eb1b022c34d5198aef3f6bf8037ac8259f765",
+        "legacy_fields_sha256:f459827b9159045030c48834f573ee1f5f7275346e0bc6e80fe2c4d3c6247799",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σUTS",
+            "normalized": "σUTS"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "168000",
+            "normalized": "168000"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "200",
+            "normalized": "200"
+          },
+          {
+            "index": 5,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 6,
+            "surface": "840",
+            "normalized": "840"
+          },
+          {
+            "index": 7,
+            "surface": "N/mm²",
+            "normalized": "N/mm²"
+          },
+          {
+            "index": 8,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 9,
+            "surface": "840",
+            "normalized": "840"
+          },
+          {
+            "index": 10,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σUTS = 168000 / 200 = 840 N/mm² = 840 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r014",
+      "order": 14,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) E ≈ 189 GPa.",
+        "he_niqqud": "ב) E ≈ 189 GPa.",
+        "transliteration": "B) E ≈ 189 GPa.",
+        "ru": "Б) E ≈ 189 ГПа."
+      },
+      "source_refs": [
+        "legacy_row_hash:f420540977483ac608d07ead742273434c752bfd38ed2a2c64575e8af3839b1c",
+        "legacy_fields_sha256:bd76ca1cfd09b4742527011178965f9e878d27d5f599c09ae3f23b869287fc7e",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 2,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 3,
+            "surface": "189",
+            "normalized": "189"
+          },
+          {
+            "index": 4,
+            "surface": "GPa.",
+            "normalized": "GPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "part_label": "Б",
+      "formulae": [
+        "ב) E ≈ 189 GPa."
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מחשבים תחילה את המעוות בעומס הכניעה.",
+        "he_niqqud": "מְחַשְּׁבִים תְּחִלָּה אֶת הַמִּעוּוּת בְּעֹמֶס הַכְּנִיעָה.",
+        "transliteration": "Meḥashvím teḥilá et ha-mi'út be-ómes ha-kníya.",
+        "ru": "Сначала рассчитываем деформацию при пределе текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:9fca4b143554f0a1b1fe20a1ea30a894aa3edf80ec132ec1e1411a593803f335",
+        "legacy_fields_sha256:f34fb779c645e61a51fce25f995702c7b96a9471d1d1a0417e0688a64ee1e914",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְחַשְּׁבִים",
+            "normalized": "מחשבים"
+          },
+          {
+            "index": 1,
+            "surface": "תְּחִלָּה",
+            "normalized": "תחלה"
+          },
+          {
+            "index": 2,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 3,
+            "surface": "הַמִּעוּוּת",
+            "normalized": "המעוות"
+          },
+          {
+            "index": 4,
+            "surface": "בְּעֹמֶס",
+            "normalized": "בעמס"
+          },
+          {
+            "index": 5,
+            "surface": "הַכְּנִיעָה.",
+            "normalized": "הכניעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r016",
+      "order": 16,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "εy = (Ly − L0) / L0",
+        "he_niqqud": "εy = (Ly − L0) / L0",
+        "transliteration": "εy = (Ly − L0) / L0",
+        "ru": "εy = (Ly − L0) / L0"
+      },
+      "source_refs": [
+        "legacy_row_hash:39af778f54404dbd0334c8e1d71b64ac1edd9d0c25384f9b8af83e7e67c3aeeb",
+        "legacy_fields_sha256:8c6210a0f2f46e049701e48e139cd2a92392a11078e26ac5f4eb2ca04be7dbd6",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "εy",
+            "normalized": "εy"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(Ly",
+            "normalized": "Ly"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "L0)",
+            "normalized": "L0"
+          },
+          {
+            "index": 5,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 6,
+            "surface": "L0",
+            "normalized": "L0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "εy = (Ly − L0) / L0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r017",
+      "order": 17,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+        "he_niqqud": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+        "transliteration": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+        "ru": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026"
+      },
+      "source_refs": [
+        "legacy_row_hash:2a03503b1ae54287a6950a4de44ef46126ebf7adfbc9127c849fcfc56df72cd7",
+        "legacy_fields_sha256:10d7efcb9bb2b89a08a62d3ea279ad7f9a88da258f2b500213a3b2d8a203648d",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "εy",
+            "normalized": "εy"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(50.13",
+            "normalized": "50.13"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "50.00)",
+            "normalized": "50.00"
+          },
+          {
+            "index": 5,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 6,
+            "surface": "50.00",
+            "normalized": "50.00"
+          },
+          {
+            "index": 7,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 8,
+            "surface": "0.13",
+            "normalized": "0.13"
+          },
+          {
+            "index": 9,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 10,
+            "surface": "50",
+            "normalized": "50"
+          },
+          {
+            "index": 11,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 12,
+            "surface": "0.0026",
+            "normalized": "0.0026"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r018",
+      "order": 18,
+      "section": "model_and_laws",
+      "kind": "law_or_principle",
+      "exam_copy": true,
+      "text": {
+        "he": "מחשבים את מודול יאנג מתוך היחס בין מאמץ למעוות באזור האלסטי.",
+        "he_niqqud": "מְחַשְּׁבִים אֶת מוֹדוּל יַאנְג מִתּוֹךְ הַיַּחַס בֵּין מַאֲמָץ לְמִעוּוּת בָּאֲזוֹר הָאֵלַסְטִי.",
+        "transliteration": "Meḥashvím et módul Yáng mitókh ha-yáḥas bein ma'amatz le-mi'út ba-azór ha-elasti.",
+        "ru": "Модуль Юнга рассчитывается из соотношения между напряжением и деформацией в упругой области."
+      },
+      "source_refs": [
+        "legacy_row_hash:2486593856bfa32f2f3364f446414f9a86603acc61a689e9449a7421d0019e54",
+        "legacy_fields_sha256:0d6a608674dcafc7595f60229629b05f40def25ef486c8eea17bca30ee0e3ab2",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְחַשְּׁבִים",
+            "normalized": "מחשבים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "מוֹדוּל",
+            "normalized": "מודול"
+          },
+          {
+            "index": 3,
+            "surface": "יַאנְג",
+            "normalized": "יאנג"
+          },
+          {
+            "index": 4,
+            "surface": "מִתּוֹךְ",
+            "normalized": "מתוך"
+          },
+          {
+            "index": 5,
+            "surface": "הַיַּחַס",
+            "normalized": "היחס"
+          },
+          {
+            "index": 6,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 7,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 8,
+            "surface": "לְמִעוּוּת",
+            "normalized": "למעוות"
+          },
+          {
+            "index": 9,
+            "surface": "בָּאֲזוֹר",
+            "normalized": "באזור"
+          },
+          {
+            "index": 10,
+            "surface": "הָאֵלַסְטִי.",
+            "normalized": "האלסטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r019",
+      "order": 19,
+      "section": "derivation",
+      "kind": "symbolic_derivation",
+      "exam_copy": true,
+      "text": {
+        "he": "E ≈ σy / εy",
+        "he_niqqud": "E ≈ σy / εy",
+        "transliteration": "E ≈ σy / εy",
+        "ru": "E ≈ σy / εy"
+      },
+      "source_refs": [
+        "legacy_row_hash:b6317c225f57cd8295e0788ab4e5924715840f9adfa29e2852d828eae3dca4a7",
+        "legacy_fields_sha256:244676cddcd66f4d61d0e53ab5cea0b35100564c077fcc2375747cf89727159e",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "σy",
+            "normalized": "σy"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "εy",
+            "normalized": "εy"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E ≈ σy / εy"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "E = 490 MPa / 0.0026 = 188500 MPa ≈ 189 GPa",
+        "he_niqqud": "E = 490 MPa / 0.0026 = 188500 MPa ≈ 189 GPa",
+        "transliteration": "E = 490 MPa / 0.0026 = 188500 MPa ≈ 189 GPa",
+        "ru": "E = 490 МПа / 0.0026 = 188500 МПа ≈ 189 ГПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:3311ecac2eff0725e4724bf33c2edec5f7eb5ba8d9a056ffd22e5159b1e5d658",
+        "legacy_fields_sha256:f48d31668110b7af14cd728bfd3ad6b1209fc602cb6466c640e18991b99ed58f",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "E",
+            "normalized": "E"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 3,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 4,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 5,
+            "surface": "0.0026",
+            "normalized": "0.0026"
+          },
+          {
+            "index": 6,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 7,
+            "surface": "188500",
+            "normalized": "188500"
+          },
+          {
+            "index": 8,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 9,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 10,
+            "surface": "189",
+            "normalized": "189"
+          },
+          {
+            "index": 11,
+            "surface": "GPa",
+            "normalized": "GPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "E = 490 MPa / 0.0026 = 188500 MPa ≈ 189 GPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) לא ניתן לעמוד בדרישה של 550 MPa ללא כניעה.",
+        "he_niqqud": "ג) לֹא נִיתָּן לַעֲמוֹד בִּדְרִישָׁה שֶׁל 550 MPa לְלֹא כְּנִיעָה.",
+        "transliteration": "G) Lo nitán la'amód bi-drishá shel 550 MPa leló kníya.",
+        "ru": "В) Невозможно соответствовать требованию 550 МПа без текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:3e0a62874676132c1e5af4ab9f9ff5c268bbfc4716f28abb9afb844422d5d924",
+        "legacy_fields_sha256:416b89a70dddf6d11ca255bc56f35a486c62436097baba3860033ce4264b02b4",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "לֹא",
+            "normalized": "לא"
+          },
+          {
+            "index": 2,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 3,
+            "surface": "לַעֲמוֹד",
+            "normalized": "לעמוד"
+          },
+          {
+            "index": 4,
+            "surface": "בִּדְרִישָׁה",
+            "normalized": "בדרישה"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "550",
+            "normalized": "550"
+          },
+          {
+            "index": 7,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 8,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 9,
+            "surface": "כְּנִיעָה.",
+            "normalized": "כניעה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "משווים את המאמץ הנדרש למאמץ הכניעה המחושב.",
+        "he_niqqud": "מַשְׁוִים אֶת הַמַּאֲמָץ הַנִּדְרָשׁ לְמַאֲמָץ הַכְּנִיעָה הַמְּחֻשָּׁב.",
+        "transliteration": "Mashvím et ha-ma'amatz ha-nidrásh le-ma'amatz ha-kníya ha-meḥusháv.",
+        "ru": "Сравниваем требуемое напряжение с рассчитанным напряжением текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:9d1adc906fff7f119534734b3880113df32c1e97bde395d8fbf473e8a90176d0",
+        "legacy_fields_sha256:6b65dcff2b617d4b9b3f690a60ab8219722a603c0b2d9f0c48548113003d16e0",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַשְׁוִים",
+            "normalized": "משוים"
+          },
+          {
+            "index": 1,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּאֲמָץ",
+            "normalized": "המאמץ"
+          },
+          {
+            "index": 3,
+            "surface": "הַנִּדְרָשׁ",
+            "normalized": "הנדרש"
+          },
+          {
+            "index": 4,
+            "surface": "לְמַאֲמָץ",
+            "normalized": "למאמץ"
+          },
+          {
+            "index": 5,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 6,
+            "surface": "הַמְּחֻשָּׁב.",
+            "normalized": "המחשב"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r023",
+      "order": 23,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "550 MPa > 490 MPa",
+        "he_niqqud": "550 MPa > 490 MPa",
+        "transliteration": "550 MPa > 490 MPa",
+        "ru": "550 МПа > 490 МПа"
+      },
+      "source_refs": [
+        "legacy_row_hash:ef5d5a4c94ca788c77286e8fcd94a059d34cc46f6b9fdf79220bea654a554365",
+        "legacy_fields_sha256:b952b7dec261532a961dc751e6dc50d192d175685cd42eb0a7d4fda326dffc28",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "550",
+            "normalized": "550"
+          },
+          {
+            "index": 1,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 2,
+            "surface": ">",
+            "normalized": ">"
+          },
+          {
+            "index": 3,
+            "surface": "490",
+            "normalized": "490"
+          },
+          {
+            "index": 4,
+            "surface": "MPa",
+            "normalized": "MPa"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "550 MPa > 490 MPa"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר המאמץ גדול ממאמץ הכניעה מתחיל עיוות פלסטי.",
+        "he_niqqud": "כַּאֲשֶׁר הַמַּאֲמָץ גָּדוֹל מִמַּאֲמָץ הַכְּנִיעָה מַתְחִיל עִוּוּת פְּלַסְטִי.",
+        "transliteration": "Ka'ashér ha-ma'amatz gadól mi-ma'amatz ha-kníya matḥíl ivút plastí.",
+        "ru": "Когда напряжение превышает предел текучести, начинается пластическая деформация."
+      },
+      "source_refs": [
+        "legacy_row_hash:de70ceb3dcd72b7b28d2903284109d0dffaffd2c8968c54637f408d6fd988335",
+        "legacy_fields_sha256:fb4624b19561278a180229f9fb200edf3094811860bcfea0b648c97ef605d053",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "הַמַּאֲמָץ",
+            "normalized": "המאמץ"
+          },
+          {
+            "index": 2,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 3,
+            "surface": "מִמַּאֲמָץ",
+            "normalized": "ממאמץ"
+          },
+          {
+            "index": 4,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 5,
+            "surface": "מַתְחִיל",
+            "normalized": "מתחיל"
+          },
+          {
+            "index": 6,
+            "surface": "עִוּוּת",
+            "normalized": "עוות"
+          },
+          {
+            "index": 7,
+            "surface": "פְּלַסְטִי.",
+            "normalized": "פלסטי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r025",
+      "order": 25,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן תחת 550 MPa המוט ייכנס לכניעה ותיווצר התארכות קבועה.",
+        "he_niqqud": "לָכֵן תַּחַת 550 MPa הַמּוֹט יִכָּנֵס לִכְנִיעָה וְתִיוּוֹצֵר הִתְאַרְכוּת קְבוּעָה.",
+        "transliteration": "Lakhén táḥat 550 MPa ha-moṭ yikanés li-khníya ve-tivutsár hit'arkhút qevu'á.",
+        "ru": "Следовательно, при 550 МПа стержень достигнет текучести, и возникнет остаточное удлинение."
+      },
+      "source_refs": [
+        "legacy_row_hash:4fabb8834a8b3ad5bfbd8b6e9837bde2d3987c3c7df0d3de80d9cb1c79687294",
+        "legacy_fields_sha256:0eb9bf77d1172c83743f1115b23ec9587021f0e6b0916b1de441cd32c16cf741",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "תַּחַת",
+            "normalized": "תחת"
+          },
+          {
+            "index": 2,
+            "surface": "550",
+            "normalized": "550"
+          },
+          {
+            "index": 3,
+            "surface": "MPa",
+            "normalized": "MPa"
+          },
+          {
+            "index": 4,
+            "surface": "הַמּוֹט",
+            "normalized": "המוט"
+          },
+          {
+            "index": 5,
+            "surface": "יִכָּנֵס",
+            "normalized": "יכנס"
+          },
+          {
+            "index": 6,
+            "surface": "לִכְנִיעָה",
+            "normalized": "לכניעה"
+          },
+          {
+            "index": 7,
+            "surface": "וְתִיוּוֹצֵר",
+            "normalized": "ותיווצר"
+          },
+          {
+            "index": 8,
+            "surface": "הִתְאַרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 9,
+            "surface": "קְבוּעָה.",
+            "normalized": "קבועה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r026",
+      "order": 26,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ד) הערך הצפוי לאחר חיסום והרפיה הוא 331 HB.",
+        "he_niqqud": "ד) הָעֵרֶךְ הַצָּפוּי לְאַחַר חִסּוּם וְהַרְפָּיָה הוּא 331 HB.",
+        "transliteration": "D) Ha-erékh ha-tsafúy le'aḥar ḥisúm ve-harpayá hú 331 HB.",
+        "ru": "Г) Ожидаемое значение после закалки и отпуска составляет 331 HB."
+      },
+      "source_refs": [
+        "legacy_row_hash:4e5d0417e8b51a05c97b6858cda5b1ebe7e7cd2d95b3f1492fbbc7fe673df5a5",
+        "legacy_fields_sha256:fad7bfe60bc2a458b2249d208290c9d472df2935c646478b2607624bd88a0c7e",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ד)",
+            "normalized": "ד"
+          },
+          {
+            "index": 1,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 2,
+            "surface": "הַצָּפוּי",
+            "normalized": "הצפוי"
+          },
+          {
+            "index": 3,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 4,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 5,
+            "surface": "וְהַרְפָּיָה",
+            "normalized": "והרפיה"
+          },
+          {
+            "index": 6,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 7,
+            "surface": "331",
+            "normalized": "331"
+          },
+          {
+            "index": 8,
+            "surface": "HB.",
+            "normalized": "HB"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Г"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "חיסום מגדיל את הקשיות עקב יצירת מרטנזיט.",
+        "he_niqqud": "חִסּוּם מַגְדִּיל אֶת הַקְּשִׁיּוּת עֵקֶב יְצִירַת מַרְטֶנְזִיט.",
+        "transliteration": "Ḥisúm magdíel et ha-qashyút éqev yetsirát martenzít.",
+        "ru": "Закалка увеличивает твердость за счет образования мартенсита."
+      },
+      "source_refs": [
+        "legacy_row_hash:69cea7a6947ec0a7117a56055e6dc5854de471765a27d9d7820e3ee6ec59eceb",
+        "legacy_fields_sha256:d2bfa82ea3e9cad280f2d227713c8fe78914ab7eedcb515e29233d0384b5ae9d",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "חִסּוּם",
+            "normalized": "חסום"
+          },
+          {
+            "index": 1,
+            "surface": "מַגְדִּיל",
+            "normalized": "מגדיל"
+          },
+          {
+            "index": 2,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 3,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 4,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 5,
+            "surface": "יְצִירַת",
+            "normalized": "יצירת"
+          },
+          {
+            "index": 6,
+            "surface": "מַרְטֶנְזִיט.",
+            "normalized": "מרטנזיט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r028",
+      "order": 28,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הרפיה מפחיתה מעט את הקשיות אך בדרך כלל נשארת גבוהה יותר מהמצב ההתחלתי.",
+        "he_niqqud": "הַרְפָּיָה מַפְחִיתָה מְעַט אֶת הַקְּשִׁיּוּת אַךְ בְּדֶרֶךְ כְּלָל נִשְׁאֶרֶת גְּבוֹהָה יוֹתֵר מֵהַמַּצָּב הָהַתְחָלָתִי.",
+        "transliteration": "Harpayá mafḥitá me'at et ha-qashyút akh be-dérek-klal nish'éret gvohá yotér me-ha-matsáv ha-hatḥalatí.",
+        "ru": "Отпуск немного снижает твердость, но, как правило, она остается выше, чем в исходном состоянии."
+      },
+      "source_refs": [
+        "legacy_row_hash:2c2450f3620692f00ce331389bfbf3a291182b94f02f08f437b7d89fc0c58ae4",
+        "legacy_fields_sha256:d8c3ea6b21d856cef61d5eaa2def71a6109649793ae0114678b499ec80b02e9a",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַרְפָּיָה",
+            "normalized": "הרפיה"
+          },
+          {
+            "index": 1,
+            "surface": "מַפְחִיתָה",
+            "normalized": "מפחיתה"
+          },
+          {
+            "index": 2,
+            "surface": "מְעַט",
+            "normalized": "מעט"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "הַקְּשִׁיּוּת",
+            "normalized": "הקשיות"
+          },
+          {
+            "index": 5,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 6,
+            "surface": "בְּדֶרֶךְ",
+            "normalized": "בדרך"
+          },
+          {
+            "index": 7,
+            "surface": "כְּלָל",
+            "normalized": "כלל"
+          },
+          {
+            "index": 8,
+            "surface": "נִשְׁאֶרֶת",
+            "normalized": "נשארת"
+          },
+          {
+            "index": 9,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 10,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 11,
+            "surface": "מֵהַמַּצָּב",
+            "normalized": "מהמצב"
+          },
+          {
+            "index": 12,
+            "surface": "הָהַתְחָלָתִי.",
+            "normalized": "ההתחלתי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r029",
+      "order": 29,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן מבין 180 HB, 217 HB, 331 HB הערך הסביר הוא 331 HB.",
+        "he_niqqud": "לָכֵן מִבֵּין 180 HB, 217 HB, 331 HB הָעֵרֶךְ הַסָּבִיר הוּא 331 HB.",
+        "transliteration": "Lakhén mi-béin 180 HB, 217 HB, 331 HB ha-erékh ha-savír hú 331 HB.",
+        "ru": "Следовательно, среди 180 HB, 217 HB, 331 HB наиболее вероятным значением является 331 HB."
+      },
+      "source_refs": [
+        "legacy_row_hash:b34e8dc42f41f6d77f9a53800f923947a6fe530018861fe1e73871377fb967e6",
+        "legacy_fields_sha256:5429b39955d2b3ce14d46383098da4a76f24f0f9ecd2a7ec161083b7f286acb0",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "מִבֵּין",
+            "normalized": "מבין"
+          },
+          {
+            "index": 2,
+            "surface": "180",
+            "normalized": "180"
+          },
+          {
+            "index": 3,
+            "surface": "HB,",
+            "normalized": "HB"
+          },
+          {
+            "index": 4,
+            "surface": "217",
+            "normalized": "217"
+          },
+          {
+            "index": 5,
+            "surface": "HB,",
+            "normalized": "HB"
+          },
+          {
+            "index": 6,
+            "surface": "331",
+            "normalized": "331"
+          },
+          {
+            "index": 7,
+            "surface": "HB",
+            "normalized": "HB"
+          },
+          {
+            "index": 8,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 9,
+            "surface": "הַסָּבִיר",
+            "normalized": "הסביר"
+          },
+          {
+            "index": 10,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 11,
+            "surface": "331",
+            "normalized": "331"
+          },
+          {
+            "index": 12,
+            "surface": "HB.",
+            "normalized": "HB"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q007-sol-r030",
+      "order": 30,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:2257f4d76a80d4cdf27548dbbcf9525ebfb516a8292732c950ceacbb2d6316e2",
+        "comparison:MATCH",
+        "source_page:8",
+        "canonical_rows:q007-r002..q007-r015"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q007",
+    "display_alias": "7",
+    "source_pages": [
+      8
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а) σy=490 МПа; σUTS=840 МПа.",
+      "б) εy=0,0026=0,26%; E≈188462 МПа≈188,5 ГПа.",
+      "в) Не утверждать для упругой работы при 550 МПа: 550>490 МПа, поэтому стержень начнёт пластически деформироваться, хотя напряжение ниже UTS.",
+      "г) Из предложенных значений после закалки и отпуска ожидается 331 HB, то есть повышение относительно исходных 217 HB."
+    ],
+    "engineering_picture": "Силы переводятся в инженерные напряжения через исходную площадь. Модуль определяется по напряжению и относительной деформации при пределе текучести в рамках линейной модели.",
+    "prerequisites": [
+      "1 Н/мм²=1 МПа.",
+      "σ=F/A.",
+      "ε=(L−L₀)/L₀.",
+      "E=σ/ε."
+    ],
+    "roadmap": [
+      "Вычислить σy и σUTS.",
+      "Найти εy и E.",
+      "Сравнить 550 МПа с σy.",
+      "Сравнить варианты твёрдости с исходными 217 HB."
+    ],
+    "main_trap": "Нельзя одобрять 550 МПа только потому, что это меньше UTS: для отсутствия остаточной деформации сравнивают с пределом текучести.",
+    "givens": [
+      "A₀=200 мм²; L₀=50 мм.",
+      "Fy=98000 Н; Ly=50,13 мм.",
+      "FUTS=168000 Н; Luts=64,00 мм.",
+      "HBисх=217; варианты после обработки: 180, 217, 331 HB."
+    ],
+    "find": [
+      "σy, σUTS, E, пригодность при 550 МПа и ожидаемая твёрдость."
+    ],
+    "assumptions": [
+      "Точка Fy используется как конец линейно-упругой области для расчёта E.",
+      "Требование 550 МПа предполагает отсутствие пластической деформации; коэффициент запаса не задан."
+    ],
+    "laws": [
+      "σ=F/A₀.",
+      "εy=(Ly−L₀)/L₀.",
+      "E=σy/εy."
+    ],
+    "symbolic_derivation": [
+      "σy=Fy/A₀.",
+      "σUTS=FUTS/A₀.",
+      "E=(Fy/A₀)/((Ly−L₀)/L₀)."
+    ],
+    "calculation": [
+      "σy=98000/200=490 МПа.",
+      "σUTS=168000/200=840 МПа.",
+      "εy=(50,13−50)/50=0,0026.",
+      "E=490/0,0026=188461,54 МПа≈188,5 ГПа.",
+      "550/490≈1,122>1."
+    ],
+    "construction": [],
+    "checks": [
+      "σUTS>σy.",
+      "E имеет порядок 10⁵ МПа, характерный для стали.",
+      "331 HB>217 HB, тогда как 180 HB означало бы размягчение."
+    ],
+    "source_facts": [
+      "source_page:8",
+      "canonical_rows:q007-r002..q007-r015"
+    ],
+    "unresolved_limits": [
+      "Фактическая твёрдость после закалки и отпуска зависит от режима; выбор 331 HB сделан среди трёх заданных вариантов по ожидаемому упрочнению."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 14
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "materials_pb2_production_publication_evidence.1.0.0",
+  "executed_at": "2026-08-31",
+  "release_commit": "e682a806cd13b166fdca7a22d6426e5c7ed3903c",
+  "source_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+  "rights_attestation_sha256": "c524c941ede424588102f9149055dffa34942a93b625f6744fdf2a86b77a5731",
+  "backup": {
+    "created_before_mutation": true,
+    "bytes": 1059058731,
+    "sha256": "6dc78eac023b477d7d12af46ac14753edb08a716aa79353acbd06484db770b9f",
+    "write_handle_closed_before_apply": true
+  },
+  "dry_run": {
+    "migration_ready": true,
+    "task_count": 60,
+    "condition_row_count": 693,
+    "source_asset_count": 72,
+    "physical_audio_asset_count": 0,
+    "full_tts_generated": false
+  },
+  "apply": {
+    "pilot_item_count": 3,
+    "full_item_count": 60,
+    "full_edition_number": 2,
+    "full_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+    "full_package_sha256": "6bbb5800325e97cb4290a37c6079329cb0d3208bec389f217b2e698b4e2fcc33",
+    "asset_missing_count": 0,
+    "package_complete": true,
+    "learner_private_review_unchanged": true
+  },
+  "production_pointer_proof": {
+    "rollback_readback_item_count": 3,
+    "restore_readback_item_count": 60,
+    "restored_edition_number": 2,
+    "restored_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0"
+  },
+  "runtime": {
+    "manifest_sha256": "a998d1ae19fa518bdee4018e48b7e178b5f8d6b2b6c818ea9b8f59a8bbe61709",
+    "task_shard_count": 60,
+    "source_asset_count": 72,
+    "audio_asset_count": 0,
+    "timing_sidecar_count": 0,
+    "exact_edition_bound": true
+  },
+  "audio_boundary": {
+    "full_tts_authorized": false,
+    "full_tts_generated": false,
+    "next_gate": "OWNER_REVIEW_OF_ALL_60_PRODUCTION_CARDS"
+  }
+}

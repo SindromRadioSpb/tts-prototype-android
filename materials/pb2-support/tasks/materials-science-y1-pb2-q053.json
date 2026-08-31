@@ -1,0 +1,2357 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_c7ef9734a44d598707ced1ba",
+  "public_work_id": "work-ee125492b7eeb7d64a9cb3a1",
+  "snapshot_sha256": "515395e992b079040eb74e1999927302653970fc7e19391eed71fb4e039e69b3",
+  "task_id": "materials-science-y1-pb2-q053",
+  "display_alias": "53",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "0703a4f8cbc994e886d6b934a3f89ce888778b2cb71f7751a5fd3653ddccab36"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "31abfa1b9dbc657d834056ab351b0f63cc4b08483d0e0cb5bdc4b69336e51a46",
+    "source_canonical_task_sha256": "0703a4f8cbc994e886d6b934a3f89ce888778b2cb71f7751a5fd3653ddccab36"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "943feec74c2faa7a34766bed63be613fbc79d81b35db45b01f5cd4eae3bb0d7e",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Crosslink explanation, injection-molded frame and product-process mappings match; alternatives remain explicitly conditional.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q053-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 53.",
+        "hebrew_niqqud": "שְׁאֵלָה 53.",
+        "translit": "She'ela 53.",
+        "translit_ru": "",
+        "russian": "Вопрос 53.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "task_heading",
+            "source_page": 63,
+            "source_row_index": 0,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q053-r002",
+        "order_index": 1,
+        "hebrew_plain": "א) פולימרים תרמוסטיים אינם ניתנים לעיבוד מחדש על־ידי התכה בחימום חוזר.",
+        "hebrew_niqqud": "א) פּוֹלִימֶרִים תֶּרְמוֹסְטִיִּים אֵינָם נִיתָּנִים לְעִיבּוּד מֵחָדָשׁ עַל־יְדֵי הַתָּכָה בְּחִימּוּם חוֹזֵר.",
+        "translit": "A) Polimerim termostiyim eynam nitanim le'ibud mechadash al-yedei hatachah bechimum chozer.",
+        "translit_ru": "",
+        "russian": "А) Термореактивные полимеры не подлежат повторной обработке путем плавления при повторном нагреве.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q053-r003",
+        "order_index": 2,
+        "hebrew_plain": "הסבר מדוע.",
+        "hebrew_niqqud": "הַסְבֵּר מַדּוּעַ.",
+        "translit": "Hasber madua.",
+        "translit_ru": "",
+        "russian": "Объясните, почему.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q053-r004",
+        "order_index": 3,
+        "hebrew_plain": "ב) לרשותו של מפעל לייצור מוצרים פלסטיים עומדות שתי מכונות: מכונת שיחול (Extrusion) ומכונת הזרקה (Injection molding).",
+        "hebrew_niqqud": "ב) לִרְשׁוּתוֹ שֶׁל מִפְעָל לְייִצּוּר מוּצָרִים פְּלַסְטִיִּים עוֹמְדוֹת שְׁתֵּי מְכוֹנוֹת: מְכוֹנַת שִׁיחוּל (Extrusion) וּמְכוֹנַת הַזְרָקָה (Injection molding).",
+        "translit": "B) Lirshuto shel mif'al leyitzur mutzarim plastiyim omdot shtei mechonot: mechonat shichul (Extrusion) umechonat hazrakah (Injection molding).",
+        "translit_ru": "",
+        "russian": "Б) Завод по производству пластмассовых изделий имеет в своем распоряжении две машины: экструзионную машину (Extrusion) и литьевую машину (Injection molding).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q053-r005",
+        "order_index": 4,
+        "hebrew_plain": "באיזו מכונה תבחר כדי לייצר מסגרת למשקפיים מצלולואיד (Cellulosics)?",
+        "hebrew_niqqud": "בְּאֵיזוֹ מְכוֹנָה תִּבְחַר כְּדֵי לְיַיצֵּר מִסְגֶּרֶת לְמִשְׁקָפַייִם מִצֶּלּוּלוֹאִיד (Cellulosics)?",
+        "translit": "Be'eizo mechonah tivchar kedei leyatzer misgeret lemishkafayim mitzeluloid (Cellulosics)?",
+        "translit_ru": "",
+        "russian": "Какую машину вы выберете для изготовления оправы для очков из целлулоида (Cellulosics)?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q053-r006",
+        "order_index": 5,
+        "hebrew_plain": "נמק את תשובתך.",
+        "hebrew_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+        "translit": "Namek et teshuvat'cha.",
+        "translit_ru": "",
+        "russian": "Обоснуйте свой ответ.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q053-r007",
+        "order_index": 6,
+        "hebrew_plain": "ג) ציין את השם (או השמות) של שיטת הייצור המתאימה (או שיטות הייצור המתאימות) לייצור כל אחד מן המוצרים שלהלן מחומרים תרמופלסטיים: צינור גמיש, בקבוק למשקה קל, כוס למשקה קל, גלגל שיניים במנגנון של שעון.",
+        "hebrew_niqqud": "ג) צַייֵּן אֶת הַשֵּׁם (אוֹ הַשֵּׁמוֹת) שֶׁל שִׁיטַת הַייִּצּוּר הַמַּתְאִימָה (אוֹ שִׁיטוֹת הַייִּצּוּר הַמַּתְאִימוֹת) לְייִצּוּר כָּל אֶחָד מִן הַמּוּצָרִים שֶׁלְּהַלָּן מֵחֳומָרִים תֶּרְמוֹפְּלַסְטִיִּים: צִינּוֹר גָּמִישׁ, בַּקְבּוּק לְמַשְׁקֶה קַל, כּוֹס לְמַשְׁקֶה קַל, גַּלְגַּל שִׁינַּייִם בְּמַנְגָּנוֹן שֶׁל שָׁעוֹן.",
+        "translit": "G) Tzayen et hashem (o hashemot) shel shitat hayitzur hamat'imah (o shitot hayitzur hamat'imot) leyitzur kol echad min hamutzarim shelehalan mechomarim termoplastiyim: tzinor gamish, bakbuk lemashkeh kal, kos lemashkeh kal, galgal shinayim bemanganon shel sha'on.",
+        "translit_ru": "",
+        "russian": "В) Укажите название (или названия) подходящего метода производства (или подходящих методов производства) для изготовления каждого из следующих изделий из термопластичных материалов: гибкая труба, бутылка для безалкогольного напитка, стакан для безалкогольного напитка, зубчатое колесо в часовом механизме.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q053",
+            "kind": "subpart",
+            "source_page": 63,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      63
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q053/anchor-01-p063.jpg",
+        "sha256": "e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388",
+        "bytes": 142480,
+        "source_page": 63,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          0.48
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      }
+    ],
+    "semantic_visuals": [],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:943feec74c2faa7a34766bed63be613fbc79d81b35db45b01f5cd4eae3bb0d7e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) אבחר במכונת הזרקה (Injection molding) כדי לייצר מסגרת למשקפיים מצלולואיד (Cellulosics).",
+        "he_niqqud": "ב) אֶבְחַר בִּמְכוֹנַת הַזְרָקָה (Injection molding) כְּדֵי לְיַיצֵּר מִסְגֶּרֶת לְמִשְׁקָפַיִים מִצֶּלּוּלוֹאִיד (Cellulosics).",
+        "transliteration": "B) Evḥar bi'mkhunat hazraqah (Injection molding) kedei leiatzer misgeret le'mishqafayim mi'tzellulo'iyd (Cellulosics).",
+        "ru": "Б) Я выберу машину для литья под давлением (Injection molding) для изготовления оправы для очков из целлулоида (Cellulosics)."
+      },
+      "source_refs": [
+        "legacy_row_hash:c47e98db9fa081822abc90cbc18320a8a5365fa104edaafb197e694640534856",
+        "legacy_fields_sha256:6fd1a44e681dbddcb7ec0ade2d52106c3bd1b403788800bd63ffaef38de9822a",
+        "independent_solution_sha256:943feec74c2faa7a34766bed63be613fbc79d81b35db45b01f5cd4eae3bb0d7e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "אֶבְחַר",
+            "normalized": "אבחר"
+          },
+          {
+            "index": 2,
+            "surface": "בִּמְכוֹנַת",
+            "normalized": "במכונת"
+          },
+          {
+            "index": 3,
+            "surface": "הַזְרָקָה",
+            "normalized": "הזרקה"
+          },
+          {
+            "index": 4,
+            "surface": "(Injection",
+            "normalized": "Injection"
+          },
+          {
+            "index": 5,
+            "surface": "molding)",
+            "normalized": "molding"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לְיַיצֵּר",
+            "normalized": "לייצר"
+          },
+          {
+            "index": 8,
+            "surface": "מִסְגֶּרֶת",
+            "normalized": "מסגרת"
+          },
+          {
+            "index": 9,
+            "surface": "לְמִשְׁקָפַיִים",
+            "normalized": "למשקפיים"
+          },
+          {
+            "index": 10,
+            "surface": "מִצֶּלּוּלוֹאִיד",
+            "normalized": "מצלולואיד"
+          },
+          {
+            "index": 11,
+            "surface": "(Cellulosics).",
+            "normalized": "Cellulosics"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) צינור גמיש: שיחול (Extrusion) של צינור.",
+        "he_niqqud": "ג) צִנּוֹר גָּמִישׁ: שִׁיחוּל (Extrusion) שֶׁל צִנּוֹר.",
+        "transliteration": "G) Tzinor gamish: shiḥul (Extrusion) shel tzinor.",
+        "ru": "В) Гибкая труба: Экструзия (Extrusion) трубы."
+      },
+      "source_refs": [
+        "legacy_row_hash:c9400b49e79be2042de96c3904637e1dabf8b30bda79b637b5e73a682166baa9",
+        "legacy_fields_sha256:228a6cdfb70f79ec9493797891935be03c619cb5d2a03ba25b39a8c47647e6e9",
+        "independent_solution_sha256:943feec74c2faa7a34766bed63be613fbc79d81b35db45b01f5cd4eae3bb0d7e"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "צִנּוֹר",
+            "normalized": "צנור"
+          },
+          {
+            "index": 2,
+            "surface": "גָּמִישׁ:",
+            "normalized": "גמיש"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁיחוּל",
+            "normalized": "שיחול"
+          },
+          {
+            "index": 4,
+            "surface": "(Extrusion)",
+            "normalized": "Extrusion"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "צִנּוֹר.",
+            "normalized": "צנור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r004",
+      "order": 4,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "א) פולימרים תרמוסטיים אינם ניתנים לעיבוד מחדש על־ידי התכה בחימום חוזר משום שהם בנויים כרשת תלת־ממדית עם קשרי צילוב קוולנטיים בין השרשראות.",
+        "he_niqqud": "א) פּוֹלִימֶרִים תֶּרְמוֹסְטִיִּים אֵינָם נִיתָּנִים לְעִיבּוּד מֵחָדָשׁ עַל־יְדֵי הַתָּכָה בְּחִימּוּם חוֹזֵר מִשּׁוּם שֶׁהֵם בְּנוּיִים כְּרֶשֶׁת תְּלַת־מְמַדִּית עִם קִשְׁרֵי צִילּוּב קוֹבָלֶנְטִיִּים בֵּין הַשַּׁרְשְׁרָאוֹת.",
+        "transliteration": "A) Polimerim termosṭi'im eynam ni'taniym le'ibud meḥadash 'al-yedei hattaḫah beḥimum ḥozer mishum she'hem bnuyim ke'reshet tlat-memadit 'im qishrei tziluv qovalanṭiyim bein ha'sharshera'ot.",
+        "ru": "А) Термореактивные полимеры не подлежат повторной обработке путем плавления при повторном нагреве, поскольку они построены как трехмерная сетка с ковалентными поперечными связями между цепями."
+      },
+      "source_refs": [
+        "legacy_row_hash:59337cff39bcafe11a6cbd824966f5ed0153c416a1f3dc41bce6c2f40d796164",
+        "legacy_fields_sha256:c946a8c8136f2ccfedc1f5a00e9cd08804e3d508db00b7ee13a505c82aa9abda",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "פּוֹלִימֶרִים",
+            "normalized": "פולימרים"
+          },
+          {
+            "index": 2,
+            "surface": "תֶּרְמוֹסְטִיִּים",
+            "normalized": "תרמוסטיים"
+          },
+          {
+            "index": 3,
+            "surface": "אֵינָם",
+            "normalized": "אינם"
+          },
+          {
+            "index": 4,
+            "surface": "נִיתָּנִים",
+            "normalized": "ניתנים"
+          },
+          {
+            "index": 5,
+            "surface": "לְעִיבּוּד",
+            "normalized": "לעיבוד"
+          },
+          {
+            "index": 6,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 7,
+            "surface": "עַל־יְדֵי",
+            "normalized": "על־ידי"
+          },
+          {
+            "index": 8,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 9,
+            "surface": "בְּחִימּוּם",
+            "normalized": "בחימום"
+          },
+          {
+            "index": 10,
+            "surface": "חוֹזֵר",
+            "normalized": "חוזר"
+          },
+          {
+            "index": 11,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 12,
+            "surface": "שֶׁהֵם",
+            "normalized": "שהם"
+          },
+          {
+            "index": 13,
+            "surface": "בְּנוּיִים",
+            "normalized": "בנויים"
+          },
+          {
+            "index": 14,
+            "surface": "כְּרֶשֶׁת",
+            "normalized": "כרשת"
+          },
+          {
+            "index": 15,
+            "surface": "תְּלַת־מְמַדִּית",
+            "normalized": "תלת־ממדית"
+          },
+          {
+            "index": 16,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 17,
+            "surface": "קִשְׁרֵי",
+            "normalized": "קשרי"
+          },
+          {
+            "index": 18,
+            "surface": "צִילּוּב",
+            "normalized": "צילוב"
+          },
+          {
+            "index": 19,
+            "surface": "קוֹבָלֶנְטִיִּים",
+            "normalized": "קובלנטיים"
+          },
+          {
+            "index": 20,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 21,
+            "surface": "הַשַּׁרְשְׁרָאוֹת.",
+            "normalized": "השרשראות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כדי שתתרחש התכה נדרשת זרימה צמיגה של השרשראות הפולימריות.",
+        "he_niqqud": "כְּדֵי שֶׁתִּתְרַחֵשׁ הַתָּכָה נִדְרֶשֶׁת זְרִימָה צְמִיגָה שֶׁל הַשַּׁרְשְׁרָאוֹת הַפּוֹלִימֶרִיּוֹת.",
+        "transliteration": "Kedei she'tittraḥesh hattaḫah nidreshet zrimah tzmigah shel ha'sharshera'ot ha'polimeriyot.",
+        "ru": "Для того чтобы произошло плавление, требуется вязкое течение полимерных цепей."
+      },
+      "source_refs": [
+        "legacy_row_hash:8220b518bd3a9af333b9ed1a5a7220fa3890e7871c3250eb7e1efb413c0512c4",
+        "legacy_fields_sha256:458547fccf5012875827f9efdf9cbfcf8b258ab936843b83720877211a2131d1",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁתִּתְרַחֵשׁ",
+            "normalized": "שתתרחש"
+          },
+          {
+            "index": 2,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 3,
+            "surface": "נִדְרֶשֶׁת",
+            "normalized": "נדרשת"
+          },
+          {
+            "index": 4,
+            "surface": "זְרִימָה",
+            "normalized": "זרימה"
+          },
+          {
+            "index": 5,
+            "surface": "צְמִיגָה",
+            "normalized": "צמיגה"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "הַשַּׁרְשְׁרָאוֹת",
+            "normalized": "השרשראות"
+          },
+          {
+            "index": 8,
+            "surface": "הַפּוֹלִימֶרִיּוֹת.",
+            "normalized": "הפולימריות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בגלל קשרי הצילוב השרשראות נעולות ואינן מסוגלות לזרום כמו תרמופלסט.",
+        "he_niqqud": "בִּגְלַל קִשְׁרֵי הַצִּילּוּב הַשַּׁרְשְׁרָאוֹת נְעוּלוֹת וְאֵינָן מְסוּגָּלוֹת לִזְרוֹם כְּמוֹ תֶּרְמוֹפְּלַסְט.",
+        "transliteration": "Biglal qishrei ha'tziluv ha'sharshera'ot ne'ulot ve'einan mesugalot lizrom kemo termoplasṭ.",
+        "ru": "Из-за поперечных связей цепи заблокированы и не способны течь, как термопласт."
+      },
+      "source_refs": [
+        "legacy_row_hash:d2494875a66f638a79cda627c16aab3d110660d09dcf4a72e0ba8962f1cadc06",
+        "legacy_fields_sha256:61790ee1d714782b1556d65c5834351d3797517101f82f08318da40d4cd220c2",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּגְלַל",
+            "normalized": "בגלל"
+          },
+          {
+            "index": 1,
+            "surface": "קִשְׁרֵי",
+            "normalized": "קשרי"
+          },
+          {
+            "index": 2,
+            "surface": "הַצִּילּוּב",
+            "normalized": "הצילוב"
+          },
+          {
+            "index": 3,
+            "surface": "הַשַּׁרְשְׁרָאוֹת",
+            "normalized": "השרשראות"
+          },
+          {
+            "index": 4,
+            "surface": "נְעוּלוֹת",
+            "normalized": "נעולות"
+          },
+          {
+            "index": 5,
+            "surface": "וְאֵינָן",
+            "normalized": "ואינן"
+          },
+          {
+            "index": 6,
+            "surface": "מְסוּגָּלוֹת",
+            "normalized": "מסוגלות"
+          },
+          {
+            "index": 7,
+            "surface": "לִזְרוֹם",
+            "normalized": "לזרום"
+          },
+          {
+            "index": 8,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 9,
+            "surface": "תֶּרְמוֹפְּלַסְט.",
+            "normalized": "תרמופלסט"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לכן אין לתרמוסט טמפרטורת היתוך מוגדרת (Tm).",
+        "he_niqqud": "לָכֵן אֵין לַתֶּרְמוֹסְט טֶמְפֶּרָטוּרַת הִיתּוּךְ מוּגְדֶּרֶת (Tm).",
+        "transliteration": "Lakhen ein la'termosṭ ṭemperaṭura't hittukh mugderet (Tm).",
+        "ru": "Поэтому термореактивный материал не имеет определенной температуры плавления (Tm)."
+      },
+      "source_refs": [
+        "legacy_row_hash:b0106531713eb503b2b2e01715eca27228eaa0d56317dc805d9e134788d8519d",
+        "legacy_fields_sha256:71439df01867da309d2676c200e82fedbe0e75f441964bf257bc6bc7b6cbc4ad",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לָכֵן",
+            "normalized": "לכן"
+          },
+          {
+            "index": 1,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 2,
+            "surface": "לַתֶּרְמוֹסְט",
+            "normalized": "לתרמוסט"
+          },
+          {
+            "index": 3,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 4,
+            "surface": "הִיתּוּךְ",
+            "normalized": "היתוך"
+          },
+          {
+            "index": 5,
+            "surface": "מוּגְדֶּרֶת",
+            "normalized": "מוגדרת"
+          },
+          {
+            "index": 6,
+            "surface": "(Tm).",
+            "normalized": "Tm"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "במקום התכה מתקבלת התרככות מוגבלת עד טמפרטורת הזכוכית (Tg) ולאחר מכן מתחיל פירוק תרמי (Td).",
+        "he_niqqud": "בִּמְקוֹם הַתָּכָה מִתְקַבֶּלֶת הִתְרַכְּכוּת מוּגְבֶּלֶת עַד טֶמְפֶּרָטוּרַת הַזְּכוּכִית (Tg) וּלְאַחַר מִכֵּן מַתְחִיל פֵּירוּק תֶּרְמִי (Td).",
+        "transliteration": "Bimqom hattaḫah mitqabelet hitrakkhut mugbelet 'ad ṭemperaṭura't ha'zkhukhit (Tg) u'le'aḥar mikken matḥil peruq termi (Td).",
+        "ru": "Вместо плавления происходит ограниченное размягчение до температуры стеклования (Tg), а затем начинается термическое разложение (Td)."
+      },
+      "source_refs": [
+        "legacy_row_hash:efcc6616d63a3507cffc6bb082ad24c4dc2613b0babf4c85e2711ebdfca70dec",
+        "legacy_fields_sha256:26c2f05293eb74cb7c46125d5e92654928ae0e2955a8ea183dc9109e995c1f57",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בִּמְקוֹם",
+            "normalized": "במקום"
+          },
+          {
+            "index": 1,
+            "surface": "הַתָּכָה",
+            "normalized": "התכה"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֶּלֶת",
+            "normalized": "מתקבלת"
+          },
+          {
+            "index": 3,
+            "surface": "הִתְרַכְּכוּת",
+            "normalized": "התרככות"
+          },
+          {
+            "index": 4,
+            "surface": "מוּגְבֶּלֶת",
+            "normalized": "מוגבלת"
+          },
+          {
+            "index": 5,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 6,
+            "surface": "טֶמְפֶּרָטוּרַת",
+            "normalized": "טמפרטורת"
+          },
+          {
+            "index": 7,
+            "surface": "הַזְּכוּכִית",
+            "normalized": "הזכוכית"
+          },
+          {
+            "index": 8,
+            "surface": "(Tg)",
+            "normalized": "Tg"
+          },
+          {
+            "index": 9,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 10,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 11,
+            "surface": "מַתְחִיל",
+            "normalized": "מתחיל"
+          },
+          {
+            "index": 12,
+            "surface": "פֵּירוּק",
+            "normalized": "פירוק"
+          },
+          {
+            "index": 13,
+            "surface": "תֶּרְמִי",
+            "normalized": "תרמי"
+          },
+          {
+            "index": 14,
+            "surface": "(Td).",
+            "normalized": "Td"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בחימום חוזר התרמוסט מתפרק או נשרף לפני שניתן לבצע בו עיבוד מחדש בשיחול או בהזרקה.",
+        "he_niqqud": "בְּחִימּוּם חוֹזֵר הַתֶּרְמוֹסְט מִתְפָּרֵק אוֹ נִשְׂרָף לִפְנֵי שֶׁנִּיתָּן לְבַצֵּעַ בּוֹ עִיבּוּד מֵחָדָשׁ בְּשִׁיחוּל אוֹ בְּהַזְרָקָה.",
+        "transliteration": "Beḥimum ḥozer ha'termosṭ mitpareq o nisraf lifnei sheni'tan levatze'a bo 'ibud meḥadash be'shiḥul o be'hazraqah.",
+        "ru": "При повторном нагреве термореактивный материал разлагается или сгорает до того, как его можно будет подвергнуть повторной обработке экструзией или литьем под давлением."
+      },
+      "source_refs": [
+        "legacy_row_hash:90a2ef5ad3e8f4d1a76cc44203698f7a5e267d3c68e09161a421834af35023af",
+        "legacy_fields_sha256:c2ddbb5ba7bb2b271f39b1e1bfdaa9beca1ab4101fde52017d8053b0747c093d",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּחִימּוּם",
+            "normalized": "בחימום"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹזֵר",
+            "normalized": "חוזר"
+          },
+          {
+            "index": 2,
+            "surface": "הַתֶּרְמוֹסְט",
+            "normalized": "התרמוסט"
+          },
+          {
+            "index": 3,
+            "surface": "מִתְפָּרֵק",
+            "normalized": "מתפרק"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 5,
+            "surface": "נִשְׂרָף",
+            "normalized": "נשרף"
+          },
+          {
+            "index": 6,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 7,
+            "surface": "שֶׁנִּיתָּן",
+            "normalized": "שניתן"
+          },
+          {
+            "index": 8,
+            "surface": "לְבַצֵּעַ",
+            "normalized": "לבצע"
+          },
+          {
+            "index": 9,
+            "surface": "בּוֹ",
+            "normalized": "בו"
+          },
+          {
+            "index": 10,
+            "surface": "עִיבּוּד",
+            "normalized": "עיבוד"
+          },
+          {
+            "index": 11,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 12,
+            "surface": "בְּשִׁיחוּל",
+            "normalized": "בשיחול"
+          },
+          {
+            "index": 13,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 14,
+            "surface": "בְּהַזְרָקָה.",
+            "normalized": "בהזרקה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) אבחר במכונת הזרקה (Injection molding) כדי לייצר מסגרת למשקפיים מצלולואיד (Cellulosics).",
+        "he_niqqud": "ב) אֶבְחַר בִּמְכוֹנַת הַזְרָקָה (Injection molding) כְּדֵי לְיַיצֵּר מִסְגֶּרֶת לְמִשְׁקָפַיִים מִצֶּלּוּלוֹאִיד (Cellulosics).",
+        "transliteration": "B) Evḥar bi'mkhunat hazraqah (Injection molding) kedei leiatzer misgeret le'mishqafayim mi'tzellulo'iyd (Cellulosics).",
+        "ru": "Б) Я выберу машину для литья под давлением (Injection molding) для изготовления оправы для очков из целлулоида (Cellulosics)."
+      },
+      "source_refs": [
+        "legacy_row_hash:c47e98db9fa081822abc90cbc18320a8a5365fa104edaafb197e694640534856",
+        "legacy_fields_sha256:6fd1a44e681dbddcb7ec0ade2d52106c3bd1b403788800bd63ffaef38de9822a",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "אֶבְחַר",
+            "normalized": "אבחר"
+          },
+          {
+            "index": 2,
+            "surface": "בִּמְכוֹנַת",
+            "normalized": "במכונת"
+          },
+          {
+            "index": 3,
+            "surface": "הַזְרָקָה",
+            "normalized": "הזרקה"
+          },
+          {
+            "index": 4,
+            "surface": "(Injection",
+            "normalized": "Injection"
+          },
+          {
+            "index": 5,
+            "surface": "molding)",
+            "normalized": "molding"
+          },
+          {
+            "index": 6,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 7,
+            "surface": "לְיַיצֵּר",
+            "normalized": "לייצר"
+          },
+          {
+            "index": 8,
+            "surface": "מִסְגֶּרֶת",
+            "normalized": "מסגרת"
+          },
+          {
+            "index": 9,
+            "surface": "לְמִשְׁקָפַיִים",
+            "normalized": "למשקפיים"
+          },
+          {
+            "index": 10,
+            "surface": "מִצֶּלּוּלוֹאִיד",
+            "normalized": "מצלולואיד"
+          },
+          {
+            "index": 11,
+            "surface": "(Cellulosics).",
+            "normalized": "Cellulosics"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסגרת משקפיים היא מוצר תלת־ממדי בעל גאומטריה מורכבת ועוביים משתנים.",
+        "he_niqqud": "מִסְגֶּרֶת מִשְׁקָפַיִים הִיא מוּצָר תְּלַת־מְמַדִּי בַּעַל גֵּאוֹמֶטְרִיָה מוּרְכֶּבֶת וְעֳבָיִים מִשְׁתַּנִּים.",
+        "transliteration": "Misgeret mishqafayim hi mutzar tlat-memadi ba'al ge'omeṭriyah murkevet ve'ovayim mishtanim.",
+        "ru": "Оправа для очков представляет собой трехмерное изделие со сложной геометрией и переменной толщиной."
+      },
+      "source_refs": [
+        "legacy_row_hash:bb8267425c35adfc0028f0b51f4129d4cba083d8dad3d6098ed5f49f962fa9da",
+        "legacy_fields_sha256:7044089a49a175932296085e24ccf85f2efc13117356131681ea71fcd2b6c39b",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִסְגֶּרֶת",
+            "normalized": "מסגרת"
+          },
+          {
+            "index": 1,
+            "surface": "מִשְׁקָפַיִים",
+            "normalized": "משקפיים"
+          },
+          {
+            "index": 2,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 3,
+            "surface": "מוּצָר",
+            "normalized": "מוצר"
+          },
+          {
+            "index": 4,
+            "surface": "תְּלַת־מְמַדִּי",
+            "normalized": "תלת־ממדי"
+          },
+          {
+            "index": 5,
+            "surface": "בַּעַל",
+            "normalized": "בעל"
+          },
+          {
+            "index": 6,
+            "surface": "גֵּאוֹמֶטְרִיָה",
+            "normalized": "גאומטריה"
+          },
+          {
+            "index": 7,
+            "surface": "מוּרְכֶּבֶת",
+            "normalized": "מורכבת"
+          },
+          {
+            "index": 8,
+            "surface": "וְעֳבָיִים",
+            "normalized": "ועביים"
+          },
+          {
+            "index": 9,
+            "surface": "מִשְׁתַּנִּים.",
+            "normalized": "משתנים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לייצור כזה נדרשים דיוק גבוה, חזרתיות טובה וגימור פני שטח איכותי.",
+        "he_niqqud": "לְיִיצוּר כָּזֶה נִדְרָשִׁים דִּיּוּק גָּבוֹהַּ, חַזְרָתִיּוּת טוֹבָה וְגִימוּר פְּנֵי שֶׁטַח אֵיכוּתִי.",
+        "transliteration": "Leyiytzur kazeh nidrashim diyuq gavoah, ḥazraṭiyyut ṭovah ve'gimur pnei sheṭaḥ eiḫuṭi.",
+        "ru": "Для такого производства требуются высокая точность, хорошая повторяемость и качественная чистота поверхности."
+      },
+      "source_refs": [
+        "legacy_row_hash:678d2f19f24f2e08119832fb51cedc0b98b31072b5dd2556537a4cc0f1de253e",
+        "legacy_fields_sha256:88ac83b17b06760549d15b8624d3218c0f87f70896d3d78919b7f98c82d45315",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְיִיצוּר",
+            "normalized": "לייצור"
+          },
+          {
+            "index": 1,
+            "surface": "כָּזֶה",
+            "normalized": "כזה"
+          },
+          {
+            "index": 2,
+            "surface": "נִדְרָשִׁים",
+            "normalized": "נדרשים"
+          },
+          {
+            "index": 3,
+            "surface": "דִּיּוּק",
+            "normalized": "דיוק"
+          },
+          {
+            "index": 4,
+            "surface": "גָּבוֹהַּ,",
+            "normalized": "גבוה"
+          },
+          {
+            "index": 5,
+            "surface": "חַזְרָתִיּוּת",
+            "normalized": "חזרתיות"
+          },
+          {
+            "index": 6,
+            "surface": "טוֹבָה",
+            "normalized": "טובה"
+          },
+          {
+            "index": 7,
+            "surface": "וְגִימוּר",
+            "normalized": "וגימור"
+          },
+          {
+            "index": 8,
+            "surface": "פְּנֵי",
+            "normalized": "פני"
+          },
+          {
+            "index": 9,
+            "surface": "שֶׁטַח",
+            "normalized": "שטח"
+          },
+          {
+            "index": 10,
+            "surface": "אֵיכוּתִי.",
+            "normalized": "איכותי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r013",
+      "order": 13,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "שיחול (Extrusion) מתאים בעיקר לייצור פרופילים בעלי חתך קבוע לאורך כמו צינורות ומוטות.",
+        "he_niqqud": "שִׁיחוּל (Extrusion) מַתְאִים בְּעִיקָּר לְיִיצוּר פְּרוֹפִילִים בַּעֲלֵי חֲתַךְ קָבוּעַ לְאוֹרֶךְ כְּמוֹ צִנּוֹרוֹת וּמוֹטוֹת.",
+        "transliteration": "Shiḥul (Extrusion) maṭ'im be'iqar leyiytzur profiliym ba'alei ḥataḫ qavu'a le'orekh kemo tzinorot u'moṭot.",
+        "ru": "Экструзия (Extrusion) подходит в основном для производства профилей с постоянным сечением по длине, таких как трубы и стержни."
+      },
+      "source_refs": [
+        "legacy_row_hash:a9afc92daa9c1418960d6176e0f2e8afc6449c4dd2ae572f326956027540dea3",
+        "legacy_fields_sha256:09f5b27406367037e658619d05a8d0a6a157bb244109021b1d1f6a9f10ae596e",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "שִׁיחוּל",
+            "normalized": "שיחול"
+          },
+          {
+            "index": 1,
+            "surface": "(Extrusion)",
+            "normalized": "Extrusion"
+          },
+          {
+            "index": 2,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 3,
+            "surface": "בְּעִיקָּר",
+            "normalized": "בעיקר"
+          },
+          {
+            "index": 4,
+            "surface": "לְיִיצוּר",
+            "normalized": "לייצור"
+          },
+          {
+            "index": 5,
+            "surface": "פְּרוֹפִילִים",
+            "normalized": "פרופילים"
+          },
+          {
+            "index": 6,
+            "surface": "בַּעֲלֵי",
+            "normalized": "בעלי"
+          },
+          {
+            "index": 7,
+            "surface": "חֲתַךְ",
+            "normalized": "חתך"
+          },
+          {
+            "index": 8,
+            "surface": "קָבוּעַ",
+            "normalized": "קבוע"
+          },
+          {
+            "index": 9,
+            "surface": "לְאוֹרֶךְ",
+            "normalized": "לאורך"
+          },
+          {
+            "index": 10,
+            "surface": "כְּמוֹ",
+            "normalized": "כמו"
+          },
+          {
+            "index": 11,
+            "surface": "צִנּוֹרוֹת",
+            "normalized": "צנורות"
+          },
+          {
+            "index": 12,
+            "surface": "וּמוֹטוֹת.",
+            "normalized": "ומוטות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מסגרת משקפיים אינה בעלת חתך קבוע ולכן שיחול אינו מתאים כתהליך עיקרי ליצירתה.",
+        "he_niqqud": "מִסְגֶּרֶת מִשְׁקָפַיִים אֵינָהּ בַּעֲלַת חֲתַךְ קָבוּעַ וְלָכֵן שִׁיחוּל אֵינוֹ מַתְאִים כְּתַהֲלִיךְ עִיקָּרִי לִיצִירָתָהּ.",
+        "transliteration": "Misgeret mishqafayim einah ba'alat ḥataḫ qavu'a velakhen shiḥul eino maṭ'im keta'haliḫ 'iqari li'ytziratah.",
+        "ru": "Оправа для очков не имеет постоянного сечения, поэтому экструзия не подходит в качестве основного процесса для ее создания."
+      },
+      "source_refs": [
+        "legacy_row_hash:52aa5c4c21b31543f35358525f4ca4487c8242385fd17f3868a5fcb248902eac",
+        "legacy_fields_sha256:a808608c2d3981d952c6ea440c268b57191b7d3fee1408c0cf5f33050324618a",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מִסְגֶּרֶת",
+            "normalized": "מסגרת"
+          },
+          {
+            "index": 1,
+            "surface": "מִשְׁקָפַיִים",
+            "normalized": "משקפיים"
+          },
+          {
+            "index": 2,
+            "surface": "אֵינָהּ",
+            "normalized": "אינה"
+          },
+          {
+            "index": 3,
+            "surface": "בַּעֲלַת",
+            "normalized": "בעלת"
+          },
+          {
+            "index": 4,
+            "surface": "חֲתַךְ",
+            "normalized": "חתך"
+          },
+          {
+            "index": 5,
+            "surface": "קָבוּעַ",
+            "normalized": "קבוע"
+          },
+          {
+            "index": 6,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 7,
+            "surface": "שִׁיחוּל",
+            "normalized": "שיחול"
+          },
+          {
+            "index": 8,
+            "surface": "אֵינוֹ",
+            "normalized": "אינו"
+          },
+          {
+            "index": 9,
+            "surface": "מַתְאִים",
+            "normalized": "מתאים"
+          },
+          {
+            "index": 10,
+            "surface": "כְּתַהֲלִיךְ",
+            "normalized": "כתהליך"
+          },
+          {
+            "index": 11,
+            "surface": "עִיקָּרִי",
+            "normalized": "עיקרי"
+          },
+          {
+            "index": 12,
+            "surface": "לִיצִירָתָהּ.",
+            "normalized": "ליצירתה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בייצור מחומרים צלולואידיים/צלולוזיים נדרשים ייבוש ובקרת טמפרטורה כדי לצמצם בועות ופירוק תרמי.",
+        "he_niqqud": "בְּיִיצוּר מֵחֳמָרִים צֶלּוּלוֹאִידִיִּים/צֶלּוּלוֹזִיִּים נִדְרָשִׁים יִיבּוּשׁ וּבַקָּרַת טֶמְפֶּרָטוּרָה כְּדֵי לְצַמְצֵם בּוּעוֹת וּפֵירוּק תֶּרְמִי.",
+        "transliteration": "Beyiytzur meḥomarim tzellulo'iydiyim/tzelluloziyim nidrashim yibush u'baqara't ṭemperaṭurah kedei letzamtzem bu'ot u'peruq termi.",
+        "ru": "При производстве из целлулоидных/целлюлозных материалов требуются сушка и контроль температуры, чтобы уменьшить образование пузырьков и термическое разложение."
+      },
+      "source_refs": [
+        "legacy_row_hash:d6f7f911003251025695adb3d82d9f87d86cf62dfe21570ff88e537ff711b7ef",
+        "legacy_fields_sha256:a7e3de40231a58d6524e4faa63a8e813c925ae0a7c588000d37fff9313e77476",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּיִיצוּר",
+            "normalized": "בייצור"
+          },
+          {
+            "index": 1,
+            "surface": "מֵחֳמָרִים",
+            "normalized": "מחמרים"
+          },
+          {
+            "index": 2,
+            "surface": "צֶלּוּלוֹאִידִיִּים/צֶלּוּלוֹזִיִּים",
+            "normalized": "צלולואידיים/צלולוזיים"
+          },
+          {
+            "index": 3,
+            "surface": "נִדְרָשִׁים",
+            "normalized": "נדרשים"
+          },
+          {
+            "index": 4,
+            "surface": "יִיבּוּשׁ",
+            "normalized": "ייבוש"
+          },
+          {
+            "index": 5,
+            "surface": "וּבַקָּרַת",
+            "normalized": "ובקרת"
+          },
+          {
+            "index": 6,
+            "surface": "טֶמְפֶּרָטוּרָה",
+            "normalized": "טמפרטורה"
+          },
+          {
+            "index": 7,
+            "surface": "כְּדֵי",
+            "normalized": "כדי"
+          },
+          {
+            "index": 8,
+            "surface": "לְצַמְצֵם",
+            "normalized": "לצמצם"
+          },
+          {
+            "index": 9,
+            "surface": "בּוּעוֹת",
+            "normalized": "בועות"
+          },
+          {
+            "index": 10,
+            "surface": "וּפֵירוּק",
+            "normalized": "ופירוק"
+          },
+          {
+            "index": 11,
+            "surface": "תֶּרְמִי.",
+            "normalized": "תרמי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) צינור גמיש: שיחול (Extrusion) של צינור.",
+        "he_niqqud": "ג) צִנּוֹר גָּמִישׁ: שִׁיחוּל (Extrusion) שֶׁל צִנּוֹר.",
+        "transliteration": "G) Tzinor gamish: shiḥul (Extrusion) shel tzinor.",
+        "ru": "В) Гибкая труба: Экструзия (Extrusion) трубы."
+      },
+      "source_refs": [
+        "legacy_row_hash:c9400b49e79be2042de96c3904637e1dabf8b30bda79b637b5e73a682166baa9",
+        "legacy_fields_sha256:228a6cdfb70f79ec9493797891935be03c619cb5d2a03ba25b39a8c47647e6e9",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "צִנּוֹר",
+            "normalized": "צנור"
+          },
+          {
+            "index": 2,
+            "surface": "גָּמִישׁ:",
+            "normalized": "גמיש"
+          },
+          {
+            "index": 3,
+            "surface": "שִׁיחוּל",
+            "normalized": "שיחול"
+          },
+          {
+            "index": 4,
+            "surface": "(Extrusion)",
+            "normalized": "Extrusion"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "צִנּוֹר.",
+            "normalized": "צנור"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בקבוק למשקה קל: הזרקה של פריפורם ולאחר מכן ניפוח מתיחה (Injection Stretch Blow Molding).",
+        "he_niqqud": "ג) בַּקְבּוּק לְמַשְׁקֶה קַל: הַזְרָקָה שֶׁל פְּרִיפוֹרְם וּלְאַחַר מִכֵּן נִיפּוּחַ מְתִיחָה (Injection Stretch Blow Molding).",
+        "transliteration": "G) Baqbuq le'mashqe qal: hazraqah shel pri'form u'le'aḥar mikken nipuaḥ meṭiḥah (Injection Stretch Blow Molding).",
+        "ru": "В) Бутылка для безалкогольного напитка: литье преформы с последующим экструзионно-выдувным формованием с растяжением (Injection Stretch Blow Molding)."
+      },
+      "source_refs": [
+        "legacy_row_hash:e84a87ce4fbe5f7544238c85f59990de71469dddc9bd82dfd78034b2ec6c1f76",
+        "legacy_fields_sha256:dde9bba870ee9d9779072f24e5601f776e5919507f52de5616306e879a12d026",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בַּקְבּוּק",
+            "normalized": "בקבוק"
+          },
+          {
+            "index": 2,
+            "surface": "לְמַשְׁקֶה",
+            "normalized": "למשקה"
+          },
+          {
+            "index": 3,
+            "surface": "קַל:",
+            "normalized": "קל"
+          },
+          {
+            "index": 4,
+            "surface": "הַזְרָקָה",
+            "normalized": "הזרקה"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "פְּרִיפוֹרְם",
+            "normalized": "פריפורם"
+          },
+          {
+            "index": 7,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 8,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 9,
+            "surface": "נִיפּוּחַ",
+            "normalized": "ניפוח"
+          },
+          {
+            "index": 10,
+            "surface": "מְתִיחָה",
+            "normalized": "מתיחה"
+          },
+          {
+            "index": 11,
+            "surface": "(Injection",
+            "normalized": "Injection"
+          },
+          {
+            "index": 12,
+            "surface": "Stretch",
+            "normalized": "Stretch"
+          },
+          {
+            "index": 13,
+            "surface": "Blow",
+            "normalized": "Blow"
+          },
+          {
+            "index": 14,
+            "surface": "Molding).",
+            "normalized": "Molding"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בקבוק למשקה קל מחומרים מסוימים: ניפוח באקסטרוזיה (Extrusion Blow Molding) לפי סוג החומר והדרישות.",
+        "he_niqqud": "ג) בַּקְבּוּק לְמַשְׁקֶה קַל מֵחֳמָרִים מְסוּיָּמִים: נִיפּוּחַ בְּאֶקְסְטְרוּזְיָה (Extrusion Blow Molding) לְפִי סוּג הַחֹמֶר וְהַדְּרִישׁוֹת.",
+        "transliteration": "G) Baqbuq le'mashqe qal me'ḥomarim mesuyamim: nipuaḥ be'eksṭruzyah (Extrusion Blow Molding) lefi sug ha'ḥomer ve'ha'drishot.",
+        "ru": "В) Бутылка для безалкогольного напитка из определенных материалов: выдувное формование методом экструзии (Extrusion Blow Molding) в зависимости от типа материала и требований."
+      },
+      "source_refs": [
+        "legacy_row_hash:e6c0e8976fa1b312bf234ae96d3ab009e2755e4569d5c4d2b3f911156ee6f910",
+        "legacy_fields_sha256:3677f26b92be2f50c39b45e58296e8c3c91d91c9e9aee4d92120525f9c0d3cee",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בַּקְבּוּק",
+            "normalized": "בקבוק"
+          },
+          {
+            "index": 2,
+            "surface": "לְמַשְׁקֶה",
+            "normalized": "למשקה"
+          },
+          {
+            "index": 3,
+            "surface": "קַל",
+            "normalized": "קל"
+          },
+          {
+            "index": 4,
+            "surface": "מֵחֳמָרִים",
+            "normalized": "מחמרים"
+          },
+          {
+            "index": 5,
+            "surface": "מְסוּיָּמִים:",
+            "normalized": "מסוימים"
+          },
+          {
+            "index": 6,
+            "surface": "נִיפּוּחַ",
+            "normalized": "ניפוח"
+          },
+          {
+            "index": 7,
+            "surface": "בְּאֶקְסְטְרוּזְיָה",
+            "normalized": "באקסטרוזיה"
+          },
+          {
+            "index": 8,
+            "surface": "(Extrusion",
+            "normalized": "Extrusion"
+          },
+          {
+            "index": 9,
+            "surface": "Blow",
+            "normalized": "Blow"
+          },
+          {
+            "index": 10,
+            "surface": "Molding)",
+            "normalized": "Molding"
+          },
+          {
+            "index": 11,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 12,
+            "surface": "סוּג",
+            "normalized": "סוג"
+          },
+          {
+            "index": 13,
+            "surface": "הַחֹמֶר",
+            "normalized": "החמר"
+          },
+          {
+            "index": 14,
+            "surface": "וְהַדְּרִישׁוֹת.",
+            "normalized": "והדרישות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) כוס למשקה קל: תרמופורמינג/ואקום־פורמינג (Thermoforming) מיריעת פלסטיק.",
+        "he_niqqud": "ג) כּוֹס לְמַשְׁקֶה קַל: תֶּרְמוֹפוֹרְמִינְג/וָאקוּם־פוֹרְמִינְג (Thermoforming) מִיְרִיעַת פְּלַסְטִיק.",
+        "transliteration": "G) Kos le'mashqe qal: termoforming/vaqqum-forming (Thermoforming) mi'yri'a't plasṭiq.",
+        "ru": "В) Стакан для безалкогольного напитка: Термоформование/Вакуумное формование (Thermoforming) из пластикового листа."
+      },
+      "source_refs": [
+        "legacy_row_hash:9a4661ff771f1e4bf71c6da9be39957f176d95091a8f4f79fb59262d36da92b9",
+        "legacy_fields_sha256:b0e52dfb97dc466fef6039cf3211d7aceca585dcd5d4b1e34f4d848a44289f51",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "כּוֹס",
+            "normalized": "כוס"
+          },
+          {
+            "index": 2,
+            "surface": "לְמַשְׁקֶה",
+            "normalized": "למשקה"
+          },
+          {
+            "index": 3,
+            "surface": "קַל:",
+            "normalized": "קל"
+          },
+          {
+            "index": 4,
+            "surface": "תֶּרְמוֹפוֹרְמִינְג/וָאקוּם־פוֹרְמִינְג",
+            "normalized": "תרמופורמינג/ואקום־פורמינג"
+          },
+          {
+            "index": 5,
+            "surface": "(Thermoforming)",
+            "normalized": "Thermoforming"
+          },
+          {
+            "index": 6,
+            "surface": "מִיְרִיעַת",
+            "normalized": "מיריעת"
+          },
+          {
+            "index": 7,
+            "surface": "פְּלַסְטִיק.",
+            "normalized": "פלסטיק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r020",
+      "order": 20,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) כוס עבה או רב־פעמית: הזרקה (Injection molding).",
+        "he_niqqud": "ג) כּוֹס עָבָה אוֹ רַב־פַּעֲמִית: הַזְרָקָה (Injection molding).",
+        "transliteration": "G) Kos 'avah o rav-pa'amiyt: hazraqah (Injection molding).",
+        "ru": "В) Толстый или многоразовый стакан: Литье под давлением (Injection molding)."
+      },
+      "source_refs": [
+        "legacy_row_hash:5576f73bbfdf9046ed79a821d2059f1d897613d851a139dc4dc782fbbaaa1872",
+        "legacy_fields_sha256:27f0cdea42b8082513cc2e54bac25eb83474542d43d44b0a7d1885b6a31e2245",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "כּוֹס",
+            "normalized": "כוס"
+          },
+          {
+            "index": 2,
+            "surface": "עָבָה",
+            "normalized": "עבה"
+          },
+          {
+            "index": 3,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 4,
+            "surface": "רַב־פַּעֲמִית:",
+            "normalized": "רב־פעמית"
+          },
+          {
+            "index": 5,
+            "surface": "הַזְרָקָה",
+            "normalized": "הזרקה"
+          },
+          {
+            "index": 6,
+            "surface": "(Injection",
+            "normalized": "Injection"
+          },
+          {
+            "index": 7,
+            "surface": "molding).",
+            "normalized": "molding"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) גלגל שיניים במנגנון של שעון: הזרקה מדויקת (Injection molding).",
+        "he_niqqud": "ג) גַּלְגַּל שִׁנַּיִים בְּמַנְגָּנוֹן שֶׁל שָׁעוֹן: הַזְרָקָה מְדוּיֶּקֶת (Injection molding).",
+        "transliteration": "G) Galgal shinayim be'manganon shel sha'on: hazraqah meduyyeqet (Injection molding).",
+        "ru": "В) Зубчатое колесо в часовом механизме: Точное литье под давлением (Injection molding)."
+      },
+      "source_refs": [
+        "legacy_row_hash:4b75ee5f4e182f9760b56307f4e635a3a70846071430bda56b76178a46e861e1",
+        "legacy_fields_sha256:9f0799c9b34acea4582ce359e8f5af745fee8106724ae0b6e05d2e83216d4812",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "גַּלְגַּל",
+            "normalized": "גלגל"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁנַּיִים",
+            "normalized": "שניים"
+          },
+          {
+            "index": 3,
+            "surface": "בְּמַנְגָּנוֹן",
+            "normalized": "במנגנון"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "שָׁעוֹן:",
+            "normalized": "שעון"
+          },
+          {
+            "index": 6,
+            "surface": "הַזְרָקָה",
+            "normalized": "הזרקה"
+          },
+          {
+            "index": 7,
+            "surface": "מְדוּיֶּקֶת",
+            "normalized": "מדויקת"
+          },
+          {
+            "index": 8,
+            "surface": "(Injection",
+            "normalized": "Injection"
+          },
+          {
+            "index": 9,
+            "surface": "molding).",
+            "normalized": "molding"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) בגלגל שיניים נבחרים לעיתים תרמופלסטים הנדסיים כגון POM או ניילון בשל חיכוך נמוך ועמידות לשחיקה.",
+        "he_niqqud": "ג) בְּגַלְגַּל שִׁנַּיִים נִבְחָרִים לְעִיתִּים תֶּרְמוֹפְּלַסְטִים הַנְדָּסִיִּים כְּגוֹן POM אוֹ נַיְילוֹן בִּשְׁלַל חִכּוּךְ נָמוּךְ וַעֲמִידוּת לִשְׁחִיקָה.",
+        "transliteration": "G) Be'galgal shinayim nivḥarim le'ittim termoplasṭim handasiyim kegon POM o naylon beshel ḥikhukh namukh va'amidut lishḥiqah.",
+        "ru": "В) Для зубчатых колес иногда выбирают инженерные термопласты, такие как POM или нейлон, из-за низкого коэффициента трения и износостойкости."
+      },
+      "source_refs": [
+        "legacy_row_hash:dddff1b8a951e9ad7bcb6c0f7145dcb77f23b00122a97c5741b168948f496c6e",
+        "legacy_fields_sha256:873526eecb80166be25042b9986506c46c903225755708e78b68f49dea0d72d7",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "בְּגַלְגַּל",
+            "normalized": "בגלגל"
+          },
+          {
+            "index": 2,
+            "surface": "שִׁנַּיִים",
+            "normalized": "שניים"
+          },
+          {
+            "index": 3,
+            "surface": "נִבְחָרִים",
+            "normalized": "נבחרים"
+          },
+          {
+            "index": 4,
+            "surface": "לְעִיתִּים",
+            "normalized": "לעיתים"
+          },
+          {
+            "index": 5,
+            "surface": "תֶּרְמוֹפְּלַסְטִים",
+            "normalized": "תרמופלסטים"
+          },
+          {
+            "index": 6,
+            "surface": "הַנְדָּסִיִּים",
+            "normalized": "הנדסיים"
+          },
+          {
+            "index": 7,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 8,
+            "surface": "POM",
+            "normalized": "POM"
+          },
+          {
+            "index": 9,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 10,
+            "surface": "נַיְילוֹן",
+            "normalized": "ניילון"
+          },
+          {
+            "index": 11,
+            "surface": "בִּשְׁלַל",
+            "normalized": "בשלל"
+          },
+          {
+            "index": 12,
+            "surface": "חִכּוּךְ",
+            "normalized": "חכוך"
+          },
+          {
+            "index": 13,
+            "surface": "נָמוּךְ",
+            "normalized": "נמוך"
+          },
+          {
+            "index": 14,
+            "surface": "וַעֲמִידוּת",
+            "normalized": "ועמידות"
+          },
+          {
+            "index": 15,
+            "surface": "לִשְׁחִיקָה.",
+            "normalized": "לשחיקה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q053-sol-r023",
+      "order": 23,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:943feec74c2faa7a34766bed63be613fbc79d81b35db45b01f5cd4eae3bb0d7e",
+        "comparison:MATCH_WITH_ROUTE_QUALIFICATION",
+        "source_page:63",
+        "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q053",
+    "display_alias": "53",
+    "source_pages": [
+      63
+    ],
+    "independent_state": "DERIVED_WITH_PROCESS_ROUTE_QUALIFICATION",
+    "answer": [
+      "а) Thermoset содержит необратимую ковалентно сшитую трёхмерную сеть. Повторный нагрев не освобождает цепи для течения: материал сохраняет форму до химического разложения/обугливания.",
+      "б) Для дискретной сложной оправы из cellulosic thermoplastic выбирается injection molding: расплав дозируется в замкнутую форму, точно формируя переменную геометрию, мостик и посадочные элементы. Extrusion предназначена прежде всего для непрерывного постоянного профиля; возможная последующая мехобработка sheet/rod — другой маршрут, не одна из двух предложенных машин.",
+      "в) Гибкая труба — extrusion; бутылка для soft drink — injection stretch blow molding или extrusion blow molding по материалу/конструкции; стакан — thermoforming из экструдированного листа или injection molding; маленькая часовая шестерня — precision injection molding."
+    ],
+    "engineering_picture": "Выбор процесса начинается с геометрии: continuous constant section→extrusion; closed detailed discrete part→injection; hollow thin wall→blow; open thin shell→thermoforming.",
+    "prerequisites": [
+      "Cellulosics in the question are thermoplastic.",
+      "Injection molding is suited to repeatable complex discrete parts."
+    ],
+    "roadmap": [
+      "Explain network.",
+      "Classify eyeglass-frame geometry.",
+      "Map each product to process family."
+    ],
+    "main_trap": "Не выбирать extrusion для готовой оправы только потому, что сырьё термопластично.",
+    "givens": [
+      "Extruder and injection machine; four thermoplastic products."
+    ],
+    "find": [
+      "Machine and suitable processes."
+    ],
+    "assumptions": [
+      "Frame is intended as a molded discrete part, not machined from extruded acetate sheet."
+    ],
+    "laws": [
+      "Process must supply the required topology and production continuity."
+    ],
+    "symbolic_derivation": [
+      "constant cross-section⇒extrusion;closed complex cavity⇒injection;hollow container⇒blow."
+    ],
+    "calculation": [],
+    "construction": [
+      "Product-to-process table with one primary route and permitted alternative."
+    ],
+    "checks": [
+      "Every route can physically create the product's hollow/open/continuous/discrete geometry."
+    ],
+    "source_facts": [
+      "source_page:63",
+      "asset_sha256:e8e47a4a5d8de230250497cd7b751b9ef369ee65e957320a04e1aba90819b388"
+    ],
+    "unresolved_limits": [
+      "Exact cellulosic grade, optical finish, production volume and whether machining is allowed are not specified."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 0
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

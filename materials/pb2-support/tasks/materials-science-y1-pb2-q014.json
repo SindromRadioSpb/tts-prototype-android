@@ -1,0 +1,2311 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_f4124d160cda479700dd3699",
+  "public_work_id": "work-a5eba0734058efd6a6bf5c80",
+  "snapshot_sha256": "c47a1289d6994ce2beacf7972b23356c3c5d5f90f701e60f3f6f96f84467518e",
+  "task_id": "materials-science-y1-pb2-q014",
+  "display_alias": "14",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "96e86fee213210840e739df2caa5af0d9a9b273f2021167ccd6424f053e9b1f6"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "679de4ea4dac6fd13ed4b5d7dc424c5c61ccd709aacdcffa94df4bd37c0c2325",
+    "source_canonical_task_sha256": "96e86fee213210840e739df2caa5af0d9a9b273f2021167ccd6424f053e9b1f6"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "8a30821119f326fe47fb8855b2b2205715af5e67faa83f7dd9c501fb89af3dd4",
+    "legacy_comparison": "MATCH",
+    "publication_blocking": false,
+    "reviewer_note": "Fracture-stress definition, diagram mapping and Luders identification match.",
+    "reviewer_disposition": "TASK_LEVEL_COMPARISON_PASS"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q014-r001",
+        "order_index": 0,
+        "hebrew_plain": "שאלה 14 (911 2022)",
+        "hebrew_niqqud": "שְׁאֵלָה 14 (911 2022)",
+        "translit": "Sh'ela 14 (911 2022)",
+        "translit_ru": "",
+        "russian": "Вопрос 14 (911 2022)",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:source-bound-studio-export",
+        "translation_meta": {
+          "provider": "legacy_source_bound",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "source_verified_legacy_fallback"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "hybrid:legacy-source+gemini-points+local-skeleton",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "task_heading",
+            "source_page": 18,
+            "source_row_index": 0,
+            "canonical_provenance": "source_verified_legacy_fallback"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r002",
+        "order_index": 1,
+        "hebrew_plain": "א. הסבירו מהו מאמץ שבר של מתכת (σf).",
+        "hebrew_niqqud": "א. הַסְבִּירוּ מַהוּ מַאֲמַץ שֶׁבֶר שֶׁל מַתֶּכֶת (σf).",
+        "translit": "a. hasbiru mahu ma'amatz shever shel matekhet (σf).",
+        "translit_ru": "",
+        "russian": "а. Объясните, что представляет собой напряжение разрушения металла (σf).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "subpart",
+            "source_page": 18,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r003",
+        "order_index": 2,
+        "hebrew_plain": "ב. באיור שלפניכם מוצגות ארבע דיאגרמות מאמץ-מעוות של ארבעה חומרים שונים (4-1).",
+        "hebrew_niqqud": "ב. בְּאִיּוּר שֶׁלִּפְנֵיכֶם מֻוצָּגוֹת אַרְבַּע דִּיאַגְרָמוֹת מַאֲמָץ-מְעֻווָּת שֶׁל אַרְבָּעָה חֳומָרִים שׁוֹנִים (4-1).",
+        "translit": "b. be'iyur shelifneikhem mutzagot arba' di'agramot ma'amatz-me'uvat shel arba'ah khomarim shonim (4-1).",
+        "translit_ru": "",
+        "russian": "б. На рисунке перед вами представлены четыре диаграммы «напряжение-деформация» для четырех различных материалов (1–4).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "diagram_reference",
+            "source_page": 18,
+            "source_row_index": 2,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r004",
+        "order_index": 3,
+        "hebrew_plain": "להלן תכונות החומרים:",
+        "hebrew_niqqud": "לְהַלָּן תְּכוּנוֹת הַחֳומָרִים:",
+        "translit": "lehalan tekhunot hakhomarim:",
+        "translit_ru": "",
+        "russian": "Ниже приведены свойства материалов:",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "condition",
+            "source_page": 18,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r005",
+        "order_index": 4,
+        "hebrew_plain": "חומר 1 - חומר פריך",
+        "hebrew_niqqud": "חֹומֶר 1 - חֹומֶר פָּרִיךְ",
+        "translit": "khomer 1 - khomer parikh",
+        "translit_ru": "",
+        "russian": "Материал 1 — хрупкий материал",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "condition",
+            "source_page": 18,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r006",
+        "order_index": 5,
+        "hebrew_plain": "חומר 2 - חומר משיך ללא נקודת כניעה בולטת וללא פלסטיות ניכרת",
+        "hebrew_niqqud": "חֹומֶר 2 - חֹומֶר מָשִׁיךְ לְלֹא נְקֻודַּת כְּנִיעָה בּוֹלֶטֶת וּלְלֹא פְּלַסְטִיּוּת נִיכֶּרֶת",
+        "translit": "khomer 2 - khomer mashikh lelo nekudat kni'ah boletet ulelo plastiyut nikeret",
+        "translit_ru": "",
+        "russian": "Материал 2 — пластичный материал без выраженной точки текучести и без заметной пластичности",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "condition",
+            "source_page": 18,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r007",
+        "order_index": 6,
+        "hebrew_plain": "חומר 3 - חומר משיך בעל נקודת כניעה ברורה",
+        "hebrew_niqqud": "חֹומֶר 3 - חֹומֶר מָשִׁיךְ בַּעַל נְקֻודַּת כְּנִיעָה בְּרוּרָה",
+        "translit": "khomer 3 - khomer mashikh ba'al nekudat kni'ah brurah",
+        "translit_ru": "",
+        "russian": "Материал 3 — пластичный материал с четкой точкой текучести",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "condition",
+            "source_page": 18,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r008",
+        "order_index": 7,
+        "hebrew_plain": "חומר 4 - חומר משיך ללא נקודת כניעה בולטת, בעל פלסטיות ניכרת",
+        "hebrew_niqqud": "חֹומֶר 4 - חֹומֶר מָשִׁיךְ לְלֹא נְקֻודַּת כְּנִיעָה בּוֹלֶטֶת, בַּעַל פְּלַסְטִיּוּת נִיכֶּרֶת",
+        "translit": "khomer 4 - khomer mashikh lelo nekudat kni'ah boletet, ba'al plastiyut nikeret",
+        "translit_ru": "",
+        "russian": "Материал 4 — пластичный материал без выраженной точки текучести, обладающий заметной пластичностью",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "condition",
+            "source_page": 18,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r009",
+        "order_index": 8,
+        "hebrew_plain": "ציינו במחברת איזו מבין הדיאגרמות (א'-ד') מייצגת כל אחד מבין החומרים 4-1.",
+        "hebrew_niqqud": "צַייְּנוּ בַּמַּחְבֶּרֶת אֵיזוֹ מִבֵּין הַדִּיאַגְרָמוֹת (א'-ד') מְייַצֶּגֶת כָּל אֶחָד מִבֵּין הַחֳומָרִים 4-1.",
+        "translit": "tzaynu bamakhberet eizo mibein hadi'agramot (a'-d') meyatzeghet kol ekhad mibein hakhomarim 4-1.",
+        "translit_ru": "",
+        "russian": "Укажите в тетради, какая из диаграмм (А–Г) представляет каждый из материалов 1–4.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "subpart",
+            "source_page": 18,
+            "source_row_index": 8,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 8,
+        "sentence_index": 8,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q014-r010",
+        "order_index": 9,
+        "hebrew_plain": "ג. ציינו באיזו מבין ארבע הדיאגרמות נעשה שימוש במעוות לודר (Luders) לפני הקשיית המאמצים.",
+        "hebrew_niqqud": "ג. צַייְּנוּ בְּאֵיזוֹ מִבֵּין אַרְבַּע הַדִּיאַגְרָמוֹת נַעֲשָׂה שִׁימּוּשׁ בְּמְעֻווָּת לוּדֶר (Luders) לִפְנֵי הַקְשָׁייַת הַמַּאֲמַצִּים.",
+        "translit": "g. tzaynu be'eizo mibein arba' hadi'agramot na'asah shimush beme'uvat luder (Luders) lifnei hakshayat hama'amatzim.",
+        "translit_ru": "",
+        "russian": "в. Укажите, в какой из четырех диаграмм имеет место деформация Людерса (Lüders) перед деформационным упрочнением.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q014",
+            "kind": "subpart",
+            "source_page": 18,
+            "source_row_index": 9,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 9,
+        "sentence_index": 9,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      18
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q014/anchor-01-p018.jpg",
+        "sha256": "e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74",
+        "bytes": 167226,
+        "source_page": 18,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q014-v01",
+        "source_page": 18,
+        "kind": "STRESS_STRAIN_SCHEMATIC",
+        "instance_count": 4,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:8a30821119f326fe47fb8855b2b2205715af5e67faa83f7dd9c501fb89af3dd4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "א) מאמץ שבר (σf) הוא המאמץ בנקודת השבירה של הדגימה.",
+        "he_niqqud": "א) מַאֲמָץ שֶׁבֶר (σf) הוּא הַמַּאֲמָץ בִּנְקֻדַּת הַשְּׁבִירָה שֶׁל הַדְּגִימָה.",
+        "transliteration": "A) Ma'amats shever (σf) hu hama'amats binequdat hashvira shel hadgima.",
+        "ru": "А) Напряжение разрушения (σf) — это напряжение в точке разрушения образца."
+      },
+      "source_refs": [
+        "legacy_row_hash:e13aaf197f5400028e4ce6ef52757a4161bb5bea8fc839e6bde23fbc6c2db7df",
+        "legacy_fields_sha256:979322f4833d6cf7e527cd1473e03bc5c6178ff472e76ebe9707c7eeceadaa4c",
+        "independent_solution_sha256:8a30821119f326fe47fb8855b2b2205715af5e67faa83f7dd9c501fb89af3dd4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁבֶר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 3,
+            "surface": "(σf)",
+            "normalized": "σf"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "הַמַּאֲמָץ",
+            "normalized": "המאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "בִּנְקֻדַּת",
+            "normalized": "בנקדת"
+          },
+          {
+            "index": 7,
+            "surface": "הַשְּׁבִירָה",
+            "normalized": "השבירה"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "הַדְּגִימָה.",
+            "normalized": "הדגימה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) חומר 1 מיוצג על ידי דיאגרמה ד׳.",
+        "he_niqqud": "ב) חוֹמֶר 1 מְיֻצָּג עַל יְדֵי דִּיאַגְרָמָה ד׳.",
+        "transliteration": "B) Khomer 1 meyu'tzag 'al yedei di'agrama D'.",
+        "ru": "Б) Материал 1 представлен диаграммой Г."
+      },
+      "source_refs": [
+        "legacy_row_hash:bb38d161c88cfb2f43340144165f925ff6dd3d2a584c5d527a4cd4280ec3b8e1",
+        "legacy_fields_sha256:a29cbd2b1d17e8001c1ad09e377f9f067c8369e69a41534db063affcd5e40018",
+        "independent_solution_sha256:8a30821119f326fe47fb8855b2b2205715af5e67faa83f7dd9c501fb89af3dd4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 2,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 3,
+            "surface": "מְיֻצָּג",
+            "normalized": "מיצג"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 6,
+            "surface": "דִּיאַגְרָמָה",
+            "normalized": "דיאגרמה"
+          },
+          {
+            "index": 7,
+            "surface": "ד׳.",
+            "normalized": "ד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r004",
+      "order": 4,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) מעוות לודר (Luders) מופיע בדיאגרמה א׳.",
+        "he_niqqud": "ג) מְעוּוָת לוּדֶר (Luders) מוֹפִיעַ בְּדִיאַגְרָמָה א׳.",
+        "transliteration": "G) Me'uvvat Luders mofia bedi'agrama A'.",
+        "ru": "В) Деформация Людерса (Luders) появляется на диаграмме А."
+      },
+      "source_refs": [
+        "legacy_row_hash:e31e4e61cc994b6edadf8dbc02e6004585e457fa9cdc640ac1d674a7ceda10a4",
+        "legacy_fields_sha256:d47e52e6195965b9f2c85bf8e8ef586b10075258522986c719e639970087d198",
+        "independent_solution_sha256:8a30821119f326fe47fb8855b2b2205715af5e67faa83f7dd9c501fb89af3dd4"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "מְעוּוָת",
+            "normalized": "מעוות"
+          },
+          {
+            "index": 2,
+            "surface": "לוּדֶר",
+            "normalized": "לודר"
+          },
+          {
+            "index": 3,
+            "surface": "(Luders)",
+            "normalized": "Luders"
+          },
+          {
+            "index": 4,
+            "surface": "מוֹפִיעַ",
+            "normalized": "מופיע"
+          },
+          {
+            "index": 5,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 6,
+            "surface": "א׳.",
+            "normalized": "א"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) מאמץ שבר (σf) הוא המאמץ בנקודת השבירה של הדגימה.",
+        "he_niqqud": "א) מַאֲמָץ שֶׁבֶר (σf) הוּא הַמַּאֲמָץ בִּנְקֻדַּת הַשְּׁבִירָה שֶׁל הַדְּגִימָה.",
+        "transliteration": "A) Ma'amats shever (σf) hu hama'amats binequdat hashvira shel hadgima.",
+        "ru": "А) Напряжение разрушения (σf) — это напряжение в точке разрушения образца."
+      },
+      "source_refs": [
+        "legacy_row_hash:e13aaf197f5400028e4ce6ef52757a4161bb5bea8fc839e6bde23fbc6c2db7df",
+        "legacy_fields_sha256:979322f4833d6cf7e527cd1473e03bc5c6178ff472e76ebe9707c7eeceadaa4c",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "מַאֲמָץ",
+            "normalized": "מאמץ"
+          },
+          {
+            "index": 2,
+            "surface": "שֶׁבֶר",
+            "normalized": "שבר"
+          },
+          {
+            "index": 3,
+            "surface": "(σf)",
+            "normalized": "σf"
+          },
+          {
+            "index": 4,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 5,
+            "surface": "הַמַּאֲמָץ",
+            "normalized": "המאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "בִּנְקֻדַּת",
+            "normalized": "בנקדת"
+          },
+          {
+            "index": 7,
+            "surface": "הַשְּׁבִירָה",
+            "normalized": "השבירה"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "הַדְּגִימָה.",
+            "normalized": "הדגימה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r006",
+      "order": 6,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיאגרמת מאמץ-מעוות הנדסית זהו הערך האחרון של σ לפני הכשל.",
+        "he_niqqud": "בְּדִיאַגְרָמַת מַאֲמָץ-מְעוּוָת הַנְדָּסִית זֶהוּ הָעֵרֶךְ הָאַחֲרוֹן שֶׁל σ לִפְנֵי הַכֵּשֶׁל.",
+        "transliteration": "Bedi'agramat ma'amats-me'uvvat handasit zehu ha'erekh ha'akharon shel σ lifnei hakheshel.",
+        "ru": "На инженерной диаграмме «напряжение–деформация» это последнее значение σ перед разрушением."
+      },
+      "source_refs": [
+        "legacy_row_hash:2f47d9777e7fabe3ddcb8daaa7a9583e0a24e1f8d0efba4594bbc56fe262b290",
+        "legacy_fields_sha256:4b468e0bbd694e7b6392761981d9ff3b58be85efae19cfa4949fae580fc8df71",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיאַגְרָמַת",
+            "normalized": "בדיאגרמת"
+          },
+          {
+            "index": 1,
+            "surface": "מַאֲמָץ-מְעוּוָת",
+            "normalized": "מאמץ-מעוות"
+          },
+          {
+            "index": 2,
+            "surface": "הַנְדָּסִית",
+            "normalized": "הנדסית"
+          },
+          {
+            "index": 3,
+            "surface": "זֶהוּ",
+            "normalized": "זהו"
+          },
+          {
+            "index": 4,
+            "surface": "הָעֵרֶךְ",
+            "normalized": "הערך"
+          },
+          {
+            "index": 5,
+            "surface": "הָאַחֲרוֹן",
+            "normalized": "האחרון"
+          },
+          {
+            "index": 6,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 7,
+            "surface": "σ",
+            "normalized": "σ"
+          },
+          {
+            "index": 8,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 9,
+            "surface": "הַכֵּשֶׁל.",
+            "normalized": "הכשל"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r007",
+      "order": 7,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "σf = Ff / A0",
+        "he_niqqud": "σf = Ff / A0",
+        "transliteration": "σf = Ff / A0",
+        "ru": "σf = Ff / A0"
+      },
+      "source_refs": [
+        "legacy_row_hash:a0c468daf56a634a6e96aa20c59df03935921fa49064ff6814e63627aeca59cf",
+        "legacy_fields_sha256:393fe01ba086eae00316396fdd604ba055c17e8148f9365ce747a1818e958382",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "σf",
+            "normalized": "σf"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "Ff",
+            "normalized": "Ff"
+          },
+          {
+            "index": 3,
+            "surface": "/",
+            "normalized": "/"
+          },
+          {
+            "index": 4,
+            "surface": "A0",
+            "normalized": "A0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "σf = Ff / A0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r008",
+      "order": 8,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "Ff הוא כוח השבירה.",
+        "he_niqqud": "Ff הוּא כֹּחַ הַשְּׁבִירָה.",
+        "transliteration": "Ff hu koakh hashvira.",
+        "ru": "Ff — это сила разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:604aedc817396d882e2f063ee34c8a5a07254b9f1d4a75d8a71ffd93ded4e699",
+        "legacy_fields_sha256:4ca395597f6cbbb27d8e10886f5acddbbe2c0526ef976a54fc97ba63a7c0b33c",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "Ff",
+            "normalized": "Ff"
+          },
+          {
+            "index": 1,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "כֹּחַ",
+            "normalized": "כח"
+          },
+          {
+            "index": 3,
+            "surface": "הַשְּׁבִירָה.",
+            "normalized": "השבירה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r009",
+      "order": 9,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "A0 הוא השטח ההתחלתי של חתך הדגימה.",
+        "he_niqqud": "A0 הוּא הַשֶּׁטַח הָהַתְחָלָתִי שֶׁל חֵתֶךְ הַדְּגִימָה.",
+        "transliteration": "A0 hu hashetakh hahathalti shel khetakh hadgima.",
+        "ru": "A0 — это начальная площадь поперечного сечения образца."
+      },
+      "source_refs": [
+        "legacy_row_hash:7cc3e5db5a1fc4e72a470c82429febba0f50ca536b81e0a7c72b2b198aac81a8",
+        "legacy_fields_sha256:acb75fd397324fab22a18a4f5f038a4c8e72a59b03798f9fa42e730ce6f2b12c",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "A0",
+            "normalized": "A0"
+          },
+          {
+            "index": 1,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 2,
+            "surface": "הַשֶּׁטַח",
+            "normalized": "השטח"
+          },
+          {
+            "index": 3,
+            "surface": "הָהַתְחָלָתִי",
+            "normalized": "ההתחלתי"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "חֵתֶךְ",
+            "normalized": "חתך"
+          },
+          {
+            "index": 6,
+            "surface": "הַדְּגִימָה.",
+            "normalized": "הדגימה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r010",
+      "order": 10,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) חומר 1 מיוצג על ידי דיאגרמה ד׳.",
+        "he_niqqud": "ב) חוֹמֶר 1 מְיֻצָּג עַל יְדֵי דִּיאַגְרָמָה ד׳.",
+        "transliteration": "B) Khomer 1 meyu'tzag 'al yedei di'agrama D'.",
+        "ru": "Б) Материал 1 представлен диаграммой Г."
+      },
+      "source_refs": [
+        "legacy_row_hash:bb38d161c88cfb2f43340144165f925ff6dd3d2a584c5d527a4cd4280ec3b8e1",
+        "legacy_fields_sha256:a29cbd2b1d17e8001c1ad09e377f9f067c8369e69a41534db063affcd5e40018",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 2,
+            "surface": "1",
+            "normalized": "1"
+          },
+          {
+            "index": 3,
+            "surface": "מְיֻצָּג",
+            "normalized": "מיצג"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 6,
+            "surface": "דִּיאַגְרָמָה",
+            "normalized": "דיאגרמה"
+          },
+          {
+            "index": 7,
+            "surface": "ד׳.",
+            "normalized": "ד"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בחומר פריך מתקבל כמעט רק תחום אלסטי עד שבר.",
+        "he_niqqud": "בְּחוֹמֶר פָּרִיךְ מִתְקַבֵּל כִּמְעַט רַק תְּחוּם אֵלַסְטִי עַד שֶׁבֶר.",
+        "transliteration": "Bekhomer parikh mitqabel kim'at raq tkhum elasti 'ad shever.",
+        "ru": "В хрупком материале наблюдается почти только упругая область до разрушения."
+      },
+      "source_refs": [
+        "legacy_row_hash:4fe305b15cf82c057ba627fb7922af13ffce9d02d21f803ff90977a4c5ac06cf",
+        "legacy_fields_sha256:a688e513301e6f2d46421b004defd8dd8fcbb676983175cea8e115355535a00e",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּחוֹמֶר",
+            "normalized": "בחומר"
+          },
+          {
+            "index": 1,
+            "surface": "פָּרִיךְ",
+            "normalized": "פריך"
+          },
+          {
+            "index": 2,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 3,
+            "surface": "כִּמְעַט",
+            "normalized": "כמעט"
+          },
+          {
+            "index": 4,
+            "surface": "רַק",
+            "normalized": "רק"
+          },
+          {
+            "index": 5,
+            "surface": "תְּחוּם",
+            "normalized": "תחום"
+          },
+          {
+            "index": 6,
+            "surface": "אֵלַסְטִי",
+            "normalized": "אלסטי"
+          },
+          {
+            "index": 7,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁבֶר.",
+            "normalized": "שבר"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r012",
+      "order": 12,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיאגרמה זו אין פלסטיות ניכרת לפני השבירה.",
+        "he_niqqud": "בְּדִיאַגְרָמָה זוֹ אֵין פְּלַסְטִיּוּת נִכֶּרֶת לִפְנֵי הַשְּׁבִירָה.",
+        "transliteration": "Bedi'agrama zo ein plastiyut nikheret lifnei hashvira.",
+        "ru": "На этой диаграмме нет заметной пластичности перед разрушением."
+      },
+      "source_refs": [
+        "legacy_row_hash:9a8e7e5951737093ea7a4d2ecc81ccba1c3227b1e7d24673e7d33ec785ee223a",
+        "legacy_fields_sha256:e53c2a23032562a482a16ea2d0eccfad55bb03d0d20e4fa1d1aac169206858fe",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 3,
+            "surface": "פְּלַסְטִיּוּת",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 4,
+            "surface": "נִכֶּרֶת",
+            "normalized": "נכרת"
+          },
+          {
+            "index": 5,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 6,
+            "surface": "הַשְּׁבִירָה.",
+            "normalized": "השבירה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r013",
+      "order": 13,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) חומר 3 מיוצג על ידי דיאגרמה א׳.",
+        "he_niqqud": "ב) חוֹמֶר 3 מְיֻצָּג עַל יְדֵי דִּיאַגְרָמָה א׳.",
+        "transliteration": "B) Khomer 3 meyu'tzag 'al yedei di'agrama A'.",
+        "ru": "Б) Материал 3 представлен диаграммой А."
+      },
+      "source_refs": [
+        "legacy_row_hash:23b4526db4a80c9c7c2fa3d9e5f0426593462d6a547447dd59eed48182b7e122",
+        "legacy_fields_sha256:1d25dfc005018bcf7d34eeea5c5441388fbc3ff5c8786ea9b8cb52c906205a27",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 2,
+            "surface": "3",
+            "normalized": "3"
+          },
+          {
+            "index": 3,
+            "surface": "מְיֻצָּג",
+            "normalized": "מיצג"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 6,
+            "surface": "דִּיאַגְרָמָה",
+            "normalized": "דיאגרמה"
+          },
+          {
+            "index": 7,
+            "surface": "א׳.",
+            "normalized": "א"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r014",
+      "order": 14,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיאגרמה זו קיימת נקודת כניעה ברורה.",
+        "he_niqqud": "בְּדִיאַגְרָמָה זוֹ קַיֶּמֶת נְקֻדַּת כְּנִיעָה בְּרוּרָה.",
+        "transliteration": "Bedi'agrama zo qayemet nequdat keni'a berura.",
+        "ru": "На этой диаграмме существует четкая точка текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:9a1a450760b3f761981e7e889ddf44b7022e1ffa0a8c29ee475d8a358b1a932c",
+        "legacy_fields_sha256:355c72ce47fddc98a1cb38fcf7b24fcad4a6f8aefb310296e695e45f983f3269",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "קַיֶּמֶת",
+            "normalized": "קימת"
+          },
+          {
+            "index": 3,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 4,
+            "surface": "כְּנִיעָה",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 5,
+            "surface": "בְּרוּרָה.",
+            "normalized": "ברורה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r015",
+      "order": 15,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאחר נקודת הכניעה מופיע אזור פלטו או תנודות קצרות לפני הקשיית מעוות.",
+        "he_niqqud": "לְאַחַר נְקֻדַּת הַכְּנִיעָה מוֹפִיעַ אֵזוֹר פְּלָטוֹ אוֹ תְּנוּדוֹת קְצָרוֹת לִפְנֵי הַקְשָׁיַת מְעוּוָת.",
+        "transliteration": "Le'akhar nequdat hakni'a mofia ezor plato o tenu'dot qtsarot lifnei haqshayyat me'uvvat.",
+        "ru": "После точки текучести появляется область плато или короткие колебания перед деформационным упрочнением."
+      },
+      "source_refs": [
+        "legacy_row_hash:84d676622d9df57a8df4409713a5ad2e30af8f015018fbac55f7038678d0e836",
+        "legacy_fields_sha256:3c901b5c7f3d65bc1e993eb3f0eedd9370b45c0dcb6abe86fc84f9a22c9778cb",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 1,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 2,
+            "surface": "הַכְּנִיעָה",
+            "normalized": "הכניעה"
+          },
+          {
+            "index": 3,
+            "surface": "מוֹפִיעַ",
+            "normalized": "מופיע"
+          },
+          {
+            "index": 4,
+            "surface": "אֵזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 5,
+            "surface": "פְּלָטוֹ",
+            "normalized": "פלטו"
+          },
+          {
+            "index": 6,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 7,
+            "surface": "תְּנוּדוֹת",
+            "normalized": "תנודות"
+          },
+          {
+            "index": 8,
+            "surface": "קְצָרוֹת",
+            "normalized": "קצרות"
+          },
+          {
+            "index": 9,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 10,
+            "surface": "הַקְשָׁיַת",
+            "normalized": "הקשית"
+          },
+          {
+            "index": 11,
+            "surface": "מְעוּוָת.",
+            "normalized": "מעוות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r016",
+      "order": 16,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) חומר 4 מיוצג על ידי דיאגרמה ב׳.",
+        "he_niqqud": "ב) חוֹמֶר 4 מְיֻצָּג עַל יְדֵי דִּיאַגְרָמָה ב׳.",
+        "transliteration": "B) Khomer 4 meyu'tzag 'al yedei di'agrama B'.",
+        "ru": "Б) Материал 4 представлен диаграммой Б."
+      },
+      "source_refs": [
+        "legacy_row_hash:7bdfe93ca206489c381c18b596f9ca13290afc74cca7f8c2f2df6a7ced236b08",
+        "legacy_fields_sha256:c0b4260b7812a00cbee3a584f8adbacdbd05d2cd58f18b431de223fe27911361",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 2,
+            "surface": "4",
+            "normalized": "4"
+          },
+          {
+            "index": 3,
+            "surface": "מְיֻצָּג",
+            "normalized": "מיצג"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 6,
+            "surface": "דִּיאַגְרָמָה",
+            "normalized": "דיאגרמה"
+          },
+          {
+            "index": 7,
+            "surface": "ב׳.",
+            "normalized": "ב"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r017",
+      "order": 17,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיאגרמה זו אין נקודת כניעה בולטת.",
+        "he_niqqud": "בְּדִיאַגְרָמָה זוֹ אֵין נְקֻדַּת כְּנִיעָה בּוֹלֶטֶת.",
+        "transliteration": "Bedi'agrama zo ein nequdat keni'a boletet.",
+        "ru": "На этой диаграмме нет выраженной точки текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:f5f4aa6fa940660d16f5b3bb9f2be04a00bbf67bfeb7c1f53b2b9d1b005dc5d9",
+        "legacy_fields_sha256:f781ae8d10fbc92a319fd0a5382267086a68ad95f703a47dfa45e344cf0084bd",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 3,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 4,
+            "surface": "כְּנִיעָה",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 5,
+            "surface": "בּוֹלֶטֶת.",
+            "normalized": "בולטת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r018",
+      "order": 18,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המעבר מהתחום האלסטי לתחום הפלסטי הוא חלק.",
+        "he_niqqud": "הַמַּעֲבָר מֵהַתְּחוּם הָאֵלַסְטִי לַתְּחוּם הַפְּלַסְטִי הוּא חָלָק.",
+        "transliteration": "Hama'avar mehatkhum ha'elasti latkhum haplastic hu khalaq.",
+        "ru": "Переход из упругой области в пластическую — плавный."
+      },
+      "source_refs": [
+        "legacy_row_hash:61fb0f6a45458ac92cb5cdca9dd124821d79c9fcafb9d2101b9622d2c628c7ce",
+        "legacy_fields_sha256:b436b98915224620ddd97b29ef021a62fd784e3e3ba0e3114fcbc52d5e96c4e9",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּעֲבָר",
+            "normalized": "המעבר"
+          },
+          {
+            "index": 1,
+            "surface": "מֵהַתְּחוּם",
+            "normalized": "מהתחום"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֵלַסְטִי",
+            "normalized": "האלסטי"
+          },
+          {
+            "index": 3,
+            "surface": "לַתְּחוּם",
+            "normalized": "לתחום"
+          },
+          {
+            "index": 4,
+            "surface": "הַפְּלַסְטִי",
+            "normalized": "הפלסטי"
+          },
+          {
+            "index": 5,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 6,
+            "surface": "חָלָק.",
+            "normalized": "חלק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "קיימת פלסטיות ניכרת עד לשיא ולאחריו ירידה עקב היווצרות צווארון.",
+        "he_niqqud": "קַיֶּמֶת פְּלַסְטִיּוּת נִכֶּרֶת עַד לַשִּׁיא וּלְאַחֲרָיו יְרִידָה עֵקֶב הִוָּצְרוּת צַוָּארוֹן.",
+        "transliteration": "Qayemet plastiyut nikheret 'ad lassi' ule'akharav yerida 'eqev hivatsrut tsavarōn.",
+        "ru": "Наблюдается значительная пластичность до пика, а затем падение из-за образования шейки."
+      },
+      "source_refs": [
+        "legacy_row_hash:5f634e6b879e63e1129ebc2bb68dbe69fad256d77e1b6839107cf812d759b116",
+        "legacy_fields_sha256:a142daff0a32dc2e249dd55f3cca4db9a2026171d74efdf1d18dd732853e0e3c",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "קַיֶּמֶת",
+            "normalized": "קימת"
+          },
+          {
+            "index": 1,
+            "surface": "פְּלַסְטִיּוּת",
+            "normalized": "פלסטיות"
+          },
+          {
+            "index": 2,
+            "surface": "נִכֶּרֶת",
+            "normalized": "נכרת"
+          },
+          {
+            "index": 3,
+            "surface": "עַד",
+            "normalized": "עד"
+          },
+          {
+            "index": 4,
+            "surface": "לַשִּׁיא",
+            "normalized": "לשיא"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחֲרָיו",
+            "normalized": "ולאחריו"
+          },
+          {
+            "index": 6,
+            "surface": "יְרִידָה",
+            "normalized": "ירידה"
+          },
+          {
+            "index": 7,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 8,
+            "surface": "הִוָּצְרוּת",
+            "normalized": "הוצרות"
+          },
+          {
+            "index": 9,
+            "surface": "צַוָּארוֹן.",
+            "normalized": "צוארון"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r020",
+      "order": 20,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) חומר 2 מיוצג על ידי דיאגרמה ג׳.",
+        "he_niqqud": "ב) חוֹמֶר 2 מְיֻצָּג עַל יְדֵי דִּיאַגְרָמָה ג׳.",
+        "transliteration": "B) Khomer 2 meyu'tzag 'al yedei di'agrama G'.",
+        "ru": "Б) Материал 2 представлен диаграммой В."
+      },
+      "source_refs": [
+        "legacy_row_hash:0f622fe70dac143e23c573839cb36544d7c8e668eaf1c8640b45e71cbeff36e5",
+        "legacy_fields_sha256:ae8c17a1070f57d087405a47841350d7b15d18eb83af6c6a7f67e3ed8853d6d0",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "חוֹמֶר",
+            "normalized": "חומר"
+          },
+          {
+            "index": 2,
+            "surface": "2",
+            "normalized": "2"
+          },
+          {
+            "index": 3,
+            "surface": "מְיֻצָּג",
+            "normalized": "מיצג"
+          },
+          {
+            "index": 4,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 5,
+            "surface": "יְדֵי",
+            "normalized": "ידי"
+          },
+          {
+            "index": 6,
+            "surface": "דִּיאַגְרָמָה",
+            "normalized": "דיאגרמה"
+          },
+          {
+            "index": 7,
+            "surface": "ג׳.",
+            "normalized": "ג"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r021",
+      "order": 21,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "בדיאגרמה זו אין נקודת כניעה בולטת.",
+        "he_niqqud": "בְּדִיאַגְרָמָה זוֹ אֵין נְקֻדַּת כְּנִיעָה בּוֹלֶטֶת.",
+        "transliteration": "Bedi'agrama zo ein nequdat keni'a boletet.",
+        "ru": "На этой диаграмме нет выраженной точки текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:f5f4aa6fa940660d16f5b3bb9f2be04a00bbf67bfeb7c1f53b2b9d1b005dc5d9",
+        "legacy_fields_sha256:f781ae8d10fbc92a319fd0a5382267086a68ad95f703a47dfa45e344cf0084bd",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 1,
+            "surface": "זוֹ",
+            "normalized": "זו"
+          },
+          {
+            "index": 2,
+            "surface": "אֵין",
+            "normalized": "אין"
+          },
+          {
+            "index": 3,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 4,
+            "surface": "כְּנִיעָה",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 5,
+            "surface": "בּוֹלֶטֶת.",
+            "normalized": "בולטת"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הפלסטיות מוגבלת ואינה ניכרת ביחס לחומר משיך בעל התארכות גדולה.",
+        "he_niqqud": "הַפְּלַסְטִיּוּת מֻגְבֶּלֶת וְאֵינָהּ נִכֶּרֶת בְּיַחַס לְחוֹמֶר מָשִׁיךְ בַּעַל הִתְאַרְכוּת גְּדוֹלָה.",
+        "transliteration": "Haplastiyut mugbelet ve'einah nikheret beyakhas lekhomer mashikh ba'al hit'arkhut gedola.",
+        "ru": "Пластичность ограничена и незаметна по сравнению с пластичным материалом с большим удлинением."
+      },
+      "source_refs": [
+        "legacy_row_hash:d2bf9f8333ff8ef192d3602661a3c3a5836ca4100d42ba17e39e34787639d681",
+        "legacy_fields_sha256:477a09a10c6532071c0cc4aba56c59ca8f7c5bf998575356c97e2d8a8833368e",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפְּלַסְטִיּוּת",
+            "normalized": "הפלסטיות"
+          },
+          {
+            "index": 1,
+            "surface": "מֻגְבֶּלֶת",
+            "normalized": "מגבלת"
+          },
+          {
+            "index": 2,
+            "surface": "וְאֵינָהּ",
+            "normalized": "ואינה"
+          },
+          {
+            "index": 3,
+            "surface": "נִכֶּרֶת",
+            "normalized": "נכרת"
+          },
+          {
+            "index": 4,
+            "surface": "בְּיַחַס",
+            "normalized": "ביחס"
+          },
+          {
+            "index": 5,
+            "surface": "לְחוֹמֶר",
+            "normalized": "לחומר"
+          },
+          {
+            "index": 6,
+            "surface": "מָשִׁיךְ",
+            "normalized": "משיך"
+          },
+          {
+            "index": 7,
+            "surface": "בַּעַל",
+            "normalized": "בעל"
+          },
+          {
+            "index": 8,
+            "surface": "הִתְאַרְכוּת",
+            "normalized": "התארכות"
+          },
+          {
+            "index": 9,
+            "surface": "גְּדוֹלָה.",
+            "normalized": "גדולה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r023",
+      "order": 23,
+      "section": "construction",
+      "kind": "diagram_instruction",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) מעוות לודר (Luders) מופיע בדיאגרמה א׳.",
+        "he_niqqud": "ג) מְעוּוָת לוּדֶר (Luders) מוֹפִיעַ בְּדִיאַגְרָמָה א׳.",
+        "transliteration": "G) Me'uvvat Luders mofia bedi'agrama A'.",
+        "ru": "В) Деформация Людерса (Luders) появляется на диаграмме А."
+      },
+      "source_refs": [
+        "legacy_row_hash:e31e4e61cc994b6edadf8dbc02e6004585e457fa9cdc640ac1d674a7ceda10a4",
+        "legacy_fields_sha256:d47e52e6195965b9f2c85bf8e8ef586b10075258522986c719e639970087d198",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "מְעוּוָת",
+            "normalized": "מעוות"
+          },
+          {
+            "index": 2,
+            "surface": "לוּדֶר",
+            "normalized": "לודר"
+          },
+          {
+            "index": 3,
+            "surface": "(Luders)",
+            "normalized": "Luders"
+          },
+          {
+            "index": 4,
+            "surface": "מוֹפִיעַ",
+            "normalized": "מופיע"
+          },
+          {
+            "index": 5,
+            "surface": "בְּדִיאַגְרָמָה",
+            "normalized": "בדיאגרמה"
+          },
+          {
+            "index": 6,
+            "surface": "א׳.",
+            "normalized": "א"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מעוות לודר מזוהה כאזור פלטו או “שיניים” לאחר נקודת כניעה עליונה ותחתונה.",
+        "he_niqqud": "מְעוּוָת לוּדֶר מְזוֹהֶה כְּאֵזוֹר פְּלָטוֹ אוֹ “שִׁנַּיִם” לְאַחַר נְקֻדַּת כְּנִיעָה עֶלְיוֹנָה וְתַחְתּוֹנָה.",
+        "transliteration": "Me'uvvat Luders mezohē ke'ezor plato o 'shinayim' le'akhar nequdat keni'a 'elyona vetakhtona.",
+        "ru": "Деформация Людерса идентифицируется как область плато или «зубцы» после верхней и нижней точек текучести."
+      },
+      "source_refs": [
+        "legacy_row_hash:5ae61b28b90cbb854c260d487cc60188c4f89a54b6b8048577af059be9897092",
+        "legacy_fields_sha256:1e9583e7bca3fc8bd9847d8d6e9cf9ca04e9a73b3960bd6a33fc7ac8af7eaf93",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מְעוּוָת",
+            "normalized": "מעוות"
+          },
+          {
+            "index": 1,
+            "surface": "לוּדֶר",
+            "normalized": "לודר"
+          },
+          {
+            "index": 2,
+            "surface": "מְזוֹהֶה",
+            "normalized": "מזוהה"
+          },
+          {
+            "index": 3,
+            "surface": "כְּאֵזוֹר",
+            "normalized": "כאזור"
+          },
+          {
+            "index": 4,
+            "surface": "פְּלָטוֹ",
+            "normalized": "פלטו"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "“שִׁנַּיִם”",
+            "normalized": "שנים"
+          },
+          {
+            "index": 7,
+            "surface": "לְאַחַר",
+            "normalized": "לאחר"
+          },
+          {
+            "index": 8,
+            "surface": "נְקֻדַּת",
+            "normalized": "נקדת"
+          },
+          {
+            "index": 9,
+            "surface": "כְּנִיעָה",
+            "normalized": "כניעה"
+          },
+          {
+            "index": 10,
+            "surface": "עֶלְיוֹנָה",
+            "normalized": "עליונה"
+          },
+          {
+            "index": 11,
+            "surface": "וְתַחְתּוֹנָה.",
+            "normalized": "ותחתונה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הוא מופיע לפני העלייה מחדש במאמץ עקב הקשיית מעוות.",
+        "he_niqqud": "הוּא מוֹפִיעַ לִפְנֵי הָעֲלִיָּה מֵחָדָשׁ בַּמַּאֲמָץ עֵקֶב הַקְשָׁיַת מְעוּוָת.",
+        "transliteration": "Hu mofia lifnei ha'aliya mekhadash bama'amats 'eqev haqshayyat me'uvvat.",
+        "ru": "Она появляется перед возобновлением роста напряжения из-за деформационного упрочнения."
+      },
+      "source_refs": [
+        "legacy_row_hash:fe965cd5139a4d72659f1e6836aacf19b45105c394f43fc9929c5a3a8c86fcba",
+        "legacy_fields_sha256:1b3c3a32f9eba93385e1163b2cf3afb25d803d97fc60fd3b224c11076259b921",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הוּא",
+            "normalized": "הוא"
+          },
+          {
+            "index": 1,
+            "surface": "מוֹפִיעַ",
+            "normalized": "מופיע"
+          },
+          {
+            "index": 2,
+            "surface": "לִפְנֵי",
+            "normalized": "לפני"
+          },
+          {
+            "index": 3,
+            "surface": "הָעֲלִיָּה",
+            "normalized": "העליה"
+          },
+          {
+            "index": 4,
+            "surface": "מֵחָדָשׁ",
+            "normalized": "מחדש"
+          },
+          {
+            "index": 5,
+            "surface": "בַּמַּאֲמָץ",
+            "normalized": "במאמץ"
+          },
+          {
+            "index": 6,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 7,
+            "surface": "הַקְשָׁיַת",
+            "normalized": "הקשית"
+          },
+          {
+            "index": 8,
+            "surface": "מְעוּוָת.",
+            "normalized": "מעוות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q014-sol-r026",
+      "order": 26,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:8a30821119f326fe47fb8855b2b2205715af5e67faa83f7dd9c501fb89af3dd4",
+        "comparison:MATCH",
+        "source_page:18",
+        "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q014",
+    "display_alias": "14",
+    "source_pages": [
+      18
+    ],
+    "independent_state": "DERIVED",
+    "answer": [
+      "а) Инженерное напряжение разрушения σ_f — нагрузка непосредственно перед разрушением, делённая на исходную площадь: σ_f=F_f/A₀.",
+      "б) Материал 1→диаграмма D; материал 2→C; материал 3→A; материал 4→B.",
+      "в) Деформация Людерса перед деформационным упрочнением показана на диаграмме A."
+    ],
+    "engineering_picture": "Форма диаграммы различает хрупкое разрушение, гладкую текучесть с малой или большой пластической областью и выраженную верхнюю/нижнюю площадку текучести с полосами Людерса.",
+    "prerequisites": [
+      "Инженерное напряжение использует A₀.",
+      "Хрупкий материал разрушается почти без пластической деформации.",
+      "Людерсова деформация проявляется как зубчатая или почти горизонтальная площадка после текучести."
+    ],
+    "roadmap": [
+      "Определить D как почти линейное хрупкое разрушение.",
+      "Определить A по выраженной площадке текучести.",
+      "Различить B и C по протяжённости пластической области."
+    ],
+    "main_trap": "Не путать σ_f с σ_UTS: после шейкообразования инженерное напряжение при разрушении может быть ниже максимума.",
+    "givens": [
+      "Четыре схематические диаграммы A–D и четыре словесных описания материалов."
+    ],
+    "find": [
+      "Определение σ_f, взаимно однозначное сопоставление и диаграмму Людерса."
+    ],
+    "assumptions": [
+      "Используется инженерная, а не истинная диаграмма напряжений."
+    ],
+    "laws": [
+      "σ_f=F_f/A₀."
+    ],
+    "symbolic_derivation": [
+      "D: минимальная ε_f→материал 1.",
+      "A: выраженная площадка→материал 3.",
+      "C: гладкая кривая и малая пластичность→материал 2.",
+      "B: гладкая кривая и заметная пластичность→материал 4."
+    ],
+    "calculation": [],
+    "construction": [
+      "Записать: 1–D, 2–C, 3–A, 4–B; обвести площадку Людерса на A."
+    ],
+    "checks": [
+      "Каждая диаграмма используется ровно один раз.",
+      "Только A содержит характерную площадку/зубцы Людерса."
+    ],
+    "source_facts": [
+      "source_page:18",
+      "asset_sha256:e4f04a62a21edae1e3af93022f36e365833d8efbd02adebeb419d397a869ef74"
+    ],
+    "unresolved_limits": [
+      "Истинное напряжение разрушения потребовало бы текущую площадь в шейке, которой в условии нет."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 1
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}

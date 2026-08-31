@@ -1,0 +1,3431 @@
+{
+  "schema_version": "materials_pb2_learning_support.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+  "edition_number": 2,
+  "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+  "edition_item_id": "ei_e1c84ce085e93b35361b8b53",
+  "public_work_id": "work-f3696c967d3a7d2f0ff4078f",
+  "snapshot_sha256": "d93b9a5a3f89340f742784fa4fb6b59632a43acf61181cff16c9c948667f0e9b",
+  "task_id": "materials-science-y1-pb2-q046",
+  "display_alias": "46",
+  "source_anchor": {
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_edition": "problem-book-2-pdf-sha256-3d87b9f5",
+    "canonical_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "canonical_task_sha256": "6384aa205c0ea7fce996970230ba1f9d8f490aa6c9a73843feea9d14f9eb75a7"
+  },
+  "publication_anchor": {
+    "canonical_task_sha256": "adf898a7914dc59be4cc4c5a4be77f8f52e5190811a4519cc7495c320c1b28b9",
+    "source_canonical_task_sha256": "6384aa205c0ea7fce996970230ba1f9d8f490aa6c9a73843feea9d14f9eb75a7"
+  },
+  "review": {
+    "state": "REVIEWED_PASS",
+    "independent_solution_sha256": "3275f9146f474533c063226803c1a3f0319ca4d4a18f89f4ffb53d6ab00014d3",
+    "legacy_comparison": "EQUIVALENT",
+    "publication_blocking": false,
+    "reviewer_note": "Single source-image review confirms B is quenched-steel rivet with steel sheets and is galvanically stable in the simplified exercise. A and C remain unsafe; ordinary corrosion is not excluded.",
+    "reviewer_disposition": "CORRECTED_AND_REVERIFIED"
+  },
+  "condition": {
+    "rows": [
+      {
+        "row_id": "materials-science-y1-pb2-q046-r001",
+        "order_index": 0,
+        "hebrew_plain": "קורוזיה.",
+        "hebrew_niqqud": "קוֹרוֹזְיָה.",
+        "translit": "Korozyah.",
+        "translit_ru": "",
+        "russian": "Коррозия.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "source_note",
+            "source_page": 56,
+            "source_row_index": 0,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 0,
+        "sentence_index": 0,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r002",
+        "order_index": 1,
+        "hebrew_plain": "שיטות הגנה נגד קורוזיה.",
+        "hebrew_niqqud": "שִׁיטוֹת הֲגָנָה נֶגֶד קוֹרוֹזְיָה.",
+        "translit": "Shitot haganah neged korozyah.",
+        "translit_ru": "",
+        "russian": "Методы защиты от коррозии.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "source_note",
+            "source_page": 56,
+            "source_row_index": 1,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 1,
+        "sentence_index": 1,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r003",
+        "order_index": 2,
+        "hebrew_plain": "שאלה 46.",
+        "hebrew_niqqud": "שְׁאֵלָה 46.",
+        "translit": "She'ela 46.",
+        "translit_ru": "",
+        "russian": "Вопрос 46.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "legacy:existing-canonical-pass",
+        "translation_meta": {
+          "provider": "legacy_existing_canonical",
+          "model": null,
+          "model_version": null,
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "existing_canonical_pass"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "legacy:existing-canonical-pass",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "task_heading",
+            "source_page": 56,
+            "source_row_index": 2,
+            "canonical_provenance": "existing_canonical_pass"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 2,
+        "sentence_index": 2,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r004",
+        "order_index": 3,
+        "hebrew_plain": "באיור לשאלה 2 מוצגים שלושה מקרים של סמרור (שלושה צמדים של חומרים שונים C, B, A).",
+        "hebrew_niqqud": "בָּאִיּוּר לִשְׁאֵלָה 2 מוּצָגִים שְׁלוֹשָׁה מִקְרִים שֶׁל סִמְרוּר (שְׁלוֹשָׁה צְמָדִים שֶׁל חֳומָרִים שׁוֹנִים C, B, A).",
+        "translit": "Ba'iyur lishe'elah 2 mutzagim shloshah mikrim shel simrur (shloshah tzmadim shel ḥomarim shonim C, B, A).",
+        "translit_ru": "",
+        "russian": "На рисунке к вопросу 2 представлены три случая заклёпочного соединения (три пары различных материалов A, B, C).",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "diagram_reference",
+            "source_page": 56,
+            "source_row_index": 3,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 3,
+        "sentence_index": 3,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r005",
+        "order_index": 4,
+        "hebrew_plain": "(7 נק') א. האם הסמרורים המוצגים באיור לשאלה 2 עמידים בפני התקפה קורוזיבית בסביבת מים? נמק את תשובתך בנוגע לכל אחד מהמקרים המוצגים.",
+        "hebrew_niqqud": "(7 נק') א. הַאִם הַסִּמְרוּרִים הַמּוּצָגִים בָּאִיּוּר לִשְׁאֵלָה 2 עֲמִידִים בִּפְנֵי הַתְקָפָה קוֹרוֹזִיבִית בִּסְבִיבַת מַיִם? נַמֵּק אֶת תְּשׁוּבָתְךָ בְּנוֹגֵעַ לְכָל אֶחָד מֵהַמִּקְרִים הַמּוּצָגִים.",
+        "translit": "(7 nek') a. Ha'im hasimrurim hamutzagim ba'iyur lishe'elah 2 'amidim bifnei hatkafah korozyvit bisvivat mayim? Namek et teshuvatekha benogea' lekhol eḥad mehamikrim hamutzagim.",
+        "translit_ru": "",
+        "russian": "(7 баллов) א. Устойчивы ли заклёпочные соединения, представленные на рисунке к вопросу 2, к коррозионному воздействию в водной среде? Обоснуйте свой ответ для каждого из представленных случаев.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "subpart",
+            "source_page": 56,
+            "source_row_index": 4,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 4,
+        "sentence_index": 4,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r006",
+        "order_index": 5,
+        "hebrew_plain": "נתוני המסמרות: פוטנציאל סטנדרטי של האלקטרודות (Volt): אלומיניום 1.66V- ; פלדה 0.44V- ; פלדה בלתי מחלידה (פלב\"מ) 0.35V-",
+        "hebrew_niqqud": "נְתוּנֵי הַמַּסְמְרוֹת: פּוֹטֶנְצִיאָל סְטַנְדַּרְטִי שֶׁל הָאֵלֶקְטְרוֹדוֹת (Volt): אַלוּמִינְיוּם 1.66V- ; פְּלָדָה 0.44V- ; פְּלָדָה בִּלְתִּי מַחֲלִידָה (פַלְבָּ\"מ) 0.35V-",
+        "translit": "Netunei hamasmarot: potentzi'al standarti shel ha'elektrodot (Volt): aluminiyum 1.66V- ; pladah 0.44V- ; pladah bilti maḥlidah (palba\"m) 0.35V-",
+        "translit_ru": "",
+        "russian": "Данные заклепок: Стандартный электродный потенциал (Volt): алюминий −1.66 V ; сталь −0.44 V ; нержавеющая сталь (НЖС) −0.35 V",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "subpart",
+            "source_page": 56,
+            "source_row_index": 5,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 5,
+        "sentence_index": 5,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r007",
+        "order_index": 6,
+        "hebrew_plain": "(7 נק') ב. כיצד אפשר להגן על הסמרורים או הפחים מפני שיתוך (קורוזיה)?",
+        "hebrew_niqqud": "(7 נק') ב. כֵּיצַד אֶפְשָׁר לְהָגֵן עַל הַסִּמְרוּרִים אוֹ הַפַּחִים מִפְּנֵי שִׁיתּוּךְ (קוֹרוֹזְיָה)?",
+        "translit": "(7 nek') b. Keitzad efshar lehagen 'al hasimrurim o hapaḥim mipnei shitukh (korozyah)?",
+        "translit_ru": "",
+        "russian": "(7 баллов) ב. Как можно защитить заклёпочные соединения или листовой металл от коррозии?",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "subpart",
+            "source_page": 56,
+            "source_row_index": 6,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 6,
+        "sentence_index": 6,
+        "note": null
+      },
+      {
+        "row_id": "materials-science-y1-pb2-q046-r008",
+        "order_index": 7,
+        "hebrew_plain": "(8 נק') ג. הסבר כיצד אפשר להגביר את העמידות בפני שיתוך של אוניות (העשויות פלדה) הנמצאות במי־ים.",
+        "hebrew_niqqud": "(8 נק') ג. הַסְבֵּר כֵּיצַד אֶפְשָׁר לְהַגְבִּיר אֶת הָעֲמִידוּת בִּפְנֵי שִׁיתּוּךְ שֶׁל אֳונִיּוֹת (הָעֲשׂוּיוֹת פְּלָדָה) הַנִּמְצָאוֹת בְּמֵי־יָם.",
+        "translit": "(8 nek') g. Hasber keitzad efshar lehagbir et ha'amidut bifnei shitukh shel oniyot (ha'asuyot pladah) hanimtza'ot bemei-yam.",
+        "translit_ru": "",
+        "russian": "(8 баллов) ג. Объясните, как можно повысить коррозионную стойкость судов (изготовленных из стали), находящихся в морской воде.",
+        "edit_meta": null,
+        "audio_asset_key": null,
+        "translation_provider": "gemini:gemini-3.7-flash",
+        "translation_meta": {
+          "provider": "gemini",
+          "model": "gemini-3.7-flash",
+          "model_version": "gemini-3.7-flash",
+          "prompt_id": "materials-pb2-source-first-repair-v1",
+          "schema_id": "materials-pb2-four-column-rows-v1",
+          "translit_profile": "learner-latin",
+          "verification_status": "source_first_reviewed_visuals_materialized",
+          "canonical_provenance": "provider_reviewed"
+        },
+        "niqqud_authority": "ASSERTED",
+        "niqqud_provenance": "gemini:gemini-3.7-flash+local-skeleton-projection",
+        "meta": {
+          "materials_science": {
+            "schema": "linguistpro.materials-science.row.1",
+            "task_id": "materials-science-y1-pb2-q046",
+            "kind": "subpart",
+            "source_page": 56,
+            "source_row_index": 7,
+            "canonical_provenance": "provider_reviewed"
+          }
+        },
+        "source_segment_id": null,
+        "source_segment_ids": [],
+        "caption_segment_id": null,
+        "source_line_index": 7,
+        "sentence_index": 7,
+        "note": null
+      }
+    ],
+    "source_pages": [
+      56
+    ],
+    "source_assets": [
+      {
+        "path": "assets/source/materials-science-y1-pb2-q046/anchor-01-p056.jpg",
+        "sha256": "efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "bytes": 220430,
+        "source_page": 56,
+        "normalized_bbox": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "role": "condition",
+        "public_url": "/api/public-corpora/materials-science-year1-problem-book-2/learning-support/assets/efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a"
+      }
+    ],
+    "semantic_visuals": [
+      {
+        "visual_id": "materials-science-y1-pb2-q046-v01",
+        "source_page": 56,
+        "kind": "GALVANIC_RIVET_SCHEMATIC",
+        "instance_count": 3,
+        "semantic_role": "PROBLEM_INPUT",
+        "required_for_solving": true,
+        "required_for_faithful_presentation": true,
+        "preservation_status": "PRESERVED_IN_CONDITION_SOURCE_ANCHOR"
+      }
+    ],
+    "external_reference_dependencies": []
+  },
+  "solution_rows": [
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r001",
+      "order": 1,
+      "section": "answer_first",
+      "kind": "solution_heading",
+      "exam_copy": false,
+      "text": {
+        "he": "פתרון בדוק",
+        "he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "transliteration": "Pitron baduq",
+        "ru": "Проверенное решение"
+      },
+      "source_refs": [
+        "independent_solution_sha256:3275f9146f474533c063226803c1a3f0319ca4d4a18f89f4ffb53d6ab00014d3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "פִּתְרוֹן",
+            "normalized": "פתרון"
+          },
+          {
+            "index": 1,
+            "surface": "בָּדוּק",
+            "normalized": "בדוק"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r002",
+      "order": 2,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° = E°(קתודה) − E°(אנודה)",
+        "he_niqqud": "ΔE° = E°(קָתוֹדָה) − E°(אֲנוֹדָה)",
+        "transliteration": "ΔE° = E°(qaṭodah) − E°(anodah)",
+        "ru": "ΔE° = E°(катод) − E°(анод)"
+      },
+      "source_refs": [
+        "legacy_row_hash:acf3d81a156bcb54f437e77de84a24413335922ec049314cd01302f36ff454cb",
+        "legacy_fields_sha256:fa1ff1ae4a381ceaef6e86526f6134a8b2b26d6d5ef8da2031c3110f22f45999",
+        "independent_solution_sha256:3275f9146f474533c063226803c1a3f0319ca4d4a18f89f4ffb53d6ab00014d3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "E°(קָתוֹדָה)",
+            "normalized": "E°(קתודה"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "E°(אֲנוֹדָה)",
+            "normalized": "E°(אנודה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r003",
+      "order": 3,
+      "section": "answer_first",
+      "kind": "final_answer",
+      "exam_copy": true,
+      "text": {
+        "he": "בתכן יש למנוע חריצים ואזורים של מים עומדים ולבצע איטום במקומות חפיפה.",
+        "he_niqqud": "בְּתָכֶן יֵשׁ לִמְנֹעַ חֲרִיצִים וְאֵזוֹרִים שֶׁל מַיִם עוֹמְדִים וּלְבַצֵּעַ אִיטּוּם בִּמְקוֹמוֹת חֲפִיפָה.",
+        "transliteration": "betaḵen yesh limnoaʻ ḥaritzim ve'ezorim shel mayim ʻomdim ulevatzetzaʻ iṭṭum bimqomoṭ ḥafifah.",
+        "ru": "При проектировании необходимо избегать щелей и зон стоячей воды, а также выполнять герметизацию в местах перекрытия."
+      },
+      "source_refs": [
+        "legacy_row_hash:9dd23492c10843f64c8048a7e30043f5fe46f494e6e986534a701d5921925add",
+        "legacy_fields_sha256:9054622d1a2ed4d463072cb9f6f4b28e06d131d8601b524358833dc2a0339585",
+        "independent_solution_sha256:3275f9146f474533c063226803c1a3f0319ca4d4a18f89f4ffb53d6ab00014d3"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּתָכֶן",
+            "normalized": "בתכן"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "לִמְנֹעַ",
+            "normalized": "למנע"
+          },
+          {
+            "index": 3,
+            "surface": "חֲרִיצִים",
+            "normalized": "חריצים"
+          },
+          {
+            "index": 4,
+            "surface": "וְאֵזוֹרִים",
+            "normalized": "ואזורים"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "מַיִם",
+            "normalized": "מים"
+          },
+          {
+            "index": 7,
+            "surface": "עוֹמְדִים",
+            "normalized": "עומדים"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְבַצֵּעַ",
+            "normalized": "ולבצע"
+          },
+          {
+            "index": 9,
+            "surface": "אִיטּוּם",
+            "normalized": "איטום"
+          },
+          {
+            "index": 10,
+            "surface": "בִּמְקוֹמוֹת",
+            "normalized": "במקומות"
+          },
+          {
+            "index": 11,
+            "surface": "חֲפִיפָה.",
+            "normalized": "חפיפה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r004",
+      "order": 4,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) במקרה A מסמרה מאלומיניום עם פחים מפלדה אינה עמידה בסביבת מים עקב קורוזיה גלוונית.",
+        "he_niqqud": "א) בְּמִקְרֶה A מַסְמְרָה מֵאֲלוּמִינְיוּם עִם פַּחִים מִפְּלָדָה אֵינָהּ עֲמִידָה בִּסְבִיבַת מַיִם עֵקֶב קוֹרוֹזְיָה גַּלְוָונִית.",
+        "transliteration": "a) bemiqreh A masmerah me'alminium im paḥim mipeladah eynah amidah bisvivat mayim eqev qorozyah galvanit.",
+        "ru": "а) В случае А алюминиевая заклепка со стальными листами не устойчива в водной среде из-за гальванической коррозии."
+      },
+      "source_refs": [
+        "legacy_row_hash:ee4ca2cbaf98ae5bdf62bccd673b3db38b0ec8010d7224a0322a8347c98cd67a",
+        "legacy_fields_sha256:072c6ea0e8942290b87573edad5bb80c3776d5c5db6c5c89601b8cbeaefbcf6c",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בְּמִקְרֶה",
+            "normalized": "במקרה"
+          },
+          {
+            "index": 2,
+            "surface": "A",
+            "normalized": "A"
+          },
+          {
+            "index": 3,
+            "surface": "מַסְמְרָה",
+            "normalized": "מסמרה"
+          },
+          {
+            "index": 4,
+            "surface": "מֵאֲלוּמִינְיוּם",
+            "normalized": "מאלומיניום"
+          },
+          {
+            "index": 5,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 6,
+            "surface": "פַּחִים",
+            "normalized": "פחים"
+          },
+          {
+            "index": 7,
+            "surface": "מִפְּלָדָה",
+            "normalized": "מפלדה"
+          },
+          {
+            "index": 8,
+            "surface": "אֵינָהּ",
+            "normalized": "אינה"
+          },
+          {
+            "index": 9,
+            "surface": "עֲמִידָה",
+            "normalized": "עמידה"
+          },
+          {
+            "index": 10,
+            "surface": "בִּסְבִיבַת",
+            "normalized": "בסביבת"
+          },
+          {
+            "index": 11,
+            "surface": "מַיִם",
+            "normalized": "מים"
+          },
+          {
+            "index": 12,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 13,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 14,
+            "surface": "גַּלְוָונִית.",
+            "normalized": "גלוונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r005",
+      "order": 5,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "מים משמשים אלקטרוליט ומאפשרים זרם גלווני במגע בין מתכות שונות.",
+        "he_niqqud": "מַיִם מְשַׁמְּשִׁים אֵלֶקְטְרוֹלִיט וּמְאַפְשְׁרִים זֶרֶם גַּלְוָונִי בְּמַגַּע בֵּין מַתָּכוֹת שׁוֹנוֹת.",
+        "transliteration": "mayim meshameshim eleqṭroliṭ ume'afsherim zerem galvani bemagaʻ beyn mataḵoṭ shonoṭ.",
+        "ru": "Вода служит электролитом и обеспечивает гальванический ток при контакте между разными металлами."
+      },
+      "source_refs": [
+        "legacy_row_hash:a132792cda5b1e189b964119f1b110f74a9faa7ca5947cabe08e3849116a0790",
+        "legacy_fields_sha256:d683c254f3f9aacead480cbcd2535c779bb5ff345c4f6117b6e3c140010ecd31",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "מַיִם",
+            "normalized": "מים"
+          },
+          {
+            "index": 1,
+            "surface": "מְשַׁמְּשִׁים",
+            "normalized": "משמשים"
+          },
+          {
+            "index": 2,
+            "surface": "אֵלֶקְטְרוֹלִיט",
+            "normalized": "אלקטרוליט"
+          },
+          {
+            "index": 3,
+            "surface": "וּמְאַפְשְׁרִים",
+            "normalized": "ומאפשרים"
+          },
+          {
+            "index": 4,
+            "surface": "זֶרֶם",
+            "normalized": "זרם"
+          },
+          {
+            "index": 5,
+            "surface": "גַּלְוָונִי",
+            "normalized": "גלווני"
+          },
+          {
+            "index": 6,
+            "surface": "בְּמַגַּע",
+            "normalized": "במגע"
+          },
+          {
+            "index": 7,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 8,
+            "surface": "מַתָּכוֹת",
+            "normalized": "מתכות"
+          },
+          {
+            "index": 9,
+            "surface": "שׁוֹנוֹת.",
+            "normalized": "שונות"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r006",
+      "order": 6,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "המתכת בעלת פוטנציאל סטנדרטי שלילי יותר היא האנודה ותתכלה.",
+        "he_niqqud": "הַמַּתֶּכֶת בַּעֲלַת פּוֹטֶנְצְיָאל סְטַנְדַּרְטִי שְׁלִילִי יוֹתֵר הִיא הָאֲנוֹדָה וְתִתְכַּלֶּה.",
+        "transliteration": "hameteḵet baʻalaṭ potenczial standarṭi shlili yoter hi ha'anodah vetitkalɛh.",
+        "ru": "Металл с более отрицательным стандартным потенциалом является анодом и будет разрушаться."
+      },
+      "source_refs": [
+        "legacy_row_hash:cf27713e94e34d1133118de70a98414f254edd54f8635da4ca70e18a509a5038",
+        "legacy_fields_sha256:b66e59029b7786619c0edff3de4fbdbe45afbf912d528c1ec2e924b07d467ba7",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַמַּתֶּכֶת",
+            "normalized": "המתכת"
+          },
+          {
+            "index": 1,
+            "surface": "בַּעֲלַת",
+            "normalized": "בעלת"
+          },
+          {
+            "index": 2,
+            "surface": "פּוֹטֶנְצְיָאל",
+            "normalized": "פוטנציאל"
+          },
+          {
+            "index": 3,
+            "surface": "סְטַנְדַּרְטִי",
+            "normalized": "סטנדרטי"
+          },
+          {
+            "index": 4,
+            "surface": "שְׁלִילִי",
+            "normalized": "שלילי"
+          },
+          {
+            "index": 5,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 6,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 7,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 8,
+            "surface": "וְתִתְכַּלֶּה.",
+            "normalized": "ותתכלה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r007",
+      "order": 7,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° = E°(קתודה) − E°(אנודה)",
+        "he_niqqud": "ΔE° = E°(קָתוֹדָה) − E°(אֲנוֹדָה)",
+        "transliteration": "ΔE° = E°(qaṭodah) − E°(anodah)",
+        "ru": "ΔE° = E°(катод) − E°(анод)"
+      },
+      "source_refs": [
+        "legacy_row_hash:acf3d81a156bcb54f437e77de84a24413335922ec049314cd01302f36ff454cb",
+        "legacy_fields_sha256:fa1ff1ae4a381ceaef6e86526f6134a8b2b26d6d5ef8da2031c3110f22f45999",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "E°(קָתוֹדָה)",
+            "normalized": "E°(קתודה"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "E°(אֲנוֹדָה)",
+            "normalized": "E°(אנודה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r008",
+      "order": 8,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "במקרה A האנודה היא אלומיניום E° = −1.66V והקתודה היא פלדה E° = −0.44V.",
+        "he_niqqud": "בְּמִקְרֶה A הָאֲנוֹדָה הִיא אֲלוּמִינְיוּם E° = −1.66V וְהַקָּתוֹדָה הִיא פְּלָדָה E° = −0.44V.",
+        "transliteration": "bemiqreh A ha'anodah hi alminium E° = −1.66V vehqaṭodah hi peladah E° = −0.44V.",
+        "ru": "В случае А анодом является алюминий E° = −1.66В, а катодом — сталь E° = −0.44В."
+      },
+      "source_refs": [
+        "legacy_row_hash:73b3d545b99c1f8cc9dbd7a1c8e9e127df699c16b8666718b40e7377bf0d7d61",
+        "legacy_fields_sha256:6dcf18b519b6d39471862275a585fd9672284118eb3d018d5e190a41111766ae",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמִקְרֶה",
+            "normalized": "במקרה"
+          },
+          {
+            "index": 1,
+            "surface": "A",
+            "normalized": "A"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "אֲלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 5,
+            "surface": "E°",
+            "normalized": "E"
+          },
+          {
+            "index": 6,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 7,
+            "surface": "−1.66V",
+            "normalized": "1.66V"
+          },
+          {
+            "index": 8,
+            "surface": "וְהַקָּתוֹדָה",
+            "normalized": "והקתודה"
+          },
+          {
+            "index": 9,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 10,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 11,
+            "surface": "E°",
+            "normalized": "E"
+          },
+          {
+            "index": 12,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 13,
+            "surface": "−0.44V.",
+            "normalized": "0.44V"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r009",
+      "order": 9,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° = (−0.44) − (−1.66) = 1.22V",
+        "he_niqqud": "ΔE° = (−0.44) − (−1.66) = 1.22V",
+        "transliteration": "ΔE° = (−0.44) − (−1.66) = 1.22V",
+        "ru": "ΔE° = (−0.44) − (−1.66) = 1.22В"
+      },
+      "source_refs": [
+        "legacy_row_hash:22c74e76e8958be41ac97232ef509bb7821945fc7d23e19f2171a578eea58dbd",
+        "legacy_fields_sha256:50c67d2316a4655eccda4aefada0bf2fc6a22849e8d40ba9134d328550843bfe",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(−0.44)",
+            "normalized": "0.44"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "(−1.66)",
+            "normalized": "1.66"
+          },
+          {
+            "index": 5,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 6,
+            "surface": "1.22V",
+            "normalized": "1.22V"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ΔE° = (−0.44) − (−1.66) = 1.22V"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r010",
+      "order": 10,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הפרש פוטנציאלים גדול גורם לנטייה גבוהה לקורוזיה גלוונית של האלומיניום.",
+        "he_niqqud": "הֶפְרֵשׁ פּוֹטֶנְצְיָאלִים גָּדוֹל גּוֹרֵם לִנְטִיָּה גְּבוֹהָה לְקוֹרוֹזְיָה גַּלְוָונִית שֶׁל הָאֲלוּמִינְיוּם.",
+        "transliteration": "hefresh potenczialim gadol gorem liniṭiyah gevohah leqorozyah galvanit shel ha'alminium.",
+        "ru": "Большая разность потенциалов вызывает высокую склонность к гальванической коррозии алюминия."
+      },
+      "source_refs": [
+        "legacy_row_hash:2d24ac4d40c8f2d66ebb12cea47e85b376b780ac0cd4063dc4691d36b16a1347",
+        "legacy_fields_sha256:e8f47e7f790e3c6b37c13573475cd8b238a11a7fedef33a43d142e1a0d9d54d3",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הֶפְרֵשׁ",
+            "normalized": "הפרש"
+          },
+          {
+            "index": 1,
+            "surface": "פּוֹטֶנְצְיָאלִים",
+            "normalized": "פוטנציאלים"
+          },
+          {
+            "index": 2,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 3,
+            "surface": "גּוֹרֵם",
+            "normalized": "גורם"
+          },
+          {
+            "index": 4,
+            "surface": "לִנְטִיָּה",
+            "normalized": "לנטיה"
+          },
+          {
+            "index": 5,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 6,
+            "surface": "לְקוֹרוֹזְיָה",
+            "normalized": "לקורוזיה"
+          },
+          {
+            "index": 7,
+            "surface": "גַּלְוָונִית",
+            "normalized": "גלוונית"
+          },
+          {
+            "index": 8,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 9,
+            "surface": "הָאֲלוּמִינְיוּם.",
+            "normalized": "האלומיניום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r011",
+      "order": 11,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר שטח האנודה קטן ושטח הקתודה גדול צפיפות הזרם על האנודה גבוהה והכשל מואץ.",
+        "he_niqqud": "כַּאֲשֶׁר שֶׁטַח הָאֲנוֹדָה קָטָן וְשֶׁטַח הַקָּתוֹדָה גָּדוֹל צְפִיפוּת הַזֶּרֶם עַל הָאֲנוֹדָה גְּבוֹהָה וְהַכֶּשֶׁל מֻאָץ.",
+        "transliteration": "ka'asher sheṭaḥ ha'anodah qaṭan vesheṭaḥ haqqaṭodah gadol tzefifuṭ hazzerem al ha'anodah gevohah vehakeshel mu'atz.",
+        "ru": "Когда площадь анода мала, а площадь катода велика, плотность тока на аноде высока, и разрушение ускоряется."
+      },
+      "source_refs": [
+        "legacy_row_hash:1b523c408f1ddb6ad385d007e15d7c942f77965ac20632cb9df5c9ddb97a472c",
+        "legacy_fields_sha256:7f210f46a26ab5bf6ee4c96b0cf755c68c3dc32b8a03d5b6cd2c991ef38e01d9",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁטַח",
+            "normalized": "שטח"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 3,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 4,
+            "surface": "וְשֶׁטַח",
+            "normalized": "ושטח"
+          },
+          {
+            "index": 5,
+            "surface": "הַקָּתוֹדָה",
+            "normalized": "הקתודה"
+          },
+          {
+            "index": 6,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 7,
+            "surface": "צְפִיפוּת",
+            "normalized": "צפיפות"
+          },
+          {
+            "index": 8,
+            "surface": "הַזֶּרֶם",
+            "normalized": "הזרם"
+          },
+          {
+            "index": 9,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 10,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 11,
+            "surface": "גְּבוֹהָה",
+            "normalized": "גבוהה"
+          },
+          {
+            "index": 12,
+            "surface": "וְהַכֶּשֶׁל",
+            "normalized": "והכשל"
+          },
+          {
+            "index": 13,
+            "surface": "מֻאָץ.",
+            "normalized": "מאץ"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r012",
+      "order": 12,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) במקרה B מסמרה מפלדה עם פחים מפלדה היא העמידה ביותר מבחינה גלוונית בסביבת מים.",
+        "he_niqqud": "א) בְּמִקְרֶה B מַסְמְרָה מִפְּלָדָה עִם פַּחִים מִפְּלָדָה הִיא הָעֲמִידָה בְּיוֹתֵר מִבְּחִינָה גַּלְוָונִית בִּסְבִיבַת מַיִם.",
+        "transliteration": "a) bemiqreh B masmerah mipeladah im paḥim mipeladah hi ha'amidah beyoter mibḥinah galvanit bisvivat mayim.",
+        "ru": "а) В случае B заклепка из стали со стальными листами является наиболее гальванически устойчивой в водной среде."
+      },
+      "source_refs": [
+        "legacy_row_hash:9492f102b772ea073154153ec677230675d04a8eed3f81c20397118b1232886a",
+        "legacy_fields_sha256:79154bcac056895049b071c222f71df9b448f010196855c7b1548c10fc4b5146",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בְּמִקְרֶה",
+            "normalized": "במקרה"
+          },
+          {
+            "index": 2,
+            "surface": "B",
+            "normalized": "B"
+          },
+          {
+            "index": 3,
+            "surface": "מַסְמְרָה",
+            "normalized": "מסמרה"
+          },
+          {
+            "index": 4,
+            "surface": "מִפְּלָדָה",
+            "normalized": "מפלדה"
+          },
+          {
+            "index": 5,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 6,
+            "surface": "פַּחִים",
+            "normalized": "פחים"
+          },
+          {
+            "index": 7,
+            "surface": "מִפְּלָדָה",
+            "normalized": "מפלדה"
+          },
+          {
+            "index": 8,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 9,
+            "surface": "הָעֲמִידָה",
+            "normalized": "העמידה"
+          },
+          {
+            "index": 10,
+            "surface": "בְּיוֹתֵר",
+            "normalized": "ביותר"
+          },
+          {
+            "index": 11,
+            "surface": "מִבְּחִינָה",
+            "normalized": "מבחינה"
+          },
+          {
+            "index": 12,
+            "surface": "גַּלְוָונִית",
+            "normalized": "גלוונית"
+          },
+          {
+            "index": 13,
+            "surface": "בִּסְבִיבַת",
+            "normalized": "בסביבת"
+          },
+          {
+            "index": 14,
+            "surface": "מַיִם.",
+            "normalized": "מים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r013",
+      "order": 13,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר שתי המתכות זהות או בעלות פוטנציאלים קרובים מתקבל ΔE°≈0 ולכן קורוזיה גלוונית זניחה.",
+        "he_niqqud": "כַּאֲשֶׁר שְׁתֵּי הַמַּתָּכוֹת זֵהוֹת אוֹ בַּעֲלוֹת פּוֹטֶנְצְיָאלִים קְרוֹבִים מִתְקַבֵּל ΔE°≈0 וְלָכֵן קוֹרוֹזְיָה גַּלְוָונִית זְנִיחָה.",
+        "transliteration": "ka'asher shetey hamataḵoṭ zehoṭ o baʻaloṭ potenczialim qrovim mitqabel ΔE°≈0 velaḵen qorozyah galvanit zenikhah.",
+        "ru": "Когда два металла идентичны или имеют близкие потенциалы, получается ΔE°≈0, и поэтому гальваническая коррозия незначительна."
+      },
+      "source_refs": [
+        "legacy_row_hash:5d53015d803b70b30f3545b26b8bf7d22c0b7f169b2d93af82f8bbe20add069f",
+        "legacy_fields_sha256:190d85f49be772d537d4d27463f056fd7591a2c389604ae75d53b71e06096197",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "שְׁתֵּי",
+            "normalized": "שתי"
+          },
+          {
+            "index": 2,
+            "surface": "הַמַּתָּכוֹת",
+            "normalized": "המתכות"
+          },
+          {
+            "index": 3,
+            "surface": "זֵהוֹת",
+            "normalized": "זהות"
+          },
+          {
+            "index": 4,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 5,
+            "surface": "בַּעֲלוֹת",
+            "normalized": "בעלות"
+          },
+          {
+            "index": 6,
+            "surface": "פּוֹטֶנְצְיָאלִים",
+            "normalized": "פוטנציאלים"
+          },
+          {
+            "index": 7,
+            "surface": "קְרוֹבִים",
+            "normalized": "קרובים"
+          },
+          {
+            "index": 8,
+            "surface": "מִתְקַבֵּל",
+            "normalized": "מתקבל"
+          },
+          {
+            "index": 9,
+            "surface": "ΔE°≈0",
+            "normalized": "ΔE°≈0"
+          },
+          {
+            "index": 10,
+            "surface": "וְלָכֵן",
+            "normalized": "ולכן"
+          },
+          {
+            "index": 11,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 12,
+            "surface": "גַּלְוָונִית",
+            "normalized": "גלוונית"
+          },
+          {
+            "index": 13,
+            "surface": "זְנִיחָה.",
+            "normalized": "זניחה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r014",
+      "order": 14,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° = E°(קתודה) − E°(אנודה)",
+        "he_niqqud": "ΔE° = E°(קָתוֹדָה) − E°(אֲנוֹדָה)",
+        "transliteration": "ΔE° = E°(qaṭodah) − E°(anodah)",
+        "ru": "ΔE° = E°(катод) − E°(анод)"
+      },
+      "source_refs": [
+        "legacy_row_hash:acf3d81a156bcb54f437e77de84a24413335922ec049314cd01302f36ff454cb",
+        "legacy_fields_sha256:fa1ff1ae4a381ceaef6e86526f6134a8b2b26d6d5ef8da2031c3110f22f45999",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "E°(קָתוֹדָה)",
+            "normalized": "E°(קתודה"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "E°(אֲנוֹדָה)",
+            "normalized": "E°(אנודה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r015",
+      "order": 15,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° ≈ (−0.44) − (−0.44) ≈ 0",
+        "he_niqqud": "ΔE° ≈ (−0.44) − (−0.44) ≈ 0",
+        "transliteration": "ΔE° ≈ (−0.44) − (−0.44) ≈ 0",
+        "ru": "ΔE° ≈ (−0.44) − (−0.44) ≈ 0"
+      },
+      "source_refs": [
+        "legacy_row_hash:85e01398fbd12aa9da8f4263f679ebe74f5cdfa6ad35002243df2fa3deb548bd",
+        "legacy_fields_sha256:f809fef95125bc9266ae5bed208b93b86158328825dcd556acac18ac2ef528fa",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 2,
+            "surface": "(−0.44)",
+            "normalized": "0.44"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "(−0.44)",
+            "normalized": "0.44"
+          },
+          {
+            "index": 5,
+            "surface": "≈",
+            "normalized": "≈"
+          },
+          {
+            "index": 6,
+            "surface": "0",
+            "normalized": "0"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ΔE° ≈ (−0.44) − (−0.44) ≈ 0"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r016",
+      "order": 16,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "עדיין ייתכנו קורוזיה כללית של פלדה וקורוזיה חריצית סביב אזור הסמרור, במיוחד במים עומדים.",
+        "he_niqqud": "עֲדַיִן יִתָּכְנוּ קוֹרוֹזְיָה כְּלָלִית שֶׁל פְּלָדָה וְקוֹרוֹזְיָה חֲרִיצִית סָבִיב אֵזוֹר הַסִּמְרוּר, בִּמְיֻחָד בְּמַיִם עוֹמְדִים.",
+        "transliteration": "ʻadayin yiṭṭaḵnu qorozyah kelaliṭ shel peladah veqorozyah ḥaritzit saviv ezor hasimrur, bimeyuḥad bemayim ʻomdim.",
+        "ru": "Все еще возможна общая коррозия стали и щелевая коррозия вокруг зоны клепки, особенно в стоячей воде."
+      },
+      "source_refs": [
+        "legacy_row_hash:3d4591282ba5e9c63ee27d5e0b34ad9b396f8f4abbb8d0983451a24a6382d10f",
+        "legacy_fields_sha256:a5b0281184af1619ec9129850e6486386ce828436a5fc5053334557843e7bad4",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "עֲדַיִן",
+            "normalized": "עדין"
+          },
+          {
+            "index": 1,
+            "surface": "יִתָּכְנוּ",
+            "normalized": "יתכנו"
+          },
+          {
+            "index": 2,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 3,
+            "surface": "כְּלָלִית",
+            "normalized": "כללית"
+          },
+          {
+            "index": 4,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 5,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 6,
+            "surface": "וְקוֹרוֹזְיָה",
+            "normalized": "וקורוזיה"
+          },
+          {
+            "index": 7,
+            "surface": "חֲרִיצִית",
+            "normalized": "חריצית"
+          },
+          {
+            "index": 8,
+            "surface": "סָבִיב",
+            "normalized": "סביב"
+          },
+          {
+            "index": 9,
+            "surface": "אֵזוֹר",
+            "normalized": "אזור"
+          },
+          {
+            "index": 10,
+            "surface": "הַסִּמְרוּר,",
+            "normalized": "הסמרור"
+          },
+          {
+            "index": 11,
+            "surface": "בִּמְיֻחָד",
+            "normalized": "במיחד"
+          },
+          {
+            "index": 12,
+            "surface": "בְּמַיִם",
+            "normalized": "במים"
+          },
+          {
+            "index": 13,
+            "surface": "עוֹמְדִים.",
+            "normalized": "עומדים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r017",
+      "order": 17,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "א) במקרה C מסמרה מפלב״מ עם פחים מאלומיניום אינה עמידה ללא בידוד או ציפוי עקב קורוזיה גלוונית של האלומיניום.",
+        "he_niqqud": "א) בְּמִקְרֶה C מַסְמְרָה מִפְּלַבָּ״ם עִם פַּחִים מֵאֲלוּמִינְיוּם אֵינָהּ עֲמִידָה לְלֹא בִּידּוּד אוֹ צִפּוּי עֵקֶב קוֹרוֹזְיָה גַּלְוָונִית שֶׁל הָאֲלוּמִינְיוּם.",
+        "transliteration": "a) bemiqreh C masmerah miplabam im paḥim me'alminium eynah amidah lelo bidud o tzipuy eqev qorozyah galvanit shel ha'alminium.",
+        "ru": "а) В случае С заклепка из нержавеющей стали с алюминиевыми листами не устойчива без изоляции или покрытия из-за гальванической коррозии алюминия."
+      },
+      "source_refs": [
+        "legacy_row_hash:b2daad94f93d4d4297ae7fd39c50402dc0655b5e6bfed35e02294e6472d21fcc",
+        "legacy_fields_sha256:dcd934ec027ba3d25b25d93e88cacdd7c0cb83498d1235cc2d9e47d4b653831b",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "א)",
+            "normalized": "א"
+          },
+          {
+            "index": 1,
+            "surface": "בְּמִקְרֶה",
+            "normalized": "במקרה"
+          },
+          {
+            "index": 2,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 3,
+            "surface": "מַסְמְרָה",
+            "normalized": "מסמרה"
+          },
+          {
+            "index": 4,
+            "surface": "מִפְּלַבָּ״ם",
+            "normalized": "מפלב״ם"
+          },
+          {
+            "index": 5,
+            "surface": "עִם",
+            "normalized": "עם"
+          },
+          {
+            "index": 6,
+            "surface": "פַּחִים",
+            "normalized": "פחים"
+          },
+          {
+            "index": 7,
+            "surface": "מֵאֲלוּמִינְיוּם",
+            "normalized": "מאלומיניום"
+          },
+          {
+            "index": 8,
+            "surface": "אֵינָהּ",
+            "normalized": "אינה"
+          },
+          {
+            "index": 9,
+            "surface": "עֲמִידָה",
+            "normalized": "עמידה"
+          },
+          {
+            "index": 10,
+            "surface": "לְלֹא",
+            "normalized": "ללא"
+          },
+          {
+            "index": 11,
+            "surface": "בִּידּוּד",
+            "normalized": "בידוד"
+          },
+          {
+            "index": 12,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 13,
+            "surface": "צִפּוּי",
+            "normalized": "צפוי"
+          },
+          {
+            "index": 14,
+            "surface": "עֵקֶב",
+            "normalized": "עקב"
+          },
+          {
+            "index": 15,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 16,
+            "surface": "גַּלְוָונִית",
+            "normalized": "גלוונית"
+          },
+          {
+            "index": 17,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 18,
+            "surface": "הָאֲלוּמִינְיוּם.",
+            "normalized": "האלומיניום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "А"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r018",
+      "order": 18,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "במקרה C האנודה היא אלומיניום E° = −1.66V והקתודה היא פלב״מ E° = −0.35V.",
+        "he_niqqud": "בְּמִקְרֶה C הָאֲנוֹדָה הִיא אֲלוּמִינְיוּם E° = −1.66V וְהַקָּתוֹדָה הִיא פְּלַבָּ״ם E° = −0.35V.",
+        "transliteration": "bemiqreh C ha'anodah hi alminium E° = −1.66V vehqaṭodah hi plabam E° = −0.35V.",
+        "ru": "В случае С анодом является алюминий E° = −1.66В, а катодом — нержавеющая сталь E° = −0.35В."
+      },
+      "source_refs": [
+        "legacy_row_hash:80edf83c6df8c586a2fb0d954455a90d42a3f0353278a573149c70669f3e33ab",
+        "legacy_fields_sha256:6ca6d7c6c50fb42792048578fd6acca4e318382195903e9b8ac40641051a99b1",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּמִקְרֶה",
+            "normalized": "במקרה"
+          },
+          {
+            "index": 1,
+            "surface": "C",
+            "normalized": "C"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 3,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 4,
+            "surface": "אֲלוּמִינְיוּם",
+            "normalized": "אלומיניום"
+          },
+          {
+            "index": 5,
+            "surface": "E°",
+            "normalized": "E"
+          },
+          {
+            "index": 6,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 7,
+            "surface": "−1.66V",
+            "normalized": "1.66V"
+          },
+          {
+            "index": 8,
+            "surface": "וְהַקָּתוֹדָה",
+            "normalized": "והקתודה"
+          },
+          {
+            "index": 9,
+            "surface": "הִיא",
+            "normalized": "היא"
+          },
+          {
+            "index": 10,
+            "surface": "פְּלַבָּ״ם",
+            "normalized": "פלב״ם"
+          },
+          {
+            "index": 11,
+            "surface": "E°",
+            "normalized": "E"
+          },
+          {
+            "index": 12,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 13,
+            "surface": "−0.35V.",
+            "normalized": "0.35V"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r019",
+      "order": 19,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° = E°(קתודה) − E°(אנודה)",
+        "he_niqqud": "ΔE° = E°(קָתוֹדָה) − E°(אֲנוֹדָה)",
+        "transliteration": "ΔE° = E°(qaṭodah) − E°(anodah)",
+        "ru": "ΔE° = E°(катод) − E°(анод)"
+      },
+      "source_refs": [
+        "legacy_row_hash:acf3d81a156bcb54f437e77de84a24413335922ec049314cd01302f36ff454cb",
+        "legacy_fields_sha256:fa1ff1ae4a381ceaef6e86526f6134a8b2b26d6d5ef8da2031c3110f22f45999",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "E°(קָתוֹדָה)",
+            "normalized": "E°(קתודה"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "E°(אֲנוֹדָה)",
+            "normalized": "E°(אנודה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r020",
+      "order": 20,
+      "section": "calculation",
+      "kind": "calculation",
+      "exam_copy": true,
+      "text": {
+        "he": "ΔE° = (−0.35) − (−1.66) = 1.31V",
+        "he_niqqud": "ΔE° = (−0.35) − (−1.66) = 1.31V",
+        "transliteration": "ΔE° = (−0.35) − (−1.66) = 1.31V",
+        "ru": "ΔE° = (−0.35) − (−1.66) = 1.31В"
+      },
+      "source_refs": [
+        "legacy_row_hash:2915953f36f6648b1a5d6e3168bb15ed9e4f72a877f0797910fde799d79b7339",
+        "legacy_fields_sha256:968b084b6a3acdcc362365c12640a795b23114cfc2627bb71c1e2eb1c66a72be",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ΔE°",
+            "normalized": "ΔE"
+          },
+          {
+            "index": 1,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 2,
+            "surface": "(−0.35)",
+            "normalized": "0.35"
+          },
+          {
+            "index": 3,
+            "surface": "−",
+            "normalized": "−"
+          },
+          {
+            "index": 4,
+            "surface": "(−1.66)",
+            "normalized": "1.66"
+          },
+          {
+            "index": 5,
+            "surface": "=",
+            "normalized": "="
+          },
+          {
+            "index": 6,
+            "surface": "1.31V",
+            "normalized": "1.31V"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": true
+      },
+      "formulae": [
+        "ΔE° = (−0.35) − (−1.66) = 1.31V"
+      ]
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r021",
+      "order": 21,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "הפרש פוטנציאלים גדול גורם לנטייה חזקה להתכלות האלומיניום.",
+        "he_niqqud": "הֶפְרֵשׁ פּוֹטֶנְצְיָאלִים גָּדוֹל גּוֹרֵם לִנְטִיָּה חֲזָקָה לְהִתְכַּלּוּת הָאֲלוּמִינְיוּם.",
+        "transliteration": "hefresh potenczialim gadol gorem liniṭiyah ḥazaqah lehiṭkalut ha'alminium.",
+        "ru": "Большая разность потенциалов вызывает сильную склонность к разрушению алюминия."
+      },
+      "source_refs": [
+        "legacy_row_hash:944e85439a75fdee276209a416c4fd851b9557a165671a679b42ac5ddedb5ed1",
+        "legacy_fields_sha256:b4f38d74e04099435be26c9e4c7628135e2d49e41adefb1fed04ab0c3da89065",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הֶפְרֵשׁ",
+            "normalized": "הפרש"
+          },
+          {
+            "index": 1,
+            "surface": "פּוֹטֶנְצְיָאלִים",
+            "normalized": "פוטנציאלים"
+          },
+          {
+            "index": 2,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 3,
+            "surface": "גּוֹרֵם",
+            "normalized": "גורם"
+          },
+          {
+            "index": 4,
+            "surface": "לִנְטִיָּה",
+            "normalized": "לנטיה"
+          },
+          {
+            "index": 5,
+            "surface": "חֲזָקָה",
+            "normalized": "חזקה"
+          },
+          {
+            "index": 6,
+            "surface": "לְהִתְכַּלּוּת",
+            "normalized": "להתכלות"
+          },
+          {
+            "index": 7,
+            "surface": "הָאֲלוּמִינְיוּם.",
+            "normalized": "האלומיניום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r022",
+      "order": 22,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "כאשר שטח האנודה גדול ושטח הקתודה קטן החומרה יכולה להיות נמוכה יותר מאשר במקרה A, אך עדיין צפויה קורוזיה מקומית כגון (Pitting) באזור המגע.",
+        "he_niqqud": "כַּאֲשֶׁר שֶׁטַח הָאֲנוֹדָה גָּדוֹל וְשֶׁטַח הַקָּתוֹדָה קָטָן הַחֻמְרָה יְכוֹלָה לִהְיוֹת נְמוּכָה יוֹתֵר מֵאֲשֶׁר בְּמִקְרֶה A, אַךְ עֲדַיִן צְפוּיָה קוֹרוֹזְיָה מְקוֹמִית כְּגוֹן (Pitting) בְּאֵזוֹר הַמַּגַּע.",
+        "transliteration": "ka'asher sheṭaḥ ha'anodah gadol vesheṭaḥ haqqaṭodah qaṭan haḥumrah yekholah lihyoṭ nemuḵah yoter me'asher bemiqreh A, aḵh ʻadayin tzefuyah qorozyah meqomiṭ kegon (Pitting) be'ezor hamagaʻ.",
+        "ru": "Когда площадь анода велика, а площадь катода мала, серьезность может быть ниже, чем в случае А, но все равно ожидается локальная коррозия, например, точечная (Pitting), в зоне контакта."
+      },
+      "source_refs": [
+        "legacy_row_hash:0df92f62223f49840de9b6946ba709c6ba0a9212bf9aafb76785a0cef8a92cd6",
+        "legacy_fields_sha256:1b265667051e72878460bc510bef7039717f0742347d29f0daedb58588af3f43",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "כַּאֲשֶׁר",
+            "normalized": "כאשר"
+          },
+          {
+            "index": 1,
+            "surface": "שֶׁטַח",
+            "normalized": "שטח"
+          },
+          {
+            "index": 2,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 3,
+            "surface": "גָּדוֹל",
+            "normalized": "גדול"
+          },
+          {
+            "index": 4,
+            "surface": "וְשֶׁטַח",
+            "normalized": "ושטח"
+          },
+          {
+            "index": 5,
+            "surface": "הַקָּתוֹדָה",
+            "normalized": "הקתודה"
+          },
+          {
+            "index": 6,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 7,
+            "surface": "הַחֻמְרָה",
+            "normalized": "החמרה"
+          },
+          {
+            "index": 8,
+            "surface": "יְכוֹלָה",
+            "normalized": "יכולה"
+          },
+          {
+            "index": 9,
+            "surface": "לִהְיוֹת",
+            "normalized": "להיות"
+          },
+          {
+            "index": 10,
+            "surface": "נְמוּכָה",
+            "normalized": "נמוכה"
+          },
+          {
+            "index": 11,
+            "surface": "יוֹתֵר",
+            "normalized": "יותר"
+          },
+          {
+            "index": 12,
+            "surface": "מֵאֲשֶׁר",
+            "normalized": "מאשר"
+          },
+          {
+            "index": 13,
+            "surface": "בְּמִקְרֶה",
+            "normalized": "במקרה"
+          },
+          {
+            "index": 14,
+            "surface": "A,",
+            "normalized": "A"
+          },
+          {
+            "index": 15,
+            "surface": "אַךְ",
+            "normalized": "אך"
+          },
+          {
+            "index": 16,
+            "surface": "עֲדַיִן",
+            "normalized": "עדין"
+          },
+          {
+            "index": 17,
+            "surface": "צְפוּיָה",
+            "normalized": "צפויה"
+          },
+          {
+            "index": 18,
+            "surface": "קוֹרוֹזְיָה",
+            "normalized": "קורוזיה"
+          },
+          {
+            "index": 19,
+            "surface": "מְקוֹמִית",
+            "normalized": "מקומית"
+          },
+          {
+            "index": 20,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 21,
+            "surface": "(Pitting)",
+            "normalized": "Pitting"
+          },
+          {
+            "index": 22,
+            "surface": "בְּאֵזוֹר",
+            "normalized": "באזור"
+          },
+          {
+            "index": 23,
+            "surface": "הַמַּגַּע.",
+            "normalized": "המגע"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r023",
+      "order": 23,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ב) ניתן להגן על הסמרורים או הפחים באמצעות בחירת חומרים תואמים והימנעות מצימוד מתכות רחוקות בסדרה הגלוונית.",
+        "he_niqqud": "ב) נִיתָּן לְהָגֵן עַל הַסִּמְרוּרִים אוֹ הַפַּחִים בְּאֶמְצָעוּת בְּחִירַת חֳמָרִים תּוֹאֲמִים וְהִימָּנְעוּת מִצִּמּוּד מַתָּכוֹת רְחוֹקוֹת בַּסִּדְרָה הַגַּלְוָונִית.",
+        "transliteration": "b) niṭṭan lehageyn al hasimrurim o hapahim be'emtzaʻuṭ beḥiraṭ ḥomarim to'amim vehimmanʻuṭ mitzimmud mataḵoṭ reḥoqoṭ bassidrah haggalvanit.",
+        "ru": "б) Заклепки или листы можно защитить путем выбора совместимых материалов и предотвращения соединения металлов, находящихся далеко друг от друга в гальваническом ряду."
+      },
+      "source_refs": [
+        "legacy_row_hash:70327b50d2246865c3fe8386a9bc8ad05123b9dba21246ebf754f81791c5f12e",
+        "legacy_fields_sha256:0e6179e1af7ca22afb1894b44d639ca351eb117fd48a6e3dcb8fbf727108dfdc",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ב)",
+            "normalized": "ב"
+          },
+          {
+            "index": 1,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 2,
+            "surface": "לְהָגֵן",
+            "normalized": "להגן"
+          },
+          {
+            "index": 3,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 4,
+            "surface": "הַסִּמְרוּרִים",
+            "normalized": "הסמרורים"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "הַפַּחִים",
+            "normalized": "הפחים"
+          },
+          {
+            "index": 7,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 8,
+            "surface": "בְּחִירַת",
+            "normalized": "בחירת"
+          },
+          {
+            "index": 9,
+            "surface": "חֳמָרִים",
+            "normalized": "חמרים"
+          },
+          {
+            "index": 10,
+            "surface": "תּוֹאֲמִים",
+            "normalized": "תואמים"
+          },
+          {
+            "index": 11,
+            "surface": "וְהִימָּנְעוּת",
+            "normalized": "והימנעות"
+          },
+          {
+            "index": 12,
+            "surface": "מִצִּמּוּד",
+            "normalized": "מצמוד"
+          },
+          {
+            "index": 13,
+            "surface": "מַתָּכוֹת",
+            "normalized": "מתכות"
+          },
+          {
+            "index": 14,
+            "surface": "רְחוֹקוֹת",
+            "normalized": "רחוקות"
+          },
+          {
+            "index": 15,
+            "surface": "בַּסִּדְרָה",
+            "normalized": "בסדרה"
+          },
+          {
+            "index": 16,
+            "surface": "הַגַּלְוָונִית.",
+            "normalized": "הגלוונית"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "Б"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r024",
+      "order": 24,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ניתן לבצע בידוד חשמלי בין המתכות באמצעות שרוולים ושייבות פולימריות, אטמים וחומרי איטום.",
+        "he_niqqud": "נִיתָּן לְבַצֵּעַ בִּידּוּד חַשְׁמַלִּי בֵּין הַמַּתָּכוֹת בְּאֶמְצָעוּת שַׁרְווּלִים וְשַׁיְבוֹת פּוֹלִימֶרִיּוֹת, אֲטָמִים וְחֹמְרֵי אִיטּוּם.",
+        "transliteration": "niṭṭan levatzetzaʻ bidud ḥashmali beyn hamataḵoṭ be'emtzaʻuṭ sharvulim veshayboṭ polimeriyoṭ, aṭamim veḥomrey iṭṭum.",
+        "ru": "Электрическая изоляция между металлами может быть достигнута с помощью полимерных втулок и шайб, прокладок и герметизирующих материалов."
+      },
+      "source_refs": [
+        "legacy_row_hash:7b3eeb1e864d393709b97d4849c771b820e4f0ef1e073ef881e80ef20103fd74",
+        "legacy_fields_sha256:a7f67c2b0d3f98a32bcc35ab1772d7493e8785b4ba3a5b1bd194b8c764aa39e1",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 1,
+            "surface": "לְבַצֵּעַ",
+            "normalized": "לבצע"
+          },
+          {
+            "index": 2,
+            "surface": "בִּידּוּד",
+            "normalized": "בידוד"
+          },
+          {
+            "index": 3,
+            "surface": "חַשְׁמַלִּי",
+            "normalized": "חשמלי"
+          },
+          {
+            "index": 4,
+            "surface": "בֵּין",
+            "normalized": "בין"
+          },
+          {
+            "index": 5,
+            "surface": "הַמַּתָּכוֹת",
+            "normalized": "המתכות"
+          },
+          {
+            "index": 6,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 7,
+            "surface": "שַׁרְווּלִים",
+            "normalized": "שרוולים"
+          },
+          {
+            "index": 8,
+            "surface": "וְשַׁיְבוֹת",
+            "normalized": "ושיבות"
+          },
+          {
+            "index": 9,
+            "surface": "פּוֹלִימֶרִיּוֹת,",
+            "normalized": "פולימריות"
+          },
+          {
+            "index": 10,
+            "surface": "אֲטָמִים",
+            "normalized": "אטמים"
+          },
+          {
+            "index": 11,
+            "surface": "וְחֹמְרֵי",
+            "normalized": "וחמרי"
+          },
+          {
+            "index": 12,
+            "surface": "אִיטּוּם.",
+            "normalized": "איטום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r025",
+      "order": 25,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ניתן להשתמש בציפויי הגנה כגון צבעים ומערכות אפוקסי.",
+        "he_niqqud": "נִיתָּן לְהִשְׁתַּמֵּשׁ בְּצִפּוּיֵי הֲגַנָּה כְּגוֹן צְבָעִים וּמַעֲרָכוֹת אֶפּוֹקְסִי.",
+        "transliteration": "niṭṭan lehishtamesh betzipuyey haganah kegon tzvaʻim u'maʻaraḵoṭ epoxysy.",
+        "ru": "Могут использоваться защитные покрытия, такие как краски и эпоксидные системы."
+      },
+      "source_refs": [
+        "legacy_row_hash:34fab366af276aadcd4964b45683ae49e729225975ca047a44d66af31f05d5f8",
+        "legacy_fields_sha256:fa53058ca5245871d37157e0bdf5ad2b6e66536e2faa9641cfc9c6a8d2230de2",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 1,
+            "surface": "לְהִשְׁתַּמֵּשׁ",
+            "normalized": "להשתמש"
+          },
+          {
+            "index": 2,
+            "surface": "בְּצִפּוּיֵי",
+            "normalized": "בצפויי"
+          },
+          {
+            "index": 3,
+            "surface": "הֲגַנָּה",
+            "normalized": "הגנה"
+          },
+          {
+            "index": 4,
+            "surface": "כְּגוֹן",
+            "normalized": "כגון"
+          },
+          {
+            "index": 5,
+            "surface": "צְבָעִים",
+            "normalized": "צבעים"
+          },
+          {
+            "index": 6,
+            "surface": "וּמַעֲרָכוֹת",
+            "normalized": "ומערכות"
+          },
+          {
+            "index": 7,
+            "surface": "אֶפּוֹקְסִי.",
+            "normalized": "אפוקסי"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r026",
+      "order": 26,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לאלומיניום ניתן לבצע אנודיזציה ליצירת שכבת תחמוצת מגינה.",
+        "he_niqqud": "לַאֲלוּמִינְיוּם נִיתָּן לְבַצֵּעַ אָנוֹדִיזַצְיָה לִיצִירַת שִׁכְבַת תַּחְמֹצֶת מְגִנָּה.",
+        "transliteration": "la'alminium niṭṭan levatzetzaʻ anodizatzia litziraṭ shiḵhvaṭ taḥmotzeṭ meginnah.",
+        "ru": "Для алюминия может быть выполнено анодирование для создания защитного оксидного слоя."
+      },
+      "source_refs": [
+        "legacy_row_hash:774f9a1eeae50d8279cdee072019661342473fc84d710d19682f83d81400efed",
+        "legacy_fields_sha256:7fee853ef7a555f2f8dcbd2fa4972e241f4293889aecdcf0f84b6e19c2279c08",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לַאֲלוּמִינְיוּם",
+            "normalized": "לאלומיניום"
+          },
+          {
+            "index": 1,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 2,
+            "surface": "לְבַצֵּעַ",
+            "normalized": "לבצע"
+          },
+          {
+            "index": 3,
+            "surface": "אָנוֹדִיזַצְיָה",
+            "normalized": "אנודיזציה"
+          },
+          {
+            "index": 4,
+            "surface": "לִיצִירַת",
+            "normalized": "ליצירת"
+          },
+          {
+            "index": 5,
+            "surface": "שִׁכְבַת",
+            "normalized": "שכבת"
+          },
+          {
+            "index": 6,
+            "surface": "תַּחְמֹצֶת",
+            "normalized": "תחמצת"
+          },
+          {
+            "index": 7,
+            "surface": "מְגִנָּה.",
+            "normalized": "מגנה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r027",
+      "order": 27,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "לפלדה ניתן לבצע גילוון (Zn) או ציפוי מגן מתאים.",
+        "he_niqqud": "לִפְלָדָה נִיתָּן לְבַצֵּעַ גִּלְווּן (Zn) אוֹ צִפּוּי מָגֵן מַתְאִים.",
+        "transliteration": "lifladah niṭṭan levatzetzaʻ gilvun (Zn) o tzipuy magen maṭ'im.",
+        "ru": "Для стали может быть выполнена гальванизация (Zn) или нанесено подходящее защитное покрытие."
+      },
+      "source_refs": [
+        "legacy_row_hash:b1fb5e3c774dc55a769d637599b671d7a19a4b470d6c65d39ce0c865125ad0b3",
+        "legacy_fields_sha256:1c70b84e02067e608f9794acce416e1efa669aec48a8163c38ea2f51b9e5f245",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "לִפְלָדָה",
+            "normalized": "לפלדה"
+          },
+          {
+            "index": 1,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 2,
+            "surface": "לְבַצֵּעַ",
+            "normalized": "לבצע"
+          },
+          {
+            "index": 3,
+            "surface": "גִּלְווּן",
+            "normalized": "גלוון"
+          },
+          {
+            "index": 4,
+            "surface": "(Zn)",
+            "normalized": "Zn"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "צִפּוּי",
+            "normalized": "צפוי"
+          },
+          {
+            "index": 7,
+            "surface": "מָגֵן",
+            "normalized": "מגן"
+          },
+          {
+            "index": 8,
+            "surface": "מַתְאִים.",
+            "normalized": "מתאים"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r028",
+      "order": 28,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "בציפויים חשוב לצפות את הקתודה או את שתי המתכות, משום שפגם קטן בציפוי על האנודה עלול לגרום לתקיפה מואצת בנקודת הפגם.",
+        "he_niqqud": "בְּצִפּוּיִים חָשׁוּב לְצַפּוֹת אֶת הַקָּתוֹדָה אוֹ אֶת שְׁתֵּי הַמַּתָּכוֹת, מִשּׁוּם שֶׁפֶּגֶם קָטָן בַּצִּפּוּי עַל הָאֲנוֹדָה עָלוּל לִגְרֹם לִתְקִיפָה מֻאָצֶת בְּנְקֻדַּת הַפֶּגֶם.",
+        "transliteration": "betzipuyim ḥashuv letzapoṭ et haqqaṭodah o et shetey hamataḵoṭ, mishum shepegem qaṭan batzipuy ʻal ha'anodah ʻalul ligrom litqifah mu'atzet benequdath hapegem.",
+        "ru": "При нанесении покрытий важно покрывать катод или оба металла, поскольку небольшой дефект покрытия на аноде может вызвать ускоренную коррозию в точке дефекта."
+      },
+      "source_refs": [
+        "legacy_row_hash:3836567a1f4bdcc8787ee3fc687e4f7459838a988d4f91ae49d6c73e6fb7eab7",
+        "legacy_fields_sha256:8ade40554decf9d9c27616b0d365403bfda8a4515f5e54285bd59aea6eac92dd",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּצִפּוּיִים",
+            "normalized": "בצפויים"
+          },
+          {
+            "index": 1,
+            "surface": "חָשׁוּב",
+            "normalized": "חשוב"
+          },
+          {
+            "index": 2,
+            "surface": "לְצַפּוֹת",
+            "normalized": "לצפות"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "הַקָּתוֹדָה",
+            "normalized": "הקתודה"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 6,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 7,
+            "surface": "שְׁתֵּי",
+            "normalized": "שתי"
+          },
+          {
+            "index": 8,
+            "surface": "הַמַּתָּכוֹת,",
+            "normalized": "המתכות"
+          },
+          {
+            "index": 9,
+            "surface": "מִשּׁוּם",
+            "normalized": "משום"
+          },
+          {
+            "index": 10,
+            "surface": "שֶׁפֶּגֶם",
+            "normalized": "שפגם"
+          },
+          {
+            "index": 11,
+            "surface": "קָטָן",
+            "normalized": "קטן"
+          },
+          {
+            "index": 12,
+            "surface": "בַּצִּפּוּי",
+            "normalized": "בצפוי"
+          },
+          {
+            "index": 13,
+            "surface": "עַל",
+            "normalized": "על"
+          },
+          {
+            "index": 14,
+            "surface": "הָאֲנוֹדָה",
+            "normalized": "האנודה"
+          },
+          {
+            "index": 15,
+            "surface": "עָלוּל",
+            "normalized": "עלול"
+          },
+          {
+            "index": 16,
+            "surface": "לִגְרֹם",
+            "normalized": "לגרם"
+          },
+          {
+            "index": 17,
+            "surface": "לִתְקִיפָה",
+            "normalized": "לתקיפה"
+          },
+          {
+            "index": 18,
+            "surface": "מֻאָצֶת",
+            "normalized": "מאצת"
+          },
+          {
+            "index": 19,
+            "surface": "בְּנְקֻדַּת",
+            "normalized": "בנקדת"
+          },
+          {
+            "index": 20,
+            "surface": "הַפֶּגֶם.",
+            "normalized": "הפגם"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r029",
+      "order": 29,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "בתכן יש למנוע חריצים ואזורים של מים עומדים ולבצע איטום במקומות חפיפה.",
+        "he_niqqud": "בְּתָכֶן יֵשׁ לִמְנֹעַ חֲרִיצִים וְאֵזוֹרִים שֶׁל מַיִם עוֹמְדִים וּלְבַצֵּעַ אִיטּוּם בִּמְקוֹמוֹת חֲפִיפָה.",
+        "transliteration": "betaḵen yesh limnoaʻ ḥaritzim ve'ezorim shel mayim ʻomdim ulevatzetzaʻ iṭṭum bimqomoṭ ḥafifah.",
+        "ru": "При проектировании необходимо избегать щелей и зон стоячей воды, а также выполнять герметизацию в местах перекрытия."
+      },
+      "source_refs": [
+        "legacy_row_hash:9dd23492c10843f64c8048a7e30043f5fe46f494e6e986534a701d5921925add",
+        "legacy_fields_sha256:9054622d1a2ed4d463072cb9f6f4b28e06d131d8601b524358833dc2a0339585",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "בְּתָכֶן",
+            "normalized": "בתכן"
+          },
+          {
+            "index": 1,
+            "surface": "יֵשׁ",
+            "normalized": "יש"
+          },
+          {
+            "index": 2,
+            "surface": "לִמְנֹעַ",
+            "normalized": "למנע"
+          },
+          {
+            "index": 3,
+            "surface": "חֲרִיצִים",
+            "normalized": "חריצים"
+          },
+          {
+            "index": 4,
+            "surface": "וְאֵזוֹרִים",
+            "normalized": "ואזורים"
+          },
+          {
+            "index": 5,
+            "surface": "שֶׁל",
+            "normalized": "של"
+          },
+          {
+            "index": 6,
+            "surface": "מַיִם",
+            "normalized": "מים"
+          },
+          {
+            "index": 7,
+            "surface": "עוֹמְדִים",
+            "normalized": "עומדים"
+          },
+          {
+            "index": 8,
+            "surface": "וּלְבַצֵּעַ",
+            "normalized": "ולבצע"
+          },
+          {
+            "index": 9,
+            "surface": "אִיטּוּם",
+            "normalized": "איטום"
+          },
+          {
+            "index": 10,
+            "surface": "בִּמְקוֹמוֹת",
+            "normalized": "במקומות"
+          },
+          {
+            "index": 11,
+            "surface": "חֲפִיפָה.",
+            "normalized": "חפיפה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r030",
+      "order": 30,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ג) ניתן להגביר את עמידות אוניות פלדה במי ים באמצעות מערכת צבע ימית רב־שכבתית הכוללת פריימר אפוקסי ושכבת גמר ואנטי־פאולינג.",
+        "he_niqqud": "ג) נִיתָּן לְהַגְבִּיר אֶת עֲמִידוּת אוֹנִיּוֹת פְּלָדָה בְּמֵי יָם בְּאֶמְצָעוּת מַעֲרֶכֶת צֶבַע יַמִּית רַב־שִׁכְבָתִית הַכּוֹלֶלֶת פְּרַיְימֶר אֶפּוֹקְסִי וְשִׁכְבַת גְּמָר וְאַנְטִי־פָּאוּלִינְג.",
+        "transliteration": "g) niṭṭan lehagbir et ʻamidut oniyoṭ peladah bemey yam be'emtzaʻuṭ maʻareḵeṭ tzɛvaʻ yamit rav-shiḵhvaṭiṭ hakkoletet fraymer epoxysy veshikhvaṭ gemar ve'anṭi-fa'uling.",
+        "ru": "в) Повысить устойчивость стальных судов в морской воде можно с помощью многослойной морской лакокрасочной системы, включающей эпоксидный грунт, финишный слой и противообрастающее покрытие (антифулинг)."
+      },
+      "source_refs": [
+        "legacy_row_hash:5d745e6bdbf2534b5a1028e66b4e8bfa5f0949ee0955c73f6e10a9e1a0e5c2f6",
+        "legacy_fields_sha256:fb3d310a2bae3ab7a5d0e2a17743fa23c9e11a9f1ec41a7726705577293a6d2c",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "ג)",
+            "normalized": "ג"
+          },
+          {
+            "index": 1,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 2,
+            "surface": "לְהַגְבִּיר",
+            "normalized": "להגביר"
+          },
+          {
+            "index": 3,
+            "surface": "אֶת",
+            "normalized": "את"
+          },
+          {
+            "index": 4,
+            "surface": "עֲמִידוּת",
+            "normalized": "עמידות"
+          },
+          {
+            "index": 5,
+            "surface": "אוֹנִיּוֹת",
+            "normalized": "אוניות"
+          },
+          {
+            "index": 6,
+            "surface": "פְּלָדָה",
+            "normalized": "פלדה"
+          },
+          {
+            "index": 7,
+            "surface": "בְּמֵי",
+            "normalized": "במי"
+          },
+          {
+            "index": 8,
+            "surface": "יָם",
+            "normalized": "ים"
+          },
+          {
+            "index": 9,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 10,
+            "surface": "מַעֲרֶכֶת",
+            "normalized": "מערכת"
+          },
+          {
+            "index": 11,
+            "surface": "צֶבַע",
+            "normalized": "צבע"
+          },
+          {
+            "index": 12,
+            "surface": "יַמִּית",
+            "normalized": "ימית"
+          },
+          {
+            "index": 13,
+            "surface": "רַב־שִׁכְבָתִית",
+            "normalized": "רב־שכבתית"
+          },
+          {
+            "index": 14,
+            "surface": "הַכּוֹלֶלֶת",
+            "normalized": "הכוללת"
+          },
+          {
+            "index": 15,
+            "surface": "פְּרַיְימֶר",
+            "normalized": "פריימר"
+          },
+          {
+            "index": 16,
+            "surface": "אֶפּוֹקְסִי",
+            "normalized": "אפוקסי"
+          },
+          {
+            "index": 17,
+            "surface": "וְשִׁכְבַת",
+            "normalized": "ושכבת"
+          },
+          {
+            "index": 18,
+            "surface": "גְּמָר",
+            "normalized": "גמר"
+          },
+          {
+            "index": 19,
+            "surface": "וְאַנְטִי־פָּאוּלִינְג.",
+            "normalized": "ואנטי־פאולינג"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      },
+      "part_label": "В"
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r031",
+      "order": 31,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "ניתן להוסיף הגנה קתודית באמצעות אנודות קורבן מאבץ או אלומיניום.",
+        "he_niqqud": "נִיתָּן לְהוֹסִיף הֲגַנָּה קָתוֹדִית בְּאֶמְצָעוּת אֲנוֹדוֹת קָרְבָּן מֵאֲבָץ אוֹ אֲלוּמִינְיוּם.",
+        "transliteration": "niṭṭan lehosif haganah qaṭodiṭ be'emtzaʻuṭ anodoṭ qorban me'avatz o alminium.",
+        "ru": "Можно добавить катодную защиту с помощью жертвенных анодов из цинка или алюминия."
+      },
+      "source_refs": [
+        "legacy_row_hash:d4820d1e0cea8f91058fb1211a633b1c40446e741f3ebc8acb5d8feb01c42ca9",
+        "legacy_fields_sha256:fc130a36db3a160fafd943287957dfa6abba23903eb52d0f4b0aaa38e0694d42",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִיתָּן",
+            "normalized": "ניתן"
+          },
+          {
+            "index": 1,
+            "surface": "לְהוֹסִיף",
+            "normalized": "להוסיף"
+          },
+          {
+            "index": 2,
+            "surface": "הֲגַנָּה",
+            "normalized": "הגנה"
+          },
+          {
+            "index": 3,
+            "surface": "קָתוֹדִית",
+            "normalized": "קתודית"
+          },
+          {
+            "index": 4,
+            "surface": "בְּאֶמְצָעוּת",
+            "normalized": "באמצעות"
+          },
+          {
+            "index": 5,
+            "surface": "אֲנוֹדוֹת",
+            "normalized": "אנודות"
+          },
+          {
+            "index": 6,
+            "surface": "קָרְבָּן",
+            "normalized": "קרבן"
+          },
+          {
+            "index": 7,
+            "surface": "מֵאֲבָץ",
+            "normalized": "מאבץ"
+          },
+          {
+            "index": 8,
+            "surface": "אוֹ",
+            "normalized": "או"
+          },
+          {
+            "index": 9,
+            "surface": "אֲלוּמִינְיוּם.",
+            "normalized": "אלומיניום"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r032",
+      "order": 32,
+      "section": "theory",
+      "kind": "theory_statement",
+      "exam_copy": true,
+      "text": {
+        "he": "אפשר ליישם גם הגנה קתודית בזרם מאולץ (ICCP) לפי דרישות המערכת והסביבה.",
+        "he_niqqud": "אֶפְשָׁר לְיַיַשֵּׁם גַּם הֲגַנָּה קָתוֹדִית בְּזֶרֶם מְאוּלָץ (ICCP) לְפִי דְּרִישׁוֹת הַמַּעֲרֶכֶת וְהַסְּבִיבָה.",
+        "transliteration": "efshar leyayshem gam haganah qaṭodiṭ bezerem me'ulatz (ICCP) lefi derishoṭ hamaʻareḵeṭ vehassevivah.",
+        "ru": "Также может быть применена катодная защита с наложенным током (ICCP) в соответствии с требованиями системы и окружающей среды."
+      },
+      "source_refs": [
+        "legacy_row_hash:6edf7f37eac6cf2ed6cd65d931b07b9e9cfd48e6191005ccf2752e0aa04644e9",
+        "legacy_fields_sha256:a8da3ce4e51df69440ce5678f3842d3cda92f572a25212a234062e9a06259a72",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "אֶפְשָׁר",
+            "normalized": "אפשר"
+          },
+          {
+            "index": 1,
+            "surface": "לְיַיַשֵּׁם",
+            "normalized": "ליישם"
+          },
+          {
+            "index": 2,
+            "surface": "גַּם",
+            "normalized": "גם"
+          },
+          {
+            "index": 3,
+            "surface": "הֲגַנָּה",
+            "normalized": "הגנה"
+          },
+          {
+            "index": 4,
+            "surface": "קָתוֹדִית",
+            "normalized": "קתודית"
+          },
+          {
+            "index": 5,
+            "surface": "בְּזֶרֶם",
+            "normalized": "בזרם"
+          },
+          {
+            "index": 6,
+            "surface": "מְאוּלָץ",
+            "normalized": "מאולץ"
+          },
+          {
+            "index": 7,
+            "surface": "(ICCP)",
+            "normalized": "ICCP"
+          },
+          {
+            "index": 8,
+            "surface": "לְפִי",
+            "normalized": "לפי"
+          },
+          {
+            "index": 9,
+            "surface": "דְּרִישׁוֹת",
+            "normalized": "דרישות"
+          },
+          {
+            "index": 10,
+            "surface": "הַמַּעֲרֶכֶת",
+            "normalized": "המערכת"
+          },
+          {
+            "index": 11,
+            "surface": "וְהַסְּבִיבָה.",
+            "normalized": "והסביבה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r033",
+      "order": 33,
+      "section": "verification",
+      "kind": "result_check",
+      "exam_copy": true,
+      "text": {
+        "he": "נדרשת תחזוקה שוטפת הכוללת בדיקות, תיקוני צבע, החלפת אנודות ומניעת זרמי זליגה.",
+        "he_niqqud": "נִדְרֶשֶׁת תַּחְזוּקָה שׁוֹטֶפֶת הַכּוֹלֶלֶת בְּדִיקוֹת, תִּקּוּנֵי צֶבַע, הַחְלָפַת אֲנוֹדוֹת וּמְנִיעַת זַרְמֵי זְלִיגָה.",
+        "transliteration": "nidresheṭ taḥzuqah shoṭefet hakkoletet bediqoṭ, tiqquney tzɛvaʻ, haḥlafaṭ anodoṭ umniʻaṭ zarmey zeligah.",
+        "ru": "Требуется регулярное техническое обслуживание, включая проверки, ремонт лакокрасочного покрытия, замену анодов и предотвращение блуждающих токов."
+      },
+      "source_refs": [
+        "legacy_row_hash:71dbc05f93649554b26fbf7e02564aab541882ebffd78b1fc22557d2d8597afb",
+        "legacy_fields_sha256:deb7d84e14893d6163aa6687f2d7a3b4db750663a6e59b48ea270f6fb8a1b7a3",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "נִדְרֶשֶׁת",
+            "normalized": "נדרשת"
+          },
+          {
+            "index": 1,
+            "surface": "תַּחְזוּקָה",
+            "normalized": "תחזוקה"
+          },
+          {
+            "index": 2,
+            "surface": "שׁוֹטֶפֶת",
+            "normalized": "שוטפת"
+          },
+          {
+            "index": 3,
+            "surface": "הַכּוֹלֶלֶת",
+            "normalized": "הכוללת"
+          },
+          {
+            "index": 4,
+            "surface": "בְּדִיקוֹת,",
+            "normalized": "בדיקות"
+          },
+          {
+            "index": 5,
+            "surface": "תִּקּוּנֵי",
+            "normalized": "תקוני"
+          },
+          {
+            "index": 6,
+            "surface": "צֶבַע,",
+            "normalized": "צבע"
+          },
+          {
+            "index": 7,
+            "surface": "הַחְלָפַת",
+            "normalized": "החלפת"
+          },
+          {
+            "index": 8,
+            "surface": "אֲנוֹדוֹת",
+            "normalized": "אנודות"
+          },
+          {
+            "index": 9,
+            "surface": "וּמְנִיעַת",
+            "normalized": "ומניעת"
+          },
+          {
+            "index": 10,
+            "surface": "זַרְמֵי",
+            "normalized": "זרמי"
+          },
+          {
+            "index": 11,
+            "surface": "זְלִיגָה.",
+            "normalized": "זליגה"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    },
+    {
+      "row_id": "materials-science-y1-pb2-q046-sol-r034",
+      "order": 34,
+      "section": "provenance",
+      "kind": "provenance_note",
+      "exam_copy": false,
+      "text": {
+        "he": "הפתרון נגזר מן התנאי והתרשימים, ולאחר מכן הושווה לפתרון הישן.",
+        "he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "transliteration": "Ha-pitron nigzar min ha-tnai ve-ha-tarshimim, u-le-ahar mi-ken hushvah la-pitron ha-yashan.",
+        "ru": "Решение выведено из условия и диаграмм, а затем сопоставлено со старым решением."
+      },
+      "source_refs": [
+        "independent_solution_sha256:3275f9146f474533c063226803c1a3f0319ca4d4a18f89f4ffb53d6ab00014d3",
+        "comparison:CORRECTED_TO_SOURCE_DIAGRAM_B_SAME_METAL",
+        "source_page:56",
+        "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+        "declared_convention:ASTM_G82",
+        "declared_convention:AMPP_cathodic_protection"
+      ],
+      "audio_plan": {
+        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "synthesis_field": "he_niqqud",
+        "karaoke_tokens": [
+          {
+            "index": 0,
+            "surface": "הַפִּתְרוֹן",
+            "normalized": "הפתרון"
+          },
+          {
+            "index": 1,
+            "surface": "נִגְזַר",
+            "normalized": "נגזר"
+          },
+          {
+            "index": 2,
+            "surface": "מִן",
+            "normalized": "מן"
+          },
+          {
+            "index": 3,
+            "surface": "הַתְּנַאי",
+            "normalized": "התנאי"
+          },
+          {
+            "index": 4,
+            "surface": "וְהַתַּרְשִׁימִים,",
+            "normalized": "והתרשימים"
+          },
+          {
+            "index": 5,
+            "surface": "וּלְאַחַר",
+            "normalized": "ולאחר"
+          },
+          {
+            "index": 6,
+            "surface": "מִכֵּן",
+            "normalized": "מכן"
+          },
+          {
+            "index": 7,
+            "surface": "הֻשְׁוָה",
+            "normalized": "השוה"
+          },
+          {
+            "index": 8,
+            "surface": "לַפִּתְרוֹן",
+            "normalized": "לפתרון"
+          },
+          {
+            "index": 9,
+            "surface": "הַיָּשָׁן.",
+            "normalized": "הישן"
+          }
+        ],
+        "timings_present": false,
+        "formula_speech_review_required": false
+      }
+    }
+  ],
+  "agent_grounding": {
+    "task_id": "materials-science-y1-pb2-q046",
+    "display_alias": "46",
+    "source_pages": [
+      56
+    ],
+    "independent_state": "DERIVED_AFTER_ONE_TARGETED_SOURCE_REVIEW",
+    "answer": [
+      "а) A (Al rivet/steel sheets): неустойчиво; Al (−1,66V) — малый активный анод, сталь (−0,44V) — большая катодная площадь, поэтому заклёпка быстро корродирует. B (quenched-steel rivet/steel sheets): гальванически устойчиво, потому что заклёпка и листы — сталь и существенной разности электродных потенциалов нет; отдельно остаются обычная коррозия и состояние покрытия. C (stainless rivet joining Al and Cu sheets): неустойчиво; Al намного активнее stainless (−0,35V) и Cu, поэтому Al sheet corrodes. Source omits Cu potential, but the Al–stainless pair alone proves galvanic risk.",
+      "б) Использовать одинаковые/близкие металлы; электрически изолировать втулками/шайбами; герметизировать стык от воды; наносить краску/анодирование/металлическое покрытие; избегать малого анода при большой катодной площади; проектировать дренаж и контроль покрытия.",
+      "в) Для стального судна: подготовленное многослойное морское покрытие плюс катодная защита — жертвенные Zn/Al аноды либо impressed current — с мониторингом потенциала и периодической заменой/обслуживанием."
+    ],
+    "engineering_picture": "Гальваническая ячейка требует электрического контакта и общего электролита. Более отрицательный металл — анод; маленький анод против большой катодной площади особенно опасен.",
+    "prerequisites": [
+      "More negative potential means more active in the simplified exercise.",
+      "Water provides electrolyte."
+    ],
+    "roadmap": [
+      "Прочитать подписи материалов на каждой схеме.",
+      "Для разнородной пары определить анод.",
+      "Проверить area ratio.",
+      "Предложить меры разрыва цепи/барьера.",
+      "Separate coating and cathodic protection for ships."
+    ],
+    "main_trap": "Не использовать стандартные электродные потенциалы как точный морской galvanic series; здесь они только учебный индикатор направления.",
+    "givens": [
+      "E° Al−1.66;steel−0.44;stainless−0.35 V; three joint drawings."
+    ],
+    "find": [
+      "Resistance of A/B/C and protection methods."
+    ],
+    "assumptions": [
+      "Metallic contact and water access exist unless insulation is added.",
+      "Heat treatment of the steel rivet in B does not create a dissimilar-metal galvanic couple."
+    ],
+    "laws": [
+      "Active anode corrodes; cathode is protected.",
+      "Anodic current density worsens for small-anode/large-cathode area."
+    ],
+    "symbolic_derivation": [
+      "A:E_Al<E_steel⇒Al anode.",
+      "B:steel/steel⇒ΔE≈0 for the simplified exercise.",
+      "C:E_Al<E_stainless⇒Al anode."
+    ],
+    "calculation": [
+      "ΔE_A≈1.22V;ΔE_B≈0V;ΔE_Al-stainless≈1.31V as simplified driving-force indicators."
+    ],
+    "construction": [
+      "For A/C mark electron flow from anode to cathode and circle the corroding member; mark B as same-metal galvanically stable."
+    ],
+    "checks": [
+      "A and C identify the active member and area risk; B distinguishes absence of a dissimilar-metal couple from immunity to ordinary corrosion."
+    ],
+    "source_facts": [
+      "source_page:56",
+      "asset_sha256:efed9aead45f44176aa8910745dda8c4f5bd8f18a0ea1dc7fa12f78baf83d49a",
+      "declared_convention:ASTM_G82",
+      "declared_convention:AMPP_cathodic_protection"
+    ],
+    "unresolved_limits": [
+      "Copper potential is not printed; actual rates require environment-specific galvanic series, polarization and area data."
+    ]
+  },
+  "render_contract": {
+    "study_columns": [
+      "he",
+      "he_niqqud",
+      "transliteration",
+      "ru"
+    ],
+    "exam_projection": "ALL_AND_ONLY_EXAM_COPY_ROWS_IN_SOURCE_ORDER_PLAIN_HEBREW_WITH_EXACT_FORMULAS",
+    "mobile_projection": "ONE_ROW_PER_STACK_HEBREW_FIRST_NO_HORIZONTAL_SCROLL",
+    "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
+  },
+  "audio_boundary": {
+    "full_tts_generated": false,
+    "timing_sidecars_present": false,
+    "row_karaoke_contract_checked": true,
+    "formula_speech_review_required_count": 3
+  },
+  "rights": {
+    "public_read_allowed": true,
+    "public_solution_display_and_print_allowed": true,
+    "package_download_allowed": true,
+    "agent_derivative_text_allowed": true,
+    "full_tts_audio_and_timings_allowed": false,
+    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
+    "asserted_at": "2026-08-30"
+  }
+}
