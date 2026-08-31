@@ -1,6 +1,6 @@
 # MATERIALS-PB2 Task Learning Reader — implementation plan
 
-Status: `OWNER_APPROVED · GOAL ACTIVE · IMPLEMENTATION AUTHORIZED`
+Status: `OWNER_APPROVED · IMPLEMENTED · PRODUCTION_VERIFIED_3.11.452`
 
 Date: 2026-08-31
 Corpus: `materials-science-year1-problem-book-2`
@@ -277,3 +277,30 @@ baseline debt and are not broadened into this allowlist.
 
 Production and owner-live evidence are deliberately not inferred from these
 local gates. They are added only after the scoped release is served and tested.
+
+## 12. Production verification
+
+Runtime commit `3b991de4` was deployed as image
+`3b991de4cdce0ae9007656e78c77d1f4ae2fa4d2`. One transient `502` occurred
+during rolling handover and was not accepted. It was followed by eight
+consecutive `3.11.452` responses with DB and migrations ready.
+
+`PRODUCTION_ANONYMOUS` browser evidence on 2026-08-31:
+
+- immutable edition 2, manifest
+  `47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0`;
+- 60/60 tasks (48 + 12 pagination), 693 condition rows, 1,919 reviewed
+  solution rows and 72 source assets verified;
+- task 1 exposes 270 morphable Hebrew tokens and zero invalid roving cells;
+- the solution word card is topmost, carries the exact active `row_id`, first
+  Escape closes morphology only, and focus returns to the word;
+- desktop RU, exam, 380 px RU and 380 px HE RTL have no document/viewer
+  overflow and no controls below 44 px;
+- zero audio controls and zero timing sidecars remain visible/served;
+- study/exam PDFs differ as required; public APIs and assets return 200;
+- page errors and failed public-corpus responses: zero.
+
+Evidence is stored in
+`production-live-browser-and-print-verification.json` and the matching
+`materials-pb2-production-*` screenshots/PDFs. This is not an inferred
+`OWNER_REPORTED` or `PHYSICAL_DEVICE_AT` pass; those rows remain separate.

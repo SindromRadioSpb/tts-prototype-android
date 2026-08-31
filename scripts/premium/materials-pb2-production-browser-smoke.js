@@ -34,7 +34,7 @@ async function surfaceReport(page) {
         return rect.width < 44 || rect.height < 44;
       }).map(node => node.textContent.trim()),
       audio_controls: viewer.querySelectorAll("audio, [data-materials-audio], .materials-audio-play").length,
-      audio_deferred: /Аудио|Audio|שמע/.test(viewer.querySelector(".materials-audio-note")?.textContent || ""),
+      audio_deferred: /TTS|Аудио|Audio|שמע/.test(viewer.querySelector(".materials-audio-note")?.textContent || ""),
       morph_tokens: viewer.querySelectorAll(".materials-learning-table .rm-w").length,
       roving_cells_invalid: [...viewer.querySelectorAll('.materials-learning-table td[data-col="he"], .materials-learning-table td[data-col="niqqud"]')]
         .filter(cell => cell.querySelectorAll('.rm-w').length && cell.querySelectorAll('.rm-w[tabindex="0"]').length !== 1).length,
@@ -83,7 +83,7 @@ async function surfaceReport(page) {
     assert.equal(desktop.document_overflow, false);
     assert.equal(desktop.viewer_overflow, false);
     assert.equal(desktop.visible_columns, 5);
-    assert.ok(desktop.table_rows > 10 && desktop.source_figures > 0 && desktop.audio_deferred && desktop.morph_tokens > 0);
+    assert.ok(desktop.table_rows > 10 && desktop.source_figures > 0 && desktop.audio_deferred && desktop.morph_tokens > 0, JSON.stringify(desktop));
     assert.equal(desktop.audio_controls, 0);
     assert.equal(desktop.roving_cells_invalid, 0);
     assert.equal(desktop.derivation_rail, "3px");

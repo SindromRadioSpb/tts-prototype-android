@@ -1,7 +1,7 @@
 {
   "schema_version": "materials_pb2_production_browser_verification.1.0.0",
   "verified_at": "2026-08-31",
-  "release_version": "3.11.450",
+  "release_version": "3.11.452",
   "anonymous": true,
   "publication": {
     "item_count": 60,
@@ -21,7 +21,17 @@
     "source_figures": 1,
     "tiny_controls": [],
     "audio_controls": 0,
-    "audio_deferred": true
+    "audio_deferred": true,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
+  },
+  "morphology": {
+    "viewer_open": true,
+    "sheet_open": true,
+    "sheet_topmost": true,
+    "anchored_row": "materials-science-y1-pb2-q001-sol-r001",
+    "active_row": "materials-science-y1-pb2-q001-sol-r001"
   },
   "exam_desktop_ru": {
     "lang": "ru",
@@ -33,7 +43,10 @@
     "source_figures": 1,
     "tiny_controls": [],
     "audio_controls": 0,
-    "audio_deferred": true
+    "audio_deferred": true,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
   },
   "mobile_ru": {
     "lang": "ru",
@@ -45,7 +58,10 @@
     "source_figures": 1,
     "tiny_controls": [],
     "audio_controls": 0,
-    "audio_deferred": true
+    "audio_deferred": true,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
   },
   "mobile_he": {
     "lang": "he",
@@ -57,7 +73,10 @@
     "source_figures": 1,
     "tiny_controls": [],
     "audio_controls": 0,
-    "audio_deferred": true
+    "audio_deferred": true,
+    "morph_tokens": 270,
+    "roving_cells_invalid": 0,
+    "derivation_rail": "3px"
   },
   "full_sweep": {
     "support_cards": 60,
@@ -77,13 +96,13 @@
   "pdf": {
     "study": {
       "file": "output/pdf/materials-pb2-production-q001-study-4-columns.pdf",
-      "bytes": 331575,
-      "sha256": "06343a45eb3c36195bd6daf7ef81b0db78f0afc77ca2dd111cafab2e8ae92692"
+      "bytes": 362619,
+      "sha256": "3f1c84698c4f26a752ab5225d26dbf754e1041a66bda0a0802d357fe1e8c4637"
     },
     "exam": {
       "file": "output/pdf/materials-pb2-production-q001-exam-hebrew.pdf",
-      "bytes": 296801,
-      "sha256": "5cae3f63785b468731887a82ebf8cbac12c6462cba26a909487804992135a478"
+      "bytes": 325005,
+      "sha256": "7b12e1133c31bb540a13e22d6450ca4a39f9732f939a24e0bba528bbfa4bad12"
     }
   },
   "page_errors": [],
@@ -91,6 +110,7 @@
   "screenshots": [
     "materials-pb2-production-card-answer-desktop-ru.png",
     "materials-pb2-production-exam-desktop-ru.png",
+    "materials-pb2-production-morphology-desktop-ru.png",
     "materials-pb2-production-solution-380-he-rtl.png",
     "materials-pb2-production-solution-380-ru.png",
     "materials-pb2-production-solution-desktop-ru.png"
