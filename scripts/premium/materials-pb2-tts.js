@@ -2,6 +2,7 @@
 "use strict";
 
 const crypto = require("node:crypto");
+const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { computeAssetKey } = require("../../db/premium/ttsAssetKey");
@@ -81,6 +82,7 @@ function ledgerMap(ledger) {
 function buildInventory({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger } = {}) {
   const { manifest, tasks } = loadTables(tableRoot, taskIds);
   const reviews = ledgerMap(formulaLedger);
+  if (formulaLedger) invariant(formulaLedger.source_manifest_sha256 === sha256(fs.readFileSync(path.join(tableRoot, "manifest.json"))), "FORMULA_LEDGER_SOURCE_DRIFT");
   const conditionTexts = [], solutionTexts = [], rawWords = [];
   let rowReferenceCount = 0, formulaRequired = 0, formulaPass = 0;
   for (const table of tasks) {
@@ -92,12 +94,15 @@ function buildInventory({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger
     for (const row of table.rows) {
       const displayText = String(row.text?.he_niqqud || row.text?.he || "").trim();
       invariant(displayText, `SOLUTION_SPEECH_EMPTY:${row.row_id}`);
-      solutionTexts.push(displayText); rowReferenceCount += 1; rawWords.push(...wordTokens(displayText, false));
+      let speechText = displayText;
       if (row.audio_plan?.formula_speech_review_required === true) {
         formulaRequired += 1;
         const review = reviews.get(row.row_id);
-        if (review?.status === "REVIEWED_PASS" && normalizeSpeech(review.spoken_he_niqqud)) formulaPass += 1;
+        if (review?.status === "REVIEWED_PASS" && normalizeSpeech(review.spoken_he_niqqud)) {
+          formulaPass += 1; speechText = normalizeSpeech(review.spoken_he_niqqud);
+        }
       }
+      solutionTexts.push(speechText); rowReferenceCount += 1; rawWords.push(...wordTokens(displayText, false));
     }
   }
   const uniqueCondition = [...new Set(conditionTexts)];
@@ -147,8 +152,73 @@ function buildFormulaReviewLedger({ tableRoot = DEFAULT_TABLE_ROOT } = {}) {
     policy: { display_text_is_not_speech_authority: true, raw_formula_inference_forbidden: true }, entries,
   };
 }
-function validateFormulaReview(ledger, taskIds) {
+function buildFormulaReviewPack(ledger) {
+  const rows = [...ledgerMap(ledger).values()], groups = new Map();
+  for (const entry of rows) {
+    const display = normalizeSpeech(entry.display_he_niqqud || entry.display_he);
+    invariant(display, `FORMULA_REVIEW_DISPLAY_EMPTY:${entry.row_id}`);
+    if (!groups.has(display)) groups.set(display, []);
+    groups.get(display).push(entry);
+  }
+  const items = [];
+  for (const [display_he_niqqud, occurrences] of groups) {
+    const accepted = occurrences.filter(entry => entry.status === "REVIEWED_PASS");
+    const acceptedSpeech = new Set(accepted.map(entry => normalizeSpeech(entry.spoken_he_niqqud)).filter(Boolean));
+    invariant(acceptedSpeech.size <= 1, `FORMULA_REVIEW_CONFLICT:${display_he_niqqud}`);
+    const fullyReviewed = accepted.length === occurrences.length && acceptedSpeech.size === 1;
+    const example = occurrences[0];
+    items.push({
+      review_id: sha256(Buffer.from(`materials-pb2-formula-review-v1\0${display_he_niqqud}`, "utf8")),
+      display_he_niqqud, occurrence_count: occurrences.length,
+      status: fullyReviewed ? "REVIEWED_PASS" : "PENDING_OWNER_REVIEW",
+      spoken_he_niqqud: fullyReviewed ? [...acceptedSpeech][0] : "",
+      reviewed_by: fullyReviewed ? String(example.reviewed_by || "owner") : null,
+      reviewed_at: fullyReviewed ? String(example.reviewed_at || "") : null,
+      note: fullyReviewed ? "Already approved in the canonical row ledger." : "",
+      occurrences: occurrences.map(entry => ({ task_id: entry.task_id, display_alias: entry.display_alias,
+        row_id: entry.row_id, row_order: entry.row_order, display_ru: entry.display_ru })),
+    });
+  }
+  items.sort((a, b) => a.display_he_niqqud.localeCompare(b.display_he_niqqud, "he"));
+  return {
+    schema_version: "materials_pb2_formula_unique_review.1.0.0", corpus_slug: SLUG,
+    source_manifest_sha256: ledger.source_manifest_sha256, generated_at: "2026-09-01T00:00:00Z",
+    policy: { one_decision_per_exact_display_form: true, contextual_analogy_forbidden: true,
+      reviewer_must_check_all_listed_occurrences: true },
+    row_count: rows.length, unique_display_form_count: items.length,
+    reviewed_unique_form_count: items.filter(item => item.status === "REVIEWED_PASS").length,
+    pending_unique_form_count: items.filter(item => item.status !== "REVIEWED_PASS").length,
+    items,
+  };
+}
+function applyFormulaReviewPack(ledger, pack) {
+  invariant(pack?.schema_version === "materials_pb2_formula_unique_review.1.0.0" && pack.corpus_slug === SLUG
+    && pack.source_manifest_sha256 === ledger?.source_manifest_sha256 && Array.isArray(pack.items), "FORMULA_REVIEW_PACK_INVALID");
+  const rows = ledgerMap(ledger), seenRows = new Set();
+  for (const item of pack.items) {
+    const display = normalizeSpeech(item?.display_he_niqqud);
+    invariant(item.review_id === sha256(Buffer.from(`materials-pb2-formula-review-v1\0${display}`, "utf8"))
+      && Array.isArray(item.occurrences) && item.occurrences.length === Number(item.occurrence_count), "FORMULA_REVIEW_PACK_INVALID");
+    for (const occurrence of item.occurrences) {
+      const row = rows.get(occurrence.row_id);
+      invariant(row && row.task_id === occurrence.task_id && normalizeSpeech(row.display_he_niqqud || row.display_he) === display
+        && !seenRows.has(row.row_id), `FORMULA_REVIEW_OCCURRENCE_DRIFT:${occurrence.row_id}`);
+      seenRows.add(row.row_id);
+      if (item.status === "REVIEWED_PASS") {
+        invariant(normalizeSpeech(item.spoken_he_niqqud) && String(item.reviewed_by || "").trim()
+          && String(item.reviewed_at || "").trim(), `FORMULA_REVIEW_DECISION_INCOMPLETE:${item.review_id}`);
+        row.spoken_he_niqqud = normalizeSpeech(item.spoken_he_niqqud); row.status = "REVIEWED_PASS";
+        row.reviewed_by = String(item.reviewed_by).trim(); row.reviewed_at = String(item.reviewed_at).trim();
+        row.note = String(item.note || "Exact-display-form review applied from the unique review pack.");
+      }
+    }
+  }
+  invariant(seenRows.size === rows.size, "FORMULA_REVIEW_PACK_INCOMPLETE");
+  return ledger;
+}
+function validateFormulaReview(ledger, taskIds, tableRoot = DEFAULT_TABLE_ROOT) {
   const map = ledgerMap(ledger);
+  invariant(ledger?.source_manifest_sha256 === sha256(fs.readFileSync(path.join(tableRoot, "manifest.json"))), "FORMULA_LEDGER_SOURCE_DRIFT");
   const selected = taskIds && taskIds.length ? new Set(taskIds) : null;
   const accepted = new Map();
   for (const entry of map.values()) {
@@ -166,11 +236,34 @@ function validateTtsRights(rights) {
   invariant(rights.classes?.public_read === true && rights.classes?.public_solution_display_and_print === true, "PUBLIC_TTS_RIGHTS_SCOPE_INVALID");
   return true;
 }
+function validateSecretGate({ apiKey, credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS, client } = {}) {
+  if (client) {
+    invariant(client.__materialsPb2SecretGateVerified === true && typeof client.synthesizeSpeech === "function", "TTS_SECRET_GATE_BLOCKED");
+    return Object.freeze({ status: "PASS", mode: "injected-client", source: "explicit-verified-client" });
+  }
+  const key = String(apiKey || "").trim();
+  if (key) {
+    invariant(key.length >= 20 && !/(replace|example|placeholder|your[-_ ]?key|changeme)/i.test(key), "TTS_SECRET_GATE_BLOCKED");
+    return Object.freeze({ status: "PASS", mode: "api-key", source: "configured-environment" });
+  }
+  const configured = String(credentialPath || "").trim();
+  invariant(configured, "TTS_SECRET_GATE_BLOCKED");
+  const absolute = path.resolve(configured);
+  invariant(fs.existsSync(absolute) && fs.statSync(absolute).isFile(), "TTS_ADC_FILE_MISSING");
+  let credential;
+  try { credential = readJson(absolute); } catch (_) { throw new Error("TTS_ADC_FILE_INVALID"); }
+  invariant(credential?.type === "service_account" && String(credential.project_id || "").trim()
+    && String(credential.client_email || "").trim() && String(credential.private_key || "").trim(), "TTS_ADC_FILE_INVALID");
+  return Object.freeze({ status: "PASS", mode: "adc-service-account", source: "GOOGLE_APPLICATION_CREDENTIALS" });
+}
 function validateTiming(timing) {
-  invariant(timing && timing.v === 1 && Number.isInteger(Number(timing.n)) && Array.isArray(timing.words), "TIMING_INVALID");
+  invariant(timing && timing.v === 1 && Number.isInteger(Number(timing.n)) && Number(timing.n) > 0
+    && Number.isInteger(Number(timing.got)) && Array.isArray(timing.words), "TIMING_INVALID");
+  invariant(Number(timing.got) === Number(timing.n) && timing.words.length === Number(timing.n), "TIMING_INCOMPLETE");
   let lastOffset = -1, lastTime = -1;
-  for (const word of timing.words) {
-    invariant(Number.isInteger(Number(word.o)) && Number(word.o) > lastOffset && Number(word.t) >= lastTime, "TIMING_NOT_MONOTONIC");
+  for (const [index, word] of timing.words.entries()) {
+    invariant(Number.isInteger(Number(word.o)) && Number(word.o) === index && Number(word.o) > lastOffset
+      && Number(word.t) >= 0 && Number(word.t) >= lastTime, "TIMING_NOT_MONOTONIC");
     lastOffset = Number(word.o); lastTime = Number(word.t);
   }
   return true;
@@ -221,7 +314,7 @@ async function synthesizeWordWithClient(client, text, profile = DEFAULT_PROFILE)
 }
 function speechAssets({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger }) {
   const { tasks } = loadTables(tableRoot, taskIds);
-  const formulaSpeech = validateFormulaReview(formulaLedger, taskIds);
+  const formulaSpeech = validateFormulaReview(formulaLedger, taskIds, tableRoot);
   const rows = new Map(), words = new Map(), references = [];
   function addRow(task, rowId, sourceKind, displayText, speechText) {
     const text = normalizeSpeech(speechText);
@@ -248,11 +341,28 @@ function speechAssets({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger }
   }
   return { rows: [...rows.values()], words: [...words.values()], references };
 }
-async function bake({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, rights, output = DEFAULT_OUTPUT, apiKey, client } = {}) {
+function prepareRelease({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, rights, apiKey, client,
+  credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS } = {}) {
   validateTtsRights(rights);
   const inventory = buildInventory({ tableRoot, taskIds, formulaLedger });
   invariant(inventory.total_billed_character_count <= RELEASE_CHARACTER_CEILING, "RELEASE_CHARACTER_CEILING_EXCEEDED");
   const planned = speechAssets({ tableRoot, taskIds, formulaLedger });
+  const secret = validateSecretGate({ apiKey, client, credentialPath });
+  const report = Object.freeze({
+    schema_version: "materials_pb2_tts_release_preflight.1.0.0", corpus_slug: SLUG, ready: true,
+    gates: Object.freeze({ rights: "PASS", formula_speech: "PASS", cost: "PASS", secret: "PASS" }),
+    profile_id: PROFILE_ID, inventory,
+    planned_row_asset_count: planned.rows.length, planned_word_asset_count: planned.words.length,
+    planned_asset_count: planned.rows.length + planned.words.length,
+    secret,
+  });
+  return { report, planned };
+}
+function releasePreflight(options = {}) { return prepareRelease(options).report; }
+async function bake({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, rights, output = DEFAULT_OUTPUT, apiKey, client,
+  credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS } = {}) {
+  const prepared = prepareRelease({ tableRoot, taskIds, formulaLedger, rights, apiKey, client, credentialPath });
+  const planned = prepared.planned;
   const root = path.resolve(output), audioDir = path.join(root, "audio-cache");
   fs.mkdirSync(audioDir, { recursive: true });
   let adcClient = client || null;
@@ -280,10 +390,80 @@ async function bake({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, ri
     }
     completed.push({ ...asset, mp3, timing });
   }
-  const manifest = buildPublicAssetManifest(completed, { inventory, references: planned.references });
+  const manifest = buildPublicAssetManifest(completed, { inventory: prepared.report.inventory, references: planned.references });
   manifest.word_index = buildWordIndex(planned.words);
   fs.writeFileSync(path.join(root, "manifest.json"), stableJson(manifest));
   return { output: root, asset_count: completed.length, manifest_sha256: sha256(Buffer.from(stableJson(manifest))) };
+}
+function verifyBake({ root = DEFAULT_OUTPUT, decodeAudio = false } = {}) {
+  const absolute = path.resolve(root), manifestPath = path.join(absolute, "manifest.json"), audioDir = path.join(absolute, "audio-cache");
+  invariant(fs.existsSync(manifestPath) && fs.existsSync(audioDir), "BAKE_OUTPUT_MISSING");
+  const manifestBytes = fs.readFileSync(manifestPath), manifest = JSON.parse(manifestBytes.toString("utf8"));
+  invariant(manifest.schema_version === "materials_pb2_public_tts_assets.1.0.0" && manifest.corpus_slug === SLUG
+    && manifest.profile_id === PROFILE_ID && Array.isArray(manifest.assets) && manifest.assets.length
+    && Array.isArray(manifest.references) && Array.isArray(manifest.word_index), "BAKE_MANIFEST_INVALID");
+  const assets = new Map(), durations = []; let audioBytes = 0, timingBytes = 0, rowCount = 0, wordCount = 0;
+  for (const asset of manifest.assets) {
+    const key = String(asset?.asset_key || "");
+    invariant(HASH.test(key) && !assets.has(key) && ["row", "word"].includes(asset.asset_type), "BAKE_ASSET_INDEX_INVALID");
+    const mp3Path = path.join(audioDir, `${key}.mp3`);
+    invariant(fs.existsSync(mp3Path), `AUDIO_FILE_MISSING:${key}`);
+    const mp3 = fs.readFileSync(mp3Path);
+    invariant(mp3.length === Number(asset.bytes), `AUDIO_BYTES_MISMATCH:${key}`);
+    invariant(sha256(mp3) === asset.sha256, `AUDIO_SHA256_MISMATCH:${key}`);
+    if (decodeAudio) {
+      const probe = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "--", mp3Path], { encoding: "utf8" });
+      const duration = Number(String(probe.stdout || "").trim());
+      invariant(probe.status === 0 && Number.isFinite(duration) && duration > 0, `AUDIO_DECODE_FAILED:${key}`);
+      durations.push(duration);
+    }
+    audioBytes += mp3.length;
+    if (asset.asset_type === "row") {
+      rowCount += 1;
+      invariant(asset.timing && Number(asset.timing.bytes) > 0 && HASH.test(String(asset.timing.sha256 || "")), `TIMING_MANIFEST_MISSING:${key}`);
+      const timingPath = path.join(audioDir, `${key}.timing.json`);
+      invariant(fs.existsSync(timingPath), `TIMING_FILE_MISSING:${key}`);
+      const timingBody = fs.readFileSync(timingPath);
+      invariant(timingBody.length === Number(asset.timing.bytes), `TIMING_BYTES_MISMATCH:${key}`);
+      invariant(sha256(timingBody) === asset.timing.sha256, `TIMING_SHA256_MISMATCH:${key}`);
+      validateTiming(JSON.parse(timingBody.toString("utf8"))); timingBytes += timingBody.length;
+    } else {
+      wordCount += 1; invariant(asset.timing == null, `WORD_TIMING_FORBIDDEN:${key}`);
+    }
+    assets.set(key, asset);
+  }
+  const expectedFiles = new Set();
+  for (const asset of assets.values()) {
+    expectedFiles.add(`${asset.asset_key}.mp3`);
+    if (asset.asset_type === "row") expectedFiles.add(`${asset.asset_key}.timing.json`);
+  }
+  const actualFiles = fs.readdirSync(audioDir).filter(name => /\.(?:mp3|timing\.json)$/.test(name));
+  invariant(actualFiles.length === expectedFiles.size && actualFiles.every(name => expectedFiles.has(name)), "BAKE_FILE_SET_DRIFT");
+  const wordTexts = new Set();
+  for (const entry of manifest.word_index) {
+    const text = normalizeSpeech(entry?.text), asset = assets.get(String(entry?.asset_key || ""));
+    invariant(text && text === entry.text && !wordTexts.has(text) && asset?.asset_type === "word", "WORD_INDEX_INVALID");
+    wordTexts.add(text);
+  }
+  const referenceKeys = new Set();
+  for (const reference of manifest.references) {
+    const id = `${reference?.task_id || ""}:${reference?.row_id || ""}`;
+    invariant(reference.task_id && reference.row_id && !referenceKeys.has(id)
+      && assets.get(String(reference.asset_key || ""))?.asset_type === "row", "ROW_REFERENCE_INVALID");
+    referenceKeys.add(id);
+  }
+  const result = {
+    schema_version: "materials_pb2_tts_bake_verification.1.0.0", corpus_slug: SLUG,
+    manifest_sha256: sha256(manifestBytes), asset_count: assets.size, row_asset_count: rowCount,
+    word_asset_count: wordCount, complete_timing_count: rowCount, reference_count: manifest.references.length,
+    word_index_entry_count: manifest.word_index.length, audio_bytes: audioBytes, timing_bytes: timingBytes,
+  };
+  if (decodeAudio) Object.assign(result, {
+    audio_decode_count: durations.length,
+    minimum_duration_seconds: Math.min(...durations), maximum_duration_seconds: Math.max(...durations),
+    aggregate_duration_seconds: Math.round(durations.reduce((sum, value) => sum + value, 0) * 1000) / 1000,
+  });
+  return Object.freeze(result);
 }
 function parseArgs(argv) {
   const out = { _: [] };
@@ -311,11 +491,53 @@ async function main() {
     fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, stableJson(ledger));
     process.stdout.write(stableJson({ ok: true, output, entry_count: ledger.entries.length })); return;
   }
+  if (command === "formula-review-pack") {
+    invariant(args.ledger && args.output, "FORMULA_REVIEW_PACK_REQUIRES_LEDGER_AND_OUTPUT");
+    const output = path.resolve(args.output), pack = buildFormulaReviewPack(readJson(path.resolve(args.ledger)));
+    fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, stableJson(pack));
+    process.stdout.write(stableJson({ ok: true, output, row_count: pack.row_count,
+      unique_display_form_count: pack.unique_display_form_count, pending_unique_form_count: pack.pending_unique_form_count })); return;
+  }
+  if (command === "apply-formula-review-pack") {
+    invariant(args.ledger && args.pack && args.output, "APPLY_FORMULA_REVIEW_PACK_REQUIRES_LEDGER_PACK_OUTPUT");
+    const output = path.resolve(args.output), ledger = applyFormulaReviewPack(readJson(path.resolve(args.ledger)), readJson(path.resolve(args.pack)));
+    fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, stableJson(ledger));
+    process.stdout.write(stableJson({ ok: true, output, reviewed_count: ledger.entries.filter(entry => entry.status === "REVIEWED_PASS").length })); return;
+  }
+  if (command === "secret-check") {
+    try { require("dotenv").config({ path: path.join(ROOT, ".env") }); } catch (_) {}
+    const secret = validateSecretGate({ apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"],
+      credentialPath: process.env.GOOGLE_APPLICATION_CREDENTIALS });
+    process.stdout.write(stableJson({ ok: true, gate: "PASS", secret })); return;
+  }
+  if (command === "preflight") {
+    invariant(args.ledger && args.rights, "PREFLIGHT_REQUIRES_LEDGER_AND_RIGHTS");
+    try { require("dotenv").config({ path: path.join(ROOT, ".env") }); } catch (_) {}
+    const report = releasePreflight({ tableRoot, taskIds, formulaLedger: readJson(path.resolve(args.ledger)),
+      rights: readJson(path.resolve(args.rights)), apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"],
+      credentialPath: process.env.GOOGLE_APPLICATION_CREDENTIALS });
+    const payload = { ok: true, ...report };
+    if (args.output) {
+      const output = path.resolve(args.output); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, stableJson(payload));
+      process.stdout.write(stableJson({ ok: true, output, ready: report.ready }));
+    } else process.stdout.write(stableJson(payload));
+    return;
+  }
   if (command === "bake") {
     invariant(args.ledger && args.rights, "BAKE_REQUIRES_LEDGER_AND_RIGHTS");
     try { require("dotenv").config({ path: path.join(ROOT, ".env") }); } catch (_) {}
-    const result = await bake({ tableRoot, taskIds, formulaLedger: readJson(path.resolve(args.ledger)), rights: readJson(path.resolve(args.rights)), output: args.output || DEFAULT_OUTPUT, apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"] });
+    const result = await bake({ tableRoot, taskIds, formulaLedger: readJson(path.resolve(args.ledger)), rights: readJson(path.resolve(args.rights)), output: args.output || DEFAULT_OUTPUT, apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"], credentialPath: process.env.GOOGLE_APPLICATION_CREDENTIALS });
     process.stdout.write(stableJson({ ok: true, ...result })); return;
+  }
+  if (command === "verify") {
+    const result = verifyBake({ root: args.root || args.output || DEFAULT_OUTPUT,
+      decodeAudio: ["1", "true", "yes"].includes(String(args.decode || "").toLowerCase()) });
+    const payload = { ok: true, ...result };
+    if (args.report) {
+      const report = path.resolve(args.report); fs.mkdirSync(path.dirname(report), { recursive: true }); fs.writeFileSync(report, stableJson(payload));
+      process.stdout.write(stableJson({ ok: true, report, manifest_sha256: result.manifest_sha256 }));
+    } else process.stdout.write(stableJson(payload));
+    return;
   }
   throw new Error(`COMMAND_INVALID:${command}`);
 }
@@ -324,6 +546,7 @@ if (require.main === module) main().catch(error => { process.stderr.write(`mater
 module.exports = {
   DEFAULT_PROFILE, PROFILE_ID, RELEASE_CHARACTER_CEILING, normalizeSpeech, assetKey,
   ssmlBilledCharacters, wordTokens, unvocalized, buildWordIndex, buildInventory, buildFormulaReviewLedger,
-  validateFormulaReview, validateTtsRights, validateTiming, buildPublicAssetManifest,
-  synthesizeRowWithClient, synthesizeWordWithClient, speechAssets, bake,
+  buildFormulaReviewPack, applyFormulaReviewPack,
+  validateFormulaReview, validateTtsRights, validateSecretGate, releasePreflight, validateTiming, buildPublicAssetManifest,
+  synthesizeRowWithClient, synthesizeWordWithClient, speechAssets, bake, verifyBake,
 };

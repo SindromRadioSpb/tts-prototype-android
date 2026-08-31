@@ -19,11 +19,11 @@
       "display_he": "Z=6",
       "display_he_niqqud": "Z=6",
       "display_ru": "Z=6",
-      "spoken_he_niqqud": "",
-      "status": "PENDING_OWNER_REVIEW",
-      "reviewed_by": null,
-      "reviewed_at": null,
-      "note": ""
+      "spoken_he_niqqud": "זֶד שָׁוֶה שֵׁשׁ",
+      "status": "REVIEWED_PASS",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Owner approved the exact Task 1 pilot reading in the Codex goal thread."
     },
     {
       "task_id": "materials-science-y1-pb2-q001",
@@ -35,11 +35,11 @@
       "display_he": "Z=26",
       "display_he_niqqud": "Z=26",
       "display_ru": "Z=26",
-      "spoken_he_niqqud": "",
-      "status": "PENDING_OWNER_REVIEW",
-      "reviewed_by": null,
-      "reviewed_at": null,
-      "note": ""
+      "spoken_he_niqqud": "זֶד שָׁוֶה עֶשְׂרִים וְשֵׁשׁ",
+      "status": "REVIEWED_PASS",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Owner approved the exact Task 1 pilot reading in the Codex goal thread."
     },
     {
       "task_id": "materials-science-y1-pb2-q001",
@@ -51,11 +51,11 @@
       "display_he": "Z=3",
       "display_he_niqqud": "Z=3",
       "display_ru": "Z=3",
-      "spoken_he_niqqud": "",
-      "status": "PENDING_OWNER_REVIEW",
-      "reviewed_by": null,
-      "reviewed_at": null,
-      "note": ""
+      "spoken_he_niqqud": "זֶד שָׁוֶה שָׁלוֹשׁ",
+      "status": "REVIEWED_PASS",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Owner approved the exact Task 1 pilot reading in the Codex goal thread."
     },
     {
       "task_id": "materials-science-y1-pb2-q001",
@@ -67,11 +67,11 @@
       "display_he": "Z=4",
       "display_he_niqqud": "Z=4",
       "display_ru": "Z=4",
-      "spoken_he_niqqud": "",
-      "status": "PENDING_OWNER_REVIEW",
-      "reviewed_by": null,
-      "reviewed_at": null,
-      "note": ""
+      "spoken_he_niqqud": "זֶד שָׁוֶה אַרְבַּע",
+      "status": "REVIEWED_PASS",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Owner approved the exact Task 1 pilot reading in the Codex goal thread."
     },
     {
       "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",

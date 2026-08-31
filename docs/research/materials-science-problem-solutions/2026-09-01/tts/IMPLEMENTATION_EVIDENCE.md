@@ -1,7 +1,7 @@
 # Materials PB2 public TTS — implementation evidence
 
 Date: 2026-09-01
-Status: `LOCAL_IMPLEMENTATION_COMPLETE · GENERATION_NOT_STARTED · PUBLICATION_NOT_STARTED`
+Status: `TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED · PUBLICATION_NOT_STARTED`
 
 ## Delivered contract
 
@@ -27,16 +27,36 @@ Status: `LOCAL_IMPLEMENTATION_COMPLETE · GENERATION_NOT_STARTED · PUBLICATION_
 | Unique normalized word assets | 5,072 |
 | Conservative provider-billed characters | 270,680 |
 | Release ceiling | 320,000 |
-| Formula rows awaiting separate speech review | 275 |
+| Formula rows approved / awaiting separate speech review | 4 / 271 |
 
-No provider request was made. A real bake was deliberately attempted only as
-far as the preflight and stopped with `FULL_TTS_RIGHTS_BLOCKED`. Task 1 formula
-validation stopped independently at its first unreviewed formula row.
+The owner attested the public TTS rights and approved the four exact Task 1
+formula readings on 2026-09-01. The secret preflight validated a redacted ADC
+service-account source before synthesis. No secret value is written to an
+artifact or log.
+
+## Task 1 real pilot
+
+- Exact post-review billed characters: 2,278.
+- Generated assets: 91 MP3 (`29 row + 62 word`).
+- Timing sidecars: 29/29 complete (`got == n`), monotonic and hash-verified.
+- Word lookup entries: 120 (`62` exact vocalized forms plus only unambiguous
+  unvocalized aliases).
+- Stored pilot payload: 1,454,784 audio bytes plus 9,056 timing bytes.
+- Decode verification: 91/91 MP3 files; duration range 0.672–7.152 seconds;
+  aggregate duration 181.848 seconds.
+- Bake manifest SHA-256:
+  `1441fc7ad5f8709f965cea825af049e0e67c788abcbea9661e3d0c7830748365`.
+- Resumability check: the second bake completed from the existing 91-file cache
+  in 328 ms without regenerating assets.
+
+The whole-corpus preflight still fails closed before output creation at the
+first remaining unreviewed formula row:
+`materials-science-y1-pb2-exercise-p005-allotropy-sol-r023`.
 
 ## Verification
 
-- Focused Node suite: `77/77 PASS`.
-- Full repository suite: `1241/1247 PASS`; the six failures are pre-existing,
+- Focused Node suite: `82/82 PASS`.
+- Full repository suite: `1246/1252 PASS`; the six failures are pre-existing,
   out-of-scope Classic/Import/Room-IA contract drift (`classicModeRedesign` 3,
   `remoteMediaAcquisition` 1, `roomLibrarySurfaceIa` 2). The TTS/version-lock
   failure found on the first run was corrected before this final run.
@@ -63,13 +83,35 @@ Local Docker context: `desktop-linux`.
 
 Removed image layers are recoverable only by pulling or rebuilding them.
 
+### Production host
+
+- Before: root filesystem 38 GB used of 38 GB (`100%`, 0 available); 16 images,
+  9 active; build cache 6.275 GB.
+- Action: `docker image prune -a -f` and `docker builder prune -f` only. No
+  container, volume or application-data deletion.
+- Reclaimed: 935.5 MB image layers plus 5.132 GB build cache.
+- After: root filesystem 79% used with 7.9 GB available; 9 images, all active;
+  build cache 1.143 GB. The same 9 container IDs remained running.
+- Three independent public `/healthz` probes returned `ok=true`, DB and
+  migrations ready, `disk_pct_used=79`, `disk_warn=false`.
+
+Unused production image/cache layers can be restored only by pulling or
+rebuilding them. The pre-existing media-acquisition container health failure is
+outside this TTS slice; the main LinguistPro container remained running.
+
+## Remaining formula review compression
+
+`formula-speech-unique-review-pack.json` groups only byte-equivalent normalized
+display formulas. It reduces 271 pending rows to 222 exact-form decisions while
+retaining every occurrence for contextual review. `FORMULA_REVIEW_GUIDE.md`
+defines the no-overwrite apply command and the full no-synthesis preflight.
+
 ## Open release gates
 
-1. Owner must complete `full-tts-rights-attestation.template.json` with an
-   explicit legal basis, timestamp and public TTS scope.
-2. Owner/reviewer must approve the exact spoken Hebrew for all 275 formula rows.
-   The four Task 1 candidates are listed in
-   `task-001-formula-speech-pilot-review.md`; they are suggestions, not accepted
-   truth.
-3. Only after both gates pass may the bake call Google, upload MP3/timing assets,
-   rebuild exact-edition support and proceed to production verification.
+1. Rights gate: `PASS`, recorded in `full-tts-rights-attestation.owner.json`.
+2. Secret gate: `PASS`, ADC service-account material validated and redacted.
+3. Task 1 formula gate: `PASS`; the four accepted readings are recorded in the
+   canonical formula ledger.
+4. Whole-corpus formula gate: `BLOCKED`, 271 rows remain owner/reviewer-pending.
+5. Only after the remaining formula gate passes may the full bake, upload,
+   exact-edition support rebuild and production verification run.

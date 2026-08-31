@@ -1,20 +1,19 @@
 # Task 1 — formula speech pilot review
 
-Status: `OWNER_REVIEW_REQUIRED`
+Status: `OWNER_APPROVED · 2026-09-01T02:01:58+03:00`
 Source ledger: `formula-speech-review.json`
 
-These four rows block the Task 1 TTS pilot. The display formula is never used as
-speech automatically. The suggestions below are review aids only; they are not
-accepted speech and are not consumed by the bake.
+The owner explicitly approved these four exact readings for the Task 1 TTS
+pilot. The display formula is still never used as speech automatically. These
+approved forms are recorded in `formula-speech-review.json` and may be consumed
+by the bake only for Task 1.
 
 | Row | Display | Suggested spoken Hebrew | Decision |
 |---|---|---|---|
-| `materials-science-y1-pb2-q001-sol-r011` | `Z=6` | `זֶד שָׁוֶה שֵׁשׁ` | pending |
-| `materials-science-y1-pb2-q001-sol-r016` | `Z=26` | `זֶד שָׁוֶה עֶשְׂרִים וְשֵׁשׁ` | pending |
-| `materials-science-y1-pb2-q001-sol-r021` | `Z=3` | `זֶד שָׁוֶה שָׁלוֹשׁ` | pending |
-| `materials-science-y1-pb2-q001-sol-r028` | `Z=4` | `זֶד שָׁוֶה אַרְבַּע` | pending |
+| `materials-science-y1-pb2-q001-sol-r011` | `Z=6` | `זֶד שָׁוֶה שֵׁשׁ` | approved |
+| `materials-science-y1-pb2-q001-sol-r016` | `Z=26` | `זֶד שָׁוֶה עֶשְׂרִים וְשֵׁשׁ` | approved |
+| `materials-science-y1-pb2-q001-sol-r021` | `Z=3` | `זֶד שָׁוֶה שָׁלוֹשׁ` | approved |
+| `materials-science-y1-pb2-q001-sol-r028` | `Z=4` | `זֶד שָׁוֶה אַרְבַּע` | approved |
 
-Owner acceptance must be explicit. After acceptance, copy the exact accepted
-form into `spoken_he_niqqud`, set `status=REVIEWED_PASS`, and fill
-`reviewed_by`/`reviewed_at` for these four ledger entries. Do not mark the other
-271 formula rows by analogy.
+The remaining 271 formula rows retain `PENDING_OWNER_REVIEW`; Task 1 approval
+must not be generalized to them by analogy.

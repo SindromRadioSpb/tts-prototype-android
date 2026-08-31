@@ -1,0 +1,21 @@
+{
+  "schema_version": "materials_pb2_publication_rights.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "status": "OWNER_ATTESTED_FOR_PUBLIC_TTS",
+  "owner_attested": true,
+  "basis": "Owner attestation in the Codex goal thread on 2026-09-01: the owner confirms the rights and grants permission for public generation and distribution of TTS for this corpus.",
+  "asserted_at": "2026-09-01T02:01:58+03:00",
+  "classes": {
+    "source_text_and_diagrams": true,
+    "generated_learning_columns": true,
+    "independent_solutions": true,
+    "bilingual_solution_derivatives": true,
+    "public_read": true,
+    "public_solution_display_and_print": true,
+    "public_stream_current_zero_audio_edition": false,
+    "package_download": true,
+    "agent_derivative_text": true,
+    "full_tts_audio_and_timings": true
+  },
+  "note": "This attestation is additive to the valid zero-audio publication record and authorizes the public TTS derivative. Formula speech remains separately review-gated."
+}

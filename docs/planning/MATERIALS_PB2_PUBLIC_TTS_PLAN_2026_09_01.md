@@ -1,7 +1,7 @@
 # MATERIALS PB2 — PUBLIC TTS RELEASE SLICE
 
 Date: 2026-09-01
-Status: `OWNER_APPROVED · LOCAL_IMPLEMENTATION_COMPLETE · GENERATION_GATED`
+Status: `TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED`
 
 ## 1. Outcome
 
@@ -41,6 +41,7 @@ The frozen inventory before formula adjudication is:
 |---|---:|
 | Task 1 condition + reviewed solution rows | 1,672 |
 | Task 1 unique morphology words | 537 |
+| Task 1 exact total after approved formula speech | 2,278 |
 | All 60 tasks, unique rows | 215,752 |
 | All 60 tasks, unique morphology words | 54,928 |
 | Total exact inventory | 270,680 |
@@ -117,6 +118,9 @@ All of the following are mandatory:
    provider call, no publication.
 3. Runtime: exact-edition row/word resolvers and shared Room/Studio playback.
 4. Pilot: Task 1 after its four formula pronunciations and TTS rights pass.
+   `COMPLETE_LOCAL_VERIFIED` on 2026-09-01: 91 MP3 assets, 29 complete timing
+   sidecars, 91/91 decode pass, manifest
+   `1441fc7ad5f8709f965cea825af049e0e67c788abcbea9661e3d0c7830748365`.
 5. Full release: all 60 tasks after all 275 formula records pass.
 
 ## 8. Allowlist for this slice

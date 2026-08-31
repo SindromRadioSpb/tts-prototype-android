@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "schema_version": "materials_pb2_tts_release_preflight.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "ready": true,
+  "gates": {
+    "rights": "PASS",
+    "formula_speech": "PASS",
+    "cost": "PASS",
+    "secret": "PASS"
+  },
+  "profile_id": "materials-pb2-standard-a-0.8-pitch-2.5-v1",
+  "inventory": {
+    "schema_version": "materials_pb2_tts_inventory.1.0.0",
+    "corpus_slug": "materials-science-year1-problem-book-2",
+    "source_manifest_sha256": "200b0ec590d3f0b022ed3bc1b969f4c594ede88c1044736ac38958d829ff7cc6",
+    "source_bundle_sha256": "04bb4b69741a0ec4cdc188b04ab9e630ae90994f252e0cc233cb6d33f8bc97d5",
+    "profile_id": "materials-pb2-standard-a-0.8-pitch-2.5-v1",
+    "profile": {
+      "language": "he-IL",
+      "voiceName": "he-IL-Standard-A",
+      "speakingRate": 0.8,
+      "pitch": 2.5
+    },
+    "task_count": 1,
+    "row_reference_count": 33,
+    "unique_condition_row_count": 2,
+    "unique_solution_row_count": 27,
+    "unique_row_asset_count": 29,
+    "word_reference_count": 135,
+    "discovered_word_form_count": 62,
+    "unique_word_asset_count": 62,
+    "row_billed_character_count": 1741,
+    "word_billed_character_count": 537,
+    "normalized_word_billed_character_count": 537,
+    "total_billed_character_count": 2278,
+    "release_character_ceiling": 320000,
+    "formula_review_required_count": 4,
+    "formula_review_pass_count": 4,
+    "gates": {
+      "cost": "PASS",
+      "formula_speech": "PASS"
+    }
+  },
+  "planned_row_asset_count": 29,
+  "planned_word_asset_count": 62,
+  "planned_asset_count": 91,
+  "secret": {
+    "status": "PASS",
+    "mode": "adc-service-account",
+    "source": "GOOGLE_APPLICATION_CREDENTIALS"
+  }
+}

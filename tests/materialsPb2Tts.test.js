@@ -2,6 +2,8 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
@@ -85,6 +87,27 @@ test("formula speech ledger is complete and fails closed until selected rows are
   }
   const accepted = tts.validateFormulaReview(reviewed, ["materials-science-y1-pb2-q001"]);
   assert.equal(accepted.size, 4);
+  const stale = JSON.parse(JSON.stringify(reviewed)); stale.source_manifest_sha256 = "0".repeat(64);
+  assert.throws(() => tts.validateFormulaReview(stale, ["materials-science-y1-pb2-q001"]), /FORMULA_LEDGER_SOURCE_DRIFT/);
+});
+
+test("formula review pack deduplicates only exact display forms and expands reviewed decisions safely", () => {
+  const tts = require("../scripts/premium/materials-pb2-tts.js");
+  const row = (row_id, display_he_niqqud) => ({ task_id: "task", display_alias: "1", row_id, row_order: 1,
+    display_he: display_he_niqqud, display_he_niqqud, display_ru: display_he_niqqud,
+    spoken_he_niqqud: "", status: "PENDING_OWNER_REVIEW", reviewed_by: null, reviewed_at: null, note: "" });
+  const ledger = { schema_version: "materials_pb2_formula_speech_review.1.0.0", corpus_slug: "materials-science-year1-problem-book-2",
+    source_manifest_sha256: "a".repeat(64), entries: [row("r1", "σ = F/A"), row("r2", "σ = F/A"), row("r3", "E=σ/ε")] };
+  const pack = tts.buildFormulaReviewPack(ledger);
+  assert.equal(pack.row_count, 3); assert.equal(pack.unique_display_form_count, 2); assert.equal(pack.pending_unique_form_count, 2);
+  const sigma = pack.items.find(item => item.display_he_niqqud === "σ = F/A");
+  sigma.status = "REVIEWED_PASS"; sigma.spoken_he_niqqud = "סִיגְמָה שָׁוָה אֶף חֶלְקֵי אַי";
+  sigma.reviewed_by = "owner"; sigma.reviewed_at = "2026-09-01T00:00:00Z";
+  const applied = tts.applyFormulaReviewPack(ledger, pack);
+  assert.equal(applied.entries.filter(entry => entry.status === "REVIEWED_PASS").length, 2);
+  assert.equal(applied.entries[0].spoken_he_niqqud, applied.entries[1].spoken_he_niqqud);
+  const drift = JSON.parse(JSON.stringify(pack)); drift.items[0].occurrences[0].row_id = "missing";
+  assert.throws(() => tts.applyFormulaReviewPack(JSON.parse(JSON.stringify(ledger)), drift), /FORMULA_REVIEW_OCCURRENCE_DRIFT/);
 });
 
 test("public asset manifest rejects missing bodies, hash drift and non-monotonic timings", () => {
@@ -98,6 +121,7 @@ test("public asset manifest rejects missing bodies, hash drift and non-monotonic
   assert.equal(manifest.assets[0].asset_key, good.asset_key);
   assert.throws(() => tts.buildPublicAssetManifest([{ ...good, asset_key: "0".repeat(64) }]), /ASSET_KEY_DRIFT/);
   assert.throws(() => tts.buildPublicAssetManifest([{ ...good, timing: { ...good.timing, words: [{ o: 1, t: 0.5 }, { o: 0, t: 0.2 }] } }]), /TIMING_NOT_MONOTONIC/);
+  assert.throws(() => tts.buildPublicAssetManifest([{ ...good, timing: { v: 1, n: 2, got: 1, words: [{ o: 0, t: 0 }] } }]), /TIMING_INCOMPLETE/);
 });
 
 test("ADC client synthesis returns row MP3 and timings from one provider request", async () => {
@@ -123,4 +147,83 @@ test("full TTS rights require an explicit owner basis and do not reuse zero-audi
   assert.equal(tts.validateTtsRights(rights), true);
   assert.throws(() => tts.validateTtsRights({ ...rights, basis: "" }), /TTS_RIGHTS_BASIS_MISSING/);
   assert.throws(() => tts.validateTtsRights({ ...rights, classes: { ...rights.classes, full_tts_audio_and_timings: false } }), /FULL_TTS_RIGHTS_BLOCKED/);
+});
+
+test("secret gate validates redacted key material before generation", () => {
+  const tts = require("../scripts/premium/materials-pb2-tts.js");
+  assert.throws(() => tts.validateSecretGate({}), /TTS_SECRET_GATE_BLOCKED/);
+  assert.throws(() => tts.validateSecretGate({ apiKey: "replace-me" }), /TTS_SECRET_GATE_BLOCKED/);
+  assert.throws(() => tts.validateSecretGate({ credentialPath: path.join(os.tmpdir(), "missing-materials-pb2-key.json") }), /TTS_ADC_FILE_MISSING/);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "materials-pb2-secret-"));
+  const credentialPath = path.join(dir, "adc.json");
+  fs.writeFileSync(credentialPath, JSON.stringify({ type: "service_account", project_id: "project", client_email: "tts@example.invalid", private_key: "private" }));
+  try {
+    assert.deepEqual(tts.validateSecretGate({ credentialPath }), {
+      status: "PASS", mode: "adc-service-account", source: "GOOGLE_APPLICATION_CREDENTIALS",
+    });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("bake performs all gates before creating output or calling the provider", async () => {
+  const tts = require("../scripts/premium/materials-pb2-tts.js");
+  const ledger = tts.buildFormulaReviewLedger({ tableRoot: TABLE_ROOT });
+  for (const entry of ledger.entries.filter(row => row.task_id === "materials-science-y1-pb2-q001")) {
+    entry.status = "REVIEWED_PASS"; entry.spoken_he_niqqud = "נֻסְחָה בְּדוּקָה";
+    entry.reviewed_by = "owner"; entry.reviewed_at = "2026-09-01T00:00:00Z";
+  }
+  const rights = { schema_version: "materials_pb2_publication_rights.1.0.0", corpus_slug: "materials-science-year1-problem-book-2",
+    owner_attested: true, basis: "Owner approves public TTS", asserted_at: "2026-09-01T00:00:00Z",
+    classes: { public_read: true, public_solution_display_and_print: true, full_tts_audio_and_timings: true } };
+  const root = path.join(os.tmpdir(), `materials-pb2-no-secret-${process.pid}-${Date.now()}`);
+  let calls = 0;
+  const client = { synthesizeSpeech: async () => { calls += 1; return []; } };
+  await assert.rejects(tts.bake({ tableRoot: TABLE_ROOT, taskIds: ["materials-science-y1-pb2-q001"],
+    formulaLedger: ledger, rights, output: root, client, credentialPath: "" }), /TTS_SECRET_GATE_BLOCKED/);
+  assert.equal(calls, 0);
+  assert.equal(fs.existsSync(root), false);
+});
+
+test("release preflight can prove all gates without synthesis or filesystem output", () => {
+  const tts = require("../scripts/premium/materials-pb2-tts.js");
+  const ledger = tts.buildFormulaReviewLedger({ tableRoot: TABLE_ROOT });
+  for (const entry of ledger.entries.filter(row => row.task_id === "materials-science-y1-pb2-q001")) {
+    entry.status = "REVIEWED_PASS"; entry.spoken_he_niqqud = "נֻסְחָה בְּדוּקָה";
+    entry.reviewed_by = "owner"; entry.reviewed_at = "2026-09-01T00:00:00Z";
+  }
+  const rights = { schema_version: "materials_pb2_publication_rights.1.0.0", corpus_slug: "materials-science-year1-problem-book-2",
+    owner_attested: true, basis: "Owner approves public TTS", asserted_at: "2026-09-01T00:00:00Z",
+    classes: { public_read: true, public_solution_display_and_print: true, full_tts_audio_and_timings: true } };
+  const result = tts.releasePreflight({ tableRoot: TABLE_ROOT, taskIds: ["materials-science-y1-pb2-q001"],
+    formulaLedger: ledger, rights, client: { __materialsPb2SecretGateVerified: true, synthesizeSpeech() {} } });
+  assert.equal(result.ready, true);
+  assert.deepEqual(result.gates, { rights: "PASS", formula_speech: "PASS", cost: "PASS", secret: "PASS" });
+  assert.equal(result.inventory.total_billed_character_count, 2168);
+  assert.equal(result.planned_asset_count, 88);
+  assert.equal(result.inventory.unique_row_asset_count, result.planned_row_asset_count,
+    "cost inventory must use approved formula speech, not the shorter display formula");
+});
+
+test("bake verifier proves every MP3 and complete timing sidecar by hash", () => {
+  const tts = require("../scripts/premium/materials-pb2-tts.js");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "materials-pb2-verify-"));
+  const audioDir = path.join(root, "audio-cache"); fs.mkdirSync(audioDir);
+  const row = { asset_key: tts.assetKey("row", "שָׁלוֹם"), asset_type: "row", text: "שָׁלוֹם",
+    mp3: Buffer.from("ID3-row"), timing: { v: 1, n: 1, got: 1, words: [{ o: 0, t: 0 }] } };
+  const word = { asset_key: tts.assetKey("word", "שָׁלוֹם"), asset_type: "word", text: "שָׁלוֹם", mp3: Buffer.from("ID3-word") };
+  const manifest = tts.buildPublicAssetManifest([row, word], { references: [{ task_id: "task", row_id: "row", asset_key: row.asset_key }] });
+  manifest.word_index = [{ text: tts.normalizeSpeech(word.text), asset_key: word.asset_key, lookup_kind: "exact" }];
+  fs.writeFileSync(path.join(audioDir, row.asset_key + ".mp3"), row.mp3);
+  fs.writeFileSync(path.join(audioDir, row.asset_key + ".timing.json"), JSON.stringify(row.timing, null, 2) + "\n");
+  fs.writeFileSync(path.join(audioDir, word.asset_key + ".mp3"), word.mp3);
+  fs.writeFileSync(path.join(root, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
+  try {
+    const verified = tts.verifyBake({ root });
+    assert.equal(verified.asset_count, 2);
+    assert.equal(verified.row_asset_count, 1);
+    assert.equal(verified.complete_timing_count, 1);
+    fs.writeFileSync(path.join(audioDir, word.asset_key + ".mp3"), Buffer.from("BAD-word"));
+    assert.throws(() => tts.verifyBake({ root }), /AUDIO_SHA256_MISMATCH/);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });

@@ -1,0 +1,4654 @@
+{
+  "schema_version": "materials_pb2_formula_unique_review.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "source_manifest_sha256": "200b0ec590d3f0b022ed3bc1b969f4c594ede88c1044736ac38958d829ff7cc6",
+  "generated_at": "2026-09-01T00:00:00Z",
+  "policy": {
+    "one_decision_per_exact_display_form": true,
+    "contextual_analogy_forbidden": true,
+    "reviewer_must_check_all_listed_occurrences": true
+  },
+  "row_count": 275,
+  "unique_display_form_count": 226,
+  "reviewed_unique_form_count": 4,
+  "pending_unique_form_count": 222,
+  "items": [
+    {
+      "review_id": "9186b45a6494ba4ed6eefc17cc1c6d49c543039c40b78583d190b76a5cd83ad1",
+      "display_he_niqqud": "( A_0=\\dfrac{\\pi d^2}{4} )",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q022",
+          "display_alias": "22",
+          "row_id": "materials-science-y1-pb2-q022-sol-r029",
+          "row_order": 29,
+          "display_ru": "( A_0=\\dfrac{\\pi d^2}{4} )"
+        }
+      ]
+    },
+    {
+      "review_id": "8f1fd56316d46fcf3442401b0e96c1248e9518873a4cf662e7a63d8706086fc1",
+      "display_he_niqqud": "( σ = \\dfrac{F}{A_0} )",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q022",
+          "display_alias": "22",
+          "row_id": "materials-science-y1-pb2-q022-sol-r026",
+          "row_order": 26,
+          "display_ru": "( σ = \\dfrac{F}{A_0} )"
+        }
+      ]
+    },
+    {
+      "review_id": "9b0f5d6ea3efb8698c24e3cc68126cf949cf8ffc0e2f52586b2984d97144d241",
+      "display_he_niqqud": "( σ=\\dfrac{76,000}{95.03}=799.7,N/mm^2 \\approx 800,MPa )",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q022",
+          "display_alias": "22",
+          "row_id": "materials-science-y1-pb2-q022-sol-r032",
+          "row_order": 32,
+          "display_ru": "( σ=\\dfrac{76,000}{95.03}=799.7,N/mm^2 \\approx 800,MPa )"
+        }
+      ]
+    },
+    {
+      "review_id": "ebae5ed0701553b2999b504d4076cc476fb64d4f780ba8dc0df488acb15cf004",
+      "display_he_niqqud": "(V_{\\text{cell}}=a^3)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+          "display_alias": "Упражнение — Аллотропия железа",
+          "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r023",
+          "row_order": 23,
+          "display_ru": "(V_{\\text{cell}}=a^3)."
+        }
+      ]
+    },
+    {
+      "review_id": "5cb1b4f24ee9e687bc7a3b3b21309ab32f0a21063937647d487240f9ce339a97",
+      "display_he_niqqud": "(V_\\alpha=2.88^3\\approx 23.89,\\text{Å}^3)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+          "display_alias": "Упражнение — Аллотропия железа",
+          "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r028",
+          "row_order": 28,
+          "display_ru": "(V_\\alpha=2.88^3\\approx 23.89,Å^3)."
+        }
+      ]
+    },
+    {
+      "review_id": "b56c268f22a1f909d719a119e29449a5740032f5262b1c9b7f69687e2f71cbda",
+      "display_he_niqqud": "(V_\\beta=2.90^3\\approx 24.39,\\text{Å}^3)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+          "display_alias": "Упражнение — Аллотропия железа",
+          "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r027",
+          "row_order": 27,
+          "display_ru": "(V_\\beta=2.90^3\\approx 24.39,Å^3)."
+        }
+      ]
+    },
+    {
+      "review_id": "80e92ce22e9379616cb8fb377e0b2c164b1faa24d0266a8ca4534608464fd331",
+      "display_he_niqqud": "(V_\\gamma=3.64^3\\approx 48.23,\\text{Å}^3)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-exercise-p005-allotropy",
+          "display_alias": "Упражнение — Аллотропия железа",
+          "row_id": "materials-science-y1-pb2-exercise-p005-allotropy-sol-r026",
+          "row_order": 26,
+          "display_ru": "(V_\\gamma=3.64^3\\approx 48.23,Å^3)."
+        }
+      ]
+    },
+    {
+      "review_id": "4405f7fd113007b8f837ca35c5b84f9d545f829bca773ef9e078364dbd2a4870",
+      "display_he_niqqud": "(W \\approx \\tfrac12\\sigma_y\\varepsilon_y + \\tfrac{\\sigma_y+\\sigma_{UTS}}{2}(\\varepsilon_{UTS}-\\varepsilon_y))",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q022",
+          "display_alias": "22",
+          "row_id": "materials-science-y1-pb2-q022-sol-r020",
+          "row_order": 20,
+          "display_ru": "(W \\approx \\tfrac12\\sigma_y\\varepsilon_y + \\tfrac{\\sigma_y+\\sigma_{UTS}}{2}(\\varepsilon_{UTS}-\\varepsilon_y))"
+        }
+      ]
+    },
+    {
+      "review_id": "c76a95b9ffc1b42c59451013dbf733ca4852c604ef41e22d0b5061a129fb3aef",
+      "display_he_niqqud": "[σ] = 0.5·240 MPa = 120 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r004",
+          "row_order": 4,
+          "display_ru": "[σ] = 0.5·240 МПа = 120 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r023",
+          "row_order": 23,
+          "display_ru": "[σ] = 0.5·240 МПа = 120 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "2f9ffb5b433ccf95b616e680af95470b2fcf53f40131dfb6310438eda7e742f2",
+      "display_he_niqqud": "[σ] = 0.5σy",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r022",
+          "row_order": 22,
+          "display_ru": "[σ] = 0.5σy"
+        }
+      ]
+    },
+    {
+      "review_id": "fd2abdc402891355b6ce727b1502086f237c1cbcfc9ebf10f18aca3c35010946",
+      "display_he_niqqud": "[σ] = σ_y / S",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q050",
+          "display_alias": "50",
+          "row_id": "materials-science-y1-pb2-q050-sol-r007",
+          "row_order": 7,
+          "display_ru": "[σ] = σ_y / S"
+        }
+      ]
+    },
+    {
+      "review_id": "98804793fd22da7c6105e5d22534626a8946928033004832bc0d37fa8c893041",
+      "display_he_niqqud": "0.14% → 0.0014",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r014",
+          "row_order": 14,
+          "display_ru": "0.14% → 0.0014"
+        }
+      ]
+    },
+    {
+      "review_id": "c0c0e02f576db1c23b01304f04cf14b143fe6dd3891ffba10823a2989020d472",
+      "display_he_niqqud": "0.2%=0.002",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q017",
+          "display_alias": "17",
+          "row_id": "materials-science-y1-pb2-q017-sol-r021",
+          "row_order": 21,
+          "display_ru": "0.2%=0.002"
+        }
+      ]
+    },
+    {
+      "review_id": "0f410ea3fbbece8a216093711fa66e8bae6b800effbb711933ed5f2f13e0411c",
+      "display_he_niqqud": "‎1 MPa = 1 N/mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q025",
+          "display_alias": "25",
+          "row_id": "materials-science-y1-pb2-q025-sol-r031",
+          "row_order": 31,
+          "display_ru": "‎1 MPa = 1 N/mm²"
+        }
+      ]
+    },
+    {
+      "review_id": "965c770d105c2a58a9b4049335846af0138e03e779bd9f0be452b5a77847279a",
+      "display_he_niqqud": "1 N/mm² = 1 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q008",
+          "display_alias": "8",
+          "row_id": "materials-science-y1-pb2-q008-sol-r002",
+          "row_order": 2,
+          "display_ru": "1 Н/мм² = 1 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q008",
+          "display_alias": "8",
+          "row_id": "materials-science-y1-pb2-q008-sol-r012",
+          "row_order": 12,
+          "display_ru": "1 Н/мм² = 1 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "82f0098732eae725484d0e7f8ddefd6da1b3f4860163d86e74ce1d427f61d8ba",
+      "display_he_niqqud": "191/97.4 ≈ 1.96",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r021",
+          "row_order": 21,
+          "display_ru": "191/97.4 ≈ 1.96"
+        }
+      ]
+    },
+    {
+      "review_id": "858088726e23e7bcef44109d24efea1c1b6712563fa7d144eb30a6d3b4a080bc",
+      "display_he_niqqud": "4Al + 3O₂ → 2Al₂O₃",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q048",
+          "display_alias": "48",
+          "row_id": "materials-science-y1-pb2-q048-sol-r033",
+          "row_order": 33,
+          "display_ru": "4Al + 3O₂ → 2Al₂O₃"
+        }
+      ]
+    },
+    {
+      "review_id": "3486729d7e816e5978ea725a2b8018ac89471d40d7c7089cb5b4ace3e78f81db",
+      "display_he_niqqud": "55% ≥ 45%",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q039",
+          "display_alias": "39",
+          "row_id": "materials-science-y1-pb2-q039-sol-r014",
+          "row_order": 14,
+          "display_ru": "55% ≥ 45%"
+        }
+      ]
+    },
+    {
+      "review_id": "ad9d67d21877d81c7cafd451997e7a9793b279d00e5ba8d8b9447778008bd410",
+      "display_he_niqqud": "550 MPa > 490 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r004",
+          "row_order": 4,
+          "display_ru": "550 МПа > 490 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r023",
+          "row_order": 23,
+          "display_ru": "550 МПа > 490 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "272effc6fafb0547b760bb7046b49dabcf319cf30679470d77ed6003fbdd7978",
+      "display_he_niqqud": "7.5×10^-4 m^2 = 7.5×10^-4·10^6 = 750 mm^2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r029",
+          "row_order": 29,
+          "display_ru": "7.5×10^-4 м² = 7.5×10^-4·10^6 = 750 мм²"
+        }
+      ]
+    },
+    {
+      "review_id": "6edccc03eac7e0758a1f55134d46fa063c36c82bec308ca0b398a29298f0e769",
+      "display_he_niqqud": "727°C + (30–50)°C ⇒ 757–777°C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q029",
+          "display_alias": "29",
+          "row_id": "materials-science-y1-pb2-q029-sol-r017",
+          "row_order": 17,
+          "display_ru": "727°C + (30–50)°C ⇒ 757–777°C"
+        }
+      ]
+    },
+    {
+      "review_id": "c3b84d3a51261ff3435f81a8a1b6649536e5e902100e6c0b37ccb2f447f66dd1",
+      "display_he_niqqud": "אַ) L → γ + Fe₃C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "row_id": "materials-science-y1-pb2-q030-sol-r043",
+          "row_order": 43,
+          "display_ru": "А) L → γ + Fe₃C"
+        }
+      ]
+    },
+    {
+      "review_id": "b0e1e30ed3930a565ec85a3d702c11a98561158975c7496295ecf659b9ed50a2",
+      "display_he_niqqud": "אַ) γ → α + Fe₃C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "row_id": "materials-science-y1-pb2-q030-sol-r046",
+          "row_order": 46,
+          "display_ru": "А) γ → α + Fe₃C"
+        }
+      ]
+    },
+    {
+      "review_id": "82dbbfa88a978da310270427a1627bf116338d83a3696da10e338daf9fb7ea8c",
+      "display_he_niqqud": "ב) E ≈ 189 GPa.",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r014",
+          "row_order": 14,
+          "display_ru": "Б) E ≈ 189 ГПа."
+        }
+      ]
+    },
+    {
+      "review_id": "47f1388416db44bfc4698bfe5cba2677b6c6422e6d25e845951d974bf001b90f",
+      "display_he_niqqud": "ב) L → γ + Fe₃C",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "row_id": "materials-science-y1-pb2-q030-sol-r003",
+          "row_order": 3,
+          "display_ru": "Б) Ж → γ + Fe₃C (L → γ + Fe₃C)"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "row_id": "materials-science-y1-pb2-q030-sol-r016",
+          "row_order": 16,
+          "display_ru": "Б) Ж → γ + Fe₃C (L → γ + Fe₃C)"
+        }
+      ]
+    },
+    {
+      "review_id": "c4d692dc8856fcb58ceea18aeec779257a314dd11a21d0a23050675294bd4c80",
+      "display_he_niqqud": "ב) γ → α + Fe₃C",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "row_id": "materials-science-y1-pb2-q030-sol-r005",
+          "row_order": 5,
+          "display_ru": "Б) γ → α + Fe₃C"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q030",
+          "display_alias": "30",
+          "row_id": "materials-science-y1-pb2-q030-sol-r020",
+          "row_order": 20,
+          "display_ru": "Б) γ → α + Fe₃C"
+        }
+      ]
+    },
+    {
+      "review_id": "f9c497d8fb652b5eae5672d5e14d13de5a66c4e7a5000bd62bb6f59a33d482c5",
+      "display_he_niqqud": "‎A = (π·d^2) / 4",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q025",
+          "display_alias": "25",
+          "row_id": "materials-science-y1-pb2-q025-sol-r023",
+          "row_order": 23,
+          "display_ru": "‎A = (π·d^2) / 4"
+        }
+      ]
+    },
+    {
+      "review_id": "d0a2ca0959ea3f7f8db4eb8be343041fce9abd8ab5147ddea1d198f5ac3d0f06",
+      "display_he_niqqud": "A = (π·d²)/4",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r008",
+          "row_order": 8,
+          "display_ru": "A = (π·d²)/4"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r014",
+          "row_order": 14,
+          "display_ru": "A = (π·d²)/4"
+        }
+      ]
+    },
+    {
+      "review_id": "6f825ff62b55d299ce201c7168af8fb841b14b83a887c04f710e1fcd25d55332",
+      "display_he_niqqud": "A = 20·20 = 400mm2",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r002",
+          "row_order": 2,
+          "display_ru": "A = 20·20 = 400 мм2"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r034",
+          "row_order": 34,
+          "display_ru": "A = 20·20 = 400 мм2"
+        }
+      ]
+    },
+    {
+      "review_id": "a7e25de0b153de9060d81d3310ac5689f713926a13edb7a914a7243ec717aa89",
+      "display_he_niqqud": "A = 30000 / (525×10^6) = 5.714×10^-5 m² = 57.14 mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q012",
+          "display_alias": "12",
+          "row_id": "materials-science-y1-pb2-q012-sol-r014",
+          "row_order": 14,
+          "display_ru": "A = 30000 / (525×10^6) = 5,714×10⁻⁵ м² = 57,14 мм²"
+        }
+      ]
+    },
+    {
+      "review_id": "4a0bc46b1540eb72c0551e9f64434684851adf7670629fc890cf5dee88989098",
+      "display_he_niqqud": "A = π d^2 / 4",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r028",
+          "row_order": 28,
+          "display_ru": "A = π d^2 / 4"
+        }
+      ]
+    },
+    {
+      "review_id": "eb2dc29bafabb46c2bed141dfc332d45bb1a82aea352016ff02dfafe2440b75c",
+      "display_he_niqqud": "A = π·10²/4 = π·100/4 = 25π ≈ 78.54 mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r010",
+          "row_order": 10,
+          "display_ru": "A = π·10²/4 = π·100/4 = 25π ≈ 78.54 mm²"
+        }
+      ]
+    },
+    {
+      "review_id": "2814ffc0092f382a34c04468339ce9c1741da87ca48e32105a6f084739279162",
+      "display_he_niqqud": "A = π·14²/4 = π·196/4 = 49π ≈ 153.94 mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r015",
+          "row_order": 15,
+          "display_ru": "A = π·14²/4 = π·196/4 = 49π ≈ 153.94 mm²"
+        }
+      ]
+    },
+    {
+      "review_id": "2b858377d5bfd1fc7afdf9c8f4ec337436c2beefb93d556296b3a8ef9cdb3371",
+      "display_he_niqqud": "A = π·d^2/4",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q026",
+          "display_alias": "26",
+          "row_id": "materials-science-y1-pb2-q026-sol-r016",
+          "row_order": 16,
+          "display_ru": "A = π·d^2/4"
+        }
+      ]
+    },
+    {
+      "review_id": "2a929a20254ce821ae12588150c245b88f7f8bfdfedd2032a3f3ce0261cf4421",
+      "display_he_niqqud": "A = πd^2/4",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r031",
+          "row_order": 31,
+          "display_ru": "A = πd^2/4"
+        }
+      ]
+    },
+    {
+      "review_id": "a20749f5e682cd0ca4cc8478af90f92850460fd4a6b88f1c85aae855e778deb0",
+      "display_he_niqqud": "A0 = 200 mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r009",
+          "row_order": 9,
+          "display_ru": "A0 = 200 мм²"
+        }
+      ]
+    },
+    {
+      "review_id": "fb9051c95eed913451b78b94cb49e358dabdb58d6d53d1cbcc182263dee8fe46",
+      "display_he_niqqud": "A₀ = 8.1mm×12.4mm = 100.44mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r008",
+          "row_order": 8,
+          "display_ru": "A₀ = 8.1mm×12.4mm = 100.44mm²"
+        }
+      ]
+    },
+    {
+      "review_id": "5c3ae6e771dd24264625cae9cac9542e06c0c2421d0ebaf5c642d2bd58eb6551",
+      "display_he_niqqud": "A0 = 96·(π·1.5^2/4) = 169.646 mm^2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r029",
+          "row_order": 29,
+          "display_ru": "A0 = 96·(π·1.5^2/4) = 169.646 мм^2"
+        }
+      ]
+    },
+    {
+      "review_id": "5cfb7a8801aea7f631cd6cb7544ec7c5fa6f280088549136b63ecbaf0d7a968f",
+      "display_he_niqqud": "A0 = 96·(π·1^2/4) = 75.398 mm^2",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r003",
+          "row_order": 3,
+          "display_ru": "A0 = 96·(π·1^2/4) = 75.398 мм^2"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r024",
+          "row_order": 24,
+          "display_ru": "A0 = 96·(π·1^2/4) = 75.398 мм^2"
+        }
+      ]
+    },
+    {
+      "review_id": "20c70fa4e6dc6341b9565e059b99666e183e7eaf4e63c762034ca2460e401532",
+      "display_he_niqqud": "A0 = 96·(π·2^2/4) = 301.593 mm^2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r034",
+          "row_order": 34,
+          "display_ru": "A0 = 96·(π·2^2/4) = 301.593 мм^2"
+        }
+      ]
+    },
+    {
+      "review_id": "9931eb06bfe2801c18150d9527716e099aa67a759bbac1cd9a9df27426de0d3e",
+      "display_he_niqqud": "A0 = 96·(π·d^2/4)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r014",
+          "row_order": 14,
+          "display_ru": "A0 = 96·(π·d^2/4)"
+        }
+      ]
+    },
+    {
+      "review_id": "968803092cd615c4b3727bec14ab06178573d0d74d8e5af6058d2fcd8c7df1f8",
+      "display_he_niqqud": "A0 = π·12²/4 = π·36 = 113.1 mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r010",
+          "row_order": 10,
+          "display_ru": "A0 = π·12²/4 = π·36 = 113.1 mm²"
+        }
+      ]
+    },
+    {
+      "review_id": "c02dd4bf3134b840f87b789a760afb4a4d145e5a0f923094c2b284f3d38ffded",
+      "display_he_niqqud": "A0 = π·d0²/4",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r009",
+          "row_order": 9,
+          "display_ru": "A0 = π·d0²/4"
+        }
+      ]
+    },
+    {
+      "review_id": "681d618c03e54120513ffb97a14ea4cd3a98f3120c64426b98bffe213ab0cde8",
+      "display_he_niqqud": "A0 = π·d²/4 = π·(11²)/4 = 95.03 mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q008",
+          "display_alias": "8",
+          "row_id": "materials-science-y1-pb2-q008-sol-r007",
+          "row_order": 7,
+          "display_ru": "A0 = π·d²/4 = π·(11²)/4 = 95.03 мм²"
+        }
+      ]
+    },
+    {
+      "review_id": "b9f41f7e955cb9f7200be7c88f6f9258250221ffa79ad0b3db3b565721231b78",
+      "display_he_niqqud": "A1 = 727°C",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q029",
+          "display_alias": "29",
+          "row_id": "materials-science-y1-pb2-q029-sol-r003",
+          "row_order": 3,
+          "display_ru": "A1 = 727°C"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q029",
+          "display_alias": "29",
+          "row_id": "materials-science-y1-pb2-q029-sol-r014",
+          "row_order": 14,
+          "display_ru": "A1 = 727°C"
+        }
+      ]
+    },
+    {
+      "review_id": "a5de31b4134111031009a35f6dc4f80b9d3f9fa4f8475d64e74da3b7412f5b43",
+      "display_he_niqqud": "Amin = 90000 / (120×10^6) = 7.5×10^-4 m^2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r027",
+          "row_order": 27,
+          "display_ru": "Amin = 90000 / (120×10^6) = 7.5×10^-4 м²"
+        }
+      ]
+    },
+    {
+      "review_id": "664caf418e0401c17b4cdc9c2c55d7bb5708dca513973c82e5b294f9f3f2ace3",
+      "display_he_niqqud": "Amin = F/[σ]",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r026",
+          "row_order": 26,
+          "display_ru": "Amin = F/[σ]"
+        }
+      ]
+    },
+    {
+      "review_id": "6d2b4b09c50e9b3c06b625fd62f91e08032037bf192c648fc8e53b5a28433c3f",
+      "display_he_niqqud": "d = √(4·57.14/π) ≈ 8.53 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q012",
+          "display_alias": "12",
+          "row_id": "materials-science-y1-pb2-q012-sol-r016",
+          "row_order": 16,
+          "display_ru": "d = √(4·57,14/π) ≈ 8,53 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "4f9b1a2f6e49ce7a0ddbe969d4f8aa16b6f0fc4a3b6a08d2d13453c245c7a07a",
+      "display_he_niqqud": "D_max ≈ 2·(11–12) mm ≈ 22–24 mm",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q037",
+          "display_alias": "37",
+          "row_id": "materials-science-y1-pb2-q037-sol-r002",
+          "row_order": 2,
+          "display_ru": "D_max ≈ 2·(11–12) мм ≈ 22–24 мм"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q037",
+          "display_alias": "37",
+          "row_id": "materials-science-y1-pb2-q037-sol-r011",
+          "row_order": 11,
+          "display_ru": "D_max ≈ 2·(11–12) мм ≈ 22–24 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "636693bf2b242c2637174e8dd0037293b4295a662f448cb1cc121218a0d40c99",
+      "display_he_niqqud": "dF/dΔL ≈ 78.12kN/mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r020",
+          "row_order": 20,
+          "display_ru": "dF/dΔL ≈ 78.12 кН/мм"
+        }
+      ]
+    },
+    {
+      "review_id": "cb44f46e21e172bc9305d147a8b9f58ff09ec81893536ab86f28424f1e92e83b",
+      "display_he_niqqud": "dmin = √(4·750/π) = 30.9 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r033",
+          "row_order": 33,
+          "display_ru": "dmin = √(4·750/π) = 30.9 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "2a8de45a637a4bfba32a0269d9bd966a1725e3ead043737868b2ca832a898528",
+      "display_he_niqqud": "‎dmin = √(4·87500 / (π·315)) ≈ 18.8 mm",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q025",
+          "display_alias": "25",
+          "row_id": "materials-science-y1-pb2-q025-sol-r004",
+          "row_order": 4,
+          "display_ru": "‎dmin = √(4·87500 / (π·315)) ≈ 18.8 mm"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q025",
+          "display_alias": "25",
+          "row_id": "materials-science-y1-pb2-q025-sol-r033",
+          "row_order": 33,
+          "display_ru": "‎dmin = √(4·87500 / (π·315)) ≈ 18.8 mm"
+        }
+      ]
+    },
+    {
+      "review_id": "e48c3b01d77e573d3510f974b18bc0ac604272fcb2bac5b19ea9e01b7fd4e24b",
+      "display_he_niqqud": "dmin = √(4Amin/π)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r032",
+          "row_order": 32,
+          "display_ru": "dmin = √(4Amin/π)"
+        }
+      ]
+    },
+    {
+      "review_id": "cdd1318987c11ed9689a48f3dd8d7275f69b87dbe85f567b940a4a1e2a7ccedc",
+      "display_he_niqqud": "E \\approx 420/0.002 = 210{,}000,\\text{MPa}",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q017",
+          "display_alias": "17",
+          "row_id": "materials-science-y1-pb2-q017-sol-r023",
+          "row_order": 23,
+          "display_ru": "E \\approx 420/0.002 = 210{,}000 \\text{ МПа}"
+        }
+      ]
+    },
+    {
+      "review_id": "d9e6e3c4e2ae835e4de950dc403e3eae078444532ee801651b66263778f9cdd3",
+      "display_he_niqqud": "E = (200/200)·(78.12·1000) ≈ 78100MPa = 78.1GPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r003",
+          "row_order": 3,
+          "display_ru": "E = (200/200)·(78.12·1000) ≈ 78100 МПа = 78.1 ГПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r023",
+          "row_order": 23,
+          "display_ru": "E = (200/200)·(78.12·1000) ≈ 78100 МПа = 78.1 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "a210096e044ba2d1a267921a6496bfe87aec8b3ce6b579fb7ccb09d2b968940f",
+      "display_he_niqqud": "E = (L0/A0)·(dF/dΔL)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r022",
+          "row_order": 22,
+          "display_ru": "E = (L0/A0)·(dF/dΔL)"
+        }
+      ]
+    },
+    {
+      "review_id": "c5af15036e45e043e1436f3e0f44006e742e7253fa68f4988df7690faddb580c",
+      "display_he_niqqud": "E = 1050/0.005 = 210000 MPa = 210 GPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q012",
+          "display_alias": "12",
+          "row_id": "materials-science-y1-pb2-q012-sol-r002",
+          "row_order": 2,
+          "display_ru": "E = 1050/0,005 = 210000 МПа = 210 ГПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q012",
+          "display_alias": "12",
+          "row_id": "materials-science-y1-pb2-q012-sol-r009",
+          "row_order": 9,
+          "display_ru": "E = 1050/0,005 = 210000 МПа = 210 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "a0c26f4911ebb2308fb0725ccf9af88aa3fae92b4b87d1a7aaaa4a68adcf803c",
+      "display_he_niqqud": "E = 200 GPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r029",
+          "row_order": 29,
+          "display_ru": "E = 200 GPa"
+        }
+      ]
+    },
+    {
+      "review_id": "00a5a4c52d668086037695119132d70b142d242cd7588249d3c3115133cee9e9",
+      "display_he_niqqud": "E = 200000 MPa = 200 GPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r011",
+          "row_order": 11,
+          "display_ru": "E = 200000 МПа = 200 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "f41fa1841ad74c4ba99c9e6d1809622b01c5b62f3f155f8d842b5674cea62f92",
+      "display_he_niqqud": "E = 480 MPa / 0.0062 ≈ 77419 MPa ≈ 77.4 GPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q041",
+          "display_alias": "41",
+          "row_id": "materials-science-y1-pb2-q041-sol-r005",
+          "row_order": 5,
+          "display_ru": "E = 480 МПа / 0.0062 ≈ 77419 МПа ≈ 77.4 ГПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q041",
+          "display_alias": "41",
+          "row_id": "materials-science-y1-pb2-q041-sol-r022",
+          "row_order": 22,
+          "display_ru": "E = 480 МПа / 0.0062 ≈ 77419 МПа ≈ 77.4 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "93f010894d98601e52f446edffb1ec2b0c4a21ff9b4fb088d769a3060065fcb0",
+      "display_he_niqqud": "E = 480 MPa / 0.062 ≈ 7742 MPa ≈ 7.74 GPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q041",
+          "display_alias": "41",
+          "row_id": "materials-science-y1-pb2-q041-sol-r004",
+          "row_order": 4,
+          "display_ru": "E = 480 МПа / 0.062 ≈ 7742 МПа ≈ 7.74 ГПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q041",
+          "display_alias": "41",
+          "row_id": "materials-science-y1-pb2-q041-sol-r019",
+          "row_order": 19,
+          "display_ru": "E = 480 МПа / 0.062 ≈ 7742 МПа ≈ 7.74 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "a4c6e59a0b412768c8b5ef84b32dcb974a06991976e1c1214b4d7089e5469333",
+      "display_he_niqqud": "E = 490 MPa / 0.0026 = 188500 MPa ≈ 189 GPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r020",
+          "row_order": 20,
+          "display_ru": "E = 490 МПа / 0.0026 = 188500 МПа ≈ 189 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "e1d0180139731d25f92f647dab5ffa57665244dca88dc12c4490d4170a622ee7",
+      "display_he_niqqud": "E = 541 MPa / 0.0025 = 216,400 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q036",
+          "display_alias": "36",
+          "row_id": "materials-science-y1-pb2-q036-sol-r029",
+          "row_order": 29,
+          "display_ru": "E = 541 МПа / 0,0025 = 216 400 МПа."
+        }
+      ]
+    },
+    {
+      "review_id": "83f791607501f7c7466347a3499f3e31f370472c13689301349175c7f3ec53c7",
+      "display_he_niqqud": "E = 730/(3.65×10^-3)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r010",
+          "row_order": 10,
+          "display_ru": "E = 730/(3.65×10^-3)"
+        }
+      ]
+    },
+    {
+      "review_id": "33451c823b462eb3b314af685578178deaad80f5978d6692c6078d7fd0086c2b",
+      "display_he_niqqud": "E = dσ/dε",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r011",
+          "row_order": 11,
+          "display_ru": "E = dσ/dε"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q058",
+          "display_alias": "58",
+          "row_id": "materials-science-y1-pb2-q058-sol-r014",
+          "row_order": 14,
+          "display_ru": "E = dσ/dε"
+        }
+      ]
+    },
+    {
+      "review_id": "1da08e1107645d6b614c31ef4a10cab2c18ab2a543911698dc8c02324613a7ca",
+      "display_he_niqqud": "E = G(h0 − h)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q020",
+          "display_alias": "20",
+          "row_id": "materials-science-y1-pb2-q020-sol-r011",
+          "row_order": 11,
+          "display_ru": "E = G(h0 − h)"
+        }
+      ]
+    },
+    {
+      "review_id": "5707303f487018e9d31d200b845dc010f9d729fdaf3821f79c8c4cb9ad1c5ec8",
+      "display_he_niqqud": "E = G(H1 − H2)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q019",
+          "display_alias": "19",
+          "row_id": "materials-science-y1-pb2-q019-sol-r011",
+          "row_order": 11,
+          "display_ru": "E = G(H1 − H2)"
+        }
+      ]
+    },
+    {
+      "review_id": "8d41334f6792d1b50d0e8d46a565c99799e9a6e0b02edbc27fab6dd680f08b38",
+      "display_he_niqqud": "E = σ_y/ε_y",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r009",
+          "row_order": 9,
+          "display_ru": "E = σ_y/ε_y"
+        }
+      ]
+    },
+    {
+      "review_id": "519bcc0b3bada103bf7fceff8e3890ddec745b31a0d5e222f2aa363d33ad1e04",
+      "display_he_niqqud": "E = σ/ε",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r007",
+          "row_order": 7,
+          "display_ru": "E = σ/ε"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q041",
+          "display_alias": "41",
+          "row_id": "materials-science-y1-pb2-q041-sol-r018",
+          "row_order": 18,
+          "display_ru": "E = σ/ε"
+        }
+      ]
+    },
+    {
+      "review_id": "bb2bf1b4b8a0cbe0147c13584a2f7cd96ed70f76a8f2fc09fb6312ad1da00bab",
+      "display_he_niqqud": "E ≈ (440−200) MPa / (0.00212−0.00096) ≈ 2.07×10^5 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q008",
+          "display_alias": "8",
+          "row_id": "materials-science-y1-pb2-q008-sol-r030",
+          "row_order": 30,
+          "display_ru": "E ≈ (440−200) МПа / (0.00212−0.00096) ≈ 2.07×10^5 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "cf24dba64101d4730a4dc85a8817d6f947b5d0ab81ce0821647784e68d73c1cf",
+      "display_he_niqqud": "E ≈ 1.69×10^11 Pa ≈ 169 GPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r003",
+          "row_order": 3,
+          "display_ru": "E ≈ 1.69×10^11 Па ≈ 169 ГПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r018",
+          "row_order": 18,
+          "display_ru": "E ≈ 1.69×10^11 Па ≈ 169 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "dfdedb9839d4af656f7f4ecb7a5dab606181f0dfea7f2c8fb8314e43922f573f",
+      "display_he_niqqud": "E ≈ 240 MPa / 0.0014 ≈ 171 GPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r016",
+          "row_order": 16,
+          "display_ru": "E ≈ 240 МПа / 0.0014 ≈ 171 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "761046e6f01aec7aae3429f6c8d4057c82180fb65672c86f8c1a4fe7597a79a2",
+      "display_he_niqqud": "E ≈ σ_y/ε_y",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r026",
+          "row_order": 26,
+          "display_ru": "E ≈ σ_y/ε_y"
+        }
+      ]
+    },
+    {
+      "review_id": "69c1d6ca754228a20b0b73ec6c051dc78fcac847ec55b45b04b6d0e011fbbc5c",
+      "display_he_niqqud": "E ≈ σy / εy",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r019",
+          "row_order": 19,
+          "display_ru": "E ≈ σy / εy"
+        }
+      ]
+    },
+    {
+      "review_id": "bbe17d061b9dd1c8ebef23824721c808b80880aa54a15de7c799f30818d7fe63",
+      "display_he_niqqud": "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q020",
+          "display_alias": "20",
+          "row_id": "materials-science-y1-pb2-q020-sol-r015",
+          "row_order": 15,
+          "display_ru": "E_B = G(h0 − h_B) > E_A = G(h0 − h_A)"
+        }
+      ]
+    },
+    {
+      "review_id": "4cd52a7d31c8b6156c6b5496b0da85120a4a4f5e2964e11eda317b539748f474",
+      "display_he_niqqud": "E_fiber > E_comp > E_matrix",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q058",
+          "display_alias": "58",
+          "row_id": "materials-science-y1-pb2-q058-sol-r022",
+          "row_order": 22,
+          "display_ru": "E_волокна > E_композита > E_матрицы"
+        }
+      ]
+    },
+    {
+      "review_id": "b6fb2a360b25317f84880451107fc8537e19d23bc4069c03a23f7acd6df927a1",
+      "display_he_niqqud": "E_mid = (6 + 17)/2 = 11.5Joul",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q019",
+          "display_alias": "19",
+          "row_id": "materials-science-y1-pb2-q019-sol-r022",
+          "row_order": 22,
+          "display_ru": "E_mid = (6 + 17)/2 = 11.5 Дж."
+        }
+      ]
+    },
+    {
+      "review_id": "531e91e6d0e55a78cdebf35e2acd596b7170b7e2b12eaa6675d2e94717baf502",
+      "display_he_niqqud": "E_mid = (E_low + E_high)/2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q019",
+          "display_alias": "19",
+          "row_id": "materials-science-y1-pb2-q019-sol-r021",
+          "row_order": 21,
+          "display_ru": "E_mid = (E_low + E_high)/2"
+        }
+      ]
+    },
+    {
+      "review_id": "ca6e53e0a0ded5f174616bd85150c87074231abe3d6964f923729c0ce4a36854",
+      "display_he_niqqud": "E=\\Delta\\sigma/\\Delta\\varepsilon",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q017",
+          "display_alias": "17",
+          "row_id": "materials-science-y1-pb2-q017-sol-r019",
+          "row_order": 19,
+          "display_ru": "E=\\Delta\\sigma/\\Delta\\varepsilon"
+        }
+      ]
+    },
+    {
+      "review_id": "cd57d36c64eaaa15432108bd1a6c6a99751a0eedf17fb5656c081efa6d7175d8",
+      "display_he_niqqud": "E=σ/ε",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q003",
+          "display_alias": "3",
+          "row_id": "materials-science-y1-pb2-q003-sol-r011",
+          "row_order": 11,
+          "display_ru": "E=σ/ε"
+        }
+      ]
+    },
+    {
+      "review_id": "953ce391736ddc06e077a68b9d19af9443ba4786f72efd78ee8a5f6de873ae95",
+      "display_he_niqqud": "E≈400/0.002 = 200,000 MPa = 200 GPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q051",
+          "display_alias": "51",
+          "row_id": "materials-science-y1-pb2-q051-sol-r018",
+          "row_order": 18,
+          "display_ru": "E≈400/0.002 = 200,000 МПа = 200 ГПа"
+        }
+      ]
+    },
+    {
+      "review_id": "2595db1cfa99fed8d8cee2fc7d7be42d8c399d5552eb1b0377d8dcf5dd8f93fa",
+      "display_he_niqqud": "Ex=Ey=Ez וְגַם Gxy=Gyz=Gzx",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q057",
+          "display_alias": "57",
+          "row_id": "materials-science-y1-pb2-q057-sol-r006",
+          "row_order": 6,
+          "display_ru": "Ex=Ey=Ez и Gxy=Gyz=Gzx"
+        }
+      ]
+    },
+    {
+      "review_id": "6166c1e1c824c4718faec3b6c5257716509a571e66340321b21e231f680e6128",
+      "display_he_niqqud": "Ex≈Ey≠Ez",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q057",
+          "display_alias": "57",
+          "row_id": "materials-science-y1-pb2-q057-sol-r008",
+          "row_order": 8,
+          "display_ru": "Ex≈Ey≠Ez"
+        }
+      ]
+    },
+    {
+      "review_id": "7fdc55b453c4d3d0802d5b36581ad4e220b1d722fd82a82121b91f1e69e312e8",
+      "display_he_niqqud": "F_a = σ_a·A",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q026",
+          "display_alias": "26",
+          "row_id": "materials-science-y1-pb2-q026-sol-r021",
+          "row_order": 21,
+          "display_ru": "F_a = σ_a·A"
+        }
+      ]
+    },
+    {
+      "review_id": "a8d69b1801872cffa825a0535892817d7c65f7bad2a80d8b0dadf934ee40a3c0",
+      "display_he_niqqud": "F_a ≈ 100·706.9 ≈ 70,700 N ≈ 70.7 kN",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q026",
+          "display_alias": "26",
+          "row_id": "materials-science-y1-pb2-q026-sol-r023",
+          "row_order": 23,
+          "display_ru": "F_a ≈ 100·706.9 ≈ 70,700 Н ≈ 70.7 кН."
+        }
+      ]
+    },
+    {
+      "review_id": "3a5b7473e766f3e11d1c7881a6e97c77f7dcf5be018f0d6534e06e6a032d3a20",
+      "display_he_niqqud": "F_max = 280·325 = 91000 N",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r014",
+          "row_order": 14,
+          "display_ru": "F_max = 280·325 = 91000 Н"
+        }
+      ]
+    },
+    {
+      "review_id": "fb4ac9cc7656dbb6a698cf39b11e3f0303ad948abe946d30290692b6aa7f3f27",
+      "display_he_niqqud": "F_max = σ_y·A",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r010",
+          "row_order": 10,
+          "display_ru": "F_max = σ_y·A"
+        }
+      ]
+    },
+    {
+      "review_id": "98bc2a6dcdbc5c14fb5e521a2ba936b2dfc38a4948e2e4ea6ef24f3ea0a9107a",
+      "display_he_niqqud": "F_peak-to-peak ≈ 2·F_a ≈ 141 kN",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q026",
+          "display_alias": "26",
+          "row_id": "materials-science-y1-pb2-q026-sol-r025",
+          "row_order": 25,
+          "display_ru": "F_peak-to-peak ≈ 2·F_a ≈ 141 кН."
+        }
+      ]
+    },
+    {
+      "review_id": "fe81e4badb33aac6ec9f5d90c50f271cbc633c17fe1e9a88a5f99287286edbb4",
+      "display_he_niqqud": "F/A0 = E·(ΔL/L0)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r064",
+          "row_order": 64,
+          "display_ru": "F/A0 = E·(ΔL/L0)"
+        }
+      ]
+    },
+    {
+      "review_id": "debee70f9d31630000238ec484360d209ea768eed4001a92b5bcc3daaa4b7082",
+      "display_he_niqqud": "‎Fₐ / A ≤ σₑ",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q025",
+          "display_alias": "25",
+          "row_id": "materials-science-y1-pb2-q025-sol-r027",
+          "row_order": 27,
+          "display_ru": "‎Fₐ / A ≤ σₑ"
+        }
+      ]
+    },
+    {
+      "review_id": "6bce604fb7ada213926c84d4fbd27d55667c2eda8582e275f438854ab3ef6e66",
+      "display_he_niqqud": "Fbrake = μ·N.",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q044",
+          "display_alias": "44",
+          "row_id": "materials-science-y1-pb2-q044-sol-r017",
+          "row_order": 17,
+          "display_ru": "Fbrake = μ·N."
+        }
+      ]
+    },
+    {
+      "review_id": "6dd46e43168c3bab64f91a422f9673dadc413bfba7f3d8effb13cbc1541f2b4e",
+      "display_he_niqqud": "Fmax ≈ 141.25kN",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r010",
+          "row_order": 10,
+          "display_ru": "Fmax ≈ 141.25 кН"
+        }
+      ]
+    },
+    {
+      "review_id": "c45ceb472731696641b6f6bbfdcb8e621f3bf22fd8cacaffa96b2aaae90cae87",
+      "display_he_niqqud": "Fmax,מוט = 706·400 = 282493N ≈ 282.5kN",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r037",
+          "row_order": 37,
+          "display_ru": "Fmax,стержень = 706·400 = 282493 Н ≈ 282.5 кН"
+        }
+      ]
+    },
+    {
+      "review_id": "242194fa5fa7573ee3f2d64d547f4fbd49452ef17971cfb05ce7928057052b6f",
+      "display_he_niqqud": "Fy = σ_y·A₀",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r011",
+          "row_order": 11,
+          "display_ru": "Fy = σ_y·A₀"
+        }
+      ]
+    },
+    {
+      "review_id": "67be84918c86d9acc1c2b65d9693a6c1df3adb2493fd8d2d55d21c4189b52b20",
+      "display_he_niqqud": "Fy ≈ 97.53kN",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r029",
+          "row_order": 29,
+          "display_ru": "Fy ≈ 97.53 кН"
+        }
+      ]
+    },
+    {
+      "review_id": "c43c778f4417a1f4890263c7670fdc3d8677763385fee45d2149c637058ed3d2",
+      "display_he_niqqud": "Fy(min)=48715N",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r043",
+          "row_order": 43,
+          "display_ru": "Fy(min)=48715N"
+        }
+      ]
+    },
+    {
+      "review_id": "f6111448fe099cb81664ad407e83e82ce359138b0c6bfff5caf79aee7e980d4d",
+      "display_he_niqqud": "HB = 2F / [π·D·(D − √(D² − d²))]",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q041",
+          "display_alias": "41",
+          "row_id": "materials-science-y1-pb2-q041-sol-r014",
+          "row_order": 14,
+          "display_ru": "HB = 2F / [π·D·(D − √(D² − d²))]"
+        }
+      ]
+    },
+    {
+      "review_id": "90da5bc86ca55544f92fe39f60fc65ae0b4009c5ffcbb5b25433bb2c08b6a519",
+      "display_he_niqqud": "HB ≈ 0.94·HV ⇒ HB ≈ 0.94·480 ≈ 451",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r021",
+          "row_order": 21,
+          "display_ru": "HB ≈ 0.94·HV ⇒ HB ≈ 0.94·480 ≈ 451"
+        }
+      ]
+    },
+    {
+      "review_id": "2e51e2659879f820d5df9f796521e8fc579c10ba6847a0d82160f1fc4bbc84fb",
+      "display_he_niqqud": "HB ≈ 0.94·HV ⇒ HB ≈ 0.94·545 ≈ 512",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r003",
+          "row_order": 3,
+          "display_ru": "HB ≈ 0.94·HV ⇒ HB ≈ 0.94·545 ≈ 512"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r033",
+          "row_order": 33,
+          "display_ru": "HB ≈ 0.94·HV ⇒ HB ≈ 0.94·545 ≈ 512"
+        }
+      ]
+    },
+    {
+      "review_id": "b78faca048b26fead228823bb78159556f9524846c42e940f0fef1cb0d655f56",
+      "display_he_niqqud": "HRB = 86",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r004",
+          "row_order": 4,
+          "display_ru": "HRB = 86"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r031",
+          "row_order": 31,
+          "display_ru": "HRB = 86"
+        }
+      ]
+    },
+    {
+      "review_id": "6e8b2f7764f4657c0b5c3d13c039e63fe47cb69aa2a8d3689f2969988dbede99",
+      "display_he_niqqud": "L_max = 120 mm + 0.292 mm ≈ 120.292 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r028",
+          "row_order": 28,
+          "display_ru": "L_max = 120 мм + 0.292 мм ≈ 120.292 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "6c070cfa793eea9f8cff2542e7c670d9ca2cf701aef0024c9448930c5ce8e5e6",
+      "display_he_niqqud": "L_max = L0 + ΔL",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r027",
+          "row_order": 27,
+          "display_ru": "L_max = L0 + ΔL"
+        }
+      ]
+    },
+    {
+      "review_id": "5267f5c37da2a32c30502809be0a1164199206b99c36923cea7b454faf8edc54",
+      "display_he_niqqud": "L0 = 5 m = 5000 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r022",
+          "row_order": 22,
+          "display_ru": "L0 = 5 m = 5000 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "4527e8131b3eebf00c3750eea2521c98d52b82eb39c81529b7f0120a74944ca0",
+      "display_he_niqqud": "R = D/2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q037",
+          "display_alias": "37",
+          "row_id": "materials-science-y1-pb2-q037-sol-r009",
+          "row_order": 9,
+          "display_ru": "R = D/2"
+        }
+      ]
+    },
+    {
+      "review_id": "d4c08832e5af8c77dddb078b6854814f42d13140f01c0166c51317cff4a8aa34",
+      "display_he_niqqud": "T = −28°C + (11.5 − 8)/(12 − 8)·(−25°C − (−28°C))",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q019",
+          "display_alias": "19",
+          "row_id": "materials-science-y1-pb2-q019-sol-r025",
+          "row_order": 25,
+          "display_ru": "T = −28°C + (11.5 − 8)/(12 − 8)·(−25°C − (−28°C))"
+        }
+      ]
+    },
+    {
+      "review_id": "d967fc91b28647411b19e2ad40003f0575394f5f9b236387ab290c735c23c107",
+      "display_he_niqqud": "T ≈ −25.4°C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q019",
+          "display_alias": "19",
+          "row_id": "materials-science-y1-pb2-q019-sol-r026",
+          "row_order": 26,
+          "display_ru": "T ≈ −25.4°C"
+        }
+      ]
+    },
+    {
+      "review_id": "ac3c7c46fc3b7ca57349e749a8b15bbdda8ee07ac26590246c52e1f6cf5d1d2f",
+      "display_he_niqqud": "T ≈ 0.7–0.9 Tm (K)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q055",
+          "display_alias": "55",
+          "row_id": "materials-science-y1-pb2-q055-sol-r013",
+          "row_order": 13,
+          "display_ru": "T ≈ 0.7–0.9 Tm (K)"
+        }
+      ]
+    },
+    {
+      "review_id": "dec18c96954d4b62cb9080eff0ef7e386339f321f723c5de14eab804a6ab1a09",
+      "display_he_niqqud": "T_aust ≈ 870°C",
+      "occurrence_count": 3,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r002",
+          "row_order": 2,
+          "display_ru": "T_aust ≈ 870°C"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r013",
+          "row_order": 13,
+          "display_ru": "T_aust ≈ 870°C"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r020",
+          "row_order": 20,
+          "display_ru": "T_aust ≈ 870°C"
+        }
+      ]
+    },
+    {
+      "review_id": "89b6567f303c9f39231a74ef85923cae27a89c88ed6efa1b302dd0952a1311c0",
+      "display_he_niqqud": "T_aust ≈ A3 + (30–50)°C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r010",
+          "row_order": 10,
+          "display_ru": "T_aust ≈ A3 + (30–50)°C"
+        }
+      ]
+    },
+    {
+      "review_id": "a9cbe32ecf0ddb4890283e8417898db67a86f63bcb909dd7e046b434cb840253",
+      "display_he_niqqud": "T_aust ≈ Ac3 + (30–50)°C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q040",
+          "display_alias": "40",
+          "row_id": "materials-science-y1-pb2-q040-sol-r016",
+          "row_order": 16,
+          "display_ru": "T_aust ≈ Ac3 + (30–50)°C"
+        }
+      ]
+    },
+    {
+      "review_id": "218c341d6bdebc79fdbce86d8f6842586f67f17e469b51fee4add0e7a10e0868",
+      "display_he_niqqud": "T_temp = 540°C",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r003",
+          "row_order": 3,
+          "display_ru": "T_temp = 540°C"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r021",
+          "row_order": 21,
+          "display_ru": "T_temp = 540°C"
+        }
+      ]
+    },
+    {
+      "review_id": "991d32f6efa72c0143dd22241a598ee7bbc75e2cd1dc3e3cf3ea2fff06f0f872",
+      "display_he_niqqud": "Tm(W) ≈ 3422°C",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q055",
+          "display_alias": "55",
+          "row_id": "materials-science-y1-pb2-q055-sol-r019",
+          "row_order": 19,
+          "display_ru": "Tm(W) ≈ 3422°C"
+        }
+      ]
+    },
+    {
+      "review_id": "349542023385e2dc37a2288bae4cf80bf9d821a22359d0dfc8f1b86dee5fd347",
+      "display_he_niqqud": "U_A≈0.5·370·0.01 + (370+440)/2·(0.15−0.01)≈58.6 MPa=58.6 MJ/m³",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q021",
+          "display_alias": "21",
+          "row_id": "materials-science-y1-pb2-q021-sol-r029",
+          "row_order": 29,
+          "display_ru": "U_A≈0.5·370·0.01 + (370+440)/2·(0.15−0.01)≈58.6 МПа=58.6 МДж/м³"
+        }
+      ]
+    },
+    {
+      "review_id": "59ba4d870f2a6749200898247de6c6630ca4d1c703186c5f069e9c7401afc684",
+      "display_he_niqqud": "U_B≈0.5·220·0.01 + (220+400)/2·(0.25−0.01)≈75.5 MPa=75.5 MJ/m³",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q021",
+          "display_alias": "21",
+          "row_id": "materials-science-y1-pb2-q021-sol-r031",
+          "row_order": 31,
+          "display_ru": "U_B≈0.5·220·0.01 + (220+400)/2·(0.25−0.01)≈75.5 МПа=75.5 МДж/м³"
+        }
+      ]
+    },
+    {
+      "review_id": "6cb30824bede1dc086ac5994c8f81a79029708b55254b25be39f440d1a2eb238",
+      "display_he_niqqud": "U≈∫σ dε",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q021",
+          "display_alias": "21",
+          "row_id": "materials-science-y1-pb2-q021-sol-r025",
+          "row_order": 25,
+          "display_ru": "U≈∫σ dε"
+        }
+      ]
+    },
+    {
+      "review_id": "c4c289df82157c67b6861faf97b207c276c0b0136fc8f40182444931406ad654",
+      "display_he_niqqud": "W = (W/V)·V",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r040",
+          "row_order": 40,
+          "display_ru": "W = (W/V)·V"
+        }
+      ]
+    },
+    {
+      "review_id": "078ef9cafcab57ce00316eac8d2acadbb90fa9b4e628c788fa8f85790e1a608e",
+      "display_he_niqqud": "W/V = ∫σ dε",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r036",
+          "row_order": 36,
+          "display_ru": "W/V = ∫σ dε"
+        }
+      ]
+    },
+    {
+      "review_id": "58110f6499156cef3eaddcec62069cf3d08f0a549147ac73f1f30de91d4cda26",
+      "display_he_niqqud": "Wp=1−Wα≈0.512",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q027",
+          "display_alias": "27",
+          "row_id": "materials-science-y1-pb2-q027-sol-r037",
+          "row_order": 37,
+          "display_ru": "Wp=1−Wα≈0.512"
+        }
+      ]
+    },
+    {
+      "review_id": "96067e95509d0a87b370dcae5aa00f15a63171c4eeb1063d1fa476254f0d25d9",
+      "display_he_niqqud": "Z=26",
+      "occurrence_count": 1,
+      "status": "REVIEWED_PASS",
+      "spoken_he_niqqud": "זֶד שָׁוֶה עֶשְׂרִים וְשֵׁשׁ",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Already approved in the canonical row ledger.",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q001",
+          "display_alias": "1",
+          "row_id": "materials-science-y1-pb2-q001-sol-r016",
+          "row_order": 16,
+          "display_ru": "Z=26"
+        }
+      ]
+    },
+    {
+      "review_id": "17fd12a40307a4dfa756e0e64f67afcb83b802b464500b2e79f18bd81cd45d9b",
+      "display_he_niqqud": "Z=3",
+      "occurrence_count": 1,
+      "status": "REVIEWED_PASS",
+      "spoken_he_niqqud": "זֶד שָׁוֶה שָׁלוֹשׁ",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Already approved in the canonical row ledger.",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q001",
+          "display_alias": "1",
+          "row_id": "materials-science-y1-pb2-q001-sol-r021",
+          "row_order": 21,
+          "display_ru": "Z=3"
+        }
+      ]
+    },
+    {
+      "review_id": "75f35f77868dc505fa66c196b1330b435bcf3d116bb07c70d8225fa6069b4efd",
+      "display_he_niqqud": "Z=4",
+      "occurrence_count": 1,
+      "status": "REVIEWED_PASS",
+      "spoken_he_niqqud": "זֶד שָׁוֶה אַרְבַּע",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Already approved in the canonical row ledger.",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q001",
+          "display_alias": "1",
+          "row_id": "materials-science-y1-pb2-q001-sol-r028",
+          "row_order": 28,
+          "display_ru": "Z=4"
+        }
+      ]
+    },
+    {
+      "review_id": "9578a3f075a81f5e271fd3bc7ac9d7deabb18747b993a5ff552c6bf17968f0aa",
+      "display_he_niqqud": "Z=6",
+      "occurrence_count": 1,
+      "status": "REVIEWED_PASS",
+      "spoken_he_niqqud": "זֶד שָׁוֶה שֵׁשׁ",
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-09-01T02:01:58+03:00",
+      "note": "Already approved in the canonical row ledger.",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q001",
+          "display_alias": "1",
+          "row_id": "materials-science-y1-pb2-q001-sol-r011",
+          "row_order": 11,
+          "display_ru": "Z=6"
+        }
+      ]
+    },
+    {
+      "review_id": "0f886c7732522706ea93d55bd841aa58a0284f83b7b29140e9e009418ae8979f",
+      "display_he_niqqud": "ΔE° = (−0.35) − (−1.66) = 1.31V",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q046",
+          "display_alias": "46",
+          "row_id": "materials-science-y1-pb2-q046-sol-r020",
+          "row_order": 20,
+          "display_ru": "ΔE° = (−0.35) − (−1.66) = 1.31В"
+        }
+      ]
+    },
+    {
+      "review_id": "55a04b3d58482c029675cb66e7a1aad9dff7c40b5963629bc46fe979298a8727",
+      "display_he_niqqud": "ΔE° = (−0.44) − (−1.66) = 1.22V",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q046",
+          "display_alias": "46",
+          "row_id": "materials-science-y1-pb2-q046-sol-r009",
+          "row_order": 9,
+          "display_ru": "ΔE° = (−0.44) − (−1.66) = 1.22В"
+        }
+      ]
+    },
+    {
+      "review_id": "6d29ec76b635a4d7cf06f5fc0778b0ad771236ed84464462495b925b419e32bf",
+      "display_he_niqqud": "ΔE° ≈ (−0.44) − (−0.44) ≈ 0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q046",
+          "display_alias": "46",
+          "row_id": "materials-science-y1-pb2-q046-sol-r015",
+          "row_order": 15,
+          "display_ru": "ΔE° ≈ (−0.44) − (−0.44) ≈ 0"
+        }
+      ]
+    },
+    {
+      "review_id": "1724b94dbf0e74effc668f9c0756cfa2e4ad2373a54b3583a4c08581893ce82f",
+      "display_he_niqqud": "ΔL = 0.00033157·5000 = 1.66 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r037",
+          "row_order": 37,
+          "display_ru": "ΔL = 0.00033157·5000 = 1.66 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "25c3d7ff621e09ca217b402f12da5dc0232e28cb839be71e67050756564b1ddf",
+      "display_he_niqqud": "ΔL = 0.00058946·5000 = 2.95 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r032",
+          "row_order": 32,
+          "display_ru": "ΔL = 0.00058946·5000 = 2.95 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "7258a7ed7a6badfd3df06da85e00b35cf2892612e1b72125eaf27db1cabb01c0",
+      "display_he_niqqud": "ΔL = 0.0013263·5000 = 6.63 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r027",
+          "row_order": 27,
+          "display_ru": "ΔL = 0.0013263·5000 = 6.63 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "afe598a791b23720f3437fd02c7269d68bacf4932b2d3e3ef68f54b7d80fa263",
+      "display_he_niqqud": "ΔL = 1.66 mm < 3 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r052",
+          "row_order": 52,
+          "display_ru": "ΔL = 1.66 мм < 3 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "ebbb22f977b3cd065d3c1137feb66a28a79b355484faadf7d57f3b63bd87cb5a",
+      "display_he_niqqud": "ΔL = 2.435·10^-3 · 120 mm ≈ 0.292 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r025",
+          "row_order": 25,
+          "display_ru": "ΔL = 2.435·10^-3 · 120 мм ≈ 0.292 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "37bc4242a949b62931773b7ed041959afc28a520fa44e7d5c7dcf8ae9d5920c7",
+      "display_he_niqqud": "ΔL = 2.95 mm < 3 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r050",
+          "row_order": 50,
+          "display_ru": "ΔL = 2.95 мм < 3 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "f40a35d806f3e4625ea502b0557ef759abba25bcb4741eed8f4d992d79019301",
+      "display_he_niqqud": "ΔL = 5 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r022",
+          "row_order": 22,
+          "display_ru": "ΔL = 5 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "5dc8d31206244282c9f5655ebad0e1975d6d11eb59cc37042c83dac3e85b3363",
+      "display_he_niqqud": "ΔL = 55 - 50 = 5 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r012",
+          "row_order": 12,
+          "display_ru": "ΔL = 55 - 50 = 5 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "6fc7825e97aa3d65c7f56b59c4ff697b3a25280553d6428664f345a20f51fa0a",
+      "display_he_niqqud": "ΔL = 6.63 mm ≥ 3 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r047",
+          "row_order": 47,
+          "display_ru": "ΔL = 6.63 мм ≥ 3 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "05752815c2300fa871de0cf714c241e58ed90da37436060b6f3464eb975406a9",
+      "display_he_niqqud": "ΔL = 80 - 75 = 5 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r017",
+          "row_order": 17,
+          "display_ru": "ΔL = 80 - 75 = 5 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "c5ce4fe4649fdb9995053ad254e8d3e27f2655380db6cb659a0997d807992cd2",
+      "display_he_niqqud": "ΔL = L_f - L_0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r007",
+          "row_order": 7,
+          "display_ru": "ΔL = L_f - L_0"
+        }
+      ]
+    },
+    {
+      "review_id": "f6c146d6963a1e0ab116fcd41b34b2af6e2f72149551734fb37abeca65f7638e",
+      "display_he_niqqud": "ΔL = ε_max·L0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r024",
+          "row_order": 24,
+          "display_ru": "ΔL = ε_max·L0"
+        }
+      ]
+    },
+    {
+      "review_id": "e52f4809194d9334df58714b45912de55dbad6a5c25d51df0fc579c0bbf0b5eb",
+      "display_he_niqqud": "ΔL = ε·L0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r020",
+          "row_order": 20,
+          "display_ru": "ΔL = ε·L0"
+        }
+      ]
+    },
+    {
+      "review_id": "1e28ba2d6640a80efe551094c44db2defe4373daaab9b90b9416db13ac0722f7",
+      "display_he_niqqud": "Δl_y = ε_y·L₀",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r019",
+          "row_order": 19,
+          "display_ru": "Δl_y = ε_y·L₀"
+        }
+      ]
+    },
+    {
+      "review_id": "7e9401014bfb399c0b971577d90ab2a93984283ec3b2c9e4b74b50d89ee57ad9",
+      "display_he_niqqud": "ΔLUTS ≈ 8.04mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r015",
+          "row_order": 15,
+          "display_ru": "ΔLUTS ≈ 8.04 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "1f43684f2b76e328e861fb2d696cb6a4c8317883cae82916f4d996755ad7fc53",
+      "display_he_niqqud": "Δx = D/22 = 60/22 ≈ 2.73 mm",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q035",
+          "display_alias": "35",
+          "row_id": "materials-science-y1-pb2-q035-sol-r012",
+          "row_order": 12,
+          "display_ru": "Δx = D/22 = 60/22 ≈ 2.73 мм"
+        }
+      ]
+    },
+    {
+      "review_id": "61a188f448fa806d7c1a8a19507f374ec1c3a428039f123e8dd5fccccb193b0a",
+      "display_he_niqqud": "ε = 117.89/200000 = 0.00058946",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r031",
+          "row_order": 31,
+          "display_ru": "ε = 117.89/200000 = 0.00058946"
+        }
+      ]
+    },
+    {
+      "review_id": "79b2d3a8b307d416a08273b9a541211ba17893c18aab2e72236cd9e4e3e4bce5",
+      "display_he_niqqud": "ε = 265.26/200000 = 0.0013263",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r026",
+          "row_order": 26,
+          "display_ru": "ε = 265.26/200000 = 0.0013263"
+        }
+      ]
+    },
+    {
+      "review_id": "52bf6591254a949456d800af6ef12c426d53dc0440bcc1ac9f3ae7e2c9a9685f",
+      "display_he_niqqud": "ε = 29%",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r033",
+          "row_order": 33,
+          "display_ru": "ε = 29%"
+        }
+      ]
+    },
+    {
+      "review_id": "d54986a827f3b51b608221d86f259486dcfe47a3b29749f35bdab4531755f0f1",
+      "display_he_niqqud": "ε = 5 / 50 = 0.10 = 10%",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r014",
+          "row_order": 14,
+          "display_ru": "ε = 5 / 50 = 0.10 = 10%"
+        }
+      ]
+    },
+    {
+      "review_id": "ce3e74571b6d714971251481337f60872b4171ad768e09eeae4b53458c50cdef",
+      "display_he_niqqud": "ε = 5 / 75 = 0.0667 ≈ 6.67%",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r002",
+          "row_order": 2,
+          "display_ru": "ε = 5 / 75 = 0.0667 ≈ 6.67%"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r019",
+          "row_order": 19,
+          "display_ru": "ε = 5 / 75 = 0.0667 ≈ 6.67%"
+        }
+      ]
+    },
+    {
+      "review_id": "45d00324290d3f08ebfd0a185468422f7e12afd7be279c5f8d1ec7221ac722c2",
+      "display_he_niqqud": "ε = 66.31/200000 = 0.00033157",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r036",
+          "row_order": 36,
+          "display_ru": "ε = 66.31/200000 = 0.00033157"
+        }
+      ]
+    },
+    {
+      "review_id": "48c15dd6d66056fd62c7f29cc1588e09712b714c2cf15f224839c1d056e88ec0",
+      "display_he_niqqud": "ε = ΔL / L_0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r009",
+          "row_order": 9,
+          "display_ru": "ε = ΔL / L_0"
+        }
+      ]
+    },
+    {
+      "review_id": "15e6e3b813eea299d92c9efc03ead47d56838ec3c3f3fc9e1ae5b7d82103e080",
+      "display_he_niqqud": "ε = ΔL/L0",
+      "occurrence_count": 3,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r008",
+          "row_order": 8,
+          "display_ru": "ε = ΔL/L0"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r058",
+          "row_order": 58,
+          "display_ru": "ε = ΔL/L0"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q020",
+          "display_alias": "20",
+          "row_id": "materials-science-y1-pb2-q020-sol-r020",
+          "row_order": 20,
+          "display_ru": "ε = ΔL/L0"
+        }
+      ]
+    },
+    {
+      "review_id": "4e7c5cfa53cbb794148860b064f0dc5cc40e6f89f501f6895b8143c618e32570",
+      "display_he_niqqud": "ε = ε%/100",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r013",
+          "row_order": 13,
+          "display_ru": "ε = ε%/100"
+        }
+      ]
+    },
+    {
+      "review_id": "dd9ce7a5b803ea997bc64a7527d31e0f973fff05c6e3d232c10b8dff23708262",
+      "display_he_niqqud": "ε = σ / E",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r032",
+          "row_order": 32,
+          "display_ru": "ε = σ / E"
+        }
+      ]
+    },
+    {
+      "review_id": "5f60a844388dff5963b918203abd4862f3d53aa2f26823a42e0e22a41b66c22b",
+      "display_he_niqqud": "ε = σ/E",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r018",
+          "row_order": 18,
+          "display_ru": "ε = σ/E"
+        }
+      ]
+    },
+    {
+      "review_id": "bad9b43b471435b570f128604319fa661f8ceb96579fbb8fc487ec42368860bf",
+      "display_he_niqqud": "ε_A = 10%",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r024",
+          "row_order": 24,
+          "display_ru": "ε_A = 10%"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r034",
+          "row_order": 34,
+          "display_ru": "ε_A = 10%"
+        }
+      ]
+    },
+    {
+      "review_id": "9957a579d89cc09a88a4ebcdcd303e2f8da77292d8564679fe9bb036f4b120fb",
+      "display_he_niqqud": "ε_B ≈ 6.67%",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r025",
+          "row_order": 25,
+          "display_ru": "ε_B ≈ 6.67%"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r035",
+          "row_order": 35,
+          "display_ru": "ε_B ≈ 6.67%"
+        }
+      ]
+    },
+    {
+      "review_id": "e7e955138ae797ad8977da81ee99529b58f407c39c8067e610413e42f736bc0b",
+      "display_he_niqqud": "ε_f ↓",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r036",
+          "row_order": 36,
+          "display_ru": "ε_f ↓"
+        }
+      ]
+    },
+    {
+      "review_id": "985f3e1c1b27d0eb0c88b7b798ac9799394749bf08eb0301822a8e7f6017e967",
+      "display_he_niqqud": "ε_f = (L_f − L0)/L0·100% = (55.8−50)/50·100% = 11.6%",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r030",
+          "row_order": 30,
+          "display_ru": "ε_f = (L_f − L0)/L0·100% = (55.8−50)/50·100% = 11.6%"
+        }
+      ]
+    },
+    {
+      "review_id": "ea2aeab08642fdb64c443f1a5d51ae6a8b59d568c8328b873d299487989de482",
+      "display_he_niqqud": "ε_f = (L_f − L0)/L0·100% = (59.2−50)/50·100% = 18.4%",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r018",
+          "row_order": 18,
+          "display_ru": "ε_f = (L_f − L0)/L0·100% = (59.2−50)/50·100% = 18.4%"
+        }
+      ]
+    },
+    {
+      "review_id": "984dc198b0adaf2576430ddcf410d874527d26e92a938e18255c967891d9643c",
+      "display_he_niqqud": "ε_fiber < ε_comp < ε_matrix",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q058",
+          "display_alias": "58",
+          "row_id": "materials-science-y1-pb2-q058-sol-r025",
+          "row_order": 25,
+          "display_ru": "ε_волокна < ε_композита < ε_матрицы"
+        }
+      ]
+    },
+    {
+      "review_id": "b3c8ff0ec11ed0cd360907480913ce022d1fbfc7f169272fa6c66ff1a06006aa",
+      "display_he_niqqud": "ε_max = 280 MPa / 115 GPa = (280/115)·10^-3 ≈ 2.435·10^-3",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r022",
+          "row_order": 22,
+          "display_ru": "ε_max = 280 МПа / 115 ГПа = (280/115)·10^-3 ≈ 2.435·10^-3"
+        }
+      ]
+    },
+    {
+      "review_id": "f53124238ede4c6dcc26b1ef9285033b3f6ccad62162e6f838e872ab128a8915",
+      "display_he_niqqud": "ε_max = σ_y / E",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r018",
+          "row_order": 18,
+          "display_ru": "ε_max = σ_y / E"
+        }
+      ]
+    },
+    {
+      "review_id": "fbcd5041889f7d80b56daab001842a7edc3c52d221c25ada44a1bedbe7483a49",
+      "display_he_niqqud": "ε(%) = (L−L0)/L0 ·100",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q008",
+          "display_alias": "8",
+          "row_id": "materials-science-y1-pb2-q008-sol-r014",
+          "row_order": 14,
+          "display_ru": "ε(%) = (L−L0)/L0 ·100"
+        }
+      ]
+    },
+    {
+      "review_id": "507427d7906644ba4f535be003f825d9fcfe794b1fcd0c533a1937505d6641e5",
+      "display_he_niqqud": "εUTS = 8.04/200 = 0.0402 → 4.02%",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r018",
+          "row_order": 18,
+          "display_ru": "εUTS = 8.04/200 = 0.0402 → 4.02%"
+        }
+      ]
+    },
+    {
+      "review_id": "6080ac0dc662148b9005ed040307a26dc9a60687566ad52b98043a391a1f095a",
+      "display_he_niqqud": "εUTS = ΔLUTS/L0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r017",
+          "row_order": 17,
+          "display_ru": "εUTS = ΔLUTS/L0"
+        }
+      ]
+    },
+    {
+      "review_id": "353e3cb3b57845537bf291cf8c36622d7de3637712de745acfb14ee53e28c1a8",
+      "display_he_niqqud": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r003",
+          "row_order": 3,
+          "display_ru": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r017",
+          "row_order": 17,
+          "display_ru": "εy = (50.13 − 50.00) / 50.00 = 0.13 / 50 = 0.0026"
+        }
+      ]
+    },
+    {
+      "review_id": "962e4e6917b8b6cd15a42ec8bd492ea9cc62432a2f507a6c1246cae01effe469",
+      "display_he_niqqud": "εy = (Ly − L0) / L0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r016",
+          "row_order": 16,
+          "display_ru": "εy = (Ly − L0) / L0"
+        }
+      ]
+    },
+    {
+      "review_id": "cc35f61be1893ad8dc9e625d8fc642d0886a3b065941d6399ffb819e177e5bd6",
+      "display_he_niqqud": "εy = 1.65/200 = 0.00824",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r028",
+          "row_order": 28,
+          "display_ru": "εy = 1.65/200 = 0.00824"
+        }
+      ]
+    },
+    {
+      "review_id": "79d042affd1c9214baa5b1f7082ae3833ff4624a6d164535da179998c1dc86eb",
+      "display_he_niqqud": "εy = ΔL/L0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r027",
+          "row_order": 27,
+          "display_ru": "εy = ΔL/L0"
+        }
+      ]
+    },
+    {
+      "review_id": "a196942069520b27ff407b61ddd95da39d5e10c87fae145ab2783e09219e6543",
+      "display_he_niqqud": "ρ = 7.8 g/cm³",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r027",
+          "row_order": 27,
+          "display_ru": "ρ = 7.8 g/cm³"
+        }
+      ]
+    },
+    {
+      "review_id": "1c4db67fe00ff143c7eff1fb79f9e40f02797c314272a9c45e56ce4e0ff04182",
+      "display_he_niqqud": "σ < σ_y",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r039",
+          "row_order": 39,
+          "display_ru": "σ < σ_y"
+        }
+      ]
+    },
+    {
+      "review_id": "d68fa9060b0e5243d5a5858d82122db906205a44ee8fa30ef5c08a4872f1de81",
+      "display_he_niqqud": "σ = 15000 / 153.94 = 97.44 N/mm² ≈ 97.4 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r017",
+          "row_order": 17,
+          "display_ru": "σ = 15000 / 153.94 = 97.44 N/mm² ≈ 97.4 MPa"
+        }
+      ]
+    },
+    {
+      "review_id": "8563a2bf6572682ce05596c4f08baaaab275e7aeeced8f1e1216de3144d1bd79",
+      "display_he_niqqud": "σ = 15000 / 78.54 = 190.99 N/mm² ≈ 191 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r012",
+          "row_order": 12,
+          "display_ru": "σ = 15000 / 78.54 = 190.99 N/mm² ≈ 191 MPa"
+        }
+      ]
+    },
+    {
+      "review_id": "377a79771c0eb532c0427e9793ed4fd68c32440e94c54ab86418caaf6814d34a",
+      "display_he_niqqud": "σ = 20000/169.646 = 117.89 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r030",
+          "row_order": 30,
+          "display_ru": "σ = 20000/169.646 = 117.89 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "e127fa990c0147909bbb95ad580fe63257a072954104327c31fa7bbf0313a410",
+      "display_he_niqqud": "σ = 20000/301.593 = 66.31 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r035",
+          "row_order": 35,
+          "display_ru": "σ = 20000/301.593 = 66.31 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "993fecd019c6fdaf1632edbc4c545b920e607974444feb8999bcb89559759441",
+      "display_he_niqqud": "σ = 20000/75.398 = 265.26 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r025",
+          "row_order": 25,
+          "display_ru": "σ = 20000/75.398 = 265.26 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "e5e4db369ac65fb9490e85307889cc8dab0dbd180bf17fedde2d0061a4e1b9ef",
+      "display_he_niqqud": "σ = 210 GPa · 0.0025 = 0.525 GPa = 525 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q012",
+          "display_alias": "12",
+          "row_id": "materials-science-y1-pb2-q012-sol-r003",
+          "row_order": 3,
+          "display_ru": "σ = 210 ГПа · 0,0025 = 0,525 ГПа = 525 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q012",
+          "display_alias": "12",
+          "row_id": "materials-science-y1-pb2-q012-sol-r012",
+          "row_order": 12,
+          "display_ru": "σ = 210 ГПа · 0,0025 = 0,525 ГПа = 525 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "59eadb1a6fd911a29fed91817bae44853129307cf083f10c643ddeaff8fd36da",
+      "display_he_niqqud": "σ = 265.26 MPa ≥ 100 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r048",
+          "row_order": 48,
+          "display_ru": "σ = 265.26 МПа ≥ 100 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "2ba0b5c6180c821f9573dc4a68b489145511e45a7678f22afbbb42b5b5e4d90c",
+      "display_he_niqqud": "σ = 66.31 MPa < 100 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r053",
+          "row_order": 53,
+          "display_ru": "σ = 66.31 МПа < 100 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "08886e1510a00e7ba011536f5c2c0dbf47cfc37cc7a1ea0352a84e3718cf3254",
+      "display_he_niqqud": "σ = E·(ΔL/L0)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r060",
+          "row_order": 60,
+          "display_ru": "σ = E·(ΔL/L0)"
+        }
+      ]
+    },
+    {
+      "review_id": "3ea59be47fee02c2dcacf7425b4eb3df42daf8ab86ca3794d6be7a16f4691d68",
+      "display_he_niqqud": "σ = E·(ε − 0.002)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r025",
+          "row_order": 25,
+          "display_ru": "σ = E·(ε − 0.002)"
+        }
+      ]
+    },
+    {
+      "review_id": "62415fda3142d0da0d588348ac6cececbdd8dd565aa735225603bd70971cd042",
+      "display_he_niqqud": "σ = E·ε",
+      "occurrence_count": 3,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r017",
+          "row_order": 17,
+          "display_ru": "σ = E·ε"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r056",
+          "row_order": 56,
+          "display_ru": "σ = E·ε"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q058",
+          "display_alias": "58",
+          "row_id": "materials-science-y1-pb2-q058-sol-r012",
+          "row_order": 12,
+          "display_ru": "σ = E·ε"
+        }
+      ]
+    },
+    {
+      "review_id": "ef886b4dcf27f8a22642c9fed0f9835a907f74dda8543441311e81b9c2a3c43e",
+      "display_he_niqqud": "σ = F / A",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q005",
+          "display_alias": "5",
+          "row_id": "materials-science-y1-pb2-q005-sol-r030",
+          "row_order": 30,
+          "display_ru": "σ = F / A"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r009",
+          "row_order": 9,
+          "display_ru": "σ = F / A"
+        }
+      ]
+    },
+    {
+      "review_id": "081c7629e31014cfe77aea1a5e9466f7643154a7573bdd41d1b77ce882c2ba46",
+      "display_he_niqqud": "σ = F / A0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r008",
+          "row_order": 8,
+          "display_ru": "σ = F / A0"
+        }
+      ]
+    },
+    {
+      "review_id": "32e8d4a1d4636e365b18943a9212d373b2ec5dadc4de296db837bd72e57979ac",
+      "display_he_niqqud": "σ = F/A",
+      "occurrence_count": 4,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r006",
+          "row_order": 6,
+          "display_ru": "σ = F/A"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r023",
+          "row_order": 23,
+          "display_ru": "σ = F/A"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q009",
+          "display_alias": "9",
+          "row_id": "materials-science-y1-pb2-q009-sol-r025",
+          "row_order": 25,
+          "display_ru": "σ = F/A"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q026",
+          "display_alias": "26",
+          "row_id": "materials-science-y1-pb2-q026-sol-r019",
+          "row_order": 19,
+          "display_ru": "σ = F/A"
+        }
+      ]
+    },
+    {
+      "review_id": "59bf5481793548b7ad0ec718c35654153b8e05c5944bcf524de4ecf338b4e165",
+      "display_he_niqqud": "σ = F/A0",
+      "occurrence_count": 5,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q008",
+          "display_alias": "8",
+          "row_id": "materials-science-y1-pb2-q008-sol-r010",
+          "row_order": 10,
+          "display_ru": "σ = F/A0"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r007",
+          "row_order": 7,
+          "display_ru": "σ = F/A0"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r016",
+          "row_order": 16,
+          "display_ru": "σ = F/A0"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r062",
+          "row_order": 62,
+          "display_ru": "σ = F/A0"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q020",
+          "display_alias": "20",
+          "row_id": "materials-science-y1-pb2-q020-sol-r019",
+          "row_order": 19,
+          "display_ru": "σ = F/A0"
+        }
+      ]
+    },
+    {
+      "review_id": "647a242f7a4bec6b900a09356d66a008412d77d36fd907fbe925fe1d233fc6fa",
+      "display_he_niqqud": "σ = σ_y",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r020",
+          "row_order": 20,
+          "display_ru": "σ = σ_y"
+        }
+      ]
+    },
+    {
+      "review_id": "3569a0eac6d3e49218fca8d79d38c3b1856787418081b9f3be6e0fecad566bd0",
+      "display_he_niqqud": "σ ≤ σ_y",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r007",
+          "row_order": 7,
+          "display_ru": "σ ≤ σ_y"
+        }
+      ]
+    },
+    {
+      "review_id": "5dd49345d613801106c49a39899f009aa3dcad4ba2352c77a0baa74c016f97cb",
+      "display_he_niqqud": "σ ≥ 100 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q015",
+          "display_alias": "15",
+          "row_id": "materials-science-y1-pb2-q015-sol-r045",
+          "row_order": 45,
+          "display_ru": "σ ≥ 100 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "7cf626c3fecb40940bd2bf846b4d3f451e39cf85957e291834382c9fe61cebf9",
+      "display_he_niqqud": "σ_a,local ≈ Kf·σ_a,nom",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q026",
+          "display_alias": "26",
+          "row_id": "materials-science-y1-pb2-q026-sol-r030",
+          "row_order": 30,
+          "display_ru": "σ_a,local ≈ Kf·σ_a,nom"
+        }
+      ]
+    },
+    {
+      "review_id": "41d4764de81756760d0cd01c971b702df54fb92f443bee9affc88f1bf783ccd0",
+      "display_he_niqqud": "σ_m = (σ_max + σ_min)/2",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q024",
+          "display_alias": "24",
+          "row_id": "materials-science-y1-pb2-q024-sol-r018",
+          "row_order": 18,
+          "display_ru": "σ_m = (σ_max + σ_min)/2"
+        }
+      ]
+    },
+    {
+      "review_id": "562ea6f168c9c2133c8e48a79f144ea8830dbfb9a7dc3133be68f2029bda0f27",
+      "display_he_niqqud": "σ_sp = 4570/1050 = 4.352 ≈ 4.35",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q056",
+          "display_alias": "56",
+          "row_id": "materials-science-y1-pb2-q056-sol-r004",
+          "row_order": 4,
+          "display_ru": "σ_sp = 4570/1050 = 4.352 ≈ 4.35"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q056",
+          "display_alias": "56",
+          "row_id": "materials-science-y1-pb2-q056-sol-r021",
+          "row_order": 21,
+          "display_ru": "σ_sp = 4570/1050 = 4.352 ≈ 4.35"
+        }
+      ]
+    },
+    {
+      "review_id": "dd7096fef951114d1c605e9b0484edc680900d93f9cc641b69f6b1bca36098d3",
+      "display_he_niqqud": "σ_sp = 9843/1280 = 7.6898 ≈ 7.69",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q056",
+          "display_alias": "56",
+          "row_id": "materials-science-y1-pb2-q056-sol-r023",
+          "row_order": 23,
+          "display_ru": "σ_sp = 9843/1280 = 7.6898 ≈ 7.69"
+        }
+      ]
+    },
+    {
+      "review_id": "f572d042265d427d92359970970c86258e05d6dda9f14a7cbf08400645782971",
+      "display_he_niqqud": "σ_sp = σ_t/ρ",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q056",
+          "display_alias": "56",
+          "row_id": "materials-science-y1-pb2-q056-sol-r019",
+          "row_order": 19,
+          "display_ru": "σ_sp = σ_t/ρ"
+        }
+      ]
+    },
+    {
+      "review_id": "48fbca04d45372f5263275ea0800928aaa97218e1d6a9cf7d0a04e4331319020",
+      "display_he_niqqud": "σ_sp = σ/ρ",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q056",
+          "display_alias": "56",
+          "row_id": "materials-science-y1-pb2-q056-sol-r011",
+          "row_order": 11,
+          "display_ru": "σ_sp = σ/ρ"
+        }
+      ]
+    },
+    {
+      "review_id": "bd659a7c2ce2945b063d771dc5141772faf4c1efe0f73af038a0dd6c10ab4a5e",
+      "display_he_niqqud": "σ_UTS ↑",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r004",
+          "row_order": 4,
+          "display_ru": "σ_UTS ↑"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r034",
+          "row_order": 34,
+          "display_ru": "σ_UTS ↑"
+        }
+      ]
+    },
+    {
+      "review_id": "9c618d99744cc08f1b56a38e1acd3bc8e7cd43b904910d2558356f294bd1d93a",
+      "display_he_niqqud": "σ_UTS = 3.6 × 190 = 684 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q018",
+          "display_alias": "18",
+          "row_id": "materials-science-y1-pb2-q018-sol-r005",
+          "row_order": 5,
+          "display_ru": "σ_UTS = 3.6 × 190 = 684 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q018",
+          "display_alias": "18",
+          "row_id": "materials-science-y1-pb2-q018-sol-r021",
+          "row_order": 21,
+          "display_ru": "σ_UTS = 3.6 × 190 = 684 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "fde17f5e030b65699b8118c5ba19d9e621053539ca3958385720e2a47a0c0aca",
+      "display_he_niqqud": "σ_UTS = F_max/A0 = 144580/113.1 = 1278 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r015",
+          "row_order": 15,
+          "display_ru": "σ_UTS = F_max/A0 = 144580/113.1 = 1278 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "6059d94e9d551c57f0f95a133dec7a5a72104ba32acd2ea3ec588541713c6225",
+      "display_he_niqqud": "σ_UTS = F_max/A0 = 150100/113.1 = 1327 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r027",
+          "row_order": 27,
+          "display_ru": "σ_UTS = F_max/A0 = 150100/113.1 = 1327 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "f0fa6f4615ef6360247856cd5142c304f2be57d181e7c028b07a4a23479e61e0",
+      "display_he_niqqud": "σ_UTS = F_UTS/A₀",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r002",
+          "row_order": 2,
+          "display_ru": "σ_UTS = F_UTS/A₀"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r015",
+          "row_order": 15,
+          "display_ru": "σ_UTS = F_UTS/A₀"
+        }
+      ]
+    },
+    {
+      "review_id": "b336a13baa7bdcc2b09e1e591d871c6d3c5870d46f42d711923e199bf02b2124",
+      "display_he_niqqud": "σ_UTS(min)=600MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r003",
+          "row_order": 3,
+          "display_ru": "σ_UTS(min)=600MPa"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q011",
+          "display_alias": "11",
+          "row_id": "materials-science-y1-pb2-q011-sol-r047",
+          "row_order": 47,
+          "display_ru": "σ_UTS(min)=600MPa"
+        }
+      ]
+    },
+    {
+      "review_id": "8d4540f633c22eb2564a8844db3b142db86f7de128becf464b8f22af546c2cbc",
+      "display_he_niqqud": "σ_UTS(MPa)=3.6×BHN",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q018",
+          "display_alias": "18",
+          "row_id": "materials-science-y1-pb2-q018-sol-r019",
+          "row_order": 19,
+          "display_ru": "σ_UTS(МПа)=3.6×BHN"
+        }
+      ]
+    },
+    {
+      "review_id": "82e08864c4b01cd9fdb12e089094955d90cd3818c343c11528a0964e362d0f30",
+      "display_he_niqqud": "σ_work ≤ σ_y / n ‏(n>1)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-p047-q038",
+          "display_alias": "38-B",
+          "row_id": "materials-science-y1-pb2-p047-q038-sol-r009",
+          "row_order": 9,
+          "display_ru": "σ_раб ≤ σ_y / n (n>1)"
+        }
+      ]
+    },
+    {
+      "review_id": "3fb5cbebe569ee5f21eb3e0464b1269d4a541a971998acdf89e78bfcddb74cf4",
+      "display_he_niqqud": "σ_y ↑",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r032",
+          "row_order": 32,
+          "display_ru": "σ_y ↑"
+        }
+      ]
+    },
+    {
+      "review_id": "13fab6b286392810fe892931a30e5257e363b042fcb09a11c970902ccb679151",
+      "display_he_niqqud": "σ_y = 280 N/mm²",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q013",
+          "display_alias": "13",
+          "row_id": "materials-science-y1-pb2-q013-sol-r012",
+          "row_order": 12,
+          "display_ru": "σ_y = 280 Н/мм²"
+        }
+      ]
+    },
+    {
+      "review_id": "2a65786ff43cf87a1fd38b9944e97cedb3c9fec7d9809549e4da95ee016e1a3b",
+      "display_he_niqqud": "σ_y = F_y/A0 = 129050/113.1 = 1141 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r012",
+          "row_order": 12,
+          "display_ru": "σ_y = F_y/A0 = 129050/113.1 = 1141 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "1d77c6f5212ca4fbde2eba24058ec9db075d3077773aa6c1a986a41827ce1d39",
+      "display_he_niqqud": "σ_y = F_y/A0 = 133800/113.1 = 1183 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q016",
+          "display_alias": "16",
+          "row_id": "materials-science-y1-pb2-q016-sol-r024",
+          "row_order": 24,
+          "display_ru": "σ_y = F_y/A0 = 133800/113.1 = 1183 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "20bfd249c5555185f690f59d867514db74ab0a149a4ccedc653660d7f3172ef2",
+      "display_he_niqqud": "σ_y = σ_0 + k d^(−1/2)",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-p045-q038",
+          "display_alias": "38-A",
+          "row_id": "materials-science-y1-pb2-p045-q038-sol-r022",
+          "row_order": 22,
+          "display_ru": "σ_y = σ_0 + k d^(−1/2)"
+        }
+      ]
+    },
+    {
+      "review_id": "45afd4eb607e696d027025ade6270523b178af1f32d3480e194b93b71c181a8e",
+      "display_he_niqqud": "σ_y ≥ [σ]·S = 100·1.5 = 150 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q050",
+          "display_alias": "50",
+          "row_id": "materials-science-y1-pb2-q050-sol-r002",
+          "row_order": 2,
+          "display_ru": "σ_y ≥ [σ]·S = 100·1.5 = 150 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q050",
+          "display_alias": "50",
+          "row_id": "materials-science-y1-pb2-q050-sol-r009",
+          "row_order": 9,
+          "display_ru": "σ_y ≥ [σ]·S = 100·1.5 = 150 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "d7a13ad346cd6ea079cca98859a058034fe0116adcee87b3d90059b03429f3b1",
+      "display_he_niqqud": "σ_y,req ≥ 1.5·300 = 450 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q049",
+          "display_alias": "49",
+          "row_id": "materials-science-y1-pb2-q049-sol-r005",
+          "row_order": 5,
+          "display_ru": "$σ_{y,req} ≥ 1.5·300 = 450\\text{ МПа}$"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q049",
+          "display_alias": "49",
+          "row_id": "materials-science-y1-pb2-q049-sol-r027",
+          "row_order": 27,
+          "display_ru": "$σ_{y,req} ≥ 1.5·300 = 450\\text{ МПа}$"
+        }
+      ]
+    },
+    {
+      "review_id": "138b8eb4f886b1219fbb73b97a75afa03b881d602c7dd7e45eb3bdcc7b9b14d8",
+      "display_he_niqqud": "σ_y,req ≥ S·σ_max",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q049",
+          "display_alias": "49",
+          "row_id": "materials-science-y1-pb2-q049-sol-r025",
+          "row_order": 25,
+          "display_ru": "$σ_{y,req} ≥ S·σ_{max}$"
+        }
+      ]
+    },
+    {
+      "review_id": "372b46b22a7c619c05601beceda6d33ea5425103f33fc9324e21316a18032db0",
+      "display_he_niqqud": "σ(10) ≈ 191 MPa > σ(14) ≈ 97.4 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r002",
+          "row_order": 2,
+          "display_ru": "σ(10) ≈ 191 МПа > σ(14) ≈ 97.4 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q004",
+          "display_alias": "4",
+          "row_id": "materials-science-y1-pb2-q004-sol-r019",
+          "row_order": 19,
+          "display_ru": "σ(10) ≈ 191 МПа > σ(14) ≈ 97.4 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "0b34086fe2db6f9e02ba163c0a261837df412efec6ee61890f137b8d7fd81f76",
+      "display_he_niqqud": "‎σₐ = Fₐ / A",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q025",
+          "display_alias": "25",
+          "row_id": "materials-science-y1-pb2-q025-sol-r021",
+          "row_order": 21,
+          "display_ru": "‎σₐ = Fₐ / A"
+        }
+      ]
+    },
+    {
+      "review_id": "c436a216a9c430638fb80fd3639cf1a2e8b4bfa5a98c5b0793031ac3bd2b7852",
+      "display_he_niqqud": "σa=(σmax−σmin)/2.",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q044",
+          "display_alias": "44",
+          "row_id": "materials-science-y1-pb2-q044-sol-r025",
+          "row_order": 25,
+          "display_ru": "σa=(σmax−σmin)/2."
+        }
+      ]
+    },
+    {
+      "review_id": "c9ca2acc666ecb59244293090915023753fc5801e4c3e545486b24b396973e5c",
+      "display_he_niqqud": "σallow = 487.7/1.5 ≈ 325.1MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r040",
+          "row_order": 40,
+          "display_ru": "σallow = 487.7/1.5 ≈ 325.1 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "6c94f9e0ecc9b194ea6d17d42dd39fa69dfbdc33c28146d9fb2d90c858b34faf",
+      "display_he_niqqud": "σallow = σy/S",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r039",
+          "row_order": 39,
+          "display_ru": "σallow = σy/S"
+        }
+      ]
+    },
+    {
+      "review_id": "51f96d77404b4503fafebc5b5e193d64c3beabb7df8e8929af55bb9ea6b3f56d",
+      "display_he_niqqud": "σf = Ff / A0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q014",
+          "display_alias": "14",
+          "row_id": "materials-science-y1-pb2-q014-sol-r007",
+          "row_order": 7,
+          "display_ru": "σf = Ff / A0"
+        }
+      ]
+    },
+    {
+      "review_id": "6046822f621c1e2918707f27ab23f197ead448cd81f3b5b7f00ee2f3714ecc80",
+      "display_he_niqqud": "σL > 125 MPa",
+      "occurrence_count": 2,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q043",
+          "display_alias": "43",
+          "row_id": "materials-science-y1-pb2-q043-sol-r004",
+          "row_order": 4,
+          "display_ru": "σL > 125 МПа"
+        },
+        {
+          "task_id": "materials-science-y1-pb2-q043",
+          "display_alias": "43",
+          "row_id": "materials-science-y1-pb2-q043-sol-r029",
+          "row_order": 29,
+          "display_ru": "σL > 125 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "178d950787d001b7035c76d04e4b44aaf517c5cd628a32589ee31d7c669626cc",
+      "display_he_niqqud": "σm=(σmax+σmin)/2.",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q044",
+          "display_alias": "44",
+          "row_id": "materials-science-y1-pb2-q044-sol-r024",
+          "row_order": 24,
+          "display_ru": "σm=(σmax+σmin)/2."
+        }
+      ]
+    },
+    {
+      "review_id": "0cb762be20d6a0cfa7cfe4a0010a3610d64594e6c3acbd758ba2fb866c239d09",
+      "display_he_niqqud": "σUTS = (141.25·1000)/200 ≈ 706MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r013",
+          "row_order": 13,
+          "display_ru": "σUTS = (141.25·1000)/200 ≈ 706 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "f975eea61086f9d925f939b21e6cab27b9a827f5e1ef9fda50e5c1021653e368",
+      "display_he_niqqud": "σUTS = 168000 / 200 = 840 N/mm² = 840 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r013",
+          "row_order": 13,
+          "display_ru": "σUTS = 168000 / 200 = 840 Н/мм² = 840 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "7a4f1714b67e8951273751e042b363f4813887ba8700ed01950dbba6b2b08bb1",
+      "display_he_niqqud": "σUTS = Fmax/A0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r012",
+          "row_order": 12,
+          "display_ru": "σUTS = Fmax/A0"
+        }
+      ]
+    },
+    {
+      "review_id": "02499f9539def179898231ce83b11dcaad91d0040ba49e554665eb273476caf1",
+      "display_he_niqqud": "σUTS = FUTS / A0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r012",
+          "row_order": 12,
+          "display_ru": "σUTS = FUTS / A0"
+        }
+      ]
+    },
+    {
+      "review_id": "c3ee711ddd7fba0db13b49a5933b07bcd21b175793c21936cdabc26308ffa874",
+      "display_he_niqqud": "σy = (97.53·1000)/200 ≈ 487.7MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r032",
+          "row_order": 32,
+          "display_ru": "σy = (97.53·1000)/200 ≈ 487.7 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "70852b6b232dc3de0e047a074ed760fc0a6285f860c009f027c7a53c50376d4b",
+      "display_he_niqqud": "σy = 435 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q033",
+          "display_alias": "33",
+          "row_id": "materials-science-y1-pb2-q033-sol-r036",
+          "row_order": 36,
+          "display_ru": "σy = 435 MPa"
+        }
+      ]
+    },
+    {
+      "review_id": "c4b6ed6b51f007268cecbf95492e7768fb37190d1a16039ba8fc80253285f229",
+      "display_he_niqqud": "σy = 98000 / 200 = 490 N/mm² = 490 MPa",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r011",
+          "row_order": 11,
+          "display_ru": "σy = 98000 / 200 = 490 Н/мм² = 490 МПа"
+        }
+      ]
+    },
+    {
+      "review_id": "d9d06b73969576261601b22645eedc3be355ef2a77c171f92955d6dc9c713834",
+      "display_he_niqqud": "σy = Fy / A0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q007",
+          "display_alias": "7",
+          "row_id": "materials-science-y1-pb2-q007-sol-r010",
+          "row_order": 10,
+          "display_ru": "σy = Fy / A0"
+        }
+      ]
+    },
+    {
+      "review_id": "76eddd0e69fc191d387f5f7f9ab2bd77272c1cf0e231ae7811cab5db6932e935",
+      "display_he_niqqud": "σy = Fy/A0",
+      "occurrence_count": 1,
+      "status": "PENDING_OWNER_REVIEW",
+      "spoken_he_niqqud": "",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "note": "",
+      "occurrences": [
+        {
+          "task_id": "materials-science-y1-pb2-q010",
+          "display_alias": "10",
+          "row_id": "materials-science-y1-pb2-q010-sol-r031",
+          "row_order": 31,
+          "display_ru": "σy = Fy/A0"
+        }
+      ]
+    }
+  ]
+}

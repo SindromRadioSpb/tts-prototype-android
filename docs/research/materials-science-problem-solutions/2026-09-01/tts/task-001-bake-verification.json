@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "schema_version": "materials_pb2_tts_bake_verification.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "manifest_sha256": "1441fc7ad5f8709f965cea825af049e0e67c788abcbea9661e3d0c7830748365",
+  "asset_count": 91,
+  "row_asset_count": 29,
+  "word_asset_count": 62,
+  "complete_timing_count": 29,
+  "reference_count": 33,
+  "word_index_entry_count": 120,
+  "audio_bytes": 1454784,
+  "timing_bytes": 9056,
+  "audio_decode_count": 91,
+  "minimum_duration_seconds": 0.672,
+  "maximum_duration_seconds": 7.152,
+  "aggregate_duration_seconds": 181.848
+}
