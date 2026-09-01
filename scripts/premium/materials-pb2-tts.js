@@ -7,6 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { computeAssetKey } = require("../../db/premium/ttsAssetKey");
 const { escapeXml, buildMarkedSsml, timingFromTimepoints, synthesizeMp3, synthesizeWithTimepoints } = require("./lib/ttsBake");
+const formulaSpeech = require("./lib/materialsFormulaSpeech");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const DEFAULT_TABLE_ROOT = path.join(ROOT, "docs", "research", "materials-science-problem-solutions", "2026-08-30", "artifacts", "student-solution-tables");
@@ -20,6 +21,7 @@ const HASH = /^[a-f0-9]{64}$/;
 const HEBREW_TOKEN = /[א-ת\u0591-\u05C7]+/gu;
 
 function invariant(value, message) { if (!value) throw new Error(message); }
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
 function readJson(file) { return JSON.parse(fs.readFileSync(file, "utf8")); }
 function stableJson(value) { return JSON.stringify(value, null, 2) + "\n"; }
@@ -81,28 +83,30 @@ function ledgerMap(ledger) {
 }
 function buildInventory({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger } = {}) {
   const { manifest, tasks } = loadTables(tableRoot, taskIds);
-  const reviews = ledgerMap(formulaLedger);
+  const reviews = formulaSpeech.reviewedOverrides(formulaLedger);
   if (formulaLedger) invariant(formulaLedger.source_manifest_sha256 === sha256(fs.readFileSync(path.join(tableRoot, "manifest.json"))), "FORMULA_LEDGER_SOURCE_DRIFT");
   const conditionTexts = [], solutionTexts = [], rawWords = [];
-  let rowReferenceCount = 0, formulaRequired = 0, formulaPass = 0;
+  let rowReferenceCount = 0, formulaRequired = 0, formulaPass = 0, systemCompiled = 0, ownerOverrides = 0;
   for (const table of tasks) {
     for (const row of table.condition.rows) {
-      const text = String(row.hebrew_niqqud || row.hebrew_plain || "").trim();
-      invariant(text, `CONDITION_SPEECH_EMPTY:${row.row_id}`);
-      conditionTexts.push(text); rowReferenceCount += 1; rawWords.push(...wordTokens(text, false));
+      const display = String(row.hebrew_niqqud || row.hebrew_plain || "").trim();
+      invariant(display, `CONDITION_SPEECH_EMPTY:${row.row_id}`);
+      const compiled = formulaSpeech.compileRowSpeech({ rowId: row.row_id, displayText: display, reviewed: reviews });
+      conditionTexts.push(compiled.spoken_he_niqqud); rowReferenceCount += 1; rawWords.push(...wordTokens(display, false));
+      systemCompiled += Number(compiled.status === "SYSTEM_COMPILED_PASS");
+      ownerOverrides += Number(compiled.status === "OWNER_REVIEWED_OVERRIDE");
     }
     for (const row of table.rows) {
       const displayText = String(row.text?.he_niqqud || row.text?.he || "").trim();
       invariant(displayText, `SOLUTION_SPEECH_EMPTY:${row.row_id}`);
-      let speechText = displayText;
+      const compiled = formulaSpeech.compileRowSpeech({ rowId: row.row_id, displayText, reviewed: reviews });
       if (row.audio_plan?.formula_speech_review_required === true) {
         formulaRequired += 1;
-        const review = reviews.get(row.row_id);
-        if (review?.status === "REVIEWED_PASS" && normalizeSpeech(review.spoken_he_niqqud)) {
-          formulaPass += 1; speechText = normalizeSpeech(review.spoken_he_niqqud);
-        }
+        formulaPass += 1;
       }
-      solutionTexts.push(speechText); rowReferenceCount += 1; rawWords.push(...wordTokens(displayText, false));
+      solutionTexts.push(compiled.spoken_he_niqqud); rowReferenceCount += 1; rawWords.push(...wordTokens(displayText, false));
+      systemCompiled += Number(compiled.status === "SYSTEM_COMPILED_PASS");
+      ownerOverrides += Number(compiled.status === "OWNER_REVIEWED_OVERRIDE");
     }
   }
   const uniqueCondition = [...new Set(conditionTexts)];
@@ -128,6 +132,8 @@ function buildInventory({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger
     normalized_word_billed_character_count: normalizedWordBilled,
     total_billed_character_count: total, release_character_ceiling: RELEASE_CHARACTER_CEILING,
     formula_review_required_count: formulaRequired, formula_review_pass_count: formulaPass,
+    formula_speech_compiler_id: "materials-formula-speech-he-v1",
+    system_compiled_row_reference_count: systemCompiled, owner_reviewed_override_count: ownerOverrides,
     gates: Object.freeze({ cost: "PASS", formula_speech: formulaRequired === formulaPass ? "PASS" : "BLOCKED" }),
   });
 }
@@ -314,14 +320,16 @@ async function synthesizeWordWithClient(client, text, profile = DEFAULT_PROFILE)
 }
 function speechAssets({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger }) {
   const { tasks } = loadTables(tableRoot, taskIds);
-  const formulaSpeech = validateFormulaReview(formulaLedger, taskIds, tableRoot);
+  if (formulaLedger) invariant(formulaLedger.source_manifest_sha256 === sha256(fs.readFileSync(path.join(tableRoot, "manifest.json"))), "FORMULA_LEDGER_SOURCE_DRIFT");
+  const reviewed = formulaSpeech.reviewedOverrides(formulaLedger);
   const rows = new Map(), words = new Map(), references = [];
-  function addRow(task, rowId, sourceKind, displayText, speechText) {
-    const text = normalizeSpeech(speechText);
+  function addRow(task, rowId, sourceKind, displayText, compiled) {
+    const text = normalizeSpeech(compiled.spoken_he_niqqud);
     const key = assetKey("row", text);
     if (!rows.has(key)) rows.set(key, { asset_key: key, asset_type: "row", text });
     references.push({ task_id: task.task_id, row_id: rowId, source_kind: sourceKind, asset_key: key,
-      spoken_he_niqqud: text, display_text_sha256: sha256(Buffer.from(normalizeSpeech(displayText), "utf8")) });
+      spoken_he_niqqud: text, speech_authority: compiled.status, speech_compiler_id: compiled.compiler_id,
+      display_text_sha256: sha256(Buffer.from(normalizeSpeech(displayText), "utf8")) });
     for (const word of wordTokens(displayText)) {
       const wordKey = assetKey("word", word);
       if (!words.has(wordKey)) words.set(wordKey, { asset_key: wordKey, asset_type: "word", text: word });
@@ -330,13 +338,13 @@ function speechAssets({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger }
   for (const task of tasks) {
     for (const row of task.condition.rows) {
       const display = row.hebrew_niqqud || row.hebrew_plain;
-      addRow(task, row.row_id, "condition", display, display);
+      addRow(task, row.row_id, "condition", display,
+        formulaSpeech.compileRowSpeech({ rowId: row.row_id, displayText: display, reviewed }));
     }
     for (const row of task.rows) {
       const display = row.text.he_niqqud || row.text.he;
-      const speech = row.audio_plan?.formula_speech_review_required ? formulaSpeech.get(row.row_id) : display;
-      invariant(speech, `FORMULA_SPEECH_REVIEW_BLOCKED:${row.row_id}`);
-      addRow(task, row.row_id, "solution", display, speech);
+      addRow(task, row.row_id, "solution", display,
+        formulaSpeech.compileRowSpeech({ rowId: row.row_id, displayText: display, reviewed }));
     }
   }
   return { rows: [...rows.values()], words: [...words.values()], references };
@@ -351,7 +359,7 @@ function prepareRelease({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger
   const report = Object.freeze({
     schema_version: "materials_pb2_tts_release_preflight.1.0.0", corpus_slug: SLUG, ready: true,
     gates: Object.freeze({ rights: "PASS", formula_speech: "PASS", cost: "PASS", secret: "PASS" }),
-    profile_id: PROFILE_ID, inventory,
+    profile_id: PROFILE_ID, formula_speech_compiler_id: "materials-formula-speech-he-v1", inventory,
     planned_row_asset_count: planned.rows.length, planned_word_asset_count: planned.words.length,
     planned_asset_count: planned.rows.length + planned.words.length,
     secret,
@@ -360,7 +368,7 @@ function prepareRelease({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger
 }
 function releasePreflight(options = {}) { return prepareRelease(options).report; }
 async function bake({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, rights, output = DEFAULT_OUTPUT, apiKey, client,
-  credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS } = {}) {
+  credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS, concurrency = 4, requestIntervalMs = 350 } = {}) {
   const prepared = prepareRelease({ tableRoot, taskIds, formulaLedger, rights, apiKey, client, credentialPath });
   const planned = prepared.planned;
   const root = path.resolve(output), audioDir = path.join(root, "audio-cache");
@@ -370,8 +378,41 @@ async function bake({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, ri
     const { v1beta1 } = require("@google-cloud/text-to-speech");
     adcClient = new v1beta1.TextToSpeechClient();
   }
-  const completed = [];
-  for (const asset of [...planned.rows, ...planned.words]) {
+  const assets = [...planned.rows, ...planned.words];
+  const workerCount = Number(concurrency);
+  invariant(Number.isInteger(workerCount) && workerCount >= 1 && workerCount <= 12, "TTS_CONCURRENCY_INVALID");
+  const interval = Number(requestIntervalMs);
+  invariant(Number.isInteger(interval) && interval >= 0 && interval <= 5000, "TTS_REQUEST_INTERVAL_INVALID");
+  const completed = new Array(assets.length);
+  let cursor = 0, firstError = null, nextProviderStart = 0, providerGate = Promise.resolve();
+  function waitForProviderSlot() {
+    const turn = providerGate.then(async () => {
+      const wait = Math.max(0, nextProviderStart - Date.now());
+      if (wait) await delay(wait);
+      nextProviderStart = Date.now() + interval;
+    });
+    providerGate = turn.catch(() => {});
+    return turn;
+  }
+  function retryableProviderError(error) {
+    return [8, 14, 429, 503].includes(Number(error?.code))
+      || /RESOURCE_EXHAUSTED|quota|too many requests|UNAVAILABLE/i.test(String(error?.message || ""));
+  }
+  async function providerCall(operation) {
+    const backoff = [0, 2000, 5000, 10000, 20000, 30000];
+    let lastError;
+    for (let attempt = 0; attempt < backoff.length; attempt += 1) {
+      if (backoff[attempt]) await delay(backoff[attempt]);
+      await waitForProviderSlot();
+      try { return await operation(); }
+      catch (error) {
+        lastError = error;
+        if (!retryableProviderError(error)) throw error;
+      }
+    }
+    throw lastError;
+  }
+  async function processAsset(asset) {
     const mp3Path = path.join(audioDir, `${asset.asset_key}.mp3`);
     const timingPath = path.join(audioDir, `${asset.asset_key}.timing.json`);
     let mp3, timing = null;
@@ -379,21 +420,33 @@ async function bake({ tableRoot = DEFAULT_TABLE_ROOT, taskIds, formulaLedger, ri
       mp3 = fs.readFileSync(mp3Path);
       if (asset.asset_type === "row") timing = readJson(timingPath);
     } else if (asset.asset_type === "row") {
-      const result = apiKey ? await synthesizeWithTimepoints(apiKey, asset.text, DEFAULT_PROFILE)
-        : await synthesizeRowWithClient(adcClient, asset.text, DEFAULT_PROFILE);
+      const result = await providerCall(() => apiKey ? synthesizeWithTimepoints(apiKey, asset.text, DEFAULT_PROFILE)
+        : synthesizeRowWithClient(adcClient, asset.text, DEFAULT_PROFILE));
       mp3 = result.mp3; timing = result.timing; validateTiming(timing);
       fs.writeFileSync(mp3Path, mp3); fs.writeFileSync(timingPath, stableJson(timing));
     } else {
-      mp3 = apiKey ? await synthesizeMp3(apiKey, asset.text, DEFAULT_PROFILE)
-        : await synthesizeWordWithClient(adcClient, asset.text, DEFAULT_PROFILE);
+      mp3 = await providerCall(() => apiKey ? synthesizeMp3(apiKey, asset.text, DEFAULT_PROFILE)
+        : synthesizeWordWithClient(adcClient, asset.text, DEFAULT_PROFILE));
       fs.writeFileSync(mp3Path, mp3);
     }
-    completed.push({ ...asset, mp3, timing });
+    return { ...asset, mp3, timing };
   }
+  async function worker() {
+    while (!firstError) {
+      const index = cursor++;
+      if (index >= assets.length) return;
+      try { completed[index] = await processAsset(assets[index]); }
+      catch (error) { firstError = error; return; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(workerCount, assets.length) }, () => worker()));
+  if (firstError) throw firstError;
+  invariant(completed.every(Boolean), "TTS_BAKE_INCOMPLETE");
   const manifest = buildPublicAssetManifest(completed, { inventory: prepared.report.inventory, references: planned.references });
   manifest.word_index = buildWordIndex(planned.words);
   fs.writeFileSync(path.join(root, "manifest.json"), stableJson(manifest));
-  return { output: root, asset_count: completed.length, manifest_sha256: sha256(Buffer.from(stableJson(manifest))) };
+  return { output: root, asset_count: completed.length, manifest_sha256: sha256(Buffer.from(stableJson(manifest))),
+    concurrency: workerCount, request_interval_ms: interval };
 }
 function verifyBake({ root = DEFAULT_OUTPUT, decodeAudio = false } = {}) {
   const absolute = path.resolve(root), manifestPath = path.join(absolute, "manifest.json"), audioDir = path.join(absolute, "audio-cache");
@@ -504,6 +557,18 @@ async function main() {
     fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, stableJson(ledger));
     process.stdout.write(stableJson({ ok: true, output, reviewed_count: ledger.entries.filter(entry => entry.status === "REVIEWED_PASS").length })); return;
   }
+  if (command === "formula-audit") {
+    const formulaLedger = args.ledger ? readJson(path.resolve(args.ledger)) : undefined;
+    const audit = formulaSpeech.auditCorpus({ tableRoot, formulaLedger });
+    invariant(audit.ready, `FORMULA_SPEECH_AUDIT_BLOCKED:${audit.unresolved_count}`);
+    if (args.output) {
+      const output = path.resolve(args.output); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, stableJson(audit));
+      process.stdout.write(stableJson({ ok: true, output, row_count: audit.row_count,
+        compiled_row_count: audit.compiled_row_count, owner_override_count: audit.owner_override_count,
+        unresolved_count: audit.unresolved_count }));
+    } else process.stdout.write(stableJson(audit));
+    return;
+  }
   if (command === "secret-check") {
     try { require("dotenv").config({ path: path.join(ROOT, ".env") }); } catch (_) {}
     const secret = validateSecretGate({ apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"],
@@ -526,7 +591,9 @@ async function main() {
   if (command === "bake") {
     invariant(args.ledger && args.rights, "BAKE_REQUIRES_LEDGER_AND_RIGHTS");
     try { require("dotenv").config({ path: path.join(ROOT, ".env") }); } catch (_) {}
-    const result = await bake({ tableRoot, taskIds, formulaLedger: readJson(path.resolve(args.ledger)), rights: readJson(path.resolve(args.rights)), output: args.output || DEFAULT_OUTPUT, apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"], credentialPath: process.env.GOOGLE_APPLICATION_CREDENTIALS });
+    const result = await bake({ tableRoot, taskIds, formulaLedger: readJson(path.resolve(args.ledger)), rights: readJson(path.resolve(args.rights)), output: args.output || DEFAULT_OUTPUT, apiKey: process.env[args["api-key-env"] || "GCP_TTS_API_KEY"], credentialPath: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      concurrency: args.concurrency == null ? 4 : Number(args.concurrency),
+      requestIntervalMs: args["request-interval-ms"] == null ? 350 : Number(args["request-interval-ms"]) });
     process.stdout.write(stableJson({ ok: true, ...result })); return;
   }
   if (command === "verify") {

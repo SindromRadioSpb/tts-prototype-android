@@ -1,0 +1,14 @@
+{
+  "schema_version": "materials_pb2_tts_production_head_preflight.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "checked_at": "2026-09-01",
+  "base": "https://linguistpro.kolosei.com",
+  "mode": "HEAD_ONLY_NO_TOKEN_NO_MUTATION",
+  "manifest_sha256": "13c58e03fb1b1e469d1105e616dcd3cb3037286bb6cb2930b82f4897716fbfa3",
+  "planned_asset_count": 7311,
+  "already_present_count": 0,
+  "missing_count": 7311,
+  "failed_head_count": 0,
+  "publication_manifest_deployed": false,
+  "gate": "UPLOAD_REQUIRED_BEFORE_MANIFEST_DEPLOY"
+}

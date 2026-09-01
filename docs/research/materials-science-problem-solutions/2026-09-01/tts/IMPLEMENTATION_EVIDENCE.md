@@ -1,7 +1,7 @@
 # Materials PB2 public TTS — implementation evidence
 
 Date: 2026-09-01
-Status: `FRAMEWORK_PROD_VERIFIED · TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_GENERATION_GATED · PUBLICATION_NOT_STARTED`
+Status: `FRAMEWORK_PROD_VERIFIED · FULL_CORPUS_GENERATED_AND_VERIFIED · PRODUCTION_UPLOAD_AWAITING_OWNER_TOKEN_CONFIRMATION`
 
 ## Delivered contract
 
@@ -22,12 +22,13 @@ Status: `FRAMEWORK_PROD_VERIFIED · TASK1_PILOT_GENERATED_AND_VERIFIED · FULL_G
 | Tasks | 60 |
 | Condition row references | 674 |
 | Reviewed-solution row references | 1,938 |
-| Unique row assets | 2,251 |
+| Unique row assets | 2,239 |
 | Hebrew word references | 19,996 |
 | Unique normalized word assets | 5,072 |
-| Conservative provider-billed characters | 270,680 |
+| Conservative provider-billed characters | 307,944 |
 | Release ceiling | 320,000 |
-| Formula rows approved / awaiting separate speech review | 4 / 271 |
+| Formula rows resolved | 275 / 275 |
+| System-compiled row references / owner overrides | 1,656 / 4 |
 
 The owner attested the public TTS rights and approved the four exact Task 1
 formula readings on 2026-09-01. The secret preflight validated a redacted ADC
@@ -49,9 +50,24 @@ artifact or log.
 - Resumability check: the second bake completed from the existing 91-file cache
   in 328 ms without regenerating assets.
 
-The whole-corpus preflight still fails closed before output creation at the
-first remaining unreviewed formula row:
-`materials-science-y1-pb2-exercise-p005-allotropy-sol-r023`.
+## Full-corpus bake
+
+- All four preflight gates pass: rights, formula speech, cost and secret.
+- Deterministic formula compiler coverage: 2,612/2,612 condition and solution
+  rows, zero unresolved symbols; the four owner-approved Task 1 readings remain
+  exact-row overrides.
+- Generated assets: 7,311 MP3 (`2,239 row + 5,072 word`).
+- Complete timing sidecars: 2,239/2,239.
+- Public morphology index: 8,537 exact or unambiguous-unvocalized entries.
+- Verified storage: 188,159,040 audio bytes plus 1,525,855 timing bytes
+  (about 181 MiB total).
+- Full decode verification: 7,311/7,311 MP3; duration range 0.672–43.2 seconds;
+  aggregate duration 23,519.88 seconds (about 6 h 32 min).
+- Bake manifest SHA-256:
+  `13c58e03fb1b1e469d1105e616dcd3cb3037286bb6cb2930b82f4897716fbfa3`.
+- Provider-zero repeat bake: zero provider calls, 1,473 ms, identical manifest.
+- Production HEAD-only preflight: 7,311 checked, 0 already present, 0 request
+  failures. No production writes and no full-TTS manifest deployment occurred.
 
 ## Verification
 
@@ -125,12 +141,13 @@ Unused production image/cache layers can be restored only by pulling or
 rebuilding them. The media-acquisition and main LinguistPro containers were both
 running healthy after the final cleanup.
 
-## Remaining formula review compression
+## Formula speech policy
 
-`formula-speech-unique-review-pack.json` groups only byte-equivalent normalized
-display formulas. It reduces 271 pending rows to 222 exact-form decisions while
-retaining every occurrence for contextual review. `FORMULA_REVIEW_GUIDE.md`
-defines the no-overwrite apply command and the full no-synthesis preflight.
+`materials-formula-speech-he-v1` preserves Hebrew prose and deterministically
+voices embedded variables, operators, ranges, fractions, powers, units,
+materials and chemistry notation. Unknown semantic tokens stop the release
+before output or provider access. `FORMULA_REVIEW_GUIDE.md` documents the full
+source-bound audit and the optional exact-row override workflow.
 
 ## Open release gates
 
@@ -138,6 +155,9 @@ defines the no-overwrite apply command and the full no-synthesis preflight.
 2. Secret gate: `PASS`, ADC service-account material validated and redacted.
 3. Task 1 formula gate: `PASS`; the four accepted readings are recorded in the
    canonical formula ledger.
-4. Whole-corpus formula gate: `BLOCKED`, 271 rows remain owner/reviewer-pending.
-5. Only after the remaining formula gate passes may the full bake, upload,
-   exact-edition support rebuild and production verification run.
+4. Whole-corpus formula gate: `PASS`, 275/275 formula-marked rows and all 2,612
+   row references compile without unresolved tokens.
+5. Full bake and exact-edition support rebuild: `PASS` locally.
+6. Production upload: `AWAITING_OWNER_ACTION_TIME_CONFIRMATION` for use of the
+   existing secret `AUDIO_UPLOAD_TOKEN`; the support manifest must not deploy
+   before all 7,311 assets and 2,239 timing sidecars are present.

@@ -38,7 +38,7 @@
         "translit_ru": "",
         "russian": "Вопрос 37.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "13eec55aeb9e2fa7877d7d97cc3f7c9a77a97cb9a4c198a4520611d609f0cc56",
         "translation_provider": "legacy:existing-canonical-pass",
         "translation_meta": {
           "provider": "legacy_existing_canonical",
@@ -67,7 +67,26 @@
         "caption_segment_id": null,
         "source_line_index": 0,
         "sentence_index": 0,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "שְׁאֵלָה 37.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/13eec55aeb9e2fa7877d7d97cc3f7c9a77a97cb9a4c198a4520611d609f0cc56/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r002",
@@ -78,7 +97,7 @@
         "translit_ru": "",
         "russian": "А. Для целей проектирования необходимо определить максимальный диаметр детали, показанной на рисунке А к вопросу 8.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "7b85f433df29490dbd2e5c2e18e228888b01e009d2f7905e6c7acbe7b96fa988",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -107,7 +126,26 @@
         "caption_segment_id": null,
         "source_line_index": 1,
         "sentence_index": 1,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "א. לְצֹורֶךְ תִּכְנוּן יֵשׁ לִקְבֹּועַ אֶת הַקֹּוטֶר הַמַּקְסִימָלִי שֶׁל הַחֵלֶק הַמֻּוצָּג בְּאִיּוּר א' לִשְׁאֵלָה 8.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/7b85f433df29490dbd2e5c2e18e228888b01e009d2f7905e6c7acbe7b96fa988/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r003",
@@ -118,7 +156,7 @@
         "translit_ru": "",
         "russian": "Деталь должна закаливаться до твердости не менее HRC40 в ее центре.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "20850b8a17c994e84255b2c11ef76ab70b8dd3dc98bce869f22bd0ae75f2f088",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -147,7 +185,26 @@
         "caption_segment_id": null,
         "source_line_index": 2,
         "sentence_index": 2,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "הַחֵלֶק אָמוּר לְהִתְחַסֵּם לִקְשִׁיּוּת שֶׁל לֹא פָּחוֹת מִ מִינוּס אֵייץ'־אָר־סִי 40 בְּמֶרְכָּזוֹ.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/20850b8a17c994e84255b2c11ef76ab70b8dd3dc98bce869f22bd0ae75f2f088/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r004",
@@ -158,7 +215,7 @@
         "translit_ru": "",
         "russian": "Для изготовления детали предложили сталь с прокаливаемостью, представленной кривой Джомини (см. рисунок Б к вопросу 8).",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "bac1ec4d9e5472e911e8065952ef4d175d77ff70c6a266b111467b9b38bfe951",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -187,7 +244,26 @@
         "caption_segment_id": null,
         "source_line_index": 3,
         "sentence_index": 3,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "לְייִצּוּר הַחֵלֶק הִצִּיעוּ פְּלָדָה בַּעֲלַת כֹּושֶׁר הַחִיסּוּם הַמֻּוצָּג בְּאֶמְצָעוּת עֲקֻומַּת גּ' וֹמִינִי רְאֵה אִיּוּר ב' לִשְׁאֵלָה 8.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/bac1ec4d9e5472e911e8065952ef4d175d77ff70c6a266b111467b9b38bfe951/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r005",
@@ -198,7 +274,7 @@
         "translit_ru": "",
         "russian": "Определите максимальный диаметр детали по прокаливаемости стали.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "000206ae30e1f57736d071a86044e19c939815a630bbbe74a1a0f8db7e1b8a43",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -227,7 +303,26 @@
         "caption_segment_id": null,
         "source_line_index": 4,
         "sentence_index": 4,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "קִבְעוּ אֶת הַקֹּוטֶר הַמַּקְסִימָלִי שֶׁל הַחֵלֶק עַל פִּי כֹּושֶׁר חִיסּוּם הַפְּלָדָה.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/000206ae30e1f57736d071a86044e19c939815a630bbbe74a1a0f8db7e1b8a43/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r006",
@@ -238,7 +333,7 @@
         "translit_ru": "",
         "russian": "Б. Отметьте галочкой V «верно» или «неверно» для каждого из следующих утверждений:",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "5c6034bd5d3ec36e8800dd5848648a284ebc1d1a7ce1291b75e39bea6bc2d830",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -267,7 +362,26 @@
         "caption_segment_id": null,
         "source_line_index": 5,
         "sentence_index": 5,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "ב. סַמְּנוּ בְּ מִינוּס וִי \" נָכוֹן \" אוֹ \" לֹא נָכוֹן \" לְגַבֵּי כָּל אֶחָד מֵהֶיגֵּדִים הַבָּאִים:",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/5c6034bd5d3ec36e8800dd5848648a284ebc1d1a7ce1291b75e39bea6bc2d830/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r007",
@@ -278,7 +392,7 @@
         "translit_ru": "",
         "russian": "1 Диаграмма «железо - углерод» описывает аллотропные превращения в сплавах железа.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "cf49a9673a1147ef38ba7db16950462893652616a76607df41e1bb6844ca8814",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -307,7 +421,26 @@
         "caption_segment_id": null,
         "source_line_index": 6,
         "sentence_index": 6,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "1 דִּיאַגְרָמָה \" בַּרְזֶל פַּחְמָן \" מְתָאֶרֶת שִׁינּוּיִים אָלוֹטְרוֹפִּיִּים בְּסַגְסוּגוֹת בַּרְזֶל.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/cf49a9673a1147ef38ba7db16950462893652616a76607df41e1bb6844ca8814/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r008",
@@ -318,7 +451,7 @@
         "translit_ru": "",
         "russian": "2 Термическая обработка подходит только для сталей, содержащих более 0.3% углерода.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "e14a22c1ed0f533f379dd707da2def33acb6f4c7138e97e640caa8b8dcc74362",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -347,7 +480,26 @@
         "caption_segment_id": null,
         "source_line_index": 7,
         "sentence_index": 7,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "2 טִיפּוּל תֶּרְמִי מַתְאִים רַק לִפְלָדוֹת הַמְּכִילוֹת יוֹתֵר מִ מִינוּס 0.3 אָחוּז פַּחְמָן.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/e14a22c1ed0f533f379dd707da2def33acb6f4c7138e97e640caa8b8dcc74362/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r009",
@@ -358,7 +510,7 @@
         "translit_ru": "",
         "russian": "3 Мартенситная структура более упругая/пластичная, чем любой другой компонент стали.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "2a148e3ecd374be09223e74480889e416b7f254cfa7e202f562b97ae2b0986ed",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -387,7 +539,26 @@
         "caption_segment_id": null,
         "source_line_index": 8,
         "sentence_index": 8,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "3 מִבְנֶה מַרְטֶנְסִיט גָּמִישׁ יוֹתֵר מֵאֲשֶׁר כָּל מַרְכִּיב אַחֵר שֶׁל פְּלָדָה.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/2a148e3ecd374be09223e74480889e416b7f254cfa7e202f562b97ae2b0986ed/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r010",
@@ -398,7 +569,7 @@
         "translit_ru": "",
         "russian": "4 Сталь SAE1040 пригодна для цементации.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "02741cea76b8e9d1b0becf29b9f234ac435aa3e1078e89c99a4ac10b8e0bedfe",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -427,7 +598,26 @@
         "caption_segment_id": null,
         "source_line_index": 9,
         "sentence_index": 9,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "4 פְּלָדָה אֶס־אֵיי־אִי 1040 מַתְאִימָה לְצִימֶנְטוּט.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/02741cea76b8e9d1b0becf29b9f234ac435aa3e1078e89c99a4ac10b8e0bedfe/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r011",
@@ -438,7 +628,7 @@
         "translit_ru": "",
         "russian": "5 Температура отпуска влияет на прочность и твердость стали после закалки.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "22d23364fce42aed65ad5e391421f120129d294e33f84dff981c824b55ba5f82",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -467,7 +657,26 @@
         "caption_segment_id": null,
         "source_line_index": 10,
         "sentence_index": 10,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "5 טֶמְפֶּרָטוּרַת הַהַרְפָּיָה מַשְׁפִּיעָה עַל הַחֹוזֶק וְעַל הַקַּשְׁיוּת שֶׁל פְּלָדָה לְאַחַר חִיסּוּם.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/22d23364fce42aed65ad5e391421f120129d294e33f84dff981c824b55ba5f82/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r012",
@@ -478,7 +687,7 @@
         "translit_ru": "",
         "russian": "6 Чем больше критический диаметр закалки стали, тем труднее закалить крупные детали, изготовленные из этой стали.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "074101df08afd0f2f6158ac49a8387e55cf286cd3c13166238a5c362e12b7e7e",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -507,7 +716,26 @@
         "caption_segment_id": null,
         "source_line_index": 11,
         "sentence_index": 11,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "6 כְּכָל שֶׁהַקֹּוטֶר הַקְּרִיטִי לְחִיסּוּם שֶׁל הַפְּלָדָה גָּדוֹל יוֹתֵר, כָּךְ קָשֶׁה יוֹתֵר לְחַסֵּם אֶת הַחֲלָקִים הַגְּדוֹלִים הָעֲשׂוּיִים מֵהַפְּלָדָה.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/074101df08afd0f2f6158ac49a8387e55cf286cd3c13166238a5c362e12b7e7e/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q037-r013",
@@ -518,7 +746,7 @@
         "translit_ru": "",
         "russian": "7 Термическая обработка предназначена только для упрочнения металлических материалов.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "fca5e4afa071013bc8ec9624488f16e080114e8cf525816ac3d9d4297791f319",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -547,7 +775,26 @@
         "caption_segment_id": null,
         "source_line_index": 12,
         "sentence_index": 12,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "7 טִיפּוּל תֶּרְמִי מְיֹועָד רַק לְהַקְשָׁייַת חֳומָרִים מַתַּכְתִּיִּים.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/fca5e4afa071013bc8ec9624488f16e080114e8cf525816ac3d9d4297791f319/timing"
+        }
       }
     ],
     "source_pages": [
@@ -620,7 +867,7 @@
         "independent_solution_sha256:7299de07eb9caa28fa76fbac05a905645e537e3870a91d91c68c7c7a48905a38"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -634,8 +881,17 @@
             "normalized": "בדוק"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103",
+        "spoken_he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103/timing"
       }
     },
     {
@@ -656,7 +912,7 @@
         "independent_solution_sha256:7299de07eb9caa28fa76fbac05a905645e537e3870a91d91c68c7c7a48905a38"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -695,8 +951,17 @@
             "normalized": "mm"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "1051c4fc36540c5af96391af54f744b1416d1f787301f8a3e6a2cf4ea0a6b247",
+        "spoken_he_niqqud": "דִּי תַּת מַקְסִימוּם בְּקֵרוּב שָׁוֶה 2 כָּפוּל 11 עַד 12 מִילִימֶטֶר בְּקֵרוּב שָׁוֶה 22 עַד 24 מִילִימֶטֶר",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/1051c4fc36540c5af96391af54f744b1416d1f787301f8a3e6a2cf4ea0a6b247/timing"
       },
       "formulae": [
         "D_max ≈ 2·(11–12) mm ≈ 22–24 mm"
@@ -720,7 +985,7 @@
         "independent_solution_sha256:7299de07eb9caa28fa76fbac05a905645e537e3870a91d91c68c7c7a48905a38"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -739,8 +1004,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "0849fcbe62a03833a6e24d3cc8584a60533aa29dbda88d82db25731612921ef2",
+        "spoken_he_niqqud": "ב 1 נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/0849fcbe62a03833a6e24d3cc8584a60533aa29dbda88d82db25731612921ef2/timing"
       },
       "part_label": "Б"
     },
@@ -765,7 +1039,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -844,8 +1118,17 @@
             "normalized": "במרכז"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "276163cb371a6de68d1cba3405ec8b868386f109f74d149ef4de1ee726ad81ca",
+        "spoken_he_niqqud": "א הקוטר המקסימלי של החלק הוא בערך 23 מִילִימֶטֶר כדי להבטיח קשיות גָּדוֹל אוֹ שָׁוֶה לְ־ 40 אֵייץ'־אָר־סִי במרכז.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/276163cb371a6de68d1cba3405ec8b868386f109f74d149ef4de1ee726ad81ca/timing"
       },
       "part_label": "А"
     },
@@ -870,7 +1153,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -909,8 +1192,17 @@
             "normalized": "40HRC"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "513e0db8c2a6cee00577ae7fdee7861fe78a4ba00f2a934a7b1008b68e347205",
+        "spoken_he_niqqud": "הדרישה היא קשיות במרכז החלק גָּדוֹל אוֹ שָׁוֶה לְ־ 40 אֵייץ'־אָר־סִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/513e0db8c2a6cee00577ae7fdee7861fe78a4ba00f2a934a7b1008b68e347205/timing"
       }
     },
     {
@@ -934,7 +1226,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1003,8 +1295,17 @@
             "normalized": "37HRC"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "fc0079da3a7247060ab092757a7ebf021ef8419b98aee582e499df8c781c02f2",
+        "spoken_he_niqqud": "מעקומת ג׳ ומיני מתקבל שב־ 10 מִילִימֶטֶר הקשיות בערך 41 אֵייץ'־אָר־סִי וב־ 15 מִילִימֶטֶר הקשיות בערך 37 אֵייץ'־אָר־סִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/fc0079da3a7247060ab092757a7ebf021ef8419b98aee582e499df8c781c02f2/timing"
       }
     },
     {
@@ -1028,7 +1329,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1112,8 +1413,17 @@
             "normalized": "mm"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "9285afa66c4b3743102481d3e727929cdf629b61704d7b163a697dd504d7eaad",
+        "spoken_he_niqqud": "לכן ערך 40 אֵייץ'־אָר־סִי מתקבל במרחק שקול של בערך 11 עַד 12 מִילִימֶטֶר לפי אינטרפולציה בין 10 ל־ 15 מִילִימֶטֶר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/9285afa66c4b3743102481d3e727929cdf629b61704d7b163a697dd504d7eaad/timing"
       }
     },
     {
@@ -1137,7 +1447,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1171,8 +1481,17 @@
             "normalized": "לרדיוס"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "3f877df453d875b962c7b3306cbf323f578bb2515fc73364061515fcf4a9b66a",
+        "spoken_he_niqqud": "בחתך עגול עומק המרכז שקול לרדיוס.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/3f877df453d875b962c7b3306cbf323f578bb2515fc73364061515fcf4a9b66a/timing"
       }
     },
     {
@@ -1196,7 +1515,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1215,8 +1534,17 @@
             "normalized": "D/2"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "29b0d09584b98cbc5a63371542b7c6c31c86e1d8c85185ed565792b9fbd377c3",
+        "spoken_he_niqqud": "אָר שָׁוֶה דִּי חֶלְקֵי 2",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/29b0d09584b98cbc5a63371542b7c6c31c86e1d8c85185ed565792b9fbd377c3/timing"
       },
       "formulae": [
         "R = D/2"
@@ -1243,7 +1571,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1282,8 +1610,17 @@
             "normalized": "2·J"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b6da1e28ca928d72e6f19636578d846784d548aa150cfec68295d8e4e84c451f",
+        "spoken_he_niqqud": "לכן הקוטר המקסימלי מוערך כ־ דִּי תַּת מַקְסִימוּם בְּקֵרוּב שָׁוֶה 2 כָּפוּל גֵּ'יי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b6da1e28ca928d72e6f19636578d846784d548aa150cfec68295d8e4e84c451f/timing"
       }
     },
     {
@@ -1307,7 +1644,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1346,8 +1683,17 @@
             "normalized": "mm"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "1051c4fc36540c5af96391af54f744b1416d1f787301f8a3e6a2cf4ea0a6b247",
+        "spoken_he_niqqud": "דִּי תַּת מַקְסִימוּם בְּקֵרוּב שָׁוֶה 2 כָּפוּל 11 עַד 12 מִילִימֶטֶר בְּקֵרוּב שָׁוֶה 22 עַד 24 מִילִימֶטֶר",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/1051c4fc36540c5af96391af54f744b1416d1f787301f8a3e6a2cf4ea0a6b247/timing"
       },
       "formulae": [
         "D_max ≈ 2·(11–12) mm ≈ 22–24 mm"
@@ -1374,7 +1720,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1408,8 +1754,17 @@
             "normalized": "mm"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "f2b34d9d4db4d2d94132bc2e72ed12cfaec4d675955555c11a9529cdb9bc7386",
+        "spoken_he_niqqud": "נבחר ערך תכנוני של כ־ 23 מִילִימֶטֶר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/f2b34d9d4db4d2d94132bc2e72ed12cfaec4d675955555c11a9529cdb9bc7386/timing"
       }
     },
     {
@@ -1433,7 +1788,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1452,8 +1807,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "0849fcbe62a03833a6e24d3cc8584a60533aa29dbda88d82db25731612921ef2",
+        "spoken_he_niqqud": "ב 1 נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/0849fcbe62a03833a6e24d3cc8584a60533aa29dbda88d82db25731612921ef2/timing"
       },
       "part_label": "Б"
     },
@@ -1478,7 +1842,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1557,8 +1921,17 @@
             "normalized": "Fe–C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "0ebea7bad7faba6fcc6c245d25291d5772cf5e3e2c61bea731737771b4084a8b",
+        "spoken_he_niqqud": "דיאגרמת בַּרְזֶל פָּחוֹת פַּחְמָן כוללת תחומי אַלְפָא חֶלְקֵי גַּמָּה חֶלְקֵי דֶּלְטָה ולכן משקפת גם שינויים אלוטרופיים של הברזל בתוך מערכת בַּרְזֶל פָּחוֹת פַּחְמָן.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/0ebea7bad7faba6fcc6c245d25291d5772cf5e3e2c61bea731737771b4084a8b/timing"
       }
     },
     {
@@ -1582,7 +1955,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1606,8 +1979,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "2d106e734c40f5b9e3f81f87a9ea2d94fb409a1f8a9b4c392821d3f3c3497e8f",
+        "spoken_he_niqqud": "ב 2 לא נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/2d106e734c40f5b9e3f81f87a9ea2d94fb409a1f8a9b4c392821d3f3c3497e8f/timing"
       },
       "part_label": "Б"
     },
@@ -1632,7 +2014,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1666,8 +2048,17 @@
             "normalized": "בלבד"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "6a1fbf29211e743e11a1cc1fa13f090cadb07e13431ff035cfc4db2f12d323a3",
+        "spoken_he_niqqud": "טיפול תרמי אינו מוגבל לחיסום בלבד.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/6a1fbf29211e743e11a1cc1fa13f090cadb07e13431ff035cfc4db2f12d323a3/timing"
       }
     },
     {
@@ -1691,7 +2082,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1760,8 +2151,17 @@
             "normalized": "צימנוט"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "cfb8db6173d34e529cdd606ef084ca809db908714fe549dc118b76ed46aa124d",
+        "spoken_he_niqqud": "גם פלדות דלות פחמן עוברות נרמול, הרפיה, שחרור מאמצים, וטיפולים תרמו־כימיים כמו צימנוט.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/cfb8db6173d34e529cdd606ef084ca809db908714fe549dc118b76ed46aa124d/timing"
       }
     },
     {
@@ -1785,7 +2185,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1869,8 +2269,17 @@
             "normalized": "תרמי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "ee91be937763add10d94e07f02bd348f597b9f7f44c8a5b676a82595360503c5",
+        "spoken_he_niqqud": "הסף של 0.3 אָחוּז קשור בעיקר ליכולת להגיע לקשיות גבוהה בחיסום, ולא לעצם התאמת החומר לטיפול תרמי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/ee91be937763add10d94e07f02bd348f597b9f7f44c8a5b676a82595360503c5/timing"
       }
     },
     {
@@ -1894,7 +2303,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1918,8 +2327,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "d404f46164222b048fab6e00c124e8b30f327ccb95b1171173e20189cae05d2e",
+        "spoken_he_niqqud": "ב 3 לא נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/d404f46164222b048fab6e00c124e8b30f327ccb95b1171173e20189cae05d2e/timing"
       },
       "part_label": "Б"
     },
@@ -1944,7 +2362,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1988,8 +2406,17 @@
             "normalized": "גבוהה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "903d23ad1e81ce572bc8c5bc60a67a6be0cd46dcc262c056ebdc140a4119ce52",
+        "spoken_he_niqqud": "מרטנסיט מאופיין בקשיות ובחוזק גבוהים אך בפריכות גבוהה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/903d23ad1e81ce572bc8c5bc60a67a6be0cd46dcc262c056ebdc140a4119ce52/timing"
       }
     },
     {
@@ -2013,7 +2440,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2057,8 +2484,17 @@
             "normalized": "ולפרליט"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "ae27ee62cca0d5fa74936f0b6f0f659ab4d6ddea01f0ace3be6799e6e472ca7c",
+        "spoken_he_niqqud": "הדוקטיליות והגמישות של מרטנסיט נמוכות ביחס לפריט ולפרליט.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/ae27ee62cca0d5fa74936f0b6f0f659ab4d6ddea01f0ace3be6799e6e472ca7c/timing"
       }
     },
     {
@@ -2082,7 +2518,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2106,8 +2542,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "915b2078e5141bf35de072870ea41776604e882ad604cd030f48287309f6cfde",
+        "spoken_he_niqqud": "ב 4 לא נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/915b2078e5141bf35de072870ea41776604e882ad604cd030f48287309f6cfde/timing"
       },
       "part_label": "Б"
     },
@@ -2132,7 +2577,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2191,8 +2636,17 @@
             "normalized": "טיפוסית"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b2913e7eef57680a6419e91f79055aeb9ffd75d91c7235db7832d055bdcb622a",
+        "spoken_he_niqqud": "אֶס־אֵיי־אִי 1040 מכילה בערך 0.40 אָחוּז פחמן ולכן אינה פלדת צימנוט טיפוסית.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b2913e7eef57680a6419e91f79055aeb9ffd75d91c7235db7832d055bdcb622a/timing"
       }
     },
     {
@@ -2216,7 +2670,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2320,8 +2774,17 @@
             "normalized": "יותר"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "c64a566067ea04cea6fe22ea6b8990b8b6ccbacc523d09946829b818d2543a38",
+        "spoken_he_niqqud": "לצימנוט בוחרים לרוב פלדות דלות פחמן כדי לקבל שכבה קשה וליבה קשיחה־דיה אך יחסית קשיחה פחות ובעלת קשיחות גבוהה יותר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/c64a566067ea04cea6fe22ea6b8990b8b6ccbacc523d09946829b818d2543a38/timing"
       }
     },
     {
@@ -2345,7 +2808,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2364,8 +2827,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "262a655f75f28047ff715b4bb0e44c09198247ff738cd372fa219d9eaf763532",
+        "spoken_he_niqqud": "ב 5 נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/262a655f75f28047ff715b4bb0e44c09198247ff738cd372fa219d9eaf763532/timing"
       },
       "part_label": "Б"
     },
@@ -2390,7 +2862,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2434,8 +2906,17 @@
             "normalized": "חיסום"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "e23de319e8d59838b6249af7af191dbbb2131cdfffccba74aa855f56ac7cdd69",
+        "spoken_he_niqqud": "טמפרטורת ההרפיה משנה את מצב המרטנסיט לאחר חיסום.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/e23de319e8d59838b6249af7af191dbbb2131cdfffccba74aa855f56ac7cdd69/timing"
       }
     },
     {
@@ -2459,7 +2940,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2543,8 +3024,17 @@
             "normalized": "ובקרבידים"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "67ea79546b8c84573303e0fbcface609af8060a4dca066f822c3ac6f21e406c3",
+        "spoken_he_niqqud": "עם העלאת טמפרטורת ההרפיה בדרך כלל יורדות הקשיות והחוזק עקב הקלה במאמצים פנימיים ושינוי במבנה ובקרבידים.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/67ea79546b8c84573303e0fbcface609af8060a4dca066f822c3ac6f21e406c3/timing"
       }
     },
     {
@@ -2568,7 +3058,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2592,8 +3082,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "90c0f96b6deab78fe400b20b35a3a9c85e9d13419aff9a9576d5c4634b9308e7",
+        "spoken_he_niqqud": "ב 6 לא נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/90c0f96b6deab78fe400b20b35a3a9c85e9d13419aff9a9576d5c4634b9308e7/timing"
       },
       "part_label": "Б"
     },
@@ -2618,7 +3117,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2672,8 +3171,17 @@
             "normalized": "יותר"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "416b88eb48716893aa60f013dbafda7bfccea10a3bce9ca7197c00ca58f3fed5",
+        "spoken_he_niqqud": "קוטר קריטי גדול יותר מעיד על כושר חיסום גבוה יותר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/416b88eb48716893aa60f013dbafda7bfccea10a3bce9ca7197c00ca58f3fed5/timing"
       }
     },
     {
@@ -2697,7 +3205,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2761,8 +3269,17 @@
             "normalized": "עליו"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8eb3df4d4e1d1c10ac72417f2a7034942d3ae4d719869433bacac9d8a6b5d9e6",
+        "spoken_he_niqqud": "כושר חיסום גבוה יותר מקל על חיסום חתכים גדולים ולא מקשה עליו.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8eb3df4d4e1d1c10ac72417f2a7034942d3ae4d719869433bacac9d8a6b5d9e6/timing"
       }
     },
     {
@@ -2786,7 +3303,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2810,8 +3327,17 @@
             "normalized": "נכון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "0f173313560d2068ddc981ebd3f18fe6337b2864a0ffef7e34aa50b601aa8f9b",
+        "spoken_he_niqqud": "ב 7 לא נכון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/0f173313560d2068ddc981ebd3f18fe6337b2864a0ffef7e34aa50b601aa8f9b/timing"
       },
       "part_label": "Б"
     },
@@ -2836,7 +3362,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2915,8 +3441,17 @@
             "normalized": "בלבד"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "106fa1a7cf9356e7d599189a98b0b6d928ffbe24ff8af10b6641663f693aae73",
+        "spoken_he_niqqud": "טיפול תרמי מיועד גם לריכוך, לנרמול, לשחרור מאמצים, לשיפור מבנה, ולמטרות נוספות מעבר להקשיה בלבד.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/106fa1a7cf9356e7d599189a98b0b6d928ffbe24ff8af10b6641663f693aae73/timing"
       }
     },
     {
@@ -2939,7 +3474,7 @@
         "declared_convention:ASTM_A255"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2993,8 +3528,17 @@
             "normalized": "הישן"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "02f2fd5c145ddd2fae0d2bac9869f33a7d2c5cfb236a3bc180ec32c286bb9ee2",
+        "spoken_he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/02f2fd5c145ddd2fae0d2bac9869f33a7d2c5cfb236a3bc180ec32c286bb9ee2/timing"
       }
     }
   ],
@@ -3068,9 +3612,16 @@
     "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
   },
   "audio_boundary": {
-    "full_tts_generated": false,
-    "timing_sidecars_present": false,
+    "full_tts_generated": true,
+    "timing_sidecars_present": true,
     "row_karaoke_contract_checked": true,
+    "profile_id": "materials-pb2-standard-a-0.8-pitch-2.5-v1",
+    "profile": {
+      "language": "he-IL",
+      "voiceName": "he-IL-Standard-A",
+      "speakingRate": 0.8,
+      "pitch": 2.5
+    },
     "formula_speech_review_required_count": 3
   },
   "rights": {
@@ -3078,8 +3629,8 @@
     "public_solution_display_and_print_allowed": true,
     "package_download_allowed": true,
     "agent_derivative_text_allowed": true,
-    "full_tts_audio_and_timings_allowed": false,
-    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
-    "asserted_at": "2026-08-30"
+    "full_tts_audio_and_timings_allowed": true,
+    "basis": "Owner attestation in the Codex goal thread on 2026-09-01: the owner confirms the rights and grants permission for public generation and distribution of TTS for this corpus.",
+    "asserted_at": "2026-09-01T02:01:58+03:00"
   }
 }

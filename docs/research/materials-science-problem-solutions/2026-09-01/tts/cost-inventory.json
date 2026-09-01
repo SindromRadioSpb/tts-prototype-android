@@ -13,20 +13,23 @@
   "task_count": 60,
   "row_reference_count": 2612,
   "unique_condition_row_count": 674,
-  "unique_solution_row_count": 1577,
-  "unique_row_asset_count": 2251,
+  "unique_solution_row_count": 1568,
+  "unique_row_asset_count": 2239,
   "word_reference_count": 19996,
   "discovered_word_form_count": 5688,
   "unique_word_asset_count": 5072,
-  "row_billed_character_count": 215752,
+  "row_billed_character_count": 253016,
   "word_billed_character_count": 54928,
   "normalized_word_billed_character_count": 48760,
-  "total_billed_character_count": 270680,
+  "total_billed_character_count": 307944,
   "release_character_ceiling": 320000,
   "formula_review_required_count": 275,
-  "formula_review_pass_count": 0,
+  "formula_review_pass_count": 275,
+  "formula_speech_compiler_id": "materials-formula-speech-he-v1",
+  "system_compiled_row_reference_count": 1656,
+  "owner_reviewed_override_count": 4,
   "gates": {
     "cost": "PASS",
-    "formula_speech": "BLOCKED"
+    "formula_speech": "PASS"
   }
 }

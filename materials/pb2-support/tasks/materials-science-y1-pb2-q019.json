@@ -38,7 +38,7 @@
         "translit_ru": "",
         "russian": "Вопрос 19.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "5ffead6b0a95c795fb9c69f214d245bbd5fabf724aa67ed529807e5a035bbaf9",
         "translation_provider": "legacy:existing-canonical-pass",
         "translation_meta": {
           "provider": "legacy_existing_canonical",
@@ -67,7 +67,26 @@
         "caption_segment_id": null,
         "source_line_index": 0,
         "sentence_index": 0,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "שְׁאֵלָה 19.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/5ffead6b0a95c795fb9c69f214d245bbd5fabf724aa67ed529807e5a035bbaf9/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r002",
@@ -78,7 +97,7 @@
         "translit_ru": "",
         "russian": "а. В испытании на удар ударная вязкость (энергия удара), E, испытуемого образца зависит от веса маятника (молота), G, и высот H1 и H2 следующим образом:",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "2f05cdb03fdf8245216840a478c9c86b777342938585fb84c2f3079745279a3f",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -107,7 +126,26 @@
         "caption_segment_id": null,
         "source_line_index": 1,
         "sentence_index": 1,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "א. בְּנִיסּוּי נְגִיפָה, אֶנֶרְגִּייַּת הַנְּגִיפָה, אִי, שֶׁל הַדֶּגֶם הַנִּבְדָּק תְּלוּיָה בְּמִשְׁקַל הַפַּטִּישׁ, גִּ'י, וּבַגְּבָהִים, אֵייץ' 1 וְ־ אֵייץ' 2, בְּאֹופֶן הַבָּא:",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/2f05cdb03fdf8245216840a478c9c86b777342938585fb84c2f3079745279a3f/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r003",
@@ -118,7 +156,7 @@
         "translit_ru": "",
         "russian": "E = G (H1 - H2)",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "74b4909bd1cb6f764f7ad799bd0eb58d60efd2a899ee0d0d8fa753d638ffacfd",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -147,7 +185,26 @@
         "caption_segment_id": null,
         "source_line_index": 2,
         "sentence_index": 2,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "אִי שָׁוֶה גִּ'י אֵייץ' 1 אֵייץ' 2",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/74b4909bd1cb6f764f7ad799bd0eb58d60efd2a899ee0d0d8fa753d638ffacfd/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r004",
@@ -158,7 +215,7 @@
         "translit_ru": "",
         "russian": "1. Что выражает высота H1 и что выражает высота H2?",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "d360a425758d8a059a912c374e898d9fa5a931eea208f8983ad7c320c2cb61a6",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -187,7 +244,26 @@
         "caption_segment_id": null,
         "source_line_index": 3,
         "sentence_index": 3,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "1. מַה מְבַטֵּא הַגֹּובַהּ אֵייץ' 1 וּמַה מְבַטֵּא הַגֹּובַהּ אֵייץ' 2?",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/d360a425758d8a059a912c374e898d9fa5a931eea208f8983ad7c320c2cb61a6/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r005",
@@ -198,7 +274,7 @@
         "translit_ru": "",
         "russian": "2. Должен ли материал, из которого изготовлен автомобильный бампер, обладать высокой или низкой ударной вязкостью?",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "1fe52d0ea2092586a18359d8f5bd355eb254f7246b39236e435a502639bd2a9c",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -227,7 +303,26 @@
         "caption_segment_id": null,
         "source_line_index": 4,
         "sentence_index": 4,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "2. הַאִם הַחֹומֶר שֶׁמִּמֶּנּוּ עָשׂוּי פָּגוֹשׁ בְּרֶכֶב צָרִיךְ לִהְיוֹת בַּעַל אֶנֶרְגִּייַּת נְגִיפָה גְּבוֹהָה אוֹ נְמוּכָה?",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/1fe52d0ea2092586a18359d8f5bd355eb254f7246b39236e435a502639bd2a9c/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r006",
@@ -238,7 +333,7 @@
         "translit_ru": "",
         "russian": "Обоснуйте свой ответ.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "afea27629b075fe91d48335cdeda38fd29ef4bb19177e0d5ce9118235ad6b32d",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -267,7 +362,26 @@
         "caption_segment_id": null,
         "source_line_index": 5,
         "sentence_index": 5,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "נַמֵּק אֶת תְּשׁוּבָתְךָ.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/afea27629b075fe91d48335cdeda38fd29ef4bb19177e0d5ce9118235ad6b32d/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r007",
@@ -278,7 +392,7 @@
         "translit_ru": "",
         "russian": "б. В приведенной ниже таблице представлены значения энергии разрушения при испытании стали на удар по Шарпи (Charpy).",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "c5076f97475f08323d5193faa543d3518e6c7d8f4b64a2018dba10eadac2561b",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -307,7 +421,26 @@
         "caption_segment_id": null,
         "source_line_index": 6,
         "sentence_index": 6,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "ב. בְּטַבְלָה שֶׁלְּהַלָּן מֻוצָּגִים ערכים שֶׁל אֶנֶרְגִּייַּת שֶׁבֶר מִמִּבְחַן נְגִיפָה לִפְלָדָה עַל־פִּי שַׁרְפִּי שַׁרְפִּי.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/c5076f97475f08323d5193faa543d3518e6c7d8f4b64a2018dba10eadac2561b/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r008",
@@ -318,7 +451,7 @@
         "translit_ru": "",
         "russian": "Испытание проводилось в диапазоне температур от -75°C до +50°C.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "d58ee360e864991fbae62435c42b7e0a2399007e8af940e0fdb8928880f21500",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -347,7 +480,26 @@
         "caption_segment_id": null,
         "source_line_index": 7,
         "sentence_index": 7,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "הַמִּבְחָן בֻּוצַּע בִּטְוָוח הַטֶּמְפֶּרָטוּרוֹת שֶׁבֵּין 75 מַעֲלוֹת צֶלְזִיּוּס וְעַד 50 מַעֲלוֹת צֶלְזִיּוּס וְעוֹד.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/d58ee360e864991fbae62435c42b7e0a2399007e8af940e0fdb8928880f21500/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r009",
@@ -358,7 +510,7 @@
         "translit_ru": "",
         "russian": "Температура, °C: +50, −22, −25, −28, −75",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "4c2ea678139adee96201890b2455cae675f994512cc5bc0753a537be274d41eb",
         "translation_provider": "legacy:source-bound-studio-export",
         "translation_meta": {
           "provider": "legacy_source_bound",
@@ -387,7 +539,26 @@
         "caption_segment_id": null,
         "source_line_index": 8,
         "sentence_index": 8,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "טֶמְפֶּרָטוּרָה, מַעֲלוֹת צֶלְזִיּוּס: וְעוֹד 50, פָּחוֹת 22, פָּחוֹת 25, פָּחוֹת 28, פָּחוֹת 75",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/4c2ea678139adee96201890b2455cae675f994512cc5bc0753a537be274d41eb/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r010",
@@ -398,7 +569,7 @@
         "translit_ru": "",
         "russian": "Энергия разрушения, Дж: 17, 14, 12, 8, 6",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "67ed17025180282fcd70b3861a007a3c1ef16d90f16824a9cdcb75a49d07f5fc",
         "translation_provider": "local:source-visual-review",
         "translation_meta": {
           "provider": "local_source_visual_review",
@@ -427,7 +598,26 @@
         "caption_segment_id": null,
         "source_line_index": 9,
         "sentence_index": 9,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "אֶנֶרְגִּייַּת הַשֶּׁבֶר, ג'וּל: 17, 14, 12, 8, 6",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/67ed17025180282fcd70b3861a007a3c1ef16d90f16824a9cdcb75a49d07f5fc/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r011",
@@ -438,7 +628,7 @@
         "translit_ru": "",
         "russian": "Постройте в тетради график зависимости энергии удара от температуры и определите температуру перехода «хрупкий–пластичный».",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "9010a28cdd15fd3a259bff9fceb87c49859e9098ed46e16b54f24d76a9923262",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -467,7 +657,26 @@
         "caption_segment_id": null,
         "source_line_index": 10,
         "sentence_index": 10,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "הַצֵּג בְּמַחְבַּרְתְּךָ גְּרָף הַמְּתָאֵר אֶת אֶנֶרְגִּייַּת הַנְּגִיפָה כְּפוּנְקְצִיָּה שֶׁל הַטֶּמְפֶּרָטוּרָה וּקְבַע אֶת טֶמְפֶּרָטוּרַת הַמַּעֲבָר \" פָּרִיךְ־מָשִׁיךְ \".",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/9010a28cdd15fd3a259bff9fceb87c49859e9098ed46e16b54f24d76a9923262/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r012",
@@ -478,7 +687,7 @@
         "translit_ru": "",
         "russian": "в. Два образца, изготовленных из стали SAE 1050, прошли термическую обработку.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "82830463edc2f0aaec24030227acc12c6761a96d104f062cd6cc799dd477f6f4",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -507,7 +716,26 @@
         "caption_segment_id": null,
         "source_line_index": 11,
         "sentence_index": 11,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "ג. שְׁנֵי דְּגָמִים הָעֲשׂוּיִים מִן הַפְּלָדָה אֶס־אֵיי־אִי 1050 עָבְרוּ טִיפּוּלִים תֶּרְמִיִּים.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/82830463edc2f0aaec24030227acc12c6761a96d104f062cd6cc799dd477f6f4/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r013",
@@ -518,7 +746,7 @@
         "translit_ru": "",
         "russian": "Один из образцов прошел закалку в воде, а другой прошел закалку и отпуск.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "3ede7ad18590fa22702477b437cfae763c6ee693a8bdd701e964a1d90d2ec236",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -547,7 +775,26 @@
         "caption_segment_id": null,
         "source_line_index": 12,
         "sentence_index": 12,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "אֶחָד הַדְּגָמִים עָבַר חִיסּוּם בְּמַיִם וְהָאַחֵר עָבַר חִיסּוּם וְהַרְפָּיָה.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/3ede7ad18590fa22702477b437cfae763c6ee693a8bdd701e964a1d90d2ec236/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r014",
@@ -558,7 +805,7 @@
         "translit_ru": "",
         "russian": "После термической обработки были проведены испытания на удар для обоих образцов.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "ea8f964fd9c18937c775ea77f1c70db6593b6164fe5c41c6338364ac5ac64b82",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -587,7 +834,26 @@
         "caption_segment_id": null,
         "source_line_index": 13,
         "sentence_index": 13,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "לְאַחַר הַטִּיפּוּלִים הַתֶּרְמִיִּים בֻּוצְּעוּ מִבְחֲנֵי נְגִיפָה לִשְׁנֵי הַדְּגָמִים.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/ea8f964fd9c18937c775ea77f1c70db6593b6164fe5c41c6338364ac5ac64b82/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r015",
@@ -598,7 +864,7 @@
         "translit_ru": "",
         "russian": "В результате термообработок образовались две структуры материала — сорбит и мартенсит, а в испытаниях на удар были измерены две энергии разрушения — 5 Дж и 78 Дж.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "947c12cc0de245b3407092699e61a7ebb36eb8eea49754db7de278a75038f2ce",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -627,7 +893,26 @@
         "caption_segment_id": null,
         "source_line_index": 14,
         "sentence_index": 14,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "כְּתוֹצָאָה מֵהַטִּיפּוּלִים הַתֶּרְמִיִּים הִתְקַבְּלוּ שְׁנֵי מִבְנֵי חֹומֶר פָּחוֹת סוֹרְבִּיט וּמַרְטֶנְסִיט, וּבְמִבְחֲנֵי הַנְּגִיפָה נִמְדְּדוּ שְׁתֵּי אֶנֶרְגִּיּוֹת שֶׁבֶר פָּחוֹת 5 ג'וּל וְ־ 78 ג'וּל.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/947c12cc0de245b3407092699e61a7ebb36eb8eea49754db7de278a75038f2ce/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r016",
@@ -638,7 +923,7 @@
         "translit_ru": "",
         "russian": "Перечертите в тетрадь приведенную ниже таблицу и сопоставьте названия структур материала и значения энергии разрушения с видами термической обработки.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "d75ca136a2d3dd7bd569ea19e8cdfac21d238f54cd2dd05ca0bc3a1b95559ee5",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -667,7 +952,26 @@
         "caption_segment_id": null,
         "source_line_index": 15,
         "sentence_index": 15,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "הַעְתֵּק לְמַחְבַּרְתְּךָ אֶת הַטַּבְלָה שֶׁלְּהַלָּן, וְהַתְאֵם אֶת הַשֵּׁמוֹת שֶׁל מִבְנֵי הַחֹומֶר וְאֶת הָעֲרָכִים שֶׁל אֶנֶרְגִּיּוֹת הַשֶּׁבֶר לַטִּיפּוּלִים הַתֶּרְמִיִּים.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/d75ca136a2d3dd7bd569ea19e8cdfac21d238f54cd2dd05ca0bc3a1b95559ee5/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r017",
@@ -678,7 +982,7 @@
         "translit_ru": "",
         "russian": "Закалка в воде",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "d5c8fc6a27ebddc3fb698d5653584d3ca7533b86c431792f27e00433af31b8cf",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -707,7 +1011,26 @@
         "caption_segment_id": null,
         "source_line_index": 16,
         "sentence_index": 16,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "חִיסּוּם בְּמַיִם",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/d5c8fc6a27ebddc3fb698d5653584d3ca7533b86c431792f27e00433af31b8cf/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r018",
@@ -718,7 +1041,7 @@
         "translit_ru": "",
         "russian": "Энергия разрушения (Дж)",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "7b0279fdffed7cff9d3122ee0c66c1c741805768c21b6cd609d48e44f5e441b1",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -747,7 +1070,26 @@
         "caption_segment_id": null,
         "source_line_index": 17,
         "sentence_index": 17,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "אֶנֶרְגִּייַּת שֶׁבֶר ג'וּל",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/7b0279fdffed7cff9d3122ee0c66c1c741805768c21b6cd609d48e44f5e441b1/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r019",
@@ -758,7 +1100,7 @@
         "translit_ru": "",
         "russian": "Структура материала",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "fb6a89915e27e38ce18dec93dd222e58f088a7f5cf40681c6300797122571739",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -787,7 +1129,26 @@
         "caption_segment_id": null,
         "source_line_index": 18,
         "sentence_index": 18,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "מִבְנֵה הַחֹומֶר",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/fb6a89915e27e38ce18dec93dd222e58f088a7f5cf40681c6300797122571739/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r020",
@@ -798,7 +1159,7 @@
         "translit_ru": "",
         "russian": "Закалка и отпуск",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "346e5ebbe32875ef0674db93289da83c714a023a330624b7bede129cc8584983",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -827,7 +1188,26 @@
         "caption_segment_id": null,
         "source_line_index": 19,
         "sentence_index": 19,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "חִיסּוּם וְהַרְפָּיָה",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/346e5ebbe32875ef0674db93289da83c714a023a330624b7bede129cc8584983/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r021",
@@ -838,7 +1218,7 @@
         "translit_ru": "",
         "russian": "Энергия разрушения (Дж)",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "7b0279fdffed7cff9d3122ee0c66c1c741805768c21b6cd609d48e44f5e441b1",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -867,7 +1247,26 @@
         "caption_segment_id": null,
         "source_line_index": 20,
         "sentence_index": 20,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "אֶנֶרְגִּייַּת שֶׁבֶר ג'וּל",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/7b0279fdffed7cff9d3122ee0c66c1c741805768c21b6cd609d48e44f5e441b1/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r022",
@@ -878,7 +1277,7 @@
         "translit_ru": "",
         "russian": "Структура материала",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "fb6a89915e27e38ce18dec93dd222e58f088a7f5cf40681c6300797122571739",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -907,7 +1306,26 @@
         "caption_segment_id": null,
         "source_line_index": 21,
         "sentence_index": 21,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "מִבְנֵה הַחֹומֶר",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/fb6a89915e27e38ce18dec93dd222e58f088a7f5cf40681c6300797122571739/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q019-r023",
@@ -918,7 +1336,7 @@
         "translit_ru": "",
         "russian": "Обоснуйте соответствие между структурами материала и энергиями разрушения.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "84a91700b05effac51908ba575b93483f9013664abb426fc6d56c8f5b479f089",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -947,7 +1365,26 @@
         "caption_segment_id": null,
         "source_line_index": 22,
         "sentence_index": 22,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "נַמֵּק אֶת הַהַתְאָמוֹת בֵּין מִבְנֵי הַחֹומֶר לְאֶנֶרְגִּיּוֹת הַשֶּׁבֶר.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/84a91700b05effac51908ba575b93483f9013664abb426fc6d56c8f5b479f089/timing"
+        }
       }
     ],
     "source_pages": [
@@ -1010,7 +1447,7 @@
         "independent_solution_sha256:72f4a274d89bf7b84f4c193f291ff3d95726a364ce56cd2d3f063410b9c9dd34"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1024,8 +1461,17 @@
             "normalized": "בדוק"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103",
+        "spoken_he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103/timing"
       }
     },
     {
@@ -1046,7 +1492,7 @@
         "independent_solution_sha256:72f4a274d89bf7b84f4c193f291ff3d95726a364ce56cd2d3f063410b9c9dd34"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1150,8 +1596,17 @@
             "normalized": "והשבר"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "83ab072d4a63f1115fe501db2defff351330a7ec20739f44b0bdcfbe24bdb673",
+        "spoken_he_niqqud": "א אֵייץ' 1 מבטא את הגובה ההתחלתי של הפטיש לפני הפגיעה, ו־ אֵייץ' 2 מבטא את הגובה שאליו הפטיש עולה לאחר הפגיעה והשבר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/83ab072d4a63f1115fe501db2defff351330a7ec20739f44b0bdcfbe24bdb673/timing"
       },
       "part_label": "А"
     },
@@ -1173,7 +1628,7 @@
         "independent_solution_sha256:72f4a274d89bf7b84f4c193f291ff3d95726a364ce56cd2d3f063410b9c9dd34"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1232,8 +1687,17 @@
             "normalized": "גבוהה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "88221cbf0d59db711e4627b0eef0cf98a078014674cb93e545f792416c1a20c2",
+        "spoken_he_niqqud": "חומר שממנו עשוי פגוש ברכב צריך להיות בעל אנרגיית נגיפה גבוהה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/88221cbf0d59db711e4627b0eef0cf98a078014674cb93e545f792416c1a20c2/timing"
       }
     },
     {
@@ -1254,7 +1718,7 @@
         "independent_solution_sha256:72f4a274d89bf7b84f4c193f291ff3d95726a364ce56cd2d3f063410b9c9dd34"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1303,8 +1767,17 @@
             "normalized": "ב־‎−25°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "9731a350d3a799b3347904146538f51061cf0bf822978820ec137b5b2a30cdfa",
+        "spoken_he_niqqud": "הערך 11.5 ג'וּל נמצא בין 8 ג'וּל ב־ פָּחוֹת 28 מַעֲלוֹת צֶלְזִיּוּס לבין 12 ג'וּל ב־ פָּחוֹת 25 מַעֲלוֹת צֶלְזִיּוּס.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/9731a350d3a799b3347904146538f51061cf0bf822978820ec137b5b2a30cdfa/timing"
       }
     },
     {
@@ -1325,7 +1798,7 @@
         "independent_solution_sha256:72f4a274d89bf7b84f4c193f291ff3d95726a364ce56cd2d3f063410b9c9dd34"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1379,8 +1852,17 @@
             "normalized": "לנגיפה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8e6931cbe61b88642a7ffd6c8ded76a7afdf54370b5f6adaff422983deb760e4",
+        "spoken_he_niqqud": "הרפיה לאחר חיסום מפחיתה מאמצים פנימיים ומשפרת קשיחות ועמידות לנגיפה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8e6931cbe61b88642a7ffd6c8ded76a7afdf54370b5f6adaff422983deb760e4/timing"
       }
     },
     {
@@ -1404,7 +1886,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1508,8 +1990,17 @@
             "normalized": "והשבר"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "83ab072d4a63f1115fe501db2defff351330a7ec20739f44b0bdcfbe24bdb673",
+        "spoken_he_niqqud": "א אֵייץ' 1 מבטא את הגובה ההתחלתי של הפטיש לפני הפגיעה, ו־ אֵייץ' 2 מבטא את הגובה שאליו הפטיש עולה לאחר הפגיעה והשבר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/83ab072d4a63f1115fe501db2defff351330a7ec20739f44b0bdcfbe24bdb673/timing"
       },
       "part_label": "А"
     },
@@ -1534,7 +2025,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1608,8 +2099,17 @@
             "normalized": "בדגם"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "6183f335a9ffb1ca76f9b706ecdac4ab7ac18bf4c542d6e29dfb8e84f9860b91",
+        "spoken_he_niqqud": "אֵייץ' 1 הוא הגובה של מרכז המסה של המטוטלת לפני שחרור הפטיש ולפני הפגיעה בדגם.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/6183f335a9ffb1ca76f9b706ecdac4ab7ac18bf4c542d6e29dfb8e84f9860b91/timing"
       }
     },
     {
@@ -1633,7 +2133,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1707,8 +2207,17 @@
             "normalized": "בדגם"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "5f4a2e6ec9b050f7d57287045fe31e1e75af4ae6035fc2889430b086b4c4d41a",
+        "spoken_he_niqqud": "אֵייץ' 2 הוא הגובה שאליו מגיע הפטיש לאחר מעבר דרך הדגם, לאחר שנבלעה אנרגיה בדגם.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/5f4a2e6ec9b050f7d57287045fe31e1e75af4ae6035fc2889430b086b4c4d41a/timing"
       }
     },
     {
@@ -1732,7 +2241,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1831,8 +2340,17 @@
             "normalized": "הפגיעה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "3ee49b4c34ba5e8bb7105ab643fdffae7384dee6a0c56e88858d1bc09bc53a53",
+        "spoken_he_niqqud": "אנרגיית הנגיפה היא האנרגיה שנבלעת בדגם והיא שווה להפרש באנרגיה הפוטנציאלית של הפטיש בין לפני הפגיעה לבין אחרי הפגיעה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/3ee49b4c34ba5e8bb7105ab643fdffae7384dee6a0c56e88858d1bc09bc53a53/timing"
       }
     },
     {
@@ -1856,7 +2374,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1885,8 +2403,17 @@
             "normalized": "לפי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "114844c53aead16d4f1317397f60ffebeceae67d91ec69c08b48f62593dea6c8",
+        "spoken_he_niqqud": "מחשבים את אנרגיית הנגיפה לפי:",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/114844c53aead16d4f1317397f60ffebeceae67d91ec69c08b48f62593dea6c8/timing"
       }
     },
     {
@@ -1910,7 +2437,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1939,8 +2466,17 @@
             "normalized": "H2"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "60516339ac83851fa9bb4c9948aea8ad98dcf633c393f56c4bbd1fe1084fc71f",
+        "spoken_he_niqqud": "אִי שָׁוֶה גִּ'י אֵייץ' 1 פָּחוֹת אֵייץ' 2",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/60516339ac83851fa9bb4c9948aea8ad98dcf633c393f56c4bbd1fe1084fc71f/timing"
       },
       "formulae": [
         "E = G(H1 − H2)"
@@ -1967,7 +2503,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2026,8 +2562,17 @@
             "normalized": "גבוהה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "88221cbf0d59db711e4627b0eef0cf98a078014674cb93e545f792416c1a20c2",
+        "spoken_he_niqqud": "חומר שממנו עשוי פגוש ברכב צריך להיות בעל אנרגיית נגיפה גבוהה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/88221cbf0d59db711e4627b0eef0cf98a078014674cb93e545f792416c1a20c2/timing"
       }
     },
     {
@@ -2051,7 +2596,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2120,8 +2665,17 @@
             "normalized": "פריך"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "e2e976e58d910f179f82393f588bd3658bf6bad5596446e52cbe00121ea6f104",
+        "spoken_he_niqqud": "פגוש צריך לספוג אנרגיה בזמן פגיעה ולהמיר אותה לעיוות פלסטי במקום לשבר פריך.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/e2e976e58d910f179f82393f588bd3658bf6bad5596446e52cbe00121ea6f104/timing"
       }
     },
     {
@@ -2145,7 +2699,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2204,8 +2758,17 @@
             "normalized": "נמוכות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "17db20a0dd4e8cbb69df4eee799421efdbe8d360d72a16cf079862ded0af3adb",
+        "spoken_he_niqqud": "אנרגיית נגיפה נמוכה מעידה על נטייה לשבר פתאומי, במיוחד בטמפרטורות נמוכות.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/17db20a0dd4e8cbb69df4eee799421efdbe8d360d72a16cf079862ded0af3adb/timing"
       }
     },
     {
@@ -2229,7 +2792,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2268,8 +2831,17 @@
             "normalized": "25°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8f5c2ccfa1644a3994a598bd6ea7c7c825894dd246ca9fad6ac6ec7b64f7af11",
+        "spoken_he_niqqud": "ב טמפרטורת המעבר \" פריך־משיך \" היא בקירוב פָּחוֹת 25 מַעֲלוֹת צֶלְזִיּוּס.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8f5c2ccfa1644a3994a598bd6ea7c7c825894dd246ca9fad6ac6ec7b64f7af11/timing"
       },
       "part_label": "Б"
     },
@@ -2294,7 +2866,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2338,8 +2910,17 @@
             "normalized": "הטמפרטורה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "2c0e1e556a6e81bd89ce1073001144ed50b64206aa69647c27f23ced8a8f0abf",
+        "spoken_he_niqqud": "מהנתונים רואים שאנרגית השבר עולה עם עליית הטמפרטורה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/2c0e1e556a6e81bd89ce1073001144ed50b64206aa69647c27f23ced8a8f0abf/timing"
       }
     },
     {
@@ -2363,7 +2944,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2407,8 +2988,17 @@
             "normalized": "למשיך"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "363df104b7eb14b68b409c5fe8b8225549c229344e37269902aafed7204f7707",
+        "spoken_he_niqqud": "לכן קיימת התנהגות אופיינית של מעבר מפריך למשיך.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/363df104b7eb14b68b409c5fe8b8225549c229344e37269902aafed7204f7707/timing"
       }
     },
     {
@@ -2432,7 +3022,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2466,8 +3056,17 @@
             "normalized": "6–8Joul"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b2e3d75b493513e6367283483d44a3b32244b9f6d9b0278787e865062752d79c",
+        "spoken_he_niqqud": "מדף תחתון בקירוב מתקבל סביב 6 עַד 8 ג'וּל.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b2e3d75b493513e6367283483d44a3b32244b9f6d9b0278787e865062752d79c/timing"
       }
     },
     {
@@ -2491,7 +3090,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2525,8 +3124,17 @@
             "normalized": "17Joul"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "7dd2356bf13d697b06fb80272a4d12a5bf6a484bc7665c5792687f2fb37426df",
+        "spoken_he_niqqud": "מדף עליון בקירוב מתקבל סביב 17 ג'וּל.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/7dd2356bf13d697b06fb80272a4d12a5bf6a484bc7665c5792687f2fb37426df/timing"
       }
     },
     {
@@ -2550,7 +3158,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2604,8 +3212,17 @@
             "normalized": "לעליון"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "201b557a7d0d8d8c70d079637807f9bb0eb60a1b25273f3e402a45839ce6a0d8",
+        "spoken_he_niqqud": "מעריכים טמפרטורת מעבר לפי אנרגיית אמצע בין המדף התחתון לעליון.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/201b557a7d0d8d8c70d079637807f9bb0eb60a1b25273f3e402a45839ce6a0d8/timing"
       }
     },
     {
@@ -2629,7 +3246,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2658,8 +3275,17 @@
             "normalized": "E_high)/2"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "30b9a19f591d4aa6338eee7b7500229e6a0164df7fe5fdf74e09273d7b3fc5a3",
+        "spoken_he_niqqud": "אִי תַּת אֶמְצָעִי שָׁוֶה אִי תַּת נָמוּךְ וְעוֹד אִי תַּת גָּבוֹהַּ חֶלְקֵי 2",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/30b9a19f591d4aa6338eee7b7500229e6a0164df7fe5fdf74e09273d7b3fc5a3/timing"
       },
       "formulae": [
         "E_mid = (E_low + E_high)/2"
@@ -2686,7 +3312,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2725,8 +3351,17 @@
             "normalized": "11.5Joul"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "707cc594e54ceaec66ed479a1384b3538c7ea480d5e3a4c9924f44654b83cd0d",
+        "spoken_he_niqqud": "אִי תַּת אֶמְצָעִי שָׁוֶה 6 וְעוֹד 17 חֶלְקֵי 2 שָׁוֶה 11.5 ג'וּל",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/707cc594e54ceaec66ed479a1384b3538c7ea480d5e3a4c9924f44654b83cd0d/timing"
       },
       "formulae": [
         "E_mid = (6 + 17)/2 = 11.5Joul"
@@ -2753,7 +3388,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2802,8 +3437,17 @@
             "normalized": "ב־‎−25°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "9731a350d3a799b3347904146538f51061cf0bf822978820ec137b5b2a30cdfa",
+        "spoken_he_niqqud": "הערך 11.5 ג'וּל נמצא בין 8 ג'וּל ב־ פָּחוֹת 28 מַעֲלוֹת צֶלְזִיּוּס לבין 12 ג'וּל ב־ פָּחוֹת 25 מַעֲלוֹת צֶלְזִיּוּס.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/9731a350d3a799b3347904146538f51061cf0bf822978820ec137b5b2a30cdfa/timing"
       }
     },
     {
@@ -2827,7 +3471,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2861,8 +3505,17 @@
             "normalized": "הנקודות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "ff2696c0e86568ac577a5501fabb48ea1bc42ed4b0073b910af3d3b459e0aeb5",
+        "spoken_he_niqqud": "מבצעים אינטרפולציה לינארית בין שתי הנקודות.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/ff2696c0e86568ac577a5501fabb48ea1bc42ed4b0073b910af3d3b459e0aeb5/timing"
       }
     },
     {
@@ -2886,7 +3539,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2945,8 +3598,17 @@
             "normalized": "28°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "eeaeaa516a53261ad54638a8830ef29a6cc16e905eb237adffb12a14236d66fe",
+        "spoken_he_niqqud": "טִי שָׁוֶה פָּחוֹת 28 מַעֲלוֹת צֶלְזִיּוּס וְעוֹד 11.5 פָּחוֹת 8 חֶלְקֵי 12 פָּחוֹת 8 כָּפוּל פָּחוֹת 25 מַעֲלוֹת צֶלְזִיּוּס פָּחוֹת פָּחוֹת 28 מַעֲלוֹת צֶלְזִיּוּס",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/eeaeaa516a53261ad54638a8830ef29a6cc16e905eb237adffb12a14236d66fe/timing"
       },
       "formulae": [
         "T = −28°C + (11.5 − 8)/(12 − 8)·(−25°C − (−28°C))"
@@ -2973,7 +3635,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2992,8 +3654,17 @@
             "normalized": "25.4°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "57448843a01fa4e4ed3056d3fa9557bea9336003238508f8ff6527a3f342f1ab",
+        "spoken_he_niqqud": "טִי בְּקֵרוּב שָׁוֶה פָּחוֹת 25.4 מַעֲלוֹת צֶלְזִיּוּס",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/57448843a01fa4e4ed3056d3fa9557bea9336003238508f8ff6527a3f342f1ab/timing"
       },
       "formulae": [
         "T ≈ −25.4°C"
@@ -3020,7 +3691,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3054,8 +3725,17 @@
             "normalized": "25°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "725a57779796ccb2cb0b60efb14f9acdc7bc17b52d7ce07248dcb415328f263a",
+        "spoken_he_niqqud": "בקירוב מעשי נקבל טמפרטורת מעבר פָּחוֹת 25 מַעֲלוֹת צֶלְזִיּוּס.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/725a57779796ccb2cb0b60efb14f9acdc7bc17b52d7ce07248dcb415328f263a/timing"
       }
     },
     {
@@ -3079,7 +3759,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3168,8 +3848,17 @@
             "normalized": "78Joul"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "122de2997e3dabca394dbea89ee674ee6b843b1c99e087648109b01221657d2c",
+        "spoken_he_niqqud": "ג חיסום במים מתאים למבנה מרטנסיט ולאנרגיית שבר 5 ג'וּל, וחיסום והרפיה מתאים למבנה סורביט ולאנרגיית שבר 78 ג'וּל.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/122de2997e3dabca394dbea89ee674ee6b843b1c99e087648109b01221657d2c/timing"
       },
       "part_label": "В"
     },
@@ -3194,7 +3883,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3253,8 +3942,17 @@
             "normalized": "גבוהים"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "9af9161991db3aa165c103d4aa9a1b147e85314763b6a3b57bd6a89d930b061a",
+        "spoken_he_niqqud": "חיסום מהיר במים יוצר מרטנסיט בעל קשיות גבוהה ומאמצים פנימיים גבוהים.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/9af9161991db3aa165c103d4aa9a1b147e85314763b6a3b57bd6a89d930b061a/timing"
       }
     },
     {
@@ -3278,7 +3976,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3327,8 +4025,17 @@
             "normalized": "נמוכה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "024a7ba149cf825936f247930a9aa4b493d9a70407709803c7f06272f119b340",
+        "spoken_he_niqqud": "מרטנסיט נוטה לשבר פריך ולכן אנרגיית השבר שלו נמוכה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/024a7ba149cf825936f247930a9aa4b493d9a70407709803c7f06272f119b340/timing"
       }
     },
     {
@@ -3352,7 +4059,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3406,8 +4113,17 @@
             "normalized": "לנגיפה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8e6931cbe61b88642a7ffd6c8ded76a7afdf54370b5f6adaff422983deb760e4",
+        "spoken_he_niqqud": "הרפיה לאחר חיסום מפחיתה מאמצים פנימיים ומשפרת קשיחות ועמידות לנגיפה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8e6931cbe61b88642a7ffd6c8ded76a7afdf54370b5f6adaff422983deb760e4/timing"
       }
     },
     {
@@ -3431,7 +4147,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3500,8 +4216,17 @@
             "normalized": "יותר"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "5ab6e065d19f418dc53f72e9506ac061aa8f7ac758e13d66122c013e908b0c99",
+        "spoken_he_niqqud": "מבנה סורביט הוא מבנה מרופה ומשיך יותר ולכן אנרגיית השבר שלו גבוהה יותר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/5ab6e065d19f418dc53f72e9506ac061aa8f7ac758e13d66122c013e908b0c99/timing"
       }
     },
     {
@@ -3525,7 +4250,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3574,8 +4299,17 @@
             "normalized": "במים"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8359ec73d9804ad6469e9291ef32ea5a28f9ff8b55bb64a60f3ccfb3c69c9c72",
+        "spoken_he_niqqud": "לכן 78 ג'וּל מתאימים לחיסום והרפיה, ו־ 5 ג'וּל מתאימים לחיסום במים.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8359ec73d9804ad6469e9291ef32ea5a28f9ff8b55bb64a60f3ccfb3c69c9c72/timing"
       }
     },
     {
@@ -3598,7 +4332,7 @@
         "canonical_row:q019-r010:source_verified_post_bake_correction"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3652,8 +4386,17 @@
             "normalized": "הישן"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "02f2fd5c145ddd2fae0d2bac9869f33a7d2c5cfb236a3bc180ec32c286bb9ee2",
+        "spoken_he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/02f2fd5c145ddd2fae0d2bac9869f33a7d2c5cfb236a3bc180ec32c286bb9ee2/timing"
       }
     }
   ],
@@ -3738,9 +4481,16 @@
     "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
   },
   "audio_boundary": {
-    "full_tts_generated": false,
-    "timing_sidecars_present": false,
+    "full_tts_generated": true,
+    "timing_sidecars_present": true,
     "row_karaoke_contract_checked": true,
+    "profile_id": "materials-pb2-standard-a-0.8-pitch-2.5-v1",
+    "profile": {
+      "language": "he-IL",
+      "voiceName": "he-IL-Standard-A",
+      "speakingRate": 0.8,
+      "pitch": 2.5
+    },
     "formula_speech_review_required_count": 5
   },
   "rights": {
@@ -3748,8 +4498,8 @@
     "public_solution_display_and_print_allowed": true,
     "package_download_allowed": true,
     "agent_derivative_text_allowed": true,
-    "full_tts_audio_and_timings_allowed": false,
-    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
-    "asserted_at": "2026-08-30"
+    "full_tts_audio_and_timings_allowed": true,
+    "basis": "Owner attestation in the Codex goal thread on 2026-09-01: the owner confirms the rights and grants permission for public generation and distribution of TTS for this corpus.",
+    "asserted_at": "2026-09-01T02:01:58+03:00"
   }
 }

@@ -8,7 +8,7 @@ const AdmZip = require("adm-zip");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const TABLE_ROOT = path.join(ROOT, "docs", "research", "materials-science-problem-solutions", "2026-08-30", "artifacts", "student-solution-tables");
-const DEFAULT_ANCHOR = path.join(ROOT, "docs", "research", "materials-science-problem-solutions", "2026-08-30", "production-publication-anchor.json");
+const DEFAULT_ANCHOR = path.join(ROOT, "docs", "research", "materials-science-problem-solutions", "2026-08-30", "production", "production-publication-anchor.json");
 const DEFAULT_RIGHTS = path.join(ROOT, "docs", "research", "materials-science-problem-solutions", "2026-08-30", "publication-rights-attestation.json");
 const DEFAULT_OUTPUT = path.join(ROOT, "materials", "pb2-support");
 const DEFAULT_BUNDLE = path.join(ROOT, ".tmp", "materials-pb2-q043-rebake.zip");
@@ -208,4 +208,4 @@ function main() {
   process.stdout.write(stableJson({ ok: true, ...result }));
 }
 if (require.main === module) try { main(); } catch (error) { process.stderr.write(`build-materials-pb2-runtime-support: ${error.stack || error.message}\n`); process.exitCode = 1; }
-module.exports = { build, validateRights };
+module.exports = { build, validateRights, DEFAULT_ANCHOR };

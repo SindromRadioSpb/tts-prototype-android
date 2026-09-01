@@ -1,0 +1,14 @@
+{
+  "schema_version": "materials_pb2_formula_speech_audit_summary.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "compiler_id": "materials-formula-speech-he-v1",
+  "source_manifest_sha256": "200b0ec590d3f0b022ed3bc1b969f4c594ede88c1044736ac38958d829ff7cc6",
+  "row_count": 2612,
+  "compiled_row_count": 1656,
+  "display_text_pass_count": 952,
+  "owner_override_count": 4,
+  "unresolved_count": 0,
+  "ready": true,
+  "full_audit_command": "node scripts/premium/materials-pb2-tts.js formula-audit --ledger docs/research/materials-science-problem-solutions/2026-09-01/tts/formula-speech-review.json --output .tmp/materials-pb2-formula-speech-audit.json",
+  "full_audit_sha256": "6be5d37abe959d6d5cd5c74703593c7fe697abfc2b79b9e192906b389f22fbc2"
+}

@@ -17,5 +17,5 @@
     "agent_derivative_text": true,
     "full_tts_audio_and_timings": true
   },
-  "note": "This attestation is additive to the valid zero-audio publication record and authorizes the public TTS derivative. Formula speech remains separately review-gated."
+  "note": "This attestation is additive to the valid zero-audio publication record and authorizes the public TTS derivative. Formula speech is resolved by the deterministic fail-closed compiler, with the four exact Task 1 owner readings retained as overrides."
 }

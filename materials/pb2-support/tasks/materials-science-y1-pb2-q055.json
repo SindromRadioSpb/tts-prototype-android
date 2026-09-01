@@ -38,7 +38,7 @@
         "translit_ru": "",
         "russian": "Вопрос 55.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "181d52e05caa204102206ed5cc45430840abce31a0faaf705f63a793550a8d9b",
         "translation_provider": "legacy:existing-canonical-pass",
         "translation_meta": {
           "provider": "legacy_existing_canonical",
@@ -67,7 +67,26 @@
         "caption_segment_id": null,
         "source_line_index": 0,
         "sentence_index": 0,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "שְׁאֵלָה 55.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/181d52e05caa204102206ed5cc45430840abce31a0faaf705f63a793550a8d9b/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q055-r002",
@@ -78,7 +97,7 @@
         "translit_ru": "",
         "russian": "А) Опишите этапы производства изделия по порошковой технологии.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "1f1f40c92f93d58779f37e1f5e6c8fbd3a7726032136d7328123a08574307ca3",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -107,7 +126,26 @@
         "caption_segment_id": null,
         "source_line_index": 1,
         "sentence_index": 1,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "א תָּאֵר אֶת הַשְּׁלָבִים שֶׁל ייִצּוּר מוּצָר בְּטֶכְנוֹלוֹגְייַת אֲבָקוֹת.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/1f1f40c92f93d58779f37e1f5e6c8fbd3a7726032136d7328123a08574307ca3/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q055-r003",
@@ -118,7 +156,7 @@
         "translit_ru": "",
         "russian": "Б) Объясните, почему изделие из твердого сплава (hard metal) на основе вольфрама (W) изготавливается методом спекания.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "a096e58b702daa827a488fcd2bb92e91b9acb9ccc8a61579bebcdf6b8f04a7fe",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -147,7 +185,26 @@
         "caption_segment_id": null,
         "source_line_index": 2,
         "sentence_index": 2,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "ב הַסְבֵּר מַדּוּעַ מְיַיצְּרִים מוּצָר מִמַּתְקָ״ שׁ מַתֶּכֶת קָשָׁה עַל בְּסִיס טוּנְגְּסְטֶן דַּבְּלְיוּ בְּשִׁיטַת הַסִּינְטוּר.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/a096e58b702daa827a488fcd2bb92e91b9acb9ccc8a61579bebcdf6b8f04a7fe/timing"
+        }
       },
       {
         "row_id": "materials-science-y1-pb2-q055-r004",
@@ -158,7 +215,7 @@
         "translit_ru": "",
         "russian": "В) Опишите, как изготавливают режущую пластину (Insert) из карбида вольфрама (WC) методом жидкофазного спекания.",
         "edit_meta": null,
-        "audio_asset_key": null,
+        "audio_asset_key": "185def0559fc8067cd2b54f4cf83677b243a328c16198b33d17090ee71931fb2",
         "translation_provider": "gemini:gemini-3.7-flash",
         "translation_meta": {
           "provider": "gemini",
@@ -187,7 +244,26 @@
         "caption_segment_id": null,
         "source_line_index": 3,
         "sentence_index": 3,
-        "note": null
+        "note": null,
+        "audio_tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "audio_plan": {
+          "state": "READY",
+          "synthesis_field": "hebrew_niqqud",
+          "spoken_he_niqqud": "ג תָּאֵר כֵּיצַד מְיַיצְּרִים סַכִּין לְעִיבּוּד שְׁבָבִי אִינְסֶרְט מִטּוּנְגְּסְטֶן קַרְבִּיד דַּבְּלְיוּ סִי, בְּשִׁיטַת הַסִּינְטוּר, בְּפָאזָה נוֹזְלִית.",
+          "tts_profile": {
+            "language": "he-IL",
+            "voiceName": "he-IL-Standard-A",
+            "speakingRate": 0.8,
+            "pitch": 2.5
+          },
+          "timings_present": true,
+          "timing_url": "/api/audio/185def0559fc8067cd2b54f4cf83677b243a328c16198b33d17090ee71931fb2/timing"
+        }
       }
     ],
     "source_pages": [
@@ -229,7 +305,7 @@
         "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -243,8 +319,17 @@
             "normalized": "בדוק"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103",
+        "spoken_he_niqqud": "פִּתְרוֹן בָּדוּק",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b40cb8d81c6e5314f3ccd99cd2c828b796e833bf0ec87f84e8e6490857c32103/timing"
       }
     },
     {
@@ -265,7 +350,7 @@
         "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -304,8 +389,17 @@
             "normalized": "ומיקרו־מבנה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "4653833573b1296cb34b278660b151c477c8b3125f616ed15fb6139a93bf804a",
+        "spoken_he_niqqud": "בַּקָּרַת אֵיכוּת כּוֹלֶלֶת בְּדִיקוֹת צְפִיפוּת, קְשִׁיּוּת וּמִיקְרוֹ־מִבְנֶה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/4653833573b1296cb34b278660b151c477c8b3125f616ed15fb6139a93bf804a/timing"
       }
     },
     {
@@ -326,7 +420,7 @@
         "independent_solution_sha256:5b05b1ac4b4b896427b9b05af5db9e343c6a9b171ab81e15d8b6abec07890283"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -390,8 +484,17 @@
             "normalized": "ויקרות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "6113608eb3dc2736cc735320128719c8d8e4f4f4dcd4b22a1251a6aecc927ef3",
+        "spoken_he_niqqud": "לְטוּנְגְּסְטֶן טֶמְפֶּרָטוּרַת הַתָּכָה גְּבוֹהָה מְאוֹד וְלָכֵן הַתָּכָה וִיצִיקָה תַּעֲשִׂיָּתִית הֵן קָשׁוֹת וִיקָרוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/6113608eb3dc2736cc735320128719c8d8e4f4f4dcd4b22a1251a6aecc927ef3/timing"
       }
     },
     {
@@ -414,7 +517,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -533,8 +636,17 @@
             "normalized": "סופיות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "83c2c6c73542a9ea123d2fdfe5c8380e711d51b0f4e9fe1a7d5998021df07066",
+        "spoken_he_niqqud": "א הַשְּׁלַבִּים שֶׁל יִיצוּר מוּצָר בְּטֶכְנוֹלוֹגְיַּת אֲבָקוֹת הֵם יִיצוּר אֲבָקָה, אִפְּיוּן אֲבָקָה, עֵירּוּב עִם תּוֹסָפִים, עִיצּוּב בִּדְחִיסָה, טִיפּוּל בְּגוּף יָרוֹק, סִנְטוּר, וּפְעוּלּוֹת סוֹפִיּוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/83c2c6c73542a9ea123d2fdfe5c8380e711d51b0f4e9fe1a7d5998021df07066/timing"
       },
       "part_label": "А"
     },
@@ -558,7 +670,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -607,8 +719,17 @@
             "normalized": "היעד"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8f5eb7352f3814a5891b3410d14c9ccd4e18fc20e828ab1d1084cb7c07241627",
+        "spoken_he_niqqud": "מְיַיצְּרִים אֲבָקוֹת מַתֶּכֶת אוֹ אֲבָקוֹת קַרְבִּיד לְפִי חֹמֶר הַיַּעַד.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8f5eb7352f3814a5891b3410d14c9ccd4e18fc20e828ab1d1084cb7c07241627/timing"
       }
     },
     {
@@ -631,7 +752,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -705,8 +826,17 @@
             "normalized": "כימי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "81ce9685dc221e590d52b155ada7e21cb3a6f9b0c99d99189539ac44f5e0f51c",
+        "spoken_he_niqqud": "מְבַצְּעִים אִפְּיוּן שֶׁל הָאֲבָקָה כְּגוֹן גֹּדֶל חַלְקִיקִים, צוּרַת גַּרְגֵּר, זוֹרְמוּת, צְפִיפוּת נִשְׁפֶּכֶת וְהֶרְכֵּב כִּימִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/81ce9685dc221e590d52b155ada7e21cb3a6f9b0c99d99189539ac44f5e0f51c/timing"
       }
     },
     {
@@ -729,7 +859,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -808,8 +938,17 @@
             "normalized": "הירוק"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "314d48f84a5830f7f438462c987ca373c7ba150625a2f4661ca10a1f0a8b7328",
+        "spoken_he_niqqud": "מְעַרְבְּבִים אֲבָקוֹת וּמוֹסִיפִים חֹמְרֵי סִיכָה אוֹ חֹמְרֵי קִישׁוּר כְּדֵי לְשַׁפֵּר דְּחִיסָה וְיַצִּיבוּת שֶׁל הַגּוּף הַיָּרוֹק.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/314d48f84a5830f7f438462c987ca373c7ba150625a2f4661ca10a1f0a8b7328/timing"
       }
     },
     {
@@ -832,7 +971,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -886,8 +1025,17 @@
             "normalized": "CIP"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b6da6bf1984a4ac3de89709afbe95898bc1ebe8ce12bfd8270ec7494d6ec99c6",
+        "spoken_he_niqqud": "מְעַצְּבִים אֶת הַחֵלֶק בִּדְחִיסָה חַד־צִירִית בְּתַבְנִית אוֹ בִּדְחִיסָה אִיזוֹסְטָטִית סִי־אַיי־פִּי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b6da6bf1984a4ac3de89709afbe95898bc1ebe8ce12bfd8270ec7494d6ec99c6/timing"
       }
     },
     {
@@ -910,7 +1058,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -964,8 +1112,17 @@
             "normalized": "ולגרעיניות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "f0605a1a8c591436d00646ba0de6c852295d308e48aa8bd8ac0994971c3cd024",
+        "spoken_he_niqqud": "לַחֲצֵי דְּחִיסָה אוֹפְיָּנִיִּים הֵם בְּעֵרֶךְ 200 עַד 800 מֶגָה־פַּסְקָל בְּהֶתְאֵם לַחֹמֶר וְלַגַּרְעִינִיּוּת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/f0605a1a8c591436d00646ba0de6c852295d308e48aa8bd8ac0994971c3cd024/timing"
       }
     },
     {
@@ -988,7 +1145,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1047,8 +1204,17 @@
             "normalized": "לעיבוד"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "0518dd9c30b9babd6f8e7b4a34a4b49e6282099839fe7a59364e7fe1a97e4d74",
+        "spoken_he_niqqud": "לְעִיתִּים מְבַצְּעִים עִיבּוּד יָרוֹק לִפְנֵי הַסִּנְטוּר כַּאֲשֶׁר הַחֹמֶר עֲדַיִין נִיתָּן לְעִיבּוּד.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/0518dd9c30b9babd6f8e7b4a34a4b49e6282099839fe7a59364e7fe1a97e4d74/timing"
       }
     },
     {
@@ -1071,7 +1237,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1125,8 +1291,17 @@
             "normalized": "סדקים"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8e7ed83615949fc75968f8f20380ab733bc71f41338980874cec6a4117cbd28f",
+        "spoken_he_niqqud": "מְסַלְּקִים חֳמָרִים אוֹרְגָּנִיִּים וְחֹמְרֵי קִישׁוּר בְּתַהֲלִיךְ מְבוּקָּר כְּדֵי לִמְנוֹעַ סְדָקִים.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8e7ed83615949fc75968f8f20380ab733bc71f41338980874cec6a4117cbd28f/timing"
       }
     },
     {
@@ -1149,7 +1324,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1188,8 +1363,17 @@
             "normalized": "נקבוביות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "20dbc4bc4f0a1a1b052743d3a0d739f64326f6bf851a636c34d8a1b72e1796e5",
+        "spoken_he_niqqud": "מְבַצְּעִים סִנְטוּר לְקַבָּלַת דִּיפֻוזְיָה, הַצְפָּפָה וְהַקְטָנַת נְקֻבּוּבִיּוּת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/20dbc4bc4f0a1a1b052743d3a0d739f64326f6bf851a636c34d8a1b72e1796e5/timing"
       }
     },
     {
@@ -1212,7 +1396,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1241,8 +1425,17 @@
             "normalized": "K"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "1c234bee88a0bcb4a5e3f5273d0155bcf14d7e86ee1aa53fc593f1fe29dc8829",
+        "spoken_he_niqqud": "טִי בְּקֵרוּב שָׁוֶה 0.7 עַד 0.9 טִי אֶם קֶלְוִין",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/1c234bee88a0bcb4a5e3f5273d0155bcf14d7e86ee1aa53fc593f1fe29dc8829/timing"
       },
       "formulae": [
         "T ≈ 0.7–0.9 Tm (K)"
@@ -1268,7 +1461,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1352,8 +1545,17 @@
             "normalized": "איכות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "3bdd787a5a7998c71eef3c823132f68fa81ef9ffb6f697e4560e40219f687cf4",
+        "spoken_he_niqqud": "לְאַחַר הַסִּנְטוּר מְבַצְּעִים פְּעוּלּוֹת סוֹפִיּוֹת כְּגוֹן כִּיּוּל, הַשְׁחָזָה אוֹ עִיבּוּד, וּלְעִיתִּים טִיפּוּל תֶּרְמִי, צִיפּוּי וּבַקָּרַת אֵיכוּת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/3bdd787a5a7998c71eef3c823132f68fa81ef9ffb6f697e4560e40219f687cf4/timing"
       }
     },
     {
@@ -1376,7 +1578,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1415,8 +1617,17 @@
             "normalized": "ומיקרו־מבנה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "4653833573b1296cb34b278660b151c477c8b3125f616ed15fb6139a93bf804a",
+        "spoken_he_niqqud": "בַּקָּרַת אֵיכוּת כּוֹלֶלֶת בְּדִיקוֹת צְפִיפוּת, קְשִׁיּוּת וּמִיקְרוֹ־מִבְנֶה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/4653833573b1296cb34b278660b151c477c8b3125f616ed15fb6139a93bf804a/timing"
       }
     },
     {
@@ -1439,7 +1650,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1473,8 +1684,17 @@
             "normalized": "סנטור"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "b48a150c3075d9ad5fb277c0f68ff5c035f03b246b399734a8584a3f591e3f15",
+        "spoken_he_niqqud": "הַמּוּנָּח הַתַּקָּנִי הוּא סִנְטוּר וְלֹא סַנְטוּר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/b48a150c3075d9ad5fb277c0f68ff5c035f03b246b399734a8584a3f591e3f15/timing"
       }
     },
     {
@@ -1497,7 +1717,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1586,8 +1806,17 @@
             "normalized": "יציקתי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "84a96b0c295c5d2be49fc244f40940f732aa9e760756a3accecf955d3c0b64e6",
+        "spoken_he_niqqud": "ב מְיַיצְּרִים מֶתֶקַ״ שׁ עַל בָּסִיס טוּנְגְּסְטֶן דַּבְּלְיוּ בְּשִׁיטַת הַסִּנְטוּר בִּגְלַל טֶמְפֶּרָטוּרַת הַתָּכָה גְּבוֹהָה בִּמְיוּחָד וְקֹשִׁי בְּיִיצוּר יְצִיקָתִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/84a96b0c295c5d2be49fc244f40940f732aa9e760756a3accecf955d3c0b64e6/timing"
       },
       "part_label": "Б"
     },
@@ -1611,7 +1840,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1675,8 +1904,17 @@
             "normalized": "ויקרות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "6113608eb3dc2736cc735320128719c8d8e4f4f4dcd4b22a1251a6aecc927ef3",
+        "spoken_he_niqqud": "לְטוּנְגְּסְטֶן טֶמְפֶּרָטוּרַת הַתָּכָה גְּבוֹהָה מְאוֹד וְלָכֵן הַתָּכָה וִיצִיקָה תַּעֲשִׂיָּתִית הֵן קָשׁוֹת וִיקָרוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/6113608eb3dc2736cc735320128719c8d8e4f4f4dcd4b22a1251a6aecc927ef3/timing"
       }
     },
     {
@@ -1699,7 +1937,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1718,8 +1956,17 @@
             "normalized": "3422°C"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": true
+        "timings_present": true,
+        "formula_speech_review_required": true,
+        "audio_asset_key": "0505d0983a9aa510d2f78f6da86e164aaa58fdb2b737279175849b6e6d366e40",
+        "spoken_he_niqqud": "טִי אֶם דַּבְּלְיוּ בְּקֵרוּב שָׁוֶה 3422 מַעֲלוֹת צֶלְזִיּוּס",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/0505d0983a9aa510d2f78f6da86e164aaa58fdb2b737279175849b6e6d366e40/timing"
       },
       "formulae": [
         "Tm(W) ≈ 3422°C"
@@ -1745,7 +1992,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1844,8 +2091,17 @@
             "normalized": "רגילה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "229cc38bb4af3f7165b943a1602e52757bfc2699e1ecd166dc04282036599c10",
+        "spoken_he_niqqud": "מֶתֶקַ״ שׁ הוּא לְמַעֲשֶׂה חֹמֶר מֻרְכָּב הַמְּבוּסָּס עַל קַרְבִּידִים עִם קוֹשֵׁר מַתַּכְתִּי, וְלָכֵן תַּהֲלִיךְ דְּחִיסָה וְסִנְטוּר מַתְאִים יוֹתֵר מִיצִיקָה רְגִילָה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/229cc38bb4af3f7165b943a1602e52757bfc2699e1ecd166dc04282036599c10/timing"
       }
     },
     {
@@ -1868,7 +2124,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -1932,8 +2188,17 @@
             "normalized": "לתאורטית"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "500d593fae50218c52f9fda4ed1697ed88fa12517f05b1f1ba3d46501384dc47",
+        "spoken_he_niqqud": "הַסִּנְטוּר מְאַפְשֵׁר לְהַגִּיעַ לִצְפִיפוּת גְּבוֹהָה מְאוֹד וּלְהַקְטִין נְקֻבּוּבִיּוּת, עַד צְפִיפוּת קְרוֹבָה לַתֵּאוֹרֶטִית.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/500d593fae50218c52f9fda4ed1697ed88fa12517f05b1f1ba3d46501384dc47/timing"
       }
     },
     {
@@ -1956,7 +2221,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2020,8 +2285,17 @@
             "normalized": "לתכונות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "c4cbccb4ecd64524d46cf596c5c720b35ca979810835ed208ecd2f8f39aae772",
+        "spoken_he_niqqud": "תַּהֲלִיךְ זֶה מְאַפְשֵׁר שְׁלִיטָה בְּמִיקְרוֹ־מִבְנֶה, בְּגוֹדֶל גַּרְגֵּר וּבְפִּיזּוּר הַפָּאזוֹת, שֶׁהֵם קְרִיטִיִּים לַתְּכוּנוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/c4cbccb4ecd64524d46cf596c5c720b35ca979810835ed208ecd2f8f39aae772/timing"
       }
     },
     {
@@ -2044,7 +2318,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2108,8 +2382,17 @@
             "normalized": "שבובי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "bf6706f25998213e3045dd86aec18067756f140211f0dd0b395bb3cdbb28669e",
+        "spoken_he_niqqud": "מֶתֶקַ״ שׁ נִדְרָשׁ לִקְשִׁיּוּת גְּבוֹהָה מְאוֹד וְלַעֲמִידוּת שְׁחִיקָה גְּבוֹהָה לְשִׁימּוּשֵׁי חִיתּוּךְ וְעִיבּוּד שִׁבּוּבִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/bf6706f25998213e3045dd86aec18067756f140211f0dd0b395bb3cdbb28669e/timing"
       }
     },
     {
@@ -2132,7 +2415,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2196,8 +2479,17 @@
             "normalized": "ולמיקרו־מבנה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "a0cd4eeabd0ffb34b96f9dd3005028d4c9a0944c2e087f1b61414818620b59d9",
+        "spoken_he_niqqud": "עֶרְכֵי קְשִׁיּוּת אוֹפְיָּנִיִּים לְמַעֲרָכוֹת דַּבְּלְיוּ סִי פָּחוֹת קוֹבַּלְט הֵם בְּעֵרֶךְ 1400 עַד 2000 אֵייץ'־וִי בְּהֶתְאֵם לְהֶרְכֵּב וְלַמִּיקְרוֹ־מִבְנֶה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/a0cd4eeabd0ffb34b96f9dd3005028d4c9a0944c2e087f1b61414818620b59d9/timing"
       }
     },
     {
@@ -2220,7 +2512,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2329,8 +2621,17 @@
             "normalized": "מדויקים"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "a3d59636afb42b61536f56f3bc158b9942f26078135b6468e3c5b265032dbbac",
+        "spoken_he_niqqud": "מִכֵּיוָן שֶׁהַחֹמֶר קָשֶׁה מְאוֹד לְעִיבּוּד שִׁבּוּבִי לְאַחַר יִיצוּרוֹ, אֲבָקוֹת מְאַפְשְׁרוֹת קַבָּלַת צוּרָה קְרוֹבָה לַצּוּרָה סוֹפִית וְהַפְחָתַת עִיבּוּד בַּסּוֹף לְתַהֲלִיכֵי הַשְׁחָזָה מְדוּיָּקִים.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/a3d59636afb42b61536f56f3bc158b9942f26078135b6468e3c5b265032dbbac/timing"
       }
     },
     {
@@ -2353,7 +2654,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2472,8 +2773,17 @@
             "normalized": "וציפוי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "9a0d33baa9b8f14487890b2ab8d51709f1aa16186adc32c9c512fb40648c801c",
+        "spoken_he_niqqud": "ג יִיצוּר סַכִּין לְעִיבּוּד שִׁבּוּבִי אִינְסֶרְט מִ־ דַּבְּלְיוּ סִי בְּשִׁיטַת סִנְטוּר בְּפָאזָה נוֹזְלִית כּוֹלֵל הֲכָנַת תַּעֲרֹבֶת אֲבָקוֹת, דְּחִיסָה, סִילּוּק קוֹשֵׁר, סִנְטוּר נוֹזְלִי, וּבִיצּוּעַ גִּימוּר וְצִיפּוּי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/9a0d33baa9b8f14487890b2ab8d51709f1aa16186adc32c9c512fb40648c801c/timing"
       },
       "part_label": "В"
     },
@@ -2497,7 +2807,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2636,8 +2946,17 @@
             "normalized": "Cr₃C₂"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "4904717f84733b1ae200f6d457bb83522fff6af80db2a461ebd2b3640ef8cc82",
+        "spoken_he_niqqud": "בּוֹחֲרִים הֶרְכֵּב שֶׁל אֲבָקַת דַּבְּלְיוּ סִי עִם קוֹשֵׁר מַתַּכְתִּי, בְּדֶרֶךְ כְּלָל קוֹבַּלְט, וּלְעִיתִּים מוֹסִיפִים קַרְבִּידִים נוֹסָפִים כְּגוֹן טִי אַיי סִי אוֹ טִי אֵיי סִי וְתוֹסָפִים לְבַקָּרַת גְּדִילַת גַּרְגֵּר כְּגוֹן וִי סִי אוֹ כְּרוֹם תַּת 3 פַּחְמָן תַּת 2.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/4904717f84733b1ae200f6d457bb83522fff6af80db2a461ebd2b3640ef8cc82/timing"
       }
     },
     {
@@ -2660,7 +2979,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2714,8 +3033,17 @@
             "normalized": "אגרגציה"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "95f858fe2bf99fafa089a19f6be15afa84625cf89544c203136446345a996b88",
+        "spoken_he_niqqud": "מְבַצְּעִים עֵירּוּב וּטְחִינָה לְקַבָּלַת פִּיזּוּר אָחִיד שֶׁל הַחַלְקִיקִים וּמְנִיעַת אַגְרֵגַצְיָה.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/95f858fe2bf99fafa089a19f6be15afa84625cf89544c203136446345a996b88/timing"
       }
     },
     {
@@ -2738,7 +3066,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2792,8 +3120,17 @@
             "normalized": "בתבנית"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "c0c536dcb1040c8bfca877f5f39897dec7732c398f402f5620fd013318d2ac60",
+        "spoken_he_niqqud": "מְיַיבְּשִׁים וּמְבַצְּעִים גְּרָנוּלַצְיָה לְקַבָּלַת תַּעֲרֹבֶת גַּרְגְּרִית זוֹרֶמֶת הַמַּתְאִימָה לִדְחִיסָה בְּתַבְנִית.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/c0c536dcb1040c8bfca877f5f39897dec7732c398f402f5620fd013318d2ac60/timing"
       }
     },
     {
@@ -2816,7 +3153,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2885,8 +3222,17 @@
             "normalized": "ירוק"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "96a6986d022306209fc679ee76f9a3a0fade214dbd0d76038d2115e8970568e1",
+        "spoken_he_niqqud": "דּוֹחֲסִים לְצוּרַת אִינְסֶרְט בִּדְחִיסָה חַד־צִירִית בְּתַבְנִית וּלְעִיתִּים בִּדְחִיסָה אִיזוֹסְטָטִית סִי־אַיי־פִּי לְקַבָּלַת גּוּף יָרוֹק.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/96a6986d022306209fc679ee76f9a3a0fade214dbd0d76038d2115e8970568e1/timing"
       }
     },
     {
@@ -2909,7 +3255,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -2968,8 +3314,17 @@
             "normalized": "כ־18–22%"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "a94e126fa84a30a547b197b0f215a7015505808dfc53d3c52336ff97afa425a6",
+        "spoken_he_niqqud": "מְתַכְנְנִים אֶת מִידּוֹת הַתַּבְנִית תּוֹךְ הִתְחַשְּׁבוּת בְּכִיוּוּץ סִנְטוּר אוֹפְיָּנִי שֶׁל כְּ־ 18 עַד 22 אָחוּז.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/a94e126fa84a30a547b197b0f215a7015505808dfc53d3c52336ff97afa425a6/timing"
       }
     },
     {
@@ -2992,7 +3347,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3051,8 +3406,17 @@
             "normalized": "הסנטור"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "f3db0937ad5097b1329c63dd76befe9804567b5a13eb2e95855c818360401c82",
+        "spoken_he_niqqud": "בְּמִידַת הַצֹּרֶךְ מְבַצְּעִים עִיבּוּד יָרוֹק כְּגוֹן פָּאזוֹת, חוֹרִים וְסִימּוּנִים לִפְנֵי הַסִּנְטוּר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/f3db0937ad5097b1329c63dd76befe9804567b5a13eb2e95855c818360401c82/timing"
       }
     },
     {
@@ -3075,7 +3439,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3139,8 +3503,17 @@
             "normalized": "כלואות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "7fb4af1737fab3974642c5da43238f2acb95a80d20aaf32a3ec7a132a124b54e",
+        "spoken_he_niqqud": "מְסַלְּקִים שַׁעֲוָה וְחֹמְרֵי קִישׁוּר בְּתַהֲלִיךְ מְבוּקָּר כְּדֵי לִמְנוֹעַ הִיוּוּצְרוּת סְדָקִים וּנְקֻבּוּבִיּוֹת כְּלוּאוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/7fb4af1737fab3974642c5da43238f2acb95a80d20aaf32a3ec7a132a124b54e/timing"
       }
     },
     {
@@ -3163,7 +3536,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3232,8 +3605,17 @@
             "normalized": "נוזלי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "96cf6991f7def3cb7c0a5d98578241b8db884c6e8444cce14c9fb3b1da6fdad8",
+        "spoken_he_niqqud": "מְבַצְּעִים סִנְטוּר בְּפָאזָה נוֹזְלִית בְּתַנָּאֵי וָאקוּם אוֹ מֵימָן, בְּטֶמְפֶּרָטוּרָה שֶׁבָּהּ הַקּוֹשֵׁר קוֹבַּלְט נוֹזְלִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/96cf6991f7def3cb7c0a5d98578241b8db884c6e8444cce14c9fb3b1da6fdad8/timing"
       }
     },
     {
@@ -3256,7 +3638,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3300,8 +3682,17 @@
             "normalized": "להרכב"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "8bf7a0bd8716862935c4520fc1523e772df3a24646f0d5f236c8bb79d01c7a80",
+        "spoken_he_niqqud": "טֶמְפֶּרָטוּרַת סִנְטוּר אוֹפְיָּנִית הִיא בְּעֵרֶךְ 1350 עַד 1450 מַעֲלוֹת צֶלְזִיּוּס בְּהֶתְאֵם לְהֶרְכֵּב.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/8bf7a0bd8716862935c4520fc1523e772df3a24646f0d5f236c8bb79d01c7a80/timing"
       }
     },
     {
@@ -3324,7 +3715,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3393,8 +3784,17 @@
             "normalized": "נקבוביות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "4202ef99dc052b062fc19d04a98631e0f4e73a1bf53b79a321b7840acc97643b",
+        "spoken_he_niqqud": "הַפָּאזָה הַנּוֹזְלִית מַרְטִיבָה אֶת חַלְקִיקֵי דַּבְּלְיוּ סִי, יוֹצֶרֶת כֹּחוֹת קָפִּילָרִיִּים וּמְאִיצָה הַצְפָּפָה וּסְגִירַת נְקֻבּוּבִיּוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/4202ef99dc052b062fc19d04a98631e0f4e73a1bf53b79a321b7840acc97643b/timing"
       }
     },
     {
@@ -3417,7 +3817,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3486,8 +3886,17 @@
             "normalized": "הסופי"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "aeca026bd37f2d80a37c4e37784c2718d503c39e86b524961c1a66ec753a938d",
+        "spoken_he_niqqud": "שׁוֹלְטִים בִּזְמַן שְׁהִיָּה וּבְטֶמְפֶּרָטוּרָה כְּדֵי לִקְבּוֹעַ אֶת גֹּדֶל גַּרְגֵּר דַּבְּלְיוּ סִי וְאֶת הַמִּיקְרוֹ־מִבְנֶה הַסּוֹפִי.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/aeca026bd37f2d80a37c4e37784c2718d503c39e86b524961c1a66ec753a938d/timing"
       }
     },
     {
@@ -3510,7 +3919,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3584,8 +3993,17 @@
             "normalized": "לשבר"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "392535c482ecb38c69a31cfbf1aabf4255b95cd44243388d4729c1045c5420d0",
+        "spoken_he_niqqud": "גַּרְגֵּר דַּק מַעֲלֶה אֶת הַקְּשִׁיּוּת, וּתְכוּלַת קוֹשֵׁר גְּבוֹהָה יוֹתֵר מְשַׁפֶּרֶת קְשִׁיחוּת שֶׁבֶר וַעֲמִידוּת לְשֶׁבֶר.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/392535c482ecb38c69a31cfbf1aabf4255b95cd44243388d4729c1045c5420d0/timing"
       }
     },
     {
@@ -3608,7 +4026,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3672,8 +4090,17 @@
             "normalized": "אמינות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "150130e09bdea7727d04bfdc3543c919eea944cacdd75baf07501a7f70788e49",
+        "spoken_he_niqqud": "בְּמִידַת הַצֹּרֶךְ מְבַצְּעִים אֵייץ'־אַיי־פִּי לְאַחַר הַסִּנְטוּר לִסְגִירָה סוֹפִית שֶׁל נְקֻבּוּבִיּוֹת וְלְשִׁיפּוּר אֲמִינוּת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/150130e09bdea7727d04bfdc3543c919eea944cacdd75baf07501a7f70788e49/timing"
       }
     },
     {
@@ -3696,7 +4123,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3765,8 +4192,17 @@
             "normalized": "תקין"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "233f7fb035fb5a4b3a557225baf9fae40dff76f9b5a623c5f3229645e8ba8880",
+        "spoken_he_niqqud": "מְבַצְּעִים גִּימוּר בְּהַשְׁחָזָה שֶׁל הַמִּישׁוֹרִים וְשֶׁל הַחוּד לְקַבָּלַת דִּיּוּק גֵּאוֹמֶטְרִי וְקָצֶה חִיתּוּךְ תָּקִין.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/233f7fb035fb5a4b3a557225baf9fae40dff76f9b5a623c5f3229645e8ba8880/timing"
       }
     },
     {
@@ -3789,7 +4225,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3888,8 +4324,17 @@
             "normalized": "גבוהות"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "d19f78c1d56e2ee1ab90514f357d2dd8e2ebe321e5e6e809423ddf89cc9e7237",
+        "spoken_he_niqqud": "לְעִיתִּים מוֹסִיפִים צִיפּוּיִים בְּתַהֲלִיכֵי סִי־וִי־דִּי אוֹ פִּי־וִי־דִּי כְּגוֹן טִי אַיי אֶן, טִי אַיי אֵיי אֶל אֶן אוֹ אַלְמִינְיוּם תַּת 2 חַמְצָן תַּת 3 לְשִׁיפּוּר עֲמִידוּת שְׁחִיקָה וַעֲמִידוּת בְּטֶמְפֶּרָטוּרוֹת חִיתּוּךְ גְּבוֹהוֹת.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/d19f78c1d56e2ee1ab90514f357d2dd8e2ebe321e5e6e809423ddf89cc9e7237/timing"
       }
     },
     {
@@ -3911,7 +4356,7 @@
         "asset_sha256:b0f9407b3f8f0f039a5b79856deba30bbf3807e5bc88bece5fe2c7a212246f6b"
       ],
       "audio_plan": {
-        "state": "DEFERRED_UNTIL_OWNER_CARD_REVIEW",
+        "state": "READY",
         "synthesis_field": "he_niqqud",
         "karaoke_tokens": [
           {
@@ -3965,8 +4410,17 @@
             "normalized": "הישן"
           }
         ],
-        "timings_present": false,
-        "formula_speech_review_required": false
+        "timings_present": true,
+        "formula_speech_review_required": false,
+        "audio_asset_key": "02f2fd5c145ddd2fae0d2bac9869f33a7d2c5cfb236a3bc180ec32c286bb9ee2",
+        "spoken_he_niqqud": "הַפִּתְרוֹן נִגְזַר מִן הַתְּנַאי וְהַתַּרְשִׁימִים, וּלְאַחַר מִכֵּן הֻשְׁוָה לַפִּתְרוֹן הַיָּשָׁן.",
+        "tts_profile": {
+          "language": "he-IL",
+          "voiceName": "he-IL-Standard-A",
+          "speakingRate": 0.8,
+          "pitch": 2.5
+        },
+        "timing_url": "/api/audio/02f2fd5c145ddd2fae0d2bac9869f33a7d2c5cfb236a3bc180ec32c286bb9ee2/timing"
       }
     }
   ],
@@ -4035,9 +4489,16 @@
     "audio_projection": "ROW_CLIPS_WITH_WORD_TIMEPOINTS_AND_SEPARATE_FORMULA_SPEECH_LINE"
   },
   "audio_boundary": {
-    "full_tts_generated": false,
-    "timing_sidecars_present": false,
+    "full_tts_generated": true,
+    "timing_sidecars_present": true,
     "row_karaoke_contract_checked": true,
+    "profile_id": "materials-pb2-standard-a-0.8-pitch-2.5-v1",
+    "profile": {
+      "language": "he-IL",
+      "voiceName": "he-IL-Standard-A",
+      "speakingRate": 0.8,
+      "pitch": 2.5
+    },
     "formula_speech_review_required_count": 2
   },
   "rights": {
@@ -4045,8 +4506,8 @@
     "public_solution_display_and_print_allowed": true,
     "package_download_allowed": true,
     "agent_derivative_text_allowed": true,
-    "full_tts_audio_and_timings_allowed": false,
-    "basis": "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30",
-    "asserted_at": "2026-08-30"
+    "full_tts_audio_and_timings_allowed": true,
+    "basis": "Owner attestation in the Codex goal thread on 2026-09-01: the owner confirms the rights and grants permission for public generation and distribution of TTS for this corpus.",
+    "asserted_at": "2026-09-01T02:01:58+03:00"
   }
 }

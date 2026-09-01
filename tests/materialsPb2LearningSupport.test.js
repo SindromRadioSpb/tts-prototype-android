@@ -133,3 +133,8 @@ test("Materials PB2 rights validator refuses full TTS and incomplete content-cla
     assert.throws(() => validateRights(fixture.rights, { fullTts: true }), /FULL_TTS_RIGHTS_REQUIRED/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
+test("Materials PB2 runtime builder default anchor resolves to the committed production receipt", () => {
+  const { DEFAULT_ANCHOR } = require("../scripts/premium/build-materials-pb2-runtime-support.js");
+  assert.equal(path.basename(path.dirname(DEFAULT_ANCHOR)), "production");
+  assert.equal(fs.existsSync(DEFAULT_ANCHOR), true);
+});

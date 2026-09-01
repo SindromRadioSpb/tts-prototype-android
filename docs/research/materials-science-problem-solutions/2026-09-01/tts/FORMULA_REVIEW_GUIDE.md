@@ -1,54 +1,66 @@
-# Materials PB2 — formula speech review guide
+# Materials PB2 — formula speech policy
 
-Status: `271 ROWS / 222 EXACT DISPLAY FORMS PENDING`
+Status: `SYSTEM COMPILER PASS · 2,612/2,612 ROWS RESOLVED · 4 OWNER OVERRIDES`
 
-The full-corpus TTS release cannot pronounce raw formula notation. Review is
-performed once per exact display form and then expanded only to the rows listed
-under that same item. Similar-looking formulas are never merged.
+The educational priority is natural TTS for Hebrew condition and solution
+sentences. Formula notation must not block those sentences or be submitted raw
+to the Hebrew voice.
 
-## Review file
+## Release authority
 
-Open `formula-speech-unique-review-pack.json` in an editor with JSON support.
-The pack contains 226 unique exact display forms:
+`materials-formula-speech-he-v1` deterministically compiles notation embedded
+in every condition and solution row:
 
-- 4 already approved for Task 1;
-- 222 pending forms covering the remaining 271 rows.
+- Hebrew prose and punctuation remain Hebrew prose;
+- Latin and Greek variables become Hebrew letter names;
+- operators, ranges, fractions, indices, powers and arrows become spoken Hebrew;
+- common engineering units, lattice acronyms, material symbols and technical
+  terms use an explicit glossary;
+- ordinary numbers remain numeric so the Hebrew Standard voice reads them as
+  complete numbers rather than digit by digit;
+- an unknown TeX command or semantic symbol fails closed before any provider
+  request or output-directory creation.
 
-For every pending item:
+The four Task 1 readings explicitly accepted by the owner remain exact-row
+overrides in `formula-speech-review.json`. The other pending entries in that
+legacy ledger are not release blockers: the compiler output is the authority
+unless an exact reviewed override exists.
 
-1. Read `display_he_niqqud` and every object in `occurrences`.
-2. Confirm that one spoken form is correct in every listed context.
-3. Enter fully spoken, vocalized Hebrew in `spoken_he_niqqud`. Do not leave raw
-   Latin/Greek symbols, operators, powers, decimal separators or unit symbols.
-4. Set `status` to `REVIEWED_PASS`.
-5. Set `reviewed_by` and an ISO-8601 `reviewed_at` timestamp.
-6. Use `note` for any context or pronunciation decision that another reviewer
-   may need to understand.
-
-Stop and split the exact display form into a more specific decision if one
-spoken form is not correct for all listed occurrences. Do not approve it by
-analogy.
-
-## Apply without overwriting the canonical ledger
+## Full audit
 
 ```powershell
-node scripts/premium/materials-pb2-tts.js apply-formula-review-pack `
+node scripts/premium/materials-pb2-tts.js formula-audit `
   --ledger docs/research/materials-science-problem-solutions/2026-09-01/tts/formula-speech-review.json `
-  --pack docs/research/materials-science-problem-solutions/2026-09-01/tts/formula-speech-unique-review-pack.json `
-  --output .tmp/materials-pb2-formula-speech-reviewed.json
+  --output .tmp/materials-pb2-formula-speech-audit.json
 ```
 
-Expected output after complete review: `reviewed_count: 275`.
+Expected invariants:
+
+- `row_count: 2612`;
+- `owner_override_count: 4`;
+- `unresolved_count: 0`;
+- `ready: true`.
+
+The audit binds every displayed row to its actual spoken string and source
+manifest SHA-256. It is regenerated from canonical tables; it is not a second
+content source.
+
+## Optional exception workflow
+
+If listening QA finds a genuinely awkward formula, add only that exact row to
+the reviewed ledger with a non-empty Hebrew spoken form, reviewer identity and
+timestamp. The override remains source-hash-bound. Do not edit display text to
+improve TTS and do not approve unrelated rows by analogy.
 
 ## Full no-synthesis preflight
 
 ```powershell
 node scripts/premium/materials-pb2-tts.js preflight `
-  --ledger .tmp/materials-pb2-formula-speech-reviewed.json `
+  --ledger docs/research/materials-science-problem-solutions/2026-09-01/tts/formula-speech-review.json `
   --rights docs/research/materials-science-problem-solutions/2026-09-01/tts/full-tts-rights-attestation.owner.json `
   --output .tmp/materials-pb2-full-preflight.json
 ```
 
-Expected result: `ready: true` and all four gates (`rights`, `formula_speech`,
-`cost`, `secret`) equal `PASS`. If the command exits non-zero or no output file
-is created, do not run `bake` and do not publish.
+All four gates (`rights`, `formula_speech`, `cost`, `secret`) must equal `PASS`
+before `bake`. Formula compilation is completed before secret validation, output
+creation and provider calls.

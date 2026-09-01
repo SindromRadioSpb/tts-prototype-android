@@ -37,11 +37,15 @@ test("Materials PB2 word audio index is public only for its exact full-TTS editi
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
-test("current zero-audio support does not expose a word audio index", () => {
+test("current Materials support exposes the exact full-corpus word audio index", () => {
   const resolver = createResolver(path.resolve(__dirname, "..", "materials", "pb2-support"));
   const manifest = resolver.loadManifest();
-  assert.equal(manifest.audio_boundary.full_tts_generated, false);
-  assert.throws(() => resolver.resolveWordAudioIndex({ slug: SLUG, editionId: manifest.edition.edition_id,
-    editionNumber: manifest.edition.edition_number, editionManifestSha256: manifest.edition.manifest_sha256 }),
-  /MATERIALS_PB2_LEARNING_SUPPORT_NOT_FOUND/);
+  assert.equal(manifest.audio_boundary.full_tts_generated, true);
+  assert.equal(manifest.audio_boundary.audio_asset_count, 7311);
+  assert.equal(manifest.audio_boundary.timing_sidecar_count, 2239);
+  const index = resolver.resolveWordAudioIndex({ slug: SLUG, editionId: manifest.edition.edition_id,
+    editionNumber: manifest.edition.edition_number, editionManifestSha256: manifest.edition.manifest_sha256 });
+  assert.equal(index.words.length, 8537);
+  assert.ok(index.words.every(word => /^[a-f0-9]{64}$/.test(word.asset_key)
+    && word.audio_url === "/api/audio/" + word.asset_key));
 });

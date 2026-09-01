@@ -18,19 +18,21 @@ test("Materials PB2 TTS inventory is deterministic, deduplicated and below the r
   assert.equal(inventory.task_count, 60);
   assert.equal(inventory.row_reference_count, 2612);
   assert.equal(inventory.unique_condition_row_count, 674);
-  assert.equal(inventory.unique_solution_row_count, 1577);
-  assert.equal(inventory.unique_row_asset_count, 2251);
+  assert.equal(inventory.unique_solution_row_count, 1568);
+  assert.equal(inventory.unique_row_asset_count, 2239);
   assert.equal(inventory.word_reference_count, 19996);
   assert.equal(inventory.discovered_word_form_count, 5688);
   assert.equal(inventory.unique_word_asset_count, 5072);
-  assert.equal(inventory.row_billed_character_count, 215752);
+  assert.equal(inventory.row_billed_character_count, 252983);
   assert.equal(inventory.word_billed_character_count, 54928);
   assert.equal(inventory.normalized_word_billed_character_count, 48760);
-  assert.equal(inventory.total_billed_character_count, 270680);
+  assert.equal(inventory.total_billed_character_count, 307911);
   assert.ok(inventory.total_billed_character_count <= tts.RELEASE_CHARACTER_CEILING);
   assert.equal(inventory.formula_review_required_count, 275);
-  assert.equal(inventory.formula_review_pass_count, 0);
-  assert.equal(inventory.gates.formula_speech, "BLOCKED");
+  assert.equal(inventory.formula_review_pass_count, 275);
+  assert.equal(inventory.system_compiled_row_reference_count, 1660);
+  assert.equal(inventory.owner_reviewed_override_count, 0);
+  assert.equal(inventory.gates.formula_speech, "PASS");
 });
 
 test("Task 1 cost inventory matches the accepted release estimate", () => {
@@ -39,10 +41,11 @@ test("Task 1 cost inventory matches the accepted release estimate", () => {
   assert.equal(inventory.task_count, 1);
   assert.equal(inventory.unique_row_asset_count, 29);
   assert.equal(inventory.unique_word_asset_count, 62);
-  assert.equal(inventory.row_billed_character_count, 1672);
+  assert.equal(inventory.row_billed_character_count, 1721);
   assert.equal(inventory.word_billed_character_count, 537);
-  assert.equal(inventory.total_billed_character_count, 2209);
+  assert.equal(inventory.total_billed_character_count, 2258);
   assert.equal(inventory.formula_review_required_count, 4);
+  assert.equal(inventory.formula_review_pass_count, 4);
 });
 
 test("row and word keys are intentionally distinct while duplicate words share one key", () => {
@@ -199,7 +202,7 @@ test("release preflight can prove all gates without synthesis or filesystem outp
     formulaLedger: ledger, rights, client: { __materialsPb2SecretGateVerified: true, synthesizeSpeech() {} } });
   assert.equal(result.ready, true);
   assert.deepEqual(result.gates, { rights: "PASS", formula_speech: "PASS", cost: "PASS", secret: "PASS" });
-  assert.equal(result.inventory.total_billed_character_count, 2168);
+  assert.equal(result.inventory.total_billed_character_count, 2181);
   assert.equal(result.planned_asset_count, 88);
   assert.equal(result.inventory.unique_row_asset_count, result.planned_row_asset_count,
     "cost inventory must use approved formula speech, not the shorter display formula");
