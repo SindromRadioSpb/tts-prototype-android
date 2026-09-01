@@ -1,7 +1,7 @@
 # Materials PB2 public TTS — implementation evidence
 
 Date: 2026-09-01
-Status: `FRAMEWORK_PROD_VERIFIED · FULL_CORPUS_GENERATED_AND_VERIFIED · PRODUCTION_AUDIO_VERIFIED · MANIFEST_DEPLOY_PENDING`
+Status: `PRODUCTION_RELEASE_VERIFIED · OWNER_ACCEPTANCE_PENDING`
 
 ## Delivered contract
 
@@ -101,6 +101,40 @@ artifact or log.
   catalog contains no Materials edition, so this is intentionally shell
   regression evidence, not a claim that gated audio is live.
 
+### Full production release
+
+- Commits `7259baae`, `fd621d05` and `32bb7cb1` are on `origin/main`.
+  Coolify deployed the exact implementation revision `32bb7cb1` as application
+  version `3.11.454`; the public shell-integrity map contains
+  `/js/library-ui.js?v=454` and no stale `v=428` entry.
+- The exact immutable edition is `ed_336ad34ad1d41dc58bc8124b`, edition 2,
+  manifest `47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0`.
+  Its 60/60 works expose `full_tts_generated=true` learning support.
+- Representative tasks 1, 31 and 60 passed exact-edition support checks for
+  condition, solution and formula rows. All sampled MP3 and timing endpoints
+  returned public success responses.
+- Reading Room Task 1 condition playback fetched row HEAD `200`, timing `200`
+  and MP3 `206`. Its morphology card used the public word index (`200`) and
+  content-addressed MP3 (`206`).
+- The solution reader exposed row and continuous section controls. A displayed
+  formula row played its separately reviewed spoken form via row HEAD `200`,
+  timing `200` and MP3 `206`; a solution-word card used the same public word
+  resolver and MP3 path.
+- A real nested-dialog defect found during live QA was fixed red-first: an
+  already-created shared morphology sheet is no longer made inert by the
+  solution overlay. Production now reports `hidden=false`, `inert=false`, no
+  `aria-hidden`, and focus inside the visible morphology dialog.
+- In a fresh isolated Studio session, a canonical `#proTable` Hebrew cell was
+  wrapped by `StudioMorph`, its morphology card opened accessibly, and
+  «Произнести» fetched the shared Materials word index (`200`) and the exact
+  same public content-addressed word MP3 (`206`). No user key or duplicate
+  synthesis was used.
+- Production mobile emulation at 380 px had document width 380 px, no page
+  overflow and zero visible buttons below 44 x 44 px.
+- Final focused release/a11y suite: `72/72 PASS`; `git diff --check`: pass.
+- Machine-readable release record:
+  `production-full-release-verification.json`.
+
 ### Production framework and isolated Task 1 pilot
 
 - Commits `15d01d3b` and `6cf8f13e` are on `origin/main`; Coolify deployed the
@@ -151,6 +185,18 @@ Removed image layers are recoverable only by pulling or rebuilding them.
   removed 2.121 GB of unused builder cache (13.24 kB unused image data), restored
   7.9 GB available / 79% used, and retained the same nine running services on
   their required active images.
+- After the final `3.11.454` rollout, an explicit inventory proved that the sole
+  app container used image `32bb7cb1`; all nine containers and their nine active
+  images were identified before cleanup. `docker image prune -a -f` removed only
+  the two unused older app images (`fd621d05`, `5501b202`) and reclaimed 353 MB.
+  `docker builder prune -a -f` removed only unused build cache and reclaimed
+  3.59 GB. No container or volume was removed.
+- The root filesystem improved from 89% used / 4.1 GB available to 77% used /
+  8.5 GB available. Docker then reported 9 images, all 9 active, and zero build
+  cache. The same 9 container IDs remained running.
+- Eight consecutive public probes after cleanup returned `ok=true`, version
+  `3.11.454`, DB ready, migrations ready, `disk_pct_used=77` and
+  `disk_warn=false`, with uninterrupted uptime increasing from 451 to 467 s.
 
 Unused production image/cache layers can be restored only by pulling or
 rebuilding them. The media-acquisition and main LinguistPro containers were both
@@ -164,7 +210,7 @@ materials and chemistry notation. Unknown semantic tokens stop the release
 before output or provider access. `FORMULA_REVIEW_GUIDE.md` documents the full
 source-bound audit and the optional exact-row override workflow.
 
-## Open release gates
+## Release gates
 
 1. Rights gate: `PASS`, recorded in `full-tts-rights-attestation.owner.json`.
 2. Secret gate: `PASS`, ADC service-account material validated and redacted.
@@ -175,5 +221,11 @@ source-bound audit and the optional exact-row override workflow.
 5. Full bake and exact-edition support rebuild: `PASS` locally.
 6. Production upload: `PASS`, all 7,311 assets and 2,239 timing sidecars are
    publicly present; deterministic GET/hash sample is `PASS`.
-7. Scoped push, exact-version deployment, live Reading Room/Studio QA and
-   post-deploy Docker image cleanup remain pending.
+7. Scoped implementation push and exact-version deployment: `PASS`.
+8. Live Reading Room condition/solution/formula/morphology QA: `PASS`.
+9. Live Studio shared-public-word-audio QA: `PASS`.
+10. Nested-dialog accessibility and 380 px mobile QA: `PASS`.
+11. Post-deploy unused-image/build-cache cleanup and health streak: `PASS`.
+
+The remaining boundary is owner acceptance on the owner's ordinary desktop and
+mobile sessions; it is intentionally not inferred from automated or operator QA.

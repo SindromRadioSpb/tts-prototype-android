@@ -1,0 +1,93 @@
+{
+  "schema_version": "materials_pb2_tts_production_full_release_verification.1.0.0",
+  "corpus_slug": "materials-science-year1-problem-book-2",
+  "verified_at": "2026-09-01T04:12:52+03:00",
+  "base": "https://linguistpro.kolosei.com",
+  "implementation_commit": "32bb7cb152c741b73adc58e444a3651800adf9d5",
+  "app_version": "3.11.454",
+  "edition": {
+    "edition_id": "ed_336ad34ad1d41dc58bc8124b",
+    "edition_number": 2,
+    "edition_manifest_sha256": "47c95fa3268afbebfc5f75078755813290b3e67e2148a56c78ea16e4169879c0",
+    "work_count": 60,
+    "full_tts_generated": true
+  },
+  "tts_inventory": {
+    "asset_manifest_sha256": "13c58e03fb1b1e469d1105e616dcd3cb3037286bb6cb2930b82f4897716fbfa3",
+    "audio_asset_count": 7311,
+    "row_audio_asset_count": 2239,
+    "word_audio_asset_count": 5072,
+    "timing_sidecar_count": 2239,
+    "public_word_index_entry_count": 8537,
+    "provider_billed_characters": 307944,
+    "stored_bytes": 189684895,
+    "aggregate_duration_seconds": 23519.88,
+    "public_head_verified_count": 7311,
+    "public_head_failure_count": 0
+  },
+  "reading_room_browser": {
+    "condition_row_audio": "PASS_HEAD_200_TIMING_200_AUDIO_206",
+    "condition_word_morphology_audio": "PASS_INDEX_200_AUDIO_206",
+    "solution_row_audio": "PASS_HEAD_200_TIMING_200_AUDIO_206",
+    "solution_word_morphology_audio": "PASS_INDEX_200_AUDIO_206",
+    "nested_dialog_accessibility": {
+      "visible": true,
+      "hidden": false,
+      "inert": false,
+      "aria_hidden": null,
+      "focus_inside": true
+    },
+    "mobile_380": {
+      "document_scroll_width": 380,
+      "viewport_width": 380,
+      "undersized_visible_button_count": 0,
+      "horizontal_page_overflow": false
+    }
+  },
+  "studio_browser": {
+    "table_adapter_wrapped_word": true,
+    "morphology_card_opened": true,
+    "card_hidden": false,
+    "card_inert": false,
+    "card_aria_hidden": null,
+    "resolved_asset_key": "838c14d68dc05233298bbe66b5accbb41ab197088956b2e7cba55f49830d2412",
+    "asset_head_status": 200,
+    "asset_audio_get_status": 206,
+    "shared_public_word_index_status": 200
+  },
+  "task_1_owner_formula_readings": [
+    { "order": 11, "spoken_he_niqqud": "זֶד שָׁוֶה שֵׁשׁ" },
+    { "order": 16, "spoken_he_niqqud": "זֶד שָׁוֶה עֶשְׂרִים וְשֵׁשׁ" },
+    { "order": 21, "spoken_he_niqqud": "זֶד שָׁוֶה שָׁלוֹשׁ" },
+    { "order": 28, "spoken_he_niqqud": "זֶד שָׁוֶה אַרְבַּע" }
+  ],
+  "post_deploy_cleanup": {
+    "scope": ["unused_images", "unused_build_cache"],
+    "containers_deleted": 0,
+    "volumes_deleted": 0,
+    "running_containers_before": 9,
+    "running_containers_after": 9,
+    "images_before": 11,
+    "images_after": 9,
+    "active_images_after": 9,
+    "image_bytes_reclaimed": 370147328,
+    "builder_bytes_reclaimed": 3764387840,
+    "build_cache_after_bytes": 0,
+    "disk_pct_used_before": 89,
+    "disk_pct_used_after": 77,
+    "disk_warn_after": false
+  },
+  "health_streak": {
+    "probe_count": 8,
+    "pass_count": 8,
+    "version": "3.11.454",
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_pct_used": 77,
+    "disk_warn": false,
+    "uptime_seconds_first": 451,
+    "uptime_seconds_last": 467,
+    "shell_integrity_library_ui_454": true
+  },
+  "gate": "PASS"
+}
