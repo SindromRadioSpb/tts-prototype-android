@@ -1,6 +1,6 @@
 # MATERIALS PB2 — inline solution in the Reading Room
 
-Status: `IMPLEMENTED · LOCAL_GATES_PASS · PRODUCTION_PENDING`
+Status: `SHIPPED_PRODUCTION_3.11.455`
 
 Date: 2026-09-01
 
@@ -62,6 +62,31 @@ retains `aria-expanded`/`aria-controls`, and restores focus when collapsed.
 - Reflow: desktop, 380 px RU, 380 px HE RTL and 380 px at 200% all have no
   document overflow. Evidence is under
   `docs/research/materials-science-problem-solutions/2026-09-01/inline-reader/`.
+- The complete `npm test` run reached 1,249/1,260 passing. The six remaining
+  failing assertions after release-specific fixes are unrelated pre-existing
+  baselines: three `classicModeRedesign`, one `remoteMediaAcquisition`, and two
+  `roomLibrarySurfaceIa` assertions.
+
+## Production verification
+
+- Release `3.11.455` reached a stable 10/10 healthy probe streak on 2026-09-01;
+  database and migrations remained ready throughout the accepted streak.
+- On the ordinary public corpus route at a 380 x 845 CSS px mobile viewport,
+  the task condition and 31 reviewed solution rows render in one Reading Room
+  flow. The solution deep-link restores expanded state without a dialog and the
+  document remains exactly 380 CSS px wide.
+- The condition and solution use the same five Reader column proportions.
+  Toggling transliteration in the existing `Aa` surface changes both tables and
+  leaves the solution expanded; every inline control checked is at least 44 px.
+- A solution-word tap opens the shared morphology sheet. Cached solution-row
+  playback completed the expected `HEAD 200`, timing `200`, and media `206`
+  requests without console errors.
+- Lighthouse mobile snapshot: accessibility 95, best practices 100, SEO 100,
+  agentic browsing 100. The two remaining accessibility findings are inherited
+  Reading Room debt outside this change: the 4.39:1 provenance-note contrast
+  and the document-wide missing `main` landmark.
+- Physical iPhone and assistive-technology acceptance remain owner-only and are
+  not inferred from Chrome mobile emulation.
 
 ## Release boundary
 
