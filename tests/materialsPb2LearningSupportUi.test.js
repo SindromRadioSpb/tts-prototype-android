@@ -126,6 +126,8 @@ test("Materials Task Learning Reader attaches shared morphology to condition and
   const morph = read("public/js/reader-morph.js");
   assert.match(morph, /stopImmediatePropagation\(\)[\s\S]*closeSheet/,
     "first Escape is owned by the morphology card before the parent reader dialog");
+  assert.match(room, /roomSuspendBackground[\s\S]*!node\.classList\.contains\(['"]rm-sheet['"]\)/,
+    "a pre-existing shared morphology sheet must stay outside the solution overlay's inert background");
 });
 
 test("every reviewed solution Hebrew word round-trips through an exact anchor independently of formula-token timing", () => {

@@ -85,7 +85,7 @@ async function main() {
   const injectedSupport = task1Support(publicSupport, manifest);
   const injectedWords = wordIndex(publicSupport, manifest);
   const config = await fetchJson(`${BASE}/api/client-config`);
-  assert.equal(config.version, "3.11.453");
+  assert.equal(config.version, "3.11.454");
   const publicWordResponse = await fetch(`${BASE}/api/public-corpora/${SLUG}/learning-support/word-audio-index`);
   assert.equal(publicWordResponse.status, 404, "partial pilot must not leak through the public word index");
 

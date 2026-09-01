@@ -9483,7 +9483,12 @@ function roomShareSlug(value) {
 function roomSuspendBackground(overlay) {
   if (!overlay || !document.body) return [];
   const states = Array.from(document.body.children)
-    .filter((node) => node !== overlay && !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(node.tagName))
+    // ReaderMorph is a shared top-level dialog. It may already exist hidden
+    // when the task-solution overlay opens; inerting it here makes a later word
+    // tap focus an aria-hidden descendant. Keep it available as the intentional
+    // nested modal while every ordinary background surface stays suspended.
+    .filter((node) => node !== overlay && !node.classList.contains('rm-sheet')
+      && !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(node.tagName))
     .map((node) => ({ node, inert: node.getAttribute('inert'), ariaHidden: node.getAttribute('aria-hidden') }));
   for (const state of states) {
     try { state.node.setAttribute('inert', ''); state.node.setAttribute('aria-hidden', 'true'); } catch (_) {}
