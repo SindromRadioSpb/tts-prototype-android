@@ -13,7 +13,7 @@ test("Materials PB2 Room keeps zero-audio honesty and enables exact cached TTS o
   assert.match(room, /renderMaterialsLearningActions/);
   assert.match(room, /materials-science-year1-problem-book-2[\s\S]*renderMaterialsLearningActions/);
   assert.match(room, /materialsLearningTable\(materialsConditionRows\(support\), 'condition', fullTts\)/);
-  assert.match(room, /materialsLearningTable\(support\.solution_rows, 'solution', fullTts\)/);
+  assert.match(room, /materialsLearningTable\(materialsHonestSolutionRows\(support\.solution_rows\), 'solution', fullTts\)/);
   assert.match(room, /materialsPrintStudy/);
   assert.match(room, /materialsPrintExam/);
   assert.match(room, /materialsAudioDeferred/);
@@ -34,6 +34,37 @@ test("Materials PB2 Room keeps zero-audio honesty and enables exact cached TTS o
     "runtime support must auto-enable only after its validated exact-edition manifest is installed, while retaining a kill switch");
   assert.match(server, /learning-support\/assets\/:assetSha256/);
   assert.match(worker, /learningSupport = \/\\\/works/);
+});
+
+test("Materials PB2 learner projection is honest and flat across all 60 tasks", () => {
+  const adapter = require("../public/js/public-corpus-adapter.js");
+  const room = read("public/js/library-ui.js"), html = read("public/library.html");
+  const dir = path.join(ROOT, "docs/research/materials-science-problem-solutions/2026-08-30/artifacts/student-solution-tables/tasks");
+  const files = fs.readdirSync(dir).filter(name => name.endsWith(".json")).sort();
+  assert.equal(files.length, 60);
+  let canonicalRows = 0, projectedRows = 0, removedSyntheticRows = 0;
+  for (const file of files) {
+    const artifact = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+    const projected = adapter.materialsHonestSolutionRows(artifact.rows);
+    canonicalRows += artifact.rows.length; projectedRows += projected.length;
+    removedSyntheticRows += artifact.rows.filter(row => row.section === "answer_first").length;
+    assert.ok(projected.length > 0, `${file}: honest projection must keep the worked solution`);
+    assert.equal(projected.some(row => row.section === "answer_first"), false, `${file}: unreviewed synthetic summary must fail closed`);
+    assert.deepEqual(projected.map(row => row.row_id), artifact.rows.filter(row => row.section !== "answer_first").map(row => row.row_id),
+      `${file}: projection must preserve canonical row identity and order`);
+  }
+  assert.equal(canonicalRows, 1919);
+  assert.ok(removedSyntheticRows > 60, "the projection removes the heading and generated summary rows, not merely their labels");
+  assert.equal(projectedRows, canonicalRows - removedSyntheticRows);
+  for (const task of ["q005", "q052"]) {
+    const artifact = JSON.parse(fs.readFileSync(path.join(dir, `materials-science-y1-pb2-${task}.json`), "utf8"));
+    assert.equal(adapter.materialsHonestSolutionRows(artifact.rows).some(row => row.section === "answer_first"), false, `${task}: reported regression stays closed`);
+  }
+  assert.doesNotMatch(room, /materialsSectionName|MATERIALS_SECTION_KEYS|materials-inline-section-row/,
+    "heuristic section metadata must never become learner-facing headings");
+  assert.doesNotMatch(room, /materialsCheckAnswer|materials-inline-answer|section === ['"]answer_first['"]/,
+    "the unreviewed short-answer affordance must not remain hidden or reachable");
+  assert.doesNotMatch(html, /materials-inline-section-row|materials-section-name/);
 });
 
 test("Materials PB2 learning surface is localized in all Room locales", () => {

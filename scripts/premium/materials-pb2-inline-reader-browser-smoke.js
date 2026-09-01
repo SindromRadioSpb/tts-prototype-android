@@ -85,6 +85,19 @@ async function stop(child) {
     });
     await page.goto(`${BASE}/library.html?canon=skip&public_corpus=${publisher.SLUG}&cb=${Date.now()}`, { waitUntil: "domcontentloaded" });
     await page.locator(`[data-public-corpus="${publisher.SLUG}"]`).waitFor({ timeout: 30000 });
+    const catalogCard = page.locator(".room-material-row").first();
+    assert.equal(await catalogCard.locator(".materials-learning-action").count(), 1, "catalog card must expose only the full solution");
+    assert.equal(await catalogCard.getByText("Краткий ответ", { exact: true }).count(), 0);
+    await catalogCard.locator(".materials-learning-action.primary").click();
+    const standaloneViewer = page.locator(".materials-learning-viewer"); await standaloneViewer.waitFor({ timeout: 30000 });
+    const standalone = await page.evaluate(() => ({
+      rows: document.querySelectorAll(".materials-learning-table.is-solution .materials-learning-row").length,
+      answerFirstRows: document.querySelectorAll('.materials-learning-table.is-solution [data-section="answer_first"]').length,
+      semanticHeadings: document.querySelectorAll(".materials-section-name, .materials-inline-section-row").length,
+      documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    }));
+    assert.ok(standalone.rows > 10 && standalone.answerFirstRows === 0 && standalone.semanticHeadings === 0 && !standalone.documentOverflow, JSON.stringify(standalone));
+    await page.locator(".materials-learning-close").click();
     await page.locator(".room-text-title-link").first().click();
     await page.locator("#readerTaskLearningSupport:not([hidden]) .materials-learning-action.primary").waitFor({ timeout: 30000 });
     const reviewBefore = await page.evaluate(() => window.__localDB.countReviewLog());
@@ -95,6 +108,8 @@ async function stop(child) {
       const main = document.querySelector("#roomReaderTable #proTable"), tables = [...document.querySelectorAll(".materials-inline-table")];
       const controls = [...document.querySelectorAll("#materialsInlineSolution button")].filter(node => node.getClientRects().length);
       return { tables: tables.length, rows: document.querySelectorAll(".materials-inline-table tbody tr[data-row-idx]").length,
+        answerFirstRows: document.querySelectorAll('.materials-inline-table [data-section="answer_first"]').length,
+        semanticHeadings: document.querySelectorAll(".materials-section-name, .materials-inline-section-row").length,
         colsMatch: tables.every(table => table.dataset.cols === main.dataset.cols),
         widthsMatch: tables.every(table => [...table.querySelectorAll("col")].every((col, index) => col.style.width === main.querySelectorAll("col")[index]?.style.width)),
         documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -102,7 +117,7 @@ async function stop(child) {
         expanded: document.querySelector("#readerTaskLearningSupport .materials-learning-action.primary")?.getAttribute("aria-expanded"),
         inlineOpen: document.body.classList.contains("materials-inline-open") };
     });
-    assert.ok(initial.tables === 1 && initial.rows > 10, JSON.stringify(initial));
+    assert.ok(initial.tables === 1 && initial.rows > 10 && initial.answerFirstRows === 0 && initial.semanticHeadings === 0, JSON.stringify(initial));
     assert.ok(initial.colsMatch && initial.widthsMatch && !initial.documentOverflow && initial.expanded === "true" && initial.inlineOpen, JSON.stringify(initial));
     assert.deepEqual(initial.tinyControls, []);
 
@@ -148,8 +163,8 @@ async function stop(child) {
     await trigger.click(); assert.equal(await inline.count(), 0); assert.equal(await trigger.getAttribute("aria-expanded"), "false");
     assert.equal(await trigger.evaluate(node => document.activeElement === node), true, "collapse returns focus to its trigger");
     assert.deepEqual(pageErrors, []); assert.deepEqual(consoleErrors.filter(value => /TypeError|ReferenceError|materials/i.test(value)), []);
-    const report = { gate: "MATERIALS_PB2_INLINE_READER_LOCAL_BROWSER", version: "3.11.455", viewport: "380x845",
-      publication_items: publication.full.items, solution: initial, reflow_200pct: reflow200, mobile_he: mobileHe, desktop,
+    const report = { gate: "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER", version: "3.11.456", viewport: "380x845",
+      publication_items: publication.full.items, standalone, solution: initial, reflow_200pct: reflow200, mobile_he: mobileHe, desktop,
       review_log_delta: 0, page_errors: pageErrors,
       screenshots: fs.readdirSync(OUT).filter(name => name.endsWith(".png")).sort() };
     fs.writeFileSync(path.join(OUT, "local-browser-verification.json"), JSON.stringify(report, null, 2) + "\n");

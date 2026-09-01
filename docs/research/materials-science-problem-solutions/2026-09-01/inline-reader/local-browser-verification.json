@@ -1,11 +1,19 @@
 {
-  "gate": "MATERIALS_PB2_INLINE_READER_LOCAL_BROWSER",
-  "version": "3.11.455",
+  "gate": "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER",
+  "version": "3.11.456",
   "viewport": "380x845",
   "publication_items": 60,
+  "standalone": {
+    "rows": 26,
+    "answerFirstRows": 0,
+    "semanticHeadings": 0,
+    "documentOverflow": false
+  },
   "solution": {
     "tables": 1,
-    "rows": 31,
+    "rows": 26,
+    "answerFirstRows": 0,
+    "semanticHeadings": 0,
     "colsMatch": true,
     "widthsMatch": true,
     "documentOverflow": false,

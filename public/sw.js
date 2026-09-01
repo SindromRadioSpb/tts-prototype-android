@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.455";
+const CACHE_VERSION = "v3.11.456";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=455",
+  "/js/library-ui.js?v=456",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=420",
+  "/js/public-corpus-adapter.js?v=421",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",

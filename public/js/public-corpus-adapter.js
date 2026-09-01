@@ -176,6 +176,10 @@
       || row.audio_plan?.state !== "READY" || row.audio_plan?.timings_present !== true)) invalid();
     return Object.freeze({ ...clone(payload), solution_rows: Object.freeze(normalizedRows), condition: clone(condition) });
   }
+  function materialsHonestSolutionRows(rows) {
+    if (!Array.isArray(rows)) return Object.freeze([]);
+    return Object.freeze(rows.filter(row => row && String(row.section || "") !== "answer_first"));
+  }
   function materialsSolutionTextKey(support) {
     const value = support || {};
     const parts = [
@@ -244,5 +248,5 @@
       return { textKey, sentenceId: row.row_id, orderIndex: Number(row.order), surface: String(occ.surface) };
     } catch (_) { return null; }
   }
-  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport, normalizeMaterialsLearningSupport, materialsSolutionTextKey, materialsSolutionOccurrence, verifyMaterialsSolutionOccurrence });
+  return Object.freeze({ normalizeCorpus, normalizeWork, prepareImportBundle, deepLink, localTextKey, normalizePhysicsSections, normalizePhysicsResourceIndex, normalizePhysicsLearningSupport, normalizeMaterialsLearningSupport, materialsHonestSolutionRows, materialsSolutionTextKey, materialsSolutionOccurrence, verifyMaterialsSolutionOccurrence });
 });

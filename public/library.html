@@ -966,7 +966,6 @@
     .materials-inline-table th,.materials-inline-table td { padding: 8px 9px; border: 1px solid var(--table-border); vertical-align: middle; overflow-wrap: anywhere; word-break: break-word; }
     .materials-inline-table thead th { position: sticky; top: var(--room-thead-top,0px); z-index: 3; background: var(--table-bg-header); color: var(--table-text); font-weight: 700; text-align: center; }
     .materials-inline-table tbody tr:nth-child(even) { background: var(--table-bg-row-zebra); }
-    .materials-inline-table .materials-inline-section-row th { position: static; padding: 7px 9px; border-inline-start: 4px solid #c07c21; background: color-mix(in srgb,#fbbf24 9%,var(--bg-card)); color: var(--text-primary); font: 850 10px/1.3 system-ui,sans-serif; letter-spacing: .055em; text-align: start; text-transform: uppercase; }
     .materials-inline-table tbody tr.row-playing:not(.row-error) td { background: var(--row-hl-playing); }
     .materials-inline-table tbody tr.row-playing:not(.row-error) td:first-child { box-shadow: inset 3px 0 0 var(--row-rail-playing); }
     .materials-inline-table tbody tr.row-error td { background: color-mix(in srgb,var(--row-rail-error) 16%,var(--table-bg-row)); }
@@ -1015,7 +1014,6 @@
     .materials-step-col,.materials-step-cell { width: 112px; }
     .materials-step-cell { position: relative; border-inline-start: 3px solid color-mix(in srgb,var(--materials-teal) 72%,var(--border-soft)); background: color-mix(in srgb,var(--bg-muted) 72%,var(--bg-card)); text-align: start; }
     .materials-step-cell::before { content: ""; position: absolute; inline-size: 9px; block-size: 9px; inset-inline-start: -6px; inset-block-start: 15px; box-sizing: border-box; border: 2px solid var(--materials-paper); border-radius: 50%; background: var(--materials-teal); box-shadow: 0 0 0 1px color-mix(in srgb,var(--materials-teal) 55%,var(--border-soft)); }
-    .materials-section-name { display: block; color: #0f6f74; font: 850 10px/1.3 system-ui,sans-serif; letter-spacing: .045em; text-transform: uppercase; }
     .materials-step-number { display: block; margin-top: 5px; color: var(--text-secondary); font: 750 11px/1.3 system-ui,sans-serif; }
     .materials-he-cell,.materials-niqqud-cell { text-align: right; font: 500 15px/1.7 Arial,"Noto Sans Hebrew",sans-serif; }
     .materials-learning-viewer .rm-w { border-radius: 4px; text-decoration-thickness: 1px; text-underline-offset: .18em; }
@@ -3113,7 +3111,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.455</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.456</button>
   </div>
 </footer>
 
@@ -3380,7 +3378,7 @@
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=420"></script>
-<script type="module" src="/js/library-ui.js?v=455"></script>
+<script src="/js/public-corpus-adapter.js?v=421"></script>
+<script type="module" src="/js/library-ui.js?v=456"></script>
 </body>
 </html>

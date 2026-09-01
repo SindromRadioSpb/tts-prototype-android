@@ -7997,17 +7997,9 @@ function renderPhysicsLearningActions(slug, item) {
   wrap.append(check, understand, answer); return wrap;
 }
 
-const MATERIALS_SECTION_KEYS = Object.freeze({
-  answer_first: ['materialsSectionAnswer', 'Краткий ответ'], theory: ['materialsSectionTheory', 'Теория'],
-  given_find: ['materialsSectionGiven', 'Дано и найти'], model_and_laws: ['materialsSectionLaws', 'Модель и законы'],
-  derivation: ['materialsSectionDerivation', 'Вывод'], calculation: ['materialsSectionCalculation', 'Расчёт'],
-  construction: ['materialsSectionConstruction', 'Построение'], verification: ['materialsSectionVerification', 'Проверка'],
-  final_answer: ['materialsSectionFinal', 'Итог'], provenance: ['materialsSectionProvenance', 'Происхождение']
-});
-
-function materialsSectionName(section) {
-  const value = MATERIALS_SECTION_KEYS[section] || ['materialsSectionStep', 'Шаг решения'];
-  return tt('room.publicCorpus.' + value[0], value[1]);
+function materialsHonestSolutionRows(rows) {
+  if (!window.PublicCorpusAdapter || typeof window.PublicCorpusAdapter.materialsHonestSolutionRows !== 'function') return [];
+  return window.PublicCorpusAdapter.materialsHonestSolutionRows(rows);
 }
 
 function materialsConditionRows(support) {
@@ -8038,7 +8030,7 @@ function materialsLearningTable(rows, type, fullTts) {
     ['materialsRussian', 'Русский', 'materials-ru-col']
   ]) headRow.appendChild(el('th', { class: className, attrs: { scope: 'col' }, text: tt('room.publicCorpus.' + key, fallback) }));
   head.appendChild(headRow); table.append(caption, head);
-  const body = el('tbody'); let lastSection = null;
+  const body = el('tbody');
   for (const [rowIndex, row] of rows.entries()) {
     const tr = el('tr', { class: 'materials-learning-row', attrs: { 'data-section': row.section, 'data-kind': row.kind,
       'data-row-idx': rowIndex, 'data-row-id': row.row_id, 'data-source-kind': type,
@@ -8054,11 +8046,9 @@ function materialsLearningTable(rows, type, fullTts) {
         'aria-label': tt('room.reader.audio.play', 'Озвучить строку'), 'aria-pressed': 'false' }, text: '▶' }));
       tr.appendChild(audioCell);
     }
-    const label = row.section === 'condition' ? tt('room.publicCorpus.materialsConditionStep', 'Условие') : materialsSectionName(row.section);
     const step = el('th', { class: 'materials-step-cell', attrs: { scope: 'row', 'data-label': tt('room.publicCorpus.materialsStep', 'Шаг') } });
-    if (row.section !== lastSection) step.appendChild(el('span', { class: 'materials-section-name', text: label }));
-    step.appendChild(el('span', { class: 'materials-step-number', text: String(row.order) + (row.part_label ? ' · ' + row.part_label : '') }));
-    lastSection = row.section; tr.appendChild(step);
+    step.appendChild(el('span', { class: 'materials-step-number', text: String(rowIndex + 1) + (row.part_label ? ' · ' + row.part_label : '') }));
+    tr.appendChild(step);
     for (const [field, key, fallback, className, lang, dir] of [
       ['he', 'materialsHebrew', 'Иврит', 'materials-he-cell', 'he', 'rtl'],
       ['he_niqqud', 'materialsNiqqud', 'Иврит с огласовками', 'materials-niqqud-cell', 'he', 'rtl'],
@@ -8172,19 +8162,10 @@ function rerenderMaterialsInlineSolution() {
   tableMount.innerHTML = readerCore.buildBilingualTableHtml(state.rows, cfg);
   const table = tableMount.querySelector('.materials-inline-table');
   if (table) table.setAttribute('aria-label', tt('room.publicCorpus.materialsSolution', 'Решение'));
-  let lastSection = '';
   state.rows.forEach((row, localIndex) => {
     const domIndex = readerRows.length + localIndex;
     const tr = tableMount.querySelector('tr[data-row-idx="' + String(domIndex) + '"]');
     if (!tr || !row._materialsSolutionRow) return;
-    const sectionKey = String(row._materialsSolutionRow.section || 'solution');
-    if (sectionKey !== lastSection) {
-      const divider = document.createElement('tr'); divider.className = 'materials-inline-section-row';
-      divider.setAttribute('data-section', sectionKey);
-      const heading = document.createElement('th'); heading.colSpan = table ? table.querySelectorAll('colgroup col').length : 1;
-      heading.setAttribute('scope', 'rowgroup'); heading.textContent = materialsSectionName(sectionKey);
-      divider.appendChild(heading); tr.parentElement.insertBefore(divider, tr); lastSection = sectionKey;
-    }
     tr.setAttribute('data-row-id', String(row._materialsSolutionRow.row_id || ''));
     tr.setAttribute('data-source-kind', 'solution');
   });
@@ -8232,7 +8213,7 @@ function renderMaterialsInlineSolution(support, trigger, wrap) {
   wrap.appendChild(region);
   materialsInlineState = {
     support, trigger, wrap, region, expanded: true,
-    rows: (support.solution_rows || []).map(materialsSolutionReaderRow),
+    rows: materialsHonestSolutionRows(support.solution_rows).map(materialsSolutionReaderRow),
     activeRowId: (() => { try { return new URLSearchParams(location.search).get('materials_row') || ''; } catch (_) { return ''; } })(),
   };
   document.body.classList.add('materials-inline-open');
@@ -8305,7 +8286,7 @@ function openMaterialsLearningSupport(support, trigger) {
   const figures = materialsSourceFigures(support); if (figures.childElementCount) condition.appendChild(figures);
   const solution = el('section', { class: 'materials-learning-section materials-solution-section', attrs: { 'aria-labelledby': 'materialsSolutionTitle' } });
   solution.appendChild(el('h3', { attrs: { id: 'materialsSolutionTitle' }, text: tt('room.publicCorpus.materialsSolution', 'Решение') }));
-  solution.appendChild(materialsLearningTable(support.solution_rows, 'solution', fullTts));
+  solution.appendChild(materialsLearningTable(materialsHonestSolutionRows(support.solution_rows), 'solution', fullTts));
   const provenance = el('footer', { class: 'materials-learning-provenance' });
   provenance.appendChild(el('strong', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
   provenance.appendChild(el('code', { text: 'edition ' + support.edition_number + ' · work ' + support.public_work_id + ' · snapshot ' + support.snapshot_sha256.slice(0, 12) + '…' }));
@@ -8377,24 +8358,16 @@ function openMaterialsLearningSupport(support, trigger) {
 function renderMaterialsLearningActions(slug, item, options = {}) {
   const surface = options.surface || 'catalog';
   const wrap = el('div', { class: 'materials-learning-actions' });
-  const check = el('button', { class: 'materials-learning-action answer', attrs: { type: 'button', 'aria-expanded': 'false' }, text: tt('room.publicCorpus.materialsCheckAnswer', 'Краткий ответ') });
   const openAttrs = { type: 'button' };
   if (surface === 'reader') { openAttrs['aria-expanded'] = 'false'; openAttrs['aria-controls'] = 'materialsInlineSolution'; }
   const open = el('button', { class: 'materials-learning-action primary', attrs: openAttrs, text: tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →' });
-  const answer = el('div', { class: 'materials-inline-answer', attrs: { role: 'status' } }); answer.hidden = true; let support = null;
+  let support = null;
   async function load(button) {
     button.disabled = true; wrap.setAttribute('data-loading', 'true');
     try { support = support || await ensureMaterialsLearningSupport(slug, item); return support; }
     catch (_) { roomToast(tt('room.publicCorpus.materialsLearningUnavailable', 'Проверенное решение сейчас недоступно')); return null; }
     finally { button.disabled = false; wrap.removeAttribute('data-loading'); }
   }
-  check.addEventListener('click', async () => {
-    if (!answer.hidden) { answer.hidden = true; check.setAttribute('aria-expanded', 'false'); return; }
-    const value = await load(check); if (!value) return;
-    const short = value.solution_rows.filter(row => row.section === 'answer_first' && row.kind === 'final_answer').slice(0, 6);
-    answer.replaceChildren(); for (const row of short) answer.appendChild(el('p', { text: row.text.ru }));
-    answer.hidden = false; answer.removeAttribute('hidden'); check.setAttribute('aria-expanded', 'true');
-  });
   open.addEventListener('click', async () => {
     if (surface === 'reader' && materialsInlineState && materialsInlineState.expanded && materialsInlineState.trigger === open) {
       collapseMaterialsInlineSolution(); return;
@@ -8403,7 +8376,7 @@ function renderMaterialsLearningActions(slug, item, options = {}) {
     if (surface === 'reader') renderMaterialsInlineSolution(value, open, wrap);
     else openMaterialsLearningSupport(value, open);
   });
-  wrap.append(check, open, answer); return wrap;
+  wrap.appendChild(open); return wrap;
 }
 
 async function renderReaderTaskResources(slug, workId, epoch) {
