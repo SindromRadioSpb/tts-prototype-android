@@ -9,7 +9,7 @@
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
 import * as localDb from '/db/local-db.js';
-import * as readerCore from '/js/reader-core.js?v=400';
+import * as readerCore from '/js/reader-core.js?v=401';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js';
@@ -58,6 +58,8 @@ const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
 const physicsPublicEnhancements = new Map(); // slug -> validated sections + immutable resource index
 const physicsLearningSupportCache = new Map(); // exact public_work_id -> reviewed immutable derivative; lazy per task
 const physicsLearningSupportLoading = new Map();
+let materialsInlineState = null; // one open Room task: exact derivative + projected rows + controls
+let materialsInlineAudio = null; // cached-only solution playback; condition playback stays readerAudio
 const publicCorpusBrowseStates = new Map(); // per-public-corpus discovery state; never learner truth
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
@@ -1875,7 +1877,7 @@ const ensureWordStates = () => morphHost.ensureWordStates();
 // (reader-morph resolves each word once). States are only fetched when a decoration needs them
 // (colour on, or niqqud 'adaptive'); otherwise a cheap clear restores plain/neutral.
 async function applyDecorations() {
-  const mount = $('roomReaderTable');
+  const mount = activeReaderMorphMount();
   if (!mount || !window.ReaderMorph) return;
   const color = wordStatusEnabled();
   const fadeMode = readerCfg.niqqudMode;            // 'full' | 'adaptive' | 'off'
@@ -4830,6 +4832,7 @@ function attachReaderAudio() {
   const mount = $('roomReaderTable');
   if (!mount) return;
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
+  if (materialsInlineAudio) { try { materialsInlineAudio.detach(); } catch (_) {} materialsInlineAudio = null; }
   const audioProfile = { language: 'he-IL', voiceName: '', speakingRate: 1.0, pitch: 0.0 };
   const audioIndicatorLabels = {
     ready: tt('room.reader.audio.ready', 'Аудио готово'),
@@ -4864,6 +4867,7 @@ function attachReaderAudio() {
         ? '/api/audio/' + encodeURIComponent(key) + '/timing'
         : '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key) + '/timing'
       : undefined,
+    onBeforePlay: () => { try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {} },
     onAssetReady: async ({ rowIdx, row, assetKey, profile }) => {
       paintAudioIndicator(rowIdx);   // immediate Studio-parity feedback
       if (!row || !row._v3_sentenceId || !assetKey) return;
@@ -4884,8 +4888,10 @@ function attachReaderAudio() {
     tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],
   });
   readerRows.forEach((_, idx) => paintAudioIndicator(idx));
-  attachReaderMorph(mount);
-  applyReveal(mount);
+  const morphOverrides = materialsInlineMorphOverrides();
+  attachReaderMorph(activeReaderMorphMount(), morphOverrides);
+  if (morphOverrides) applyDecorations();
+  applyReveal(activeReaderMorphMount());
   attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
   attachExplainButtons(mount);   // CLG-P6.2 — POST-render 🤖 per row (только свои тексты)
   attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
@@ -4895,6 +4901,7 @@ function attachReaderAudio() {
   try { if (_sessionLastRow >= 0) setCurrentWorkingRow(_sessionLastRow); } catch (_) {}   // rerender keeps the derived working-row projection
   try { roomSyncActionOverlay(); } catch (_) {}   // пересборка таблицы уносит оверлей
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
+  attachMaterialsInlineAudio();
 }
 
 // BRR-P1-008 — continuous read-aloud (karaoke). Reuses the existing per-row .row-playing highlight;
@@ -6638,11 +6645,11 @@ async function explainWordFromCard(p) {
 // start blurred (.ru-veiled); a capture-phase tap reveals that row (.ru-revealed). Per-row state is
 // DOM-only (resets on rerender/new text — fine for v1; the MODE itself persists). The handler runs
 // in capture so it pre-empts reader-core's row-audio delegate (ru is also excluded from audio above).
-let revealHandler = null;
+let revealHandler = null, revealMount = null;
 function applyReveal(mount) {
   if (!mount) return;
-  if (revealHandler) { try { mount.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
-  const ruCells = mount.querySelectorAll('#proTable tbody td[data-col="ru"]');
+  if (revealHandler && revealMount) { try { revealMount.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; revealMount = null; }
+  const ruCells = mount.querySelectorAll('#proTable tbody td[data-col="ru"], .materials-inline-table tbody td[data-col="ru"]');
   const on = readerCfg.ruMode === 'reveal';
   ruCells.forEach((td) => { if (on) td.classList.add('ru-veiled'); else td.classList.remove('ru-veiled', 'ru-revealed'); });
   if (!on) return;
@@ -6651,6 +6658,7 @@ function applyReveal(mount) {
     if (td && mount.contains(td)) { e.preventDefault(); e.stopPropagation(); td.classList.toggle('ru-revealed'); }
   };
   mount.addEventListener('click', revealHandler, true);
+  revealMount = mount;
 }
 
 // Retention P5.6 — owner fork R-2(a), 2026-07-02: a MANUAL level mark (l1–l4) seeds the FSRS
@@ -6854,6 +6862,47 @@ function attachReaderMorph(mount, overrides) {
   return readerMorph;
 }
 
+function activeReaderMorphMount() {
+  return materialsInlineState && materialsInlineState.expanded ? $('roomReader') : $('roomReaderTable');
+}
+
+function materialsInlineMorphOverrides() {
+  if (!materialsInlineState || !materialsInlineState.expanded) return null;
+  return {
+    cellSelector: '#roomReaderTable #proTable tbody td[data-col="he"], #roomReaderTable #proTable tbody td[data-col="niqqud"], .materials-inline-table tbody td[data-col="he"], .materials-inline-table tbody td[data-col="niqqud"]',
+    rowSelector: 'tr[data-row-idx]', rowIndexAttribute: 'data-row-idx', rovingFocus: true,
+    getRowForCell: (_cell, tr) => {
+      const index = Number(tr && tr.getAttribute('data-row-idx'));
+      if (!Number.isFinite(index)) return null;
+      return index >= readerRows.length ? materialsInlineState.rows[index - readerRows.length] || null : readerRows[index] || null;
+    },
+    getPlainText: row => row && row.he,
+    getVocalizedText: row => row && row.he_niqqud,
+    getSentence: row => row && (row.he_niqqud || row.he),
+    shouldWrap: (_row, _cell, _col, value) => materialsHasHebrew(value),
+    buildOccurrence: (span, row) => {
+      if (row && row._materialsSolutionRow) {
+        try { return window.PublicCorpusAdapter.materialsSolutionOccurrence(materialsInlineState.support, row._materialsSolutionRow, Number(span.getAttribute('data-w-offset')), span.getAttribute('data-surface')); }
+        catch (_) { return null; }
+      }
+      const off = Number(span.getAttribute('data-w-offset'));
+      return {
+        text_id: row && row._v3_textId ? String(row._v3_textId) : null,
+        sentence_id: row && row._v3_sentenceId ? String(row._v3_sentenceId) : null,
+        order_index: row && row._v3_orderIndex != null ? Number(row._v3_orderIndex) : null,
+        word_offset: Number.isFinite(off) ? off : null,
+        surface: span.getAttribute('data-surface') || '',
+      };
+    },
+    onOccurrenceActive: (span, row) => {
+      if (!row || !row._materialsSolutionRow || !materialsInlineState) return;
+      materialsInlineState.activeRowId = row._materialsSolutionRow.row_id;
+      setMaterialsReaderUrl(materialsInlineState.support, 'solution', materialsInlineState.activeRowId);
+    },
+    speakWord: async text => { try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {} return speakWord(text); },
+  };
+}
+
 function readerStateBox(i18nKey, icon) {
   const mount = $('roomReaderTable');
   if (!mount) return;
@@ -6890,34 +6939,34 @@ function readerSkeleton() {
 const ROOM_RAIL_PX = 34;
 function roomPaintColWidths() {
   const mount = $('roomReaderTable');
-  const table = mount && mount.querySelector('#proTable');
-  if (!table) return;
+  const primary = mount && mount.querySelector('#proTable');
+  const tables = [primary, ...Array.from(document.querySelectorAll('.materials-inline-table'))].filter(Boolean);
+  if (!tables.length) return;
   const visible = readerConfig().visibleColumns;
   const eff = readerCore.computeEffectiveWidths(visible, roomTableWidths);
-  const cols = [...table.querySelectorAll('colgroup col[data-col]')];
-  if (!cols.length) return;
-  const total = table.getBoundingClientRect().width;
-  const railOn = studyModeOn() && actionColMode() === 'rail' && visible.action && total > 0
-    && cols.some((c) => c.getAttribute('data-col') === 'action');
-  if (railOn) {
-    // Пересчёт ПОСЛЕ нормализации: доля action фиксируется в пикселях, остальное делится
-    // между содержательными колонками пропорционально их базам. Иначе доля action снова
-    // уплывёт при смене набора колонок — корень исходной жалобы (15% → 25.4%).
-    const railPct = Math.min(40, (ROOM_RAIL_PX / total) * 100);
-    const rest = 100 - railPct;
-    let sum = 0;
-    cols.forEach((c) => { const k = c.getAttribute('data-col'); if (k !== 'action') sum += Number(eff[k] || 0); });
-    if (sum <= 0) sum = 1;
+  tables.forEach((table) => {
+    const cols = [...table.querySelectorAll('colgroup col[data-col]')];
+    if (!cols.length) return;
+    const total = table.getBoundingClientRect().width;
+    const railOn = studyModeOn() && actionColMode() === 'rail' && visible.action && total > 0
+      && cols.some((c) => c.getAttribute('data-col') === 'action');
+    if (railOn) {
+      const railPct = Math.min(40, (ROOM_RAIL_PX / total) * 100);
+      const rest = 100 - railPct;
+      let sum = 0;
+      cols.forEach((c) => { const k = c.getAttribute('data-col'); if (k !== 'action') sum += Number(eff[k] || 0); });
+      if (sum <= 0) sum = 1;
+      cols.forEach((c) => {
+        const k = c.getAttribute('data-col');
+        const pct = k === 'action' ? railPct : (Number(eff[k] || 0) / sum) * rest;
+        c.style.width = pct.toFixed(6) + '%';
+      });
+      return;
+    }
     cols.forEach((c) => {
       const k = c.getAttribute('data-col');
-      const pct = k === 'action' ? railPct : (Number(eff[k] || 0) / sum) * rest;
-      c.style.width = pct.toFixed(6) + '%';
+      c.style.width = Number(eff[k] || 0).toFixed(6) + '%';
     });
-    return;
-  }
-  cols.forEach((c) => {
-    const k = c.getAttribute('data-col');
-    c.style.width = Number(eff[k] || 0).toFixed(6) + '%';
   });
 }
 // «Скрыта»: служебной колонки нет, поэтому кнопки строки всплывают на АКТИВНОЙ строке —
@@ -6995,7 +7044,7 @@ function roomPlaceProvNote() {
 
 let roomColResize = null;
 function attachRoomColResize() {
-  const mount = $('roomReaderTable');
+  const mount = activeReaderMorphMount();
   if (!mount) return;
   if (roomColResize) { try { roomColResize.detach(); } catch (_) {} roomColResize = null; }
   roomColResize = readerCore.attachColumnResize(mount, {
@@ -7017,6 +7066,7 @@ function rerenderReader() {
   const mount = $('roomReaderTable');
   if (!mount) return;
   mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
+  rerenderMaterialsInlineSolution();
   attachReaderAudio();
   try { refreshFindAfterRerender(); } catch (_) {}   // BRR-S15 — re-apply find marks after a table rebuild
   try { roomMediaRefresh(); } catch (_) {}   // media player: re-bind стейджа + re-инъекция ▶︎ после пересборки таблицы
@@ -7457,6 +7507,7 @@ async function closeReader(options) {
   else { try { await flushReaderProgress(); } catch (_) {} }
   invalidateCorpusPresentationProgress();
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
+  collapseMaterialsInlineSolution({ restoreFocus: false, reattach: false });
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   try { roomMediaTeardown(); } catch (_) {}   // media player: stop + revoke URL + скрыть бар
@@ -7467,8 +7518,7 @@ async function closeReader(options) {
   const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
   const readerLearning = $('readerTaskLearningSupport'); if (readerLearning) { readerLearning.replaceChildren(); readerLearning.hidden = true; }
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
-  const rm = $('roomReaderTable');
-  if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
+  if (revealMount && revealHandler) { try { revealMount.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; revealMount = null; }
   const reader = $('roomReader'), content = $('roomContent');
   if (content) content.setAttribute('aria-busy', 'true');
   setReaderReturnRoute(null);
@@ -8077,6 +8127,139 @@ function clearMaterialsReaderUrl() {
   } catch (_) {}
 }
 
+function materialsSolutionReaderRow(row) {
+  const audioKey = String(row && (row.audio_asset_key || row.audio_plan && row.audio_plan.audio_asset_key) || '');
+  return {
+    he: String(row && row.text && row.text.he || ''),
+    he_niqqud: String(row && row.text && row.text.he_niqqud || ''),
+    translit: String(row && row.text && row.text.transliteration || ''),
+    ru: String(row && row.text && row.text.ru || ''),
+    _v3_ttsText: String(row && row.audio_plan && row.audio_plan.spoken_he_niqqud || row && row.text && (row.text.he_niqqud || row.text.he) || ''),
+    _v3_audioAssetKey: audioKey,
+    _roomPublicAudioAssetKey: audioKey,
+    _v3_audioTtsProfileJson: JSON.stringify(row && row.audio_plan && row.audio_plan.tts_profile || {}),
+    _materialsSolutionRow: row,
+  };
+}
+
+function materialsInlineSetTrigger(open, expanded) {
+  if (!open) return;
+  open.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  open.setAttribute('aria-controls', 'materialsInlineSolution');
+  open.textContent = expanded
+    ? tt('room.publicCorpus.materialsHideSolution', 'Скрыть решение') + ' ↑'
+    : tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →';
+}
+
+function rerenderMaterialsInlineSolution() {
+  const state = materialsInlineState;
+  if (!state || !state.expanded || !state.region || !state.region.isConnected) return;
+  const region = state.region;
+  region.replaceChildren();
+  const head = el('header', { class: 'materials-inline-solution-head' });
+  const copy = el('div', { class: 'materials-inline-solution-copy' });
+  copy.appendChild(el('span', { class: 'materials-inline-solution-kicker', text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
+  copy.appendChild(el('h3', { attrs: { id: 'materialsInlineSolutionTitle', tabindex: '-1' }, text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') + ' · ' + state.support.display_alias }));
+  copy.appendChild(el('p', { text: tt('room.publicCorpus.materialsInlineReaderNote', 'Те же колонки, ширины, огласовка, перевод и словарные подсказки, что у условия.') }));
+  const listen = el('button', { class: 'materials-inline-listen', attrs: { type: 'button', 'data-audio-action': 'play-solution' }, text: '▶ ' + tt('room.publicCorpus.materialsListenSolution', 'Прослушать решение') });
+  head.append(copy, listen); region.appendChild(head);
+
+  const tableMount = el('div', { class: 'materials-inline-table-wrap' });
+  const cfg = readerConfig();
+  cfg.tableId = 'materialsInlineSolutionTable';
+  cfg.tableClass = 'materials-inline-table';
+  cfg.rowIndexOffset = readerRows.length;
+  tableMount.innerHTML = readerCore.buildBilingualTableHtml(state.rows, cfg);
+  const table = tableMount.querySelector('.materials-inline-table');
+  if (table) table.setAttribute('aria-label', tt('room.publicCorpus.materialsSolution', 'Решение'));
+  let lastSection = '';
+  state.rows.forEach((row, localIndex) => {
+    const domIndex = readerRows.length + localIndex;
+    const tr = tableMount.querySelector('tr[data-row-idx="' + String(domIndex) + '"]');
+    if (!tr || !row._materialsSolutionRow) return;
+    const sectionKey = String(row._materialsSolutionRow.section || 'solution');
+    if (sectionKey !== lastSection) {
+      const divider = document.createElement('tr'); divider.className = 'materials-inline-section-row';
+      divider.setAttribute('data-section', sectionKey);
+      const heading = document.createElement('th'); heading.colSpan = table ? table.querySelectorAll('colgroup col').length : 1;
+      heading.setAttribute('scope', 'rowgroup'); heading.textContent = materialsSectionName(sectionKey);
+      divider.appendChild(heading); tr.parentElement.insertBefore(divider, tr); lastSection = sectionKey;
+    }
+    tr.setAttribute('data-row-id', String(row._materialsSolutionRow.row_id || ''));
+    tr.setAttribute('data-source-kind', 'solution');
+  });
+  region.appendChild(tableMount);
+  const provenance = el('footer', { class: 'materials-inline-solution-provenance' });
+  provenance.appendChild(el('code', { text: 'edition ' + state.support.edition_number + ' · work ' + state.support.public_work_id + ' · snapshot ' + state.support.snapshot_sha256.slice(0, 12) + '…' }));
+  region.appendChild(provenance);
+  roomPaintColWidths();
+}
+
+function attachMaterialsInlineAudio() {
+  const state = materialsInlineState;
+  const mount = state && state.expanded ? state.region : null;
+  if (!mount || !mount.isConnected || !state.support.audio_boundary || state.support.audio_boundary.full_tts_generated !== true) return;
+  const profile = { voiceId: 'he-IL-Standard-A', rate: 0.8, pitch: 2.5 };
+  materialsInlineAudio = readerCore.attachRowAudio(mount, {
+    getRow: index => index >= readerRows.length ? state.rows[index - readerRows.length] || null : null,
+    rowCount: () => readerRows.length + state.rows.length,
+    fallbackPolicy: 'cached-only', profile, gcpKey: '',
+    audioUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key),
+    timingUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key) + '/timing',
+    tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],
+    onBeforePlay: () => { try { if (readerAudio) readerAudio.stop(); } catch (_) {} morphHost.stopAudio(); },
+    onRowChange: index => {
+      if (index < readerRows.length) return;
+      const tr = mount.querySelector('tr[data-row-idx="' + String(index) + '"]');
+      if (tr) tr.scrollIntoView({ block: 'nearest' });
+    },
+    t: key => tt(key, key), rowTtsLabels: roomRowTtsLabels(),
+  });
+  const labels = {
+    ready: tt('room.reader.audio.ready', 'Аудио готово'), readyUnknown: tt('room.reader.audio.readyUnknown', 'Аудио готово'),
+    missing: tt('room.reader.audio.missing', 'Аудио не создано'), mismatch: tt('room.reader.audio.mismatch', 'Другой профиль голоса'),
+    cachedProfile: tt('room.reader.audio.cachedProfile', 'В кэше'), currentProfile: tt('room.reader.audio.currentProfile', 'Сейчас'),
+  };
+  state.rows.forEach((row, index) => readerCore.paintRowAudioIndicator(mount, readerRows.length + index, row, profile, labels));
+  const listen = mount.querySelector('[data-audio-action="play-solution"]');
+  if (listen) listen.addEventListener('click', () => { morphHost.stopAudio(); try { if (readerAudio) readerAudio.stop(); } catch (_) {} materialsInlineAudio.playAll(readerRows.length); });
+}
+
+function renderMaterialsInlineSolution(support, trigger, wrap) {
+  if (!support || !wrap) return;
+  if (materialsInlineState && materialsInlineState.expanded) collapseMaterialsInlineSolution({ restoreFocus: false, reattach: false });
+  const region = el('section', { class: 'materials-inline-solution', attrs: { id: 'materialsInlineSolution', role: 'region', 'aria-labelledby': 'materialsInlineSolutionTitle' } });
+  wrap.appendChild(region);
+  materialsInlineState = {
+    support, trigger, wrap, region, expanded: true,
+    rows: (support.solution_rows || []).map(materialsSolutionReaderRow),
+    activeRowId: (() => { try { return new URLSearchParams(location.search).get('materials_row') || ''; } catch (_) { return ''; } })(),
+  };
+  document.body.classList.add('materials-inline-open');
+  materialsInlineSetTrigger(trigger, true);
+  setMaterialsReaderUrl(support, 'solution', materialsInlineState.activeRowId);
+  rerenderMaterialsInlineSolution();
+  attachReaderAudio();
+  const anchored = materialsInlineState.activeRowId && region.querySelector('[data-row-id="' + CSS.escape(materialsInlineState.activeRowId) + '"]');
+  requestAnimationFrame(() => {
+    const target = anchored || region.querySelector('#materialsInlineSolutionTitle');
+    if (target) { target.scrollIntoView({ block: anchored ? 'center' : 'nearest' }); try { target.focus({ preventScroll: true }); } catch (_) {} }
+  });
+}
+
+function collapseMaterialsInlineSolution(options = {}) {
+  const state = materialsInlineState;
+  if (!state) return;
+  if (materialsInlineAudio) { try { materialsInlineAudio.detach(); } catch (_) {} materialsInlineAudio = null; }
+  if (state.region) state.region.remove();
+  materialsInlineSetTrigger(state.trigger, false);
+  document.body.classList.remove('materials-inline-open');
+  materialsInlineState = null;
+  clearMaterialsReaderUrl();
+  if (options.reattach !== false && $('roomReader') && !$('roomReader').hidden) attachReaderAudio();
+  if (options.restoreFocus !== false) { try { state.trigger && state.trigger.focus(); } catch (_) {} }
+}
+
 function openMaterialsLearningSupport(support, trigger) {
   if (!support) return;
   const alreadyOpen = document.querySelector('.materials-learning-viewer');
@@ -8191,10 +8374,13 @@ function openMaterialsLearningSupport(support, trigger) {
   close.addEventListener('click', shut); overlay.addEventListener('click', event => { if (event.target === overlay) shut(); }); document.addEventListener('keydown', keydown); window.addEventListener('beforeprint', beforePrint); window.addEventListener('afterprint', afterPrint); roomFocusInto(viewer);
 }
 
-function renderMaterialsLearningActions(slug, item) {
+function renderMaterialsLearningActions(slug, item, options = {}) {
+  const surface = options.surface || 'catalog';
   const wrap = el('div', { class: 'materials-learning-actions' });
   const check = el('button', { class: 'materials-learning-action answer', attrs: { type: 'button', 'aria-expanded': 'false' }, text: tt('room.publicCorpus.materialsCheckAnswer', 'Краткий ответ') });
-  const open = el('button', { class: 'materials-learning-action primary', attrs: { type: 'button' }, text: tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →' });
+  const openAttrs = { type: 'button' };
+  if (surface === 'reader') { openAttrs['aria-expanded'] = 'false'; openAttrs['aria-controls'] = 'materialsInlineSolution'; }
+  const open = el('button', { class: 'materials-learning-action primary', attrs: openAttrs, text: tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →' });
   const answer = el('div', { class: 'materials-inline-answer', attrs: { role: 'status' } }); answer.hidden = true; let support = null;
   async function load(button) {
     button.disabled = true; wrap.setAttribute('data-loading', 'true');
@@ -8209,7 +8395,14 @@ function renderMaterialsLearningActions(slug, item) {
     answer.replaceChildren(); for (const row of short) answer.appendChild(el('p', { text: row.text.ru }));
     answer.hidden = false; answer.removeAttribute('hidden'); check.setAttribute('aria-expanded', 'true');
   });
-  open.addEventListener('click', async () => { const value = await load(open); if (value) openMaterialsLearningSupport(value, open); });
+  open.addEventListener('click', async () => {
+    if (surface === 'reader' && materialsInlineState && materialsInlineState.expanded && materialsInlineState.trigger === open) {
+      collapseMaterialsInlineSolution(); return;
+    }
+    const value = await load(open); if (!value) return;
+    if (surface === 'reader') renderMaterialsInlineSolution(value, open, wrap);
+    else openMaterialsLearningSupport(value, open);
+  });
   wrap.append(check, open, answer); return wrap;
 }
 
@@ -8265,7 +8458,7 @@ async function renderReaderTaskLearningSupport(slug, workId, epoch) {
       }
       head.appendChild(el('strong', { text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') }));
       head.appendChild(el('span', { text: tt('room.publicCorpus.materialsLearningReaderNote', 'Таблица для учёбы и экзамена после условия') }));
-      box.append(head, renderMaterialsLearningActions(slug, item));
+      box.append(head, renderMaterialsLearningActions(slug, item, { surface: 'reader' }));
     }
     box.hidden = false;
   } catch (_) { box.hidden = true; }
@@ -13531,7 +13724,10 @@ async function boot() {
               await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
               if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
                 const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);
-                openMaterialsLearningSupport(support, document.querySelector('.reader-task-learning-support .materials-learning-action.primary'));
+                await renderReaderTaskLearningSupport(publicSlug, publicWorkId, readerOpenEpoch);
+                const trigger = document.querySelector('.reader-task-learning-support .materials-learning-action.primary');
+                const wrap = trigger && trigger.closest('.materials-learning-actions');
+                if (trigger && wrap) renderMaterialsInlineSolution(support, trigger, wrap);
               }
             } else roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
           }

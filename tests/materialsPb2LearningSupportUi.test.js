@@ -39,7 +39,7 @@ test("Materials PB2 Room keeps zero-audio honesty and enables exact cached TTS o
 test("Materials PB2 learning surface is localized in all Room locales", () => {
   for (const locale of ["ru", "en", "he"]) {
     const dictionary = read(`public/i18n/locales/${locale}.js`);
-    for (const key of ["materialsLearningTitle", "materialsPrintStudy", "materialsPrintExam", "materialsAudioDeferred", "materialsAudioReady", "materialsListenSection", "materialsNiqqud", "materialsOpenSolution"])
+    for (const key of ["materialsLearningTitle", "materialsPrintStudy", "materialsPrintExam", "materialsAudioDeferred", "materialsAudioReady", "materialsListenSection", "materialsNiqqud", "materialsOpenSolution", "materialsHideSolution", "materialsListenSolution", "materialsInlineReaderNote"])
       assert.ok(dictionary.includes(key + ":"), `${locale}: ${key}`);
   }
 });
@@ -128,6 +128,49 @@ test("Materials Task Learning Reader attaches shared morphology to condition and
     "first Escape is owned by the morphology card before the parent reader dialog");
   assert.match(room, /roomSuspendBackground[\s\S]*!node\.classList\.contains\(['"]rm-sheet['"]\)/,
     "a pre-existing shared morphology sheet must stay outside the solution overlay's inert background");
+});
+
+test("Materials solution expands inline in an open Room task and inherits the one reader configuration", () => {
+  const room = read("public/js/library-ui.js");
+  const html = read("public/library.html");
+  assert.match(room, /function renderMaterialsInlineSolution/);
+  assert.match(room, /surface:\s*['"]reader['"]/);
+  assert.match(room, /materialsInlineSolution/);
+  assert.match(room, /aria-expanded/);
+  assert.match(room, /aria-controls/);
+  assert.match(room, /readerCfg\.heOn/);
+  assert.match(room, /readerCfg\.niqqudMode/);
+  assert.match(room, /readerCfg\.translitOn/);
+  assert.match(room, /readerCfg\.ruMode/);
+  assert.match(room, /roomTableWidths/);
+  assert.match(room, /materialsSolutionOccurrence/);
+  assert.match(room, /fallbackPolicy:\s*['"]cached-only['"]/);
+  assert.match(room, /rerenderMaterialsInlineSolution/,
+    "reader settings must rebuild the expanded solution instead of closing or desynchronizing it");
+  const readerAction = room.slice(room.indexOf("function renderMaterialsLearningActions"), room.indexOf("async function renderReaderTaskResources"));
+  assert.match(readerAction, /openMaterialsLearningSupport/,
+    "catalog cards retain the standalone printable viewer");
+  assert.match(readerAction, /renderMaterialsInlineSolution/,
+    "the already-open task uses the inline reader path");
+  assert.match(html, /\.materials-inline-solution/);
+  assert.match(html, /body\.room-study\.materials-inline-open/,
+    "study mode must expose the inline solution in the same scroll flow");
+});
+
+test("shared reader table builder can mint a second non-colliding table and row-index range", () => {
+  const core = require("../public/js/reader-core.js");
+  const rows = [{ he: "פתרון", he_niqqud: "פִּתְרוֹן", translit: "pitron", ru: "решение" }];
+  const html = core.buildBilingualTableHtml(rows, {
+    visibleColumns: { action: true, he: true, niqqud: true, translit: true, ru: true },
+    baseWidths: [15, 20, 20, 21, 24],
+    tableId: "materialsInlineSolutionTable",
+    tableClass: "materials-inline-table",
+    rowIndexOffset: 7,
+  });
+  assert.match(html, /id="materialsInlineSolutionTable"/);
+  assert.match(html, /class="materials-inline-table"/);
+  assert.match(html, /data-row-idx="7"/);
+  assert.doesNotMatch(html, /id="proTable"/);
 });
 
 test("every reviewed solution Hebrew word round-trips through an exact anchor independently of formula-token timing", () => {

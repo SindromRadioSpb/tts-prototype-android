@@ -432,6 +432,9 @@ export function buildBilingualTableHtml(rows, config) {
   const rowTtsLabels = normalizeRowTtsLabels(cfg.rowTtsLabels);
   const hasNoteFn = typeof cfg.hasNote === "function" ? cfg.hasNote : () => false;
   const ideMode = !!cfg.ideMode;
+  const tableId = String(cfg.tableId || "proTable").replace(/[^A-Za-z0-9_:-]/g, "") || "proTable";
+  const tableClass = String(cfg.tableClass || "").trim().replace(/[^A-Za-z0-9_:\- ]/g, "");
+  const rowIndexOffset = Number.isFinite(Number(cfg.rowIndexOffset)) ? Number(cfg.rowIndexOffset) : 0;
 
   normalizeVisibleBaseWidthsTo100(visibleColumns, baseWidths);
   const eff = computeEffectiveWidths(visibleColumns, baseWidths);
@@ -456,7 +459,7 @@ export function buildBilingualTableHtml(rows, config) {
   };
 
   let html = "" +
-    '<table id="proTable" data-cols="' + cols.join(",") + '">' +
+    '<table id="' + escapeHtml(tableId) + '"' + (tableClass ? ' class="' + escapeHtml(tableClass) + '"' : '') + ' data-cols="' + cols.join(",") + '">' +
     "  <colgroup>";
   cols.forEach((k) => {
     const w = eff[k] || 0;
@@ -481,12 +484,13 @@ export function buildBilingualTableHtml(rows, config) {
     "  </thead>" +
     "  <tbody>";
   rows.forEach((row, rowIdx) => {
+    const domRowIdx = rowIndexOffset + rowIdx;
     const he = row.he || "";
     const heNiqqud = row.he_niqqud || "";
     const translit = tProfile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || "");
     const ru = row.ru || "";
     const hasSid = !!(row && row._v3_sentenceId);
-    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : "") + ">";
+    html += '<tr data-row-idx="' + domRowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : "") + ">";
     cols.forEach((k) => {
       const meta = colMeta[k] || {};
       const machineNiqqud = k === "niqqud" && row && row.niqqud_authority === "DERIVED";
@@ -501,7 +505,7 @@ export function buildBilingualTableHtml(rows, config) {
           noteBtnHtml =
             '<div class="col-action-row col-action-row-bot">' +
             '<button type="button" class="row-note-btn' + (hasNote ? " row-note-active" : "") + '" ' +
-            'data-row-idx="' + rowIdx + '" ' +
+            'data-row-idx="' + domRowIdx + '" ' +
             'data-sentence-id="' + escapeHtml(sid) + '" ' +
             'title="' + (hasNote ? "Заметка (есть)" : "Добавить заметку") + '" ' +
             'aria-label="Заметка">📝</button>' +
@@ -520,8 +524,8 @@ export function buildBilingualTableHtml(rows, config) {
           : "";
         html += '<td data-col="action" class="col-action-cell">' +
           '<div class="col-action-row col-action-row-top">' +
-          '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
-          '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
+          '<span class="row-audio-ind" data-row-idx="' + domRowIdx + '" aria-hidden="true"></span>' +
+          '<button type="button" class="row-tts-btn" data-row-idx="' + domRowIdx + '" ' +
           'data-audio-control-state="idle" aria-busy="false" aria-pressed="false" ' +
           'title="' + escapeHtml(rowTtsLabels.play) + '" aria-label="' + escapeHtml(rowTtsLabels.play) + '">▶</button>' +
           "</div>" +

@@ -1,0 +1,37 @@
+{
+  "gate": "MATERIALS_PB2_INLINE_READER_LOCAL_BROWSER",
+  "version": "3.11.455",
+  "viewport": "380x845",
+  "publication_items": 60,
+  "solution": {
+    "tables": 1,
+    "rows": 31,
+    "colsMatch": true,
+    "widthsMatch": true,
+    "documentOverflow": false,
+    "tinyControls": [],
+    "expanded": "true",
+    "inlineOpen": true
+  },
+  "reflow_200pct": {
+    "documentOverflow": false,
+    "inlineVisible": true
+  },
+  "mobile_he": {
+    "dir": "rtl",
+    "documentOverflow": false,
+    "inlineVisible": true
+  },
+  "desktop": {
+    "documentOverflow": false,
+    "inlineVisible": true
+  },
+  "review_log_delta": 0,
+  "page_errors": [],
+  "screenshots": [
+    "materials-pb2-inline-solution-380-he-rtl.png",
+    "materials-pb2-inline-solution-380-ru-200pct.png",
+    "materials-pb2-inline-solution-380-ru.png",
+    "materials-pb2-inline-solution-desktop-ru.png"
+  ]
+}

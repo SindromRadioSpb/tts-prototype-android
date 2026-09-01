@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.454";
+const CACHE_VERSION = "v3.11.455";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=454",
+  "/js/library-ui.js?v=455",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -93,7 +93,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=400",
+  "/js/reader-core.js?v=401",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
   // Knowledge Map v3.8 (root-centric, always on)
@@ -220,9 +220,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=189",
-  "/i18n/locales/en.js?v=189",
-  "/i18n/locales/he.js?v=189",
+  "/i18n/locales/ru.js?v=190",
+  "/i18n/locales/en.js?v=190",
+  "/i18n/locales/he.js?v=190",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
