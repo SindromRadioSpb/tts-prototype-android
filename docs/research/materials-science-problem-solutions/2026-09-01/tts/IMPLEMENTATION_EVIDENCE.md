@@ -1,7 +1,7 @@
 # Materials PB2 public TTS — implementation evidence
 
 Date: 2026-09-01
-Status: `FRAMEWORK_PROD_VERIFIED · FULL_CORPUS_GENERATED_AND_VERIFIED · PRODUCTION_UPLOAD_AWAITING_OWNER_TOKEN_CONFIRMATION`
+Status: `FRAMEWORK_PROD_VERIFIED · FULL_CORPUS_GENERATED_AND_VERIFIED · PRODUCTION_AUDIO_VERIFIED · MANIFEST_DEPLOY_PENDING`
 
 ## Delivered contract
 
@@ -68,6 +68,21 @@ artifact or log.
 - Provider-zero repeat bake: zero provider calls, 1,473 ms, identical manifest.
 - Production HEAD-only preflight: 7,311 checked, 0 already present, 0 request
   failures. No production writes and no full-TTS manifest deployment occurred.
+
+## Production audio publication
+
+- Owner action-time confirmation to use the existing Coolify
+  `AUDIO_UPLOAD_TOKEN` was received on 2026-09-01.
+- The secret was read from the running production container over the private
+  SSH runbook path, held only in process memory and never printed or written.
+- Resumable upload result: 7,310 newly uploaded, 1 prior smoke object found by
+  HEAD, 0 failed; total 7,311/7,311.
+- Independent keyless verification after upload: 7,311/7,311 MP3 present and
+  every one of the 2,239 required timing endpoints present; 0 failures.
+- Deterministic GET sample: first/middle/last row and word assets all matched
+  the manifest byte length and SHA-256; all three row timing documents parsed
+  with non-empty word timepoints.
+- Full-TTS support manifest remained undeployed until these checks passed.
 
 ## Verification
 
@@ -158,6 +173,7 @@ source-bound audit and the optional exact-row override workflow.
 4. Whole-corpus formula gate: `PASS`, 275/275 formula-marked rows and all 2,612
    row references compile without unresolved tokens.
 5. Full bake and exact-edition support rebuild: `PASS` locally.
-6. Production upload: `AWAITING_OWNER_ACTION_TIME_CONFIRMATION` for use of the
-   existing secret `AUDIO_UPLOAD_TOKEN`; the support manifest must not deploy
-   before all 7,311 assets and 2,239 timing sidecars are present.
+6. Production upload: `PASS`, all 7,311 assets and 2,239 timing sidecars are
+   publicly present; deterministic GET/hash sample is `PASS`.
+7. Scoped push, exact-version deployment, live Reading Room/Studio QA and
+   post-deploy Docker image cleanup remain pending.
