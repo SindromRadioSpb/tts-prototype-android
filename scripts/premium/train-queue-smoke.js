@@ -435,6 +435,20 @@ check(/fuzz_days/.test(room), "the grade row must record the applied fuzz offset
 const gradeRowBlock = (room.match(/const row = \{[\s\S]*?\n    \};/) || [""])[0];
 check(/fuzz_days/.test(gradeRowBlock), "fuzz_days must be recorded on the canonical grade row itself");
 
+// ── Suite 16: spaced in-session return (T3) ──────────────────────────────────
+check(/MID_RETRY_GAP/.test(room), "the failure ladder must define its spacing");
+const answerBody = (room.match(/async function checkTrainAnswer[\s\S]*?\nfunction renderTrainReveal/) || [""])[0];
+check(answerBody.length > 0, "checkTrainAnswer must be locatable");
+check(/_midRetryDone/.test(answerBody), "a word may take only ONE mid-session return, or the session never ends");
+check(/splice\(/.test(answerBody), "the failed word must be re-inserted mid-session, not only appended at the end");
+check(/retryQueue\.push/.test(answerBody), "the closing reinforcement pass must still happen — two spaced retrievals, not one");
+// The progress denominator must not be inflated by an echo: the PLANNED session is what the
+// learner was promised on the launch screen.
+check(/plannedTotal/.test(room), "the progress denominator must stay the planned session size");
+// The echo must not put the same lemma into the closing pass twice.
+check(/_midEcho: true, _retryQueued: true/.test(room),
+  "the mid-session echo must carry _retryQueued so a second miss cannot double-queue the word");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

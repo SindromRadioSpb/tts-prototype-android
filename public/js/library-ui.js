@@ -2713,6 +2713,12 @@ function _dayStartIso(d) {
   const x = d || new Date();
   return new Date(x.getFullYear(), x.getMonth(), x.getDate(), 0, 0, 0, 0).toISOString();
 }
+// T3 — a failed word returns after at least this many other items, and AGAIN in the closing
+// reinforcement pass: two spaced retrievals instead of one immediate one. This is the
+// pedagogically valuable half of Anki's learning steps. Persisted cross-session steps were
+// considered and rejected (spec §7.2): the Room already has an in-session return, and steps
+// would force replay to reconstruct a step position from the log.
+const MID_RETRY_GAP = 4;
 const LEECH_LAPSES = 4;   // D4 — after this many misses on a word, gently offer «отметить ignore?» (leech)
 function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
 // R2 source scan helper: match a sentence token to an identity needle ± one leading proclitic.
@@ -3938,6 +3944,19 @@ async function checkTrainAnswer(correct, skipped, mode) {
   if ((!correct || skipped) && !item._retryAttempt && !item._retryQueued) {
     item._retryQueued = true;
     s.retryQueue.push(item);
+    // T3 — and bring it back once MID-session, spaced. Bounded to one mid-session return per
+    // word (_midRetryDone) so a repeatedly-failed word cannot extend the session without end,
+    // and only when there is room before the closing pass. s.plannedTotal is deliberately NOT
+    // raised: the learner was promised a session of that size, and an echo is a repeat of a
+    // word already counted, not extra work.
+    if (!item._midRetryDone && s.idx + MID_RETRY_GAP < s.items.length) {
+      item._midRetryDone = true;
+      // The echo keeps _retryQueued: the word is ALREADY in the closing pass, and letting the
+      // echo re-queue on a second miss would put the same lemma there twice.
+      const echo = Object.assign({}, item, { _midEcho: true, _retryQueued: true });
+      s.items.splice(s.idx + MID_RETRY_GAP, 0, echo);
+      s.total = s.items.length;
+    }
   }
   // D7 — count this as a GENUINE recall toward today's goal/streak. A retrieval ATTEMPT counts whether
   // right or wrong (a failed attempt still aids memory — testing effect); only a SKIP (refusing to try) is
