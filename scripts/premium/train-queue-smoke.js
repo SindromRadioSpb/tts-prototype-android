@@ -243,6 +243,25 @@ const html = fs.readFileSync(path.join(ROOT, "public/library.html"), "utf8");
 const sw = fs.readFileSync(path.join(ROOT, "public/sw.js"), "utf8");
 const db = fs.readFileSync(path.join(ROOT, "public/db/local-db.js"), "utf8");
 
+// ── Shell-integrity cohort must be a SUBSET of the service-worker precache ───
+// sw.js verifies, at install time, that every URL in the server's SHELL_INTEGRITY_PATHS is
+// present in its precache with matching bytes — and it FAILS CLOSED. cache.match() compares the
+// full URL including the query string, so an integrity entry the precache does not hold under
+// that exact URL makes the install throw "shell integrity manifest invalid" and the new worker
+// never activates. Shipped for real in 3.11.457: the precache moved to ?v=457 / ?v=191 while
+// server.js still listed ?v=456 / ?v=190, which silently broke every service-worker update.
+const serverSrc = fs.readFileSync(path.join(ROOT, "server.js"), "utf8");
+const integrityBlock = (serverSrc.match(/const SHELL_INTEGRITY_PATHS = \[([\s\S]*?)\];/) || [])[1] || "";
+const integrityUrls = (integrityBlock.match(/"([^"]+)"/g) || []).map((x) => x.slice(1, -1));
+const precacheBlock = (sw.match(/const PRECACHE_URLS = \[([\s\S]*?)\];/) || [])[1] || "";
+const precacheUrls = new Set((precacheBlock.match(/"([^"]+)"/g) || []).map((x) => x.slice(1, -1)));
+check(integrityUrls.length > 0, "server.js must declare SHELL_INTEGRITY_PATHS");
+check(precacheUrls.size > 0, "sw.js must declare PRECACHE_URLS");
+const missingFromPrecache = integrityUrls.filter((u) => !precacheUrls.has(u));
+check(missingFromPrecache.length === 0,
+  "every SHELL_INTEGRITY_PATHS url must be precached under the SAME url or the service-worker "
+  + "install fails closed; missing from sw.js PRECACHE_URLS: " + JSON.stringify(missingFromPrecache));
+
 // The shell versions its modules as /js/<name>.js?v=<patch> and the service worker precaches
 // the SAME versioned URL. A mismatch means the precached entry can never be hit — the exact
 // defect that shipped library-ui.js?v=456 alongside a rewritten library-ui.js.
