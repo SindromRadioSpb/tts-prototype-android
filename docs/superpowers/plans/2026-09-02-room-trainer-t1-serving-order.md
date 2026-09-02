@@ -1526,6 +1526,13 @@ Create `scripts/premium/train-queue-audit.js`:
 "use strict";
 // audit:train-queue — T1 coverage measurement (spec §5.5, acceptance §12.1).
 //
+// The simulation MUST model scheduling feedback and failures. Measured while building Task 2:
+// a static backlog re-served every day makes both rules look identical at 100% coverage, and a
+// success-only feedback model does too. The owner's actual loop closes through FAILURE — a wrong
+// answer sets interval 0, which sets due = now, which under `lapses DESC` pins the word to the
+// top of the queue for ever. An audit that never fails a word cannot see the defect it exists to
+// measure.
+//
 // Simulates DAYS consecutive daily sessions over a synthetic backlog shaped like the owner's
 // recorded profile (208 due / 290 scheduled, predecessor packet §9) and compares:
 //   baseline — the PRE-T1 rule, reimplemented here so the comparison is an independent oracle:
@@ -1582,16 +1589,39 @@ function baselineSession(candidates) {
   return ranked.slice(0, 12);                               // TRAIN_N
 }
 
+// Deterministic difficulty: a word the learner keeps failing keeps failing. This is what
+// closes the loop — a failure sets interval 0, which sets due = now, which under the baseline's
+// `lapses DESC` order pins the word to the head of the queue permanently.
+function answersWrong(item, day) {
+  const lapses = item._srs.lapses || 0;
+  if (lapses >= 5) return true;                       // the entrenched leeches
+  if (lapses >= 1) return (day + item.lemmaKey.length) % 3 === 0;
+  return false;
+}
+
 function run(pick, label) {
   const backlog = buildBacklog();
   const served = new Map();
   const perDay = [];
   for (let d = 0; d < DAYS; d++) {
-    const dt = new Date(NOW + d * DAY_MS);
-    const dayStr = dt.toISOString().slice(0, 10);
-    const items = pick(backlog, dayStr);
+    const now = NOW + d * DAY_MS;
+    const dayStr = new Date(now).toISOString().slice(0, 10);
+    const dueList = backlog.filter((x) => x._srs.due <= now);
+    const items = pick(dueList, dayStr, now);
     perDay.push(items.length);
-    items.forEach((x) => served.set(x.lemmaKey, (served.get(x.lemmaKey) || 0) + 1));
+    items.forEach((x) => {
+      served.set(x.lemmaKey, (served.get(x.lemmaKey) || 0) + 1);
+      x._srs.reviewedAt = now;
+      if (answersWrong(x, d)) {
+        x._srs.lapses = (x._srs.lapses || 0) + 1;
+        x._srs.interval = 0;                          // fsrs-core: grade 1 → due now
+        x._srs.due = now;
+      } else {
+        x._srs.reps = (x._srs.reps || 0) + 1;
+        x._srs.interval = Math.max(1, Math.round((x._srs.interval || 1) * 2));
+        x._srs.due = now + x._srs.interval * DAY_MS;
+      }
+    });
   }
   let maxCount = 0;
   served.forEach((n) => { if (n > maxCount) maxCount = n; });
@@ -1606,9 +1636,9 @@ function run(pick, label) {
   };
 }
 
-const baseline = run((backlog) => baselineSession(backlog), "baseline (pre-T1)");
-const composed = run((backlog, dayStr) => TQ.composeSession(backlog, {
-  nowMs: NOW, dayStr, sessionSize: TQ.DEFAULTS.sessionSize,
+const baseline = run((dueList) => baselineSession(dueList), "baseline (pre-T1)");
+const composed = run((dueList, dayStr, now) => TQ.composeSession(dueList, {
+  nowMs: now, dayStr, sessionSize: TQ.DEFAULTS.sessionSize,
   reviewsRemaining: TQ.DEFAULTS.reviewsPerDay, newRemaining: TQ.DEFAULTS.newPerDay
 }).items, "composed (T1)");
 
