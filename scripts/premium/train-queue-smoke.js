@@ -219,6 +219,24 @@ const zero = TQ.queueLoad({ schedule: null, statusMap: null, nowMs: NOW, reviews
 check(zero.dueNow === 0 && zero.requiredPerDay === 0 && zero.growing === false,
   "an empty schedule must produce a zeroed, non-growing load");
 
+// ── Suite 7b: the ACTUAL getDueWithSource row shape ──────────────────────────
+// Found by looking at a screenshot, not by a gate: local-db returns the schedule as `srs`
+// while the engine reads `_srs`. Fed raw, every word bucketed as «new», so the weakness
+// quota, the known refresh and the review budget were all silently no-ops. These checks
+// pin the shape the Room must normalise, so the mismatch can never return unnoticed.
+const dbShapeRow = {                       // exactly what getDueWithSource emits
+  lemmaKey: "pid:1", status: "l2",
+  srs: { due: NOW - 86400000, interval: 6, reps: 3, lapses: 1, reviewedAt: NOW - 7 * 86400000 },
+  source: { textKey: "t", sentenceId: "s", orderIndex: 0, surface: "בית", title: null },
+};
+check(TQ.bucketOf(dbShapeRow) === "new",
+  "a raw getDueWithSource row has no _srs, so the engine must see it as new — this is WHY the Room normalises");
+const normalised = Object.assign({}, dbShapeRow, { _srs: dbShapeRow.srs });
+check(TQ.bucketOf(normalised) === "overdue",
+  "once normalised the same row must bucket as overdue, got " + TQ.bucketOf(normalised));
+check(/_srs: d\.srs/.test(fs.readFileSync(path.join(ROOT, "public/js/library-ui.js"), "utf8")),
+  "the Room must map the getDueWithSource `srs` field onto the engine's `_srs` before composing");
+
 // ── Suite 8: wiring guards ───────────────────────────────────────────────────
 const room = fs.readFileSync(path.join(ROOT, "public/js/library-ui.js"), "utf8");
 const html = fs.readFileSync(path.join(ROOT, "public/library.html"), "utf8");
@@ -266,6 +284,31 @@ check(launchCalls.every((c) => /pool:/.test(c)),
 const poolBody = (room.match(/async function _crossDistractorPool[\s\S]*?\n}\n/) || [""])[0];
 check(/card\.lemmaKey !== key/.test(poolBody) || /card\.lemmaKey\s*!==\s*key/.test(poolBody),
   "the distractor pool must pass the canonical identity gate");
+
+// ── Suite 10: launch screen + i18n ───────────────────────────────────────────
+const LAUNCH_KEYS = [
+  "launchStart", "launchSize", "launchReviewsCap", "launchNewCap", "launchDueNow",
+  "launchServedToday", "launchLoadOk", "launchLoadGrow", "launchAllDoneToday",
+  "launchSettings", "launchSessionPlan"
+];
+const localeSrc = ["ru", "en", "he"].map((x) => ({
+  name: x, src: fs.readFileSync(path.join(ROOT, `public/i18n/locales/${x}.js`), "utf8")
+}));
+LAUNCH_KEYS.forEach((k) => {
+  // In library-ui the key appears as room.morph.study.<k>; in a locale file as <k>:
+  check(new RegExp("room\\.morph\\.study\\." + k + "\\b").test(room), `library-ui must use the ${k} string`);
+  localeSrc.forEach((L) => {
+    check(new RegExp("\\b" + k + "\\s*:").test(L.src), `locale ${L.name} must define ${k}`);
+  });
+});
+check(/function renderTrainLaunch\s*\(/.test(room), "the Room must render a launch screen");
+check(/data-train-launch-start/.test(room), "the launch screen must expose a start control");
+check(/data-train-pref/.test(room), "the launch screen must expose the session preferences");
+check(/\.room-train-launch/.test(html), "library.html must style the launch screen");
+check(/\.room-train-launch-start[\s\S]{0,300}min-height:\s*44px/.test(html),
+  "the launch start control must meet the 44px project standard");
+check(/\.room-train-launch-pref[\s\S]{0,300}min-height:\s*44px/.test(html),
+  "the launch preference rows must meet the 44px project standard");
 
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);

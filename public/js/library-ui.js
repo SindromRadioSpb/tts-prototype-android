@@ -2078,6 +2078,7 @@ let _studyAll = [];       // full collected frontier for the current scope (FIXE
 let _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
 let _studyMode = 'list';  // 'list' (📚 collect/mark) | 'train' (🎯 4.3b cloze recall)
 let _trainSession = null; // { items, pool, idx, total, correct, levelUps, answered }
+let _launchConfirmed = false;   // T1 — set by the launch screen; cleared when the sheet closes
 function uiDirRoom() { return (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr'; }
 
 // ── Epic 4.3b Phase D3 — visible due-counter «В работе: N · К повторению: M» ────────────────────
@@ -2377,6 +2378,7 @@ function ensureStudySheet() {
     if (t.closest('[data-study-more]')) { _studyView.shown += STUDY_CHUNK; renderStudyBody(); return; }
     const bulk = t.closest('[data-study-bulk]'); if (bulk) { onStudyBulk(bulk.getAttribute('data-study-bulk')); return; }
     // 4.3b training
+    if (t.closest('[data-train-launch-start]')) { _launchConfirmed = true; startDueReview(); return; }
     const opt = t.closest('[data-train-opt]'); if (opt) { onTrainOption(opt); return; }
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
@@ -2395,6 +2397,16 @@ function ensureStudySheet() {
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
     if (t.closest('[data-train-card]')) { onTrainCard(); return; }
     if (t.closest('[data-train-source]')) { onTrainSource(); return; }
+  });
+  // T1 — changing a session preference recomposes against the new limits and repaints the
+  // launch screen, so the stated arithmetic always matches what pressing Start will do.
+  sheet.addEventListener('change', (e) => {
+    const pref = e.target && e.target.closest && e.target.closest('[data-train-pref]');
+    if (!pref) return;
+    const patch = {}; patch[pref.getAttribute('data-train-pref')] = pref.value;
+    trainPrefsSet(patch);
+    _launchConfirmed = false;
+    startDueReview();
   });
   document.addEventListener('keydown', (e) => {
     if (!_studySheet || _studySheet.hidden) return;
@@ -2426,7 +2438,7 @@ function _studySetTitle(key, fallback) {
   const title = _studySheet.querySelector('.room-study-title');
   if (title) { title.setAttribute('data-i18n', key); title.textContent = value; }
 }
-function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; roomFocusRestore(); try { refreshDueBadge(); } catch (_) {} }
+function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; _launchConfirmed = false; roomFocusRestore(); try { refreshDueBadge(); } catch (_) {} }
 // Show/hide the list-only chrome (controls/bulk/count/more) — hidden in «🎯 Тренировка».
 function _studyListChrome(show) {
   if (!_studySheet) return;
@@ -2832,7 +2844,13 @@ async function _composeDueSession(due, prefs) {
       excludedToday: 0, repeatedToday: false, availableDue: due.length,
       buckets: { learning: 0, overdue: picked.length, known: 0, 'new': 0 } } };
   }
-  const compose = TQ.composeSession(due, {
+  // getDueWithSource rows carry their schedule as `srs`; the engine reads `_srs` (the shape the
+  // trainer's own items use). Feeding the raw rows straight in silently bucketed EVERY word as
+  // «new» — the weakness quota, the known refresh and the review budget all became no-ops, and
+  // the session was capped by newPerDay instead. Normalise at the boundary, keeping the original
+  // row intact so _buildDueSourcedItems still finds `source`/`srs`/`status`.
+  const candidates = (due || []).map((d) => (d && !d._srs ? Object.assign({}, d, { _srs: d.srs || null }) : d));
+  const compose = TQ.composeSession(candidates, {
     nowMs: Date.now(),
     dayStr: _localDayStr(),
     sessionSize: prefs.sessionSize,
@@ -2841,6 +2859,62 @@ async function _composeDueSession(due, prefs) {
     excludeKeys: answered,
   });
   return { picked: compose.items, load, counts, compose };
+}
+// T1 — launch screen. One tap to start, and the arithmetic stated before the learner commits:
+// what is due, what was already done today, how many this session will serve, and — when the
+// configured limit cannot keep pace with the inbound flow — the number that would (defect D-B).
+function renderTrainLaunch(sel) {
+  const body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (!body) return;
+  const prefs = trainPrefs();
+  body.innerHTML = '';
+  const wrap = el('div', { class: 'room-train-launch', attrs: { dir: uiDirRoom() } });
+
+  const facts = el('div', { class: 'room-train-launch-facts' });
+  facts.appendChild(el('div', { class: 'room-train-launch-fact',
+    text: tt('room.morph.study.launchDueNow', 'К повторению сейчас') + ': ' + sel.load.dueNow }));
+  facts.appendChild(el('div', { class: 'room-train-launch-fact',
+    text: tt('room.morph.study.launchServedToday', 'Пройдено сегодня') + ': ' + ((sel.counts && sel.counts.reviews) || 0) }));
+  facts.appendChild(el('div', { class: 'room-train-launch-fact',
+    text: tt('room.morph.study.launchSessionPlan', 'В этой сессии: {n} (повторение {r}, новых {w})')
+      .replace('{n}', String(sel.compose.items.length))
+      .replace('{r}', String(sel.compose.servedReview))
+      .replace('{w}', String(sel.compose.servedNew)) }));
+  wrap.appendChild(facts);
+
+  if (sel.compose.repeatedToday) {
+    wrap.appendChild(el('div', { class: 'room-train-launch-note',
+      text: tt('room.morph.study.launchAllDoneToday', 'Все слова к повторению сегодня уже пройдены. Можно пройти их ещё раз — расписание пересчитается честно.') }));
+  }
+  wrap.appendChild(el('div', { class: 'room-train-launch-load', attrs: { 'data-grow': sel.load.growing ? '1' : '0' },
+    text: sel.load.growing
+      ? tt('room.morph.study.launchLoadGrow', 'При {cap} повторениях в день очередь будет расти. Чтобы она не росла, нужно ≈{need} в день.')
+          .replace('{cap}', String(prefs.reviewsPerDay)).replace('{need}', String(sel.load.requiredPerDay))
+      : tt('room.morph.study.launchLoadOk', 'Лимита хватает: очередь не растёт.') }));
+
+  const start = el('button', { class: 'room-train-launch-start', attrs: { type: 'button', 'data-train-launch-start': '1' },
+    i18n: 'room.morph.study.launchStart', text: tt('room.morph.study.launchStart', '▶ Начать') });
+  wrap.appendChild(start);
+
+  const settings = wireDismissibleDetails(el('details', { class: 'room-train-launch-settings' }));
+  settings.appendChild(el('summary', { i18n: 'room.morph.study.launchSettings', text: tt('room.morph.study.launchSettings', 'Настройки сессии') }));
+  const prefRows = [
+    { pref: 'sessionSize', label: tt('room.morph.study.launchSize', 'Слов в сессии'), min: 5, max: 100, step: 5 },
+    { pref: 'reviewsPerDay', label: tt('room.morph.study.launchReviewsCap', 'Повторений в день'), min: 5, max: 500, step: 5 },
+    { pref: 'newPerDay', label: tt('room.morph.study.launchNewCap', 'Новых слов в день'), min: 0, max: 100, step: 1 },
+  ];
+  for (const row of prefRows) {
+    const line = el('label', { class: 'room-train-launch-pref' });
+    line.appendChild(el('span', { text: row.label }));
+    line.appendChild(el('input', { attrs: { type: 'number', 'data-train-pref': row.pref,
+      min: String(row.min), max: String(row.max), step: String(row.step), value: String(prefs[row.pref]),
+      inputmode: 'numeric', 'aria-label': row.label } }));
+    settings.appendChild(line);
+  }
+  wrap.appendChild(settings);
+  body.appendChild(wrap);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  try { start.focus(); } catch (_) {}
 }
 // D-A — cross-text distractor pool. Without this the launcher falls back to
 // `pool: opts.pool || items`, so the session's own words become its multiple-choice options:
@@ -2894,6 +2968,10 @@ async function startDueReview() {
   // order (lapses DESC) plus a 24-row prefix cut made the tail of a large backlog unreachable.
   const sel = await _composeDueSession(due, trainPrefs());
   if (!_studySheet || _studySheet.hidden) return;
+  // T1 — state the arithmetic before the learner commits. One tap starts; the start button is
+  // focused so keyboard and screen-reader users are not slowed down by the extra screen.
+  if (sel.compose.items.length && !_launchConfirmed) { renderTrainLaunch(sel); return; }
+  _launchConfirmed = false;
   const items = await _buildDueSourcedItems(sel.picked, { scanBudget: 12 });
   if (!_studySheet || _studySheet.hidden) return;
   const ranked = items;
