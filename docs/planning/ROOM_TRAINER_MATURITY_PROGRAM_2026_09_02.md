@@ -3,6 +3,8 @@
 Date: 2026-09-02
 Baseline runtime: `3.11.456`
 Status: T1 SHIPPED (3.11.457) · T2 SHIPPED (3.11.458) · T3–T6 NOT STARTED
+Predecessor canon: `docs/planning/ROOM_TRAINING_PREMIUM_RELEASE_IMPLEMENTATION_PACKET_2026_08_11.md`
+Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/planning/ROOM_DUE_CONTINUITY_2026_07_11.md`
 
 | Wave | Status | Runtime | Evidence |
 |---|---|---|---|
@@ -24,8 +26,6 @@ verified on `3.11.458`: schema version 50, `word_context` present, service worke
 Operational note: releasing T1 exposed six version stamps where the plan knew of three, and the
 resulting service-worker breakage plus a full disk are recorded in
 `docs/planning/PROD_INCIDENT_SW_INTEGRITY_AND_DISK_2026_09_02.md`. Three of the six are now gated.
-Predecessor canon: `docs/planning/ROOM_TRAINING_PREMIUM_RELEASE_IMPLEMENTATION_PACKET_2026_08_11.md`
-Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/planning/ROOM_DUE_CONTINUITY_2026_07_11.md`
 
 Goal: bring the Reading Room trainer (`🎯 Тренировка` / `Повторение`) to a mature premium
 state — an Anki-grade scheduler wrapper, corpus-wide coverage, explicit scoping, and varied
