@@ -273,7 +273,20 @@
     };
   }
 
+  // T2 — context rotation. Serving the SAME sentence on every review measures sentence memory,
+  // not word knowledge (R2, encoding specificity). The caller supplies the bank in its stable
+  // (source_class, text_key, order_index) order, so consecutive reviews walk to a different
+  // text without storing any extra state — the word's own review count is the cursor.
+  function pickContext(contexts, reps) {
+    if (!Array.isArray(contexts) || !contexts.length) return null;
+    var n = contexts.length;
+    var i = Math.floor(Number(reps) || 0) % n;
+    if (i < 0) i += n;
+    return contexts[i];
+  }
+
   return {
+    pickContext: pickContext,
     ENGINE_VERSION: ENGINE_VERSION,
     DAY_MS: DAY_MS,
     DEFAULTS: DEFAULTS,

@@ -384,6 +384,21 @@ if (fs.existsSync(evidencePath)) {
     "the shipped defaults must actually drain the backlog, got " + ev.composed.dueAtEnd + " vs " + ev.baseline.dueAtEnd);
 }
 
+// ── Suite 13: context rotation (T2) ──────────────────────────────────────────
+const ctxs = [{ id: "a" }, { id: "b" }, { id: "c" }];
+check(TQ.pickContext(ctxs, 0).id === "a", "reps 0 must serve the first context");
+check(TQ.pickContext(ctxs, 1).id === "b", "reps 1 must serve the second context");
+check(TQ.pickContext(ctxs, 2).id === "c", "reps 2 must serve the third context");
+check(TQ.pickContext(ctxs, 3).id === "a", "rotation must wrap around");
+check(TQ.pickContext(ctxs, 7).id === "b", "rotation must be reps modulo length");
+check(TQ.pickContext([{ id: "only" }], 5).id === "only", "a single-context word is unchanged by rotation");
+check(TQ.pickContext([], 0) === null, "no contexts yields null, never a fabricated one");
+check(TQ.pickContext(null, 0) === null, "a null context list yields null");
+check(TQ.pickContext(ctxs, -3).id === "a", "a negative rep count must not throw or index out of range");
+// Consecutive reviews must actually MOVE — that is the whole point of the bank.
+const walk = [0, 1, 2, 3, 4].map((n) => TQ.pickContext(ctxs, n).id).join("");
+check(walk === "abcab", "consecutive reviews must walk the bank, got " + walk);
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));
