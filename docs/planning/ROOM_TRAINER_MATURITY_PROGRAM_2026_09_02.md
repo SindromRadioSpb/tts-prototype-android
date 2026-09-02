@@ -2,7 +2,28 @@
 
 Date: 2026-09-02
 Baseline runtime: `3.11.456`
-Status: DESIGN APPROVED / NOT IMPLEMENTED
+Status: T1 SHIPPED (3.11.457) · T2 SHIPPED (3.11.458) · T3–T6 NOT STARTED
+
+| Wave | Status | Runtime | Evidence |
+|---|---|---|---|
+| T1 serving order | SHIPPED, prod-verified | `3.11.457` | `docs/superpowers/plans/2026-09-02-room-trainer-t1-serving-order.md`, `docs/research/room-trainer-maturity/2026-09-02/` |
+| T2 context bank + scope | SHIPPED, prod-verified | `3.11.458` | `docs/superpowers/plans/2026-09-02-room-trainer-t2-context-bank-and-scope.md`, migration 050 |
+| T3 Anki wrapper | not started | — | §7 |
+| T4 retention analytics | not started | — | §8 |
+| T5 FSRS optimizer | after the release | — | §9 |
+| T6 per-word channel | after the release | — | §9 |
+
+T1 measured result (20 simulated days, 208-word backlog, size-matched to the old 12/session so the
+ordering change is not credited with the session-size change): unique lemmas reached 36 → 137,
+coverage 17.3% → 65.9%, starvation 87% → 38%. With the shipped defaults: 184 unique, 88.5%, 14%.
+
+T2 measured result: a word banked in two sources returns `wc:by:1, wc:song:1, wc:by:1, wc:song:1`
+across consecutive reviews — the SOURCE TEXT alternates, not merely the sentence id. Production
+verified on `3.11.458`: schema version 50, `word_context` present, service worker activated.
+
+Operational note: releasing T1 exposed six version stamps where the plan knew of three, and the
+resulting service-worker breakage plus a full disk are recorded in
+`docs/planning/PROD_INCIDENT_SW_INTEGRITY_AND_DISK_2026_09_02.md`. Three of the six are now gated.
 Predecessor canon: `docs/planning/ROOM_TRAINING_PREMIUM_RELEASE_IMPLEMENTATION_PACKET_2026_08_11.md`
 Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/planning/ROOM_DUE_CONTINUITY_2026_07_11.md`
 
