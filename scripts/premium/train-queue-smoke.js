@@ -319,6 +319,31 @@ const morphSrc = fs.readFileSync(path.join(ROOT, "public/js/reader-morph.js"), "
 check(/var STREAK_GOAL_CAP = 10;/.test(morphSrc),
   "STREAK_GOAL_CAP must remain 10 as the engine default (reader-morph-smoke pins it)");
 
+// ── Suite 12: the audit harness exists and its evidence is recorded ──────────
+check(fs.existsSync(path.join(ROOT, "scripts/premium/train-queue-audit.js")),
+  "the T1 audit harness must exist");
+const evidencePath = path.join(ROOT, "docs/research/room-trainer-maturity/2026-09-02/t1-baseline-vs-composed.json");
+check(fs.existsSync(evidencePath), "the recorded T1 audit evidence must be committed");
+if (fs.existsSync(evidencePath)) {
+  const ev = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
+  check(!!(ev.baseline && ev.composed && ev.composedMatched),
+    "the evidence must carry the baseline, the default run and the SIZE-MATCHED control");
+  // The size-matched control is what the gate judges: it isolates the ORDERING change from the
+  // session-size change, so the claim cannot be inflated by simply serving more cards.
+  check(ev.baseline.starvedShare > 0.8,
+    "the recorded baseline must still show the defect it documents (most waiting words never served), got "
+    + ev.baseline.starvedShare);
+  check(ev.composedMatched.uniqueServed >= 3 * ev.baseline.uniqueServed,
+    "acceptance §12.1: ordering alone must serve far more distinct lemmas, got "
+    + ev.composedMatched.uniqueServed + " vs " + ev.baseline.uniqueServed);
+  check(ev.composedMatched.starvedShare < 0.5,
+    "ordering alone must at least halve starvation, got " + ev.composedMatched.starvedShare);
+  check(ev.composed.coverage > 0.85,
+    "the shipped defaults must reach most of the backlog in 20 days, got " + ev.composed.coverage);
+  check(ev.composed.dueAtEnd < ev.baseline.dueAtEnd / 2,
+    "the shipped defaults must actually drain the backlog, got " + ev.composed.dueAtEnd + " vs " + ev.baseline.dueAtEnd);
+}
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

@@ -1,0 +1,56 @@
+{
+  "generatedFor": "docs/planning/ROOM_TRAINER_MATURITY_PROGRAM_2026_09_02.md §5.5",
+  "generatedBy": "scripts/premium/train-queue-audit.js",
+  "engine": "train-queue-v1",
+  "days": 20,
+  "model": "scheduling feedback + deterministic difficulty (a failure sets interval 0 → due now)",
+  "baseline": {
+    "label": "baseline (pre-T1)",
+    "days": 20,
+    "backlogSize": 208,
+    "uniqueServed": 36,
+    "coverage": 0.1731,
+    "maxDayShare": 1,
+    "starvedWords": 172,
+    "starvedShare": 0.8687,
+    "starvedWaitedDays": 3440,
+    "meanSession": 12,
+    "dueAtStart": 208,
+    "dueAtEnd": 188
+  },
+  "composed": {
+    "label": "composed (T1, default 20/session)",
+    "days": 20,
+    "backlogSize": 208,
+    "uniqueServed": 184,
+    "coverage": 0.8846,
+    "maxDayShare": 1,
+    "starvedWords": 24,
+    "starvedShare": 0.1371,
+    "starvedWaitedDays": 480,
+    "meanSession": 20,
+    "dueAtStart": 208,
+    "dueAtEnd": 66
+  },
+  "composedMatched": {
+    "label": "composed (T1, size-matched 12/session)",
+    "days": 20,
+    "backlogSize": 208,
+    "uniqueServed": 137,
+    "coverage": 0.6587,
+    "maxDayShare": 1,
+    "starvedWords": 71,
+    "starvedShare": 0.3797,
+    "starvedWaitedDays": 1420,
+    "meanSession": 12,
+    "dueAtStart": 208,
+    "dueAtEnd": 112
+  },
+  "loadAtOldSessionSize": {
+    "dueNow": 208,
+    "scheduled": 208,
+    "inflowPerDay": 36.925324152186825,
+    "requiredPerDay": 37,
+    "growing": true
+  }
+}
