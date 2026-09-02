@@ -3273,6 +3273,106 @@ export async function getDayGradeCounts(sinceIso) {
   } catch (_) { return { reviews: 0, newWords: 0 }; }
 }
 
+// T2 — the ONE source classifier. Extends the convention already used by
+// _PERSONAL_TEXT_PREDICATE and _b6MediaKindSql: read source_meta_json defensively, then
+// discriminate. Consumed by BOTH the context harvester and the scope counter — forking it would
+// mean the "Ben-Yehuda" a counter reports and the "Ben-Yehuda" a session serves are different sets.
+function _sourceClassSql(alias) {
+  const safe = `CASE WHEN json_valid(${alias}.source_meta_json) THEN ${alias}.source_meta_json ELSE '{}' END`;
+  return {
+    cls: `CASE
+            WHEN json_type(${safe}, '$.group_corpus')  IS NOT NULL THEN 'group'
+            WHEN json_type(${safe}, '$.public_corpus') IS NOT NULL THEN 'public'
+            WHEN json_type(${safe}, '$.corpus')        IS NOT NULL THEN 'byehuda'
+            ELSE 'mytext'
+          END`,
+    corpus: `COALESCE(
+               json_extract(${safe}, '$.group_corpus.corpus_id'),
+               json_extract(${safe}, '$.public_corpus.slug'),
+               json_extract(${safe}, '$.corpus.byehuda_id')
+             )`,
+  };
+}
+
+const WORD_CONTEXT_CAP = 8;   // per lemma — enough to break sentence-memory, small enough to stay cheap
+
+// T2 — record verified occurrences of one lemma. source_class/corpus_id are derived IN SQL from
+// the joined text, so a row can only exist for a text this device actually holds (an unknown
+// text_key inserts nothing — no orphan contexts). Idempotent on (lemma_key, text_key, order_index).
+export async function insertWordContexts(lemmaKey, rows, keyerVersion) {
+  const lk = String(lemmaKey || "").trim();
+  const kv = String(keyerVersion || "").trim();
+  const list = Array.isArray(rows) ? rows : [];
+  if (!lk || !kv || !list.length) return 0;
+  const { cls, corpus } = _sourceClassSql("t");
+  let written = 0;
+  try {
+    const seed = await q(`SELECT COUNT(*) AS n FROM word_context WHERE lemma_key = ?`, [lk]);
+    let have = Number(seed && seed[0] && seed[0].n) || 0;
+    // Spread the cap ACROSS texts, round-robin. Filling in list order lets one work monopolise
+    // the bank: a word met eight times in a single Ben-Yehuda piece would rotate through eight
+    // sentences of that one piece, which is better than one frozen sentence but still misses the
+    // point — variety of context means variety of SOURCE. Degrades to plain order when the word
+    // lives in only one text.
+    const byText = new Map();
+    for (const row of list) {
+      const key = String((row && row.textKey) || "").trim();
+      if (!key) continue;
+      if (!byText.has(key)) byText.set(key, []);
+      byText.get(key).push(row);
+    }
+    const lanes = Array.from(byText.values());
+    const spread = [];
+    for (let i = 0; lanes.some((l) => i < l.length); i++) {
+      for (const lane of lanes) if (i < lane.length) spread.push(lane[i]);
+    }
+    for (const row of spread) {
+      if (have >= WORD_CONTEXT_CAP) break;
+      const tk = String((row && row.textKey) || "").trim();
+      const surface = String((row && row.surface) || "").trim();
+      const oix = row && row.orderIndex != null ? Number(row.orderIndex) : null;
+      if (!tk || !surface || oix == null || !Number.isFinite(oix)) continue;
+      await r(
+        `INSERT OR IGNORE INTO word_context
+           (lemma_key, text_key, order_index, sentence_id, surface, source_class, corpus_id, keyer_version, verified_at)
+         SELECT ?, t.text_key, ?, ?, ?, ${cls}, ${corpus}, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now')
+           FROM texts t WHERE t.text_key = ? AND t.is_archived = 0`,
+        [lk, oix, row.sentenceId != null ? String(row.sentenceId) : null, surface, kv, tk]);
+      const after = await q(`SELECT COUNT(*) AS n FROM word_context WHERE lemma_key = ?`, [lk]);
+      const now = Number(after && after[0] && after[0].n) || 0;
+      if (now > have) { written++; have = now; }
+    }
+    return written;
+  } catch (_) { return written; }
+}
+
+// Contexts for one lemma, in the deterministic order the rotation walks.
+export async function getWordContexts(lemmaKey) {
+  const lk = String(lemmaKey || "").trim();
+  if (!lk) return [];
+  try {
+    return (await q(
+      `SELECT wc.*, t.title AS text_title
+         FROM word_context wc
+         LEFT JOIN texts t ON t.text_key = wc.text_key AND t.is_archived = 0
+        WHERE wc.lemma_key = ?
+        ORDER BY wc.source_class ASC, wc.text_key ASC, wc.order_index ASC`, [lk])) || [];
+  } catch (_) { return []; }
+}
+
+// A canonical-keyer bump invalidates the whole bank: the rows were keyed by a resolver contract
+// that no longer holds. Derived data, so invalidation is a delete and reading refills it.
+export async function dropStaleWordContexts(currentKeyerVersion) {
+  const kv = String(currentKeyerVersion || "").trim();
+  if (!kv) return 0;
+  try {
+    const before = await q(`SELECT COUNT(*) AS n FROM word_context`, []);
+    await r(`DELETE FROM word_context WHERE keyer_version <> ?`, [kv]);
+    const after = await q(`SELECT COUNT(*) AS n FROM word_context`, []);
+    return Math.max(0, (Number(before[0].n) || 0) - (Number(after[0].n) || 0));
+  } catch (_) { return 0; }
+}
+
 // (R3, ROOM_DUE_CONTINUITY §3: the sourced-only getDueReviewCount is RETIRED — after the R2
 // serve-unsourced ladder the cross-text queue serves schedule-due words with or without a stored
 // source, so the CTA reads the same dueCounts.dueNow as the badge; residue honesty moved to the

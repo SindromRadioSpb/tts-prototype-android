@@ -57,6 +57,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       out.migApplied = Number((await one("SELECT MAX(version) v FROM schema_migrations")).v) || 0;
       out.rlQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM review_log"));
       out.compassCacheQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM room_learning_compass_cache"));
+      out.wordContextQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM word_context"));
 
       // ── B) keyer conformance (recon B1) ───────────────────────────────────────────────
       const bodies = [
@@ -441,9 +442,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.migApplied === res.migCount, `applied schema version ${res.migApplied} != MIGRATIONS.length ${res.migCount}`);
     // Пин-трипваер: при ДОБАВЛЕНИИ миграции сверь «метка == реальному индексу» и подними число.
     // 2026-08-12: version 49 is the isolated, discardable B7 derived ingredient cache.
-    eq(res.migCount === 49, `MIGRATIONS.length ${res.migCount} != 49 — labels no longer equal real indexes (recon §3.6; last = 049_room_learning_compass_cache)`);
+    // 2026-09-02: version 50 = 050_word_context — Trainer T2 context bank. Verified against the
+    // runner's own rule (db-worker.js: version = i + 1, so label 041 sits at index 40): the new
+    // table is appended at index 49 and therefore is version 50. Appending is the ONLY safe
+    // placement — an insert would renumber every later migration and re-run it on live profiles.
+    eq(res.migCount === 50, `MIGRATIONS.length ${res.migCount} != 50 — labels no longer equal real indexes (recon §3.6; last = 050_word_context)`);
     eq(res.rlQueryable, "review_log not queryable");
     eq(res.compassCacheQueryable, "room_learning_compass_cache not queryable");
+    eq(res.wordContextQueryable, "word_context not queryable (migration 050 did not apply)");
     for (const k of res.keyConformance || []) eq(k.ok, `keyer conformance failed for ${k.a}`);
     eq(res.keyPid && res.keyStripped, "canonical key fixtures wrong");
     for (const s of res.skDelegate || []) eq(s.ok, `statusKeyForCard delegate != fallback for key ${s.k}`);

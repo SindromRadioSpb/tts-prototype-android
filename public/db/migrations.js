@@ -1130,4 +1130,28 @@ export const MIGRATIONS = [
     ON room_learning_compass_cache(source_class, source_key);
   CREATE INDEX IF NOT EXISTS ix_room_compass_cache_lru
     ON room_learning_compass_cache(last_used_at, built_at);`,
+  // 050_word_context — Room Trainer T2 (ROOM_TRAINER_MATURITY_PROGRAM_2026_09_02 §6).
+  // DEVICE-LOCAL DERIVED cache of verified occurrences of a scheduled word, so the cross-text
+  // queue can rotate a word through DIFFERENT real sentences instead of re-serving the single
+  // pinned word_status.srs_* anchor for ever (encoding specificity, R2).
+  //
+  // Derived, never asserted: nothing here is an event, nothing syncs, and every row is
+  // rebuildable from the local texts/sentences tables. Invalidation is a DELETE — a keyer
+  // bump drops the bank and reading refills it. `surface` is the verified inflected form in
+  // THAT sentence, so rotation can re-cloze without re-resolving.
+  `CREATE TABLE IF NOT EXISTS word_context (
+    lemma_key     TEXT NOT NULL,
+    text_key      TEXT NOT NULL,
+    order_index   INTEGER NOT NULL,
+    sentence_id   TEXT,
+    surface       TEXT NOT NULL,
+    source_class  TEXT NOT NULL CHECK(source_class IN ('mytext','byehuda','public','group')),
+    corpus_id     TEXT,
+    keyer_version TEXT NOT NULL,
+    verified_at   TEXT NOT NULL,
+    PRIMARY KEY (lemma_key, text_key, order_index)
+  );
+  CREATE INDEX IF NOT EXISTS ix_word_context_lemma ON word_context(lemma_key, source_class);
+  CREATE INDEX IF NOT EXISTS ix_word_context_scope ON word_context(source_class, corpus_id, lemma_key);
+  CREATE INDEX IF NOT EXISTS ix_word_context_keyer ON word_context(keyer_version);`,
 ];
