@@ -76,6 +76,124 @@ const week = [];
 for (let d = 2; d <= 8; d++) week.push(TQ.dayPermute(pool, "2026-09-0" + d).slice(0, 12).map((x) => x.lemmaKey).join(","));
 check(new Set(week).size === week.length, "each day in a week must produce a distinct served head");
 
+// ── Suite 4: bucketOf ────────────────────────────────────────────────────────
+check(TQ.bucketOf(item("a", { due: 0, interval: 0, reps: 3, lapses: 2 })) === "learning",
+  "interval 0 with reps>0 is the most recent answer having been Again → learning");
+check(TQ.bucketOf(item("b", { due: 0, interval: 5, reps: 0, lapses: 0 })) === "new",
+  "reps 0 (manual-mark seed, never recall-tested) → new");
+check(TQ.bucketOf(item("c", null)) === "new", "no schedule at all → new");
+check(TQ.bucketOf(item("d", { due: 0, interval: 30, reps: 6, lapses: 0 }, "known")) === "known",
+  "status 'known' with a live interval → known");
+check(TQ.bucketOf(item("e", { due: 0, interval: 9, reps: 4, lapses: 1 })) === "overdue",
+  "an ordinary graded due word → overdue");
+check(TQ.bucketOf(item("f", { due: 0, interval: 0, reps: 2, lapses: 1 }, "known")) === "learning",
+  "a KNOWN word whose last answer failed must be learning, not known");
+
+// ── Suite 5: relativeOverdueness ─────────────────────────────────────────────
+const NOW = Date.UTC(2026, 8, 2, 12, 0, 0);
+check(Math.abs(TQ.relativeOverdueness(item("g", { due: NOW, interval: 10, reps: 3, reviewedAt: NOW - 10 * 86400000 }), NOW) - 1) < 1e-9,
+  "a word reviewed exactly one interval ago has relative overdueness 1");
+check(TQ.relativeOverdueness(item("h", { due: NOW, interval: 10, reps: 3, reviewedAt: NOW - 30 * 86400000 }), NOW) > 2.9,
+  "three intervals late must score close to 3");
+check(TQ.relativeOverdueness(item("i", { due: NOW, interval: 4, reps: 3, reviewedAt: null }), NOW) >= 1,
+  "a legacy row without reviewedAt must fall back to due-minus-interval, never NaN");
+
+// ── Suite 6: composeSession ──────────────────────────────────────────────────
+function due(key, opts) {
+  opts = opts || {};
+  return item(key, {
+    due: NOW - 86400000,
+    interval: opts.interval == null ? 6 : opts.interval,
+    reps: opts.reps == null ? 3 : opts.reps,
+    lapses: opts.lapses || 0,
+    reviewedAt: NOW - (opts.elapsed == null ? 7 : opts.elapsed) * 86400000
+  }, opts.status || "");
+}
+
+const big = [];
+for (let i = 0; i < 208; i++) big.push(due("k" + String(i).padStart(3, "0"), { lapses: i < 6 ? 9 : 0 }));
+
+const base = { nowMs: NOW, dayStr: "2026-09-02", sessionSize: 20, reviewsRemaining: 60, newRemaining: 10 };
+const s1 = TQ.composeSession(big, base);
+const s1b = TQ.composeSession(big, base);
+const s2 = TQ.composeSession(big, Object.assign({}, base, { dayStr: "2026-09-03" }));
+
+check(s1.items.length === 20, "session must honour sessionSize=20, got " + s1.items.length);
+check(s1.items.map((x) => x.lemmaKey).join(",") === s1b.items.map((x) => x.lemmaKey).join(","),
+  "composeSession must be deterministic for the same day");
+check(s1.items.map((x) => x.lemmaKey).join(",") !== s2.items.map((x) => x.lemmaKey).join(","),
+  "composeSession must produce a different session the next day");
+check(new Set(s1.items.map((x) => x.lemmaKey)).size === s1.items.length,
+  "a session must never repeat a word");
+
+// bounded weakness quota — the six lapse-9 words may not take over the session
+const lapsed = new Set(big.filter((x) => x._srs.lapses === 9).map((x) => x.lemmaKey));
+const lapsedServed = s1.items.filter((x) => lapsed.has(x.lemmaKey)).length;
+check(lapsedServed <= Math.round(20 * 0.25),
+  "weakness must be a bounded quota (<=25% of the session), got " + lapsedServed);
+check(lapsedServed > 0, "the weakness quota must still surface weak words, got " + lapsedServed);
+
+// The quota itself must rotate. Ranking it strictly by lapses rebuilds the defect one scale
+// down: a handful of heavily-lapsed words would then fill the quota every single day.
+const quotaDays = [];
+for (let d = 2; d <= 9; d++) {
+  const day = "2026-09-0" + d;
+  quotaDays.push(TQ.composeSession(big, Object.assign({}, base, { dayStr: day }))
+    .items.filter((x) => lapsed.has(x.lemmaKey)).map((x) => x.lemmaKey).sort().join(","));
+}
+check(new Set(quotaDays).size > 1,
+  "the weakness quota must rotate inside its lapse tier, got the same set every day: " + quotaDays[0]);
+
+// coverage across 20 simulated days — the headline T1 metric
+const seen20 = new Set();
+for (let d = 1; d <= 20; d++) {
+  const day = "2026-09-" + String(d).padStart(2, "0");
+  TQ.composeSession(big, Object.assign({}, base, { dayStr: day })).items.forEach((x) => seen20.add(x.lemmaKey));
+}
+check(seen20.size >= 120, "20 simulated sessions must reach a large share of a 208-word backlog, got " + seen20.size);
+
+// answered-today exclusion
+const exclude = s1.items.map((x) => x.lemmaKey);
+const s3 = TQ.composeSession(big, Object.assign({}, base, { excludeKeys: exclude }));
+check(s3.items.every((x) => exclude.indexOf(x.lemmaKey) < 0),
+  "words answered today must not be served again in the same day");
+check(s3.excludedToday === exclude.length,
+  "excludedToday must report how many candidates were filtered, got " + s3.excludedToday);
+
+// exhausted day → honest repeat rather than an empty screen
+const small = [due("s1"), due("s2")];
+const s4 = TQ.composeSession(small, Object.assign({}, base, { excludeKeys: ["s1", "s2"] }));
+check(s4.items.length === 2 && s4.repeatedToday === true,
+  "with every candidate already answered the session repeats them and says so, got " + JSON.stringify({ n: s4.items.length, r: s4.repeatedToday }));
+
+// daily limits
+const s5 = TQ.composeSession(big, Object.assign({}, base, { reviewsRemaining: 5 }));
+check(s5.items.length === 5, "reviewsRemaining must cap the session, got " + s5.items.length);
+const s6 = TQ.composeSession(big, Object.assign({}, base, { reviewsRemaining: 0 }));
+check(s6.items.length === 0, "a spent review budget must serve nothing, got " + s6.items.length);
+
+// known refresh reaches the cross-text session (defect D-C)
+const mixed = [];
+for (let i = 0; i < 40; i++) mixed.push(due("m" + i));
+for (let i = 0; i < 20; i++) mixed.push(due("kn" + i, { status: "known", interval: 40 }));
+const s7 = TQ.composeSession(mixed, base);
+const knownServed = s7.items.filter((x) => x.status === "known").length;
+check(knownServed > 0 && knownServed <= Math.round(20 * 0.15) + 1,
+  "the cross-text session must interleave a capped known-refresh share, got " + knownServed);
+check(s7.buckets.known === 20, "buckets must report the full candidate census, got " + JSON.stringify(s7.buckets));
+
+// new words respect newRemaining
+const withNew = [];
+for (let i = 0; i < 10; i++) withNew.push(due("r" + i));
+for (let i = 0; i < 30; i++) withNew.push(due("n" + i, { reps: 0, interval: 1 }));
+const s8 = TQ.composeSession(withNew, Object.assign({}, base, { newRemaining: 3 }));
+check(s8.servedNew === 3, "newRemaining must cap new words, got " + s8.servedNew);
+check(s8.servedReview === s8.items.length - s8.servedNew,
+  "servedReview + servedNew must equal the session size");
+
+check(TQ.composeSession([], base).items.length === 0, "an empty candidate list yields an empty session");
+check(TQ.composeSession(null, base).items.length === 0, "a null candidate list yields an empty session");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));
