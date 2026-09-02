@@ -173,6 +173,13 @@ async function ready(ms = 20000) {
     eq(/_bankedContextFor/.test(buildBody2), "the cross-text builder must try the bank before the pinned anchor");
     eq(buildBody2.indexOf("_bankedContextFor") < buildBody2.indexOf("d.source.surface"),
       "the bank must be tried BEFORE the frozen anchor, otherwise rotation never happens");
+    eq(/async function _backfillContexts\s*\(/.test(roomSrc), "the Room must backfill contexts for pre-T2 words");
+    const backfillBody = (roomSrc.match(/async function _backfillContexts[\s\S]*?\n}\n/) || [""])[0];
+    eq(/_r2VerifyCandidate/.test(backfillBody), "the backfill must reuse the canonical identity-gated verifier");
+    eq(/findSentencesForWords/.test(backfillBody), "the backfill must reuse the batched sentence prefilter");
+    eq(/_r2MissFresh/.test(backfillBody) && /_r2MissMark/.test(backfillBody),
+      "the backfill must honour the negative-scan cache so an unhealable word cannot monopolise the budget");
+    eq(/BACKFILL_BUDGET/.test(roomSrc), "the backfill must be budgeted so a session never stalls behind it");
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     if (failures.length) {

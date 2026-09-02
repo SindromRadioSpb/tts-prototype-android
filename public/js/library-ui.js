@@ -2971,6 +2971,8 @@ async function startDueReview() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   let due = [];
   try { due = (await localDb.getDueWithSource(Date.now())) || []; } catch (_) { due = []; }
+  // T2 — top up the bank for a few pre-T2 words before composing, so rotation reaches them too.
+  try { await _backfillContexts(due, { backfillBudget: BACKFILL_BUDGET }); } catch (_) {}
   // T1 — select over the FULL due list, then assemble only what was selected. The previous
   // order (lapses DESC) plus a 24-row prefix cut made the tail of a large backlog unreachable.
   const sel = await _composeDueSession(due, trainPrefs());
@@ -3160,6 +3162,60 @@ async function _bankedContextFor(d) {
     return { ctx, cz, card, heN, sent };
   }
   return null;
+}
+const BACKFILL_BUDGET = 6;   // words per session — bounded like the R2 scan budget
+// T2 — grow the bank for words scheduled BEFORE it existed: they carry at most their one pinned
+// anchor, so rotation would never engage for them. Reuses the R2 re-source pipeline verbatim —
+// one batched LIKE prefilter, the canonical identity gate, and the 7-day per-word negative cache
+// so a permanently-unhealable word cannot monopolise the budget. Best-effort and silent: the bank
+// is derived, and ordinary reading refills it anyway.
+async function _backfillContexts(due, opts) {
+  const R = window.ReaderMorph, LC = window.LemmaCanon;
+  const keyer = (LC && LC.KEYER_VERSION) || '';
+  if (!R || !keyer || !localDb.getWordContexts || !localDb.insertWordContexts) return 0;
+  const budget = Number((opts && opts.backfillBudget) != null ? opts.backfillBudget : BACKFILL_BUDGET) || 0;
+  if (budget <= 0) return 0;
+  const miss = _r2MissGet();
+  const targets = [];
+  for (const d of (due || [])) {
+    if (targets.length >= budget) break;
+    if (!d || !d.lemmaKey || _r2MissFresh(miss, 'bf:' + d.lemmaKey)) continue;
+    let have = [];
+    try { have = (await localDb.getWordContexts(d.lemmaKey)) || []; } catch (_) { have = []; }
+    if (have.length >= 3) continue;   // enough variety already
+    const surface = (d.source && d.source.surface)
+      ? R.stripNiqqud(String(d.source.surface))
+      : (await _r2DeriveSurface(d.lemmaKey));
+    if (!surface) continue;
+    let pidEntry = null;
+    try { pidEntry = await _r2PidEntry(d.lemmaKey); } catch (_) { pidEntry = null; }
+    targets.push({ d, surface, needles: _r4NeedlesFor(surface, pidEntry) });
+  }
+  if (!targets.length) return 0;
+  const needles = [];
+  for (const t of targets) for (const n of t.needles) if (needles.indexOf(n) < 0 && needles.length < 90) needles.push(n);
+  let rows = [];
+  try { rows = (await localDb.findSentencesForWords(needles, 400)) || []; } catch (_) { rows = []; }
+  let written = 0;
+  for (const t of targets) {
+    const found = [];
+    for (const row of rows) {
+      if (found.length >= 4) break;
+      const hp = String(row.he_plain || '');
+      if (!t.needles.some((n) => hp.indexOf(n) >= 0)) continue;
+      let hit = null;
+      try { hit = await _r2VerifyCandidate(R, t.d, t.needles, row); } catch (_) { hit = null; }
+      if (!hit) continue;
+      found.push({ textKey: row.text_key, orderIndex: row.order_index != null ? Number(row.order_index) : null,
+        sentenceId: row.id != null ? String(row.id) : null, surface: hit.tskel });
+    }
+    if (found.length) {
+      try { written += await localDb.insertWordContexts(t.d.lemmaKey, found, keyer); } catch (_) {}
+    } else {
+      _r2MissMark(miss, 'bf:' + t.d.lemmaKey);
+    }
+  }
+  return written;
 }
 async function _buildDueSourcedItems(due, opts) {
   opts = opts || {};
