@@ -253,6 +253,20 @@ check(/function trainPrefs\s*\(/.test(room) && /function trainPrefsSet\s*\(/.tes
   "the Room must expose session-size and daily-limit preferences");
 check(/function _dayStartIso\s*\(/.test(room), "the Room must compute local midnight for the day fold");
 
+// ── Suite 9: cross-text distractor pool (defect D-A) ─────────────────────────
+check(/function _crossDistractorPool\s*\(/.test(room),
+  "the Room must build a distractor pool for cross-text sessions");
+const launchCalls = room.match(/_launchTrainSession\([^;]*?cross:\s*true[^;]*?\)/g) || [];
+check(launchCalls.length >= 3, "every cross-text launch site must be found, got " + launchCalls.length);
+check(launchCalls.every((c) => /pool:/.test(c)),
+  "every cross-text launch must pass an explicit distractor pool, otherwise the session's own "
+  + "words become its multiple-choice options; got " + JSON.stringify(launchCalls));
+// The pool builder must gate identity — a distractor that is not the word it claims to be
+// would be a fabricated option (R11).
+const poolBody = (room.match(/async function _crossDistractorPool[\s\S]*?\n}\n/) || [""])[0];
+check(/card\.lemmaKey !== key/.test(poolBody) || /card\.lemmaKey\s*!==\s*key/.test(poolBody),
+  "the distractor pool must pass the canonical identity gate");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

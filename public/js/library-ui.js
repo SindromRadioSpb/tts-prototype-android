@@ -2842,6 +2842,39 @@ async function _composeDueSession(due, prefs) {
   });
   return { picked: compose.items, load, counts, compose };
 }
+// D-A — cross-text distractor pool. Without this the launcher falls back to
+// `pool: opts.pool || items`, so the session's own words become its multiple-choice options:
+// the learner then recognises the option set, and FSRS books it as word knowledge. The pool is
+// built from SCHEDULED words that are NOT in this session, resolved offline and bounded.
+async function _crossDistractorPool(items, due) {
+  const R = window.ReaderMorph;
+  const pool = [];
+  if (!R || typeof R.resolveWordLight !== 'function') return pool;
+  const inSession = new Set((items || []).map((x) => String(x.lemmaKey)));
+  const POOL_MAX = 40;
+  for (const d of (due || [])) {
+    if (pool.length >= POOL_MAX) break;
+    const key = String((d && d.lemmaKey) || '');
+    if (!key || inSession.has(key)) continue;
+    const surface = d.source && d.source.surface ? R.stripNiqqud(String(d.source.surface)) : '';
+    if (!surface) continue;
+    let card = null;
+    try { card = await R.resolveWordLight(surface, ''); } catch (_) { card = null; }
+    // Identity gate (R11): a distractor must be the word it claims to be, or it is not offered.
+    if (!card || card.lemmaKey !== key) continue;
+    const gloss = String(card.meaning || card.gloss || '');
+    if (!gloss) continue;
+    pool.push({ lemmaKey: key, surface, niqqud: card.niqqud || '', gloss,
+      root: card.root || '', pos: card.pos || '', freq: 1 });
+  }
+  return pool;
+}
+// Merge the session items with an out-of-session pool, but only when the pool is big enough to
+// actually change the options — a starved pool would silently fall back to the old behaviour.
+async function _crossPoolFor(items, due) {
+  const extra = await _crossDistractorPool(items, due);
+  return extra.length >= 3 ? items.concat(extra) : items;
+}
 async function startDueReview() {
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
@@ -2901,7 +2934,7 @@ async function startDueReview() {
             try { window.applyI18n && window.applyI18n(); } catch (_) {}
             return;
           }
-          await _launchTrainSession(aheadRanked, { cross: true });
+          await _launchTrainSession(aheadRanked, { cross: true, pool: await _crossPoolFor(aheadRanked, ahead) });
         });
         body.appendChild(btn);
         body.appendChild(el('div', { class: 'room-study-aheadnote', i18n: 'room.morph.study.aheadNote',
@@ -2911,7 +2944,7 @@ async function startDueReview() {
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     return;
   }
-  await _launchTrainSession(ranked, { cross: true });
+  await _launchTrainSession(ranked, { cross: true, pool: await _crossPoolFor(ranked, due) });
 }
 // ── R2 serve-unsourced helpers (ROOM_DUE_CONTINUITY §3, критика wf_d242bed2) ─────────────────────
 // Surface derivation for an unsourced scheduled word: the most recent NON-annulled log row that
@@ -3161,7 +3194,8 @@ async function startPlanSectionTraining(itemKeys, channel) {
     return;
   }
   if (channel) { try { trainChannelSet(channel); } catch (_) {} }
-  await _launchTrainSession(items.slice(0, TRAIN_N), { cross: true });
+  const planItems = items.slice(0, TRAIN_N);
+  await _launchTrainSession(planItems, { cross: true, pool: await _crossPoolFor(planItems, rows) });
 }
 // Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
 // row so training is self-contained (works even if readerRows is empty/desynced).
