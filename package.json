@@ -28,6 +28,7 @@
     "smoke:mass-access:p0:red": "node scripts/premium/mass-access-p0-contract-red.js",
     "smoke:studio-room-srs": "node scripts/premium/studio-room-srs-smoke.js",
     "smoke:room-training-premium": "node scripts/premium/room-training-premium-smoke.js",
+    "smoke:train-queue": "node scripts/premium/train-queue-smoke.js",
     "smoke:studio-table-resume": "node --test tests/tableChunks.test.js tests/tableJob.test.js tests/studioTableJobUi.test.js && node scripts/premium/studio-table-resume-browser-smoke.js",
     "smoke:media-acquisition": "python -m unittest discover -s media-acquisition/tests -t media-acquisition -v && node --test tests/mediaStreamStore.test.js tests/remoteMediaAcquisition.test.js",
     "smoke:media-acquisition:browser": "node scripts/premium/remote-media-browser-smoke.js",
