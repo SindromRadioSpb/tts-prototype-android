@@ -240,6 +240,39 @@
     };
   }
 
+  // Defect D-B: the trainer must be able to say whether its own limit keeps up with its
+  // own queue. A scheduled word with interval I returns 1/I times per day, so the
+  // steady-state inbound flow is the sum of 1/max(I, 1) over scheduled, non-ignored words.
+  function queueLoad(input) {
+    input = input || {};
+    var schedule = input.schedule || null;
+    var statusMap = input.statusMap || null;
+    var now = Number(input.nowMs) || 0;
+    var cap = Number(input.reviewsPerDay);
+    if (!isFinite(cap) || cap < 0) cap = DEFAULTS.reviewsPerDay;
+
+    var dueNow = 0, scheduled = 0, inflow = 0;
+    if (schedule) {
+      for (var lk in schedule) {
+        var row = schedule[lk];
+        if (!row) continue;
+        if (statusMap && statusMap[lk] === "ignore") continue;
+        scheduled++;
+        if ((Number(row.due) || 0) <= now) dueNow++;
+        inflow += 1 / Math.max(1, Number(row.interval) || 0);
+      }
+    }
+    var required = Math.ceil(inflow - 1e-9);
+    if (required < 0) required = 0;
+    return {
+      dueNow: dueNow,
+      scheduled: scheduled,
+      inflowPerDay: inflow,
+      requiredPerDay: required,
+      growing: scheduled > 0 && cap < required
+    };
+  }
+
   return {
     ENGINE_VERSION: ENGINE_VERSION,
     DAY_MS: DAY_MS,
@@ -248,6 +281,7 @@
     dayPermute: dayPermute,
     bucketOf: bucketOf,
     relativeOverdueness: relativeOverdueness,
-    composeSession: composeSession
+    composeSession: composeSession,
+    queueLoad: queueLoad
   };
 });

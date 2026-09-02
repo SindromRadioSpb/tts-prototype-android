@@ -194,6 +194,31 @@ check(s8.servedReview === s8.items.length - s8.servedNew,
 check(TQ.composeSession([], base).items.length === 0, "an empty candidate list yields an empty session");
 check(TQ.composeSession(null, base).items.length === 0, "a null candidate list yields an empty session");
 
+// ── Suite 7: queueLoad ───────────────────────────────────────────────────────
+const sched = {};
+for (let i = 0; i < 100; i++) sched["q" + i] = { due: NOW - 1000, interval: 10 };   // all due, I=10
+for (let i = 0; i < 100; i++) sched["f" + i] = { due: NOW + 5 * 86400000, interval: 20 };
+const load = TQ.queueLoad({ schedule: sched, statusMap: null, nowMs: NOW, reviewsPerDay: 12 });
+
+check(load.dueNow === 100, "queueLoad must count only words due now, got " + load.dueNow);
+check(load.scheduled === 200, "queueLoad must count every scheduled word, got " + load.scheduled);
+check(Math.abs(load.inflowPerDay - (100 / 10 + 100 / 20)) < 1e-9,
+  "inflow is the sum of 1/interval over scheduled words, got " + load.inflowPerDay);
+check(load.requiredPerDay === 15, "requiredPerDay must round the inflow up, got " + load.requiredPerDay);
+check(load.growing === true, "12 reviews/day against an inflow of 15 must be reported as growing");
+
+const okLoad = TQ.queueLoad({ schedule: sched, statusMap: null, nowMs: NOW, reviewsPerDay: 60 });
+check(okLoad.growing === false, "60 reviews/day against an inflow of 15 must not be reported as growing");
+
+const ignored = { z1: { due: NOW - 1000, interval: 10 } };
+const ignLoad = TQ.queueLoad({ schedule: ignored, statusMap: { z1: "ignore" }, nowMs: NOW, reviewsPerDay: 60 });
+check(ignLoad.dueNow === 0 && ignLoad.scheduled === 0,
+  "ignored words must not count toward due or load, got " + JSON.stringify(ignLoad));
+
+const zero = TQ.queueLoad({ schedule: null, statusMap: null, nowMs: NOW, reviewsPerDay: 60 });
+check(zero.dueNow === 0 && zero.requiredPerDay === 0 && zero.growing === false,
+  "an empty schedule must produce a zeroed, non-growing load");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));
