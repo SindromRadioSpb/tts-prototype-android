@@ -22,3 +22,20 @@ first-again-relearn, cap максимального интервала). Каж�
 seed-ветки вкл. interval=0, replay-watermark, детерминизм). Гейт НЕ вызывает ts-fsrs.
 
 **Править руками нельзя** — только перегенерация генератором.
+
+## `fsrs6-fuzz-golden-v1.json`
+
+Reference vectors for the **fuzz-on** path (T3, `ROOM_TRAINER_MATURITY_PROGRAM_2026_09_02.md` §7.1).
+
+Fuzz is only reproducible when both sides derive the same PRNG seed, so the generator pins
+ts-fsrs's pluggable seed strategy (`StrategyMode.SEED`) to the exact string `fsrs-core.js`
+builds: `<item_key>_<pre-review reps>`. Without that pinning a fuzz fixture would agree only by
+coincidence and would prove nothing.
+
+Each step records `seed` alongside the scheduled interval, so the gate replays the scenario with
+the reference's own seeds rather than re-deriving them — an independent oracle, not a
+transcription checked against itself.
+
+Regenerate with `node scripts/premium/generate-fsrs-fixture.js`. It rewrites BOTH fixtures; the
+long-term one must come out byte-identical (`git diff --quiet` on it is part of the T3 procedure).
+The gate reads the committed JSON and never calls ts-fsrs.

@@ -1,0 +1,341 @@
+{
+ "provenance": {
+  "reference": "ts-fsrs",
+  "reference_version": "5.4.1",
+  "generation": "FSRS-6.0",
+  "algo_banner": "v5.4.1 using FSRS-6.0",
+  "weights": [
+   0.212,
+   1.2931,
+   2.3065,
+   8.2956,
+   6.4133,
+   0.8334,
+   3.0194,
+   0.001,
+   1.8722,
+   0.1666,
+   0.796,
+   1.4835,
+   0.0614,
+   0.2629,
+   1.6483,
+   0.6014,
+   1.8729,
+   0.5425,
+   0.0912,
+   0.0658,
+   0.1542
+  ],
+  "request_retention": 0.9,
+  "maximum_interval": 36500,
+  "enable_fuzz": true,
+  "enable_short_term": false,
+  "seed_strategy": "<item_key>_<pre-review reps>",
+  "item_key": "pid:900123",
+  "generated_by": "scripts/premium/generate-fsrs-fixture.js",
+  "note": "committed fixture — smoke:fsrs asserts the fuzz path against these vectors; the gate never calls ts-fsrs"
+ },
+ "scenarios": [
+  {
+   "name": "fuzz-good-chain",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "seed": "pid:900123_0",
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "due_ms": 1767484800000
+    },
+    {
+     "dt": 3,
+     "grade": 3,
+     "seed": "pid:900123_1",
+     "stability": 13.82690327,
+     "difficulty": 2.11121424,
+     "scheduled_days": 16,
+     "reps": 2,
+     "lapses": 0,
+     "due_ms": 1768867200000
+    },
+    {
+     "dt": 14,
+     "grade": 3,
+     "seed": "pid:900123_2",
+     "stability": 56.95670978,
+     "difficulty": 2.1043314,
+     "scheduled_days": 55,
+     "reps": 3,
+     "lapses": 0,
+     "due_ms": 1773446400000
+    },
+    {
+     "dt": 44,
+     "grade": 3,
+     "seed": "pid:900123_3",
+     "stability": 172.08632469,
+     "difficulty": 2.09745544,
+     "scheduled_days": 170,
+     "reps": 4,
+     "lapses": 0,
+     "due_ms": 1787184000000
+    },
+    {
+     "dt": 120,
+     "grade": 3,
+     "seed": "pid:900123_4",
+     "stability": 439.84588704,
+     "difficulty": 2.09058635,
+     "scheduled_days": 455,
+     "reps": 5,
+     "lapses": 0,
+     "due_ms": 1822176000000
+    },
+    {
+     "dt": 300,
+     "grade": 3,
+     "seed": "pid:900123_5",
+     "stability": 1015.68306622,
+     "difficulty": 2.08372413,
+     "scheduled_days": 984,
+     "reps": 6,
+     "lapses": 0,
+     "due_ms": 1893801600000
+    }
+   ]
+  },
+  {
+   "name": "fuzz-short-intervals",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "seed": "pid:900123_0",
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "due_ms": 1767484800000
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "seed": "pid:900123_1",
+     "stability": 7.31530068,
+     "difficulty": 2.11121424,
+     "scheduled_days": 9,
+     "reps": 2,
+     "lapses": 0,
+     "due_ms": 1768089600000
+    },
+    {
+     "dt": 2,
+     "grade": 3,
+     "seed": "pid:900123_2",
+     "stability": 16.12727185,
+     "difficulty": 2.1043314,
+     "scheduled_days": 15,
+     "reps": 3,
+     "lapses": 0,
+     "due_ms": 1768780800000
+    },
+    {
+     "dt": 3,
+     "grade": 3,
+     "seed": "pid:900123_3",
+     "stability": 28.16426816,
+     "difficulty": 2.09745544,
+     "scheduled_days": 27,
+     "reps": 4,
+     "lapses": 0,
+     "due_ms": 1770076800000
+    }
+   ]
+  },
+  {
+   "name": "fuzz-again-heavy",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "seed": "pid:900123_0",
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "due_ms": 1767484800000
+    },
+    {
+     "dt": 3,
+     "grade": 1,
+     "seed": "pid:900123_1",
+     "stability": 0.63685069,
+     "difficulty": 7.39450274,
+     "scheduled_days": 1,
+     "reps": 2,
+     "lapses": 1,
+     "due_ms": 1767571200000
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "seed": "pid:900123_2",
+     "stability": 2.44661061,
+     "difficulty": 7.38233661,
+     "scheduled_days": 3,
+     "reps": 3,
+     "lapses": 1,
+     "due_ms": 1767830400000
+    },
+    {
+     "dt": 2,
+     "grade": 1,
+     "seed": "pid:900123_3",
+     "stability": 0.58202025,
+     "difficulty": 9.12482021,
+     "scheduled_days": 1,
+     "reps": 4,
+     "lapses": 2,
+     "due_ms": 1767830400000
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "seed": "pid:900123_4",
+     "stability": 1.50616323,
+     "difficulty": 9.11092376,
+     "scheduled_days": 3,
+     "reps": 5,
+     "lapses": 2,
+     "due_ms": 1768089600000
+    },
+    {
+     "dt": 5,
+     "grade": 3,
+     "seed": "pid:900123_5",
+     "stability": 4.49013651,
+     "difficulty": 9.09704121,
+     "scheduled_days": 3,
+     "reps": 6,
+     "lapses": 2,
+     "due_ms": 1768521600000
+    }
+   ]
+  },
+  {
+   "name": "fuzz-long-gap",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "seed": "pid:900123_0",
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "due_ms": 1767484800000
+    },
+    {
+     "dt": 60,
+     "grade": 3,
+     "seed": "pid:900123_1",
+     "stability": 45.3423714,
+     "difficulty": 2.11121424,
+     "scheduled_days": 49,
+     "reps": 2,
+     "lapses": 0,
+     "due_ms": 1776643200000
+    },
+    {
+     "dt": 365,
+     "grade": 3,
+     "seed": "pid:900123_2",
+     "stability": 400.3176514,
+     "difficulty": 2.1043314,
+     "scheduled_days": 392,
+     "reps": 3,
+     "lapses": 0,
+     "due_ms": 1837814400000
+    },
+    {
+     "dt": 900,
+     "grade": 3,
+     "seed": "pid:900123_3",
+     "stability": 1592.99867909,
+     "difficulty": 2.09745544,
+     "scheduled_days": 1577,
+     "reps": 4,
+     "lapses": 0,
+     "due_ms": 2017958400000
+    }
+   ]
+  },
+  {
+   "name": "fuzz-hard-easy",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 2,
+     "seed": "pid:900123_0",
+     "stability": 1.2931,
+     "difficulty": 5.11217071,
+     "scheduled_days": 2,
+     "reps": 1,
+     "lapses": 0,
+     "due_ms": 1767398400000
+    },
+    {
+     "dt": 5,
+     "grade": 4,
+     "seed": "pid:900123_1",
+     "stability": 17.84267471,
+     "difficulty": 3.4641143,
+     "scheduled_days": 21,
+     "reps": 2,
+     "lapses": 0,
+     "due_ms": 1769472000000
+    },
+    {
+     "dt": 17,
+     "grade": 2,
+     "seed": "pid:900123_2",
+     "stability": 43.87796547,
+     "difficulty": 5.64640287,
+     "scheduled_days": 42,
+     "reps": 3,
+     "lapses": 0,
+     "due_ms": 1772755200000
+    },
+    {
+     "dt": 2,
+     "grade": 4,
+     "seed": "pid:900123_3",
+     "stability": 52.04805677,
+     "difficulty": 4.17686196,
+     "scheduled_days": 51,
+     "reps": 4,
+     "lapses": 0,
+     "due_ms": 1773705600000
+    },
+    {
+     "dt": 40,
+     "grade": 3,
+     "seed": "pid:900123_4",
+     "stability": 133.64408693,
+     "difficulty": 4.16791347,
+     "scheduled_days": 140,
+     "reps": 5,
+     "lapses": 0,
+     "due_ms": 1784851200000
+    }
+   ]
+  }
+ ]
+}

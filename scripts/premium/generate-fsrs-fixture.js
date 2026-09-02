@@ -91,3 +91,69 @@ const file = path.join(dir, "fsrs6-golden-v1.json");
 fs.writeFileSync(file, JSON.stringify(out, null, 1));
 console.log("wrote", file, "—", out.scenarios.length, "scenarios,",
   out.scenarios.reduce((n, s) => n + s.steps.length, 0), "steps; ref ts-fsrs@" + refPkg.version, "(" + tsfsrs.FSRSVersion + ")");
+
+// ── T3: fuzz-on vectors (ROOM_TRAINER_MATURITY_PROGRAM_2026_09_02 §7.1) ───────────────────
+// Fuzz is only reproducible when BOTH sides derive the same PRNG seed, so the reference is
+// pinned to the exact string fsrs-core.js builds: "<item_key>_<pre-review reps>". Without that
+// pinning a fuzz fixture would agree only by coincidence and would prove nothing.
+const FUZZ_KEY = "pid:900123";
+const FUZZ_PARAMS = { ...PARAMS, enable_fuzz: true };
+const ff = tsfsrs.fsrs(tsfsrs.generatorParameters(FUZZ_PARAMS));
+ff.useStrategy(tsfsrs.StrategyMode.SEED, function () {
+  return FUZZ_KEY + "_" + this.current.reps;
+});
+
+const FUZZ_SCENARIOS = [
+  { name: "fuzz-good-chain", steps: [[0, 3], [3, 3], [14, 3], [44, 3], [120, 3], [300, 3]] },
+  { name: "fuzz-short-intervals", steps: [[0, 3], [1, 3], [2, 3], [3, 3]] },
+  { name: "fuzz-again-heavy", steps: [[0, 3], [3, 1], [1, 3], [2, 1], [1, 3], [5, 3]] },
+  { name: "fuzz-long-gap", steps: [[0, 3], [60, 3], [365, 3], [900, 3]] },
+  { name: "fuzz-hard-easy", steps: [[0, 2], [5, 4], [17, 2], [2, 4], [40, 3]] },
+];
+
+const fuzzOut = {
+  provenance: {
+    reference: "ts-fsrs",
+    reference_version: refPkg.version,
+    generation: "FSRS-6.0",
+    algo_banner: tsfsrs.FSRSVersion,
+    weights: tsfsrs.default_w,
+    request_retention: FUZZ_PARAMS.request_retention,
+    maximum_interval: FUZZ_PARAMS.maximum_interval,
+    enable_fuzz: true,
+    enable_short_term: false,
+    seed_strategy: "<item_key>_<pre-review reps>",
+    item_key: FUZZ_KEY,
+    generated_by: "scripts/premium/generate-fsrs-fixture.js",
+    note: "committed fixture — smoke:fsrs asserts the fuzz path against these vectors; the gate never calls ts-fsrs",
+  },
+  scenarios: [],
+};
+
+for (const sc of FUZZ_SCENARIOS) {
+  let card = tsfsrs.createEmptyCard(new Date(T0));
+  let nowMs = T0;
+  const steps = [];
+  for (const [dt, grade] of sc.steps) {
+    nowMs += dt * 86400000;
+    const preReps = card.reps;
+    const rec = ff.next(card, new Date(nowMs), grade);
+    card = rec.card;
+    steps.push({
+      dt, grade,
+      seed: FUZZ_KEY + "_" + preReps,
+      stability: card.stability,
+      difficulty: card.difficulty,
+      scheduled_days: card.scheduled_days,
+      reps: card.reps,
+      lapses: card.lapses,
+      due_ms: card.due.getTime(),
+    });
+  }
+  fuzzOut.scenarios.push({ name: sc.name, steps });
+}
+
+const fuzzFile = path.join(dir, "fsrs6-fuzz-golden-v1.json");
+fs.writeFileSync(fuzzFile, JSON.stringify(fuzzOut, null, 1) + "\n");
+console.log("wrote", fuzzFile, "—", fuzzOut.scenarios.length, "fuzz scenarios,",
+  fuzzOut.scenarios.reduce((n, s) => n + s.steps.length, 0), "steps");
