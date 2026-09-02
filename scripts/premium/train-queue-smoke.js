@@ -449,6 +449,33 @@ check(/plannedTotal/.test(room), "the progress denominator must stay the planned
 check(/_midEcho: true, _retryQueued: true/.test(room),
   "the mid-session echo must carry _retryQueued so a second miss cannot double-queue the word");
 
+// ── Suite 17: leech repair path + sibling separation (T3) ────────────────────
+const LEECH_KEYS = ["leechTitle", "leechWhy", "leechNextContext", "leechChannel", "leechKeep"];
+LEECH_KEYS.forEach((k) => {
+  check(new RegExp("room\\.morph\\.study\\." + k + "\\b").test(room), `library-ui must use the ${k} string`);
+  localeSrc.forEach((L) => check(new RegExp("\\b" + k + "\\s*:").test(L.src), `locale ${L.name} must define ${k}`));
+});
+check(/function leechThreshold\s*\(/.test(room), "the leech threshold must be configurable");
+check(/leech_released/.test(room), "releasing a leech must be an EVENT in review_log, not a column");
+const releaseBody = (room.match(/async function _leechRelease[\s\S]*?\n}\n/) || [""])[0];
+check(/kind: 'mark'/.test(releaseBody), "the release must ride the manual-axis mark kind, not invent a new one");
+check(/data-train-leech-context/.test(room), "the leech panel must offer a different context");
+check(/data-train-leech-keep/.test(room), "the leech panel must offer keeping the word in rotation");
+check(/leechThreshold\(\)/.test(room), "the leech trigger must read the configured threshold, not the constant");
+// The separation rule lives in its own module-level pure function; assert both that it exists
+// and that the builder actually routes through it, at EVERY return.
+const sepBody = (room.match(/function _separateSameRoot[\s\S]*?\n}\n/) || [""])[0];
+check(/seenRoots/.test(sepBody), "same-root words must be separated within one session");
+check(/deferred/.test(sepBody),
+  "a deferred same-root word must come back when the session would otherwise be short — never silently lost");
+check(/kept\.concat\(deferred\)/.test(sepBody),
+  "deferral must move a sibling to the tail, never drop it");
+const buildBody3 = (room.match(/async function _buildDueSourcedItems[\s\S]*?\n}\n/) || [""])[0];
+const sepCalls = (buildBody3.match(/_separateSameRoot\(/g) || []).length;
+const bareReturns = (buildBody3.match(/return items;/g) || []).length;
+check(sepCalls >= 2 && bareReturns === 0,
+  "every return from the builder must pass through the separation rule, got " + sepCalls + " calls and " + bareReturns + " bare returns");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

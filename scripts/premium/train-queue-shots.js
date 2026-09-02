@@ -76,13 +76,21 @@ async function seed(page) {
   });
 }
 
+// T3 — one way into a session, used by every capture pass.
+async function startFromLaunchShot(page) {
+  await page.waitForSelector(".room-train-launch", { timeout: 25000 });
+  const later = page.locator(".room-update-toast .ru-later");
+  if (await later.count()) { await later.first().click({ timeout: 5000 }).catch(() => {}); }
+  await page.locator("[data-train-launch-start]").click();
+}
+
 (async () => {
   fs.mkdirSync(SHOTS, { recursive: true });
   const srv = startServer();
   if (!(await ready())) { console.error("server failed:\n" + srv.logs.join("")); await stopServer(srv.child); process.exit(1); }
   const browser = await chromium.launch({ headless: true });
   const taken = [];
-  let scopeCheck = null;
+  let scopeCheck = null, leechCheck = null;
   try {
     for (const view of [
       { name: "launch-380-ru", w: 380, h: 844, locale: "ru" },
@@ -140,8 +148,59 @@ async function seed(page) {
       if (overflow) throw new Error(view.name + ": horizontal overflow detected");
       await ctx.close();
     }
-    console.log(JSON.stringify({ taken, scopeCheck }, null, 2));
+    // ── T3: the leech repair panel ────────────────────────────────────────────
+    // Every seeded word is a leech here, so the panel renders whichever word is served first.
+    // Reached by playing the real flow — start, then "don't know" — not by poking internals.
+    {
+      const lctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+      await lctx.addInitScript(`(() => {
+        localStorage.setItem("localMode", "1");
+        localStorage.setItem("app.locale", "ru");
+        localStorage.setItem("phase6FirstOpenSeen", "smoke");
+        localStorage.setItem("onboardingSeen_v1", JSON.stringify({ action: "smoke" }));
+        localStorage.setItem("v3.byokOnboardingDismissed", "1");
+      })()`);
+      const lpage = await lctx.newPage();
+      const lerrs = [];
+      lpage.on("pageerror", (e) => lerrs.push(String(e)));
+      await lpage.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
+      await lpage.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 30000 });
+      const seededLeeches = await lpage.evaluate(async () => {
+        const db = await import("/db/local-db.js");
+        const now = Date.now();
+        await db.createText({ id: "lz", text_key: "lz:1", title: "Текст", source_text: "זֶה בַּיִת גָּדוֹל.", source_meta_json: JSON.stringify({ origin: "studio" }) });
+        await db.addSentence("lz", { id: "lz-s0", he_plain: "זה בית גדול", he_niqqud: "זֶה בַּיִת גָּדוֹל.", ru: "Это большой дом." });
+        let k = 0;
+        for (const [w, nq] of [["בית", "בַּיִת"], ["ספר", "סֵפֶר"], ["שיר", "שִׁיר"], ["ילד", "יֶלֶד"]]) {
+          const card = await window.ReaderMorph.resolveWordLight(w, nq);
+          if (!card || !card.lemmaKey) continue;
+          await db.setWordStatus(card.lemmaKey, "l1",
+            { due: now - 3600000, interval: 0, reps: 6, lapses: 9, stability: 1.2, difficulty: 8, reviewedAt: now - 5 * 86400000, scheme: "fsrs" },
+            { textKey: "lz:1", sentenceId: "lz-s0", orderIndex: 0, surface: w });
+          k++;
+        }
+        return k;
+      });
+      if (!seededLeeches) throw new Error("leech seeding resolved no words");
+      await lpage.goto(BASE + "/library.html?canon=skip&review=due&from=studio", { waitUntil: "load" });
+      await startFromLaunchShot(lpage);
+      await lpage.waitForSelector(".room-train-progress", { timeout: 25000 });
+      await lpage.locator("[data-train-skip]").first().click();
+      await lpage.waitForSelector(".room-train-leech", { timeout: 15000 });
+      await sleep(300);
+      const lfile = path.join(SHOTS, "leech-380-ru.png");
+      await lpage.screenshot({ path: lfile, fullPage: false });
+      const actions = await lpage.locator(".room-train-leech-actions button").count();
+      const loverflow = await lpage.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+      leechCheck = { actions, pageErrors: lerrs.length, file: path.relative(ROOT, lfile) };
+      if (actions < 4) throw new Error("leech panel rendered only " + actions + " actions — repair path missing");
+      if (loverflow) throw new Error("leech panel: horizontal overflow");
+      await lctx.close();
+    }
+
+    console.log(JSON.stringify({ taken, scopeCheck, leechCheck }, null, 2));
     if (!scopeCheck || !scopeCheck.pressed) throw new Error("scope selection was never verified");
+    if (!leechCheck) throw new Error("leech repair panel was never captured");
     console.log("OK — launch screen captured at 380 RU, 380 HE/RTL and 1280 RU with no horizontal overflow");
   } catch (e) {
     console.error("FAILED:", e && e.message ? e.message : e);

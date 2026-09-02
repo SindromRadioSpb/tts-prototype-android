@@ -2397,6 +2397,9 @@ function ensureStudySheet() {
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
     if (t.closest('[data-train-teach-done]')) { onTrainTeachDone(); return; }
+    if (t.closest('[data-train-leech-context]')) { onTrainLeechNextContext(); return; }
+    if (t.closest('[data-train-leech-channel]')) { onTrainLeechChannel(); return; }
+    if (t.closest('[data-train-leech-keep]')) { onTrainLeechKeep(); return; }
     if (t.closest('[data-train-leech]')) { onTrainLeechIgnore(t.closest('.room-train-leech')); return; }
     if (t.closest('[data-train-skip]')) { onTrainSkip(); return; }
     const tile = t.closest('[data-train-tile]'); if (tile) { onTrainTile(tile); return; }
@@ -2719,7 +2722,32 @@ function _dayStartIso(d) {
 // considered and rejected (spec §7.2): the Room already has an in-session return, and steps
 // would force replay to reconstruct a step position from the log.
 const MID_RETRY_GAP = 4;
-const LEECH_LAPSES = 4;   // D4 — after this many misses on a word, gently offer «отметить ignore?» (leech)
+const LEECH_LAPSES = 4;
+// T3 — the leech threshold is a preference; LEECH_LAPSES stays its default.
+const LEECH_KEY = 'room.leechThreshold.v1';
+function leechThreshold() {
+  try {
+    const n = Number(JSON.parse(localStorage.getItem(LEECH_KEY) || 'null'));
+    return Number.isFinite(n) && n >= 2 && n <= 20 ? Math.round(n) : LEECH_LAPSES;
+  } catch (_) { return LEECH_LAPSES; }
+}
+function leechThresholdSet(n) {
+  try { localStorage.setItem(LEECH_KEY, JSON.stringify(Number(n) || LEECH_LAPSES)); } catch (_) {}
+}
+// T3 — releasing a leech is the learner ASSERTING the word is workable again, so it belongs in
+// the append-only log as a mark event (synchronised, replayable), not in a column. replay()
+// skips 'mark' rows for memory, so this can never move a schedule — it is provenance.
+async function _leechRelease(lemmaKey) {
+  const LC = window.LemmaCanon;
+  if (!LC || !localDb.appendReviewLog) return false;
+  const row = {
+    item_key: String(lemmaKey), kind: 'mark', reviewed_at: new Date().toISOString(),
+    grade: null, source: 'room-leech',
+    meta: { leech_released: 1, keyer_version: LC.KEYER_VERSION },
+  };
+  row.id = LC.reviewId ? LC.reviewId(row) : ('leech:' + lemmaKey + ':' + row.reviewed_at);
+  try { await localDb.appendReviewLog(row); return true; } catch (_) { return false; }
+}   // D4 — after this many misses on a word, gently offer «отметить ignore?» (leech)
 function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
 // R2 source scan helper: match a sentence token to an identity needle ± one leading proclitic.
 // Answer grading no longer uses this heuristic (Wave-2 G0 uses ReaderMorph channel policies).
@@ -3296,11 +3324,26 @@ async function _backfillContexts(due, opts) {
   }
   return written;
 }
+// T3 — sibling separation. Two words of the same root cue each other, so one session should not
+// test both back to back. Deferred words are NOT dropped: they move to the tail, so a short
+// session still serves them and they stay due either way. An unknown root means no separation —
+// the rule degrades rather than guessing.
+function _separateSameRoot(list) {
+  const seenRoots = Object.create(null), kept = [], deferred = [];
+  for (const it of (list || [])) {
+    const rt = String((it && it.root) || '').trim();
+    if (rt && seenRoots[rt]) { deferred.push(it); continue; }
+    if (rt) seenRoots[rt] = 1;
+    kept.push(it);
+  }
+  return kept.concat(deferred);
+}
 async function _buildDueSourcedItems(due, opts) {
   opts = opts || {};
   const ladder = opts.ladder !== false;
   const scanBudget = Number.isFinite(opts.scanBudget) ? opts.scanBudget : 12;
-  const R = window.ReaderMorph, items = [], laddered = [];
+  const R = window.ReaderMorph, laddered = [];
+  let items = [];
   for (const d of due) {
     // T1: no prefix cut here — the caller already SELECTED this list, so every member must be
     // given a chance to assemble. Bounding assembly BEFORE selection is what made the tail of a
@@ -3347,7 +3390,7 @@ async function _buildDueSourcedItems(due, opts) {
       _built: { cz, ru: sent.ru || '', sentence: heN, audioAssetKey: String(sent.audio_asset_key || ''), rowIdx: null },
     });
   }
-  if (!ladder || !laddered.length) return items;
+  if (!ladder || !laddered.length) return _separateSameRoot(items);
   // ── R2 ladder ────────────────────────────────────────────────────────────────────────────────
   const miss = _r2MissGet();
   const cand = [];   // {d, needle, needles[], pidEntry, scanned}
@@ -3432,7 +3475,7 @@ async function _buildDueSourcedItems(due, opts) {
     }
     if (served) items.push(served);
   }
-  return items;
+  return _separateSameRoot(items);
 }
 // P6.5 (owner 2026-07-06: «работать по плану невозможно») — запуск тренировки ПО СЕКЦИИ
 // плана наставника: те же кросс-текстовые механики, что startDueReview, но пул = item_keys
@@ -3970,7 +4013,7 @@ async function checkTrainAnswer(correct, skipped, mode) {
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
   try { refreshDueBadge(); } catch (_) {}    // D3/D7 — schedule + ledger changed → badge + streak stay fresh for the summary
   // D4 — leech: this word has now been missed enough times → gently offer «отметить ignore?» (not yet ignored).
-  const isLeech = !!(sched && (Number(sched.lapses) || 0) >= LEECH_LAPSES) && item.status !== 'ignore';
+  const isLeech = !!(sched && (Number(sched.lapses) || 0) >= leechThreshold()) && item.status !== 'ignore';
   renderTrainReveal(correct, moved, skipped, isLeech);
 }
 function renderTrainReveal(correct, moved, skipped, isLeech) {
@@ -4001,9 +4044,18 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   }
   // D4 — leech nudge: soft, opt-in (reuses setWordStatus; never auto-ignores).
   if (isLeech) {
+    // T3 — a leech in a morphologically rich language is usually a bad context or an
+    // unresolved homograph, not learner failure (R10/R11). Offering only «ignore» made the
+    // product's single suggestion "give up", so repair comes first and surrender stays last.
     const leech = el('div', { class: 'room-train-leech', attrs: { dir: uiDirRoom() } });
-    leech.appendChild(el('span', { class: 'room-train-leech-k', i18n: 'room.morph.study.leechHint', text: tt('room.morph.study.leechHint', 'Часто ошибаешься в этом слове.') }));
-    leech.appendChild(el('button', { class: 'room-train-leech-btn', i18n: 'room.morph.study.leechIgnore', text: tt('room.morph.study.leechIgnore', '🚫 Игнорировать'), attrs: { type: 'button', 'data-train-leech': '1' } }));
+    leech.appendChild(el('div', { class: 'room-train-leech-title', i18n: 'room.morph.study.leechTitle', text: tt('room.morph.study.leechTitle', 'Это слово застряло') }));
+    leech.appendChild(el('div', { class: 'room-train-leech-why', i18n: 'room.morph.study.leechWhy', text: tt('room.morph.study.leechWhy', 'Обычно дело не в вас: чаще виноват неудачный контекст или омограф. Попробуйте другое.') }));
+    const leechActions = el('div', { class: 'room-train-leech-actions' });
+    leechActions.appendChild(el('button', { i18n: 'room.morph.study.leechNextContext', text: tt('room.morph.study.leechNextContext', 'Другое предложение'), attrs: { type: 'button', 'data-train-leech-context': '1' } }));
+    leechActions.appendChild(el('button', { i18n: 'room.morph.study.leechChannel', text: tt('room.morph.study.leechChannel', 'Сменить режим'), attrs: { type: 'button', 'data-train-leech-channel': '1' } }));
+    leechActions.appendChild(el('button', { i18n: 'room.morph.study.leechKeep', text: tt('room.morph.study.leechKeep', 'Оставить в обороте'), attrs: { type: 'button', 'data-train-leech-keep': '1' } }));
+    leechActions.appendChild(el('button', { class: 'room-train-leech-btn', i18n: 'room.morph.study.leechIgnore', text: tt('room.morph.study.leechIgnore', '🚫 Игнорировать'), attrs: { type: 'button', 'data-train-leech': '1' } }));
+    leech.appendChild(leechActions);
     rev.appendChild(leech);
   }
   const actions = el('div', { class: 'room-train-actions' });
@@ -4018,6 +4070,56 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
 }
 // D4 — leech: user accepted the nudge → mark the word «ignore» (reuses setWordStatus; plain set keeps any
 // srs schedule via UPSERT). Repaints the wall + refreshes the due badge; the nudge becomes a confirmation.
+// T3 leech repair — advance this word's context rotation by one and re-ask. The bank walks by
+// review count, so nudging reps for THIS render shows a different sentence without touching the
+// schedule (nothing is written; the next real answer schedules as usual).
+async function onTrainLeechNextContext() {
+  const s2 = _trainSession, item = s2 && s2.items[s2.idx];
+  if (!item || !item.lemmaKey) return;
+  const TQ = window.TrainQueue, R = window.ReaderMorph;
+  if (!TQ || !R || !localDb.getWordContexts) return;
+  let bank = [];
+  try { bank = (await localDb.getWordContexts(item.lemmaKey)) || []; } catch (_) { return; }
+  if (bank.length < 2) return;
+  item._ctxNudge = (Number(item._ctxNudge) || 0) + 1;
+  const reps = ((item._srs && Number(item._srs.reps)) || 0) + item._ctxNudge;
+  for (let step = 0; step < bank.length; step++) {
+    const ctx = TQ.pickContext(bank, reps + step);
+    if (!ctx) break;
+    let sent = null;
+    try { sent = await localDb.getSentenceForReview(ctx.sentence_id, ctx.text_key, ctx.order_index); } catch (_) { sent = null; }
+    if (!sent) continue;
+    const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
+    const skel = R.stripNiqqud(String(ctx.surface || ''));
+    const cz = heN ? R.buildClozeForTarget(R.tokenize(heN), skel) : null;
+    if (!cz) continue;
+    let card = null;
+    try { card = await R.resolveWordLight(skel, cz.answer); } catch (_) { card = null; }
+    // Same identity gate as any served sentence — a repair path is not an excuse to skip it.
+    if (!card || card.lemmaKey !== item.lemmaKey) continue;
+    if (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact') continue;
+    item._built = { cz, ru: sent.ru || '', sentence: heN, audioAssetKey: String(sent.audio_asset_key || ''), rowIdx: null };
+    item._source = { textKey: ctx.text_key, sentenceId: ctx.sentence_id, orderIndex: ctx.order_index, surface: ctx.surface, title: ctx.text_title || null };
+    s2.answered = false;
+    renderTrainItem();
+    return;
+  }
+}
+// Switch to a different extraction channel — a word that resists reading often yields to sound.
+function onTrainLeechChannel() {
+  const s2 = _trainSession; if (!s2) return;
+  const order = ['read', 'listen', 'reverse', 'dictate'];
+  const avail = order.filter((c) => s2.channels && s2.channels[c]);
+  if (avail.length < 2) return;
+  const at = avail.indexOf(trainChannel());
+  onTrainChannel(avail[(at + 1 + avail.length) % avail.length]);
+}
+// Keep it in rotation: an explicit learner assertion, so it is an EVENT, not a silent no-op.
+async function onTrainLeechKeep() {
+  const s2 = _trainSession, item = s2 && s2.items[s2.idx];
+  if (item && item.lemmaKey) { try { await _leechRelease(item.lemmaKey); } catch (_) {} }
+  onTrainNext();
+}
 async function onTrainLeechIgnore(box) {
   const s = _trainSession; if (!s) return;
   const item = s.items[s.idx]; if (!item) return;

@@ -31,7 +31,12 @@ check(/commitResult[\s\S]*?committed/.test(gradeBody), "UI checks the commit res
 check(/evidenceScopeFor/.test(room) && /evidence_scope:\s*evidenceScope/.test(room), "actual task mode writes deterministic evidence scope");
 check(/function evidenceScopeFor\s*\(/.test(policy), "shared grade policy classifies actual Room task evidence");
 check(/_crossChannelExposure/.test(room) && /evidenceScope === ['"]unsupported_production['"]/.test(room), "mid-card channel switching cannot overstate unsupported production");
-const directAnchorBody = (room.match(/async function _buildDueSourcedItems[\s\S]*?if \(!ladder \|\| !laddered\.length\) return items;/) || [""])[0];
+// Anchor on the ladder boundary itself, not on the exact return expression after it. The return
+// now routes through the T3 sibling-separation rule, and the old literal `return items;` stopped
+// matching — which silently emptied this body and would have made the assertion below vacuous
+// rather than failing loudly. Anchoring on the condition keeps it meaningful across such edits.
+const directAnchorBody = (room.match(/async function _buildDueSourcedItems[\s\S]*?if \(!ladder \|\| !laddered\.length\) return/) || [""])[0];
+check(directAnchorBody.length > 0, "the direct-anchor path must be locatable for the identity-gate guard");
 check(/card\.lemmaKey\s*!==\s*d\.lemmaKey/.test(directAnchorBody), "direct source anchors pass the canonical identity gate");
 check(/function restartTraining[\s\S]{0,500}s\.cross\s*\?\s*startDueReview\(\)\s*:\s*startTraining\(\)/.test(room), "summary continuation preserves cross-text mode");
 check(/retryQueue/.test(room) && /retryPhase/.test(room), "failed words receive one bounded same-session reinforcement phase");
