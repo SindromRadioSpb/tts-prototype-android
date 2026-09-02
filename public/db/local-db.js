@@ -3326,8 +3326,11 @@ export async function insertWordContexts(lemmaKey, rows, keyerVersion) {
     for (let i = 0; lanes.some((l) => i < l.length); i++) {
       for (const lane of lanes) if (i < lane.length) spread.push(lane[i]);
     }
-    for (const row of spread) {
-      if (have >= WORD_CONTEXT_CAP) break;
+    // One COUNT before, one after. Counting per row cost three worker round-trips per candidate
+    // for a number the final count already gives. The cap is enforced by taking at most
+    // (cap - have) candidates: INSERT OR IGNORE makes over-offering harmless, and a candidate
+    // that names an unknown text or duplicates an existing row simply writes nothing.
+    for (const row of spread.slice(0, Math.max(0, WORD_CONTEXT_CAP - have))) {
       const tk = String((row && row.textKey) || "").trim();
       const surface = String((row && row.surface) || "").trim();
       const oix = row && row.orderIndex != null ? Number(row.orderIndex) : null;
@@ -3338,10 +3341,9 @@ export async function insertWordContexts(lemmaKey, rows, keyerVersion) {
          SELECT ?, t.text_key, ?, ?, ?, ${cls}, ${corpus}, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now')
            FROM texts t WHERE t.text_key = ? AND t.is_archived = 0`,
         [lk, oix, row.sentenceId != null ? String(row.sentenceId) : null, surface, kv, tk]);
-      const after = await q(`SELECT COUNT(*) AS n FROM word_context WHERE lemma_key = ?`, [lk]);
-      const now = Number(after && after[0] && after[0].n) || 0;
-      if (now > have) { written++; have = now; }
     }
+    const done = await q(`SELECT COUNT(*) AS n FROM word_context WHERE lemma_key = ?`, [lk]);
+    written = Math.max(0, (Number(done && done[0] && done[0].n) || 0) - have);
     return written;
   } catch (_) { return written; }
 }

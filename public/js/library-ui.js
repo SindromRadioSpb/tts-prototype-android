@@ -3129,6 +3129,38 @@ async function _r2VerifyCandidate(R, d, needles, sent) {
 // sentences → верифицированное предложение → полный контекстный айтем + write-back heal;
 // (2) word-only fallback (независим от скан-бюджета — критика r4-1). opts: {ladder=true,
 // scanBudget=12}. Каждый ярус под identity-гейтом канон-кейера; ничего не фабрикуется.
+// T2 — pick this review's context from the bank. Rotation is by the word's own review count, so
+// consecutive reviews walk to a different text (R2: repeated success on ONE sentence measures
+// sentence memory, not word knowledge). A banked row is a HINT, never a licence to skip
+// verification: the chosen sentence passes exactly the identity gate a stored anchor passes.
+async function _bankedContextFor(d) {
+  const R = window.ReaderMorph, TQ = window.TrainQueue;
+  if (!R || !TQ || !localDb.getWordContexts) return null;
+  let bank = [];
+  try { bank = (await localDb.getWordContexts(d.lemmaKey)) || []; } catch (_) { return null; }
+  if (bank.length < 2) return null;   // one context is exactly what the pinned anchor already gives
+  const reps = (d.srs && Number(d.srs.reps)) || 0;
+  // Walk FROM the rotation slot: a dead or unverifiable row degrades to the next context rather
+  // than dropping the word back to its frozen anchor.
+  for (let step = 0; step < bank.length; step++) {
+    const ctx = TQ.pickContext(bank, reps + step);
+    if (!ctx) break;
+    let sent = null;
+    try { sent = await localDb.getSentenceForReview(ctx.sentence_id, ctx.text_key, ctx.order_index); } catch (_) { sent = null; }
+    if (!sent) continue;
+    const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
+    if (!heN) continue;
+    const skel = window.ReaderMorph.stripNiqqud(String(ctx.surface || ''));
+    const cz = R.buildClozeForTarget(R.tokenize(heN), skel);
+    if (!cz) continue;
+    let card = null;
+    try { card = await R.resolveWordLight(skel, cz.answer); } catch (_) { card = null; }
+    if (!card || card.lemmaKey !== d.lemmaKey) continue;
+    if (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact') continue;
+    return { ctx, cz, card, heN, sent };
+  }
+  return null;
+}
 async function _buildDueSourcedItems(due, opts) {
   opts = opts || {};
   const ladder = opts.ladder !== false;
@@ -3138,6 +3170,25 @@ async function _buildDueSourcedItems(due, opts) {
     // T1: no prefix cut here — the caller already SELECTED this list, so every member must be
     // given a chance to assemble. Bounding assembly BEFORE selection is what made the tail of a
     // large backlog unreachable.
+    // T2 — the bank FIRST: a word with several verified contexts rotates through them instead of
+    // being re-served its one frozen anchor for ever. With an empty bank this returns null and
+    // the pinned-anchor path below is byte-for-byte the pre-T2 behaviour.
+    const banked = await _bankedContextFor(d);
+    if (banked) {
+      items.push({
+        lemmaKey: d.lemmaKey, surface: banked.ctx.surface,
+        niqqud: (banked.card && banked.card.niqqud) || banked.cz.answer || '',
+        gloss: (banked.card && (banked.card.meaning || banked.card.gloss)) || '',
+        root: (banked.card && banked.card.root) || '', pos: (banked.card && banked.card.pos) || '',
+        status: d.status, _srs: d.srs, _card: banked.card,
+        _source: { textKey: banked.ctx.text_key, sentenceId: banked.ctx.sentence_id,
+          orderIndex: banked.ctx.order_index, surface: banked.ctx.surface,
+          title: banked.ctx.text_title || null },
+        _built: { cz: banked.cz, ru: banked.sent.ru || '', sentence: banked.heN,
+          audioAssetKey: String(banked.sent.audio_asset_key || ''), rowIdx: null },
+      });
+      continue;
+    }
     if (!d.source || !d.source.surface) { if (ladder) laddered.push(d); continue; }   // never-sourced → R2 ladder
     let sent = null;
     try { sent = await localDb.getSentenceForReview(d.source.sentenceId, d.source.textKey, d.source.orderIndex); } catch (_) { sent = null; }

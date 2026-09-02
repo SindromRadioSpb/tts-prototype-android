@@ -103,6 +103,19 @@ async function ready(ms = 20000) {
       out.scopeBy = only(await ldb.getScopedLemmaKeys({ kind: "class", value: "byehuda" }));
       out.scopeSong = only(await ldb.getScopedLemmaKeys({ kind: "corpus", value: "study-songs-pilot" }));
       out.scopeText = only(await ldb.getScopedLemmaKeys({ kind: "text", value: "wc:song:1" }));
+      // ── BEHAVIOUR: consecutive reviews must land in a DIFFERENT text ──────
+      // The static contracts prove the code's shape; this proves the claim. SK3 has one context
+      // in Ben-Yehuda and one in the song corpus, so walking the bank by review count must
+      // alternate the SOURCE, not just the sentence id.
+      const bank3 = await ldb.getWordContexts(SK3);
+      out.bankSize = bank3.length;
+      out.rotationTexts = [0, 1, 2, 3]
+        .map((reps) => window.TrainQueue.pickContext(bank3, reps).text_key)
+        .join(",");
+      out.rotationSentences = [0, 1]
+        .map((reps) => window.TrainQueue.pickContext(bank3, reps).sentence_id)
+        .join(",");
+
       const counts = await ldb.getScopeCounts(now);
       out.countsShape = counts.every((c) => c.id && typeof c.due === "number");
       out.byDue = (counts.find((c) => c.source_class === "byehuda") || {}).due;
@@ -142,6 +155,24 @@ async function ready(ms = 20000) {
     eq(/_harvestContexts/.test(gradeBody), "the harvest must live inside checkTrainAnswer");
     eq(gradeBody.indexOf("commitReviewAttempt") < gradeBody.indexOf("_harvestContexts"),
       "the harvest must run AFTER the canonical commit — a derived cache must never be able to fail a canonical write");
+    // The behavioural claim of the whole wave, measured on stored rows rather than inferred.
+    eq(res.bankSize === 2, "the two-source word must hold two banked contexts, got " + res.bankSize);
+    eq(res.rotationTexts === "wc:by:1,wc:song:1,wc:by:1,wc:song:1",
+      "consecutive reviews must alternate the SOURCE TEXT, not just the sentence, got " + res.rotationTexts);
+    eq(res.rotationSentences === "wc-by-s6,wc-song-s6",
+      "the first two reviews must serve two different sentences, got " + res.rotationSentences);
+
+    eq(/async function _bankedContextFor\s*\(/.test(roomSrc), "the Room must resolve a banked context for a due word");
+    eq(/pickContext\(/.test(roomSrc), "the banked context must be chosen by the pure rotation helper");
+    const bankBody = (roomSrc.match(/async function _bankedContextFor[\s\S]*?\n}\n/) || [""])[0];
+    eq(/card\.lemmaKey !== d\.lemmaKey/.test(bankBody),
+      "a banked row is a HINT, not a licence to skip verification — the identity gate must guard it");
+    eq(/_HEB_VOWELED_RE/.test(bankBody),
+      "an unvocalised sentence must still demand a decisive resolve before it is served");
+    const buildBody2 = (roomSrc.match(/async function _buildDueSourcedItems[\s\S]*?\n}\n/) || [""])[0];
+    eq(/_bankedContextFor/.test(buildBody2), "the cross-text builder must try the bank before the pinned anchor");
+    eq(buildBody2.indexOf("_bankedContextFor") < buildBody2.indexOf("d.source.surface"),
+      "the bank must be tried BEFORE the frozen anchor, otherwise rotation never happens");
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     if (failures.length) {
