@@ -105,6 +105,32 @@ check(trEmpty.overall.attempts === 0 && trEmpty.overall.rate === null,
 const trShort = RR.trueRetention(rows, { nowMs: NOW, days: 3 });
 check(trShort.overall.attempts < tr.overall.attempts, "a shorter window must exclude older rows");
 
+// ── Suite 6: leech list ──────────────────────────────────────────────────────
+const lsched = {
+  hot: { due: NOW, interval: 0, lapses: 9 },
+  warm: { due: NOW, interval: 3, lapses: 4 },
+  cool: { due: NOW, interval: 20, lapses: 1 },
+  gone: { due: NOW, interval: 5, lapses: 7 },
+};
+const lrows = [
+  { id: "a", item_key: "hot", kind: "review", grade: 1, reviewed_at: iso(1), channel: "read:mc", meta_json: "{}" },
+  { id: "b", item_key: "hot", kind: "review", grade: 3, reviewed_at: iso(6), channel: "read:mc", meta_json: "{}" },
+  { id: "c", item_key: "gone", kind: "mark", grade: null, reviewed_at: iso(0), meta_json: JSON.stringify({ leech_released: 1 }) },
+];
+const leeches = RR.leechList(lsched, { gone: "" }, lrows, 4, 50);
+const lkeys = leeches.map((x) => x.key);
+check(lkeys.indexOf("cool") < 0, "a word below the threshold is not a leech, got " + lkeys.join(","));
+check(lkeys.indexOf("hot") >= 0 && lkeys.indexOf("warm") >= 0, "words at or over the threshold must be listed, got " + lkeys.join(","));
+check(lkeys[0] === "hot", "the worst word must come first, got " + lkeys.join(","));
+const goneRow = leeches.find((x) => x.key === "gone");
+check(goneRow && goneRow.released === true,
+  "a released leech must be shown AS released, not hidden — hiding it would hide the learner's own assertion");
+const hotRow = leeches.find((x) => x.key === "hot");
+check(hotRow && hotRow.attempts === 2 && hotRow.passed === 1 && Math.abs(hotRow.rate - 0.5) < 1e-9,
+  "the list must carry each word's own retention, got " + JSON.stringify(hotRow));
+check(RR.leechList(lsched, null, lrows, 4, 1).length === 1, "the limit must be honoured");
+check(RR.leechList(null, null, null, 4, 50).length === 0, "null inputs yield an empty list, never a throw");
+
 if (failures.length) {
   console.error(`retention-report-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

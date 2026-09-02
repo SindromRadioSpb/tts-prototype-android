@@ -176,11 +176,67 @@
     return { overall: overall, byChannel: byChannel, byScope: byScope, skipped: skipped, window: days };
   }
 
+  // Words the scheduler keeps bringing back. Ordered worst-first (lapses, then a weaker rate),
+  // each carrying its OWN retention so the learner can see whether a word fails everywhere or
+  // only on one channel — the difference between "hard" and "wrong context", which is what T3's
+  // repair path acts on. A leech released in T3 is shown AS released rather than dropped: the
+  // learner asserted it is workable, and hiding it would hide the assertion.
+  function leechList(schedule, statusMap, rows, threshold, limit) {
+    var thr = Math.max(1, Math.round(Number(threshold) || 4));
+    var cap = Math.max(1, Math.min(500, Math.round(Number(limit) || 50)));
+    var list = Array.isArray(rows) ? rows : [];
+
+    var released = {}, stats = {}, lastFail = {};
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      if (!r || !r.item_key) continue;
+      var key = String(r.item_key);
+      var meta = _meta(r);
+      if (r.kind === "mark" && meta && meta.leech_released) { released[key] = 1; continue; }
+      if (r.kind !== "review") continue;
+      var g = Number(r.grade) || 0;
+      if (!(g >= 1 && g <= 4)) continue;
+      if (!stats[key]) stats[key] = { attempts: 0, passed: 0 };
+      stats[key].attempts++;
+      if (g > 1) stats[key].passed++;
+      else {
+        var at = Date.parse(r.reviewed_at || "") || 0;
+        if (!lastFail[key] || at > lastFail[key]) lastFail[key] = at;
+      }
+    }
+
+    var out = [];
+    if (schedule) {
+      for (var k in schedule) {
+        var row = schedule[k];
+        if (!row) continue;
+        if (statusMap && statusMap[k] === "ignore") continue;
+        var lapses = Number(row.lapses) || 0;
+        if (lapses < thr) continue;
+        var st = stats[k] || { attempts: 0, passed: 0 };
+        out.push({
+          key: k, lapses: lapses, attempts: st.attempts, passed: st.passed,
+          rate: st.attempts ? st.passed / st.attempts : null,
+          lastFailedAt: lastFail[k] || null,
+          released: !!released[k]
+        });
+      }
+    }
+    out.sort(function (a, b) {
+      if (b.lapses !== a.lapses) return b.lapses - a.lapses;
+      var ra = a.rate == null ? 1 : a.rate, rb = b.rate == null ? 1 : b.rate;
+      if (ra !== rb) return ra - rb;
+      return String(a.key) < String(b.key) ? -1 : 1;
+    });
+    return out.slice(0, cap);
+  }
+
   return {
     ENGINE_VERSION: ENGINE_VERSION,
     forecast: forecast,
     intervalHistogram: intervalHistogram,
     loadBalance: loadBalance,
-    trueRetention: trueRetention
+    trueRetention: trueRetention,
+    leechList: leechList
   };
 });
