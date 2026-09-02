@@ -219,6 +219,40 @@ const zero = TQ.queueLoad({ schedule: null, statusMap: null, nowMs: NOW, reviews
 check(zero.dueNow === 0 && zero.requiredPerDay === 0 && zero.growing === false,
   "an empty schedule must produce a zeroed, non-growing load");
 
+// ── Suite 8: wiring guards ───────────────────────────────────────────────────
+const room = fs.readFileSync(path.join(ROOT, "public/js/library-ui.js"), "utf8");
+const html = fs.readFileSync(path.join(ROOT, "public/library.html"), "utf8");
+const sw = fs.readFileSync(path.join(ROOT, "public/sw.js"), "utf8");
+const db = fs.readFileSync(path.join(ROOT, "public/db/local-db.js"), "utf8");
+
+check(/<script src="\/js\/train-queue\.js"><\/script>/.test(html), "library.html must load train-queue.js");
+check(/"\/js\/train-queue\.js"/.test(sw), "sw.js must precache train-queue.js");
+check(/ORDER BY w\.srs_due ASC/.test(db) && !/ORDER BY w\.srs_lapses DESC/.test(db),
+  "getDueWithSource must no longer be a total order on srs_lapses");
+check(/export async function getAnsweredSince\s*\(/.test(db), "local DB exposes getAnsweredSince");
+check(/export async function getDayGradeCounts\s*\(/.test(db), "local DB exposes getDayGradeCounts");
+
+const dueBody = (room.match(/async function startDueReview[\s\S]*?\n}\n/) || [""])[0];
+check(dueBody.length > 0, "startDueReview must be locatable for the wiring guards");
+check(/_composeDueSession/.test(dueBody), "startDueReview must select through the shared composition step");
+check(!/rankByWeakness\([^)]*\)\.slice\(0, TRAIN_N\)/.test(dueBody),
+  "startDueReview must not re-apply the lapses total order after composition");
+// The Room aliases the engine (const TQ = window.TrainQueue), as it does for ReaderMorph, so
+// assert the reach and the call rather than a string literal that an alias would break.
+check(/window\.TrainQueue/.test(room), "the Room must reach the TrainQueue engine");
+check(/\.composeSession\(/.test(room), "the Room must select through composeSession");
+check(/\.queueLoad\(/.test(room), "the Room must compute the honest queue load");
+check(/getAnsweredSince/.test(room), "the Room must exclude words already answered today");
+
+const buildBody = (room.match(/async function _buildDueSourcedItems[\s\S]*?\n}\n/) || [""])[0];
+check(buildBody.length > 0, "_buildDueSourcedItems must be locatable for the wiring guards");
+check(!/TRAIN_N \* 2/.test(buildBody),
+  "the 24-item prefix cut must be gone — assembly happens after selection, not before it");
+
+check(/function trainPrefs\s*\(/.test(room) && /function trainPrefsSet\s*\(/.test(room),
+  "the Room must expose session-size and daily-limit preferences");
+check(/function _dayStartIso\s*\(/.test(room), "the Room must compute local midnight for the day fold");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

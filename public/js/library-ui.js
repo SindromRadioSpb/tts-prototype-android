@@ -2644,7 +2644,31 @@ async function roomOpenStudyList() {
 // readerRows sentence → recognize (MC, escalates to typed by level) → gentle level move → repaint.
 // Self-contained over ReaderMorph.collectReviewItems/buildCloze/nextLevel/isMcLevel/pickDistractors
 // + setWordStatus + openWordCard + speakWord. Deterministic (no Math.random). Plan: BRR_EPIC4_3B.
+// T1: TRAIN_N is now only the fallback default for the open-text path and the plan-section
+// entry point. The cross-text session size is a preference (trainPrefs), and the due queue is
+// no longer truncated to a prefix of a lapses-ordered list.
 const TRAIN_N = 12;
+const TRAIN_PREFS_KEY = 'room.trainPrefs.v1';
+function trainPrefs() {
+  const D = (window.TrainQueue && window.TrainQueue.DEFAULTS) || { sessionSize: 20, reviewsPerDay: 60, newPerDay: 10 };
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem(TRAIN_PREFS_KEY) || '{}') || {}; } catch (_) { raw = {}; }
+  const clamp = (v, lo, hi, dflt) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n))) : dflt; };
+  return {
+    sessionSize: clamp(raw.sessionSize, 5, 100, D.sessionSize),
+    reviewsPerDay: clamp(raw.reviewsPerDay, 5, 500, D.reviewsPerDay),
+    newPerDay: clamp(raw.newPerDay, 0, 100, D.newPerDay),
+  };
+}
+function trainPrefsSet(patch) {
+  const next = Object.assign(trainPrefs(), patch || {});
+  try { localStorage.setItem(TRAIN_PREFS_KEY, JSON.stringify(next)); } catch (_) {}
+}
+// Local midnight as an ISO instant — the cutoff for the day fold over review_log.
+function _dayStartIso(d) {
+  const x = d || new Date();
+  return new Date(x.getFullYear(), x.getMonth(), x.getDate(), 0, 0, 0, 0).toISOString();
+}
 const LEECH_LAPSES = 4;   // D4 — after this many misses on a word, gently offer «отметить ignore?» (leech)
 function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
 // R2 source scan helper: match a sentence token to an identity needle ± one leading proclitic.
@@ -2786,6 +2810,38 @@ async function _launchTrainSession(items, opts) {
 // re-clozed from their stored SOURCE sentence (re-fetched cross-text, re-anchored by text_key+order_index).
 // Reuses the whole training UI (channels D6, streak D7); needs NO open reader. A due word whose sentence is
 // gone (deleted / re-import mismatch / never-sourced legacy) is SKIPPED — never a fabricated cloze (R11).
+// T1 — the ONE selection step for the cross-text queue: today's spent budgets are folded from
+// review_log (no column), the full due list is composed by the pure engine, and the honest load
+// figure is computed alongside. Returns the SELECTED due rows (not yet assembled) plus the
+// composition report the launch screen and the summary read.
+async function _composeDueSession(due, prefs) {
+  const TQ = window.TrainQueue;
+  const sinceIso = _dayStartIso();
+  let answered = [], counts = { reviews: 0, newWords: 0 }, schedule = {}, states = {};
+  try { answered = (await localDb.getAnsweredSince(sinceIso)) || []; } catch (_) { answered = []; }
+  try { counts = (await localDb.getDayGradeCounts(sinceIso)) || counts; } catch (_) {}
+  try { schedule = (await localDb.getSrsSchedule()) || {}; } catch (_) { schedule = {}; }
+  try { states = (await localDb.getAllWordStatuses()) || {}; } catch (_) { states = {}; }
+  const load = TQ
+    ? TQ.queueLoad({ schedule, statusMap: states, nowMs: Date.now(), reviewsPerDay: prefs.reviewsPerDay })
+    : { dueNow: due.length, scheduled: due.length, inflowPerDay: 0, requiredPerDay: 0, growing: false };
+  if (!TQ) {
+    // Honest degradation: without the engine, serve the due list in its neutral order.
+    const picked = due.slice(0, prefs.sessionSize);
+    return { picked, load, counts, compose: { items: picked, servedNew: 0, servedReview: picked.length,
+      excludedToday: 0, repeatedToday: false, availableDue: due.length,
+      buckets: { learning: 0, overdue: picked.length, known: 0, 'new': 0 } } };
+  }
+  const compose = TQ.composeSession(due, {
+    nowMs: Date.now(),
+    dayStr: _localDayStr(),
+    sessionSize: prefs.sessionSize,
+    reviewsRemaining: Math.max(0, prefs.reviewsPerDay - counts.reviews),
+    newRemaining: Math.max(0, prefs.newPerDay - counts.newWords),
+    excludeKeys: answered,
+  });
+  return { picked: compose.items, load, counts, compose };
+}
 async function startDueReview() {
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
@@ -2801,10 +2857,13 @@ async function startDueReview() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   let due = [];
   try { due = (await localDb.getDueWithSource(Date.now())) || []; } catch (_) { due = []; }
-  const items = await _buildDueSourcedItems(due, { scanBudget: 12 });
+  // T1 — select over the FULL due list, then assemble only what was selected. The previous
+  // order (lapses DESC) plus a 24-row prefix cut made the tail of a large backlog unreachable.
+  const sel = await _composeDueSession(due, trainPrefs());
   if (!_studySheet || _studySheet.hidden) return;
-  const R = window.ReaderMorph;
-  const ranked = (R.rankByWeakness ? R.rankByWeakness(items) : items).slice(0, TRAIN_N);
+  const items = await _buildDueSourcedItems(sel.picked, { scanBudget: 12 });
+  if (!_studySheet || _studySheet.hidden) return;
+  const ranked = items;
   if (!ranked.length) {
     body.innerHTML = '';
     // R2 — HONEST empty copy: with a live due backlog that couldn't be assembled the old «нет слов
@@ -2958,7 +3017,9 @@ async function _buildDueSourcedItems(due, opts) {
   const scanBudget = Number.isFinite(opts.scanBudget) ? opts.scanBudget : 12;
   const R = window.ReaderMorph, items = [], laddered = [];
   for (const d of due) {
-    if (items.length >= TRAIN_N * 2) break;   // bound the fetch work; weakness-rank + slice below
+    // T1: no prefix cut here — the caller already SELECTED this list, so every member must be
+    // given a chance to assemble. Bounding assembly BEFORE selection is what made the tail of a
+    // large backlog unreachable.
     if (!d.source || !d.source.surface) { if (ladder) laddered.push(d); continue; }   // never-sourced → R2 ladder
     let sent = null;
     try { sent = await localDb.getSentenceForReview(d.source.sentenceId, d.source.textKey, d.source.orderIndex); } catch (_) { sent = null; }
@@ -2987,7 +3048,7 @@ async function _buildDueSourcedItems(due, opts) {
   const miss = _r2MissGet();
   const cand = [];   // {d, needle, needles[], pidEntry, scanned}
   for (const d of laddered) {
-    if (cand.length >= TRAIN_N * 2) break;
+    if (cand.length >= due.length) break;
     // R2.1: a pid: key names its paradigm in the shipped dict — the entry supplies the scan needles
     // AND a by-construction-honest word-only card (lemma+gloss+niqqud).
     const pidEntry = await _r2PidEntry(d.lemmaKey);
@@ -3006,7 +3067,7 @@ async function _buildDueSourcedItems(due, opts) {
   let scanRows = [];
   if (scanNeedles.length) { try { scanRows = (await localDb.findSentencesForWords(scanNeedles, 400)) || []; } catch (_) { scanRows = []; } }
   for (const c of cand) {
-    if (items.length >= TRAIN_N * 2) break;
+    if (items.length >= due.length) break;
     const d = c.d, needle = c.needle;
     let served = null;
     // tier 1 — re-source scan: verified sentence → full contextual item + write-back heal

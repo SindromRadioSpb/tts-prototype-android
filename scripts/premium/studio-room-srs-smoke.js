@@ -49,7 +49,14 @@ function staticContracts() {
   check(/data-studio-due/.test(studio) && /ReaderMorph\.dueCounts/.test(studio), "Studio count uses the canonical Room due predicate");
   check(/id="studioReviewAnkiExport"/.test(studio) && /v3SrsDownloadApkg/.test(studio), "Anki .apkg export remains independently reachable");
   check(!/function v3SrsTrainerOpen\(\)[\s\S]{0,260}classList\.remove\(["']hidden["']\)/.test(studio), "legacy Studio trainer modal is absent from the user route");
-  check(/ORDER BY (?:w\.)?srs_lapses DESC, (?:w\.)?srs_due ASC/.test(db) && !/getDueWithSource[\s\S]{0,1200}(group_corpus|corpus_id|source_meta)/.test(db), "due query keeps pedagogical ranking and has no source quota/filter");
+  // T1 (ROOM_TRAINER_MATURITY_PROGRAM_2026_09_02 §5.1) supersedes the predecessor packet's
+  // "ranking stays lapses-first" decision: a total order on srs_lapses made the tail of a large
+  // backlog unreachable. Ranking is now a bounded quota inside TrainQueue.composeSession. The
+  // half of this guard that still matters — the due query carries no source quota or filter —
+  // is asserted unchanged, and source-neutrality is what T2 scoping must not break either.
+  check(/ORDER BY (?:w\.)?srs_due ASC/.test(db) && !/ORDER BY (?:w\.)?srs_lapses DESC/.test(db), "due query is neutrally ordered — ranking lives in the trainer, not the query");
+  check(!/getDueWithSource[\s\S]{0,1200}(group_corpus|corpus_id|source_meta)/.test(db), "due query has no source quota/filter");
+  check(/weaknessShare/.test(fs.readFileSync(path.join(ROOT, "public", "js", "train-queue.js"), "utf8")), "weakness ranking survives as a bounded quota in the trainer engine");
   check(/(?:const|let) evidenceScope\s*=\s*item\._wordOnly\s*\?\s*['"]lexeme['"]/.test(room) && /evidence_scope:\s*evidenceScope/.test(room), "word-only fallback preserves lexeme evidence scope");
   check(/function rankByWeakness/.test(morph) && /b\.lp\s*-\s*a\.lp/.test(morph), "weakness/lapses priority remains canonical");
   for (const locale of locales) check(/studioReview:\s*\{[\s\S]*title:[\s\S]*start:[\s\S]*allDone:[\s\S]*noSchedule:/.test(locale), "review surface locale is complete");
@@ -102,7 +109,7 @@ async function browserContracts() {
       for (const item of due.filter((x) => rows.some((r) => r.lemmaKey === x.lemmaKey))) {
         const sentence = await db.getSentenceForReview(item.source.sentenceId, item.source.textKey, item.source.orderIndex);
         const text = (await db.dbQuery("SELECT title, source_meta_json FROM texts WHERE text_key=?", [item.source.textKey]))[0];
-        resolved.push({ lemmaKey: item.lemmaKey, textKey: item.source.textKey, surface: item.source.surface, sentence: !!sentence, title: text && text.title, meta: text && JSON.parse(text.source_meta_json || "{}"), lapses: item.srs.lapses });
+        resolved.push({ lemmaKey: item.lemmaKey, textKey: item.source.textKey, surface: item.source.surface, sentence: !!sentence, title: text && text.title, meta: text && JSON.parse(text.source_meta_json || "{}"), lapses: item.srs.lapses, dueMs: item.srs.due });
       }
       const log = await db.getReviewLog();
       return { rows, resolved, beforeLog: log.length, beforeGradeEvents: log.filter((x) => x.kind === "review" || x.kind === "skip").length };
@@ -110,7 +117,8 @@ async function browserContracts() {
     check(fixture.rows.length === 3 && fixture.rows.every((x) => x.lemmaKey), "three fixture words resolve to canonical lemma keys");
     check(fixture.resolved.length === 3, "getDueWithSource(now) returns Ben-Yehuda, Study Song and My Text");
     check(fixture.resolved.every((x) => x.sentence && x.textKey), "all three source anchors resolve through getSentenceForReview");
-    check(fixture.resolved[0] && fixture.resolved[0].lapses >= fixture.resolved[1].lapses && fixture.resolved[1].lapses >= fixture.resolved[2].lapses, "mixed queue remains lapses-first without source quotas");
+    check(new Set(fixture.resolved.map((x) => x.textKey)).size === 3, "mixed queue returns all three sources with no corpus quota");
+    check(fixture.resolved[0].dueMs <= fixture.resolved[1].dueMs && fixture.resolved[1].dueMs <= fixture.resolved[2].dueMs, "T1: the mixed queue is ordered by due date, not by lapses (weakness is a bounded quota in the trainer)");
     check(fixture.resolved.some((x) => x.meta.corpus && x.meta.corpus.byehuda_id === "fixture-by-1"), "Ben-Yehuda metadata remains attached to its source text");
     check(fixture.resolved.some((x) => x.meta.group_corpus && x.meta.group_corpus.corpus_id === "study-songs-pilot"), "Study Song metadata uses group_corpus identity, not title matching");
     check(fixture.resolved.some((x) => x.meta.material_kind === "user_text"), "My Text metadata remains attached to its source text");

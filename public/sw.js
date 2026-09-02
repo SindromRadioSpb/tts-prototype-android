@@ -118,6 +118,7 @@ const PRECACHE_URLS = [
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
   "/js/fsrs-core.js",
   "/js/grade-policy.js",
+  "/js/train-queue.js",
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
