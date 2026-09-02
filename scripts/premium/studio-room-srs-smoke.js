@@ -55,7 +55,13 @@ function staticContracts() {
   // half of this guard that still matters — the due query carries no source quota or filter —
   // is asserted unchanged, and source-neutrality is what T2 scoping must not break either.
   check(/ORDER BY (?:w\.)?srs_due ASC/.test(db) && !/ORDER BY (?:w\.)?srs_lapses DESC/.test(db), "due query is neutrally ordered — ranking lives in the trainer, not the query");
-  check(!/getDueWithSource[\s\S]{0,1200}(group_corpus|corpus_id|source_meta)/.test(db), "due query has no source quota/filter");
+  // Assert on the FUNCTION BODY, not on a character window after the name. The old window-based
+  // form fired on any prose that merely mentioned getDueWithSource within 1200 chars of an
+  // unrelated `corpus_id` — it flagged a comment while missing nothing real. Extracting the body
+  // is strictly stronger: a corpus filter anywhere inside it fails, at any distance.
+  const dueBody = (db.match(/export async function getDueWithSource[\s\S]*?\n}\n/) || [""])[0];
+  check(dueBody.length > 0, "getDueWithSource must be locatable for the source-neutrality guard");
+  check(!/group_corpus|corpus_id|source_meta/.test(dueBody), "due query has no source quota/filter");
   check(/weaknessShare/.test(fs.readFileSync(path.join(ROOT, "public", "js", "train-queue.js"), "utf8")), "weakness ranking survives as a bounded quota in the trainer engine");
   check(/(?:const|let) evidenceScope\s*=\s*item\._wordOnly\s*\?\s*['"]lexeme['"]/.test(room) && /evidence_scope:\s*evidenceScope/.test(room), "word-only fallback preserves lexeme evidence scope");
   check(/function rankByWeakness/.test(morph) && /b\.lp\s*-\s*a\.lp/.test(morph), "weakness/lapses priority remains canonical");
