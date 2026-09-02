@@ -3190,6 +3190,9 @@ export async function getSrsSchedule() {
 // D2 — cross-text «due today»: scheduled words whose review time has ARRIVED (srs_due<=now), «ignore»
 // excluded, WITH their stored source occurrence so the queue can re-cloze each one without opening its
 // text. Read-only; graceful [] if the columns/table are absent.
+// T1: the ORDER BY is deliberately NEUTRAL (due ASC, key ASC). Ranking is a PRODUCT decision and lives
+// in TrainQueue.composeSession — the previous `srs_lapses DESC` made this query a total order on
+// weakness, which pinned a large backlog to its worst dozen words for ever.
 export async function getDueWithSource(nowMs) {
   const now = Number(nowMs) || 0;
   try {
@@ -3200,7 +3203,7 @@ export async function getDueWithSource(nowMs) {
                             FROM word_status w
                        LEFT JOIN texts t ON t.text_key = w.srs_text_key
                            WHERE w.srs_due IS NOT NULL AND w.srs_due <= ? AND w.status != 'ignore'
-                           ORDER BY w.srs_lapses DESC, w.srs_due ASC`, [new Date(now).toISOString()]);
+                           ORDER BY w.srs_due ASC, w.lemma_key ASC`, [new Date(now).toISOString()]);
     const out = [];
     for (const w of (rows || [])) {
       if (!w.lemma_key) continue;
@@ -3221,6 +3224,55 @@ export async function getDueWithSource(nowMs) {
     return out;
   } catch (_) { return []; }
 }
+// T1 — the day's answered items and grade counts, folded from the append-only log so daily
+// limits need NO column and stay correct after a cross-device sync. The annul rule mirrors
+// FsrsCore.withoutAnnulled exactly: a review/skip row is excluded when an 'annul' row names
+// its id in meta.annul_of. `sinceIso` is local midnight computed by the UI.
+const _NOT_ANNULLED = `NOT EXISTS (
+      SELECT 1 FROM review_log a
+       WHERE a.kind = 'annul'
+         AND json_valid(a.meta_json)
+         AND json_extract(a.meta_json, '$.annul_of') = r.id)`;
+
+export async function getAnsweredSince(sinceIso) {
+  const since = String(sinceIso || "").trim();
+  if (!since) return [];
+  try {
+    const rows = await q(
+      `SELECT DISTINCT r.item_key FROM review_log r
+        WHERE r.kind IN ('review','skip') AND r.reviewed_at >= ? AND ${_NOT_ANNULLED}`, [since]);
+    return (rows || []).map((x) => String(x.item_key || "")).filter(Boolean);
+  } catch (_) { return []; }
+}
+
+// reviews  = every non-annulled graded attempt today (the reviews/day budget);
+// newWords = of those, the items whose FIRST-EVER non-annulled review row is also today
+//            (the new/day budget). An item can count in both, exactly as Anki counts it.
+export async function getDayGradeCounts(sinceIso) {
+  const since = String(sinceIso || "").trim();
+  if (!since) return { reviews: 0, newWords: 0 };
+  try {
+    const today = await q(
+      `SELECT r.item_key FROM review_log r
+        WHERE r.kind IN ('review','skip') AND r.reviewed_at >= ? AND ${_NOT_ANNULLED}`, [since]);
+    const reviews = (today || []).length;
+    if (!reviews) return { reviews: 0, newWords: 0 };
+    const firsts = await q(
+      `SELECT r.item_key, MIN(r.reviewed_at) AS first_at FROM review_log r
+        WHERE r.kind = 'review' AND ${_NOT_ANNULLED}
+        GROUP BY r.item_key`, []);
+    const firstAt = Object.create(null);
+    for (const row of (firsts || [])) if (row && row.item_key) firstAt[String(row.item_key)] = String(row.first_at || "");
+    let newWords = 0;
+    for (const row of (today || [])) {
+      const key = String(row.item_key || "");
+      const at = firstAt[key];
+      if (!at || at >= since) newWords++;
+    }
+    return { reviews, newWords };
+  } catch (_) { return { reviews: 0, newWords: 0 }; }
+}
+
 // (R3, ROOM_DUE_CONTINUITY §3: the sourced-only getDueReviewCount is RETIRED — after the R2
 // serve-unsourced ladder the cross-text queue serves schedule-due words with or without a stored
 // source, so the CTA reads the same dueCounts.dueNow as the badge; residue honesty moved to the

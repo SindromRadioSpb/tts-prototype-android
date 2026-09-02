@@ -128,7 +128,40 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         d2Null = await ldb.getSentenceForReview("nope", "nokey", 99);
         await ldb.setWordStatus(LK, ""); await ldb.setWordStatus(LK2, ""); try { await ldb.deleteText(TID); } catch (_) {}
       } catch (e) { d2Err = String(e); }
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, finExcluded, finLastRowPreserved, finStillFinished, finReincluded, finLastRowAfter, srsSet, srsPreserved, srsStatusAfter, srsAfterClear, srsClearedStatus, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
+      // T1 — neutral due ordering + today's answered set (no schema change).
+      let t1Order = null, t1Answered = null, t1Counts = null, t1Annul = null, t1Err = null;
+      try {
+        const TID = "t1-text", TKEY = "t1-key", SID = "t1-sent";
+        await ldb.createText({ id: TID, text_key: TKEY, title: "T1 SRC" });
+        await ldb.addSentence(TID, { id: SID, he_niqqud: "בַּיִת גָּדוֹל", ru: "большой дом" });
+        const past = Date.now() - 86400000;
+        // A is the LEAST lapsed but the OLDEST due; B is the most lapsed and the newest due.
+        await ldb.setWordStatus("pid:99977300", "l2", { due: past - 20000, interval: 4, reps: 2, lapses: 0 }, { textKey: TKEY, sentenceId: SID, orderIndex: 0, surface: "בית" });
+        await ldb.setWordStatus("pid:99977301", "l2", { due: past, interval: 4, reps: 2, lapses: 9 }, { textKey: TKEY, sentenceId: SID, orderIndex: 0, surface: "בית" });
+        const dueRows = await ldb.getDueWithSource(Date.now());
+        t1Order = dueRows.filter((x) => x.lemmaKey.indexOf("pid:999773") === 0).map((x) => x.lemmaKey).join(",");
+
+        const since = new Date(Date.now() - 3600000).toISOString();
+        const INS = `INSERT INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+                     VALUES (?,?,?,?,?,?,NULL,NULL,?)`;
+        await ldb.dbRun(INS, ["t1-rev-a", "pid:99977300", "review", new Date().toISOString(), 3, "t1-smoke", "{}"]);
+        await ldb.dbRun(INS, ["t1-rev-b", "pid:99977301", "review", new Date().toISOString(), 1, "t1-smoke", "{}"]);
+        t1Answered = (await ldb.getAnsweredSince(since)).filter((k) => k.indexOf("pid:999773") === 0).sort().join(",");
+        t1Counts = await ldb.getDayGradeCounts(since);
+
+        // annul the second row — it must vanish from both readers
+        await ldb.dbRun(
+          `INSERT INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+           VALUES (?,?,?,?,NULL,?,NULL,NULL,?)`,
+          ["t1-annul-b", "pid:99977301", "annul", new Date().toISOString(), "t1-smoke", JSON.stringify({ annul_of: "t1-rev-b" })]);
+        t1Annul = (await ldb.getAnsweredSince(since)).filter((k) => k.indexOf("pid:999773") === 0).sort().join(",");
+
+        await ldb.dbRun(`DELETE FROM review_log WHERE source = 't1-smoke'`, []);
+        await ldb.setWordStatus("pid:99977300", ""); await ldb.setWordStatus("pid:99977301", "");
+        try { await ldb.deleteText(TID); } catch (_) {}
+      } catch (e) { t1Err = String(e); }
+      return { t1Order, t1Answered, t1Counts, t1Annul, t1Err,
+        set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, finExcluded, finLastRowPreserved, finStillFinished, finReincluded, finLastRowAfter, srsSet, srsPreserved, srsStatusAfter, srsAfterClear, srsClearedStatus, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -168,6 +201,16 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.d2Sent && res.d2Sent.indexOf("שָׁלוֹם") >= 0, "getSentenceForReview must fetch the source sentence by id, got " + JSON.stringify(res.d2Sent));
     eq(res.d2Reanchor && res.d2Reanchor.indexOf("שָׁלוֹם") >= 0, "getSentenceForReview must RE-ANCHOR by text_key+order_index when the id misses (re-import survival), got " + JSON.stringify(res.d2Reanchor));
     eq(res.d2Null === null, "getSentenceForReview must return null when neither id nor anchor resolves, got " + JSON.stringify(res.d2Null));
+    // T1 — neutral due ordering + today's answered readers (serving-order wave)
+    eq(res.t1Err === null, "T1 due-ordering path must not error, got " + JSON.stringify(res.t1Err));
+    eq(res.t1Order === "pid:99977300,pid:99977301",
+      "getDueWithSource must order by srs_due ASC only — a high-lapse word must NOT jump the queue, got " + JSON.stringify(res.t1Order));
+    eq(res.t1Answered === "pid:99977300,pid:99977301",
+      "getAnsweredSince must return every item graded since the cutoff, got " + JSON.stringify(res.t1Answered));
+    eq(res.t1Counts && res.t1Counts.reviews === 2 && res.t1Counts.newWords === 2,
+      "getDayGradeCounts must split today's attempts into reviews and first-ever attempts, got " + JSON.stringify(res.t1Counts));
+    eq(res.t1Annul === "pid:99977300",
+      "an annulled grade must disappear from getAnsweredSince (withoutAnnulled parity), got " + JSON.stringify(res.t1Annul));
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     console.log("reader-word-status: word_status store + manual-wins overlay (no-note mark-known + upsert + clear)");
