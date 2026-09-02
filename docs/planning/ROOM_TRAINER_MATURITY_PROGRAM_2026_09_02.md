@@ -2,7 +2,7 @@
 
 Date: 2026-09-02
 Baseline runtime: `3.11.456`
-Status: T1 SHIPPED (3.11.457) · T2 SHIPPED (3.11.458) · T3–T6 NOT STARTED
+Status: T1 SHIPPED (3.11.457) · T2 SHIPPED (3.11.458) · T3 SHIPPED (3.11.459) · T4–T6 NOT STARTED
 Predecessor canon: `docs/planning/ROOM_TRAINING_PREMIUM_RELEASE_IMPLEMENTATION_PACKET_2026_08_11.md`
 Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/planning/ROOM_DUE_CONTINUITY_2026_07_11.md`
 
@@ -10,7 +10,7 @@ Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/plan
 |---|---|---|---|
 | T1 serving order | SHIPPED, prod-verified | `3.11.457` | `docs/superpowers/plans/2026-09-02-room-trainer-t1-serving-order.md`, `docs/research/room-trainer-maturity/2026-09-02/` |
 | T2 context bank + scope | SHIPPED, prod-verified | `3.11.458` | `docs/superpowers/plans/2026-09-02-room-trainer-t2-context-bank-and-scope.md`, migration 050 |
-| T3 Anki wrapper | not started | — | §7 |
+| T3 Anki wrapper | SHIPPED, prod-verified | `3.11.459` | `docs/superpowers/plans/2026-09-02-room-trainer-t3-anki-wrapper.md` |
 | T4 retention analytics | not started | — | §8 |
 | T5 FSRS optimizer | after the release | — | §9 |
 | T6 per-word channel | after the release | — | §9 |
@@ -23,9 +23,24 @@ T2 measured result: a word banked in two sources returns `wc:by:1, wc:song:1, wc
 across consecutive reviews — the SOURCE TEXT alternates, not merely the sentence id. Production
 verified on `3.11.458`: schema version 50, `word_context` present, service worker activated.
 
+T3 measured result, verified on the SERVED production build rather than a local file: twenty
+words with identical histories all return on day 57 unfuzzed; with fuzz they spread across 50–65
+with twelve distinct dates. The two-epoch contract holds live — a row carrying no recorded fuzz
+replays to the due it already has, so switching fuzz on rescheduled nothing.
+
+**Owner step still outstanding for T3:** run `POST /api/learner/projections/rebuild` from an
+authenticated session. `ENGINE_VERSION` moved to `fsrs6-core-v3` and `db/learnerGraphRepo.js:188`
+skips projection rows stamped with another engine, so the mentor's coverage view under-reports
+until they are re-stamped. The rebuild moves no due dates.
+
 Operational note: releasing T1 exposed six version stamps where the plan knew of three, and the
 resulting service-worker breakage plus a full disk are recorded in
 `docs/planning/PROD_INCIDENT_SW_INTEGRITY_AND_DISK_2026_09_02.md`. Three of the six are now gated.
+
+Second operational finding (2026-09-02, during T3): **every commit triggers a full ~1.25 GB image
+build, including documentation-only ones.** Production was observed running a docs-only commit,
+and that is what drove the disk from 79% to 92% within an hour. A path filter on the deploy
+webhook would stop it; that is an infrastructure change for the owner, not a code one.
 
 Goal: bring the Reading Room trainer (`🎯 Тренировка` / `Повторение`) to a mature premium
 state — an Anki-grade scheduler wrapper, corpus-wide coverage, explicit scoping, and varied
