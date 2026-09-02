@@ -85,6 +85,30 @@ async function ready(ms = 20000) {
       out.staleDropped = await ldb.dropStaleWordContexts("keyer-test-2");
       out.countAfterKeyerBump = (await ldb.getWordContexts(LK)).length;
 
+      // ── scope reads ───────────────────────────────────────────────────────
+      const SK1 = "pid:88800101", SK2 = "pid:88800102", SK3 = "pid:88800103";
+      const now = Date.now();
+      // SK1 lives only in Ben-Yehuda, SK2 only in the song corpus, SK3 in both.
+      await ldb.insertWordContexts(SK1, [{ textKey: "wc:by:1", orderIndex: 5, sentenceId: "wc-by-s5", surface: "בית" }], "keyer-test-2");
+      await ldb.insertWordContexts(SK2, [{ textKey: "wc:song:1", orderIndex: 5, sentenceId: "wc-song-s5", surface: "בית" }], "keyer-test-2");
+      await ldb.insertWordContexts(SK3, [
+        { textKey: "wc:by:1", orderIndex: 6, sentenceId: "wc-by-s6", surface: "בית" },
+        { textKey: "wc:song:1", orderIndex: 6, sentenceId: "wc-song-s6", surface: "בית" },
+      ], "keyer-test-2");
+      for (const k of [SK1, SK2, SK3]) {
+        await ldb.setWordStatus(k, "l2", { due: now - 86400000, interval: 3, reps: 2, lapses: 0 }, null);
+      }
+      const only = (a) => a.filter((x) => x.indexOf("pid:888001") === 0).sort().join(",");
+      out.scopeAll = only(await ldb.getScopedLemmaKeys({ kind: "all" }));
+      out.scopeBy = only(await ldb.getScopedLemmaKeys({ kind: "class", value: "byehuda" }));
+      out.scopeSong = only(await ldb.getScopedLemmaKeys({ kind: "corpus", value: "study-songs-pilot" }));
+      out.scopeText = only(await ldb.getScopedLemmaKeys({ kind: "text", value: "wc:song:1" }));
+      const counts = await ldb.getScopeCounts(now);
+      out.countsShape = counts.every((c) => c.id && typeof c.due === "number");
+      out.byDue = (counts.find((c) => c.source_class === "byehuda") || {}).due;
+      out.songDue = (counts.find((c) => c.corpus_id === "study-songs-pilot") || {}).due;
+      for (const k of [SK1, SK2, SK3]) { await ldb.setWordStatus(k, ""); await ldb.dbRun("DELETE FROM word_context WHERE lemma_key = ?", [k]); }
+
       await ldb.dbRun("DELETE FROM word_context WHERE lemma_key = ?", [LK]);
       for (const d of defs) { try { await ldb.deleteText(d.id); } catch (_) {} }
       return out;
@@ -101,6 +125,13 @@ async function ready(ms = 20000) {
     eq(res.countAfterRepeat === 8, "re-inserting the same rows must not duplicate, got " + res.countAfterRepeat);
     eq(res.orphan === 0, "a context for an unknown text_key must be refused, wrote " + res.orphan);
     eq(res.countAfterKeyerBump === 0, "a keyer-version bump must invalidate the bank, got " + res.countAfterKeyerBump);
+    eq(res.scopeAll === "pid:88800101,pid:88800102,pid:88800103", "scope 'all' must return every banked lemma, got " + res.scopeAll);
+    eq(res.scopeBy === "pid:88800101,pid:88800103", "a class scope must return only lemmas with a context in that class, got " + res.scopeBy);
+    eq(res.scopeSong === "pid:88800102,pid:88800103", "a corpus scope must return only lemmas with a context in that corpus, got " + res.scopeSong);
+    eq(res.scopeText === "pid:88800102,pid:88800103", "a text scope must return only lemmas with a context in that text, got " + res.scopeText);
+    eq(res.countsShape === true, "every scope count row must carry an id and a numeric due");
+    eq(res.byDue === 2, "the Ben-Yehuda scope must report 2 due words, got " + res.byDue);
+    eq(res.songDue === 2, "the song-corpus scope must report 2 due words, got " + res.songDue);
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     if (failures.length) {

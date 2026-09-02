@@ -3373,6 +3373,55 @@ export async function dropStaleWordContexts(currentKeyerVersion) {
   } catch (_) { return 0; }
 }
 
+// T2 — the lemma keys that have at least one VERIFIED context inside a scope. This is the whole
+// scope mechanism: membership is a property of the CONTEXT BANK, so getDueWithSource stays
+// source-neutral (smoke:studio-room-srs guards that) and no second schedule for a word can exist.
+//   { kind: 'all' }                          — every banked lemma
+//   { kind: 'text',   value: <text_key> }    — one work
+//   { kind: 'class',  value: 'byehuda' | 'mytext' | 'group' | 'public' }
+//   { kind: 'corpus', value: <corpus_id> }   — one corpus inside a class
+export async function getScopedLemmaKeys(scope) {
+  const kind = String((scope && scope.kind) || "all");
+  const value = scope && scope.value != null ? String(scope.value) : "";
+  let where = "", params = [];
+  if (kind === "text") { where = "WHERE text_key = ?"; params = [value]; }
+  else if (kind === "class") { where = "WHERE source_class = ?"; params = [value]; }
+  else if (kind === "corpus") { where = "WHERE corpus_id = ?"; params = [value]; }
+  else if (kind !== "all") return [];
+  try {
+    const rows = await q(`SELECT DISTINCT lemma_key FROM word_context ${where}`, params);
+    return (rows || []).map((x) => String(x.lemma_key || "")).filter(Boolean);
+  } catch (_) { return []; }
+}
+
+// T2 — one row per scope that actually has due words, so the launch screen offers only scopes
+// worth choosing. Counts come from the SAME bank the session is served from, so a stated count
+// and what the session delivers cannot disagree.
+export async function getScopeCounts(nowMs) {
+  const now = new Date(Number(nowMs) || 0).toISOString();
+  try {
+    const rows = await q(
+      `SELECT wc.source_class, wc.corpus_id, COUNT(DISTINCT wc.lemma_key) AS due
+         FROM word_context wc
+         JOIN word_status w ON w.lemma_key = wc.lemma_key
+        WHERE w.srs_due IS NOT NULL AND w.srs_due <= ? AND w.status != 'ignore'
+        GROUP BY wc.source_class, wc.corpus_id`, [now]);
+    const titles = await q(
+      `SELECT DISTINCT wc.corpus_id, t.title
+         FROM word_context wc LEFT JOIN texts t ON t.text_key = wc.text_key
+        WHERE wc.corpus_id IS NOT NULL`, []);
+    const titleFor = Object.create(null);
+    for (const t of (titles || [])) if (t && t.corpus_id && !titleFor[String(t.corpus_id)]) titleFor[String(t.corpus_id)] = String(t.title || "");
+    return (rows || []).map((x) => ({
+      id: x.corpus_id ? "corpus:" + x.corpus_id : "class:" + x.source_class,
+      source_class: String(x.source_class || ""),
+      corpus_id: x.corpus_id != null ? String(x.corpus_id) : null,
+      title: x.corpus_id ? (titleFor[String(x.corpus_id)] || "") : "",
+      due: Number(x.due) || 0,
+    })).filter((x) => x.due > 0);
+  } catch (_) { return []; }
+}
+
 // (R3, ROOM_DUE_CONTINUITY §3: the sourced-only getDueReviewCount is RETIRED — after the R2
 // serve-unsourced ladder the cross-text queue serves schedule-due words with or without a stored
 // source, so the CTA reads the same dueCounts.dueNow as the badge; residue honesty moved to the
