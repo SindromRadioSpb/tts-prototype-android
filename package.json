@@ -30,6 +30,7 @@
     "smoke:room-training-premium": "node scripts/premium/room-training-premium-smoke.js",
     "smoke:train-queue": "node scripts/premium/train-queue-smoke.js",
     "smoke:word-context": "node scripts/premium/word-context-smoke.js",
+    "smoke:retention-report": "node scripts/premium/retention-report-smoke.js",
     "audit:train-queue": "node scripts/premium/train-queue-audit.js",
     "smoke:studio-table-resume": "node --test tests/tableChunks.test.js tests/tableJob.test.js tests/studioTableJobUi.test.js && node scripts/premium/studio-table-resume-browser-smoke.js",
     "smoke:media-acquisition": "python -m unittest discover -s media-acquisition/tests -t media-acquisition -v && node --test tests/mediaStreamStore.test.js tests/remoteMediaAcquisition.test.js",
