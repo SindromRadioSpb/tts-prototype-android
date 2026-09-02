@@ -2386,6 +2386,13 @@ function ensureStudySheet() {
     const bulk = t.closest('[data-study-bulk]'); if (bulk) { onStudyBulk(bulk.getAttribute('data-study-bulk')); return; }
     // 4.3b training
     if (t.closest('[data-train-launch-start]')) { _launchConfirmed = true; startDueReview(); return; }
+    const scopeBtn = t.closest('[data-train-scope]');
+    if (scopeBtn) {
+      trainScopeSet({ kind: scopeBtn.getAttribute('data-train-scope'), value: scopeBtn.getAttribute('data-train-scope-value') || '' });
+      _launchConfirmed = false;   // recompose against the new scope before starting
+      startDueReview();
+      return;
+    }
     const opt = t.closest('[data-train-opt]'); if (opt) { onTrainOption(opt); return; }
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
@@ -2540,7 +2547,7 @@ function renderStudyControls() {
     const seg = (key, fb, group, val, cur) => el('button', { class: 'room-study-seg' + (cur === val ? ' on' : ''), i18n: key, text: tt(key, fb), attrs: { type: 'button', ['data-study-' + group]: val } });
     // B — scope
     const scopeRow = el('div', { class: 'room-study-segrow', attrs: { dir: uiDirRoom() } });
-    scopeRow.appendChild(seg('room.morph.study.scopeAll', 'Весь текст', 'scope', 'all', _studyView.scope));
+    scopeRow.appendChild(seg('room.morph.study.srcAll', 'Весь текст', 'scope', 'all', _studyView.scope));
     scopeRow.appendChild(seg('room.morph.study.scopeAhead', 'Дальше', 'scope', 'ahead', _studyView.scope));
     wrap.appendChild(scopeRow);
     // D — sort + C — band (selects)
@@ -2682,6 +2689,24 @@ function trainPrefs() {
 function trainPrefsSet(patch) {
   const next = Object.assign(trainPrefs(), patch || {});
   try { localStorage.setItem(TRAIN_PREFS_KEY, JSON.stringify(next)); } catch (_) {}
+}
+// T2 — the chosen training scope. A device-local view preference like the channel: it decides
+// which words are OFFERED, never how any of them is scheduled.
+const TRAIN_SCOPE_KEY = 'room.trainScope.v1';
+function trainScope() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TRAIN_SCOPE_KEY) || '{}') || {};
+    const kind = String(raw.kind || 'all');
+    if (['all', 'text', 'class', 'corpus'].indexOf(kind) < 0) return { kind: 'all', value: '' };
+    return { kind, value: String(raw.value || '') };
+  } catch (_) { return { kind: 'all', value: '' }; }
+}
+function trainScopeSet(scope) {
+  try {
+    localStorage.setItem(TRAIN_SCOPE_KEY, JSON.stringify({
+      kind: String((scope && scope.kind) || 'all'), value: String((scope && scope.value) || ''),
+    }));
+  } catch (_) {}
 }
 // Local midnight as an ISO instant — the cutoff for the day fold over review_log.
 function _dayStartIso(d) {
@@ -2846,17 +2871,31 @@ async function _composeDueSession(due, prefs) {
     : { dueNow: due.length, scheduled: due.length, inflowPerDay: 0, requiredPerDay: 0, growing: false };
   if (!TQ) {
     // Honest degradation: without the engine, serve the due list in its neutral order.
-    const picked = due.slice(0, prefs.sessionSize);
-    return { picked, load, counts, compose: { items: picked, servedNew: 0, servedReview: picked.length,
-      excludedToday: 0, repeatedToday: false, availableDue: due.length,
+    const picked = scoped.slice(0, prefs.sessionSize);
+    return { picked, load, counts, scope, scopes, outOfScope, compose: { items: picked, servedNew: 0, servedReview: picked.length,
+      excludedToday: 0, repeatedToday: false, availableDue: scoped.length,
       buckets: { learning: 0, overdue: picked.length, known: 0, 'new': 0 } } };
   }
+  // T2 — scope is an INTERSECTION with the context bank, never a change to the due query: a word
+  // belongs to a scope only if it has a VERIFIED sentence there, so «train this corpus» is
+  // literally true. Words with no in-scope context are counted and reported, never silently
+  // dropped — the scope promise is not quietly broken.
+  const scope = trainScope();
+  let scoped = due, outOfScope = 0;
+  if (scope.kind !== 'all') {
+    let allowed = new Set();
+    try { allowed = new Set((await localDb.getScopedLemmaKeys(scope)) || []); } catch (_) { allowed = new Set(); }
+    scoped = due.filter((d) => allowed.has(String(d.lemmaKey)));
+    outOfScope = due.length - scoped.length;
+  }
+  let scopes = [];
+  try { scopes = (await localDb.getScopeCounts(Date.now())) || []; } catch (_) { scopes = []; }
   // getDueWithSource rows carry their schedule as `srs`; the engine reads `_srs` (the shape the
   // trainer's own items use). Feeding the raw rows straight in silently bucketed EVERY word as
   // «new» — the weakness quota, the known refresh and the review budget all became no-ops, and
   // the session was capped by newPerDay instead. Normalise at the boundary, keeping the original
   // row intact so _buildDueSourcedItems still finds `source`/`srs`/`status`.
-  const candidates = (due || []).map((d) => (d && !d._srs ? Object.assign({}, d, { _srs: d.srs || null }) : d));
+  const candidates = scoped.map((d) => (d && !d._srs ? Object.assign({}, d, { _srs: d.srs || null }) : d));
   const compose = TQ.composeSession(candidates, {
     nowMs: Date.now(),
     dayStr: _localDayStr(),
@@ -2865,7 +2904,7 @@ async function _composeDueSession(due, prefs) {
     newRemaining: Math.max(0, prefs.newPerDay - counts.newWords),
     excludeKeys: answered,
   });
-  return { picked: compose.items, load, counts, compose };
+  return { picked: compose.items, load, counts, compose, scope, scopes, outOfScope };
 }
 // T1 — launch screen. One tap to start, and the arithmetic stated before the learner commits:
 // what is due, what was already done today, how many this session will serve, and — when the
@@ -2888,6 +2927,40 @@ function renderTrainLaunch(sel) {
       .replace('{r}', String(sel.compose.servedReview))
       .replace('{w}', String(sel.compose.servedNew)) }));
   wrap.appendChild(facts);
+
+  // T2 — source selector. Only scopes that actually have due words are offered, and their counts
+  // come from the SAME bank the session is served from, so a stated count and what the session
+  // delivers cannot disagree.
+  const scopeWrap = el('div', { class: 'room-train-launch-scope' });
+  scopeWrap.appendChild(el('div', { class: 'room-train-launch-scope-label',
+    i18n: 'room.morph.study.srcLabel', text: tt('room.morph.study.srcLabel', 'Источник') }));
+  const cur = (sel.scope && sel.scope.kind) ? sel.scope : trainScope();
+  const opts = [{ kind: 'all', value: '', label: tt('room.morph.study.srcAll', 'Всё'), due: sel.load.dueNow }];
+  if (readerTextKey) opts.push({ kind: 'text', value: readerTextKey, label: tt('room.morph.study.srcThisText', 'Этот текст'), due: null });
+  for (const sc of (sel.scopes || [])) {
+    const label = sc.corpus_id
+      ? (sc.title || sc.corpus_id)
+      : (sc.source_class === 'mytext' ? tt('room.morph.study.srcMyTexts', 'Мои тексты')
+        : sc.source_class === 'byehuda' ? tt('room.morph.study.srcBenYehuda', 'Бен-Йехуда') : sc.source_class);
+    opts.push({ kind: sc.corpus_id ? 'corpus' : 'class', value: sc.corpus_id || sc.source_class, label, due: sc.due });
+  }
+  for (const o of opts) {
+    const on = cur.kind === o.kind && String(cur.value) === String(o.value);
+    scopeWrap.appendChild(el('button', {
+      class: 'room-train-launch-scopebtn' + (on ? ' on' : ''),
+      attrs: { type: 'button', 'data-train-scope': o.kind, 'data-train-scope-value': o.value,
+        'aria-pressed': on ? 'true' : 'false' },
+      text: o.label + (o.due != null ? '  ' + o.due : '') }));
+  }
+  wrap.appendChild(scopeWrap);
+  if (sel.outOfScope > 0) {
+    wrap.appendChild(el('div', { class: 'room-train-launch-outside',
+      text: tt('room.morph.study.srcOutside', 'Ещё {n} слов ждут повторения вне этого набора').replace('{n}', String(sel.outOfScope)) }));
+  }
+  if (!sel.compose.items.length && cur.kind !== 'all') {
+    wrap.appendChild(el('div', { class: 'room-train-launch-note', i18n: 'room.morph.study.srcEmpty',
+      text: tt('room.morph.study.srcEmpty', 'В этом наборе пока нет слов с проверенным предложением на этом устройстве. Почитайте его тексты — слова появятся сами.') }));
+  }
 
   if (sel.compose.repeatedToday) {
     wrap.appendChild(el('div', { class: 'room-train-launch-note',

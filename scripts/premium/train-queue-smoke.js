@@ -399,6 +399,27 @@ check(TQ.pickContext(ctxs, -3).id === "a", "a negative rep count must not throw 
 const walk = [0, 1, 2, 3, 4].map((n) => TQ.pickContext(ctxs, n).id).join("");
 check(walk === "abcab", "consecutive reviews must walk the bank, got " + walk);
 
+// ── Suite 14: scope selector (T2) ────────────────────────────────────────────
+const SCOPE_KEYS = ["srcLabel", "srcAll", "srcThisText", "srcMyTexts", "srcBenYehuda", "srcOutside", "srcEmpty"];
+SCOPE_KEYS.forEach((k) => {
+  check(new RegExp("room\\.morph\\.study\\." + k + "\\b").test(room), `library-ui must use the ${k} string`);
+  localeSrc.forEach((L) => check(new RegExp("\\b" + k + "\\s*:").test(L.src), `locale ${L.name} must define ${k}`));
+});
+check(/function trainScope\s*\(/.test(room) && /function trainScopeSet\s*\(/.test(room),
+  "the Room must persist the chosen training scope");
+check(/data-train-scope/.test(room), "the launch screen must expose the scope selector");
+check(/getScopedLemmaKeys/.test(room), "the session must intersect the due list with the scope's banked lemmas");
+check(/outOfScope/.test(room), "the launch screen must report how many due words sit outside the scope");
+check(/\.room-train-launch-scopebtn[\s\S]{0,300}min-height:\s*44px/.test(html),
+  "scope controls must meet the 44px project standard");
+// The membership promise: a scoped session must be built from the intersection, never from the
+// unfiltered due list with a cosmetic label on top.
+const composeBody = (room.match(/async function _composeDueSession[\s\S]*?\n}\n/) || [""])[0];
+check(/getScopedLemmaKeys/.test(composeBody),
+  "the intersection must happen where the session is composed, not merely be available somewhere");
+check(/outOfScope/.test(composeBody),
+  "the composer must report the out-of-scope residue so the screen can state it honestly");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

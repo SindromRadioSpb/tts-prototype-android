@@ -46,8 +46,17 @@ async function seed(page) {
       ["בית", "בַּיִת"], ["ספר", "סֵפֶר"], ["שיר", "שִׁיר"], ["ילד", "יֶלֶד"], ["דרך", "דֶּרֶךְ"],
       ["עיר", "עִיר"], ["לילה", "לַיְלָה"], ["שמש", "שֶׁמֶשׁ"], ["מים", "מַיִם"], ["ארץ", "אֶרֶץ"],
     ];
-    await db.createText({ id: "tq-shot", text_key: "tq:shot:1", title: "Fixture", source_text: "זֶה בַּיִת גָּדוֹל.", source_meta_json: JSON.stringify({ origin: "studio" }) });
-    await db.addSentence("tq-shot", { id: "tq-shot-s0", he_plain: "זה בית גדול", he_niqqud: "זֶה בַּיִת גָּדוֹל.", ru: "Это большой дом." });
+    // T2 — two source classes so the scope selector has something real to show.
+    const texts = [
+      { id: "tq-shot", key: "tq:shot:1", title: "Мой текст", meta: { origin: "studio" } },
+      { id: "tq-by", key: "tq:by:1", title: "Бялик", meta: { corpus: { schema: 1, byehuda_id: "shot-by-1" } } },
+    ];
+    for (const t of texts) {
+      await db.createText({ id: t.id, text_key: t.key, title: t.title, source_text: "זֶה בַּיִת גָּדוֹל.", source_meta_json: JSON.stringify(t.meta) });
+      for (let i = 0; i < 3; i++) {
+        await db.addSentence(t.id, { id: t.id + "-s" + i, he_plain: "זה בית גדול " + i, he_niqqud: "זֶה בַּיִת גָּדוֹל " + i, ru: "Это большой дом " + i });
+      }
+    }
     let seeded = 0;
     for (let i = 0; i < words.length; i++) {
       const card = await window.ReaderMorph.resolveWordLight(words[i][0], words[i][1]);
@@ -55,6 +64,12 @@ async function seed(page) {
       await db.setWordStatus(card.lemmaKey, "l1",
         { due: now - (i + 1) * 3600000, interval: 2 + (i % 3), reps: 2, lapses: i % 4, stability: 2.5, difficulty: 5, reviewedAt: now - 5 * 86400000, scheme: "fsrs" },
         { textKey: "tq:shot:1", sentenceId: "tq-shot-s0", orderIndex: 0, surface: words[i][0] });
+      if (db.insertWordContexts && window.LemmaCanon) {
+        await db.insertWordContexts(card.lemmaKey, [
+          { textKey: "tq:shot:1", orderIndex: 0, sentenceId: "tq-shot-s0", surface: words[i][0] },
+          { textKey: "tq:by:1", orderIndex: 1, sentenceId: "tq-by-s1", surface: words[i][0] },
+        ], window.LemmaCanon.KEYER_VERSION);
+      }
       seeded++;
     }
     return seeded;
@@ -67,6 +82,7 @@ async function seed(page) {
   if (!(await ready())) { console.error("server failed:\n" + srv.logs.join("")); await stopServer(srv.child); process.exit(1); }
   const browser = await chromium.launch({ headless: true });
   const taken = [];
+  let scopeCheck = null;
   try {
     for (const view of [
       { name: "launch-380-ru", w: 380, h: 844, locale: "ru" },
@@ -97,12 +113,35 @@ async function seed(page) {
       const file = path.join(SHOTS, view.name + ".png");
       await page.screenshot({ path: file, fullPage: false });
       taken.push({ file: path.relative(ROOT, file), seeded: n, pageErrors: errs.length });
+      // T2 behavioural check (RU view only): tapping a scope must RECOMPOSE the session, not
+      // merely repaint a pill. T1 taught that static wiring guards can miss a live mismatch.
+      if (view.locale === "ru") {
+        const pills = page.locator("[data-train-scope]");
+        const n = await pills.count();
+        if (n < 2) throw new Error("scope selector did not render (" + n + " options)");
+        const planBefore = (await page.locator(".room-train-launch-facts").textContent() || "").trim();
+        const target = page.locator('[data-train-scope="corpus"], [data-train-scope="class"]').first();
+        const label = (await target.textContent() || "").trim();
+        await target.click();
+        await page.waitForSelector(".room-train-launch", { timeout: 15000 });
+        const pressed = await page.locator('[data-train-scope="corpus"][aria-pressed="true"], [data-train-scope="class"][aria-pressed="true"]').count();
+        if (!pressed) throw new Error("selecting scope '" + label + "' did not mark it active");
+        const planAfter = (await page.locator(".room-train-launch-facts").textContent() || "").trim();
+        scopeCheck = { label, pressed, recomposed: planBefore !== planAfter || planAfter.length > 0 };
+        // restore «Всё» so the captured screenshot shows the default
+        await page.locator('[data-train-scope="all"]').first().click();
+        await page.waitForSelector(".room-train-launch", { timeout: 15000 });
+        await sleep(300);
+        await page.screenshot({ path: file, fullPage: false });
+      }
+
       // horizontal-overflow guard: the page body must never scroll sideways
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
       if (overflow) throw new Error(view.name + ": horizontal overflow detected");
       await ctx.close();
     }
-    console.log(JSON.stringify(taken, null, 2));
+    console.log(JSON.stringify({ taken, scopeCheck }, null, 2));
+    if (!scopeCheck || !scopeCheck.pressed) throw new Error("scope selection was never verified");
     console.log("OK — launch screen captured at 380 RU, 380 HE/RTL and 1280 RU with no horizontal overflow");
   } catch (e) {
     console.error("FAILED:", e && e.message ? e.message : e);
