@@ -243,8 +243,29 @@ const html = fs.readFileSync(path.join(ROOT, "public/library.html"), "utf8");
 const sw = fs.readFileSync(path.join(ROOT, "public/sw.js"), "utf8");
 const db = fs.readFileSync(path.join(ROOT, "public/db/local-db.js"), "utf8");
 
-check(/<script src="\/js\/train-queue\.js"><\/script>/.test(html), "library.html must load train-queue.js");
-check(/"\/js\/train-queue\.js"/.test(sw), "sw.js must precache train-queue.js");
+// The shell versions its modules as /js/<name>.js?v=<patch> and the service worker precaches
+// the SAME versioned URL. A mismatch means the precached entry can never be hit — the exact
+// defect that shipped library-ui.js?v=456 alongside a rewritten library-ui.js.
+const htmlTq = html.match(/<script src="\/js\/train-queue\.js(\?v=(\d+))?"><\/script>/);
+const swTq = sw.match(/"\/js\/train-queue\.js(\?v=(\d+))?"/);
+check(!!htmlTq, "library.html must load train-queue.js");
+check(!!swTq, "sw.js must precache train-queue.js");
+if (htmlTq && swTq) {
+  check(htmlTq[2] === swTq[2],
+    "library.html and sw.js must agree on the train-queue.js cache-bust, got shell=" + htmlTq[2] + " sw=" + swTq[2]);
+}
+// library-ui.js is the module this whole wave rewrites; if its ?v= does not move, every
+// existing browser keeps serving the cached pre-T1 file and none of it reaches the learner.
+const htmlUi = html.match(/<script type="module" src="\/js\/library-ui\.js\?v=(\d+)"><\/script>/);
+const swUi = sw.match(/"\/js\/library-ui\.js\?v=(\d+)"/);
+check(!!htmlUi && !!swUi, "library-ui.js must carry a cache-bust in both the shell and the precache");
+if (htmlUi && swUi) {
+  check(htmlUi[1] === swUi[1],
+    "library.html and sw.js must agree on the library-ui.js cache-bust, got shell=" + htmlUi[1] + " sw=" + swUi[1]);
+  const cacheVersion = (sw.match(/const CACHE_VERSION = "v?([\d.]+)"/) || [])[1] || "";
+  check(cacheVersion.endsWith("." + htmlUi[1]),
+    "library-ui.js ?v= must track the release patch, got ?v=" + htmlUi[1] + " against CACHE_VERSION " + cacheVersion);
+}
 check(/ORDER BY w\.srs_due ASC/.test(db) && !/ORDER BY w\.srs_lapses DESC/.test(db),
   "getDueWithSource must no longer be a total order on srs_lapses");
 check(/export async function getAnsweredSince\s*\(/.test(db), "local DB exposes getAnsweredSince");

@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=456",
+  "/js/library-ui.js?v=457",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -118,7 +118,7 @@ const PRECACHE_URLS = [
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
   "/js/fsrs-core.js",
   "/js/grade-policy.js",
-  "/js/train-queue.js",
+  "/js/train-queue.js?v=457",
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
@@ -221,9 +221,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=190",
-  "/i18n/locales/en.js?v=190",
-  "/i18n/locales/he.js?v=190",
+  "/i18n/locales/ru.js?v=191",
+  "/i18n/locales/en.js?v=191",
+  "/i18n/locales/he.js?v=191",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

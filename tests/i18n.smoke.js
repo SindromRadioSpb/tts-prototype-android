@@ -818,6 +818,29 @@ test("locale <script> tags in every HTML shell share one ?v= number", () => {
     `STALE-CACHE REGRESSION: locale ?v= differs between HTML shells ` +
     `(${shellVersions.map(([name, version]) => `${name}=${version}`).join(", ")}).`
   );
+
+  // This suite's own title has always promised "all HTML shells ?v= vs public/sw.js precache",
+  // but nothing compared the two. The service worker precaches the locale files by their FULL
+  // versioned URL, so a precache left behind at the old ?v= is simply never hit: the entry is
+  // dead weight and the shells silently lose their offline locale. Found while shipping 3.11.457,
+  // where the shells moved to v=191 and sw.js stayed on v=190.
+  // Read the path locally: SW_JS_PATH is declared further down this file and Suite 10 runs
+  // before that declaration is initialised.
+  const swSource = fs.readFileSync(path.join(REPO_ROOT, "public/sw.js"), "utf8");
+  for (const locale of ["ru", "en", "he"]) {
+    const match = swSource.match(new RegExp(`"/i18n/locales/${locale}\\.js\\?v=(\\d+)"`));
+    assert.ok(
+      match,
+      `Could not find the "/i18n/locales/${locale}.js?v=N" entry in the public/sw.js precache ` +
+      `list. If the precache no longer versions locale URLs, update this assertion.`
+    );
+    assert.strictEqual(
+      match[1], shellVersions[0][1],
+      `STALE-CACHE REGRESSION: public/sw.js precaches "/i18n/locales/${locale}.js?v=${match[1]}" ` +
+      `while the HTML shells request ?v=${shellVersions[0][1]}. The precached entry can never be ` +
+      `hit — bump the sw.js precache URLs in the same change.`
+    );
+  }
 });
 
 test("locale files match the committed cache-bust lock (content changed => ?v= must bump)", () => {
