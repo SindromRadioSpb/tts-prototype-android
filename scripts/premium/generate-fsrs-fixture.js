@@ -122,7 +122,7 @@ const fuzzOut = {
     maximum_interval: FUZZ_PARAMS.maximum_interval,
     enable_fuzz: true,
     enable_short_term: false,
-    seed_strategy: "<item_key>_<pre-review reps>",
+    seed_strategy: "<item_key>_<post-increment reps>",
     item_key: FUZZ_KEY,
     generated_by: "scripts/premium/generate-fsrs-fixture.js",
     note: "committed fixture — smoke:fsrs asserts the fuzz path against these vectors; the gate never calls ts-fsrs",
@@ -136,12 +136,14 @@ for (const sc of FUZZ_SCENARIOS) {
   const steps = [];
   for (const [dt, grade] of sc.steps) {
     nowMs += dt * 86400000;
-    const preReps = card.reps;
     const rec = ff.next(card, new Date(nowMs), grade);
     card = rec.card;
+    // The seed strategy sees reps AFTER the increment — verified by instrumenting it, not
+    // assumed. Recording the pre-review value made the fixture internally inconsistent with
+    // its own seeds, so some steps matched only by coincidence.
     steps.push({
       dt, grade,
-      seed: FUZZ_KEY + "_" + preReps,
+      seed: FUZZ_KEY + "_" + card.reps,
       stability: card.stability,
       difficulty: card.difficulty,
       scheduled_days: card.scheduled_days,

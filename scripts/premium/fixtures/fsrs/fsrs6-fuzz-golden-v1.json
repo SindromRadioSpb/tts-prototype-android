@@ -31,7 +31,7 @@
   "maximum_interval": 36500,
   "enable_fuzz": true,
   "enable_short_term": false,
-  "seed_strategy": "<item_key>_<pre-review reps>",
+  "seed_strategy": "<item_key>_<post-increment reps>",
   "item_key": "pid:900123",
   "generated_by": "scripts/premium/generate-fsrs-fixture.js",
   "note": "committed fixture — smoke:fsrs asserts the fuzz path against these vectors; the gate never calls ts-fsrs"
@@ -43,7 +43,7 @@
     {
      "dt": 0,
      "grade": 3,
-     "seed": "pid:900123_0",
+     "seed": "pid:900123_1",
      "stability": 2.3065,
      "difficulty": 2.11810397,
      "scheduled_days": 3,
@@ -54,7 +54,7 @@
     {
      "dt": 3,
      "grade": 3,
-     "seed": "pid:900123_1",
+     "seed": "pid:900123_2",
      "stability": 13.82690327,
      "difficulty": 2.11121424,
      "scheduled_days": 16,
@@ -65,7 +65,7 @@
     {
      "dt": 14,
      "grade": 3,
-     "seed": "pid:900123_2",
+     "seed": "pid:900123_3",
      "stability": 56.95670978,
      "difficulty": 2.1043314,
      "scheduled_days": 55,
@@ -76,7 +76,7 @@
     {
      "dt": 44,
      "grade": 3,
-     "seed": "pid:900123_3",
+     "seed": "pid:900123_4",
      "stability": 172.08632469,
      "difficulty": 2.09745544,
      "scheduled_days": 170,
@@ -87,7 +87,7 @@
     {
      "dt": 120,
      "grade": 3,
-     "seed": "pid:900123_4",
+     "seed": "pid:900123_5",
      "stability": 439.84588704,
      "difficulty": 2.09058635,
      "scheduled_days": 455,
@@ -98,7 +98,7 @@
     {
      "dt": 300,
      "grade": 3,
-     "seed": "pid:900123_5",
+     "seed": "pid:900123_6",
      "stability": 1015.68306622,
      "difficulty": 2.08372413,
      "scheduled_days": 984,
@@ -114,7 +114,7 @@
     {
      "dt": 0,
      "grade": 3,
-     "seed": "pid:900123_0",
+     "seed": "pid:900123_1",
      "stability": 2.3065,
      "difficulty": 2.11810397,
      "scheduled_days": 3,
@@ -125,7 +125,7 @@
     {
      "dt": 1,
      "grade": 3,
-     "seed": "pid:900123_1",
+     "seed": "pid:900123_2",
      "stability": 7.31530068,
      "difficulty": 2.11121424,
      "scheduled_days": 9,
@@ -136,7 +136,7 @@
     {
      "dt": 2,
      "grade": 3,
-     "seed": "pid:900123_2",
+     "seed": "pid:900123_3",
      "stability": 16.12727185,
      "difficulty": 2.1043314,
      "scheduled_days": 15,
@@ -147,7 +147,7 @@
     {
      "dt": 3,
      "grade": 3,
-     "seed": "pid:900123_3",
+     "seed": "pid:900123_4",
      "stability": 28.16426816,
      "difficulty": 2.09745544,
      "scheduled_days": 27,
@@ -163,7 +163,7 @@
     {
      "dt": 0,
      "grade": 3,
-     "seed": "pid:900123_0",
+     "seed": "pid:900123_1",
      "stability": 2.3065,
      "difficulty": 2.11810397,
      "scheduled_days": 3,
@@ -174,7 +174,7 @@
     {
      "dt": 3,
      "grade": 1,
-     "seed": "pid:900123_1",
+     "seed": "pid:900123_2",
      "stability": 0.63685069,
      "difficulty": 7.39450274,
      "scheduled_days": 1,
@@ -185,7 +185,7 @@
     {
      "dt": 1,
      "grade": 3,
-     "seed": "pid:900123_2",
+     "seed": "pid:900123_3",
      "stability": 2.44661061,
      "difficulty": 7.38233661,
      "scheduled_days": 3,
@@ -196,7 +196,7 @@
     {
      "dt": 2,
      "grade": 1,
-     "seed": "pid:900123_3",
+     "seed": "pid:900123_4",
      "stability": 0.58202025,
      "difficulty": 9.12482021,
      "scheduled_days": 1,
@@ -207,7 +207,7 @@
     {
      "dt": 1,
      "grade": 3,
-     "seed": "pid:900123_4",
+     "seed": "pid:900123_5",
      "stability": 1.50616323,
      "difficulty": 9.11092376,
      "scheduled_days": 3,
@@ -218,7 +218,7 @@
     {
      "dt": 5,
      "grade": 3,
-     "seed": "pid:900123_5",
+     "seed": "pid:900123_6",
      "stability": 4.49013651,
      "difficulty": 9.09704121,
      "scheduled_days": 3,
@@ -234,7 +234,7 @@
     {
      "dt": 0,
      "grade": 3,
-     "seed": "pid:900123_0",
+     "seed": "pid:900123_1",
      "stability": 2.3065,
      "difficulty": 2.11810397,
      "scheduled_days": 3,
@@ -245,7 +245,7 @@
     {
      "dt": 60,
      "grade": 3,
-     "seed": "pid:900123_1",
+     "seed": "pid:900123_2",
      "stability": 45.3423714,
      "difficulty": 2.11121424,
      "scheduled_days": 49,
@@ -256,7 +256,7 @@
     {
      "dt": 365,
      "grade": 3,
-     "seed": "pid:900123_2",
+     "seed": "pid:900123_3",
      "stability": 400.3176514,
      "difficulty": 2.1043314,
      "scheduled_days": 392,
@@ -267,7 +267,7 @@
     {
      "dt": 900,
      "grade": 3,
-     "seed": "pid:900123_3",
+     "seed": "pid:900123_4",
      "stability": 1592.99867909,
      "difficulty": 2.09745544,
      "scheduled_days": 1577,
@@ -283,7 +283,7 @@
     {
      "dt": 0,
      "grade": 2,
-     "seed": "pid:900123_0",
+     "seed": "pid:900123_1",
      "stability": 1.2931,
      "difficulty": 5.11217071,
      "scheduled_days": 2,
@@ -294,7 +294,7 @@
     {
      "dt": 5,
      "grade": 4,
-     "seed": "pid:900123_1",
+     "seed": "pid:900123_2",
      "stability": 17.84267471,
      "difficulty": 3.4641143,
      "scheduled_days": 21,
@@ -305,7 +305,7 @@
     {
      "dt": 17,
      "grade": 2,
-     "seed": "pid:900123_2",
+     "seed": "pid:900123_3",
      "stability": 43.87796547,
      "difficulty": 5.64640287,
      "scheduled_days": 42,
@@ -316,7 +316,7 @@
     {
      "dt": 2,
      "grade": 4,
-     "seed": "pid:900123_3",
+     "seed": "pid:900123_4",
      "stability": 52.04805677,
      "difficulty": 4.17686196,
      "scheduled_days": 51,
@@ -327,7 +327,7 @@
     {
      "dt": 40,
      "grade": 3,
-     "seed": "pid:900123_4",
+     "seed": "pid:900123_5",
      "stability": 133.64408693,
      "difficulty": 4.16791347,
      "scheduled_days": 140,

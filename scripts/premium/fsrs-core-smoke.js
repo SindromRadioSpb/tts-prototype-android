@@ -107,6 +107,66 @@ for (const sc of FIX.scenarios) {
   eq(r0 === 1 && rS < r0 && rLong < rS && rLong > 0, "retrievability not monotone-decreasing from 1");
 }
 
+// ── T3: fuzz parity against the generated reference vectors ────────────────────────────────
+const FUZZ = require(path.join(__dirname, "fixtures", "fsrs", "fsrs6-fuzz-golden-v1.json"));
+eq(FUZZ.provenance && FUZZ.provenance.enable_fuzz === true, "fuzz fixture must be generated with fuzz ON");
+eq(String(F.REFERENCE) === "ts-fsrs@" + FUZZ.provenance.reference_version,
+  "fuzz fixture reference version must match the engine's pin");
+eq(FUZZ.provenance.seed_strategy === "<item_key>_<post-increment reps>",
+  "the fuzz fixture must pin the seed strategy the engine builds");
+
+// get_fuzz_range transcription
+const fr = F.fuzzRange(10, 0, 36500);
+eq(fr.min === 8 && fr.max === 12, "fuzzRange(10) must reproduce the reference band, got " + JSON.stringify(fr));
+eq(F.applyFuzz(2, 0, "x_0", 36500) === 2, "an interval below 2.5 days is never fuzzed");
+
+// Full parity: replaying each scenario with the fixture's OWN seeds must reproduce its intervals.
+for (const sc of FUZZ.scenarios) {
+  let state = null, now = Date.UTC(2026, 0, 1);
+  for (let i = 0; i < sc.steps.length; i++) {
+    const st = sc.steps[i];
+    now += st.dt * 86400000;
+    state = F.nextState(state, st.grade, now, { fuzz: true, fuzzSeed: st.seed });
+    eq(state.reps === st.reps, `${sc.name} step ${i}: reps ${state.reps} != ${st.reps}`);
+    eq(state.lapses === st.lapses, `${sc.name} step ${i}: lapses ${state.lapses} != ${st.lapses}`);
+    eq(close(state.stability, st.stability), `${sc.name} step ${i}: S ${state.stability} != ${st.stability}`);
+    // Grade 1 is OUR deliberate divergence from the reference (Again → due NOW, projection 0),
+    // pinned by its own contract assertion above. Comparing its interval here would assert the
+    // opposite of a product rule we chose on purpose, so the fuzzed-interval check covers the
+    // grades the reference and we actually agree on.
+    if (st.grade === 1) {
+      eq(state.dueMs === now && state.intervalDays === 0,
+        `${sc.name} step ${i}: Again must stay due-now under fuzz, got ivl ${state.intervalDays}`);
+    } else {
+      eq(state.intervalDays === st.scheduled_days,
+        `${sc.name} step ${i}: fuzzed interval ${state.intervalDays} != ${st.scheduled_days}`);
+    }
+  }
+}
+
+// ── T3: the TWO-EPOCH contract — the thing that keeps replay == stored ─────────────────────
+// A pre-T3 row carries no meta.fuzz_days and MUST replay unfuzzed even on a fuzz-on build,
+// otherwise turning fuzz on silently reschedules every accumulated word.
+{
+  const rows = [
+    { id: "a", item_key: "pid:1", kind: "review", reviewed_at: "2026-01-01T00:00:00.000Z", grade: 3, meta_json: "{}" },
+    { id: "b", item_key: "pid:1", kind: "review", reviewed_at: "2026-01-05T00:00:00.000Z", grade: 3, meta_json: "{}" },
+  ];
+  const off = F.replay(rows, { fuzz: false });
+  const on = F.replay(rows, { fuzz: true });
+  eq(off.dueMs === on.dueMs,
+    "a row with no recorded fuzz must replay identically on a fuzz-on build (no silent reschedule)");
+}
+// A recorded row replays to exactly its recorded interval, whatever the build's fuzz setting.
+{
+  const rows = [
+    { id: "a", item_key: "pid:2", kind: "review", reviewed_at: "2026-01-01T00:00:00.000Z", grade: 3, meta_json: JSON.stringify({ fuzz_days: 9 }) },
+  ];
+  const a = F.replay(rows, { fuzz: true }), b = F.replay(rows, { fuzz: false });
+  eq(a.intervalDays === 9, "a recorded fuzz interval must replay exactly, got " + a.intervalDays);
+  eq(b.intervalDays === 9, "a recorded fuzz interval must replay exactly regardless of the build flag, got " + b.intervalDays);
+}
+
 const total = pass + failures.length;
 if (failures.length) {
   console.error(`smoke:fsrs FAIL (${pass}/${total})`);
