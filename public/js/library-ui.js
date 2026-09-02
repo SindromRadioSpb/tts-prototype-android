@@ -2264,7 +2264,7 @@ async function refreshDueBadge() {
   _dueCounts = window.ReaderMorph.dueCounts(states || {}, schedule, Date.now());
   // D7 — streak/goal folded from the study_day ledger (today injected from the LOCAL date).
   if (typeof window.ReaderMorph.streakView === 'function' && typeof localDb.getStudyDays === 'function') {
-    try { _streakView = window.ReaderMorph.streakView(await _allSurfaceStudyDays(), window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr()); }   // R3.3 all-surface
+    try { _streakView = window.ReaderMorph.streakView(await _allSurfaceStudyDays(), trainPrefs().reviewsPerDay, _localDayStr()); }   // R3.3 all-surface
     catch (_) { _streakView = null; }
   }
   document.querySelectorAll('[data-due-badge]').forEach((b) => _paintDueBadge(b, _dueCounts));
@@ -3841,7 +3841,7 @@ function renderTrainSummary() {
     try {
       if (streakHidden() || !window.ReaderMorph || !window.ReaderMorph.streakView || !localDb.getStudyDays) return;
       if (!streakSlot.isConnected) return;
-      const sv = window.ReaderMorph.streakView(await _allSurfaceStudyDays(), window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr());   // R3.3 all-surface
+      const sv = window.ReaderMorph.streakView(await _allSurfaceStudyDays(), trainPrefs().reviewsPerDay, _localDayStr());   // R3.3 all-surface
       if (!streakSlot.isConnected || !sv || (!sv.cur && !sv.todayRecalls)) return;
       const line = el('div', { class: 'room-train-streak', attrs: { dir: uiDirRoom(), role: 'button', tabindex: '0', 'data-heatmap-toggle': '1', 'aria-label': tt('room.morph.study.heatToggle', 'Календарь активности') } });
       const g1 = el('span', { class: 'rts-g rts-flame' }); g1.textContent = '🔥 ' + sv.cur + ' ' + tt('room.morph.study.streakDays', 'дн.'); line.appendChild(g1);

@@ -310,6 +310,15 @@ check(/\.room-train-launch-start[\s\S]{0,300}min-height:\s*44px/.test(html),
 check(/\.room-train-launch-pref[\s\S]{0,300}min-height:\s*44px/.test(html),
   "the launch preference rows must meet the 44px project standard");
 
+// ── Suite 11: streak goal follows the configured limit ───────────────────────
+const streakCalls = room.match(/^.*streakView\(.*$/gm) || [];
+check(streakCalls.length >= 2, "the Room must fold the streak in both the badge and the summary, got " + streakCalls.length);
+check(streakCalls.every((c) => /trainPrefs\(\)\.reviewsPerDay/.test(c)),
+  "streakView must use the configured daily limit as the goal cap, got " + JSON.stringify(streakCalls));
+const morphSrc = fs.readFileSync(path.join(ROOT, "public/js/reader-morph.js"), "utf8");
+check(/var STREAK_GOAL_CAP = 10;/.test(morphSrc),
+  "STREAK_GOAL_CAP must remain 10 as the engine default (reader-morph-smoke pins it)");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));
