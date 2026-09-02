@@ -64,6 +64,47 @@ check(typeof mine.daysToDrain === "number", "the report must add a drain estimat
 const ign = RR.loadBalance({ z: { due: NOW - DAY, interval: 3 } }, { z: "ignore" }, NOW, 60);
 check(ign.dueNow === 0 && ign.scheduled === 0, "ignored words must count in neither, got " + JSON.stringify(ign));
 
+// ── Suite 5: true retention ──────────────────────────────────────────────────
+const iso = (d) => new Date(NOW - d * DAY).toISOString();
+const rows = [
+  { id: "1", item_key: "w1", kind: "review", grade: 3, reviewed_at: iso(5), channel: "read:mc", meta_json: JSON.stringify({ evidence_scope: "recognition" }) },
+  { id: "2", item_key: "w1", kind: "review", grade: 1, reviewed_at: iso(4), channel: "read:mc", meta_json: JSON.stringify({ evidence_scope: "recognition" }) },
+  { id: "3", item_key: "w2", kind: "review", grade: 4, reviewed_at: iso(3), channel: "reverse:type", meta_json: JSON.stringify({ evidence_scope: "unsupported_production" }) },
+  { id: "4", item_key: "w2", kind: "review", grade: 1, reviewed_at: iso(2), channel: "reverse:type", meta_json: JSON.stringify({ evidence_scope: "unsupported_production" }) },
+  { id: "5", item_key: "w3", kind: "skip", grade: 1, reviewed_at: iso(1), channel: "read:mc", meta_json: JSON.stringify({ evidence_scope: "recognition" }) },
+  { id: "6", item_key: "w4", kind: "mark", grade: null, reviewed_at: iso(1), meta_json: JSON.stringify({ status: "known" }) },
+  { id: "7", item_key: "w5", kind: "seed", grade: null, reviewed_at: iso(9), meta_json: "{}" },
+];
+
+const tr = RR.trueRetention(rows, { nowMs: NOW, days: 30 });
+check(tr.overall.attempts === 4, "only graded review rows count as attempts, got " + tr.overall.attempts);
+check(tr.overall.passed === 2, "pass is grade > 1, got " + tr.overall.passed);
+check(Math.abs(tr.overall.rate - 0.5) < 1e-9, "overall rate must be 2/4, got " + tr.overall.rate);
+check(tr.skipped === 1, "a skip must be reported SEPARATELY, never folded into either side, got " + tr.skipped);
+check(tr.byChannel.read && tr.byChannel.read.attempts === 2, "channel families must group by prefix, got " + JSON.stringify(tr.byChannel));
+check(tr.byChannel.reverse && tr.byChannel.reverse.attempts === 2, "reverse channel must be counted");
+check(tr.byScope.recognition && tr.byScope.recognition.attempts === 2,
+  "evidence_scope must finally be read — it has been written since 2026-08-11 and never consumed");
+check(tr.byScope.unsupported_production && Math.abs(tr.byScope.unsupported_production.rate - 0.5) < 1e-9,
+  "unsupported production must be reported separately from recognition");
+
+// an annulled row must vanish from the numbers exactly as it vanishes from the fold
+const annulled = rows.concat([
+  { id: "8", item_key: "w1", kind: "annul", grade: null, reviewed_at: iso(0), meta_json: JSON.stringify({ annul_of: "2" }) },
+]);
+const trA = RR.trueRetention(annulled, { nowMs: NOW, days: 30 });
+check(trA.overall.attempts === 3 && trA.overall.passed === 2,
+  "an annulled grade must leave the numbers, got " + JSON.stringify(trA.overall));
+
+// an empty bucket reports null, never a misleading zero
+const trEmpty = RR.trueRetention([], { nowMs: NOW, days: 30 });
+check(trEmpty.overall.attempts === 0 && trEmpty.overall.rate === null,
+  "no attempts must yield a null rate, not 0% — an empty bucket is unknown, not perfect failure");
+
+// the window actually filters
+const trShort = RR.trueRetention(rows, { nowMs: NOW, days: 3 });
+check(trShort.overall.attempts < tr.overall.attempts, "a shorter window must exclude older rows");
+
 if (failures.length) {
   console.error(`retention-report-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

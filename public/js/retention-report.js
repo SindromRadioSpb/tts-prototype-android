@@ -107,10 +107,80 @@
     };
   }
 
+  function _bucket() { return { attempts: 0, passed: 0, rate: null }; }
+  function _seal(b) { b.rate = b.attempts ? b.passed / b.attempts : null; return b; }
+
+  // Channel family = the prefix before ':' — the trainer writes '<channel>[:<mode>]'.
+  function _family(channel) {
+    var c = String(channel == null ? "" : channel);
+    var i = c.indexOf(":");
+    return (i >= 0 ? c.slice(0, i) : c) || "unknown";
+  }
+
+  function _meta(row) {
+    try { return typeof row.meta_json === "string" ? JSON.parse(row.meta_json) : (row.meta || {}); }
+    catch (_) { return {}; }
+  }
+
+  // True retention over a window. The honesty rules ARE the feature:
+  //   • a skip is an explicit refusal, not a retrieval outcome — excluded from BOTH sides and
+  //     reported separately, because folding it either way lies in a different direction;
+  //   • annulled rows leave the numbers exactly as they leave the fold;
+  //   • mark and seed rows are not retrievals and never count;
+  //   • pass is grade > 1 (the reference's own rule: only Again is a failure);
+  //   • an empty bucket reports null, not 0% — unknown is not the same as total failure.
+  //
+  // byScope is the first consumer of meta.evidence_scope, written on every grade event since
+  // 2026-08-11 and never read. A high recognition rate beside a low unsupported-production rate
+  // is the honest answer to "do I know this word, or do I merely recognise it?" — the question
+  // the scaffolding contract deliberately left open.
+  function trueRetention(rows, opts) {
+    opts = opts || {};
+    var now = Number(opts.nowMs) || 0;
+    var days = Math.max(1, Math.min(3650, Math.round(Number(opts.days) || 30)));
+    var since = now - days * DAY_MS;
+    var list = Array.isArray(rows) ? rows : [];
+
+    var annulled = {};
+    for (var a = 0; a < list.length; a++) {
+      var ar = list[a];
+      if (!ar || ar.kind !== "annul") continue;
+      var am = _meta(ar);
+      if (am && am.annul_of != null) annulled[String(am.annul_of)] = 1;
+    }
+
+    var overall = _bucket(), byChannel = {}, byScope = {}, skipped = 0;
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      if (!r) continue;
+      if (r.kind !== "review" && r.kind !== "skip") continue;
+      if (annulled[String(r.id)]) continue;
+      var at = Date.parse(r.reviewed_at || "") || 0;
+      if (at < since) continue;
+      if (r.kind === "skip") { skipped++; continue; }
+      var g = Number(r.grade) || 0;
+      if (!(g >= 1 && g <= 4)) continue;
+      var meta = _meta(r);
+      var fam = _family(r.channel);
+      var scope = (meta && meta.evidence_scope) ? String(meta.evidence_scope) : "unknown";
+      if (!byChannel[fam]) byChannel[fam] = _bucket();
+      if (!byScope[scope]) byScope[scope] = _bucket();
+      var pass = g > 1 ? 1 : 0;
+      overall.attempts++; overall.passed += pass;
+      byChannel[fam].attempts++; byChannel[fam].passed += pass;
+      byScope[scope].attempts++; byScope[scope].passed += pass;
+    }
+    _seal(overall);
+    for (var c in byChannel) _seal(byChannel[c]);
+    for (var s in byScope) _seal(byScope[s]);
+    return { overall: overall, byChannel: byChannel, byScope: byScope, skipped: skipped, window: days };
+  }
+
   return {
     ENGINE_VERSION: ENGINE_VERSION,
     forecast: forecast,
     intervalHistogram: intervalHistogram,
-    loadBalance: loadBalance
+    loadBalance: loadBalance,
+    trueRetention: trueRetention
   };
 });
