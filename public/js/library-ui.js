@@ -1626,11 +1626,18 @@ function tagReaderTableLang(mount) {
 // focus trap while open; the morphology card manages its own lifecycle (reader-morph).
 let _roomFocusReturn = null, _roomFocusReturnId = '', _roomFocusReturnKey = '';
 function roomFocusInto(container) {
-  try {
-    _roomFocusReturn = document.activeElement;
-    _roomFocusReturnId = (_roomFocusReturn && _roomFocusReturn.id) || '';
-    _roomFocusReturnKey = (_roomFocusReturn && _roomFocusReturn.getAttribute && _roomFocusReturn.getAttribute('data-focus-key')) || '';
-  } catch (_) { _roomFocusReturn = null; _roomFocusReturnId = ''; _roomFocusReturnKey = ''; }
+  // Re-entrant callers (T1: the launch screen restarts startDueReview from a button INSIDE the
+  // dialog) must not overwrite the return target with an element that is about to be detached —
+  // restoring to a detached node drops focus to <body>. Keep the target captured on entry.
+  let reentrant = false;
+  try { reentrant = !!(container && document.activeElement && container.contains(document.activeElement)); } catch (_) { reentrant = false; }
+  if (!reentrant) {
+    try {
+      _roomFocusReturn = document.activeElement;
+      _roomFocusReturnId = (_roomFocusReturn && _roomFocusReturn.id) || '';
+      _roomFocusReturnKey = (_roomFocusReturn && _roomFocusReturn.getAttribute && _roomFocusReturn.getAttribute('data-focus-key')) || '';
+    } catch (_) { _roomFocusReturn = null; _roomFocusReturnId = ''; _roomFocusReturnKey = ''; }
+  }
   if (!container) return;
   const f = container.querySelector('button, [tabindex="0"], input, select, a[href]') || container;
   try { if (f && f.focus) f.focus(); } catch (_) {}

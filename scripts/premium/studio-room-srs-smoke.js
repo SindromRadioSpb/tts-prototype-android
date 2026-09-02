@@ -69,6 +69,18 @@ async function browserContracts() {
   const page = await ctx.newPage();
   const dueTriggerSelector = '#roomDueCta:not([hidden]), .learning-home-action[data-learning-due]:not([hidden])';
   const dueTrigger = () => page.locator(dueTriggerSelector).first();
+  // T1 — the due review opens on a launch screen stating the session arithmetic before the
+  // learner commits; one tap starts it. Every entry point in this gate goes through here, so
+  // the extra step is asserted once instead of patched at four call sites.
+  // The app-update toast (z-index 1300, bottom: 64px) can float over the bottom sheet
+  // (z-index 990) after a version change — dismiss it as a learner would rather than
+  // force-clicking through it, so this gate keeps exercising the real flow.
+  const startFromLaunch = async () => {
+    await page.waitForSelector(".room-study:not([hidden]) .room-train-launch", { timeout: 30000 });
+    const later = page.locator(".room-update-toast .ru-later");
+    if (await later.count()) { await later.first().click({ timeout: 5000 }).catch(() => {}); }
+    await page.locator("[data-train-launch-start]").click();
+  };
   await page.addInitScript(() => {
     localStorage.setItem("localMode", "1");
     localStorage.setItem("phase6FirstOpenSeen", "smoke");
@@ -127,6 +139,13 @@ async function browserContracts() {
     await page.waitForSelector(dueTriggerSelector, { timeout: 20000 });
     const roomDueBefore = Number(((await dueTrigger().textContent()) || "").match(/\d+/)?.[0] || 0);
     await dueTrigger().click();
+    // T1 — the due review now opens on a launch screen that states the arithmetic (what is due,
+    // what was done today, what this session will serve) before the learner commits. One tap
+    // starts it; the start control is focused so the extra step costs a keystroke.
+    await page.waitForSelector(".room-study:not([hidden]) .room-train-launch", { timeout: 30000 });
+    const launchPlan = (await page.locator(".room-train-launch-facts").textContent() || "").trim();
+    check(/\d/.test(launchPlan), "launch screen states the session arithmetic before starting (" + launchPlan.replace(/\s+/g, " ") + ")");
+    await startFromLaunch();
     await page.waitForSelector(".room-study:not([hidden]) .room-train-progress", { timeout: 30000 });
     const progress = (await page.locator(".room-train-progress").textContent() || "").trim();
     check(progress === "1 / 3", "mixed three-source Room session contains all three items (" + progress + ")");
@@ -183,6 +202,7 @@ async function browserContracts() {
     check(returnFocus.ok, "closing Room review returns focus to its visible trigger: " + JSON.stringify(returnFocus));
 
     await dueTrigger().click();
+    await startFromLaunch();
     await page.waitForSelector(".room-train-progress", { timeout: 30000 });
     await page.locator('.room-train-opt[data-correct="1"]').click();
     await page.waitForSelector(".room-train-reveal", { timeout: 10000 });
@@ -256,6 +276,7 @@ async function browserContracts() {
 
     await primary.click();
     await page.waitForURL(/\/library\.html/);
+    await startFromLaunch();
     await page.waitForSelector(".room-study:not([hidden]) .room-train-progress", { timeout: 30000 });
     await page.click('.room-study-x');
     await page.goBack({ waitUntil: "load" });
@@ -285,6 +306,7 @@ async function browserContracts() {
     // miss word A, finish word B, retry A once, then finish without an infinite loop.
     await page.waitForSelector(dueTriggerSelector, { timeout: 20000 });
     await dueTrigger().click();
+    await startFromLaunch();
     await page.waitForSelector('.room-train-progress[data-reinforcement="0"]', { timeout: 30000 });
     await page.locator('.room-train-opt[data-correct="0"]').first().click();
     await page.waitForSelector('.room-train-reveal');
