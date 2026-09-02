@@ -3626,6 +3626,35 @@ function onTrainSkip() {
   if (inp) inp.disabled = true;
   checkTrainAnswer(false, true);
 }
+// T2 — harvest verified occurrences of the answered word into the context bank. Rides the grade
+// path because that is the ONE place already holding an identity-gated anchor. Nothing here is
+// an event and nothing syncs: the bank is a derived cache, so a failure is silent and harmless —
+// the next answer refills it.
+async function _harvestContexts(item) {
+  if (!item || !item.lemmaKey || !localDb.insertWordContexts) return 0;
+  const LC = window.LemmaCanon;
+  const keyer = (LC && LC.KEYER_VERSION) || '';
+  if (!keyer) return 0;
+  const rows = [];
+  // Open-text: every occurrence _scanWords already resolved for this word in the open work.
+  if (Array.isArray(item.occ) && item.occ.length && readerTextKey) {
+    for (const o of item.occ) {
+      const row = readerRows[o && o.rowIdx];
+      if (!row || row._v3_orderIndex == null) continue;
+      rows.push({ textKey: readerTextKey, orderIndex: Number(row._v3_orderIndex),
+        sentenceId: row._v3_sentenceId != null ? String(row._v3_sentenceId) : null,
+        surface: String(item.surface || '') });
+    }
+  }
+  // Cross-text: the anchor actually served this round.
+  const s = item._source;
+  if (s && s.textKey && s.orderIndex != null && s.surface) {
+    rows.push({ textKey: String(s.textKey), orderIndex: Number(s.orderIndex),
+      sentenceId: s.sentenceId != null ? String(s.sentenceId) : null, surface: String(s.surface) });
+  }
+  if (!rows.length) return 0;
+  try { return await localDb.insertWordContexts(item.lemmaKey, rows, keyer); } catch (_) { return 0; }
+}
 async function checkTrainAnswer(correct, skipped, mode) {
   const s = _trainSession; if (!s || s.answered) return;
   s.answered = true;
@@ -3713,6 +3742,9 @@ async function checkTrainAnswer(correct, skipped, mode) {
     renderTrainItem();
     return;
   }
+  // T2 — the bank grows from real study, not from a crawl. Deliberately AFTER the commit: a
+  // derived cache must never be able to fail a canonical write.
+  try { await _harvestContexts(item); } catch (_) {}
   item._srs = sched;
   item._trainingStage = trainingStage;
   if (correct) s.correct++;

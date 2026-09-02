@@ -132,6 +132,16 @@ async function ready(ms = 20000) {
     eq(res.countsShape === true, "every scope count row must carry an id and a numeric due");
     eq(res.byDue === 2, "the Ben-Yehuda scope must report 2 due words, got " + res.byDue);
     eq(res.songDue === 2, "the song-corpus scope must report 2 due words, got " + res.songDue);
+    // ── static contracts: the bank must be fed from the grade path ─────────────
+    const roomSrc = fs.readFileSync(path.join(REPO, "public/js/library-ui.js"), "utf8");
+    eq(/async function _harvestContexts\s*\(/.test(roomSrc),
+      "the Room must harvest contexts on a graded answer");
+    eq(/_harvestContexts\(item\)/.test(roomSrc),
+      "the harvest must be called from the grade path");
+    const gradeBody = (roomSrc.match(/async function checkTrainAnswer[\s\S]*?\nfunction renderTrainReveal/) || [""])[0];
+    eq(/_harvestContexts/.test(gradeBody), "the harvest must live inside checkTrainAnswer");
+    eq(gradeBody.indexOf("commitReviewAttempt") < gradeBody.indexOf("_harvestContexts"),
+      "the harvest must run AFTER the canonical commit — a derived cache must never be able to fail a canonical write");
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     if (failures.length) {
