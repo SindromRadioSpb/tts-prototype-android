@@ -420,6 +420,21 @@ check(/getScopedLemmaKeys/.test(composeBody),
 check(/outOfScope/.test(composeBody),
   "the composer must report the out-of-scope residue so the screen can state it honestly");
 
+// ── Suite 15: fuzz is live and seeded from the item key (T3) ─────────────────
+const morphSrc2 = fs.readFileSync(path.join(ROOT, "public/js/reader-morph.js"), "utf8");
+const fsrsSrc = fs.readFileSync(path.join(ROOT, "public/js/fsrs-core.js"), "utf8");
+check(/var ENABLE_FUZZ = true;/.test(fsrsSrc), "the shipped build must have fuzz ON");
+check(/fsrs6-core-v3/.test(fsrsSrc), "flipping the fuzz constant must bump ENGINE_VERSION");
+const stepBody = (morphSrc2.match(/function fsrsStep[\s\S]*?\n  }\n/) || [""])[0];
+check(stepBody.length > 0, "fsrsStep must be locatable");
+check(/fuzzSeed/.test(stepBody), "fsrsStep must thread the fuzz seed into the engine");
+check(/itemKey/.test(stepBody), "the seed must be built from the item key");
+check(/itemKey:\s*item\.lemmaKey/.test(room), "the Room must pass the item key into the scheduler step");
+// The recorded offset is what keeps replay honest — assert the write, not just the read side.
+check(/fuzz_days/.test(room), "the grade row must record the applied fuzz offset");
+const gradeRowBlock = (room.match(/const row = \{[\s\S]*?\n    \};/) || [""])[0];
+check(/fuzz_days/.test(gradeRowBlock), "fuzz_days must be recorded on the canonical grade row itself");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

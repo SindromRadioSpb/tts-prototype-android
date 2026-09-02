@@ -167,6 +167,31 @@ for (const sc of FUZZ.scenarios) {
   eq(b.intervalDays === 9, "a recorded fuzz interval must replay exactly regardless of the build flag, got " + b.intervalDays);
 }
 
+// ── T3: fuzz must actually DECLUMP — the behavioural claim of the wave ─────────────────────
+// Words learned on the same day with the same grades all return on the same day without fuzz,
+// which is half of why the queue arrived in lumps. Parity with the reference does not prove the
+// product effect; this does.
+{
+  const base = Date.UTC(2026, 0, 1);
+  const ivls = [];
+  for (let i = 0; i < 20; i++) {
+    const key = "pid:" + (900000 + i);
+    let st = null, now = base;
+    for (const g of [3, 3, 3]) {
+      st = F.nextState(st, g, now, { fuzz: true, fuzzSeed: key + "_" + (((st && st.reps) || 0) + 1) });
+      now += st.intervalDays * 86400000;
+    }
+    ivls.push(st.intervalDays);
+  }
+  let plain = null, now = base;
+  for (const g of [3, 3, 3]) { plain = F.nextState(plain, g, now, { fuzz: false }); now += plain.intervalDays * 86400000; }
+  const distinct = new Set(ivls).size;
+  eq(distinct >= 8,
+    `fuzz must spread identical histories across many days (unfuzzed they all land on ${plain.intervalDays}), got ${distinct} distinct of 20`);
+  eq(Math.min(...ivls) < plain.intervalDays && Math.max(...ivls) > plain.intervalDays,
+    "the fuzz band must straddle the unfuzzed interval, got " + Math.min(...ivls) + ".." + Math.max(...ivls));
+}
+
 const total = pass + failures.length;
 if (failures.length) {
   console.error(`smoke:fsrs FAIL (${pass}/${total})`);

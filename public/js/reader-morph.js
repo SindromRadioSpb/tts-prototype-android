@@ -2394,7 +2394,7 @@
   // D1 (CLG-P6 prep): `correct` also accepts a NUMERIC grade 1..4 (channel-aware policy —
   // grade-policy.js decides, this step schedules with the SAME grade the log row records, so
   // replay==stored holds by construction). Boolean callers are byte-unchanged (true→3, false→1).
-  function fsrsStep(FC, prev, correct, nowMs) {
+  function fsrsStep(FC, prev, correct, nowMs, opts) {
     if (!FC || typeof FC.nextState !== "function") return null;
     var p = prev || null;
     var state = null, seeded = false, seedMeta = null;
@@ -2407,7 +2407,13 @@
       seeded = true;
     }
     var g = (typeof correct === "number") ? Math.max(1, Math.min(4, Math.round(correct))) : (correct ? 3 : 1);
-    var next = FC.nextState(state, g, nowMs);
+    // T3 — the fuzz seed. The reference's seed strategy reads reps AFTER the increment (verified
+    // by instrumenting it), so the ordinal of THIS review is (pre-review reps + 1). The caller
+    // supplies the item key; the same string is what the log row lets a reader rebuild, which is
+    // why the applied offset is recorded on the event rather than re-derived at replay time.
+    var itemKey = opts && opts.itemKey != null ? String(opts.itemKey) : "";
+    var fuzzSeed = itemKey ? (itemKey + "_" + (((state && state.reps) || 0) + 1)) : null;
+    var next = FC.nextState(state, g, nowMs, fuzzSeed ? { fuzzSeed: fuzzSeed } : null);
     return {
       seeded: seeded, seedMeta: seedMeta, state: next,
       sched: { due: next.dueMs, interval: next.intervalDays, reps: next.reps, lapses: next.lapses,

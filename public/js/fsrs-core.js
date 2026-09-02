@@ -35,11 +35,16 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
+  // v3 — T3 interval fuzz. New rows carry meta.fuzz_days and replay to it; rows without the
+  // field replay UNFUZZED, so the accumulated profile is not rescheduled by the switch-on.
+  // NOTE for ops: db/learnerGraphRepo.js skips srs_projections rows stamped with another
+  // engine, so this bump needs POST /api/learner/projections/rebuild to re-stamp them. That
+  // rebuild moves no due dates — replaying a pre-T3 row reproduces the due it already has.
   // v2 — P7.0a annul-семантика фолда (annulled review/skip исключаются из replay);
   // для логов без annul-строк фолд байт-идентичен v1 (гейты fsrs 30/30 + server-replay
   // на нетронутом golden-v1 — доказательство). Бамп = маркер «какой семантикой посчитана
   // проекция» (server stamps engine; клиентский heal — по sync_state 'annul_engine_v').
-  var ENGINE_VERSION = "fsrs6-core-v2";
+  var ENGINE_VERSION = "fsrs6-core-v3";
   var GENERATION = "FSRS-6.0";
   var REFERENCE = "ts-fsrs@5.4.1";
   var SCHEME = "fsrs";   // stamped into word_status.srs_scheme / review_log meta by callers
@@ -154,7 +159,7 @@
   // ENABLE_FUZZ decides only what NEW rows record; it never decides how a recorded row replays.
   // Transcribed byte-for-byte from ts-fsrs@5.4.1: FUZZ_RANGES, get_fuzz_range, and the alea PRNG
   // (Mash + Alea). Vectors are generated from that reference, never hand-written.
-  var ENABLE_FUZZ = false;
+  var ENABLE_FUZZ = true;
 
   var FUZZ_RANGES = [
     { start: 2.5, end: 7, factor: 0.15 },

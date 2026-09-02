@@ -3869,7 +3869,7 @@ async function checkTrainAnswer(correct, skipped, mode) {
   // step resumes an fsrs-owned word or lazy-seeds a legacy SM2 row (seed materialized in the log
   // below). If FsrsCore didn't load, fall back to legacy SM2-lite — the row honestly stays
   // scheme=sm2-lite, nothing half-converts (и D1-грейд тогда честно не применяется: у SM2 нет Hard).
-  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, item._srs, d1 ? d1.grade : correct, now) : null;
+  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, item._srs, d1 ? d1.grade : correct, now, { itemKey: item.lemmaKey }) : null;
   const grade = (fs && d1) ? d1.grade : (correct ? 3 : 1);
   const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(item._srs, correct, now);
   // The exercise ladder is replayable evidence state, not a hidden mutation of the user's manual
@@ -3896,6 +3896,12 @@ async function checkTrainAnswer(correct, skipped, mode) {
         scheduler: fs
           ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
           : { scheme: 'sm2-lite' },
+        // T3 — what the scheduler actually DID, so a replay reproduces this row exactly and a
+        // row without the field keeps replaying unfuzzed. Recorded only when fuzz moved the
+        // interval, so an unfuzzed row stays byte-identical to a pre-T3 one. Grade 1 is excluded:
+        // its 0 comes from the Again product contract, not from fuzz.
+        fuzz_days: (fs && fs.state && grade !== 1 && fs.state.intervalDays !== fs.state.refIntervalDays)
+          ? fs.state.intervalDays : undefined,
         postTeach: item._taught ? 1 : undefined,
         word_only: item._wordOnly ? 1 : undefined,
         evidence_scope: evidenceScope,
