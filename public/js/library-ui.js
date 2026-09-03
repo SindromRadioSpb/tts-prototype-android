@@ -3754,10 +3754,21 @@ function renderTrainItem() {
   if (mode === 'mc') {
     // D1 — when slot-inflected options exist, ALL 4 are bare slot forms (correct + distractors), so no
     // proclitic/inflection tell; correctness is flagged (data-correct), not string-matched. Else B1.
+    // P5 — in the B1 path the correct option was the full surface token, proclitic included, while
+    // every distractor was a citation form. A target carrying ה/ב/ל/ו/כ/ש/מ was therefore
+    // identifiable WITHOUT knowing the word, and each such success was written to review_log as
+    // genuine recall and lengthened the interval. Stripping is safe: the grid flags correctness per
+    // option (data-correct) and onTrainOption reads the flag, never the string.
+    // Residue, deliberately not chased here: a target differing from the citation form by a SUFFIX
+    // still stands out, and a suffix cannot be stripped without changing the word.
+    const RMx = window.ReaderMorph;
+    const bareCorrect = (RMx && RMx.dropProclitic) ? RMx.dropProclitic(built.cz.answer) : built.cz.answer;
     const opts = slotMc
       ? [{ he: slotMc.correctHe, correct: true }].concat(slotMc.options.slice(0, 3).map((he) => ({ he, correct: false })))
-      : [{ key: item.lemmaKey, he: built.cz.answer, correct: true }].concat(
+      : [{ key: item.lemmaKey, he: bareCorrect, correct: true }].concat(
           distractors.map((d) => ({ key: d.lemmaKey, he: d.niqqud || d.surface, correct: false })));
+    // Recorded so the reveal can name the relation when the option and the sentence form differ.
+    s._optionHe = opts[0].he;
     // deterministic placement: rotate by item index (no Math.random)
     const rot = s.idx % opts.length;
     const ordered = opts.slice(rot).concat(opts.slice(0, rot));

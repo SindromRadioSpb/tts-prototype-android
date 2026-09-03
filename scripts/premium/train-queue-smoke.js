@@ -519,6 +519,19 @@ check(RM4b.dropProclitic("וְאָמַר") === "אָמַר", "a leading ו and i
 check(RM4b.dropProclitic("קְבִיעָתְךָ") === "קְבִיעָתְךָ", "a word with no proclitic must come back untouched");
 check(RM4b.dropProclitic("") === "", "an empty string must not throw");
 
+// ── Suite 20: no proclitic give-away in the B1 option path (T4b / P5) ───────
+const mcBranch = (room.match(/if \(mode === 'mc'\)[\s\S]*?body\.appendChild\(grid\);/) || [""])[0];
+check(mcBranch.length > 0, "the multiple-choice branch must be locatable");
+check(/dropProclitic/.test(mcBranch),
+  "the B1 correct option must have its leading proclitic stripped — otherwise it is the only option "
+  + "carrying ה/ב/ל and is identifiable without knowing the word");
+check(/_optionHe/.test(mcBranch), "the displayed correct option must be recorded for the reveal");
+// The verdict must still come from the flag, never from the string we changed.
+const optHandler = (room.match(/function onTrainOption[\s\S]*?\n}\n/) || [""])[0];
+check(optHandler.length > 0, "the option handler must be locatable");
+check(/data-correct/.test(optHandler), "multiple-choice correctness must stay flag-based, not string-matched");
+check(!/cz\.answer/.test(optHandler), "the option handler must not compare against the sentence form");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));
