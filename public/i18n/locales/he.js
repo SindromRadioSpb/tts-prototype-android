@@ -2983,6 +2983,7 @@ window.I18N_LOCALES.he = {
         leechNextContext: "משפט אחר",
         leechChannel: "להחליף מצב",
         leechKeep: "להשאיר בסבב",
+        answerInText: "בטקסט: {form}",
         reportTitle: "איך הזיכרון מתקדם",
         reportForecast: "עומס ל-30 יום",
         reportRetention: "שימור",

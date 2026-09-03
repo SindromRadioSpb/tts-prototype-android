@@ -2987,6 +2987,7 @@ window.I18N_LOCALES.ru = {
         leechNextContext: "Другое предложение",
         leechChannel: "Сменить режим",
         leechKeep: "Оставить в обороте",
+        answerInText: "в тексте: {form}",
         reportTitle: "Как идёт запоминание",
         reportForecast: "Нагрузка на 30 дней",
         reportRetention: "Удержание",

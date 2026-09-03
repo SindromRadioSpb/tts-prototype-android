@@ -4046,6 +4046,14 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   ansRow.appendChild(el('span', { class: 'room-train-ans', attrs: { lang: 'he', dir: 'rtl' }, text: built.cz.answer }));
   ansRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': built.cz.answer, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   rev.appendChild(ansRow);
+  // P4 — the option the learner picked is deliberately NOT the sentence form: slot options are bare
+  // by design so the correct one carries no inflection tell, and P5 strips the proclitic in the B1
+  // path for the same reason. Correct behaviour that reads as a bug unless it is named — so name it
+  // instead of "fixing" it by putting the tell back.
+  if (s._optionHe && built.cz.answer && s._optionHe !== built.cz.answer) {
+    rev.appendChild(el('div', { class: 'room-train-ansfrom', attrs: { dir: 'rtl', lang: 'he' },
+      text: s._optionHe + ' · ' + tt('room.morph.study.answerInText', 'в тексте: {form}').replace('{form}', built.cz.answer) }));
+  }
   if (item.gloss) rev.appendChild(el('div', { class: 'room-train-ansgloss', attrs: { dir: 'ltr' }, text: item.gloss }));
   // D6 — for audio/reverse channels the Hebrew sentence wasn't shown in the question; reveal it now so the
   // learner sees the word in its context (read mode already showed it, so skip there to avoid repetition).

@@ -2973,6 +2973,7 @@ window.I18N_LOCALES.en = {
         leechNextContext: "A different sentence",
         leechChannel: "Change the mode",
         leechKeep: "Keep it in rotation",
+        answerInText: "in the text: {form}",
         reportTitle: "How your memory is doing",
         reportForecast: "Load over 30 days",
         reportRetention: "Retention",

@@ -532,6 +532,17 @@ check(optHandler.length > 0, "the option handler must be locatable");
 check(/data-correct/.test(optHandler), "multiple-choice correctness must stay flag-based, not string-matched");
 check(!/cz\.answer/.test(optHandler), "the option handler must not compare against the sentence form");
 
+// ── Suite 21: the reveal names the option→form relation (T4b / P4) ──────────
+check(/room\.morph\.study\.answerInText/.test(room), "library-ui must use the answerInText string");
+localeSrc.forEach((L) => check(/\banswerInText\s*:/.test(L.src), `locale ${L.name} must define answerInText`));
+const revealBody = (room.match(/function renderTrainReveal[\s\S]*?\n}\n/) || [""])[0];
+check(revealBody.length > 0, "renderTrainReveal must be locatable");
+check(/_optionHe/.test(revealBody), "the reveal must know which option text was shown");
+check(/room-train-ansfrom/.test(revealBody), "the relation must have its own element to style");
+check(/_optionHe !== built\.cz\.answer/.test(revealBody),
+  "the relation must appear only when the option and the sentence form actually differ");
+check(/\.room-train-ansfrom/.test(html), "library.html must style the relation line");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

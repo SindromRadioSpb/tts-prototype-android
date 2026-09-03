@@ -169,14 +169,16 @@ async function startFromLaunchShot(page) {
         const db = await import("/db/local-db.js");
         const now = Date.now();
         await db.createText({ id: "lz", text_key: "lz:1", title: "Текст", source_text: "זֶה בַּיִת גָּדוֹל.", source_meta_json: JSON.stringify({ origin: "studio" }) });
-        await db.addSentence("lz", { id: "lz-s0", he_plain: "זה בית גדול", he_niqqud: "זֶה בַּיִת גָּדוֹל.", ru: "Это большой дом." });
+        // T4b — the sentence puts the target behind a definite article, so the multiple-choice
+        // option is the bare form and the reveal must name the relation to הַבַּיִת.
+        await db.addSentence("lz", { id: "lz-s0", he_plain: "אהבתי את הבית", he_niqqud: "אָהַבְתִּי אֶת הַבַּיִת.", ru: "Я любил этот дом." });
         let k = 0;
         for (const [w, nq] of [["בית", "בַּיִת"], ["ספר", "סֵפֶר"], ["שיר", "שִׁיר"], ["ילד", "יֶלֶד"]]) {
           const card = await window.ReaderMorph.resolveWordLight(w, nq);
           if (!card || !card.lemmaKey) continue;
           await db.setWordStatus(card.lemmaKey, "l1",
             { due: now - 3600000, interval: 0, reps: 6, lapses: 9, stability: 1.2, difficulty: 8, reviewedAt: now - 5 * 86400000, scheme: "fsrs" },
-            { textKey: "lz:1", sentenceId: "lz-s0", orderIndex: 0, surface: w });
+            { textKey: "lz:1", sentenceId: "lz-s0", orderIndex: 0, surface: w === "בית" ? "הבית" : w });
           k++;
         }
         return k;
@@ -190,9 +192,11 @@ async function startFromLaunchShot(page) {
       await sleep(300);
       const lfile = path.join(SHOTS, "leech-380-ru.png");
       await lpage.screenshot({ path: lfile, fullPage: false });
+      const relation = await lpage.locator(".room-train-ansfrom").count();
+      const relationText = relation ? (await lpage.locator(".room-train-ansfrom").first().textContent() || "").trim() : "";
       const actions = await lpage.locator(".room-train-leech-actions button").count();
       const loverflow = await lpage.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
-      leechCheck = { actions, pageErrors: lerrs.length, file: path.relative(ROOT, lfile) };
+      leechCheck = { actions, relation, relationText, pageErrors: lerrs.length, file: path.relative(ROOT, lfile) };
       if (actions < 4) throw new Error("leech panel rendered only " + actions + " actions — repair path missing");
       if (loverflow) throw new Error("leech panel: horizontal overflow");
       await lctx.close();
