@@ -511,6 +511,14 @@ check(/reportNoData/.test(pctBody), "the rate formatter must render an unknown r
 check(/rate == null/.test(pctBody), "the formatter must branch on null specifically, not on falsiness — 0 is a real rate");
 check(/_pct\(/.test(reportBody), "the report must route every rate through that formatter");
 
+// ── Suite 19: proclitic stripper is shared, not reimplemented (T4b) ──────────
+const RM4b = require(path.join(ROOT, "public/js/reader-morph.js"));
+check(typeof RM4b.dropProclitic === "function", "the vocalized proclitic stripper must be exported");
+check(RM4b.dropProclitic("הַשִּׁיר") === "שִּׁיר", "a leading ה and its vowel must go, got " + RM4b.dropProclitic("הַשִּׁיר"));
+check(RM4b.dropProclitic("וְאָמַר") === "אָמַר", "a leading ו and its vowel must go");
+check(RM4b.dropProclitic("קְבִיעָתְךָ") === "קְבִיעָתְךָ", "a word with no proclitic must come back untouched");
+check(RM4b.dropProclitic("") === "", "an empty string must not throw");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));

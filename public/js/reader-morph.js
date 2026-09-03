@@ -2720,7 +2720,7 @@
     dueSetFromSchedule: dueSetFromSchedule, dueMarkStats: dueMarkStats,
     // Retention P5.6 — owner fork R-2(a): manual l1–l4 mark seeds the schedule (pure mapping)
     manualMarkSeed: manualMarkSeed,
-    findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
+    findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions, dropProclitic: _dropProcliticNq,
     streakFromDays: streakFromDays, streakView: streakView, studyHeatmap: studyHeatmap,
     STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,
     availableChannels: availableChannels,
