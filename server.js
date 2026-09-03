@@ -1068,6 +1068,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/library.html",
   "/js/library-ui.js?v=459",
   "/js/train-queue.js?v=459",
+  "/js/retention-report.js?v=460",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=415",

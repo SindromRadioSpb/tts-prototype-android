@@ -3679,6 +3679,22 @@ export async function getReviewLog(itemKey, limit) {
     return rows || [];
   } catch (_) { return []; }
 }
+// T4 — bounded reader for the analytics fold. getReviewLog() with no key reads the WHOLE history
+// (up to 100k rows); the report only ever looks at a window, so the window is cut in the query
+// using ix_review_log_time rather than folded and discarded. `annul` rows are fetched regardless
+// of age: an annulment written today can target a review inside the window, and dropping it
+// would leave an annulled grade counted.
+export async function getReviewLogSince(sinceIso, limit) {
+  const since = String(sinceIso || "").trim();
+  if (!since) return [];
+  const lim = Math.max(1, Math.min(100000, Number(limit) || 50000));
+  try {
+    return (await q(
+      `SELECT * FROM review_log
+        WHERE reviewed_at >= ? OR kind = 'annul'
+        ORDER BY reviewed_at ASC, id ASC LIMIT ?`, [since, lim])) || [];
+  } catch (_) { return []; }
+}
 // Bounded reader for the Room exercise-stage fold. Fetch only the words in the active session
 // (normally <=12), rather than scanning a user's entire append-only history on every launch.
 export async function getTrainingStageRows(itemKeys) {

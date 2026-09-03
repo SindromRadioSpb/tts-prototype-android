@@ -90,7 +90,7 @@ async function startFromLaunchShot(page) {
   if (!(await ready())) { console.error("server failed:\n" + srv.logs.join("")); await stopServer(srv.child); process.exit(1); }
   const browser = await chromium.launch({ headless: true });
   const taken = [];
-  let scopeCheck = null, leechCheck = null;
+  let scopeCheck = null, leechCheck = null, reportCheck = null;
   try {
     for (const view of [
       { name: "launch-380-ru", w: 380, h: 844, locale: "ru" },
@@ -198,9 +198,75 @@ async function startFromLaunchShot(page) {
       await lctx.close();
     }
 
-    console.log(JSON.stringify({ taken, scopeCheck, leechCheck }, null, 2));
+    // ── T4: the retention report ──────────────────────────────────────────────
+    // Seeded with graded history so every section has something real to render. Opened the way a
+    // learner opens it — the 📊 button in the study sheet.
+    for (const rv of [{ name: "report-380-ru", locale: "ru" }, { name: "report-380-he-rtl", locale: "he" }]) {
+      const rctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+      await rctx.addInitScript(`(() => {
+        localStorage.setItem("localMode", "1");
+        localStorage.setItem("app.locale", ${JSON.stringify(rv.locale)});
+        localStorage.setItem("phase6FirstOpenSeen", "smoke");
+        localStorage.setItem("onboardingSeen_v1", JSON.stringify({ action: "smoke" }));
+        localStorage.setItem("v3.byokOnboardingDismissed", "1");
+      })()`);
+      const rpage = await rctx.newPage();
+      const rerrs = [];
+      rpage.on("pageerror", (e) => rerrs.push(String(e)));
+      await rpage.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
+      await rpage.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 30000 });
+      await rpage.evaluate(async () => {
+        const db = await import("/db/local-db.js");
+        const now = Date.now(), DAY = 86400000;
+        await db.createText({ id: "rp", text_key: "rp:1", title: "Текст", source_text: "זֶה בַּיִת גָּדוֹל.", source_meta_json: JSON.stringify({ origin: "studio" }) });
+        await db.addSentence("rp", { id: "rp-s0", he_plain: "זה בית גדול", he_niqqud: "זֶה בַּיִת גָּדוֹל.", ru: "Это большой дом." });
+        const words = [["בית", "בַּיִת"], ["ספר", "סֵפֶר"], ["שיר", "שִׁיר"], ["ילד", "יֶלֶד"], ["דרך", "דֶּרֶךְ"], ["עיר", "עִיר"]];
+        const chans = ["read:mc", "read:mc", "listen:mc", "reverse:type", "dictate:tiles", "read:tiles"];
+        const scopes = ["recognition", "recognition", "recognition", "unsupported_production", "assisted_production", "context_supported"];
+        const failsPerWord = [0, 0, 1, 3, 2, 1];   // of 4 attempts each
+        for (let i = 0; i < words.length; i++) {
+          const card = await window.ReaderMorph.resolveWordLight(words[i][0], words[i][1]);
+          if (!card || !card.lemmaKey) continue;
+          await db.setWordStatus(card.lemmaKey, "l2",
+            { due: now + (i - 1) * 3 * DAY, interval: [1, 4, 9, 25, 70, 200][i], reps: 3 + i, lapses: i === 0 ? 9 : (i === 1 ? 5 : i % 3),
+              stability: 3 + i * 4, difficulty: 6, reviewedAt: now - 4 * DAY, scheme: "fsrs" }, null);
+          for (let g = 0; g < 4; g++) {
+            await db.dbRun(
+              `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+               VALUES (?,?,?,?,?,?,?,NULL,?)`,
+              ["rp-" + i + "-" + g, card.lemmaKey, "review", new Date(now - (g + 1) * 2 * DAY).toISOString(),
+               // Differentiated on purpose: recognition holds, unsupported production does not.
+               // A fixture where every bucket reads 75% would hide the very contrast the byScope
+               // breakdown exists to show.
+               (g < failsPerWord[i] ? 1 : 3), "room-due-queue", chans[i], JSON.stringify({ evidence_scope: scopes[i] })]);
+          }
+        }
+        await db.dbRun(
+          `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+           VALUES (?,?,?,?,?,?,?,NULL,'{}')`,
+          ["rp-skip", "pid:1", "skip", new Date(now - DAY).toISOString(), 1, "room-due-queue", "read:mc"]);
+      });
+      // The 📊 button lives in the study sheet's head, so reach it the way a learner does: the
+      // canonical Studio→Room due deep-link opens the sheet.
+      await rpage.goto(BASE + "/library.html?canon=skip&review=due&from=studio", { waitUntil: "load" });
+      await rpage.waitForSelector("[data-report-open]", { timeout: 25000 });
+      await rpage.locator("[data-report-open]").first().click();
+      await rpage.waitForSelector(".report-sheet", { timeout: 20000 });
+      await sleep(400);
+      const rfile = path.join(SHOTS, rv.name + ".png");
+      await rpage.screenshot({ path: rfile, fullPage: false });
+      const sections = await rpage.locator(".report-section").count();
+      const roverflow = await rpage.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+      if (rv.locale === "ru") reportCheck = { sections, pageErrors: rerrs.length, file: path.relative(ROOT, rfile) };
+      if (sections < 4) throw new Error(rv.name + ": report rendered only " + sections + " sections");
+      if (roverflow) throw new Error(rv.name + ": horizontal overflow");
+      await rctx.close();
+    }
+
+    console.log(JSON.stringify({ taken, scopeCheck, leechCheck, reportCheck }, null, 2));
     if (!scopeCheck || !scopeCheck.pressed) throw new Error("scope selection was never verified");
     if (!leechCheck) throw new Error("leech repair panel was never captured");
+    if (!reportCheck) throw new Error("retention report was never captured");
     console.log("OK — launch screen captured at 380 RU, 380 HE/RTL and 1280 RU with no horizontal overflow");
   } catch (e) {
     console.error("FAILED:", e && e.message ? e.message : e);

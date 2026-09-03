@@ -2360,6 +2360,13 @@ function ensureStudySheet() {
   calBtn.textContent = '📅';
   calBtn.addEventListener('click', () => openStudyHeatmap());
   head.appendChild(calBtn);
+  // T4 — the report lives beside the calendar: both answer "how am I doing", one by activity and
+  // one by memory.
+  const repBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'data-report-open': '1',
+    'aria-label': tt('room.morph.study.reportTitle', 'Как идёт запоминание'),
+    title: tt('room.morph.study.reportTitle', 'Как идёт запоминание') } });
+  repBtn.textContent = '📊';
+  head.appendChild(repBtn);
   card.appendChild(head);
   card.appendChild(_dueBadgeEl('room-study-duebadge'));   // D3 — «В работе / К повторению» (both modes)
   // 4.3b — «Список / Тренировка» mode toggle (owner decision 4)
@@ -2406,6 +2413,7 @@ function ensureStudySheet() {
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
     if (t.closest('[data-train-again]')) { restartTraining(); return; }
     if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
+    if (t.closest('[data-report-open]')) { openRetentionReport(); return; }
     if (t.closest('[data-heatmap-toggle]')) { openStudyHeatmap(); return; }   // D7.1 — tap the streak → activity heatmap sheet
     const chSeg = t.closest('[data-train-channel]'); if (chSeg) { onTrainChannel(chSeg.getAttribute('data-train-channel')); return; }   // D6 — channel
     if (t.closest('[data-train-listen-row]')) { try { _playSentenceAudio(_trainSession && _trainSession._built); } catch (_) {} return; }   // D6 — replay sentence
@@ -4250,6 +4258,140 @@ function buildHeatmapGrid(hm) {
 // D7.1 — premium bottom-sheet for the activity heatmap. Reachable from the streak (home + study sheet)
 // AND the «📚 Учить» header (always, even with no streak → honest empty state). Mirrors openFinishedAllSheet.
 let _heatmapSheetOpen = false;
+// T4 — the trainer's instrument. Nothing was computed over review_log, so no claim about the
+// scheduler could be checked by the learner. READ-ONLY by contract: this function writes no
+// status, no event and no schedule — a report that can change what it measures is not a report.
+// Built on openStudyHeatmap's shape, so it inherits an overlay already proven at 380px and RTL.
+let _reportSheetOpen = false;
+function _pct(rate) {
+  // A null rate is UNKNOWN, not 0%. Rendering an empty bucket as 0% would read as total failure.
+  return rate == null ? tt('room.morph.study.reportNoData', 'нет данных') : Math.round(rate * 100) + '%';
+}
+async function openRetentionReport() {
+  if (_reportSheetOpen) return; _reportSheetOpen = true;
+  const RR = window.RetentionReport;
+  const ov = el('div', { class: 'list-picker-ov report-sheet-ov' });
+  const box = el('div', { class: 'list-picker report-sheet', attrs: { dir: uiDirRoom() } });
+  const close = () => { _reportSheetOpen = false; try { ov.remove(); } catch (_) {} document.removeEventListener('keydown', onKey); roomFocusRestore(); };
+  const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  try {
+    box.appendChild(el('div', { class: 'list-picker-title', text: '📊 ' + tt('room.morph.study.reportTitle', 'Как идёт запоминание') }));
+    const body = el('div', { class: 'report-sheet-body' });
+    const WINDOW_DAYS = 30;
+    let rows = [], schedule = {}, states = {};
+    try { rows = (await localDb.getReviewLogSince(new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString())) || []; } catch (_) { rows = []; }
+    try { schedule = (await localDb.getSrsSchedule()) || {}; } catch (_) { schedule = {}; }
+    try { states = (await localDb.getAllWordStatuses()) || {}; } catch (_) { states = {}; }
+    const prefs = trainPrefs();
+    const now = Date.now();
+    const fc = RR ? RR.forecast(schedule, now, WINDOW_DAYS) : { days: [], total: 0, peak: 0 };
+    const tr = RR ? RR.trueRetention(rows, { nowMs: now, days: WINDOW_DAYS }) : { overall: { attempts: 0, rate: null }, byChannel: {}, byScope: {}, skipped: 0 };
+    const lb = RR ? RR.loadBalance(schedule, states, now, prefs.reviewsPerDay) : { dueNow: 0, scheduled: 0, requiredPerDay: 0, growing: false, daysToDrain: 0 };
+    const hist = RR ? RR.intervalHistogram(schedule) : [];
+    const leeches = RR ? RR.leechList(schedule, states, rows, leechThreshold(), 20) : [];
+
+    if (!lb.scheduled && !tr.overall.attempts) {
+      body.appendChild(el('div', { class: 'report-empty', i18n: 'room.morph.study.reportEmpty',
+        text: tt('room.morph.study.reportEmpty', 'Пока нечего показать. Пройдите несколько повторений — отчёт наполнится сам.') }));
+    } else {
+      // ── load ──────────────────────────────────────────────────────────────
+      const load = el('div', { class: 'report-section' });
+      load.appendChild(el('div', { class: 'report-h', text: tt('room.morph.study.reportForecast', 'Нагрузка на 30 дней') }));
+      const strip = el('div', { class: 'report-strip' });
+      for (const d of fc.days) {
+        const h = fc.peak ? Math.max(2, Math.round((d.due / fc.peak) * 56)) : 2;
+        strip.appendChild(el('div', { class: 'report-bar', attrs: { style: 'height:' + h + 'px', title: '+' + d.day + ': ' + d.due } }));
+      }
+      load.appendChild(strip);
+      load.appendChild(el('div', { class: 'report-note',
+        text: lb.growing || !isFinite(lb.daysToDrain)
+          ? tt('room.morph.study.reportDrainNever', 'При текущем лимите долг не разойдётся — очередь растёт.')
+          : tt('room.morph.study.reportDrain', 'Текущий долг разойдётся примерно за {n} дн.').replace('{n}', String(lb.daysToDrain)) }));
+      body.appendChild(load);
+
+      // ── retention ─────────────────────────────────────────────────────────
+      const ret = el('div', { class: 'report-section' });
+      ret.appendChild(el('div', { class: 'report-h', text: tt('room.morph.study.reportRetention', 'Удержание') }));
+      const addRow = (label, b) => {
+        const r = el('div', { class: 'report-row' });
+        r.appendChild(el('span', { class: 'report-row-k', text: label }));
+        r.appendChild(el('span', { class: 'report-row-v', text: _pct(b.rate) + (b.attempts ? '  (' + b.passed + '/' + b.attempts + ')' : '') }));
+        ret.appendChild(r);
+      };
+      addRow('· ' + tt('room.morph.study.reportRetention', 'Удержание'), tr.overall);
+      for (const k of Object.keys(tr.byChannel).sort()) addRow(_channelLabel(k), tr.byChannel[k]);
+      for (const k of Object.keys(tr.byScope).sort()) addRow(_scopeLabel(k), tr.byScope[k]);
+      if (tr.skipped) {
+        ret.appendChild(el('div', { class: 'report-note',
+          text: tt('room.morph.study.reportSkipped', 'Пропущено (не засчитано ни в ту, ни в другую сторону): {n}').replace('{n}', String(tr.skipped)) }));
+      }
+      body.appendChild(ret);
+
+      // ── intervals ─────────────────────────────────────────────────────────
+      const iv = el('div', { class: 'report-section' });
+      iv.appendChild(el('div', { class: 'report-h', text: tt('room.morph.study.reportIntervals', 'Интервалы') }));
+      const maxC = hist.reduce((m, b) => Math.max(m, b.count), 0) || 1;
+      for (const b of hist) {
+        const r = el('div', { class: 'report-row' });
+        r.appendChild(el('span', { class: 'report-row-k', text: b.label }));
+        const barWrap = el('span', { class: 'report-hbar-wrap' });
+        barWrap.appendChild(el('span', { class: 'report-hbar', attrs: { style: 'width:' + Math.round((b.count / maxC) * 100) + '%' } }));
+        r.appendChild(barWrap);
+        r.appendChild(el('span', { class: 'report-row-v', text: String(b.count) }));
+        iv.appendChild(r);
+      }
+      body.appendChild(iv);
+
+      // ── leeches ───────────────────────────────────────────────────────────
+      if (leeches.length) {
+        const lz = el('div', { class: 'report-section' });
+        lz.appendChild(el('div', { class: 'report-h', text: tt('room.morph.study.reportLeeches', 'Залипшие слова') }));
+        for (const w of leeches) {
+          const r = el('div', { class: 'report-row' });
+          r.appendChild(el('span', { class: 'report-row-k' + (w.released ? ' report-released' : ''), text: _leechLabel(w.key) }));
+          r.appendChild(el('span', { class: 'report-row-v', text: '✗' + w.lapses + '  ' + _pct(w.rate) }));
+          lz.appendChild(r);
+        }
+        body.appendChild(lz);
+      }
+    }
+    box.appendChild(body);
+    const done = el('button', { class: 'list-picker-done', attrs: { type: 'button' } });
+    done.textContent = tt('room.corpus.lists.done', 'Готово');
+    done.addEventListener('click', close);
+    box.appendChild(done);
+    ov.appendChild(box);
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(ov);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    roomFocusInto(box);
+  } catch (_) { _reportSheetOpen = false; try { ov.remove(); } catch (_) {} }
+}
+// A lemma key is 'skeleton#pos' or 'pid:N'; show the readable half rather than the raw key.
+function _leechLabel(key) {
+  const k = String(key || '');
+  if (k.indexOf('pid:') === 0) return k;
+  const h = k.lastIndexOf('#');
+  return h > 0 ? k.slice(0, h) : k;
+}
+// Reuse the trainer's OWN channel names rather than inventing a second vocabulary for the same
+// four things — a report that renames what the tabs call something else teaches the learner two
+// words for one idea.
+function _channelLabel(fam) {
+  const k = { read: 'chRead', listen: 'chListen', reverse: 'chReverse', dictate: 'chDictate' }[fam];
+  return k ? tt('room.morph.study.' + k, fam) : ('· ' + fam);
+}
+// Evidence classes were rendering as raw snake_case identifiers in a Russian UI. They are the
+// most important rows in the report — the difference between recognising a word and producing
+// it — so they get real names in every locale.
+function _scopeLabel(scope) {
+  const k = {
+    recognition: 'evRecognition', assisted_production: 'evAssisted',
+    context_supported: 'evContext', unsupported_production: 'evProduction',
+  }[scope];
+  return k ? tt('room.morph.study.' + k, scope) : ('· ' + scope);
+}
 async function openStudyHeatmap() {
   if (_heatmapSheetOpen) return; _heatmapSheetOpen = true;
   try {

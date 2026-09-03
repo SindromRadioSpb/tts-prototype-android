@@ -2058,6 +2058,21 @@
     .room-train-launch-fact { font-size: 14px; color: var(--text-secondary); }
     .room-train-launch-note, .room-train-launch-load { font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
     .room-train-launch-load[data-grow="1"] { color: #d29922; }
+    /* T4 — retention report sheet. Wide content scrolls INSIDE its own strip, never the page. */
+    .report-sheet { max-width: 560px; }
+    .report-sheet-body { max-height: 62vh; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 4px 2px; }
+    .report-empty { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); padding: 12px 4px; }
+    .report-section { display: flex; flex-direction: column; gap: 6px; }
+    .report-h { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-secondary); }
+    .report-strip { display: flex; align-items: flex-end; gap: 2px; height: 60px; overflow-x: auto; padding-bottom: 2px; }
+    .report-bar { flex: 0 0 8px; background: var(--accent); border-radius: 2px 2px 0 0; opacity: .75; }
+    .report-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; min-height: 26px; }
+    .report-row-k { flex: 0 0 auto; min-width: 96px; color: var(--text-primary); }
+    .report-row-v { margin-inline-start: auto; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+    .report-hbar-wrap { flex: 1 1 auto; height: 8px; background: var(--bg-muted); border-radius: 4px; overflow: hidden; }
+    .report-hbar { display: block; height: 100%; background: var(--accent); opacity: .75; }
+    .report-note { font-size: 12.5px; line-height: 1.45; color: var(--text-secondary); }
+    .report-released { opacity: .55; text-decoration: line-through; }
     /* T3 — leech repair panel: repair first, surrender last. */
     .room-train-leech-title { font-weight: 700; margin-bottom: 4px; }
     .room-train-leech-why { font-size: 13px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 8px; }
@@ -3353,6 +3368,7 @@
      рецептивно-сильном слове → Hard(2), не Again. Pure, общий с сервером; применяется на записи. -->
 <script src="/js/grade-policy.js"></script>
 <script src="/js/train-queue.js?v=459"></script>
+<script src="/js/retention-report.js?v=460"></script>
 <!-- CLG-P3 — Cloud Sync engine (dormant until explicit login+sync; local-first Tier 1 untouched) -->
     <script src="/js/cloud-sync.js"></script>
     <!-- CLG-P9 — «Дом наставника»: API-only модуль (скелет Mini App P8); данные только из cloud API,

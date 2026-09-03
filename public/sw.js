@@ -119,6 +119,7 @@ const PRECACHE_URLS = [
   "/js/fsrs-core.js",
   "/js/grade-policy.js",
   "/js/train-queue.js?v=459",
+  "/js/retention-report.js?v=460",
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",

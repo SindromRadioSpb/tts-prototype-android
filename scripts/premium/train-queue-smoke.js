@@ -476,6 +476,41 @@ const bareReturns = (buildBody3.match(/return items;/g) || []).length;
 check(sepCalls >= 2 && bareReturns === 0,
   "every return from the builder must pass through the separation rule, got " + sepCalls + " calls and " + bareReturns + " bare returns");
 
+// ── Suite 18: retention report sheet (T4) ────────────────────────────────────
+const REPORT_KEYS = ["reportTitle", "reportForecast", "reportRetention", "reportIntervals",
+  "reportLeeches", "reportEmpty", "reportSkipped", "reportNoData", "reportDrain", "reportDrainNever"];
+// The channel and evidence-scope labels are composed from a lookup map rather than written as
+// literal dotted keys — one map beats four scattered strings — so the guard accepts either form.
+const LABEL_KEYS = ["evRecognition", "evAssisted", "evContext", "evProduction"];
+REPORT_KEYS.concat(LABEL_KEYS).forEach((k) => {
+  const dotted = new RegExp("room\\.morph\\.study\\." + k + "\\b").test(room);
+  const mapped = new RegExp("'" + k + "'").test(room);
+  check(dotted || mapped, `library-ui must use the ${k} string`);
+  localeSrc.forEach((L) => check(new RegExp("\\b" + k + "\\s*:").test(L.src), `locale ${L.name} must define ${k}`));
+});
+// A composed key is only safe if the module really resolves it under the study namespace —
+// otherwise every label silently falls back to its raw identifier.
+check(/tt\('room\.morph\.study\.' \+ k/.test(room),
+  "a map-composed label key must be resolved under room.morph.study.");
+check(/function openRetentionReport\s*\(/.test(room), "the Room must open a retention report");
+check(/data-report-open/.test(room), "the report must have an entry point");
+check(/<script src="\/js\/retention-report\.js(\?v=\d+)?"><\/script>/.test(html), "library.html must load retention-report.js");
+check(/"\/js\/retention-report\.js(\?v=\d+)?"/.test(sw), "sw.js must precache retention-report.js");
+// Read-only is the contract: a report that can change what it measures is not a report.
+const reportBody = (room.match(/async function openRetentionReport[\s\S]*?\n}\n/) || [""])[0];
+check(reportBody.length > 0, "openRetentionReport must be locatable");
+check(!/setWordStatus|commitReviewAttempt|appendReviewLog|updateSrs/.test(reportBody),
+  "the report must be READ-ONLY — it may not write a status, an event or a schedule");
+// The whole-history read was flagged as a risk in the plan; the window must be cut in the query.
+check(/getReviewLogSince/.test(room), "the report must read a bounded window, not the entire history");
+check(/export async function getReviewLogSince/.test(db), "local DB must expose the bounded reader");
+// An unknown rate must never render as 0%. The decision lives in ONE helper, so assert the
+// helper makes it and that the report routes every rate through it.
+const pctBody = (room.match(/function _pct\([\s\S]*?\n}\n/) || [""])[0];
+check(/reportNoData/.test(pctBody), "the rate formatter must render an unknown rate as «no data», never as 0%");
+check(/rate == null/.test(pctBody), "the formatter must branch on null specifically, not on falsiness — 0 is a real rate");
+check(/_pct\(/.test(reportBody), "the report must route every rate through that formatter");
+
 if (failures.length) {
   console.error(`train-queue-smoke: FAIL ${failures.length}/${checks}`);
   failures.forEach((f) => console.error("  ✗ " + f));
