@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.459";
+const CACHE_VERSION = "v3.11.460";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=459",
+  "/js/library-ui.js?v=460",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -118,7 +118,7 @@ const PRECACHE_URLS = [
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
   "/js/fsrs-core.js",
   "/js/grade-policy.js",
-  "/js/train-queue.js?v=459",
+  "/js/train-queue.js?v=460",
   "/js/retention-report.js?v=460",
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
@@ -222,9 +222,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=193",
-  "/i18n/locales/en.js?v=193",
-  "/i18n/locales/he.js?v=193",
+  "/i18n/locales/ru.js?v=194",
+  "/i18n/locales/en.js?v=194",
+  "/i18n/locales/he.js?v=194",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
