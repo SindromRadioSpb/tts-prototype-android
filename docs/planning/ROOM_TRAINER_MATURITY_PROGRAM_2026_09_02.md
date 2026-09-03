@@ -2,7 +2,7 @@
 
 Date: 2026-09-02
 Baseline runtime: `3.11.456`
-Status: T1 SHIPPED (3.11.457) · T2 SHIPPED (3.11.458) · T3 SHIPPED (3.11.459) · T4–T6 NOT STARTED
+Status: **RELEASE BOUNDARY REACHED** — T1–T4 SHIPPED and prod-verified (3.11.457 → 3.11.460). T5–T6 remain as the maturity tail.
 Predecessor canon: `docs/planning/ROOM_TRAINING_PREMIUM_RELEASE_IMPLEMENTATION_PACKET_2026_08_11.md`
 Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/planning/ROOM_DUE_CONTINUITY_2026_07_11.md`
 
@@ -11,7 +11,7 @@ Related canon: `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`, `docs/plan
 | T1 serving order | SHIPPED, prod-verified | `3.11.457` | `docs/superpowers/plans/2026-09-02-room-trainer-t1-serving-order.md`, `docs/research/room-trainer-maturity/2026-09-02/` |
 | T2 context bank + scope | SHIPPED, prod-verified | `3.11.458` | `docs/superpowers/plans/2026-09-02-room-trainer-t2-context-bank-and-scope.md`, migration 050 |
 | T3 Anki wrapper | SHIPPED, prod-verified | `3.11.459` | `docs/superpowers/plans/2026-09-02-room-trainer-t3-anki-wrapper.md` |
-| T4 retention analytics | not started | — | §8 |
+| T4 retention analytics | SHIPPED, prod-verified | `3.11.460` | `docs/superpowers/plans/2026-09-03-room-trainer-t4-retention-analytics.md` |
 | T5 FSRS optimizer | after the release | — | §9 |
 | T6 per-word channel | after the release | — | §9 |
 
@@ -28,7 +28,17 @@ words with identical histories all return on day 57 unfuzzed; with fuzz they spr
 with twelve distinct dates. The two-epoch contract holds live — a row carrying no recorded fuzz
 replays to the due it already has, so switching fuzz on rescheduled nothing.
 
-**Owner step still outstanding for T3:** run `POST /api/learner/projections/rebuild` from an
+T4 measured result, verified on the SERVED production build: an overdue word lands on forecast
+day 0 rather than falling outside the horizon; a skip is held separate from both sides of
+retention; an empty bucket reports null rather than 0%; and the report's load arithmetic agrees
+with the scheduler's own while being re-derived independently.
+
+On seeded history the report reads recognition 92% against unsupported production 25% — the first
+consumption of `meta.evidence_scope`, written on every grade event since 2026-08-11 and never
+read until now, and the honest answer to "do I know this word or do I merely recognise it" that
+the scaffolding contract deliberately left open.
+
+**Owner step for T3 — DONE 2026-09-03** (`{ok: true, keys: 5464, recomputed: 470, removed: 0}`): run `POST /api/learner/projections/rebuild` from an
 authenticated session. `ENGINE_VERSION` moved to `fsrs6-core-v3` and `db/learnerGraphRepo.js:188`
 skips projection rows stamped with another engine, so the mentor's coverage view under-reports
 until they are re-stamped. The rebuild moves no due dates.
