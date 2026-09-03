@@ -166,6 +166,19 @@ cannot currently be confirmed or refuted with data, and neither can its fix.
    never an event.
 7. The Room remains the single trainer. Studio only displays counts and deep-links
    (`public/index.html:32134` `refreshStudioReviewStatus`, `v3OpenRoomReview`).
+8. **The sentence translation and the sentence audio are STRUCTURAL, not transitional.** For any
+   target that is not the citation form, they are the only channel carrying *which* form is
+   required: the prompt names the lemma while the gap wants the surface token, article and
+   suffixes included (`ROOM_TRAINER_FORM_CONTRACT_ASSESSMENT_2026_09_03.md` §3, P1). The
+   predecessor packet's framing of them as scaffolds kept "for the current learner cohort" is
+   superseded — they may not be withdrawn as legacy. Owner decision, 2026-09-03.
+
+   Two consequences a later wave must not undo. An item with an inflected target and neither a
+   translation nor audio is unanswerable by construction, not merely hard. And P2 remains open by
+   decision: the `read` typed grader accepts the citation form for any inflected slot, so
+   **T4's «Воспроизведение без опор» row reads as an upper bound, not a measurement** —
+   tightening it before the prompt names the required form would make `read` as unanswerable as
+   `dictate`.
 
 ---
 
