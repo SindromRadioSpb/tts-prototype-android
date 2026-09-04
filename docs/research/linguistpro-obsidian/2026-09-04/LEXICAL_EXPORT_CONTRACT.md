@@ -2,9 +2,11 @@
 
 Дата: 2026-09-04
 
-Статус: `OWNER_APPROVED · CONTRACT_V1 · IMPLEMENTATION_NOT_STARTED`
+Статус: `OWNER_APPROVED · CONTRACT_V1 · P0_CORE_TECHNICAL_PASS · P0_NOT_CLOSED`
 
 Связанный документ: [общая концепция](./README.md).
+
+Первый фактический прогон: [P0 preview report](./P0_PREVIEW_REPORT.md).
 
 ## 1. Утверждённое решение
 

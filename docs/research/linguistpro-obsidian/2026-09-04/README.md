@@ -2,10 +2,13 @@
 
 Дата исследования: 2026-09-04
 
-Статус: `DECISION_APPROVED · FORMALIZED · IMPLEMENTATION_NOT_STARTED`
+Статус: `DECISION_APPROVED · P0_CORE_TECHNICAL_PASS · P0_NOT_CLOSED`
 
 Формальный контракт выгрузки слов по частям речи и морфологии:
 [`LEXICAL_EXPORT_CONTRACT.md`](./LEXICAL_EXPORT_CONTRACT.md).
+
+Результаты свежего read-only прогона по `Кфар Аза - 2`:
+[`P0_PREVIEW_REPORT.md`](./P0_PREVIEW_REPORT.md).
 Объект первого пилота: личный текст `Кфар Аза - 2 544/573` и существующий vault
 `F:\УЧУ_ИВРИТ\УЧУ_ИВРИТ`.
 
