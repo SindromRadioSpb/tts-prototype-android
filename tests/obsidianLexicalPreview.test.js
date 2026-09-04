@@ -162,6 +162,86 @@ test("uses an exact curated Pealim identity to correct bad dataset POS without w
     "a curated record for another Pealim id must never suppress the guard");
 });
 
+test("recognizes a Pealim pronominal paradigm as a preposition despite legacy noun metadata", () => {
+  const input = fixture();
+  input.library.texts[0].rows = [{ row_id: "R1", order_index: 0, hebrew_plain: "לי", hebrew_niqqud: "לִי", russian: "мне" }];
+  input.notes_advanced.notes = [{
+    id: "L1", note_type: "word_study", gen_dedup_key: "ff:לי#preposition", source: "autogen", confidence: 0.92,
+    body_json: JSON.stringify({ word: "לי", niqqud_variant: "לִי", lemma: "ל", pos: "preposition", meaning: "к; у", pealim_id: "6014" })
+  }];
+  input.notes_advanced.occurrences = [{ note_id: "L1", text_id: "T1", sentence_id: "R1", word_offset: 0, surface: "לי" }];
+  input.notes_advanced.sentence_morph = [{ text_id: "T1", sentence_id: "R1", model_version: "dicta-v1", tokens: [
+    { word: "לי", niqqud: "לִי", lemma: "ל", posDicta: "preposition" }
+  ] }];
+  const report = Preview.analyzeBundle(input, {
+    textId: "T1",
+    pealimResolver: () => ({ pealim_id: "6014", pos: "noun", kind: "noun", root: null, cells: {
+      "P-1s": { he: "לִי" }, "P-1p": { he: "לָנוּ" }, "P-2ms": { he: "לְךָ" },
+      "P-2fs": { he: "לָךְ" }, "P-3ms": { he: "לוֹ" }, "P-3fs": { he: "לָהּ" }
+    } })
+  });
+  assert.equal(report.resolution_queue.items.length, 0);
+  assert.equal(report.counts.verified_pealim_identity_occurrences, 1);
+  assert.equal(report.pealim_identity_sources["paradigm-pronominal-preposition"], 1);
+});
+
+test("canonical Pealim metadata prevents one stale root from queueing every occurrence", () => {
+  const input = fixture();
+  input.notes_advanced.notes[0].body_json = JSON.stringify({ word: "שרפו", niqqud_variant: "שָׂרְפוּ", lemma: "לשרוף", pos: "verb", root: "wrong", meaning: "жечь", pealim_id: "2321" });
+  const report = Preview.analyzeBundle(input, {
+    textId: "T1",
+    pealimResolver: (id) => String(id) === "2321" ? { pealim_id: "2321", pos: "verb", kind: "verb", root: "שרף", lemma: "לשרוף", meaning: "жечь" } : null
+  });
+  const burning = report.lexemes.find((x) => x.pealim_id === "2321");
+  assert.equal(burning.root, "שרף");
+  assert.deepEqual(burning.conflicts, []);
+});
+
+test("an exact unambiguous inflected form can restore a missing verb POS", () => {
+  const input = fixture();
+  input.notes_advanced.notes[0].body_json = JSON.stringify({ word: "שרפו", niqqud_variant: "שָׂרְפוּ", lemma: "לשרוף", pos: "", root: "שרף", meaning: "жечь", pealim_id: "2321" });
+  input.notes_advanced.sentence_morph[0].tokens[0].posDicta = "";
+  const report = Preview.analyzeBundle(input, {
+    textId: "T1",
+    ambiguityResolver: (unit) => unit.sampleWord === "שרפו" ? { pealim_id: "2321", ambiguous: false } : null,
+    pealimResolver: (id) => String(id) === "2321" ? { pealim_id: "2321", pos: "verb", kind: "verb", root: "שרף", lemma: "לשרוף", meaning: "жечь" } : null
+  });
+  const burning = report.lexemes.find((x) => x.pealim_id === "2321");
+  assert.equal(burning.lp_pos, "verb");
+  assert.equal(report.resolution_queue.items.some((x) => x.surface === "שרפו"), false);
+});
+
+test("a reviewed surface identity keeps Pealim lexical class separate from contextual role", () => {
+  const input = fixture();
+  input.library.texts[0].rows = [{ row_id: "R1", order_index: 0, hebrew_plain: "כל העולם", hebrew_niqqud: "כָּל הָעוֹלָם", russian: "весь мир" }];
+  input.notes_advanced.notes = [{
+    id: "K1", note_type: "word_study", gen_dedup_key: "ff:כל#other", source: "autogen", confidence: 0.65,
+    body_json: JSON.stringify({ word: "כל", niqqud_variant: "כָּל", lemma: "כל", pos: "other", meaning: "ошибочный омограф" })
+  }];
+  input.notes_advanced.occurrences = [{ note_id: "K1", text_id: "T1", sentence_id: "R1", word_offset: 0, surface: "כל" }];
+  input.notes_advanced.sentence_morph = [{ text_id: "T1", sentence_id: "R1", model_version: "dicta-v1", tokens: [
+    { word: "כל", niqqud: "כָּל", lemma: "כל", posDicta: "other" }
+  ] }];
+  const report = Preview.analyzeBundle(input, {
+    textId: "T1",
+    pealimResolver: () => ({ pealim_id: "4158", lemma: "כול", pos: "noun", kind: "noun", root: "כלל", meaning: "каждый, весь" }),
+    pealimIdentityResolver: ({ pealim_id }) => pealim_id ? null : ({
+      pealim_id: "4158", lemma: "כול", lp_pos: "particle", lexical_pos: "noun", context_role: "quantifier",
+      meaning: "каждый, весь", provenance: "function-usage-curated", allow_surface_identity: true
+    })
+  });
+  const all = report.lexemes.find((x) => x.pealim_id === "4158");
+  assert.ok(all);
+  assert.equal(all.lp_pos, "particle");
+  assert.equal(all.lexical_pos, "noun");
+  assert.equal(all.context_role, "quantifier");
+  assert.equal(all.meaning_ru, "каждый, весь");
+  assert.equal(report.resolution_queue.items.length, 0);
+  const markdown = Preview.planObsidianPackage(report).files.find((file) => file.kind === "lexeme").content;
+  assert.match(markdown, /lexical_pos: "noun"/);
+  assert.match(markdown, /context_role: "quantifier"/);
+});
+
 test("turns an unparsed token into a contextual queue item instead of a hidden skip", () => {
   const input = fixture();
   input.notes_advanced.sentence_morph[0].tokens.push({ word: "—", posDicta: "punctuation" });

@@ -2519,7 +2519,7 @@ window.I18N_LOCALES.ru = {
       open: "Проверить морфологию", eyebrow: "Проверка морфологии", title: "Occurrence и кластеры", close: "Закрыть",
       loading: "Собираем морфологию и решения…", loadFailed: "Не удалось собрать очередь морфологии.", ready: "Очередь готова. Ни одно решение не применяется автоматически.",
       active: "В очереди", resolved: "Решено", clusters: "Кластеры", contexts: "Контексты occurrence", candidates: "Кандидаты",
-      lemma: "Лемма", pos: "Часть речи", root: "Корень", meaning: "Значение", batch: "Применить ко всему кластеру после просмотра всех контекстов", batchUnavailable: "Для этого кластера доступно только решение occurrence",
+      lemma: "Лемма", pos: "Часть речи", posChoose: "Выберите часть речи", pealimLink: "Ссылка Pealim", pealimHint: "Вставьте ссылку Pealim или числовой ID. В решении сохранится только ID.", pealimOpen: "Открыть в Pealim", pealimInvalid: "Укажите корректную ссылку Pealim или числовой ID.", root: "Корень", binyan: "Биньян", meaning: "Значение", batch: "Применить ко всему кластеру после просмотра всех контекстов", batchUnavailable: "Для этого кластера доступно только решение occurrence",
       resolve: "Подтвердить разбор", defer: "Отложить", reject: "Отклонить кандидатов", clear: "Снять решение", required: "Укажите лемму и часть речи.",
       impactTitle: "Точный impact до записи", impactCount: "Будет записано решений: {count}", cancel: "Отмена", confirmImpact: "Подтвердить точную запись",
       saving: "Сохраняем append-only решение…", saved: "Решение сохранено. Очередь и точные счётчики обновлены.", failed: "Не удалось сохранить решение; исходная очередь не изменена.",
@@ -3085,7 +3085,7 @@ window.I18N_LOCALES.ru = {
         unknown: "офлайн не определено — уточни по ссылке",
         alts: "другие возможные чтения этого слова",
       },
-      pos: { verb: "глагол", noun: "существительное", adjective: "прилагательное", preposition: "предлог", adverb: "наречие", pronoun: "местоимение", conjunction: "союз", numeral: "числительное", interjection: "междометие", particle: "частица", negation: "отрицание" },
+      pos: { verb: "глагол", noun: "существительное", adjective: "прилагательное", participle: "причастие", propernoun: "имя собственное", preposition: "предлог", adverb: "наречие", pronoun: "местоимение", conjunction: "союз", numeral: "числительное", interjection: "междометие", particle: "частица", negation: "отрицание", other: "другое", unknown: "не определено" },
     },
     onboard: {
       readerTip1: "👆 тап — разбор · долгий тап — статус",

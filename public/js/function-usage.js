@@ -8,7 +8,7 @@
   "use strict";
   // ?rev busts the sidecar cache when content changes within a schema version
   // (mirrors CORPUS_*_DATA_REV — keep offline-available yet fresh on a content edit).
-  var URL = "/data/usage/function-usage.v1.json?rev=2";
+  var URL = "/data/usage/function-usage.v1.json?rev=3";
   var NIQQUD_RE = /[֑-ׇ]/g;
   function sp(s) { return String(s == null ? "" : s).replace(NIQQUD_RE, "").trim(); }
 

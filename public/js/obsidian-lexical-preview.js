@@ -100,6 +100,18 @@
     }
     return "";
   }
+  function paradigmPos(paradigm) {
+    var raw = normalizePos(paradigm && paradigm.pos, paradigm && paradigm.kind);
+    var cells = paradigm && paradigm.cells ? paradigm.cells : {};
+    // The shipped Pealim snapshot labels a number of genuine preposition
+    // paradigms as nouns. Direct P-* slots (not nominal s-P-* possessives) are
+    // structural evidence for pronominal preposition inflection.
+    var directPronounSlots = Object.keys(cells).filter(function (key) { return /^P-/.test(key); }).length;
+    if (raw === "noun" && directPronounSlots >= 6) {
+      return { pos: "preposition", source: "paradigm-pronominal-preposition" };
+    }
+    return { pos: raw, source: "" };
+  }
   function pickText(texts, opts) {
     opts = opts || {};
     var byId = str(opts.textId);
@@ -315,6 +327,10 @@
       "    displayName: Лемма",
       "  note.lp_pos:",
       "    displayName: Часть речи",
+      "  note.lexical_pos:",
+      "    displayName: Словарный класс",
+      "  note.context_role:",
+      "    displayName: Роль в контексте",
       "  note.meaning_ru:",
       "    displayName: Значение",
       "  note.occurrence_count:",
@@ -383,6 +399,8 @@
       "lemma: " + yaml(lexeme.lemma),
       "lemma_unpointed: " + yaml(lexeme.lemma_unpointed),
       "lp_pos: " + yaml(lexeme.lp_pos),
+      "lexical_pos: " + yaml(lexeme.lexical_pos),
+      "context_role: " + yaml(lexeme.context_role),
       "provider_pos: " + yaml(lexeme.provider_pos),
       "root: " + yaml(lexeme.root),
       "binyan: " + yaml(lexeme.binyan),
@@ -522,11 +540,11 @@
     return lines.join("\n");
   }
   function renderOccurrencesTsv(report) {
-    var rows = [["lp_lexeme_id", "lp_pos", "lemma", "row_id", "order_index", "word_offset", "surface", "niqqud", "sentence_he", "sentence_ru"]];
+    var rows = [["lp_lexeme_id", "lp_pos", "lexical_pos", "context_role", "lemma", "row_id", "order_index", "word_offset", "surface", "niqqud", "sentence_he", "sentence_ru"]];
     function cell(v) { return str(v).replace(/\t/g, " ").replace(/[\r\n]+/g, " "); }
     report.lexemes.forEach(function (lexeme) {
       lexeme.occurrences.forEach(function (occ) {
-        rows.push([lexeme.lp_lexeme_id, lexeme.lp_pos, lexeme.lemma, occ.row_id, occ.order_index, occ.word_offset, occ.surface, occ.niqqud, occ.sentence_he_niqqud || occ.sentence_he, occ.sentence_ru]);
+        rows.push([lexeme.lp_lexeme_id, lexeme.lp_pos, lexeme.lexical_pos, lexeme.context_role, lexeme.lemma, occ.row_id, occ.order_index, occ.word_offset, occ.surface, occ.niqqud, occ.sentence_he_niqqud || occ.sentence_he, occ.sentence_ru]);
       });
     });
     return rows.map(function (row) { return row.map(cell).join("\t"); }).join("\n") + "\n";
@@ -680,6 +698,7 @@
     var identityGuardReasons = {};
     var verifiedPealimIdentityOccurrences = 0;
     var pealimIdentitySources = {};
+    var canonicalPealimMetadataRepairs = 0;
     var unknownOccurrences = 0, linkedOccurrences = 0;
     var skippedResolutionItems = [];
 
@@ -731,8 +750,10 @@
         var word = str(body.word || unit.sampleWord);
         var niqqud = str(body.niqqud_variant || unit.niqqud || token.niqqud);
         var root = str(body.root || "");
+        var sourceRoot = root;
         var binyan = str(body.binyan || unit.binyan || "");
         var meaning = str(body.meaning);
+        var contextMeaning = "";
         var pealimId = str(body.pealim_id || "");
         var confidence = finiteNumber(linked && linked.confidence != null ? linked.confidence : token.confidence);
         var bodyHasAmbiguity = Object.prototype.hasOwnProperty.call(body, "ambiguous") || Array.isArray(body.alts);
@@ -757,7 +778,7 @@
           try { pealimEvidence = opts.pealimResolver(pealimId) || null; } catch (_) { pealimEvidence = null; }
         }
         var verifiedPealimIdentity = null;
-        if (pealimId && typeof opts.pealimIdentityResolver === "function") {
+        if (typeof opts.pealimIdentityResolver === "function") {
           try {
             verifiedPealimIdentity = opts.pealimIdentityResolver({
               pealim_id: pealimId,
@@ -771,19 +792,48 @@
           } catch (_) { verifiedPealimIdentity = null; }
         }
         var verifiedPealimId = str(verifiedPealimIdentity && (verifiedPealimIdentity.pealim_id || verifiedPealimIdentity.id));
-        var verifiedPealimPos = verifiedPealimId === pealimId
-          ? normalizePos(verifiedPealimIdentity && (verifiedPealimIdentity.lp_pos || verifiedPealimIdentity.pos), verifiedPealimIdentity && verifiedPealimIdentity.kind)
-          : "unknown";
+        var acceptsExactIdentity = !!(pealimId && verifiedPealimId === pealimId);
+        var acceptsSurfaceIdentity = !!(!pealimId && verifiedPealimId && verifiedPealimIdentity && verifiedPealimIdentity.allow_surface_identity === true);
+        if (acceptsSurfaceIdentity) {
+          pealimId = verifiedPealimId;
+          lemma = str(verifiedPealimIdentity.lemma || lemma);
+          var curatedContextPos = normalizePos(verifiedPealimIdentity.context_pos || verifiedPealimIdentity.lp_pos || verifiedPealimIdentity.pos, verifiedPealimIdentity.kind);
+          if (curatedContextPos !== "unknown") pos = curatedContextPos;
+          contextMeaning = str(verifiedPealimIdentity.role);
+          meaning = str((pealimEvidence && pealimEvidence.meaning) || verifiedPealimIdentity.meaning_ru || verifiedPealimIdentity.meaning || meaning);
+          channel = str(verifiedPealimIdentity.provenance || verifiedPealimIdentity.source || "verified-surface-identity");
+          if (typeof opts.pealimResolver === "function") {
+            try { pealimEvidence = opts.pealimResolver(pealimId) || null; } catch (_) { pealimEvidence = null; }
+          }
+          if (pealimEvidence && pealimEvidence.meaning) meaning = str(pealimEvidence.meaning);
+        }
+        if (pealimEvidence && Object.prototype.hasOwnProperty.call(pealimEvidence, "root")) {
+          var canonicalRoot = str(pealimEvidence.root);
+          if (root !== canonicalRoot) { root = canonicalRoot; canonicalPealimMetadataRepairs++; }
+        }
         var rawPealimPos = str(pealimEvidence && pealimEvidence.pos);
-        var effectivePealimPos = verifiedPealimPos !== "unknown" && verifiedPealimPos !== "other" ? verifiedPealimPos : rawPealimPos;
+        var structuralPealim = paradigmPos(pealimEvidence);
+        var resolverPealimId = str(resolverResult && (resolverResult.pealim_id || resolverResult.id));
+        var exactFormIdentity = !!(pealimId && resolverPealimId === pealimId && resolverResult && !resolverResult.ambiguous);
+        if ((pos === "unknown" || pos === "other") && exactFormIdentity &&
+            (structuralPealim.pos === "verb" || structuralPealim.pos === "adjective" || structuralPealim.pos === "preposition")) {
+          pos = structuralPealim.pos;
+        }
+        var verifiedPealimPos = acceptsExactIdentity || acceptsSurfaceIdentity
+          ? normalizePos(verifiedPealimIdentity && (verifiedPealimIdentity.context_pos || verifiedPealimIdentity.lp_pos || verifiedPealimIdentity.pos), verifiedPealimIdentity && verifiedPealimIdentity.kind)
+          : "unknown";
+        var effectivePealimPos = verifiedPealimPos !== "unknown" && verifiedPealimPos !== "other" ? verifiedPealimPos : structuralPealim.pos;
         var pealimIdentitySource = verifiedPealimPos !== "unknown" && verifiedPealimPos !== "other"
           ? str(verifiedPealimIdentity.provenance || verifiedPealimIdentity.source || "verified-pealim-identity")
-          : "";
+          : structuralPealim.source;
         if (pealimIdentitySource) {
           verifiedPealimIdentityOccurrences++;
           pealimIdentitySources[pealimIdentitySource] = (pealimIdentitySources[pealimIdentitySource] || 0) + 1;
         }
         var guardReason = identityGuardReason(notePos, pos, effectivePealimPos);
+        var lexicalPos = normalizePos(verifiedPealimIdentity && verifiedPealimIdentity.lexical_pos, "");
+        if (lexicalPos === "unknown" || lexicalPos === "other") lexicalPos = structuralPealim.pos;
+        var contextRole = str(verifiedPealimIdentity && verifiedPealimIdentity.context_role);
         var candidateEvidence = guardReason ? {
           lemma: str(body.lemma || body.word || lemma),
           lp_pos: normalizePos(notePos, body.kind),
@@ -791,6 +841,7 @@
           pealim_pos: rawPealimPos,
           verified_pealim_pos: pealimIdentitySource ? effectivePealimPos : "",
           pealim_identity_source: pealimIdentitySource,
+          source_root: sourceRoot !== root ? sourceRoot : "",
           note_dedup_key: str(linked && linked.gen_dedup_key)
         } : null;
         if (guardReason) {
@@ -837,13 +888,16 @@
             binyan: binyan,
             meaning_ru: meaning,
             pealim_id: pealimId,
+            lexical_pos: lexicalPos,
+            context_role: contextRole,
+            context_meaning: contextMeaning,
             confidence_min: confidence,
             confidence_max: confidence,
             ambiguity: ambiguous,
             alternatives: alternatives.slice(0, 5),
             resolution_channels: new Set(),
             identity_guard_reasons: new Set(),
-            evidence: { lemmas: new Set(), roots: new Set(), meanings: new Set(), pealim_ids: new Set(), pos: new Set(), note_dedup_keys: new Set() },
+            evidence: { lemmas: new Set(), roots: new Set(), meanings: new Set(), pealim_ids: new Set(), pos: new Set(), lexical_pos: new Set(), context_roles: new Set(), note_dedup_keys: new Set() },
             candidate_evidence: [],
             occurrences: []
           };
@@ -857,6 +911,8 @@
         addSet(item.evidence, "meanings", meaning);
         addSet(item.evidence, "pealim_ids", pealimId);
         addSet(item.evidence, "pos", pos);
+        addSet(item.evidence, "lexical_pos", lexicalPos);
+        addSet(item.evidence, "context_roles", contextRole);
         addSet(item.evidence, "note_dedup_keys", linked && linked.gen_dedup_key);
         if (candidateEvidence) item.candidate_evidence.push(candidateEvidence);
         if (confidence != null) {
@@ -881,6 +937,9 @@
           binyan: binyan,
           meaning_ru: meaning,
           pealim_id: pealimId,
+          lexical_pos: lexicalPos,
+          context_role: contextRole,
+          context_meaning: contextMeaning,
           pealim_pos_raw: rawPealimPos,
           pealim_pos_effective: effectivePealimPos,
           pealim_identity_source: pealimIdentitySource,
@@ -900,7 +959,8 @@
       ["pealim_ids", "roots", "meanings"].forEach(function (field) {
         if (item.evidence[field] && item.evidence[field].size > 1) conflicts.push(field);
       });
-      var posFamilies = new Set(Array.from(item.evidence.pos || []).map(identityFamily).filter(function (x) { return x !== "unknown"; }));
+      var identityPosEvidence = item.evidence.lexical_pos && item.evidence.lexical_pos.size ? item.evidence.lexical_pos : item.evidence.pos;
+      var posFamilies = new Set(Array.from(identityPosEvidence || []).map(identityFamily).filter(function (x) { return x !== "unknown"; }));
       if (posFamilies.size > 1) conflicts.push("pos_identity_family");
       return {
         lp_lexeme_id: item.lp_lexeme_id,
@@ -912,6 +972,8 @@
         binyan: item.binyan,
         meaning_ru: item.meaning_ru,
         pealim_id: item.pealim_id,
+        lexical_pos: item.lexical_pos,
+        context_role: item.context_role,
         confidence_min: item.confidence_min,
         confidence_max: item.confidence_max,
         ambiguity: item.ambiguity,
@@ -969,6 +1031,7 @@
         ambiguity_signal_coverage_pct: pct(ambiguitySignalOccurrences, analyzedOccurrences),
         context_identity_guarded_occurrences: identityGuardedOccurrences,
         verified_pealim_identity_occurrences: verifiedPealimIdentityOccurrences,
+        canonical_pealim_metadata_repairs: canonicalPealimMetadataRepairs,
         unknown_pos_occurrences: unknownOccurrences,
         collision_keys: collisionLexemes.length,
         uncertain_occurrences: resolutionQueue.uncertain_occurrences,

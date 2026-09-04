@@ -1,0 +1,19 @@
+{
+  "schema": "linguistpro-pealim-pos-overrides-v1",
+  "version": 1,
+  "source_model": "pealim-infl-v12",
+  "provenance": "curated-from-shipped-paradigms",
+  "purpose": "Correct narrow legacy POS metadata without changing Pealim sense identity.",
+  "overrides": {
+    "7122": { "lemma": "ארבע", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7123": { "lemma": "שלוש", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7124": { "lemma": "חמש", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7125": { "lemma": "שש", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7126": { "lemma": "שמונה", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7127": { "lemma": "שבע", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7128": { "lemma": "תשע", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7129": { "lemma": "עשר", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7130": { "lemma": "אחד", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" },
+    "7131": { "lemma": "שניים", "context_pos": "numeral", "lexical_pos": "numeral", "source": "pealim-pos-override-v1" }
+  }
+}

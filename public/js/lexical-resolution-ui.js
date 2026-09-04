@@ -5,13 +5,26 @@
   const uuid = () => (root.crypto && root.crypto.randomUUID ? root.crypto.randomUUID() : 'lex-'+Date.now()+'-'+Math.random().toString(36).slice(2));
   const clean = (value) => value == null ? '' : String(value).trim();
   const uniq = (values) => { const seen=new Set(); return (values||[]).filter((value)=>{const key=JSON.stringify(value||{});if(seen.has(key))return false;seen.add(key);return true;}); };
+  const POS_VALUES = ['verb','noun','adjective','participle','propernoun','numeral','pronoun','adverb','preposition','conjunction','particle','interjection','other'];
+
+  function parsePealimId(value) {
+    const raw=clean(value);if(/^\d+$/.test(raw))return raw;
+    let url;try{url=new URL(raw);}catch(_){return '';}
+    if(!/(^|\.)pealim\.com$/i.test(url.hostname))return '';
+    const match=url.pathname.match(/\/(?:[a-z]{2}\/)?dict\/(\d+)(?:[-/]|$)/i);
+    return match?match[1]:'';
+  }
+  function pealimUrl(value) {
+    const id=parsePealimId(value);return id?'https://www.pealim.com/ru/dict/'+id+'/':'';
+  }
 
   function candidateAnalysis(value, Preview) {
     value=value||{};
+    const pealimId=parsePealimId(value.pealim_id||value.id||value.pid||value.pealim_url);
     return {
       lemma: clean(value.lemma||value.word||value.infinitive),
       lp_pos: Preview.normalizePos(value.lp_pos||value.pos||value.part_of_speech, value.kind),
-      pealim_id: clean(value.pealim_id||value.id||value.pid), root: clean(value.root||value.trueRoot),
+      pealim_id: pealimId, pealim_url: clean(value.pealim_url)||pealimUrl(pealimId), root: clean(value.root||value.trueRoot),
       binyan: clean(value.binyan), meaning_ru: clean(value.meaning_ru||value.meaning||value.gloss)
     };
   }
@@ -49,10 +62,16 @@
       ambiguityResolver=(unit)=>Notes.formFirstResolve(maps,unit);
       pealimResolver=(pid)=>pidMap.get(String(pid))||null;
     }
+    if(root.PealimIdentityOverrides&&typeof root.PealimIdentityOverrides.lookupByPealimId==='function')await root.PealimIdentityOverrides.ensureReady();
     if(root.FunctionUsage&&typeof root.FunctionUsage.lookupByPealimId==='function'){
       await root.FunctionUsage.ensureReady();
-      pealimIdentityResolver=({pealim_id})=>root.FunctionUsage.lookupByPealimId(pealim_id);
-    }
+      pealimIdentityResolver=(input)=>{
+        const override=root.PealimIdentityOverrides&&root.PealimIdentityOverrides.lookupByPealimId(input.pealim_id);if(override)return override;
+        if(input.pealim_id){const exact=root.FunctionUsage.lookupByPealimId(input.pealim_id);return exact&&exact.lexical_pos===input.context_pos?Object.assign({},exact,{context_pos:input.context_pos}):exact;}
+        const entry=root.FunctionUsage.lookup(input.surface,{stem:input.lemma,lemma:input.lemma});
+        return entry&&entry.identity_safe===true?Object.assign({allow_surface_identity:true},entry):null;
+      };
+    }else if(root.PealimIdentityOverrides){pealimIdentityResolver=(input)=>root.PealimIdentityOverrides.lookupByPealimId(input.pealim_id);}
     const raw=Preview.analyzeBundle(bundle,{textId:String(item.id),ambiguityResolver,pealimResolver,pealimIdentityResolver});
     const events=await localDb.listLexicalResolutionEventsForText(String(item.id));
     return root.LexicalResolutionService.hydrate(raw,events,root.LexicalResolutionCore);
@@ -76,8 +95,10 @@
     close.addEventListener('click',doClose);overlay.addEventListener('click',(event)=>{if(event.target===overlay)doClose();});document.addEventListener('keydown',onKey);dialog.focus();
 
     const setMessage=(message,state)=>{status.textContent=message;status.dataset.state=state||'';};
-    const fill=(form,analysis)=>Object.keys(analysis).forEach((key)=>{const input=form.elements.namedItem(key);if(input)input.value=analysis[key]||'';});
-    const formAnalysis=(form)=>({lemma:clean(form.elements.lemma.value),lp_pos:clean(form.elements.lp_pos.value),pealim_id:clean(form.elements.pealim_id.value),root:clean(form.elements.root.value),binyan:clean(form.elements.binyan.value),meaning_ru:clean(form.elements.meaning_ru.value)});
+    const posLabel=(pos)=>t('room.morph.pos.'+pos,pos);
+    const syncPealimLink=(form)=>{const ref=form.elements.namedItem('pealim_ref');const link=form.querySelector('[data-pealim-open]');const id=parsePealimId(ref&&ref.value);if(link){link.href=id?pealimUrl(id):'#';link.hidden=!id;}};
+    const fill=(form,analysis)=>{Object.keys(analysis||{}).forEach((key)=>{let input=form.elements.namedItem(key);if(key==='pealim_id'||key==='pealim_url')input=form.elements.namedItem('pealim_ref');if(input)input.value=(key==='pealim_id'?pealimUrl(analysis[key]):analysis[key])||'';});syncPealimLink(form);};
+    const formAnalysis=(form)=>({lemma:clean(form.elements.lemma.value),lp_pos:clean(form.elements.lp_pos.value),pealim_id:parsePealimId(form.elements.pealim_ref.value),root:clean(form.elements.root.value),binyan:clean(form.elements.binyan.value),meaning_ru:clean(form.elements.meaning_ru.value)});
     const makeEvent=(occ,action,analysis,batchId)=>({
       id:uuid(),occurrence_id:occ.lp_occurrence_id,text_id:String(item.id),sentence_id:occ.row_id,word_offset:Number(occ.word_offset),
       text_key:report.text.text_key,order_index:Number(occ.order_index),surface_norm:clean(occ.surface),source_anchor:occ.source_anchor,
@@ -111,13 +132,17 @@
       let selectedId=cluster.occurrence_ids[0];cluster.occurrences.forEach((occ,occIndex)=>{const label=$('label','lexres-context');const radio=$('input');radio.type='radio';radio.name='lexres-'+cluster.lp_resolution_cluster_id;radio.value=occ.lp_occurrence_id;radio.checked=occIndex===0;radio.addEventListener('change',()=>{selectedId=radio.value;});const copy=$('span');const he=$('bdi','lexres-he',clean(occ.sentence_he_niqqud||occ.sentence_he));he.dir='rtl';copy.append(he,$('small','',clean(occ.sentence_ru)), $('code','',occ.lp_occurrence_id));label.append(radio,copy);contextList.append(label);});
       const candidates=uniq((cluster.alternatives||[]).concat(cluster.candidate_evidence||[]));if(candidates.length){const candidatesBox=$('div','lexres-candidates');candidatesBox.append($('h4','',t('room.resolution.candidates','Кандидаты')));editor.append(candidatesBox);}
       const form=$('form','lexres-form');form.addEventListener('submit',(event)=>event.preventDefault());
-      const fields=[['lemma',t('room.resolution.lemma','Лемма')],['lp_pos',t('room.resolution.pos','Часть речи')],['pealim_id','Pealim ID'],['root',t('room.resolution.root','Корень')],['binyan','Binyan'],['meaning_ru',t('room.resolution.meaning','Значение')]];
-      fields.forEach(([name,labelText])=>{const label=$('label');label.append($('span','',labelText));const input=$('input');input.name=name;input.autocomplete='off';label.append(input);form.append(label);});
-      const seed=cluster.occurrences[0]||cluster;fill(form,{lemma:seed.lemma,lp_pos:seed.lp_pos,pealim_id:seed.pealim_id,root:seed.root,binyan:seed.binyan,meaning_ru:seed.meaning_ru});
-      const candidatesBox=editor.querySelector('.lexres-candidates');candidates.forEach((candidate)=>{const a=candidateAnalysis(candidate,root.ObsidianLexicalPreview);const button=$('button','lexres-candidate',(a.lemma||'—')+(a.lp_pos?' · '+a.lp_pos:'')+(a.pealim_id?' · #'+a.pealim_id:''));button.type='button';button.addEventListener('click',()=>fill(form,a));candidatesBox.append(button);});editor.append(form);
+      const fields=[['lemma',t('room.resolution.lemma','Лемма')],['lp_pos',t('room.resolution.pos','Часть речи')],['pealim_ref',t('room.resolution.pealimLink','Ссылка Pealim')],['root',t('room.resolution.root','Корень')],['binyan',t('room.resolution.binyan','Биньян')],['meaning_ru',t('room.resolution.meaning','Значение')]];
+      fields.forEach(([name,labelText])=>{const label=$('label');label.append($('span','',labelText));let input;if(name==='lp_pos'){input=$('select');input.append(new Option(t('room.resolution.posChoose','Выберите часть речи'),''));POS_VALUES.forEach((pos)=>input.append(new Option(posLabel(pos),pos)));}else{input=$('input');input.autocomplete='off';}input.name=name;if(name==='pealim_ref'){input.inputMode='url';input.placeholder='https://www.pealim.com/ru/dict/6014-le/';input.addEventListener('input',()=>syncPealimLink(form));const help=$('small','lexres-field-help',t('room.resolution.pealimHint','Вставьте ссылку Pealim или числовой ID. В решении сохранится только ID.'));const openLink=$('a','lexres-pealim-open',t('room.resolution.pealimOpen','Открыть в Pealim'));openLink.target='_blank';openLink.rel='noopener';openLink.dataset.pealimOpen='1';openLink.hidden=true;label.append(input,help,openLink);}else label.append(input);form.append(label);});
+      const analysisMap=new Map();candidates.map((candidate)=>candidateAnalysis(candidate,root.ObsidianLexicalPreview)).forEach((analysis)=>{const key=analysis.pealim_id||[analysis.lemma,analysis.lp_pos].join('#');const current=analysisMap.get(key)||{};analysisMap.set(key,Object.keys(analysis).reduce((out,field)=>{out[field]=analysis[field]||current[field]||'';return out;},{}));});const analyses=Array.from(analysisMap.values());
+      const seed=cluster.occurrences[0]||cluster;const seedAnalysis=candidateAnalysis(seed,root.ObsidianLexicalPreview);
+      // A sole candidate may prefill the draft editor, but is never written until
+      // the owner reviews exact impact and confirms the append-only event.
+      const initial=(!seedAnalysis.pealim_id&&analyses.length===1)?Object.assign({},seedAnalysis,analyses[0]):seedAnalysis;fill(form,initial);
+      const candidatesBox=editor.querySelector('.lexres-candidates');analyses.forEach((a)=>{const button=$('button','lexres-candidate',(a.lemma||'—')+(a.lp_pos?' · '+posLabel(a.lp_pos):'')+(a.pealim_id?' · '+pealimUrl(a.pealim_id):''));button.type='button';button.addEventListener('click',()=>fill(form,a));candidatesBox.append(button);});editor.append(form);
       const batchLabel=$('label','lexres-batch');const batch=$('input');batch.type='checkbox';batch.disabled=!cluster.batch_review_eligible;batchLabel.append(batch,$('span','',cluster.batch_review_eligible?t('room.resolution.batch','Применить ко всему кластеру после просмотра всех контекстов'):t('room.resolution.batchUnavailable','Для этого кластера доступно только решение occurrence')));editor.append(batchLabel);
       const actions=$('div','lexres-actions');
-      const addAction=(labelText,action,primary)=>{const button=$('button','lexres-button'+(primary?' lexres-primary':''),labelText);button.type='button';button.addEventListener('click',()=>{const analysis=action==='manual_correction'?formAnalysis(form):{};if(action==='manual_correction'&&(!analysis.lemma||!analysis.lp_pos)){setMessage(t('room.resolution.required','Укажите лемму и часть речи.'),'error');return;}stage(inner,contexts,cluster,selectedId,action,analysis,batch.checked);});actions.append(button);};
+      const addAction=(labelText,action,primary)=>{const button=$('button','lexres-button'+(primary?' lexres-primary':''),labelText);button.type='button';button.addEventListener('click',()=>{const analysis=action==='manual_correction'?formAnalysis(form):{};if(action==='manual_correction'&&(!analysis.lemma||!analysis.lp_pos)){setMessage(t('room.resolution.required','Укажите лемму и часть речи.'),'error');return;}if(action==='manual_correction'&&clean(form.elements.pealim_ref.value)&&!analysis.pealim_id){setMessage(t('room.resolution.pealimInvalid','Укажите корректную ссылку Pealim или числовой ID.'),'error');return;}stage(inner,contexts,cluster,selectedId,action,analysis,batch.checked);});actions.append(button);};
       addAction(t('room.resolution.resolve','Подтвердить разбор'),'manual_correction',true);addAction(t('room.resolution.defer','Отложить'),'defer');addAction(t('room.resolution.reject','Отклонить кандидатов'),'reject_all');addAction(t('room.resolution.clear','Снять решение'),'clear');editor.append(actions);inner.append(editor,contexts);details.append(inner);return details;
     }
     async function exportObsidian() {
@@ -141,5 +166,5 @@
     buildReport(item,localDb).then((value)=>{if(closed)return;report=value;render();setMessage(t('room.resolution.ready','Очередь готова. Ни одно решение не применяется автоматически.'),'ready');}).catch((error)=>{if(closed)return;setMessage(t('room.resolution.loadFailed','Не удалось собрать очередь морфологии.')+' '+clean(error&&error.message),'error');});
     return {close:doClose};
   }
-  const api={open,exactImpact};root.LexicalResolutionUI=api;if(typeof module==='object'&&module.exports)module.exports=api;
+  const api={open,exactImpact,parsePealimId,pealimUrl,candidateAnalysis};root.LexicalResolutionUI=api;if(typeof module==='object'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

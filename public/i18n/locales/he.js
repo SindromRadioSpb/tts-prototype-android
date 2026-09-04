@@ -2515,7 +2515,7 @@ window.I18N_LOCALES.he = {
       open: "בדיקת מורפולוגיה", eyebrow: "בדיקת מורפולוגיה", title: "מופעים ואשכולות", close: "סגירה",
       loading: "בונים את המורפולוגיה ואת ההחלטות…", loadFailed: "לא ניתן לבנות את תור המורפולוגיה.", ready: "התור מוכן. אף החלטה אינה מוחלת אוטומטית.",
       active: "בתור", resolved: "נפתרו", clusters: "אשכולות", contexts: "הקשרים של מופעים", candidates: "מועמדים",
-      lemma: "למה", pos: "חלק דיבר", root: "שורש", meaning: "משמעות", batch: "החלה על כל האשכול לאחר בדיקת כל ההקשרים", batchUnavailable: "באשכול זה זמינה רק החלטה למופע יחיד",
+      lemma: "למה", pos: "חלק דיבר", posChoose: "בחירת חלק דיבר", pealimLink: "קישור Pealim", pealimHint: "יש להדביק קישור Pealim או מזהה מספרי. בהחלטה יישמר המזהה בלבד.", pealimOpen: "פתיחה ב־Pealim", pealimInvalid: "יש להזין קישור Pealim תקין או מזהה מספרי.", root: "שורש", binyan: "בניין", meaning: "משמעות", batch: "החלה על כל האשכול לאחר בדיקת כל ההקשרים", batchUnavailable: "באשכול זה זמינה רק החלטה למופע יחיד",
       resolve: "אישור הניתוח", defer: "דחייה", reject: "דחיית המועמדים", clear: "ניקוי ההחלטה", required: "יש להזין למה וחלק דיבר.",
       impactTitle: "השפעה מדויקת לפני הכתיבה", impactCount: "מספר ההחלטות שייכתבו: {count}", cancel: "ביטול", confirmImpact: "אישור הכתיבה המדויקת",
       saving: "שומרים החלטה ביומן מצטבר…", saved: "ההחלטה נשמרה. התור והספירות המדויקות עודכנו.", failed: "לא ניתן לשמור את ההחלטה; התור המקורי לא השתנה.",
@@ -3081,7 +3081,7 @@ window.I18N_LOCALES.he = {
         unknown: "לא זוהה במצב לא־מקוון — בדקו בקישור",
         alts: "קריאות אפשריות אחרות של המילה",
       },
-      pos: { verb: "פועל", noun: "שם עצם", adjective: "שם תואר", preposition: "מילת יחס", adverb: "תואר הפועל", pronoun: "כינוי", conjunction: "מילת חיבור", numeral: "מספר", interjection: "מילת קריאה", particle: "חלקיק", negation: "שלילה" },
+      pos: { verb: "פועל", noun: "שם עצם", adjective: "שם תואר", participle: "בינוני", propernoun: "שם פרטי", preposition: "מילת יחס", adverb: "תואר הפועל", pronoun: "כינוי", conjunction: "מילת חיבור", numeral: "מספר", interjection: "מילת קריאה", particle: "חלקיק", negation: "שלילה", other: "אחר", unknown: "לא זוהה" },
     },
     onboard: {
       readerTip1: "👆 הקשה — ניתוח · לחיצה ארוכה — סטטוס",

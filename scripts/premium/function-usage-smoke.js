@@ -111,17 +111,20 @@ for (const [w, id] of Object.entries(DECL)) {
   ok(p && stripN(p.lemma_niqqud) === w, `${id} lemma_niqqud niqqud-strips to ${w}`);
   ok(p && pron(p.cells) >= 6, `${id} has a pronominal (P-*) declension table`);
 }
-// every baked pealim_id must exist in the dataset and strip to its key (no orphan/homograph)
+// every baked pealim_id must exist in the dataset and strip to its key or an
+// explicitly reviewed lemma alias (no orphan/homograph)
 for (const w of keys) {
-  if (w.length === 1) continue;
   const e = store.usage[w];
   if (e.pealim_id) {
     ok(byId[e.pealim_id], `${w} pealim_id ${e.pealim_id} exists in dataset`);
-    ok(stripN(byId[e.pealim_id].lemma_niqqud) === w, `${w} pealim_id sense niqqud-strips back to ${w} (no homograph)`);
+    const aliases = new Set([w].concat(e.pealim_lemma_aliases || []));
+    ok(aliases.has(stripN(byId[e.pealim_id].lemma_niqqud)), `${w} pealim_id sense maps to the key or a reviewed lemma alias`);
   }
 }
 // honest search-fallback where the function sense is absent from the dataset
-for (const w of ['זו', 'כל']) ok(store.usage[w] && !store.usage[w].pealim_id, `${w} has no direct id (honest search fallback)`);
+ok(store.usage['זו'] && !store.usage['זו'].pealim_id, 'זו has no direct id (honest search fallback)');
+ok(store.usage['ל'].pealim_id === '6014', 'ל → 6014 reviewed preposition identity');
+ok(store.usage['כל'].pealim_id === '4158' && store.usage['כל'].identity_safe === true, 'כל → 4158 reviewed quantifier identity');
 
 // ── 6. reader-morph wires the curated id → link + paradigm ─────────────────────
 ok(/card\.usage && card\.usage\.pealim_id/.test(rm), 'reader-morph applies curated pealim_id');

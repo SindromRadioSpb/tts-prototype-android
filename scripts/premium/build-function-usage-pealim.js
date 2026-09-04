@@ -12,8 +12,9 @@
  *
  * Output: adds per entry  pealim_id, pealim_url, declension(bool)  to
  *   public/data/usage/function-usage.v1.json  (idempotent — re-runnable).
- * Entries with NO function sense in the dataset (זו demonstrative ≠ זוּ relative; כל
- * absent) get NO id → the card honestly falls back to Pealim search.
+ * Entries with NO function sense in the dataset (זו demonstrative ≠ זוּ relative)
+ * get NO id → the card honestly falls back to Pealim search. A tiny explicit
+ * override ledger covers reviewed dataset-classification/lemma mismatches.
  */
 'use strict';
 const fs = require('fs');
@@ -31,7 +32,16 @@ const pronCells = (c) => Object.keys(c || {}).filter((k) => /^P-/.test(k)).lengt
 // homograph direct-id. Documented so it is a conscious choice, not an omission.
 const SEARCH_ONLY = {
   'זו': 'dataset has only זוּ (archaic relative); card sense is demonstrative זוֹ',
-  'כל': 'no כֹּל paradigm in the offline dataset',
+};
+
+// Reviewed against the actual Pealim pages and the shipped v12 paradigms.
+// `כל` is keyed in Pealim by the absolute lemma כול while the pedagogical
+// function profile is keyed by its ordinary construct surface כל.
+const VERIFIED_OVERRIDES = {
+  'ל': { id: '6014', declension: true },
+  'כל': { id: '4158', declension: true, identity_safe: true,
+    lexical_pos: 'noun', context_pos: 'particle', context_role: 'quantifier',
+    pealim_lemma_aliases: ['כל', 'כול'] },
 };
 
 function main() {
@@ -47,6 +57,7 @@ function main() {
 
   // resolve the function-sense id for a key
   function resolve(w) {
+    if (VERIFIED_OVERRIDES[w]) return VERIFIED_OVERRIDES[w];
     if (SEARCH_ONLY[w]) return { id: null, reason: SEARCH_ONLY[w] };
     const cands = byStrip[w] || [];
     const decl = cands.filter((p) => pronCells(p.cells) >= 6);
@@ -61,17 +72,24 @@ function main() {
   const report = [];
   for (const w of Object.keys(store.usage)) {
     const e = store.usage[w];
-    // single-letter proclitics are Phase-2 (not reachable yet) — skip enrichment
-    if (w.length === 1) { delete e.pealim_id; delete e.pealim_url; delete e.declension; continue; }
+    // Single-letter proclitics stay search-only unless an exact reviewed Pealim
+    // identity is present in VERIFIED_OVERRIDES.
+    if (w.length === 1 && !VERIFIED_OVERRIDES[w]) { delete e.pealim_id; delete e.pealim_url; delete e.declension; continue; }
     const r = resolve(w);
     if (r.id) {
       const p = byId[r.id];
       e.pealim_id = String(r.id);
       e.pealim_url = p.pealim_url || ('https://www.pealim.com/ru/dict/' + r.id + '/');
       e.declension = !!r.declension;
+      if (r.identity_safe) e.identity_safe = true; else delete e.identity_safe;
+      if (r.lexical_pos) e.lexical_pos = r.lexical_pos; else delete e.lexical_pos;
+      if (r.context_pos) e.context_pos = r.context_pos; else delete e.context_pos;
+      if (r.context_role) e.context_role = r.context_role; else delete e.context_role;
+      if (r.pealim_lemma_aliases) e.pealim_lemma_aliases = r.pealim_lemma_aliases; else delete e.pealim_lemma_aliases;
       report.push(`${w} → ${r.id} (${p.lemma_niqqud})${r.declension ? ' [decl]' : ''}${r.ambiguous ? ' AMB' : ''}`);
     } else {
       delete e.pealim_id; delete e.pealim_url; delete e.declension;
+      delete e.identity_safe; delete e.lexical_pos; delete e.context_pos; delete e.context_role; delete e.pealim_lemma_aliases;
       report.push(`${w} → search (${r.reason})`);
     }
   }

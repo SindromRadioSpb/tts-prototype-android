@@ -110,6 +110,8 @@ function packageSummary(plan) {
     pealimResolver = (pid) => pidMap.get(String(pid)) || null;
     const usagePath = path.resolve(__dirname, "../../public/data/usage/function-usage.v1.json");
     const usage = JSON.parse(fs.readFileSync(usagePath, "utf8")).usage || {};
+    const overridePath = path.resolve(__dirname, "../../public/data/inflection/pealim-pos-overrides.v1.json");
+    const identityOverrides = JSON.parse(fs.readFileSync(overridePath, "utf8")).overrides || {};
     const usageByPid = new Map();
     for (const key of Object.keys(usage).sort()) {
       const entry = usage[key] || {};
@@ -117,7 +119,20 @@ function packageSummary(plan) {
       if (!id) continue;
       usageByPid.set(id, usageByPid.has(id) ? null : entry);
     }
-    pealimIdentityResolver = ({ pealim_id }) => usageByPid.get(String(pealim_id)) || null;
+    const stripNiqqud = (value) => String(value == null ? "" : value).replace(/[֑-ׇ]/g, "").trim();
+    pealimIdentityResolver = (input) => {
+      if (input.pealim_id && identityOverrides[String(input.pealim_id)]) return Object.assign({ pealim_id: String(input.pealim_id) }, identityOverrides[String(input.pealim_id)]);
+      if (input.pealim_id) {
+        const exact = usageByPid.get(String(input.pealim_id)) || null;
+        return exact && exact.lexical_pos === input.context_pos ? Object.assign({}, exact, { context_pos: input.context_pos }) : exact;
+      }
+      const keys = [input.lemma, input.surface].map(stripNiqqud).filter(Boolean);
+      for (const key of keys) {
+        const entry = usage[key];
+        if (entry && entry.identity_safe === true) return Object.assign({ allow_surface_identity: true }, entry);
+      }
+      return null;
+    };
   }
   const report = Preview.analyzeBundle(
     { library, notes_advanced: notesAdvanced },

@@ -58,7 +58,8 @@ function arg(name, fallback) {
         appendLexicalResolutionEvent: async () => { throw new Error('SMOKE_MUST_NOT_WRITE'); },
         appendLexicalResolutionBatch: async () => { throw new Error('SMOKE_MUST_NOT_WRITE'); }
       };
-      window.LexicalResolutionUI.open({ item: { id: 'T1', title: '82-context layout smoke' }, localDb, t: (_, fallback) => fallback });
+      const localized = (key, fallback) => { const value = window.t && window.t(key); return value && value !== key ? value : fallback; };
+      window.LexicalResolutionUI.open({ item: { id: 'T1', title: '82-context layout smoke' }, localDb, t: localized });
     });
 
     await page.waitForSelector('.lexres-cluster[open] .lexres-editor');
@@ -73,13 +74,21 @@ function arg(name, fallback) {
         contextsTop: contexts.getBoundingClientRect().top,
         listClientHeight: list.clientHeight,
         listScrollHeight: list.scrollHeight,
-        candidateText: candidate && candidate.textContent
+        candidateText: candidate && candidate.textContent,
+        posTag: document.querySelector('[name="lp_pos"]')?.tagName,
+        posValue: document.querySelector('[name="lp_pos"]')?.value,
+        pealimValue: document.querySelector('[name="pealim_ref"]')?.value,
+        pealimOpen: document.querySelector('[data-pealim-open]')?.href
       };
     });
     assert.equal(before.editorBeforeContexts, true);
     assert.ok(before.editorTop < before.contextsTop, JSON.stringify(before));
     assert.ok(before.listScrollHeight > before.listClientHeight, JSON.stringify(before));
-    assert.match(before.candidateText || '', /נטע.*noun.*#7361/);
+    assert.match(before.candidateText || '', /נטע.*существительное.*pealim\.com\/ru\/dict\/7361/);
+    assert.equal(before.posTag, 'SELECT');
+    assert.equal(before.posValue, 'noun');
+    assert.match(before.pealimValue || '', /pealim\.com\/ru\/dict\/7361/);
+    assert.match(before.pealimOpen || '', /pealim\.com\/ru\/dict\/7361/);
 
     await page.locator('.lexres-actions .lexres-primary').first().scrollIntoViewIfNeeded();
     await page.locator('.lexres-actions .lexres-primary').first().click();

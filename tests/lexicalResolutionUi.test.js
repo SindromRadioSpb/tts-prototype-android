@@ -23,10 +23,31 @@ test('single impact stays occurrence-scoped and ineligible batch fails closed', 
   assert.throws(() => UI.exactImpact({ batch_review_eligible: true, occurrences }, 'missing', false), /LEXICAL_IMPACT_EMPTY/);
 });
 
+test('Pealim field accepts an id or a full official URL and stores only the id', () => {
+  assert.equal(UI.parsePealimId('6014'), '6014');
+  assert.equal(UI.parsePealimId('https://www.pealim.com/ru/dict/6014-le/'), '6014');
+  assert.equal(UI.parsePealimId('https://www.pealim.com/dict/4158-kol/'), '4158');
+  assert.equal(UI.parsePealimId('https://example.com/ru/dict/6014-le/'), '');
+  assert.equal(UI.pealimUrl('6014'), 'https://www.pealim.com/ru/dict/6014/');
+});
+
+test('candidate analysis carries the Pealim URL and canonical POS into the editor', () => {
+  const analysis = UI.candidateAnalysis({ lemma: 'ל', pos: 'preposition', pealim_id: '6014' }, {
+    normalizePos: (value) => value
+  });
+  assert.deepEqual(analysis, {
+    lemma: 'ל', lp_pos: 'preposition', pealim_id: '6014', pealim_url: 'https://www.pealim.com/ru/dict/6014/',
+    root: '', binyan: '', meaning_ru: ''
+  });
+});
+
 test('review editor and exact impact stay before the bounded context list', () => {
   const ui = fs.readFileSync(path.join(__dirname, '..', 'public/js/lexical-resolution-ui.js'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'public/css/lexical-resolution.css'), 'utf8');
   assert.match(ui, /inner\.append\(editor,contexts\)/);
   assert.match(ui, /card\.insertBefore\(impact,anchor\)/);
+  assert.match(ui, /input\.name==='lp_pos'|name==='lp_pos'/);
+  assert.match(ui, /document\.createElement\('select'\)|\$\('select'/);
+  assert.match(ui, /room\.morph\.pos\./);
   assert.match(css, /\.lexres-context-list\{[^}]*max-height:[^;}]+;[^}]*overflow:auto/);
 });

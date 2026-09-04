@@ -2505,7 +2505,7 @@ window.I18N_LOCALES.en = {
       open: "Review morphology", eyebrow: "Morphology review", title: "Occurrences and clusters", close: "Close",
       loading: "Building morphology and decisions…", loadFailed: "Could not build the morphology queue.", ready: "The queue is ready. No decision is applied automatically.",
       active: "In queue", resolved: "Resolved", clusters: "Clusters", contexts: "Occurrence contexts", candidates: "Candidates",
-      lemma: "Lemma", pos: "Part of speech", root: "Root", meaning: "Meaning", batch: "Apply to the whole cluster after reviewing every context", batchUnavailable: "Only occurrence-level review is available for this cluster",
+      lemma: "Lemma", pos: "Part of speech", posChoose: "Choose a part of speech", pealimLink: "Pealim link", pealimHint: "Paste a Pealim link or numeric ID. Only the ID is stored in the decision.", pealimOpen: "Open in Pealim", pealimInvalid: "Enter a valid Pealim link or numeric ID.", root: "Root", binyan: "Binyan", meaning: "Meaning", batch: "Apply to the whole cluster after reviewing every context", batchUnavailable: "Only occurrence-level review is available for this cluster",
       resolve: "Confirm analysis", defer: "Defer", reject: "Reject candidates", clear: "Clear decision", required: "Enter a lemma and part of speech.",
       impactTitle: "Exact impact before writing", impactCount: "Decisions to be written: {count}", cancel: "Cancel", confirmImpact: "Confirm exact write",
       saving: "Saving the append-only decision…", saved: "Decision saved. The queue and exact counts were refreshed.", failed: "Could not save the decision; the original queue was not changed.",
@@ -3071,7 +3071,7 @@ window.I18N_LOCALES.en = {
         unknown: "not resolved offline — check via the link",
         alts: "other possible readings of this word",
       },
-      pos: { verb: "verb", noun: "noun", adjective: "adjective", preposition: "preposition", adverb: "adverb", pronoun: "pronoun", conjunction: "conjunction", numeral: "numeral", interjection: "interjection", particle: "particle", negation: "negation" },
+      pos: { verb: "verb", noun: "noun", adjective: "adjective", participle: "participle", propernoun: "proper noun", preposition: "preposition", adverb: "adverb", pronoun: "pronoun", conjunction: "conjunction", numeral: "numeral", interjection: "interjection", particle: "particle", negation: "negation", other: "other", unknown: "unknown" },
     },
     onboard: {
       readerTip1: "👆 tap — analysis · long-press — status",
