@@ -41,7 +41,10 @@ function arg(name, fallback) {
           window.__lexresReaderOccurrence = occurrence;
           try {
             const item = { ...occurrence, lp_occurrence_id: 'lpro:reader-text:reader-sentence:1' };
-            const sourceAnchor = await window.LexicalResolutionCore.sourceAnchor(item);
+            // Historical resolver tokens may order sin-dot before sheva while
+            // the reader DOM exposes the canonically equivalent reverse order.
+            const resolverItem = { ...item, niqqud: 'יִשְׂרָאֵל' };
+            const sourceAnchor = await window.LexicalResolutionCore.sourceAnchor(resolverItem);
             const event = {
               id: 'reader-owner-1', occurrence_id: item.lp_occurrence_id, text_id: 'reader-text', sentence_id: 'reader-sentence',
               word_offset: 1, text_key: 'reader-text-key', order_index: 7, surface_norm: 'ישראל', source_anchor: sourceAnchor,

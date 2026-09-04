@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.472";
+const CACHE_VERSION = "v3.11.473";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -118,7 +118,7 @@ const PRECACHE_URLS = [
   "/js/obsidian-lexical-preview.js?v=3",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
-  "/js/lexical-resolution-service.js?v=3",
+  "/js/lexical-resolution-service.js?v=4",
   "/js/lexical-resolution-ui.js?v=6",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",

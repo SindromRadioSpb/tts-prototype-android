@@ -8,17 +8,54 @@
     if(!occurrence||occurrence.text_id==null||occurrence.sentence_id==null||!Number.isInteger(Number(occurrence.word_offset)))return'';
     return'lpro:'+String(occurrence.text_id)+':'+String(occurrence.sentence_id)+':'+Number(occurrence.word_offset);
   }
+  function canonicallyEquivalentMarkOrders(value,limit){
+    const input=String(value||'');const groups=[];let current='';
+    for(const char of Array.from(input)){
+      if(/\p{M}/u.test(char)&&current)current+=char;
+      else{if(current)groups.push(current);current=char;}
+    }
+    if(current)groups.push(current);
+    let variants=[''];const cap=Number.isInteger(limit)&&limit>0?limit:64;
+    for(const group of groups){
+      const chars=Array.from(group),base=chars.shift()||'',marks=chars;
+      let orders=[marks.join('')];
+      if(marks.length>1){
+        const found=new Set();
+        const visit=(left,prefix)=>{if(found.size>=cap)return;if(!left.length){found.add(prefix);return;}for(let i=0;i<left.length;i++)visit(left.slice(0,i).concat(left.slice(i+1)),prefix+left[i]);};
+        visit(marks,'');orders=Array.from(found);
+      }
+      const next=[];for(const prefix of variants){for(const order of orders){next.push(prefix+base+order);if(next.length>=cap)break;}if(next.length>=cap)break;}variants=next;
+    }
+    return Array.from(new Set(variants));
+  }
+  async function matchSourceAnchor(item,event,Core){
+    const direct=await Core.sourceAnchor(item);if(direct===event.source_anchor)return direct;
+    // Older resolver exports could preserve a non-canonical order of Hebrew
+    // combining marks in the token while the reader DOM canonicalised that
+    // same token. Prove equivalence without weakening the anchor: only
+    // permutations of the exact same marks are tried, and one must reproduce
+    // the stored SHA-256 exactly. Letters, sentence, coordinates and text key
+    // remain unchanged; any real source edit therefore still fails closed.
+    const token=String(item.niqqud||item.surface||'');
+    for(const variant of canonicallyEquivalentMarkOrders(token,64)){
+      if(variant===token)continue;
+      const candidate=await Core.sourceAnchor({...item,niqqud:variant});
+      if(candidate===event.source_anchor)return candidate;
+    }
+    return'';
+  }
   async function projectExactOccurrence(occurrence,events,Core){
     if(!Core||!Core.sourceAnchor||!Core.evaluate)return null;
     const id=occurrenceId(occurrence);if(!id)return null;
     const item={...occurrence,lp_occurrence_id:id};
-    item.source_anchor=await Core.sourceAnchor(item);
+    const latest=Core.latest(events||[],id);
+    if(!latest||latest.action!=='manual_correction')return null;
+    item.source_anchor=await matchSourceAnchor(item,latest,Core);
+    if(!item.source_anchor)return null;
     // The reader has no current resolver candidate set. A manual correction is
     // still safe because Core.evaluate deliberately keys it only to the exact
     // source anchor; candidate confirmations remain fail-closed here.
     item.candidate_fingerprint='';
-    const latest=Core.latest(events||[],id);
-    if(!latest||latest.action!=='manual_correction')return null;
     const effective=Core.evaluate(item,events||[]);
     if(effective.state!=='resolved')return null;
     return{state:'resolved',analysis:effective.chosen_analysis,event_id:latest.id,actor_kind:latest.actor_kind,created_at:latest.created_at};
@@ -68,5 +105,5 @@
       resolution_queue:{...report.resolution_queue,items:activeItems,clusters,uncertain_occurrences:activeItems.length,queued_uncertain_occurrences:activeItems.length,coverage_pct:100},
       resolution_audit:{schema:'linguistpro-lexical-resolution-audit-v1',state_counts:stateCounts,items}};
   }
-  return{hydrate,projectExactOccurrence,lookupExactOccurrence};
+  return{hydrate,projectExactOccurrence,lookupExactOccurrence,canonicallyEquivalentMarkOrders};
 });
