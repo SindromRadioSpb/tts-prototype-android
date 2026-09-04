@@ -1154,4 +1154,33 @@ export const MIGRATIONS = [
   CREATE INDEX IF NOT EXISTS ix_word_context_lemma ON word_context(lemma_key, source_class);
   CREATE INDEX IF NOT EXISTS ix_word_context_scope ON word_context(source_class, corpus_id, lemma_key);
   CREATE INDEX IF NOT EXISTS ix_word_context_keyer ON word_context(keyer_version);`,
+  // 051_lexical_resolution_events — P0.5 LinguistPro + Obsidian.
+  // Owner/teacher decisions are an append-only overlay over sentence_morph;
+  // they never rewrite provider evidence or touch review_log / FSRS.
+  `CREATE TABLE IF NOT EXISTS lexical_resolution_events (
+    id                    TEXT PRIMARY KEY,
+    occurrence_id         TEXT NOT NULL,
+    text_id               TEXT NOT NULL REFERENCES texts(id) ON DELETE CASCADE,
+    sentence_id           TEXT NOT NULL REFERENCES sentences(id) ON DELETE CASCADE,
+    word_offset           INTEGER NOT NULL CHECK(word_offset >= 0),
+    text_key              TEXT NOT NULL,
+    order_index           INTEGER NOT NULL CHECK(order_index >= 0),
+    surface_norm          TEXT NOT NULL,
+    source_anchor         TEXT NOT NULL,
+    action                TEXT NOT NULL CHECK(action IN ('confirm_candidate','manual_correction','reject_all','defer','clear')),
+    chosen_json           TEXT CHECK(chosen_json IS NULL OR json_valid(chosen_json)),
+    candidate_fingerprint TEXT NOT NULL,
+    morph_model_version   TEXT,
+    actor_kind            TEXT NOT NULL CHECK(actor_kind IN ('owner','teacher')),
+    batch_id              TEXT,
+    supersedes_id         TEXT,
+    note                  TEXT,
+    created_at            TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS ix_lexres_occurrence
+    ON lexical_resolution_events(occurrence_id, created_at, id);
+  CREATE INDEX IF NOT EXISTS ix_lexres_text
+    ON lexical_resolution_events(text_id, order_index, word_offset, created_at);
+  CREATE INDEX IF NOT EXISTS ix_lexres_batch
+    ON lexical_resolution_events(batch_id) WHERE batch_id IS NOT NULL;`,
 ];

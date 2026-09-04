@@ -38,6 +38,8 @@
 //   importBundle()  — POST /api/library/import/bundle
 
 import '../js/nakdan-derived-core.js';
+import '../js/lexical-resolution-core.js';
+import '../js/lexical-resolution-repository.js';
 import { encodeBrowseCursor, decodeBrowseCursor, fingerprintBrowseFilters, normalizeBrowseFilters, ROOM_B6_LIMITS } from '../js/room-b6-core.js';
 
 const _nakdanDerived = globalThis.NakdanDerivedCore;
@@ -358,6 +360,19 @@ export function vfsBackendChanged() { return _vfsBackendChanged; }
 const q = (sql, p) => _call('query', sql, p);
 const r = (sql, p) => _call('run',   sql, p);
 const x = (sql)    => _call('exec',  sql);
+
+let _lexicalResolutionRepo = null;
+function _lexResRepo() {
+  if (!_lexicalResolutionRepo) {
+    _lexicalResolutionRepo = globalThis.LexicalResolutionRepository.createRepository(
+      { dbQuery: q, dbRun: r, execRaw: x }, globalThis.LexicalResolutionCore);
+  }
+  return _lexicalResolutionRepo;
+}
+export async function appendLexicalResolutionEvent(event) { return _lexResRepo().append(event); }
+export async function appendLexicalResolutionBatch(events) { return _lexResRepo().appendBatch(events); }
+export async function listLexicalResolutionEventsForText(textId) { return _lexResRepo().listForText(textId); }
+export async function listLexicalResolutionEventsForOccurrence(occurrenceId) { return _lexResRepo().listForOccurrence(occurrenceId); }
 
 // Raw exec for app-level operations that don't fit a CRUD shape (e.g.
 // wipe-all that DELETEs from multiple non-FK-cascading tables).
@@ -6038,7 +6053,8 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
        (notesAdvanced.versions || []).length ||
        (notesAdvanced.links || []).length ||
        (notesAdvanced.roots || []).length ||
-       (notesAdvanced.sentence_morph || []).length)),
+       (notesAdvanced.sentence_morph || []).length ||
+       (notesAdvanced.lexical_resolution_events || []).length)),
     // R-3.7 — full-backup state (SRS / Anki / events / translation overrides).
     notes_advanced_schema_version: (notesAdvanced && notesAdvanced.schema_version) || 1,
     state_present: !!(notesAdvanced &&
@@ -6167,6 +6183,17 @@ async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
     } catch (_) {}
   }
 
+  // P0.5 — text-bound owner/teacher morphology decisions. These ride both
+  // ordinary backup and slim per-text artifacts; they are not global state.
+  let lexicalResolutionEvents = [];
+  try {
+    const tids = (Array.isArray(textIds) ? textIds : []).map(String);
+    lexicalResolutionEvents = tids.length ? await q(
+      `SELECT e.* FROM lexical_resolution_events e
+        WHERE e.text_id IN (${tids.map(() => '?').join(',')})
+        ORDER BY e.created_at,e.id`, tids) : [];
+  } catch (_) {}
+
   // 6) note_occurrences — WHERE each note appears (text/sentence/word_offset).
   //    Canonical autogen notes (text_id IS NULL) are positioned ONLY via this
   //    table; without exporting it, an imported canonical note loses every
@@ -6243,15 +6270,16 @@ async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
   const studyDayRows        = await _all('SELECT * FROM study_day');
 
   return {
-    schema_version: 2,
+    schema_version: 3,
     exported_at: new Date().toISOString(),
     app_id: 'linguist-pro-web',
-    format: 'linguistpro-notes-advanced-v2',
+    format: 'linguistpro-notes-advanced-v3',
     notes,
     versions,
     links,
     roots,
     sentence_morph: sentenceMorph,
+    lexical_resolution_events: lexicalResolutionEvents,
     occurrences,
     // R-3.7 full-backup state sections:
     srs_cards: srsCards,
@@ -6822,7 +6850,7 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
   // R-3.7 — forward-compat guard. KNOWN_MAX is the newest payload schema this
   // build understands; a newer bundle may carry sections/fields we don't import
   // (silent drop). Warn but proceed with the sections we DO know.
-  const KNOWN_MAX = 2;
+  const KNOWN_MAX = 3;
   const payloadVer = Number(payload && payload.schema_version) || 1;
   if (payloadVer > KNOWN_MAX) {
     try { console.warn('[import] notes_advanced schema_version ' + payloadVer + ' > ' + KNOWN_MAX + ' — bundle from a newer app version; some data may not import.'); } catch (_) {}
@@ -7137,6 +7165,33 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       );
       out.occurrences.inserted++;
     } catch (_) { out.occurrences.dropped++; }
+  }
+
+  // Pass 6b — append-only lexical resolution events. Occurrence ids are
+  // device-local because sentence ids remap; portable source/candidate anchors
+  // remain unchanged and decide whether the event is effective or stale.
+  out.lexical_resolution_events = { inserted: 0, dropped: 0 };
+  for (const ev of (Array.isArray(payload.lexical_resolution_events) ? payload.lexical_resolution_events : [])) {
+    if (!ev || typeof ev !== 'object') { out.lexical_resolution_events.dropped++; continue; }
+    const newTid = _remap(oldToNewTextId, ev.text_id);
+    const newSid = _remap(oldToNewSentenceId, ev.sentence_id);
+    const wo = Number(ev.word_offset);
+    if (!newTid || !newSid || !Number.isInteger(wo) || wo < 0) { out.lexical_resolution_events.dropped++; continue; }
+    let chosen = ev.chosen_analysis || {};
+    if (typeof ev.chosen_json === 'string') { try { chosen = JSON.parse(ev.chosen_json); } catch (_) { chosen = {}; } }
+    try {
+      const res = await appendLexicalResolutionEvent({
+        id: String(ev.id || ''), occurrence_id: `lpro:${newTid}:${newSid}:${wo}`,
+        text_id: newTid, sentence_id: newSid, word_offset: wo,
+        text_key: String(ev.text_key || ''), order_index: Number(ev.order_index),
+        surface_norm: String(ev.surface_norm || ''), source_anchor: String(ev.source_anchor || ''),
+        action: String(ev.action || ''), chosen_analysis: chosen,
+        candidate_fingerprint: String(ev.candidate_fingerprint || ''),
+        morph_model_version: String(ev.morph_model_version || ''), actor_kind: String(ev.actor_kind || ''),
+        batch_id: ev.batch_id || '', supersedes_id: ev.supersedes_id || '', note: ev.note || '', created_at: String(ev.created_at || '')
+      });
+      if (res.inserted) out.lexical_resolution_events.inserted++;
+    } catch (_) { out.lexical_resolution_events.dropped++; }
   }
 
   // ── R-3.7 full-backup state (schema_version ≥ 2). All FK ids remap via the

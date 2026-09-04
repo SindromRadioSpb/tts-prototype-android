@@ -12,6 +12,9 @@
 
 Канонический контур разрешения неоднозначности:
 [`LEXICAL_RESOLUTION_LIFECYCLE.md`](./LEXICAL_RESOLUTION_LIFECYCLE.md).
+
+Журнал реализации P0.5:
+[`P05_RESOLUTION_IMPLEMENTATION.md`](./P05_RESOLUTION_IMPLEMENTATION.md).
 Объект первого пилота: личный текст `Кфар Аза - 2 544/573` и существующий vault
 `F:\УЧУ_ИВРИТ\УЧУ_ИВРИТ`.
 

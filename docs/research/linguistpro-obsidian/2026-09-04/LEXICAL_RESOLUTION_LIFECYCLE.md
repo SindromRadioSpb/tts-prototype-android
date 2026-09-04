@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Статус: `ARCHITECTURE_DECISION_DRAFT · VISIBLE_QUEUE_P0_PASS · CANONICAL_WRITES_NOT_IMPLEMENTED`
+Статус: `ARCHITECTURE_DECISION_DRAFT · P0.5_CORE_STORAGE_TECHNICAL_PASS · UI_NOT_IMPLEMENTED`
 
 Связанные документы:
 
@@ -195,13 +195,19 @@ _LinguistPro/
 
 До P1 требуется завершить `P0.5 Resolution`:
 
-1. migration и browser/server repository API для append-only events;
+1. browser SQLite migration и repository API для append-only events —
+   `TECHNICAL_PASS`;
 2. overlay resolver с тестами `resolved / rejected / deferred / stale / clear`;
 3. очередь и карточка проверки в LinguistPro;
 4. preview точного batch impact;
 5. backup/export/import новых событий;
 6. повторный Obsidian-export с доказанным переходом unresolved → resolved;
 7. owner acceptance на малом тексте и затем на `Кфар Аза - 2`.
+
+События являются text-bound локальными данными владельца. Они входят в
+`notes_advanced` обычного backup и slim per-text artifact. В облачный backend
+они автоматически не отправляются; server sync требует отдельного решения о
+privacy, конфликтах и owner scope.
 
 Только после этого разрешается test-vault P1. Действующий vault на `F:` остаётся
 без изменений.
