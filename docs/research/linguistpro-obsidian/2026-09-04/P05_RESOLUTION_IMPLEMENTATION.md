@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Статус: `CORE_STORAGE_OVERLAY_TECHNICAL_PASS · UI_BACKUP_ROUNDTRIP_PENDING`
+Статус: `RELEASE_CANDIDATE_TECHNICAL_PASS · OWNER_ACCEPTANCE_PENDING`
 
 ## Реализовано
 
@@ -24,30 +24,42 @@
   остаются в полном audit; stale/deferred/rejected остаются видимыми;
 - после уменьшения кластера пакетное подтверждение автоматически отключается,
   если в нём осталось меньше двух активных occurrences.
+- owner-facing UI в Reading Room для просмотра occurrence и кластеров;
+- отдельный экран точного impact до любой записи: количество, все occurrence
+  IDs и все контексты;
+- executable full/slim export-import roundtrip с remap text/row/occurrence ID,
+  идемпотентным повторным импортом и запретом переноса событий другого текста;
+- Obsidian `receipt.json` и `resolution-audit.json` с полным снимком состояний и
+  точными переходами `unresolved -> resolved` между последовательными
+  выгрузками.
 
 Серверная таблица намеренно не создавалась: события локальны и text-bound.
 Автоматический cloud sync не утверждён.
 
 ## Проверено
 
-- новый набор core/repository/service/preview: 18/18 PASS;
-- отдельные core/repository tests: 7/7 PASS;
+- lexical-resolution audit: 24/24 PASS;
+- executable full/slim backup roundtrip: PASS в обоих режимах;
+- exact single/batch impact и fail-closed batch: PASS;
+- Obsidian unresolved -> resolved projection/receipt/audit: PASS;
 - JS syntax и scoped `git diff --check`: PASS;
 - в API отсутствуют операции update/delete;
 - тест exact batch подтверждает rollback до прежнего количества строк.
 
-Старые media/material tests содержат уже устаревший до этой работы guard
-`MIGRATIONS.length === 49`: живой baseline до migration 051 содержал 50
-миграций. Их падение не является продуктовой регрессией новой таблицы; hardcode
-нужно исправлять отдельным scoped maintenance-срезом, не меняя индексы целевых
-миграций.
+Browser smoke в изолированном профиле на реальном ZIP «Кфар Аза - 2 544/573»:
+
+- импорт: `+1 text`, audio `4/4`, skipped `0`;
+- single impact: `1`, после записи очередь `558 -> 557`, resolved `0 -> 1`,
+  кластер `יֵשׁ` `30 -> 29`;
+- после полной перезагрузки состояние сохранилось;
+- batch impact для `עַזָּה`: ровно `29` IDs/контекстов, затем отменён без записи;
+- batch для неоднородного `יֵשׁ` недоступен fail-closed;
+- окно проверено на ширине 380 px.
 
 ## Осталось до снятия P0.5 gate
 
-1. UI просмотра одного occurrence и кластера;
-2. owner actions и batch-impact confirmation;
-3. исполнимый full/slim export-import roundtrip test;
-4. unresolved → resolved переход в Obsidian projection/receipt;
-5. owner acceptance.
+Только owner acceptance на production. Технические и автоматизированные гейты
+не заменяют решение владельца. До его отчёта статус нельзя повышать до
+`OWNER_REPORTED_PASS`.
 
 Vault `F:\УЧУ_ИВРИТ\УЧУ_ИВРИТ` не изменён.

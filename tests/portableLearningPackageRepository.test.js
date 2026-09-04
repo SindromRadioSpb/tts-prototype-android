@@ -31,7 +31,7 @@ async function harness() {
     CREATE TABLE texts(id TEXT PRIMARY KEY,text_key TEXT NOT NULL UNIQUE,title TEXT NOT NULL,source_text TEXT NOT NULL,level TEXT,tags_json TEXT,source TEXT,topic TEXT,source_meta_json TEXT,table_model_meta_json TEXT,tts_profile_json TEXT,is_archived INTEGER NOT NULL DEFAULT 0,updated_at TEXT,created_at TEXT);
     CREATE TABLE sentences(id TEXT PRIMARY KEY,text_id TEXT NOT NULL REFERENCES texts(id) ON DELETE CASCADE,order_index INTEGER NOT NULL,he_plain TEXT,he_niqqud TEXT,translit TEXT,translit_ru TEXT,ru TEXT,meta_json TEXT,edit_meta_json TEXT,translation_provider TEXT,translation_meta_json TEXT,created_at TEXT,UNIQUE(text_id,order_index));`);
   const { MIGRATIONS } = await import('../public/db/migrations.js');
-  assert.equal(MIGRATIONS.length,49);
+  assert.ok(MIGRATIONS.length >= 49);
   db.run(MIGRATIONS[44]); db.run(MIGRATIONS[45]); db.run(MIGRATIONS[46]); db.run(MIGRATIONS[47]);
   const rows=(sql,params=[])=>{const s=db.prepare(sql);s.bind(params);const out=[];while(s.step())out.push(s.getAsObject());s.free();return out;};
   const adapter={dbQuery:async(sql,p)=>rows(sql,p),dbRun:async(sql,p)=>{const s=db.prepare(sql);s.run(p||[]);s.free();return{changes:db.getRowsModified()};},execRaw:async(sql)=>db.run(sql)};

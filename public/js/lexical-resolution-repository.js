@@ -40,8 +40,13 @@
       catch (err) { try { await x('ROLLBACK;'); } catch (_) {} throw err; }
     }
     async function listForText(textId) { return (await q('SELECT * FROM lexical_resolution_events WHERE text_id=? ORDER BY created_at,id',[String(textId)])).map(fromRow); }
+    async function listForTexts(textIds) {
+      const ids=Array.from(new Set((textIds||[]).map(String).filter(Boolean)));
+      if(!ids.length)return [];
+      return (await q(`SELECT * FROM lexical_resolution_events WHERE text_id IN (${ids.map(()=>'?').join(',')}) ORDER BY created_at,id`,ids)).map(fromRow);
+    }
     async function listForOccurrence(occurrenceId) { return (await q('SELECT * FROM lexical_resolution_events WHERE occurrence_id=? ORDER BY created_at,id',[String(occurrenceId)])).map(fromRow); }
-    return {append,appendBatch,listForText,listForOccurrence};
+    return {append,appendBatch,listForText,listForTexts,listForOccurrence};
   }
   return {createRepository};
 });

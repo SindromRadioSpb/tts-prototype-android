@@ -3,6 +3,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const Preview = require("../public/js/obsidian-lexical-preview.js");
+const Core = require("../public/js/lexical-resolution-core.js");
+const Service = require("../public/js/lexical-resolution-service.js");
 
 function fixture() {
   return {
@@ -165,7 +167,7 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   const second = Preview.planObsidianPackage(report);
   assert.deepEqual(second, first);
   assert.equal(first.read_only, true);
-  assert.equal(first.would_create_files, report.counts.unique_lexemes + report.counts.resolution_clusters + 9);
+  assert.equal(first.would_create_files, report.counts.unique_lexemes + report.counts.resolution_clusters + 10);
   assert.equal(new Set(first.files.map((x) => x.path)).size, first.files.length);
   assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/")));
   assert.match(first.base_preview, /name: "Глаголы"/);
@@ -176,6 +178,33 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   assert.ok(first.would_write_bytes > 0);
   assert.equal(first.files.find((x) => x.path.endsWith("occurrences.tsv")).content.split("\n").length - 2, 6);
   assert.equal(first.files.find((x) => x.path.endsWith("resolution-occurrences.tsv")).content.split("\n").length - 2, report.counts.uncertain_occurrences);
+  assert.equal(first.receipt.active_resolution_occurrences, 1);
+  assert.equal(first.receipt.resolved_resolution_occurrences, 0);
+  assert.ok(first.files.some((x) => x.path.endsWith("resolution-audit.json")));
+});
+
+test("receipts prove unresolved to resolved without losing the audited occurrence", async () => {
+  const report = Preview.analyzeBundle(fixture(), { textId: "T1" });
+  const before = Preview.planObsidianPackage(report);
+  const hydrated = await Service.hydrate(report, [], Core);
+  const item = hydrated.resolution_audit.items[0];
+  const event = {
+    id: "resolution-1", occurrence_id: item.lp_occurrence_id, text_id: "T1", sentence_id: item.row_id,
+    word_offset: item.word_offset, text_key: "text-kfar", order_index: item.order_index,
+    surface_norm: item.surface, source_anchor: item.source_anchor, action: "manual_correction",
+    chosen_analysis: { lemma: "נטע", lp_pos: "propernoun" }, candidate_fingerprint: item.candidate_fingerprint,
+    actor_kind: "owner", created_at: "2026-09-04T01:00:00Z"
+  };
+  const resolved = await Service.hydrate(report, [event], Core);
+  const after = Preview.planObsidianPackage(resolved, { previousReceipt: before.receipt });
+
+  assert.equal(after.receipt.active_resolution_occurrences, 0);
+  assert.equal(after.receipt.resolved_resolution_occurrences, 1);
+  assert.deepEqual(after.receipt.resolution_transitions, [{ lp_occurrence_id: item.lp_occurrence_id, from: "unresolved", to: "resolved" }]);
+  assert.equal(resolved.resolution_queue.items.length, 0);
+  const audit = JSON.parse(after.files.find((x) => x.path.endsWith("resolution-audit.json")).content);
+  assert.equal(audit.items.length, 1);
+  assert.equal(audit.items[0].resolution_event_id, "resolution-1");
 });
 
 test("requires an explicit selection when a bundle contains multiple texts", () => {

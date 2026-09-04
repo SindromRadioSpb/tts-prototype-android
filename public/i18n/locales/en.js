@@ -2501,6 +2501,17 @@ window.I18N_LOCALES.en = {
       partial: "The package is partial: {included} of {expected} audio files. Unavailable files are listed inside the ZIP.",
       failed: "Could not prepare the package. Your text and app data were not changed.",
     },
+    resolution: {
+      open: "Review morphology", eyebrow: "Morphology review", title: "Occurrences and clusters", close: "Close",
+      loading: "Building morphology and decisions…", loadFailed: "Could not build the morphology queue.", ready: "The queue is ready. No decision is applied automatically.",
+      active: "In queue", resolved: "Resolved", clusters: "Clusters", contexts: "Occurrence contexts", candidates: "Candidates",
+      lemma: "Lemma", pos: "Part of speech", root: "Root", meaning: "Meaning", batch: "Apply to the whole cluster after reviewing every context", batchUnavailable: "Only occurrence-level review is available for this cluster",
+      resolve: "Confirm analysis", defer: "Defer", reject: "Reject candidates", clear: "Clear decision", required: "Enter a lemma and part of speech.",
+      impactTitle: "Exact impact before writing", impactCount: "Decisions to be written: {count}", cancel: "Cancel", confirmImpact: "Confirm exact write",
+      saving: "Saving the append-only decision…", saved: "Decision saved. The queue and exact counts were refreshed.", failed: "Could not save the decision; the original queue was not changed.",
+      export: "Download Obsidian ZIP", exporting: "Building Obsidian ZIP…", exported: "Obsidian ZIP saved. Receipt state transitions: {count}.", exportFailed: "Could not build the Obsidian ZIP.",
+      empty: "The active queue is empty. Decisions remain in the audit and will be included in the receipt.",
+    },
     groupCorpus: {
       privateDesc: "Your group's private study corpus · members only",
       hubDesc: "Your group's private study corpus", owner: "owner", member: "member",

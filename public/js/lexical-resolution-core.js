@@ -97,5 +97,27 @@
     return out;
   }
 
-  return { ACTIONS: Array.from(ACTIONS), ACTORS: Array.from(ACTORS), ANALYSIS_FIELDS, stableStringify, sha256Hex, sourceAnchor, candidateFingerprint, normalizeEvent, latest, evaluate, applyOverlay };
+  function rebindPortableEvent(raw, target) {
+    target = target || {};
+    var chosen = raw && raw.chosen_analysis || {};
+    if (raw && typeof raw.chosen_json === 'string') {
+      try { chosen = JSON.parse(raw.chosen_json); } catch (_) { chosen = {}; }
+    }
+    var wordOffset = Number(raw && raw.word_offset);
+    if (!text(target.text_id) || !text(target.sentence_id) || !Number.isInteger(wordOffset) || wordOffset < 0) {
+      throw new Error('LEXICAL_PORTABLE_TARGET_INVALID');
+    }
+    return normalizeEvent({
+      id: text(raw && raw.id), occurrence_id: 'lpro:' + text(target.text_id) + ':' + text(target.sentence_id) + ':' + wordOffset,
+      text_id: text(target.text_id), sentence_id: text(target.sentence_id), word_offset: wordOffset,
+      text_key: text(raw && raw.text_key), order_index: Number(raw && raw.order_index),
+      surface_norm: text(raw && raw.surface_norm), source_anchor: text(raw && raw.source_anchor),
+      action: text(raw && raw.action), chosen_analysis: chosen,
+      candidate_fingerprint: text(raw && raw.candidate_fingerprint), morph_model_version: text(raw && raw.morph_model_version),
+      actor_kind: text(raw && raw.actor_kind), batch_id: text(raw && raw.batch_id),
+      supersedes_id: text(raw && raw.supersedes_id), note: text(raw && raw.note), created_at: text(raw && raw.created_at)
+    });
+  }
+
+  return { ACTIONS: Array.from(ACTIONS), ACTORS: Array.from(ACTORS), ANALYSIS_FIELDS, stableStringify, sha256Hex, sourceAnchor, candidateFingerprint, normalizeEvent, latest, evaluate, applyOverlay, rebindPortableEvent };
 });

@@ -10550,6 +10550,13 @@ function renderMyTextCard(item, vertical) {
   const share = el('button', { class: 'mytext-share', attrs: { type: 'button' }, text: '↗ ' + tt('room.share.open', 'Отправить или сохранить') });
   share.addEventListener('click', () => { secondary.open = false; openMyTextShare(item, secondarySummary); });
   secondaryPanel.appendChild(share);
+  const morphReview = el('button', { class: 'mytext-morph-review', attrs: { type: 'button' }, text: '⚖ ' + tt('room.resolution.open', 'Проверить морфологию') });
+  morphReview.addEventListener('click', () => {
+    secondary.open = false;
+    if (!window.LexicalResolutionUI) return;
+    window.LexicalResolutionUI.open({ item, localDb, returnFocus: secondarySummary, t: tt });
+  });
+  secondaryPanel.appendChild(morphReview);
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
   nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
   secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);

@@ -484,12 +484,15 @@
     return lines.join("\n") + "\n";
   }
   function renderResolutionQueueIndex(report, pathByClusterId) {
+    var activeCount = report.counts.active_resolution_occurrences != null
+      ? report.counts.active_resolution_occurrences
+      : report.counts.uncertain_occurrences;
     var lines = [
       "# Очередь морфологического разбора",
       "",
       "> Generated snapshot. Канонические решения принимаются в LinguistPro.",
       "",
-      "- Неопределённых вхождений: " + report.counts.uncertain_occurrences,
+      "- Активных вхождений: " + activeCount,
       "- В очереди: " + report.counts.queued_uncertain_occurrences,
       "- Покрытие: " + report.counts.resolution_queue_coverage_pct + "%",
       "- Кластеров: " + report.counts.resolution_clusters,
@@ -541,7 +544,27 @@
     });
     return rows.map(function (row) { return row.map(cell).join("\t"); }).join("\n") + "\n";
   }
-  function planObsidianPackage(report) {
+  function resolutionAuditOf(report) {
+    if (report.resolution_audit && Array.isArray(report.resolution_audit.items)) return report.resolution_audit;
+    var items = report.resolution_queue.items.map(function (item) {
+      return Object.assign({}, item, { resolution_state: item.resolution_state || "unresolved", resolution_event_id: item.resolution_event_id || "" });
+    });
+    var stateCounts = { unresolved: items.length, resolved: 0, deferred: 0, rejected_all: 0, stale: 0 };
+    return { schema: "linguistpro-lexical-resolution-audit-v1", state_counts: stateCounts, items: items };
+  }
+  function resolutionSnapshot(audit) {
+    var out = {};
+    audit.items.forEach(function (item) { out[item.lp_occurrence_id] = item.resolution_state || "unresolved"; });
+    return out;
+  }
+  function resolutionTransitions(previousReceipt, snapshot) {
+    var previous = previousReceipt && previousReceipt.resolution_snapshot || {};
+    return Object.keys(snapshot).sort().filter(function (id) {
+      return Object.prototype.hasOwnProperty.call(previous, id) && previous[id] !== snapshot[id];
+    }).map(function (id) { return { lp_occurrence_id: id, from: previous[id], to: snapshot[id] }; });
+  }
+  function planObsidianPackage(report, opts) {
+    opts = opts || {};
     if (!report || report.schema !== "linguistpro-obsidian-lexical-preview-v1") throw new Error("A lexical preview report is required");
     var root = "_LinguistPro/texts/" + report.text.text_id + "/";
     var pathById = new Map(), pathByClusterId = new Map(), usedPaths = new Set();
@@ -571,14 +594,21 @@
     add(root + "Очередь разбора.md", renderResolutionQueueIndex(report, pathByClusterId), "resolution-index");
     add(root + "occurrences.tsv", renderOccurrencesTsv(report), "occurrences");
     add(root + "resolution-occurrences.tsv", renderResolutionOccurrencesTsv(report), "resolution-occurrences");
+    var audit = resolutionAuditOf(report);
+    add(root + "resolution-audit.json", JSON.stringify(audit, null, 2) + "\n", "resolution-audit");
     add(root + "projection.json", JSON.stringify(report, null, 2) + "\n", "projection");
     var beforeReceiptBytes = files.reduce(function (sum, file) { return sum + file.bytes; }, 0);
     var receipt = {
       schema: "linguistpro-obsidian-receipt-v1", read_only_preview: true,
       text_id: report.text.text_id, would_create_files: files.length + 1,
       would_write_bytes_before_receipt: beforeReceiptBytes,
-      source_counts: report.counts
+      source_counts: report.counts,
+      resolution_state_counts: audit.state_counts,
+      active_resolution_occurrences: audit.items.filter(function (item) { return item.resolution_state !== "resolved"; }).length,
+      resolved_resolution_occurrences: audit.items.filter(function (item) { return item.resolution_state === "resolved"; }).length,
+      resolution_snapshot: resolutionSnapshot(audit)
     };
+    receipt.resolution_transitions = resolutionTransitions(opts.previousReceipt, receipt.resolution_snapshot);
     add(root + "receipt.json", JSON.stringify(receipt, null, 2) + "\n", "receipt");
     files.sort(function (a, b) { return a.path.localeCompare(b.path); });
     var byKind = {};
@@ -589,6 +619,7 @@
       would_create_files: files.length,
       would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0),
       files_by_kind: byKind,
+      receipt: receipt,
       base_preview: base,
       resolution_base_preview: resolutionBase,
       files: files

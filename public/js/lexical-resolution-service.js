@@ -17,8 +17,9 @@
     }
     const clusters=report.resolution_queue.clusters.map((cluster)=>{
       const occurrenceIds=cluster.occurrence_ids.filter((id)=>byId.has(id)&&byId.get(id).resolution_state!=='resolved');
+      const occurrences=occurrenceIds.map((id)=>byId.get(id));
       const states={}; occurrenceIds.forEach((id)=>{const s=byId.get(id).resolution_state;states[s]=(states[s]||0)+1;});
-      return {...cluster,occurrence_ids:occurrenceIds,occurrence_count:occurrenceIds.length,state_counts:states,
+      return {...cluster,occurrence_ids:occurrenceIds,occurrences,occurrence_count:occurrenceIds.length,state_counts:states,
         batch_review_eligible:cluster.batch_review_eligible&&occurrenceIds.length>1};
     }).filter((cluster)=>cluster.occurrence_count>0);
     const activeItems=items.filter((item)=>item.resolution_state!=='resolved');

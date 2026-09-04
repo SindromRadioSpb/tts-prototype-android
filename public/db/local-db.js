@@ -372,6 +372,7 @@ function _lexResRepo() {
 export async function appendLexicalResolutionEvent(event) { return _lexResRepo().append(event); }
 export async function appendLexicalResolutionBatch(events) { return _lexResRepo().appendBatch(events); }
 export async function listLexicalResolutionEventsForText(textId) { return _lexResRepo().listForText(textId); }
+export async function listLexicalResolutionEventsForTexts(textIds) { return _lexResRepo().listForTexts(textIds); }
 export async function listLexicalResolutionEventsForOccurrence(occurrenceId) { return _lexResRepo().listForOccurrence(occurrenceId); }
 
 // Raw exec for app-level operations that don't fit a CRUD shape (e.g.
@@ -6188,10 +6189,7 @@ async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
   let lexicalResolutionEvents = [];
   try {
     const tids = (Array.isArray(textIds) ? textIds : []).map(String);
-    lexicalResolutionEvents = tids.length ? await q(
-      `SELECT e.* FROM lexical_resolution_events e
-        WHERE e.text_id IN (${tids.map(() => '?').join(',')})
-        ORDER BY e.created_at,e.id`, tids) : [];
+    lexicalResolutionEvents = await _lexResRepo().listForTexts(tids);
   } catch (_) {}
 
   // 6) note_occurrences — WHERE each note appears (text/sentence/word_offset).
@@ -7177,19 +7175,9 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
     const newSid = _remap(oldToNewSentenceId, ev.sentence_id);
     const wo = Number(ev.word_offset);
     if (!newTid || !newSid || !Number.isInteger(wo) || wo < 0) { out.lexical_resolution_events.dropped++; continue; }
-    let chosen = ev.chosen_analysis || {};
-    if (typeof ev.chosen_json === 'string') { try { chosen = JSON.parse(ev.chosen_json); } catch (_) { chosen = {}; } }
     try {
-      const res = await appendLexicalResolutionEvent({
-        id: String(ev.id || ''), occurrence_id: `lpro:${newTid}:${newSid}:${wo}`,
-        text_id: newTid, sentence_id: newSid, word_offset: wo,
-        text_key: String(ev.text_key || ''), order_index: Number(ev.order_index),
-        surface_norm: String(ev.surface_norm || ''), source_anchor: String(ev.source_anchor || ''),
-        action: String(ev.action || ''), chosen_analysis: chosen,
-        candidate_fingerprint: String(ev.candidate_fingerprint || ''),
-        morph_model_version: String(ev.morph_model_version || ''), actor_kind: String(ev.actor_kind || ''),
-        batch_id: ev.batch_id || '', supersedes_id: ev.supersedes_id || '', note: ev.note || '', created_at: String(ev.created_at || '')
-      });
+      const rebound = globalThis.LexicalResolutionCore.rebindPortableEvent(ev, { text_id: newTid, sentence_id: newSid });
+      const res = await appendLexicalResolutionEvent(rebound);
       if (res.inserted) out.lexical_resolution_events.inserted++;
     } catch (_) { out.lexical_resolution_events.dropped++; }
   }
