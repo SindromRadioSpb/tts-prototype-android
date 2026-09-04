@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Статус: `3.11.470_RELEASE_CANDIDATE · OWNER_RECHECK_PENDING`
+Статус: `3.11.470_PRODUCTION_TECHNICAL_PASS · OWNER_RECHECK_PENDING`
 
 ## Реализовано
 
@@ -158,3 +158,23 @@ slug (`/dict/6014-/`) в function-usage store. В `3.11.469` генератор 
 проверенные ссылки `6014-le` и `4158-kol`, а для остальных записей — стабильный
 официальный ID-only URL. UI также канонизирует входящую candidate-ссылку по
 проверенному Pealim ID.
+
+## Production verification 3.11.470
+
+- код релиза: `52daefaf1fa48ae87f7c7441a31b8873fe937341`;
+- public client-config и footer: `3.11.470`;
+- после rolling deployment остался один production-контейнер указанного
+  коммита;
+- browser-smoke: русский 380 px, английский 1280 px, иврит 380 px RTL — PASS;
+- в каждом сценарии: 14 доступных подсказок, 0 неподписанных полей, 0 основных
+  целей взаимодействия меньше 24 px, точный single preview = 1;
+- Lighthouse snapshot: Accessibility 100, Best Practices 100, SEO 100,
+  Agentic Browsing 100;
+- SHA-256 production/local совпали для `library.html`, CSS, UI JS и трёх locale;
+- три последовательных `/healthz`: app/DB/migrations PASS, disk 77%, warning
+  выключен;
+- очищены только неиспользуемый третий старый app-image и build cache; сохранены
+  текущий и предыдущий rollback-image, рабочий volume не изменялся.
+
+Это `PRODUCTION_TECHNICAL_PASS`, а не пользовательская приёмка. Для статуса
+`OWNER_REPORTED_PASS` владелец должен выполнить отдельный сценарий ниже.

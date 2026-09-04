@@ -4,7 +4,7 @@
 
 Целевая версия: `3.11.470`
 
-Текущий статус: `RELEASE_CANDIDATE · OWNER_RECHECK_PENDING`
+Текущий статус: `PRODUCTION_TECHNICAL_PASS · OWNER_RECHECK_PENDING`
 
 Первая owner-проверка `3.11.466` выявила два блокера: ложный
 `identity_guarded` для Pealim `#2710` (`אֶת`) и редактор, находившийся после
