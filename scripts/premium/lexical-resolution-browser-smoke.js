@@ -52,7 +52,8 @@ function arg(name, fallback) {
         rows.push({ row_id: rowId, order_index: index, hebrew_plain: 'נטע באה', hebrew_niqqud: 'נֶטַע בָּאָה', russian: 'Нета пришла' });
         morph.push({ text_id: 'T1', sentence_id: rowId, model_version: 'dicta-smoke', tokens: [
           { word: 'נטע', niqqud: 'נֶטַע', lemma: 'נטע', posDicta: 'noun', kind: 'propernoun', ambiguous: true,
-            alts: [{ lemma: 'נטע', pos: 'noun', pealim_id: '7361', meaning: 'растение' }] }
+            alts: [{ lemma: 'נטע', pos: 'noun', pealim_id: '7361', meaning: 'растение' }] },
+          ...(index < 3 ? [{ word: 'אה', niqqud: 'אַה' }] : [])
         ] });
         occurrences.push({ note_id: 'N1', text_id: 'T1', sentence_id: rowId, word_offset: 0, surface: 'נטע' });
       }
@@ -120,6 +121,8 @@ function arg(name, fallback) {
         visibleTechnicalIds: Array.from(document.querySelectorAll('.lexres-technical code')).filter((node) => node.checkVisibility()).length,
         contextInputTypes: Array.from(document.querySelectorAll('.lexres-context input')).map((node) => node.type),
         selectedCount: document.querySelector('.lexres-selected-count')?.textContent,
+        manualSelection: document.querySelector('.lexres-cluster[open] .lexres-manual-selection')?.textContent.trim(),
+        selectAllCount: document.querySelectorAll('.lexres-cluster[open] .lexres-select-all').length,
         dialogText: document.querySelector('.lexres-dialog')?.textContent
       };
     });
@@ -152,6 +155,8 @@ function arg(name, fallback) {
     assert.equal(before.visibleTechnicalIds, 0);
     assert.ok(before.contextInputTypes.length > 2 && before.contextInputTypes.every((type) => type === 'checkbox'), JSON.stringify(before.contextInputTypes));
     assert.match(before.selectedCount || '', /1/);
+    assert.equal(before.manualSelection, undefined);
+    assert.equal(before.selectAllCount, 1);
     assert.doesNotMatch(before.dialogText || '', /identity_guarded|unknown_pos|skipped_token|Occurrence|кластеры|impact|append-only|receipt|audit/i);
 
     await page.locator('.lexres-filter input[type="search"]').fill('совпадений нет');
@@ -169,11 +174,25 @@ function arg(name, fallback) {
     }));
     assert.equal(tooltipState.opacity, '1', JSON.stringify(tooltipState));
 
+    // Switch to an unknown-POS cluster. Whole-group selection must remain
+    // unavailable, while any reviewed subset can be selected manually.
+    await page.locator('.lexres-filter input[type="search"]').fill('');
+    await page.locator('.lexres-filter select').selectOption('unknown_pos');
+    const activeCluster = page.locator('.lexres-cluster:not([hidden])[open]');
+    await activeCluster.locator('.lexres-manual-selection').waitFor({ state: 'visible' });
+    assert.equal(await activeCluster.locator('.lexres-select-all').count(), 0);
+    assert.ok(await activeCluster.locator('.lexres-manual-selection').innerText());
+
     // Default is the first exact occurrence. Add the second and prove that the
     // impact preview contains exactly this arbitrary two-row subset.
-    await page.locator('.lexres-context input[type="checkbox"]').nth(1).check();
-    await page.locator('.lexres-actions .lexres-primary').first().scrollIntoViewIfNeeded();
-    await page.locator('.lexres-actions .lexres-primary').first().click();
+    await activeCluster.locator('.lexres-context input[type="checkbox"]').nth(1).check();
+    const selectedTwo = await activeCluster.locator('.lexres-selected-count').innerText();
+    assert.match(selectedTwo, /2/);
+    await activeCluster.locator('[name="lemma"]').fill('אה');
+    await activeCluster.locator('[name="lp_pos"]').selectOption('other');
+    await activeCluster.locator('[name="meaning_ru"]').fill('тестовый разбор');
+    await activeCluster.locator('.lexres-actions .lexres-primary').scrollIntoViewIfNeeded();
+    await activeCluster.locator('.lexres-actions .lexres-primary').click();
     await page.waitForSelector('.lexres-impact');
     const after = await page.evaluate(() => {
       const impact = document.querySelector('.lexres-impact');

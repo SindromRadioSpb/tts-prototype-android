@@ -540,6 +540,24 @@
   cursor: not-allowed;
 }
 
+.lexres-manual-selection {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--lexres-muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+  cursor: help;
+}
+
+.lexres-manual-selection:focus-visible {
+  outline: 3px solid #51b7c0;
+  outline-offset: 3px;
+  border-radius: 5px;
+}
+
 .lexres-prior-analysis {
   margin: 0 0 15px;
   padding: 11px 13px;

@@ -482,7 +482,7 @@
       "- Текущий POS: " + (cluster.lp_pos || "—"),
       "- Текущая лемма: " + (cluster.lemma || "—"),
       "- Вхождений: " + cluster.occurrence_count,
-      "- Пакетная проверка: " + (cluster.batch_review_eligible ? "доступна после просмотра всех контекстов" : "только по одному вхождению"),
+      "- Выбор примеров: " + (cluster.batch_review_eligible ? "можно выбрать всю группу или отдельные примеры" : "автовыбор всей группы отключён; одинаковые примеры можно отметить вручную"),
       ""
     ];
     var candidates = uniqueObjects(cluster.alternatives.concat(cluster.candidate_evidence));

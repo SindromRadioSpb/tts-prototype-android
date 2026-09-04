@@ -25,10 +25,13 @@ test('exact impact supports an arbitrary safe subset and preserves text order', 
   assert.deepEqual(impact.contexts.map((row) => row.sentence_ru), ['дом', 'книгу']);
 });
 
-test('single impact stays occurrence-scoped and ineligible batch fails closed', () => {
+test('manual multi-select is exact for every cluster while unsafe select-all fails closed', () => {
   assert.deepEqual(UI.exactImpact({ batch_review_eligible: false, occurrences }, 'o2', false).occurrence_ids, ['o2']);
   assert.throws(() => UI.exactImpact({ batch_review_eligible: false, occurrences }, 'o1', true), /LEXICAL_BATCH_NOT_ELIGIBLE/);
-  assert.throws(() => UI.exactImpact({ batch_review_eligible: false, occurrences }, ['o1', 'o2'], false), /LEXICAL_BATCH_NOT_ELIGIBLE/);
+  assert.deepEqual(
+    UI.exactImpact({ batch_review_eligible: false, occurrences }, ['o3', 'o1'], false).occurrence_ids,
+    ['o1', 'o3']
+  );
   assert.throws(() => UI.exactImpact({ batch_review_eligible: true, occurrences }, 'missing', false), /LEXICAL_IMPACT_EMPTY/);
 });
 
@@ -87,6 +90,8 @@ test('review editor and exact impact stay before the bounded context list', () =
   assert.match(ui, /room\.resolution\.filterLabel/);
   assert.match(ui, /room\.resolution\.selectedCount/);
   assert.match(ui, /type='checkbox'/);
+  assert.doesNotMatch(ui, /if\(!cluster\.batch_review_eligible\)selectedIds\.clear\(\)/);
+  assert.match(ui, /room\.resolution\.manualSelection/);
   assert.doesNotMatch(ui, /type='radio'/);
   assert.doesNotMatch(ui, /Occurrence и кластеры|Контексты occurrence|Точный impact до записи|решение occurrence/);
 });

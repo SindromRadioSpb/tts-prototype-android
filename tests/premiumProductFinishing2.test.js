@@ -72,7 +72,7 @@ test("approved semantic foregrounds meet AA on every exact light background", ()
 });
 
 test("current release keeps Studio Room and service worker at one version", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.474"/);
-  assert.match(room, /id="roomFooterVersion"[^>]*>v3\.11\.474<\/button>/);
-  assert.match(sw, /const CACHE_VERSION\s*=\s*"v3\.11\.474"/);
+  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.475"/);
+  assert.match(room, /id="roomFooterVersion"[^>]*>v3\.11\.475<\/button>/);
+  assert.match(sw, /const CACHE_VERSION\s*=\s*"v3\.11\.475"/);
 });
