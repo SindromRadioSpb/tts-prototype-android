@@ -1086,7 +1086,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=395",
   "/css/lexical-resolution.css?v=6",
-  "/js/obsidian-lexical-preview.js?v=3",
+  "/js/obsidian-lexical-preview.js?v=4",
   "/js/lexical-resolution-core.js",
   "/js/pealim-identity-overrides.js",
   "/js/lexical-resolution-repository.js",
