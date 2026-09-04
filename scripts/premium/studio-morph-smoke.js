@@ -17,6 +17,8 @@
 //   A7 клик по статусу l3 → строка в word_status появилась со статусом l3 + перекраска .rm-w-l3
 //   A8 метка посеяла FSRS-расписание (getSrsSchedule непусто) — канон P5.6 на несохранённой таблице
 //   A9 edit-mode: тап по слову НЕ открывает карточку; после выхода — открывает
+//   A10 сохранённый exact-occurrence разбор из «Проверки морфологии» автоматически
+//       показывается в карточке Studio с provenance «проверено вами» и без word_study write
 const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
@@ -220,6 +222,60 @@ function ok(cond, msg) {
       afterEdit = true;
     } catch (_) {}
     ok(afterEdit, "после выхода из режима правки карточка снова открывается");
+
+    // A10 — real append-only event + the production Studio adapter. This is a
+    // saved text/row (not the unsaved fixture above), so all exact source-anchor
+    // coordinates exist and the shared projector can prove the decision.
+    await pg.keyboard.press("Escape");
+    await pg.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const textId = "studio-lexical-resolution-smoke";
+      const sentenceId = "studio-lexical-resolution-sentence";
+      const textKey = "studio-lexical-resolution-key";
+      try {
+        await db.createText({ id: textId, text_key: textKey, title: "Studio lexical smoke", source_text: "יאללה" });
+      } catch (_) {}
+      try {
+        await db.addSentence(textId, {
+          id: sentenceId, order_index: 0, he: "יאללה", he_niqqud: "יַאלְלָה", ru: "Давай! Вперёд!"
+        });
+      } catch (_) {}
+      const occurrence = {
+        lp_occurrence_id: `lpro:${textId}:${sentenceId}:0`,
+        text_id: textId, sentence_id: sentenceId, word_offset: 0, order_index: 0,
+        text_key: textKey, surface: "יאללה", niqqud: "יַאלְלָה",
+        sentence_he: "יאללה", sentence_he_niqqud: "יַאלְלָה", sentence_ru: "Давай! Вперёд!"
+      };
+      await db.appendLexicalResolutionEvent({
+        id: "studio-lexical-resolution-event", occurrence_id: occurrence.lp_occurrence_id,
+        text_id: textId, sentence_id: sentenceId, word_offset: 0, order_index: 0,
+        text_key: textKey, surface_norm: "יאללה",
+        source_anchor: await window.LexicalResolutionCore.sourceAnchor(occurrence),
+        action: "manual_correction",
+        chosen_analysis: { lemma: "יאללה", lp_pos: "interjection", meaning_ru: "Давай! Вперёд!" },
+        candidate_fingerprint: "sha256:studio-lexical-resolution-smoke", actor_kind: "owner", created_at: "2026-09-04T00:00:00.000Z"
+      });
+      window.v3ActiveTextId = textId;
+      window.v3RenderTableFromLibrary([{
+        he: "יאללה", he_niqqud: "יַאלְלָה", translit: "yalla", ru: "Давай! Вперёд!",
+        // Intentionally omit _v3_orderIndex: older Studio rows have this exact
+        // shape, so the adapter must recover the canonical value from SQLite.
+        _v3_textId: textId, _v3_sentenceId: sentenceId
+      }]);
+    });
+    await pg.waitForFunction(() => document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w').length === 1, null, { timeout: 15000 });
+    await pg.locator('#proTable td[data-col="niqqud"] .rm-w').click();
+    await pg.waitForFunction(() => /Давай! Вперёд!/.test(document.querySelector('.rm-sheet.rm-open .rm-meaning')?.textContent || ''), null, { timeout: 30000 });
+    const exactProjection = await pg.evaluate(() => ({
+      meaning: document.querySelector('.rm-sheet.rm-open .rm-meaning')?.textContent || '',
+      badge: document.querySelector('.rm-sheet.rm-open .rm-prov')?.textContent || '',
+      pos: document.querySelector('.rm-sheet.rm-open .rm-rows')?.textContent || '',
+      hasMeaningEditor: !!document.querySelector('.rm-sheet.rm-open [data-rm-meaning-edit], .rm-sheet.rm-open [data-rm-meaning-add]')
+    }));
+    ok(/Давай! Вперёд!/.test(exactProjection.meaning), "Studio показывает значение из сохранённого exact-occurrence решения");
+    ok(exactProjection.badge === "проверено вами", "Studio показывает provenance «проверено вами»");
+    ok(/междометие/.test(exactProjection.pos), "Studio показывает локализованную часть речи сохранённого разбора");
+    ok(!exactProjection.hasMeaningEditor, "проверенное значение не требует повторного ручного ввода в word_study");
 
     ok(pageErrors.length === 0, "нет ошибок страницы" + (pageErrors.length ? " (" + pageErrors.join("; ") + ")" : ""));
     await browser.close(); browser = null;

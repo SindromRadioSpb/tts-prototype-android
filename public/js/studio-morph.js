@@ -45,9 +45,9 @@
 
   // text_key активного СОХРАНЁННОГО текста — живой резолв НА ОБРАЩЕНИИ (кэшированные
   // индексы протухают при реордере — критика wf_7f300c39; паттерн studio-agent.resolveAnchor).
-  async function _textKey() {
+  async function _textKey(explicitTextId) {
     try {
-      var tid = window.v3ActiveTextId || null;
+      var tid = explicitTextId || window.v3ActiveTextId || null;
       if (!tid) {
         var pt = document.getElementById("proTable");
         tid = (pt && pt.dataset && pt.dataset.textId) ? pt.dataset.textId : null;
@@ -57,6 +57,42 @@
       var text = await ldb.getTextById(String(tid));
       return (text && text.text_key) ? String(text.text_key) : null;
     } catch (_) { return null; }
+  }
+
+  // A saved decision from «Проверка морфологии» is occurrence-bound. Studio
+  // reads the same append-only event as Reading Room instead of forcing a
+  // second write into word_study. Missing/stale coordinates stay fail-closed:
+  // no spelling-wide or lemma-wide propagation is permitted here.
+  async function lookupLexicalResolution(_card, occurrence, row) {
+    if (!occurrence || !window.LexicalResolutionService || !window.LexicalResolutionCore ||
+        typeof window.LexicalResolutionService.lookupExactOccurrence !== "function") return null;
+    var ldb = await _ldb();
+    if (!ldb) return null;
+    var exact = Object.assign({}, occurrence);
+    exact.text_id = String(exact.text_id || (row && row._v3_textId) || "");
+    exact.sentence_id = String(exact.sentence_id || (row && row._v3_sentenceId) || "");
+    if (exact.order_index == null && row) {
+      var rowOrder = row._v3_orderIndex != null ? row._v3_orderIndex : row.order_index;
+      if (rowOrder != null && Number.isFinite(Number(rowOrder))) exact.order_index = Number(rowOrder);
+    }
+    // Older saved Studio rows could carry stable IDs but omit order_index.
+    // Recover it from the canonical sentence table; never infer it from the
+    // current visual row position, which can change after reordering.
+    if (exact.order_index == null && exact.text_id && exact.sentence_id && typeof ldb.getSentences === "function") {
+      try {
+        var sentences = await ldb.getSentences(exact.text_id);
+        var sentence = (sentences || []).find(function (item) {
+          return String(item && (item.id || item.sentence_id) || "") === exact.sentence_id;
+        });
+        if (sentence && sentence.order_index != null && Number.isFinite(Number(sentence.order_index))) {
+          exact.order_index = Number(sentence.order_index);
+        }
+      } catch (_) {}
+    }
+    exact.text_key = String(exact.text_key || await _textKey(exact.text_id) || "");
+    if (!exact.text_id || !exact.sentence_id || !exact.text_key || exact.order_index == null ||
+        !Number.isInteger(Number(exact.word_offset)) || Number(exact.word_offset) < 0) return null;
+    return window.LexicalResolutionService.lookupExactOccurrence(exact, ldb, window.LexicalResolutionCore);
   }
 
   function _localDayStr(d) {
@@ -201,6 +237,7 @@
       saveWord: function (c, o) { return ensureHost().saveWord(c, o); },
       saveWordPersonal: function (c, o, f) { return ensureHost().saveWordPersonal(c, o, f); },
       lookupUserMeaning: function (c) { return ensureHost().lookupUserMeaning(c); },
+      lookupLexicalResolution: lookupLexicalResolution,
       saveUserMeaning: function (c, o, m) { return ensureHost().saveUserMeaning(c, o, m); },
       contextProvider: h.makeContextProvider(),
       refineContext: h.makeRefineProvider(),

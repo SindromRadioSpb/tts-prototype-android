@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.476";
+const CACHE_VERSION = "v3.11.477";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -140,7 +140,7 @@ const PRECACHE_URLS = [
   "/js/reader-morph.js?v=453",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=416",
-  "/js/studio-morph.js",
+  "/js/studio-morph.js?v=2",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
