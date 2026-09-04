@@ -1066,7 +1066,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=461",
+  "/js/library-ui.js?v=462",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1080,15 +1080,15 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/local-db.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
-  "/js/reader-core.js?v=401",
+  "/js/reader-core.js?v=402",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=195",
-  "/i18n/locales/en.js?v=195",
-  "/i18n/locales/he.js?v=195",
+  "/i18n/locales/ru.js?v=196",
+  "/i18n/locales/en.js?v=196",
+  "/i18n/locales/he.js?v=196",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

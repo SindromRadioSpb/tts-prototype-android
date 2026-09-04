@@ -9,6 +9,10 @@ const source = fs.readFileSync(
   path.resolve(__dirname, "..", "public", "js", "reader-core.js"),
   "utf8"
 );
+const mediaHostSource = fs.readFileSync(
+  path.resolve(__dirname, "..", "public", "js", "media-host.js"),
+  "utf8"
+);
 
 async function readerCore() {
   return import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
@@ -55,6 +59,21 @@ test("row audio indicator follows the Studio ready/missing/mismatch contract", a
 test("attachRowAudio exposes one successful-asset callback instead of a second persistence writer", async () => {
   const core = await readerCore();
   assert.match(String(core.attachRowAudio), /onAssetReady/);
+});
+
+test("row TTS is activated only by its explicit button, never by a content-cell click", async () => {
+  const core = await readerCore();
+  const attachSource = String(core.attachRowAudio);
+  assert.match(attachSource, /closest\("button\.row-tts-btn"\)/,
+    "the delegated handler must recognize the explicit row TTS button");
+  assert.doesNotMatch(attachSource, /tapToHearExcludeCols|closest\(['"]#proTable tbody td\[data-col\]/,
+    "table cells must not remain hidden playback controls");
+});
+
+test("the explicit original-media replay button remains isolated from row TTS", () => {
+  assert.match(mediaHostSource,
+    /className\s*=\s*"smk-row-replay"[\s\S]{0,260}addEventListener\("click"[\s\S]{0,120}stopPropagation\(\)[\s\S]{0,260}onReplay/,
+    "the media-chunk control must keep its own stopped-propagation playback route");
 });
 
 test("public cached-only playback cannot fall through to BYOK or browser speech", async () => {

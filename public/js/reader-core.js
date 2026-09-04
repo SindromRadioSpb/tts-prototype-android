@@ -693,10 +693,6 @@ export function paintRowAudioIndicator(mount, rowIdx, row, currentProfile, label
 //     gcpKey,                  // string or () => string (BYOK GCP TTS key; '' → skip tier 2)
 //     t,                       // i18n (optional)
 //     onError(err),            // optional
-//     tapToHearExcludeCols,    // optional string[] of data-col values whose CELL tap must
-//                              //   NOT play the row (the ▶ button still plays). The Room
-//                              //   passes ['he','niqqud'] so those cells are free for the
-//                              //   word-tap morphology layer (reader-morph.js).
 //     audioUrlForAssetKey,     // optional (key,row,rowIdx) protected-corpus resolver
 //     timingUrlForAssetKey,    // optional (key,row,rowIdx) resolver; null disables timing
 //     onAssetReady(payload),   // optional canonical persistence/presentation callback
@@ -707,7 +703,6 @@ export function attachRowAudio(mount, opts) {
   const rowTtsLabels = normalizeRowTtsLabels(opts.rowTtsLabels);
   if (!mount) return { detach() {} };
   const getRow = typeof opts.getRow === "function" ? opts.getRow : () => null;
-  const excludeTapCols = Array.isArray(opts.tapToHearExcludeCols) ? opts.tapToHearExcludeCols : [];
   const profileOf = () => (typeof opts.profile === "function" ? opts.profile() : opts.profile) || {};
   const gcpKeyOf = () => String((typeof opts.gcpKey === "function" ? opts.gcpKey() : opts.gcpKey) || "");
   const audioUrlOf = (key, row, rowIdx) => typeof opts.audioUrlForAssetKey === "function"
@@ -929,19 +924,6 @@ export function attachRowAudio(mount, opts) {
       const idx = Number(btn.getAttribute("data-row-idx"));
       if (continuous) { continuous = false; notifyRow(-1); }   // a manual tap ends karaoke
       if (Number.isFinite(idx) && idx >= 0) play(idx);
-      return;
-    }
-    // tap-to-hear: tapping a content cell (not a button) plays that row — except for
-    // columns the caller reserved for another interaction (Room: he/niqqud → word-tap).
-    const td = target && target.closest ? target.closest('#proTable tbody td[data-col]') : null;
-    if (td && mount.contains(td)) {
-      const col = td.getAttribute("data-col");
-      if (col !== "action" && excludeTapCols.indexOf(col) < 0) {
-        const tr = td.closest("tr[data-row-idx]");
-        const idx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
-        if (continuous) { continuous = false; notifyRow(-1); }   // a manual tap ends karaoke
-        if (Number.isFinite(idx) && idx >= 0) play(idx);
-      }
     }
   };
   mount.addEventListener("click", onClick);

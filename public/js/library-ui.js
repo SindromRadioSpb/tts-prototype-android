@@ -9,7 +9,7 @@
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
 import * as localDb from '/db/local-db.js';
-import * as readerCore from '/js/reader-core.js?v=401';
+import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js';
@@ -5563,9 +5563,6 @@ function attachReaderAudio() {
     },
     t: (k) => tt(k, k),
     rowTtsLabels: roomRowTtsLabels(),
-    // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶ button +
-    // translit cell still play the row. In reveal mode the ru cell tap reveals (not audio).
-    tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],
   });
   readerRows.forEach((_, idx) => paintAudioIndicator(idx));
   const morphOverrides = materialsInlineMorphOverrides();
@@ -8867,7 +8864,6 @@ function attachMaterialsInlineAudio() {
     fallbackPolicy: 'cached-only', profile, gcpKey: '',
     audioUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key),
     timingUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key) + '/timing',
-    tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],
     onBeforePlay: () => { try { if (readerAudio) readerAudio.stop(); } catch (_) {} morphHost.stopAudio(); },
     onRowChange: index => {
       if (index < readerRows.length) return;
@@ -8992,7 +8988,6 @@ function openMaterialsLearningSupport(support, trigger) {
       profile: { voiceId: 'he-IL-Standard-A', rate: 0.8, pitch: 2.5 }, gcpKey: '',
       audioUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key),
       timingUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key) + '/timing',
-      tapToHearExcludeCols: ['he', 'niqqud'],
       onBeforePlay: () => { morphHost.stopAudio(); for (const other of audioHandles) if (other !== handle) other.stop(); },
       t: (key) => tt(key, key), rowTtsLabels: roomRowTtsLabels(),
     });

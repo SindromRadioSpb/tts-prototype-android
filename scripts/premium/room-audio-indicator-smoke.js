@@ -10,7 +10,8 @@ const fs = require("fs");
 const { spawn, spawnSync } = require("child_process");
 const ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3298;
-const BASE = `http://127.0.0.1:${PORT}`;
+const EXTERNAL_BASE = String(process.env.ROOM_AUDIO_BASE || "").replace(/\/$/, "");
+const BASE = EXTERNAL_BASE || `http://127.0.0.1:${PORT}`;
 const TEXT_ID = "rt-room-audio-indicator";
 const TEXT_KEY = "rt-room-audio-indicator-key";
 const READY_SENTENCE_ID = TEXT_ID + "-s0";
@@ -73,7 +74,7 @@ async function main() {
   try { playwright = require("playwright"); }
   catch (err) { console.error("[room-audio-indicator-smoke] playwright missing:", err.message); process.exit(1); }
 
-  const server = startServer();
+  const server = EXTERNAL_BASE ? { child: null, logs: [] } : startServer();
   if (!(await waitReady())) {
     server.logs.forEach((line) => process.stderr.write(line));
     await stopServer(server.child);
@@ -102,9 +103,11 @@ async function main() {
   const pageErrors = [];
   let pendingTtsRoute = null;
   let resolveTtsRoute;
+  let ttsRequestCount = 0;
   const ttsRouteSeen = new Promise((resolve) => { resolveTtsRoute = resolve; });
   page.on("pageerror", (err) => pageErrors.push(String(err)));
   await page.route("**/api/tts", async (route) => {
+    ttsRequestCount++;
     pendingTtsRoute = route;
     resolveTtsRoute();
   });
@@ -224,6 +227,15 @@ async function main() {
       await page.screenshot({ path: path.join(SHOT_DIR, `room-audio-indicator-${LOCALE}-${DESKTOP ? "desktop" : "380"}.png`), fullPage: true });
     }
 
+    await page.click("#roomReaderTable tr[data-row-idx='1'] td[data-col='ru']", { position: { x: 8, y: 8 } });
+    await sleep(150);
+    const afterCellClick = await page.locator("#roomReaderTable .row-tts-btn[data-row-idx='1']").evaluate((button) => ({
+      state: button.dataset.audioControlState,
+      pressed: button.getAttribute("aria-pressed"),
+    }));
+    check("content-cell click is silent and leaves row TTS idle",
+      ttsRequestCount === 0 && afterCellClick.state === "idle" && afterCellClick.pressed === "false",
+      JSON.stringify({ ttsRequestCount, afterCellClick }));
     await page.hover("#roomReaderTable tr[data-row-idx='1']");
     await page.click("#roomReaderTable .row-tts-btn[data-row-idx='1']");
     await ttsRouteSeen;
