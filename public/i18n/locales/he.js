@@ -2534,7 +2534,7 @@ window.I18N_LOCALES.he = {
       resolve: "שמירת הניתוח הזה", resolveHelp: "הצגת הרשימה המדויקת של הדוגמאות ולאחר מכן שמירת הניתוח שמולא.", defer: "חזרה מאוחר יותר", deferHelp: "השארת הדוגמה שנבחרה ברשימה בלי לשנות את נתוני המילון שלה.", reject: "אף הצעה אינה מתאימה", rejectHelp: "סימון הניתוחים שהיישום הציע כלא מתאימים לדוגמה שנבחרה.", clear: "ביטול ההחלטה הקודמת", clearHelp: "החזרת דוגמה שכבר נבדקה אל רשימת הבדיקה.", clearUnavailable: "לדוגמה שנבחרה עדיין אין החלטה שמורה.", required: "יש להזין צורת מילון וחלק דיבר.",
       impactTitle: "מה עומד להשתנות", impactCount: "מספר ההחלטות שיישמרו: {count}", impactHelp: "בדקו את הרשימה: השינויים יחולו רק על הדוגמאות האלה.", cancel: "חזרה לבדיקה", cancelHelp: "סגירת התצוגה המקדימה ללא שמירה.", confirmImpact: "שמירת השינויים", confirmImpactHelp: "שמירת החלטות רק עבור הדוגמאות שמופיעות למעלה.",
       saving: "שומרים את ההחלטה…", saved: "ההחלטה נשמרה. הרשימה והספירות עודכנו.", failed: "לא ניתן לשמור את ההחלטה; הרשימה המקורית לא השתנתה.",
-      exporting: "מכינים ZIP ל־Obsidian…", exported: "קובץ ה־ZIP ל־Obsidian נשמר. מספר המעברים שנרשמו: {count}.", exportFailed: "לא ניתן להכין את קובץ ה־ZIP ל־Obsidian.",
+      exporting: "מכינים ZIP ל־Obsidian…", exportingAudio: "מוסיפים שמע: {done} מתוך {total}…", exported: "קובץ ה־ZIP ל־Obsidian נשמר. מספר המעברים שנרשמו: {count}.", exportedPremium: "קובץ ה־ZIP נשמר: שמע {audioIncluded}/{audioExpected}, מעברי ניתוח {count}.", exportFailed: "לא ניתן להכין את קובץ ה־ZIP ל־Obsidian.",
       empty: "כל המקרים הזמינים נבדקו. ההחלטות שנשמרו ייכללו בייצוא הבא ל־Obsidian.",
     },
     groupCorpus: {

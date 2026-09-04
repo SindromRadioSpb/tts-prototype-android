@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.477";
+const CACHE_VERSION = "v3.11.478";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -115,11 +115,11 @@ const PRECACHE_URLS = [
   "/js/pealim-identity-overrides.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
-  "/js/obsidian-lexical-preview.js?v=5",
+  "/js/obsidian-lexical-preview.js?v=6",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
   "/js/lexical-resolution-service.js?v=4",
-  "/js/lexical-resolution-ui.js?v=8",
+  "/js/lexical-resolution-ui.js?v=9",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
@@ -212,6 +212,7 @@ const PRECACHE_URLS = [
   "/js/scaffold-advisor.js",
   // BRR-P1-009 Stage 2 — ported Pealim inflection-table renderer (1:1 with Studio).
   "/js/inflection-render.js",
+  "/js/inflection-render.js?v=1",
   // BRR Phase-3 — proclitic segmentation detector (offline FSA + bake-Dicta overlay).
   "/js/proclitic-segment.js",
   // BRR-P2-002 «Продолжить чтение» — pure resume helpers (window.ReaderProgress).
@@ -229,9 +230,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=201",
-  "/i18n/locales/en.js?v=201",
-  "/i18n/locales/he.js?v=201",
+  "/i18n/locales/ru.js?v=202",
+  "/i18n/locales/en.js?v=202",
+  "/i18n/locales/he.js?v=202",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

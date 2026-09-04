@@ -1,5 +1,5 @@
 /*
- * LinguistPro -> Obsidian lexical preview (P0, read-only).
+ * LinguistPro -> Obsidian premium study projection (v3, read-only).
  *
  * Pure projection over an existing scoped/full exportBundle payload. It neither
  * opens OPFS nor writes files. Canonical token -> unit and lemma-key behaviour is
@@ -8,15 +8,18 @@
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
-    module.exports = factory(require("./notes-autogen.js"));
+    module.exports = factory(require("./notes-autogen.js"), require("./inflection-render.js"));
   } else {
-    root.ObsidianLexicalPreview = factory(root.NotesAutoGen);
+    root.ObsidianLexicalPreview = factory(root.NotesAutoGen, root.InflectionRender);
   }
-})(typeof self !== "undefined" ? self : this, function (NA) {
+})(typeof self !== "undefined" ? self : this, function (NA, InflectionRender) {
   "use strict";
 
   if (!NA || typeof NA.dictaTokenToUnit !== "function" || typeof NA.dedupKey !== "function") {
     throw new Error("ObsidianLexicalPreview requires NotesAutoGen");
+  }
+  if (!InflectionRender || typeof InflectionRender.projectStudyForms !== "function") {
+    throw new Error("ObsidianLexicalPreview requires InflectionRender");
   }
 
   var POS_ORDER = [
@@ -151,6 +154,12 @@
     return out;
   }
   function yaml(v) { return JSON.stringify(v == null ? "" : v); }
+  function htmlEscape(v) {
+    return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function markdownInline(v) {
+    return str(v).replace(/[\r\n]+/g, " ").replace(/\\/g, "\\\\").replace(/([`*_\[\]<>|])/g, "\\$1");
+  }
   function fnv1a(value) {
     var h = 0x811c9dc5;
     var s = str(value);
@@ -339,6 +348,101 @@
     id = str(id).match(/[0-9]+/);
     return id ? "https://www.pealim.com/ru/dict/" + id[0] + "/" : "";
   }
+  var CORE_FIELD_BY_SLOT = {
+    "INF-L": "form_infinitive", "AP-ms": "form_present_ms", "AP-fs": "form_present_fs",
+    "AP-mp": "form_present_mp", "AP-fp": "form_present_fp",
+    s: "form_singular", p: "form_plural", sc: "form_construct_singular", pc: "form_construct_plural",
+    "ms-a": "form_ms", "fs-a": "form_fs", "mp-a": "form_mp", "fp-a": "form_fp"
+  };
+  function coreFormFields(studyForms) {
+    var out = {};
+    if (!studyForms || !Array.isArray(studyForms.core)) return out;
+    studyForms.core.forEach(function (form) {
+      var field = CORE_FIELD_BY_SLOT[form.slot];
+      if (field && !out[field]) out[field] = str(form.he);
+    });
+    return out;
+  }
+  function appendCoreFormYaml(lines, studyForms) {
+    var fields = coreFormFields(studyForms);
+    Object.keys(CORE_FIELD_BY_SLOT).map(function (slot) { return CORE_FIELD_BY_SLOT[slot]; })
+      .filter(function (field, index, all) { return all.indexOf(field) === index; })
+      .forEach(function (field) { lines.push(field + ": " + yaml(fields[field] || "")); });
+  }
+  function studySlotLabelRu(slot) {
+    var direct = {
+      "AP-ms": "наст., м. ед.", "AP-fs": "наст., ж. ед.", "AP-mp": "наст., м. мн.", "AP-fp": "наст., ж. мн.",
+      "INF-L": "инфинитив", s: "ед. число", p: "мн. число", sc: "смихут, ед.", pc: "смихут, мн.",
+      "ms-a": "м. ед.", "fs-a": "ж. ед.", "mp-a": "м. мн.", "fp-a": "ж. мн."
+    };
+    if (direct[slot]) return direct[slot];
+    var person = { "1s": "я", "2ms": "ты (м)", "2fs": "ты (ж)", "3ms": "он", "3fs": "она", "1p": "мы", "2mp": "вы (м)", "2fp": "вы (ж)", "3mp": "они (м)", "3fp": "они (ж)", "3p": "они" };
+    var match = str(slot).match(/(?:PERF|IMPF|IMP|P)-(.+)$/);
+    if (match && person[match[1]]) return person[match[1]];
+    var possessive = str(slot).match(/^[sp]-P-(.+)$/);
+    if (possessive && person[possessive[1]]) return person[possessive[1]];
+    return str(slot);
+  }
+  function studyGroupLabelRu(key) {
+    var passive = /^passive_(.+)$/.exec(str(key));
+    var raw = passive ? passive[1] : str(key);
+    var label = ({ present: "Настоящее время", past: "Прошедшее время", future: "Будущее время", imperative: "Повелительное наклонение", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Смихут", possessive_sg: "Притяжательные формы от ед. числа", possessive_pl: "Притяжательные формы от мн. числа", adj: "Род и число", prep: "Формы с местоименными окончаниями", invariant: "Неизменяемая форма", other: "Другие засвидетельствованные формы" })[raw] || raw;
+    return passive ? "Страдательный залог · " + label : label;
+  }
+  function markdownFormsTable(forms, prefix) {
+    prefix = prefix || "";
+    var lines = [prefix + "| Форма | Иврит | Транслитерация |", prefix + "|---|---:|---|"];
+    (forms || []).forEach(function (form) {
+      lines.push(prefix + "| " + markdownInline(studySlotLabelRu(form.slot)) + " | <span dir=\"rtl\" class=\"lp-form\">" + htmlEscape(form.he).replace(/\|/g, "&#124;") + "</span> | " + (markdownInline(form.translit) || "—") + " |");
+    });
+    return lines;
+  }
+  function renderStudyForms(studyForms) {
+    if (!studyForms || !Array.isArray(studyForms.core) || !studyForms.core.length) return [];
+    var lines = ["## Учебные формы", "", "> [!tip] Сначала запомните", "> Эти формы покрывают минимальный продуктивный каркас. Произносите каждую вслух и находите её в контексте.", ">"];
+    lines = lines.concat(markdownFormsTable(studyForms.core, "> "));
+    lines.push("", "> [!abstract]- Полная парадигма из локального снимка Pealim", "> Формы ниже показаны для справки и раскрываются по необходимости. Отсутствующие клетки не додумываются.");
+    (studyForms.groups || []).forEach(function (group) {
+      lines.push(">", "> ### " + studyGroupLabelRu(group.key), ">");
+      lines = lines.concat(markdownFormsTable(group.forms, "> "));
+    });
+    return lines;
+  }
+  function safeAudioFileName(assetKey) {
+    var raw = str(assetKey);
+    var slug = raw.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/-+/g, "-").replace(/^[.-]+|[.-]+$/g, "").slice(0, 72);
+    if (!slug) slug = "audio";
+    return slug + "-" + fnv1a(raw) + ".mp3";
+  }
+  function audioPath(assetKey) { return "_LinguistPro/media/audio/" + safeAudioFileName(assetKey); }
+  function buildAudioPlan(report, audioResults) {
+    var resultByKey = new Map();
+    (Array.isArray(audioResults) ? audioResults : []).forEach(function (result) {
+      var key = str(result && result.asset_key);
+      if (key) resultByKey.set(key, result);
+    });
+    var metaByKey = new Map((report.audio_assets || []).map(function (asset) { return [str(asset.asset_key), asset]; }));
+    var keys = Array.from(new Set((report.text.rows || []).map(function (row) { return str(row.audio_asset_key); }).filter(Boolean))).sort();
+    var assets = keys.map(function (key) {
+      var result = resultByKey.get(key) || {};
+      var meta = metaByKey.get(key) || {};
+      var status = result.status === "included" ? "included" : result.status === "missing" ? "missing" : "pending";
+      return {
+        asset_key: key, path: audioPath(key), status: status,
+        mime_type: str(meta.mime_type || "audio/mpeg"), language: str(meta.language || "he-IL"),
+        size_bytes: status === "included" ? Math.max(0, Number(result.size_bytes) || 0) : null,
+        reason: status === "missing" ? str(result.reason || "AUDIO_UNAVAILABLE") : ""
+      };
+    });
+    return {
+      schema: "linguistpro-obsidian-audio-plan-v1",
+      expected_count: assets.length,
+      included_count: assets.filter(function (asset) { return asset.status === "included"; }).length,
+      missing_count: assets.filter(function (asset) { return asset.status === "missing"; }).length,
+      pending_count: assets.filter(function (asset) { return asset.status === "pending"; }).length,
+      assets: assets
+    };
+  }
   function phraseNumber(value) {
     var n = finiteNumber(value && value.order_index);
     return n == null ? null : Math.max(1, Math.trunc(n) + 1);
@@ -356,8 +460,8 @@
     var lines = [
       "filters:",
       "  and:",
-      "    - 'note.type == \"lp-lexeme\"'",
-      "    - 'list(note.lp_text_ids).contains(" + textId + ")'",
+      "    - 'note.type == \"lp-text-lexeme\"'",
+      "    - 'note.lp_text_id == " + textId + "'",
       "formulas:",
       "  word_link: 'file.asLink(note.lemma)'",
       "  pealim_link: 'if(note.pealim_url, link(note.pealim_url, \"Pealim ↗\"), \"\")'",
@@ -374,17 +478,49 @@
       "    displayName: Значение",
       "  note.occurrence_count:",
       "    displayName: Вхождений",
+      "  note.form_infinitive:",
+      "    displayName: Инфинитив",
+      "  note.form_present_ms:",
+      "    displayName: Наст. м. ед.",
+      "  note.form_present_fs:",
+      "    displayName: Наст. ж. ед.",
+      "  note.form_present_mp:",
+      "    displayName: Наст. м. мн.",
+      "  note.form_present_fp:",
+      "    displayName: Наст. ж. мн.",
+      "  note.form_singular:",
+      "    displayName: Единственное",
+      "  note.form_plural:",
+      "    displayName: Множественное",
+      "  note.form_construct_singular:",
+      "    displayName: Смихут ед.",
+      "  note.form_construct_plural:",
+      "    displayName: Смихут мн.",
+      "  note.form_ms:",
+      "    displayName: М. ед.",
+      "  note.form_fs:",
+      "    displayName: Ж. ед.",
+      "  note.form_mp:",
+      "    displayName: М. мн.",
+      "  note.form_fp:",
+      "    displayName: Ж. мн.",
       "  formula.pealim_link:",
       "    displayName: Словарь",
       "views:"
     ];
-    function view(name, filter) {
+    function view(name, filter, order) {
       lines.push("  - type: table", "    name: " + yaml(name));
       if (filter) lines.push("    filters:", "      and:", "        - '" + filter + "'");
-      lines.push("    order:", "      - formula.word_link", "      - note.meaning_ru", "      - note.lp_pos_label", "      - note.occurrence_count", "      - formula.pealim_link");
+      lines.push("    order:");
+      (order || ["formula.word_link", "note.meaning_ru", "note.lp_pos_label", "note.occurrence_count", "formula.pealim_link"])
+        .forEach(function (field) { lines.push("      - " + field); });
     }
     view("Все слова", "note.lp_pos != \"unknown\"");
-    POS_ORDER.forEach(function (pos) { view(posViewName(pos), "note.lp_pos == " + yaml(pos)); });
+    view("Глаголы", "note.lp_pos == \"verb\"", ["formula.word_link", "note.form_infinitive", "note.form_present_ms", "note.form_present_fs", "note.form_present_mp", "note.form_present_fp", "note.meaning_ru", "formula.pealim_link"]);
+    view("Существительные", "note.lp_pos == \"noun\"", ["formula.word_link", "note.form_singular", "note.form_plural", "note.form_construct_singular", "note.form_construct_plural", "note.meaning_ru", "formula.pealim_link"]);
+    view("Прилагательные", "note.lp_pos == \"adjective\"", ["formula.word_link", "note.form_ms", "note.form_fs", "note.form_mp", "note.form_fp", "note.meaning_ru", "formula.pealim_link"]);
+    POS_ORDER.filter(function (pos) { return pos !== "verb" && pos !== "noun" && pos !== "adjective"; })
+      .forEach(function (pos) { view(posViewName(pos), "note.lp_pos == " + yaml(pos)); });
     view("Неоднозначные", "note.ambiguity == true");
     view("Конфликты", "note.conflict_count > 0");
     return lines.join("\n") + "\n";
@@ -432,12 +568,50 @@
       "      - note.reason_labels"
     ].join("\n") + "\n";
   }
-  function renderLexemeMarkdown(report, lexeme, phrasePathByRowId) {
+  function renderLexemeReferenceMarkdown(lexeme) {
+    var url = pealimUrl(lexeme.pealim_id);
+    var study = lexeme.study_forms;
+    var lemma = str(study && (study.lemma_niqqud || study.lemma)) || lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id;
+    var lemmaUnpointed = stripNiqqud(str(study && (study.lemma || study.lemma_niqqud))) || lexeme.lemma_unpointed;
+    var lines = [
+      "---",
+      "type: lp-lexeme-reference",
+      "lp_schema: 3",
+      "cssclasses: [linguistpro-study]",
+      "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
+      "lemma: " + yaml(lemma),
+      "lemma_unpointed: " + yaml(lemmaUnpointed),
+      "lexical_pos: " + yaml(study && study.pos),
+      "root: " + yaml(study && study.root),
+      "binyan: " + yaml(study && study.binyan),
+      "meaning_ru: " + yaml(study && study.meaning),
+      "pealim_id: " + yaml(lexeme.pealim_id),
+      "pealim_url: " + yaml(url),
+      "inflection_source: pealim",
+      "inflection_model: " + yaml(study && study.model_version),
+      "managed_by: linguistpro"
+    ];
+    appendCoreFormYaml(lines, study);
+    lines.push(
+      "---", "", "# " + markdownInline(lemma), "",
+      "**Значение:** " + (markdownInline(study && study.meaning) || "—"), "",
+      "**Словарный класс:** " + posLabel(study && study.pos)
+    );
+    if (study && study.root) lines.push("", "**Корень:** " + markdownInline(study.root));
+    if (study && study.binyan) lines.push("", "**Биньян:** " + markdownInline(study.binyan));
+    if (url) lines.push("", "[Открыть в Pealim ↗](" + url + ")");
+    lines.push("", "> [!info] Происхождение данных", "> Формы взяты из локального проверяемого снимка Pealim " + str(study && study.model_version) + ". LinguistPro не достраивает отсутствующие клетки.", "");
+    lines = lines.concat(renderStudyForms(study));
+    return lines.join("\n") + "\n";
+  }
+  function renderTextLexemeMarkdown(report, lexeme, phrasePathByRowId, referencePath) {
     var url = pealimUrl(lexeme.pealim_id);
     var lines = [
       "---",
-      "type: lp-lexeme",
-      "lp_schema: 1",
+      "type: lp-text-lexeme",
+      "lp_schema: 3",
+      "cssclasses: [linguistpro-study]",
+      "lp_text_id: " + yaml(report.text.text_id),
       "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
       "lemma: " + yaml(lexeme.lemma),
       "lemma_unpointed: " + yaml(lexeme.lemma_unpointed),
@@ -456,29 +630,36 @@
       "ambiguity: " + (lexeme.ambiguity ? "true" : "false"),
       "conflict_count: " + lexeme.conflicts.length,
       "verification_state: generated",
-      "lp_text_ids: " + yaml([report.text.text_id]),
       "occurrence_count: " + lexeme.occurrence_count,
       "managed_by: linguistpro",
+    ];
+    appendCoreFormYaml(lines, lexeme.study_forms);
+    lines.push(
       "---",
       "",
-      "# " + (lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id),
+      "# " + markdownInline(lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id),
       "",
-      lexeme.meaning_ru ? "**Значение:** " + lexeme.meaning_ru : "**Значение:** —",
+      lexeme.meaning_ru ? "**Значение в этом тексте:** " + markdownInline(lexeme.meaning_ru) : "**Значение в этом тексте:** —",
       "",
-      "**Часть речи:** " + posLabel(lexeme.lp_pos)
-    ];
-    if (lexeme.root) lines.push("", "**Корень:** " + lexeme.root);
-    if (lexeme.binyan) lines.push("", "**Биньян:** " + lexeme.binyan);
+      "**Роль в контексте:** " + posLabel(lexeme.lp_pos)
+    );
+    if (lexeme.root) lines.push("", "**Корень:** " + markdownInline(lexeme.root));
+    if (lexeme.binyan) lines.push("", "**Биньян:** " + markdownInline(lexeme.binyan));
     if (url) lines.push("", "[Открыть в Pealim ↗](" + url + ")");
+    if (referencePath) {
+      var refTarget = "../../../" + referencePath.replace(/^_LinguistPro\//, "").replace(/\.md$/, "");
+      lines.push("", "## Словарная карточка", "", "![[" + refTarget + "#Учебные формы]]", "", "[[" + refTarget + "|Открыть полную словарную карточку]]");
+    }
+    lines.push("", "## Активное воспроизведение", "", "> [!question] Проверьте себя", "> Закройте иврит и скажите слово по-ивритски по значению: **" + (markdownInline(lexeme.meaning_ru) || "—") + "**. Затем произнесите один пример целиком.");
     lines.push(
       "",
       "## Примеры из текста",
       ""
     );
     lexeme.occurrences.forEach(function (occ) {
-      lines.push("- " + phraseLink(occ, phrasePathByRowId) + " · **" + (occ.niqqud || occ.surface || "—") + "**");
-      if (occ.sentence_he_niqqud || occ.sentence_he) lines.push("  - " + (occ.sentence_he_niqqud || occ.sentence_he));
-      if (occ.sentence_ru) lines.push("  - _" + occ.sentence_ru + "_");
+      lines.push("- " + phraseLink(occ, phrasePathByRowId) + " · **" + markdownInline(occ.niqqud || occ.surface || "—") + "**");
+      if (occ.sentence_he_niqqud || occ.sentence_he) lines.push("  - " + markdownInline(occ.sentence_he_niqqud || occ.sentence_he));
+      if (occ.sentence_ru) lines.push("  - _" + markdownInline(occ.sentence_ru) + "_");
       lines.push("  <!-- lp_occurrence: " + occurrenceId(report.text.text_id, occ.row_id, occ.word_offset) + " -->");
     });
     if (lexeme.conflicts.length) {
@@ -486,27 +667,42 @@
     }
     return lines.join("\n") + "\n";
   }
-  function renderTextHub(report) {
+  function renderTextHub(report, audioPlan) {
     return [
       "---",
       "type: lp-text",
-      "lp_schema: 1",
+      "lp_schema: 3",
+      "cssclasses: [linguistpro-study]",
       "lp_text_id: " + yaml(report.text.text_id),
       "lp_text_key: " + yaml(report.text.text_key),
       "title: " + yaml(report.text.title),
+      "phrase_count: " + report.text.rows_total,
+      "lexeme_count: " + report.counts.unique_lexemes,
+      "unresolved_count: " + report.counts.uncertain_occurrences,
+      "audio_included: " + (audioPlan ? audioPlan.included_count : 0),
+      "audio_expected: " + (audioPlan ? audioPlan.expected_count : 0),
       "managed_by: linguistpro",
       "---",
       "",
-      "# " + report.text.title,
+      "# " + markdownInline(report.text.title),
       "",
-      "> [!info] Как работать с материалом",
-      "> Начните с фраз, открывайте локальные карточки слов и переходите в Pealim только для словарной проверки. Морфологические решения по-прежнему сохраняются в LinguistPro.",
+      "> [!info] Два инструмента — две роли",
+      "> Obsidian хранит переносимый учебный конспект и связи. LinguistPro остаётся единственным местом интервальных повторений, статусов слов и исправления морфологии.",
       "",
       "## Навигация",
       "",
+      "- [[Учебный маршрут|Пошаговый учебный маршрут]]",
+      "- [[Фокус на лексику|Лексика для активной работы]]",
       "- [[Фразы|Все фразы с переводом]]",
       "- [[Лексика — переносимый снимок|Лексика по частям речи]]",
       "- [[Очередь разбора|Что ещё нужно проверить]]",
+      "",
+      "## Четыре прохода по тексту",
+      "",
+      "1. **Первый проход: смысл на слух.** Прослушайте фрагмент в LinguistPro без текста и зафиксируйте, что поняли.",
+      "2. **Второй проход: звук + иврит.** Сверьте границы слов и повторяйте фразы вслед за диктором.",
+      "3. **Третий проход: точность.** Откройте перевод и карточки только у слов, которые мешают пониманию.",
+      "4. **Четвёртый проход: воспроизведение.** Перескажите фрагмент и вернитесь к FSRS-повторам в LinguistPro.",
       "",
       "## Лексика",
       "",
@@ -520,12 +716,64 @@
       ""
     ].join("\n");
   }
+  function renderLearningRoute(report) {
+    return [
+      "---", "type: lp-learning-route", "lp_schema: 3", "cssclasses: [linguistpro-study]", "lp_text_id: " + yaml(report.text.text_id), "managed_by: linguistpro", "---", "",
+      "# Учебный маршрут", "",
+      "> [!important] Это маршрут, а не второй планировщик повторений",
+      "> Не отмечайте здесь долговременный прогресс: generated-файл заменяется при следующем экспорте. Личные наблюдения ведите вне служебной папки, а интервалы повторения — в LinguistPro.", "",
+      "## Занятие 1 · Понимание", "",
+      "1. Прослушайте выбранный фрагмент целиком в LinguistPro.",
+      "2. Запишите в личной заметке 3–5 фактов, которые поняли без перевода.",
+      "3. Откройте соответствующий раздел [[Фразы]] и проверьте гипотезы.", "",
+      "## Занятие 2 · Произношение", "",
+      "1. Возьмите 8–12 фраз, а не весь текст.",
+      "2. Для каждой: слушайте → повторяйте вместе → повторяйте после паузы → произносите без аудио.",
+      "3. Сравнивайте ритм и ударение, не только отдельные звуки.", "",
+      "## Занятие 3 · Лексика в контексте", "",
+      "1. Начните с [[Фокус на лексику|фокусного списка]].",
+      "2. Сначала восстановите слово по русскому значению, затем откройте карточку.",
+      "3. Для глагола проговорите инфинитив и четыре формы настоящего времени; полную парадигму раскрывайте по необходимости.", "",
+      "## Занятие 4 · Грамматика через преобразование", "",
+      "Выберите 5 фраз и измените один параметр: лицо, род, число, время или определённость. Сверяйте формы только с проверенной таблицей Pealim.", "",
+      "## Занятие 5 · Выход в речь", "",
+      "Перескажите фрагмент своими словами, затем запишите голосом краткое резюме. Ошибки перенесите в личный журнал и исправьте канонический разбор в LinguistPro.", "",
+      "## Завершение цикла", "",
+      "Запустите назначенные FSRS-повторы в LinguistPro. Obsidian не создаёт параллельное расписание и не меняет статусы слов.", ""
+    ].join("\n");
+  }
+  function renderLexicalFocus(report, textPathById) {
+    var unresolved = new Set((report.resolution_queue.items || []).map(function (item) { return item.lp_lexeme_id; }).filter(Boolean));
+    var content = new Set(["verb", "noun", "adjective", "participle", "propernoun"]);
+    var sorted = (report.lexemes || []).filter(function (lexeme) {
+      return lexeme.lp_pos !== "unknown" && !unresolved.has(lexeme.lp_lexeme_id);
+    }).slice().sort(function (a, b) {
+      var ap = content.has(a.lp_pos) ? 0 : 1, bp = content.has(b.lp_pos) ? 0 : 1;
+      return ap - bp || b.occurrence_count - a.occurrence_count || a.lemma_unpointed.localeCompare(b.lemma_unpointed, "he");
+    });
+    var selected = sorted.slice(0, 20);
+    var lines = [
+      "---", "type: lp-lexical-focus", "lp_schema: 3", "cssclasses: [linguistpro-study]", "lp_text_id: " + yaml(report.text.text_id), "managed_by: linguistpro", "---", "",
+      "# Фокус на лексику", "",
+      "> [!tip] Как использовать список",
+      "> Работайте блоками по 8–12 слов. Сначала попытайтесь восстановить иврит по значению, затем откройте карточку и произнесите один контекст. Список приоритетов строится по роли слова и частоте в этом тексте; это не оценка знания.", "",
+      "Отобрано: **" + selected.length + "** из " + report.lexemes.length + " лексем. Неоднозначные случаи исключены до решения в LinguistPro.", ""
+    ];
+    selected.forEach(function (lexeme, index) {
+      var path = textPathById.get(lexeme.lp_lexeme_id);
+      var target = path ? "Лексемы/" + path.split("/").pop().replace(/\.md$/, "") : "";
+      var label = lexeme.lemma || lexeme.lemma_unpointed;
+      lines.push((index + 1) + ". [[" + target + "|" + markdownInline(label) + "]] — " + (markdownInline(lexeme.meaning_ru) || "значение нужно уточнить") + " · " + posLabel(lexeme.lp_pos) + " · " + lexeme.occurrence_count + " вх.");
+    });
+    return lines.join("\n") + "\n";
+  }
   function renderResolutionClusterMarkdown(report, cluster, phrasePathByRowId) {
     var first = cluster.occurrences[0] || {};
     var lines = [
       "---",
       "type: lp-resolution-cluster",
       "lp_schema: 1",
+      "cssclasses: [linguistpro-study]",
       "lp_resolution_cluster_id: " + yaml(cluster.lp_resolution_cluster_id),
       "status: unresolved",
       "surface: " + yaml(cluster.niqqud || cluster.surface),
@@ -541,14 +789,14 @@
       "managed_by: linguistpro",
       "---",
       "",
-      "# Разбор: " + (cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id),
+      "# Разбор: " + markdownInline(cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id),
       "",
       "> [!warning] Решение не принято",
       "> Это видимая проекция очереди. Подтверждать или исправлять разбор нужно в LinguistPro; редактирование этого generated-файла не меняет канон.",
       "",
       "- Почему нужна проверка: " + cluster.reasons.map(reasonLabel).join("; "),
       "- Предполагаемая часть речи: " + posLabel(cluster.lp_pos),
-      "- Текущая лемма: " + (cluster.lemma || "—"),
+      "- Текущая лемма: " + (markdownInline(cluster.lemma) || "—"),
       "- Вхождений: " + cluster.occurrence_count,
       "- Выбор примеров: " + (cluster.batch_review_eligible ? "можно выбрать всю группу или отдельные примеры" : "автовыбор всей группы отключён; одинаковые примеры можно отметить вручную"),
       ""
@@ -561,16 +809,16 @@
       var parts = [];
       var candidatePos = normalizePos(candidate.lp_pos || candidate.pos || candidate.part_of_speech, candidate.kind);
       if (candidatePos !== "unknown") parts.push(posLabel(candidatePos));
-      if (candidate.meaning_ru || candidate.meaning) parts.push(str(candidate.meaning_ru || candidate.meaning));
+      if (candidate.meaning_ru || candidate.meaning) parts.push(markdownInline(candidate.meaning_ru || candidate.meaning));
       if (pid) parts.push("[Pealim ↗](" + pealimUrl(pid) + ")");
-      lines.push((index + 1) + ". **" + str(candidate.lemma || candidate.word || "Вариант " + (index + 1)) + "**" + (parts.length ? " — " + parts.join(" · ") : ""));
+      lines.push((index + 1) + ". **" + markdownInline(candidate.lemma || candidate.word || "Вариант " + (index + 1)) + "**" + (parts.length ? " — " + parts.join(" · ") : ""));
       lines.push("   <!-- lp_candidate: " + candidateIdentity(candidate) + " -->");
     });
     lines.push("", "## Контексты", "");
     cluster.occurrences.forEach(function (occ) {
-      lines.push("- " + phraseLink(occ, phrasePathByRowId) + " · **" + (occ.niqqud || occ.surface || "—") + "**");
-      if (occ.sentence_he_niqqud || occ.sentence_he) lines.push("  - " + (occ.sentence_he_niqqud || occ.sentence_he));
-      if (occ.sentence_ru) lines.push("  - _" + occ.sentence_ru + "_");
+      lines.push("- " + phraseLink(occ, phrasePathByRowId) + " · **" + markdownInline(occ.niqqud || occ.surface || "—") + "**");
+      if (occ.sentence_he_niqqud || occ.sentence_he) lines.push("  - " + markdownInline(occ.sentence_he_niqqud || occ.sentence_he));
+      if (occ.sentence_ru) lines.push("  - _" + markdownInline(occ.sentence_ru) + "_");
       lines.push("  <!-- lp_occurrence: " + occurrenceId(report.text.text_id, occ.row_id, occ.word_offset) + " -->");
     });
     if (first.morph_model_version) lines.push("", "Модель морфологии: `" + first.morph_model_version + "`.");
@@ -592,9 +840,11 @@
       ""
     ];
     report.resolution_queue.clusters.forEach(function (cluster) {
-      var target = "../../" + pathByClusterId.get(cluster.lp_resolution_cluster_id)
-        .replace(/^_LinguistPro\//, "").replace(/\.md$/, "");
-      lines.push("- [[" + target + "|" + (cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id) + "]] — " +
+      var clusterPath = pathByClusterId.get(cluster.lp_resolution_cluster_id);
+      var textPrefix = "_LinguistPro/texts/" + report.text.text_id + "/";
+      var target = (clusterPath.indexOf(textPrefix) === 0 ? clusterPath.slice(textPrefix.length) : clusterPath)
+        .replace(/\.md$/, "");
+      lines.push("- [[" + target + "|" + markdownInline(cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id) + "]] — " +
         cluster.occurrence_count + "; " + cluster.reasons.map(reasonLabel).join("; "));
     });
     return lines.join("\n") + "\n";
@@ -610,10 +860,12 @@
       byPos[pos].forEach(function (lexeme) {
         var label = lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id;
         var url = pealimUrl(lexeme.pealim_id);
-        var target = "../../" + pathById.get(lexeme.lp_lexeme_id)
-          .replace(/^_LinguistPro\//, "").replace(/\.md$/, "");
-        lines.push("- [[" + target + "|" + label + "]]" +
-          (lexeme.meaning_ru ? " — " + lexeme.meaning_ru : "") + (url ? " · [Pealim ↗](" + url + ")" : ""));
+        var lexemePath = pathById.get(lexeme.lp_lexeme_id);
+        var textPrefix = "_LinguistPro/texts/" + report.text.text_id + "/";
+        var target = (lexemePath.indexOf(textPrefix) === 0 ? lexemePath.slice(textPrefix.length) : lexemePath)
+          .replace(/\.md$/, "");
+        lines.push("- [[" + target + "|" + markdownInline(label) + "]]" +
+          (lexeme.meaning_ru ? " — " + markdownInline(lexeme.meaning_ru) : "") + (url ? " · [Pealim ↗](" + url + ")" : ""));
       });
       lines.push("");
     });
@@ -644,14 +896,14 @@
         (finiteNumber(b.order_index) == null ? Number.MAX_SAFE_INTEGER : Number(b.order_index)) || str(a.row_id).localeCompare(str(b.row_id));
     });
     var chunks = [], pathByRowId = new Map();
-    for (var i = 0; i < rows.length; i += 50) {
-      var group = rows.slice(i, i + 50);
+    for (var i = 0; i < rows.length; i += 20) {
+      var group = rows.slice(i, i + 20);
       var from = phraseNumber(group[0]) || i + 1;
       var to = phraseNumber(group[group.length - 1]) || i + group.length;
       var name = paddedPhraseNumber(from) + "–" + paddedPhraseNumber(to) + ".md";
       var path = rootPath + "Фразы/" + name;
       group.forEach(function (row) {
-        pathByRowId.set(str(row.row_id), "../" + path.replace(/^_LinguistPro\//, "").replace(/\.md$/, "") +
+        pathByRowId.set(str(row.row_id), "../Фразы/" + name.replace(/\.md$/, "") +
           "#^" + phraseBlockId(report.text.text_id, row.row_id));
       });
       chunks.push({ from: from, to: to, path: path, rows: group });
@@ -664,6 +916,7 @@
       "---",
       "type: lp-phrase-index",
       "lp_schema: 2",
+      "cssclasses: [linguistpro-study]",
       "lp_text_id: " + yaml(report.text.text_id),
       "managed_by: linguistpro",
       "---",
@@ -684,11 +937,23 @@
     });
     return lines.join("\n") + "\n";
   }
-  function renderPhraseChunk(report, chunk) {
+  function lexemesByRow(report) {
+    var out = new Map();
+    (report.lexemes || []).forEach(function (lexeme) {
+      (lexeme.occurrences || []).forEach(function (occ) {
+        var key = str(occ.row_id);
+        if (!out.has(key)) out.set(key, []);
+        if (!out.get(key).some(function (item) { return item.lp_lexeme_id === lexeme.lp_lexeme_id; })) out.get(key).push(lexeme);
+      });
+    });
+    return out;
+  }
+  function renderPhraseChunk(report, chunk, audioByKey, textPathById, byRow) {
     var lines = [
       "---",
       "type: lp-phrase-chunk",
       "lp_schema: 2",
+      "cssclasses: [linguistpro-study]",
       "lp_text_id: " + yaml(report.text.text_id),
       "range_from: " + chunk.from,
       "range_to: " + chunk.to,
@@ -698,6 +963,12 @@
       "# Фразы " + chunk.from + "–" + chunk.to,
       "",
       "[[../Фразы|← К оглавлению фраз]]",
+      "",
+      "> [!tip] Как заниматься",
+      "> 1. Сначала прослушайте фразу, не открывая перевод.",
+      "> 2. Повторите за диктором дважды, сохраняя ритм.",
+      "> 3. Прочитайте иврит и назовите смысл своими словами.",
+      "> 4. Раскройте перевод, проверьте себя и воспроизведите фразу ещё раз.",
       ""
     ];
     chunk.rows.forEach(function (row, index) {
@@ -707,12 +978,24 @@
       var translit = str(row.transliteration || row.translit);
       var translitRu = str(row.transliteration_ru || row.translit_ru);
       var russian = str(row.russian || row.ru);
-      lines.push("## Фраза " + n, "");
-      if (vocalized) lines.push("**Иврит с огласовками**", "", vocalized, "");
-      if (plain && plain !== vocalized) lines.push("**Без огласовок:** " + plain, "");
-      if (translit) lines.push("**Транслитерация (латиница):** " + translit, "");
-      if (translitRu) lines.push("**Транскрипция (русскими буквами):** " + translitRu, "");
-      if (russian) lines.push("**Перевод:** " + russian, "");
+      var audio = audioByKey && audioByKey.get(str(row.audio_asset_key));
+      lines.push("## Фраза " + n, "", audio ? "**Сначала прослушайте, не глядя на перевод.**" : "**Сначала прочитайте, не глядя на перевод.**", "");
+      if (audio) lines.push("![[" + "../../../" + audio.path.replace(/^_LinguistPro\//, "") + "]]", "");
+      if (vocalized) lines.push("**Иврит с огласовками**", "", "<div class=\"lp-hebrew\" dir=\"rtl\">" + htmlEscape(vocalized) + "</div>", "");
+      if (plain && plain !== vocalized) lines.push("**Без огласовок:**", "", "<div class=\"lp-hebrew\" dir=\"rtl\">" + htmlEscape(plain) + "</div>", "");
+      var rowLexemes = byRow && byRow.get(str(row.row_id)) || [];
+      if (rowLexemes.length) {
+        var links = rowLexemes.map(function (lexeme) {
+          var target = textPathById.get(lexeme.lp_lexeme_id).split("/").pop().replace(/\.md$/, "");
+          return "[[../Лексемы/" + target + "|" + markdownInline(lexeme.lemma || lexeme.lemma_unpointed) + "]]";
+        });
+        lines.push("**Слова этой фразы:** " + links.join(" · "), "");
+      }
+      lines.push("> [!answer]- Перевод и опоры");
+      if (russian) lines.push("> **Перевод:** " + markdownInline(russian));
+      if (translit) lines.push("> **Транслитерация (латиница):** " + markdownInline(translit));
+      if (translitRu) lines.push("> **Транскрипция (русскими буквами):** " + markdownInline(translitRu));
+      lines.push(">", "> [!check]- Самопроверка", "> Скажите фразу вслух без подсказки. Затем измените одно лицо, число или время там, где это возможно.", "");
       lines.push("<!-- lp_sentence_id: " + str(row.row_id) + " -->", "^" + phraseBlockId(report.text.text_id, row.row_id), "", "---", "");
     });
     return lines.join("\n") + "\n";
@@ -759,40 +1042,110 @@
       return Object.prototype.hasOwnProperty.call(previous, id) && previous[id] !== snapshot[id];
     }).map(function (id) { return { lp_occurrence_id: id, from: previous[id], to: snapshot[id] }; });
   }
+  function renderLibraryBase() {
+    return [
+      "filters:", "  and:", "    - 'note.type == \"lp-text\"'",
+      "formulas:", "  text_link: 'file.asLink(note.title)'",
+      "properties:", "  formula.text_link:", "    displayName: Текст",
+      "  note.phrase_count:", "    displayName: Фраз",
+      "  note.lexeme_count:", "    displayName: Лексем",
+      "  note.unresolved_count:", "    displayName: Требуют проверки",
+      "  note.audio_included:", "    displayName: Аудио в пакете",
+      "views:", "  - type: table", "    name: \"Все учебные тексты\"",
+      "    order:", "      - formula.text_link", "      - note.phrase_count", "      - note.lexeme_count", "      - note.unresolved_count", "      - note.audio_included"
+    ].join("\n") + "\n";
+  }
+  function renderVaultGuide() {
+    return [
+      "---", "type: lp-vault-guide", "lp_schema: 3", "cssclasses: [linguistpro-study]", "managed_by: linguistpro", "---", "",
+      "# LinguistPro · учебное хранилище", "",
+      "> [!success] С чего начать",
+      "> Выберите текст в таблице ниже. Внутри него откройте «Учебный маршрут», затем занимайтесь небольшими блоками фраз.", "",
+      "![[Библиотека.base]]", "",
+      "## Где что хранится", "",
+      "- **texts** — независимые учебные пространства текстов: фразы, локальные значения, очередь проверки.",
+      "- **reference/lexemes** — общий справочник проверенных словарных парадигм; один Pealim ID — один переиспользуемый файл.",
+      "- **media/audio** — общий дедуплированный аудиокэш.",
+      "- **Личные заметки** создавайте вне служебной папки LinguistPro, чтобы повторный экспорт их не заменил.", "",
+      "## Канонические роли", "",
+      "Морфологию, значение в карточке и FSRS меняйте в LinguistPro. Obsidian служит для чтения, связей, конспектов и собственного журнала ошибок.", ""
+    ].join("\n");
+  }
+  function renderSetupGuide() {
+    return [
+      "---", "type: lp-setup-guide", "lp_schema: 3", "cssclasses: [linguistpro-study]", "managed_by: linguistpro", "---", "",
+      "# Настройка отображения", "",
+      "Пакет работает на стандартных возможностях Obsidian: Markdown, свойства, Bases, вложения и сворачиваемые callout-блоки.", "",
+      "Для улучшенного RTL и более крупного иврита включите CSS snippet **linguistpro-study-v3**:",
+      "1. Откройте Settings → Appearance → CSS snippets.",
+      "2. Нажмите Reload snippets.",
+      "3. Включите linguistpro-study-v3.", "",
+      "Без snippet все данные и ссылки остаются работоспособными.", ""
+    ].join("\n");
+  }
+  function renderStudyCss() {
+    return [
+      ".linguistpro-study { --lp-accent: #0f766e; --lp-paper: color-mix(in srgb, var(--background-primary) 94%, #0f766e 6%); }",
+      ".linguistpro-study .lp-hebrew { direction: rtl; text-align: right; font-size: 1.45em; line-height: 1.85; font-family: \"Noto Sans Hebrew\", \"Arial Hebrew\", sans-serif; }",
+      ".linguistpro-study .lp-form { direction: rtl; unicode-bidi: isolate; font-size: 1.15em; font-weight: 650; }",
+      ".linguistpro-study .metadata-container { display: none; }",
+      ".linguistpro-study table { width: 100%; }",
+      ".linguistpro-study .callout[data-callout=\"tip\"] { --callout-color: 15, 118, 110; }",
+      ".linguistpro-study .callout[data-callout=\"answer\"] { --callout-color: 37, 99, 235; }",
+      ".linguistpro-study audio { width: min(100%, 34rem); }"
+    ].join("\n") + "\n";
+  }
   function planObsidianPackage(report, opts) {
     opts = opts || {};
     if (!report || report.schema !== "linguistpro-obsidian-lexical-preview-v1") throw new Error("A lexical preview report is required");
     var root = "_LinguistPro/texts/" + report.text.text_id + "/";
-    var pathById = new Map(), pathByClusterId = new Map(), usedPaths = new Set();
+    var pathById = new Map(), referencePathById = new Map(), pathByClusterId = new Map(), usedPaths = new Set();
+    var audioPlan = buildAudioPlan(report, opts.audioResults);
+    var includedAudioByKey = new Map(audioPlan.assets.filter(function (asset) { return asset.status === "included"; })
+      .map(function (asset) { return [asset.asset_key, asset]; }));
     var phrases = phraseChunks(report, root);
     report.lexemes.forEach(function (lexeme) {
       var name = safeLexemeFileName(lexeme.lp_lexeme_id, lexeme.lemma_unpointed || lexeme.lemma);
-      var path = "_LinguistPro/lexemes/" + name;
+      var path = root + "Лексемы/" + name;
       if (usedPaths.has(path)) throw new Error("Lexeme path collision: " + path);
       usedPaths.add(path); pathById.set(lexeme.lp_lexeme_id, path);
+      if (lexeme.pealim_id && lexeme.study_forms) {
+        var referencePath = "_LinguistPro/reference/lexemes/" + name;
+        if (usedPaths.has(referencePath)) throw new Error("Lexeme reference path collision: " + referencePath);
+        usedPaths.add(referencePath); referencePathById.set(lexeme.lp_lexeme_id, referencePath);
+      }
     });
     report.resolution_queue.clusters.forEach(function (cluster) {
-      var path = "_LinguistPro/resolution/cluster-" + fnv1a(cluster.cluster_signature) + ".md";
+      var path = root + "Разбор/cluster-" + fnv1a(cluster.cluster_signature) + ".md";
       if (usedPaths.has(path)) throw new Error("Resolution path collision: " + path);
       usedPaths.add(path); pathByClusterId.set(cluster.lp_resolution_cluster_id, path);
     });
     var files = [];
     function add(path, content, kind) { files.push({ path: path, kind: kind, bytes: utf8Bytes(content), content: content }); }
+    add("_LinguistPro/Путеводитель.md", renderVaultGuide(), "vault-guide");
+    add("_LinguistPro/Библиотека.base", renderLibraryBase(), "library-base");
+    add("_LinguistPro/Настройка отображения.md", renderSetupGuide(), "setup-guide");
+    add(".obsidian/snippets/linguistpro-study-v3.css", renderStudyCss(), "obsidian-css");
     report.lexemes.forEach(function (lexeme) {
-      add(pathById.get(lexeme.lp_lexeme_id), renderLexemeMarkdown(report, lexeme, phrases.pathByRowId), "lexeme");
+      var referencePath = referencePathById.get(lexeme.lp_lexeme_id);
+      if (referencePath) add(referencePath, renderLexemeReferenceMarkdown(lexeme), "lexeme-reference");
+      add(pathById.get(lexeme.lp_lexeme_id), renderTextLexemeMarkdown(report, lexeme, phrases.pathByRowId, referencePath), "text-lexeme");
     });
     report.resolution_queue.clusters.forEach(function (cluster) {
       add(pathByClusterId.get(cluster.lp_resolution_cluster_id), renderResolutionClusterMarkdown(report, cluster, phrases.pathByRowId), "resolution-cluster");
     });
     var base = renderBase(report);
     var resolutionBase = renderResolutionBase(report);
-    add(root + "Текст.md", renderTextHub(report), "text");
+    add(root + "Текст.md", renderTextHub(report, audioPlan), "text");
+    add(root + "Учебный маршрут.md", renderLearningRoute(report), "learning-route");
+    add(root + "Фокус на лексику.md", renderLexicalFocus(report, pathById), "lexical-focus");
     add(root + "Лексика.base", base, "base");
     add(root + "Разбор.base", resolutionBase, "resolution-base");
     add(root + "Лексика — переносимый снимок.md", renderSnapshot(report, pathById), "snapshot");
     add(root + "Очередь разбора.md", renderResolutionQueueIndex(report, pathByClusterId), "resolution-index");
     add(root + "Фразы.md", renderPhrasesIndex(report, phrases.chunks), "phrases-index");
-    phrases.chunks.forEach(function (chunk) { add(chunk.path, renderPhraseChunk(report, chunk), "phrases-chunk"); });
+    var byRow = lexemesByRow(report);
+    phrases.chunks.forEach(function (chunk) { add(chunk.path, renderPhraseChunk(report, chunk, includedAudioByKey, pathById, byRow), "phrases-chunk"); });
     add(root + "occurrences.tsv", renderOccurrencesTsv(report), "occurrences");
     add(root + "resolution-occurrences.tsv", renderResolutionOccurrencesTsv(report), "resolution-occurrences");
     var audit = resolutionAuditOf(report);
@@ -800,27 +1153,42 @@
     add(root + "projection.json", JSON.stringify(report, null, 2) + "\n", "projection");
     var beforeReceiptBytes = files.reduce(function (sum, file) { return sum + file.bytes; }, 0);
     var receipt = {
-      schema: "linguistpro-obsidian-receipt-v1", read_only_preview: true,
-      text_id: report.text.text_id, would_create_files: files.length + 1,
+      schema: "linguistpro-obsidian-receipt-v2", read_only_preview: true,
+      text_id: report.text.text_id, would_create_files: files.length + 1 + audioPlan.included_count,
       would_write_bytes_before_receipt: beforeReceiptBytes,
       source_counts: report.counts,
       resolution_state_counts: audit.state_counts,
       active_resolution_occurrences: audit.items.filter(function (item) { return item.resolution_state !== "resolved"; }).length,
       resolved_resolution_occurrences: audit.items.filter(function (item) { return item.resolution_state === "resolved"; }).length,
-      resolution_snapshot: resolutionSnapshot(audit)
+      resolution_snapshot: resolutionSnapshot(audit),
+      audio: {
+        expected_count: audioPlan.expected_count,
+        included_count: audioPlan.included_count,
+        missing_count: audioPlan.missing_count,
+        pending_count: audioPlan.pending_count,
+        included_bytes: audioPlan.assets.filter(function (asset) { return asset.status === "included"; })
+          .reduce(function (sum, asset) { return sum + (asset.size_bytes || 0); }, 0),
+        missing: audioPlan.assets.filter(function (asset) { return asset.status === "missing"; })
+          .map(function (asset) { return { asset_key: asset.asset_key, reason: asset.reason }; })
+      }
     };
     receipt.resolution_transitions = resolutionTransitions(opts.previousReceipt, receipt.resolution_snapshot);
     add(root + "receipt.json", JSON.stringify(receipt, null, 2) + "\n", "receipt");
     files.sort(function (a, b) { return a.path.localeCompare(b.path); });
     var byKind = {};
     files.forEach(function (file) { byKind[file.kind] = (byKind[file.kind] || 0) + 1; });
+    if (audioPlan.included_count) byKind.audio = audioPlan.included_count;
+    var externalFiles = audioPlan.assets.filter(function (asset) { return asset.status === "included"; })
+      .map(function (asset) { return { kind: "audio", asset_key: asset.asset_key, path: asset.path, size_bytes: asset.size_bytes, mime_type: asset.mime_type }; });
     return {
-      schema: "linguistpro-obsidian-package-plan-v1", read_only: true,
+      schema: "linguistpro-obsidian-package-plan-v2", read_only: true,
       text_id: report.text.text_id,
-      would_create_files: files.length,
-      would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0),
+      would_create_files: files.length + externalFiles.length,
+      would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0) + receipt.audio.included_bytes,
       files_by_kind: byKind,
       receipt: receipt,
+      audio_plan: audioPlan,
+      external_files: externalFiles,
       base_preview: base,
       resolution_base_preview: resolutionBase,
       files: files
@@ -832,6 +1200,7 @@
     var library = payload && payload.library ? payload.library : (payload || {});
     var advanced = payload && (payload.notes_advanced || payload.advanced) || {};
     var texts = Array.isArray(library.texts) ? library.texts : [];
+    var audioAssets = Array.isArray(library.audio_assets) ? library.audio_assets : [];
     var text = pickText(texts, opts);
     if (!text) {
       throw new Error(texts.length > 1
@@ -1033,6 +1402,11 @@
           lemma = str(unit.lemma || unit.stem || unit.sampleWord);
           root = ""; binyan = ""; meaning = ""; pealimId = "";
         }
+        var evidencePealimId = str(pealimEvidence && (pealimEvidence.pealim_id || pealimEvidence.id));
+        var studyForms = pealimId && evidencePealimId === pealimId
+          ? InflectionRender.projectStudyForms(pealimEvidence)
+          : null;
+        if (studyForms && structuralPealim.pos !== "unknown" && structuralPealim.pos !== "other") studyForms.pos = structuralPealim.pos;
 
         // Reference export is per sense-lemma even when the stored note was
         // deliberately generated per surface form (ff:*). Use the shared
@@ -1071,6 +1445,7 @@
             binyan: binyan,
             meaning_ru: meaning,
             pealim_id: pealimId,
+            study_forms: studyForms,
             lexical_pos: lexicalPos,
             context_role: contextRole,
             context_meaning: contextMeaning,
@@ -1098,6 +1473,7 @@
         addSet(item.evidence, "context_roles", contextRole);
         addSet(item.evidence, "note_dedup_keys", linked && linked.gen_dedup_key);
         if (candidateEvidence) item.candidate_evidence.push(candidateEvidence);
+        if (!item.study_forms && studyForms) item.study_forms = studyForms;
         if (confidence != null) {
           item.confidence_min = item.confidence_min == null ? confidence : Math.min(item.confidence_min, confidence);
           item.confidence_max = item.confidence_max == null ? confidence : Math.max(item.confidence_max, confidence);
@@ -1155,6 +1531,7 @@
         binyan: item.binyan,
         meaning_ru: item.meaning_ru,
         pealim_id: item.pealim_id,
+        study_forms: item.study_forms || null,
         lexical_pos: item.lexical_pos,
         context_role: item.context_role,
         confidence_min: item.confidence_min,
@@ -1209,10 +1586,22 @@
             hebrew_niqqud: str(row.hebrew_niqqud || row.he_niqqud),
             transliteration: str(row.transliteration || row.translit),
             transliteration_ru: str(row.transliteration_ru || row.translit_ru),
-            russian: str(row.russian || row.ru)
+            russian: str(row.russian || row.ru),
+            audio_asset_key: str(row.audio_asset_key || row.audioAssetKey)
           };
         })
       },
+      audio_assets: audioAssets.map(function (asset) {
+        return {
+          asset_key: str(asset.asset_key || asset.assetKey),
+          mime_type: str(asset.mime_type || asset.mime || "audio/mpeg"),
+          language: str(asset.language || "he-IL"),
+          provider_id: str(asset.provider_id),
+          voice_name: str(asset.voice_name),
+          duration_ms: finiteNumber(asset.duration_ms),
+          size_bytes: finiteNumber(asset.size_bytes)
+        };
+      }).filter(function (asset) { return asset.asset_key; }).sort(function (a, b) { return a.asset_key.localeCompare(b.asset_key); }),
       counts: {
         tokens_total: totalTokens,
         analyzed_occurrences: analyzedOccurrences,

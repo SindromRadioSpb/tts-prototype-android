@@ -75,6 +75,29 @@ test('word-group search ignores Hebrew vocalization and can filter by review rea
   assert.equal(UI.matchesClusterFilter(cluster, '', 'ambiguous'), false);
 });
 
+test('audio export fetches with bounded concurrency and records partial failure without dead files', async () => {
+  let active = 0;
+  let maxActive = 0;
+  const plan = { assets: ['a', 'b', 'c', 'd'].map((asset_key) => ({ asset_key })) };
+  const result = await UI.fetchAudioAssets(plan, async (key) => {
+    active++;
+    maxActive = Math.max(maxActive, active);
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    active--;
+    if (key === 'c') throw Object.assign(new Error('missing'), { code: 'AUDIO_HTTP_404' });
+    return new Uint8Array([1, 2, 3]).buffer;
+  }, null, 2);
+
+  assert.equal(maxActive, 2);
+  assert.equal(result.expected_count, 4);
+  assert.equal(result.included_count, 3);
+  assert.equal(result.missing_count, 1);
+  assert.equal(result.bytesByKey.has('c'), false);
+  assert.deepEqual(result.results.find((x) => x.asset_key === 'c'), {
+    asset_key: 'c', status: 'missing', reason: 'AUDIO_HTTP_404'
+  });
+});
+
 test('review editor and exact impact stay before the bounded context list', () => {
   const ui = fs.readFileSync(path.join(__dirname, '..', 'public/js/lexical-resolution-ui.js'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'public/css/lexical-resolution.css'), 'utf8');

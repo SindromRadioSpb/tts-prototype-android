@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 "use strict";
 
-// Read-only P0 preview over an existing LinguistPro library ZIP.
-// No output file is written unless the caller explicitly redirects stdout.
+// Read-only premium study-package projection over an existing LinguistPro library ZIP.
+// No output file is written unless --output-zip is provided.
 //
 // node scripts/premium/obsidian-lexical-preview.js \
 //   --zip C:/path/library-bundle.zip --title "Кфар Аза - 2"
@@ -23,7 +23,7 @@ function arg(name, fallback) {
 
 function usage(message) {
   if (message) console.error("[obsidian-preview]", message);
-  console.error("Usage: node scripts/premium/obsidian-lexical-preview.js --zip <bundle.zip> (--text-id <id> | --title <title>) [--details]");
+  console.error("Usage: node scripts/premium/obsidian-lexical-preview.js --zip <bundle.zip> (--text-id <id> | --title <title>) [--details] [--package-plan] [--output-zip <path>]");
   process.exit(2);
 }
 
@@ -40,7 +40,15 @@ function summary(report) {
   return {
     schema: report.schema,
     read_only: report.read_only,
-    text: report.text,
+    text: {
+      text_id: report.text.text_id,
+      text_key: report.text.text_key,
+      title: report.text.title,
+      updated_at: report.text.updated_at,
+      rows_total: report.text.rows_total,
+      rows_with_morph: report.text.rows_with_morph,
+      row_morph_coverage_pct: report.text.row_morph_coverage_pct
+    },
     counts: report.counts,
     lexemes_by_pos: report.lexemes_by_pos,
     occurrences_by_pos: report.occurrences_by_pos,
@@ -80,9 +88,52 @@ function packageSummary(plan) {
     would_write_bytes: plan.would_write_bytes,
     would_write_mib: Math.round(plan.would_write_bytes / 1024 / 1024 * 100) / 100,
     files_by_kind: plan.files_by_kind,
+    audio: plan.receipt.audio,
     base_preview: plan.base_preview,
     resolution_base_preview: plan.resolution_base_preview
   };
+}
+
+async function materializePackage(sourceZip, library, report, outputPath) {
+  const draft = Preview.planObsidianPackage(report);
+  const metaByKey = new Map((library.audio_assets || []).map((asset) => [String(asset.asset_key || ""), asset]));
+  const audioBytes = new Map();
+  const audioResults = [];
+  for (const asset of draft.audio_plan.assets) {
+    const meta = metaByKey.get(asset.asset_key) || {};
+    const candidates = [
+      meta.relative_export_path,
+      "audio/" + asset.asset_key + ".mp3"
+    ].filter(Boolean);
+    const entry = candidates.map((name) => sourceZip.file(String(name).replace(/\\/g, "/"))).find(Boolean);
+    if (!entry) {
+      audioResults.push({ asset_key: asset.asset_key, status: "missing", reason: "SOURCE_ZIP_AUDIO_MISSING" });
+      continue;
+    }
+    const bytes = await entry.async("nodebuffer");
+    if (!bytes.length) {
+      audioResults.push({ asset_key: asset.asset_key, status: "missing", reason: "SOURCE_ZIP_AUDIO_EMPTY" });
+      continue;
+    }
+    audioBytes.set(asset.asset_key, bytes);
+    audioResults.push({ asset_key: asset.asset_key, status: "included", size_bytes: bytes.length });
+  }
+  const plan = Preview.planObsidianPackage(report, { audioResults });
+  const target = new JSZip();
+  plan.files.forEach((file) => target.file(file.path, file.content));
+  plan.external_files.forEach((file) => {
+    const bytes = audioBytes.get(file.asset_key);
+    if (bytes) target.file(file.path, bytes);
+  });
+  const blob = await target.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, blob);
+  const verify = await JSZip.loadAsync(fs.readFileSync(outputPath));
+  const actualFiles = Object.values(verify.files).filter((entry) => !entry.dir).length;
+  if (actualFiles !== plan.would_create_files) {
+    throw new Error("Generated ZIP file count mismatch: " + actualFiles + " != " + plan.would_create_files);
+  }
+  return { plan, output_path: outputPath, output_bytes: blob.length, verified_files: actualFiles };
 }
 
 (async () => {
@@ -139,7 +190,18 @@ function packageSummary(plan) {
     { textId, title, ambiguityResolver, pealimResolver, pealimIdentityResolver }
   );
   const out = arg("details", false) ? report : summary(report);
-  if (arg("package-plan", false)) out.package_plan = packageSummary(Preview.planObsidianPackage(report));
+  const outputZip = arg("output-zip", "");
+  if (outputZip) {
+    const materialized = await materializePackage(zip, library, report, path.resolve(String(outputZip)));
+    out.package_plan = packageSummary(materialized.plan);
+    out.output_zip = {
+      path: materialized.output_path,
+      bytes: materialized.output_bytes,
+      verified_files: materialized.verified_files
+    };
+  } else if (arg("package-plan", false)) {
+    out.package_plan = packageSummary(Preview.planObsidianPackage(report));
+  }
   console.log(JSON.stringify(out, null, 2));
 })().catch((error) => {
   console.error("[obsidian-preview]", error && error.stack || error);

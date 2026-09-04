@@ -131,8 +131,8 @@ test("shared Room identity text remains emoji-free at the current locale cache k
     assert.match(source, new RegExp(`mentor: \\{[\\s\\S]{0,120}title: "${mentor}"`));
   }
   for (const locale of ["ru", "en", "he"]) {
-    assert.match(html, new RegExp(`/i18n/locales/${locale}\\.js\\?v=201`));
-    assert.match(indexHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=201`));
+    assert.match(html, new RegExp(`/i18n/locales/${locale}\\.js\\?v=202`));
+    assert.match(indexHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=202`));
   }
 });
 
@@ -141,7 +141,7 @@ test("current release surfaces lock together and retain the corrected Room modul
   const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.477");
+  assert.equal(app[1], "3.11.478");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
   assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=465"><\/script>/,

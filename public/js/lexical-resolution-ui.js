@@ -56,6 +56,29 @@
   function pealimUrl(value) {
     const id=parsePealimId(value);return id?'https://www.pealim.com/ru/dict/'+id+'/':'';
   }
+  async function fetchAudioAssets(audioPlan, fetcher, onProgress, concurrency) {
+    const assets=audioPlan&&Array.isArray(audioPlan.assets)?audioPlan.assets:[];
+    const results=[];const bytesByKey=new Map();let cursor=0;let done=0;
+    const limit=Math.max(1,Math.min(8,Number(concurrency)||6));
+    const notify=()=>{if(typeof onProgress==='function')onProgress({done,total:assets.length,included:results.filter((x)=>x.status==='included').length,missing:results.filter((x)=>x.status==='missing').length});};
+    async function worker(){
+      while(true){
+        const index=cursor++;if(index>=assets.length)return;
+        const asset=assets[index];const key=clean(asset&&asset.asset_key);
+        try{
+          if(!key||typeof fetcher!=='function')throw Object.assign(new Error('Audio fetch unavailable'),{code:'AUDIO_FETCH_UNAVAILABLE'});
+          const bytes=await fetcher(key);const size=bytes&&typeof bytes.byteLength==='number'?bytes.byteLength:0;
+          if(!bytes||!size)throw Object.assign(new Error('Empty audio response'),{code:'AUDIO_EMPTY'});
+          bytesByKey.set(key,bytes);results.push({asset_key:key,status:'included',size_bytes:size});
+        }catch(error){
+          results.push({asset_key:key,status:'missing',reason:clean(error&&error.code)||clean(error&&error.name)||'AUDIO_UNAVAILABLE'});
+        }finally{done++;notify();}
+      }
+    }
+    await Promise.all(Array.from({length:Math.min(limit,Math.max(1,assets.length))},worker));
+    results.sort((a,b)=>a.asset_key.localeCompare(b.asset_key));
+    return {results,bytesByKey,expected_count:assets.length,included_count:results.filter((x)=>x.status==='included').length,missing_count:results.filter((x)=>x.status==='missing').length};
+  }
 
   function candidateAnalysis(value, Preview) {
     value=value||{};
@@ -257,11 +280,19 @@
     async function exportObsidian() {
       const button=toolbar.querySelector('[data-export-obsidian]');button.disabled=true;setMessage(t('room.resolution.exporting','Собираем ZIP для Obsidian…'),'working');
       try{
-        const prior=await previousReceipt(String(item.id));const plan=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior});const zip=new root.JSZip();plan.files.forEach((file)=>zip.file(file.path,file.content));const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+        const prior=await previousReceipt(String(item.id));
+        const draft=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior});
+        const audio=await fetchAudioAssets(draft.audio_plan,(key)=>root.ShareService.fetchAudioAsset(key),({done,total})=>{
+          setMessage(interpolate(t('room.resolution.exportingAudio','Добавляем аудио: {done} из {total}…'),{done,total}),'working');
+        },6);
+        const plan=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior,audioResults:audio.results});
+        const zip=new root.JSZip();plan.files.forEach((file)=>zip.file(file.path,file.content));
+        plan.external_files.forEach((file)=>{const bytes=audio.bytesByKey.get(file.asset_key);if(bytes)zip.file(file.path,bytes);});
+        const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
         const name='linguistpro-obsidian-'+clean(item.title).replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'').slice(0,60)+'.zip';
         const result=root.ShareService.saveFile({blob,filename:name});if(!result||result.code!=='SAVE_STARTED')throw new Error('SAVE_NOT_STARTED');
         try{await rememberReceipt(String(item.id),plan.receipt);}catch(_){}
-        setMessage(interpolate(t('room.resolution.exported','ZIP для Obsidian сохранён. В отчёте зафиксировано переходов: {count}.'),{count:plan.receipt.resolution_transitions.length}),'ready');
+        setMessage(interpolate(t('room.resolution.exportedPremium','ZIP сохранён: аудио {audioIncluded}/{audioExpected}, переходов разбора {count}.'),{audioIncluded:plan.receipt.audio.included_count,audioExpected:plan.receipt.audio.expected_count,count:plan.receipt.resolution_transitions.length}),'ready');
       }catch(error){setMessage(t('room.resolution.exportFailed','Не удалось собрать ZIP для Obsidian.')+' '+clean(error&&error.message),'error');}finally{button.disabled=false;}
     }
     function render() {
@@ -286,5 +317,5 @@
     buildReport(item,localDb).then((value)=>{if(closed)return;report=value;render();setMessage(t('room.resolution.ready','Список готов. Ни одно решение не применяется автоматически.'),'ready');}).catch((error)=>{if(closed)return;setMessage(t('room.resolution.loadFailed','Не удалось подготовить список слов.')+' '+clean(error&&error.message),'error');});
     return {close:doClose};
   }
-  const api={open,exactImpact,parsePealimId,pealimUrl,candidateAnalysis,reasonInfo,matchesClusterFilter,previousReceipt,rememberReceipt};root.LexicalResolutionUI=api;if(typeof module==='object'&&module.exports)module.exports=api;
+  const api={open,exactImpact,parsePealimId,pealimUrl,candidateAnalysis,reasonInfo,matchesClusterFilter,previousReceipt,rememberReceipt,fetchAudioAssets};root.LexicalResolutionUI=api;if(typeof module==='object'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

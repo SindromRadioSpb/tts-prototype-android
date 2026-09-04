@@ -117,6 +117,79 @@
   }
   function groupLabel(k) { return t("notes.card.conj.group." + k, GROUP_FB[k] || k); }
 
+  // Canonical, presentation-neutral study projection used by every derivative
+  // surface (the in-app card and the Obsidian package).  It deliberately emits
+  // only cells that exist in the shipped Pealim snapshot.  Missing cells are
+  // audit evidence, never forms to be guessed or generated (R1/R9).
+  function paradigmGroups(p) {
+    p = p || {};
+    var cells = p.cells || {};
+    var groups = p.kind === "verb" ? GROUPS_VERB
+      : p.pos === "adjective" || p.kind === "adjective" || p.pos === "participle" ? GROUPS_ADJ
+      : (cells["P-1s"] || cells["P-3ms"]) ? GROUPS_PREP
+      : GROUPS_NOUN;
+    var selected = groups.map(function (group) {
+      return {
+        key: group.key,
+        label: groupLabel(group.key),
+        slots: group.slots.slice()
+      };
+    });
+    if (p.kind === "verb" && Object.keys(cells).some(function (key) { return /^passive-/i.test(key); })) {
+      selected = selected.concat(GROUPS_PASSIVE.map(function (group) {
+        return { key: "passive_" + group.key, label: "Страдательный залог · " + groupLabel(group.key), slots: group.slots.slice() };
+      }));
+    }
+    return selected;
+  }
+
+  function projectStudyForms(p) {
+    if (!p || typeof p !== "object") return null;
+    var cells = p.cells && typeof p.cells === "object" ? p.cells : {};
+    var groups = paradigmGroups(p);
+    var covered = new Set();
+    function form(slot) {
+      var c = cells[slot];
+      if (!c || !c.he) return null;
+      return { slot: slot, label: slotLabel(slot), he: String(c.he), translit: c.translit ? String(c.translit) : "" };
+    }
+    var projectedGroups = groups.map(function (group) {
+      group.slots.forEach(function (slot) { covered.add(slot); });
+      return { key: group.key, label: group.label, forms: group.slots.map(form).filter(Boolean) };
+    }).filter(function (group) { return group.forms.length; });
+    var leftover = Object.keys(cells).sort().filter(function (slot) { return !covered.has(slot); }).map(form).filter(Boolean);
+    if (leftover.length) projectedGroups.push({ key: "other", label: groupLabel("other"), forms: leftover });
+
+    var coreSlots = p.kind === "verb" || p.pos === "verb"
+      ? ["INF-L", "AP-ms", "AP-fs", "AP-mp", "AP-fp"]
+      : (p.pos === "adjective" || p.kind === "adjective" || p.pos === "participle")
+        ? ["ms-a", "fs-a", "mp-a", "fp-a"]
+        : (cells["P-1s"] || cells["P-3ms"])
+          ? GROUPS_PREP[0].slots.slice()
+          : ["s", "p", "sc", "pc"];
+    var core = coreSlots.map(form).filter(Boolean);
+    if (!core.length && p.kind === "invariant" && p.form && p.form.he) {
+      core.push({ slot: "form", label: posLabel(p.pos) || "форма", he: String(p.form.he), translit: p.form.translit ? String(p.form.translit) : "" });
+      projectedGroups = [{ key: "invariant", label: "Неизменяемая форма", forms: core.slice() }];
+    }
+    return {
+      source: "pealim",
+      pealim_id: p.pealim_id == null ? "" : String(p.pealim_id),
+      pealim_url: p.pealim_url ? String(p.pealim_url) : "",
+      model_version: p.model_version ? String(p.model_version) : "",
+      kind: p.kind ? String(p.kind) : "",
+      pos: p.pos ? String(p.pos) : "",
+      lemma: p.lemma ? String(p.lemma) : "",
+      lemma_niqqud: p.lemma_niqqud ? String(p.lemma_niqqud) : "",
+      root: p.root ? String(p.root) : "",
+      binyan: p.binyan ? String(p.binyan) : "",
+      meaning: p.meaning ? String(p.meaning) : "",
+      core: core,
+      groups: projectedGroups,
+      missing_core_slots: coreSlots.filter(function (slot) { return !cells[slot] || !cells[slot].he; })
+    };
+  }
+
   // ── per-form audio (= v3ConjSpeak): browser TTS of the cell's vocalized form ─
   function speakForm(el) {
     try {
@@ -215,6 +288,7 @@
     renderParadigm: renderParadigm, renderPronounSet: renderPronounSet,
     lookupPronounParadigm: lookupPronounParadigm, posInflects: posInflects,
     slotLabel: slotLabel, groupLabel: groupLabel, speakForm: speakForm,
+    paradigmGroups: paradigmGroups, projectStudyForms: projectStudyForms,
   };
   if (typeof window !== "undefined") { window.InflectionRender = API; if (!window.v3ConjSpeak) window.v3ConjSpeak = speakForm; }
   if (typeof module !== "undefined" && module.exports) module.exports = API;

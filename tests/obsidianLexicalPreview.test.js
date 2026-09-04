@@ -3,6 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const Preview = require("../public/js/obsidian-lexical-preview.js");
+const InflectionRender = require("../public/js/inflection-render.js");
 const Core = require("../public/js/lexical-resolution-core.js");
 const Service = require("../public/js/lexical-resolution-service.js");
 
@@ -47,6 +48,24 @@ function fixture() {
       ],
       review_log: [{ id: "must-remain-untouched" }],
       srs_cards: [{ id: "must-remain-untouched" }]
+    }
+  };
+}
+
+function verbParadigm() {
+  return {
+    pealim_id: "2321", pealim_url: "https://www.pealim.com/ru/dict/2321/",
+    model_version: "pealim-infl-v12", source: "pealim", kind: "verb", pos: "verb",
+    lemma: "לשרוף", lemma_niqqud: "לִשְׂרוֹף", root: "שרף", binyan: "paal", meaning: "жечь",
+    cells: {
+      "INF-L": { he: "לִשְׂרוֹף", translit: "lisrof" },
+      "AP-ms": { he: "שׂוֹרֵף", translit: "soref" },
+      "AP-fs": { he: "שׂוֹרֶפֶת", translit: "sorefet" },
+      "AP-mp": { he: "שׂוֹרְפִים", translit: "sorfim" },
+      "AP-fp": { he: "שׂוֹרְפוֹת", translit: "sorfot" },
+      "PERF-3mp": { he: "שָׂרְפוּ", translit: "sarfu" },
+      "IMPF-3mp": { he: "יִשְׂרְפוּ", translit: "yisrefu" },
+      "IMP-2ms": { he: "שְׂרֹף", translit: "srof" }
     }
   };
 }
@@ -237,7 +256,7 @@ test("a reviewed surface identity keeps Pealim lexical class separate from conte
   assert.equal(all.context_role, "quantifier");
   assert.equal(all.meaning_ru, "каждый, весь");
   assert.equal(report.resolution_queue.items.length, 0);
-  const markdown = Preview.planObsidianPackage(report).files.find((file) => file.kind === "lexeme").content;
+  const markdown = Preview.planObsidianPackage(report).files.find((file) => file.kind === "text-lexeme").content;
   assert.match(markdown, /lexical_pos: "noun"/);
   assert.match(markdown, /context_role: "quantifier"/);
 });
@@ -286,11 +305,11 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   const second = Preview.planObsidianPackage(report);
   assert.deepEqual(second, first);
   assert.equal(first.read_only, true);
-  assert.equal(first.would_create_files, report.counts.unique_lexemes + report.counts.resolution_clusters + 12);
+  assert.equal(first.would_create_files, first.files.length + first.external_files.length);
   assert.equal(new Set(first.files.map((x) => x.path)).size, first.files.length);
-  assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/")));
+  assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/") || x.path === ".obsidian/snippets/linguistpro-study-v3.css"));
   assert.match(first.base_preview, /name: "Глаголы"/);
-  assert.match(first.base_preview, /list\(note\.lp_text_ids\)\.contains\("T1"\)/);
+  assert.match(first.base_preview, /note\.lp_text_id == "T1"/);
   assert.match(first.resolution_base_preview, /note\.type == "lp-resolution-cluster"/);
   assert.ok(first.files.some((x) => x.kind === "resolution-cluster"));
   assert.ok(first.files.some((x) => x.path.endsWith("Очередь разбора.md")));
@@ -307,28 +326,28 @@ test("builds a relocatable, human-first Obsidian study projection", () => {
   const plan = Preview.planObsidianPackage(report);
   const base = plan.files.find((file) => file.path.endsWith("Лексика.base")).content;
   const resolutionBase = plan.files.find((file) => file.path.endsWith("Разбор.base")).content;
-  const verb = plan.files.find((file) => file.path.endsWith("pid-2321.md")).content;
+  const verb = plan.files.find((file) => file.kind === "text-lexeme" && file.path.endsWith("pid-2321.md")).content;
   const resolution = plan.files.find((file) => file.kind === "resolution-cluster").content;
   const phraseIndex = plan.files.find((file) => file.kind === "phrases-index");
   const phraseChunk = plan.files.find((file) => file.kind === "phrases-chunk");
   const hub = plan.files.find((file) => file.kind === "text").content;
 
   assert.doesNotMatch(base, /file\.inFolder/, "a package nested in an existing vault must still work");
-  assert.match(base, /note\.type == "lp-lexeme"/);
-  assert.match(base, /list\(note\.lp_text_ids\)\.contains\("T1"\)/);
+  assert.match(base, /note\.type == "lp-text-lexeme"/);
+  assert.match(base, /note\.lp_text_id == "T1"/);
   assert.match(base, /file\.asLink\(note\.lemma\)/, "the word column must open the local lexeme note");
   assert.match(base, /link\(note\.pealim_url, "Pealim ↗"\)/, "Pealim must also be directly reachable");
   assert.doesNotMatch(resolutionBase, /file\.inFolder/);
 
   assert.match(verb, /pealim_url: "https:\/\/www\.pealim\.com\/ru\/dict\/2321\/"/);
   assert.match(verb, /\[Открыть в Pealim ↗\]\(https:\/\/www\.pealim\.com\/ru\/dict\/2321\/\)/);
-  assert.match(verb, /\[\[\.\.\/texts\/T1\/Фразы\/001–002#\^lp-phrase-[0-9a-f]{8}\|Фраза 1\]\]/);
+  assert.match(verb, /\[\[\.\.\/Фразы\/001–002#\^lp-phrase-[0-9a-f]{8}\|Фраза 1\]\]/);
   assert.doesNotMatch(verb, /`R1:0`/, "raw sentence ids and offsets stay out of learner-facing prose");
 
   const snapshot = plan.files.find((file) => file.kind === "snapshot").content;
   const queue = plan.files.find((file) => file.kind === "resolution-index").content;
-  assert.match(snapshot, /\[\[\.\.\/\.\.\/lexemes\/pid-2321\|/);
-  assert.match(queue, /\[\[\.\.\/\.\.\/resolution\/cluster-/);
+  assert.match(snapshot, /\[\[Лексемы\/pid-2321\|/);
+  assert.match(queue, /\[\[Разбор\/cluster-/);
 
   assert.ok(phraseIndex && phraseChunk, "the package must contain a reusable phrase notebook");
   assert.match(phraseIndex.content, /# Фразы текста/);
@@ -399,4 +418,134 @@ test("requires an explicit selection when a bundle contains multiple texts", () 
   const input = fixture();
   input.library.texts.push({ text_id: "T2", title: "Other", rows: [] });
   assert.throws(() => Preview.analyzeBundle(input), /Select exactly one text/);
+});
+
+test("projects only exact Pealim forms into a progressive POS study model", () => {
+  const report = Preview.analyzeBundle(fixture(), {
+    textId: "T1",
+    pealimResolver: (id) => String(id) === "2321" ? verbParadigm() : null
+  });
+  const verb = report.lexemes.find((x) => x.pealim_id === "2321");
+
+  assert.equal(verb.study_forms.source, "pealim");
+  assert.equal(verb.study_forms.model_version, "pealim-infl-v12");
+  assert.deepEqual(verb.study_forms.core.map((x) => x.slot), ["INF-L", "AP-ms", "AP-fs", "AP-mp", "AP-fp"]);
+  assert.deepEqual(verb.study_forms.groups.map((x) => x.key), ["present", "past", "future", "imperative", "infinitive"]);
+  assert.equal(verb.study_forms.groups.some((g) => g.forms.some((f) => f.slot === "PERF-1s")), false,
+    "missing Pealim cells must never be fabricated");
+
+  const guarded = report.lexemes.find((x) => x.lp_pos === "propernoun");
+  assert.equal(guarded.study_forms, null, "a guarded candidate cannot leak a dictionary paradigm into the learner view");
+});
+
+test("uses one shared Pealim slot taxonomy for nouns, adjectives, prepositions and invariants", () => {
+  const noun = InflectionRender.projectStudyForms({ pos: "noun", kind: "noun", cells: {
+    s: { he: "בַּיִת" }, p: { he: "בָּתִּים" }, sc: { he: "בֵּית" }, pc: { he: "בָּתֵּי" },
+    "s-P-1s": { he: "בֵּיתִי" }
+  } });
+  const adjective = InflectionRender.projectStudyForms({ pos: "adjective", kind: "adjective", cells: {
+    "ms-a": { he: "גָּדוֹל" }, "fs-a": { he: "גְּדוֹלָה" }, "mp-a": { he: "גְּדוֹלִים" }, "fp-a": { he: "גְּדוֹלוֹת" }
+  } });
+  const preposition = InflectionRender.projectStudyForms({ pos: "noun", kind: "noun", cells: {
+    "P-1s": { he: "לִי" }, "P-2ms": { he: "לְךָ" }, "P-3ms": { he: "לוֹ" }
+  } });
+  const invariant = InflectionRender.projectStudyForms({ pos: "adverb", kind: "invariant", form: { he: "שָׁם", translit: "sham" } });
+
+  assert.deepEqual(noun.core.map((x) => x.slot), ["s", "p", "sc", "pc"]);
+  assert.ok(noun.groups.find((x) => x.key === "possessive_sg").forms.some((x) => x.slot === "s-P-1s"));
+  assert.deepEqual(adjective.core.map((x) => x.slot), ["ms-a", "fs-a", "mp-a", "fp-a"]);
+  assert.deepEqual(preposition.core.map((x) => x.slot), ["P-1s", "P-2ms", "P-3ms"]);
+  assert.deepEqual(invariant.core, [{ slot: "form", label: "наречие", he: "שָׁם", translit: "sham" }]);
+});
+
+test("builds separate reusable references and per-text study notes without cross-text context overwrite", () => {
+  const makeReport = (textId, rowId, sentence) => {
+    const input = fixture();
+    input.library.texts[0].text_id = textId;
+    input.library.texts[0].rows[0].row_id = rowId;
+    input.library.texts[0].rows[0].hebrew_niqqud = sentence;
+    input.notes_advanced.occurrences.forEach((o) => { o.text_id = textId; if (o.sentence_id === "R1") o.sentence_id = rowId; });
+    input.notes_advanced.sentence_morph.forEach((s) => { s.text_id = textId; if (s.sentence_id === "R1") s.sentence_id = rowId; });
+    return Preview.analyzeBundle(input, { textId, pealimResolver: (id) => String(id) === "2321" ? verbParadigm() : null });
+  };
+  const first = Preview.planObsidianPackage(makeReport("T1", "R1", "שָׂרְפוּ אֶת הַבָּתִּים"));
+  const second = Preview.planObsidianPackage(makeReport("T2", "R9", "שָׂרְפוּ אֶת הַבַּיִת"));
+  const ref1 = first.files.find((f) => f.kind === "lexeme-reference" && /pid-2321\.md$/.test(f.path));
+  const ref2 = second.files.find((f) => f.kind === "lexeme-reference" && /pid-2321\.md$/.test(f.path));
+  const study1 = first.files.find((f) => f.kind === "text-lexeme" && /pid-2321\.md$/.test(f.path));
+  const study2 = second.files.find((f) => f.kind === "text-lexeme" && /pid-2321\.md$/.test(f.path));
+
+  assert.equal(ref1.path, "_LinguistPro/reference/lexemes/pid-2321.md");
+  assert.equal(ref2.path, ref1.path);
+  assert.equal(ref2.content, ref1.content, "same exact Pealim snapshot must produce the same shared reference file");
+  assert.doesNotMatch(ref1.content, /שָׂרְפוּ אֶת הַבָּתִּים|lp_occurrence/);
+  assert.match(study1.path, /texts\/T1\/Лексемы\/pid-2321\.md$/);
+  assert.match(study2.path, /texts\/T2\/Лексемы\/pid-2321\.md$/);
+  assert.match(study1.content, /שָׂרְפוּ אֶת הַבָּתִּים/);
+  assert.match(study2.content, /שָׂרְפוּ אֶת הַבַּיִת/);
+});
+
+test("plans deduplicated phrase audio and emits players only for successfully included bytes", () => {
+  const input = fixture();
+  input.library.texts[0].rows[0].audio_asset_key = "tts:shared/he";
+  input.library.texts[0].rows[1].audio_asset_key = "tts:shared/he";
+  input.library.audio_assets = [{ asset_key: "tts:shared/he", mime_type: "audio/mpeg", language: "he-IL" }];
+  const report = Preview.analyzeBundle(input, { textId: "T1" });
+
+  const pending = Preview.planObsidianPackage(report);
+  assert.equal(pending.audio_plan.expected_count, 1);
+  assert.equal(pending.receipt.audio.pending_count, 1);
+  assert.doesNotMatch(pending.files.find((f) => f.kind === "phrases-chunk").content, /!\[\[_LinguistPro\/media\/audio/);
+
+  const included = Preview.planObsidianPackage(report, { audioResults: [
+    { asset_key: "tts:shared/he", status: "included", size_bytes: 1234 }
+  ] });
+  const audio = included.external_files[0];
+  assert.equal(included.receipt.audio.included_count, 1);
+  assert.equal(included.receipt.audio.missing_count, 0);
+  assert.equal(audio.asset_key, "tts:shared/he");
+  assert.match(audio.path, /^_LinguistPro\/media\/audio\/[A-Za-z0-9._-]+\.mp3$/);
+  assert.equal((included.files.find((f) => f.kind === "phrases-chunk").content.match(/!\[\[/g) || []).length, 2);
+
+  const missing = Preview.planObsidianPackage(report, { audioResults: [
+    { asset_key: "tts:shared/he", status: "missing", reason: "AUDIO_HTTP_404" }
+  ] });
+  assert.equal(missing.receipt.audio.missing_count, 1);
+  assert.doesNotMatch(missing.files.find((f) => f.kind === "phrases-chunk").content, /!\[\[/);
+});
+
+test("renders an active-recall phrase workflow while keeping translation collapsed", () => {
+  const input = fixture();
+  input.library.texts[0].rows[0].audio_asset_key = "audio-1";
+  const report = Preview.analyzeBundle(input, { textId: "T1" });
+  const plan = Preview.planObsidianPackage(report, { audioResults: [{ asset_key: "audio-1", status: "included", size_bytes: 10 }] });
+  const chunk = plan.files.find((f) => f.kind === "phrases-chunk").content;
+  const hub = plan.files.find((f) => f.kind === "text").content;
+
+  assert.match(chunk, /Сначала прослушайте/);
+  assert.match(chunk, /> \[!answer\]- Перевод и опоры/);
+  assert.match(chunk, /Скажите фразу вслух/);
+  assert.match(hub, /Первый проход: смысл на слух/);
+  assert.match(hub, /LinguistPro остаётся единственным местом интервальных повторений/);
+});
+
+test("escapes imported text before placing it in Markdown and HTML learning surfaces", () => {
+  const input = fixture();
+  input.library.texts[0].title = "Текст <script>alert(1)</script>";
+  input.library.texts[0].rows[0].hebrew_niqqud = "שָׁלוֹם <img src=x onerror=alert(1)>";
+  input.library.texts[0].rows[0].russian = "Перевод <script>alert(2)</script> с _разметкой_";
+  input.notes_advanced.notes[0].body_json = JSON.stringify({
+    word: "שרפו", niqqud_variant: "שָׂרְפוּ", lemma: "לשרוף", pos: "verb", root: "שרף",
+    binyan: "paal", meaning: "жечь <script>alert(3)</script>", pealim_id: "2321"
+  });
+  const report = Preview.analyzeBundle(input, { textId: "T1", pealimResolver: (id) => String(id) === "2321" ? verbParadigm() : null });
+  const plan = Preview.planObsidianPackage(report);
+  const learnerMarkdown = plan.files.filter((file) => /^(text|text-lexeme|phrases-chunk)$/.test(file.kind))
+    .map((file) => file.content.replace(/^---[\s\S]*?\n---\s*/m, "")).join("\n");
+
+  assert.doesNotMatch(learnerMarkdown, /(^|[^\\])<script/i);
+  assert.doesNotMatch(learnerMarkdown, /(^|[^\\])<img\s/i);
+  assert.match(learnerMarkdown, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.ok(learnerMarkdown.includes(String.raw`\<script\>alert(2)\</script\>`));
+  assert.match(learnerMarkdown, /\\_разметкой\\_/);
 });
