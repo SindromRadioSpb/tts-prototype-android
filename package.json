@@ -101,7 +101,7 @@
     "audit:note-fields": "node scripts/premium/note-fields-audit.js",
     "audit:autogen-quality": "node scripts/premium/autogen-quality-audit.js --gate",
     "audit:obsidian-lexical-preview": "node scripts/premium/obsidian-lexical-preview.js",
-    "audit:lexical-resolution": "node --test tests/lexicalResolutionCore.test.js tests/lexicalResolutionRepository.test.js tests/obsidianLexicalPreview.test.js",
+    "audit:lexical-resolution": "node --test tests/lexicalResolutionCore.test.js tests/lexicalResolutionRepository.test.js tests/lexicalResolutionService.test.js tests/obsidianLexicalPreview.test.js",
     "audit:corpus-niqqud": "node scripts/premium/audit-corpus-niqqud.js",
     "reniqqud:fill": "node scripts/premium/reniqqud-fill.js",
     "smoke:reniqqud": "node scripts/premium/reniqqud-smoke.js",

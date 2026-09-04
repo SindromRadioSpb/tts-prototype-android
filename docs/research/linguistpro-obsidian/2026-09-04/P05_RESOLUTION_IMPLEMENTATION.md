@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Статус: `CORE_AND_LOCAL_STORAGE_TECHNICAL_PASS · OVERLAY_UI_BACKUP_ROUNDTRIP_PENDING`
+Статус: `CORE_STORAGE_OVERLAY_TECHNICAL_PASS · UI_BACKUP_ROUNDTRIP_PENDING`
 
 ## Реализовано
 
@@ -20,13 +20,17 @@
 - экспорт событий в `notes_advanced` schema 3 для full и slim text bundle;
 - импорт с remap `text_id/sentence_id/occurrence_id` и сохранением portable
   source/candidate fingerprints.
+- async lifecycle overlay: resolved occurrences покидают активную очередь, но
+  остаются в полном audit; stale/deferred/rejected остаются видимыми;
+- после уменьшения кластера пакетное подтверждение автоматически отключается,
+  если в нём осталось меньше двух активных occurrences.
 
 Серверная таблица намеренно не создавалась: события локальны и text-bound.
 Автоматический cloud sync не утверждён.
 
 ## Проверено
 
-- новый набор core/repository/preview: 16/16 PASS;
+- новый набор core/repository/service/preview: 18/18 PASS;
 - отдельные core/repository tests: 7/7 PASS;
 - JS syntax и scoped `git diff --check`: PASS;
 - в API отсутствуют операции update/delete;
@@ -40,11 +44,10 @@
 
 ## Осталось до снятия P0.5 gate
 
-1. async overlay service над фактической очередью;
-2. UI просмотра одного occurrence и кластера;
-3. owner actions и batch-impact confirmation;
-4. исполнимый full/slim export-import roundtrip test;
-5. unresolved → resolved переход в Obsidian projection/receipt;
-6. owner acceptance.
+1. UI просмотра одного occurrence и кластера;
+2. owner actions и batch-impact confirmation;
+3. исполнимый full/slim export-import roundtrip test;
+4. unresolved → resolved переход в Obsidian projection/receipt;
+5. owner acceptance.
 
 Vault `F:\УЧУ_ИВРИТ\УЧУ_ИВРИТ` не изменён.
