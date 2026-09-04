@@ -1091,7 +1091,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/pealim-identity-overrides.js",
   "/js/lexical-resolution-repository.js",
   "/js/lexical-resolution-service.js?v=1",
-  "/js/lexical-resolution-ui.js?v=3",
+  "/js/lexical-resolution-ui.js?v=4",
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",

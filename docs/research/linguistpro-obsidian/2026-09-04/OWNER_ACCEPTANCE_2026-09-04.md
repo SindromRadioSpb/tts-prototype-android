@@ -2,9 +2,9 @@
 
 Дата: 2026-09-04
 
-Целевая версия: `3.11.468`
+Целевая версия: `3.11.469`
 
-Текущий статус: `LOCAL_TECHNICAL_PASS · DEPLOY_PENDING · OWNER_RECHECK_PENDING`
+Текущий статус: `PRODUCTION_TECHNICAL_PASS · OWNER_RECHECK_PENDING`
 
 Первая owner-проверка `3.11.466` выявила два блокера: ложный
 `identity_guarded` для Pealim `#2710` (`אֶת`) и редактор, находившийся после
@@ -34,7 +34,7 @@ impact находятся перед ограниченно прокручива
 ## A. Версия и открытие интерфейса
 
 1. Откройте <https://linguistpro.kolosei.com/library.html#room=mytexts>.
-2. Сделайте обычное обновление. Если внизу всё ещё не `v3.11.468`, полностью
+2. Сделайте обычное обновление. Если внизу всё ещё не `v3.11.469`, полностью
    закройте установленную PWA/вкладку, откройте снова и обновите.
 3. В разделе «Мои тексты» найдите «Кфар Аза - 2 544/573».
 4. Нажмите `•••` -> `⚖ Проверить морфологию`.
@@ -143,7 +143,7 @@ Slim — внутренний text-scoped контракт backup/cloud bundle, 
 Скопируйте и заполните:
 
 ```text
-OWNER ACCEPTANCE 3.11.468
+OWNER ACCEPTANCE 3.11.469
 A interface: PASS/FAIL; initial queue/resolved/clusters = .../.../...
 B before ZIP: PASS/FAIL
 C single impact + persistence: PASS/FAIL; before -> after = ... -> ...

@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Статус: `3.11.468_LOCAL_TECHNICAL_PASS · DEPLOY_PENDING · OWNER_RECHECK_PENDING`
+Статус: `3.11.469_PRODUCTION_TECHNICAL_PASS · OWNER_RECHECK_PENDING`
 
 ## Реализовано
 
@@ -145,3 +145,9 @@ keys — `0`. Оставшееся распределение:
 дефекты должны исправляться у источника. Полный JSON-аудит воспроизводится
 командой `npm run audit:lexical-resolution:queue -- --zip <bundle.zip> --title
 "Кфар Аза - 2 544/573" --baseline-occurrences 692 --baseline-clusters 279`.
+
+Production-проверка `3.11.468` дополнительно обнаружила legacy URL с пустым
+slug (`/dict/6014-/`) в function-usage store. В `3.11.469` генератор публикует
+проверенные ссылки `6014-le` и `4158-kol`, а для остальных записей — стабильный
+официальный ID-only URL. UI также канонизирует входящую candidate-ссылку по
+проверенному Pealim ID.

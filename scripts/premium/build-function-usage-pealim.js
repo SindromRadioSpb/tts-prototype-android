@@ -38,8 +38,8 @@ const SEARCH_ONLY = {
 // `כל` is keyed in Pealim by the absolute lemma כול while the pedagogical
 // function profile is keyed by its ordinary construct surface כל.
 const VERIFIED_OVERRIDES = {
-  'ל': { id: '6014', declension: true },
-  'כל': { id: '4158', declension: true, identity_safe: true,
+  'ל': { id: '6014', url: 'https://www.pealim.com/ru/dict/6014-le/', declension: true },
+  'כל': { id: '4158', url: 'https://www.pealim.com/ru/dict/4158-kol/', declension: true, identity_safe: true,
     lexical_pos: 'noun', context_pos: 'particle', context_role: 'quantifier',
     pealim_lemma_aliases: ['כל', 'כול'] },
 };
@@ -79,7 +79,10 @@ function main() {
     if (r.id) {
       const p = byId[r.id];
       e.pealim_id = String(r.id);
-      e.pealim_url = p.pealim_url || ('https://www.pealim.com/ru/dict/' + r.id + '/');
+      // Some legacy paradigms contain a syntactically valid but user-hostile
+      // empty slug (`/dict/6014-/`). Publish a reviewed URL when known and a
+      // stable ID-only official URL otherwise.
+      e.pealim_url = r.url || ('https://www.pealim.com/ru/dict/' + r.id + '/');
       e.declension = !!r.declension;
       if (r.identity_safe) e.identity_safe = true; else delete e.identity_safe;
       if (r.lexical_pos) e.lexical_pos = r.lexical_pos; else delete e.lexical_pos;

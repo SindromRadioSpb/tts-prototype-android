@@ -24,7 +24,7 @@
     return {
       lemma: clean(value.lemma||value.word||value.infinitive),
       lp_pos: Preview.normalizePos(value.lp_pos||value.pos||value.part_of_speech, value.kind),
-      pealim_id: pealimId, pealim_url: clean(value.pealim_url)||pealimUrl(pealimId), root: clean(value.root||value.trueRoot),
+      pealim_id: pealimId, pealim_url: pealimUrl(pealimId), root: clean(value.root||value.trueRoot),
       binyan: clean(value.binyan), meaning_ru: clean(value.meaning_ru||value.meaning||value.gloss)
     };
   }
