@@ -160,9 +160,17 @@ async function inspect(browser, locale, viewport, dark, label) {
     window.__b1PickerClicks = { audio: 0, captions: 0 };
     document.getElementById("v3ImportAudio").click = () => { window.__b1PickerClicks.audio++; };
     document.getElementById("v3ImportCaptionsFile").click = () => { window.__b1PickerClicks.captions++; };
-    return { selected: document.getElementById("v3ImportTabFile").getAttribute("aria-selected") };
+    return {
+      selected: document.getElementById("v3ImportTabFile").getAttribute("aria-selected"),
+      modalVisible: !document.getElementById("v3ImportModal").classList.contains("hidden"),
+      sourceActionCount: document.querySelectorAll("#v3ImportEntry > button").length,
+      workspaceCardAbsent: !document.getElementById("l3WorkspaceCard"),
+      workspaceShelfAbsent: !document.getElementById("l3WorkspaceShelf"),
+    };
   });
-  check(picker.selected === "true", `${prefix}: Add Material retains the recent continuation shortcut`);
+  check(picker.selected === "true" && picker.modalVisible, `${prefix}: Add Material opens the selected source tab`);
+  check(picker.sourceActionCount === 2 && picker.workspaceCardAbsent && picker.workspaceShelfAbsent,
+    `${prefix}: Add Material does not reveal transcript lifecycle actions`);
   if (label === "380") {
     const provider = await page.evaluate(() => {
       StudioImport.refreshLocalAsrControls();

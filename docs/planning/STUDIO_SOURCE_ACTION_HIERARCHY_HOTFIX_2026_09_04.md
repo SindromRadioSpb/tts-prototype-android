@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented and locally verified for release `3.11.462`. Production and owner-live acceptance remain separate gates until the scoped commit is deployed and the owner checks the ordinary saved-card journey.
+Owner testing of release `3.11.462` found a residual navigation defect: opening `Добавить материал` caused a saved-transcript card to appear behind the modal. The follow-up correction is implemented for release `3.11.463`; production and owner-live acceptance remain separate gates until deployment and a fresh ordinary saved-card check.
 
 ## Observed problem
 
@@ -22,24 +22,24 @@ The source composer owns only actions on the text currently in front of the user
 1. `Добавить материал`;
 2. `Упростить до моего уровня`.
 
-The Library owns collection-level lifecycle navigation through its existing `Импорт-центр`. The contextual transcript card remains because it identifies the exact saved media revision already attached to the current text, but it has exactly one action: `Исправить транскрипт` (`Edit transcript`, `עריכת התמלול`).
+The Library owns collection-level lifecycle navigation through its existing `Импорт-центр`. Transcript correction therefore has one visible route: Library → Import Center → Materials → Drafts → Continue correction.
 
-This is a navigation and wording correction, not a storage redesign. The Add Material modal retains its single bounded recent-work shortcut; the complete draft/material list remains in Import Center.
+This is a navigation correction, not a storage redesign. Neither the source composer nor the Add Material modal projects saved transcript lifecycle controls.
 
 ## Implementation
 
 - Removed the composer-level portability/import action.
 - Removed the composer-level drafts action and count.
-- Removed the duplicate drafts and Import Center actions from the contextual transcript card.
-- Renamed its remaining generic `Открыть` action to the explicit task `Исправить транскрипт` in RU, EN, and HE.
-- Removed dead rendering code for the deleted composer draft entry.
-- Added regression contracts for the two-action composer, one-action contextual card, Library-owned hub, and all three labels.
-- Updated the browser smoke path so it reaches correction through Import Center rather than the removed composer shortcut.
+- Removed the contextual saved-transcript card from the source composer.
+- Removed the recent-work transcript shelf from the Add Material modal.
+- Removed their dead rendering helpers while preserving the canonical active-workspace data and exact media binding.
+- Kept the legacy programmatic workspace-library entry as a compatibility redirect to Import Center → Materials, so stale callers cannot reopen the removed path.
+- Added regression contracts for the two-action composer, absence of both transcript projections, and Library-owned correction route.
+- Updated browser smoke paths so correction is reached only through Import Center.
 
 ## Invariants
 
 - No text, sentence, transcript, table, media, receipt, or schema mutation was added.
-- The exact saved revision still opens directly from the contextual card.
 - The complete correction lifecycle remains available at Library → Import Center → Materials → Drafts.
 - Provider calls remain outside this navigation change.
 - Existing unrelated worktree changes and generated screenshots are excluded from the release allowlist.
@@ -48,10 +48,10 @@ This is a navigation and wording correction, not a storage redesign. The Add Mat
 
 - `node --test tests/studioUxMaturity.test.js tests/portableLearningPackageUi.test.js tests/importCenterCore.test.js` — 39/39 passed.
 - `npm run smoke:i18n` — 233/233 passed; locale and page/service-worker version locks agree.
-- `npm run smoke:studio-ux-maturity` — static 10/10 and browser 92/92 passed.
-- `npm run smoke:media-package:browser` — passed, including one contextual action, direct correction, Import Center draft correction after reload, RU/HE mobile layouts, and zero page errors.
-- 380 px screenshot review — one contextual action and two source actions; no horizontal overflow.
+- `npm run smoke:studio-ux-maturity` — static 10/10 and browser 95/95 passed.
+- `npm run smoke:media-package:browser` — passed; both transcript projections are absent and the exact corrected revision opens from Import Center before and after reload, with zero page errors.
+- 380 px screenshot review — passed: two source actions, no contextual transcript card, no recent-work shelf in Add Material, and no horizontal overflow.
 
 ## Acceptance boundary
 
-Automated and browser inspection can establish `TECHNICAL_PASS`. Owner acceptance requires a fresh ordinary production session after deployment: open `Кфар Аза - 1`, confirm the source composer has only the two current-text actions, confirm the contextual card has only `Исправить транскрипт`, and confirm Library → Import Center → Materials → Drafts still opens the correct transcript.
+Automated and browser inspection can establish `TECHNICAL_PASS`. Owner acceptance requires a fresh ordinary production session after deployment: open `Кфар Аза - 1`, click `Добавить материал`, confirm no transcript card appears behind the modal and no recent-work correction shelf appears inside it, then confirm Library → Import Center → Materials → Drafts still opens the correct transcript.

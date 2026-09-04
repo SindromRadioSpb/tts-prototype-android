@@ -70,11 +70,10 @@ test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply 
 });
 
 test('portability hub is discoverable from Library without duplicating the source workspace',()=>{
-  const workspaceStart=html.indexOf('<section id="l3WorkspaceCard"');
-  const workspaceEnd=html.indexOf('</section>',workspaceStart);
   const libraryEntry=html.indexOf('id="v3PortabilityHubBtn"');
   assert.ok(libraryEntry>0,'Library must expose the same portability hub');
-  assert.ok(workspaceEnd>workspaceStart,'Workspace card markup must remain intact');
+  assert.doesNotMatch(html,/id="l3WorkspaceCard"|id="l3WorkspaceShelf"/,
+    'transcript correction must not reappear in the source composer or Add Material');
   assert.doesNotMatch(html,/id="v3PortableGlobalBtn"/,'composer must not duplicate the Library lifecycle hub');
   assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/);
 });

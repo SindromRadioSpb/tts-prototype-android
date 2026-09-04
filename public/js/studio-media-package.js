@@ -260,70 +260,6 @@
     return repository;
   }
 
-  function uiText(key, fallback, vars) {
-    var value = key;
-    try { value = typeof t === 'function' ? t(key) : key; } catch (_) {}
-    if (!value || value === key) value = fallback || key;
-    Object.keys(vars || {}).forEach(function (name) { value = String(value).split('{' + name + '}').join(String(vars[name])); });
-    return String(value);
-  }
-  function uiEl(id) { return typeof document === 'undefined' ? null : document.getElementById(id); }
-  function formatDuration(durationMs) {
-    if (durationMs == null || !Number.isFinite(Number(durationMs))) return '';
-    var total = Math.max(0, Math.round(Number(durationMs) / 1000));
-    var hours = Math.floor(total / 3600), minutes = Math.floor((total % 3600) / 60), seconds = total % 60;
-    return hours ? hours + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0') : minutes + ':' + String(seconds).padStart(2, '0');
-  }
-  function renderActiveWorkspace(model) {
-    var card = uiEl('l3WorkspaceCard'); if (!card) return;
-    card.hidden = !model;
-    if (!model) return;
-    card.dataset.packageId = model.package_id;
-    card.dataset.stale = model.stale ? 'true' : 'false';
-    var name = uiEl('l3WorkspaceName'); if (name) name.textContent = model.title;
-    var revision = uiEl('l3WorkspaceRevision'); if (revision) revision.textContent = uiText('studio.mediaPackage.workspaceRevision', 'Правки · v{n}', { n: model.revision_no });
-    var state = uiEl('l3WorkspaceState');
-    if (state) {
-      state.textContent = model.has_draft
-        ? uiText('studio.mediaPackage.workspaceDraft', 'Есть восстановленный черновик')
-        : uiText('studio.mediaPackage.workspaceSaved', 'Версия сохранена на этом устройстве');
-      state.dataset.kind = model.has_draft ? 'draft' : 'saved';
-    }
-    var detail = [];
-    var duration = formatDuration(model.duration_ms); if (duration) detail.push(duration);
-    detail.push(uiText('studio.mediaPackage.workspaceLocalOnly', 'Только на этом устройстве'));
-    var meta = uiEl('l3WorkspaceMeta'); if (meta) meta.textContent = detail.join(' · ');
-    var missing = uiEl('l3WorkspaceMediaMissing'); if (missing) missing.hidden = !model.media_missing;
-    var stale = uiEl('l3WorkspaceStale'); if (stale) stale.hidden = !model.stale;
-  }
-  function renderWorkspaceShelf(models) {
-    var root = uiEl('l3WorkspaceShelf'), list = uiEl('l3WorkspaceShelfList'), empty = uiEl('l3WorkspaceShelfEmpty');
-    if (!root || !list || !empty) return;
-    // RMA-3 owner decision: the complete lifecycle list belongs to Import Center.
-    // Add Material keeps exactly one recent continuation shortcut and no empty shelf.
-    root.hidden = !models.length; empty.hidden = true; list.replaceChildren();
-    models.slice(0, 1).forEach(function (model) {
-      var item = document.createElement('article'); item.className = 'l3-workspace-shelf-item';
-      item.dataset.active = model.active ? 'true' : 'false';
-      item.dataset.packageId = model.package_id;
-      item.dataset.trackId = model.track_id;
-      var copyBox = document.createElement('div'); copyBox.className = 'l3-workspace-shelf-copy';
-      var title = document.createElement('strong'); title.dir = 'auto'; title.textContent = model.title;
-      var meta = document.createElement('span');
-      var parts = [uiText('studio.mediaPackage.workspaceVersion', 'Версия {n}', { n: model.revision_no })];
-      var duration = formatDuration(model.duration_ms); if (duration) parts.push(duration);
-      if (model.has_draft) parts.push(uiText('studio.mediaPackage.workspaceDraftShort', 'черновик'));
-      if (model.media_missing) parts.push(uiText('studio.mediaPackage.workspaceMediaMissingShort', 'медиа нужно связать'));
-      // Одна переменная и для условия, и для подстановки: разойтись они не могут by construction.
-      var cardsOnThisTranscript = Number(model.binding_count || 0);
-      if (cardsOnThisTranscript > 1) parts.push(uiText('studio.mediaPackage.workspaceCards', 'карточек: {n}', { n: cardsOnThisTranscript }));
-      meta.textContent = parts.join(' · '); copyBox.append(title, meta);
-      var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
-      open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Исправить транскрипт');
-      open.addEventListener('click', function () { openWorkspace(model.package_id, model.track_id); });
-      item.append(copyBox, open); list.appendChild(item);
-    });
-  }
   async function refreshWorkspaceUi() {
     if (typeof window === 'undefined') return { active: null, items: [] };
     var serial = ++workspaceRefreshSerial;
@@ -336,7 +272,6 @@
       if (ref && !activeRow) { activeWorkspaceRef = null; activeWorkspaceOptions = {}; window.v3LastMediaPackageRef = null; }
       var active = activeRow ? workspaceViewModel(activeRow, Object.assign({}, activeWorkspaceOptions, { active: true })) : null;
       var items = rows.map(function (row) { return workspaceViewModel(row, { active: !!active && row.package_id === active.package_id && row.corrected_track_id === active.track_id }); });
-      renderActiveWorkspace(active); renderWorkspaceShelf(items);
       // Let an in-flight import finish landing its exact text passport before the read-only
       // resolver runs. Dispatching synchronously here could inspect the previous composer text
       // while setActiveWorkspace() is still inside useText().
@@ -345,14 +280,12 @@
       }, 0);
       return { active: active, items: items };
     } catch (_) {
-      if (serial === workspaceRefreshSerial) { renderActiveWorkspace(null); renderWorkspaceShelf([]); }
       return { active: null, items: [], unavailable: true };
     }
   }
   async function setActiveWorkspace(ref, options) {
     activeWorkspaceRef = ref ? copy(ref) : null; activeWorkspaceOptions = Object.assign({}, options || {});
     if (typeof window !== 'undefined') window.v3LastMediaPackageRef = activeWorkspaceRef ? copy(activeWorkspaceRef) : null;
-    renderActiveWorkspace(null);
     return refreshWorkspaceUi();
   }
   // F2: какая карточка открыта в этом воркспейсе. Ставится только activateTextBinding(textId) —
@@ -363,7 +296,6 @@
   function clearActiveWorkspace() {
     activeWorkspaceRef = null; activeWorkspaceOptions = {}; workspaceRefreshSerial++;
     if (typeof window !== 'undefined') window.v3LastMediaPackageRef = null;
-    renderActiveWorkspace(null);
     refreshWorkspaceUi();
   }
   async function activatePackage(packageId, options) {
@@ -421,9 +353,8 @@
     return workspace;
   }
   async function openWorkspaceLibrary() {
-    if (typeof window === 'undefined' || !window.StudioImport) return;
-    window.StudioImport.open();
-    return window.StudioImport.switchTab("file");
+    if (typeof window === 'undefined' || !window.StudioPortableLearningPackage) return;
+    return window.StudioPortableLearningPackage.open({ view: 'materials' });
   }
   async function notifyRevision(trackId, revision) {
     if (activeWorkspaceRef && activeWorkspaceRef.track_id === trackId && revision) {

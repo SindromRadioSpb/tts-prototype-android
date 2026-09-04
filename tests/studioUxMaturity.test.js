@@ -37,41 +37,33 @@ test("B1 source projection accepts an import passport only for its exact text sn
   assert.match(html, /classic\.source\.article/);
 });
 
-test("browser-local draft continuity stays separate from Import Center materials", () => {
-  for (const source of Object.values(locales)) {
-    assert.match(source, /workspaceLibrary:\s*"(?:Черновики|Drafts|טיוטות)"/);
-    assert.match(source, /workspaceImportCenter:/);
-  }
-  assert.match(mediaPackage, /StudioImport\.open\(\)/);
-  assert.match(mediaPackage, /StudioImport\.switchTab\("file"\)/);
-  assert.doesNotMatch(mediaPackage, /openWorkspaceLibrary\(\)[\s\S]{0,220}PortableLearningPackage\.open\(\{ view: 'materials' \}\)/);
+test("browser-local draft correction is owned by the Library Import Center", () => {
+  assert.match(html, /id="v3PortabilityHubBtn"/);
+  assert.match(portableUi, /data-filter="draft"/);
+  assert.match(portableUi, /if\(action==='continue-correction'\)[\s\S]{0,220}StudioMediaPackage\.openWorkspace/,
+    "Import Center draft action opens the exact correction workspace");
+  assert.match(mediaPackage, /openWorkspaceLibrary\(\)[\s\S]{0,260}StudioPortableLearningPackage\.open\(\{ view: 'materials' \}\)/,
+    "legacy draft entry must route to the Library-owned Import Center");
+  assert.doesNotMatch(mediaPackage, /openWorkspaceLibrary\(\)[\s\S]{0,220}StudioImport\.(?:open|switchTab)/,
+    "legacy draft entry must not reopen Add Material");
 });
 
-test("the source workspace exposes only current-text actions while Library owns lifecycle navigation", () => {
+test("the source composer exposes only current-text actions while Library owns lifecycle navigation", () => {
   const sourceActions = html.slice(
     html.indexOf('<div id="v3ImportEntry"'),
     html.indexOf('</div>', html.indexOf('<div id="v3ImportEntry"')) + 6,
   );
-  const workspaceActions = html.slice(
-    html.indexOf('<div class="l3-workspace-actions">'),
-    html.indexOf('</div>', html.indexOf('<div class="l3-workspace-actions">')) + 6,
-  );
-
   assert.match(sourceActions, /StudioImport\.open\(\)/, "Add Material remains in the source workspace");
   assert.match(sourceActions, /StudioRetell\.openFromComposer\(\)/, "Simplify remains in the source workspace");
   assert.doesNotMatch(sourceActions, /v3PortableGlobalBtn|l3WorkspaceLibraryBtn|openWorkspaceLibrary|StudioPortableLearningPackage\.open/,
     "global lifecycle navigation must not compete with current-text actions");
-  assert.match(workspaceActions, /id="l3WorkspaceReopenBtn"[^>]*StudioMediaPackage\.openActiveWorkspace\(\)/,
-    "the current transcript keeps one direct correction action");
-  assert.doesNotMatch(workspaceActions, /openWorkspaceLibrary|StudioPortableLearningPackage\.open/,
-    "the current transcript card must not repeat Drafts or Import Center");
-  assert.equal((workspaceActions.match(/<button\b/g) || []).length, 1, "the current transcript card has exactly one action");
+  assert.equal((sourceActions.match(/<button\b/g) || []).length, 2, "the source composer has exactly two actions");
+  assert.doesNotMatch(html, /id="l3WorkspaceCard"|id="l3WorkspaceShelf"/,
+    "neither the source composer nor Add Material may reveal transcript correction");
+  assert.doesNotMatch(mediaPackage, /renderActiveWorkspace|renderWorkspaceShelf/,
+    "opening Add Material must not project transcript lifecycle UI into the composer or modal");
   assert.match(html, /id="v3PortabilityHubBtn"[^>]*StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/,
     "Library remains the discoverable Import Center entry");
-
-  assert.match(locales.ru, /workspaceReopen:\s*"Исправить транскрипт"/);
-  assert.match(locales.en, /workspaceReopen:\s*"Edit transcript"/);
-  assert.match(locales.he, /workspaceReopen:\s*"עריכת התמלול"/);
 });
 
 test("Add Material owns focus while open and restores it when closed", () => {

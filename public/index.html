@@ -902,8 +902,7 @@
     /* The workflow keeps expert actions, but the phase CTA above is the sole
        primary-looking recommendation. */
     .classic-primary-actions #btnAiTranslate,
-    .classic-primary-actions #btnMainTts,
-    .classic-main-card .l3-workspace-actions .btn-primary {
+    .classic-primary-actions #btnMainTts {
         background: var(--theme-bg-card) !important;
         border: 1px solid var(--theme-border-medium) !important;
         color: var(--theme-text-primary) !important;
@@ -3860,24 +3859,6 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 @media (prefers-reduced-motion:reduce) { .v3-downr-handoff * { transition:none !important; animation:none !important; } }
 
 /* L3a Correctable Media Package — focused listening editor, not a spreadsheet. */
-#l3WorkspaceCard { position:relative; margin-top:10px; padding:14px; overflow:hidden; border:1px solid #b7d1cb; border-radius:13px; background:var(--theme-bg-card,#fff); box-shadow:0 9px 24px rgba(18,59,57,.06); }
-#l3WorkspaceCard[hidden] { display:none; }
-#l3WorkspaceCard::before { content:""; position:absolute; inset-block:0; inset-inline-start:0; width:4px; background:#0b7673; }
-.l3-workspace-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.l3-workspace-copy { min-width:0; }
-.l3-workspace-eyebrow { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:4px; color:#496966; font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.055em; text-transform:uppercase; }
-.l3-workspace-local { padding:3px 6px; border-radius:99px; background:#e6f3ef; color:#075e5b; }
-#l3WorkspaceState[data-kind="draft"] { color:#8a5d00; }
-#l3WorkspaceName { display:block; overflow:hidden; color:#163b3a; font-size:15px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
-#l3WorkspaceMeta { display:block; margin-top:3px; color:var(--theme-text-secondary,#64748b); font-size:11.5px; }
-#l3WorkspaceMediaMissing { flex:0 0 auto; max-width:170px; padding:4px 7px; border-radius:7px; background:#fff3d6; color:#765309; font-size:11px; font-weight:700; }
-.l3-revision-rail { display:grid; grid-template-columns:auto minmax(24px,1fr) auto; align-items:center; gap:8px; margin:12px 0 10px; color:#3c5f5c; font-size:11.5px; font-weight:700; }
-.l3-revision-node { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
-.l3-revision-line { height:2px; background:#b8cfca; position:relative; }
-.l3-revision-line::after { content:""; position:absolute; inset-block-start:50%; inset-inline-end:-1px; width:7px; height:7px; border-radius:50%; background:#0b7673; transform:translateY(-50%); }
-#l3WorkspaceRevision { color:#075e5b; }
-#l3WorkspaceStale { margin:0 0 10px; padding:8px 9px; border-inline-start:3px solid #c48616; background:#fff7e5; color:#765309; font-size:12px; line-height:1.4; }
-.l3-workspace-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .p2-portable-backdrop { position:fixed; inset:0; z-index:10040; display:grid; place-items:center; padding:18px; background:rgba(7,22,28,.62); backdrop-filter:blur(8px); }
 .p2-portable-backdrop[hidden] { display:none; }
 .p2-portable-dialog { width:min(680px,100%); max-height:min(86vh,760px); overflow:auto; border:1px solid color-mix(in srgb,#0b7673 35%,var(--theme-border-medium,#cbd5e1)); border-radius:18px; padding:18px; background:var(--theme-bg-card,#fff); box-shadow:0 28px 80px rgba(2,21,26,.28); color:var(--theme-text-primary,#172b31); }
@@ -4008,22 +3989,6 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .p4-material-actions,.p4-material-actions button,.p4-save-confirm,.p4-save-confirm button { width:100%; }
 }
 @media (prefers-reduced-motion:reduce) { .p4-import-center * { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
-#l3WorkspaceCard button,#l3WorkspaceShelf button { width:auto; }
-.l3-workspace-shelf { margin-bottom:14px; padding:12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:11px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
-.l3-workspace-shelf[hidden] { display:none; }
-.l3-workspace-shelf-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.l3-workspace-shelf-head strong { color:#163b3a; font-size:13px; }
-.l3-workspace-shelf-head span { color:#0b7673; font:700 10px/1.2 ui-monospace,Consolas,monospace; text-transform:uppercase; }
-.l3-workspace-shelf-hint,.l3-workspace-shelf-empty { margin:4px 0 10px; color:var(--theme-text-secondary,#64748b); font-size:11.5px; line-height:1.4; }
-.l3-workspace-shelf-empty { margin-bottom:0; }
-.l3-workspace-shelf-list { display:grid; gap:7px; }
-.l3-workspace-shelf-item { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; padding:9px; border:1px solid #cfdfdc; border-radius:9px; background:var(--theme-bg-card,#fff); }
-.l3-workspace-shelf-item[data-active="true"] { border-color:#0b7673; box-shadow:inset 3px 0 #0b7673; }
-[dir="rtl"] .l3-workspace-shelf-item[data-active="true"] { box-shadow:inset -3px 0 #0b7673; }
-.l3-workspace-shelf-copy { min-width:0; }
-.l3-workspace-shelf-copy strong,.l3-workspace-shelf-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.l3-workspace-shelf-copy strong { color:#213f3d; font-size:12.5px; }
-.l3-workspace-shelf-copy span { margin-top:3px; color:var(--theme-text-secondary,#64748b); font-size:10.5px; }
 #l3MediaEditorPanel { width:min(1040px,calc(100vw - 24px)); height:min(860px,calc(100vh - 24px)); min-width:680px; min-height:520px; max-width:calc(100vw - 24px); max-height:calc(100vh - 24px); overflow:auto; resize:both; padding:0; background:#f7faf9; }
 .l3-editor-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px 12px; border-bottom:1px solid #cddbd8; background:#fff; position:sticky; top:0; z-index:3; }
 .l3-editor-title { font-family:"Noto Sans Hebrew","Segoe UI",sans-serif; font-size:19px; font-weight:750; color:#163b3a; }
@@ -4152,11 +4117,6 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #l3EditorStatus { margin:10px 0 0; padding:8px 10px; border-radius:8px; background:#e8f2ef; color:#214e4b; font-size:12px; }
 #l3EditorStatus[data-kind="error"] { background:#fff0ed; color:#8b2d22; }
 @media (max-width:600px) {
-  #l3WorkspaceCard { padding:12px; }
-  .l3-workspace-head,.l3-workspace-shelf-item { align-items:stretch; flex-direction:column; }
-  #l3WorkspaceMediaMissing { max-width:none; align-self:flex-start; }
-  .l3-workspace-actions { display:grid; grid-template-columns:1fr; }
-  #l3WorkspaceCard .l3-workspace-actions button,.l3-workspace-shelf-item button { width:100%; }
   #l3MediaEditorPanel { width:100vw; min-width:0; max-width:100vw; min-height:0; max-height:100dvh; height:100dvh; resize:none; border-radius:0; }
   .l3-editor-head { padding:10px 12px; }
   .l3-player-dock { top:49px; padding:8px 12px; }
@@ -11565,26 +11525,6 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
                         <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
-                        <section id="l3WorkspaceCard" hidden aria-labelledby="l3WorkspaceName" aria-live="polite">
-                            <div class="l3-workspace-head">
-                                <div class="l3-workspace-copy">
-                                    <div class="l3-workspace-eyebrow"><span class="l3-workspace-local" data-i18n="studio.mediaPackage.workspaceBadge">Транскрипт</span><span id="l3WorkspaceState"></span></div>
-                                    <strong id="l3WorkspaceName" dir="auto"></strong>
-                                    <span id="l3WorkspaceMeta"></span>
-                                </div>
-                                <span id="l3WorkspaceMediaMissing" hidden data-i18n="studio.mediaPackage.workspaceMediaMissing">Медиа нужно связать заново</span>
-                            </div>
-                            <div class="l3-revision-rail" aria-label="Transcript revision lineage">
-                                <span class="l3-revision-node">🔒 <span data-i18n="studio.mediaPackage.workspaceRaw">Неизменяемый оригинал</span></span>
-                                <span class="l3-revision-line" aria-hidden="true"></span>
-                                <span id="l3WorkspaceRevision" class="l3-revision-node"></span>
-                            </div>
-                            <p id="l3WorkspaceStale" hidden data-i18n="studio.mediaPackage.workspaceStale">Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.</p>
-                            <div class="l3-workspace-actions">
-                                <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Исправить транскрипт</button>
-                            </div>
-                        </section>
-
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Добавить материал</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
@@ -13524,7 +13464,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.462";
+    window.APP_VERSION = "3.11.463";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -21010,10 +20950,6 @@ updatePlaylistButtonUI();
         if (!classicNextActionBtnEl) return;
         const action = classicNextActionBtnEl.dataset.action;
         if (action === "add" && window.StudioImport) return window.StudioImport.open();
-        if (action === "correct") {
-            const reopen = document.getElementById("l3WorkspaceReopenBtn");
-            if (reopen) return reopen.click();
-        }
         if (action === "table" && btnAiTranslateEl) return btnAiTranslateEl.click();
         if (action === "save") {
             const save = document.getElementById("btnSaveToLibrary");
@@ -21316,13 +21252,9 @@ updatePlaylistButtonUI();
         }
 
         if (classicNextActionBtnEl && classicNextStepStatusEl) {
-            const activeWorkspace = document.getElementById("l3WorkspaceCard");
             let action = "add";
             let statusKey = "classic.nextStepStatusEmpty";
-            if (text && !hasTable && activeWorkspace && !activeWorkspace.hidden) {
-                action = "correct";
-                statusKey = "classic.nextStepStatusCorrect";
-            } else if (text && (!hasTable || tableIsStale)) {
+            if (text && (!hasTable || tableIsStale)) {
                 action = "table";
                 statusKey = tableIsStale ? "classic.nextStepStatusRebuild" : "classic.nextStepStatusTable";
             } else if (hasTable && !tableIsStale && !isSaved) {
@@ -50365,12 +50297,6 @@ document.addEventListener("i18n:changed", function () {
       </div>
 
       <div id="v3ImportPaneFile" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabFile" hidden>
-        <section id="l3WorkspaceShelf" class="l3-workspace-shelf" hidden aria-labelledby="l3WorkspaceShelfTitle">
-          <div class="l3-workspace-shelf-head"><strong id="l3WorkspaceShelfTitle" data-i18n="studio.mediaPackage.workspaceShelfTitle">Продолжить работу</strong><span data-i18n="studio.mediaPackage.workspaceShelfLocal">На устройстве</span></div>
-          <div id="l3WorkspaceShelfList" class="l3-workspace-shelf-list"></div>
-          <p id="l3WorkspaceShelfEmpty" class="l3-workspace-shelf-empty" hidden></p>
-          <button type="button" class="l3-workspace-all btn-secondary" onclick="StudioPortableLearningPackage.open({view:'materials'})" data-i18n="studio.mediaPackage.workspaceImportCenter">Импорт-центр</button>
-        </section>
         <div>
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelPhoto">Фото, PDF или Word (до 6 МБ)</label>
           <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">

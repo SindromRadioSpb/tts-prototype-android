@@ -106,18 +106,18 @@ async function main() {
       return { revision_no: revision.revision_no, author_kind: revision.author_kind, hash: revision.canonical_sha256 };
     });
     await page.evaluate(() => window.StudioMediaEditor.close(true));
-    await page.locator('#l3WorkspaceCard:not([hidden])').waitFor();
-    const reopen = await page.evaluate(() => ({
-      name: document.getElementById('l3WorkspaceName').textContent,
-      revision: document.getElementById('l3WorkspaceRevision').textContent,
-      raw: document.querySelector('#l3WorkspaceCard [data-i18n="studio.mediaPackage.workspaceRaw"]').textContent,
-      action_count: document.querySelectorAll('#l3WorkspaceCard .l3-workspace-actions button').length,
-      action_label: document.getElementById('l3WorkspaceReopenBtn').textContent,
+    const sourceSurface = await page.evaluate(() => ({
+      workspace_card_absent: !document.getElementById('l3WorkspaceCard'),
+      workspace_shelf_absent: !document.getElementById('l3WorkspaceShelf'),
+      source_action_count: document.querySelectorAll('#v3ImportEntry > button').length,
       overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     }));
-    await page.locator('#l3WorkspaceCard').scrollIntoViewIfNeeded();
+    await page.locator('#v3ImportEntry').scrollIntoViewIfNeeded();
     await page.screenshot({ path: path.join(SHOTS, 'l3a-reopen-composer-380-ru.png'), fullPage: false });
-    await page.locator('#l3WorkspaceReopenBtn').click();
+    await page.evaluate(async ({ packageId, trackId }) => window.StudioMediaPackage.openWorkspace(packageId, trackId), {
+      packageId: setup.package_id,
+      trackId: setup.corrected_track_id,
+    });
     await page.locator('#l3MediaEditorModal:not(.hidden)').waitFor();
     await page.evaluate(async (trackId) => {
       window.appSetLocale('he'); window.StudioMediaEditor.close(true); await window.StudioMediaEditor.open(trackId);
@@ -131,27 +131,34 @@ async function main() {
       corrected_text: document.getElementById('l3CueText').value === 'שלום מיה — תיקון אנושי',
       visible_dialogs: Array.from(document.querySelectorAll(".v3-modal, [role='dialog']")).filter((el) => el.offsetWidth > 0 && el.offsetHeight > 0).map((el) => el.id).filter(Boolean),
     }));
-    await page.evaluate(async () => { window.StudioMediaEditor.close(true); await window.StudioMediaPackage.openWorkspaceLibrary(); });
+    await page.evaluate(() => {
+      window.StudioMediaEditor.close(true);
+      window.appSetLocale('ru');
+      window.StudioImport.open();
+      window.StudioImport.switchTab('file');
+    });
     await page.locator('#v3ImportModal:not(.hidden)').waitFor();
     await sleep(250);
-    const shelf = await page.evaluate(() => ({
-      items: document.querySelectorAll('#l3WorkspaceShelfList .l3-workspace-shelf-item').length,
-      title: document.getElementById('l3WorkspaceShelfTitle').textContent,
-      // B3 removed the redundant shelf hint when this became a derived Import Center lifecycle.
-      // Keep the smoke compatible with both historical and current markup.
-      hint: document.querySelector('.l3-workspace-shelf-hint')?.textContent || '',
-      active: document.querySelector('.l3-workspace-shelf-item')?.dataset.active,
-      // Ни одна подстановка в мете полки не имеет права отрендериться как 'undefined'
-      // (живой инцидент 2026-08-06: условие смотрело на одно поле, аргумент — на другое).
-      undefined_in_meta: /undefined/.test(document.getElementById('l3WorkspaceShelfList')?.textContent || ''),
+    const addMaterial = await page.evaluate(() => ({
+      visible: !document.getElementById('v3ImportModal').classList.contains('hidden'),
+      file_tab_selected: document.getElementById('v3ImportTabFile').getAttribute('aria-selected') === 'true',
+      workspace_card_absent: !document.getElementById('l3WorkspaceCard'),
+      workspace_shelf_absent: !document.getElementById('l3WorkspaceShelf'),
       overflow: document.querySelector('#v3ImportModal .v3-modal-panel').scrollWidth > document.querySelector('#v3ImportModal .v3-modal-panel').clientWidth,
     }));
     await page.screenshot({ path: path.join(SHOTS, 'l3a-reopen-shelf-380-he.png'), fullPage: false });
-    const shelfOpen = page.locator('#l3WorkspaceShelfList .l3-workspace-shelf-item button');
-    if (await shelfOpen.count() !== 1) throw new Error('SHELF_REOPEN_BUTTON_COUNT');
-    await shelfOpen.click();
+    await page.evaluate(async () => {
+      window.StudioImport.close();
+      await window.StudioPortableLearningPackage.open({ view: 'materials' });
+    });
+    await page.locator('#p2PortableModal:not([hidden]) .p4-material-card[data-lifecycle-group="draft"]').waitFor();
+    await page.locator('#p2PortableModal button[data-filter="draft"]').click();
+    const importCenterItems = await page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"]').count();
+    const importCenterOpen = page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"] button[data-next="continue-correction"]');
+    if (await importCenterOpen.count() !== 1) throw new Error('IMPORT_CENTER_REOPEN_BUTTON_COUNT');
+    await importCenterOpen.click();
     await page.locator('#l3MediaEditorModal:not(.hidden)').waitFor();
-    const reopenedFromShelf = await page.locator('#l3CueText').inputValue() === 'שלום מיה — תיקון אנושי';
+    const reopenedFromImportCenter = await page.locator('#l3CueText').inputValue() === 'שלום מיה — תיקון אנושי';
     await page.evaluate(() => window.StudioMediaEditor.close(true));
     await page.reload({ waitUntil: 'load' });
     await page.evaluate(async () => {
@@ -210,10 +217,10 @@ async function main() {
     await page.screenshot({ path: path.join(SHOTS, 'l3a-table-source-sync-380-he.png'), fullPage: false });
     await page.setViewportSize({ width: 1280, height: 900 });
     const desktopResize = await page.evaluate(() => getComputedStyle(document.getElementById('l3MediaEditorPanel')).resize);
-    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || reopen.name !== 'l3a-browser-fixture.wav' || !reopen.revision.includes('v2') || !reopen.raw || reopen.action_count !== 1 || !reopen.action_label || reopen.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || shelf.items !== 1 || !shelf.title || shelf.active !== 'true' || shelf.undefined_in_meta || shelf.overflow || !reopenedFromShelf || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || pageErrors.length) {
-      throw new Error(`BROWSER_GATE:${JSON.stringify({ setup, editorSync, ru, saved, reopen, he, shelf, reopenedFromShelf, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, pageErrors })}`);
+    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || !sourceSurface.workspace_card_absent || !sourceSurface.workspace_shelf_absent || sourceSurface.source_action_count !== 2 || sourceSurface.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || !addMaterial.visible || !addMaterial.file_tab_selected || !addMaterial.workspace_card_absent || !addMaterial.workspace_shelf_absent || addMaterial.overflow || importCenterItems !== 1 || !reopenedFromImportCenter || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || pageErrors.length) {
+      throw new Error(`BROWSER_GATE:${JSON.stringify({ setup, editorSync, ru, saved, sourceSurface, he, addMaterial, importCenterItems, reopenedFromImportCenter, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, pageErrors })}`);
     }
-    console.log(JSON.stringify({ gate: 'L3A_BROWSER_380_RU_HE_REOPEN_MEDIA_SYNC', setup, editorSync, ru, saved, reopen, he, shelf, reopenedFromShelf, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, screenshots: ['l3a-380-ru.png', 'l3a-reopen-composer-380-ru.png', 'l3a-380-he.png', 'l3a-reopen-shelf-380-he.png', 'l3a-table-source-sync-380-he.png'], page_errors: pageErrors }, null, 2));
+    console.log(JSON.stringify({ gate: 'L3A_BROWSER_380_RU_HE_IMPORT_CENTER_REOPEN_MEDIA_SYNC', setup, editorSync, ru, saved, sourceSurface, he, addMaterial, importCenterItems, reopenedFromImportCenter, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, screenshots: ['l3a-380-ru.png', 'l3a-reopen-composer-380-ru.png', 'l3a-380-he.png', 'l3a-reopen-shelf-380-he.png', 'l3a-table-source-sync-380-he.png'], page_errors: pageErrors }, null, 2));
   } finally {
     await browser.close(); await stopServer(server);
     if (serverData) fs.rmSync(serverData, { recursive: true, force: true });
