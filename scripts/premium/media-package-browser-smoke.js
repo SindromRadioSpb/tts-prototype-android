@@ -10,7 +10,9 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const PORT = Number(process.env.MEDIA_PACKAGE_BROWSER_PORT || 3281);
 const EXTERNAL_BASE = String(process.env.MEDIA_PACKAGE_BROWSER_BASE || '').replace(/\/$/, '');
 const BASE = EXTERNAL_BASE || `http://127.0.0.1:${PORT}`;
-const SHOTS = path.join(ROOT, 'docs', 'research', 'studio-l3a-correctable-media-package', '2026-07-31', 'screenshots');
+const SHOTS = process.env.LP_SMOKE_SCREENSHOT_DIR
+  ? path.resolve(process.env.LP_SMOKE_SCREENSHOT_DIR)
+  : path.join(ROOT, 'docs', 'research', 'studio-l3a-correctable-media-package', '2026-07-31', 'screenshots');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function startServer(dataDir) {
@@ -109,7 +111,8 @@ async function main() {
       name: document.getElementById('l3WorkspaceName').textContent,
       revision: document.getElementById('l3WorkspaceRevision').textContent,
       raw: document.querySelector('#l3WorkspaceCard [data-i18n="studio.mediaPackage.workspaceRaw"]').textContent,
-      library_count: document.getElementById('l3WorkspaceLibraryCount').textContent,
+      action_count: document.querySelectorAll('#l3WorkspaceCard .l3-workspace-actions button').length,
+      action_label: document.getElementById('l3WorkspaceReopenBtn').textContent,
       overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     }));
     await page.locator('#l3WorkspaceCard').scrollIntoViewIfNeeded();
@@ -151,13 +154,16 @@ async function main() {
     const reopenedFromShelf = await page.locator('#l3CueText').inputValue() === 'שלום מיה — תיקון אנושי';
     await page.evaluate(() => window.StudioMediaEditor.close(true));
     await page.reload({ waitUntil: 'load' });
-    await page.locator('#l3WorkspaceLibraryBtn:not([hidden])').waitFor();
-    await page.locator('#l3WorkspaceLibraryBtn').click();
-    await page.locator('#v3ImportPaneFile:not([hidden]) #l3WorkspaceShelfList .l3-workspace-shelf-item').waitFor();
-    const afterReloadItems = await page.locator('#l3WorkspaceShelfList .l3-workspace-shelf-item').count();
-    const reloadShelfOpen = page.locator('#l3WorkspaceShelfList .l3-workspace-shelf-item button');
-    if (await reloadShelfOpen.count() !== 1) throw new Error('RELOAD_SHELF_REOPEN_BUTTON_COUNT');
-    await reloadShelfOpen.click();
+    await page.evaluate(async () => {
+      if (window.__localDBInitPromise) await window.__localDBInitPromise;
+      await window.StudioPortableLearningPackage.open({ view: 'materials' });
+    });
+    await page.locator('#p2PortableModal:not([hidden]) .p4-material-card[data-lifecycle-group="draft"]').waitFor();
+    await page.locator('#p2PortableModal button[data-filter="draft"]').click();
+    const afterReloadItems = await page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"]').count();
+    const reloadImportCenterOpen = page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"] button[data-next="continue-correction"]');
+    if (await reloadImportCenterOpen.count() !== 1) throw new Error('IMPORT_CENTER_REOPEN_BUTTON_COUNT');
+    await reloadImportCenterOpen.click();
     await page.locator('#l3MediaEditorModal:not(.hidden)').waitFor();
     const reopenedAfterReload = await page.locator('#l3CueText').inputValue() === 'שלום מיה — תיקון אנושי';
     await page.evaluate(() => window.StudioMediaEditor.close(true));
@@ -204,7 +210,7 @@ async function main() {
     await page.screenshot({ path: path.join(SHOTS, 'l3a-table-source-sync-380-he.png'), fullPage: false });
     await page.setViewportSize({ width: 1280, height: 900 });
     const desktopResize = await page.evaluate(() => getComputedStyle(document.getElementById('l3MediaEditorPanel')).resize);
-    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || reopen.name !== 'l3a-browser-fixture.wav' || !reopen.revision.includes('v2') || !reopen.raw || reopen.library_count !== '1' || reopen.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || shelf.items !== 1 || !shelf.title || shelf.active !== 'true' || shelf.undefined_in_meta || shelf.overflow || !reopenedFromShelf || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || pageErrors.length) {
+    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || reopen.name !== 'l3a-browser-fixture.wav' || !reopen.revision.includes('v2') || !reopen.raw || reopen.action_count !== 1 || !reopen.action_label || reopen.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || shelf.items !== 1 || !shelf.title || shelf.active !== 'true' || shelf.undefined_in_meta || shelf.overflow || !reopenedFromShelf || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || pageErrors.length) {
       throw new Error(`BROWSER_GATE:${JSON.stringify({ setup, editorSync, ru, saved, reopen, he, shelf, reopenedFromShelf, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, pageErrors })}`);
     }
     console.log(JSON.stringify({ gate: 'L3A_BROWSER_380_RU_HE_REOPEN_MEDIA_SYNC', setup, editorSync, ru, saved, reopen, he, shelf, reopenedFromShelf, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, screenshots: ['l3a-380-ru.png', 'l3a-reopen-composer-380-ru.png', 'l3a-380-he.png', 'l3a-reopen-shelf-380-he.png', 'l3a-table-source-sync-380-he.png'], page_errors: pageErrors }, null, 2));

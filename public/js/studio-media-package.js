@@ -298,9 +298,6 @@
   }
   function renderWorkspaceShelf(models) {
     var root = uiEl('l3WorkspaceShelf'), list = uiEl('l3WorkspaceShelfList'), empty = uiEl('l3WorkspaceShelfEmpty');
-    var entry = uiEl('l3WorkspaceLibraryBtn'), count = uiEl('l3WorkspaceLibraryCount');
-    if (entry) entry.hidden = !models.length;
-    if (count) count.textContent = String(models.length);
     if (!root || !list || !empty) return;
     // RMA-3 owner decision: the complete lifecycle list belongs to Import Center.
     // Add Material keeps exactly one recent continuation shortcut and no empty shelf.
@@ -322,7 +319,7 @@
       if (cardsOnThisTranscript > 1) parts.push(uiText('studio.mediaPackage.workspaceCards', 'карточек: {n}', { n: cardsOnThisTranscript }));
       meta.textContent = parts.join(' · '); copyBox.append(title, meta);
       var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
-      open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Открыть');
+      open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Исправить транскрипт');
       open.addEventListener('click', function () { openWorkspace(model.package_id, model.track_id); });
       item.append(copyBox, open); list.appendChild(item);
     });

@@ -3783,7 +3783,7 @@ window.I18N_LOCALES.en = {
       workspaceRevision: "Corrections · v{n}", workspaceVersion: "Version {n}", workspaceDraftShort: "draft", workspaceMediaMissingShort: "media needs relinking",
       workspaceCards: "cards: {n}",
       workspaceMediaMissing: "Media needs to be relinked", workspaceRaw: "Immutable original", workspaceStale: "The table uses an earlier version. Your newer corrections are saved separately.",
-      workspaceReopen: "Open", workspaceAll: "All materials", workspaceLibrary: "Drafts", workspaceImportCenter: "Import Center", workspaceShelfTitle: "Continue working",
+      workspaceReopen: "Edit transcript", workspaceAll: "All materials", workspaceLibrary: "Drafts", workspaceImportCenter: "Import Center", workspaceShelfTitle: "Continue working",
       workspaceShelfLocal: "On device", workspaceShelfHint: "Continue editing without running recognition again.", workspaceShelfEmpty: "No saved transcripts yet.",
     },
     material: {

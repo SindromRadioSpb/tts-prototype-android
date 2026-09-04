@@ -3797,7 +3797,7 @@ window.I18N_LOCALES.ru = {
       workspaceRevision: "Правки · v{n}", workspaceVersion: "Версия {n}", workspaceDraftShort: "черновик", workspaceMediaMissingShort: "медиа нужно связать",
       workspaceCards: "карточек: {n}",
       workspaceMediaMissing: "Медиа нужно связать заново", workspaceRaw: "Неизменяемый оригинал", workspaceStale: "Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.",
-      workspaceReopen: "Открыть", workspaceAll: "Все материалы", workspaceLibrary: "Черновики", workspaceImportCenter: "Импорт-центр", workspaceShelfTitle: "Продолжить работу",
+      workspaceReopen: "Исправить транскрипт", workspaceAll: "Все материалы", workspaceLibrary: "Черновики", workspaceImportCenter: "Импорт-центр", workspaceShelfTitle: "Продолжить работу",
       workspaceShelfLocal: "На устройстве", workspaceShelfHint: "Продолжайте редактирование без повторного распознавания.", workspaceShelfEmpty: "Сохранённых транскриптов пока нет.",
     },
     material: {

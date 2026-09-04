@@ -155,13 +155,14 @@ async function inspect(browser, locale, viewport, dark, label) {
   check(await page.evaluate(() => document.activeElement && document.activeElement.id === "classicNextActionBtn"), `${prefix}: Escape returns focus`);
 
   const picker = await page.evaluate(() => {
-    window.StudioMediaPackage.openWorkspaceLibrary();
+    window.StudioImport.open();
+    window.StudioImport.switchTab("file");
     window.__b1PickerClicks = { audio: 0, captions: 0 };
     document.getElementById("v3ImportAudio").click = () => { window.__b1PickerClicks.audio++; };
     document.getElementById("v3ImportCaptionsFile").click = () => { window.__b1PickerClicks.captions++; };
     return { selected: document.getElementById("v3ImportTabFile").getAttribute("aria-selected") };
   });
-  check(picker.selected === "true", `${prefix}: Drafts opens existing continuation shelf`);
+  check(picker.selected === "true", `${prefix}: Add Material retains the recent continuation shortcut`);
   if (label === "380") {
     const provider = await page.evaluate(() => {
       StudioImport.refreshLocalAsrControls();

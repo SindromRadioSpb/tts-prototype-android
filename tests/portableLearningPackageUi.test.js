@@ -20,11 +20,10 @@ test('P4 exposes one five-view Import Center and compatibility aliases use expli
   for(const view of ['overview','materials','tasks','history','reference']) assert.match(studio,new RegExp(`data-view="${view}"`));
   assert.match(studio,/importCenterCore\(\)\.buildCatalog/);
   for(const intent of ['move-device','restore','relink','recover','backup','inspect'])assert.match(studio,new RegExp(`['"]${intent}['"]`));
-  // F2 (packet 2026-08-06): вход остаётся Обзором, но ОБЯЗАН нести активную карточку — без неё
-  // Обзор показывал первый проблемный материал, то есть чужой.
-  assert.match(html,/id="v3PortableGlobalBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview',textId:\(window\.v3ActiveTextId\|\|null\)\}\)/,'global entry must open the primary overview carrying the active card');
-  assert.doesNotMatch(html,/id="v3PortableGlobalBtn"[^>]+intent:/,'global entry must let the user choose the guided task');
-  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'materials',intent:'move-device'/);
+  assert.doesNotMatch(html,/id="v3PortableGlobalBtn"/,'Import Center must not compete with current-text actions in the composer');
+  assert.match(html,/id="v3PortabilityHubBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/,
+    'Library must retain the primary Import Center overview');
+  assert.match(studio,/['"]move-device['"]/,'move-device remains available inside Import Center');
 });
 
 test('P4 presence-only action buttons dispatch by attribute presence instead of empty dataset values',()=>{
@@ -70,14 +69,13 @@ test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply 
   assert.match(studio,/media-free/i);assert.match(studio,/zero provider calls/i);
 });
 
-test('portability hub is globally discoverable even without an active Workspace',()=>{
+test('portability hub is discoverable from Library without duplicating the source workspace',()=>{
   const workspaceStart=html.indexOf('<section id="l3WorkspaceCard"');
   const workspaceEnd=html.indexOf('</section>',workspaceStart);
-  const globalEntry=html.indexOf('id="v3PortableGlobalBtn"');
   const libraryEntry=html.indexOf('id="v3PortabilityHubBtn"');
-  assert.ok(globalEntry>workspaceEnd,'Studio entry must live outside the conditional Workspace card');
   assert.ok(libraryEntry>0,'Library must expose the same portability hub');
-  assert.match(html,/id="v3PortableGlobalBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview',textId:/);
+  assert.ok(workspaceEnd>workspaceStart,'Workspace card markup must remain intact');
+  assert.doesNotMatch(html,/id="v3PortableGlobalBtn"/,'composer must not duplicate the Library lifecycle hub');
   assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/);
 });
 

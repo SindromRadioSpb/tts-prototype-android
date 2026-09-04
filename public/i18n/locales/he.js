@@ -3791,7 +3791,7 @@ window.I18N_LOCALES.he = {
       workspaceRevision: "תיקונים · v{n}", workspaceVersion: "גרסה {n}", workspaceDraftShort: "טיוטה", workspaceMediaMissingShort: "נדרש קישור למדיה",
       workspaceCards: "כרטיסים: {n}",
       workspaceMediaMissing: "יש לקשר מחדש את המדיה", workspaceRaw: "המקור שאינו ניתן לשינוי", workspaceStale: "הטבלה משתמשת בגרסה קודמת. התיקונים החדשים נשמרו בנפרד.",
-      workspaceReopen: "פתיחה", workspaceAll: "כל החומרים", workspaceLibrary: "טיוטות", workspaceImportCenter: "מרכז הייבוא", workspaceShelfTitle: "המשך עבודה",
+      workspaceReopen: "עריכת התמלול", workspaceAll: "כל החומרים", workspaceLibrary: "טיוטות", workspaceImportCenter: "מרכז הייבוא", workspaceShelfTitle: "המשך עבודה",
       workspaceShelfLocal: "במכשיר", workspaceShelfHint: "אפשר להמשיך לערוך ללא זיהוי חוזר.", workspaceShelfEmpty: "אין עדיין תמלולים שמורים.",
     },
     material: {

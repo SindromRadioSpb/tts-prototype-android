@@ -4008,8 +4008,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .p4-material-actions,.p4-material-actions button,.p4-save-confirm,.p4-save-confirm button { width:100%; }
 }
 @media (prefers-reduced-motion:reduce) { .p4-import-center * { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
-#l3WorkspaceCard button,#l3WorkspaceLibraryBtn,#l3WorkspaceShelf button { width:auto; }
-#l3WorkspaceLibraryCount { display:inline-grid; min-width:18px; height:18px; padding:0 4px; place-items:center; border-radius:99px; background:#e2eeff; color:#245bb3; font:700 10px/1 ui-monospace,Consolas,monospace; }
+#l3WorkspaceCard button,#l3WorkspaceShelf button { width:auto; }
 .l3-workspace-shelf { margin-bottom:14px; padding:12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:11px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
 .l3-workspace-shelf[hidden] { display:none; }
 .l3-workspace-shelf-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
@@ -11582,17 +11581,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             </div>
                             <p id="l3WorkspaceStale" hidden data-i18n="studio.mediaPackage.workspaceStale">Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.</p>
                             <div class="l3-workspace-actions">
-                                <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Открыть</button>
-                                <button type="button" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" data-i18n="studio.mediaPackage.workspaceLibrary">Черновики</button>
-                                <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'materials',intent:'move-device'})" data-i18n="studio.importCenter.button">Импорт-центр</button>
+                                <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Исправить транскрипт</button>
                             </div>
                         </section>
 
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Добавить материал</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
-                            <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'overview',textId:(window.v3ActiveTextId||null)})">↔ <span data-i18n="studio.importCenter.globalEntry">Импорт / перенос / восстановление</span></button>
-                            <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Черновики</span> <span id="l3WorkspaceLibraryCount">0</span></button>
                         </div>
 
                         <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
@@ -13348,9 +13343,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=195"></script>
-    <script src="/i18n/locales/en.js?v=195"></script>
-    <script src="/i18n/locales/he.js?v=195"></script>
+    <script src="/i18n/locales/ru.js?v=196"></script>
+    <script src="/i18n/locales/en.js?v=196"></script>
+    <script src="/i18n/locales/he.js?v=196"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13529,7 +13524,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.461";
+    window.APP_VERSION = "3.11.462";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
