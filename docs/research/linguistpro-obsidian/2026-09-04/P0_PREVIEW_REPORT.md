@@ -2,7 +2,7 @@
 
 Дата прогона: 2026-09-04
 
-Статус: `P0_CORE_TECHNICAL_PASS · FAIL-CLOSED_GUARDS_ACTIVE · P0_NOT_CLOSED`
+Статус: `P0_VISIBLE_QUEUE_TECHNICAL_PASS · FAIL-CLOSED_WITHOUT_BLIND_ZONE · P0_NOT_CLOSED`
 
 ## 1. Что реализовано
 
@@ -14,6 +14,8 @@
 - нормализация полной утверждённой POS-таксономии;
 - sense-lemma identity через общий `NotesAutoGen.lemmaKey`;
 - сохранение occurrences, confidence, provider tags и конфликтующих evidence;
+- видимая очередь всех ambiguous/guarded/unknown/collision/skipped occurrences;
+- группировка большой очереди в review-кластеры без автоматического применения;
 - виртуальный Obsidian package: Markdown lexemes, text hub, `.base`, TSV,
   projection и receipt — только в памяти, без записи;
 - тесты детерминированности и запрета влияния на SRS/review state.
@@ -31,6 +33,7 @@ OPFS/cookies/profile storage напрямую не читались.
 | Manifest generated_at | `2026-09-04T10:40:36.445Z` |
 | ZIP SHA-256 | `2ccd25cede12eb1a2a8347d2e2136e9040b4ef0ba6492c46b365794e0c93b4f4` |
 | ZIP bytes | `5,689,102` |
+| Стабильный локальный файл | `C:\Users\lletp\Downloads\text-card-кфар-аза-2-544-573-learning.zip` |
 | Text ID | `01354c2b-b192-4be3-a479-0176d6b52108` |
 | Text key | `text-1786434607517` |
 | Title | `Кфар Аза - 2 544/573` |
@@ -60,6 +63,13 @@ bundle содержит 545 строк. Экспортёр использует 
 | Ambiguous occurrences | 63 |
 | Context identity guard | 646 |
 | Остаточных collision keys | 6 |
+| Уникальных сомнительных occurrences | 1,019 |
+| Occurrences в видимой очереди | 1,019 / 1,019 = 100% |
+| Review-кластеров | 315 |
+| Кластеров для подтверждаемой пакетной проверки | 79 |
+
+Reason counts пересекаются и не складываются в размер очереди: `ambiguous=63`,
+`identity_guarded=646`, `unknown_pos=200`, `collision=186`, `skipped_token=14`.
 
 ### Полнота полей occurrences
 
@@ -142,9 +152,22 @@ Preview теперь выполняет тот же локальный `NotesAut
 
 ### MAJOR P0-3 — неполный POS
 
-200 occurrences не имеют нормализуемого POS; 29 самостоятельных лексем попали
+200 occurrences не имеют нормализуемого POS; 31 самостоятельная лексема попала
 в `unknown`. Они сохраняются в диагностическом представлении и не должны молча
 исчезать либо назначаться к `noun`.
+
+### Gap P0-4 — fail-closed без жизненного цикла создавал бы слепую зону
+
+Guard корректно не выдавал подозрительную привязку за истину, но одного
+карантина недостаточно. Добавлена derived resolution queue: все 1,019 уникальных
+сомнительных occurrences представлены в ней, включая 14 токенов, которые ранее
+учитывались только счётчиком `skipped`.
+
+Очередь сгруппирована в 315 точных кластеров; 79 повторяющихся кластеров можно
+рассматривать пакетно, но `auto_apply_allowed=false`. Candidate evidence и
+точные контексты сохранены. Каноническая запись owner/teacher решения ещё не
+реализована; её нормативный контракт и blocking gate зафиксированы в
+[`LEXICAL_RESOLUTION_LIFECYCLE.md`](./LEXICAL_RESOLUTION_LIFECYCLE.md).
 
 ## 5. Виртуальный Obsidian package
 
@@ -153,20 +176,24 @@ Preview теперь выполняет тот же локальный `NotesAut
 | Артефакт | Количество |
 |---|---:|
 | Lexeme Markdown | 1,097 |
+| Resolution-cluster Markdown | 315 |
 | Text hub | 1 |
-| Base | 1 |
+| Lexical Base | 1 |
+| Resolution Base | 1 |
 | Portable Markdown snapshot | 1 |
+| Resolution queue index | 1 |
 | Occurrences TSV | 1 |
+| Resolution occurrences TSV | 1 |
 | Projection JSON | 1 |
 | Receipt JSON | 1 |
-| **Всего** | **1,103 файла** |
-| **Суммарный UTF-8 размер** | **8,630,342 bytes = 8.23 MiB** |
+| **Всего** | **1,421 файл** |
+| **Суммарный UTF-8 размер** | **15,603,725 bytes = 14.88 MiB** |
 
 Base-preview содержит отдельные views для всей POS-таксономии, ambiguity,
-conflicts и unknown. Его синтаксис сверён с официальным Bases schema на уровне
+conflicts, unknown и resolution queue. Его синтаксис сверён с официальным Bases schema на уровне
 статического контракта; реальный render в Obsidian ещё не выполнялся.
 
-1,103 файла для одного текста технически допустимы, но это важный scale-сигнал.
+1,421 файл для одного текста технически допустим, но это важный scale-сигнал.
 До экспорта всей библиотеки нужен глобальный dedup/spike: сколько уникальных
 lexemes получится для 329 текстов и как Obsidian desktop/mobile индексирует этот
 объём.
@@ -176,7 +203,7 @@ lexemes получится для 329 текстов и как Obsidian desktop/
 Два последовательных запуска на одном свежем ZIP дали одинаковый output hash:
 
 ```text
-b3b2c79617bc621ca941cb1d0f5731870fb0900bb5733494c6f1131932727962
+106a15d66561af278b3b75dc15edbfbca9a6edb6ff17fb54761c977a4bcff767
 ```
 
 Input SHA-256 до и после обоих запусков одинаков:
@@ -192,7 +219,7 @@ Input SHA-256 до и после обоих запусков одинаков:
 
 | Gate | Статус | Evidence |
 |---|---|---|
-| Pure unit tests | PASS | 6/6 |
+| Pure unit tests | PASS | 9/9 |
 | Scoped fresh production bundle | PASS | manifest + SHA-256 |
 | Sense-lemma dedup через общий keyer | PASS | 3,977 → 1,097 context-safe keys |
 | Deterministic repeat | PASS | одинаковый output hash |
@@ -202,6 +229,8 @@ Input SHA-256 до и после обоих запусков одинаков:
 | Real Obsidian Base parse/render | PENDING | no test-vault write yet |
 | Ambiguity completeness | PASS | shared resolver, 100% evaluated, 63 ambiguous |
 | Context-safe identity | TECHNICAL_PASS | 646 guarded, 6 residual conflicts quarantined |
+| No blind zone | PASS | 1,019 / 1,019 uncertain occurrences are in the visible queue |
+| Canonical correction lifecycle | PENDING / BLOCKING | append-only events, overlay and LinguistPro review UI are not implemented |
 | Whole-library scale | PENDING | single-text pilot only |
 | Owner acceptance | PENDING | no generated package opened yet |
 
@@ -210,10 +239,11 @@ P0 нельзя закрыть целиком до реального откры
 
 ## 8. Следующий безопасный срез
 
-1. Добавить red fixtures для шести остаточных root/meaning collisions, включая
+1. Реализовать P0.5 из `LEXICAL_RESOLUTION_LIFECYCLE.md`: append-only события,
+   overlay и review UI LinguistPro.
+2. Добавить red fixtures для шести остаточных root/meaning collisions, включая
    `שום`, `תודה`, `אמור`, `כל`, `היה`, `רב`.
-2. Выполнить whole-library aggregate spike без вывода содержимого личных текстов.
-3. Сгенерировать пакет в отдельный test vault и проверить Bases/RTL/mobile.
-4. После owner-review test vault спроектировать UI dry-run в карточке текста.
+3. Доказать unresolved → resolved → stale → clear и сохранность через backup.
+4. Только затем выполнить whole-library spike и test-vault Bases/RTL/mobile.
 
 Перенос в `F:\УЧУ_ИВРИТ\УЧУ_ИВРИТ` остаётся закрыт.

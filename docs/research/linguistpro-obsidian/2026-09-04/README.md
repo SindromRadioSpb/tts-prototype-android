@@ -2,13 +2,16 @@
 
 Дата исследования: 2026-09-04
 
-Статус: `DECISION_APPROVED · P0_CORE_TECHNICAL_PASS · P0_NOT_CLOSED`
+Статус: `DECISION_APPROVED · P0_VISIBLE_QUEUE_TECHNICAL_PASS · P0.5_BLOCKING`
 
 Формальный контракт выгрузки слов по частям речи и морфологии:
 [`LEXICAL_EXPORT_CONTRACT.md`](./LEXICAL_EXPORT_CONTRACT.md).
 
 Результаты свежего read-only прогона по `Кфар Аза - 2`:
 [`P0_PREVIEW_REPORT.md`](./P0_PREVIEW_REPORT.md).
+
+Канонический контур разрешения неоднозначности:
+[`LEXICAL_RESOLUTION_LIFECYCLE.md`](./LEXICAL_RESOLUTION_LIFECYCLE.md).
 Объект первого пилота: личный текст `Кфар Аза - 2 544/573` и существующий vault
 `F:\УЧУ_ИВРИТ\УЧУ_ИВРИТ`.
 
@@ -437,6 +440,11 @@ Obsidian хранит vault как локальную папку с обычны
 - не менять действующий `F:` vault;
 - доказать повторный экспорт, сохранение ручных файлов и rollback;
 - затем предложить владельцу diff перестройки черновика.
+
+P1 заблокирован до завершения P0.5 Resolution: видимая очередь уже построена,
+но append-only решения, overlay, backup/import и review UI LinguistPro должны
+быть реализованы и проверены по
+[`LEXICAL_RESOLUTION_LIFECYCLE.md`](./LEXICAL_RESOLUTION_LIFECYCLE.md).
 
 ### P2 — UX в LinguistPro
 

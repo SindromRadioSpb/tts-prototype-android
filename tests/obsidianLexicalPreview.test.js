@@ -90,8 +90,52 @@ test("keeps ambiguity visible and does not turn the reference index into learnin
   assert.equal(name.candidate_evidence[0].meaning, "растение");
   assert.deepEqual(name.identity_guard_reasons, ["propernoun-vs-dictionary-sense"]);
   assert.equal(report.counts.context_identity_guarded_occurrences, 1);
+  assert.equal(report.counts.uncertain_occurrences, 1);
+  assert.equal(report.counts.queued_uncertain_occurrences, 1);
+  assert.equal(report.counts.resolution_queue_coverage_pct, 100);
+  assert.equal(report.resolution_queue.items.length, 1);
+  assert.deepEqual(report.resolution_queue.items[0].reasons, ["ambiguous", "identity_guarded"]);
+  assert.equal(report.resolution_queue.items[0].candidate_evidence[0].pealim_id, "7361");
+  assert.equal(report.resolution_queue.items[0].sentence_he_niqqud, "הַבָּתִּים שֶׁל נֶטַע");
+  assert.equal(report.resolution_queue.clusters.length, 1);
+  assert.equal(report.resolution_queue.clusters[0].occurrence_count, 1);
+  assert.equal(report.resolution_queue.reason_counts.ambiguous, 1);
+  assert.equal(report.resolution_queue.reason_counts.identity_guarded, 1);
   assert.equal(Object.hasOwn(report, "learning_state"), false);
   assert.equal(Object.hasOwn(report, "review_log"), false);
+});
+
+test("conserves every uncertain occurrence in the visible resolution queue", () => {
+  const input = fixture();
+  input.notes_advanced.sentence_morph[0].tokens[1].posDicta = "";
+  const report = Preview.analyzeBundle(input, { textId: "T1" });
+  const itemIds = report.resolution_queue.items.map((x) => x.lp_occurrence_id);
+  const clusteredIds = report.resolution_queue.clusters.flatMap((x) => x.occurrence_ids);
+
+  assert.equal(report.counts.uncertain_occurrences, 2);
+  assert.equal(report.counts.queued_uncertain_occurrences, 2);
+  assert.equal(report.counts.resolution_queue_coverage_pct, 100);
+  assert.equal(new Set(itemIds).size, itemIds.length);
+  assert.deepEqual(new Set(clusteredIds), new Set(itemIds));
+  assert.ok(report.resolution_queue.items.some((x) => x.reasons.includes("unknown_pos")));
+  assert.ok(report.resolution_queue.items.some((x) => x.reasons.includes("identity_guarded")));
+});
+
+test("turns an unparsed token into a contextual queue item instead of a hidden skip", () => {
+  const input = fixture();
+  input.notes_advanced.sentence_morph[0].tokens.push({ word: "—", posDicta: "punctuation" });
+  const report = Preview.analyzeBundle(input, { textId: "T1" });
+  const skipped = report.resolution_queue.items.find((x) => x.reasons.includes("skipped_token"));
+
+  assert.equal(report.counts.skipped_tokens, 1);
+  assert.equal(report.resolution_queue.reason_counts.skipped_token, 1);
+  assert.ok(skipped);
+  assert.equal(skipped.surface, "—");
+  assert.equal(skipped.row_id, "R1");
+  assert.equal(skipped.word_offset, 3);
+  assert.equal(skipped.sentence_ru, "Сожгли дома");
+  assert.equal(report.counts.uncertain_occurrences, 2);
+  assert.equal(report.counts.resolution_queue_coverage_pct, 100);
 });
 
 test("can recompute an observable ambiguity signal with the shared resolver", () => {
@@ -121,13 +165,17 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   const second = Preview.planObsidianPackage(report);
   assert.deepEqual(second, first);
   assert.equal(first.read_only, true);
-  assert.equal(first.would_create_files, report.counts.unique_lexemes + 6);
+  assert.equal(first.would_create_files, report.counts.unique_lexemes + report.counts.resolution_clusters + 9);
   assert.equal(new Set(first.files.map((x) => x.path)).size, first.files.length);
   assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/")));
   assert.match(first.base_preview, /name: "Глаголы"/);
   assert.match(first.base_preview, /note\.lp_text_ids\.contains\("T1"\)/);
+  assert.match(first.resolution_base_preview, /note\.type == "lp-resolution-cluster"/);
+  assert.ok(first.files.some((x) => x.kind === "resolution-cluster"));
+  assert.ok(first.files.some((x) => x.path.endsWith("Очередь разбора.md")));
   assert.ok(first.would_write_bytes > 0);
   assert.equal(first.files.find((x) => x.path.endsWith("occurrences.tsv")).content.split("\n").length - 2, 6);
+  assert.equal(first.files.find((x) => x.path.endsWith("resolution-occurrences.tsv")).content.split("\n").length - 2, report.counts.uncertain_occurrences);
 });
 
 test("requires an explicit selection when a bundle contains multiple texts", () => {

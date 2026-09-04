@@ -155,6 +155,140 @@
     if (!slug) slug = "lexeme";
     return slug + "-" + fnv1a(id) + ".md";
   }
+  function occurrenceId(textId, rowId, wordOffset) {
+    return "lpro:" + str(textId) + ":" + str(rowId) + ":" + String(wordOffset);
+  }
+  function candidateIdentity(value) {
+    value = value && typeof value === "object" ? value : {};
+    var pid = str(value.pealim_id || value.id || value.pid);
+    var lemma = stripNiqqud(value.lemma || value.word || value.infinitive);
+    var pos = normalizePos(value.pos || value.part_of_speech, value.kind);
+    if (!pid && !lemma && pos === "unknown") return "";
+    return [pid, lemma, pos].join("#");
+  }
+  function uniqueObjects(values) {
+    var byJson = new Map();
+    (values || []).forEach(function (value) {
+      if (!value || typeof value !== "object") return;
+      var ordered = {};
+      Object.keys(value).sort().forEach(function (key) { ordered[key] = value[key]; });
+      var key = JSON.stringify(ordered);
+      if (!byJson.has(key)) byJson.set(key, ordered);
+    });
+    return Array.from(byJson.values());
+  }
+  function buildResolutionQueue(textId, lexemes, skippedItems) {
+    var items = (skippedItems || []).slice();
+    lexemes.forEach(function (lexeme) {
+      lexeme.occurrences.forEach(function (occ) {
+        var reasons = [];
+        if (occ.ambiguity) reasons.push("ambiguous");
+        if (occ.identity_guard_reason) reasons.push("identity_guarded");
+        if (occ.lp_pos === "unknown") reasons.push("unknown_pos");
+        if (lexeme.conflicts.length) reasons.push("collision");
+        if (!reasons.length) return;
+        items.push({
+          lp_occurrence_id: occurrenceId(textId, occ.row_id, occ.word_offset),
+          status: "unresolved",
+          reasons: reasons,
+          lp_lexeme_id: lexeme.lp_lexeme_id,
+          surface: occ.surface,
+          niqqud: occ.niqqud,
+          lemma: occ.lemma,
+          lp_pos: occ.lp_pos,
+          provider_pos: occ.provider_pos,
+          root: occ.root,
+          binyan: occ.binyan,
+          meaning_ru: occ.meaning_ru,
+          pealim_id: occ.pealim_id,
+          resolution_channel: occ.resolution_channel,
+          confidence: occ.confidence,
+          alternatives: (occ.alternatives || []).slice(),
+          candidate_evidence: (occ.candidate_evidence || []).slice(),
+          identity_guard_reason: occ.identity_guard_reason,
+          conflicts: lexeme.conflicts.slice(),
+          text_id: textId,
+          row_id: occ.row_id,
+          order_index: occ.order_index,
+          word_offset: occ.word_offset,
+          morph_model_version: occ.morph_model_version,
+          sentence_he: occ.sentence_he,
+          sentence_he_niqqud: occ.sentence_he_niqqud,
+          sentence_ru: occ.sentence_ru
+        });
+      });
+    });
+    items.sort(function (a, b) {
+      return (a.order_index == null ? Number.MAX_SAFE_INTEGER : a.order_index) -
+        (b.order_index == null ? Number.MAX_SAFE_INTEGER : b.order_index) ||
+        a.word_offset - b.word_offset || a.lp_occurrence_id.localeCompare(b.lp_occurrence_id);
+    });
+
+    var reasonCounts = {};
+    var clusterMap = new Map();
+    items.forEach(function (item) {
+      item.reasons.forEach(function (reason) { reasonCounts[reason] = (reasonCounts[reason] || 0) + 1; });
+      var candidates = (item.alternatives || []).concat(item.candidate_evidence || [])
+        .map(candidateIdentity).filter(Boolean).sort();
+      var signature = JSON.stringify({
+        text_id: textId,
+        reasons: item.reasons.slice().sort(),
+        form: str(item.niqqud || item.surface),
+        lemma: stripNiqqud(item.lemma),
+        pos: item.lp_pos,
+        candidates: candidates,
+        conflicts: item.conflicts.slice().sort()
+      });
+      var cluster = clusterMap.get(signature);
+      if (!cluster) {
+        cluster = {
+          lp_resolution_cluster_id: "lprc:" + fnv1a(signature),
+          cluster_signature: signature,
+          status: "unresolved",
+          reasons: item.reasons.slice(),
+          surface: item.surface,
+          niqqud: item.niqqud,
+          lemma: item.lemma,
+          lp_pos: item.lp_pos,
+          alternatives: [],
+          candidate_evidence: [],
+          occurrence_ids: [],
+          occurrences: [],
+          batch_review_eligible: false,
+          auto_apply_allowed: false
+        };
+        clusterMap.set(signature, cluster);
+      }
+      cluster.alternatives = uniqueObjects(cluster.alternatives.concat(item.alternatives || []));
+      cluster.candidate_evidence = uniqueObjects(cluster.candidate_evidence.concat(item.candidate_evidence || []));
+      cluster.occurrence_ids.push(item.lp_occurrence_id);
+      cluster.occurrences.push(item);
+    });
+    var clusters = Array.from(clusterMap.values()).map(function (cluster) {
+      cluster.occurrence_count = cluster.occurrence_ids.length;
+      cluster.batch_review_eligible = cluster.occurrence_count > 1 &&
+        !cluster.reasons.some(function (reason) { return reason === "collision" || reason === "unknown_pos" || reason === "skipped_token"; });
+      return cluster;
+    }).sort(function (a, b) {
+      return b.occurrence_count - a.occurrence_count || a.lp_resolution_cluster_id.localeCompare(b.lp_resolution_cluster_id);
+    });
+
+    var clusteredIds = new Set();
+    clusters.forEach(function (cluster) { cluster.occurrence_ids.forEach(function (id) { clusteredIds.add(id); }); });
+    if (clusteredIds.size !== items.length || items.some(function (item) { return !clusteredIds.has(item.lp_occurrence_id); })) {
+      throw new Error("Resolution queue conservation invariant failed");
+    }
+    return {
+      schema: "linguistpro-lexical-resolution-queue-v1",
+      status: "unresolved",
+      uncertain_occurrences: items.length,
+      queued_uncertain_occurrences: clusteredIds.size,
+      coverage_pct: items.length ? pct(clusteredIds.size, items.length) : 100,
+      reason_counts: Object.keys(reasonCounts).sort().reduce(function (out, key) { out[key] = reasonCounts[key]; return out; }, {}),
+      items: items,
+      clusters: clusters
+    };
+  }
   function utf8Bytes(value) {
     var s = String(value);
     if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(s).length;
@@ -197,6 +331,48 @@
     view("Неоднозначные", "note.ambiguity == true");
     view("Конфликты", "note.conflict_count > 0");
     return lines.join("\n") + "\n";
+  }
+  function renderResolutionBase(report) {
+    var textId = yaml(report.text.text_id);
+    return [
+      "filters:",
+      "  and:",
+      "    - file.inFolder(\"_LinguistPro/resolution\")",
+      "    - note.type == \"lp-resolution-cluster\"",
+      "    - note.lp_text_ids.contains(" + textId + ")",
+      "properties:",
+      "  note.surface:",
+      "    displayName: Форма",
+      "  note.lp_pos:",
+      "    displayName: Часть речи",
+      "  note.reasons:",
+      "    displayName: Причины",
+      "  note.occurrence_count:",
+      "    displayName: Вхождений",
+      "  note.status:",
+      "    displayName: Статус",
+      "views:",
+      "  - type: table",
+      "    name: \"Требуют решения\"",
+      "    filters:",
+      "      and:",
+      "        - note.status == \"unresolved\"",
+      "    order:",
+      "      - note.surface",
+      "      - note.lp_pos",
+      "      - note.reasons",
+      "      - note.occurrence_count",
+      "      - note.status",
+      "  - type: table",
+      "    name: \"Пакетная проверка\"",
+      "    filters:",
+      "      and:",
+      "        - note.batch_review_eligible == true",
+      "    order:",
+      "      - note.surface",
+      "      - note.occurrence_count",
+      "      - note.reasons"
+    ].join("\n") + "\n";
   }
   function renderLexemeMarkdown(report, lexeme) {
     var lines = [
@@ -251,8 +427,80 @@
       "# " + report.text.title,
       "",
       "![[Лексика.base]]",
+      "",
+      "## Требуют решения",
+      "",
+      report.counts.uncertain_occurrences + " вхождений в " + report.counts.resolution_clusters + " кластерах; покрытие очередью " + report.counts.resolution_queue_coverage_pct + "%.",
+      "",
+      "![[Разбор.base]]",
       ""
     ].join("\n");
+  }
+  function renderResolutionClusterMarkdown(report, cluster) {
+    var first = cluster.occurrences[0] || {};
+    var lines = [
+      "---",
+      "type: lp-resolution-cluster",
+      "lp_schema: 1",
+      "lp_resolution_cluster_id: " + yaml(cluster.lp_resolution_cluster_id),
+      "status: unresolved",
+      "surface: " + yaml(cluster.niqqud || cluster.surface),
+      "lemma: " + yaml(cluster.lemma),
+      "lp_pos: " + yaml(cluster.lp_pos),
+      "reasons: " + yaml(cluster.reasons),
+      "occurrence_count: " + cluster.occurrence_count,
+      "batch_review_eligible: " + (cluster.batch_review_eligible ? "true" : "false"),
+      "auto_apply_allowed: false",
+      "lp_text_ids: " + yaml([report.text.text_id]),
+      "managed_by: linguistpro",
+      "---",
+      "",
+      "# Разбор: " + (cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id),
+      "",
+      "> [!warning] Решение не принято",
+      "> Это видимая проекция очереди. Подтверждать или исправлять разбор нужно в LinguistPro; редактирование этого generated-файла не меняет канон.",
+      "",
+      "- Причины: " + cluster.reasons.join(", "),
+      "- Текущий POS: " + (cluster.lp_pos || "—"),
+      "- Текущая лемма: " + (cluster.lemma || "—"),
+      "- Вхождений: " + cluster.occurrence_count,
+      "- Пакетная проверка: " + (cluster.batch_review_eligible ? "доступна после просмотра всех контекстов" : "только по одному вхождению"),
+      ""
+    ];
+    var candidates = uniqueObjects(cluster.alternatives.concat(cluster.candidate_evidence));
+    lines.push("## Кандидаты", "");
+    if (!candidates.length) lines.push("Кандидаты отсутствуют — требуется ручной разбор.", "");
+    candidates.forEach(function (candidate, index) {
+      lines.push((index + 1) + ". `" + candidateIdentity(candidate) + "` — " + JSON.stringify(candidate));
+    });
+    lines.push("", "## Контексты", "");
+    cluster.occurrences.forEach(function (occ) {
+      lines.push("- `" + occ.row_id + ":" + occ.word_offset + "` " +
+        (occ.niqqud || occ.surface || "—") + " — " +
+        (occ.sentence_he_niqqud || occ.sentence_he || "") +
+        (occ.sentence_ru ? " — " + occ.sentence_ru : ""));
+    });
+    if (first.morph_model_version) lines.push("", "Модель морфологии: `" + first.morph_model_version + "`.");
+    return lines.join("\n") + "\n";
+  }
+  function renderResolutionQueueIndex(report, pathByClusterId) {
+    var lines = [
+      "# Очередь морфологического разбора",
+      "",
+      "> Generated snapshot. Канонические решения принимаются в LinguistPro.",
+      "",
+      "- Неопределённых вхождений: " + report.counts.uncertain_occurrences,
+      "- В очереди: " + report.counts.queued_uncertain_occurrences,
+      "- Покрытие: " + report.counts.resolution_queue_coverage_pct + "%",
+      "- Кластеров: " + report.counts.resolution_clusters,
+      ""
+    ];
+    report.resolution_queue.clusters.forEach(function (cluster) {
+      var target = pathByClusterId.get(cluster.lp_resolution_cluster_id).replace(/\.md$/, "");
+      lines.push("- [[" + target + "|" + (cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id) + "]] — " +
+        cluster.occurrence_count + "; " + cluster.reasons.join(", "));
+    });
+    return lines.join("\n") + "\n";
   }
   function renderSnapshot(report, pathById) {
     var byPos = {};
@@ -280,24 +528,49 @@
     });
     return rows.map(function (row) { return row.map(cell).join("\t"); }).join("\n") + "\n";
   }
+  function renderResolutionOccurrencesTsv(report) {
+    var rows = [["lp_occurrence_id", "status", "reasons", "cluster_id", "row_id", "order_index", "word_offset", "surface", "niqqud", "lemma", "lp_pos", "candidate_pealim_ids", "sentence_he", "sentence_ru"]];
+    var clusterByOccurrence = new Map();
+    report.resolution_queue.clusters.forEach(function (cluster) {
+      cluster.occurrence_ids.forEach(function (id) { clusterByOccurrence.set(id, cluster.lp_resolution_cluster_id); });
+    });
+    function cell(v) { return str(v).replace(/\t/g, " ").replace(/[\r\n]+/g, " "); }
+    report.resolution_queue.items.forEach(function (item) {
+      var pids = item.alternatives.concat(item.candidate_evidence).map(function (x) { return str(x && (x.pealim_id || x.id || x.pid)); }).filter(Boolean);
+      rows.push([item.lp_occurrence_id, item.status, item.reasons.join("|"), clusterByOccurrence.get(item.lp_occurrence_id), item.row_id, item.order_index, item.word_offset, item.surface, item.niqqud, item.lemma, item.lp_pos, Array.from(new Set(pids)).sort().join("|"), item.sentence_he_niqqud || item.sentence_he, item.sentence_ru]);
+    });
+    return rows.map(function (row) { return row.map(cell).join("\t"); }).join("\n") + "\n";
+  }
   function planObsidianPackage(report) {
     if (!report || report.schema !== "linguistpro-obsidian-lexical-preview-v1") throw new Error("A lexical preview report is required");
     var root = "_LinguistPro/texts/" + report.text.text_id + "/";
-    var pathById = new Map(), usedPaths = new Set();
+    var pathById = new Map(), pathByClusterId = new Map(), usedPaths = new Set();
     report.lexemes.forEach(function (lexeme) {
       var name = safeLexemeFileName(lexeme.lp_lexeme_id, lexeme.lemma_unpointed || lexeme.lemma);
       var path = "_LinguistPro/lexemes/" + name;
       if (usedPaths.has(path)) throw new Error("Lexeme path collision: " + path);
       usedPaths.add(path); pathById.set(lexeme.lp_lexeme_id, path);
     });
+    report.resolution_queue.clusters.forEach(function (cluster) {
+      var path = "_LinguistPro/resolution/cluster-" + fnv1a(cluster.cluster_signature) + ".md";
+      if (usedPaths.has(path)) throw new Error("Resolution path collision: " + path);
+      usedPaths.add(path); pathByClusterId.set(cluster.lp_resolution_cluster_id, path);
+    });
     var files = [];
     function add(path, content, kind) { files.push({ path: path, kind: kind, bytes: utf8Bytes(content), content: content }); }
     report.lexemes.forEach(function (lexeme) { add(pathById.get(lexeme.lp_lexeme_id), renderLexemeMarkdown(report, lexeme), "lexeme"); });
+    report.resolution_queue.clusters.forEach(function (cluster) {
+      add(pathByClusterId.get(cluster.lp_resolution_cluster_id), renderResolutionClusterMarkdown(report, cluster), "resolution-cluster");
+    });
     var base = renderBase(report);
+    var resolutionBase = renderResolutionBase(report);
     add(root + "Текст.md", renderTextHub(report), "text");
     add(root + "Лексика.base", base, "base");
+    add(root + "Разбор.base", resolutionBase, "resolution-base");
     add(root + "Лексика — переносимый снимок.md", renderSnapshot(report, pathById), "snapshot");
+    add(root + "Очередь разбора.md", renderResolutionQueueIndex(report, pathByClusterId), "resolution-index");
     add(root + "occurrences.tsv", renderOccurrencesTsv(report), "occurrences");
+    add(root + "resolution-occurrences.tsv", renderResolutionOccurrencesTsv(report), "resolution-occurrences");
     add(root + "projection.json", JSON.stringify(report, null, 2) + "\n", "projection");
     var beforeReceiptBytes = files.reduce(function (sum, file) { return sum + file.bytes; }, 0);
     var receipt = {
@@ -317,6 +590,7 @@
       would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0),
       files_by_kind: byKind,
       base_preview: base,
+      resolution_base_preview: resolutionBase,
       files: files
     };
   }
@@ -374,6 +648,7 @@
     var identityGuardedOccurrences = 0;
     var identityGuardReasons = {};
     var unknownOccurrences = 0, linkedOccurrences = 0;
+    var skippedResolutionItems = [];
 
     morphRows.forEach(function (sm) {
       var sid = str(sm.sentence_id);
@@ -382,7 +657,33 @@
       totalTokens += tokens.length;
       tokens.forEach(function (token, offset) {
         var unit = NA.dictaTokenToUnit(token);
-        if (!unit) { skippedTokens++; return; }
+        if (!unit) {
+          skippedTokens++;
+          skippedResolutionItems.push({
+            lp_occurrence_id: occurrenceId(textId, sid, offset),
+            status: "unresolved",
+            reasons: ["skipped_token"],
+            lp_lexeme_id: "",
+            surface: str(token && (token.word || token.surface || token.text)),
+            niqqud: str(token && token.niqqud),
+            lemma: "",
+            lp_pos: "unknown",
+            provider_pos: str(token && (token.posDicta || token.pos)),
+            root: "", binyan: "", meaning_ru: "", pealim_id: "",
+            resolution_channel: "unparsed",
+            confidence: finiteNumber(token && token.confidence),
+            alternatives: [], candidate_evidence: [], identity_guard_reason: "", conflicts: [],
+            text_id: textId,
+            row_id: sid,
+            order_index: row.order_index == null ? null : Number(row.order_index),
+            word_offset: offset,
+            morph_model_version: str(sm.model_version),
+            sentence_he: str(row.hebrew_plain || row.he_plain),
+            sentence_he_niqqud: str(row.hebrew_niqqud || row.he_niqqud),
+            sentence_ru: str(row.russian || row.ru)
+          });
+          return;
+        }
         analyzedOccurrences++;
 
         var occKey = sid + "\u0000" + String(offset);
@@ -509,8 +810,19 @@
           sentence_he: str(row.hebrew_plain || row.he_plain),
           sentence_he_niqqud: str(row.hebrew_niqqud || row.he_niqqud),
           sentence_ru: str(row.russian || row.ru),
+          lemma: lemma,
+          lp_pos: pos,
+          provider_pos: providerPos,
+          root: root,
+          binyan: binyan,
+          meaning_ru: meaning,
+          pealim_id: pealimId,
+          resolution_channel: channel,
+          morph_model_version: str(sm.model_version),
           confidence: confidence,
           ambiguity: ambiguous,
+          alternatives: alternatives.slice(0, 5),
+          candidate_evidence: candidateEvidence ? [candidateEvidence] : [],
           identity_guard_reason: guardReason
         });
       });
@@ -559,6 +871,7 @@
     var collisionLexemes = lexemes.filter(function (x) { return x.conflicts.length; });
     var collisionSamples = collisionLexemes.slice(0, 20)
       .map(function (x) { return { lp_lexeme_id: x.lp_lexeme_id, conflicts: x.conflicts, evidence: x.evidence }; });
+    var resolutionQueue = buildResolutionQueue(textId, lexemes, skippedResolutionItems);
 
     var rates = {};
     Object.keys(completeness).forEach(function (field) { rates[field] = pct(completeness[field], analyzedOccurrences); });
@@ -589,7 +902,11 @@
         ambiguity_signal_coverage_pct: pct(ambiguitySignalOccurrences, analyzedOccurrences),
         context_identity_guarded_occurrences: identityGuardedOccurrences,
         unknown_pos_occurrences: unknownOccurrences,
-        collision_keys: collisionLexemes.length
+        collision_keys: collisionLexemes.length,
+        uncertain_occurrences: resolutionQueue.uncertain_occurrences,
+        queued_uncertain_occurrences: resolutionQueue.queued_uncertain_occurrences,
+        resolution_queue_coverage_pct: resolutionQueue.coverage_pct,
+        resolution_clusters: resolutionQueue.clusters.length
       },
       lexemes_by_pos: sortedObject(lexemePos),
       occurrences_by_pos: sortedObject(occurrencePos),
@@ -600,6 +917,7 @@
       identity_guard_reasons: Object.keys(identityGuardReasons).sort().reduce(function (out, key) { out[key] = identityGuardReasons[key]; return out; }, {}),
       provider_pos_values: serialiseSetMap(providerPosValues),
       collision_samples: collisionSamples,
+      resolution_queue: resolutionQueue,
       lexemes: lexemes
     };
   }

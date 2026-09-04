@@ -2,11 +2,14 @@
 
 Дата: 2026-09-04
 
-Статус: `OWNER_APPROVED · CONTRACT_V1 · P0_CORE_TECHNICAL_PASS · P0_NOT_CLOSED`
+Статус: `OWNER_APPROVED · CONTRACT_V1 · P0_VISIBLE_QUEUE_TECHNICAL_PASS · P0.5_BLOCKING`
 
 Связанный документ: [общая концепция](./README.md).
 
 Первый фактический прогон: [P0 preview report](./P0_PREVIEW_REPORT.md).
+
+Контур исправления неоднозначных occurrences:
+[lexical resolution lifecycle](./LEXICAL_RESOLUTION_LIFECYCLE.md).
 
 ## 1. Утверждённое решение
 
@@ -295,6 +298,12 @@ provider/version/provenance.
 - не получает ярлык «точно»;
 - не входит автоматически в active study set;
 - повторный экспорт не должен возвращать rejected alternative как выбранный.
+
+`fail-closed` не имеет права превращаться в слепую зону. Каждое ambiguous,
+identity-guarded, unknown, collision или skipped occurrence обязано попасть в
+derived resolution queue с точным контекстом и candidate evidence. Каноническое
+решение принимается только в LinguistPro и хранится append-only; Obsidian
+показывает очередь read-only.
 
 OCR/ASR-мусор и обрезанные формы получают `unknown`/`skip_reason`, но не
 исчезают из диагностических счётчиков.

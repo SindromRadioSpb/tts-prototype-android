@@ -49,6 +49,22 @@ function summary(report) {
     confidence_bands: report.confidence_bands,
     resolution_channels: report.resolution_channels,
     identity_guard_reasons: report.identity_guard_reasons,
+    resolution_queue: {
+      schema: report.resolution_queue.schema,
+      uncertain_occurrences: report.resolution_queue.uncertain_occurrences,
+      queued_uncertain_occurrences: report.resolution_queue.queued_uncertain_occurrences,
+      coverage_pct: report.resolution_queue.coverage_pct,
+      reason_counts: report.resolution_queue.reason_counts,
+      clusters: report.resolution_queue.clusters.length,
+      batch_review_eligible_clusters: report.resolution_queue.clusters.filter((x) => x.batch_review_eligible).length,
+      largest_clusters: report.resolution_queue.clusters.slice(0, 20).map((x) => ({
+        id: x.lp_resolution_cluster_id,
+        surface: x.niqqud || x.surface,
+        reasons: x.reasons,
+        occurrence_count: x.occurrence_count,
+        batch_review_eligible: x.batch_review_eligible
+      }))
+    },
     provider_pos_values: report.provider_pos_values,
     collision_samples: report.collision_samples
   };
@@ -63,7 +79,8 @@ function packageSummary(plan) {
     would_write_bytes: plan.would_write_bytes,
     would_write_mib: Math.round(plan.would_write_bytes / 1024 / 1024 * 100) / 100,
     files_by_kind: plan.files_by_kind,
-    base_preview: plan.base_preview
+    base_preview: plan.base_preview,
+    resolution_base_preview: plan.resolution_base_preview
   };
 }
 
