@@ -66,20 +66,20 @@ test("VF2 Mentor CSS uses the shared state, focus, motion and forced-colors gram
 
 test("VF2 release lock cache-busts every changed shared asset and precaches the exact URLs", () => {
   assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
-  assert.match(roomHtml, /\/css\/reader-morph\.css\?v=394/);
-  assert.match(studioHtml, /\/css\/reader-morph\.css\?v=394/);
+  assert.match(roomHtml, /\/css\/reader-morph\.css\?v=395/);
+  assert.match(studioHtml, /\/css\/reader-morph\.css\?v=395/);
   assert.match(roomHtml, /\/js\/mentor-connection-core\.js\?v=414/);
   assert.match(roomHtml, /\/js\/mentor-home\.js\?v=414/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=462/);
+  assert.match(roomHtml, /\/js\/library-ui\.js\?v=464/);
   assert.match(roomJs, /from '\/js\/corpus-item-presenter\.js\?v=419'/,
     "module dependencies changed by the release must be cache-busted at the import site");
   for (const url of [
     "/js/reader-core.js?v=402",
     "/css/reader-core.css?v=399",
-    "/css/reader-morph.css?v=394",
+    "/css/reader-morph.css?v=395",
     "/js/mentor-connection-core.js?v=414",
     "/js/mentor-home.js?v=414",
-    "/js/library-ui.js?v=462",
+    "/js/library-ui.js?v=464",
     "/js/corpus-item-presenter.js?v=419",
   ]) {
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
@@ -88,7 +88,7 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(server, /new URL\(url, "http:\/\/linguistpro\.local"\)\.pathname/,
     "cache-bust queries must not become part of the filesystem path used for hashing");
   for (const locale of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${locale}.js?v=196`;
+    const url = `/i18n/locales/${locale}.js?v=200`;
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
   }

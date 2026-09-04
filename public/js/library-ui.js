@@ -4456,6 +4456,16 @@ const roomSaveWord = (card, occ) => morphHost.saveWord(card, occ);
 // the card can mark it «ваш» (R9 provenance ≠ machine) and the resolver re-surfaces it on
 // re-open. The dedup key is meaning-independent (pid:/lemma#pos), so lookup stays stable.
 const roomLookupUserMeaning = (card) => morphHost.lookupUserMeaning(card);
+const roomLookupLexicalResolution = async (_card, occurrence) => {
+  if (!occurrence || !window.LexicalResolutionService || !window.LexicalResolutionCore ||
+      typeof localDb.listLexicalResolutionEventsForOccurrence !== 'function') return null;
+  const occurrenceId = occurrence.text_id != null && occurrence.sentence_id != null && Number.isInteger(Number(occurrence.word_offset))
+    ? 'lpro:' + String(occurrence.text_id) + ':' + String(occurrence.sentence_id) + ':' + Number(occurrence.word_offset)
+    : '';
+  if (!occurrenceId) return null;
+  const events = await localDb.listLexicalResolutionEventsForOccurrence(occurrenceId);
+  return window.LexicalResolutionService.projectExactOccurrence(occurrence, events, window.LexicalResolutionCore);
+};
 const roomSaveUserMeaning = (card, occ, meaning) => morphHost.saveUserMeaning(card, occ, meaning);
 const roomSaveWordPersonal = (card, occ, fields) => morphHost.saveWordPersonal(card, occ, fields);
 
@@ -7480,6 +7490,7 @@ function attachReaderMorph(mount, overrides) {
   morphHost.clearCtxCache();   // fresh per (re)attach
   const opts = {
     getRow: (i) => readerRows[i],
+    getTextKey: () => readerTextKey,
     saveWord: roomSaveWord,
     lookupNote: roomLookupNote,
     loadWordNote: roomLoadWordNote,
@@ -7519,6 +7530,7 @@ function attachReaderMorph(mount, overrides) {
   // T-b — manual translation for out-of-dict words: re-surface a saved user-meaning on re-open
   // (lookup) + persist a new one into the canonical word_study note (save, Anki-synced).
   opts.lookupUserMeaning = roomLookupUserMeaning;
+  opts.lookupLexicalResolution = roomLookupLexicalResolution;
   opts.saveUserMeaning = roomSaveUserMeaning;
   // Retention P5 — reading-native retrieval glue (recon §6, D4(b)+D8(a)): getDueSchedule feeds the
   // recall-mode gate with the SAME extended rows fsrsStep resumes from, and rides the status-axis

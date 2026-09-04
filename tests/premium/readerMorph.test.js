@@ -78,6 +78,28 @@ test("provenanceLabel maps channel/confidence to honest buckets", () => {
   assert.strictEqual(RM.provenanceLabel(null, ""), "unknown");
 });
 
+test("owner occurrence resolution replaces the visible analysis without mutating the source card", () => {
+  const source = { word: "ישראל", niqqud: "יִשְׂרָאֵל", label: "unknown", meaning: "", pos: "", root: "machine" };
+  const projection = { state: "resolved", actor_kind: "owner", event_id: "event-1", analysis: {
+    lemma: "ישראל", lp_pos: "propernoun", pealim_id: "", root: "", binyan: "", meaning_ru: "Израиль"
+  } };
+  const card = RM.applyLexicalResolution(source, projection);
+  assert.notStrictEqual(card, source);
+  assert.strictEqual(source.meaning, "");
+  assert.strictEqual(card.meaning, "Израиль");
+  assert.strictEqual(card.pos, "propernoun");
+  assert.strictEqual(card.label, "owner");
+  assert.strictEqual(card.meaningSource, "owner");
+  assert.strictEqual(card.resolutionEventId, "event-1");
+  assert.strictEqual(card.root, "");
+});
+
+test("non-resolved occurrence projection leaves the card unchanged", () => {
+  const source = { word: "ישראל", label: "unknown", meaning: "" };
+  assert.strictEqual(RM.applyLexicalResolution(source, null), source);
+  assert.strictEqual(RM.applyLexicalResolution(source, { state: "stale" }), source);
+});
+
 // ── integration: form-first resolution against the real dataset ──────────────
 test("resolveCore — content words resolve with root + gloss (form-first, exact)", async () => {
   const shalom = await RM.resolveCore(eng, "שלום", "שָׁלוֹם");

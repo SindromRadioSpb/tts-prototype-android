@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.470";
+const CACHE_VERSION = "v3.11.471";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=463",
+  "/js/library-ui.js?v=464",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -95,8 +95,8 @@ const PRECACHE_URLS = [
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=402",
   "/css/reader-core.css?v=399",
-  "/css/reader-morph.css?v=394",
-  "/css/lexical-resolution.css?v=4",
+  "/css/reader-morph.css?v=395",
+  "/css/lexical-resolution.css?v=5",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",
@@ -118,8 +118,8 @@ const PRECACHE_URLS = [
   "/js/obsidian-lexical-preview.js?v=3",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
-  "/js/lexical-resolution-service.js?v=1",
-  "/js/lexical-resolution-ui.js?v=5",
+  "/js/lexical-resolution-service.js?v=2",
+  "/js/lexical-resolution-ui.js?v=6",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
@@ -137,7 +137,7 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=452",
+  "/js/reader-morph.js?v=453",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=416",
   "/js/studio-morph.js",
@@ -229,9 +229,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=199",
-  "/i18n/locales/en.js?v=199",
-  "/i18n/locales/he.js?v=199",
+  "/i18n/locales/ru.js?v=200",
+  "/i18n/locales/en.js?v=200",
+  "/i18n/locales/he.js?v=200",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

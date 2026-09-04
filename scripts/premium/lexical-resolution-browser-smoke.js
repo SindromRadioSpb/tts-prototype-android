@@ -33,7 +33,7 @@ function arg(name, fallback) {
     const servedVersion = await page.evaluate(() => window.APP_VERSION || String(document.querySelector('#roomFooterVersion')?.textContent || '').replace(/^v/, ''));
     if (expectedVersion) assert.equal(servedVersion, expectedVersion);
 
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       const rows = [];
       const morph = [];
       const occurrences = [];
@@ -55,9 +55,19 @@ function arg(name, fallback) {
           sentence_morph: morph
         }
       };
+      const savedItem = {
+        lp_occurrence_id: 'lpro:T1:R0:0', text_key: 'smoke-text', order_index: 0, word_offset: 0,
+        surface: 'נטע', niqqud: 'נֶטַע', sentence_he: 'נטע באה', sentence_he_niqqud: 'נֶטַע בָּאָה'
+      };
+      const savedEvent = {
+        id: 'owner-smoke-1', occurrence_id: savedItem.lp_occurrence_id, text_id: 'T1', sentence_id: 'R0', word_offset: 0,
+        text_key: 'smoke-text', order_index: 0, surface_norm: 'נטע', source_anchor: await window.LexicalResolutionCore.sourceAnchor(savedItem),
+        action: 'manual_correction', chosen_analysis: { lemma: 'נטע', lp_pos: 'propernoun', pealim_id: '7361', root: 'נטע', meaning_ru: 'Нета' },
+        candidate_fingerprint: 'sha256:manual-smoke', actor_kind: 'owner', created_at: '2026-09-04T00:00:00.000Z'
+      };
       const localDb = {
         exportBundle: async () => bundle,
-        listLexicalResolutionEventsForText: async () => [],
+        listLexicalResolutionEventsForText: async () => [savedEvent],
         appendLexicalResolutionEvent: async () => { throw new Error('SMOKE_MUST_NOT_WRITE'); },
         appendLexicalResolutionBatch: async () => { throw new Error('SMOKE_MUST_NOT_WRITE'); }
       };
@@ -82,6 +92,8 @@ function arg(name, fallback) {
         posValue: document.querySelector('[name="lp_pos"]')?.value,
         pealimValue: document.querySelector('[name="pealim_ref"]')?.value,
         pealimOpen: document.querySelector('[data-pealim-open]')?.href,
+        meaningValue: document.querySelector('[name="meaning_ru"]')?.value,
+        priorAnalysis: document.querySelector('[data-prior-analysis]')?.textContent,
         title: document.querySelector('.lexres-title')?.textContent,
         stats: Array.from(document.querySelectorAll('.lexres-count')).map((node) => node.textContent.trim()),
         reasonLabels: Array.from(document.querySelectorAll('.lexres-reason')).map((node) => node.textContent.trim()),
@@ -96,6 +108,8 @@ function arg(name, fallback) {
           const rect = node.getBoundingClientRect(); return rect.width < 24 || rect.height < 24;
         }).length,
         visibleTechnicalIds: Array.from(document.querySelectorAll('.lexres-technical code')).filter((node) => node.checkVisibility()).length,
+        contextInputTypes: Array.from(document.querySelectorAll('.lexres-context input')).map((node) => node.type),
+        selectedCount: document.querySelector('.lexres-selected-count')?.textContent,
         dialogText: document.querySelector('.lexres-dialog')?.textContent
       };
     });
@@ -104,9 +118,11 @@ function arg(name, fallback) {
     assert.ok(before.listScrollHeight > before.listClientHeight, JSON.stringify(before));
     assert.match(before.candidateText || '', /נטע.*pealim\.com\/ru\/dict\/7361/);
     assert.equal(before.posTag, 'SELECT');
-    assert.equal(before.posValue, 'noun');
+    assert.equal(before.posValue, 'propernoun');
     assert.match(before.pealimValue || '', /pealim\.com\/ru\/dict\/7361/);
     assert.match(before.pealimOpen || '', /pealim\.com\/ru\/dict\/7361/);
+    assert.equal(before.meaningValue, 'Нета');
+    assert.ok(before.priorAnalysis);
     const expected = {
       ru: { title: 'Слова, требующие проверки', stats: ['Нужно проверить', 'Проверено', 'Группы слов'], reason: 'Несколько вариантов', actions: ['Сохранить этот разбор', 'Вернуться позже', 'Ни один вариант не подходит'], impact: 'Что изменится', impactActions: ['Вернуться к проверке', 'Сохранить изменения'] },
       en: { title: 'Words that need review', stats: ['Needs review', 'Reviewed', 'Word groups'], reason: 'Several possible analyses', actions: ['Save this analysis', 'Come back later', 'None of the suggestions fit'], impact: 'What will change', impactActions: ['Back to review', 'Save changes'] },
@@ -124,6 +140,8 @@ function arg(name, fallback) {
     assert.equal(before.unlabelledEditorFields, 0);
     assert.equal(before.undersizedPrimaryTargets, 0);
     assert.equal(before.visibleTechnicalIds, 0);
+    assert.ok(before.contextInputTypes.length > 2 && before.contextInputTypes.every((type) => type === 'checkbox'), JSON.stringify(before.contextInputTypes));
+    assert.match(before.selectedCount || '', /1/);
     assert.doesNotMatch(before.dialogText || '', /identity_guarded|unknown_pos|skipped_token|Occurrence|кластеры|impact|append-only|receipt|audit/i);
 
     await page.locator('.lexres-filter input[type="search"]').fill('совпадений нет');
@@ -141,6 +159,9 @@ function arg(name, fallback) {
     }));
     assert.equal(tooltipState.opacity, '1', JSON.stringify(tooltipState));
 
+    // Default is the first exact occurrence. Add the second and prove that the
+    // impact preview contains exactly this arbitrary two-row subset.
+    await page.locator('.lexres-context input[type="checkbox"]').nth(1).check();
     await page.locator('.lexres-actions .lexres-primary').first().scrollIntoViewIfNeeded();
     await page.locator('.lexres-actions .lexres-primary').first().click();
     await page.waitForSelector('.lexres-impact');
@@ -157,10 +178,10 @@ function arg(name, fallback) {
         contextsTop: contexts.getBoundingClientRect().top
       };
     });
-    assert.match(after.count, /1/);
+    assert.match(after.count, /2/);
     assert.equal(after.title, expected.impact);
     assert.deepEqual(after.actions, expected.impactActions);
-    assert.equal(after.ids, 1);
+    assert.equal(after.ids, 2);
     assert.equal(after.impactBeforeContexts, true);
     assert.ok(after.impactTop < after.contextsTop, JSON.stringify(after));
 

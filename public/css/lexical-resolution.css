@@ -503,6 +503,54 @@
   font-weight: 800;
 }
 
+.lexres-selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 12px 0;
+  padding: 11px 12px;
+  background: #eef7f6;
+  border: 1px solid #c8dfdd;
+  border-radius: 10px;
+}
+
+.lexres-selected-count {
+  color: var(--lexres-teal-dark);
+  font-size: 13px;
+}
+
+.lexres-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.lexres-select-all input {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+}
+
+.lexres-select-all:has(input:disabled) {
+  color: var(--lexres-muted);
+  cursor: not-allowed;
+}
+
+.lexres-prior-analysis {
+  margin: 0 0 15px;
+  padding: 11px 13px;
+  color: #174f53;
+  background: #eef7f6;
+  border-inline-start: 4px solid var(--lexres-teal);
+  border-radius: 9px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .lexres-context-help,
 .lexres-editor-copy,
 .lexres-candidates > p {
@@ -528,6 +576,11 @@
   padding: 12px 14px;
   background: #fff4f0;
   border-radius: 11px;
+}
+
+.lexres-context.is-selected {
+  background: #edf7f6;
+  box-shadow: inset 0 0 0 1px #9fcac7;
 }
 
 .lexres-context input {

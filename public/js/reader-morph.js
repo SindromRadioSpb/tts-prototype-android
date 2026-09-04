@@ -51,6 +51,34 @@
 
   function stripNiqqud(s) { return String(s == null ? "" : s).replace(NIQQUD_RE, "").trim(); }
 
+  // Apply a human decision only after the host has validated this exact
+  // occurrence anchor. This is a derived view: the resolver card and the
+  // append-only decision remain separate sources of truth.
+  function applyLexicalResolution(card, projection) {
+    if (!card || !projection || projection.state !== "resolved" || !projection.analysis) return card;
+    var a = projection.analysis, next = Object.assign({}, card);
+    next.lemma = String(a.lemma || "").trim();
+    next.pos = String(a.lp_pos || "").trim();
+    next.root = String(a.root || "").trim();
+    next.binyan = String(a.binyan || "").trim();
+    next.meaning = String(a.meaning_ru || "").trim();
+    next.meaningSource = projection.actor_kind === "teacher" ? "teacher" : "owner";
+    next.label = next.meaningSource;
+    next.ambiguous = false;
+    next.contextPos = "";
+    next.contextUsed = false;
+    next.rootFamily = [];
+    next.usage = null;
+    next.paradigm = null;
+    next.pealim_id = String(a.pealim_id || "").trim();
+    next.pealim_direct = !!next.pealim_id;
+    next.pealim_url = next.pealim_id
+      ? "https://www.pealim.com/ru/dict/" + encodeURIComponent(next.pealim_id) + "/"
+      : "https://www.pealim.com/ru/search/?q=" + encodeURIComponent(next.word || "");
+    next.resolutionEventId = String(projection.event_id || "");
+    return next;
+  }
+
   // -> [{ text, start, end, isWord }] spanning the WHOLE string (words + separators),
   // so a caller can rebuild innerHTML losslessly (wrap words, keep separators verbatim).
   function tokenize(str) {
@@ -993,6 +1021,8 @@
   function tt(key, fallback) { try { if (typeof window !== "undefined" && typeof window.t === "function") { var v = window.t(key); if (v && v !== key) return v; } } catch (_) {} return fallback; }
 
   var LABEL_TEXT = {
+    owner: ["room.morph.prov.owner", "проверено вами"],
+    teacher: ["room.morph.prov.teacher", "проверено преподавателем"],
     exact: ["room.morph.prov.exact", "точно"],
     likely: ["room.morph.prov.likely", "вероятно"],
     guessed: ["room.morph.prov.guessed", "подобрано"],
@@ -1003,6 +1033,8 @@
   // Epic-2 #1 — confidence-taxonomy legend (one-line meaning per badge, behind a «?»). The
   // badge NAMES reuse LABEL_TEXT; these are the explanations. Ordered decisive → least.
   var LEGEND_DESC = {
+    owner: ["room.morph.legend.owner", "разбор сохранён вами для этого точного места в тексте"],
+    teacher: ["room.morph.legend.teacher", "разбор сохранён преподавателем для этого точного места в тексте"],
     exact: ["room.morph.legend.exact", "офлайн-словарь распознал слово однозначно"],
     likely: ["room.morph.legend.likely", "наиболее вероятное чтение; возможны другие"],
     context: ["room.morph.legend.context", "значение выбрано по контексту (Dicta, машина)"],
@@ -1010,7 +1042,7 @@
     guessed: ["room.morph.legend.guessed", "приблизительно — по родственному слову"],
     unknown: ["room.morph.legend.unknown", "офлайн не определено — уточни по ссылке"],
   };
-  var LEGEND_ORDER = ["exact", "likely", "context", "function", "guessed", "unknown"];
+  var LEGEND_ORDER = ["owner", "teacher", "exact", "likely", "context", "function", "guessed", "unknown"];
   // UI text direction (rtl for the he locale) — the legend/niqqud-prov copy is UI-localized,
   // so it must follow the locale, not the card's dir="rtl" (which is for the Hebrew headword).
   function uiDir() { try { return (document.documentElement && document.documentElement.getAttribute("dir")) || "ltr"; } catch (_) { return "ltr"; } }
@@ -1030,7 +1062,8 @@
     adverb: ["room.morph.pos.adverb", "наречие"], pronoun: ["room.morph.pos.pronoun", "местоимение"],
     conjunction: ["room.morph.pos.conjunction", "союз"], numeral: ["room.morph.pos.numeral", "числительное"],
     interjection: ["room.morph.pos.interjection", "междометие"], particle: ["room.morph.pos.particle", "частица"],
-    negation: ["room.morph.pos.negation", "отрицание"],
+    participle: ["room.morph.pos.participle", "причастие"], propernoun: ["room.morph.pos.propernoun", "имя собственное"],
+    negation: ["room.morph.pos.negation", "отрицание"], other: ["room.morph.pos.other", "другое"],
   };
   // word-note lifecycle (from getWordNoteLifecycle): created/in_anki/learning/known/suspended.
   var LIFECYCLE = {
@@ -1514,12 +1547,14 @@
     // T-b — manual translation: when the resolver has no offline gloss, let the learner add
     // their OWN (a real word_study note, Anki-synced). A user-asserted meaning is tagged «ваш»
     // (R9 provenance ≠ machine) and stays editable; the inline editor is hidden until invoked.
-    var canEditMeaning = typeof _attachOpts.saveUserMeaning === "function";
+    var canEditMeaning = typeof _attachOpts.saveUserMeaning === "function" && card.meaningSource !== "owner" && card.meaningSource !== "teacher";
     var meaning;
     if (card.meaning) {
       var provBadge = card.meaningSource === "user"
         ? ' <span class="rm-meaning-mine" title="' + escapeHtml(tt("room.morph.yourMeaningHint", "ваш перевод, не машинный")) + '">' + escapeHtml(tt("room.morph.yourMeaning", "ваш")) + "</span>"
-        : "";
+        : (card.meaningSource === "owner" || card.meaningSource === "teacher")
+          ? ' <span class="rm-meaning-mine rm-meaning-reviewed" title="' + escapeHtml(tt(card.meaningSource === "teacher" ? "room.morph.teacherMeaningHint" : "room.morph.ownerMeaningHint", card.meaningSource === "teacher" ? "перевод подтверждён преподавателем для этого места" : "перевод подтверждён вами для этого места")) + '">' + escapeHtml(tt(card.meaningSource === "teacher" ? "room.morph.teacherMeaning" : "room.morph.ownerMeaning", card.meaningSource === "teacher" ? "преподаватель" : "проверено")) + "</span>"
+          : "";
       var editIc = canEditMeaning
         ? ' <button type="button" class="rm-meaning-edit" data-rm-meaning-edit aria-label="' + escapeHtml(tt("room.morph.editMeaning", "Изменить перевод")) + '">✎</button>'
         : "";
@@ -1901,6 +1936,11 @@
           order_index: row && row._v3_orderIndex != null ? Number(row._v3_orderIndex) : null,
           word_offset: Number.isFinite(off) ? off : null,
           surface: span.getAttribute("data-surface") || "",
+          niqqud: span.getAttribute("data-niqqud") || "",
+          text_key: typeof opts.getTextKey === "function" ? String(opts.getTextKey() || "") : "",
+          sentence_he: row ? String(row.he || "") : "",
+          sentence_he_niqqud: row ? String(row.he_niqqud || "") : "",
+          sentence_ru: row ? String(row.ru || "") : "",
         };
       } catch (_) { return null; }
     };
@@ -1930,6 +1970,19 @@
           try { ctx = await _attachOpts.contextProvider(sentence, stripNiqqud(surface)); } catch (_) { ctx = null; }
         }
         var card = await resolveWordLight(surface, niqqud, ctx);
+        if (card && occ && typeof _attachOpts.lookupLexicalResolution === "function") {
+          try {
+            var projection = await _attachOpts.lookupLexicalResolution(card, occ, row);
+            card = applyLexicalResolution(card, projection);
+            if (projection && projection.state === "resolved") {
+              var ownerEngine = await ensureEngine();
+              card.lemmaKey = statusKeyForCard(ownerEngine.NA, card, niqqud, surface);
+              if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
+                try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) { card.manualStatus = ""; }
+              }
+            }
+          } catch (_) { /* exact projection miss must leave the resolver card unchanged */ }
+        }
         // Retention P5 (recon §6.2, D4(b)) — a DUE word opens in «вспомни» mode. Gated exactly
         // like the quiet marker: exact-confident only (a suppressed homograph is never graded —
         // R10 §6.1), «ignore» excluded, a gloss to reveal must exist, and the Room must have wired
@@ -1941,7 +1994,7 @@
             // P5.6 R-3 — schedule provenance for the card's quiet «Повтор: …» line (any word).
             card.srsRow = (schedAll && schedAll[card.lemmaKey]) || null;
             if (card.srsRow && (Number(card.srsRow.due) || 0) <= Date.now() &&
-                card.meaning && card.label === "exact" && !card.ambiguous &&
+                card.meaning && (card.label === "exact" || card.label === "owner" || card.label === "teacher") && !card.ambiguous &&
                 card.manualStatus !== "ignore" && typeof _attachOpts.gradeReadingTap === "function") {
               _recallCtx = { card: card, prev: card.srsRow, revealed: false, graded: false };
             }
@@ -2696,6 +2749,7 @@
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
+    applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
     // context-overlay shared primitives (bake + runtime lock-step; recon §10)
     RESOLVER_REV: RESOLVER_REV, normSent: normSent, fnv1a: fnv1a, contextPromotionGuard: contextPromotionGuard,

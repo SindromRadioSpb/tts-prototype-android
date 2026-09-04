@@ -283,7 +283,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         expanded: btn ? btn.getAttribute("aria-expanded") : null, text: p ? p.textContent : "" };
     });
     eq(legend.visible, "clicking «?» must reveal the confidence legend (Epic-2 #1)");
-    eq(legend.rows === 7, "legend must list 6 badges + the «возможно также» row, got " + legend.rows);
+    eq(legend.rows === 9, "legend must list 8 badges (including owner/teacher review) + the «возможно также» row, got " + legend.rows);
     eq(legend.expanded === "true", "«?» must reflect aria-expanded=true when the legend is open");
     eq(/офлайн-словарь распознал/.test(legend.text), "legend must carry the «точно» explanation copy");
 
