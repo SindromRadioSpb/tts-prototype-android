@@ -4458,13 +4458,8 @@ const roomSaveWord = (card, occ) => morphHost.saveWord(card, occ);
 const roomLookupUserMeaning = (card) => morphHost.lookupUserMeaning(card);
 const roomLookupLexicalResolution = async (_card, occurrence) => {
   if (!occurrence || !window.LexicalResolutionService || !window.LexicalResolutionCore ||
-      typeof localDb.listLexicalResolutionEventsForOccurrence !== 'function') return null;
-  const occurrenceId = occurrence.text_id != null && occurrence.sentence_id != null && Number.isInteger(Number(occurrence.word_offset))
-    ? 'lpro:' + String(occurrence.text_id) + ':' + String(occurrence.sentence_id) + ':' + Number(occurrence.word_offset)
-    : '';
-  if (!occurrenceId) return null;
-  const events = await localDb.listLexicalResolutionEventsForOccurrence(occurrenceId);
-  return window.LexicalResolutionService.projectExactOccurrence(occurrence, events, window.LexicalResolutionCore);
+      typeof window.LexicalResolutionService.lookupExactOccurrence !== 'function') return null;
+  return window.LexicalResolutionService.lookupExactOccurrence(occurrence, localDb, window.LexicalResolutionCore);
 };
 const roomSaveUserMeaning = (card, occ, meaning) => morphHost.saveUserMeaning(card, occ, meaning);
 const roomSaveWordPersonal = (card, occ, fields) => morphHost.saveWordPersonal(card, occ, fields);

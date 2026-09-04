@@ -25,12 +25,12 @@ function arg(name, fallback) {
 
     await page.evaluate(() => {
       const row = {
-        he: 'ישראל כאן', he_niqqud: 'יִשְׂרָאֵל כָּאן', ru: 'Израиль здесь',
+        he: 'מדינת ישראל', he_niqqud: 'מְדִינַת יִשְׂרָאֵל', ru: 'Государство Израиль',
         _v3_textId: 'reader-text', _v3_sentenceId: 'reader-sentence', _v3_orderIndex: 7
       };
       const mount = document.createElement('div');
       mount.id = 'lexres-reader-smoke-mount';
-      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0"><td data-col="he">ישראל כאן</td><td data-col="niqqud">יִשְׂרָאֵל כָּאן</td></tr></tbody></table>';
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0"><td data-col="he">מדינת ישראל</td><td data-col="niqqud">מְדִינַת יִשְׂרָאֵל</td></tr></tbody></table>';
       document.body.append(mount);
       window.__lexresReaderOccurrence = null;
       window.__lexresReaderHandle = window.ReaderMorph.attach(mount, {
@@ -40,15 +40,19 @@ function arg(name, fallback) {
         lookupLexicalResolution: async (_card, occurrence) => {
           window.__lexresReaderOccurrence = occurrence;
           try {
-            const item = { ...occurrence, lp_occurrence_id: 'lpro:reader-text:reader-sentence:0' };
+            const item = { ...occurrence, lp_occurrence_id: 'lpro:reader-text:reader-sentence:1' };
             const sourceAnchor = await window.LexicalResolutionCore.sourceAnchor(item);
             const event = {
               id: 'reader-owner-1', occurrence_id: item.lp_occurrence_id, text_id: 'reader-text', sentence_id: 'reader-sentence',
-              word_offset: 0, text_key: 'reader-text-key', order_index: 7, surface_norm: 'ישראל', source_anchor: sourceAnchor,
+              word_offset: 1, text_key: 'reader-text-key', order_index: 7, surface_norm: 'ישראל', source_anchor: sourceAnchor,
               action: 'manual_correction', chosen_analysis: { lemma: 'ישראל', lp_pos: 'propernoun', meaning_ru: 'Израиль' },
               candidate_fingerprint: 'sha256:reader-smoke', actor_kind: 'owner', created_at: '2026-09-04T00:00:00.000Z'
             };
-            window.__lexresReaderProjection = await window.LexicalResolutionService.projectExactOccurrence(occurrence, [event], window.LexicalResolutionCore);
+            // Simulate a still-live cached LocalDb namespace from the previous
+            // shell: it has the established per-text reader, but not the newer
+            // indexed per-occurrence helper. The service must remain exact.
+            const cachedRepository = { listLexicalResolutionEventsForText: async () => [event] };
+            window.__lexresReaderProjection = await window.LexicalResolutionService.lookupExactOccurrence(occurrence, cachedRepository, window.LexicalResolutionCore);
             return window.__lexresReaderProjection;
           } catch (error) {
             window.__lexresReaderProjectionError = String(error && error.stack || error);
@@ -58,7 +62,7 @@ function arg(name, fallback) {
       });
     });
 
-    await page.locator('#lexres-reader-smoke-mount td[data-col="niqqud"] .rm-w').first().click();
+    await page.locator('#lexres-reader-smoke-mount td[data-col="niqqud"] .rm-w').nth(1).click();
     await page.waitForSelector('.rm-sheet.rm-open .rm-meaning');
     const result = await page.evaluate(() => ({
       meaning: document.querySelector('.rm-sheet.rm-open .rm-meaning')?.textContent || '',
@@ -76,9 +80,9 @@ function arg(name, fallback) {
     assert.match(result.rows, /имя собственное/);
     assert.equal(result.hasMeaningEditor, false);
     assert.deepEqual(result.occurrence, {
-      text_id: 'reader-text', sentence_id: 'reader-sentence', order_index: 7, word_offset: 0,
+      text_id: 'reader-text', sentence_id: 'reader-sentence', order_index: 7, word_offset: 1,
       surface: 'ישראל', niqqud: 'יִשְׂרָאֵל', text_key: 'reader-text-key',
-      sentence_he: 'ישראל כאן', sentence_he_niqqud: 'יִשְׂרָאֵל כָּאן', sentence_ru: 'Израиль здесь'
+      sentence_he: 'מדינת ישראל', sentence_he_niqqud: 'מְדִינַת יִשְׂרָאֵל', sentence_ru: 'Государство Израиль'
     });
     assert.deepEqual(errors, []);
     console.log('lexical-resolution-reader-browser-smoke: PASS', JSON.stringify({ version: servedVersion, meaning: result.meaning, badge: result.badge }));

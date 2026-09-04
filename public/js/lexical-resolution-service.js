@@ -23,6 +23,22 @@
     if(effective.state!=='resolved')return null;
     return{state:'resolved',analysis:effective.chosen_analysis,event_id:latest.id,actor_kind:latest.actor_kind,created_at:latest.created_at};
   }
+  async function lookupExactOccurrence(occurrence,repository,Core){
+    const id=occurrenceId(occurrence);if(!id||!repository)return null;
+    let events=[];
+    // Prefer the bounded indexed read. Older cached LocalDb module instances may
+    // not expose it yet while the already-established per-text reader remains
+    // available. The compatibility path stays exact: it filters by the same
+    // occurrence id before source-anchor validation in projectExactOccurrence.
+    if(typeof repository.listLexicalResolutionEventsForOccurrence==='function'){
+      try{events=await repository.listLexicalResolutionEventsForOccurrence(id)||[];}catch(_){events=[];}
+    }
+    if(!events.length&&occurrence&&occurrence.text_id!=null&&typeof repository.listLexicalResolutionEventsForText==='function'){
+      const textEvents=await repository.listLexicalResolutionEventsForText(String(occurrence.text_id))||[];
+      events=textEvents.filter((event)=>String(event&&event.occurrence_id||'')===id);
+    }
+    return projectExactOccurrence(occurrence,events,Core);
+  }
   async function hydrate(report,events,Core){
     if(!report||!report.resolution_queue)throw new Error('LEXICAL_QUEUE_REQUIRED');
     if(!Core||!Core.sourceAnchor)throw new Error('LEXICAL_RESOLUTION_CORE_REQUIRED');
@@ -52,5 +68,5 @@
       resolution_queue:{...report.resolution_queue,items:activeItems,clusters,uncertain_occurrences:activeItems.length,queued_uncertain_occurrences:activeItems.length,coverage_pct:100},
       resolution_audit:{schema:'linguistpro-lexical-resolution-audit-v1',state_counts:stateCounts,items}};
   }
-  return{hydrate,projectExactOccurrence};
+  return{hydrate,projectExactOccurrence,lookupExactOccurrence};
 });

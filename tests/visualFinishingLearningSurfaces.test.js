@@ -70,7 +70,7 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(studioHtml, /\/css\/reader-morph\.css\?v=395/);
   assert.match(roomHtml, /\/js\/mentor-connection-core\.js\?v=414/);
   assert.match(roomHtml, /\/js\/mentor-home\.js\?v=414/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=464/);
+  assert.match(roomHtml, /\/js\/library-ui\.js\?v=465/);
   assert.match(roomJs, /from '\/js\/corpus-item-presenter\.js\?v=419'/,
     "module dependencies changed by the release must be cache-busted at the import site");
   for (const url of [
@@ -79,7 +79,7 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
     "/css/reader-morph.css?v=395",
     "/js/mentor-connection-core.js?v=414",
     "/js/mentor-home.js?v=414",
-    "/js/library-ui.js?v=464",
+    "/js/library-ui.js?v=465",
     "/js/corpus-item-presenter.js?v=419",
   ]) {
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
