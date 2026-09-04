@@ -1078,6 +1078,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/morph-host.js?v=416",
   "/js/room-b6-core.js",
   "/db/local-db.js",
+  "/db/migrations.js",
+  "/db/db-worker.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
   "/js/reader-core.js?v=402",

@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Целевая версия: `3.11.465`
+Целевая версия: `3.11.466`
 
 Текущий статус: `TECHNICAL_PASS · OWNER_REPORTED_PASS_PENDING`
 
@@ -22,7 +22,7 @@
 ## A. Версия и открытие интерфейса
 
 1. Откройте <https://linguistpro.kolosei.com/library.html#room=mytexts>.
-2. Сделайте обычное обновление. Если внизу всё ещё не `v3.11.465`, полностью
+2. Сделайте обычное обновление. Если внизу всё ещё не `v3.11.466`, полностью
    закройте установленную PWA/вкладку, откройте снова и обновите.
 3. В разделе «Мои тексты» найдите «Кфар Аза - 2 544/573».
 4. Нажмите `•••` -> `⚖ Проверить морфологию`.
@@ -114,7 +114,7 @@ Slim — внутренний text-scoped контракт backup/cloud bundle, 
 Скопируйте и заполните:
 
 ```text
-OWNER ACCEPTANCE 3.11.465
+OWNER ACCEPTANCE 3.11.466
 A interface: PASS/FAIL; initial queue/resolved/clusters = .../.../...
 B before ZIP: PASS/FAIL
 C single impact + persistence: PASS/FAIL; before -> after = ... -> ...

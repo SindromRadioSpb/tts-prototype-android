@@ -11,8 +11,15 @@
     if (!adapter || !adapter.dbQuery || !adapter.dbRun || !adapter.execRaw) throw fail('LEXICAL_REPOSITORY_ADAPTER_REQUIRED');
     if (!Core || !Core.normalizeEvent) throw fail('LEXICAL_RESOLUTION_CORE_REQUIRED');
     const q=(sql,p=[])=>adapter.dbQuery(sql,p), r=(sql,p=[])=>adapter.dbRun(sql,p), x=(sql)=>adapter.execRaw(sql);
+    let schemaReady=null;
+    const ensureSchema=()=>{
+      if(!adapter.ensureSchema)return Promise.resolve();
+      if(!schemaReady)schemaReady=Promise.resolve().then(()=>adapter.ensureSchema()).catch((error)=>{schemaReady=null;throw error;});
+      return schemaReady;
+    };
     function fromRow(row) { return row && Core.normalizeEvent({...row, chosen_analysis:parse(row.chosen_json)}); }
     async function append(raw) {
+      await ensureSchema();
       const e=Core.normalizeEvent(raw);
       const chosen=(e.action==='confirm_candidate'||e.action==='manual_correction') ? JSON.stringify(e.chosen_analysis) : null;
       try {
@@ -30,6 +37,7 @@
       }
     }
     async function appendBatch(rawEvents) {
+      await ensureSchema();
       const events=(rawEvents||[]).map(Core.normalizeEvent);
       if (!events.length) throw fail('LEXICAL_BATCH_EMPTY');
       if (new Set(events.map((e)=>e.occurrence_id)).size!==events.length) throw fail('LEXICAL_BATCH_DUPLICATE_OCCURRENCE');
@@ -39,13 +47,14 @@
       try { const out=[]; for (const e of events) out.push(await append(e)); await x('COMMIT;'); return out; }
       catch (err) { try { await x('ROLLBACK;'); } catch (_) {} throw err; }
     }
-    async function listForText(textId) { return (await q('SELECT * FROM lexical_resolution_events WHERE text_id=? ORDER BY created_at,id',[String(textId)])).map(fromRow); }
+    async function listForText(textId) { await ensureSchema(); return (await q('SELECT * FROM lexical_resolution_events WHERE text_id=? ORDER BY created_at,id',[String(textId)])).map(fromRow); }
     async function listForTexts(textIds) {
+      await ensureSchema();
       const ids=Array.from(new Set((textIds||[]).map(String).filter(Boolean)));
       if(!ids.length)return [];
       return (await q(`SELECT * FROM lexical_resolution_events WHERE text_id IN (${ids.map(()=>'?').join(',')}) ORDER BY created_at,id`,ids)).map(fromRow);
     }
-    async function listForOccurrence(occurrenceId) { return (await q('SELECT * FROM lexical_resolution_events WHERE occurrence_id=? ORDER BY created_at,id',[String(occurrenceId)])).map(fromRow); }
+    async function listForOccurrence(occurrenceId) { await ensureSchema(); return (await q('SELECT * FROM lexical_resolution_events WHERE occurrence_id=? ORDER BY created_at,id',[String(occurrenceId)])).map(fromRow); }
     return {append,appendBatch,listForText,listForTexts,listForOccurrence};
   }
   return {createRepository};

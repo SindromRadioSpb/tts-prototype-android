@@ -40,6 +40,7 @@
 import '../js/nakdan-derived-core.js';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
+import { LEXICAL_RESOLUTION_SCHEMA_SQL } from './migrations.js';
 import { encodeBrowseCursor, decodeBrowseCursor, fingerprintBrowseFilters, normalizeBrowseFilters, ROOM_B6_LIMITS } from '../js/room-b6-core.js';
 
 const _nakdanDerived = globalThis.NakdanDerivedCore;
@@ -365,7 +366,7 @@ let _lexicalResolutionRepo = null;
 function _lexResRepo() {
   if (!_lexicalResolutionRepo) {
     _lexicalResolutionRepo = globalThis.LexicalResolutionRepository.createRepository(
-      { dbQuery: q, dbRun: r, execRaw: x }, globalThis.LexicalResolutionCore);
+      { dbQuery: q, dbRun: r, execRaw: x, ensureSchema: () => x(LEXICAL_RESOLUTION_SCHEMA_SQL) }, globalThis.LexicalResolutionCore);
   }
   return _lexicalResolutionRepo;
 }
