@@ -63,3 +63,17 @@ text-card-кфар-аза-2-544-573-learning.zip.
   проверить его audit-скриптом и выполнить owner smoke в Obsidian.
 - Текущий source fixture содержит 345 unresolved occurrences и не является
   доказательством актуального production-счётчика.
+
+## Production deployment recovery
+
+Первый webhook для implementation commit `dd9c37f3` был принят, но сборка не
+завершилась: корневой раздел достиг 100%, а Redis включил штатный
+`stop-writes-on-bgsave-error`. Старый application container продолжал отдавать
+здоровую версию 3.11.477.
+
+Bounded recovery удалила только 3.171 GB неиспользуемого Docker build cache.
+Контейнеры, volumes, пользовательские данные, активный image и rollback images
+не удалялись. После очистки корневой раздел имел 2.4 GB свободного места (94%
+used), Coolify вернулся в healthy, а authenticated Redis BGSAVE завершился с
+`rdb_last_bgsave_status:ok`. Production PASS требует отдельного подтверждения
+живой версии 3.11.478 и её конкретных ассетов после нового non-empty webhook.
