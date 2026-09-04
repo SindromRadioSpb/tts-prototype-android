@@ -32,6 +32,16 @@ function arg(name, fallback) {
     await page.evaluate((nextLocale) => window.appSetLocale(nextLocale), locale);
     const servedVersion = await page.evaluate(() => window.APP_VERSION || String(document.querySelector('#roomFooterVersion')?.textContent || '').replace(/^v/, ''));
     if (expectedVersion) assert.equal(servedVersion, expectedVersion);
+    const receiptCheckpoint = await page.evaluate(async () => {
+      const receipt = { schema: 'linguistpro-obsidian-receipt-v1', text_id: 'T1', resolution_snapshot: { o1: 'unresolved' } };
+      await window.LexicalResolutionUI.rememberReceipt('T1', receipt);
+      return {
+        stored: await window.LexicalResolutionUI.previousReceipt('T1'),
+        legacyLocalStorage: localStorage.getItem('linguistpro.obsidian.lexical.receipt.v1.T1')
+      };
+    });
+    assert.deepEqual(receiptCheckpoint.stored, { schema: 'linguistpro-obsidian-receipt-v1', text_id: 'T1', resolution_snapshot: { o1: 'unresolved' } });
+    assert.equal(receiptCheckpoint.legacyLocalStorage, null);
 
     await page.evaluate(async () => {
       const rows = [];

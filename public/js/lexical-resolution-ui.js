@@ -80,7 +80,34 @@
   }
   function restore(states) { (states||[]).forEach((state)=>{if(!state.node.isConnected)return;if(state.inert==null)state.node.removeAttribute('inert');else state.node.setAttribute('inert',state.inert);if(state.aria==null)state.node.removeAttribute('aria-hidden');else state.node.setAttribute('aria-hidden',state.aria);}); }
   function receiptKey(textId) { return 'linguistpro.obsidian.lexical.receipt.v1.'+textId; }
-  function previousReceipt(textId) { try{return JSON.parse(localStorage.getItem(receiptKey(textId))||'null');}catch(_){return null;} }
+  const RECEIPT_DB='linguistpro-operational-receipts-v1',RECEIPT_STORE='lexical_export_receipts';
+  function receiptDb() {
+    return new Promise((resolve,reject)=>{
+      if(!root.indexedDB){reject(new Error('INDEXEDDB_UNAVAILABLE'));return;}
+      const request=root.indexedDB.open(RECEIPT_DB,1);
+      request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(RECEIPT_STORE))db.createObjectStore(RECEIPT_STORE);};
+      request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('RECEIPT_DB_OPEN_FAILED'));
+    });
+  }
+  async function receiptStore(mode,textId,value) {
+    const db=await receiptDb();
+    try{return await new Promise((resolve,reject)=>{const tx=db.transaction(RECEIPT_STORE,mode);const store=tx.objectStore(RECEIPT_STORE);const request=mode==='readonly'?store.get(String(textId)):store.put(value,String(textId));if(mode==='readonly')request.onsuccess=()=>resolve(request.result||null);else tx.oncomplete=()=>resolve(true);request.onerror=()=>reject(request.error||new Error('RECEIPT_STORE_FAILED'));tx.onabort=()=>reject(tx.error||new Error('RECEIPT_TRANSACTION_ABORTED'));});}
+    finally{db.close();}
+  }
+  async function previousReceipt(textId) {
+    try{const stored=await receiptStore('readonly',textId);if(stored)return stored;}catch(_){}
+    // One-way compatibility with 3.11.471-473. New checkpoints use IndexedDB
+    // so a full localStorage cache cannot turn a completed ZIP save into an
+    // apparent export failure.
+    try{return JSON.parse(root.localStorage&&root.localStorage.getItem(receiptKey(textId))||'null');}catch(_){return null;}
+  }
+  async function rememberReceipt(textId,receipt) {
+    try{await receiptStore('readwrite',textId,receipt);try{root.localStorage&&root.localStorage.removeItem(receiptKey(textId));}catch(_){}return true;}
+    catch(primary){
+      try{root.localStorage.setItem(receiptKey(textId),JSON.stringify(receipt));return true;}
+      catch(_){throw primary;}
+    }
+  }
   function exactImpact(cluster, selected, selectAll) {
     const occurrences=(cluster&&cluster.occurrences)||[];
     const requested=selectAll?occurrences.map((occ)=>occ.lp_occurrence_id):(Array.isArray(selected)?selected:[selected]);
@@ -225,10 +252,11 @@
     async function exportObsidian() {
       const button=toolbar.querySelector('[data-export-obsidian]');button.disabled=true;setMessage(t('room.resolution.exporting','Собираем ZIP для Obsidian…'),'working');
       try{
-        const plan=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:previousReceipt(String(item.id))});const zip=new root.JSZip();plan.files.forEach((file)=>zip.file(file.path,file.content));const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+        const prior=await previousReceipt(String(item.id));const plan=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior});const zip=new root.JSZip();plan.files.forEach((file)=>zip.file(file.path,file.content));const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
         const name='linguistpro-obsidian-'+clean(item.title).replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'').slice(0,60)+'.zip';
         const result=root.ShareService.saveFile({blob,filename:name});if(!result||result.code!=='SAVE_STARTED')throw new Error('SAVE_NOT_STARTED');
-        localStorage.setItem(receiptKey(String(item.id)),JSON.stringify(plan.receipt));setMessage(interpolate(t('room.resolution.exported','ZIP для Obsidian сохранён. В отчёте зафиксировано переходов: {count}.'),{count:plan.receipt.resolution_transitions.length}),'ready');
+        try{await rememberReceipt(String(item.id),plan.receipt);}catch(_){}
+        setMessage(interpolate(t('room.resolution.exported','ZIP для Obsidian сохранён. В отчёте зафиксировано переходов: {count}.'),{count:plan.receipt.resolution_transitions.length}),'ready');
       }catch(error){setMessage(t('room.resolution.exportFailed','Не удалось собрать ZIP для Obsidian.')+' '+clean(error&&error.message),'error');}finally{button.disabled=false;}
     }
     function render() {
@@ -253,5 +281,5 @@
     buildReport(item,localDb).then((value)=>{if(closed)return;report=value;render();setMessage(t('room.resolution.ready','Список готов. Ни одно решение не применяется автоматически.'),'ready');}).catch((error)=>{if(closed)return;setMessage(t('room.resolution.loadFailed','Не удалось подготовить список слов.')+' '+clean(error&&error.message),'error');});
     return {close:doClose};
   }
-  const api={open,exactImpact,parsePealimId,pealimUrl,candidateAnalysis,reasonInfo,matchesClusterFilter};root.LexicalResolutionUI=api;if(typeof module==='object'&&module.exports)module.exports=api;
+  const api={open,exactImpact,parsePealimId,pealimUrl,candidateAnalysis,reasonInfo,matchesClusterFilter,previousReceipt,rememberReceipt};root.LexicalResolutionUI=api;if(typeof module==='object'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

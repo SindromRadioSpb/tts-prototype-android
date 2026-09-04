@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.473";
+const CACHE_VERSION = "v3.11.474";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -119,7 +119,7 @@ const PRECACHE_URLS = [
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
   "/js/lexical-resolution-service.js?v=4",
-  "/js/lexical-resolution-ui.js?v=6",
+  "/js/lexical-resolution-ui.js?v=7",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
