@@ -115,7 +115,7 @@ const PRECACHE_URLS = [
   "/js/pealim-identity-overrides.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
-  "/js/obsidian-lexical-preview.js?v=4",
+  "/js/obsidian-lexical-preview.js?v=5",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
   "/js/lexical-resolution-service.js?v=4",

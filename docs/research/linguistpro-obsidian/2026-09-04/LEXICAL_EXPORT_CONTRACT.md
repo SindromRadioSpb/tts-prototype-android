@@ -2,7 +2,7 @@
 
 Дата: 2026-09-04
 
-Статус: `OWNER_APPROVED · CONTRACT_V1 · P0_VISIBLE_QUEUE_TECHNICAL_PASS · P0.5_BLOCKING`
+Статус: `OWNER_APPROVED · CONTRACT_V1 · PREMIUM_PROJECTION_V2_IMPLEMENTED · PRODUCTION_PENDING · VISUAL_ACCEPTANCE_PENDING`
 
 Связанный документ: [общая концепция](./README.md).
 
@@ -126,6 +126,9 @@ _LinguistPro/
   texts/
     <lp_text_id>/
       Текст.md
+      Фразы.md
+      Фразы/
+        001–050.md
       Лексика.base
       Лексика — переносимый снимок.md
       occurrences.tsv
@@ -138,6 +141,21 @@ _LinguistPro/
     Все существительные.base
     Неоднозначные разборы.base
 ```
+
+Дополнение premium projection v2:
+
+- путь package внутри vault не является частью identity;
+- Bases фильтруют по `note.type` и `lp_text_ids`, а не через
+  `file.inFolder("_LinguistPro/...")`;
+- `Текст.md` является учебным хабом, а не контейнером технических таблиц;
+- все исходные строки свежего snapshot входят в построчный блокнот `Фразы`;
+- ссылки между generated-папками относительные и работают на любой глубине;
+- UUID/offset/internal reason codes остаются в audit metadata и не выводятся в
+  learner-facing контекст;
+- локальная карточка лексемы является основной ссылкой, Pealim — отдельным
+  явным действием.
+
+Полная архитектура и ворота: [Obsidian premium projection v2](./OBSIDIAN_PREMIUM_PROJECTION_V2.md).
 
 ### `Лексика.base`
 

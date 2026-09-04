@@ -13,6 +13,9 @@
 Канонический контур разрешения неоднозначности:
 [`LEXICAL_RESOLUTION_LIFECYCLE.md`](./LEXICAL_RESOLUTION_LIFECYCLE.md).
 
+Переработанная learner-facing архитектура экспорта:
+[`OBSIDIAN_PREMIUM_PROJECTION_V2.md`](./OBSIDIAN_PREMIUM_PROJECTION_V2.md).
+
 Журнал реализации P0.5:
 [`P05_RESOLUTION_IMPLEMENTATION.md`](./P05_RESOLUTION_IMPLEMENTATION.md).
 Объект первого пилота: личный текст `Кфар Аза - 2 544/573` и существующий vault

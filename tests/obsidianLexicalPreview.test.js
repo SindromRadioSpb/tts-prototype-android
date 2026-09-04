@@ -286,11 +286,11 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   const second = Preview.planObsidianPackage(report);
   assert.deepEqual(second, first);
   assert.equal(first.read_only, true);
-  assert.equal(first.would_create_files, report.counts.unique_lexemes + report.counts.resolution_clusters + 10);
+  assert.equal(first.would_create_files, report.counts.unique_lexemes + report.counts.resolution_clusters + 12);
   assert.equal(new Set(first.files.map((x) => x.path)).size, first.files.length);
   assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/")));
   assert.match(first.base_preview, /name: "Глаголы"/);
-  assert.match(first.base_preview, /note\.lp_text_ids\.contains\("T1"\)/);
+  assert.match(first.base_preview, /list\(note\.lp_text_ids\)\.contains\("T1"\)/);
   assert.match(first.resolution_base_preview, /note\.type == "lp-resolution-cluster"/);
   assert.ok(first.files.some((x) => x.kind === "resolution-cluster"));
   assert.ok(first.files.some((x) => x.path.endsWith("Очередь разбора.md")));
@@ -300,6 +300,75 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   assert.equal(first.receipt.active_resolution_occurrences, 1);
   assert.equal(first.receipt.resolved_resolution_occurrences, 0);
   assert.ok(first.files.some((x) => x.path.endsWith("resolution-audit.json")));
+});
+
+test("builds a relocatable, human-first Obsidian study projection", () => {
+  const report = Preview.analyzeBundle(fixture(), { textId: "T1" });
+  const plan = Preview.planObsidianPackage(report);
+  const base = plan.files.find((file) => file.path.endsWith("Лексика.base")).content;
+  const resolutionBase = plan.files.find((file) => file.path.endsWith("Разбор.base")).content;
+  const verb = plan.files.find((file) => file.path.endsWith("pid-2321.md")).content;
+  const resolution = plan.files.find((file) => file.kind === "resolution-cluster").content;
+  const phraseIndex = plan.files.find((file) => file.kind === "phrases-index");
+  const phraseChunk = plan.files.find((file) => file.kind === "phrases-chunk");
+  const hub = plan.files.find((file) => file.kind === "text").content;
+
+  assert.doesNotMatch(base, /file\.inFolder/, "a package nested in an existing vault must still work");
+  assert.match(base, /note\.type == "lp-lexeme"/);
+  assert.match(base, /list\(note\.lp_text_ids\)\.contains\("T1"\)/);
+  assert.match(base, /file\.asLink\(note\.lemma\)/, "the word column must open the local lexeme note");
+  assert.match(base, /link\(note\.pealim_url, "Pealim ↗"\)/, "Pealim must also be directly reachable");
+  assert.doesNotMatch(resolutionBase, /file\.inFolder/);
+
+  assert.match(verb, /pealim_url: "https:\/\/www\.pealim\.com\/ru\/dict\/2321\/"/);
+  assert.match(verb, /\[Открыть в Pealim ↗\]\(https:\/\/www\.pealim\.com\/ru\/dict\/2321\/\)/);
+  assert.match(verb, /\[\[\.\.\/texts\/T1\/Фразы\/001–002#\^lp-phrase-[0-9a-f]{8}\|Фраза 1\]\]/);
+  assert.doesNotMatch(verb, /`R1:0`/, "raw sentence ids and offsets stay out of learner-facing prose");
+
+  const snapshot = plan.files.find((file) => file.kind === "snapshot").content;
+  const queue = plan.files.find((file) => file.kind === "resolution-index").content;
+  assert.match(snapshot, /\[\[\.\.\/\.\.\/lexemes\/pid-2321\|/);
+  assert.match(queue, /\[\[\.\.\/\.\.\/resolution\/cluster-/);
+
+  assert.ok(phraseIndex && phraseChunk, "the package must contain a reusable phrase notebook");
+  assert.match(phraseIndex.content, /# Фразы текста/);
+  assert.match(phraseChunk.content, /Сожгли дома/);
+  assert.match(phraseChunk.content, /\^lp-phrase-[0-9a-f]{8}/);
+  assert.match(hub, /\[\[Фразы\|Все фразы с переводом\]\]/);
+  assert.match(resolution, /несколько возможных разборов/);
+  assert.doesNotMatch(resolution, /^\d+\. `[^`]+` — \{/m, "candidate JSON must not be learner-facing");
+
+  const unknownInput = fixture();
+  unknownInput.notes_advanced.sentence_morph[0].tokens[1].posDicta = "";
+  const unknownPlan = Preview.planObsidianPackage(Preview.analyzeBundle(unknownInput, { textId: "T1" }));
+  const unknownResolution = unknownPlan.files
+    .filter((file) => file.kind === "resolution-cluster")
+    .map((file) => file.content)
+    .find((content) => /lp_pos: "unknown"/.test(content));
+  assert.ok(unknownResolution);
+  assert.match(unknownResolution, /lp_pos_label: "не определена"/);
+  assert.match(unknownResolution, /Предполагаемая часть речи: не определена/);
+});
+
+test("exports every source phrase even when a row has no morphology", () => {
+  const input = fixture();
+  input.library.texts[0].rows.push({
+    row_id: "R3", order_index: 2, hebrew_plain: "שורה בלי ניתוח",
+    hebrew_niqqud: "שׁוּרָה בְּלִי נִתּוּחַ", translit: "shura bli nituakh",
+    translit_ru: "шура бли нитуах", russian: "Строка без разбора"
+  });
+  const report = Preview.analyzeBundle(input, { textId: "T1" });
+  const plan = Preview.planObsidianPackage(report);
+  const phrases = plan.files.filter((file) => file.kind === "phrases-chunk").map((file) => file.content).join("\n");
+
+  assert.equal(report.text.rows_total, 3);
+  assert.equal(report.text.rows_with_morph, 2);
+  assert.equal(report.text.rows.length, 3);
+  assert.match(phrases, /## Фраза 3/);
+  assert.match(phrases, /Строка без разбора/);
+  assert.match(phrases, /Транслитерация \(латиница\):\*\* shura bli nituakh/);
+  assert.match(phrases, /Транскрипция \(русскими буквами\):\*\* шура бли нитуах/);
+  assert.match(phrases, /<!-- lp_sentence_id: R3 -->/);
 });
 
 test("receipts prove unresolved to resolved without losing the audited occurrence", async () => {
