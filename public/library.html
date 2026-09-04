@@ -18,7 +18,7 @@
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
   <link rel="stylesheet" href="/css/reader-morph.css?v=394">
-  <link rel="stylesheet" href="/css/lexical-resolution.css?v=1">
+  <link rel="stylesheet" href="/css/lexical-resolution.css?v=2">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
     :root {
@@ -3159,7 +3159,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.466</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.467</button>
   </div>
 </footer>
 
@@ -3361,9 +3361,9 @@
      heavy work at load — the 3.3 MB Pealim dataset is fetched lazily on the first word tap. -->
 <script src="/js/notes-autogen.js"></script>
 <!-- Owner-reviewed morphology decisions and deterministic Obsidian projection. -->
-<script src="/js/obsidian-lexical-preview.js?v=1"></script>
+<script src="/js/obsidian-lexical-preview.js?v=2"></script>
 <script src="/js/lexical-resolution-service.js?v=1"></script>
-<script src="/js/lexical-resolution-ui.js?v=1"></script>
+<script src="/js/lexical-resolution-ui.js?v=2"></script>
 <!-- Retention P0 — THE single canonical word-memory keyer + review-log ids (pure; reader-morph's
      statusKeyForCard delegates here so save==paint==review share one keyer; recon B1/B5). -->
 <script src="/js/lemma-canon.js"></script>

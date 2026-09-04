@@ -40,7 +40,7 @@
     const Preview=root.ObsidianLexicalPreview, Notes=root.NotesAutoGen;
     if(!Preview||!root.LexicalResolutionCore||!root.LexicalResolutionService)throw new Error('LEXICAL_REVIEW_MODULES_UNAVAILABLE');
     const bundle=await localDb.exportBundle({includeArchived:true,textIds:[String(item.id)]});
-    let ambiguityResolver=null,pealimResolver=null;
+    let ambiguityResolver=null,pealimResolver=null,pealimIdentityResolver=null;
     if(root.InflectionDict&&Notes){
       const data=await root.InflectionDict.ensureReady();
       const paradigms=(data&&data.paradigms)||[];
@@ -49,7 +49,11 @@
       ambiguityResolver=(unit)=>Notes.formFirstResolve(maps,unit);
       pealimResolver=(pid)=>pidMap.get(String(pid))||null;
     }
-    const raw=Preview.analyzeBundle(bundle,{textId:String(item.id),ambiguityResolver,pealimResolver});
+    if(root.FunctionUsage&&typeof root.FunctionUsage.lookupByPealimId==='function'){
+      await root.FunctionUsage.ensureReady();
+      pealimIdentityResolver=({pealim_id})=>root.FunctionUsage.lookupByPealimId(pealim_id);
+    }
+    const raw=Preview.analyzeBundle(bundle,{textId:String(item.id),ambiguityResolver,pealimResolver,pealimIdentityResolver});
     const events=await localDb.listLexicalResolutionEventsForText(String(item.id));
     return root.LexicalResolutionService.hydrate(raw,events,root.LexicalResolutionCore);
   }
@@ -89,7 +93,7 @@
         report=await buildReport(item,localDb);render();setMessage(t('room.resolution.saved','Решение сохранено. Очередь и точные счётчики обновлены.'),'ready');
       }catch(error){button.disabled=false;setMessage(t('room.resolution.failed','Не удалось сохранить решение; исходная очередь не изменена.')+' '+clean(error&&error.message),'error');}
     }
-    function stage(card,cluster,selectedId,action,analysis,batch) {
+    function stage(card,anchor,cluster,selectedId,action,analysis,batch) {
       card.querySelectorAll('.lexres-impact').forEach((node)=>node.remove());
       const exact=exactImpact(cluster,selectedId,batch);const targets=exact.targets;
       const impact=$('section','lexres-impact');impact.setAttribute('role','region');
@@ -97,24 +101,24 @@
         $('p','lexres-impact-count',t('room.resolution.impactCount','Будет записано решений: {count}').replace('{count}',targets.length)));
       const list=$('ol','lexres-impact-list');targets.forEach((occ)=>{const li=$('li');li.append($('code','',occ.lp_occurrence_id),$('span','',clean(occ.sentence_he_niqqud||occ.sentence_he)),$('small','',clean(occ.sentence_ru)));list.append(li);});impact.append(list);
       const row=$('div','lexres-impact-actions');const cancel=$('button','lexres-button',t('room.resolution.cancel','Отмена'));cancel.type='button';cancel.addEventListener('click',()=>impact.remove());
-      const confirm=$('button','lexres-button lexres-primary',t('room.resolution.confirmImpact','Подтвердить точную запись'));confirm.type='button';confirm.dataset.confirmImpact='1';confirm.addEventListener('click',()=>commit(targets,action,analysis,impact));row.append(cancel,confirm);impact.append(row);card.append(impact);confirm.focus();
+      const confirm=$('button','lexres-button lexres-primary',t('room.resolution.confirmImpact','Подтвердить точную запись'));confirm.type='button';confirm.dataset.confirmImpact='1';confirm.addEventListener('click',()=>commit(targets,action,analysis,impact));row.append(cancel,confirm);impact.append(row);card.insertBefore(impact,anchor);confirm.focus();
     }
     function clusterCard(cluster,index) {
       const details=$('details','lexres-cluster');if(index===0)details.open=true;
       const summary=$('summary','lexres-cluster-summary');const term=$('span','lexres-term',clean(cluster.niqqud||cluster.surface||'—'));term.dir='rtl';
       summary.append(term,$('span','lexres-badge',cluster.occurrence_count+' ×'),$('span','lexres-reasons',cluster.reasons.join(' · ')));details.append(summary);
-      const inner=$('div','lexres-cluster-inner');const contexts=$('fieldset','lexres-contexts');contexts.append($('legend','',t('room.resolution.contexts','Контексты occurrence')));
-      let selectedId=cluster.occurrence_ids[0];cluster.occurrences.forEach((occ,occIndex)=>{const label=$('label','lexres-context');const radio=$('input');radio.type='radio';radio.name='lexres-'+cluster.lp_resolution_cluster_id;radio.value=occ.lp_occurrence_id;radio.checked=occIndex===0;radio.addEventListener('change',()=>{selectedId=radio.value;});const copy=$('span');const he=$('bdi','lexres-he',clean(occ.sentence_he_niqqud||occ.sentence_he));he.dir='rtl';copy.append(he,$('small','',clean(occ.sentence_ru)), $('code','',occ.lp_occurrence_id));label.append(radio,copy);contexts.append(label);});inner.append(contexts);
-      const candidates=uniq((cluster.alternatives||[]).concat(cluster.candidate_evidence||[]));if(candidates.length){const candidatesBox=$('div','lexres-candidates');candidatesBox.append($('h4','',t('room.resolution.candidates','Кандидаты')));inner.append(candidatesBox);}
+      const inner=$('div','lexres-cluster-inner');const editor=$('section','lexres-editor');const contexts=$('fieldset','lexres-contexts');contexts.append($('legend','',t('room.resolution.contexts','Контексты occurrence')));const contextList=$('div','lexres-context-list');contexts.append(contextList);
+      let selectedId=cluster.occurrence_ids[0];cluster.occurrences.forEach((occ,occIndex)=>{const label=$('label','lexres-context');const radio=$('input');radio.type='radio';radio.name='lexres-'+cluster.lp_resolution_cluster_id;radio.value=occ.lp_occurrence_id;radio.checked=occIndex===0;radio.addEventListener('change',()=>{selectedId=radio.value;});const copy=$('span');const he=$('bdi','lexres-he',clean(occ.sentence_he_niqqud||occ.sentence_he));he.dir='rtl';copy.append(he,$('small','',clean(occ.sentence_ru)), $('code','',occ.lp_occurrence_id));label.append(radio,copy);contextList.append(label);});
+      const candidates=uniq((cluster.alternatives||[]).concat(cluster.candidate_evidence||[]));if(candidates.length){const candidatesBox=$('div','lexres-candidates');candidatesBox.append($('h4','',t('room.resolution.candidates','Кандидаты')));editor.append(candidatesBox);}
       const form=$('form','lexres-form');form.addEventListener('submit',(event)=>event.preventDefault());
       const fields=[['lemma',t('room.resolution.lemma','Лемма')],['lp_pos',t('room.resolution.pos','Часть речи')],['pealim_id','Pealim ID'],['root',t('room.resolution.root','Корень')],['binyan','Binyan'],['meaning_ru',t('room.resolution.meaning','Значение')]];
       fields.forEach(([name,labelText])=>{const label=$('label');label.append($('span','',labelText));const input=$('input');input.name=name;input.autocomplete='off';label.append(input);form.append(label);});
       const seed=cluster.occurrences[0]||cluster;fill(form,{lemma:seed.lemma,lp_pos:seed.lp_pos,pealim_id:seed.pealim_id,root:seed.root,binyan:seed.binyan,meaning_ru:seed.meaning_ru});
-      const candidatesBox=inner.querySelector('.lexres-candidates');candidates.forEach((candidate)=>{const a=candidateAnalysis(candidate,root.ObsidianLexicalPreview);const button=$('button','lexres-candidate',(a.lemma||'—')+(a.lp_pos?' · '+a.lp_pos:'')+(a.pealim_id?' · #'+a.pealim_id:''));button.type='button';button.addEventListener('click',()=>fill(form,a));candidatesBox.append(button);});inner.append(form);
-      const batchLabel=$('label','lexres-batch');const batch=$('input');batch.type='checkbox';batch.disabled=!cluster.batch_review_eligible;batchLabel.append(batch,$('span','',cluster.batch_review_eligible?t('room.resolution.batch','Применить ко всему кластеру после просмотра всех контекстов'):t('room.resolution.batchUnavailable','Для этого кластера доступно только решение occurrence')));inner.append(batchLabel);
+      const candidatesBox=editor.querySelector('.lexres-candidates');candidates.forEach((candidate)=>{const a=candidateAnalysis(candidate,root.ObsidianLexicalPreview);const button=$('button','lexres-candidate',(a.lemma||'—')+(a.lp_pos?' · '+a.lp_pos:'')+(a.pealim_id?' · #'+a.pealim_id:''));button.type='button';button.addEventListener('click',()=>fill(form,a));candidatesBox.append(button);});editor.append(form);
+      const batchLabel=$('label','lexres-batch');const batch=$('input');batch.type='checkbox';batch.disabled=!cluster.batch_review_eligible;batchLabel.append(batch,$('span','',cluster.batch_review_eligible?t('room.resolution.batch','Применить ко всему кластеру после просмотра всех контекстов'):t('room.resolution.batchUnavailable','Для этого кластера доступно только решение occurrence')));editor.append(batchLabel);
       const actions=$('div','lexres-actions');
-      const addAction=(labelText,action,primary)=>{const button=$('button','lexres-button'+(primary?' lexres-primary':''),labelText);button.type='button';button.addEventListener('click',()=>{const analysis=action==='manual_correction'?formAnalysis(form):{};if(action==='manual_correction'&&(!analysis.lemma||!analysis.lp_pos)){setMessage(t('room.resolution.required','Укажите лемму и часть речи.'),'error');return;}stage(inner,cluster,selectedId,action,analysis,batch.checked);});actions.append(button);};
-      addAction(t('room.resolution.resolve','Подтвердить разбор'),'manual_correction',true);addAction(t('room.resolution.defer','Отложить'),'defer');addAction(t('room.resolution.reject','Отклонить кандидатов'),'reject_all');addAction(t('room.resolution.clear','Снять решение'),'clear');inner.append(actions);details.append(inner);return details;
+      const addAction=(labelText,action,primary)=>{const button=$('button','lexres-button'+(primary?' lexres-primary':''),labelText);button.type='button';button.addEventListener('click',()=>{const analysis=action==='manual_correction'?formAnalysis(form):{};if(action==='manual_correction'&&(!analysis.lemma||!analysis.lp_pos)){setMessage(t('room.resolution.required','Укажите лемму и часть речи.'),'error');return;}stage(inner,contexts,cluster,selectedId,action,analysis,batch.checked);});actions.append(button);};
+      addAction(t('room.resolution.resolve','Подтвердить разбор'),'manual_correction',true);addAction(t('room.resolution.defer','Отложить'),'defer');addAction(t('room.resolution.reject','Отклонить кандидатов'),'reject_all');addAction(t('room.resolution.clear','Снять решение'),'clear');editor.append(actions);inner.append(editor,contexts);details.append(inner);return details;
     }
     async function exportObsidian() {
       const button=toolbar.querySelector('[data-export-obsidian]');button.disabled=true;setMessage(t('room.resolution.exporting','Собираем Obsidian ZIP…'),'working');

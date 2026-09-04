@@ -678,6 +678,8 @@
     var ambiguousOccurrences = 0, ambiguitySignalOccurrences = 0;
     var identityGuardedOccurrences = 0;
     var identityGuardReasons = {};
+    var verifiedPealimIdentityOccurrences = 0;
+    var pealimIdentitySources = {};
     var unknownOccurrences = 0, linkedOccurrences = 0;
     var skippedResolutionItems = [];
 
@@ -754,10 +756,41 @@
         if (pealimId && typeof opts.pealimResolver === "function") {
           try { pealimEvidence = opts.pealimResolver(pealimId) || null; } catch (_) { pealimEvidence = null; }
         }
-        var guardReason = identityGuardReason(notePos, pos, pealimEvidence && pealimEvidence.pos);
+        var verifiedPealimIdentity = null;
+        if (pealimId && typeof opts.pealimIdentityResolver === "function") {
+          try {
+            verifiedPealimIdentity = opts.pealimIdentityResolver({
+              pealim_id: pealimId,
+              surface: word,
+              niqqud: niqqud,
+              lemma: lemma,
+              note_pos: notePos,
+              context_pos: pos,
+              paradigm: pealimEvidence
+            }) || null;
+          } catch (_) { verifiedPealimIdentity = null; }
+        }
+        var verifiedPealimId = str(verifiedPealimIdentity && (verifiedPealimIdentity.pealim_id || verifiedPealimIdentity.id));
+        var verifiedPealimPos = verifiedPealimId === pealimId
+          ? normalizePos(verifiedPealimIdentity && (verifiedPealimIdentity.lp_pos || verifiedPealimIdentity.pos), verifiedPealimIdentity && verifiedPealimIdentity.kind)
+          : "unknown";
+        var rawPealimPos = str(pealimEvidence && pealimEvidence.pos);
+        var effectivePealimPos = verifiedPealimPos !== "unknown" && verifiedPealimPos !== "other" ? verifiedPealimPos : rawPealimPos;
+        var pealimIdentitySource = verifiedPealimPos !== "unknown" && verifiedPealimPos !== "other"
+          ? str(verifiedPealimIdentity.provenance || verifiedPealimIdentity.source || "verified-pealim-identity")
+          : "";
+        if (pealimIdentitySource) {
+          verifiedPealimIdentityOccurrences++;
+          pealimIdentitySources[pealimIdentitySource] = (pealimIdentitySources[pealimIdentitySource] || 0) + 1;
+        }
+        var guardReason = identityGuardReason(notePos, pos, effectivePealimPos);
         var candidateEvidence = guardReason ? {
+          lemma: str(body.lemma || body.word || lemma),
+          lp_pos: normalizePos(notePos, body.kind),
           pealim_id: pealimId, root: root, meaning: meaning, note_pos: notePos,
-          pealim_pos: str(pealimEvidence && pealimEvidence.pos),
+          pealim_pos: rawPealimPos,
+          verified_pealim_pos: pealimIdentitySource ? effectivePealimPos : "",
+          pealim_identity_source: pealimIdentitySource,
           note_dedup_key: str(linked && linked.gen_dedup_key)
         } : null;
         if (guardReason) {
@@ -848,6 +881,9 @@
           binyan: binyan,
           meaning_ru: meaning,
           pealim_id: pealimId,
+          pealim_pos_raw: rawPealimPos,
+          pealim_pos_effective: effectivePealimPos,
+          pealim_identity_source: pealimIdentitySource,
           resolution_channel: channel,
           morph_model_version: str(sm.model_version),
           confidence: confidence,
@@ -932,6 +968,7 @@
         ambiguity_signal_occurrences: ambiguitySignalOccurrences,
         ambiguity_signal_coverage_pct: pct(ambiguitySignalOccurrences, analyzedOccurrences),
         context_identity_guarded_occurrences: identityGuardedOccurrences,
+        verified_pealim_identity_occurrences: verifiedPealimIdentityOccurrences,
         unknown_pos_occurrences: unknownOccurrences,
         collision_keys: collisionLexemes.length,
         uncertain_occurrences: resolutionQueue.uncertain_occurrences,
@@ -946,6 +983,7 @@
       confidence_bands: confidenceBands,
       resolution_channels: Object.keys(resolutionChannels).sort().reduce(function (out, key) { out[key] = resolutionChannels[key]; return out; }, {}),
       identity_guard_reasons: Object.keys(identityGuardReasons).sort().reduce(function (out, key) { out[key] = identityGuardReasons[key]; return out; }, {}),
+      pealim_identity_sources: Object.keys(pealimIdentitySources).sort().reduce(function (out, key) { out[key] = pealimIdentitySources[key]; return out; }, {}),
       provider_pos_values: serialiseSetMap(providerPosValues),
       collision_samples: collisionSamples,
       resolution_queue: resolutionQueue,

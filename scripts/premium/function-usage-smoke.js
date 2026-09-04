@@ -76,14 +76,15 @@ ok(/window\.FunctionUsage\.ensureReady/.test(rm), 'reader-morph warms FunctionUs
 // ── 4. loader API + wiring ────────────────────────────────────────────────────
 const loader = rd('public/js/function-usage.js');
 ok(/window\.FunctionUsage = \{/.test(loader), 'loader exposes window.FunctionUsage');
-for (const fn of ['ensureReady', 'lookup', 'isReady']) ok(loader.includes(fn + ':'), `loader exposes ${fn}`);
+for (const fn of ['ensureReady', 'lookup', 'lookupByPealimId', 'isReady']) ok(loader.includes(fn + ':'), `loader exposes ${fn}`);
 ok(/\/data\/usage\/function-usage\.v1\.json\?rev=/.test(loader), 'loader fetches the versioned store');
 
 for (const html of ['public/library.html', 'public/index.html']) {
   ok(/<script src="\/js\/function-usage\.js"><\/script>/.test(rd(html)), `${html} script-tags the loader`);
 }
 ok(/"\/js\/function-usage\.js"/.test(rd('public/sw.js')), 'sw precaches the loader');
-ok(/CACHE_VERSION = "v3\.11\.6[5-9]"/.test(rd('public/sw.js')), 'sw CACHE_VERSION bumped (>= v3.11.65)');
+const cacheVersion = (rd('public/sw.js').match(/\bCACHE_VERSION\s*=\s*"v3\.11\.(\d+)"/) || [])[1];
+ok(Number(cacheVersion) >= 65, 'sw CACHE_VERSION bumped (>= v3.11.65)');
 
 // ── 5. Pealim sense-id correctness (the homograph-link bug fix) ───────────────
 // Independently re-derive the correct sense from the offline dataset and assert the

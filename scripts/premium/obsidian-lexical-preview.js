@@ -49,6 +49,7 @@ function summary(report) {
     confidence_bands: report.confidence_bands,
     resolution_channels: report.resolution_channels,
     identity_guard_reasons: report.identity_guard_reasons,
+    pealim_identity_sources: report.pealim_identity_sources,
     resolution_queue: {
       schema: report.resolution_queue.schema,
       uncertain_occurrences: report.resolution_queue.uncertain_occurrences,
@@ -99,6 +100,7 @@ function packageSummary(plan) {
   const notesAdvanced = await readJson(zip, ["library/notes_advanced.json", "notes_advanced.json"], false);
   let ambiguityResolver = null;
   let pealimResolver = null;
+  let pealimIdentityResolver = null;
   if (!arg("no-resolve-ambiguity", false)) {
     const dataPath = path.resolve(__dirname, "../../public/data/inflection/pealim-infl-v12.json.gz");
     const data = JSON.parse(zlib.gunzipSync(fs.readFileSync(dataPath)).toString("utf8"));
@@ -106,10 +108,20 @@ function packageSummary(plan) {
     const pidMap = new Map((data.paradigms || []).filter((row) => row && row.pealim_id != null).map((row) => [String(row.pealim_id), row]));
     ambiguityResolver = (unit) => NotesAutoGen.formFirstResolve(maps, unit);
     pealimResolver = (pid) => pidMap.get(String(pid)) || null;
+    const usagePath = path.resolve(__dirname, "../../public/data/usage/function-usage.v1.json");
+    const usage = JSON.parse(fs.readFileSync(usagePath, "utf8")).usage || {};
+    const usageByPid = new Map();
+    for (const key of Object.keys(usage).sort()) {
+      const entry = usage[key] || {};
+      const id = entry.pealim_id == null ? "" : String(entry.pealim_id).trim();
+      if (!id) continue;
+      usageByPid.set(id, usageByPid.has(id) ? null : entry);
+    }
+    pealimIdentityResolver = ({ pealim_id }) => usageByPid.get(String(pealim_id)) || null;
   }
   const report = Preview.analyzeBundle(
     { library, notes_advanced: notesAdvanced },
-    { textId, title, ambiguityResolver, pealimResolver }
+    { textId, title, ambiguityResolver, pealimResolver, pealimIdentityResolver }
   );
   const out = arg("details", false) ? report : summary(report);
   if (arg("package-plan", false)) out.package_plan = packageSummary(Preview.planObsidianPackage(report));

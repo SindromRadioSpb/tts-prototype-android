@@ -123,6 +123,45 @@ test("conserves every uncertain occurrence in the visible resolution queue", () 
   assert.ok(report.resolution_queue.items.some((x) => x.reasons.includes("identity_guarded")));
 });
 
+test("uses an exact curated Pealim identity to correct bad dataset POS without weakening the guard", () => {
+  const input = fixture();
+  input.notes_advanced.notes.push({
+    id: "N4", note_type: "word_study", gen_dedup_key: "ff:את#preposition", source: "autogen", confidence: 0.91,
+    body_json: JSON.stringify({ word: "את", niqqud_variant: "אֶת", lemma: "את", pos: "preposition", meaning: "маркер прямого дополнения", pealim_id: "2710" })
+  });
+  input.notes_advanced.occurrences.push({ note_id: "N4", text_id: "T1", sentence_id: "R1", word_offset: 1, surface: "את" });
+  const pealimResolver = (id) => String(id) === "2710" ? { pealim_id: "2710", pos: "noun" } : null;
+
+  const raw = Preview.analyzeBundle(input, { textId: "T1", pealimResolver });
+  const rawAt = raw.resolution_queue.items.find((x) => x.surface === "את");
+  assert.ok(rawAt && rawAt.reasons.includes("identity_guarded"), "bad raw dataset POS must still fail closed");
+  assert.equal(rawAt.candidate_evidence[0].lemma, "את");
+  assert.equal(rawAt.candidate_evidence[0].lp_pos, "preposition");
+
+  const corrected = Preview.analyzeBundle(input, {
+    textId: "T1",
+    pealimResolver,
+    pealimIdentityResolver: ({ pealim_id }) => String(pealim_id) === "2710"
+      ? { pealim_id: "2710", pos: "particle", provenance: "function-usage-curated" }
+      : null
+  });
+  const at = corrected.lexemes.find((x) => x.lp_lexeme_id === "pid:2710");
+  assert.ok(at, "the exact Pealim sense remains the lexeme identity");
+  assert.equal(at.lp_pos, "preposition");
+  assert.equal(at.meaning_ru, "маркер прямого дополнения");
+  assert.equal(corrected.resolution_queue.items.some((x) => x.surface === "את"), false);
+  assert.equal(corrected.counts.verified_pealim_identity_occurrences, 1);
+  assert.equal(corrected.pealim_identity_sources["function-usage-curated"], 1);
+
+  const mismatched = Preview.analyzeBundle(input, {
+    textId: "T1",
+    pealimResolver,
+    pealimIdentityResolver: () => ({ pealim_id: "999", pos: "particle", provenance: "wrong-id" })
+  });
+  assert.ok(mismatched.resolution_queue.items.some((x) => x.surface === "את" && x.reasons.includes("identity_guarded")),
+    "a curated record for another Pealim id must never suppress the guard");
+});
+
 test("turns an unparsed token into a contextual queue item instead of a hidden skip", () => {
   const input = fixture();
   input.notes_advanced.sentence_morph[0].tokens.push({ word: "—", posDicta: "punctuation" });
