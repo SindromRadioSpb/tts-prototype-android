@@ -19,14 +19,17 @@ function arg(name, fallback) {
   const baseUrl = arg('base-url', 'http://127.0.0.1:3107');
   const expectedVersion = arg('expected-version', '');
   const screenshot = arg('screenshot', '');
+  const locale = arg('locale', 'ru');
+  const viewportWidth = Number(arg('width', '380'));
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 380, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: viewportWidth, height: 844 } });
   const errors = [];
   page.on('pageerror', (error) => errors.push(String(error && error.message || error)));
 
   try {
     await page.goto(baseUrl.replace(/\/$/, '') + '/library.html?lexres-smoke=1#room=mytexts', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.LexicalResolutionUI && window.ObsidianLexicalPreview && window.LexicalResolutionService);
+    await page.evaluate((nextLocale) => window.appSetLocale(nextLocale), locale);
     const servedVersion = await page.evaluate(() => window.APP_VERSION || String(document.querySelector('#roomFooterVersion')?.textContent || '').replace(/^v/, ''));
     if (expectedVersion) assert.equal(servedVersion, expectedVersion);
 
@@ -78,17 +81,65 @@ function arg(name, fallback) {
         posTag: document.querySelector('[name="lp_pos"]')?.tagName,
         posValue: document.querySelector('[name="lp_pos"]')?.value,
         pealimValue: document.querySelector('[name="pealim_ref"]')?.value,
-        pealimOpen: document.querySelector('[data-pealim-open]')?.href
+        pealimOpen: document.querySelector('[data-pealim-open]')?.href,
+        title: document.querySelector('.lexres-title')?.textContent,
+        stats: Array.from(document.querySelectorAll('.lexres-count')).map((node) => node.textContent.trim()),
+        reasonLabels: Array.from(document.querySelectorAll('.lexres-reason')).map((node) => node.textContent.trim()),
+        actions: Array.from(document.querySelectorAll('.lexres-actions button')).map((node) => node.textContent.trim()),
+        searchTag: document.querySelector('.lexres-filter input[type="search"]')?.tagName,
+        reasonFilterTag: document.querySelector('.lexres-filter select')?.tagName,
+        tooltipCount: document.querySelectorAll('[role="tooltip"]').length,
+        brokenTooltipRefs: Array.from(document.querySelectorAll('[aria-describedby]')).filter((node) => !document.getElementById(node.getAttribute('aria-describedby'))).length,
+        unlabelledEditorFields: Array.from(document.querySelectorAll('.lexres-form input, .lexres-form select')).filter((node) => !node.labels || !node.labels.length).length,
+        undersizedPrimaryTargets: Array.from(document.querySelectorAll('.lexres-close, .lexres-button, .lexres-help, .lexres-context input, .lexres-technical summary, .lexres-pealim-open')).filter((node) => {
+          if (!node.checkVisibility()) return false;
+          const rect = node.getBoundingClientRect(); return rect.width < 24 || rect.height < 24;
+        }).length,
+        visibleTechnicalIds: Array.from(document.querySelectorAll('.lexres-technical code')).filter((node) => node.checkVisibility()).length,
+        dialogText: document.querySelector('.lexres-dialog')?.textContent
       };
     });
     assert.equal(before.editorBeforeContexts, true);
     assert.ok(before.editorTop < before.contextsTop, JSON.stringify(before));
     assert.ok(before.listScrollHeight > before.listClientHeight, JSON.stringify(before));
-    assert.match(before.candidateText || '', /נטע.*существительное.*pealim\.com\/ru\/dict\/7361/);
+    assert.match(before.candidateText || '', /נטע.*pealim\.com\/ru\/dict\/7361/);
     assert.equal(before.posTag, 'SELECT');
     assert.equal(before.posValue, 'noun');
     assert.match(before.pealimValue || '', /pealim\.com\/ru\/dict\/7361/);
     assert.match(before.pealimOpen || '', /pealim\.com\/ru\/dict\/7361/);
+    const expected = {
+      ru: { title: 'Слова, требующие проверки', stats: ['Нужно проверить', 'Проверено', 'Группы слов'], reason: 'Несколько вариантов', actions: ['Сохранить этот разбор', 'Вернуться позже', 'Ни один вариант не подходит'], impact: 'Что изменится', impactActions: ['Вернуться к проверке', 'Сохранить изменения'] },
+      en: { title: 'Words that need review', stats: ['Needs review', 'Reviewed', 'Word groups'], reason: 'Several possible analyses', actions: ['Save this analysis', 'Come back later', 'None of the suggestions fit'], impact: 'What will change', impactActions: ['Back to review', 'Save changes'] },
+      he: { title: 'מילים שדורשות בדיקה', stats: ['דורשים בדיקה', 'נבדקו', 'קבוצות מילים'], reason: 'כמה ניתוחים אפשריים', actions: ['שמירת הניתוח הזה', 'חזרה מאוחר יותר', 'אף הצעה אינה מתאימה'], impact: 'מה עומד להשתנות', impactActions: ['חזרה לבדיקה', 'שמירת השינויים'] }
+    }[locale];
+    assert.ok(expected, 'Unsupported smoke locale: ' + locale);
+    assert.equal(before.title, expected.title);
+    expected.stats.forEach((label) => assert.ok(before.stats.some((value) => value.includes(label)), JSON.stringify(before.stats)));
+    assert.ok(before.reasonLabels.some((value) => value.includes(expected.reason)), JSON.stringify(before.reasonLabels));
+    expected.actions.forEach((label) => assert.ok(before.actions.includes(label), JSON.stringify(before.actions)));
+    assert.equal(before.searchTag, 'INPUT');
+    assert.equal(before.reasonFilterTag, 'SELECT');
+    assert.ok(before.tooltipCount >= 10, String(before.tooltipCount));
+    assert.equal(before.brokenTooltipRefs, 0);
+    assert.equal(before.unlabelledEditorFields, 0);
+    assert.equal(before.undersizedPrimaryTargets, 0);
+    assert.equal(before.visibleTechnicalIds, 0);
+    assert.doesNotMatch(before.dialogText || '', /identity_guarded|unknown_pos|skipped_token|Occurrence|кластеры|impact|append-only|receipt|audit/i);
+
+    await page.locator('.lexres-filter input[type="search"]').fill('совпадений нет');
+    await page.waitForSelector('.lexres-list .lexres-empty');
+    await page.locator('.lexres-filter input[type="search"]').fill('Нета пришла');
+    await page.waitForSelector('.lexres-cluster[open]');
+
+    const help = page.locator('.lexres-count .lexres-help').first();
+    await help.focus();
+    await page.waitForTimeout(200);
+    const tooltipState = await help.evaluate((node) => ({
+      opacity: getComputedStyle(node.parentElement.querySelector('[role="tooltip"]')).opacity,
+      activeClass: document.activeElement && document.activeElement.className,
+      focusWithin: node.parentElement.matches(':focus-within')
+    }));
+    assert.equal(tooltipState.opacity, '1', JSON.stringify(tooltipState));
 
     await page.locator('.lexres-actions .lexres-primary').first().scrollIntoViewIfNeeded();
     await page.locator('.lexres-actions .lexres-primary').first().click();
@@ -99,12 +150,16 @@ function arg(name, fallback) {
       return {
         count: document.querySelector('.lexres-impact-count').textContent,
         ids: document.querySelectorAll('.lexres-impact-list code').length,
+        title: document.querySelector('.lexres-impact-title').textContent,
+        actions: Array.from(document.querySelectorAll('.lexres-impact-actions button')).map((node) => node.textContent.trim()),
         impactBeforeContexts: impact.compareDocumentPosition(contexts) === Node.DOCUMENT_POSITION_FOLLOWING,
         impactTop: impact.getBoundingClientRect().top,
         contextsTop: contexts.getBoundingClientRect().top
       };
     });
     assert.match(after.count, /1/);
+    assert.equal(after.title, expected.impact);
+    assert.deepEqual(after.actions, expected.impactActions);
     assert.equal(after.ids, 1);
     assert.equal(after.impactBeforeContexts, true);
     assert.ok(after.impactTop < after.contextsTop, JSON.stringify(after));
@@ -114,8 +169,15 @@ function arg(name, fallback) {
       fs.mkdirSync(path.dirname(target), { recursive: true });
       await page.screenshot({ path: target, fullPage: false });
     }
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('.lexres-dialog', { state: 'detached' });
     assert.deepEqual(errors, []);
-    console.log('lexical-resolution-browser-smoke: PASS', JSON.stringify({ version: servedVersion, before, after }));
+    console.log('lexical-resolution-browser-smoke: PASS', JSON.stringify({
+      version: servedVersion, locale, viewportWidth, title: before.title,
+      tooltips: before.tooltipCount, unlabelledEditorFields: before.unlabelledEditorFields,
+      undersizedPrimaryTargets: before.undersizedPrimaryTargets, contextViewport: before.listClientHeight,
+      contextContent: before.listScrollHeight, impact: after.count
+    }));
   } finally {
     await browser.close();
   }

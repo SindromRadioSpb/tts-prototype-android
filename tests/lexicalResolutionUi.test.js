@@ -41,6 +41,28 @@ test('candidate analysis carries the Pealim URL and canonical POS into the edito
   });
 });
 
+test('review reasons are learner-facing and never expose internal codes', () => {
+  const fallbackT = (_key, fallback) => fallback;
+  for (const code of ['identity_guarded', 'ambiguous', 'unknown_pos', 'collision', 'skipped_token']) {
+    const info = UI.reasonInfo(code, fallbackT);
+    assert.equal(info.code, code);
+    assert.ok(info.label.length > 4);
+    assert.ok(info.help.length > 12);
+    assert.doesNotMatch(info.label, /identity_guarded|ambiguous|unknown_pos|collision|skipped_token/);
+  }
+});
+
+test('word-group search ignores Hebrew vocalization and can filter by review reason', () => {
+  const cluster = {
+    surface: 'כל', niqqud: 'כָּל', reasons: ['collision'],
+    occurrences: [{ sentence_he_niqqud: 'כָּל הָעוֹלָם', sentence_ru: 'весь мир', meaning_ru: 'каждый' }]
+  };
+  assert.equal(UI.matchesClusterFilter(cluster, 'כל', 'all'), true);
+  assert.equal(UI.matchesClusterFilter(cluster, 'весь мир', 'all'), true);
+  assert.equal(UI.matchesClusterFilter(cluster, '', 'collision'), true);
+  assert.equal(UI.matchesClusterFilter(cluster, '', 'ambiguous'), false);
+});
+
 test('review editor and exact impact stay before the bounded context list', () => {
   const ui = fs.readFileSync(path.join(__dirname, '..', 'public/js/lexical-resolution-ui.js'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'public/css/lexical-resolution.css'), 'utf8');
@@ -49,5 +71,10 @@ test('review editor and exact impact stay before the bounded context list', () =
   assert.match(ui, /input\.name==='lp_pos'|name==='lp_pos'/);
   assert.match(ui, /document\.createElement\('select'\)|\$\('select'/);
   assert.match(ui, /room\.morph\.pos\./);
-  assert.match(css, /\.lexres-context-list\{[^}]*max-height:[^;}]+;[^}]*overflow:auto/);
+  assert.match(css, /\.lexres-context-list\s*\{[^}]*max-height:[^;}]+;[^}]*overflow:\s*auto/);
+  assert.match(ui, /role','tooltip/);
+  assert.match(ui, /aria-describedby/);
+  assert.match(ui, /search\.type='search'/);
+  assert.match(ui, /room\.resolution\.filterLabel/);
+  assert.doesNotMatch(ui, /Occurrence и кластеры|Контексты occurrence|Точный impact до записи|решение occurrence/);
 });

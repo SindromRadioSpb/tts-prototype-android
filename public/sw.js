@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.469";
+const CACHE_VERSION = "v3.11.470";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -96,7 +96,7 @@ const PRECACHE_URLS = [
   "/js/reader-core.js?v=402",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
-  "/css/lexical-resolution.css?v=3",
+  "/css/lexical-resolution.css?v=4",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",
@@ -119,7 +119,7 @@ const PRECACHE_URLS = [
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
   "/js/lexical-resolution-service.js?v=1",
-  "/js/lexical-resolution-ui.js?v=4",
+  "/js/lexical-resolution-ui.js?v=5",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
@@ -229,9 +229,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=198",
-  "/i18n/locales/en.js?v=198",
-  "/i18n/locales/he.js?v=198",
+  "/i18n/locales/ru.js?v=199",
+  "/i18n/locales/en.js?v=199",
+  "/i18n/locales/he.js?v=199",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
