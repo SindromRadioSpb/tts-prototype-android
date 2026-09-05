@@ -1,6 +1,7 @@
 # Repository reliability audit — 2026-09-06
 
-Status: local and clean-checkout gates passed; production convergence pending.
+Status: implementation, clean-checkout, CI and production gates passed for release 3.11.482.
+Implementation commit: `89a3f912d4c178f1ffdebc33981e803f491c2df9`.
 Source: `1500f19ee8985546cdcd96fdad39737822ba26e3`, `main`.
 Target release: `3.11.482`.
 
@@ -71,7 +72,33 @@ animation-frame callback wrapper. Tests now assert the replacement behavior; non
   test modules: 13 passed. System Python lacked FastAPI; rerunning in the existing project venv resolved it.
 - `room-audio-indicator-smoke.js --locale=he`: 19/19, isolated browser at 380px, synthetic local
   rows and mocked audio; screenshot inspected. This is not real-device or provider acceptance.
-- `git diff --check` passed. Production convergence remains the final release gate.
+- `git diff --check` and allowlist-only index review passed (45 implementation files).
+- [Linux CI run 33999751248](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/33999751248):
+  all steps passed, including 1334 contracts, API, import, learner sync, FSRS and browser memory canon.
+
+## Production evidence
+
+The normal `main` webhook deployed implementation commit `89a3f912`. SSH verified a single
+application container on that image, Node 22.23.2, sqlite3 6.0.1, Undici 6.28.1 and UUID 11.1.1.
+Repeated `/healthz` reads report app, DB and migrations ready; `/api/client-config` reports 3.11.482.
+Live `/sw.js`, `/index.html` and `/library.html` each returned 200 and matched local SHA-256 bytes.
+Two bounded import requests for loopback IPv4 and expanded IPv6 returned HTTP 400 / `PRIVATE_ADDR`.
+No provider, account, publication or owner-profile changes were made by these checks.
+
+Fresh production browser gate: 19/19, Hebrew RTL 380px, reload persistence, no page errors.
+Audio is mocked and local rows are synthetic; this does not claim live BYOK audio acceptance.
+The first browser attempt during release transition timed out waiting for `ensureLocalDB`.
+An isolated Chrome DevTools check found the function and current version; the complete retry passed.
+The timeout cause was not conclusively established. Expected unauthenticated 401 and retired
+server-library 410 responses were distinguished from script/resource failures.
+
+Deployment temporarily raised disk utilization from 90% to 99%. `docker system df` identified
+unused build cache. A 24-hour-filtered prune removed 0B; the subsequent dangling/unused build-cache
+prune reclaimed 3.744 GB. No image, production container or volume was pruned. After ordinary
+Coolify handover completed, disk use was 89%, about 4.0 GiB free. The health endpoint still flags
+disk pressure at that level; long-term capacity remains an operational risk, not a resolved issue.
+The release evidence follow-up is documentation/screenshot-only; any subsequent deployment must
+converge on its exact commit before final owner handoff.
 
 ## Dependencies, limits and source references
 
@@ -89,5 +116,5 @@ Runtime support: [Node.js EOL schedule](https://nodejs.org/en/about/eol).
 
 This is a broad risk-based audit, not proof that every feature is defect-free. Physical iPhone/AT
 acceptance, live paid-provider linguistic quality, owner OAuth/MCP acceptance, production backup
-restore drills and uninspected background integrations are not claimed. Disk-pressure cleanup is
-not part of this repository change; existing images/volumes/owner data are preserved.
+restore drills and uninspected background integrations are not claimed. Only rebuildable unused
+build cache was cleared during deployment; current/rollback images, volumes and owner data were preserved.

@@ -14,3 +14,9 @@ Reproducible repository checks: `npm ci`, `npm test` (1334/1334),
 `npm run smoke:memory-canon` (89/89), `npm audit` (0 vulnerabilities).
 Use Node 22, Python 3.12+ and `npx playwright install chromium`.
 The scripts use disposable storage; these commands do not constitute production owner acceptance.
+
+`production/room-audio-indicator-he-380.png` repeats the same 19/19 gate against
+`https://linguistpro.kolosei.com`, release 3.11.482, implementation commit `89a3f912`.
+The production screenshot was visually inspected. The first attempt timed out before local DB
+bootstrap; isolated inspection and the complete retry passed. Audio remained mocked throughout.
+Production HTTP shell bytes matched the release; private IPv4/IPv6 import targets were rejected.
