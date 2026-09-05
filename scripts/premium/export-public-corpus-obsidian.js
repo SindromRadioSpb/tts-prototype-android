@@ -54,7 +54,7 @@ async function zipPlan(plan, bytesByKey, outputPath) {
   const verified = await JSZip.loadAsync(fs.readFileSync(outputPath));
   const files = Object.values(verified.files).filter(entry => !entry.dir);
   invariant(files.length === plan.would_create_files, "ZIP_FILE_COUNT_MISMATCH");
-  invariant(files.some(entry => /_LinguistPro\/texts\/[^/]+\/Текст\.md$/.test(entry.name)), "ZIP_TEXT_HUB_MISSING");
+  invariant(files.some(entry => /_LinguistPro\/Тексты\/[^/]+\/Текст\.md$/.test(entry.name)), "ZIP_TEXT_HUB_MISSING");
   return { bytes: output.length, files: files.length };
 }
 
@@ -80,6 +80,16 @@ async function zipPlan(plan, bytesByKey, outputPath) {
   invariant(publicationManifest.slug === catalog.slug && publicationManifest.edition_id === catalog.edition.edition_id && publicationManifest.items.length === catalog.items.length, "SOURCE_EDITION_MISMATCH");
   if (rawCatalog.edition && rawCatalog.edition.package_sha256) invariant(sha256(sourcePackage) === rawCatalog.edition.package_sha256, "SOURCE_PACKAGE_SHA256_MISMATCH");
   const manifestByWork = new Map(publicationManifest.items.map(item => [String(item.public_work_id), item]));
+  const titleCounts = new Map();
+  for (const card of catalog.items) {
+    const title = safeName(card.title);
+    titleCounts.set(title, (titleCounts.get(title) || 0) + 1);
+  }
+  const textFolderByWork = new Map(catalog.items.map(card => {
+    const title = safeName(card.title);
+    const folder = titleCounts.get(title) === 1 ? title : `${title} — ${String(card.position_no).padStart(3, "0")}`;
+    return [String(card.public_work_id), folder];
+  }));
   const resolvers = resolverSet(), audioBytes = new Map(), plans = [], items = [], failures = [];
   async function loadAudio(key, expected) {
     if (audioBytes.has(key)) return audioBytes.get(key);
@@ -98,16 +108,17 @@ async function zipPlan(plan, bytesByKey, outputPath) {
       const work = PublicCorpusAdapter.normalizeWork(raw), bundle = PublicCorpusAdapter.prepareImportBundle(raw);
       const text = bundle.library.texts[0];
       const report = Preview.analyzeBundle(bundle, Object.assign({ textId: String(text.text_id || text.id) }, resolvers));
-      const draft = Preview.planObsidianPackage(report), meta = new Map(work.assets.map(asset => [asset.asset_key, asset]));
+      const textFolderName = textFolderByWork.get(String(card.public_work_id));
+      const draft = Preview.planObsidianPackage(report, { textFolderName }), meta = new Map(work.assets.map(asset => [asset.asset_key, asset]));
       const audioResults = await Promise.all(draft.audio_plan.assets.map(async asset => {
         try { const bytes = await loadAudio(asset.asset_key, meta.get(asset.asset_key) && meta.get(asset.asset_key).sha256); return { asset_key: asset.asset_key, status: "included", size_bytes: bytes.length }; }
         catch (error) { return { asset_key: asset.asset_key, status: "missing", reason: String(error.code || error.message || "AUDIO_UNAVAILABLE") }; }
       }));
-      const plan = Preview.planObsidianPackage(report, { audioResults }); plans.push(plan);
+      const plan = Preview.planObsidianPackage(report, { audioResults, textFolderName }); plans.push(plan);
       const filename = String(index + 1).padStart(3, "0") + " — " + safeName(card.title) + ".zip";
       const outputPath = path.join(outputRoot, "Архивы по текстам", filename);
       const zipped = await zipPlan(plan, audioBytes, outputPath);
-      const row = { position_no: card.position_no, public_work_id: card.public_work_id, title: card.title, text_id: plan.text_id,
+      const row = { position_no: card.position_no, public_work_id: card.public_work_id, title: card.title, text_id: plan.text_id, text_folder: plan.text_folder,
         archive: path.relative(outputRoot, outputPath), archive_bytes: zipped.bytes, files: zipped.files,
         phrases: report.text.rows_total, lexemes: report.counts.unique_lexemes, unresolved: report.counts.queued_uncertain_occurrences,
         audio_expected: plan.receipt.audio.expected_count, audio_included: plan.receipt.audio.included_count, audio_missing: plan.receipt.audio.missing_count };
@@ -129,6 +140,6 @@ async function zipPlan(plan, bytesByKey, outputPath) {
     "- `" + path.basename(mergedPath) + "` — единое масштабируемое хранилище: общие словарные карточки и одинаковое аудио записаны один раз.",
     "- `_Снимок опубликованной редакции/corpus.zip` — исходный неизменяемый пакет редакции, из которого построены все архивы.",
     "- `manifest.json` — проверяемый перечень архивов, размеров, лексики, очереди морфологии и аудио.", "",
-    "Откройте `_LinguistPro/Корпус.md`, затем выберите текст и его `Учебный маршрут.md`. Личные заметки храните вне `_LinguistPro`.", ""].join("\n"));
+    "Откройте `_LinguistPro/Корпус.md`, затем выберите текст в папке `_LinguistPro/Тексты/<название карточки>` и его `Учебный маршрут.md`. Технический ID хранится только в свойствах и служебных квитанциях. Личные заметки храните вне `_LinguistPro`.", ""].join("\n"));
   console.log(JSON.stringify(manifest.counts));
 })().catch(error => { console.error("[public-corpus-obsidian]", error && error.stack || error); process.exit(1); });

@@ -225,6 +225,14 @@
     if (!slug) slug = "lexeme";
     return slug + "-" + fnv1a(id) + ".md";
   }
+  function safePathSegment(value, fallback) {
+    var raw = str(value || fallback || "Текст");
+    try { raw = raw.normalize("NFC"); } catch (_) {}
+    var cleaned = raw.replace(/[<>:"/\\|?*\u0000-\u001f]/g, " ")
+      .replace(/\s+/g, " ").replace(/[. ]+$/g, "").trim().slice(0, 120);
+    if (!cleaned || cleaned === "." || cleaned === "..") cleaned = str(fallback) || "Текст";
+    return cleaned;
+  }
   function occurrenceId(textId, rowId, wordOffset) {
     return "lpro:" + str(textId) + ":" + str(rowId) + ":" + String(wordOffset);
   }
@@ -465,7 +473,7 @@
     if (!slug) slug = "audio";
     return slug + "-" + fnv1a(raw) + ".mp3";
   }
-  function audioPath(assetKey) { return "_LinguistPro/media/audio/" + safeAudioFileName(assetKey); }
+  function audioPath(assetKey) { return "_LinguistPro/Аудио/" + safeAudioFileName(assetKey); }
   function buildAudioPlan(report, audioResults) {
     var resultByKey = new Map();
     (Array.isArray(audioResults) ? audioResults : []).forEach(function (result) {
@@ -628,7 +636,12 @@
     var url = pealimUrl(lexeme.pealim_id);
     var study = lexeme.study_forms;
     var dictionaryLabel = str(study && (study.lemma_niqqud || study.lemma));
-    var headword = str(lexeme.headword);
+    // A shared reference belongs to the Pealim sense, never to the contextual
+    // POS chosen for one sentence. Recompute its headword only from the
+    // canonical paradigm so the same Pealim ID is byte-identical in every text.
+    var referencePos = normalizePos(study && study.pos, study && study.kind);
+    var referenceHeadword = learnerHeadword(study, dictionaryLabel, referencePos, study && study.root);
+    var headword = str(referenceHeadword.value);
     var title = headword || dictionaryLabel || lexeme.analysis_lemma || lexeme.lp_lexeme_id;
     var lines = [
       "---",
@@ -637,10 +650,10 @@
       "cssclasses: [linguistpro-study]",
       "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
       "lemma: " + yaml(headword),
-      "lemma_unpointed: " + yaml(lexeme.headword_unpointed),
+      "lemma_unpointed: " + yaml(referenceHeadword.unpointed),
       "headword: " + yaml(headword),
-      "headword_unpointed: " + yaml(lexeme.headword_unpointed),
-      "headword_source: " + yaml(lexeme.headword_source),
+      "headword_unpointed: " + yaml(referenceHeadword.unpointed),
+      "headword_source: " + yaml(referenceHeadword.source),
       "dictionary_entry_label: " + yaml(dictionaryLabel),
       "lexical_pos: " + yaml(study && study.pos),
       "root: " + yaml(study && study.root),
@@ -902,7 +915,7 @@
     if (first.morph_model_version) lines.push("", "Модель морфологии: `" + first.morph_model_version + "`.");
     return lines.join("\n") + "\n";
   }
-  function renderResolutionQueueIndex(report, pathByClusterId) {
+  function renderResolutionQueueIndex(report, pathByClusterId, textRoot) {
     var activeCount = report.counts.active_resolution_occurrences != null
       ? report.counts.active_resolution_occurrences
       : report.counts.uncertain_occurrences;
@@ -919,7 +932,7 @@
     ];
     report.resolution_queue.clusters.forEach(function (cluster) {
       var clusterPath = pathByClusterId.get(cluster.lp_resolution_cluster_id);
-      var textPrefix = "_LinguistPro/texts/" + report.text.text_id + "/";
+      var textPrefix = textRoot;
       var target = (clusterPath.indexOf(textPrefix) === 0 ? clusterPath.slice(textPrefix.length) : clusterPath)
         .replace(/\.md$/, "");
       lines.push("- [[" + target + "|" + markdownInline(cluster.niqqud || cluster.surface || cluster.lp_resolution_cluster_id) + "]] — " +
@@ -927,7 +940,7 @@
     });
     return lines.join("\n") + "\n";
   }
-  function renderSnapshot(report, pathById) {
+  function renderSnapshot(report, pathById, textRoot) {
     var byPos = {};
     POS_ORDER.forEach(function (pos) { byPos[pos] = []; });
     report.lexemes.forEach(function (lexeme) { byPos[lexeme.lp_pos].push(lexeme); });
@@ -940,7 +953,7 @@
         var label = lexeme.headword || forms[0] || lexeme.analysis_lemma || lexeme.lp_lexeme_id;
         var url = pealimUrl(lexeme.pealim_id);
         var lexemePath = pathById.get(lexeme.lp_lexeme_id);
-        var textPrefix = "_LinguistPro/texts/" + report.text.text_id + "/";
+        var textPrefix = textRoot;
         var target = (lexemePath.indexOf(textPrefix) === 0 ? lexemePath.slice(textPrefix.length) : lexemePath)
           .replace(/\.md$/, "");
         lines.push("- " + (forms.length ? forms.map(markdownInline).join(", ") + " → " : "") + "[[" + target + "|" + markdownInline(label) + "]]" +
@@ -1149,9 +1162,10 @@
       "> Выберите текст в таблице ниже. Внутри него откройте «Учебный маршрут», затем занимайтесь небольшими блоками фраз.", "",
       "![[Библиотека.base]]", "",
       "## Где что хранится", "",
-      "- **texts** — независимые учебные пространства текстов: фразы, локальные значения, очередь проверки.",
-      "- **reference/lexemes** — общий справочник проверенных словарных парадигм; один Pealim ID — один переиспользуемый файл.",
-      "- **media/audio** — общий дедуплированный аудиокэш.",
+      "- **Тексты/<название карточки>** — независимые учебные пространства: фразы, лексика и очередь проверки. Название папки совпадает с названием карточки, а технический ID хранится только в свойствах.",
+      "- **Словарь** — общий справочник проверенных словарных парадигм; одна карточка Pealim переиспользуется во всех текстах.",
+      "- **Аудио** — общий дедуплированный аудиокэш.",
+      "- **Служебное** — проверяемые квитанции и машинные снимки; для обычного занятия открывать эту папку не нужно.",
       "- **Личные заметки** создавайте вне служебной папки LinguistPro, чтобы повторный экспорт их не заменил.", "",
       "## Канонические роли", "",
       "Морфологию, значение в карточке и FSRS меняйте в LinguistPro. Obsidian служит для чтения, связей, конспектов и собственного журнала ошибок.", ""
@@ -1184,7 +1198,9 @@
   function planObsidianPackage(report, opts) {
     opts = opts || {};
     if (!report || report.schema !== "linguistpro-obsidian-lexical-preview-v1") throw new Error("A lexical preview report is required");
-    var root = "_LinguistPro/texts/" + report.text.text_id + "/";
+    var textFolder = safePathSegment(opts.textFolderName || report.text.title, report.text.text_id);
+    var root = "_LinguistPro/Тексты/" + textFolder + "/";
+    var serviceRoot = "_LinguistPro/Служебное/" + textFolder + "/";
     var pathById = new Map(), referencePathById = new Map(), pathByClusterId = new Map(), usedPaths = new Set();
     var audioPlan = buildAudioPlan(report, opts.audioResults);
     var includedAudioByKey = new Map(audioPlan.assets.filter(function (asset) { return asset.status === "included"; })
@@ -1196,7 +1212,7 @@
       if (usedPaths.has(path)) throw new Error("Lexeme path collision: " + path);
       usedPaths.add(path); pathById.set(lexeme.lp_lexeme_id, path);
       if (lexeme.pealim_id && lexeme.study_forms) {
-        var referencePath = "_LinguistPro/reference/lexemes/" + name;
+        var referencePath = "_LinguistPro/Словарь/" + name;
         if (usedPaths.has(referencePath)) throw new Error("Lexeme reference path collision: " + referencePath);
         usedPaths.add(referencePath); referencePathById.set(lexeme.lp_lexeme_id, referencePath);
       }
@@ -1227,16 +1243,16 @@
     add(root + "Фокус на лексику.md", renderLexicalFocus(report, pathById), "lexical-focus");
     add(root + "Лексика.base", base, "base");
     add(root + "Разбор.base", resolutionBase, "resolution-base");
-    add(root + "Лексика — переносимый снимок.md", renderSnapshot(report, pathById), "snapshot");
-    add(root + "Очередь разбора.md", renderResolutionQueueIndex(report, pathByClusterId), "resolution-index");
+    add(root + "Лексика — переносимый снимок.md", renderSnapshot(report, pathById, root), "snapshot");
+    add(root + "Очередь разбора.md", renderResolutionQueueIndex(report, pathByClusterId, root), "resolution-index");
     add(root + "Фразы.md", renderPhrasesIndex(report, phrases.chunks), "phrases-index");
     var byRow = lexemesByRow(report);
     phrases.chunks.forEach(function (chunk) { add(chunk.path, renderPhraseChunk(report, chunk, includedAudioByKey, pathById, byRow), "phrases-chunk"); });
-    add(root + "occurrences.tsv", renderOccurrencesTsv(report), "occurrences");
-    add(root + "resolution-occurrences.tsv", renderResolutionOccurrencesTsv(report), "resolution-occurrences");
+    add(serviceRoot + "occurrences.tsv", renderOccurrencesTsv(report), "occurrences");
+    add(serviceRoot + "resolution-occurrences.tsv", renderResolutionOccurrencesTsv(report), "resolution-occurrences");
     var audit = resolutionAuditOf(report);
-    add(root + "resolution-audit.json", JSON.stringify(audit, null, 2) + "\n", "resolution-audit");
-    add(root + "projection.json", JSON.stringify(report, null, 2) + "\n", "projection");
+    add(serviceRoot + "resolution-audit.json", JSON.stringify(audit, null, 2) + "\n", "resolution-audit");
+    add(serviceRoot + "projection.json", JSON.stringify(report, null, 2) + "\n", "projection");
     var beforeReceiptBytes = files.reduce(function (sum, file) { return sum + file.bytes; }, 0);
     var receipt = {
       schema: "linguistpro-obsidian-receipt-v2", read_only_preview: true,
@@ -1260,7 +1276,7 @@
       }
     };
     receipt.resolution_transitions = resolutionTransitions(opts.previousReceipt, receipt.resolution_snapshot);
-    add(root + "receipt.json", JSON.stringify(receipt, null, 2) + "\n", "receipt");
+    add(serviceRoot + "receipt.json", JSON.stringify(receipt, null, 2) + "\n", "receipt");
     files.sort(function (a, b) { return a.path.localeCompare(b.path); });
     var byKind = {};
     files.forEach(function (file) { byKind[file.kind] = (byKind[file.kind] || 0) + 1; });
@@ -1271,6 +1287,8 @@
       schema: "linguistpro-obsidian-package-plan-v2", read_only: true,
       text_id: report.text.text_id,
       text_title: report.text.title,
+      text_folder: textFolder,
+      text_path: root.slice(0, -1),
       would_create_files: files.length + externalFiles.length,
       would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0) + receipt.audio.included_bytes,
       files_by_kind: byKind,
@@ -1289,8 +1307,9 @@
     var byPath = new Map(), externalByPath = new Map(), texts = [];
     plans.forEach(function (plan) {
       if (!plan || plan.schema !== "linguistpro-obsidian-package-plan-v2") throw new Error("Obsidian package plan v2 is required");
-      texts.push({ text_id: str(plan.text_id), title: str(plan.text_title),
-        files: (plan.files || []).filter(function (file) { return file.path.indexOf("_LinguistPro/texts/" + plan.text_id + "/") === 0; }).length,
+      var textPath = str(plan.text_path) || ("_LinguistPro/Тексты/" + safePathSegment(plan.text_title, plan.text_id));
+      texts.push({ text_id: str(plan.text_id), title: str(plan.text_title), text_path: textPath,
+        files: (plan.files || []).filter(function (file) { return file.path.indexOf(textPath + "/") === 0; }).length,
         audio_expected: Number(plan.receipt && plan.receipt.audio && plan.receipt.audio.expected_count || 0),
         audio_included: Number(plan.receipt && plan.receipt.audio && plan.receipt.audio.included_count || 0),
         unresolved: Number(plan.receipt && plan.receipt.active_resolution_occurrences || 0) });
@@ -1311,7 +1330,10 @@
     var hub = ["---", "type: lp-corpus-index", "lp_schema: 3", "managed_by: linguistpro", "---", "", "# " + corpusTitle, "",
       "> [!tip] Как пользоваться коллекцией", "> Откройте текст, затем «Учебный маршрут». Общие словарные карточки и одинаковые аудиофайлы хранятся один раз.", "",
       "Всего текстов: **" + texts.length + "**.", "", "![[Библиотека.base]]", "", "## Тексты", ""];
-    texts.forEach(function (text) { hub.push("- [[texts/" + text.text_id + "/Текст|" + markdownInline(text.title || text.text_id) + "]] · фраз и лексики: в карточке · аудио " + text.audio_included + "/" + text.audio_expected + " · требуют проверки " + text.unresolved); });
+    texts.forEach(function (text) {
+      var target = text.text_path.replace(/^_LinguistPro\//, "") + "/Текст";
+      hub.push("- [[" + target + "|" + markdownInline(text.title || text.text_id) + "]] · фраз и лексики: в карточке · аудио " + text.audio_included + "/" + text.audio_expected + " · требуют проверки " + text.unresolved);
+    });
     var manifest = { schema: "linguistpro-obsidian-corpus-manifest-v1", title: corpusTitle, text_count: texts.length,
       file_count_before_manifest: byPath.size + externalByPath.size + 1, texts: texts };
     var generated = [
@@ -1459,6 +1481,20 @@
         if (!alternatives.length && resolverResult && Array.isArray(resolverResult.alts)) alternatives = resolverResult.alts;
         var ambiguous = hasAmbiguitySignal && !!(body.ambiguous || token.ambiguous || alternatives.length || (resolverResult && resolverResult.ambiguous));
         var channel = str(body.resolution_channel || body.channel || (linked && linked.source) || "raw-morph");
+        var resolverPealimId = str(resolverResult && (resolverResult.pealim_id || resolverResult.id));
+        var exactFormResolutionAdopted = false;
+
+        // The shared form-first resolver only returns `ambiguous: false` when the
+        // fully vocalized token is a cell of exactly one compatible Pealim
+        // paradigm. That is stronger evidence than Dicta's root-like lemma and
+        // is the same evidence used by the in-app morphology card. Adopt it so
+        // the Obsidian projection cannot lose a known infinitive merely because
+        // an older word note was absent.
+        if (!pealimId && resolverPealimId && resolverResult && !resolverResult.ambiguous) {
+          pealimId = resolverPealimId;
+          exactFormResolutionAdopted = true;
+          channel = "form-first-exact";
+        }
 
         // A dictionary note can be correct for its own sense and still be wrong
         // for this context (נטע person vs נטע plant; דרך preposition vs noun).
@@ -1468,6 +1504,7 @@
         if (pealimId && typeof opts.pealimResolver === "function") {
           try { pealimEvidence = opts.pealimResolver(pealimId) || null; } catch (_) { pealimEvidence = null; }
         }
+        if (exactFormResolutionAdopted && pealimEvidence && !meaning) meaning = str(pealimEvidence.meaning);
         var verifiedPealimIdentity = null;
         if (typeof opts.pealimIdentityResolver === "function") {
           try {
@@ -1504,7 +1541,6 @@
         }
         var rawPealimPos = str(pealimEvidence && pealimEvidence.pos);
         var structuralPealim = paradigmPos(pealimEvidence);
-        var resolverPealimId = str(resolverResult && (resolverResult.pealim_id || resolverResult.id));
         var exactFormIdentity = !!(pealimId && resolverPealimId === pealimId && resolverResult && !resolverResult.ambiguous);
         if ((pos === "unknown" || pos === "other") && exactFormIdentity &&
             (structuralPealim.pos === "verb" || structuralPealim.pos === "adjective" || structuralPealim.pos === "preposition")) {

@@ -44,6 +44,14 @@ function regexpEscape(value) { return String(value || "").replace(/[.*+?^${}()|[
   const names = entries.map((entry) => normalizeZipPath(entry.name));
   const nameSet = new Set(names);
   if (nameSet.size !== names.length) fail("duplicate normalized paths");
+  const textFolders = Array.from(new Set(names.map((name) => {
+    const match = name.match(/^_LinguistPro\/Тексты\/([^/]+)\//);
+    return match ? match[1] : "";
+  }).filter(Boolean)));
+  if (textFolders.length !== 1) fail("archive must expose exactly one human-named text folder");
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(textFolders[0])) {
+    fail("learner-facing text folder is a UUID");
+  }
 
   const receiptEntry = entries.find((entry) => /\/receipt\.json$/.test(entry.name));
   const projectionEntry = entries.find((entry) => /\/projection\.json$/.test(entry.name));
@@ -81,13 +89,13 @@ function regexpEscape(value) { return String(value || "").replace(/[.*+?^${}()|[
   if (exposedIds.length) fail("technical UUID visible in learner body: " + exposedIds.slice(0, 5).join(", "));
   if (unsafeMarkup.length) fail("unsafe imported markup visible in learner body: " + unsafeMarkup.slice(0, 5).join(", "));
 
-  const references = entries.filter((entry) => /_LinguistPro\/reference\/lexemes\/.+\.md$/.test(entry.name));
+  const references = entries.filter((entry) => /_LinguistPro\/Словарь\/.+\.md$/.test(entry.name));
   for (const entry of references) {
     const markdown = await entry.async("string");
     if (/lp_occurrence|Примеры из текста/.test(markdown)) fail("shared reference contains text-specific context: " + entry.name);
     if (!/inflection_source: pealim/.test(markdown)) fail("shared reference lacks Pealim provenance: " + entry.name);
   }
-  const textLexemes = entries.filter((entry) => /_LinguistPro\/texts\/[^/]+\/Лексемы\/.+\.md$/.test(entry.name));
+  const textLexemes = entries.filter((entry) => /_LinguistPro\/Тексты\/[^/]+\/Лексемы\/.+\.md$/.test(entry.name));
   if (textLexemes.length !== projection.counts.unique_lexemes) fail("text lexeme conservation mismatch");
   const pathByLexemeId = new Map();
   for (const entry of textLexemes) {
@@ -101,7 +109,7 @@ function regexpEscape(value) { return String(value || "").replace(/[.*+?^${}()|[
       fail("text lexeme lacks explicit headword or surface forms: " + entry.name);
     }
   }
-  const phraseBodies = (await Promise.all(entries.filter((entry) => /_LinguistPro\/texts\/[^/]+\/Фразы\/.+\.md$/.test(entry.name))
+  const phraseBodies = (await Promise.all(entries.filter((entry) => /_LinguistPro\/Тексты\/[^/]+\/Фразы\/.+\.md$/.test(entry.name))
     .map((entry) => entry.async("string")))).join("\n");
   for (const lexeme of projection.lexemes || []) {
     const headword = String(lexeme.headword || "");
@@ -127,13 +135,13 @@ function regexpEscape(value) { return String(value || "").replace(/[.*+?^${}()|[
     if (!occurrenceHeader.split("\t").includes(column)) fail("occurrences.tsv missing column: " + column);
   }
 
-  const audioEntries = entries.filter((entry) => /_LinguistPro\/media\/audio\/.+\.mp3$/.test(entry.name));
+  const audioEntries = entries.filter((entry) => /_LinguistPro\/Аудио\/.+\.mp3$/.test(entry.name));
   if (audioEntries.length !== receipt.audio.included_count) fail("included audio count mismatch");
   if (audioEntries.some((entry) => /[:*?"<>|]/.test(posix.basename(entry.name)))) fail("Windows-unsafe audio filename");
   if (receipt.audio.pending_count !== 0) fail("materialized archive has pending audio");
   if (embeddedAudio < receipt.audio.included_count) fail("included audio is not reachable from phrase notes");
 
-  const verbReference = zip.file("_LinguistPro/reference/lexemes/pid-2321.md");
+  const verbReference = zip.file("_LinguistPro/Словарь/pid-2321.md");
   if (verbReference) {
     const markdown = await verbReference.async("string");
     for (const field of ["form_infinitive:", "form_present_ms:", "form_present_fs:", "form_present_mp:", "form_present_fp:"]) {

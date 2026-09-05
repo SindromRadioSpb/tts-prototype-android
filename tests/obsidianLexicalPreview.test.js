@@ -100,6 +100,44 @@ test("builds a per-text reference index and collapses repeated occurrences", () 
   assert.deepEqual(houses.occurrences.map((x) => x.row_id), ["R1", "R2"]);
 });
 
+test("promotes a unique exact vocalized form match into a learner-facing Pealim headword", () => {
+  const input = fixture();
+  input.library.texts[0].title = "אושר כהן - כולם גנבים";
+  input.library.texts[0].rows = [{
+    row_id: "R1", order_index: 0, hebrew_plain: "תסתכלי לי בעיניים",
+    hebrew_niqqud: "תִּסְתַּכְּלִי לִי בָּעֵינַיִם", russian: "Посмотри мне в глаза"
+  }];
+  input.notes_advanced.notes = [];
+  input.notes_advanced.occurrences = [];
+  input.notes_advanced.sentence_morph = [{
+    text_id: "T1", sentence_id: "R1", model_version: "dicta-morph-v2", tokens: [{
+      word: "תסתכלי", niqqud: "תִּסְתַּכְּלִי", lemma: "סכל", stem: "סכל",
+      posDicta: "verb", binyan: "hitpael"
+    }]
+  }];
+  const paradigm = {
+    pealim_id: "1352", pealim_url: "https://www.pealim.com/ru/dict/1352-/",
+    model_version: "pealim-infl-v12", source: "pealim", kind: "verb", pos: "verb",
+    lemma: "להסתכל", lemma_niqqud: "לְהִסְתַּכֵּל", root: "סכל", binyan: "hitpael",
+    meaning: "смотреть, созерцать, наблюдать (ב־)", cells: {
+      "INF-L": { he: "לְהִסְתַּכֵּל" }, "IMPF-2fs": { he: "תִּסְתַּכְּלִי" }
+    }
+  };
+  const report = Preview.analyzeBundle(input, {
+    textId: "T1",
+    ambiguityResolver: () => ({ pealim_id: "1352", meaning: paradigm.meaning, ambiguous: false, alts: [] }),
+    pealimResolver: (id) => String(id) === "1352" ? paradigm : null
+  });
+  const lexeme = report.lexemes.find((row) => row.pealim_id === "1352");
+  assert.ok(lexeme, "the unique exact form must become the stable Pealim lexeme");
+  assert.equal(lexeme.headword, "לְהִסְתַּכֵּל");
+  assert.equal(lexeme.meaning_ru, paradigm.meaning);
+  assert.equal(report.resolution_queue.items.some((item) => item.surface === "תסתכלי"), false);
+  const note = Preview.planObsidianPackage(report).files.find((file) => file.kind === "text-lexeme").content;
+  assert.match(note, /\*\*Начальная форма:\*\* לְהִסְתַּכֵּל/);
+  assert.match(note, /https:\/\/www\.pealim\.com\/ru\/dict\/1352\//);
+});
+
 test("keeps ambiguity visible and does not turn the reference index into learning state", () => {
   const report = Preview.analyzeBundle(fixture(), { title: "Кфар Аза" });
   assert.equal(report.counts.ambiguous_occurrences, 1);
@@ -308,6 +346,9 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   assert.equal(first.would_create_files, first.files.length + first.external_files.length);
   assert.equal(new Set(first.files.map((x) => x.path)).size, first.files.length);
   assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/") || x.path === ".obsidian/snippets/linguistpro-study-v3.css"));
+  assert.ok(first.files.some((x) => x.path.startsWith("_LinguistPro/Тексты/Кфар Аза - 2/")));
+  assert.ok(first.files.every((x) => !x.path.startsWith("_LinguistPro/texts/T1/")), "UUID/text_id must not be a learner-facing folder");
+  assert.ok(first.files.some((x) => x.path.startsWith("_LinguistPro/Служебное/Кфар Аза - 2/")));
   assert.match(first.base_preview, /name: "Глаголы"/);
   assert.match(first.base_preview, /note\.lp_text_id == "T1"/);
   assert.match(first.resolution_base_preview, /note\.type == "lp-resolution-cluster"/);
@@ -578,6 +619,7 @@ test("builds separate reusable references and per-text study notes without cross
   const makeReport = (textId, rowId, sentence) => {
     const input = fixture();
     input.library.texts[0].text_id = textId;
+    input.library.texts[0].title = "Учебный текст " + textId;
     input.library.texts[0].rows[0].row_id = rowId;
     input.library.texts[0].rows[0].hebrew_niqqud = sentence;
     input.notes_advanced.occurrences.forEach((o) => { o.text_id = textId; if (o.sentence_id === "R1") o.sentence_id = rowId; });
@@ -591,14 +633,41 @@ test("builds separate reusable references and per-text study notes without cross
   const study1 = first.files.find((f) => f.kind === "text-lexeme" && /pid-2321\.md$/.test(f.path));
   const study2 = second.files.find((f) => f.kind === "text-lexeme" && /pid-2321\.md$/.test(f.path));
 
-  assert.equal(ref1.path, "_LinguistPro/reference/lexemes/pid-2321.md");
+  assert.equal(ref1.path, "_LinguistPro/Словарь/pid-2321.md");
   assert.equal(ref2.path, ref1.path);
   assert.equal(ref2.content, ref1.content, "same exact Pealim snapshot must produce the same shared reference file");
   assert.doesNotMatch(ref1.content, /שָׂרְפוּ אֶת הַבָּתִּים|lp_occurrence/);
-  assert.match(study1.path, /texts\/T1\/Лексемы\/pid-2321\.md$/);
-  assert.match(study2.path, /texts\/T2\/Лексемы\/pid-2321\.md$/);
+  assert.match(study1.path, /Тексты\/Учебный текст T1\/Лексемы\/pid-2321\.md$/);
+  assert.match(study2.path, /Тексты\/Учебный текст T2\/Лексемы\/pid-2321\.md$/);
   assert.match(study1.content, /שָׂרְפוּ אֶת הַבָּתִּים/);
   assert.match(study2.content, /שָׂרְפוּ אֶת הַבַּיִת/);
+});
+
+test("keeps a shared Pealim reference byte-identical across contextual noun/adjective readings", () => {
+  const paradigm = {
+    pealim_id: "3472", model_version: "pealim-infl-v12", source: "pealim",
+    kind: "adjective", pos: "adjective", lemma: "עיוור", lemma_niqqud: "עִיווֵּר",
+    root: "עור", meaning: "слепой", cells: {
+      "ms-a": { he: "עִוֵּר" }, "fs-a": { he: "עִוֶּרֶת" },
+      "mp-a": { he: "עִוְּרִים" }, "fp-a": { he: "עִוְּרוֹת" }
+    }
+  };
+  const make = (textId, title, contextualPos) => {
+    const input = fixture();
+    input.library.texts[0] = { text_id: textId, title, rows: [{
+      row_id: "R1", order_index: 0, hebrew_plain: "עיוור", hebrew_niqqud: "עִוֵּר", russian: "слепой"
+    }] };
+    input.notes_advanced.notes = [{ id: "N1", note_type: "word_study", source: "autogen",
+      body_json: JSON.stringify({ word: "עיוור", niqqud_variant: "עִוֵּר", lemma: "עיוור",
+        pos: contextualPos, meaning: "слепой", pealim_id: "3472" }) }];
+    input.notes_advanced.occurrences = [{ note_id: "N1", text_id: textId, sentence_id: "R1", word_offset: 0, surface: "עיוור" }];
+    input.notes_advanced.sentence_morph = [{ text_id: textId, sentence_id: "R1", tokens: [{
+      word: "עיוור", niqqud: "עִוֵּר", lemma: "עיוור", posDicta: contextualPos
+    }] }];
+    const report = Preview.analyzeBundle(input, { textId, pealimResolver: () => paradigm });
+    return Preview.planObsidianPackage(report).files.find((file) => file.kind === "lexeme-reference").content;
+  };
+  assert.equal(make("T1", "Контекст 1", "adjective"), make("T2", "Контекст 2", "noun"));
 });
 
 test("plans deduplicated phrase audio and emits players only for successfully included bytes", () => {
@@ -620,7 +689,7 @@ test("plans deduplicated phrase audio and emits players only for successfully in
   assert.equal(included.receipt.audio.included_count, 1);
   assert.equal(included.receipt.audio.missing_count, 0);
   assert.equal(audio.asset_key, "tts:shared/he");
-  assert.match(audio.path, /^_LinguistPro\/media\/audio\/[A-Za-z0-9._-]+\.mp3$/);
+  assert.match(audio.path, /^_LinguistPro\/Аудио\/[A-Za-z0-9._-]+\.mp3$/);
   assert.equal((included.files.find((f) => f.kind === "phrases-chunk").content.match(/!\[\[/g) || []).length, 2);
 
   const missing = Preview.planObsidianPackage(report, { audioResults: [
