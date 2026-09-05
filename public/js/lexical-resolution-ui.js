@@ -6,7 +6,7 @@
   const clean = (value) => value == null ? '' : String(value).trim();
   const uniq = (values) => { const seen=new Set(); return (values||[]).filter((value)=>{const key=JSON.stringify(value||{});if(seen.has(key))return false;seen.add(key);return true;}); };
   const POS_VALUES = ['verb','noun','adjective','participle','propernoun','numeral','pronoun','adverb','preposition','conjunction','particle','interjection','other'];
-  const REASON_VALUES = ['identity_guarded','ambiguous','unknown_pos','collision','skipped_token'];
+  const REASON_VALUES = ['identity_guarded','ambiguous','unknown_pos','headword_missing','collision','skipped_token'];
   let tooltipSequence=0;
 
   const interpolate = (template, values) => Object.keys(values||{}).reduce((text,key)=>String(text).replaceAll('{'+key+'}',String(values[key])),String(template));
@@ -16,6 +16,7 @@
       identity_guarded:['Нужно подтвердить значение','Форма похожа на другое слово или имя. Система не подставляет словарное значение без проверки контекста.'],
       ambiguous:['Несколько вариантов','Для этой формы найдено несколько возможных разборов. Выберите вариант по смыслу предложения.'],
       unknown_pos:['Не определена часть речи','Автоматический анализ не смог надёжно определить часть речи.'],
+      headword_missing:['Не подтверждена начальная форма','Форма из текста известна, но словарная начальная форма не подтверждена. Для глагола укажите инфинитив, а не корень.'],
       collision:['Данные расходятся','Для одинаковой словарной записи обнаружены несовместимые разборы. Проверьте примеры отдельно.'],
       skipped_token:['Нужно проверить написание','Форма могла разделиться на части неверно или содержать особое написание.']
     }[reason]||['Требуется проверка','Автоматического анализа недостаточно для безопасного решения.'];

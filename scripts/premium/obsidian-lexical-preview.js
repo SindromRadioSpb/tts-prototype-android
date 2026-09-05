@@ -39,6 +39,7 @@ async function readJson(zip, names, required) {
 function summary(report) {
   return {
     schema: report.schema,
+    lexical_presentation_contract: report.lexical_presentation_contract,
     read_only: report.read_only,
     text: {
       text_id: report.text.text_id,
@@ -58,6 +59,7 @@ function summary(report) {
     resolution_channels: report.resolution_channels,
     identity_guard_reasons: report.identity_guard_reasons,
     pealim_identity_sources: report.pealim_identity_sources,
+    headword_sources: report.headword_sources,
     resolution_queue: {
       schema: report.resolution_queue.schema,
       uncertain_occurrences: report.resolution_queue.uncertain_occurrences,

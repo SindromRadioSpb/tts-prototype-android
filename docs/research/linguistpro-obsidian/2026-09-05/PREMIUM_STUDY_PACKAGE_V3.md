@@ -114,6 +114,9 @@ Windows и получает контрольный суффикс, поэтом�
 - В receipt и projection сохраняется версия модели.
 - Технические UUID остаются во frontmatter/HTML-комментариях; CSS snippet
   скрывает metadata-контейнер в учебных страницах. В видимом тексте UUID нет.
+- Форма предложения, словарная начальная форма и корень не взаимозаменяемы.
+  Нормативные поля, подписи и отказ от синтеза описаны в
+  [surface/headword/root contract](SURFACE_HEADWORD_ROOT_CONTRACT.md).
 
 ## 6. Obsidian без обязательных community plugins
 

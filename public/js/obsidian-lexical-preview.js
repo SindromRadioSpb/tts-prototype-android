@@ -48,6 +48,55 @@
   function str(v) { return v == null ? "" : String(v).trim(); }
   function lower(v) { return str(v).toLowerCase().replace(/[ _]+/g, "-"); }
   function stripNiqqud(v) { return str(v).replace(/[\u0591-\u05C7]/g, ""); }
+  function coreStudyForm(studyForms, slot) {
+    return ((studyForms && studyForms.core) || []).find(function (form) { return form && form.slot === slot && str(form.he); }) || null;
+  }
+  function learnerHeadword(studyForms, analysisLemma, pos, rootValue) {
+    var exact = "";
+    if (studyForms) {
+      var dictionaryLabel = str(studyForms.lemma_niqqud || studyForms.lemma);
+      if (pos === "verb") {
+        exact = str(coreStudyForm(studyForms, "INF-L") && coreStudyForm(studyForms, "INF-L").he);
+        if (!exact && stripNiqqud(dictionaryLabel).charAt(0) === "ל") exact = dictionaryLabel;
+      } else if (pos === "noun") {
+        exact = str(coreStudyForm(studyForms, "s") && coreStudyForm(studyForms, "s").he) || dictionaryLabel;
+      } else if (pos === "adjective" || pos === "participle") {
+        exact = str(coreStudyForm(studyForms, "ms-a") && coreStudyForm(studyForms, "ms-a").he) || dictionaryLabel;
+      } else {
+        exact = dictionaryLabel;
+      }
+    }
+    if (exact) return { value: exact, unpointed: stripNiqqud(exact), source: "pealim-exact" };
+
+    var fallback = str(analysisLemma);
+    var unpointed = stripNiqqud(fallback);
+    var root = stripNiqqud(rootValue);
+    // A Hebrew verbal citation form is an infinitive and therefore begins
+    // with ל. A bare verbal root or a provider stem is analysis evidence, not
+    // a learner headword; never silently relabel it as the initial form.
+    if (pos === "verb" && (!unpointed || unpointed.charAt(0) !== "ל" || (root && unpointed === root))) {
+      return { value: "", unpointed: "", source: "absent" };
+    }
+    if (!fallback) return { value: "", unpointed: "", source: "absent" };
+    return { value: fallback, unpointed: unpointed, source: "morphology-lemma" };
+  }
+  function surfaceForms(occurrences) {
+    var seen = new Set(), out = [];
+    (occurrences || []).forEach(function (occ) {
+      var value = str(occ && (occ.niqqud || occ.surface));
+      if (!value || seen.has(value)) return;
+      seen.add(value); out.push(value);
+    });
+    return out;
+  }
+  function learnerLabel(lexeme, occurrence) {
+    var surface = str(occurrence && (occurrence.niqqud || occurrence.surface));
+    var headword = str(lexeme && lexeme.headword);
+    if (!surface) return headword || str(lexeme && (lexeme.analysis_lemma || lexeme.lp_lexeme_id));
+    return headword && stripNiqqud(headword) !== stripNiqqud(surface)
+      ? surface + " (" + headword + ")"
+      : surface;
+  }
   function finiteNumber(v) {
     if (v == null || v === "") return null;
     var n = Number(v);
@@ -206,6 +255,7 @@
         if (occ.ambiguity) reasons.push("ambiguous");
         if (occ.identity_guard_reason) reasons.push("identity_guarded");
         if (occ.lp_pos === "unknown") reasons.push("unknown_pos");
+        if (!occ.headword && CONTENT_POS.has(occ.lp_pos)) reasons.push("headword_missing");
         if (lexeme.conflicts.length) reasons.push("collision");
         if (!reasons.length) return;
         items.push({
@@ -340,6 +390,7 @@
       ambiguous: "несколько возможных разборов",
       identity_guarded: "нужно подтвердить словарное значение",
       unknown_pos: "не определена часть речи",
+      headword_missing: "не подтверждена начальная форма",
       collision: "противоречивые словарные данные",
       skipped_token: "токен не удалось разобрать"
     })[str(reason)] || str(reason);
@@ -463,11 +514,16 @@
       "    - 'note.type == \"lp-text-lexeme\"'",
       "    - 'note.lp_text_id == " + textId + "'",
       "formulas:",
-      "  word_link: 'file.asLink(note.lemma)'",
+      "  surface_link: 'file.asLink(note.primary_surface)'",
+      "  headword_link: 'if(note.headword, file.asLink(note.headword), \"—\")'",
       "  pealim_link: 'if(note.pealim_url, link(note.pealim_url, \"Pealim ↗\"), \"\")'",
       "properties:",
-      "  formula.word_link:",
-      "    displayName: Слово",
+      "  formula.surface_link:",
+      "    displayName: Форма в тексте",
+      "  note.surface_forms:",
+      "    displayName: Формы в тексте",
+      "  formula.headword_link:",
+      "    displayName: Начальная форма",
       "  note.lp_pos_label:",
       "    displayName: Часть речи",
       "  note.lexical_pos:",
@@ -512,13 +568,13 @@
       lines.push("  - type: table", "    name: " + yaml(name));
       if (filter) lines.push("    filters:", "      and:", "        - '" + filter + "'");
       lines.push("    order:");
-      (order || ["formula.word_link", "note.meaning_ru", "note.lp_pos_label", "note.occurrence_count", "formula.pealim_link"])
+      (order || ["formula.surface_link", "formula.headword_link", "note.meaning_ru", "note.lp_pos_label", "note.occurrence_count", "formula.pealim_link"])
         .forEach(function (field) { lines.push("      - " + field); });
     }
     view("Все слова", "note.lp_pos != \"unknown\"");
-    view("Глаголы", "note.lp_pos == \"verb\"", ["formula.word_link", "note.form_infinitive", "note.form_present_ms", "note.form_present_fs", "note.form_present_mp", "note.form_present_fp", "note.meaning_ru", "formula.pealim_link"]);
-    view("Существительные", "note.lp_pos == \"noun\"", ["formula.word_link", "note.form_singular", "note.form_plural", "note.form_construct_singular", "note.form_construct_plural", "note.meaning_ru", "formula.pealim_link"]);
-    view("Прилагательные", "note.lp_pos == \"adjective\"", ["formula.word_link", "note.form_ms", "note.form_fs", "note.form_mp", "note.form_fp", "note.meaning_ru", "formula.pealim_link"]);
+    view("Глаголы", "note.lp_pos == \"verb\"", ["formula.surface_link", "note.surface_forms", "formula.headword_link", "note.form_present_ms", "note.form_present_fs", "note.form_present_mp", "note.form_present_fp", "note.meaning_ru", "formula.pealim_link"]);
+    view("Существительные", "note.lp_pos == \"noun\"", ["formula.surface_link", "note.surface_forms", "formula.headword_link", "note.form_plural", "note.form_construct_singular", "note.form_construct_plural", "note.meaning_ru", "formula.pealim_link"]);
+    view("Прилагательные", "note.lp_pos == \"adjective\"", ["formula.surface_link", "note.surface_forms", "formula.headword_link", "note.form_fs", "note.form_mp", "note.form_fp", "note.meaning_ru", "formula.pealim_link"]);
     POS_ORDER.filter(function (pos) { return pos !== "verb" && pos !== "noun" && pos !== "adjective"; })
       .forEach(function (pos) { view(posViewName(pos), "note.lp_pos == " + yaml(pos)); });
     view("Неоднозначные", "note.ambiguity == true");
@@ -571,16 +627,21 @@
   function renderLexemeReferenceMarkdown(lexeme) {
     var url = pealimUrl(lexeme.pealim_id);
     var study = lexeme.study_forms;
-    var lemma = str(study && (study.lemma_niqqud || study.lemma)) || lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id;
-    var lemmaUnpointed = stripNiqqud(str(study && (study.lemma || study.lemma_niqqud))) || lexeme.lemma_unpointed;
+    var dictionaryLabel = str(study && (study.lemma_niqqud || study.lemma));
+    var headword = str(lexeme.headword);
+    var title = headword || dictionaryLabel || lexeme.analysis_lemma || lexeme.lp_lexeme_id;
     var lines = [
       "---",
       "type: lp-lexeme-reference",
       "lp_schema: 3",
       "cssclasses: [linguistpro-study]",
       "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
-      "lemma: " + yaml(lemma),
-      "lemma_unpointed: " + yaml(lemmaUnpointed),
+      "lemma: " + yaml(headword),
+      "lemma_unpointed: " + yaml(lexeme.headword_unpointed),
+      "headword: " + yaml(headword),
+      "headword_unpointed: " + yaml(lexeme.headword_unpointed),
+      "headword_source: " + yaml(lexeme.headword_source),
+      "dictionary_entry_label: " + yaml(dictionaryLabel),
       "lexical_pos: " + yaml(study && study.pos),
       "root: " + yaml(study && study.root),
       "binyan: " + yaml(study && study.binyan),
@@ -593,19 +654,23 @@
     ];
     appendCoreFormYaml(lines, study);
     lines.push(
-      "---", "", "# " + markdownInline(lemma), "",
+      "---", "", "# " + markdownInline(title), "",
       "**Значение:** " + (markdownInline(study && study.meaning) || "—"), "",
       "**Словарный класс:** " + posLabel(study && study.pos)
     );
     if (study && study.root) lines.push("", "**Корень:** " + markdownInline(study.root));
     if (study && study.binyan) lines.push("", "**Биньян:** " + markdownInline(study.binyan));
     if (url) lines.push("", "[Открыть в Pealim ↗](" + url + ")");
+    if (!headword && lexeme.lp_pos === "verb") lines.push("", "> [!warning] Инфинитив не засвидетельствован", "> В точной карточке Pealim нет формы инфинитива. Название словарной статьи показано для навигации, но не выдано за начальную форму глагола.");
     lines.push("", "> [!info] Происхождение данных", "> Формы взяты из локального проверяемого снимка Pealim " + str(study && study.model_version) + ". LinguistPro не достраивает отсутствующие клетки.", "");
     lines = lines.concat(renderStudyForms(study));
     return lines.join("\n") + "\n";
   }
   function renderTextLexemeMarkdown(report, lexeme, phrasePathByRowId, referencePath) {
     var url = pealimUrl(lexeme.pealim_id);
+    var formsInText = surfaceForms(lexeme.occurrences);
+    var primarySurface = formsInText[0] || lexeme.headword || lexeme.analysis_lemma || "";
+    var title = lexeme.headword || primarySurface || lexeme.lp_lexeme_id;
     var lines = [
       "---",
       "type: lp-text-lexeme",
@@ -613,8 +678,14 @@
       "cssclasses: [linguistpro-study]",
       "lp_text_id: " + yaml(report.text.text_id),
       "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
-      "lemma: " + yaml(lexeme.lemma),
-      "lemma_unpointed: " + yaml(lexeme.lemma_unpointed),
+      "lemma: " + yaml(lexeme.headword),
+      "lemma_unpointed: " + yaml(lexeme.headword_unpointed),
+      "analysis_lemma: " + yaml(lexeme.analysis_lemma),
+      "headword: " + yaml(lexeme.headword),
+      "headword_unpointed: " + yaml(lexeme.headword_unpointed),
+      "headword_source: " + yaml(lexeme.headword_source),
+      "primary_surface: " + yaml(primarySurface),
+      "surface_forms: " + yaml(formsInText),
       "lp_pos: " + yaml(lexeme.lp_pos),
       "lp_pos_label: " + yaml(posLabel(lexeme.lp_pos)),
       "lexical_pos: " + yaml(lexeme.lexical_pos),
@@ -637,7 +708,11 @@
     lines.push(
       "---",
       "",
-      "# " + markdownInline(lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id),
+      "# " + markdownInline(title),
+      "",
+      "**Формы в этом тексте:** " + (formsInText.map(markdownInline).join(", ") || "—"),
+      "",
+      "**Начальная форма:** " + (markdownInline(lexeme.headword) || "не подтверждена"),
       "",
       lexeme.meaning_ru ? "**Значение в этом тексте:** " + markdownInline(lexeme.meaning_ru) : "**Значение в этом тексте:** —",
       "",
@@ -650,7 +725,8 @@
       var refTarget = "../../../" + referencePath.replace(/^_LinguistPro\//, "").replace(/\.md$/, "");
       lines.push("", "## Словарная карточка", "", "![[" + refTarget + "#Учебные формы]]", "", "[[" + refTarget + "|Открыть полную словарную карточку]]");
     }
-    lines.push("", "## Активное воспроизведение", "", "> [!question] Проверьте себя", "> Закройте иврит и скажите слово по-ивритски по значению: **" + (markdownInline(lexeme.meaning_ru) || "—") + "**. Затем произнесите один пример целиком.");
+    if (!lexeme.headword) lines.push("", "> [!warning] Начальная форма не подтверждена", "> Показана только реальная форма из текста. LinguistPro не превращает корень или машинную основу в словарное слово без надёжного источника.");
+    lines.push("", "## Активное воспроизведение", "", "> [!question] Проверьте себя", "> По значению **" + (markdownInline(lexeme.meaning_ru) || "—") + "** назовите начальную форму" + (lexeme.headword ? " **" + markdownInline(lexeme.headword) + "**" : "") + ", затем восстановите одну форму из текста и произнесите пример целиком.");
     lines.push(
       "",
       "## Примеры из текста",
@@ -762,8 +838,10 @@
     selected.forEach(function (lexeme, index) {
       var path = textPathById.get(lexeme.lp_lexeme_id);
       var target = path ? "Лексемы/" + path.split("/").pop().replace(/\.md$/, "") : "";
-      var label = lexeme.lemma || lexeme.lemma_unpointed;
-      lines.push((index + 1) + ". [[" + target + "|" + markdownInline(label) + "]] — " + (markdownInline(lexeme.meaning_ru) || "значение нужно уточнить") + " · " + posLabel(lexeme.lp_pos) + " · " + lexeme.occurrence_count + " вх.");
+      var forms = surfaceForms(lexeme.occurrences);
+      var label = lexeme.headword || forms[0] || lexeme.analysis_lemma;
+      lines.push((index + 1) + ". [[" + target + "|" + markdownInline(label) + "]] — " + (markdownInline(lexeme.meaning_ru) || "значение нужно уточнить") +
+        " · в тексте: " + (forms.map(markdownInline).join(", ") || "—") + " · " + posLabel(lexeme.lp_pos) + " · " + lexeme.occurrence_count + " вх.");
     });
     return lines.join("\n") + "\n";
   }
@@ -858,13 +936,14 @@
       if (!byPos[pos].length) return;
       lines.push("## " + posViewName(pos), "");
       byPos[pos].forEach(function (lexeme) {
-        var label = lexeme.lemma || lexeme.lemma_unpointed || lexeme.lp_lexeme_id;
+        var forms = surfaceForms(lexeme.occurrences);
+        var label = lexeme.headword || forms[0] || lexeme.analysis_lemma || lexeme.lp_lexeme_id;
         var url = pealimUrl(lexeme.pealim_id);
         var lexemePath = pathById.get(lexeme.lp_lexeme_id);
         var textPrefix = "_LinguistPro/texts/" + report.text.text_id + "/";
         var target = (lexemePath.indexOf(textPrefix) === 0 ? lexemePath.slice(textPrefix.length) : lexemePath)
           .replace(/\.md$/, "");
-        lines.push("- [[" + target + "|" + markdownInline(label) + "]]" +
+        lines.push("- " + (forms.length ? forms.map(markdownInline).join(", ") + " → " : "") + "[[" + target + "|" + markdownInline(label) + "]]" +
           (lexeme.meaning_ru ? " — " + markdownInline(lexeme.meaning_ru) : "") + (url ? " · [Pealim ↗](" + url + ")" : ""));
       });
       lines.push("");
@@ -943,8 +1022,14 @@
       (lexeme.occurrences || []).forEach(function (occ) {
         var key = str(occ.row_id);
         if (!out.has(key)) out.set(key, []);
-        if (!out.get(key).some(function (item) { return item.lp_lexeme_id === lexeme.lp_lexeme_id; })) out.get(key).push(lexeme);
+        var occurrenceKey = lexeme.lp_lexeme_id + "\u0000" + str(occ.niqqud || occ.surface);
+        if (!out.get(key).some(function (item) { return item.occurrence_key === occurrenceKey; })) {
+          out.get(key).push({ lexeme: lexeme, occurrence: occ, occurrence_key: occurrenceKey });
+        }
       });
+    });
+    out.forEach(function (items) {
+      items.sort(function (a, b) { return Number(a.occurrence.word_offset || 0) - Number(b.occurrence.word_offset || 0); });
     });
     return out;
   }
@@ -985,9 +1070,10 @@
       if (plain && plain !== vocalized) lines.push("**Без огласовок:**", "", "<div class=\"lp-hebrew\" dir=\"rtl\">" + htmlEscape(plain) + "</div>", "");
       var rowLexemes = byRow && byRow.get(str(row.row_id)) || [];
       if (rowLexemes.length) {
-        var links = rowLexemes.map(function (lexeme) {
+        var links = rowLexemes.map(function (entry) {
+          var lexeme = entry.lexeme;
           var target = textPathById.get(lexeme.lp_lexeme_id).split("/").pop().replace(/\.md$/, "");
-          return "[[../Лексемы/" + target + "|" + markdownInline(lexeme.lemma || lexeme.lemma_unpointed) + "]]";
+          return "[[../Лексемы/" + target + "|" + markdownInline(learnerLabel(lexeme, entry.occurrence)) + "]]";
         });
         lines.push("**Слова этой фразы:** " + links.join(" · "), "");
       }
@@ -1001,11 +1087,11 @@
     return lines.join("\n") + "\n";
   }
   function renderOccurrencesTsv(report) {
-    var rows = [["lp_lexeme_id", "lp_pos", "lexical_pos", "context_role", "lemma", "row_id", "order_index", "word_offset", "surface", "niqqud", "sentence_he", "sentence_ru"]];
+    var rows = [["lp_lexeme_id", "lp_pos", "lexical_pos", "context_role", "analysis_lemma", "row_id", "order_index", "word_offset", "surface", "surface_niqqud", "headword", "headword_unpointed", "headword_source", "root", "meaning_ru", "sentence_he", "sentence_ru"]];
     function cell(v) { return str(v).replace(/\t/g, " ").replace(/[\r\n]+/g, " "); }
     report.lexemes.forEach(function (lexeme) {
       lexeme.occurrences.forEach(function (occ) {
-        rows.push([lexeme.lp_lexeme_id, lexeme.lp_pos, lexeme.lexical_pos, lexeme.context_role, lexeme.lemma, occ.row_id, occ.order_index, occ.word_offset, occ.surface, occ.niqqud, occ.sentence_he_niqqud || occ.sentence_he, occ.sentence_ru]);
+        rows.push([lexeme.lp_lexeme_id, lexeme.lp_pos, lexeme.lexical_pos, lexeme.context_role, lexeme.analysis_lemma, occ.row_id, occ.order_index, occ.word_offset, occ.surface, occ.niqqud, lexeme.headword, lexeme.headword_unpointed, lexeme.headword_source, lexeme.root, lexeme.meaning_ru, occ.sentence_he_niqqud || occ.sentence_he, occ.sentence_ru]);
       });
     });
     return rows.map(function (row) { return row.map(cell).join("\t"); }).join("\n") + "\n";
@@ -1105,7 +1191,7 @@
       .map(function (asset) { return [asset.asset_key, asset]; }));
     var phrases = phraseChunks(report, root);
     report.lexemes.forEach(function (lexeme) {
-      var name = safeLexemeFileName(lexeme.lp_lexeme_id, lexeme.lemma_unpointed || lexeme.lemma);
+      var name = safeLexemeFileName(lexeme.lp_lexeme_id, lexeme.headword_unpointed || stripNiqqud((lexeme.surface_forms || [])[0]) || lexeme.analysis_lemma);
       var path = root + "Лексемы/" + name;
       if (usedPaths.has(path)) throw new Error("Lexeme path collision: " + path);
       usedPaths.add(path); pathById.set(lexeme.lp_lexeme_id, path);
@@ -1154,6 +1240,7 @@
     var beforeReceiptBytes = files.reduce(function (sum, file) { return sum + file.bytes; }, 0);
     var receipt = {
       schema: "linguistpro-obsidian-receipt-v2", read_only_preview: true,
+      lexical_presentation_contract: report.lexical_presentation_contract || "surface-headword-root-v1",
       text_id: report.text.text_id, would_create_files: files.length + 1 + audioPlan.included_count,
       would_write_bytes_before_receipt: beforeReceiptBytes,
       source_counts: report.counts,
@@ -1299,8 +1386,11 @@
         var notePos = str(body.pos || body.part_of_speech);
         var pos = contextualPos(notePos, providerPos, token.kind || unit.kind);
         var lemma = str(body.lemma || unit.lemma || unit.stem || unit.sampleWord);
-        var word = str(body.word || unit.sampleWord);
-        var niqqud = str(body.niqqud_variant || unit.niqqud || token.niqqud);
+        // The sentence morphology token is the authority for what the learner
+        // actually encountered. A linked note can be older or normalized and
+        // must never overwrite the surface form in this occurrence.
+        var word = str(token.word || token.surface || token.text || unit.sampleWord || body.word);
+        var niqqud = str(unit.niqqud || token.niqqud || body.niqqud_variant);
         var root = str(body.root || "");
         var sourceRoot = root;
         var binyan = str(body.binyan || unit.binyan || "");
@@ -1407,6 +1497,7 @@
           ? InflectionRender.projectStudyForms(pealimEvidence)
           : null;
         if (studyForms && structuralPealim.pos !== "unknown" && structuralPealim.pos !== "other") studyForms.pos = structuralPealim.pos;
+        var projectedHeadword = learnerHeadword(studyForms, lemma, pos, root);
 
         // Reference export is per sense-lemma even when the stored note was
         // deliberately generated per surface form (ff:*). Use the shared
@@ -1437,8 +1528,10 @@
         if (!item) {
           item = {
             lp_lexeme_id: key,
-            lemma: lemma,
-            lemma_unpointed: stripNiqqud(lemma || word),
+            analysis_lemma: lemma,
+            headword: projectedHeadword.value,
+            headword_unpointed: projectedHeadword.unpointed,
+            headword_source: projectedHeadword.source,
             lp_pos: pos,
             provider_pos: new Set(),
             root: root,
@@ -1473,7 +1566,12 @@
         addSet(item.evidence, "context_roles", contextRole);
         addSet(item.evidence, "note_dedup_keys", linked && linked.gen_dedup_key);
         if (candidateEvidence) item.candidate_evidence.push(candidateEvidence);
-        if (!item.study_forms && studyForms) item.study_forms = studyForms;
+        if (!item.study_forms && studyForms) {
+          item.study_forms = studyForms;
+          item.headword = projectedHeadword.value;
+          item.headword_unpointed = projectedHeadword.unpointed;
+          item.headword_source = projectedHeadword.source;
+        }
         if (confidence != null) {
           item.confidence_min = item.confidence_min == null ? confidence : Math.min(item.confidence_min, confidence);
           item.confidence_max = item.confidence_max == null ? confidence : Math.max(item.confidence_max, confidence);
@@ -1490,6 +1588,9 @@
           sentence_he_niqqud: str(row.hebrew_niqqud || row.he_niqqud),
           sentence_ru: str(row.russian || row.ru),
           lemma: lemma,
+          headword: projectedHeadword.value,
+          headword_unpointed: projectedHeadword.unpointed,
+          headword_source: projectedHeadword.source,
           lp_pos: pos,
           provider_pos: providerPos,
           root: root,
@@ -1523,8 +1624,12 @@
       if (posFamilies.size > 1) conflicts.push("pos_identity_family");
       return {
         lp_lexeme_id: item.lp_lexeme_id,
-        lemma: item.lemma,
-        lemma_unpointed: item.lemma_unpointed,
+        lemma: item.headword,
+        lemma_unpointed: item.headword_unpointed,
+        analysis_lemma: item.analysis_lemma,
+        headword: item.headword,
+        headword_unpointed: item.headword_unpointed,
+        headword_source: item.headword_source,
         lp_pos: item.lp_pos,
         provider_pos: Array.from(item.provider_pos).sort(),
         root: item.root,
@@ -1544,6 +1649,7 @@
         conflicts: conflicts,
         evidence: serialiseSetMap(item.evidence),
         occurrence_count: item.occurrences.length,
+        surface_forms: surfaceForms(item.occurrences),
         occurrences: item.occurrences.sort(function (a, b) {
           return (a.order_index == null ? Number.MAX_SAFE_INTEGER : a.order_index) -
             (b.order_index == null ? Number.MAX_SAFE_INTEGER : b.order_index) || a.word_offset - b.word_offset;
@@ -1551,12 +1657,18 @@
       };
     }).sort(function (a, b) {
       return POS_ORDER.indexOf(a.lp_pos) - POS_ORDER.indexOf(b.lp_pos) ||
-        a.lemma_unpointed.localeCompare(b.lemma_unpointed, "he") ||
+        (a.headword_unpointed || stripNiqqud((a.surface_forms || [])[0])).localeCompare(
+          b.headword_unpointed || stripNiqqud((b.surface_forms || [])[0]), "he") ||
         a.lp_lexeme_id.localeCompare(b.lp_lexeme_id);
     });
 
     var lexemePos = {};
     lexemes.forEach(function (x) { lexemePos[x.lp_pos] = (lexemePos[x.lp_pos] || 0) + 1; });
+    var headwordSourceCounts = lexemes.reduce(function (out, lexeme) {
+      var source = lexeme.headword_source || "absent";
+      out[source] = (out[source] || 0) + 1;
+      return out;
+    }, {});
     var collisionLexemes = lexemes.filter(function (x) { return x.conflicts.length; });
     var collisionSamples = collisionLexemes.slice(0, 20)
       .map(function (x) { return { lp_lexeme_id: x.lp_lexeme_id, conflicts: x.conflicts, evidence: x.evidence }; });
@@ -1569,6 +1681,7 @@
 
     return {
       schema: "linguistpro-obsidian-lexical-preview-v1",
+      lexical_presentation_contract: "surface-headword-root-v1",
       read_only: true,
       text: {
         text_id: textId,
@@ -1616,6 +1729,9 @@
         verified_pealim_identity_occurrences: verifiedPealimIdentityOccurrences,
         canonical_pealim_metadata_repairs: canonicalPealimMetadataRepairs,
         unknown_pos_occurrences: unknownOccurrences,
+        headwords_pealim_exact: headwordSourceCounts["pealim-exact"] || 0,
+        headwords_morphology_lemma: headwordSourceCounts["morphology-lemma"] || 0,
+        headwords_absent: headwordSourceCounts.absent || 0,
         collision_keys: collisionLexemes.length,
         uncertain_occurrences: resolutionQueue.uncertain_occurrences,
         queued_uncertain_occurrences: resolutionQueue.queued_uncertain_occurrences,
@@ -1630,6 +1746,7 @@
       resolution_channels: Object.keys(resolutionChannels).sort().reduce(function (out, key) { out[key] = resolutionChannels[key]; return out; }, {}),
       identity_guard_reasons: Object.keys(identityGuardReasons).sort().reduce(function (out, key) { out[key] = identityGuardReasons[key]; return out; }, {}),
       pealim_identity_sources: Object.keys(pealimIdentitySources).sort().reduce(function (out, key) { out[key] = pealimIdentitySources[key]; return out; }, {}),
+      headword_sources: Object.keys(headwordSourceCounts).sort().reduce(function (out, key) { out[key] = headwordSourceCounts[key]; return out; }, {}),
       provider_pos_values: serialiseSetMap(providerPosValues),
       collision_samples: collisionSamples,
       resolution_queue: resolutionQueue,

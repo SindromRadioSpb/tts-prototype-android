@@ -7,6 +7,7 @@
 | точный Pealim | парадигма только при совпавшей и не guarded identity | PASS |
 | глаголы | INF-L + AP-ms/fs/mp/fp; missing не выводятся | PASS |
 | другие POS | noun/adjective/preposition/invariant используют общий slot taxonomy | PASS |
+| форма / headword / root | форма предложения видима первой; Pealim headword и корень раздельны; root-as-word запрещён | PASS |
 | много текстов | shared reference контекст-независим; примеры text-scoped | PASS |
 | аудио | dedup, concurrency 6, partial failure, без dead embeds | PASS |
 | active recall | перевод свёрнут; есть listen/repeat/produce workflow | PASS |
@@ -54,6 +55,26 @@ text-card-кфар-аза-2-544-573-learning.zip.
 - `npm run smoke:conj:dict` — 7/7;
 - `npm run audit:note-fields` — 0 hard violations;
 - `obsidian-study-package-audit.js` — PASS для 2 138 файлов.
+
+## Регрессия surface → headword → root
+
+На том же полном source fixture после введения контракта:
+
+- 1 090 лексем и 3 977 морфологических вхождений сохранены;
+- 811 headword получены из точной Pealim identity;
+- 226 получены из машинной леммы, допустимой для данного класса;
+- 53 не названы начальной формой без достаточного доказательства;
+- 415 вхождений в 255 группах видимы в очереди, включая 70 вхождений с новой
+  причиной `headword_missing`, которые раньше могли выглядеть готовыми;
+- `נִמְצָאִים` отображается как
+  `נִמְצָאִים (לְהִמָּצֵא)`, а `מצא` остаётся только корнем;
+- материальный архив: 2 207 файлов, 4/4 аудио, SHA-256
+  `85f6b7d936884dae91702857e7ced03f19e76b245d8293f37f8cd1ed4749177a`;
+- `obsidian-study-package-audit.js` — PASS.
+
+Увеличение очереди с 345 до 415 на датированном fixture является ожидаемым
+fail-closed результатом: это не новые ошибки анализа, а устранение слепой зоны,
+где корень или неинфинитивная форма могли выдаваться за headword.
 
 ## Границы приёмки
 

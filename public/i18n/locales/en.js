@@ -2514,6 +2514,7 @@ window.I18N_LOCALES.en = {
         identity_guarded: { label: "Meaning needs confirmation", help: "The same spelling can represent different words. Choose the meaning that fits the sentence." },
         ambiguous: { label: "Several possible analyses", help: "The app found several plausible analyses and will not choose one without your review." },
         unknown_pos: { label: "Part of speech not identified", help: "The app could not reliably determine this form's part of speech." },
+        headword_missing: { label: "Headword needs confirmation", help: "The form in the text is known, but its dictionary headword is not confirmed. For a verb, enter the infinitive rather than the root." },
         collision: { label: "Sources disagree", help: "Sources or spelling variants produce incompatible analyses. Compare the word with its context." },
         skipped_token: { label: "Spelling needs review", help: "The form may have been skipped because of punctuation, vocalization, or unusual spelling." },
       },

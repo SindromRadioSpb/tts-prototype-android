@@ -335,7 +335,8 @@ test("builds a relocatable, human-first Obsidian study projection", () => {
   assert.doesNotMatch(base, /file\.inFolder/, "a package nested in an existing vault must still work");
   assert.match(base, /note\.type == "lp-text-lexeme"/);
   assert.match(base, /note\.lp_text_id == "T1"/);
-  assert.match(base, /file\.asLink\(note\.lemma\)/, "the word column must open the local lexeme note");
+  assert.match(base, /file\.asLink\(note\.primary_surface\)/, "the contextual-form column must open the local lexeme note");
+  assert.match(base, /file\.asLink\(note\.headword\)/, "the initial-form column must open the same stable lexeme note");
   assert.match(base, /link\(note\.pealim_url, "Pealim ↗"\)/, "Pealim must also be directly reachable");
   assert.doesNotMatch(resolutionBase, /file\.inFolder/);
 
@@ -436,6 +437,121 @@ test("projects only exact Pealim forms into a progressive POS study model", () =
 
   const guarded = report.lexemes.find((x) => x.lp_pos === "propernoun");
   assert.equal(guarded.study_forms, null, "a guarded candidate cannot leak a dictionary paradigm into the learner view");
+});
+
+test("keeps sentence form, dictionary headword, and root separate in every learner export", () => {
+  const input = fixture();
+  input.library.texts[0].rows = [{
+    row_id: "R1", order_index: 0,
+    hebrew_plain: "אתם נמצאים בכפר עזה",
+    hebrew_niqqud: "אַתֶּם נִמְצָאִים בִּכְפַר עַזָּה",
+    russian: "Вы находитесь в Кфар-Азе"
+  }];
+  input.notes_advanced.notes = [{
+    id: "N1", note_type: "word_study", gen_dedup_key: "ff:נמצאים#verb", source: "autogen", confidence: 0.96,
+    body_json: JSON.stringify({
+      word: "נמצאים", niqqud_variant: "נִמְצָאִים", lemma: "מצא", pos: "verb",
+      root: "מצא", binyan: "nifal", meaning: "находиться; быть найденным", pealim_id: "1084"
+    })
+  }];
+  input.notes_advanced.occurrences = [{ note_id: "N1", text_id: "T1", sentence_id: "R1", word_offset: 1, surface: "נמצאים" }];
+  input.notes_advanced.sentence_morph = [{
+    text_id: "T1", sentence_id: "R1", model_version: "dicta-v1", tokens: [
+      { word: "אתם", niqqud: "אַתֶּם", lemma: "אתם", posDicta: "pronoun" },
+      { word: "נמצאים", niqqud: "נִמְצָאִים", lemma: "מצא", stem: "מצא", posDicta: "verb", binyan: "nifal" },
+      { word: "בכפר", niqqud: "בִּכְפַר", lemma: "כפר", posDicta: "noun" },
+      { word: "עזה", niqqud: "עַזָּה", lemma: "עזה", posDicta: "propernoun", kind: "propernoun" }
+    ]
+  }];
+  const paradigm = {
+    pealim_id: "1084", pealim_url: "https://www.pealim.com/ru/dict/1084-lehimatze/",
+    model_version: "pealim-infl-v12", kind: "verb", pos: "verb",
+    lemma: "להימצא", lemma_niqqud: "לְהִמָּצֵא", root: "מצא", binyan: "nifal",
+    meaning: "находиться, оказываться; быть найденным",
+    cells: {
+      "INF-L": { he: "לְהִמָּצֵא", translit: "lehimatze" },
+      "AP-ms": { he: "נִמְצָא", translit: "nimtza" },
+      "AP-mp": { he: "נִמְצָאִים", translit: "nimtzaim" }
+    }
+  };
+  const report = Preview.analyzeBundle(input, {
+    textId: "T1",
+    pealimResolver: (id) => String(id) === "1084" ? paradigm : null
+  });
+  const verb = report.lexemes.find((lexeme) => lexeme.pealim_id === "1084");
+  assert.equal(verb.analysis_lemma, "מצא", "the provider analysis remains available for audit");
+  assert.equal(verb.headword, "לְהִמָּצֵא");
+  assert.equal(verb.headword_unpointed, "להמצא");
+  assert.equal(verb.headword_source, "pealim-exact");
+  assert.equal(verb.root, "מצא");
+  assert.equal(verb.occurrences[0].niqqud, "נִמְצָאִים");
+
+  const plan = Preview.planObsidianPackage(report);
+  const phrase = plan.files.find((file) => file.kind === "phrases-chunk").content;
+  const note = plan.files.find((file) => file.kind === "text-lexeme" && /pid-1084\.md$/.test(file.path)).content;
+  const snapshot = plan.files.find((file) => file.kind === "snapshot").content;
+  const base = plan.files.find((file) => file.kind === "base").content;
+  const tsv = plan.files.find((file) => file.kind === "occurrences").content;
+
+  assert.match(phrase, /\|נִמְצָאִים \(לְהִמָּצֵא\)\]\]/, "the phrase must lead with the form that is actually present");
+  assert.doesNotMatch(phrase, /\|מצא\]\]/, "a root must never masquerade as a sentence word");
+  assert.match(note, /^# לְהִמָּצֵא$/m);
+  assert.match(note, /\*\*Формы в этом тексте:\*\* נִמְצָאִים/);
+  assert.match(note, /\*\*Корень:\*\* מצא/);
+  assert.match(snapshot, /נִמְצָאִים → \[\[Лексемы\/pid-1084\|לְהִמָּצֵא\]\]/);
+  assert.match(base, /displayName: Формы в тексте/);
+  assert.match(base, /displayName: Начальная форма/);
+  assert.match(tsv.split("\n")[0], /surface\tsurface_niqqud\theadword\theadword_unpointed\theadword_source\troot\tmeaning_ru/);
+});
+
+test("never fabricates a verb headword from an unresolved root-like lemma", () => {
+  const input = fixture();
+  input.notes_advanced.notes[0].body_json = JSON.stringify({
+    word: "שרפו", niqqud_variant: "שָׂרְפוּ", lemma: "שרף", pos: "verb", root: "שרף", meaning: "жечь"
+  });
+  input.notes_advanced.sentence_morph[0].tokens[0].lemma = "שרף";
+  const report = Preview.analyzeBundle(input, { textId: "T1" });
+  const verb = report.lexemes.find((lexeme) => lexeme.lp_pos === "verb");
+  assert.equal(verb.analysis_lemma, "שרף");
+  assert.equal(verb.headword, "");
+  assert.equal(verb.headword_source, "absent");
+
+  const plan = Preview.planObsidianPackage(report);
+  const phrase = plan.files.find((file) => file.kind === "phrases-chunk").content;
+  assert.match(phrase, /\|שָׂרְפוּ\]\]/, "without a trusted headword the actual form remains visible");
+  assert.doesNotMatch(phrase, /\|שרף\]\]/);
+});
+
+test("uses singular noun and masculine-singular adjective as learner headwords", () => {
+  const input = fixture();
+  input.library.texts[0].rows = [{
+    row_id: "R1", order_index: 0, hebrew_plain: "בתים גדולים",
+    hebrew_niqqud: "בָּתִּים גְּדוֹלִים", russian: "Большие дома"
+  }];
+  input.notes_advanced.notes = [
+    { id: "N1", note_type: "word_study", body_json: JSON.stringify({ word: "בתים", lemma: "בית", pos: "noun", root: "בית", meaning: "дом", pealim_id: "18" }) },
+    { id: "N2", note_type: "word_study", body_json: JSON.stringify({ word: "גדולים", lemma: "גדל", pos: "adjective", root: "גדל", meaning: "большой", pealim_id: "999" }) }
+  ];
+  input.notes_advanced.occurrences = [
+    { note_id: "N1", text_id: "T1", sentence_id: "R1", word_offset: 0, surface: "בתים" },
+    { note_id: "N2", text_id: "T1", sentence_id: "R1", word_offset: 1, surface: "גדולים" }
+  ];
+  input.notes_advanced.sentence_morph = [{
+    text_id: "T1", sentence_id: "R1", model_version: "dicta-v1", tokens: [
+      { word: "בתים", niqqud: "בָּתִּים", lemma: "בית", posDicta: "noun" },
+      { word: "גדולים", niqqud: "גְּדוֹלִים", lemma: "גדול", posDicta: "adjective" }
+    ]
+  }];
+  const paradigms = {
+    "18": { pealim_id: "18", kind: "noun", pos: "noun", lemma: "בית", lemma_niqqud: "בַּיִת", root: "בית", meaning: "дом", cells: { s: { he: "בַּיִת" }, p: { he: "בָּתִּים" } } },
+    "999": { pealim_id: "999", kind: "adjective", pos: "adjective", lemma: "גדול", lemma_niqqud: "גָּדוֹל", root: "גדל", meaning: "большой", cells: { "ms-a": { he: "גָּדוֹל" }, "mp-a": { he: "גְּדוֹלִים" } } }
+  };
+  const report = Preview.analyzeBundle(input, { textId: "T1", pealimResolver: (id) => paradigms[String(id)] || null });
+  assert.equal(report.lexemes.find((lexeme) => lexeme.pealim_id === "18").headword, "בַּיִת");
+  assert.equal(report.lexemes.find((lexeme) => lexeme.pealim_id === "999").headword, "גָּדוֹל");
+  const phrase = Preview.planObsidianPackage(report).files.find((file) => file.kind === "phrases-chunk").content;
+  assert.match(phrase, /בָּתִּים \(בַּיִת\)/);
+  assert.match(phrase, /גְּדוֹלִים \(גָּדוֹל\)/);
 });
 
 test("uses one shared Pealim slot taxonomy for nouns, adjectives, prepositions and invariants", () => {

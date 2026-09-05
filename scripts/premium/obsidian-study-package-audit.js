@@ -32,6 +32,8 @@ function candidatesFor(sourcePath, target) {
   if (posix.extname(base)) return [base];
   return [base + ".md", base + ".base", base];
 }
+function stripNiqqud(value) { return String(value || "").replace(/[\u0591-\u05C7]/g, ""); }
+function regexpEscape(value) { return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
 (async () => {
   const zipPath = path.resolve(arg("zip") || "");
@@ -50,6 +52,9 @@ function candidatesFor(sourcePath, target) {
   const projection = JSON.parse(await projectionEntry.async("string"));
   if (receipt.schema !== "linguistpro-obsidian-receipt-v2") fail("unexpected receipt schema");
   if (projection.schema !== "linguistpro-obsidian-lexical-preview-v1") fail("unexpected projection schema");
+  if (projection.lexical_presentation_contract !== "surface-headword-root-v1" || receipt.lexical_presentation_contract !== "surface-headword-root-v1") {
+    fail("surface/headword/root presentation contract missing");
+  }
   if (receipt.would_create_files !== entries.length) fail("receipt file count does not match archive");
 
   const markdownEntries = entries.filter((entry) => /\.md$/i.test(entry.name));
@@ -84,6 +89,43 @@ function candidatesFor(sourcePath, target) {
   }
   const textLexemes = entries.filter((entry) => /_LinguistPro\/texts\/[^/]+\/Лексемы\/.+\.md$/.test(entry.name));
   if (textLexemes.length !== projection.counts.unique_lexemes) fail("text lexeme conservation mismatch");
+  const pathByLexemeId = new Map();
+  for (const entry of textLexemes) {
+    const markdown = await entry.async("string");
+    const idMatch = markdown.match(/^lp_lexeme_id:\s*(.+)$/m);
+    if (!idMatch) fail("text lexeme lacks lp_lexeme_id: " + entry.name);
+    let id;
+    try { id = JSON.parse(idMatch[1]); } catch (_) { id = idMatch[1].trim(); }
+    pathByLexemeId.set(String(id), posix.basename(entry.name, ".md"));
+    if (!/^headword:|\nheadword:/m.test(markdown) || !/^surface_forms:|\nsurface_forms:/m.test(markdown)) {
+      fail("text lexeme lacks explicit headword or surface forms: " + entry.name);
+    }
+  }
+  const phraseBodies = (await Promise.all(entries.filter((entry) => /_LinguistPro\/texts\/[^/]+\/Фразы\/.+\.md$/.test(entry.name))
+    .map((entry) => entry.async("string")))).join("\n");
+  for (const lexeme of projection.lexemes || []) {
+    const headword = String(lexeme.headword || "");
+    const root = String(lexeme.root || "");
+    if (lexeme.study_forms && lexeme.lp_pos !== "verb" && !headword) fail("exact Pealim lexeme lacks a learner headword: " + lexeme.lp_lexeme_id);
+    if (lexeme.lp_pos === "verb" && headword && stripNiqqud(headword).charAt(0) !== "ל") {
+      fail("verb headword is not an infinitive: " + lexeme.lp_lexeme_id + " => " + headword);
+    }
+    if (lexeme.lp_pos === "verb" && headword && root && stripNiqqud(headword) === stripNiqqud(root)) {
+      fail("verb root masquerades as learner headword: " + lexeme.lp_lexeme_id);
+    }
+    const target = pathByLexemeId.get(String(lexeme.lp_lexeme_id));
+    if (!target) fail("text lexeme path missing for " + lexeme.lp_lexeme_id);
+    for (const form of lexeme.surface_forms || []) {
+      const expected = new RegExp("\\[\\[\\.\\.\\/Лексемы\\/" + regexpEscape(target) + "\\|" + regexpEscape(form) + "(?: \\([^\\]]+\\))?\\]\\]");
+      if (!expected.test(phraseBodies)) fail("contextual form is not the visible phrase-link label: " + lexeme.lp_lexeme_id + " => " + form);
+    }
+  }
+  const occurrencesEntry = entries.find((entry) => /\/occurrences\.tsv$/.test(entry.name));
+  if (!occurrencesEntry) fail("occurrences.tsv missing");
+  const occurrenceHeader = (await occurrencesEntry.async("string")).split(/\r?\n/, 1)[0];
+  for (const column of ["surface", "surface_niqqud", "headword", "headword_unpointed", "headword_source", "root", "meaning_ru"]) {
+    if (!occurrenceHeader.split("\t").includes(column)) fail("occurrences.tsv missing column: " + column);
+  }
 
   const audioEntries = entries.filter((entry) => /_LinguistPro\/media\/audio\/.+\.mp3$/.test(entry.name));
   if (audioEntries.length !== receipt.audio.included_count) fail("included audio count mismatch");
