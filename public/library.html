@@ -2598,7 +2598,10 @@
     .room-row-more::-webkit-details-marker { display: none; }
     .room-row-more:hover, .room-row-more:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); }
     .mytext-secondary-panel { position: absolute; z-index: 12; inset-block-start: calc(100% + 5px); inset-inline-end: 0; width: max-content; padding: 6px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); box-shadow: 0 10px 28px rgba(15,23,42,.16); }
-    .mytext-secondary-panel .mytext-nakdan, .mytext-secondary-panel .mytext-share { white-space: nowrap; }
+    .mytext-secondary-panel .mytext-nakdan, .mytext-secondary-panel .mytext-share, .mytext-secondary-panel .mytext-morph-review { white-space: nowrap; }
+    .work-card > .mytext-secondary { position: absolute; inset-block-end: 7px; inset-inline-end: 7px; }
+    .work-card:has(> .mytext-secondary) { position: relative; padding-block-end: 48px; }
+    .work-card > .mytext-secondary .room-row-more { width: 36px; height: 36px; }
     .corpus-management { margin: 18px 0 0; border-top: 1px solid var(--border-soft); }
     .corpus-management > summary { min-height: 44px; display: flex; align-items: center; color: var(--text-secondary); font-size: 13px; font-weight: 750; cursor: pointer; }
     .corpus-management-panel { padding: 2px 0 10px; }
@@ -3159,7 +3162,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.479</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.480</button>
   </div>
 </footer>
 
@@ -3347,15 +3350,16 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=203"></script>
-    <script src="/i18n/locales/en.js?v=203"></script>
-    <script src="/i18n/locales/he.js?v=203"></script>
+    <script src="/i18n/locales/ru.js?v=204"></script>
+    <script src="/i18n/locales/en.js?v=204"></script>
+    <script src="/i18n/locales/he.js?v=204"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
 <script src="/db/jszip.min.js"></script>
 <!-- MASS-ACCESS I3 — shared ZIP/link hand-off contract; UI remains Room-owned. -->
 <script src="/js/share-service.js"></script>
+<script src="/js/material-actions.js?v=1"></script>
 <!-- Morphology-on-tap (BRR-P1-011): offline resolver engine + light card. These define
      window.NotesAutoGen / InflectionDict / PealimFunctionLinks / ReaderMorph but do NO
      heavy work at load — the 3.3 MB Pealim dataset is fetched lazily on the first word tap. -->
@@ -3363,9 +3367,9 @@
 <!-- Shared Pealim slot taxonomy is also used by the Obsidian study projection. -->
 <script src="/js/inflection-render.js?v=1"></script>
 <!-- Owner-reviewed morphology decisions and deterministic Obsidian projection. -->
-<script src="/js/obsidian-lexical-preview.js?v=7"></script>
+<script src="/js/obsidian-lexical-preview.js?v=8"></script>
 <script src="/js/lexical-resolution-service.js?v=4"></script>
-<script src="/js/lexical-resolution-ui.js?v=10"></script>
+<script src="/js/lexical-resolution-ui.js?v=11"></script>
 <!-- Retention P0 — THE single canonical word-memory keyer + review-log ids (pure; reader-morph's
      statusKeyForCard delegates here so save==paint==review share one keyer; recon B1/B5). -->
 <script src="/js/lemma-canon.js"></script>
@@ -3433,7 +3437,7 @@
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=421"></script>
-<script type="module" src="/js/library-ui.js?v=465"></script>
+<script src="/js/public-corpus-adapter.js?v=422"></script>
+<script type="module" src="/js/library-ui.js?v=480"></script>
 </body>
 </html>

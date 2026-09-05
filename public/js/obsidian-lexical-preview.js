@@ -1270,6 +1270,7 @@
     return {
       schema: "linguistpro-obsidian-package-plan-v2", read_only: true,
       text_id: report.text.text_id,
+      text_title: report.text.title,
       would_create_files: files.length + externalFiles.length,
       would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0) + receipt.audio.included_bytes,
       files_by_kind: byKind,
@@ -1280,6 +1281,54 @@
       resolution_base_preview: resolutionBase,
       files: files
     };
+  }
+
+  function mergeObsidianPlans(plans, opts) {
+    opts = opts || {};
+    if (!Array.isArray(plans) || !plans.length) throw new Error("At least one Obsidian package plan is required");
+    var byPath = new Map(), externalByPath = new Map(), texts = [];
+    plans.forEach(function (plan) {
+      if (!plan || plan.schema !== "linguistpro-obsidian-package-plan-v2") throw new Error("Obsidian package plan v2 is required");
+      texts.push({ text_id: str(plan.text_id), title: str(plan.text_title),
+        files: (plan.files || []).filter(function (file) { return file.path.indexOf("_LinguistPro/texts/" + plan.text_id + "/") === 0; }).length,
+        audio_expected: Number(plan.receipt && plan.receipt.audio && plan.receipt.audio.expected_count || 0),
+        audio_included: Number(plan.receipt && plan.receipt.audio && plan.receipt.audio.included_count || 0),
+        unresolved: Number(plan.receipt && plan.receipt.active_resolution_occurrences || 0) });
+      (plan.files || []).forEach(function (file) {
+        var prior = byPath.get(file.path);
+        if (prior && str(prior.content) !== str(file.content)) throw new Error("Obsidian file collision: " + file.path);
+        if (!prior) byPath.set(file.path, file);
+      });
+      (plan.external_files || []).forEach(function (file) {
+        var prior = externalByPath.get(file.path);
+        if (prior && (prior.asset_key !== file.asset_key || Number(prior.size_bytes || 0) !== Number(file.size_bytes || 0))) throw new Error("Obsidian external file collision: " + file.path);
+        if (!prior) externalByPath.set(file.path, file);
+      });
+    });
+    // Preserve the caller's canonical corpus order. Alphabetical sorting here
+    // would silently discard the edition's pedagogical/editorial sequence.
+    var corpusTitle = str(opts.title) || "LinguistPro · коллекция текстов";
+    var hub = ["---", "type: lp-corpus-index", "lp_schema: 3", "managed_by: linguistpro", "---", "", "# " + corpusTitle, "",
+      "> [!tip] Как пользоваться коллекцией", "> Откройте текст, затем «Учебный маршрут». Общие словарные карточки и одинаковые аудиофайлы хранятся один раз.", "",
+      "Всего текстов: **" + texts.length + "**.", "", "![[Библиотека.base]]", "", "## Тексты", ""];
+    texts.forEach(function (text) { hub.push("- [[texts/" + text.text_id + "/Текст|" + markdownInline(text.title || text.text_id) + "]] · фраз и лексики: в карточке · аудио " + text.audio_included + "/" + text.audio_expected + " · требуют проверки " + text.unresolved); });
+    var manifest = { schema: "linguistpro-obsidian-corpus-manifest-v1", title: corpusTitle, text_count: texts.length,
+      file_count_before_manifest: byPath.size + externalByPath.size + 1, texts: texts };
+    var generated = [
+      { path: "_LinguistPro/Корпус.md", kind: "corpus-index", content: hub.join("\n") + "\n" },
+      { path: "_LinguistPro/corpus-manifest.json", kind: "corpus-manifest", content: JSON.stringify(manifest, null, 2) + "\n" }
+    ];
+    generated.forEach(function (file) {
+      file.bytes = utf8Bytes(file.content);
+      var prior = byPath.get(file.path); if (prior && str(prior.content) !== file.content) throw new Error("Obsidian file collision: " + file.path);
+      byPath.set(file.path, file);
+    });
+    var files = Array.from(byPath.values()).sort(function (a, b) { return a.path.localeCompare(b.path); });
+    var externalFiles = Array.from(externalByPath.values()).sort(function (a, b) { return a.path.localeCompare(b.path); });
+    return { schema: "linguistpro-obsidian-corpus-plan-v1", read_only: true, title: corpusTitle, text_count: texts.length,
+      texts: texts, files: files, external_files: externalFiles,
+      would_create_files: files.length + externalFiles.length,
+      would_write_bytes: files.reduce(function (sum, file) { return sum + Number(file.bytes || utf8Bytes(file.content)); }, 0) + externalFiles.reduce(function (sum, file) { return sum + Number(file.size_bytes || 0); }, 0) };
   }
 
   function analyzeBundle(payload, opts) {
@@ -1758,6 +1807,7 @@
     POS_ORDER: POS_ORDER.slice(),
     normalizePos: normalizePos,
     analyzeBundle: analyzeBundle,
-    planObsidianPackage: planObsidianPackage
+    planObsidianPackage: planObsidianPackage,
+    mergeObsidianPlans: mergeObsidianPlans
   };
 });

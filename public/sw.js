@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.479";
+const CACHE_VERSION = "v3.11.480";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=465",
+  "/js/library-ui.js?v=480",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -115,11 +115,11 @@ const PRECACHE_URLS = [
   "/js/pealim-identity-overrides.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
-  "/js/obsidian-lexical-preview.js?v=7",
+  "/js/obsidian-lexical-preview.js?v=8",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
   "/js/lexical-resolution-service.js?v=4",
-  "/js/lexical-resolution-ui.js?v=10",
+  "/js/lexical-resolution-ui.js?v=11",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
@@ -130,7 +130,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=421",
+  "/js/public-corpus-adapter.js?v=422",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
@@ -193,6 +193,7 @@ const PRECACHE_URLS = [
   // MASS-ACCESS I3 — one Send or save contract for Studio and Reading Room.
   // Package bytes, file hand-off and browser save remain separate outcomes.
   "/js/share-service.js",
+  "/js/material-actions.js?v=1",
   "/js/studio-media-karaoke.js",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
@@ -230,9 +231,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=203",
-  "/i18n/locales/en.js?v=203",
-  "/i18n/locales/he.js?v=203",
+  "/i18n/locales/ru.js?v=204",
+  "/i18n/locales/en.js?v=204",
+  "/i18n/locales/he.js?v=204",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

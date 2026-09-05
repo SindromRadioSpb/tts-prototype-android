@@ -141,9 +141,9 @@ test("B1 uses semantic rows with sibling title and secondary controls", () => {
   assert.match(corpusRow, /el\('button', \{ class: 'corpus-work-author corpus-work-author-link'/);
   assert.doesNotMatch(corpusRow, /role: 'button'/);
   assert.match(myTextCard, /el\('article',[\s\S]*el\('a', \{ class: 'room-text-title-link mytext-open'/);
-  assert.match(myTextCard, /el\('details', \{ class: 'mytext-secondary'/,
-    "per-text enrichment belongs to a secondary disclosure");
-  assert.match(myTextCard, /el\('button', \{ class: 'mytext-nakdan'/);
+  assert.match(myTextCard, /materialActionMenu\(\{ item, source: \{ kind: 'local' \}/,
+    "per-text enrichment belongs to the shared secondary disclosure");
+  assert.match(myTextCard, /addNiqqud: button => addMachineNiqqud/);
   assert.doesNotMatch(myTextCard, /role: 'button'/);
 });
 

@@ -27,6 +27,7 @@ test("public work materialization strips protected markers and pins immutable pr
   assert.deepEqual(meta.public_corpus, { slug: "study-songs", corpus_id: "pc_1", edition_id: "ed_1", public_work_id: "work-1", manifest_sha256: "b".repeat(64), snapshot_sha256: "c".repeat(64) });
   assert.equal(bundle.library.texts[0].text_key, "public:study-songs:work-1:" + "c".repeat(12));
   assert.equal(bundle.library.texts[0].rows[0].audio_asset_key, "d".repeat(64));
+  assert.equal(bundle.library.texts[0].title, "Song", "published card title replaces source operator labels");
 });
 
 test("anonymous route source has no session, CSRF, audit or write call", () => {

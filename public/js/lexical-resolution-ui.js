@@ -176,6 +176,8 @@
 
   function open(options) {
     options=options||{}; const item=options.item,localDb=options.localDb,t=options.t||((_,fallback)=>fallback);
+    const fetchAudio=typeof options.fetchAudio==='function'?options.fetchAudio:(key)=>root.ShareService.fetchAudioAsset(key);
+    const allowExport=options.allowExport!==false;
     const trigger=options.returnFocus||document.activeElement;
     const overlay=$('div','lexres-overlay'); const dialog=$('section','lexres-dialog');
     const titleId='lexres-title-'+Date.now(),introId='lexres-intro-'+Date.now(); dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby',titleId);dialog.setAttribute('aria-describedby',introId);dialog.setAttribute('tabindex','-1');
@@ -283,7 +285,7 @@
       try{
         const prior=await previousReceipt(String(item.id));
         const draft=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior});
-        const audio=await fetchAudioAssets(draft.audio_plan,(key)=>root.ShareService.fetchAudioAsset(key),({done,total})=>{
+        const audio=await fetchAudioAssets(draft.audio_plan,fetchAudio,({done,total})=>{
           setMessage(interpolate(t('room.resolution.exportingAudio','Добавляем аудио: {done} из {total}…'),{done,total}),'working');
         },6);
         const plan=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior,audioResults:audio.results});
@@ -304,8 +306,8 @@
       addCount(report.counts.resolved_resolution_occurrences,t('room.resolution.resolved','Проверено'),t('room.resolution.resolvedHelp','Количество мест, для которых вы уже сохранили решение.'));
       addCount(report.resolution_queue.clusters.length,t('room.resolution.clusters','Группы слов'),t('room.resolution.clustersHelp','Похожие случаи собраны вместе, чтобы можно было сравнить их и при необходимости обработать одним решением.'));
       toolbar.append(counts);
-      const exportBox=$('div','lexres-export-box');const exportCopy=$('span');exportCopy.append($('strong','',t('room.resolution.exportTitle','Экспорт для Obsidian')),$('small','',t('room.resolution.exportHelp','Скачивает безопасный ZIP со словарём текста, решениями и отчётом об изменениях. Ваш vault не изменяется автоматически.')));
-      const exportButton=$('button','lexres-button lexres-export',t('room.resolution.export','Скачать ZIP'));exportButton.type='button';exportButton.dataset.exportObsidian='1';exportButton.addEventListener('click',exportObsidian);exportBox.append(exportCopy,explain(exportButton,t('room.resolution.exportTooltip','Собрать текущую проверенную проекцию для импорта в Obsidian.')).wrap);toolbar.append(exportBox);
+      if(allowExport){const exportBox=$('div','lexres-export-box');const exportCopy=$('span');exportCopy.append($('strong','',t('room.resolution.exportTitle','Экспорт для Obsidian')),$('small','',t('room.resolution.exportHelp','Скачивает безопасный ZIP со словарём текста, решениями и отчётом об изменениях. Ваш vault не изменяется автоматически.')));
+      const exportButton=$('button','lexres-button lexres-export',t('room.resolution.export','Скачать ZIP'));exportButton.type='button';exportButton.dataset.exportObsidian='1';exportButton.addEventListener('click',exportObsidian);exportBox.append(exportCopy,explain(exportButton,t('room.resolution.exportTooltip','Собрать текущую проверенную проекцию для импорта в Obsidian.')).wrap);toolbar.append(exportBox);}
       if(!report.resolution_queue.clusters.length){body.append($('div','lexres-empty',t('room.resolution.empty','Все доступные случаи обработаны. Сохранённые решения войдут в следующий экспорт Obsidian.')),status);return;}
       const filters=$('section','lexres-filters');filters.setAttribute('aria-label',t('room.resolution.filters','Поиск и фильтры'));
       const searchLabel=$('label','lexres-filter');searchLabel.append($('span','lexres-filter-label',t('room.resolution.searchLabel','Найти слово или пример')));const search=$('input');search.type='search';search.value=filterQuery;search.placeholder=t('room.resolution.searchPlaceholder','Введите слово, лемму или перевод');search.autocomplete='off';searchLabel.append(search);

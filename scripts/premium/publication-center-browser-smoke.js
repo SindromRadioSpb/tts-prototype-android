@@ -114,10 +114,11 @@ async function capture(page, file) {
 
     guestContext = await browser.newContext({ serviceWorkers: 'allow', viewport: { width: 1280, height: 820 }, locale: 'ru-RU', acceptDownloads: true });
     await guestContext.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
-    const guest = await guestContext.newPage(), guestErrors = [], guestConsoleErrors = [], guestFailed = [], assetResponses = [], audioRequests = [];
+    const guest = await guestContext.newPage(), guestErrors = [], guestConsoleErrors = [], guestFailed = [], badResponses = [], assetResponses = [], audioRequests = [];
     guest.on('pageerror', error => guestErrors.push(String(error)));
     guest.on('console', message => { if (message.type() === 'error') guestConsoleErrors.push(message.text()); });
     guest.on('response', response => {
+      if (response.status() >= 400) badResponses.push(response.status() + ' ' + response.url());
       if (/\/api\/public-corpora\/.+\/assets\//.test(response.url())) assetResponses.push(response.status());
       if (response.status() >= 400 && /\/api\/public-corpora/.test(response.url())) guestFailed.push(response.status() + ' ' + response.url());
     });
@@ -194,25 +195,56 @@ async function capture(page, file) {
     await guest.locator('.public-corpus input[type=search]').focus(); await guest.keyboard.press('Tab');
     const publicKeyboard = await guest.evaluate(() => ({ inside: !!document.activeElement.closest('[data-public-corpus]'), focusVisible: getComputedStyle(document.activeElement).outlineStyle !== 'none' }));
 
-    await guest.locator('.public-corpus .room-text-secondary').first().click();
+    const publicActions = guest.locator('.public-corpus .material-actions').first();
+    process.stdout.write('[browser] shared public-card actions\n');
+    await publicActions.locator('summary').click();
+    assert.strictEqual(await publicActions.locator('.mytext-morph-review').count(), 1, 'public card missing shared morphology action');
+    await publicActions.locator('.mytext-morph-review').click();
+    await guest.locator('.lexres-overlay .lexres-dialog').waitFor({ timeout: 30000 });
+    await guest.locator('.lexres-material').waitFor();
+    assert.strictEqual((await guest.locator('.lexres-material').textContent()).trim(), catalog.items[0].title);
+    process.stdout.write('[browser] public-card morphology opened\n');
+    await guest.locator('.lexres-close').click();
+    await guest.locator('.lexres-overlay').waitFor({ state: 'detached' });
+    await publicActions.locator('summary').click();
+    await publicActions.getByRole('button', { name: 'Отправить или сохранить' }).click();
     await guest.locator('.room-share-sheet[role=dialog]').waitFor();
+    process.stdout.write('[browser] per-card share dialog\n');
     await guest.getByRole('button', { name: 'Отправить ссылку' }).click();
     const copied = await guest.evaluate(() => navigator.clipboard.readText());
     assert.ok(copied.endsWith('/library.html?public_corpus=study-songs&public_work=' + encodeURIComponent(catalog.items[0].public_work_id)), copied);
+    process.stdout.write('[browser] stable card link\n');
+    const saveCardZip = guest.getByRole('button', { name: 'Сохранить ZIP' });
+    await saveCardZip.waitFor({ state: 'visible' });
+    await guest.waitForFunction(() => { const button = Array.from(document.querySelectorAll('button')).find(node => node.textContent.trim() === 'Сохранить ZIP'); return button && !button.disabled; }, { timeout: 30000 });
+    process.stdout.write('[browser] per-card ZIP ready\n');
     const downloadPromise = guest.waitForEvent('download');
-    await guest.getByRole('button', { name: 'Сохранить ZIP' }).click();
+    await saveCardZip.click();
     const download = await downloadPromise, downloadPath = await download.path();
-    assert.match(download.suggestedFilename(), /^study-songs-edition-1\.zip$/); assert.strictEqual(fs.readFileSync(downloadPath).subarray(0, 2).toString(), 'PK');
+    assert.match(download.suggestedFilename(), /^text-card-.*-learning\.zip$/); assert.strictEqual(fs.readFileSync(downloadPath).subarray(0, 2).toString(), 'PK');
+    process.stdout.write('[browser] per-card ZIP downloaded\n');
     await guest.getByRole('button', { name: 'Закрыть' }).click();
+    process.stdout.write('[browser] per-card dialog closed\n');
 
     await guest.locator('.public-corpus .room-text-title-link').first().click();
+    process.stdout.write('[browser] public reader opening\n');
     await guest.locator('#roomReader:not([hidden]) #proTable tbody tr').first().hover();
     await guest.locator('#roomReader:not([hidden]) .row-tts-btn').waitFor({ timeout: 30000 });
     await guest.locator('#roomReader .row-tts-btn').first().click();
     await guest.waitForTimeout(3000);
+    process.stdout.write('[browser] public audio requested\n');
     assert.ok(audioRequests.some(url => /\/api\/public-corpora\/study-songs\/assets\//.test(url)), JSON.stringify(audioRequests));
     await guest.screenshot({ path: path.join(shots, 'public-study-songs-reader-380-ru.png'), fullPage: false });
-    const swState = await guest.evaluate(async () => { const registration = await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) return { ready: !!registration, controlled: false, caches: [] }; return { ready: true, controlled: true, caches: await caches.keys() }; });
+    const swProbe = await guest.evaluate(async () => {
+      let registrationError = '', swStatus = 0;
+      try { swStatus = (await fetch('/sw.js', { cache: 'no-store' })).status; } catch (error) { registrationError = String(error); }
+      let registrations = await navigator.serviceWorker.getRegistrations();
+      if (!registrations.length) try { await navigator.serviceWorker.register('/sw.js', { scope: '/' }); registrations = await navigator.serviceWorker.getRegistrations(); } catch (error) { registrationError = String(error); }
+      return { swStatus, registrationError, registrations: registrations.map(registration => ({ scope: registration.scope, active: registration.active && registration.active.state, installing: registration.installing && registration.installing.state, waiting: registration.waiting && registration.waiting.state })) };
+    });
+    process.stdout.write('[browser] sw probe ' + JSON.stringify({ swProbe, guestConsoleErrors, badResponses }) + '\n');
+    const swState = await guest.evaluate(async () => { const registration = await Promise.race([navigator.serviceWorker.ready, new Promise((_, reject) => setTimeout(() => reject(new Error('SERVICE_WORKER_READY_TIMEOUT')), 15000))]); if (!navigator.serviceWorker.controller) return { ready: !!registration, controlled: false, caches: [] }; return { ready: true, controlled: true, caches: await caches.keys() }; });
+    process.stdout.write('[browser] service worker ready\n');
     if (!swState.controlled) { await guest.reload({ waitUntil: 'domcontentloaded' }); await guest.locator('#roomReader:not([hidden])').waitFor({ timeout: 30000 }); }
     const cacheEvidence = await guest.evaluate(async () => { const names = await caches.keys(); const name = names.find(value => value.includes('public-corpus')); const keys = name ? await (await caches.open(name)).keys() : []; return { name: name || '', urls: keys.map(request => request.url) }; });
     assert.ok(cacheEvidence.urls.some(url => url.endsWith('/api/public-corpora')), JSON.stringify(cacheEvidence));

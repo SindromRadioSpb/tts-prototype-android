@@ -69,6 +69,10 @@
       };
       sourceText.source_meta = meta;
       delete sourceText.source_meta_json;
+      // The published catalogue title is the learner-facing identity. Source
+      // snapshots may carry operator labels such as "Position 101"; those stay
+      // provenance-only and must not leak into the Room or Obsidian projection.
+      sourceText.title = work.item.title + (index ? " · " + (index + 1) : "");
       sourceText.text_key = "public:" + work.corpus.slug + ":" + work.item.public_work_id + ":" + work.item.snapshot_sha256.slice(0, 12) + (index ? ":" + index : "");
       for (const row of (Array.isArray(sourceText.rows) ? sourceText.rows : [])) {
         const key = String(row && row.audio_asset_key || "").toLowerCase();

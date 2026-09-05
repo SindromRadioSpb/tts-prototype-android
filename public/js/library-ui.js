@@ -1367,7 +1367,11 @@ function renderWorkCard(textKey) {
   // graceful fallback (right-click/middle-click/no-JS still navigate to the reader;
   // ?embed=0 disables the embed path entirely).
   if (EMBED) card.addEventListener('click', (e) => { e.preventDefault(); openReader(hit.id, title); });
-  return card;
+  const shell = el('article', { class: 'work-card' });
+  card.className = 'work-card-open';
+  shell.appendChild(card);
+  shell.appendChild(materialActionMenu({ item: hit, source: { kind: 'local' }, provenance: hit.corpus && hit.corpus.author ? String(hit.corpus.author) : '' }));
+  return shell;
 }
 
 function renderShelf(shelf) {
@@ -1469,6 +1473,7 @@ function renderCorpusCard(card) {
   // Compatibility for legacy programmatic row clicks; the user-facing control is the real link.
   node.addEventListener('click', (event) => { if (event.target === node) open(); });
   observeCardCoverage(node, card);   // S3: lazy coverage badge (visible cards only — profile-gated, soft estimate)
+  node.appendChild(materialActionMenu({ item: card, source: { kind: 'benyehuda' }, provenance: card.author || '' }));
   return node;
 }
 
@@ -10354,7 +10359,9 @@ function roomRestoreBackground(states) {
     } catch (_) {}
   }
 }
-function openMyTextShare(item, returnFocus) {
+function openMaterialShare(request, returnFocus) {
+  request = request || {};
+  const displayItem = request.item || {};
   const service = window.ShareService;
   const trigger = returnFocus || document.activeElement;
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
@@ -10366,7 +10373,7 @@ function openMyTextShare(item, returnFocus) {
   const head = el('div', { class: 'room-share-head' });
   const titleWrap = el('div', { class: 'room-share-title-wrap' });
   titleWrap.appendChild(el('div', { class: 'list-picker-title', attrs: { id: titleId }, text: tt('room.share.title', 'Отправить или сохранить') }));
-  titleWrap.appendChild(el('p', { class: 'room-share-material', text: String(item && item.title || tt('room.work.untitled', 'Без названия')) }));
+  titleWrap.appendChild(el('p', { class: 'room-share-material', text: String(displayItem.title || tt('room.work.untitled', 'Без названия')) }));
   const closeBtn = el('button', { class: 'room-share-close', attrs: { type: 'button', 'aria-label': tt('room.share.close', 'Закрыть') }, text: '×' });
   head.appendChild(titleWrap); head.appendChild(closeBtn); box.appendChild(head);
   box.appendChild(el('p', { class: 'room-share-note', text: tt('room.share.description', 'Учебный ZIP содержит текст, паспорт материала и доступное аудио. Если часть аудио недоступна, это будет явно указано до отправки.') }));
@@ -10384,8 +10391,10 @@ function openMyTextShare(item, returnFocus) {
   const status = el('p', { class: 'room-share-status', attrs: { role: 'status', 'aria-live': 'polite', 'data-state': 'working' }, text: tt('room.share.preparing', 'Готовим учебный ZIP…') });
   box.appendChild(status);
   const actions = el('div', { class: 'room-share-actions' });
+  const linkBtn = request.publicLink ? el('button', { class: 'room-share-action primary', attrs: { type: 'button' }, text: tt('room.publicCorpus.sendLink', 'Отправить ссылку') }) : null;
   const shareBtn = el('button', { class: 'room-share-action primary', attrs: { type: 'button', disabled: 'disabled' }, text: tt('tcs.btnShareZip', 'Отправить ZIP') });
   const saveBtn = el('button', { class: 'room-share-action', attrs: { type: 'button', disabled: 'disabled' }, text: tt('tcs.btnSaveZip', 'Сохранить ZIP') });
+  if (linkBtn) { shareBtn.classList.remove('primary'); actions.appendChild(linkBtn); }
   actions.appendChild(shareBtn); actions.appendChild(saveBtn); box.appendChild(actions);
   ov.appendChild(box); document.body.appendChild(ov);
   const backgroundA11y = roomSuspendBackground(ov);
@@ -10415,21 +10424,32 @@ function openMyTextShare(item, returnFocus) {
   document.addEventListener('keydown', onKeydown);
   roomFocusInto(box);
 
+  if (linkBtn) linkBtn.addEventListener('click', async () => {
+    const result = service && service.shareLink ? await service.shareLink({ navigator, title: String(displayItem.title || ''), text: String(request.publicDescription || ''), url: request.publicLink }) : { code: 'LINK_SHARE_UNSUPPORTED' };
+    if (result.code === 'SHARE_SHEET_COMPLETED' || result.code === 'SHARE_CANCELLED') return;
+    try { await navigator.clipboard.writeText(request.publicLink); setStatus(tt('room.publicCorpus.linkCopied', 'Публичная ссылка скопирована.'), 'ready'); }
+    catch (_) { setStatus(request.publicLink, 'ready'); }
+  });
+
   const failCopy = () => tt('room.share.failed', 'Не удалось подготовить архив. Текст и данные в приложении не изменены.');
   (async () => {
     if (!service || typeof service.buildLearningPackage !== 'function') throw new Error('SHARE_SERVICE_UNAVAILABLE');
+    const item = typeof request.ensureItem === 'function' ? await request.ensureItem() : displayItem;
+    if (!item || !item.id) throw new Error('MATERIAL_NOT_AVAILABLE_LOCALLY');
     const bundle = await localDb.exportBundle({ includeArchived: true, textIds: [String(item.id)] });
     artifact = await service.buildLearningPackage({
       JSZip: window.JSZip,
       bundle,
       filename: 'text-card-' + roomShareSlug(item.title) + '-learning.zip',
-      generator: 'room-mytext-send-or-save',
+      generator: 'room-material-send-or-save',
       signal: controller ? controller.signal : null,
       concurrency: 6,
-      fetchAudio: (assetKey, context) => service.fetchAudioAsset(assetKey, { signal: context.signal, timeoutMs: 8000 }),
+      fetchAudio: (assetKey, context) => window.MaterialActions
+        ? window.MaterialActions.fetchAudioAsset(request.source || { kind: 'local' }, assetKey, { signal: context.signal, timeoutMs: 8000 })
+        : service.fetchAudioAsset(assetKey, { signal: context.signal, timeoutMs: 8000 }),
       onProgress: paintFacts,
       augmentZip: async (zip, manifest) => {
-        if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
+        if (request.includePortable !== false && window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
           try {
             await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, item.id);
           } catch (portableAugmentError) {
@@ -10485,7 +10505,7 @@ function openMyTextShare(item, returnFocus) {
       blob: artifact.blob,
       filename: artifact.filename,
       navigator,
-      title: String(item.title || ''),
+      title: String(displayItem.title || ''),
       text: tt('tcs.shareMsgPrefix', 'Учебный материал LinguistPro'),
     });
     if (closed) return;
@@ -10512,6 +10532,84 @@ function openMyTextShare(item, returnFocus) {
       ? tt('tcs.saveStarted', 'Браузер начал сохранение. Проверьте папку загрузок или выбранное место.')
       : tt('tcs.saveFailed', 'Не удалось начать сохранение. Попробуйте другой браузер.'), result.code === 'SAVE_STARTED' ? 'ready' : 'error');
   });
+}
+function openMyTextShare(item, returnFocus) {
+  return openMaterialShare({ item, source: { kind: 'local' }, includePortable: true }, returnFocus);
+}
+async function ensureActionMaterial(config) {
+  const source = config.source || { kind: 'local' }, item = config.item || {};
+  if (source.kind === 'local') return item;
+  let textKey = item.text_key || '';
+  if (source.kind === 'public') textKey = window.PublicCorpusAdapter.localTextKey(source.slug, item.public_work_id, item.snapshot_sha256);
+  let localId = await resolveLocalIdByKey(textKey);
+  if (!localId && source.kind === 'benyehuda') {
+    const response = await fetch('/data/benyehuda/' + item.file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
+    const bundle = await response.json(); if (!bundle || !bundle.library) throw new Error('MATERIAL_PAYLOAD_INVALID');
+    await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
+  } else if (!localId && source.kind === 'public') {
+    const response = await fetch('/api/public-corpora/' + encodeURIComponent(source.slug) + '/works/' + encodeURIComponent(item.public_work_id), { cache: 'force-cache' });
+    if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
+    const bundle = window.PublicCorpusAdapter.prepareImportBundle(await response.json());
+    await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
+  } else if (!localId && source.kind === 'group') {
+    const response = await fetch('/api/group-corpora/' + encodeURIComponent(source.corpusId) + '/works/' + encodeURIComponent(item.work_id), { cache: 'no-store' });
+    if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
+    const bundle = await response.json(); if (!bundle || !bundle.library) throw new Error('MATERIAL_PAYLOAD_INVALID');
+    await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
+  }
+  if (!localId) throw new Error('MATERIAL_NOT_RESOLVABLE');
+  invalidatePersonalSets();
+  return { id: String(localId), title: String(item.title || '') };
+}
+function materialAudioFetcher(source) {
+  return (assetKey) => window.MaterialActions
+    ? window.MaterialActions.fetchAudioAsset(source, assetKey, { timeoutMs: 8000 })
+    : window.ShareService.fetchAudioAsset(assetKey);
+}
+function materialActionMenu(config) {
+  const source = config.source || { kind: 'local' };
+  const capabilities = window.MaterialActions ? window.MaterialActions.capabilities(source)
+    : { share: true, morphology: true, obsidian: true, machineNiqqud: source.kind === 'local', protectedLinkOnly: false };
+  const secondary = el('details', { class: 'mytext-secondary material-actions' });
+  const summary = el('summary', { class: 'room-row-more', attrs: {
+    'aria-label': tt('room.shell.moreActions', 'Другие действия'),
+    title: tt('room.actions.tooltip', 'Отправка, сохранение и проверка слов этого материала'),
+  }, text: '•••' });
+  secondary.appendChild(summary);
+  const panel = el('div', { class: 'mytext-secondary-panel', attrs: { role: 'group', 'aria-label': tt('room.actions.title', 'Действия с материалом') } });
+  if (config.provenance) panel.appendChild(el('p', { class: 'room-item-provenance', text: config.provenance }));
+  const withBusy = (button, task) => async () => {
+    if (button.disabled) return; secondary.open = false; button.disabled = true;
+    try { await task(); }
+    catch (error) { try { console.warn('[room-actions] material action failed', error); } catch (_) {} roomToast(tt('room.actions.failed', 'Не удалось подготовить материал. Попробуйте ещё раз.')); }
+    finally { button.disabled = false; }
+  };
+  if (capabilities.share) {
+    const share = el('button', { class: 'mytext-share', attrs: { type: 'button', title: capabilities.protectedLinkOnly
+      ? tt('room.actions.shareProtectedHelp', 'Отправить защищённую ссылку; получателю потребуется доступ к корпусу.')
+      : tt('room.actions.shareHelp', 'Отправить ссылку или сохранить автономный учебный ZIP этой карточки.') }, text: '↗ ' + tt('room.share.open', 'Отправить или сохранить') });
+    share.addEventListener('click', capabilities.protectedLinkOnly
+      ? withBusy(share, () => config.shareProtected())
+      : () => { secondary.open = false; openMaterialShare({ item: config.item, source, includePortable: source.kind === 'local', ensureItem: () => ensureActionMaterial(config),
+        publicLink: source.kind === 'public' ? publicCorpusStableUrl(source.slug, config.item.public_work_id) : '', publicDescription: config.publicDescription || '' }, summary); });
+    panel.appendChild(share);
+  }
+  if (capabilities.morphology) {
+    const morph = el('button', { class: 'mytext-morph-review', attrs: { type: 'button', title: tt('room.actions.morphHelp', 'Проверить неоднозначные слова в контексте и сохранить решения для этого материала.') }, text: '⚖ ' + tt('room.resolution.open', 'Проверить морфологию') });
+    morph.addEventListener('click', withBusy(morph, async () => {
+      const localItem = await ensureActionMaterial(config);
+      if (!window.LexicalResolutionUI) throw new Error('LEXICAL_RESOLUTION_UI_UNAVAILABLE');
+      window.LexicalResolutionUI.open({ item: localItem, localDb, returnFocus: summary, t: tt,
+        fetchAudio: materialAudioFetcher(source), allowExport: capabilities.obsidian });
+    }));
+    panel.appendChild(morph);
+  }
+  if (capabilities.machineNiqqud && config.addNiqqud) {
+    const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button', title: tt('room.actions.niqqudHelp', 'Запросить машинные огласовки для строк без защищённого пользовательского никкуда.') }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
+    nakdan.addEventListener('click', () => config.addNiqqud(nakdan)); panel.appendChild(nakdan);
+  }
+  secondary.appendChild(panel); return secondary;
 }
 function renderMyTextCard(item, vertical) {
   const node = el('article', { class: 'corpus-work-row room-text-row room-material-row mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { 'data-material-kind': 'mytext', 'data-continuity-key': continuityKey('mytexts', item.id) } });
@@ -10549,24 +10647,8 @@ function renderMyTextCard(item, vertical) {
   node.appendChild(col);
   // B3: enrichment is useful, but it is not the reading action. Keep it in a per-row
   // disclosure so a scan remains title/progress-first and the consent boundary is unchanged.
-  const secondary = el('details', { class: 'mytext-secondary' });
-  const secondarySummary = el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' });
-  secondary.appendChild(secondarySummary);
-  const secondaryPanel = el('div', { class: 'mytext-secondary-panel' });
-  if (view.provenanceSummary) secondaryPanel.appendChild(el('p', { class: 'room-item-provenance', text: view.provenanceSummary }));
-  const share = el('button', { class: 'mytext-share', attrs: { type: 'button' }, text: '↗ ' + tt('room.share.open', 'Отправить или сохранить') });
-  share.addEventListener('click', () => { secondary.open = false; openMyTextShare(item, secondarySummary); });
-  secondaryPanel.appendChild(share);
-  const morphReview = el('button', { class: 'mytext-morph-review', attrs: { type: 'button' }, text: '⚖ ' + tt('room.resolution.open', 'Проверить морфологию') });
-  morphReview.addEventListener('click', () => {
-    secondary.open = false;
-    if (!window.LexicalResolutionUI) return;
-    window.LexicalResolutionUI.open({ item, localDb, returnFocus: secondarySummary, t: tt });
-  });
-  secondaryPanel.appendChild(morphReview);
-  const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
-  nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
-  secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);
+  node.appendChild(materialActionMenu({ item, source: { kind: 'local' }, provenance: view.provenanceSummary,
+    addNiqqud: button => addMachineNiqqud(item, button) }));
   const open = () => openReader(item.id, item.title, { resume: view.learnerState.state !== 'new' });
   if (EMBED) openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
   // Compatibility for callers that programmatically click the row in legacy smokes. The article
@@ -11645,7 +11727,7 @@ async function renderPublicCorpus(slug, token) {
       } else if (slug === 'materials-science-year1-problem-book-2') {
         identity.appendChild(renderMaterialsLearningActions(slug, item));
       }
-      const share = el('button', { class: 'group-action quiet room-text-secondary', attrs: { type: 'button', 'aria-label': tt('room.share.title', 'Отправить или сохранить') }, text: '↗' }); share.addEventListener('click', () => openPublicShare(catalog, item, share)); card.appendChild(share); grid.appendChild(card);
+      card.appendChild(materialActionMenu({ item, source: { kind: 'public', slug }, provenance: item.creator || catalog.title, publicDescription: catalog.description })); grid.appendChild(card);
     }
     if (!page.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.publicCorpus.empty', 'Ничего не найдено') }));
     pager.replaceChildren();
@@ -11871,7 +11953,7 @@ async function renderGroupCorpus(corpusId, token) {
     const compassRow=renderLearningCompass(view,{showMedia:true,showDetails:true});
     if(descriptor){compassRow.setAttribute('data-compass-key',descriptor.cache_key);compassRow.__compassRepaint=()=>{view=makeView();paintLearningCompass(compassRow,view,{showMedia:true,showDetails:true});};}
     identity.appendChild(compassRow);card.appendChild(identity);
-    const share=el('button',{class:'group-action quiet room-text-secondary',attrs:{type:'button','aria-label':tt('room.groupCorpus.share','Поделиться'),title:tt('room.groupCorpus.share','Поделиться')},text:'🔗'});share.addEventListener('click',()=>shareWork(work));card.appendChild(share);return card;
+    card.appendChild(materialActionMenu({item:work,source:{kind:'group',corpusId},provenance:view.provenanceSummary,shareProtected:()=>shareWork(work)}));return card;
   }
   let groupBrowseOffset=0,groupPaintSequence=0;
   async function paint(resetPage=true){

@@ -2501,6 +2501,14 @@ window.I18N_LOCALES.en = {
       partial: "The package is partial: {included} of {expected} audio files. Unavailable files are listed inside the ZIP.",
       failed: "Could not prepare the package. Your text and app data were not changed.",
     },
+    actions: {
+      title: "Material actions", tooltip: "Send, save, or review the words in this material",
+      shareHelp: "Send a link or save a standalone learning ZIP for this card.",
+      shareProtectedHelp: "Send a protected link; the recipient needs access to the corpus.",
+      morphHelp: "Review ambiguous words in context and save decisions for this material.",
+      niqqudHelp: "Request machine vocalization for rows without protected user vocalization.",
+      failed: "Could not prepare the material. Please try again.",
+    },
     resolution: {
       open: "Review morphology", eyebrow: "Morphology review", title: "Words that need review", close: "Close",
       intro: "This list contains only forms the app cannot identify reliably without context. Nothing changes automatically.",
