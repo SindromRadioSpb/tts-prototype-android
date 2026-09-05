@@ -1,16 +1,14 @@
 # -------------------------------------------------------
 # LinguistPro — production Docker image
-# Node 20 LTS Alpine · stateless, all state in /app/data
+# Node 22 LTS Alpine · persistent server state in /app/data
 # -------------------------------------------------------
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
 # Build tools required to compile native sqlite3 binding via node-gyp.
-# Python 3.12 removed stdlib distutils; node-gyp 8 (pulled by sqlite3) still
-# imports it when the prebuilt binary download is unavailable. Setuptools
-# supplies the compatible distutils shim so the documented source fallback
-# remains usable instead of turning a transient network miss into a failed deploy.
+# Keep the native source-build fallback available when a prebuilt binary
+# cannot be downloaded. sqlite3 6 uses the maintained node-gyp 12 toolchain.
 RUN apk add --no-cache python3 py3-setuptools make g++ gcc
 
 # Copy package manifests first for layer-cache efficiency
@@ -22,7 +20,7 @@ RUN npm ci --only=production
 # -------------------------------------------------------
 # Final image
 # -------------------------------------------------------
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 

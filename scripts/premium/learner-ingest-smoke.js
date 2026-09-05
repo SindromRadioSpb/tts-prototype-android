@@ -23,18 +23,19 @@ const fs = require("fs");
 const os = require("os");
 const crypto = require("crypto");
 const { spawn, spawnSync } = require("child_process");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("../smoke-server-env");
 const REPO = path.resolve(__dirname, "..", "..");
-const PORT = 3295, BASE = "http://127.0.0.1:" + PORT;
+let BASE;
 const SECRET = "smoke-bootstrap-secret-0123456789abcdef";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function startServer(dataDir) {
-  const c = spawn(process.execPath, ["server.js"], {
-    cwd: REPO, env: { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, AUTH_BOOTSTRAP_SECRET: SECRET },
-    stdio: ["ignore", "pipe", "pipe"],
+  const c = spawn(process.execPath, ["-e", SMOKE_SERVER_BOOTSTRAP], {
+    cwd: REPO, env: { ...smokeServerEnv(dataDir, 0), AUTH_BOOTSTRAP_SECRET: SECRET },
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
   const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));
-  return { c, logs };
+  return { c, logs, listening: waitForSmokeServer(c) };
 }
 async function stop(c) {
   if (!c || c.killed) return;
@@ -75,7 +76,8 @@ const T = (s) => s;   // canonical UTC-Z literals below
   const sqlite3 = require(path.join(REPO, "node_modules", "sqlite3"));
   let db2 = null;
   try {
-    if (!(await ready())) { console.error("server failed\n" + srv.logs.join("")); process.exit(1); }
+    BASE = "http://127.0.0.1:" + await srv.listening;
+    if (!(await ready())) throw new Error("server failed\n" + srv.logs.join(""));
 
     // owner login (user A)
     const li = await api("POST", "/api/auth/bootstrap-login", { body: { secret: SECRET, deviceLabel: "ingest-A" } });

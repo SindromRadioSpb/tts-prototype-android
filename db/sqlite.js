@@ -143,12 +143,16 @@ function getDbHealth() {
 
 async function closeDb() {
   const db = _db;
+  if (db) {
+    await new Promise((resolve, reject) => {
+      db.close(error => error ? reject(error) : resolve());
+    });
+  }
   _db = null;
-  if (!db) return;
-
-  await new Promise((resolve) => {
-    db.close(() => resolve());
-  });
+  _state.ok = false;
+  _state.ready = false;
+  _state.dbPath = null;
+  _state.error = null;
 }
 
 // --------------------------------------------------------

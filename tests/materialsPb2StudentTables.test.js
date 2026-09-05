@@ -9,7 +9,7 @@ const test = require("node:test");
 const { build, karaokeTokens, normalizedComparison } = require("../scripts/premium/build-materials-pb2-student-tables");
 
 const ROOT = path.join(__dirname, "..");
-const BUNDLE = path.join(ROOT, ".tmp", "materials-pb2-q043-rebake.zip");
+const BUNDLE = path.join(ROOT, "tests", "fixtures", "materials-pb2", "canonical-source.zip");
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
 
 test("student presentation tables rebuild deterministically for all 60 reviewed tasks", async () => {

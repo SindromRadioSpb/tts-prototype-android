@@ -27,10 +27,11 @@ test("ROOM-LIBRARY-IA owner approval is normalized and migration-free", () => {
 
 test("D1 gives global journey projections to L0 and keeps Ben corpus-local", () => {
   const coordinator = ui.slice(
-    ui.indexOf("async function injectBenHomeRails"),
-    ui.indexOf("async function injectCorpusRails"),
+    ui.indexOf("function injectBenHomeRails"),
+    ui.indexOf("async function paintBenProfileFit"),
   );
-  assert.match(coordinator, /injectCorpusRails\(body\)/);
+  assert.doesNotMatch(coordinator, /injectCorpusRails\(body\)/,
+    "obsolete rails must not duplicate the current corpus-local browse surface");
   assert.match(coordinator, /injectSavedSearches\(body\)/);
   for (const globalProjection of [
     "injectContinueReading", "injectFinishedReading", "injectBookmarksShelf", "injectReadingListShelves",
@@ -86,7 +87,8 @@ test("D5 shares typed disclosure semantics and repaints them after locale change
   const disclosure = ui.slice(ui.indexOf("function attachRoomLongListDisclosure"), ui.indexOf("function buildMaterialRowSection"));
   assert.match(disclosure, /toggle\.__roomDisclosureRepaint/);
   assert.match(ui, /function repaintRoomDisclosureLocale\(/);
-  assert.match(ui, /requestAnimationFrame\(repaintRoomDisclosureLocale\)/);
+  const localeHandler = ui.slice(ui.indexOf("lang.addEventListener('change'"), ui.indexOf("TRACKS.forEach", ui.indexOf("lang.addEventListener('change'")));
+  assert.match(localeHandler, /requestAnimationFrame\([\s\S]*repaintRoomDisclosureLocale\(\)/);
   assert.match(html, /\.room-long-list-head > \.room-section-toggle/);
   assert.match(html, /html\[dir="rtl"\][\s\S]*room-material-row/);
 

@@ -3,6 +3,70 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { isPrivateIp, assertPublicHttpUrl, safeFetchHtml } = require("../ingest/ssrfGuard.js");
 
+test("expanded IPv6 DNS answers cannot bypass private-address validation", async () => {
+  for (const ip of ["0:0:0:0:0:0:0:1", "0:0:0:0:0:ffff:7f00:1", "0:0:0:0:0:0:0:0"]) {
+    assert.equal(isPrivateIp(ip), true, ip);
+    await assert.rejects(assertPublicHttpUrl("https://private.example", {
+      resolveAll: async () => [ip],
+    }), { code: "PRIVATE_ADDR" });
+  }
+});
+
+test("every redirect/error response is aborted before leaving its hop", async () => {
+  for (const status of [302, 500]) {
+    let signal;
+    await assert.rejects(safeFetchHtml("https://public.example", {
+      resolveAll: async () => ["93.184.216.34"],
+      fetchImpl: async (_url, init) => {
+        signal = init.signal;
+        return { status, ok: false, headers: new Headers({ location: "http://127.0.0.1" }) };
+      },
+    }));
+    assert.equal(signal.aborted, true, `HTTP ${status} must release the response`);
+  }
+});
+
+test("DNS resolution is included in the fetch deadline", async () => {
+  const result = await Promise.race([
+    safeFetchHtml("https://slow.example", {
+      timeoutMs: 20, resolveAll: () => new Promise(() => {}),
+    }).then(() => "unexpected success", e => e.code),
+    new Promise(resolve => setTimeout(() => resolve("deadline missed"), 250)),
+  ]);
+  assert.equal(result, "FETCH_TIMEOUT");
+});
+
+test("the real HTTP transport uses the validated address without a second DNS lookup", async t => {
+  const http = require("node:http");
+  const net = require("node:net");
+  const zlib = require("node:zlib");
+  const server = http.createServer((req, res) => {
+    assert.equal(req.headers.host, "rebind.example");
+    res.writeHead(200, { "content-type": "text/html", "content-encoding": "gzip" });
+    res.end(zlib.gzipSync("<html>שלום</html>"));
+  });
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const connect = net.connect;
+  let connectedAddress;
+  let resolutions = 0;
+  // Intercept only the socket destination; exercise the actual Undici fetch,
+  // pinned lookup, Host header, streaming decompression and response cleanup.
+  t.mock.method(net, "connect", (options, ...args) => {
+    options.lookup(options.host, {}, (error, address) => {
+      assert.ifError(error);
+      connectedAddress = address;
+    });
+    return connect({ ...options, host: "127.0.0.1", port: server.address().port }, ...args);
+  });
+  const result = await safeFetchHtml("http://rebind.example", {
+    resolveAll: async () => ++resolutions === 1 ? ["93.184.216.34"] : ["127.0.0.1"],
+  });
+  assert.equal(resolutions, 1);
+  assert.equal(connectedAddress, "93.184.216.34");
+  assert.equal(result.html, "<html>שלום</html>");
+});
+
 test("isPrivateIp blocks loopback/RFC1918/link-local/CGNAT/metadata/v6-private", () => {
   const bad = ["127.0.0.1", "10.1.2.3", "172.16.0.1", "172.31.255.255", "192.168.1.1",
                "169.254.169.254", "0.0.0.0", "100.64.0.1", "::1", "fe80::1", "fd00::1", "fc00::2", "::ffff:10.0.0.1"];

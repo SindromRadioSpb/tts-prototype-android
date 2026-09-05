@@ -62,6 +62,7 @@ Thumbs.db
 .playwright-mcp/
 
 # Tests / smoke
+tests/fixtures/
 Smoke-check/
 *.test.js
 *.spec.js

@@ -25,14 +25,11 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("./smoke-server-env");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
-const PORT = Number(process.env.INGEST_SMOKE_PORT || 3108);
-const BASE_URL = `http://127.0.0.1:${PORT}`;
-const FETCH_URL = `${BASE_URL}/api/ingest/fetch-url`;
-const EXTRACT_FILE_URL = `${BASE_URL}/api/ingest/extract-file`;
-const TRANSLATE_TABLE_URL = `${BASE_URL}/api/translate-table`;
-const RETELL_URL = `${BASE_URL}/api/ingest/retell`;
+const PORT = Number(process.env.INGEST_SMOKE_PORT || 0);
+let BASE_URL, FETCH_URL, EXTRACT_FILE_URL, TRANSLATE_TABLE_URL, RETELL_URL;
 const SAMPLE_DOCX_PATH = path.join(REPO_ROOT, "scripts", "premium", "fixtures", "ingest", "sample-he.docx");
 
 function sleep(ms) {
@@ -62,17 +59,14 @@ async function readBody(res) {
   return { text, data };
 }
 
-function startServer(dbPath, port, dataDir) {
-  const child = spawn(process.execPath, ["server.js"], {
+function startServer(port, dataDir) {
+  const child = spawn(process.execPath, ["-e", SMOKE_SERVER_BOOTSTRAP], {
     cwd: REPO_ROOT,
     env: {
-      ...process.env,
-      DB_PATH: dbPath,
-      PORT: String(port),
-      DATA_DIR: dataDir,
+      ...smokeServerEnv(dataDir, port),
       MINI_APP_ENABLED: "0",
     },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
 
   const logs = [];
@@ -86,11 +80,11 @@ function startServer(dbPath, port, dataDir) {
   child.stdout.on("data", pushLog("[stdout] "));
   child.stderr.on("data", pushLog("[stderr] "));
 
-  return { child, logs };
+  return { child, logs, ready: waitForSmokeServer(child) };
 }
 
 async function stopServer(child) {
-  if (!child || child.killed) return;
+  if (!child || child.exitCode !== null || child.signalCode !== null) return;
 
   child.kill("SIGTERM");
   const exited = await new Promise((resolve) => {
@@ -314,19 +308,16 @@ async function checkRetellCacheHit(label, geminiCacheDir) {
 
 async function run() {
   const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-ingestsmoke-"));
-  // Hermetic by default: a fresh SQLite file inside the SAME per-run temp dir
-  // as DATA_DIR. Never fall back to the real project DB (data/app.db) — the
-  // server auto-creates the dir/file and runs migrations on boot (db/sqlite.js
-  // initDb -> ensureDirForFile + PRAGMA/migrate), so no template copy is
-  // needed. process.env.DB_PATH still wins if explicitly set.
-  const dbPath = process.env.DB_PATH || path.join(tmpDataDir, "smoke-app.db");
-  // storage.js: GEMINI_CACHE_DIR = process.env.GEMINI_CACHE_DIR || path.join(DATA_DIR, "gemini-cache").
-  // startServer only sets DATA_DIR (below), so this mirrors the server's own derivation exactly.
-  const geminiCacheDir = process.env.GEMINI_CACHE_DIR || path.join(tmpDataDir, "gemini-cache");
-  const { child, logs } = startServer(dbPath, PORT, tmpDataDir);
+  const geminiCacheDir = path.join(tmpDataDir, "gemini-cache");
+  const { child, logs, ready } = startServer(PORT, tmpDataDir);
   let allPassed = true;
 
   try {
+    BASE_URL = `http://127.0.0.1:${await ready}`;
+    FETCH_URL = `${BASE_URL}/api/ingest/fetch-url`;
+    EXTRACT_FILE_URL = `${BASE_URL}/api/ingest/extract-file`;
+    TRANSLATE_TABLE_URL = `${BASE_URL}/api/translate-table`;
+    RETELL_URL = `${BASE_URL}/api/ingest/retell`;
     await waitForHealth(BASE_URL);
     console.log(`PASS /healthz -> server booted on ${BASE_URL}`);
 

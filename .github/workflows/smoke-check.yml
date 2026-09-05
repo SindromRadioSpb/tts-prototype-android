@@ -3,11 +3,16 @@ name: smoke-check
 on:
   push:
     branches:
+      - main
       - week_11
       - week_12_premium_foundation
   pull_request:
     branches:
+      - main
       - week_11
+
+permissions:
+  contents: read
 
 jobs:
   smoke:
@@ -25,8 +30,28 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: DB migrate
-        run: npm run db:migrate
+      - name: Setup Python for corpus contract fixtures
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Smoke-check (bash)
-        run: bash scripts/smoke-check.sh
+      - name: Unit and contract tests (isolated storage)
+        run: npm test
+
+      - name: API and migration smoke (disposable server)
+        run: npm run test:api-smoke
+
+      - name: Import validation and recovery
+        run: npm run smoke:ingest
+
+      - name: Authenticated learner sync and tenant isolation
+        run: npm run smoke:learner-ingest
+
+      - name: FSRS independent reference vectors
+        run: npm run smoke:fsrs
+
+      - name: Memory canon replay and persistence
+        # Browser profile and server storage are disposable; no owner profile is used.
+        run: |
+          npx playwright install --with-deps chromium
+          npm run smoke:memory-canon

@@ -6,6 +6,24 @@ const path = require("node:path");
 
 const sqlite = require("../db/sqlite");
 
+test("closing a database clears readiness and allows an explicit reopen", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tts-sqlite-reopen-"));
+  const dbPath = path.join(root, "app.db");
+  try {
+    await sqlite.initDb(dbPath);
+    await sqlite._exec(sqlite.getDb(), "CREATE TABLE kept(value TEXT); INSERT INTO kept VALUES ('saved');");
+    await sqlite.closeDb();
+    assert.equal(sqlite.getDbHealth().ready, false);
+    assert.equal(sqlite.getDbHealth().ok, false);
+    await sqlite.initDb(dbPath);
+    assert.equal(sqlite.getDbHealth().ok, true);
+    assert.equal((await sqlite._get(sqlite.getDb(), "SELECT value FROM kept")).value, "saved");
+  } finally {
+    await sqlite.closeDb();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("SQLite startup bounds the persistent WAL high-water mark", async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tts-sqlite-wal-policy-"));
   const dbPath = path.join(tmpDir, "app.db");

@@ -22,11 +22,10 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("./smoke-server-env");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
-const DB_PATH = process.env.DB_PATH || path.join(REPO_ROOT, "data", "app.db");
-const PORT = Number(process.env.API_SMOKE_PORT || 3107);
-const BASE_URL = `http://127.0.0.1:${PORT}`;
+const PORT = Number(process.env.API_SMOKE_PORT || 0);
 // BRR-P0-010: a known token injected into the test server so the upload lock can be
 // proven from loopback (the revised gate requires the token even locally once a
 // secret is set, so X-Local-Mode / no-token must be rejected even here).
@@ -70,20 +69,18 @@ async function readBody(res) {
   return { text, data };
 }
 
-function startServer(dbPath, port, dataDir) {
-  const child = spawn(process.execPath, ["server.js"], {
+function startServer(port, dataDir) {
+  const child = spawn(process.execPath, ["-e", SMOKE_SERVER_BOOTSTRAP], {
     cwd: REPO_ROOT,
     env: {
-      ...process.env,
-      DB_PATH: dbPath,
-      PORT: String(port),
+      ...smokeServerEnv(dataDir, port),
       // Isolate the volume to a throwaway dir so BRR-P1-014 works uploads (and any audio
       // writes) never touch the dev/prod data dir; run() removes it afterwards.
       DATA_DIR: dataDir,
       AUDIO_UPLOAD_TOKEN: SMOKE_AUDIO_TOKEN, // BRR-P0-010 — exercise the upload lock
       MINI_APP_ENABLED: "0", // CLG-P8.1 — hermetic: assert the dormant 503 regardless of host env
     },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
 
   const logs = [];
@@ -97,11 +94,11 @@ function startServer(dbPath, port, dataDir) {
   child.stdout.on("data", pushLog("[stdout] "));
   child.stderr.on("data", pushLog("[stderr] "));
 
-  return { child, logs };
+  return { child, logs, ready: waitForSmokeServer(child) };
 }
 
 async function stopServer(child) {
-  if (!child || child.killed) return;
+  if (!child || child.exitCode !== null || child.signalCode !== null) return;
 
   child.kill("SIGTERM");
   const exited = await new Promise((resolve) => {
@@ -123,9 +120,11 @@ async function stopServer(child) {
 
 async function run() {
   const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-apismoke-"));
-  const { child, logs } = startServer(DB_PATH, PORT, tmpDataDir);
+  const { child, logs, ready } = startServer(PORT, tmpDataDir);
 
   try {
+    const port = await ready;
+    const BASE_URL = `http://127.0.0.1:${port}`;
     await waitForHealth(BASE_URL);
     console.log(`PASS /healthz -> server booted on ${BASE_URL}`);
 

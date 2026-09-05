@@ -17,25 +17,39 @@
 // Run: node scripts/premium/memory-canon-smoke.js   (or npm run smoke:memory-canon)
 
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
 const { spawn, spawnSync } = require("child_process");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("../smoke-server-env");
 const REPO = path.resolve(__dirname, "..", "..");
-const PORT = 3299, BASE = "http://127.0.0.1:" + PORT;
+let BASE;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-function startServer() { const c = spawn(process.execPath, ["server.js"], { cwd: REPO, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] }); const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x))); return { c, logs }; }
+function startServer(dataDir) { const c = spawn(process.execPath, ["-e", SMOKE_SERVER_BOOTSTRAP], { cwd: REPO, env: smokeServerEnv(dataDir, 0), stdio: ["ignore", "pipe", "pipe", "ipc"] }); const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x))); return { c, logs, listening: waitForSmokeServer(c) }; }
 async function stop(c) { if (!c || c.killed) return; c.kill("SIGTERM"); const ok = await new Promise((r) => { const t = setTimeout(() => r(false), 5000); c.once("exit", () => { clearTimeout(t); r(true); }); }); if (!ok && process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { stdio: "ignore" }); }
 async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s < ms) { try { const r = await fetch(BASE + "/healthz"); if (r.status === 200) return true; } catch (_) {} await sleep(200); } return false; }
 
 (async () => {
   let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright"); process.exit(1); }
-  const srv = startServer();
-  if (!(await ready())) { console.error("server failed"); console.error(srv.logs.join("")); await stop(srv.c); process.exit(1); }
-  const b = await pw.chromium.launch();
-  const failures = []; const eq = (c, m) => { if (!c) failures.push(m); };
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-memory-canon-"));
+  const srv = startServer(dataDir);
+  let b;
+  let timedOut = false;
+  const deadline = setTimeout(() => {
+    timedOut = true;
+    console.error("smoke:memory-canon exceeded 90s deadline");
+    if (b) void b.close();
+  }, 90000);
+  let total = 0;
+  const failures = []; const eq = (c, m) => { total++; if (!c) failures.push(m); };
   try {
+    BASE = "http://127.0.0.1:" + await srv.listening;
+    if (!(await ready())) throw new Error("server failed to become healthy");
+    b = await pw.chromium.launch();
     const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
     await ctx.addInitScript(() => { try { localStorage.setItem("app.locale", "ru"); } catch (_) {} });
     const pg = await ctx.newPage();
-    const errs = []; pg.on("pageerror", (e) => errs.push(String(e)));
+    const errs = []; pg.on("pageerror", (e) => { errs.push(String(e)); console.error("browser error:", String(e)); });
+    pg.on("requestfailed", r => console.error("browser request failed:", r.url(), r.failure()?.errorText));
     // ?canon=skip — disable the first-visit shipped-canon auto-import (library-ui.js ~3132):
     // it runs importBundle concurrently on the same connection and its long-held BEGIN would
     // race our own importBundle calls ("cannot start a transaction within a transaction").
@@ -54,6 +68,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       out.migCount = mig.MIGRATIONS.length;
       out.mig041IsReviewLog = /CREATE TABLE IF NOT EXISTS review_log/.test(String(mig.MIGRATIONS[40] || ""));
       out.mig042IsFsrs = /srs_stability/.test(String(mig.MIGRATIONS[41] || ""));
+      out.mig051IsLexicalResolution = /CREATE TABLE IF NOT EXISTS lexical_resolution_events/.test(String(mig.MIGRATIONS[50] || ""));
       out.migApplied = Number((await one("SELECT MAX(version) v FROM schema_migrations")).v) || 0;
       out.rlQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM review_log"));
       out.compassCacheQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM room_learning_compass_cache"));
@@ -446,7 +461,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // runner's own rule (db-worker.js: version = i + 1, so label 041 sits at index 40): the new
     // table is appended at index 49 and therefore is version 50. Appending is the ONLY safe
     // placement — an insert would renumber every later migration and re-run it on live profiles.
-    eq(res.migCount === 50, `MIGRATIONS.length ${res.migCount} != 50 — labels no longer equal real indexes (recon §3.6; last = 050_word_context)`);
+    // 051 is appended at index 50; it adds the lexical decision overlay without
+    // moving review_log, FSRS, or the word-context cache.
+    eq(res.migCount === 51, `MIGRATIONS.length ${res.migCount} != 51 — verify labels and real indexes (last = 051_lexical_resolution_events)`);
+    eq(res.mig051IsLexicalResolution, "051_lexical_resolution_events is not at index 50");
     eq(res.rlQueryable, "review_log not queryable");
     eq(res.compassCacheQueryable, "room_learning_compass_cache not queryable");
     eq(res.wordContextQueryable, "word_context not queryable (migration 050 did not apply)");
@@ -569,7 +587,6 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
 
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 79;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
@@ -582,7 +599,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     console.error("smoke:memory-canon CRASH", e);
     process.exitCode = 1;
   } finally {
-    await b.close().catch(() => {});
+    clearTimeout(deadline);
+    if (timedOut) process.exitCode = 1;
+    if (b) await b.close().catch(() => {});
     await stop(srv.c);
+    fs.rmSync(dataDir, { recursive: true, force: true });
   }
 })();

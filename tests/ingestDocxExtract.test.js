@@ -21,6 +21,23 @@ test("BAD_DOCX on non-zip garbage", () => {
   assert.throws(() => extractDocxText(Buffer.from("not a zip at all")), /BAD_DOCX/);
 });
 
+test("compressed DOCX cannot expand its document beyond the extraction budget", () => {
+  const AdmZip = require("adm-zip");
+  const z = new AdmZip();
+  z.addFile("word/document.xml", Buffer.from("<w:p><w:t>" + "a".repeat(1025) + "</w:t></w:p>"));
+  assert.throws(() => extractDocxText(z.toBuffer(), { maxXmlBytes: 1024 }), { code: "TOO_LARGE" });
+});
+
+test("corrupt compressed XML reports BAD_DOCX without leaking a ZIP implementation error", () => {
+  const AdmZip = require("adm-zip");
+  const z = new AdmZip();
+  z.addFile("word/document.xml", Buffer.from("<w:p><w:t>hello</w:t></w:p>"));
+  const bytes = z.toBuffer();
+  const start = 30 + bytes.readUInt16LE(26) + bytes.readUInt16LE(28);
+  bytes.fill(0xff, start, start + 5);
+  assert.throws(() => extractDocxText(bytes), { code: "BAD_DOCX" });
+});
+
 test("DOCX_EMPTY on zip without text", () => {
   const AdmZip = require("adm-zip");
   const z = new AdmZip();

@@ -1,13 +1,13 @@
 // ingest/ssrfGuard.js
 // R14: серверный fetch произвольных URL — единственная новая внешняя поверхность W1.
 // Fail-closed политика: непонятный IP = приватный; порты только 80/443; каждый
-// redirect-хоп проходит полную ревалидацию. Остаточный риск DNS-rebinding
-// (resolve→fetch TOCTOU) осознан и сужен: ответ используется ТОЛЬКО как text/html
-// для извлечения статьи, порты ограничены, приватные диапазоны отрезаны на resolve.
+// redirect-хоп проходит полную ревалидацию. Соединение использует только
+// проверенные DNS-адреса; hostname сохраняется для Host и TLS-проверки.
 "use strict";
 
 const dns = require("dns").promises;
 const net = require("net");
+const { Agent, fetch: undiciFetch } = require("undici");
 
 function ingestErr(code, msgRu) {
   const e = new Error(`${code}: ${msgRu}`);
@@ -23,8 +23,11 @@ const INGEST_CODES = new Set([
 
 function isPrivateIp(ip) {
   if (typeof ip !== "string" || !ip.trim()) return true; // fail closed
-  const v = ip.trim().toLowerCase();
+  let v = ip.trim().toLowerCase();
   if (net.isIPv6(v)) {
+    // DNS may return expanded notation; prefix checks require canonical form.
+    try { v = new URL(`http://[${v}]/`).hostname.slice(1, -1); }
+    catch { return true; }
     if (v === "::" || v === "::1") return true;
     if (v.startsWith("::ffff:")) return isPrivateIp(v.slice(7));
     if (v.startsWith("::")) return true; // reserved ::/96
@@ -48,7 +51,7 @@ async function defaultResolveAll(host) {
   return recs.map((r) => r.address);
 }
 
-async function assertPublicHttpUrl(rawUrl, opts = {}) {
+async function resolvePublicHttpTarget(rawUrl, opts = {}) {
   const resolveAll = opts.resolveAll || defaultResolveAll;
   let u;
   try { u = new URL(String(rawUrl)); } catch { throw ingestErr("BAD_URL", "Некорректный URL"); }
@@ -61,14 +64,38 @@ async function assertPublicHttpUrl(rawUrl, opts = {}) {
   }
   if (net.isIP(host)) {
     if (isPrivateIp(host)) throw ingestErr("PRIVATE_ADDR", "Приватный IP запрещён");
-    return u;
+    return { url: u, addresses: [host] };
   }
   let addrs;
   try { addrs = await resolveAll(host); } catch { throw ingestErr("PRIVATE_ADDR", "Хост не разрешается"); }
   if (!Array.isArray(addrs) || addrs.length === 0 || addrs.some(isPrivateIp)) {
     throw ingestErr("PRIVATE_ADDR", "Хост указывает на приватный адрес");
   }
-  return u;
+  return { url: u, addresses: addrs };
+}
+
+async function assertPublicHttpUrl(rawUrl, opts = {}) {
+  return (await resolvePublicHttpTarget(rawUrl, opts)).url;
+}
+
+function withAbort(promise, signal) {
+  if (signal.aborted) return Promise.reject(ingestErr("FETCH_TIMEOUT", "Превышено время загрузки страницы"));
+  return new Promise((resolve, reject) => {
+    const abort = () => reject(ingestErr("FETCH_TIMEOUT", "Превышено время загрузки страницы"));
+    signal.addEventListener("abort", abort, { once: true });
+    Promise.resolve(promise).then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+  });
+}
+
+function pinnedLookup(addresses) {
+  return (_host, options, callback) => {
+    const records = addresses.map(address => ({ address, family: net.isIP(address) }));
+    const family = typeof options === "number" ? options : options.family;
+    const candidates = family ? records.filter(record => record.family === family) : records;
+    if (!candidates.length) return callback(ingestErr("FETCH_FAILED", "Нет адреса нужного семейства"));
+    if (options.all) callback(null, candidates);
+    else callback(null, candidates[0].address, candidates[0].family);
+  };
 }
 
 function decodeHtmlBuffer(buf, contentType) {
@@ -82,18 +109,22 @@ function decodeHtmlBuffer(buf, contentType) {
 
 async function safeFetchHtml(rawUrl, opts = {}) {
   const { maxBytes = 5 * 1024 * 1024, timeoutMs = 15000, maxRedirects = 5, resolveAll, fetchImpl } = opts;
-  const doFetch = fetchImpl || fetch; // Node 18+ global fetch
+  const doFetch = fetchImpl || undiciFetch;
+  const deadline = Date.now() + timeoutMs;
   let current = String(rawUrl);
   for (let hop = 0; hop <= maxRedirects; hop++) {
-    const u = await assertPublicHttpUrl(current, { resolveAll });
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    const timer = setTimeout(() => ctrl.abort(), Math.max(0, deadline - Date.now()));
+    let dispatcher;
     try {
+      const { url: u, addresses } = await withAbort(resolvePublicHttpTarget(current, { resolveAll }), ctrl.signal);
+      dispatcher = new Agent({ connect: { lookup: pinnedLookup(addresses) }, connections: 1 });
       let resp;
       try {
         resp = await doFetch(u.toString(), {
           redirect: "manual",
           signal: ctrl.signal,
+          dispatcher,
           headers: {
             "user-agent": "LinguistPro-Ingest/1.0 (+https://linguistpro.kolosei.com)",
             accept: "text/html,application/xhtml+xml",
@@ -151,6 +182,8 @@ async function safeFetchHtml(rawUrl, opts = {}) {
       return { html: decodeHtmlBuffer(buf, ct), finalUrl: u.toString() };
     } finally {
       clearTimeout(timer);
+      ctrl.abort(); // release unread redirect/error bodies as well as timed-out requests
+      if (dispatcher) await dispatcher.destroy();
     }
   }
   throw ingestErr("TOO_MANY_REDIRECTS", "Слишком много редиректов");

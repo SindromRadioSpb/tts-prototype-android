@@ -10,7 +10,7 @@ const AdmZip = require("adm-zip");
 
 const ROOT = path.resolve(__dirname, "..");
 const TABLE_ROOT = path.join(ROOT, "docs", "research", "materials-science-problem-solutions", "2026-08-30", "artifacts", "student-solution-tables");
-const BUNDLE = path.join(ROOT, ".tmp", "materials-pb2-q043-rebake.zip");
+const BUNDLE = path.join(ROOT, "tests", "fixtures", "materials-pb2", "canonical-source.zip");
 const SLUG = "materials-science-year1-problem-book-2";
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
 const stableJson = value => JSON.stringify(value, null, 2) + "\n";

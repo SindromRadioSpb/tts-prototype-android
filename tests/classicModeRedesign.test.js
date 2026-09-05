@@ -34,7 +34,13 @@ test("classic mode exposes first-screen input, status chips and primary actions"
 });
 
 test("classic mode keeps table fine-tuning in a secondary advanced area", () => {
-  assert.match(html, /id="btnTableCustomizeToggle"/);
+  // 2e10208a replaced the preset toggle with native details/summary.
+  const { document } = require("linkedom").parseHTML(html);
+  const settings = document.getElementById("tableSettings");
+  assert.equal(settings.tagName, "DETAILS");
+  assert.ok(settings.querySelector("summary"));
+  assert.ok(settings.querySelector(".table-settings-advanced"));
+  assert.equal(settings.hasAttribute("open"), false);
   assert.match(html, /class="table-settings-advanced"/);
   assert.match(html, /id="tableEditToolbar"/);
   assert.match(html, /id="tableEditAddBtn"/);
@@ -46,9 +52,10 @@ test("classic mode provides trust-focused result workspace and static mode toggl
   assert.match(html, /id="classicResultWorkspace"/);
   assert.match(html, /class="[^"]*classic-export-actions[^"]*"/);
   assert.match(html, /class="classic-export-actions is-hidden"|classList\.toggle\("is-hidden"/);
-  assert.match(html, /id="classicRowSheet"/);
-  assert.match(html, /id="classicRowSheetPlay"/);
-  assert.match(html, /id="classicRowSheetNote"/);
+  // bad0c41c replaced the row sheet with the shared word-morphology card.
+  assert.doesNotMatch(html, /id="classicRowSheet"/);
+  assert.match(html, /id="studioWordStatusToggle"/);
+  assert.match(html, /<script[^>]+studio-morph\.js/);
   assert.match(html, /\.v3-mode-toggle\s*\{[\s\S]*position:\s*static;/);
 });
 
@@ -69,7 +76,7 @@ test("classic mode applies mobile-only compact layout contracts", () => {
 test("classic mode keeps a contextual mobile edit FAB and deeper mobile disclosure", () => {
   assert.match(html, /id="tableEditFab"/);
   assert.match(html, /function tableEditFabUpdate\(\)/);
-  assert.match(html, /shouldShow = isMobile && toolbarVisible && !rowSheetOpen/);
+  assert.match(html, /shouldShow = isMobile && toolbarVisible;/);
   assert.match(html, /@media \(pointer: coarse\) and \(max-width: 768px\)[\s\S]*#tableEditFab\.fab-visible/);
   assert.match(html, /right:\s*calc\(18px \+ env\(safe-area-inset-right, 0px\)\)/);
   assert.match(html, /bottom:\s*calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\)/);

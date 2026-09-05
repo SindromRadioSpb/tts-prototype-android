@@ -8,7 +8,7 @@
 
 **Hebrew ↔ Russian / English** · offline-first · PWA · open source
 
-[![Version](https://img.shields.io/badge/version-3.3.2-2563eb?style=flat-square)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-live-2563eb?style=flat-square)](https://linguistpro.kolosei.com/api/client-config)
 [![PWA](https://img.shields.io/badge/PWA-installable-0f172a?style=flat-square)](docs/PWA.md)
 [![Offline-first](https://img.shields.io/badge/offline-first-d97706?style=flat-square)](docs/OPFS_USER_GUIDE.md)
 [![i18n](https://img.shields.io/badge/i18n-RU%20%C2%B7%20EN%20%C2%B7%20HE-94a3b8?style=flat-square)](public/i18n/locales)
@@ -22,7 +22,7 @@
 
 ## Что это
 
-LinguistPro — это **полноценный учебный workspace** для изучения иврита, построенный вокруг одной идеи: **ваши данные принадлежат только вам**. Тексты, аудио, прогресс, заметки — всё хранится прямо в браузере (OPFS + SQLite WASM), не на чужих серверах. Облако используется только для тяжёлых вычислений: TTS-озвучки и нейронного перевода.
+LinguistPro — учебное рабочее место для изучения иврита: Студия для подготовки своих материалов и Читальный зал для чтения, разбора слов и повторения. Библиотека и учебное состояние работают локально в браузере (OPFS + SQLite WASM). При включённой авторизованной синхронизации согласованные данные также передаются на сервер; облачные TTS и перевод используют внешних провайдеров.
 
 В отличие от приложений-учебников, которые ведут вас по жёсткому курсу, LinguistPro даёт **редактор для работы с любым ивритским текстом**: вставьте абзац — получите таблицу с никудом, транслитерацией, переводом и аудио по строкам. Работайте по строкам, выделяйте сложные предложения в карточки SRS, тренируйтесь, отслеживайте прогресс.
 
@@ -39,7 +39,7 @@ LinguistPro — это **полноценный учебный workspace** дл�
 
 ### 🔒 Offline-first, ваши данные у вас
 - Вся библиотека — в **OPFS** (Origin Private File System) браузера. SQLite WASM (`wa-sqlite`) запускается прямо в браузере, без серверного посредника.
-- Серверные stateful-эндпоинты возвращают **`410 Gone`** — архитектурно невозможно «случайно» отправить ваши данные кому-то.
+- Старые серверные API локальной библиотеки возвращают **`410 Gone`**. Отдельные API аккаунтов, синхронизации и публикаций работают с авторизацией и собственными правилами доступа.
 - ZIP-bundle export/import — полная резервная копия (тексты + аудио в одном `.zip`), формат **совместим с нативным Android-приложением v2** (cross-device roundtrip).
 - Storage quota monitoring (80% / 95% threshold), per-text rollback при ошибках импорта, in-memory undo на 7 секунд для удалений.
 
@@ -49,7 +49,7 @@ LinguistPro — это **полноценный учебный workspace** дл�
 - Premium update lifecycle: новая версия не подменяется молча — пользователь видит toast «Доступно обновление» с кнопкой «Обновить».
 
 ### 🧠 SRS-тренажёр уровня Anki, в браузере
-- Алгоритм **SM-2** (как в Anki), интервалы Hard/Good/Easy с предсказанием следующего интервала.
+- Единый движок **FSRS-6** для повторения слов в Студии и Читальном зале. Расписание воспроизводится из событий `review_log`; экспорт Anki остаётся дополнительным способом учиться.
 - **Activity heatmap** в Dashboard (GitHub-style сетка за 30 дней).
 - **Smart-фильтры в библиотеке**: 🔥 Сложные / ✓ Освоено / ✨ Новые с прошлого визита / ⏱ Недавние. Persistent в URL hash — отправляешь ссылку, состояние восстанавливается.
 - **Manual smart-tag override** — даже если SRS считает текст «освоенным», можно вручную пометить его как сложный (или наоборот).
@@ -87,19 +87,19 @@ LinguistPro — это **полноценный учебный workspace** дл�
 
 ### Использовать как пользователь
 
-Открой [**tts-prototype-android-production1.up.railway.app**](https://tts-prototype-android-production1.up.railway.app/) → нажми «Попробовать на демо-тексте» → дальше работай со своими текстами. На втором заходе можно установить как PWA: в Chrome → меню → «Установить приложение». На iOS — Safari → Share → «Add to Home Screen».
+Открой [**LinguistPro**](https://linguistpro.kolosei.com/) и выбери свои материалы или публичный корпус в Читальном зале. Установка PWA: в Chrome → меню → «Установить приложение»; на iOS — Safari → Share → «Add to Home Screen».
 
 ### Запустить локально (development)
 
 ```bash
 git clone https://github.com/SindromRadioSpb/tts-prototype-android.git
 cd tts-prototype-android
-npm install
+npm ci
 npm start
 # открой http://localhost:3000
 ```
 
-Для TTS и AI-перевода нужны ключи Google Cloud (TTS + Translate / Gemini). Положи их в `data/gcp-tts-key.json` / `data/gcp-translate-key.json` или загрузи через UI на странице настроек. Без ключей весь UI работает — просто кнопки TTS и «Собрать таблицу» вернут понятные ошибки.
+Для создания облачного TTS и AI-перевода настрой свои ключи через пользовательские настройки ([BYOK](docs/BYOK_SETUP.md)). Уже опубликованные материалы и доступное кэшированное аудио можно использовать без нового обращения к провайдеру. Настройки сервера описаны отдельно в `docs/CONFIG.md`.
 
 Подробнее: [`docs/CONFIG.md`](docs/CONFIG.md).
 
@@ -110,10 +110,10 @@ npm start
 | Слой | Технология |
 |------|-----------|
 | Frontend | Vanilla JS + ES modules + CSS variables. Без framework'а — сознательное решение, чтобы remained debug-able и lightweight. |
-| Local DB | **wa-sqlite** (SQLite в WASM) поверх **OPFS**. 21 миграция, integrity-check on startup. |
+| Local DB | **wa-sqlite** (SQLite в WASM) поверх **OPFS**. Текущая схема: `public/db/migrations.js`. |
 | TTS | Google Cloud Text-to-Speech (cloud) + Sherpa-ONNX (local, optional). Pluggable backend layer. |
 | Translation | Google Translate v3 + Gemini (premium pipeline). Stateless API, retry с exponential backoff. |
-| Server | Node.js + Express. **Stateless после v3.0.0** — все user data в OPFS, сервер только TTS/translate/transliterate proxy + static files. |
+| Server | Node.js + Express. SQLite на сервере хранит аккаунты, согласованные данные синхронизации и публикации; отдельные модули отвечают за TTS/перевод/импорт и раздачу файлов. |
 | PWA | Service Worker (precache + SWR + network-first для config), manifest.json, install prompt UX. |
 | i18n | Lightweight in-house module. `data-i18n` attributes + `t(key, params)` resolver. 3 locale файла + один `applyI18n` event. |
 | Hebrew | Hebrew transliteration via `hebrew-transliteration` (npm) — SBL, ASCII, IPA профили. Custom premium pipeline в `tests/premium/`. |
@@ -130,8 +130,12 @@ npm start
 ### Почему монолитный `index.html`
 Это сознательный compromise. Frontend — vanilla JS без bundler'а. Это даёт прозрачную debug-experience (один файл — `view source` показывает всё, что происходит) и нулевые runtime-зависимости. Минус — большой initial parse. Service Worker precache + lazy-load JSZip/qrcode балансируют это в v3.1.0. Functional code-split в отдельные ES-модули — на v3.2.
 
-### Почему нет cloud sync
-Cloud sync **не запланирован**. Архитектура offline-first была бы скомпрометирована. Если нужна копия — `Library → Скачать ZIP-бэкап`, файл переносится между устройствами вручную. Cross-device ZIP roundtrip полностью совместим с нативным Android-приложением v2.
+### Локальная работа и cloud sync
+Облачная синхронизация существует как отдельный авторизованный путь с согласиями и идемпотентным обменом событиями. Она не заменяет локальное хранилище и резервные копии. Контракты: [AI Mentor / Cloud Learner Graph](docs/planning/AI_MENTOR_RECON_2026_07_04.md), [Sync hardening](docs/planning/LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md).
+
+### Проверка разработки
+
+`npm test` запускает все `*.test.js`, `*.test.mjs` и i18n-контракты внутри `tests/` с временным хранилищем. Проверки API и миграций: `npm run test:api-smoke`; импорт: `npm run smoke:ingest`; изоляция пользователей и синхронизация: `npm run smoke:learner-ingest`. Для браузерного `npm run smoke:memory-canon` установи Chromium командой `npx playwright install chromium`. Эталон FSRS проверяет `npm run smoke:fsrs`. Эти проверки включены в CI для `main` и pull request в `main`.
 
 ---
 
@@ -168,6 +172,8 @@ LinguistPro следует [SemVer](https://semver.org/). Major-релизы м�
 
 ## Roadmap
 
+Ниже сохранён исторический roadmap эпохи v3.1–v3.3; он не является текущим статусом. Актуальные программы, ограничения и решения владельца находятся в `CLAUDE.md` и `docs/planning/`.
+
 ### Что уже есть в v3.1.0
 Все 8 directions из [Premium Release Plan v3.1.0](docs/PREMIUM_RELEASE_PLAN_v3_1.md) закрыты: Hebrew typography & RTL, app-wide theming, full i18n, onboarding, SRS + Library smart-sort, error gentleness, performance/PWA, trust signals.
 
@@ -194,7 +200,7 @@ Master plan: [`PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md)
 - **Premium table-edit mechanics** (long-press DnD).
 
 ### Deferred long-term (без user signal)
-- **Cloud sync** — без явного запроса не делается, противоречит offline-first.
+- **Cloud sync** — историческое отложенное решение; теперь реализован отдельный путь с авторизацией и согласиями (см. выше).
 - **A/B framework** — нужны метрики и трафик (>1000 users).
 - **Multi-deck SRS support** — отдельный epic.
 - **Push notifications / Background sync** — нужны use-case и backend infra.

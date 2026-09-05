@@ -9,6 +9,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { randomUUID } = require("crypto");
 
 // IMPORTANT: default dirs must point to the Local Workspace.
 const { DB_PATH, BACKUPS_DIR } = require("../storage");
@@ -54,11 +55,11 @@ function createBackup(dbPath, options = {}) {
 
     const ts = timestamp();
     const baseName = path.basename(dbPath, path.extname(dbPath));
-    const backupName = `${baseName}.${ts}.${label}.db`;
+    const backupName = `${baseName}.${ts}.${randomUUID()}.${label}.db`;
     const backupPath = path.join(backupsDir, backupName);
 
     // Copy main DB file
-    fs.copyFileSync(dbPath, backupPath);
+    fs.copyFileSync(dbPath, backupPath, fs.constants.COPYFILE_EXCL);
 
     // Copy WAL and SHM files if they exist (for WAL mode)
     let walCopied = false;
@@ -173,6 +174,17 @@ function restoreBackup(backupPath, targetDbPath, options = {}) {
     // Validate backup exists
     if (!fs.existsSync(backupPath)) {
       return { ok: false, error: `Backup not found: ${backupPath}` };
+    }
+
+    // A path alias (including a hard link) is still the live target. Deleting
+    // its WAL before copying the same file would silently discard recent data.
+    if (fs.existsSync(targetDbPath)) {
+      const source = fs.statSync(backupPath);
+      const target = fs.statSync(targetDbPath);
+      if (fs.realpathSync(backupPath) === fs.realpathSync(targetDbPath) ||
+          (source.dev === target.dev && source.ino === target.ino)) {
+        return { ok: false, error: "Backup and restore target must be different files" };
+      }
     }
 
     // Create pre-restore backup (unless skipped)

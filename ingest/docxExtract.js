@@ -10,13 +10,24 @@ function decodeXmlEntities(s) {
           .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)));
 }
 
-function extractDocxText(buf) {
+function extractDocxText(buf, { maxXmlBytes = 12 * 1024 * 1024 } = {}) {
   let zip;
   try { zip = new AdmZip(buf); } catch { throw ingestErr("BAD_DOCX", "Файл не является корректным .docx"); }
   let entry;
   try { entry = zip.getEntry("word/document.xml"); } catch { entry = null; }
   if (!entry) throw ingestErr("BAD_DOCX", "В файле нет word/document.xml");
-  const xml = entry.getData().toString("utf8");
+  // A zero advertised size would disable the inflater's maxOutputLength cap.
+  if (entry.header.size === 0) throw ingestErr("DOCX_EMPTY", "Документ не содержит текста");
+  if (entry.header.size > maxXmlBytes) throw ingestErr("TOO_LARGE", "Содержимое документа слишком большое");
+  let xml;
+  try {
+    const data = entry.getData();
+    if (data.length > maxXmlBytes) throw ingestErr("TOO_LARGE", "Содержимое документа слишком большое");
+    xml = data.toString("utf8");
+  } catch (e) {
+    if (e.code === "TOO_LARGE") throw e;
+    throw ingestErr("BAD_DOCX", "Повреждённое содержимое .docx");
+  }
   const paras = [];
   for (const m of xml.match(/<w:p[ >][\s\S]*?<\/w:p>/g) || []) {
     const parts = [];

@@ -4,7 +4,28 @@
 *.html text eol=lf
 *.css text eol=lf
 *.json text eol=lf
-docs/research/physics-corpus/**/batch-*-table-input.txt text eol=lf
+docs/research/physics-corpus/**/batch-*-table-input*.txt text eol=lf
 # Shell scripts MUST stay LF — they run in the Linux (Alpine) container;
 # CRLF would break the shebang / `set -e`. Esp. docker-entrypoint.sh.
 *.sh text eol=lf
+
+# Preserve the exact bytes used by the historical PB2 provenance hashes.
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/correction-ledger.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/cost-envelope.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/diagram-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/legacy-projection-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/mapping-classification-verification.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/mapping-ledger.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/page-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/prepare-verification.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/prepared-input-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/reviewed-legacy-row-mapping.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/source-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/prepare/task-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-apply-input-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-audit-schema.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-cost-plan.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-request-plan.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-resume-ledger.template.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-sample-manifest.json text eol=crlf
+docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-verification.json text eol=crlf

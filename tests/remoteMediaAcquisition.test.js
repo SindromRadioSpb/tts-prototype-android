@@ -44,9 +44,10 @@ test('Node app exposes only a signed capability mint and contains no media proxy
   assert.doesNotMatch(server, /media-acquisition\/.*(?:pipe|createReadStream)/);
 });
 
-test('Add Material keeps one recent shortcut and routes the complete list to Import Center', () => {
+test('draft lifecycle stays in Import Center and cannot reappear as an Add Material shelf', () => {
   const shelf = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'studio-media-package.js'), 'utf8');
-  assert.match(shelf, /models\.slice\(0,\s*1\)/);
+  // 26ddba76 moved the full lifecycle out of the Add Material composer.
+  assert.doesNotMatch(shelf, /renderActiveWorkspace|renderWorkspaceShelf/);
   assert.match(shelf, /StudioPortableLearningPackage\.open\(\{\s*view:\s*'materials'\s*\}\)/);
   assert.doesNotMatch(shelf, /StudioImport\.open\(\{\s*tab:\s*['"]file['"]/);
 });

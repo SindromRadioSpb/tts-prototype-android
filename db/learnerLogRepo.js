@@ -238,9 +238,17 @@ async function ingestBatch(userId, deviceId, batch, opts) {
 
   // Explicit-transaction section: MUST hold the process txn-lock (see db/txnLock.js) — two
   // concurrent ingests otherwise nest BEGINs on the shared connection and 500.
-  await withTxnLock(async () => {
+  const concurrentReplay = await withTxnLock(async () => {
   await dbRun(db, `BEGIN IMMEDIATE`);
   try {
+    // The fast lookup above can miss while another request is queued. Recheck
+    // under the write transaction so simultaneous retries share one receipt.
+    const committed = await dbGet(db, `SELECT result_json FROM ingest_batches WHERE user_id = ? AND idempotency_key = ?`, [userId, idem]);
+    if (committed) {
+      const receipt = JSON.parse(committed.result_json);
+      await dbRun(db, `COMMIT`);
+      return { ok: true, replayed: true, ...receipt };
+    }
     for (const raw of reviews) {
       const v = validateReviewRow(raw, nowMs);
       if (!v.ok) { result.review_log.rejected++; rejects(raw && raw.id, v.reason); continue; }
@@ -294,6 +302,7 @@ async function ingestBatch(userId, deviceId, batch, opts) {
     throw e;
   }
   });
+  if (concurrentReplay) return concurrentReplay;
   return { ok: true, replayed: false, new_item_keys: Array.from(newKeys), ...result };
 }
 
@@ -306,9 +315,11 @@ async function readLog(userId, { afterRid, limit } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const lim = Math.max(1, Math.min(2000, Number(limit) || 500));
   const rid = Math.max(0, Number(afterRid) || 0);
-  const rows = await dbAll(db,
+  // Reads on the shared connection see its own uncommitted writes. Wait for
+  // the transaction lane before publishing rows/cursors to another device.
+  const rows = await withTxnLock(() => dbAll(db,
     `SELECT rowid AS rid, id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json, device_id, ingested_at
-       FROM review_log WHERE user_id = ? AND rowid > ? ORDER BY rowid ASC LIMIT ?`, [userId, rid, lim]);
+       FROM review_log WHERE user_id = ? AND rowid > ? ORDER BY rowid ASC LIMIT ?`, [userId, rid, lim]));
   return rows || [];
 }
 

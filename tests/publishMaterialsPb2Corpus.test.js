@@ -8,7 +8,7 @@ const path = require("node:path");
 const sqlite3 = require("sqlite3");
 
 const ROOT = path.resolve(__dirname, "..");
-const BUNDLE = path.join(ROOT, ".tmp", "materials-pb2-q043-rebake.zip");
+const BUNDLE = path.join(ROOT, "tests", "fixtures", "materials-pb2", "canonical-source.zip");
 const publish = require("../scripts/premium/publish-materials-pb2-corpus.js");
 const { createPublicationRepo } = require("../db/publicationRepo.js");
 const open = file => new Promise((resolve, reject) => { const db = new sqlite3.Database(file, error => error ? reject(error) : resolve(db)); });
