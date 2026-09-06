@@ -1,6 +1,6 @@
 # Morphology and Obsidian implementation evidence
 
-Status: implementation in progress, not a production acceptance report. Plan: `docs/planning/OBSIDIAN_MORPHOLOGY_QUALITY_IMPLEMENTATION_2026_09_06.md`. Source commit for measurements: recorded in `quality/coverage.json`; code under test is the current working tree.
+Status: **PRODUCTION_TECHNICAL_PASS**, v3.11.484, code commit `93909911`. Plan and full gate/release log: `docs/planning/OBSIDIAN_MORPHOLOGY_QUALITY_IMPLEMENTATION_2026_09_06.md`. Source baseline for measurements is recorded in `quality/coverage.json`; these measurements were generated from the implementation worktree subsequently committed as `93909911`. Native Obsidian acceptance and independent linguistic scoring are not claimed.
 
 ## Reproducible coverage
 

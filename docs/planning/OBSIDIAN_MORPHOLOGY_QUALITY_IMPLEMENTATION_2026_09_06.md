@@ -1,6 +1,6 @@
 # Morphology and Obsidian study package — approved implementation
 
-Status: OWNER_APPROVED / IMPLEMENTING. Approval: 2026-09-06, following the repository and vault research in this conversation. Baseline: `49729a79` / v3.11.483. This document is the implementation ledger, not a claim of release or linguistic certification.
+Status: IMPLEMENTED / PRODUCTION_TECHNICAL_PASS (v3.11.484, code commit `93909911`). Approval: 2026-09-06, following the repository and vault research in this conversation. Baseline: `49729a79` / v3.11.483. Native Obsidian owner acceptance and independent linguistic scoring remain separate and unclaimed.
 
 ## Outcome and boundaries
 
@@ -26,7 +26,7 @@ R1/R10/R11: preserve grounded readings, unknowns and ambiguity; no guessed roots
 - [x] C. Stable readable identity paths and versioned file manifest; local updater with dry-run, conflict detection, backups, repeatability and recovery tests. Legacy installation never auto-adopted by title alone.
 - [x] D. Corpus-wide Bases, personal-note templates and explicit standalone/existing-vault setup; retain existing export capabilities.
 - [x] E. Reproducible coverage/quality evaluation artifacts; unannotated independent-gold worksheet is not a passed accuracy gate.
-- [ ] F. Targeted and broad tests, applicable smoke/build/i18n checks, final diff review, browser verification for changed UI, scoped release and production verification.
+- [x] F. Targeted and broad tests, applicable smoke/build/i18n checks, final diff review, browser verification for changed UI, scoped release and production verification.
 
 ## Acceptance gates
 
@@ -94,3 +94,12 @@ Implementation and release results will be appended as gates complete. No change
 - Read-only pre-release production checks: `/healthz` HTTP 200, database and migrations ready; `/api/client-config` v3.11.483. Existing disk warning: 85% used. No cleanup, volume mutation or user-data migration authorized/performed. HEAD and remote main both `49729a79` before release.
 - Production Dockerfile build from the exact staged Git tree in an isolated temp directory: PASS (`linguistpro-obsidian:3.11.484`). Disposable container with `--network none` and tmpfs `/app/data`: health HTTP 200, version 3.11.484, updater route HTTP 200. Container stopped/auto-removed; no persistent volume used. Final focused exporter/updater/corpus/merge tests: 49/49 passed; syntax and staged whitespace checks passed.
 - Push and post-deploy verification still pending at this checkpoint.
+
+### Production verification — 2026-09-06
+
+- Scoped code commit `93909911797c54d3a54cc007518bf5c31b6da601` pushed to main. GitHub `smoke-check` run `34005369703`: SUCCESS, including Linux unit/contracts, API/migrations, ingest/recovery, authenticated tenant isolation, independent FSRS vectors and memory canon browser/persistence gates.
+- Production v3.11.484 observed at 02:04:12 UTC. Four actual response-body SHA-256 hashes match the committed bytes: `obsidian-lexical-preview.js`, `lexical-resolution-service.js`, `lexical-resolution-ui.js`, `tools/obsidian-update.cjs` (HTTP 200 each).
+- Actual production-origin browser export smoke passed at 380px for RU and HE in disposable profiles: 30 payload files each, all byte counts and SHA-256 verified, one corrected owner-confirmed contextual card. Saved screenshots are byte-identical to the inspected local release screenshots. Fixtures mock owner storage; no live profile events or reviews were written.
+- Three health/version probes at 02:04:54, 02:05:05 and 02:05:15 UTC: HTTP 200, `ok=true`, DB/migrations ready, version 3.11.484, increasing uptime. Disk warning persists at 90% after build (85% before); not a morphology defect and no unapproved production cleanup performed. Capacity review is a separate operational follow-up, not evidence of current unavailability.
+- No personal vault changes, source republishing, paid providers, SRS mutations or linguistic gold certification. Coverage gain is the measured availability of curated usage references, not a claimed gain in linguistic accuracy. Native Obsidian rendering and the owner's learning workflow still require owner acceptance; the available environment did not provide a verified profile-isolated native launch.
+- All scoped code is committed; unrelated dirty files remain preserved. This closes the approved implementation/release scope, not an assertion that all product defects have been eliminated.
