@@ -49,6 +49,7 @@ const _nakdanDerived = globalThis.NakdanDerivedCore;
 
 let _worker = null;
 let _initialized = false;
+let _initInFlight = null;
 let _seq    = 0;
 const _pending = new Map();
 
@@ -450,6 +451,17 @@ async function _preflightSupport() {
 }
 
 export async function initLocalDB() {
+  if (_initialized) return;
+  // Boot surfaces and explicit callers may arrive together. A second worker
+  // init closes/reopens its live connection, invalidating the first caller's
+  // WASM handles. Share the entire ownership/open/migration operation.
+  if (!_initInFlight) {
+    _initInFlight = _initializeLocalDB().finally(() => { _initInFlight = null; });
+  }
+  return _initInFlight;
+}
+
+async function _initializeLocalDB() {
   if (_initialized) return; // idempotent on success
   // P0-1: elect a single owner tab. Follower tabs must NOT open the DB.
   await acquireDbOwnership();

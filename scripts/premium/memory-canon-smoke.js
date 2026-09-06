@@ -58,7 +58,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     const res = await pg.evaluate(async () => {
       const out = {};
       const ldb = await import("/db/local-db.js");
-      await ldb.initLocalDB();
+      await Promise.all(Array.from({ length: 8 }, () => ldb.initLocalDB()));
       const NA = window.NotesAutoGen, LC = window.LemmaCanon, RM = window.ReaderMorph;
       out.hasLC = !!LC; out.hasNA = !!(NA && NA.lemmaKey);
       const one = async (sql, p) => (await ldb.dbQuery(sql, p || []))[0];

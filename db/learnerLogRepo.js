@@ -206,8 +206,9 @@ async function ingestBatch(userId, deviceId, batch, opts) {
   const idem = String((batch && batch.idempotency_key) || "").trim();
   if (!idem || idem.length > 80) return { ok: false, error: "BAD_IDEMPOTENCY_KEY" };
 
-  // batch replay → stored result verbatim
-  const prior = await dbGet(db, `SELECT result_json FROM ingest_batches WHERE user_id = ? AND idempotency_key = ?`, [userId, idem]);
+  // A replay must acknowledge only committed delivery, never a receipt visible
+  // temporarily through another transaction on this shared connection.
+  const prior = await withTxnLock(() => dbGet(db, `SELECT result_json FROM ingest_batches WHERE user_id = ? AND idempotency_key = ?`, [userId, idem]));
   if (prior) { try { return { ok: true, replayed: true, ...JSON.parse(prior.result_json) }; } catch (_) { return { ok: true, replayed: true }; } }
 
   const schemaVersion = Number((batch && batch.schema_version) || 1);

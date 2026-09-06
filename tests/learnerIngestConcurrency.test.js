@@ -15,25 +15,20 @@ test("concurrent retry of one review batch commits once and returns the stored r
   const db = sqlite.getDb();
   await sqlite._exec(db, "CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES ('learner');");
   await sqlite._exec(db, fs.readFileSync(path.join(__dirname, "../migrations/021_cloud_event_log.sql"), "utf8"));
-  // Hold the transaction lane until both requests have read the initial absence.
+  // Queue both retries behind the same transaction lane.
   let release;
   const held = withTxnLock(() => new Promise(resolve => { release = resolve; }));
   await new Promise(resolve => setImmediate(resolve));
-  const get = db.get;
-  let misses = 0;
-  t.mock.method(db, "get", function (sql, params, callback) {
-    return get.call(this, sql, params, function (error, row) {
-      callback(error, row);
-      if (sql.includes("SELECT result_json FROM ingest_batches") && !row && ++misses === 2) release();
-    });
-  });
   const batch = { idempotency_key: "retry", review_log: [{
     id: "review:1", item_key: "שלום#noun", kind: "review", grade: 3,
     source: "room-recall", reviewed_at: "2026-07-02T10:00:00.000Z",
   }] };
-  const results = await Promise.allSettled([
+  const pending = Promise.allSettled([
     ingestBatch("learner", "device", batch), ingestBatch("learner", "device", batch),
   ]);
+  await sqlite._get(db, "SELECT 1");
+  release();
+  const results = await pending;
   await held;
   for (const result of results) assert.equal(result.status, "fulfilled", String(result.reason));
   const receipts = results.map(result => result.value);
@@ -44,6 +39,30 @@ test("concurrent retry of one review batch commits once and returns the stored r
   assert.equal((await sqlite._get(db, "SELECT COUNT(*) n FROM review_log")).n, 1);
   assert.equal((await sqlite._get(db, "SELECT COUNT(*) n FROM ingest_batches")).n, 1);
   assert.equal((await ingestBatch("learner", "device", batch)).replayed, true);
+});
+
+test("retry cannot acknowledge a receipt from a transaction that rolls back", async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "lp-receipt-rollback-"));
+  t.after(async () => { await sqlite.closeDb(); fs.rmSync(root, { recursive: true, force: true }); });
+  await sqlite.initDb(path.join(root, "app.db"));
+  const db = sqlite.getDb();
+  await sqlite._exec(db, "CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES ('learner');");
+  await sqlite._exec(db, fs.readFileSync(path.join(__dirname, "../migrations/021_cloud_event_log.sql"), "utf8"));
+  let release, inserted;
+  const visible = new Promise(resolve => { inserted = resolve; });
+  const write = withTxnLock(async () => {
+    await sqlite._exec(db, "BEGIN IMMEDIATE; INSERT INTO ingest_batches(user_id,idempotency_key) VALUES ('learner','tentative');");
+    inserted();
+    await new Promise(resolve => { release = resolve; });
+    await sqlite._exec(db, "ROLLBACK;");
+  });
+  await visible;
+  const retry = ingestBatch("learner", "device", { idempotency_key: "tentative" });
+  await sqlite._get(db, "SELECT 1");
+  release();
+  await write;
+  assert.equal((await retry).replayed, false, "rolled-back receipt must not acknowledge delivery");
+  assert.equal((await sqlite._get(db, "SELECT COUNT(*) n FROM ingest_batches")).n, 1);
 });
 
 test("down-sync cannot publish a review from a transaction that later rolls back", async t => {

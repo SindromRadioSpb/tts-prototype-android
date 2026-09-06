@@ -1,9 +1,10 @@
 # Repository reliability audit — 2026-09-06
 
-Status: implementation, clean-checkout, CI and production gates passed for release 3.11.482.
+Status: initial release 3.11.482 passed local, clean-checkout, CI and production gates.
+Final follow-up release: 3.11.483; receipt rollback isolation and shared local DB initialization fixes described below.
 Implementation commit: `89a3f912d4c178f1ffdebc33981e803f491c2df9`.
 Source: `1500f19ee8985546cdcd96fdad39737822ba26e3`, `main`.
-Target release: `3.11.482`.
+Target release: `3.11.483`.
 
 ## Scope and baseline
 
@@ -49,6 +50,8 @@ Severity describes the affected scenario, not a claim of observed owner-data los
 | A11 | P3 | README claimed SM-2, no cloud sync, stateless-only server, old Railway entry and 21 migrations; CLAUDE referenced missing root Python/Make files. | Align entry documentation with current code and label the old roadmap as historical. |
 | A12 | P2 | Seven corpus tests required an ignored local ZIP; two more relied on Windows checkout/generated newlines. Clean worktree reproduced 9 failures hidden by the normal checkout. | Commit the unchanged, already publicly authorized source fixture for offline tests; pin historical CRLF provenance files and corrected physics input LF; make historical generator serialization explicit. No ledger/hash/content changes. Clean checkout: 1334/1334. |
 | A13 | P2 | Runtime Node 20 reached EOL; installed dependency tree contained 20 production advisory matches. | Node 22 Docker/CI, sqlite3 6.0.1, UUID 11 (also Google v4 consumers), maintained esbuild and transitive patches. Windows native rebuild, clean npm ci, Alpine build/start and all tests pass; full audit has zero advisories. |
+| A14 | P1 | Final adjacent-path review found that the fast receipt lookup could acknowledge another transaction's uncommitted receipt. A real SQL rollback fixture returned `replayed:true` despite losing that receipt. | Put the fast receipt read on the same transaction lane as down-sync, keeping the in-transaction recheck for concurrent misses. New test failed before the fix and passed afterward; concurrent retries and down-sync rollback remain green (3/3). No caller holds a nested transaction lane. Release 3.11.483 carries this final correction. |
+| A15 | P1 | Repeated browser checks exposed WASM out-of-bounds and hangs. `initLocalDB()` checked only completed state, so concurrent callers sent multiple worker `init` messages; `initDB()` closes the existing connection before reopening, invalidating in-use WASM handles. | Share the complete in-flight ownership/open/migration promise, clearing it after settlement so failed initialization can retry. Two behavioral tests reproduced duplicate init and retry failure before the fix; both pass afterward. Browser memory gate also exercises eight concurrent callers. |
 
 UI test-history evidence: `2e10208a` replaced the old settings toggle with native disclosure;
 `bad0c41c` removed the row sheet in favor of word morphology;
@@ -65,7 +68,8 @@ animation-frame callback wrapper. Tests now assert the replacement behavior; non
 - `npm ci` in a detached clean worktree passed; API, import, learner-ingest and memory-canon passed there.
 - One clean memory-canon run hung without diagnostic output; a rerun passed 89/89.
   Added a 90-second browser deadline and failure diagnostics so CI cannot hang indefinitely;
-  the instrumented clean rerun also passed 89/89. This single-run stall is not claimed diagnosed.
+  the instrumented clean rerun also passed 89/89. Subsequent repeated failures led to A15;
+  its duplicate-worker-init cause is now corrected, rather than treating retries as the fix.
 - `docker build --progress=plain -t linguistpro-audit:3.11.482 .` passed from the clean source set.
   Disposable container: `/healthz` app/DB/migrations healthy; `/api/client-config` 3.11.482.
 - `ai-local/.venv/Scripts/python.exe -m pytest` on the four Hebrew TTS cache/license/POC/sidecar
@@ -77,6 +81,11 @@ animation-frame callback wrapper. Tests now assert the replacement behavior; non
   all steps passed, including 1334 contracts, API, import, learner sync, FSRS and browser memory canon.
 
 ## Production evidence
+
+Final 3.11.483 local gates: `npm test` 1337/1337 in both the working repository and clean
+worktree, API smoke passed, learner-ingest 24/24, and memory-canon 89/89 in three consecutive
+browser runs (including concurrent unit-test load). The final handoff must verify CI and sole
+production-container convergence for the follow-up commit, not stop at the 3.11.482 evidence below.
 
 The normal `main` webhook deployed implementation commit `89a3f912`. SSH verified a single
 application container on that image, Node 22.23.2, sqlite3 6.0.1, Undici 6.28.1 and UUID 11.1.1.
