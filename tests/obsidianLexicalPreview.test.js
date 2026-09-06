@@ -346,9 +346,9 @@ test("plans a deterministic Obsidian package entirely in memory", () => {
   assert.equal(first.would_create_files, first.files.length + first.external_files.length);
   assert.equal(new Set(first.files.map((x) => x.path)).size, first.files.length);
   assert.ok(first.files.every((x) => x.path.startsWith("_LinguistPro/") || x.path === ".obsidian/snippets/linguistpro-study-v3.css"));
-  assert.ok(first.files.some((x) => x.path.startsWith("_LinguistPro/Тексты/Кфар Аза - 2/")));
+  assert.ok(first.files.some((x) => /^_LinguistPro\/Тексты\/Кфар Аза - 2 — [a-f0-9]{8}\//.test(x.path)));
   assert.ok(first.files.every((x) => !x.path.startsWith("_LinguistPro/texts/T1/")), "UUID/text_id must not be a learner-facing folder");
-  assert.ok(first.files.some((x) => x.path.startsWith("_LinguistPro/Служебное/Кфар Аза - 2/")));
+  assert.ok(first.files.some((x) => /^_LinguistPro\/Служебное\/Кфар Аза - 2 — [a-f0-9]{8}\//.test(x.path)));
   assert.match(first.base_preview, /name: "Глаголы"/);
   assert.match(first.base_preview, /note\.lp_text_id == "T1"/);
   assert.match(first.resolution_base_preview, /note\.type == "lp-resolution-cluster"/);
@@ -456,10 +456,207 @@ test("receipts prove unresolved to resolved without losing the audited occurrenc
   assert.equal(audit.items[0].resolution_event_id, "resolution-1");
 });
 
+test("effective correction reaches Markdown and splits only the selected occurrence", async () => {
+  const input = fixture();
+  // Two occurrences currently share a noun identity; a decision is local, not a global rule.
+  input.notes_advanced.sentence_morph[0].tokens[2].ambiguous = true;
+  input.notes_advanced.sentence_morph[0].tokens[2].feats = {number:"plural"};
+  const raw = Preview.analyzeBundle(input, { textId: "T1" });
+  const snapshot = JSON.stringify(raw);
+  const initial = await Service.hydrate(raw, [], Core);
+  const item = initial.resolution_audit.items.find(x => x.row_id === "R1" && x.word_offset === 2);
+  const event = {
+    id: "split-1", occurrence_id: item.lp_occurrence_id, text_id: "T1", sentence_id: item.row_id,
+    word_offset: item.word_offset, text_key: "text-kfar", order_index: item.order_index,
+    surface_norm: item.surface, source_anchor: item.source_anchor, action: "manual_correction",
+    chosen_analysis: { lemma: "מחקר", lp_pos: "noun", meaning_ru: "Проверенное значение" },
+    candidate_fingerprint: item.candidate_fingerprint, actor_kind: "owner", created_at: "2026-09-06T01:00:00Z"
+  };
+  const effective = await Service.hydrate(raw, [event], Core);
+  const changed = effective.lexemes.find(x => x.meaning_ru === "Проверенное значение");
+  assert.ok(changed, "owner decision must reach educational projection");
+  assert.equal(changed.occurrence_count, 1);
+  assert.equal(changed.headword, "מחקר");
+  assert.equal(changed.pealim_id, "");
+  assert.equal(changed.study_forms, null);
+  assert.equal(changed.verification_state, "owner_confirmed");
+  assert.deepEqual(changed.occurrences[0].features, {}, "lexical correction does not certify old grammar");
+  assert.deepEqual(changed.occurrences[0].source_grammar.features, {number:"plural"});
+  assert.equal(changed.context_meaning_ru, "Проверенное значение");
+  assert.equal(changed.dictionary_meaning_ru, "");
+  assert.equal(effective.lexemes.find(x => x.pealim_id === "18").occurrence_count, 1);
+  assert.equal(effective.lexemes.find(x => x.pealim_id === "18").ambiguity, false);
+  assert.equal(changed.lp_lexeme_id.length, 73);
+  assert.equal(changed.lp_lexeme_id.includes("Проверенное"), false);
+  assert.equal(effective.lexemes.flatMap(x => x.occurrences).length, 6);
+  const plan = Preview.planObsidianPackage(effective);
+  const card = plan.files.find(x => x.kind === "text-lexeme" && x.content.includes("Проверенное значение"));
+  assert.ok(card);
+  assert.match(card.content, /owner_confirmed/);
+  assert.match(card.content, /מחקר/);
+  assert.equal(JSON.stringify(raw), snapshot, "source projection must not mutate");
+  const again = await Service.hydrate(JSON.parse(JSON.stringify(effective)), [event], Core);
+  assert.deepEqual(again.lexemes, effective.lexemes, "re-hydration is idempotent after serialization");
+  const cleared = await Service.hydrate(again, [{ ...event, action: "clear" }], Core);
+  assert.deepEqual(cleared.lexemes, raw.lexemes, "clear restores the source, not an earlier overlay");
+  for (const eventPatch of [
+    { action: "clear", created_at: "2026-09-06T02:00:00Z" },
+    { source_anchor: "sha256:changed" },
+    { action: "confirm_candidate", candidate_fingerprint: "sha256:changed" }
+  ]) {
+    const restored = await Service.hydrate(raw, [{ ...event, ...eventPatch }], Core);
+    assert.deepEqual(restored.lexemes, initial.lexemes);
+  }
+});
+
+test("manual decisions outside the uncertainty queue still reach export", async () => {
+  const raw = Preview.analyzeBundle(fixture(), { textId: "T1", pealimResolver: () => verbParadigm() });
+  const verb = raw.lexemes.find(x => x.pealim_id === "2321");
+  const occ = verb.occurrences[0];
+  const event = {
+    id: "normal-1", occurrence_id: "lpro:T1:R1:0", text_id: "T1", sentence_id: "R1",
+    word_offset: 0, text_key: "text-kfar", order_index: 0, surface_norm: occ.surface,
+    source_anchor: await Core.sourceAnchor({ ...occ, text_key: "text-kfar" }), action: "manual_correction",
+    chosen_analysis: { lemma: "לשרוף", lp_pos: "verb", pealim_id: "2321", meaning_ru: "Подтверждённый контекст" },
+    candidate_fingerprint: "sha256:manual", actor_kind: "teacher", created_at: "2026-09-06T01:00:00Z"
+  };
+  assert.equal(raw.resolution_queue.items.some(x => x.lp_occurrence_id === event.occurrence_id), false);
+  const effective = await Service.hydrate(raw, [event], Core);
+  const changed = effective.lexemes.find(x => x.verification_state === "teacher_confirmed");
+  assert.equal(changed.meaning_ru, "Подтверждённый контекст");
+  assert.deepEqual(changed.study_forms, verb.study_forms);
+  assert.equal(effective.counts.resolved_resolution_occurrences, 1);
+  Preview.planObsidianPackage(effective);
+});
+
+test("a confirmed skipped token becomes an exported occurrence and clear reverses recovery", async () => {
+  const input = fixture();
+  input.notes_advanced.sentence_morph[0].tokens.push({ word: "—" });
+  const raw = Preview.analyzeBundle(input, { textId: "T1" });
+  const initial = await Service.hydrate(raw, [], Core);
+  const item = initial.resolution_audit.items.find(x => x.reasons.includes("skipped_token"));
+  const event = {
+    id: "recover", occurrence_id: item.lp_occurrence_id, text_id: "T1", sentence_id: item.row_id,
+    word_offset: item.word_offset, text_key: "text-kfar", order_index: item.order_index,
+    surface_norm: item.surface, source_anchor: item.source_anchor, action: "manual_correction",
+    chosen_analysis: { lemma: "מילה", lp_pos: "noun", meaning_ru: "Слово после ручной проверки" },
+    candidate_fingerprint: item.candidate_fingerprint, actor_kind: "owner", created_at: "2026-09-06T02:00:00Z"
+  };
+  const effective = await Service.hydrate(raw, [event], Core);
+  assert.equal(effective.counts.analyzed_occurrences, 7);
+  assert.equal(effective.counts.skipped_tokens, 0);
+  assert.equal(effective.counts.analyzed_occurrences + effective.counts.skipped_tokens, raw.counts.tokens_total);
+  assert.equal(effective.lexemes.flatMap(x => x.occurrences).length, 7);
+  assert.equal(effective.completeness_counts.lemma, raw.completeness_counts.lemma + 1);
+  assert.ok(Preview.planObsidianPackage(effective).files.some(x => x.kind === "text-lexeme" && x.content.includes("Слово после ручной проверки")));
+  const cleared = await Service.hydrate(effective, [{...event,action:"clear"}], Core);
+  assert.deepEqual(cleared.lexemes, raw.lexemes);
+  assert.equal(cleared.counts.skipped_tokens, 1);
+});
+
+test("candidate confirmations keep separate context meanings but share one PID reference", async () => {
+  const input = fixture();
+  // One exact paradigm is encountered twice; meanings are decisions per context.
+  input.notes_advanced.sentence_morph[1].tokens[0] = {...input.notes_advanced.sentence_morph[0].tokens[0],ambiguous:true};
+  input.notes_advanced.sentence_morph[0].tokens[0].ambiguous = true;
+  input.notes_advanced.occurrences = input.notes_advanced.occurrences.filter(x => !(x.sentence_id === "R2" && x.word_offset === 0));
+  const raw = Preview.analyzeBundle(input, {textId:"T1",pealimResolver:id => id === "2321" ? verbParadigm() : null});
+  const initial = await Service.hydrate(raw, [], Core);
+  const items = initial.resolution_audit.items.filter(x => x.word_offset === 0);
+  assert.equal(items.length, 2);
+  const events = items.map((item,i) => ({
+    id:"candidate-"+i,occurrence_id:item.lp_occurrence_id,text_id:"T1",sentence_id:item.row_id,
+    word_offset:item.word_offset,text_key:"text-kfar",order_index:item.order_index,
+    surface_norm:item.surface,source_anchor:item.source_anchor,action:"confirm_candidate",
+    chosen_analysis:{lemma:"לשרוף",lp_pos:"verb",pealim_id:"2321",meaning_ru:"Контекст "+i},
+    candidate_fingerprint:item.candidate_fingerprint,actor_kind:"owner",created_at:"2026-09-06T03:00:00Z"
+  }));
+  const effective = await Service.hydrate(raw, events, Core, {pealimResolver:() => verbParadigm()});
+  const reviewed = effective.lexemes.filter(x => x.verification_state === "owner_confirmed");
+  assert.equal(reviewed.length, 2);
+  assert.notEqual(reviewed[0].lp_lexeme_id, reviewed[1].lp_lexeme_id);
+  const plan = Preview.planObsidianPackage(effective);
+  assert.equal(plan.files.filter(x => x.kind === "lexeme-reference" && x.path.endsWith("pid-2321.md")).length, 1);
+  assert.equal(plan.files.filter(x => x.kind === "text-lexeme" && /Контекст [01]/.test(x.content)).length, 2);
+});
+
 test("requires an explicit selection when a bundle contains multiple texts", () => {
   const input = fixture();
   input.library.texts.push({ text_id: "T2", title: "Other", rows: [] });
   assert.throws(() => Preview.analyzeBundle(input), /Select exactly one text/);
+});
+
+test("source grammar and prefix evidence survive JSON and portable TSV without guessed defaults", () => {
+  const input = fixture();
+  const token = input.notes_advanced.sentence_morph[0].tokens[0];
+  token.feats = { person: 3, number: "plural", gender: null, tense: "past", state: "", voice: null };
+  token.prefix = [{word:"ו",pos:"conjunction"}];
+  token.morphId = "9007199254740993";
+  const before = JSON.stringify(input);
+  const report = Preview.analyzeBundle(input, {textId:"T1"});
+  const occ = report.lexemes.flatMap(x => x.occurrences).find(x => x.row_id === "R1" && x.word_offset === 0);
+  assert.deepEqual(occ.features, {person:3,number:"plural",tense:"past"});
+  assert.equal(occ.morph_id, "9007199254740993");
+  assert.deepEqual(occ.prefix, token.prefix);
+  assert.notEqual(occ.prefix, token.prefix);
+  assert.equal(occ.morphology_evidence_source, "sentence-morph:dicta-v1");
+  const absent = report.lexemes.flatMap(x => x.occurrences).find(x => x.word_offset === 1);
+  assert.deepEqual(absent.features, {});
+  const plan = Preview.planObsidianPackage(report);
+  const tsv = plan.files.find(x => x.path.endsWith("/occurrences.tsv"));
+  assert.ok(tsv.content.includes('"tense":"past"'));
+  assert.ok(tsv.content.includes("morphology_evidence_source"));
+  assert.equal(JSON.stringify(input), before);
+  const card = plan.files.find(x => x.kind === "text-lexeme" && x.content.includes("жечь"));
+  assert.match(card.content, /число: множественное; время: прошедшее/);
+  assert.match(card.content, /\*\*Словарное значение:\*\* жечь/);
+  assert.match(card.content, /\*\*Подтверждённое значение в этом контексте:\*\* не выбрано/);
+  const prompt = card.content.split("> [!question] Проверьте себя")[1].split("> [!answer]")[0];
+  assert.equal(prompt.includes("לשרוף"), false, "recall prompt must not disclose the answer");
+});
+
+test("curated usage enriches matching function words but never chooses a contextual meaning", () => {
+  const entry = {lemma:"של",pos:"preposition",role:"Отношение принадлежности",governs:"именная группа",pitfalls:"Различайте принадлежность и материал",examples:[{he:"בית של חבר",ru:"Дом друга"}],provenance:"curated"};
+  const usageResolver = () => entry;
+  const raw = Preview.analyzeBundle(fixture(), {textId:"T1",usageResolver});
+  const lexeme = raw.lexemes.find(x => x.analysis_lemma === "של");
+  assert.equal(lexeme.usage.context_verified, false);
+  assert.equal(lexeme.usage.entry.role, entry.role);
+  assert.equal(lexeme.context_meaning_ru, "");
+  assert.equal(lexeme.meaning_ru, "", "reference prose is not a contextual gloss");
+  const plan = Preview.planObsidianPackage(raw);
+  const card = plan.files.find(x => x.kind === "lexeme-reference" && x.content.includes(entry.role));
+  assert.ok(card);
+  assert.match(card.content, /Дом друга/);
+  assert.match(card.content, /не подтверждённый разбор строки/);
+  for (const patch of [{pos:"noun"},{lemma:"שם"},{role:""}]) {
+    const rejected = Preview.analyzeBundle(fixture(), {textId:"T1",usageResolver:() => ({...entry,...patch})});
+    assert.equal(rejected.lexemes.find(x => x.analysis_lemma === "של").usage, null);
+  }
+  const ambiguous = fixture();
+  ambiguous.notes_advanced.sentence_morph[1].tokens[1].ambiguous = true;
+  assert.equal(Preview.analyzeBundle(ambiguous, {textId:"T1",usageResolver}).lexemes.find(x => x.analysis_lemma === "של").usage, null);
+});
+
+test("global Bases are text-independent and personal study templates stay inside the managed package", () => {
+  const input = fixture();
+  input.notes_advanced.sentence_morph[0].tokens[0].feats = {tense:"past",person:3};
+  const plan = Preview.planObsidianPackage(Preview.analyzeBundle(input, {textId:"T1"}));
+  const base = plan.files.find(x => x.kind === "global-lexical-base");
+  assert.ok(base);
+  assert.equal(base.content.includes('note.lp_text_id =='), false);
+  assert.match(base.content, /note.text_title/);
+  assert.match(base.content, /note.context_meaning_ru/);
+  assert.match(base.content, /note.grammar_tense/);
+  const card = plan.files.find(x => x.kind === "text-lexeme" && x.content.includes('grammar_tense: ["past"]'));
+  assert.ok(card);
+  assert.match(card.content, /text_title: "Кфар Аза - 2"/);
+  const template = plan.files.find(x => x.kind === "personal-study-template");
+  assert.ok(template.path.startsWith("_LinguistPro/Шаблоны/"));
+  assert.match(template.content, /вне _LinguistPro/);
+  const setup = plan.files.find(x => x.kind === "setup-guide");
+  assert.match(setup.content, /Отдельное хранилище/);
+  assert.match(setup.content, /Добавление в существующее хранилище/);
 });
 
 test("projects only exact Pealim forms into a progressive POS study model", () => {
@@ -637,8 +834,8 @@ test("builds separate reusable references and per-text study notes without cross
   assert.equal(ref2.path, ref1.path);
   assert.equal(ref2.content, ref1.content, "same exact Pealim snapshot must produce the same shared reference file");
   assert.doesNotMatch(ref1.content, /שָׂרְפוּ אֶת הַבָּתִּים|lp_occurrence/);
-  assert.match(study1.path, /Тексты\/Учебный текст T1\/Лексемы\/pid-2321\.md$/);
-  assert.match(study2.path, /Тексты\/Учебный текст T2\/Лексемы\/pid-2321\.md$/);
+  assert.match(study1.path, /Тексты\/Учебный текст T1 — [a-f0-9]{8}\/Лексемы\/pid-2321\.md$/);
+  assert.match(study2.path, /Тексты\/Учебный текст T2 — [a-f0-9]{8}\/Лексемы\/pid-2321\.md$/);
   assert.match(study1.content, /שָׂרְפוּ אֶת הַבָּתִּים/);
   assert.match(study2.content, /שָׂרְפוּ אֶת הַבַּיִת/);
 });
@@ -668,6 +865,16 @@ test("keeps a shared Pealim reference byte-identical across contextual noun/adje
     return Preview.planObsidianPackage(report).files.find((file) => file.kind === "lexeme-reference").content;
   };
   assert.equal(make("T1", "Контекст 1", "adjective"), make("T2", "Контекст 2", "noun"));
+});
+
+test("text paths exclude wikilink syntax and retain identity across title changes", () => {
+  const input = fixture();
+  input.library.texts[0].title = "Песня #1 [любимая] ^куплет";
+  const first = Preview.planObsidianPackage(Preview.analyzeBundle(input, { textId: "T1" }));
+  assert.doesNotMatch(first.text_path, /[#\[\]^]/);
+  input.library.texts[0].title = "Новое название";
+  const renamed = Preview.planObsidianPackage(Preview.analyzeBundle(input, { textId: "T1" }), { previousReceipt: first.receipt });
+  assert.equal(renamed.text_path, first.text_path);
 });
 
 test("plans deduplicated phrase audio and emits players only for successfully included bytes", () => {

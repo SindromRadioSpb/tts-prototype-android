@@ -1,0 +1,20 @@
+{
+  "schema": "linguistpro-obsidian-package-rehearsal-v1",
+  "source_sha256": "8d93ffed8c9049edef0743483b9afa550b7f1a4ad26f553147f29f01765482dd",
+  "texts": 77,
+  "package_files": 11784,
+  "audio_assets": 2155,
+  "install": {
+    "create": 11783,
+    "update": 0,
+    "unchanged": 0,
+    "conflict": 0,
+    "retire": 0
+  },
+  "repeated": "unchanged",
+  "rollback": "rolled-back",
+  "personal_note_preserved": true,
+  "filesystem_broken_links": 0,
+  "native_obsidian_acceptance": "NOT_RUN",
+  "temporary_root": "C:\\Users\\lletp\\AppData\\Local\\Temp\\lp-obsidian-corpus-Y2TETx"
+}

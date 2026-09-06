@@ -1,8 +1,8 @@
 /* Async lifecycle overlay for a read-only lexical preview report. */
 (function (root, factory) {
-  const api=factory(); if(typeof module==='object'&&module.exports)module.exports=api;
+  const api=factory(root); if(typeof module==='object'&&module.exports)module.exports=api;
   if(root)root.LexicalResolutionService=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){'use strict';
   function occurrenceId(occurrence){
     if(occurrence&&occurrence.lp_occurrence_id)return String(occurrence.lp_occurrence_id);
     if(!occurrence||occurrence.text_id==null||occurrence.sentence_id==null||!Number.isInteger(Number(occurrence.word_offset)))return'';
@@ -76,20 +76,41 @@
     }
     return projectExactOccurrence(occurrence,events,Core);
   }
-  async function hydrate(report,events,Core){
+  async function hydrate(report,events,Core,options){
+    // A refresh/clear must fold over the machine source, not the previous
+    // effective projection. This is explicit and survives JSON round-trips.
+    report=report&&report.source_projection||report;
     if(!report||!report.resolution_queue)throw new Error('LEXICAL_QUEUE_REQUIRED');
     if(!Core||!Core.sourceAnchor)throw new Error('LEXICAL_RESOLUTION_CORE_REQUIRED');
     const items=[]; const byId=new Map(); const stateCounts={unresolved:0,resolved:0,deferred:0,rejected_all:0,stale:0};
-    for(const raw of report.resolution_queue.items){
+    const queueItems=report.resolution_queue.items.slice();
+    const knownIds=new Set(queueItems.map(item=>item.lp_occurrence_id));
+    const extraClusters=[];
+    const eventIds=new Set((events||[]).map(event=>event.occurrence_id));
+    for(const lexeme of report.lexemes||[])for(const occ of lexeme.occurrences||[]){
+      const id=occurrenceId({...occ,sentence_id:occ.row_id});
+      if(!eventIds.has(id)||knownIds.has(id))continue;
+      const item={...occ,lp_occurrence_id:id,lp_lexeme_id:lexeme.lp_lexeme_id,
+        conflicts:lexeme.conflicts||[],reasons:['reviewed_occurrence']};
+      queueItems.push(item);knownIds.add(id);
+      extraClusters.push({lp_resolution_cluster_id:'review:'+id,cluster_signature:'review:'+id,
+        surface:occ.surface,niqqud:occ.niqqud,lemma:occ.lemma,lp_pos:occ.lp_pos,
+        reasons:item.reasons,alternatives:occ.alternatives||[],candidate_evidence:occ.candidate_evidence||[],
+        occurrence_ids:[id],occurrences:[item],occurrence_count:1,batch_review_eligible:false,auto_apply_allowed:false});
+    }
+    for(const raw of queueItems){
       const item={...raw,text_key:report.text.text_key||''};
       item.source_anchor=await Core.sourceAnchor(item);
+      const latest=Core.latest(events||[],item.lp_occurrence_id);
+      if(latest&&latest.action==='manual_correction')item.source_anchor=await matchSourceAnchor(item,latest,Core)||item.source_anchor;
       item.candidate_fingerprint=await Core.candidateFingerprint(item);
       const effective=Core.evaluate(item,events||[]);
       const hydrated={...item,resolution_state:effective.state,resolution_event_id:effective.event&&effective.event.id||'',stale_reason:effective.stale_reason||'',effective_analysis:effective.chosen_analysis||null,
         effective_event_created_at:effective.event&&effective.event.created_at||'',effective_event_actor:effective.event&&effective.event.actor_kind||''};
+      if(effective.state==='resolved')hydrated.analysis_identity=await Core.sha256Hex(Core.stableStringify([effective.chosen_analysis,hydrated.effective_event_actor]));
       stateCounts[effective.state]=(stateCounts[effective.state]||0)+1; items.push(hydrated); byId.set(hydrated.lp_occurrence_id,hydrated);
     }
-    const clusters=report.resolution_queue.clusters.map((cluster)=>{
+    const clusters=report.resolution_queue.clusters.concat(extraClusters).map((cluster)=>{
       const clusterItems=cluster.occurrence_ids.filter((id)=>byId.has(id)).map((id)=>byId.get(id));
       const prior=cluster.batch_review_eligible?clusterItems.filter((item)=>item.resolution_state==='resolved'&&item.effective_analysis)
         .sort((a,b)=>String(a.effective_event_created_at).localeCompare(String(b.effective_event_created_at))||String(a.resolution_event_id).localeCompare(String(b.resolution_event_id))).pop():null;
@@ -101,8 +122,15 @@
         batch_review_eligible:cluster.batch_review_eligible&&occurrenceIds.length>1};
     }).filter((cluster)=>cluster.occurrence_count>0);
     const activeItems=items.filter((item)=>item.resolution_state!=='resolved');
-    return {...report,counts:{...report.counts,resolution_state_counts:stateCounts,active_resolution_occurrences:activeItems.length,resolved_resolution_occurrences:stateCounts.resolved},
-      resolution_queue:{...report.resolution_queue,items:activeItems,clusters,uncertain_occurrences:activeItems.length,queued_uncertain_occurrences:activeItems.length,coverage_pct:100},
+    const Preview=typeof module==='object'&&module.exports?require('./obsidian-lexical-preview.js'):root.ObsidianLexicalPreview;
+    if(report.lexemes&&(!Preview||!Preview.projectResolvedLexemes))throw new Error('LEXICAL_EFFECTIVE_PROJECTOR_REQUIRED');
+    const projected=report.lexemes?Preview.projectResolvedLexemes(report,items,options):report;
+    const reasonCounts={};
+    for(const item of activeItems)for(const reason of item.reasons||[])reasonCounts[reason]=(reasonCounts[reason]||0)+1;
+    return {...projected,source_projection:report,counts:{...projected.counts,resolution_state_counts:stateCounts,
+      uncertain_occurrences:activeItems.length,queued_uncertain_occurrences:activeItems.length,resolution_clusters:clusters.length,
+      resolution_queue_coverage_pct:100,active_resolution_occurrences:activeItems.length,resolved_resolution_occurrences:stateCounts.resolved},
+      resolution_queue:{...report.resolution_queue,items:activeItems,clusters,reason_counts:reasonCounts,uncertain_occurrences:activeItems.length,queued_uncertain_occurrences:activeItems.length,coverage_pct:100},
       resolution_audit:{schema:'linguistpro-lexical-resolution-audit-v1',state_counts:stateCounts,items}};
   }
   return{hydrate,projectExactOccurrence,lookupExactOccurrence,canonicallyEquivalentMarkOrders};

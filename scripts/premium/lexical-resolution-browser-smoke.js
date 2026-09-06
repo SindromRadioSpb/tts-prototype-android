@@ -106,6 +106,7 @@ function arg(name, fallback) {
         meaningValue: document.querySelector('[name="meaning_ru"]')?.value,
         priorAnalysis: document.querySelector('[data-prior-analysis]')?.textContent,
         title: document.querySelector('.lexres-title')?.textContent,
+        headerFits: (() => { const title=document.querySelector('.lexres-title').getBoundingClientRect(),dialog=document.querySelector('.lexres-dialog').getBoundingClientRect(); return title.left >= dialog.left && title.right <= dialog.right; })(),
         stats: Array.from(document.querySelectorAll('.lexres-count')).map((node) => node.textContent.trim()),
         reasonLabels: Array.from(document.querySelectorAll('.lexres-reason')).map((node) => node.textContent.trim()),
         actions: Array.from(document.querySelectorAll('.lexres-actions button')).map((node) => node.textContent.trim()),
@@ -143,6 +144,7 @@ function arg(name, fallback) {
     }[locale];
     assert.ok(expected, 'Unsupported smoke locale: ' + locale);
     assert.equal(before.title, expected.title);
+    assert.equal(before.headerFits,true,'localized heading must fit inside the dialog');
     expected.stats.forEach((label) => assert.ok(before.stats.some((value) => value.includes(label)), JSON.stringify(before.stats)));
     assert.ok(before.reasonLabels.some((value) => value.includes(expected.reason)), JSON.stringify(before.reasonLabels));
     expected.actions.forEach((label) => assert.ok(before.actions.includes(label), JSON.stringify(before.actions)));
@@ -213,12 +215,37 @@ function arg(name, fallback) {
     assert.equal(after.ids, 2);
     assert.equal(after.impactBeforeContexts, true);
     assert.ok(after.impactTop < after.contextsTop, JSON.stringify(after));
+    const headerOverflow=await page.evaluate(() => {const node=document.querySelector('.lexres-title');return {scroll:node.scrollWidth,width:node.clientWidth};});
+    assert.ok(headerOverflow.scroll <= headerOverflow.width + 1,JSON.stringify(headerOverflow));
 
     if (screenshot) {
       const target = path.resolve(screenshot);
       fs.mkdirSync(path.dirname(target), { recursive: true });
       await page.screenshot({ path: target, fullPage: false });
     }
+    // Exercise the actual export button and browser WebCrypto sealing, but
+    // intercept the download in this disposable profile. Never write decisions.
+    await page.evaluate(() => {
+      window.ShareService.saveFile = ({blob}) => { window.__lexicalSmokeArchive = blob; return {code:'SAVE_STARTED'}; };
+    });
+    await page.locator('[data-export-obsidian]').click();
+    await page.waitForFunction(() => window.__lexicalSmokeArchive);
+    const exportEvidence = await page.evaluate(async () => {
+      const zip = await window.JSZip.loadAsync(window.__lexicalSmokeArchive);
+      const manifest = JSON.parse(await zip.file('_LinguistPro/package-manifest.json').async('string'));
+      let correctedCards = 0;
+      for (const entry of manifest.files) {
+        const bytes = await zip.file(entry.path).async('uint8array');
+        const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v => v.toString(16).padStart(2,'0')).join('');
+        if (hash !== entry.sha256 || bytes.length !== entry.bytes) throw new Error('BROWSER_ZIP_HASH_MISMATCH');
+        if (entry.kind === 'text-lexeme') {
+          const text = new TextDecoder().decode(bytes);
+          if (text.includes('context_meaning_ru: "Нета"') && text.includes('owner_confirmed')) correctedCards++;
+        }
+      }
+      return {files:manifest.files.length,correctedCards};
+    });
+    assert.equal(exportEvidence.correctedCards,1);
     await page.keyboard.press('Escape');
     await page.waitForSelector('.lexres-dialog', { state: 'detached' });
     assert.deepEqual(errors, []);
@@ -226,7 +253,7 @@ function arg(name, fallback) {
       version: servedVersion, locale, viewportWidth, title: before.title,
       tooltips: before.tooltipCount, unlabelledEditorFields: before.unlabelledEditorFields,
       undersizedPrimaryTargets: before.undersizedPrimaryTargets, contextViewport: before.listClientHeight,
-      contextContent: before.listScrollHeight, impact: after.count
+      contextContent: before.listScrollHeight, impact: after.count, export:exportEvidence
     }));
   } finally {
     await browser.close();

@@ -43,6 +43,6 @@ test("the shipped Pealim snapshot projects תסתכלי as להסתכל in a hum
   assert.equal(lexeme.root, "סכל");
   assert.match(lexeme.meaning_ru, /смотреть/);
   const plan = Preview.planObsidianPackage(report);
-  assert.equal(plan.text_path, "_LinguistPro/Тексты/אושר כהן - כולם גנבים");
+  assert.match(plan.text_path, /^_LinguistPro\/Тексты\/אושר כהן - כולם גנבים — [a-f0-9]{8}$/);
   assert.ok(plan.files.some((file) => file.kind === "text-lexeme" && /form_infinitive: "לְהִסְתַּכֵּל"/.test(file.content)));
 });

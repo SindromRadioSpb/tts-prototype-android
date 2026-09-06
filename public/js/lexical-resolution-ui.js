@@ -169,9 +169,10 @@
         return entry&&entry.identity_safe===true?Object.assign({allow_surface_identity:true},entry):null;
       };
     }else if(root.PealimIdentityOverrides){pealimIdentityResolver=(input)=>root.PealimIdentityOverrides.lookupByPealimId(input.pealim_id);}
-    const raw=Preview.analyzeBundle(bundle,{textId:String(item.id),ambiguityResolver,pealimResolver,pealimIdentityResolver});
+    const usageResolver=root.FunctionUsage?(input)=>root.FunctionUsage.lookup(input.surface,{lemma:input.lemma,stem:input.lemma}):null;
+    const raw=Preview.analyzeBundle(bundle,{textId:String(item.id),ambiguityResolver,pealimResolver,pealimIdentityResolver,usageResolver});
     const events=await localDb.listLexicalResolutionEventsForText(String(item.id));
-    return root.LexicalResolutionService.hydrate(raw,events,root.LexicalResolutionCore);
+    return root.LexicalResolutionService.hydrate(raw,events,root.LexicalResolutionCore,{pealimResolver,usageResolver});
   }
 
   function open(options) {
@@ -288,7 +289,7 @@
         const audio=await fetchAudioAssets(draft.audio_plan,fetchAudio,({done,total})=>{
           setMessage(interpolate(t('room.resolution.exportingAudio','Добавляем аудио: {done} из {total}…'),{done,total}),'working');
         },6);
-        const plan=root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior,audioResults:audio.results});
+        const plan=await root.ObsidianLexicalPreview.sealPackage(root.ObsidianLexicalPreview.planObsidianPackage(report,{previousReceipt:prior,audioResults:audio.results}),audio.bytesByKey);
         const zip=new root.JSZip();plan.files.forEach((file)=>zip.file(file.path,file.content));
         plan.external_files.forEach((file)=>{const bytes=audio.bytesByKey.get(file.asset_key);if(bytes)zip.file(file.path,bytes);});
         const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});

@@ -1,0 +1,1259 @@
+{
+  "schema": "linguistpro-obsidian-quality-audit-v1",
+  "source_sha256": "8d93ffed8c9049edef0743483b9afa550b7f1a4ad26f553147f29f01765482dd",
+  "source_commit": "49729a79cd0329e318e44f63db2359b8f78e9e78",
+  "implementation": "working-tree; see implementation ledger",
+  "linguistic_accuracy": "NOT_MEASURED",
+  "usage_identity_changes": 0,
+  "totals": {
+    "texts": 77,
+    "tokens": 14301,
+    "analyzed": 14284,
+    "skipped": 17,
+    "meaning_present": 5667,
+    "context_meaning_confirmed": 0,
+    "usage_reference": 2719,
+    "source_features": 303,
+    "source_prefix": 2824,
+    "uncertain": 1212
+  },
+  "works": [
+    {
+      "source_entry": "works/work-0174ac7c8582f4469e95fafa.json",
+      "text_id": "1a2e85e8-60b6-4ead-8542-37ef82166b61",
+      "counts": {
+        "texts": 1,
+        "tokens": 155,
+        "analyzed": 155,
+        "skipped": 0,
+        "meaning_present": 53,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 21,
+        "source_features": 0,
+        "source_prefix": 33,
+        "uncertain": 15
+      }
+    },
+    {
+      "source_entry": "works/work-0175dd86a6ddd9ef712278f3.json",
+      "text_id": "bb99b63d-5b13-4c93-b483-b89c80f80fbe",
+      "counts": {
+        "texts": 1,
+        "tokens": 141,
+        "analyzed": 141,
+        "skipped": 0,
+        "meaning_present": 63,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 24,
+        "source_features": 0,
+        "source_prefix": 20,
+        "uncertain": 5
+      }
+    },
+    {
+      "source_entry": "works/work-02b2175a53695880b9cbc06f.json",
+      "text_id": "afb52fb5-6ed7-4ab7-aca6-2f3e4bc04a79",
+      "counts": {
+        "texts": 1,
+        "tokens": 155,
+        "analyzed": 153,
+        "skipped": 2,
+        "meaning_present": 69,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 27,
+        "source_features": 0,
+        "source_prefix": 44,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-03d1149f6c3141d258d9b25f.json",
+      "text_id": "bf51bf5a-f4f8-45b6-9ae9-a26745c60984",
+      "counts": {
+        "texts": 1,
+        "tokens": 224,
+        "analyzed": 224,
+        "skipped": 0,
+        "meaning_present": 96,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 46,
+        "source_features": 0,
+        "source_prefix": 47,
+        "uncertain": 23
+      }
+    },
+    {
+      "source_entry": "works/work-0470af9b427855c1fbdadd7c.json",
+      "text_id": "894fad07-2d37-48d5-8be8-530a1342965b",
+      "counts": {
+        "texts": 1,
+        "tokens": 203,
+        "analyzed": 203,
+        "skipped": 0,
+        "meaning_present": 61,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 34,
+        "source_features": 0,
+        "source_prefix": 41,
+        "uncertain": 35
+      }
+    },
+    {
+      "source_entry": "works/work-06a12ff7169b0820fb58126e.json",
+      "text_id": "e88ee402-19b7-483b-bf76-25fb60bf5ab6",
+      "counts": {
+        "texts": 1,
+        "tokens": 139,
+        "analyzed": 139,
+        "skipped": 0,
+        "meaning_present": 68,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 23,
+        "source_features": 0,
+        "source_prefix": 25,
+        "uncertain": 18
+      }
+    },
+    {
+      "source_entry": "works/work-0c43d6413e9cc542412d5f14.json",
+      "text_id": "965d9dc8-b547-49ed-8176-ac7a179e0aeb",
+      "counts": {
+        "texts": 1,
+        "tokens": 228,
+        "analyzed": 228,
+        "skipped": 0,
+        "meaning_present": 106,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 29,
+        "source_features": 146,
+        "source_prefix": 44,
+        "uncertain": 11
+      }
+    },
+    {
+      "source_entry": "works/work-18e8d60d087191f3e7096fe1.json",
+      "text_id": "26b3d12c-934f-4812-80a4-562161c224e7",
+      "counts": {
+        "texts": 1,
+        "tokens": 214,
+        "analyzed": 214,
+        "skipped": 0,
+        "meaning_present": 80,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 54,
+        "source_features": 0,
+        "source_prefix": 36,
+        "uncertain": 21
+      }
+    },
+    {
+      "source_entry": "works/work-22abbea5e54a39859ec344f6.json",
+      "text_id": "66df9a79-f2a4-4b0c-8d82-37dbdc769d1e",
+      "counts": {
+        "texts": 1,
+        "tokens": 231,
+        "analyzed": 230,
+        "skipped": 1,
+        "meaning_present": 85,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 52,
+        "source_features": 0,
+        "source_prefix": 35,
+        "uncertain": 27
+      }
+    },
+    {
+      "source_entry": "works/work-260b0dcf1349addab2a73158.json",
+      "text_id": "33b2c745-ff4a-4a05-a040-bafb6cf14691",
+      "counts": {
+        "texts": 1,
+        "tokens": 168,
+        "analyzed": 168,
+        "skipped": 0,
+        "meaning_present": 66,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 18,
+        "source_features": 0,
+        "source_prefix": 55,
+        "uncertain": 22
+      }
+    },
+    {
+      "source_entry": "works/work-2b6fa62c74c47bbdbe98640a.json",
+      "text_id": "71a7fe88-c17c-4473-b533-910ef3a602c6",
+      "counts": {
+        "texts": 1,
+        "tokens": 191,
+        "analyzed": 191,
+        "skipped": 0,
+        "meaning_present": 71,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 37,
+        "source_features": 0,
+        "source_prefix": 51,
+        "uncertain": 16
+      }
+    },
+    {
+      "source_entry": "works/work-2fe8f32b046253a09dc0b08e.json",
+      "text_id": "1c993777-5a5c-4666-995b-b1fd4dd814d7",
+      "counts": {
+        "texts": 1,
+        "tokens": 150,
+        "analyzed": 150,
+        "skipped": 0,
+        "meaning_present": 59,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 29,
+        "source_features": 0,
+        "source_prefix": 38,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-3657399d7c62d2b7eb3697a0.json",
+      "text_id": "8d3fd4b6-cc1a-43b2-b7ff-794e38a0fe29",
+      "counts": {
+        "texts": 1,
+        "tokens": 204,
+        "analyzed": 204,
+        "skipped": 0,
+        "meaning_present": 99,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 45,
+        "source_features": 0,
+        "source_prefix": 42,
+        "uncertain": 9
+      }
+    },
+    {
+      "source_entry": "works/work-457586176b3c8d64ce0ae81f.json",
+      "text_id": "f35d4848-bc60-46dc-9931-e9e89d6321b3",
+      "counts": {
+        "texts": 1,
+        "tokens": 224,
+        "analyzed": 224,
+        "skipped": 0,
+        "meaning_present": 95,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 49,
+        "source_features": 0,
+        "source_prefix": 33,
+        "uncertain": 7
+      }
+    },
+    {
+      "source_entry": "works/work-4656294f638923ca87d8a1eb.json",
+      "text_id": "b5337e48-5b57-4c53-8ff5-3737f5ef8698",
+      "counts": {
+        "texts": 1,
+        "tokens": 225,
+        "analyzed": 225,
+        "skipped": 0,
+        "meaning_present": 94,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 27,
+        "source_features": 0,
+        "source_prefix": 62,
+        "uncertain": 23
+      }
+    },
+    {
+      "source_entry": "works/work-4deeea2dfeb58aacbd5c3e7e.json",
+      "text_id": "6a17b2e2-5167-46aa-830a-1f1e725d996c",
+      "counts": {
+        "texts": 1,
+        "tokens": 165,
+        "analyzed": 165,
+        "skipped": 0,
+        "meaning_present": 60,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 38,
+        "source_features": 0,
+        "source_prefix": 25,
+        "uncertain": 16
+      }
+    },
+    {
+      "source_entry": "works/work-506db2f5bb73937d7a4bd0a8.json",
+      "text_id": "6a47c679-ad99-4f2b-b552-3467b717b352",
+      "counts": {
+        "texts": 1,
+        "tokens": 132,
+        "analyzed": 132,
+        "skipped": 0,
+        "meaning_present": 52,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 30,
+        "source_features": 0,
+        "source_prefix": 29,
+        "uncertain": 2
+      }
+    },
+    {
+      "source_entry": "works/work-577152ee2fe82e931fa269e6.json",
+      "text_id": "0d86019d-6534-426a-8d79-9234ed2a1a16",
+      "counts": {
+        "texts": 1,
+        "tokens": 180,
+        "analyzed": 180,
+        "skipped": 0,
+        "meaning_present": 61,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 33,
+        "source_features": 0,
+        "source_prefix": 44,
+        "uncertain": 12
+      }
+    },
+    {
+      "source_entry": "works/work-5d9d4a0f7a64fb94692c1175.json",
+      "text_id": "ec96e6ef-89f2-448f-a3bd-2940ee959999",
+      "counts": {
+        "texts": 1,
+        "tokens": 180,
+        "analyzed": 180,
+        "skipped": 0,
+        "meaning_present": 57,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 35,
+        "source_features": 0,
+        "source_prefix": 27,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-5df579a9340fa0a717316ffc.json",
+      "text_id": "3043594c-e5b5-4cb4-99ce-7daea91c4b7e",
+      "counts": {
+        "texts": 1,
+        "tokens": 130,
+        "analyzed": 130,
+        "skipped": 0,
+        "meaning_present": 61,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 22,
+        "source_features": 0,
+        "source_prefix": 37,
+        "uncertain": 17
+      }
+    },
+    {
+      "source_entry": "works/work-5f610c45eb60a3465327faac.json",
+      "text_id": "1719fa6b-3f8e-4fe1-a698-ae70555dd908",
+      "counts": {
+        "texts": 1,
+        "tokens": 139,
+        "analyzed": 139,
+        "skipped": 0,
+        "meaning_present": 55,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 23,
+        "source_features": 0,
+        "source_prefix": 27,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-66b3ae3532d6fa86e50c2804.json",
+      "text_id": "adce3e96-9b89-48eb-bb35-fe27e41dff17",
+      "counts": {
+        "texts": 1,
+        "tokens": 146,
+        "analyzed": 146,
+        "skipped": 0,
+        "meaning_present": 69,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 15,
+        "source_features": 0,
+        "source_prefix": 32,
+        "uncertain": 6
+      }
+    },
+    {
+      "source_entry": "works/work-67c40fe46afd5369d83a7285.json",
+      "text_id": "3a741990-5d01-4214-adf0-0d3c7f156f30",
+      "counts": {
+        "texts": 1,
+        "tokens": 125,
+        "analyzed": 125,
+        "skipped": 0,
+        "meaning_present": 44,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 19,
+        "source_features": 0,
+        "source_prefix": 24,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-68179ccbb3a51751a272fccc.json",
+      "text_id": "d258b286-2262-476b-bd38-e7b80749f033",
+      "counts": {
+        "texts": 1,
+        "tokens": 275,
+        "analyzed": 275,
+        "skipped": 0,
+        "meaning_present": 100,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 53,
+        "source_features": 0,
+        "source_prefix": 45,
+        "uncertain": 25
+      }
+    },
+    {
+      "source_entry": "works/work-6986389356f6fb3c75e21bdf.json",
+      "text_id": "a6a44641-d3af-47a5-88a8-d3af4f91da70",
+      "counts": {
+        "texts": 1,
+        "tokens": 213,
+        "analyzed": 206,
+        "skipped": 7,
+        "meaning_present": 70,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 32,
+        "source_features": 0,
+        "source_prefix": 41,
+        "uncertain": 27
+      }
+    },
+    {
+      "source_entry": "works/work-6acfdb1f4bec0c9812b18a75.json",
+      "text_id": "8b0973e7-3dd9-4975-b12b-f881903ddac9",
+      "counts": {
+        "texts": 1,
+        "tokens": 168,
+        "analyzed": 168,
+        "skipped": 0,
+        "meaning_present": 79,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 35,
+        "source_features": 0,
+        "source_prefix": 33,
+        "uncertain": 16
+      }
+    },
+    {
+      "source_entry": "works/work-6f238b4cf83cbe4132c4926d.json",
+      "text_id": "b412fbff-2b78-4b32-8f73-21cf68da16af",
+      "counts": {
+        "texts": 1,
+        "tokens": 180,
+        "analyzed": 180,
+        "skipped": 0,
+        "meaning_present": 71,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 38,
+        "source_features": 0,
+        "source_prefix": 41,
+        "uncertain": 22
+      }
+    },
+    {
+      "source_entry": "works/work-70459c26f0265c853d40743e.json",
+      "text_id": "31b443f5-d961-48ef-8645-5b5cd2d0f8a9",
+      "counts": {
+        "texts": 1,
+        "tokens": 141,
+        "analyzed": 141,
+        "skipped": 0,
+        "meaning_present": 48,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 19,
+        "source_features": 0,
+        "source_prefix": 30,
+        "uncertain": 34
+      }
+    },
+    {
+      "source_entry": "works/work-77a9c3ab528e17755d314bd1.json",
+      "text_id": "b2226eec-f100-4470-80e8-eb364c07d692",
+      "counts": {
+        "texts": 1,
+        "tokens": 100,
+        "analyzed": 100,
+        "skipped": 0,
+        "meaning_present": 41,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 18,
+        "source_features": 0,
+        "source_prefix": 20,
+        "uncertain": 4
+      }
+    },
+    {
+      "source_entry": "works/work-7933103caf49bef3af41e207.json",
+      "text_id": "04fc117d-e164-4475-a08f-e5769b70b415",
+      "counts": {
+        "texts": 1,
+        "tokens": 286,
+        "analyzed": 286,
+        "skipped": 0,
+        "meaning_present": 94,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 41,
+        "source_features": 0,
+        "source_prefix": 40,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-79b3cbcbe9508c37144a8480.json",
+      "text_id": "6edeec8f-cd0c-4aaa-9adb-48f1dab874f0",
+      "counts": {
+        "texts": 1,
+        "tokens": 235,
+        "analyzed": 235,
+        "skipped": 0,
+        "meaning_present": 93,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 50,
+        "source_features": 0,
+        "source_prefix": 34,
+        "uncertain": 25
+      }
+    },
+    {
+      "source_entry": "works/work-7d34e1d1f4398c255928efa6.json",
+      "text_id": "1dca46c0-2764-4b04-9983-fa4ba2424887",
+      "counts": {
+        "texts": 1,
+        "tokens": 226,
+        "analyzed": 226,
+        "skipped": 0,
+        "meaning_present": 69,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 54,
+        "source_features": 0,
+        "source_prefix": 41,
+        "uncertain": 7
+      }
+    },
+    {
+      "source_entry": "works/work-8062c9d81d7ec0cecab8d467.json",
+      "text_id": "8b0ea7db-dd54-4446-a66f-087ee47d23fc",
+      "counts": {
+        "texts": 1,
+        "tokens": 243,
+        "analyzed": 243,
+        "skipped": 0,
+        "meaning_present": 107,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 44,
+        "source_features": 0,
+        "source_prefix": 28,
+        "uncertain": 10
+      }
+    },
+    {
+      "source_entry": "works/work-80b2c7a562bc03d159c2f11c.json",
+      "text_id": "d6b511c8-9545-4b68-9b00-ed5a0e4839ee",
+      "counts": {
+        "texts": 1,
+        "tokens": 111,
+        "analyzed": 111,
+        "skipped": 0,
+        "meaning_present": 48,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 17,
+        "source_features": 0,
+        "source_prefix": 18,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-822bd997170b0f99938a8875.json",
+      "text_id": "d2c2cfd4-f073-4191-a10c-00cc88d7e866",
+      "counts": {
+        "texts": 1,
+        "tokens": 97,
+        "analyzed": 97,
+        "skipped": 0,
+        "meaning_present": 48,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 10,
+        "source_features": 0,
+        "source_prefix": 24,
+        "uncertain": 6
+      }
+    },
+    {
+      "source_entry": "works/work-830c25800968cd78158a243e.json",
+      "text_id": "40c3f45d-74d0-4037-af5a-b247756370ce",
+      "counts": {
+        "texts": 1,
+        "tokens": 124,
+        "analyzed": 124,
+        "skipped": 0,
+        "meaning_present": 59,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 29,
+        "source_features": 0,
+        "source_prefix": 21,
+        "uncertain": 10
+      }
+    },
+    {
+      "source_entry": "works/work-86f560d4cb25a09ae840fae5.json",
+      "text_id": "fcc2cd3a-025b-4277-9210-44cfad8e2bcf",
+      "counts": {
+        "texts": 1,
+        "tokens": 288,
+        "analyzed": 288,
+        "skipped": 0,
+        "meaning_present": 88,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 62,
+        "source_features": 0,
+        "source_prefix": 65,
+        "uncertain": 23
+      }
+    },
+    {
+      "source_entry": "works/work-895c30bcb7d8f206e98a522a.json",
+      "text_id": "4f0b0677-ea1e-4944-85d4-a542b1509a8c",
+      "counts": {
+        "texts": 1,
+        "tokens": 166,
+        "analyzed": 166,
+        "skipped": 0,
+        "meaning_present": 57,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 26,
+        "source_features": 0,
+        "source_prefix": 34,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-8fae9132f437b817cfc8e4e4.json",
+      "text_id": "9ffed78c-4fb1-4839-ace1-fb81288af25b",
+      "counts": {
+        "texts": 1,
+        "tokens": 277,
+        "analyzed": 276,
+        "skipped": 1,
+        "meaning_present": 88,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 57,
+        "source_features": 0,
+        "source_prefix": 57,
+        "uncertain": 26
+      }
+    },
+    {
+      "source_entry": "works/work-91fc04e698c083f55b66733c.json",
+      "text_id": "67a14bdc-649a-4303-a44d-77cc0de81002",
+      "counts": {
+        "texts": 1,
+        "tokens": 255,
+        "analyzed": 255,
+        "skipped": 0,
+        "meaning_present": 89,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 46,
+        "source_features": 0,
+        "source_prefix": 43,
+        "uncertain": 72
+      }
+    },
+    {
+      "source_entry": "works/work-928a49c8246b15bb235eb755.json",
+      "text_id": "8173f25e-d53c-42ee-9acd-5a67ad46e930",
+      "counts": {
+        "texts": 1,
+        "tokens": 282,
+        "analyzed": 282,
+        "skipped": 0,
+        "meaning_present": 109,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 75,
+        "source_features": 0,
+        "source_prefix": 38,
+        "uncertain": 12
+      }
+    },
+    {
+      "source_entry": "works/work-94e5455a607000817686f5d2.json",
+      "text_id": "c7f70fd1-4204-4709-8a1c-e4c9f75ed67b",
+      "counts": {
+        "texts": 1,
+        "tokens": 188,
+        "analyzed": 188,
+        "skipped": 0,
+        "meaning_present": 82,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 34,
+        "source_features": 0,
+        "source_prefix": 42,
+        "uncertain": 15
+      }
+    },
+    {
+      "source_entry": "works/work-98b3447b58e5626525930214.json",
+      "text_id": "a00414c7-9f44-4905-a56f-653465b7b967",
+      "counts": {
+        "texts": 1,
+        "tokens": 178,
+        "analyzed": 178,
+        "skipped": 0,
+        "meaning_present": 81,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 32,
+        "source_features": 0,
+        "source_prefix": 21,
+        "uncertain": 12
+      }
+    },
+    {
+      "source_entry": "works/work-9fa017c13969347b1b7acbda.json",
+      "text_id": "a01f31d3-9c6b-4144-9476-026d0fbb3d61",
+      "counts": {
+        "texts": 1,
+        "tokens": 84,
+        "analyzed": 84,
+        "skipped": 0,
+        "meaning_present": 44,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 22,
+        "source_features": 0,
+        "source_prefix": 18,
+        "uncertain": 2
+      }
+    },
+    {
+      "source_entry": "works/work-a035b8df24deb0bf424ac3f4.json",
+      "text_id": "d0b7133f-bceb-4114-b923-24e679a259c2",
+      "counts": {
+        "texts": 1,
+        "tokens": 169,
+        "analyzed": 169,
+        "skipped": 0,
+        "meaning_present": 65,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 31,
+        "source_features": 0,
+        "source_prefix": 36,
+        "uncertain": 6
+      }
+    },
+    {
+      "source_entry": "works/work-a901ac2122a7fe833b9b982b.json",
+      "text_id": "763f6209-a7ac-4d81-bc6d-3279c72ef994",
+      "counts": {
+        "texts": 1,
+        "tokens": 93,
+        "analyzed": 93,
+        "skipped": 0,
+        "meaning_present": 34,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 26,
+        "source_features": 0,
+        "source_prefix": 24,
+        "uncertain": 5
+      }
+    },
+    {
+      "source_entry": "works/work-abd7d734972b6e03b18e72e3.json",
+      "text_id": "b13698fc-377c-4cd7-9547-87cf24bba218",
+      "counts": {
+        "texts": 1,
+        "tokens": 182,
+        "analyzed": 182,
+        "skipped": 0,
+        "meaning_present": 72,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 38,
+        "source_features": 0,
+        "source_prefix": 55,
+        "uncertain": 11
+      }
+    },
+    {
+      "source_entry": "works/work-adf37a747f8bb0241a8306e4.json",
+      "text_id": "61de216c-076d-432e-91c6-744d8c6ab6cd",
+      "counts": {
+        "texts": 1,
+        "tokens": 172,
+        "analyzed": 172,
+        "skipped": 0,
+        "meaning_present": 65,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 41,
+        "source_features": 0,
+        "source_prefix": 23,
+        "uncertain": 12
+      }
+    },
+    {
+      "source_entry": "works/work-ae3996fce5e6dd84296d1f9d.json",
+      "text_id": "55f5d699-47e3-4636-84e1-f846ad8bae9a",
+      "counts": {
+        "texts": 1,
+        "tokens": 146,
+        "analyzed": 146,
+        "skipped": 0,
+        "meaning_present": 55,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 38,
+        "source_features": 0,
+        "source_prefix": 34,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-b0bb65ec08c4e169709f4aad.json",
+      "text_id": "3e0edb9f-6bf6-4eb3-82a0-794e5597c016",
+      "counts": {
+        "texts": 1,
+        "tokens": 204,
+        "analyzed": 204,
+        "skipped": 0,
+        "meaning_present": 88,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 33,
+        "source_features": 0,
+        "source_prefix": 43,
+        "uncertain": 10
+      }
+    },
+    {
+      "source_entry": "works/work-b2e36be89bd91416949399f6.json",
+      "text_id": "3ed273d4-d41c-42cf-9086-2a294f019a2a",
+      "counts": {
+        "texts": 1,
+        "tokens": 255,
+        "analyzed": 255,
+        "skipped": 0,
+        "meaning_present": 105,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 44,
+        "source_features": 0,
+        "source_prefix": 50,
+        "uncertain": 26
+      }
+    },
+    {
+      "source_entry": "works/work-b4f37439769285990dde3f1d.json",
+      "text_id": "8a514e31-e722-40ad-9710-f78b7990c864",
+      "counts": {
+        "texts": 1,
+        "tokens": 121,
+        "analyzed": 121,
+        "skipped": 0,
+        "meaning_present": 40,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 19,
+        "source_features": 0,
+        "source_prefix": 27,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-b6160788cbc88ca21a4389eb.json",
+      "text_id": "0c0c748c-e100-4125-babb-e884d13f67bc",
+      "counts": {
+        "texts": 1,
+        "tokens": 264,
+        "analyzed": 264,
+        "skipped": 0,
+        "meaning_present": 121,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 53,
+        "source_features": 0,
+        "source_prefix": 43,
+        "uncertain": 18
+      }
+    },
+    {
+      "source_entry": "works/work-b78fcfa75db8f1fe5191e972.json",
+      "text_id": "079d3a12-88be-41d4-af32-826020dc3c6f",
+      "counts": {
+        "texts": 1,
+        "tokens": 174,
+        "analyzed": 174,
+        "skipped": 0,
+        "meaning_present": 67,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 34,
+        "source_features": 0,
+        "source_prefix": 35,
+        "uncertain": 18
+      }
+    },
+    {
+      "source_entry": "works/work-b867e1bccbcdccb0f72b9eec.json",
+      "text_id": "0d5273c8-64c9-4a2e-be69-5334a58f4783",
+      "counts": {
+        "texts": 1,
+        "tokens": 202,
+        "analyzed": 202,
+        "skipped": 0,
+        "meaning_present": 77,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 36,
+        "source_features": 0,
+        "source_prefix": 47,
+        "uncertain": 7
+      }
+    },
+    {
+      "source_entry": "works/work-b8cf99217df2b1bf382b4236.json",
+      "text_id": "a8cad399-3bab-40ca-891c-481b1b174aad",
+      "counts": {
+        "texts": 1,
+        "tokens": 211,
+        "analyzed": 211,
+        "skipped": 0,
+        "meaning_present": 92,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 30,
+        "source_features": 0,
+        "source_prefix": 38,
+        "uncertain": 16
+      }
+    },
+    {
+      "source_entry": "works/work-bd67a308e2f10353b294c5e2.json",
+      "text_id": "07d10676-da92-417a-ba8e-fb1e9381cda1",
+      "counts": {
+        "texts": 1,
+        "tokens": 127,
+        "analyzed": 127,
+        "skipped": 0,
+        "meaning_present": 53,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 15,
+        "source_features": 0,
+        "source_prefix": 30,
+        "uncertain": 13
+      }
+    },
+    {
+      "source_entry": "works/work-beffc236c58f59220c47a669.json",
+      "text_id": "eae32d1f-5b89-4ea0-bb8d-364904297b17",
+      "counts": {
+        "texts": 1,
+        "tokens": 317,
+        "analyzed": 316,
+        "skipped": 1,
+        "meaning_present": 110,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 67,
+        "source_features": 0,
+        "source_prefix": 67,
+        "uncertain": 34
+      }
+    },
+    {
+      "source_entry": "works/work-c74e4609a199225de50d0300.json",
+      "text_id": "f08de534-0e6e-4e23-948e-aa54fe21c592",
+      "counts": {
+        "texts": 1,
+        "tokens": 209,
+        "analyzed": 209,
+        "skipped": 0,
+        "meaning_present": 85,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 32,
+        "source_features": 0,
+        "source_prefix": 44,
+        "uncertain": 27
+      }
+    },
+    {
+      "source_entry": "works/work-c9d830689cc84fb9b53b7fae.json",
+      "text_id": "7485479f-01f2-46a6-b772-c049144d0134",
+      "counts": {
+        "texts": 1,
+        "tokens": 155,
+        "analyzed": 155,
+        "skipped": 0,
+        "meaning_present": 66,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 25,
+        "source_features": 0,
+        "source_prefix": 36,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-cc2811111e8a8e97ad9c3d2f.json",
+      "text_id": "01e00b25-de3f-41a6-bfb9-e8f210a168fa",
+      "counts": {
+        "texts": 1,
+        "tokens": 310,
+        "analyzed": 310,
+        "skipped": 0,
+        "meaning_present": 143,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 89,
+        "source_features": 157,
+        "source_prefix": 52,
+        "uncertain": 6
+      }
+    },
+    {
+      "source_entry": "works/work-d08620f4c1d1b43a0045a52c.json",
+      "text_id": "0618adf0-30f5-4872-b7ea-aad688ac8903",
+      "counts": {
+        "texts": 1,
+        "tokens": 280,
+        "analyzed": 280,
+        "skipped": 0,
+        "meaning_present": 99,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 46,
+        "source_features": 0,
+        "source_prefix": 65,
+        "uncertain": 26
+      }
+    },
+    {
+      "source_entry": "works/work-d0f834e364527800c89b4df2.json",
+      "text_id": "d508a122-85c3-4b75-9b2a-7d5a033fa487",
+      "counts": {
+        "texts": 1,
+        "tokens": 150,
+        "analyzed": 150,
+        "skipped": 0,
+        "meaning_present": 49,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 34,
+        "source_features": 0,
+        "source_prefix": 20,
+        "uncertain": 12
+      }
+    },
+    {
+      "source_entry": "works/work-d4ce4cf01f457a3fc3a2dfa1.json",
+      "text_id": "de154acc-7b5c-44dc-8ba3-b577850889ea",
+      "counts": {
+        "texts": 1,
+        "tokens": 163,
+        "analyzed": 163,
+        "skipped": 0,
+        "meaning_present": 54,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 46,
+        "source_features": 0,
+        "source_prefix": 38,
+        "uncertain": 9
+      }
+    },
+    {
+      "source_entry": "works/work-d602deeba47f81ffbf2563d1.json",
+      "text_id": "2e2a29d0-6262-4a5d-9b66-ed331ea4c1fe",
+      "counts": {
+        "texts": 1,
+        "tokens": 166,
+        "analyzed": 166,
+        "skipped": 0,
+        "meaning_present": 71,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 28,
+        "source_features": 0,
+        "source_prefix": 29,
+        "uncertain": 18
+      }
+    },
+    {
+      "source_entry": "works/work-dbeb836a196d0d5a9f117e4f.json",
+      "text_id": "8ebf4644-890f-4c13-9155-2f25a9f76623",
+      "counts": {
+        "texts": 1,
+        "tokens": 196,
+        "analyzed": 196,
+        "skipped": 0,
+        "meaning_present": 85,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 49,
+        "source_features": 0,
+        "source_prefix": 36,
+        "uncertain": 12
+      }
+    },
+    {
+      "source_entry": "works/work-de8313cdcb0d27a7056644ac.json",
+      "text_id": "ea17f1b6-9e9f-40a2-9f6b-7078374b4be6",
+      "counts": {
+        "texts": 1,
+        "tokens": 146,
+        "analyzed": 145,
+        "skipped": 1,
+        "meaning_present": 50,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 30,
+        "source_features": 0,
+        "source_prefix": 25,
+        "uncertain": 4
+      }
+    },
+    {
+      "source_entry": "works/work-df6991fc14a8edc15558d68c.json",
+      "text_id": "6f4d00b4-1a40-4353-a979-629c860e8904",
+      "counts": {
+        "texts": 1,
+        "tokens": 173,
+        "analyzed": 173,
+        "skipped": 0,
+        "meaning_present": 56,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 30,
+        "source_features": 0,
+        "source_prefix": 28,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-e049c3c08cba89dd850efc8e.json",
+      "text_id": "26467482-2028-42ed-9fbc-fa144b24ce40",
+      "counts": {
+        "texts": 1,
+        "tokens": 121,
+        "analyzed": 121,
+        "skipped": 0,
+        "meaning_present": 48,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 23,
+        "source_features": 0,
+        "source_prefix": 30,
+        "uncertain": 8
+      }
+    },
+    {
+      "source_entry": "works/work-e0dae9152c8acf8bba450239.json",
+      "text_id": "26f8f528-de72-4a07-94c0-c347265a1692",
+      "counts": {
+        "texts": 1,
+        "tokens": 126,
+        "analyzed": 126,
+        "skipped": 0,
+        "meaning_present": 53,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 12,
+        "source_features": 0,
+        "source_prefix": 22,
+        "uncertain": 18
+      }
+    },
+    {
+      "source_entry": "works/work-e38b12e922a9d20c6862db5d.json",
+      "text_id": "b3f20150-4aad-44af-bb62-22f126f787cb",
+      "counts": {
+        "texts": 1,
+        "tokens": 241,
+        "analyzed": 241,
+        "skipped": 0,
+        "meaning_present": 94,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 58,
+        "source_features": 0,
+        "source_prefix": 38,
+        "uncertain": 21
+      }
+    },
+    {
+      "source_entry": "works/work-e4f99fbe1aadd19f7a8f28e9.json",
+      "text_id": "324b258a-fdd9-4c79-8a38-12a8856e2462",
+      "counts": {
+        "texts": 1,
+        "tokens": 135,
+        "analyzed": 134,
+        "skipped": 1,
+        "meaning_present": 57,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 24,
+        "source_features": 0,
+        "source_prefix": 34,
+        "uncertain": 14
+      }
+    },
+    {
+      "source_entry": "works/work-e539790b55761a7188de661e.json",
+      "text_id": "cd3c4a3b-4ea0-4bc2-b636-2b058f890532",
+      "counts": {
+        "texts": 1,
+        "tokens": 159,
+        "analyzed": 157,
+        "skipped": 2,
+        "meaning_present": 63,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 28,
+        "source_features": 0,
+        "source_prefix": 21,
+        "uncertain": 27
+      }
+    },
+    {
+      "source_entry": "works/work-e5c578c25ec5289806a8e937.json",
+      "text_id": "c42b60b4-9275-4412-b4fc-e7a3efe892da",
+      "counts": {
+        "texts": 1,
+        "tokens": 114,
+        "analyzed": 113,
+        "skipped": 1,
+        "meaning_present": 65,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 18,
+        "source_features": 0,
+        "source_prefix": 26,
+        "uncertain": 13
+      }
+    },
+    {
+      "source_entry": "works/work-e7d93af95cb1915dca5ca48a.json",
+      "text_id": "f5101293-4851-4e12-bdd5-ce7ba7f81262",
+      "counts": {
+        "texts": 1,
+        "tokens": 299,
+        "analyzed": 299,
+        "skipped": 0,
+        "meaning_present": 129,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 57,
+        "source_features": 0,
+        "source_prefix": 70,
+        "uncertain": 29
+      }
+    },
+    {
+      "source_entry": "works/work-f0233a874632545710925320.json",
+      "text_id": "3cf83c9f-a42a-4269-bdc0-515d6e02f8a3",
+      "counts": {
+        "texts": 1,
+        "tokens": 200,
+        "analyzed": 200,
+        "skipped": 0,
+        "meaning_present": 91,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 38,
+        "source_features": 0,
+        "source_prefix": 50,
+        "uncertain": 19
+      }
+    },
+    {
+      "source_entry": "works/work-fe7e6520ca9f7618fb72122b.json",
+      "text_id": "e6991f7e-aca4-4377-8324-28e66a82c82e",
+      "counts": {
+        "texts": 1,
+        "tokens": 155,
+        "analyzed": 155,
+        "skipped": 0,
+        "meaning_present": 76,
+        "context_meaning_confirmed": 0,
+        "usage_reference": 23,
+        "source_features": 0,
+        "source_prefix": 23,
+        "uncertain": 8
+      }
+    }
+  ],
+  "gold_worksheet": {
+    "status": "UNANNOTATED_NOT_SCORED",
+    "rows": 400,
+    "selection": "deterministic hash order; round-robin source POS/uncertainty strata; no predicted fields shown"
+  }
+}

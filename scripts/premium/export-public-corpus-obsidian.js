@@ -36,6 +36,7 @@ function resolverSet() {
   for (const key of Object.keys(usage).sort()) { const entry = usage[key] || {}, id = String(entry.pealim_id == null ? "" : entry.pealim_id).trim(); if (id) usageByPid.set(id, usageByPid.has(id) ? null : entry); }
   const strip = value => String(value || "").replace(/[֑-ׇ]/g, "").trim();
   return {
+    usageResolver: input => usage[strip(input.surface)] || usage[strip(input.lemma)] || null,
     ambiguityResolver: unit => NotesAutoGen.formFirstResolve(maps, unit), pealimResolver: pid => pidMap.get(String(pid)) || null,
     pealimIdentityResolver: input => {
       if (input.pealim_id && overrides[String(input.pealim_id)]) return Object.assign({ pealim_id: String(input.pealim_id) }, overrides[String(input.pealim_id)]);
@@ -46,6 +47,7 @@ function resolverSet() {
   };
 }
 async function zipPlan(plan, bytesByKey, outputPath) {
+  plan = await Preview.sealPackage(plan, bytesByKey);
   const zip = new JSZip();
   plan.files.forEach(file => zip.file(file.path, file.content));
   plan.external_files.forEach(file => { const bytes = bytesByKey.get(file.asset_key); invariant(bytes && bytes.length, "AUDIO_BYTES_MISSING_" + file.asset_key); zip.file(file.path, bytes); });
@@ -58,7 +60,7 @@ async function zipPlan(plan, bytesByKey, outputPath) {
   return { bytes: output.length, files: files.length };
 }
 
-(async () => {
+async function main() {
   const baseUrl = String(arg("base-url", "https://linguistpro.kolosei.com")).replace(/\/+$/, "");
   const slug = String(arg("slug", "study-songs"));
   const outputRoot = path.resolve(String(arg("output", "")));
@@ -142,4 +144,6 @@ async function zipPlan(plan, bytesByKey, outputPath) {
     "- `manifest.json` — проверяемый перечень архивов, размеров, лексики, очереди морфологии и аудио.", "",
     "Откройте `_LinguistPro/Корпус.md`, затем выберите текст в папке `_LinguistPro/Тексты/<название карточки>` и его `Учебный маршрут.md`. Технический ID хранится только в свойствах и служебных квитанциях. Личные заметки храните вне `_LinguistPro`.", ""].join("\n"));
   console.log(JSON.stringify(manifest.counts));
-})().catch(error => { console.error("[public-corpus-obsidian]", error && error.stack || error); process.exit(1); });
+}
+if (require.main === module) main().catch(error => { console.error("[public-corpus-obsidian]", error && error.stack || error); process.exit(1); });
+module.exports = {resolverSet,zipPlan};

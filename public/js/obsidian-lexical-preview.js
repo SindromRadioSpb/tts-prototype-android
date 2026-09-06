@@ -228,7 +228,7 @@
   function safePathSegment(value, fallback) {
     var raw = str(value || fallback || "Текст");
     try { raw = raw.normalize("NFC"); } catch (_) {}
-    var cleaned = raw.replace(/[<>:"/\\|?*\u0000-\u001f]/g, " ")
+    var cleaned = raw.replace(/[<>:"/\\|?*#\[\]^\u0000-\u001f]/g, " ")
       .replace(/\s+/g, " ").replace(/[. ]+$/g, "").trim().slice(0, 120);
     if (!cleaned || cleaned === "." || cleaned === "..") cleaned = str(fallback) || "Текст";
     return cleaned;
@@ -400,7 +400,8 @@
       unknown_pos: "не определена часть речи",
       headword_missing: "не подтверждена начальная форма",
       collision: "противоречивые словарные данные",
-      skipped_token: "токен не удалось разобрать"
+      skipped_token: "токен не удалось разобрать",
+      reviewed_occurrence: "сохранённое решение требует внимания"
     })[str(reason)] || str(reason);
   }
   function pealimUrl(id) {
@@ -514,13 +515,13 @@
     var target = phrasePathByRowId && phrasePathByRowId.get(str(occ && occ.row_id));
     return target ? "[[" + target + "|" + label + "]]" : label;
   }
-  function renderBase(report) {
+  function renderBase(report, allTexts) {
     var textId = yaml(report.text.text_id);
     var lines = [
       "filters:",
       "  and:",
       "    - 'note.type == \"lp-text-lexeme\"'",
-      "    - 'note.lp_text_id == " + textId + "'",
+      allTexts ? "    - 'note.managed_by == \"linguistpro\"'" : "    - 'note.lp_text_id == " + textId + "'",
       "formulas:",
       "  surface_link: 'file.asLink(note.primary_surface)'",
       "  headword_link: 'if(note.headword, file.asLink(note.headword), \"—\")'",
@@ -540,6 +541,14 @@
       "    displayName: Роль в контексте",
       "  note.meaning_ru:",
       "    displayName: Значение",
+      "  note.text_title:", "    displayName: Исходный текст",
+      "  note.dictionary_meaning_ru:", "    displayName: Словарное значение",
+      "  note.context_meaning_ru:", "    displayName: Подтверждённое в контексте",
+      "  note.verification_state:", "    displayName: Проверка лексики",
+      "  note.grammar_tense:", "    displayName: Время — машинный разбор",
+      "  note.grammar_number:", "    displayName: Число — машинный разбор",
+      "  note.grammar_person:", "    displayName: Лицо — машинный разбор",
+      "  note.grammar_gender:", "    displayName: Род — машинный разбор",
       "  note.occurrence_count:",
       "    displayName: Вхождений",
       "  note.form_infinitive:",
@@ -576,8 +585,9 @@
       lines.push("  - type: table", "    name: " + yaml(name));
       if (filter) lines.push("    filters:", "      and:", "        - '" + filter + "'");
       lines.push("    order:");
-      (order || ["formula.surface_link", "formula.headword_link", "note.meaning_ru", "note.lp_pos_label", "note.occurrence_count", "formula.pealim_link"])
+      (order || ["formula.surface_link", "formula.headword_link", "note.dictionary_meaning_ru", "note.context_meaning_ru", "note.lp_pos_label", "note.occurrence_count", "formula.pealim_link"])
         .forEach(function (field) { lines.push("      - " + field); });
+      if (allTexts) lines.push("      - note.text_title");
     }
     view("Все слова", "note.lp_pos != \"unknown\"");
     view("Глаголы", "note.lp_pos == \"verb\"", ["formula.surface_link", "note.surface_forms", "formula.headword_link", "note.form_present_ms", "note.form_present_fs", "note.form_present_mp", "note.form_present_fp", "note.meaning_ru", "formula.pealim_link"]);
@@ -587,6 +597,9 @@
       .forEach(function (pos) { view(posViewName(pos), "note.lp_pos == " + yaml(pos)); });
     view("Неоднозначные", "note.ambiguity == true");
     view("Конфликты", "note.conflict_count > 0");
+    view("Подтверждённая лексика", 'note.verification_state == "owner_confirmed" || note.verification_state == "teacher_confirmed"');
+    view("Употребление служебных слов", 'note.usage_available == true');
+    view("Формы — исходный машинный разбор", 'note.grammar_available == true', ["formula.surface_link","formula.headword_link","note.grammar_tense","note.grammar_number","note.grammar_person","note.grammar_gender"]);
     return lines.join("\n") + "\n";
   }
   function renderResolutionBase(report) {
@@ -648,7 +661,7 @@
       "type: lp-lexeme-reference",
       "lp_schema: 3",
       "cssclasses: [linguistpro-study]",
-      "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
+      "lp_lexeme_id: " + yaml("pid:" + lexeme.pealim_id),
       "lemma: " + yaml(headword),
       "lemma_unpointed: " + yaml(referenceHeadword.unpointed),
       "headword: " + yaml(headword),
@@ -690,6 +703,7 @@
       "lp_schema: 3",
       "cssclasses: [linguistpro-study]",
       "lp_text_id: " + yaml(report.text.text_id),
+      "text_title: " + yaml(report.text.title),
       "lp_lexeme_id: " + yaml(lexeme.lp_lexeme_id),
       "lemma: " + yaml(lexeme.headword),
       "lemma_unpointed: " + yaml(lexeme.headword_unpointed),
@@ -707,17 +721,26 @@
       "root: " + yaml(lexeme.root),
       "binyan: " + yaml(lexeme.binyan),
       "meaning_ru: " + yaml(lexeme.meaning_ru),
+      "dictionary_meaning_ru: " + yaml(lexeme.dictionary_meaning_ru),
+      "context_meaning_ru: " + yaml(lexeme.context_meaning_ru),
+      "meaning_source: " + yaml(lexeme.meaning_source || "absent"),
+      "usage_available: " + Boolean(lexeme.usage && !lexeme.ambiguity && !lexeme.conflicts.length),
       "pealim_id: " + yaml(lexeme.pealim_id),
       "pealim_url: " + yaml(url),
       "confidence_min: " + (lexeme.confidence_min == null ? "null" : lexeme.confidence_min),
       "confidence_max: " + (lexeme.confidence_max == null ? "null" : lexeme.confidence_max),
       "ambiguity: " + (lexeme.ambiguity ? "true" : "false"),
       "conflict_count: " + lexeme.conflicts.length,
-      "verification_state: generated",
+      "verification_state: " + (lexeme.verification_state || "generated"),
       "occurrence_count: " + lexeme.occurrence_count,
       "managed_by: linguistpro",
     ];
     appendCoreFormYaml(lines, lexeme.study_forms);
+    ["tense","number","person","gender"].forEach(function (field) {
+      var values = Array.from(new Set(lexeme.occurrences.map(function (o) { return o.features && o.features[field]; }).filter(function (value) { return value != null && value !== ""; }).map(String))).sort();
+      lines.push("grammar_" + field + ": " + yaml(values));
+    });
+    lines.push("grammar_available: " + lexeme.occurrences.some(function (o) { return Object.keys(o.features || {}).length > 0; }));
     lines.push(
       "---",
       "",
@@ -727,7 +750,9 @@
       "",
       "**Начальная форма:** " + (markdownInline(lexeme.headword) || "не подтверждена"),
       "",
-      lexeme.meaning_ru ? "**Значение в этом тексте:** " + markdownInline(lexeme.meaning_ru) : "**Значение в этом тексте:** —",
+      "**Словарное значение:** " + (markdownInline(lexeme.dictionary_meaning_ru) || "не заполнено"),
+      "",
+      "**Подтверждённое значение в этом контексте:** " + (markdownInline(lexeme.context_meaning_ru) || "не выбрано"),
       "",
       "**Роль в контексте:** " + posLabel(lexeme.lp_pos)
     );
@@ -736,10 +761,12 @@
     if (url) lines.push("", "[Открыть в Pealim ↗](" + url + ")");
     if (referencePath) {
       var refTarget = "../../../" + referencePath.replace(/^_LinguistPro\//, "").replace(/\.md$/, "");
-      lines.push("", "## Словарная карточка", "", "![[" + refTarget + "#Учебные формы]]", "", "[[" + refTarget + "|Открыть полную словарную карточку]]");
+      lines.push("", "## Словарная карточка", "", "![[" + refTarget + (lexeme.study_forms ? "#Учебные формы" : "#Употребление") + "]]", "", "[[" + refTarget + "|Открыть полную словарную карточку]]");
     }
     if (!lexeme.headword) lines.push("", "> [!warning] Начальная форма не подтверждена", "> Показана только реальная форма из текста. LinguistPro не превращает корень или машинную основу в словарное слово без надёжного источника.");
-    lines.push("", "## Активное воспроизведение", "", "> [!question] Проверьте себя", "> По значению **" + (markdownInline(lexeme.meaning_ru) || "—") + "** назовите начальную форму" + (lexeme.headword ? " **" + markdownInline(lexeme.headword) + "**" : "") + ", затем восстановите одну форму из текста и произнесите пример целиком.");
+    if (!lexeme.ambiguity && !lexeme.conflicts.length && (!referencePath || lexeme.study_forms)) renderUsage(lines, lexeme.usage);
+    lines.push("", "## Активное воспроизведение", "", "> [!question] Проверьте себя", "> " + (lexeme.meaning_ru ? "По значению **" + markdownInline(lexeme.meaning_ru) + "** назовите начальную форму, затем восстановите одну форму из текста и произнесите пример целиком." : "Прочитайте исходную фразу, объясните роль выделенного слова и сформулируйте свой пример. Если значение неясно, вернитесь к проверке морфологии в LinguistPro."));
+    if (lexeme.headword) lines.push("", "> [!answer]- Сверить начальную форму", "> " + markdownInline(lexeme.headword));
     lines.push(
       "",
       "## Примеры из текста",
@@ -749,6 +776,10 @@
       lines.push("- " + phraseLink(occ, phrasePathByRowId) + " · **" + markdownInline(occ.niqqud || occ.surface || "—") + "**");
       if (occ.sentence_he_niqqud || occ.sentence_he) lines.push("  - " + markdownInline(occ.sentence_he_niqqud || occ.sentence_he));
       if (occ.sentence_ru) lines.push("  - _" + markdownInline(occ.sentence_ru) + "_");
+      var grammar = grammarDescription(occ.features);
+      if (grammar) lines.push("  - Машинный разбор формы: " + markdownInline(grammar) + ". Источник: " + markdownInline(occ.morphology_evidence_source));
+      if (occ.prefix != null && JSON.stringify(occ.prefix) !== '""') lines.push("  - Приставочная часть по исходному анализу: " + markdownInline(typeof occ.prefix === "string" ? occ.prefix : JSON.stringify(occ.prefix)));
+      if (occ.source_grammar && Object.keys(occ.source_grammar.features || {}).length) lines.push("  - Исходные грамматические признаки сохранены в JSON-проекции; ручное решение их не подтверждает.");
       lines.push("  <!-- lp_occurrence: " + occurrenceId(report.text.text_id, occ.row_id, occ.word_offset) + " -->");
     });
     if (lexeme.conflicts.length) {
@@ -1101,10 +1132,14 @@
   }
   function renderOccurrencesTsv(report) {
     var rows = [["lp_lexeme_id", "lp_pos", "lexical_pos", "context_role", "analysis_lemma", "row_id", "order_index", "word_offset", "surface", "surface_niqqud", "headword", "headword_unpointed", "headword_source", "root", "meaning_ru", "sentence_he", "sentence_ru"]];
+    rows[0].push("features_json", "prefix_json", "morphology_evidence_source", "verification_state", "resolution_event_id");
+    rows[0].push("dictionary_meaning_ru", "context_meaning_ru", "meaning_source", "source_grammar_json");
     function cell(v) { return str(v).replace(/\t/g, " ").replace(/[\r\n]+/g, " "); }
     report.lexemes.forEach(function (lexeme) {
       lexeme.occurrences.forEach(function (occ) {
         rows.push([lexeme.lp_lexeme_id, lexeme.lp_pos, lexeme.lexical_pos, lexeme.context_role, lexeme.analysis_lemma, occ.row_id, occ.order_index, occ.word_offset, occ.surface, occ.niqqud, lexeme.headword, lexeme.headword_unpointed, lexeme.headword_source, lexeme.root, lexeme.meaning_ru, occ.sentence_he_niqqud || occ.sentence_he, occ.sentence_ru]);
+        rows[rows.length - 1].push(JSON.stringify(occ.features || {}), JSON.stringify(occ.prefix == null ? null : occ.prefix), occ.morphology_evidence_source || "", occ.verification_state || "generated", occ.resolution_event_id || "");
+        rows[rows.length - 1].push(occ.dictionary_meaning_ru || "", occ.context_meaning_ru || "", occ.meaning_source || "absent", JSON.stringify(occ.source_grammar || null));
       });
     });
     return rows.map(function (row) { return row.map(cell).join("\t"); }).join("\n") + "\n";
@@ -1161,8 +1196,11 @@
       "> [!success] С чего начать",
       "> Выберите текст в таблице ниже. Внутри него откройте «Учебный маршрут», затем занимайтесь небольшими блоками фраз.", "",
       "![[Библиотека.base]]", "",
+      "## Учиться по всему корпусу", "",
+      "Откройте [[Вся лексика.base|всю лексику]]: слова из разных текстов, подтверждённые значения, справки об употреблении и исходные грамматические признаки. Строка таблицы ведёт к контекстной карточке; одинаковое слово может иметь несколько значений.", "",
+      "Для собственных примеров, вопросов и журнала ошибок скопируйте [[Шаблоны/Занятие|шаблон занятия]] в свою папку вне _LinguistPro. Оригинал шаблона обновляется вместе с пакетом, ваша копия — нет.", "",
       "## Где что хранится", "",
-      "- **Тексты/<название карточки>** — независимые учебные пространства: фразы, лексика и очередь проверки. Название папки совпадает с названием карточки, а технический ID хранится только в свойствах.",
+      "- **Тексты/<название — идентификатор>** — независимые учебные пространства: фразы, лексика и очередь проверки. Короткий суффикс различает одинаковые названия; обновлятор сохраняет назначенную папку при переименовании.",
       "- **Словарь** — общий справочник проверенных словарных парадигм; одна карточка Pealim переиспользуется во всех текстах.",
       "- **Аудио** — общий дедуплированный аудиокэш.",
       "- **Служебное** — проверяемые квитанции и машинные снимки; для обычного занятия открывать эту папку не нужно.",
@@ -1176,6 +1214,22 @@
       "---", "type: lp-setup-guide", "lp_schema: 3", "cssclasses: [linguistpro-study]", "managed_by: linguistpro", "---", "",
       "# Настройка отображения", "",
       "Пакет работает на стандартных возможностях Obsidian: Markdown, свойства, Bases, вложения и сворачиваемые callout-блоки.", "",
+      "## Отдельное хранилище", "",
+      "Распакуйте пакет в новую пустую папку и откройте именно эту папку как vault. Её .obsidian должна находиться рядом с _LinguistPro.", "",
+      "## Добавление в существующее хранилище", "",
+      "Не открывайте вложенный пакет как второе хранилище случайно. Перед обновлением сохраните резервную копию. Простая распаковка поверх существующих файлов не обнаруживает ваши правки и не является безопасным обновлением.", "",
+      "CSS snippet должен находиться в .obsidian/snippets открытого хранилища. Вложенная .obsidian внутри папки с песнями не настраивает внешнее хранилище. Не заменяйте конфигурацию хранилища целиком.", "",
+      "## Безопасное обновление", "",
+      "Для обновления нужен Node.js и [локальный обновлятор LinguistPro](https://linguistpro.kolosei.com/tools/obsidian-update.cjs). Сохраните обновлятор на компьютер. Он работает без сети; ничего не отправляет и не изменяет FSRS.", "",
+      "1. Распакуйте новый ZIP во временную папку **вне вашего vault**. Не распаковывайте поверх старых заметок.",
+      "2. Закройте Obsidian и приостановите синхронизацию файлов на время применения.",
+      "3. В терминале выполните предпросмотр (замените пути своими):", "",
+      "```powershell", 'node "C:\\Tools\\obsidian-update.cjs" --package "C:\\Exports\\NewPackage" --vault "F:\\MyVault"', "```", "",
+      "4. Проверьте create/update/conflict/retire. При conflict инструмент не перезапишет файл: сохраните личную правку вне _LinguistPro и разберите конфликт до обновления.",
+      "5. Повторите ту же команду с **--apply**. Резервные копии находятся в _LinguistPro/.updates; результат указывает идентификатор операции.", "",
+      "При RECOVERY_REQUIRED выполните сначала предпросмотр восстановления: `node obsidian-update.cjs --vault ПУТЬ --recover ИДЕНТИФИКАТОР`, затем повторите с `--apply`. Восстановление тоже откажет при новых пользовательских правках.", "",
+      "Если процесс был аварийно завершён и осталась блокировка, `--vault ПУТЬ --unlock-stale --apply` удаляет её только после проверки, что записанный локальный процесс уже не существует. Живой процесс инструмент не останавливает.", "",
+      "Старый архив без package-manifest.json нельзя автоматически обновить этим способом. Сохраните старое хранилище, сначала установите новый пакет отдельно; перенос личных заметок требует отдельной проверки ссылок.", "",
       "Для улучшенного RTL и более крупного иврита включите CSS snippet **linguistpro-study-v3**:",
       "1. Откройте Settings → Appearance → CSS snippets.",
       "2. Нажмите Reload snippets.",
@@ -1198,7 +1252,9 @@
   function planObsidianPackage(report, opts) {
     opts = opts || {};
     if (!report || report.schema !== "linguistpro-obsidian-lexical-preview-v1") throw new Error("A lexical preview report is required");
-    var textFolder = safePathSegment(opts.textFolderName || report.text.title, report.text.text_id);
+    var priorFolder = opts.previousReceipt && opts.previousReceipt.text_id === report.text.text_id && opts.previousReceipt.text_folder;
+    var textFolder = priorFolder ? safePathSegment(priorFolder, report.text.text_id)
+      : safePathSegment(opts.textFolderName || report.text.title, report.text.text_id).slice(0,90) + " — " + fnv1a(report.text.text_id);
     var root = "_LinguistPro/Тексты/" + textFolder + "/";
     var serviceRoot = "_LinguistPro/Служебное/" + textFolder + "/";
     var pathById = new Map(), referencePathById = new Map(), pathByClusterId = new Map(), usedPaths = new Set();
@@ -1212,9 +1268,11 @@
       if (usedPaths.has(path)) throw new Error("Lexeme path collision: " + path);
       usedPaths.add(path); pathById.set(lexeme.lp_lexeme_id, path);
       if (lexeme.pealim_id && lexeme.study_forms) {
-        var referencePath = "_LinguistPro/Словарь/" + name;
-        if (usedPaths.has(referencePath)) throw new Error("Lexeme reference path collision: " + referencePath);
+        var referencePath = "_LinguistPro/Словарь/" + safeLexemeFileName("pid:" + lexeme.pealim_id, "");
         usedPaths.add(referencePath); referencePathById.set(lexeme.lp_lexeme_id, referencePath);
+      } else if (lexeme.usage && !lexeme.ambiguity && !lexeme.conflicts.length) {
+        var usagePath = "_LinguistPro/Словарь/usage-" + fnv1a(JSON.stringify([lexeme.usage.entry.lemma,lexeme.usage.entry.pos])) + ".md";
+        referencePathById.set(lexeme.lp_lexeme_id,usagePath);
       }
     });
     report.resolution_queue.clusters.forEach(function (cluster) {
@@ -1226,11 +1284,32 @@
     function add(path, content, kind) { files.push({ path: path, kind: kind, bytes: utf8Bytes(content), content: content }); }
     add("_LinguistPro/Путеводитель.md", renderVaultGuide(), "vault-guide");
     add("_LinguistPro/Библиотека.base", renderLibraryBase(), "library-base");
+    add("_LinguistPro/Вся лексика.base", renderBase(report, true), "global-lexical-base");
+    add("_LinguistPro/Шаблоны/Занятие.md", [
+      "---", "type: lp-personal-study", "source_notes: []", "questions: []", "managed_by: linguistpro-template", "---", "",
+      "# Моё занятие", "", "Сначала скопируйте эту заметку в свою папку вне _LinguistPro. В source_notes добавьте ссылки на изучаемые карточки или фразы.", "",
+      "## Моя цель", "", "Что я хочу понять или научиться говорить на этом занятии?", "",
+      "## До раскрытия перевода", "", "Запишите, что поняли на слух. Затем сравните с исходной фразой.", "",
+      "## Мои примеры", "", "Составьте свою фразу с выбранной конструкцией; отделяйте свою попытку от проверенного примера.", "",
+      "## Ошибки и вопросы", "", "Что получилось иначе, чем в источнике? Какой разбор нужно уточнить в LinguistPro?", "",
+      "## Следующее занятие", "", "Укажите фразы, к которым хотите вернуться. Расписание FSRS остаётся в LinguistPro.", ""
+    ].join("\n"), "personal-study-template");
     add("_LinguistPro/Настройка отображения.md", renderSetupGuide(), "setup-guide");
     add(".obsidian/snippets/linguistpro-study-v3.css", renderStudyCss(), "obsidian-css");
     report.lexemes.forEach(function (lexeme) {
       var referencePath = referencePathById.get(lexeme.lp_lexeme_id);
-      if (referencePath) add(referencePath, renderLexemeReferenceMarkdown(lexeme), "lexeme-reference");
+      if (referencePath) {
+        var referenceContent;
+        if (lexeme.study_forms) referenceContent = renderLexemeReferenceMarkdown(lexeme);
+        else {
+          var usageLines = ["---","type: lp-usage-reference","managed_by: linguistpro","lemma: " + yaml(lexeme.usage.entry.lemma),"---","","# " + markdownInline(lexeme.usage.entry.lemma)];
+          renderUsage(usageLines,lexeme.usage);
+          referenceContent = usageLines.join("\n") + "\n";
+        }
+        var priorReference = files.find(function (file) { return file.path === referencePath; });
+        if (priorReference && priorReference.content !== referenceContent) throw new Error("Lexeme reference content conflict: " + referencePath);
+        if (!priorReference) add(referencePath, referenceContent, "lexeme-reference");
+      }
       add(pathById.get(lexeme.lp_lexeme_id), renderTextLexemeMarkdown(report, lexeme, phrases.pathByRowId, referencePath), "text-lexeme");
     });
     report.resolution_queue.clusters.forEach(function (cluster) {
@@ -1258,6 +1337,7 @@
       schema: "linguistpro-obsidian-receipt-v2", read_only_preview: true,
       lexical_presentation_contract: report.lexical_presentation_contract || "surface-headword-root-v1",
       text_id: report.text.text_id, would_create_files: files.length + 1 + audioPlan.included_count,
+      text_folder: textFolder,
       would_write_bytes_before_receipt: beforeReceiptBytes,
       source_counts: report.counts,
       resolution_state_counts: audit.state_counts,
@@ -1289,6 +1369,7 @@
       text_title: report.text.title,
       text_folder: textFolder,
       text_path: root.slice(0, -1),
+      service_path: serviceRoot.slice(0, -1),
       would_create_files: files.length + externalFiles.length,
       would_write_bytes: files.reduce(function (sum, file) { return sum + file.bytes; }, 0) + receipt.audio.included_bytes,
       files_by_kind: byKind,
@@ -1308,7 +1389,7 @@
     plans.forEach(function (plan) {
       if (!plan || plan.schema !== "linguistpro-obsidian-package-plan-v2") throw new Error("Obsidian package plan v2 is required");
       var textPath = str(plan.text_path) || ("_LinguistPro/Тексты/" + safePathSegment(plan.text_title, plan.text_id));
-      texts.push({ text_id: str(plan.text_id), title: str(plan.text_title), text_path: textPath,
+      texts.push({ text_id: str(plan.text_id), title: str(plan.text_title), text_path: textPath, service_path:plan.service_path,
         files: (plan.files || []).filter(function (file) { return file.path.indexOf(textPath + "/") === 0; }).length,
         audio_expected: Number(plan.receipt && plan.receipt.audio && plan.receipt.audio.expected_count || 0),
         audio_included: Number(plan.receipt && plan.receipt.audio && plan.receipt.audio.included_count || 0),
@@ -1583,6 +1664,8 @@
           : null;
         if (studyForms && structuralPealim.pos !== "unknown" && structuralPealim.pos !== "other") studyForms.pos = structuralPealim.pos;
         var projectedHeadword = learnerHeadword(studyForms, lemma, pos, root);
+        var usage = projectUsage({surface:word,lemma:lemma,lp_pos:pos,pealim_id:pealimId,ambiguity:ambiguous,identity_guard_reason:guardReason},opts);
+        var meaningSource = meaning ? (str(body.meaning) === meaning ? "word-note" : "pealim-or-curated-reference") : "absent";
 
         // Reference export is per sense-lemma even when the stored note was
         // deliberately generated per surface form (ff:*). Use the shared
@@ -1622,6 +1705,10 @@
             root: root,
             binyan: binyan,
             meaning_ru: meaning,
+            dictionary_meaning_ru: meaning,
+            context_meaning_ru: "",
+            meaning_source: meaningSource,
+            usage: usage,
             pealim_id: pealimId,
             study_forms: studyForms,
             lexical_pos: lexicalPos,
@@ -1681,6 +1768,10 @@
           root: root,
           binyan: binyan,
           meaning_ru: meaning,
+          dictionary_meaning_ru: meaning,
+          context_meaning_ru: "",
+          meaning_source: meaningSource,
+          usage: usage,
           pealim_id: pealimId,
           lexical_pos: lexicalPos,
           context_role: contextRole,
@@ -1690,6 +1781,10 @@
           pealim_identity_source: pealimIdentitySource,
           resolution_channel: channel,
           morph_model_version: str(sm.model_version),
+          features: sourceFeatures(token.feats),
+          prefix: token.prefix == null ? null : JSON.parse(JSON.stringify(token.prefix)),
+          morph_id: token.morphId == null ? "" : str(token.morphId),
+          morphology_evidence_source: "sentence-morph:" + str(sm.model_version),
           confidence: confidence,
           ambiguity: ambiguous,
           alternatives: alternatives.slice(0, 5),
@@ -1720,6 +1815,10 @@
         root: item.root,
         binyan: item.binyan,
         meaning_ru: item.meaning_ru,
+        dictionary_meaning_ru: item.dictionary_meaning_ru,
+        context_meaning_ru: item.context_meaning_ru,
+        meaning_source: item.meaning_source,
+        usage: item.usage,
         pealim_id: item.pealim_id,
         study_forms: item.study_forms || null,
         lexical_pos: item.lexical_pos,
@@ -1839,7 +1938,246 @@
     };
   }
 
+  function projectUsage(occ, opts) {
+    // A reference about use is not a context-selected sense. Never change the
+    // lexical identity, gloss or confidence on the strength of a spelling match.
+    if (!opts || typeof opts.usageResolver !== "function" || occ.ambiguity || occ.identity_guard_reason) return null;
+    var functionPos = ["pronoun","adverb","preposition","conjunction","particle"];
+    if (!functionPos.includes(occ.lp_pos)) return null;
+    var entry = opts.usageResolver(occ);
+    if (!entry || !str(entry.role)) return null;
+    var entryPos = normalizePos(entry.context_pos || entry.pos);
+    if (entryPos !== occ.lp_pos) return null;
+    if (occ.pealim_id && str(entry.pealim_id) !== str(occ.pealim_id)) return null;
+    if (![stripNiqqud(occ.surface),stripNiqqud(occ.lemma)].includes(stripNiqqud(entry.lemma))) return null;
+    return { schema:"linguistpro-usage-reference-v1", source:"function-usage.v1", provenance:str(entry.provenance),
+      match:"form-and-context-pos", context_verified:false, entry:JSON.parse(JSON.stringify(entry)) };
+  }
+
+  function grammarDescription(features) {
+    var names = {person:"лицо",gender:"род",number:"число",tense:"время",state:"состояние",definiteness:"определённость",mood:"наклонение",voice:"залог"};
+    var values = {masculine:"мужской",feminine:"женский",common:"общий",singular:"единственное",plural:"множественное",dual:"двойственное",past:"прошедшее",present:"настоящее",future:"будущее",construct:"смихут",absolute:"абсолютное",definite:"определённое",indefinite:"неопределённое"};
+    return Object.keys(features || {}).map(function (key) { return (names[key] || key) + ": " + (values[features[key]] || str(features[key])); }).join("; ");
+  }
+
+  function renderUsage(lines, usage) {
+    if (!usage) return;
+    var entry = usage.entry;
+    lines.push("", "## Употребление", "", "> [!info] Словарная справка, не подтверждённый разбор строки", "> Источник: локальный справочник LinguistPro function-usage.v1. Сопоставьте объяснение с вашим контекстом.");
+    [["Функция",entry.role],["Управление",entry.governs],["Позиция",entry.position],["Типичные ошибки",entry.pitfalls],["Регистр",entry.register]].forEach(function (pair) {
+      if (pair[1]) lines.push("", "**" + pair[0] + ":** " + markdownInline(pair[1]));
+    });
+    if (entry.suffix_series) {
+      lines.push("", "### Местоименные окончания", "", markdownInline(entry.suffix_series.note));
+      (entry.suffix_series.examples || []).forEach(function (example) { lines.push("- " + markdownInline(example)); });
+    }
+    if ((entry.collocations || []).length) {
+      lines.push("", "### Сочетания", "");
+      entry.collocations.forEach(function (value) { lines.push("- " + markdownInline(value)); });
+    }
+    if ((entry.examples || []).length) {
+      lines.push("", "### Примеры из справочника", "");
+      entry.examples.forEach(function (example) { lines.push("- " + markdownInline(example.he) + " — " + markdownInline(example.ru)); });
+    }
+  }
+
+  function sourceFeatures(feats) {
+    var out = {};
+    if (!feats || typeof feats !== "object" || Array.isArray(feats)) return out;
+    ["person", "gender", "number", "tense", "state", "definiteness", "mood", "voice"].forEach(function (field) {
+      var value = feats[field];
+      if ((typeof value === "string" && value.trim()) || (typeof value === "number" && Number.isFinite(value))) out[field] = value;
+    });
+    return out;
+  }
+
+  // Decisions belong to occurrences, never to every spelling in a text. Keep
+  // reviewed groups separate from untouched machine groups, even for one PID:
+  // context meanings and verification provenance are not dictionary identity.
+  function projectResolvedLexemes(report, audit, opts) {
+    opts = opts || {};
+    var decisions = new Map((audit || []).filter(function (item) {
+      return item.resolution_state === "resolved" && item.effective_analysis;
+    }).map(function (item) { return [item.lp_occurrence_id, item]; }));
+    if (!decisions.size) return report;
+    var lexemes = [], reviewed = new Map();
+    var originals = report.lexemes.slice();
+    var recovered = (audit || []).filter(function (item) {
+      return decisions.has(item.lp_occurrence_id) && (item.reasons || []).includes("skipped_token");
+    });
+    recovered.forEach(function (item) {
+      originals.push({ lp_lexeme_id: "unparsed:" + item.lp_occurrence_id, conflicts: [],
+        study_forms: null, occurrences: [item] });
+    });
+    originals.forEach(function (original) {
+      var unchanged = [];
+      original.occurrences.forEach(function (occ) {
+        var decision = decisions.get(occurrenceId(report.text.text_id, occ.row_id, occ.word_offset));
+        if (!decision) { unchanged.push(occ); return; }
+        var a = decision.effective_analysis;
+        var pid = str(a.pealim_id), pos = normalizePos(a.lp_pos);
+        var paradigm = typeof opts.pealimResolver === "function" && pid ? opts.pealimResolver(pid) : null;
+        var forms = paradigm && str(paradigm.pealim_id || paradigm.id) === pid
+          ? InflectionRender.projectStudyForms(paradigm) : null;
+        // Reuse a proven same-ID paradigm only; changing/clearing ID must never
+        // keep the previous word's forms, root, meaning or dictionary metadata.
+        if (!forms && pid && pid === original.pealim_id) forms = original.study_forms;
+        if (!/^[a-f0-9]{64}$/.test(str(decision.analysis_identity))) throw new Error("LEXICAL_ANALYSIS_IDENTITY_REQUIRED");
+        var key = "reviewed:" + decision.analysis_identity;
+        var head = learnerHeadword(forms, str(a.lemma), pos, str(a.root));
+        var verification = decision.effective_event_actor + "_confirmed";
+        var effective = Object.assign({}, occ, {
+          lemma: str(a.lemma), headword: head.value, headword_unpointed: head.unpointed,
+          headword_source: head.source, lp_pos: pos, root: str(a.root), binyan: str(a.binyan),
+          meaning_ru: str(a.meaning_ru), pealim_id: pid, lexical_pos: pos,
+          context_role: "", context_meaning: str(a.meaning_ru), context_meaning_ru: str(a.meaning_ru),
+          dictionary_meaning_ru: str(forms && forms.meaning), meaning_source: "reviewed-occurrence",
+          // Owner decisions currently cover lexical fields, not gender/tense
+          // or segmentation. Preserve the machine evidence without promoting
+          // it to the corrected analysis or owner-confirmed grammar.
+          source_grammar: {features:occ.features || {},prefix:occ.prefix,morph_id:occ.morph_id,source:occ.morphology_evidence_source},
+          features: {}, prefix: null, grammar_verification_state: "not_reviewed",
+          ambiguity: false, confidence: null, identity_guard_reason: "", resolution_channel: "reviewed-occurrence",
+          verification_state: verification, resolution_event_id: decision.resolution_event_id,
+          resolution_actor: decision.effective_event_actor, resolution_created_at: decision.effective_event_created_at,
+          raw_analysis: occ, pealim_identity_source: "reviewed-occurrence",
+          pealim_pos_raw: str(paradigm && paradigm.pos), pealim_pos_effective: forms ? pos : ""
+        });
+        effective.usage = projectUsage(effective, opts);
+        var group = reviewed.get(key);
+        if (!group) {
+          group = Object.assign({}, original, {
+            lp_lexeme_id: key, lemma: head.value, lemma_unpointed: head.unpointed,
+            analysis_lemma: str(a.lemma), headword: head.value, headword_unpointed: head.unpointed,
+            headword_source: head.source, lp_pos: pos, root: str(a.root), binyan: str(a.binyan),
+            meaning_ru: str(a.meaning_ru), context_meaning: str(a.meaning_ru), pealim_id: pid,
+            context_meaning_ru: str(a.meaning_ru), dictionary_meaning_ru: effective.dictionary_meaning_ru,
+            meaning_source: "reviewed-occurrence", usage: effective.usage,
+            study_forms: forms || null, lexical_pos: pos, context_role: "", ambiguity: false,
+            verification_state: verification, confidence_min: null, confidence_max: null,
+            resolution_channels: ["reviewed-occurrence"], identity_guard_reasons: [], conflicts: [],
+            evidence: {}, candidate_evidence: [], alternatives: [], occurrences: []
+          });
+          reviewed.set(key, group);
+        }
+        group.occurrences.push(effective);
+      });
+      if (unchanged.length) lexemes.push(unchanged.length === original.occurrences.length ? original
+        : refreshLexemeAggregates(Object.assign({}, original, { occurrences: unchanged })));
+    });
+    reviewed.forEach(function (group) {
+      group.occurrence_count = group.occurrences.length;
+      group.surface_forms = surfaceForms(group.occurrences);
+      group.provider_pos = Array.from(new Set(group.occurrences.map(function (o) { return o.provider_pos; }))).sort();
+      lexemes.push(group);
+    });
+    var lexemePos = {}, occurrencePos = {}, completeness = {lemma:0,pos:0,niqqud:0,root:0,binyan:0,pealim_id:0};
+    var channels = {}, confidenceBands = { ">=0.9":0,"0.8-0.9":0,"0.6-0.8":0,"<0.6":0,missing:0 };
+    var headwords = {}, guards = {}, identitySources = {}, providerValues = {};
+    var applicableRoot = 0, applicableBinyan = 0, ambiguous = 0, guarded = 0, verified = 0;
+    var analyzed = report.counts.analyzed_occurrences + recovered.length;
+    lexemes.forEach(function (lexeme) {
+      lexemePos[lexeme.lp_pos] = (lexemePos[lexeme.lp_pos] || 0) + 1;
+      headwords[lexeme.headword_source || "absent"] = (headwords[lexeme.headword_source || "absent"] || 0) + 1;
+      lexeme.occurrences.forEach(function (o) {
+        occurrencePos[o.lp_pos] = (occurrencePos[o.lp_pos] || 0) + 1;
+        Object.keys(completeness).forEach(function (field) {
+          if (field === "pos" ? o.lp_pos && o.lp_pos !== "unknown" : str(o[field])) completeness[field]++;
+        });
+        channels[o.resolution_channel] = (channels[o.resolution_channel] || 0) + 1;
+        confidenceBands[confidenceBand(o.confidence)]++;
+        addSet(providerValues, o.lp_pos, o.provider_pos || "(missing)");
+        if (["verb","noun","adjective","participle"].includes(o.lp_pos)) applicableRoot++;
+        if (o.lp_pos === "verb") applicableBinyan++;
+        if (o.ambiguity) ambiguous++;
+        if (o.identity_guard_reason) { guarded++; guards[o.identity_guard_reason] = (guards[o.identity_guard_reason] || 0) + 1; }
+        if (o.pealim_identity_source) { verified++; identitySources[o.pealim_identity_source] = (identitySources[o.pealim_identity_source] || 0) + 1; }
+      });
+    });
+    var rates = {};
+    Object.keys(completeness).forEach(function (field) { rates[field] = pct(completeness[field], analyzed); });
+    rates.root_applicable = pct(completeness.root, applicableRoot);
+    rates.binyan_applicable = pct(completeness.binyan, applicableBinyan);
+    var collisions = lexemes.filter(function (x) { return x.conflicts.length; });
+    return Object.assign({}, report, { lexemes: lexemes, lexemes_by_pos: sortedObject(lexemePos),
+      completeness_counts: completeness, completeness_pct: rates, resolution_channels: sortedObject(channels),
+      confidence_bands: confidenceBands, headword_sources: sortedObject(headwords),
+      identity_guard_reasons: sortedObject(guards), pealim_identity_sources: sortedObject(identitySources),
+      provider_pos_values: serialiseSetMap(providerValues),
+      collision_samples: collisions.slice(0,20).map(function (x) { return {lp_lexeme_id:x.lp_lexeme_id,conflicts:x.conflicts,evidence:x.evidence}; }),
+      occurrences_by_pos: sortedObject(occurrencePos), counts: Object.assign({}, report.counts, {
+        analyzed_occurrences: analyzed, skipped_tokens: report.counts.skipped_tokens - recovered.length,
+        ambiguous_occurrences: ambiguous, context_identity_guarded_occurrences: guarded,
+        verified_pealim_identity_occurrences: verified, unknown_pos_occurrences: occurrencePos.unknown || 0,
+        headwords_pealim_exact: headwords["pealim-exact"] || 0,
+        headwords_morphology_lemma: headwords["morphology-lemma"] || 0, headwords_absent: headwords.absent || 0,
+        collision_keys: collisions.length,
+        unique_lexemes: lexemes.length,
+        duplicate_occurrences_collapsed: Math.max(0, analyzed - lexemes.length)
+      }) });
+  }
+
+  function refreshLexemeAggregates(lexeme) {
+    var occs = lexeme.occurrences, first = occs[0], evidence = {};
+    var fields = {lemmas:"lemma",roots:"root",meanings:"meaning_ru",pealim_ids:"pealim_id",pos:"lp_pos",lexical_pos:"lexical_pos",context_roles:"context_role"};
+    Object.keys(fields).forEach(function (field) {
+      evidence[field] = Array.from(new Set(occs.map(function (o) { return str(o[fields[field]]); }).filter(Boolean))).sort();
+    });
+    evidence.note_dedup_keys = (lexeme.evidence && lexeme.evidence.note_dedup_keys || []).slice();
+    var conflicts = ["pealim_ids","roots","meanings"].filter(function (key) { return evidence[key].length > 1; });
+    if (new Set((evidence.lexical_pos.length ? evidence.lexical_pos : evidence.pos).map(identityFamily).filter(function (x) { return x !== "unknown"; })).size > 1) conflicts.push("pos_identity_family");
+    var confidences = occs.map(function (o) { return o.confidence; }).filter(function (x) { return x != null; });
+    return Object.assign({}, lexeme, {
+      lemma:first.headword, lemma_unpointed:first.headword_unpointed, analysis_lemma:first.lemma,
+      headword:first.headword, headword_unpointed:first.headword_unpointed, headword_source:first.headword_source,
+      lp_pos:first.lp_pos, root:first.root, binyan:first.binyan, meaning_ru:first.meaning_ru,
+      dictionary_meaning_ru:first.dictionary_meaning_ru,context_meaning_ru:first.context_meaning_ru,
+      meaning_source:first.meaning_source,usage:first.usage,
+      lexical_pos:first.lexical_pos, context_role:first.context_role,
+      occurrence_count:occs.length, surface_forms:surfaceForms(occs), evidence:evidence, conflicts:conflicts,
+      ambiguity:occs.some(function (o) { return o.ambiguity; }),
+      confidence_min:confidences.length ? Math.min.apply(null,confidences) : null,
+      confidence_max:confidences.length ? Math.max.apply(null,confidences) : null,
+      identity_guard_reasons:Array.from(new Set(occs.map(function (o) { return o.identity_guard_reason; }).filter(Boolean))).sort(),
+      resolution_channels:Array.from(new Set(occs.map(function (o) { return o.resolution_channel; }))).sort(),
+      provider_pos:Array.from(new Set(occs.map(function (o) { return o.provider_pos; }))).sort(),
+      alternatives:uniqueObjects(occs.flatMap(function (o) { return o.alternatives || []; })),
+      candidate_evidence:uniqueObjects(occs.flatMap(function (o) { return o.candidate_evidence || []; }))
+    });
+  }
+
+  async function sealPackage(plan, audioBytes) {
+    if (!plan || !Array.isArray(plan.files)) throw new Error("OBSIDIAN_PLAN_REQUIRED");
+    var manifestPath = "_LinguistPro/package-manifest.json";
+    if (plan.files.some(function (file) { return file.path === manifestPath; })) throw new Error("OBSIDIAN_PLAN_ALREADY_SEALED");
+    async function digest(input) {
+      var bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
+      if (bytes && typeof bytes.arrayBuffer === "function") bytes = new Uint8Array(await bytes.arrayBuffer());
+      if (typeof require === "function") return require("node:crypto").createHash("sha256").update(bytes).digest("hex");
+      var hash = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(hash), function (value) { return value.toString(16).padStart(2,"0"); }).join("");
+    }
+    var entries = [];
+    for (var file of plan.files) entries.push({path:file.path,kind:file.kind,bytes:utf8Bytes(file.content),sha256:await digest(file.content)});
+    for (var external of plan.external_files || []) {
+      var bytes = audioBytes && audioBytes.get(external.asset_key);
+      if (!bytes) throw new Error("OBSIDIAN_AUDIO_BYTES_REQUIRED");
+      var size = bytes.byteLength == null ? bytes.size : bytes.byteLength;
+      entries.push({path:external.path,kind:external.kind,bytes:size,sha256:await digest(bytes)});
+    }
+    var texts = plan.texts || [{text_id:plan.text_id,title:plan.text_title,text_path:plan.text_path,service_path:plan.service_path}];
+    var manifest = {schema:"linguistpro-obsidian-package-manifest-v1",hash_algorithm:"sha256",
+      texts:texts.map(function (text) { return {text_id:text.text_id,title:text.title,text_path:text.text_path,service_path:text.service_path}; }),
+      files:entries.sort(function (a,b) { return a.path.localeCompare(b.path); })};
+    var content = JSON.stringify(manifest,null,2) + "\n";
+    return Object.assign({},plan,{manifest:manifest,
+      files:plan.files.concat([{path:manifestPath,kind:"package-manifest",bytes:utf8Bytes(content),content:content}]),
+      would_create_files:plan.would_create_files + 1,would_write_bytes:plan.would_write_bytes + utf8Bytes(content)});
+  }
+
   return {
+    sealPackage: sealPackage,
+    projectResolvedLexemes: projectResolvedLexemes,
     POS_ORDER: POS_ORDER.slice(),
     normalizePos: normalizePos,
     analyzeBundle: analyzeBundle,

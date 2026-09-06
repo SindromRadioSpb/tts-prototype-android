@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.483";
+const CACHE_VERSION = "v3.11.484";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -115,11 +115,11 @@ const PRECACHE_URLS = [
   "/js/pealim-identity-overrides.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
-  "/js/obsidian-lexical-preview.js?v=9",
+  "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
-  "/js/lexical-resolution-service.js?v=4",
-  "/js/lexical-resolution-ui.js?v=11",
+  "/js/lexical-resolution-service.js?v=5",
+  "/js/lexical-resolution-ui.js?v=12",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
