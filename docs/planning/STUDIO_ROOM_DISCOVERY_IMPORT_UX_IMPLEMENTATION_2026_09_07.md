@@ -1,6 +1,6 @@
 # Studio / Reading Room discovery and Import Center
 
-Date: 2026-09-07. Status: LOCAL VALIDATION PASS; PRODUCTION RELEASE IN PROGRESS. One owner-authorized goal covers all three tasks, scoped implementation, commit/push, production deployment and browser verification with repair/retest.
+Date: 2026-09-07. Status: PRODUCTION VALIDATION PASS. One owner-authorized goal covers all three tasks, scoped implementation, commit/push, production deployment and browser verification with repair/retest.
 
 ## Evidence and authority
 
@@ -54,8 +54,16 @@ Implementation is present in the working tree. Durable evidence is being recorde
 - Import Center opens with Add / Restore / Back up. Material selection is explicit, archive and snapshot stay reachable, legacy JSON and verification details use disclosures. Dry-run generation guards reject superseded files; failed Apply retains a working retry; focus survives replaced controls.
 - Local browser fixtures prove 65-row pagination, last-page queries, canonical notes, provider filtering, rare tags, selected sorting, 75%/25% Studio order and cold worker analysis. Real portable archive import, duplicate import, invalid-file retry, transient Apply retry and export were exercised.
 - Browser-found fixes: missing locale accessor in shared comparator; canonical-note count mismatch; provider-select width and sheet border overflow at 380px; lost keyboard focus after importer status replacement. Tests rerun after each fix.
-- Automated checks run so far: first focused suite 97/97; publication domain and metadata cases validated after correcting the new test fixture's required public-read permission. Final unit suite 1365/1365, i18n 233/233, shell gates 321/321 and API smoke PASS. Production release remains pending.
+- Automated checks run so far: first focused suite 97/97; publication domain and metadata cases validated after correcting the new test fixture's required public-read permission. Final unit suite 1365/1365, i18n 233/233, shell gates 321/321 and API smoke PASS. Production code release `c06a1bca` is live at 3.11.485.
 - Evidence path: `docs/research/studio-room-discovery-import/2026-09-07/local/`. `DISCOVERY_FOCUS=studio` is a bounded debugging mode, not the final comprehensive gate. `DISCOVERY_LIVE=1` uses live public catalogs with temporary browser-local fixtures only.
 
 - Release cohort: `3.11.485`; exact 43-path shell integrity verified against service-worker cache. Studio and Room both reopen offline. New module imports, local DB, locale version and stylesheet cohort are aligned.
 - Visual review found dark foreground token mismatches; corrected Room and Import Center tokens, checked text contrast >=4.5:1, and reran comprehensive browser flows.
+
+## Production closure
+
+- `c06a1bca167085775664d0da79c7579de83145bb` deployed as the sole application container; five consecutive `/healthz` and version probes passed with DB/migrations ready.
+- Live public Materials PB2, Study Songs and Physics catalogs expose bounded immutable metadata and pass real title searches with common controls. Ben-Yehuda search is awaited through actual results, including full-text completion.
+- Comprehensive isolated-browser scenarios repeat on production; exact 43-file shell integrity and both offline reopen paths pass. Five consecutive My Texts reloads are included. Protected group flows remain locally verified with membership fixtures.
+- One exploratory reload hit the generic Room boot-error page without a captured cause. It did not reproduce in the diagnostic rerun. The harness now waits for the initial My Texts surface before seeding, captures console/network diagnostics, and verifies five subsequent reloads. No unproven application fix is claimed for that isolated observation.
+- Runtime `/healthz` also reports an 83% disk-use warning; service, DB and migrations remain ready. This release does not perform infrastructure cleanup. Physical iPhone/VoiceOver acceptance remains separate.

@@ -1,0 +1,101 @@
+{
+  "code_commit": "c06a1bca167085775664d0da79c7579de83145bb",
+  "sole_application_container": true,
+  "observations": [
+    {
+      "at": "2026-09-07T08:20:54.461Z",
+      "http": 200,
+      "health": {
+        "ok": true,
+        "uptimeSec": 82,
+        "now": "2026-09-07T08:20:53.481Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 83,
+        "disk_warn": true
+      },
+      "version": "3.11.485",
+      "integrity_paths": 43
+    },
+    {
+      "at": "2026-09-07T08:20:59.971Z",
+      "http": 200,
+      "health": {
+        "ok": true,
+        "uptimeSec": 88,
+        "now": "2026-09-07T08:20:59.011Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 83,
+        "disk_warn": true
+      },
+      "version": "3.11.485",
+      "integrity_paths": 43
+    },
+    {
+      "at": "2026-09-07T08:21:05.488Z",
+      "http": 200,
+      "health": {
+        "ok": true,
+        "uptimeSec": 93,
+        "now": "2026-09-07T08:21:04.522Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 83,
+        "disk_warn": true
+      },
+      "version": "3.11.485",
+      "integrity_paths": 43
+    },
+    {
+      "at": "2026-09-07T08:21:10.987Z",
+      "http": 200,
+      "health": {
+        "ok": true,
+        "uptimeSec": 99,
+        "now": "2026-09-07T08:21:10.021Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 83,
+        "disk_warn": true
+      },
+      "version": "3.11.485",
+      "integrity_paths": 43
+    },
+    {
+      "at": "2026-09-07T08:21:16.497Z",
+      "http": 200,
+      "health": {
+        "ok": true,
+        "uptimeSec": 104,
+        "now": "2026-09-07T08:21:15.531Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 83,
+        "disk_warn": true
+      },
+      "version": "3.11.485",
+      "integrity_paths": 43
+    }
+  ]
+}

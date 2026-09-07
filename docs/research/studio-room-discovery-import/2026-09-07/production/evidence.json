@@ -1,6 +1,6 @@
 {
-  "base": "http://127.0.0.1:3327",
-  "mode": "isolated catalog fixtures",
+  "base": "https://linguistpro.kolosei.com",
+  "mode": "live public catalogs plus isolated browser data",
   "checks": [
     "DB keyset pagination covers all 65 rows once",
     "DB notes finds exact last-page material",
@@ -24,19 +24,28 @@
     "my-380-ru no horizontal overflow",
     "my-380-en no horizontal overflow",
     "my-380-he no horizontal overflow",
-    "public discovery-fixture eight common smart filters",
-    "public tag search across catalog",
-    "public title sort exact result",
-    "public-discovery-fixture-desktop no horizontal overflow",
-    "public-discovery-fixture-380-he no horizontal overflow",
+    "public materials-science-year1-problem-book-2 eight common smart filters",
+    "public materials-science-year1-problem-book-2 immutable metadata projection present",
+    "public materials-science-year1-problem-book-2 exact title query produces matching cards",
+    "public materials-science-year1-problem-book-2 title sort remains selected",
+    "public-materials-science-year1-problem-book-2-desktop no horizontal overflow",
+    "public-materials-science-year1-problem-book-2-380-he no horizontal overflow",
+    "public study-songs eight common smart filters",
+    "public study-songs immutable metadata projection present",
+    "public study-songs exact title query produces matching cards",
+    "public study-songs title sort remains selected",
+    "public-study-songs-desktop no horizontal overflow",
+    "public-study-songs-380-he no horizontal overflow",
+    "public physics-year1-problems eight common smart filters",
+    "public physics-year1-problems immutable metadata projection present",
+    "public physics-year1-problems exact title query produces matching cards",
+    "public physics-year1-problems title sort remains selected",
+    "public-physics-year1-problems-desktop no horizontal overflow",
+    "public-physics-year1-problems-380-he no horizontal overflow",
     "Ben Yehuda eight common smart filters",
     "Ben Yehuda search resolves to actual title or full-text results",
     "ben-desktop no horizontal overflow",
     "ben-380-he no horizontal overflow",
-    "group eight common smart filters",
-    "group tag search across catalog",
-    "group-desktop no horizontal overflow",
-    "group-380-he no horizontal overflow",
     "Studio empty profile is explained",
     "recorded learner projection available",
     "Studio card displays independently expected 75 percent",
@@ -103,13 +112,37 @@
       "dialogOverflow": false
     },
     {
-      "name": "public-discovery-fixture-desktop",
+      "name": "public-materials-science-year1-problem-book-2-desktop",
       "dir": "rtl",
       "overflow": false,
       "dialogOverflow": false
     },
     {
-      "name": "public-discovery-fixture-380-he",
+      "name": "public-materials-science-year1-problem-book-2-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "public-study-songs-desktop",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "public-study-songs-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "public-physics-year1-problems-desktop",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "public-physics-year1-problems-380-he",
       "dir": "rtl",
       "overflow": false,
       "dialogOverflow": false
@@ -122,18 +155,6 @@
     },
     {
       "name": "ben-380-he",
-      "dir": "rtl",
-      "overflow": false,
-      "dialogOverflow": false
-    },
-    {
-      "name": "group-desktop",
-      "dir": "rtl",
-      "overflow": false,
-      "dialogOverflow": false
-    },
-    {
-      "name": "group-380-he",
       "dir": "rtl",
       "overflow": false,
       "dialogOverflow": false
@@ -654,7 +675,7 @@
     "unresolved_uncertainty_pp": 100,
     "rank_eligible": false,
     "top_unknown": [],
-    "learner_projection_version": "room-profile-v2:1:2026-09-07 08:27:10",
+    "learner_projection_version": "room-profile-v2:1:2026-09-07 08:27:48",
     "resolver_version": "recorded-familiarity-v2",
     "generated_at": "1970-01-01T00:00:00.000Z"
   },

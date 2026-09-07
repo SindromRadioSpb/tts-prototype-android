@@ -1,0 +1,20 @@
+{
+  "version": "3.11.485",
+  "unit": {
+    "passed": 1365,
+    "failed": 0
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "shell": {
+    "passed": 321,
+    "failed": 0
+  },
+  "api": "PASS",
+  "final_css_regressions": {
+    "passed": 32,
+    "failed": 0
+  }
+}

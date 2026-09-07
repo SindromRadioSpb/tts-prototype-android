@@ -1,6 +1,6 @@
 # Studio / Room discovery and Import Center — 3.11.485
 
-Owner-authorized release, 2026-09-07. Baseline main/origin/runtime: `a07c8e28` / `3.11.484`. Candidate: `3.11.485`. Production validation will be added after deployment.
+Owner-authorized release, 2026-09-07. Baseline main/origin/runtime: `a07c8e28` / `3.11.484`. Candidate: `3.11.485`. Production code commit: `c06a1bca167085775664d0da79c7579de83145bb`; sole-container rollout verified.
 
 ## Delivered behavior
 
@@ -32,3 +32,13 @@ No provider requests occurred; review_log remained byte-for-byte equal before an
 No schema migration, source corpus mutation, publication change or new learner-state writer. Public metadata is a bounded read-only projection of already published immutable snapshots. B9 remains frozen. Existing unrelated working-tree changes are excluded.
 
 Rollback uses the previous app image `a07c8e28`; no data rollback is required by this change. Update the browser shell after any rollback to avoid stale assets. The current release deploy follows the exact commit image, API version and browser runtime rather than an older open tab.
+
+## Production verification
+
+`production/evidence.json`, screenshots and `production/shell-offline.json` record the live run. All three published catalogs were checked: Materials PB2 (60), Study Songs (77), Physics (74). Real title queries, metadata projection and the selected sort were verified. Ben-Yehuda search was awaited through actual results. Studio ranking, cold analysis and complete import/export/retry scenarios were repeated in isolated browser storage.
+
+`production/health.json` records five consecutive 200 responses, version 3.11.485, ready DB/migrations and 43 integrity entries. The sole running application image matched code commit c06a1bca. The final evidence-only commit carries identical runtime bytes; its deployment is checked again at handoff.
+
+An exploratory immediate reload once showed the generic boot error without a captured cause. Diagnostic reruns did not reproduce it. The test harness now waits for the initial My Texts surface before seeding fixtures and asserts five consecutive successful reloads. This is recorded as a transient observation, not presented as a proven application repair. Expected signed-out 401 responses and cancelled background prefetch requests are distinct from JavaScript exceptions.
+
+Health also reported disk use 83% (`disk_warn=true`), with application/DB/migrations ready. Infrastructure cleanup was outside this release.

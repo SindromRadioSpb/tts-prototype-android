@@ -1,0 +1,16 @@
+{
+  "base": "https://linguistpro.kolosei.com",
+  "kind": "fresh service worker install and offline reopen",
+  "shell": {
+    "version": "3.11.485",
+    "scriptVersion": "3.11.485",
+    "paths": 43,
+    "missing": [],
+    "mismatch": [],
+    "controller": true
+  },
+  "studioOffline": true,
+  "roomOffline": true,
+  "errors": [],
+  "status": "PASS"
+}
