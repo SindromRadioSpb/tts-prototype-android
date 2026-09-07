@@ -1,7 +1,7 @@
 // Studio's discovery adapter; shared exact vocabulary rules and Room aggregate cache.
 (function (root) {
   'use strict';
-  let service = null, repaintTimer = null, progress = null;
+  let service = null, repaintTimer = null, progress = null, readyPromise = null, currentTexts = [], sortGatePending = false;
   const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const t = (key, fallback) => { const value = root.t && root.t(key); return value && value !== key ? value : fallback; };
   function badgeContent(id) {
@@ -33,13 +33,15 @@
       status.hidden = !progress.total;
       const text = progress.state === 'preparing' ? t('discovery.preparing', 'Знакомость: проверено {done} из {total}').replace('{done}', progress.done).replace('{total}', progress.total)
         : progress.state === 'needs-profile' ? t('discovery.profileHelp', 'Отмечайте знакомые слова во время чтения. Здесь появится их доля в тексте.')
+          : progress.state === 'sort-needs-profile' ? t('room.mytexts.sortFamiliarNeedsProfile', 'Сначала отметьте несколько знакомых слов.')
+            : progress.state === 'sort-no-reliable' ? t('room.compass.sortNoReliable', 'Пока нет текстов с достаточно достоверной оценкой для сортировки.')
           : progress.state === 'error' ? t('discovery.analysisRetry', 'Не удалось получить профиль слов. Обновите библиотеку, чтобы повторить.') : '';
       status.textContent = text;
       status.hidden = !text;
     }
     // Use the selected order throughout preparation; unrankable entries keep
     // their deterministic fallback position. Repaint at most once per batch.
-    if (document.getElementById('v3LibrarySort')?.value === 'familiar_desc' && typeof root.v3LibraryApplyFilter === 'function') {
+    if (!sortGatePending && document.getElementById('v3LibrarySort')?.value === 'familiar_desc' && typeof root.v3LibraryApplyFilter === 'function') {
       root.v3LibraryApplyFilter();
     }
   }
@@ -47,18 +49,53 @@
     progress = value;
     if (!repaintTimer) repaintTimer = setTimeout(paint, 180);
   }
-  async function start(db, texts) {
+  async function start(db, texts, keepSortGate) {
     cancel();
+    if (keepSortGate) sortGatePending = true;
+    currentTexts = Array.isArray(texts) ? texts.slice() : [];
     service = root.LocalTextFamiliarity.createService({ db, compass: root.LearningCompassCore, onUpdate: queuePaint });
-    await service.prepare(texts);
+    readyPromise = service.prepare(currentTexts);
+    await readyPromise;
+  }
+  async function requestSort(db, texts) {
+    const list = Array.isArray(texts) ? texts : currentTexts;
+    let projection = null;
+    try { projection = await db.getLearningCompassProjection(); } catch (_) {}
+    if (!projection || !Number(projection.tracked_lexeme_count)) {
+      queuePaint({ done: 0, total: list.length, state: 'sort-needs-profile' });
+      return { ok: false, reason: 'NEEDS_PROFILE' };
+    }
+    sortGatePending = true;
+    try {
+      if (!service) await start(db, list, true);
+      else {
+        // A profile may have changed after the cards were initially prepared
+        // (including an earlier NEEDS_PROFILE pass). Re-evaluate every current
+        // card against the fresh projection before promising a reliable order.
+        currentTexts = list.slice();
+        readyPromise = service.prepare(currentTexts);
+        try { await readyPromise; } catch (_) {}
+      }
+    } finally { sortGatePending = false; }
+    let reliable = 0;
+    for (const item of list) {
+      const fit = service && service.get(item && item.id);
+      if (fit && fit.status === 'AVAILABLE' && fit.rank_eligible === true) reliable++;
+    }
+    if (!reliable) {
+      queuePaint({ done: list.length, total: list.length, state: 'sort-no-reliable' });
+      return { ok: false, reason: 'NO_RELIABLE' };
+    }
+    return { ok: true, reliable };
   }
   function cancel() {
     if (service) service.cancel();
     service = null;
     if (repaintTimer) clearTimeout(repaintTimer);
-    repaintTimer = null; progress = null;
+    repaintTimer = null; progress = null; readyPromise = null; currentTexts = []; sortGatePending = false;
   }
   root.StudioLibraryDiscovery = { start, cancel, badge, paint,
+    requestSort,
     compare: (left, right) => root.CatalogDiscovery.compareFamiliarity(service && service.get(left.id), service && service.get(right.id)),
     get: id => service && service.get(id) };
 })(window);

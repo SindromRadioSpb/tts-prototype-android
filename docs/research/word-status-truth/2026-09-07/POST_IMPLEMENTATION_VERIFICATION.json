@@ -1,0 +1,51 @@
+{
+  "status": "ENGINEERING_PASS_OWNER_DEVICE_NOT_YET_RUN",
+  "verified_at": "2026-09-07",
+  "target_version": "3.11.487",
+  "source_archive_sha256": "42784d060d64eac3fd185285ae783662b4ceb150d5ab9c08a3b4c7c51bc4b09f",
+  "isolated_empty_profile_remeasurement": {
+    "token_occurrences": 974,
+    "explicit_new_occurrences": 0,
+    "derived_unassessed_occurrences": 464,
+    "undecorated_occurrences": 510,
+    "unique_vocalized_tokens": 481,
+    "unique_explicit_new": 0,
+    "unique_derived_unassessed": 294,
+    "unique_undecorated": 187,
+    "stored_status_count_after_render": 0
+  },
+  "familiarity_invariants_unchanged": {
+    "keyed_token_count": 718,
+    "unresolved_token_count": 256,
+    "unresolved_uncertainty_pp": 26.28,
+    "rank_limit_pp": 5,
+    "rank_eligible_when_all_resolved_keys_known": false
+  },
+  "browser_contracts": {
+    "studio_empty_profile_sort_reverts": true,
+    "studio_all_limited_sort_reverts": true,
+    "studio_reliable_cards_sort": true,
+    "studio_batch_cancel_no_write": true,
+    "studio_batch_per_item_verified": true,
+    "studio_bounded_undo_preserves_later_change": true,
+    "review_events_unchanged_by_batch_and_undo": true,
+    "mobile_380_horizontal_overflow": false,
+    "ru_visual_inspected": true,
+    "he_rtl_visual_inspected": true
+  },
+  "gates": {
+    "smoke_reader_morph": "PASS",
+    "smoke_studio_morph": "PASS",
+    "learning_compass_catalog_local_familiarity_tests": "33_PASS",
+    "discovery_import_focus": "PASS",
+    "smoke_i18n": "233_PASS",
+    "smoke_memory_canon": "89_PASS",
+    "smoke_reader_parity": "PASS",
+    "train_queue_and_shell_version_lock": "321_PASS",
+    "fresh_service_worker_integrity_and_offline_reopen": "PASS_43_PATHS"
+  },
+  "known_unrelated_gate": {
+    "smoke_room_study": "BASELINE_FAIL",
+    "reason": "Existing test expects an older reader-bar button set and times out waiting for the current Learning Home surface; failure occurs outside the word-status workflow."
+  }
+}

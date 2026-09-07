@@ -102,7 +102,7 @@ async function main() {
     }
     // ── сид OPFS: один текст с 12 строками (контента должно хватить на скролл) ──
     await pg.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = window.__localDB;
       try { await db.dbRun("DELETE FROM sentences WHERE text_id LIKE 'rst-%'"); } catch (_) {}
       try { await db.dbRun("DELETE FROM texts WHERE id LIKE 'rst-%'"); } catch (_) {}
       await db.createText({ id: "rst-t1", text_key: "rst-k1", title: "RST STUDY", source_text: "טקסט" });

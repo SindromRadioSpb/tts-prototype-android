@@ -561,11 +561,18 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         const span = mount.querySelector('td[data-col="he"] .rm-w');
         got[st] = CLS[st] && span.classList.contains(CLS[st]);
       }
+      await R.decorateWords(mount, {}, { color: true, fadeMode: "full" });
+      const unsetClass = mount.querySelector('td[data-col="he"] .rm-w').className;
+      await R.decorateWords(mount, {}, { color: false, fadeMode: "full" });
+      const offClass = mount.querySelector('td[data-col="he"] .rm-w').className;
+      got.unset = { unsetClass, offClass };
       return got;
     });
     for (const st of ["new", "l1", "l2", "l3", "l4", "known", "ignore", "learning"]) {
       eq(palette[st], "status '" + st + "' must paint its .rm-w class (decorateWords mapping)");
     }
+    eq(/rm-w-unassessed/.test(palette.unset.unsetClass) && !/rm-w-new/.test(palette.unset.unsetClass), "unset confident words must be derived unassessed, never explicit new, got " + JSON.stringify(palette.unset.unsetClass));
+    eq(!/rm-w-(unassessed|new)/.test(palette.unset.offClass), "turning word status off must clear unassessed decoration, got " + JSON.stringify(palette.unset.offClass));
 
     // ── Regression: row «ועברה על לבי, ונגעה בנימה» — על=function, בנימה=unknown (NOT coloured),
     //    while ועברה/לבי/ונגעה are content «exact» (coloured). Honest-gate, measured 2026-06-27. ──
@@ -629,18 +636,22 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const scoped = await R.collectNewWords(mount, {}, { rowFrom: 1 });           // only row 1 (ספר)
       const minus = await R.collectNewWords(mount, { [shalomKey]: "known" });      // mark known → must drop
       const withNew = await R.collectNewWords(mount, { [shalomKey]: "new" });      // mark new → must stay
+      const withBlankCarrier = await R.collectNewWords(mount, { [seferKey]: "" }); // cleared manual mark with SRS carrier → unassessed
       const e0 = all[0] || {};
       const tzvi = all.find((w) => R.stripNiqqud(w.niqqud || w.surface || "") === "צבי") || null;
       const shalomEntry = all.find((w) => w.lemmaKey === shalomKey) || null;
       return {
         shalomKey, seferKey, allLen: all.length,
-        words: all.map((w) => ({ k: w.lemmaKey, he: w.niqqud, freq: w.freq, name: w.nameSuspect })),
+        words: all.map((w) => ({ k: w.lemmaKey, he: w.niqqud, freq: w.freq, name: w.nameSuspect, assessment: w.assessment })),
         firstKey: e0.lemmaKey,
         hasFunc: all.some((w) => R.stripNiqqud(w.niqqud || w.surface || "") === "אין"),
         shalomEntry, tzviName: tzvi ? tzvi.nameSuspect : null, shalomName: shalomEntry ? shalomEntry.nameSuspect : null,
         scopedKeys: scoped.map((w) => w.lemmaKey), scopedLen: scoped.length,
         minusHasShalom: minus.some((w) => w.lemmaKey === shalomKey),
         withNewHasShalom: withNew.some((w) => w.lemmaKey === shalomKey),
+        unsetAssessment: shalomEntry ? shalomEntry.assessment : null,
+        explicitAssessment: (withNew.find((w) => w.lemmaKey === shalomKey) || {}).assessment || null,
+        blankCarrierAssessment: (withBlankCarrier.find((w) => w.lemmaKey === seferKey) || {}).assessment || null,
       };
     });
     eq(cnw.shalomEntry, "collectNewWords must include the confident frontier word שלום, got " + JSON.stringify(cnw.words));
@@ -654,6 +665,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(cnw.scopedLen === 1 && cnw.scopedKeys[0] === cnw.seferKey, "scope {rowFrom:1} must collect ONLY row-1 words (ספר), not row-0 (שלום/צבי), got " + JSON.stringify(cnw.scopedKeys));
     eq(!cnw.minusHasShalom, "a word marked 'known' must DROP from collectNewWords (frontier = new/undefined) — proves save-key==collect-key parity");
     eq(cnw.withNewHasShalom, "a word marked 'new' must STAY in collectNewWords (new = tracking, not known)");
+    eq(cnw.unsetAssessment === "unassessed", "unset frontier items must expose assessment=unassessed, got " + JSON.stringify(cnw.unsetAssessment));
+    eq(cnw.explicitAssessment === "explicit_new", "stored new items must expose assessment=explicit_new, got " + JSON.stringify(cnw.explicitAssessment));
+    eq(cnw.blankCarrierAssessment === "unassessed", "an empty manual status retained only as an SRS carrier must remain unassessed, got " + JSON.stringify(cnw.blankCarrierAssessment));
 
     // ── Epic 4.3a+ — openWordCard: a «📚 Учить» row expands to the SAME rich tap-card, surfacing the
     //    FORM-level analysis (כּוֹתֵב present m.sg → verb/paal + conjugation), not just the lemma gloss.
@@ -710,8 +724,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const sh = items.find((x) => x.lemmaKey === shalomKey) || null;
       return {
         cz, up, down, mc, d1Keys: d1.map((x) => x.lemmaKey), d2Keys: d2.map((x) => x.lemmaKey),
-        itemCount: items.length, shStatus: sh ? sh.status : null, shOcc: sh ? sh.occ : null,
-        hasAllStatuses: items.every((x) => !!x.status), anyOcc: !!(sh && sh.occ && sh.occ.length && sh.occ[0].rowIdx === 0 && typeof sh.occ[0].wordOffset === "number"),
+        itemCount: items.length, shStatus: sh ? sh.status : null, shAssessment: sh ? sh.assessment : null, shOcc: sh ? sh.occ : null,
+        unsetHonest: items.filter((x) => x.lemmaKey !== shalomKey).every((x) => x.status === null && x.assessment === "unassessed"), anyOcc: !!(sh && sh.occ && sh.occ.length && sh.occ[0].rowIdx === 0 && typeof sh.occ[0].wordOffset === "number"),
       };
     });
     eq(rc.cz && rc.cz.answer === "עולם" && /שלום/.test(rc.cz.before) && /טוב/.test(rc.cz.after), "buildCloze must blank the offset-th word keeping separators, got " + JSON.stringify(rc.cz));
@@ -722,8 +736,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(rc.d1Keys[0] === "pid:2", "pickDistractors must rank a SAME-ROOT word first (morpho-honest), got " + JSON.stringify(rc.d1Keys));
     eq(JSON.stringify(rc.d1Keys) === JSON.stringify(rc.d2Keys), "pickDistractors must be deterministic (same input → same output)");
     eq(rc.itemCount >= 3, "collectReviewItems must return ALL confident lemmas (שלום/עולם/ספר/טוב ≥3), got " + rc.itemCount);
-    eq(rc.hasAllStatuses, "every review item must carry an effective status (states[lk]||'new')");
     eq(rc.shStatus === "l2", "collectReviewItems must reflect the stored status (שלום→l2), got " + JSON.stringify(rc.shStatus));
+    eq(rc.shAssessment === "asserted" && rc.unsetHonest, "collectReviewItems must keep unset as status=null/assessment=unassessed instead of fabricating new, got " + JSON.stringify(rc));
     eq(rc.anyOcc, "a review item must carry occurrences {rowIdx,wordOffset} (for the cloze sentence), got " + JSON.stringify(rc.shOcc));
 
     // ── Epic 4.3b Phase A — buildClozeForTarget (blank-by-skeleton, blank-ALL) + distractor collision guard.

@@ -10766,7 +10766,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Общие стили морф-карточки ReaderMorph + палитра статусов слов (одна реализация с Залом,
      форк запрещён). После инлайн-<style>: при равной специфичности выигрывает карточный файл. -->
-<link rel="stylesheet" href="/css/reader-morph.css?v=395">
+<link rel="stylesheet" href="/css/reader-morph.css?v=396">
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
 <script>
@@ -11883,7 +11883,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                         <span data-i18n="room.morph.statusToggle">🎨 Статус слов</span>
                                     </label>
                                     <span id="studioWordStatusLegend" class="reader-status-legend"></span>
-                                    <span class="table-settings-note" data-i18n="room.morph.statusNote">Цвет — у уверенно распознанных учебных слов; служебные и не найденные в словаре остаются без цвета.</span>
+                                    <span class="table-settings-note" data-i18n="room.morph.statusNote">Фиолетовый — явно новое; пунктир — распознано, но не оценено; без декорации — не разрешено.</span>
+                                    <button type="button" id="studioReviewWordsBtn" class="btn-mini-secondary" data-i18n="room.morph.study.open">📚 Разобрать слова</button>
                                 </div>
 
                                 <div class="table-settings-row table-settings-sub">
@@ -13308,9 +13309,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=206"></script>
-<script src="/i18n/locales/en.js?v=206"></script>
-<script src="/i18n/locales/he.js?v=206"></script>
+<script src="/i18n/locales/ru.js?v=207"></script>
+<script src="/i18n/locales/en.js?v=207"></script>
+<script src="/i18n/locales/he.js?v=207"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13383,7 +13384,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js?v=453"></script>
+<script src="/js/reader-morph.js?v=454"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13418,7 +13419,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/catalog-discovery-core.js?v=485"></script>
 <script src="/js/learning-compass-core.js"></script>
 <script src="/js/local-text-familiarity.js?v=485"></script>
-<script src="/js/studio-library-discovery.js?v=485"></script>
+<script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js"></script>
 <script src="/js/studio-media-package.js"></script>
 <script src="/js/studio-media-editor.js"></script>
@@ -13444,7 +13445,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
 <script src="/js/lexical-resolution-service.js?v=5"></script>
-<script src="/js/studio-morph.js?v=2"></script>
+<script src="/js/studio-morph.js?v=3"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -13498,7 +13499,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.486";
+    window.APP_VERSION = "3.11.487";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17548,7 +17549,7 @@ function v3NotesRefreshAllButtons() {
         });
         if (lg && !lg.childNodes.length) {
             const _lt = (k, fb) => { try { if (typeof window.t === "function") { const v = window.t(k); if (v && v !== k) return v; } } catch (_) {} return fb; };
-            [["new", _lt("room.morph.status.new", "новое")], ["l1", "1"], ["l2", "2"], ["l3", "3"], ["l4", "4"],
+            [["unassessed", _lt("room.morph.status.unassessed", "не оценено")], ["new", _lt("room.morph.status.new", "новое")], ["l1", "1"], ["l2", "2"], ["l3", "3"], ["l4", "4"],
              ["known", _lt("room.morph.status.known", "знаю")], ["ignore", _lt("room.morph.status.ignore", "игнор")]].forEach(function (p) {
                 const sw = document.createElement("span"); sw.className = "reader-status-sw";
                 const dot = document.createElement("span"); dot.className = "reader-status-dot sw-" + p[0];
@@ -17556,6 +17557,8 @@ function v3NotesRefreshAllButtons() {
                 sw.appendChild(dot); sw.appendChild(tx); lg.appendChild(sw);
             });
         }
+        const reviewBtn = document.getElementById("studioReviewWordsBtn");
+        if (reviewBtn) reviewBtn.addEventListener("click", function () { window.StudioMorph.openReviewWords(); });
     })();
 
 	const autoNextToggleEl = document.getElementById("autoNextToggle");
@@ -24541,11 +24544,27 @@ function v3LibraryOnProviderChange() {
   v3LibraryApplyFilter();
 }
 
-function v3LibraryOnSortChange() {
-  try {
-    const sk = String((v3LibEl("v3LibrarySort") && v3LibEl("v3LibrarySort").value) || "opened_desc");
-    localStorage.setItem(V3_LIB_SORT_KEY, sk);
-  } catch (_) {}
+let v3LibrarySortRequest = 0;
+async function v3LibraryOnSortChange() {
+  const token = ++v3LibrarySortRequest;
+  const select = v3LibEl("v3LibrarySort");
+  const sk = String((select && select.value) || "opened_desc");
+  let previous = "opened_desc";
+  try { previous = String(localStorage.getItem(V3_LIB_SORT_KEY) || "opened_desc"); } catch (_) {}
+  if (sk === "familiar_desc" && window.StudioLibraryDiscovery && typeof window.StudioLibraryDiscovery.requestSort === "function") {
+    let gate = { ok: false };
+    try { gate = await window.StudioLibraryDiscovery.requestSort(await ensureLocalDB(), v3LibraryTexts); } catch (_) {}
+    if (token !== v3LibrarySortRequest) return;
+    if (!gate || !gate.ok) {
+      const fallback = previous === "familiar_desc" ? "opened_desc" : previous;
+      if (select) select.value = fallback;
+      try { localStorage.setItem(V3_LIB_SORT_KEY, fallback); } catch (_) {}
+      v3LibraryLastRenderKey = null;
+      v3LibraryApplyFilter();
+      return;
+    }
+  }
+  try { localStorage.setItem(V3_LIB_SORT_KEY, sk); } catch (_) {}
   // чтобы гарантировать пересортировку даже при memo-key
   v3LibraryLastRenderKey = null;
   v3LibraryApplyFilter();
@@ -25835,7 +25854,13 @@ async function v3LibraryRefresh() {
 
     if (statusEl) statusEl.textContent = t("library.loaded", { count: v3LibraryTexts.length, date: v3FmtDate(v3LibraryLastLoadedAt) });
     if (LOCAL_MODE && window.StudioLibraryDiscovery) {
-      window.StudioLibraryDiscovery.start(await ensureLocalDB(), v3LibraryTexts).catch(error => console.warn('Library familiarity', error));
+      const sortTokenAtPrepare = v3LibrarySortRequest;
+      const restoredFamiliaritySort = v3LibEl("v3LibrarySort")?.value === "familiar_desc";
+      window.StudioLibraryDiscovery.start(await ensureLocalDB(), v3LibraryTexts, restoredFamiliaritySort).then(() => {
+        // A persisted familiarity selection is subject to the same current-profile/current-text
+        // gate as a fresh click. Do not override a newer user selection made during preparation.
+        if (sortTokenAtPrepare === v3LibrarySortRequest && v3LibEl("v3LibrarySort")?.value === "familiar_desc") v3LibraryOnSortChange();
+      }).catch(error => console.warn('Library familiarity', error));
     }
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);

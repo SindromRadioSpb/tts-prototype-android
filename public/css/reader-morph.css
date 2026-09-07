@@ -300,6 +300,7 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 
 /* ── word-status раскраска в тексте (Epic 4; honest gate — см. легенду) ──────── */
 .rm-w-new { background: var(--ws-new-fill); border-radius: 3px; }
+.rm-w-unassessed { text-decoration-line: underline; text-decoration-style: dotted; text-decoration-thickness: 1px; text-underline-offset: .18em; text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
 .rm-w-l1 { background: var(--ws-l1-fill); border-radius: 3px; }
 .rm-w-l2 { background: var(--ws-l2-fill); border-radius: 3px; }
 .rm-w-l3 { background: var(--ws-l3-fill); border-radius: 3px; }
@@ -381,12 +382,36 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 .reader-status-sw { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-secondary); }
 .reader-status-dot { width: 13px; height: 13px; border-radius: 4px; flex: none; }
 .reader-status-dot.sw-new { background: var(--ws-new); }
+.reader-status-dot.sw-unassessed { background: transparent; border: 1px dotted currentColor; }
 .reader-status-dot.sw-l1 { background: var(--ws-l1); }
 .reader-status-dot.sw-l2 { background: var(--ws-l2); }
 .reader-status-dot.sw-l3 { background: var(--ws-l3); }
 .reader-status-dot.sw-l4 { background: var(--ws-l4); }
 .reader-status-dot.sw-known { background: var(--ws-known); }
 .reader-status-dot.sw-ignore { background: var(--ws-ignore); }
+.room-study-assessment { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 7px; font-size: 10.5px; line-height: 1.25; color: var(--text-secondary); border: 1px dotted currentColor; }
+.room-study-assessment.is-new { border-style: solid; background: var(--ws-new-fill); color: var(--text-primary); }
+.room-study-assessment.is-asserted { border-style: solid; background: var(--bg-muted); }
+
+/* Studio word-assessment dialog: a derived preview over ReaderMorph, never another store. */
+.studio-word-review { position: fixed; inset: 0; z-index: 1550; display: grid; place-items: center; padding: 18px; }
+.studio-word-review[hidden] { display: none; }
+.studio-word-review-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.48); }
+.studio-word-review-card { position: relative; width: min(620px, 100%); max-height: min(760px, calc(100vh - 36px)); overflow: auto; box-sizing: border-box; border-radius: 16px; padding: 18px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 18px 55px rgba(0,0,0,.32); }
+.studio-word-review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.studio-word-review-head h2 { margin: 0; font-size: 18px; }
+.studio-word-review-close { appearance: none; width: 44px; height: 44px; border: 0; background: transparent; color: inherit; font-size: 20px; cursor: pointer; }
+.studio-word-review-note, .studio-word-review-result { color: var(--text-secondary); font-size: 13px; line-height: 1.45; margin: 10px 0; }
+.studio-word-review-list { display: grid; gap: 7px; margin: 12px 0; }
+.studio-word-review-row { display: grid; grid-template-columns: minmax(100px,auto) 1fr auto; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--border-soft); border-radius: 10px; }
+.studio-word-review-he { font-size: 17px; font-weight: 700; }
+.studio-word-review-gloss { min-width: 0; color: var(--text-secondary); font-size: 12px; overflow-wrap: anywhere; }
+.studio-word-review-tag { border: 1px dotted currentColor; border-radius: 999px; padding: 2px 7px; color: var(--text-secondary); font-size: 10.5px; }
+.studio-word-review-tag.is-new { border-style: solid; background: var(--ws-new-fill); color: var(--text-primary); }
+.studio-word-review-actions { display: flex; flex-wrap: wrap; gap: 9px; justify-content: flex-end; }
+.studio-word-review-actions button { appearance: none; min-height: 44px; cursor: pointer; border-radius: 9px; padding: 9px 13px; font: inherit; font-weight: 700; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); }
+.studio-word-review-actions .primary { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+@media (max-width: 480px) { .studio-word-review { padding: 8px; } .studio-word-review-card { max-height: calc(100vh - 16px); padding: 14px; } .studio-word-review-row { grid-template-columns: 1fr auto; } .studio-word-review-gloss { grid-column: 1 / -1; } }
 /* Epic 4.2 — in-text quick-status popover (long-press). */
 .rm-statpop { position: fixed; z-index: 1300; }
 .rm-statpop[hidden] { display: none; }

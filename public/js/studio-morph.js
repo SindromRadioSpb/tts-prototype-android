@@ -34,6 +34,99 @@
   }
   function wordStatusSet(v) { try { localStorage.setItem(LS_KEY, v ? "1" : "0"); } catch (_) {} }
 
+  var reviewDialog = null, reviewWords = [], reviewLedger = [], reviewReturnFocus = null, reviewBusy = false;
+  function _reviewEl(tag, cls, text) {
+    var node = document.createElement(tag); if (cls) node.className = cls; if (text != null) node.textContent = text; return node;
+  }
+  function _reviewResult(text) { var out = reviewDialog && reviewDialog.querySelector("[data-result]"); if (out) out.textContent = text || ""; }
+  function _renderReviewWords() {
+    if (!reviewDialog) return;
+    var list = reviewDialog.querySelector("[data-list]"); if (!list) return;
+    list.innerHTML = "";
+    reviewWords.forEach(function (word) {
+      var row = _reviewEl("div", "studio-word-review-row"); row.setAttribute("data-studio-review-row", "1"); row.setAttribute("data-assessment", word.assessment || "unassessed");
+      var he = _reviewEl("span", "studio-word-review-he", word.niqqud || word.surface || ""); he.lang = "he"; he.dir = "rtl"; row.appendChild(he);
+      row.appendChild(_reviewEl("span", "studio-word-review-gloss", (word.gloss || "") + (word.freq > 1 ? " · ×" + word.freq : "")));
+      var tag = _reviewEl("span", "studio-word-review-tag" + (word.assessment === "explicit_new" ? " is-new" : ""), word.assessment === "explicit_new" ? tt("room.morph.study.explicitNew", "явно новое") : tt("room.morph.study.unassessed", "не оценено"));
+      tag.setAttribute("data-i18n", word.assessment === "explicit_new" ? "room.morph.study.explicitNew" : "room.morph.study.unassessed"); row.appendChild(tag);
+      list.appendChild(row);
+    });
+    if (!reviewWords.length) list.appendChild(_reviewEl("p", "studio-word-review-note", tt("room.morph.study.empty", "Нет слов для разбора.")));
+    var count = reviewDialog.querySelector("[data-count]"); if (count) count.textContent = tt("room.morph.study.total", "Слов для разбора") + ": " + reviewWords.length;
+    var mark = reviewDialog.querySelector("#studioWordReviewMarkNew"); if (mark) mark.disabled = !reviewWords.some(function (w) { return w.assessment === "unassessed"; });
+  }
+  async function _loadReviewWords() {
+    var mount = document.getElementById("tableContainer"), h = ensureHost();
+    if (!mount || !h || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== "function") { reviewWords = []; _renderReviewWords(); return; }
+    _reviewResult(tt("room.morph.study.loading", "Собираю слова…"));
+    try { reviewWords = await window.ReaderMorph.collectNewWords(mount, (await h.ensureWordStates()) || {}); } catch (_) { reviewWords = []; }
+    _reviewResult(""); _renderReviewWords();
+  }
+  async function _markReviewNew() {
+    if (reviewBusy) return;
+    var targets = reviewWords.filter(function (w) { return w.assessment === "unassessed"; });
+    if (!targets.length) return;
+    var prompt = tt("room.morph.study.bulkNewConfirm", "Отметить как явно новые: {count}?").replace("{count}", String(targets.length));
+    if (!window.confirm(prompt)) return;
+    reviewBusy = true;
+    var markButton = reviewDialog && reviewDialog.querySelector("#studioWordReviewMarkNew"); if (markButton) markButton.disabled = true;
+    var h = ensureHost(), db = await _ldb(), made = [], failed = [];
+    for (var i = 0; i < targets.length; i++) {
+      var w = targets[i], before = "";
+      try { before = await db.getWordStatus(w.lemmaKey); } catch (_) {}
+      if (before) { failed.push(w.lemmaKey); continue; }
+      try { await h.markWordStatus(w.lemmaKey, "new", null); } catch (_) {}
+      var after = ""; try { after = await db.getWordStatus(w.lemmaKey); } catch (_) {}
+      if (after === "new") { made.push(w.lemmaKey); w.assessment = "explicit_new"; } else failed.push(w.lemmaKey);
+    }
+    reviewLedger = made.slice(); h.invalidateWordStates(); refreshDecorations(); reviewBusy = false; _renderReviewWords();
+    _reviewResult(tt("room.morph.study.bulkNewResult", "Отмечено новыми: {ok}; не изменено: {failed}").replace("{ok}", String(made.length)).replace("{failed}", String(failed.length)));
+    var undo = reviewDialog.querySelector("#studioWordReviewUndo"); if (undo) undo.hidden = !reviewLedger.length;
+  }
+  async function _undoReviewNew() {
+    if (reviewBusy) return;
+    reviewBusy = true;
+    var db = await _ldb(), h = ensureHost(), cleared = 0, skipped = 0;
+    for (var i = 0; i < reviewLedger.length; i++) {
+      var key = reviewLedger[i], cur = ""; try { cur = await db.getWordStatus(key); } catch (_) {}
+      if (cur !== "new") { skipped++; continue; }
+      try { await h.markWordStatus(key, "", null); } catch (_) {}
+      var after = ""; try { after = await db.getWordStatus(key); } catch (_) {}
+      if (!after) { cleared++; var word = reviewWords.find(function (w) { return w.lemmaKey === key; }); if (word) word.assessment = "unassessed"; } else skipped++;
+    }
+    reviewLedger = []; h.invalidateWordStates(); refreshDecorations(); reviewBusy = false; _renderReviewWords();
+    var undo = reviewDialog.querySelector("#studioWordReviewUndo"); if (undo) undo.hidden = true;
+    _reviewResult(tt("room.morph.study.bulkUndoResult", "Отменено: {ok}; пропущено изменённых позже: {skipped}").replace("{ok}", String(cleared)).replace("{skipped}", String(skipped)));
+  }
+  function _closeReviewWords() { if (reviewDialog) reviewDialog.hidden = true; try { if (reviewReturnFocus && reviewReturnFocus.focus) reviewReturnFocus.focus(); } catch (_) {} reviewReturnFocus = null; }
+  function _ensureReviewDialog() {
+    if (reviewDialog) return reviewDialog;
+    var shell = _reviewEl("div", "studio-word-review"); shell.id = "studioWordReviewDialog"; shell.hidden = true; shell.setAttribute("role", "dialog"); shell.setAttribute("aria-modal", "true"); shell.setAttribute("aria-label", tt("room.morph.study.title", "Разобрать слова"));
+    var backdrop = _reviewEl("div", "studio-word-review-backdrop"); backdrop.addEventListener("click", _closeReviewWords); shell.appendChild(backdrop);
+    var card = _reviewEl("section", "studio-word-review-card");
+    var head = _reviewEl("div", "studio-word-review-head"); var heading = _reviewEl("h2", "", tt("room.morph.study.title", "📚 Разобрать слова")); heading.setAttribute("data-i18n", "room.morph.study.title"); head.appendChild(heading);
+    var close = _reviewEl("button", "studio-word-review-close", "✕"); close.id = "studioWordReviewClose"; close.type = "button"; close.setAttribute("aria-label", tt("room.morph.close", "Закрыть")); close.setAttribute("data-i18n-aria-label", "room.morph.close"); close.addEventListener("click", _closeReviewWords); head.appendChild(close); card.appendChild(head);
+    var note = _reviewEl("p", "studio-word-review-note", tt("room.morph.study.countHelp", "Распознанные, но не оценённые слова не считаются новыми, пока вы не подтвердите это.")); note.setAttribute("data-i18n", "room.morph.study.countHelp"); card.appendChild(note);
+    var count = _reviewEl("p", "studio-word-review-note", ""); count.setAttribute("data-count", "1"); card.appendChild(count);
+    var list = _reviewEl("div", "studio-word-review-list"); list.setAttribute("data-list", "1"); card.appendChild(list);
+    var result = _reviewEl("p", "studio-word-review-result", ""); result.setAttribute("data-result", "1"); result.setAttribute("aria-live", "polite"); card.appendChild(result);
+    var actions = _reviewEl("div", "studio-word-review-actions");
+    var undo = _reviewEl("button", "", tt("room.morph.study.undo", "Отменить")); undo.id = "studioWordReviewUndo"; undo.type = "button"; undo.hidden = true; undo.setAttribute("data-i18n", "room.morph.study.undo"); undo.addEventListener("click", _undoReviewNew); actions.appendChild(undo);
+    var mark = _reviewEl("button", "primary", tt("room.morph.study.bulkNew", "Отметить как новые")); mark.id = "studioWordReviewMarkNew"; mark.type = "button"; mark.setAttribute("data-i18n", "room.morph.study.bulkNew"); mark.addEventListener("click", _markReviewNew); actions.appendChild(mark); card.appendChild(actions);
+    shell.appendChild(card); document.body.appendChild(shell); reviewDialog = shell; return shell;
+  }
+  document.addEventListener("keydown", function (event) {
+    if (!reviewDialog || reviewDialog.hidden) return;
+    if (event.key === "Escape") { event.preventDefault(); _closeReviewWords(); return; }
+    if (event.key !== "Tab") return;
+    var focusable = Array.prototype.slice.call(reviewDialog.querySelectorAll("button:not([disabled]):not([hidden])"));
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+  async function openReviewWords() { attachOnce(); var dialog = _ensureReviewDialog(); reviewReturnFocus = document.activeElement; reviewLedger = []; dialog.hidden = false; var undo = dialog.querySelector("#studioWordReviewUndo"); if (undo) undo.hidden = true; await _loadReviewWords(); try { dialog.querySelector("#studioWordReviewClose").focus(); } catch (_) {} }
+
   // OPFS local-db: паттерн studio-retell.js (index.html выставляет window.ensureLocalDB).
   async function _ldb() {
     try {
@@ -309,5 +402,7 @@
     wordStatusEnabled: wordStatusEnabled,
     wordStatusSet: wordStatusSet,
     attachOnce: attachOnce,
+    openReviewWords: openReviewWords,
+    refreshReviewWords: _renderReviewWords,
   };
 })();

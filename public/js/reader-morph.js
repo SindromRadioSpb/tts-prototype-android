@@ -2090,12 +2090,13 @@
   // concentrates exactly on the new/archaic. R1/R10: ONLY decisively-resolved words
   // (label exact|likely) are touched — ambiguous / unvocalized words stay neutral AND keep
   // their niqqud (honest degradation: never hide help on a word we can't confidently identify).
-  // Chunked (60/batch + yields) so a long text never blocks the UI. Absent-from-map ⇒ 'new'.
+  // Chunked (60/batch + yields) so a long text never blocks the UI. Absent-from-map is the
+  // derived presentation state `unassessed`; it is never fabricated as asserted learner `new`.
   // Epic 4 — manual LingQ-style levels (l1..l4) + known/ignore join the SRS-derived states.
   // Palette (cross-competitor standard): new=blue · l1..l4=amber gradient · known=NO tint (the
   // wall clears) · ignore=plain (faint dotted). The class is applied; the colour lives in CSS.
   var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new", l1: "rm-w-l1", l2: "rm-w-l2", l3: "rm-w-l3", l4: "rm-w-l4", ignore: "rm-w-ignore" };
-  var _RM_W_CLASSES = ["rm-w-known", "rm-w-learning", "rm-w-new", "rm-w-l1", "rm-w-l2", "rm-w-l3", "rm-w-l4", "rm-w-ignore", "rm-w-due"];
+  var _RM_W_CLASSES = ["rm-w-known", "rm-w-learning", "rm-w-new", "rm-w-unassessed", "rm-w-l1", "rm-w-l2", "rm-w-l3", "rm-w-l4", "rm-w-ignore", "rm-w-due"];
   // "familiar" mirrors corpus-vocab CFG.KNOWN_STATES (saved=familiar; §7 — owner's saved vocab
   // sits in 'new'/Anki, so familiar = any engaged word, not just mastered). Manual levels + ignore
   // are engaged too → familiar (niqqud may fade on them).
@@ -2178,12 +2179,13 @@
         var lk = statusKeyForCard(NA, card, niqqud, surface);
         var raw = lk ? states[lk] : undefined;
         if (color) {
-          // Confident → defaults to 'new' (the unseen «blue wall»). UNCONFIDENT → coloured ONLY when the
-          // user explicitly engaged it (manual status OR saved note → a states entry); NEVER defaulted to
-          // 'new' (honest: we don't fabricate a status for a word we can't identify). R11 precedence: a
+          // A confident word without learner state is only DERIVED `unassessed` (quiet dotted marker).
+          // Purple `new` is reserved for an explicit stored learner decision. UNCONFIDENT words are
+          // decorated ONLY when the user explicitly engaged them (manual status OR saved note → a states
+          // entry); they never receive a derived assessment. R11 precedence: a
           // confident word uses its lemma-key, so a surface-status never leaks onto a confident homograph.
-          var st = confident ? (raw || "new") : (raw || "");
-          var cls = st ? STATE_CLASS[st] : "";
+          var st = raw || "";
+          var cls = st ? STATE_CLASS[st] : (confident ? "rm-w-unassessed" : "");
           if (cls) span.classList.add(cls);
         }
         // Retention P5 — quiet due marker: a ring, never a background tint (the background IS the
@@ -2302,16 +2304,20 @@
     var states = statesMap || {};
     var group = await _scanWords(mount, opts);
     var arr = [];
-    group.forEach(function (g) { var st = states[g.lemmaKey]; if (st === undefined || st === "new") arr.push(g); });
-    arr.sort(function (a, b) { return b.freq - a.freq || a._i - b._i; });
+    group.forEach(function (g) {
+      var st = states[g.lemmaKey];
+      if (st === undefined || st === "" || st === "new") arr.push({ word: g, assessment: st === "new" ? "explicit_new" : "unassessed" });
+    });
+    arr.sort(function (a, b) { return b.word.freq - a.word.freq || a.word._i - b.word._i; });
     if (topN != null && topN >= 0) arr = arr.slice(0, topN);
-    return arr.map(function (g) {
-      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect };
+    return arr.map(function (entry) {
+      var g = entry.word;
+      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect, assessment: entry.assessment };
     });
   }
   // ── Epic 4.3b — recall items (cloze training) ───────────────────────────────
-  // ALL confident lemmas of the (scoped) text + effective status (states[lk]||'new' — untouched
-  // confident = the «new» frontier) + occurrences (rowIdx+wordOffset, so the caller builds a cloze
+  // ALL confident lemmas of the (scoped) text + asserted status (null when untouched) + explicit
+  // assessment (`unassessed` / `explicit_new` / `asserted`) + occurrences (rowIdx+wordOffset, so the caller builds a cloze
   // from the REAL sentence) + freq. Returns the whole set: library-ui filters the SESSION by status
   // (l1–l4 + new + capped known-refresh) AND uses the full list as the morpho-honest distractor pool.
   async function collectReviewItems(mount, statesMap, opts) {
@@ -2320,7 +2326,8 @@
     var arr = Array.from(group.values());
     arr.sort(function (a, b) { return b.freq - a.freq || a._i - b._i; });
     return arr.map(function (g) {
-      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect, status: (states[g.lemmaKey] || "new"), occ: g.occ.slice(0, 8) };
+      var stored = states[g.lemmaKey], unset = stored === undefined || stored === "";
+      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect, status: unset ? null : stored, assessment: unset ? "unassessed" : (stored === "new" ? "explicit_new" : "asserted"), occ: g.occ.slice(0, 8) };
     });
   }
   // ── Epic 4.3b — pure recall helpers (Node-testable) ─────────────────────────

@@ -6,11 +6,11 @@
 // (v3RenderTableFromLibrary), ровно кейс «карточка текста ещё не в библиотеке».
 //
 // Сценарии:
-//   A1 тумблер #studioWordStatusToggle + легенда 7 точек; палитра РЕАЛЬНО покрашена
+//   A1 тумблер #studioWordStatusToggle + легенда 8 состояний; палитра РЕАЛЬНО покрашена
 //      (computed background точки ≠ transparent — регресс-гард на съеденный :root)
 //   A2 шит «Строка таблицы» удалён (DOM отсутствует)
 //   A3 после рендера слова обёрнуты в .rm-w (he-ячейки)
-//   A4 тумблер ON → у решённых слов появляется раскраска (.rm-w-new и т.п.)
+//   A4 тумблер ON → уверенно решённые unset-слова получают только .rm-w-unassessed
 //   A5 тап по слову → карточка .rm-sheet.rm-open с палитрой из 7 статусов
 //   A6 карточка существительного содержит тот же accordion «Спряжение / Склонение» и
 //      отрисованную Pealim-таблицу, что и карточка Читального зала
@@ -28,6 +28,9 @@ const PORT = 3299;
 const BASE = `http://127.0.0.1:${PORT}`;
 const SHOT_380 = path.join(REPO_ROOT, ".tmp", "studio-morph-paradigm-380.png");
 const SHOT_DESKTOP = path.join(REPO_ROOT, ".tmp", "studio-morph-paradigm-desktop.png");
+const SHOT_REVIEW_RU = path.join(REPO_ROOT, ".tmp", "studio-word-review-380-ru.png");
+const SHOT_REVIEW_HE = path.join(REPO_ROOT, ".tmp", "studio-word-review-380-he.png");
+const SHOT_REVIEW_DESKTOP = path.join(REPO_ROOT, ".tmp", "studio-word-review-desktop-ru.png");
 
 function startServer() {
   return spawn(process.execPath, ["server.js"], {
@@ -74,6 +77,7 @@ function ok(cond, msg) {
         // consent Dicta: declined → карточка резолвит офлайн, диалог согласия не перекрывает клики
         localStorage.setItem("room.contextConsent", "declined");
         localStorage.setItem("studio.wordStatus", "0");
+        localStorage.setItem("v3.byokOnboardingDismissed", "1");
       } catch (_) {}
     });
     const pg = await ctx.newPage();
@@ -98,13 +102,15 @@ function ok(cond, msg) {
       const dots = document.querySelectorAll("#studioWordStatusLegend .reader-status-dot");
       let painted = false;
       if (dots.length) {
-        const bg = getComputedStyle(dots[0]).backgroundColor;
-        painted = !!bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+        painted = Array.from(dots).some((dot) => {
+          const bg = getComputedStyle(dot).backgroundColor;
+          return !!bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+        });
       }
       return { cb: !!cb, dots: dots.length, painted };
     });
     ok(a1.cb, "тумблер «Статус слов» присутствует в панели настроек таблицы");
-    ok(a1.dots === 7, `легенда: 7 точек статусов (got ${a1.dots})`);
+    ok(a1.dots === 8, `легенда: 7 learner-статусов + unassessed (got ${a1.dots})`);
     ok(a1.painted, "палитра точек реально покрашена (:root-токены дошли до страницы)");
 
     // A2 — шит удалён
@@ -135,10 +141,49 @@ function ok(cond, msg) {
     });
     let colored = false;
     try {
-      await pg.waitForFunction(() => document.querySelectorAll("#proTable .rm-w-new, #proTable .rm-w-l1, #proTable .rm-w-l2, #proTable .rm-w-l3, #proTable .rm-w-l4, #proTable .rm-w-known, #proTable .rm-w-learning").length > 0, null, { timeout: 45000 });
-      colored = true;
+      await pg.waitForFunction(() => document.querySelectorAll("#proTable .rm-w-unassessed").length > 0, null, { timeout: 45000 });
+      colored = await pg.evaluate(() => document.querySelectorAll("#proTable .rm-w-new").length === 0);
     } catch (_) {}
-    ok(colored, "тумблер ON → решённые слова раскрашены (несохранённая таблица, глобальный профиль)");
+    ok(colored, "тумблер ON → unset-слова только unassessed, без ложного explicit new");
+
+    // A4b — пакетный review: cancel не пишет; apply пишет explicit new per item; bounded undo
+    // очищает только всё ещё-new записи этой операции.
+    await pg.evaluate(() => window.StudioMorph.openReviewWords());
+    await pg.waitForFunction(() => document.querySelectorAll("#studioWordReviewDialog [data-studio-review-row]").length > 0, null, { timeout: 45000 });
+    const reviewCount = await pg.locator("#studioWordReviewDialog [data-studio-review-row][data-assessment=unassessed]").count();
+    ok(reviewCount > 0, `review dialog показывает unassessed preview (got ${reviewCount})`);
+    await pg.screenshot({ path: SHOT_REVIEW_RU });
+    await pg.evaluate(() => window.appSetLocale("he"));
+    await pg.evaluate(() => window.StudioMorph.refreshReviewWords());
+    await pg.waitForTimeout(150);
+    await pg.screenshot({ path: SHOT_REVIEW_HE });
+    await pg.evaluate(() => window.appSetLocale("ru"));
+    await pg.evaluate(() => window.StudioMorph.refreshReviewWords());
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    await pg.waitForTimeout(150);
+    await pg.screenshot({ path: SHOT_REVIEW_DESKTOP });
+    await pg.setViewportSize({ width: 380, height: 845 });
+    const reviewGeometry = await pg.locator("#studioWordReviewDialog .studio-word-review-card").evaluate((el) => ({ width: el.clientWidth, scroll: el.scrollWidth }));
+    ok(reviewGeometry.scroll <= reviewGeometry.width + 1, "review dialog не имеет горизонтального overflow на 380 px");
+    const reviewEventsBefore = await pg.evaluate(async () => Number((await window.__localDB.dbQuery("SELECT COUNT(*) n FROM review_log WHERE kind='review'", []))[0].n));
+    pg.once("dialog", async d => d.dismiss());
+    await pg.locator("#studioWordReviewMarkNew").click();
+    await pg.waitForTimeout(250);
+    ok(await pg.locator("#studioWordReviewDialog [data-result]").innerText().then(t => !/\d/.test(t)), "отмена confirm не создаёт result ledger");
+    pg.once("dialog", async d => d.accept());
+    await pg.locator("#studioWordReviewMarkNew").click();
+    await pg.waitForFunction(() => /\d/.test(document.querySelector("#studioWordReviewDialog [data-result]")?.textContent || ""), null, { timeout: 20000 });
+    const batchState = await pg.evaluate(async () => ({ statuses: await window.__localDB.getAllWordStatuses(), result: document.querySelector("#studioWordReviewDialog [data-result]")?.textContent || "" }));
+    ok(Object.values(batchState.statuses).some(s => s === "new"), "batch apply создаёт explicit new learner-state: " + JSON.stringify(batchState));
+    await pg.waitForFunction(() => document.querySelectorAll("#proTable .rm-w-new").length > 0, null, { timeout: 20000 });
+    ok(true, "explicit new после batch получает фиолетовую заливку");
+    const protectedKey = await pg.evaluate(async () => { const all = await window.__localDB.getAllWordStatuses(); const key = Object.keys(all).find((k) => all[k] === "new"); await window.__localDB.setWordStatus(key, "known"); return key; });
+    await pg.locator("#studioWordReviewUndo").click();
+    await pg.waitForFunction(async () => !Object.values(await window.__localDB.getAllWordStatuses()).some(s => s === "new"), null, { timeout: 20000 });
+    const undoState = await pg.evaluate(async (key) => ({ protectedStatus: await window.__localDB.getWordStatus(key), reviews: Number((await window.__localDB.dbQuery("SELECT COUNT(*) n FROM review_log WHERE kind='review'", []))[0].n), marks: Number((await window.__localDB.dbQuery("SELECT COUNT(*) n FROM review_log WHERE kind='mark'", []))[0].n) }), protectedKey);
+    ok(undoState.protectedStatus === "known", "bounded undo не трогает запись, изменённую после batch");
+    ok(undoState.reviews === reviewEventsBefore && undoState.marks > 0, "batch/undo добавляют только append-only mark events и не переписывают review events");
+    await pg.locator("#studioWordReviewClose").click();
 
     // A5 — тап по слову → карточка с палитрой (точный пользовательский регресс: רכבת)
     const target = pg.locator('#proTable td[data-col="he"] .rm-w', { hasText: "רכבת" }).first();
@@ -171,13 +216,13 @@ function ok(cond, msg) {
 
     // A7+A8 — метка l3: word_status появился + FSRS-посев + перекраска
     const before = await pg.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = window.__localDB;
       const all = await db.getAllWordStatuses();
       return Object.keys(all).length;
     });
     await pg.locator('.rm-sheet [data-rm-status="l3"]').first().click();
     await pg.waitForFunction(async (prev) => {
-      const db = await import("/db/local-db.js");
+      const db = window.__localDB;
       const all = await db.getAllWordStatuses();
       return Object.values(all).filter((s) => s === "l3").length > 0 && Object.keys(all).length > prev;
     }, before, { timeout: 20000 });
@@ -188,7 +233,7 @@ function ok(cond, msg) {
     for (let i = 0; i < 40 && !seeded; i++) {
       try {
         seeded = await pg.evaluate(async () => {
-          const db = await import("/db/local-db.js");
+          const db = window.__localDB;
           return Object.keys((await db.getSrsSchedule()) || {}).length;
         });
       } catch (_) { seeded = 0; }
@@ -228,7 +273,7 @@ function ok(cond, msg) {
     // coordinates exist and the shared projector can prove the decision.
     await pg.keyboard.press("Escape");
     await pg.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = window.__localDB;
       const textId = "studio-lexical-resolution-smoke";
       const sentenceId = "studio-lexical-resolution-sentence";
       const textKey = "studio-lexical-resolution-key";

@@ -2063,9 +2063,9 @@ function showScaffoldAdviceBar(rule) {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
-// ── Epic 4.3a+ — «📚 Учить» → premium frontier-vocabulary sheet (A+B+C+D) ─────────
-// Collect the reader's new words (ReaderMorph.collectNewWords — confident content words still
-// new/unset, freq-ranked) into a full vocabulary surface: total count + progressive chunks (A) ·
+// ── Epic 4.3a+ — «Разобрать слова» → premium frontier-vocabulary sheet (A+B+C+D) ─────────
+// Collect confidently resolved explicit-new + unassessed words (never conflated) into a full
+// vocabulary surface: total count + progressive chunks (A) ·
 // scope «весь текст / дальше по тексту» (B) · frequency-band filter + soft «возможно имя» flag +
 // hide-names (C) · sort + bulk «видимые → знаю/игнор» (D). One-tap status → setWordStatus →
 // repaint (manual-wins, NO flashcard — same word_status store). Self-contained over the morph
@@ -2086,6 +2086,7 @@ let _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, sh
 let _studyMode = 'list';  // 'list' (📚 collect/mark) | 'train' (🎯 4.3b cloze recall)
 let _trainSession = null; // { items, pool, idx, total, correct, levelUps, answered }
 let _launchConfirmed = false;   // T1 — set by the launch screen; cleared when the sheet closes
+let _studyBatchBusy = false;
 function uiDirRoom() { return (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr'; }
 
 // ── Epic 4.3b Phase D3 — visible due-counter «В работе: N · К повторению: M» ────────────────────
@@ -2342,18 +2343,18 @@ function _humanizeUntil(ms, nowMs) {
 }
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
-  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Учить новые слова') } });
+  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Разобрать слова') } });
   sheet.hidden = true;
   const card = el('div', { class: 'room-study-card' });
   card.appendChild(el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
   const head = el('div', { class: 'room-study-head' });
-  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
+  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Разобрать слова') }));
   const totalWrap = el('span', { class: 'room-study-total-wrap' });
   totalWrap.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
   const totalHelp = wireDismissibleDetails(el('details', { class: 'learning-compass-details room-study-total-help' }));
-  totalHelp.appendChild(el('summary', { text: 'ⓘ', attrs: { 'aria-label': tt('room.morph.study.countHelpLabel', 'Что означает число новых слов') } }));
+  totalHelp.appendChild(el('summary', { text: 'ⓘ', attrs: { 'aria-label': tt('room.morph.study.countHelpLabel', 'Что означает число слов для разбора') } }));
   const totalHelpPanel = el('div', { class: 'learning-compass-panel room-study-total-help-panel' });
-  totalHelpPanel.appendChild(el('p', { text: tt('room.morph.study.countHelp', 'Это разные уверенно распознанные словарные леммы со статусом «новое»; повторы одного слова объединены. Число не является остатком от процента знакомых слов.') }));
+  totalHelpPanel.appendChild(el('p', { text: tt('room.morph.study.countHelp', 'Это уверенно распознанные неоценённые или явно отмеченные новые леммы; повторы объединены. Неоценённое не означает незнакомое.') }));
   totalHelp.appendChild(totalHelpPanel); totalWrap.appendChild(totalHelp); head.appendChild(totalWrap);
   // D7.1 — always-visible entry to the activity heatmap (findable even with no streak → honest empty state)
   const calBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности'), title: tt('room.morph.study.heatTitle', 'Календарь активности') } });
@@ -2475,7 +2476,7 @@ function setStudyMode(mode) {
   _studyMode = mode === 'train' ? 'train' : 'list';
   if (_studySheet) _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === _studyMode));
   _studyListChrome(_studyMode === 'list');
-  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', '📚 Учить новые слова'); renderStudyBody(); }
+  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', '📚 Разобрать слова'); renderStudyBody(); }
   else { _studySetTitle('room.morph.study.trainTitle', 'Тренировка'); startTraining(); }
 }
 
@@ -2504,6 +2505,9 @@ function studyRowEl(w) {
   // pronounce via the wired speakWord (GCP WaveNet → keyless browser). Status buttons stay separate.
   const heWrap = el('div', { class: 'room-study-hewrap', attrs: { 'data-study-card': '1', role: 'button', tabindex: '0', 'aria-label': tt('room.morph.study.expand', 'Подробнее о слове') } });
   heWrap.appendChild(el('span', { class: 'room-study-he', text: w.niqqud || w.surface, attrs: { lang: 'he', dir: 'rtl' } }));
+  const assessmentClass = w.assessment === 'explicit_new' ? 'is-new' : (w.assessment === 'asserted' ? 'is-asserted' : 'is-unassessed');
+  const assessmentText = w.assessment === 'explicit_new' ? tt('room.morph.study.explicitNew', 'явно новое') : (w.assessment === 'asserted' ? statusLabel(w._status) : tt('room.morph.study.unassessed', 'не оценено'));
+  heWrap.appendChild(el('span', { class: 'room-study-assessment ' + assessmentClass, text: assessmentText }));
   if (w.nameSuspect) heWrap.appendChild(el('span', { class: 'room-study-nameflag', i18n: 'room.morph.study.nameSuspect', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
   heWrap.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-study-speak': '1', 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   lead.appendChild(heWrap);
@@ -2552,7 +2556,7 @@ function renderStudyControls() {
   const wrap = _studySheet.querySelector('.room-study-controls');
   const bulk = _studySheet.querySelector('.room-study-bulk');
   const total = _studySheet.querySelector('.room-study-total');
-  if (total) total.textContent = tt('room.morph.study.total', 'Новых слов') + ': ' + _studyAll.length;
+  if (total) total.textContent = tt('room.morph.study.total', 'Слов для разбора') + ': ' + _studyAll.length;
   if (wrap) {
     wrap.innerHTML = '';
     const seg = (key, fb, group, val, cur) => el('button', { class: 'room-study-seg' + (cur === val ? ' on' : ''), i18n: key, text: tt(key, fb), attrs: { type: 'button', ['data-study-' + group]: val } });
@@ -2588,6 +2592,7 @@ function renderStudyControls() {
   if (bulk) {
     bulk.innerHTML = '';
     bulk.appendChild(el('span', { class: 'room-study-bulk-k', i18n: 'room.morph.study.bulkLabel', text: tt('room.morph.study.bulkLabel', 'Видимые:') }));
+    bulk.appendChild(el('button', { class: 'room-study-bulk-btn', text: tt('room.morph.study.bulkNew', '+ отметить новыми'), attrs: { type: 'button', 'data-study-bulk': 'new' } }));
     bulk.appendChild(el('button', { class: 'room-study-bulk-btn', text: tt('room.morph.study.bulkKnown', '✓ знаю'), attrs: { type: 'button', 'data-study-bulk': 'known' } }));
     bulk.appendChild(el('button', { class: 'room-study-bulk-btn', text: tt('room.morph.study.bulkIgnore', '🚫 игнор'), attrs: { type: 'button', 'data-study-bulk': 'ignore' } }));
   }
@@ -2604,6 +2609,7 @@ async function onStudyStatusSet(btn) {
   try { if (res && res.dueMs) roomToast('🔁 ' + _dueWhenText(res.dueMs)); } catch (_) {}   // P5.7 Т1 — closure in the study list
   row.dataset.cur = st;
   const w = _studyAll.find((x) => x.lemmaKey === lk); if (w) w._status = st;   // keep the row visible w/ new highlight (gentle; re-collect on re-open)
+  if (w) w.assessment = st === 'new' ? 'explicit_new' : (st ? 'asserted' : 'unassessed');
   row.querySelectorAll('.rm-status-btn').forEach((b) => b.classList.toggle('rm-status-active', b.getAttribute('data-study-status') === st));
   morphHost.invalidateWordStates();
   try { invalidateReadableSet(); } catch (_) {}
@@ -2628,24 +2634,66 @@ function onStudyExpand(row) {
 }
 // D — bulk: set status on every CURRENTLY-VISIBLE word (filtered + shown) at once (fast name pruning).
 async function onStudyBulk(status) {
+  if (_studyBatchBusy) return;
   const filtered = studyFiltered();
   const shown = Math.min(_studyView.shown, filtered.length);
-  const targets = filtered.slice(0, shown);
+  let targets = filtered.slice(0, shown);
+  if (status === 'new') targets = targets.filter((w) => w.assessment === 'unassessed');
   if (!targets.length) return;
+  if (status === 'new') {
+    const prompt = tt('room.morph.study.bulkNewConfirm', 'Отметить как явно новые: {count}?').replace('{count}', String(targets.length));
+    if (!window.confirm(prompt)) return;
+    _studyBatchBusy = true;
+    const created = [], failed = [];
+    for (const w of targets) {
+      let before = '';
+      try { before = await localDb.getWordStatus(w.lemmaKey); } catch (_) { before = ''; }
+      if (before) { failed.push(w.lemmaKey); continue; }
+      try { await markWordStatus(w.lemmaKey, 'new'); } catch (_) {}
+      let after = ''; try { after = await localDb.getWordStatus(w.lemmaKey); } catch (_) {}
+      if (after === 'new') { created.push(w.lemmaKey); w._status = 'new'; w.assessment = 'explicit_new'; }
+      else failed.push(w.lemmaKey);
+    }
+    morphHost.invalidateWordStates();
+    try { invalidateReadableSet(); } catch (_) {}
+    try { applyDecorations(); } catch (_) {}
+    renderStudyBody();
+    const msg = tt('room.morph.study.bulkNewResult', 'Отмечено новыми: {ok}; не изменено: {failed}').replace('{ok}', String(created.length)).replace('{failed}', String(failed.length));
+    const undo = async () => {
+      let cleared = 0, skipped = 0;
+      for (const key of created) {
+        let cur = ''; try { cur = await localDb.getWordStatus(key); } catch (_) {}
+        if (cur !== 'new') { skipped++; continue; }
+        try { await markWordStatus(key, ''); } catch (_) {}
+        let after = ''; try { after = await localDb.getWordStatus(key); } catch (_) {}
+        if (!after) { cleared++; const item = _studyAll.find((x) => x.lemmaKey === key); if (item) { item._status = ''; item.assessment = 'unassessed'; } }
+        else skipped++;
+      }
+      morphHost.invalidateWordStates(); try { invalidateReadableSet(); } catch (_) {}
+      try { applyDecorations(); } catch (_) {} renderStudyBody();
+      roomToast(tt('room.morph.study.bulkUndoResult', 'Отменено: {ok}; пропущено изменённых позже: {skipped}').replace('{ok}', String(cleared)).replace('{skipped}', String(skipped)));
+    };
+    roomToast(msg, tt('room.morph.study.undo', 'Отменить'), undo, 10000);
+    _studyBatchBusy = false;
+    return;
+  }
+  _studyBatchBusy = true;
   for (const w of targets) { try { await markWordStatus(w.lemmaKey, status); } catch (_) {} w._status = status; }   // P5.6 R-2(a)
+  targets.forEach((w) => { w.assessment = 'asserted'; });
   morphHost.invalidateWordStates();
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}
   try { refreshDueBadge(); } catch (_) {}   // D3 — bulk mark updates «В работе»
   renderStudyBody();   // reflect the new highlights (rows stay visible)
   roomToast(tt('room.morph.study.bulkDone', 'Отмечено: ') + targets.length);
+  _studyBatchBusy = false;
 }
 // Collect the frontier for the current scope (B), seed each word's live status, render.
 async function recollectStudy() {
   const mount = $('roomReaderTable');
   if (!mount || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== 'function') return;
   const body = _studySheet && _studySheet.querySelector('.room-study-body');
-  if (body) { body.innerHTML = ''; body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю новые слова…') })); }
+  if (body) { body.innerHTML = ''; body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю слова для разбора…') })); }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   let states = {}, words = [];
   try {
@@ -2667,7 +2715,7 @@ async function roomOpenStudyList() {
   const sheet = ensureStudySheet();
   _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
   _studyMode = 'list'; _trainSession = null;
-  _studySetTitle('room.morph.study.title', '📚 Учить новые слова');
+  _studySetTitle('room.morph.study.title', '📚 Разобрать слова');
   sheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'list'));
   _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
@@ -7850,7 +7898,7 @@ function buildAidsPanel() {
     ['off', 'room.reader.ruOff', 'выкл'],
   ], readerCfg.ruMode, (v) => { readerCfg.ruMode = v; saveReaderCfg(); rerenderReader(); });
   // BRR-P1-009 — word-status colouring toggle (opt-in; warms the morph engine on enable).
-  const statusHint = tt('room.morph.statusHint', 'Подсвечивает слова по твоему статусу: зелёный — знаешь, оранжевый — учишь, синий — новое. Только уверенно распознанные слова.');
+  const statusHint = tt('room.morph.statusHint', 'Фиолетовый — явно отмечено «новое»; пунктир — распознано, но ещё не оценено.');
   const wsLab = el('label', { class: 'reader-aids-status', attrs: { title: statusHint } });
   const wsCb = el('input', { attrs: { type: 'checkbox', id: 'readerWordStatusToggle' } });
   wsCb.checked = wordStatusEnabled();
@@ -7861,7 +7909,7 @@ function buildAidsPanel() {
   panel.appendChild(wsLab);
   // Epic 4 — VISIBLE status-colour legend (premium + mobile-legible; title tooltips fail @380px).
   const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', '🎨 Статус слов') } });
-  [['new', tt('room.morph.status.new', 'новое')], ['l1', '1'], ['l2', '2'], ['l3', '3'], ['l4', '4'],
+  [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', '1'], ['l2', '2'], ['l3', '3'], ['l4', '4'],
     ['known', tt('room.morph.status.known', 'знаю')], ['ignore', tt('room.morph.status.ignore', 'игнор')]].forEach(([c, l]) => {
     const sw = el('span', { class: 'reader-status-sw' });
     sw.appendChild(el('span', { class: 'reader-status-dot sw-' + c }));
@@ -7869,9 +7917,9 @@ function buildAidsPanel() {
     legend.appendChild(sw);
   });
   panel.appendChild(legend);
-  panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.statusNote', text: tt('room.morph.statusNote', 'Цвет — у уверенно распознанных учебных слов; служебные и не найденные в словаре остаются без цвета.') }));
-  // Epic 4.3a — «📚 Учить»: gather THIS screen's new words into a quick study sheet (one-tap mark → recolour).
-  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Учить новые слова'), attrs: { type: 'button' } });
+  panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.statusNote', text: tt('room.morph.statusNote', 'Фиолетовый означает вашу явную отметку «новое»; пунктир — распознано, но не оценено; без декорации — не разрешено.') }));
+  // Epic 4.3a — assess THIS screen's explicit-new and unassessed words.
+  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Разобрать слова'), attrs: { type: 'button' } });
   studyBtn.addEventListener('click', roomOpenStudyList);
   panel.appendChild(studyBtn);
   panel.appendChild(_dueBadgeEl('reader-aids-duebadge'));   // D3 — due-counter under «📚 Учить» (the return CTA)

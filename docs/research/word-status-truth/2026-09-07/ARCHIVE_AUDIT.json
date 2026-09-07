@@ -1,0 +1,63 @@
+{
+  "status": "RAW_MEASURED_NOT_LINGUISTICALLY_SCORED",
+  "measured_at": "2026-09-07",
+  "source_commit": "e92168de26e35ccbd199590ff6455f0ef769ecab",
+  "source_archive": {
+    "name": "linguistpro-learning-שיחה-נכנסת-Входящий-звонок--1-03acdeff34c9-archive.lplp.zip",
+    "bytes": 124021,
+    "sha256": "42784d060d64eac3fd185285ae783662b4ceb150d5ab9c08a3b4c7c51bc4b09f",
+    "entries": 31,
+    "json_entries": 15,
+    "learner_truth_field_hits": []
+  },
+  "table": {
+    "revision_entry": "learning/table/revisions/499154c0b00db6f07aeedeb2492c7db24dd0a92bc36e1306f1da9eb197efff30.json",
+    "rows": 147
+  },
+  "display_audit": {
+    "token_occurrences": 974,
+    "painted_new_occurrences": 464,
+    "painted_new_percent": 47.6,
+    "neutral_occurrences": 510,
+    "unique_vocalized_tokens": 481,
+    "unique_painted_new": 294,
+    "unique_painted_new_percent": 61.1,
+    "stored_status_count_after_render": 0,
+    "resolver_labels": {
+      "exact": 362,
+      "likely": 102,
+      "function": 401,
+      "unknown": 76,
+      "guessed": 33
+    }
+  },
+  "learning_compass_audit": {
+    "total_token_count": 974,
+    "keyed_token_count": 718,
+    "unresolved_token_count": 256,
+    "unresolved_uncertainty_pp": 26.28,
+    "unique_keys": 234,
+    "rank_limit_pp": 5,
+    "empty_profile": {
+      "status": "NEEDS_PROFILE",
+      "recorded_familiar_pct_lower_bound": null,
+      "rank_eligible": false
+    },
+    "only_shalom_known": {
+      "familiar": 2,
+      "untracked": 716,
+      "unresolved": 256,
+      "recorded_familiar_pct_lower_bound": 0.21,
+      "status": "AVAILABLE_LIMITED",
+      "rank_eligible": false
+    },
+    "every_resolved_key_known": {
+      "familiar": 718,
+      "untracked": 0,
+      "unresolved": 256,
+      "recorded_familiar_pct_lower_bound": 73.72,
+      "status": "AVAILABLE_LIMITED",
+      "rank_eligible": false
+    }
+  }
+}
