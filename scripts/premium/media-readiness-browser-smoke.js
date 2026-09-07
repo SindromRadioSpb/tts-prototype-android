@@ -20,7 +20,7 @@ async function main(){
     const result=await page.evaluate(async()=>{
       if(window.__localDBInitPromise)await window.__localDBInitPromise;
       window.appSetLocale('ru');
-      const H='b'.repeat(64),source='a'.repeat(64);let preparing=false;
+      const H='b'.repeat(64),source='a'.repeat(64);let preparing=false,savePickerOptions=null,writtenCopy=null,cancelSaveOnce=true;
       window.LocalAsrClient.getPairingToken=()=> 't'.repeat(64);
       window.LocalAsrClient.Client=function(){return{
         createMediaJob:async()=>({job_id:'media-test',state:'PROBING',progress:.05}),
@@ -35,16 +35,23 @@ async function main(){
       };};
       window.StudioImport.open();window.StudioImport.switchTab('file');
       const file=new File([new Uint8Array([9,8,7])],'lesson.mp4',{type:'video/mp4'});
-      await window.StudioImport.onAudioChosen({target:{files:[file],value:'x'}});
+      const sourceHandle={kind:'file',name:file.name,getFile:async()=>file};
+      window.showOpenFilePicker=async()=>[sourceHandle];
+      window.showSaveFilePicker=async options=>{savePickerOptions=options;if(cancelSaveOnce){cancelSaveOnce=false;const error=new Error('cancel');error.name='AbortError';throw error;}return{kind:'file',name:options.suggestedName,createWritable:async()=>({write:async value=>{writtenCopy={name:value.name,size:value.size,type:value.type};},close:async()=>{}})}};
+      await window.StudioImport.chooseAudioFile();
       const before={outcome:document.getElementById('v3ImportMediaBadge').dataset.outcome,asr_disabled:document.getElementById('v3ImportAudioGo').disabled,repair_hidden:document.getElementById('v3ImportMediaPrepare').hidden};
       await window.StudioImport.prepareMedia();
+      const afterPrepare={asr_disabled:document.getElementById('v3ImportAudioGo').disabled,save_hidden:document.getElementById('v3ImportPreparedCopySave').hidden,copy_text:document.getElementById('v3ImportPreparedCopy').textContent.trim()};
+      await window.StudioImport.savePreparedMedia();
+      const afterCancel={asr_disabled:document.getElementById('v3ImportAudioGo').disabled,save_result:document.getElementById('v3ImportPreparedCopyResult').textContent.trim()};
+      await window.StudioImport.savePreparedMedia();
       const panel=document.getElementById('v3ImportMediaReadiness'),modal=document.querySelector('#v3ImportModal .v3-modal-panel');
       const normal={document_overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,panel_overflow:panel.scrollWidth>panel.clientWidth,modal_overflow:modal.scrollWidth>modal.clientWidth};
       document.documentElement.style.fontSize='200%';
       const zoom200={document_overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,panel_overflow:panel.scrollWidth>panel.clientWidth,modal_overflow:modal.scrollWidth>modal.clientWidth};
       document.documentElement.style.fontSize='';window.appSetLocale('he');
       const he={dir:document.documentElement.dir,document_overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,panel_overflow:panel.scrollWidth>panel.clientWidth,modal_overflow:modal.scrollWidth>modal.clientWidth};
-      return{before,after:{outcome:document.getElementById('v3ImportMediaBadge').dataset.outcome,label:document.getElementById('v3ImportMediaBadge').textContent.trim(),asr_disabled:document.getElementById('v3ImportAudioGo').disabled,device_hidden:document.getElementById('v3ImportMediaDeviceGate').hidden},normal,zoom200,he,transcript_only_present:!!document.getElementById('v3ImportMediaTranscriptOnly')};
+      return{before,afterPrepare,afterCancel,after:{outcome:document.getElementById('v3ImportMediaBadge').dataset.outcome,label:document.getElementById('v3ImportMediaBadge').textContent.trim(),asr_disabled:document.getElementById('v3ImportAudioGo').disabled,device_hidden:document.getElementById('v3ImportMediaDeviceGate').hidden,save_receipt:document.getElementById('v3ImportPreparedCopyResult').textContent.trim()},savePicker:{suggestedName:savePickerOptions&&savePickerOptions.suggestedName,startedBesideSource:savePickerOptions&&savePickerOptions.startIn===sourceHandle},writtenCopy,normal,zoom200,he,transcript_only_present:!!document.getElementById('v3ImportMediaTranscriptOnly')};
     });
     const expected='d'.repeat(64);
     await page.evaluate(async expectedSha=>{
@@ -59,7 +66,7 @@ async function main(){
     await page.locator('#p4RelinkInput').setInputFiles({name:'lesson-mobile.mp4',mimeType:'video/mp4',buffer:Buffer.from([1,2,3])});
     await page.locator('[data-device-playback]').waitFor();await page.locator('[data-device-playback]').click();await page.locator('[data-device-pass="iPhone/iPad"]').waitFor();
     const device=await page.evaluate(()=>({label:document.querySelector('[data-device-pass]')?.textContent.trim(),receipt:document.querySelector('#p4TaskStatus')?.textContent.trim(),persisted:localStorage.getItem('mediaDeviceGateReceipt')}));
-    if(result.before.outcome!=='LOSSLESS_REPAIR'||!result.before.asr_disabled||result.before.repair_hidden||result.after.outcome!=='READY'||result.after.label!=='Совместимо по контракту iPhone + Android'||result.after.asr_disabled||result.after.device_hidden||Object.values(result.normal).some(Boolean)||Object.values(result.zoom200).some(Boolean)||result.he.dir!=='rtl'||result.he.document_overflow||result.he.panel_overflow||result.he.modal_overflow||!result.transcript_only_present||!device.label.includes('Проверено на этом iPhone/iPad')||!device.receipt.includes('Safari / iOS/iPadOS')||!device.receipt.includes('переход 25%')||device.persisted!==null||errors.length||provider.length)throw new Error('MEDIA_READINESS_BROWSER_GATE:'+JSON.stringify({result,device,errors,provider}));
+    if(result.before.outcome!=='LOSSLESS_REPAIR'||!result.before.asr_disabled||result.before.repair_hidden||!result.afterPrepare.asr_disabled||result.afterPrepare.save_hidden||!result.afterPrepare.copy_text.includes('lesson-mobile-ready.mp4')||!result.afterPrepare.copy_text.includes('bbbbbbbb…bbbbbb')||!result.afterPrepare.copy_text.includes('не само медиа')||!result.afterCancel.asr_disabled||!result.afterCancel.save_result.includes('Сохранение отменено')||result.after.outcome!=='READY'||result.after.label!=='Совместимо по контракту iPhone + Android'||result.after.asr_disabled||result.after.device_hidden||!result.after.save_receipt.includes('lesson-mobile-ready.mp4')||result.savePicker.suggestedName!=='lesson-mobile-ready.mp4'||!result.savePicker.startedBesideSource||result.writtenCopy?.name!=='lesson-mobile-ready.mp4'||Object.values(result.normal).some(Boolean)||Object.values(result.zoom200).some(Boolean)||result.he.dir!=='rtl'||result.he.document_overflow||result.he.panel_overflow||result.he.modal_overflow||!result.transcript_only_present||!device.label.includes('Проверено на этом iPhone/iPad')||!device.receipt.includes('Safari / iOS/iPadOS')||!device.receipt.includes('переход 25%')||device.persisted!==null||errors.length||provider.length)throw new Error('MEDIA_READINESS_BROWSER_GATE:'+JSON.stringify({result,device,errors,provider}));
     console.log(JSON.stringify({gate:'MEDIA_READINESS_380_RU_EXPLICIT_REPAIR_AND_IMPORT_CENTER_DEVICE_FILE',result,device,page_errors:errors.length,provider_requests:provider.length},null,2));
     await context.close();
   }finally{

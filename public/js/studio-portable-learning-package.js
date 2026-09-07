@@ -142,12 +142,16 @@
   function fill(template,values){return String(template).replace(/\{(\w+)\}/g,(_,key)=>values[key]==null?'':String(values[key]));}
   function formatPortableError(error,file,expected){
     const code=error&&error.code||error&&error.message||'UNKNOWN_ERROR';
-    if(String(code).includes('MEDIA_SHA_MISMATCH'))return [
+    if(String(code).includes('MEDIA_SHA_MISMATCH')){
+      const expectedName=error.expected_name||expected&&expected.original_name||'media';
+      return [
       tr('studio.portable.mediaMismatch','Выбран другой файл: его SHA-256 не совпадает с исходным медиа.'),
-      fill(tr('studio.portable.mediaExpected','Ожидается: {name} · {size} · SHA {sha}'),{name:error.expected_name||expected&&expected.original_name||'media',size:formatBytes(error.expected_size==null?expected&&expected.size_bytes:error.expected_size),sha:shortSha(error.expected_sha||expected&&expected.sha256)}),
+      fill(tr('studio.portable.mediaExpected','Ожидается: {name} · {size} · SHA {sha}'),{name:expectedName,size:formatBytes(error.expected_size==null?expected&&expected.size_bytes:error.expected_size),sha:shortSha(error.expected_sha||expected&&expected.sha256)}),
       fill(tr('studio.portable.mediaSelected','Выбран: {name} · {size} · SHA {sha}'),{name:error.file_name||file&&file.name||'media',size:formatBytes(error.file_size==null?file&&file.size:error.file_size),sha:shortSha(error.actual_sha)}),
+      /mobile-ready\.mp4$/i.test(String(expectedName))?fill(tr('studio.portable.mediaPreparedRequired','Выбран исходный файл. Для этого пакета нужна созданная совместимая копия: {name}.'),{name:expectedName}):null,
       tr('studio.portable.mediaTelegram','Если файл пересылался через Telegram, отправьте его как файл без сжатия, а не как видео.'),
-    ].join('\n');
+      ].filter(Boolean).join('\n');
+    }
     if(String(code).includes('UNIQUE constraint failed: studio_media_packages.media_sha256'))return tr('studio.portable.mediaReuseConflict','Точное медиа уже есть в этой библиотеке, но его пакет не удалось безопасно переиспользовать. Ничего не записано.');
     if(String(code).includes('TEXT_KEY_CONTENT_CONFLICT'))return tr('studio.portable.textConflict','В библиотеке уже есть другой текст с тем же переносимым идентификатором. Импорт остановлен без изменений.');
     if(String(code).includes('RECOVERY_PACKAGE_MISMATCH'))return tr('studio.portable.recoveryPackageMismatch','Выбран другой пакет. Для восстановления выберите исходный .lplp.zip, указанный в этой записи Истории.');

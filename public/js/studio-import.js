@@ -988,7 +988,8 @@
   function updateAudioActionLabel() {
     var button = $("v3ImportAudioGo");
     if (!button || !pendingAudio) return;
-    button.disabled = !!pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness);
+    var copyPending = !!(pendingAudio.preparedCopy && pendingAudio.preparedCopy.required && !pendingAudio.preparedCopy.saved);
+    button.disabled = !!pendingAudio.isVideo && (!window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness) || copyPending);
     if (selectedAudioProvider() === "local") {
       button.textContent = tr("studio.import.localAsrGo");
       return;
@@ -997,6 +998,15 @@
       video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
     button.textContent = tr("studio.import.audioGo") +
       " (≈$" + Math.max(0.01, est.totalUsd).toFixed(2) + " · ~" + est.minutes + " " + tr("studio.import.minShort") + ")";
+  }
+
+  function preparedCopyPending() {
+    return !!(pendingAudio && pendingAudio.preparedCopy && pendingAudio.preparedCopy.required && !pendingAudio.preparedCopy.saved);
+  }
+
+  function shortMediaSha(value) {
+    var text = String(value || "");
+    return text ? text.slice(0, 8) + "…" + text.slice(-6) : "—";
   }
 
   async function pairLocalAsr() {
@@ -1263,7 +1273,96 @@
     if (cancelMedia) cancelMedia.hidden = !(pendingAudio.mediaJobId && state.state && !["COMPLETE", "BLOCKED", "FAILED", "CANCELED"].includes(state.state));
     var transcriptOnly = $("v3ImportMediaTranscriptOnly");
     if (transcriptOnly) transcriptOnly.hidden = !["LOSSLESS_REPAIR", "TRANSCODE_REQUIRED", "BLOCKED"].includes(state.outcome);
+    renderPreparedCopy();
     updateAudioActionLabel();
+  }
+
+  function renderPreparedCopy() {
+    var panel = $("v3ImportPreparedCopy");
+    if (!panel) return;
+    var copy = pendingAudio && pendingAudio.preparedCopy;
+    panel.hidden = !(copy && copy.required);
+    if (panel.hidden) return;
+    var summary = $("v3ImportPreparedCopySummary");
+    if (summary) summary.textContent = tr("studio.import.mediaPreparedCopySummary", {
+      name: copy.name || pendingAudio.file.name,
+      size: window.MediaReadiness.humanBytes(copy.size_bytes || pendingAudio.file.size),
+      sha: shortMediaSha(pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.canonical_sha256),
+    });
+    var save = $("v3ImportPreparedCopySave");
+    if (save) {
+      var pickerAvailable = typeof window.showSaveFilePicker === "function";
+      save.hidden = false;
+      save.disabled = copy.saving === true;
+      save.textContent = tr(copy.saving
+        ? "studio.import.mediaSaveWorking"
+        : pickerAvailable && pendingAudio.sourceHandle
+          ? "studio.import.mediaSaveBesideBtn"
+          : pickerAvailable
+            ? "studio.import.mediaChooseSaveBtn"
+            : "studio.import.mediaDownloadBtn");
+    }
+    var result = $("v3ImportPreparedCopyResult");
+    if (result) {
+      result.dataset.state = copy.error ? "error" : copy.saved ? "saved" : "pending";
+      result.textContent = copy.error
+        ? tr(copy.error === "cancelled" ? "studio.import.mediaSaveCancelled" : "studio.import.mediaSaveFailed")
+        : copy.saved
+          ? tr(copy.method === "download" ? "studio.import.mediaDownloadStarted" : "studio.import.mediaSaved", { name: copy.destination_name || copy.name })
+          : tr("studio.import.mediaSaveRequired");
+    }
+  }
+
+  async function savePreparedMedia() {
+    if (!pendingAudio || !pendingAudio.preparedCopy || !pendingAudio.preparedCopy.required || !pendingAudio.file) return false;
+    var copy = pendingAudio.preparedCopy;
+    var alreadySaved = copy.saved === true;
+    copy.saving = true;
+    copy.error = null;
+    renderPreparedCopy();
+    try {
+      if (typeof window.showSaveFilePicker === "function") {
+        var options = {
+          id: "linguistpro-studio-media",
+          suggestedName: copy.name || pendingAudio.file.name || "mobile-ready.mp4",
+          types: [{ description: "MP4 video", accept: { "video/mp4": [".mp4"] } }],
+        };
+        if (pendingAudio.sourceHandle) options.startIn = pendingAudio.sourceHandle;
+        var handle = await window.showSaveFilePicker(options);
+        var writable = await handle.createWritable();
+        try {
+          await writable.write(pendingAudio.file);
+          await writable.close();
+        } catch (writeError) {
+          try { if (typeof writable.abort === "function") await writable.abort(); } catch (_) {}
+          throw writeError;
+        }
+        copy.saved = true;
+        copy.method = "file-system";
+        copy.destination_name = handle.name || options.suggestedName;
+      } else {
+        var url = URL.createObjectURL(pendingAudio.file);
+        var anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = copy.name || pendingAudio.file.name || "mobile-ready.mp4";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+        copy.saved = true;
+        copy.method = "download";
+        copy.destination_name = anchor.download;
+      }
+      setStatus("studio.import.mediaPreparedSaved");
+      return true;
+    } catch (error) {
+      if (!alreadySaved) copy.error = error && error.name === "AbortError" ? "cancelled" : "failed";
+      return false;
+    } finally {
+      copy.saving = false;
+      renderPreparedCopy();
+      updateAudioActionLabel();
+    }
   }
 
   function mediaJobStatus(job) {
@@ -1346,6 +1445,15 @@
       pendingAudio.buf = null;
       pendingAudio.sha256 = ready.canonical_sha256;
       pendingAudio.mediaReadiness = ready;
+      pendingAudio.preparedCopy = {
+        required: true,
+        saved: false,
+        saving: false,
+        error: null,
+        method: null,
+        name: preparedFile.name,
+        size_bytes: preparedFile.size,
+      };
       pendingAudio.durationSec = job.report && job.report.duration_seconds || pendingAudio.durationSec;
       await cleanupCompletedMediaJob(pendingAudio.mediaReadiness, pendingAudio.mediaJobId);
       renderAudioMeta();
@@ -1444,9 +1552,7 @@
     });
   }
 
-  async function onAudioChosen(ev) {
-    var file = ev.target.files && ev.target.files[0];
-    ev.target.value = "";
+  async function acceptAudioFile(file, sourceHandle) {
     if (!file) return;
     $("v3ImportAudioInfo").hidden = true;
     pendingAudio = null;
@@ -1465,7 +1571,7 @@
       if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
     }
     var mime = file.type || (isVideo ? "video/mp4" : "audio/mpeg");
-    pendingAudio = { file: file, originalFile: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo,
+    pendingAudio = { file: file, originalFile: file, sourceHandle: sourceHandle || null, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo,
                      mediaReadiness: window.MediaReadiness.initialForFile(file), mediaJobId: null, windowResults: null,
                      windowMetaResults: null, // провенанс готовых окон для резюма (ревью S12.5)
                      asrTransport: null, sliceLog: null }; // S12.5: транспорт + чанк-лог заполняет transcribeAudio
@@ -1483,6 +1589,27 @@
       var policy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, localAsrExperimental());
       if (!policy.mobile) await startMediaPreflight();
     }
+  }
+
+  async function onAudioChosen(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    return acceptAudioFile(file, null);
+  }
+
+  async function chooseAudioFile() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        var handles = await window.showOpenFilePicker({ id: "linguistpro-studio-media", multiple: false, startIn: "videos" });
+        var handle = handles && handles[0];
+        if (handle && typeof handle.getFile === "function") return acceptAudioFile(await handle.getFile(), handle);
+        return;
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+      }
+    }
+    var input = $("v3ImportAudio");
+    if (input) input.click();
   }
 
   // S12.5 T4: спрашиваем сервер о его версии ПЕРЕД дорогой операцией. Сеть/формат подвели —
@@ -1617,6 +1744,10 @@
 
   async function lockCanonicalMediaIdentity() {
     if (!pendingAudio) return false;
+    if (preparedCopyPending()) {
+      setStatus("studio.import.mediaSaveRequired");
+      return false;
+    }
     if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) {
       setStatus("studio.import.mediaBlocksAsr");
       return false;
@@ -1649,6 +1780,7 @@
 
   async function transcribeAudioLocal() {
     if (!pendingAudio) return;
+    if (preparedCopyPending()) { setStatus("studio.import.mediaSaveRequired"); return; }
     if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) { setStatus("studio.import.mediaBlocksAsr"); return; }
     if (!window.LocalAsrClient.getPairingToken()) { setStatus("studio.import.localAsrPairingRequired"); return; }
     if (await pageIsStale()) { setStatus("studio.import.errStaleTab"); return; }
@@ -1733,6 +1865,7 @@
 
   async function transcribeAudio() {
     if (!pendingAudio) return;
+    if (preparedCopyPending()) { setStatus("studio.import.mediaSaveRequired"); return; }
     if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) { setStatus("studio.import.mediaBlocksAsr"); return; }
     if (selectedAudioProvider() === "local") return transcribeAudioLocal();
     pendingAudio.asrMethod = "gemini-asr";
@@ -2827,12 +2960,12 @@
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            openDownrFromField: openDownrFromField, chooseDownloadedMedia: chooseDownloadedMedia,
                            discardDownrHandoff: discardDownrHandoff,
-                           onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
+                           onFileChosen: onFileChosen, chooseAudioFile: chooseAudioFile, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
                            onLocalAsrTokenChanged: onLocalAsrTokenChanged,
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,
                            deleteLocalAsrJob: deleteLocalAsrJob,
-                           startMediaPreflight: startMediaPreflight, prepareMedia: prepareMedia,
+                           startMediaPreflight: startMediaPreflight, prepareMedia: prepareMedia, savePreparedMedia: savePreparedMedia,
                            cancelMediaJob: cancelMediaJob, runMediaDeviceGate: runMediaDeviceGate,
                            chooseTranscriptOnly: chooseTranscriptOnly,
                            refreshLocalAsrControls: refreshLocalAsrControls,

@@ -3742,6 +3742,12 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-media-readiness-detail,.v3-media-readiness-estimate,.v3-media-device-result { margin-top:6px; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
 .v3-media-readiness progress { width:100%; margin-top:8px; }
 .v3-media-readiness-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.v3-prepared-copy { margin-top:10px; padding-top:10px; border-top:1px solid var(--theme-border-soft,#d9dee5); }
+.v3-prepared-copy strong { display:block; font-size:13px; }
+.v3-prepared-copy p { margin:5px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
+.v3-prepared-copy button { margin-top:8px; min-height:44px; }
+.v3-prepared-copy-result[data-state="saved"] { color:#075e55; font-weight:700; }
+.v3-prepared-copy-result[data-state="error"] { color:#8e2f23; }
 .v3-media-device-result[data-pass="true"] { color:#075e55; }
 .v3-media-device-result[data-pass="false"] { color:#8e2f23; }
 .v3-local-asr-provider { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; margin:8px 0; }
@@ -13302,9 +13308,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=205"></script>
-<script src="/i18n/locales/en.js?v=205"></script>
-<script src="/i18n/locales/he.js?v=205"></script>
+<script src="/i18n/locales/ru.js?v=206"></script>
+<script src="/i18n/locales/en.js?v=206"></script>
+<script src="/i18n/locales/he.js?v=206"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13417,7 +13423,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-package.js"></script>
 <script src="/js/studio-media-editor.js"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js?v=485"></script>
+<script src="/js/studio-portable-learning-package.js?v=486"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13492,7 +13498,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.485";
+    window.APP_VERSION = "3.11.486";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -50312,8 +50318,9 @@ document.addEventListener("i18n:changed", function () {
             <div id="v3ImportLocalAsrPairStatus" class="v3-local-asr-pair-status" aria-live="polite" hidden></div>
           </div>
           <button type="button" class="v3-import-file-btn" id="v3ImportAudioPicker"
-                  onclick="document.getElementById('v3ImportAudio').click()"
+                  onclick="StudioImport.chooseAudioFile()"
                   data-i18n="studio.import.audioBtn">Медиа на иврите → транскрипт</button>
+          <p class="v3-import-hint" data-i18n="studio.import.mediaFlowHelp">Если видео требует конвертации, Studio создаст отдельный файл с окончанием -mobile-ready.mp4. Оригинал не изменится; перед ASR сохраните новую копию и переносите именно её.</p>
           <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
                  onchange="StudioImport.onAudioChosen(event)">
           <div id="v3ImportAudioInfo" hidden>
@@ -50336,6 +50343,13 @@ document.addEventListener("i18n:changed", function () {
                 <button type="button" id="v3ImportMediaDeviceGate" class="btn-secondary" hidden onclick="StudioImport.runMediaDeviceGate()" data-i18n="studio.import.mediaDeviceGateBtn">Проверить play/seek этого файла</button>
                 <button type="button" id="v3ImportMediaTranscriptOnly" class="btn-secondary" hidden onclick="StudioImport.chooseTranscriptOnly()" data-i18n="studio.import.mediaTranscriptOnlyBtn">Только расшифровать, без готового видео</button>
               </div>
+              <section id="v3ImportPreparedCopy" class="v3-prepared-copy" hidden>
+                <strong data-i18n="studio.import.mediaPreparedCopyTitle">Сохраните созданный MP4 для переноса</strong>
+                <p id="v3ImportPreparedCopySummary"></p>
+                <p data-i18n="studio.import.mediaPreparedCopyHelp">Переносимый .lplp.zip хранит таблицу и точный SHA-256, но не само медиа. На другое устройство передавайте этот MP4 как файл без сжатия.</p>
+                <button type="button" id="v3ImportPreparedCopySave" class="btn-primary" onclick="StudioImport.savePreparedMedia()"></button>
+                <p id="v3ImportPreparedCopyResult" class="v3-prepared-copy-result" aria-live="polite"></p>
+              </section>
               <div id="v3ImportMediaDeviceResult" class="v3-media-device-result" hidden></div>
             </section>
             <button type="button" id="v3ImportAudioGo" class="btn-secondary"

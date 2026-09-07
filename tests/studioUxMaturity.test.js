@@ -76,7 +76,8 @@ test("Add Material owns focus while open and restores it when closed", () => {
 
 test("subtitle and media file pickers are native keyboard-operable buttons", () => {
   assert.match(html, /id="v3ImportCaptionsPicker"[^>]*onclick="document\.getElementById\('v3ImportCaptionsFile'\)\.click\(\)"/);
-  assert.match(html, /id="v3ImportAudioPicker"[^>]*onclick="document\.getElementById\('v3ImportAudio'\)\.click\(\)"/);
+  assert.match(html, /id="v3ImportAudioPicker"[^>]*onclick="StudioImport\.chooseAudioFile\(\)"/);
+  assert.match(studioImport, /showOpenFilePicker/);
   assert.doesNotMatch(html, /<label class="v3-import-file-btn">[\s\S]{0,240}id="v3Import(?:CaptionsFile|Audio)"/);
 });
 

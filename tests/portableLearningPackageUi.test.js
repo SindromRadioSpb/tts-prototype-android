@@ -111,7 +111,7 @@ test('text-card share links to the same material truth and single-card ZIP cover
 });
 
 test('RU, EN and HE locales carry the complete P2 surface',()=>{
-  for(const locale of ['en','ru','he']){const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');for(const key of ['button','privacy','snapshot','archive','verifying','apply','reused','applied','hub','libraryTab','materialTab','importTab','historyTab','undo','helpButton','helpFullMove','helpMaterialHistory','helpSnapshot','helpCompatibility','shareLegacyTitle','shareLegacyHelp','cues','currentRows','captionVersions','tableVersions','mediaMismatch','mediaExpected','mediaSelected','mediaTelegram','mediaConnected','mediaMissingShort','bindingRepairHistoryHelp','repairExactMediaBinding','repairingExactMediaBinding'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);for(const key of ['labelSourceLink','sourceLinkHelp','provKindPortable','provMethodPortable'])assert.match(text,new RegExp(`${key}:`),`${locale}.textMeta.${key}`);}
+  for(const locale of ['en','ru','he']){const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');for(const key of ['button','privacy','snapshot','archive','verifying','apply','reused','applied','hub','libraryTab','materialTab','importTab','historyTab','undo','helpButton','helpFullMove','helpMaterialHistory','helpSnapshot','helpCompatibility','shareLegacyTitle','shareLegacyHelp','cues','currentRows','captionVersions','tableVersions','mediaMismatch','mediaExpected','mediaSelected','mediaPreparedRequired','mediaTelegram','mediaConnected','mediaMissingShort','bindingRepairHistoryHelp','repairExactMediaBinding','repairingExactMediaBinding'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);for(const key of ['labelSourceLink','sourceLinkHelp','provKindPortable','provMethodPortable'])assert.match(text,new RegExp(`${key}:`),`${locale}.textMeta.${key}`);}
 });
 
 test('full backup integration cannot silently omit promoted Studio canon',()=>{
@@ -123,6 +123,7 @@ test('portable media recovery stays available after the transient import step',(
   assert.match(studio,/mediaForText/);
   assert.match(studio,/data-action="relink-media"/);
   assert.match(studio,/MEDIA_SHA_MISMATCH/);
+  assert.match(studio,/mobile-ready\\\.mp4[\s\S]{0,300}mediaPreparedRequired/);
   assert.match(html,/id="v3TextMetaPortableMedia"/);
   assert.match(html,/v3TextMetaRelinkMedia/);
   assert.match(html,/v3TextMetaMediaFile/);

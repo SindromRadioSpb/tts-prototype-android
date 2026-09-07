@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.485";
+const CACHE_VERSION = "v3.11.486";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -186,7 +186,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-package.js",
   "/js/studio-media-editor.js",
   "/js/studio-material-revision.js",
-  "/js/studio-portable-learning-package.js?v=485",
+  "/js/studio-portable-learning-package.js?v=486",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
@@ -236,9 +236,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=205",
-  "/i18n/locales/en.js?v=205",
-  "/i18n/locales/he.js?v=205",
+  "/i18n/locales/ru.js?v=206",
+  "/i18n/locales/en.js?v=206",
+  "/i18n/locales/he.js?v=206",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
