@@ -1,6 +1,6 @@
 # Reading Room corpus-switch / My Texts hotfix
 
-Date: 2026-09-08. Status: IMPLEMENTATION AND LOCAL VALIDATION PASS; production release pending.
+Date: 2026-09-08. Status: PRODUCTION BROWSER ACCEPTANCE PASS; physical-device and assistive-technology acceptance remain separate.
 
 ## Owner report and reproduced failure
 
@@ -47,6 +47,21 @@ No schema, note, learner-state, review, publication, source-corpus, provider or 
 - Comprehensive isolated browser smoke: PASS. It covers 65-row pagination, row/note/tag/provider/smart filters, five My Texts reloads, public/group/Ben catalogs, Studio discovery, real Import Center archive flows, desktop, 380 px, dark theme and Hebrew RTL.
 - Explicit lateral switch sequence without page reload: My Texts -> public fixture 624 ms -> Ben-Yehuda 165 ms -> My Texts 143 ms. Every transition is bounded to 10 seconds; the previous Ben-Yehuda surface is removed immediately.
 - The comprehensive browser run proves `review_log` byte-for-byte unchanged, zero provider requests and zero page errors. Expected signed-out 401s, fixture-index 404s and cancelled background requests are logged separately and are not application page errors.
-- Production acceptance requires exact `3.11.488` client config, service worker and shell hashes; repeated health/reload probes; then the same lateral switch in the owner's existing browser profile with My Texts counts unchanged and no console error.
+- Production acceptance requires exact `3.11.488` client config, service worker and shell hashes; repeated health/reload probes; then the same lateral switch in the owner's existing browser profile with My Texts counts unchanged and no console error. The evidence below satisfies that browser boundary.
 
-Physical-device, VoiceOver and assistive-technology acceptance remain separate from this browser hotfix. Production currently reports a 98% disk-use warning; health, database and migrations are ready. Capacity cleanup is outside this authorization.
+## Production release and owner-profile acceptance
+
+- Release commit `cbf67fb780d4992c935968b89226370f492a31cb` is live as `3.11.488`.
+- Five repeated uncached probes after the release and again after capacity cleanup returned health `ok`, database ready, migrations ready, and the same `3.11.488` cohort in client config, service worker and Reading Room HTML. All 43 published shell-integrity hashes matched their live responses.
+- In the owner's existing ordinary browser profile, the pre/post `review_log` fingerprint remained exactly 7,758 rows with SHA-256 `688839bce8b13302f4f10f236de020d2d6a3ab35c7f66c969f44632af5cf76ad`. The non-archived text count remained 438; My Texts remained 299.
+- Three complete Ben-Yehuda -> My Texts round trips finished without reload. Ben-Yehuda completed in 476/556/397 ms; My Texts first showed the honest loading state and then completed in 1,966/1,912/1,777 ms with 48 rendered cards and `1–48 / 299`.
+- Public Study Songs completed with 48 cards and `1–48 / 77` in 797 ms; returning to My Texts completed with 48 cards and `1–48 / 299` in 2,020 ms. The public-corpus surface currently retains the legacy `#room=benyehuda` hash representation; acceptance therefore keys on the rendered corpus identity and result completion, not that legacy hash.
+- Two subsequent ordinary full reloads completed the owner-profile My Texts result in page ages 3,592 ms and 3,053 ms. Each held exactly one OPFS database-owner lock with none pending. The browser console contained zero errors.
+
+## Separately authorized capacity cleanup
+
+The hotfix itself did not authorize storage mutation. After deployment filled the host filesystem, the owner separately authorized a safe cleanup. The cleanup removed only 7.767 GB of Docker build cache and five container-unreferenced older LinguistPro images. It retained the live `cbf67fb7` image, the immediate `e5886edd` rollback image, all eight containers, all three named volumes, backups and user data.
+
+After cleanup the host had 9.0 GB available (75% used; health metric 76%), the disk warning was false, all eight containers were running and healthy, database and migrations were ready, and both retained LinguistPro images resolved by immutable ID.
+
+Physical-device, VoiceOver and assistive-technology acceptance remain separate from this browser hotfix.
