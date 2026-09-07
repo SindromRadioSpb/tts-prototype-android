@@ -762,6 +762,20 @@ function _catalogProvidersSql() {
     WHERE s.text_id=t.id AND TRIM(COALESCE(s.translation_provider,''))<>''),''),NULLIF(${meta('table_model_meta_json')},''),${meta('source_meta_json')})`;
 }
 
+// Keep note-backed discovery on the two indexed text_id paths. A correlated
+// `n.text_id = t.id OR EXISTS (...)` makes SQLite scan notes_v2 again for every
+// text (and every smart facet), which can monopolize the single OPFS worker for
+// minutes on a real library. The UNION ALL preserves the same direct-or-
+// occurrence semantics while letting ix_notes_v2_text / ix_note_occ_text work.
+function _noteForTextExistsSql(predicate = '1=1') {
+  return `EXISTS (
+    SELECT 1 FROM notes_v2 n WHERE n.text_id=t.id AND ${predicate}
+    UNION ALL
+    SELECT 1 FROM note_occurrences no JOIN notes_v2 n ON n.id=no.note_id
+      WHERE no.text_id=t.id AND ${predicate}
+  )`;
+}
+
 export async function getCatalogPersonalMetadata() {
   return q(`SELECT t.id,t.text_key,t.tags_json,t.level,t.topic,t.created_at,t.updated_at,t.last_opened_at,
     ${_catalogProvidersSql()} AS translation_providers FROM texts t WHERE t.is_archived=0`);
@@ -782,8 +796,7 @@ export async function findCatalogTextMatches({ textKeys = [], query = '', scope 
   }
   if (scope === 'notes' || scope === 'both') {
     const values = []; _b6TokenClause(tokens, '', values);
-    predicates.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id=t.id OR EXISTS
-      (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND ${notes})`); params.push(...values);
+    predicates.push(_noteForTextExistsSql(notes)); params.push(...values, ...values);
   }
   if (!predicates.length) return [];
   return q(`SELECT t.text_key FROM texts t WHERE t.is_archived=0 AND t.text_key IN
@@ -837,12 +850,12 @@ export async function listPersonalTextsPage(options = {}) {
     const noteParams = [];
     const notes = _b6TokenClause(split.textTokens, `COALESCE(n.title, '') || ' ' || COALESCE(n.body_json, '')`, noteParams);
     const rowExists = `EXISTS (SELECT 1 FROM sentences s WHERE s.text_id = t.id AND ${rows})`;
-    const noteExists = `EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND ${notes})`;
+    const noteExists = _noteForTextExistsSql(notes);
     if (filters.scope === 'rows') { where.push(rowExists); params.push(...rowParams); }
-    else if (filters.scope === 'notes') { where.push(noteExists); params.push(...noteParams); }
+    else if (filters.scope === 'notes') { where.push(noteExists); params.push(...noteParams, ...noteParams); }
     else if (filters.scope === 'both') {
       where.push(`((${metadata}) OR ${rowExists} OR ${noteExists})`);
-      params.push(...metadataParams, ...rowParams, ...noteParams);
+      params.push(...metadataParams, ...rowParams, ...noteParams, ...noteParams);
     } else { where.push(`(${metadata})`); params.push(...metadataParams); }
   }
 
@@ -851,10 +864,10 @@ export async function listPersonalTextsPage(options = {}) {
   else if (filters.smart === 'fresh') {
     if (options.freshSince) { where.push(`t.created_at >= ?`); params.push(String(options.freshSince)); }
     else where.push('0 = 1');
-  } else if (filters.smart === 'with-note') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)))`);
-  else if (filters.smart === 'audio-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.audio_anchor_ms IS NOT NULL)`);
-  else if (filters.smart === 'srs-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.srs_card_id IS NOT NULL)`);
-  else if (filters.smart === 'templated') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note'))`);
+  } else if (filters.smart === 'with-note') where.push(_noteForTextExistsSql());
+  else if (filters.smart === 'audio-noted') where.push(_noteForTextExistsSql('n.audio_anchor_ms IS NOT NULL'));
+  else if (filters.smart === 'srs-noted') where.push(_noteForTextExistsSql('n.srs_card_id IS NOT NULL'));
+  else if (filters.smart === 'templated') where.push(_noteForTextExistsSql("n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')"));
   else if (filters.smart === 'struggling' || filters.smart === 'mastered') {
     if (smartIds.length) {
       where.push(`EXISTS (SELECT 1 FROM json_each(?) ids WHERE CAST(ids.value AS TEXT) = t.id)`);
@@ -973,13 +986,26 @@ export async function getPersonalTextFacets() {
     FROM texts t, json_each(CASE WHEN json_valid(t.tags_json) THEN t.tags_json ELSE '[]' END) j
     WHERE ${_PERSONAL_TEXT_PREDICATE} AND TRIM(CAST(j.value AS TEXT)) <> ''
     GROUP BY LOWER(TRIM(CAST(j.value AS TEXT))) ORDER BY count DESC, value COLLATE NOCASE ASC`);
-  const smartRows = await q(`SELECT
+  const smartRows = await q(`WITH note_links AS (
+      SELECT id AS note_id, text_id FROM notes_v2 WHERE text_id IS NOT NULL
+      UNION
+      SELECT note_id, text_id FROM note_occurrences WHERE text_id IS NOT NULL
+    ), note_flags AS (
+      SELECT links.text_id,
+        1 AS with_note,
+        MAX(CASE WHEN n.audio_anchor_ms IS NOT NULL THEN 1 ELSE 0 END) AS audio_noted,
+        MAX(CASE WHEN n.srs_card_id IS NOT NULL THEN 1 ELSE 0 END) AS srs_noted,
+        MAX(CASE WHEN n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note') THEN 1 ELSE 0 END) AS templated
+      FROM note_links links JOIN notes_v2 n ON n.id=links.note_id
+      GROUP BY links.text_id
+    ) SELECT
       SUM(CASE WHEN t.last_opened_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS recent,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id))) THEN 1 ELSE 0 END) AS with_note,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.audio_anchor_ms IS NOT NULL) THEN 1 ELSE 0 END) AS audio_noted,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.srs_card_id IS NOT NULL) THEN 1 ELSE 0 END) AS srs_noted,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')) THEN 1 ELSE 0 END) AS templated
-    FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE}`);
+      SUM(COALESCE(flags.with_note, 0)) AS with_note,
+      SUM(COALESCE(flags.audio_noted, 0)) AS audio_noted,
+      SUM(COALESCE(flags.srs_noted, 0)) AS srs_noted,
+      SUM(COALESCE(flags.templated, 0)) AS templated
+    FROM texts t LEFT JOIN note_flags flags ON flags.text_id=t.id
+    WHERE ${_PERSONAL_TEXT_PREDICATE}`);
   const smart = smartRows[0] || {};
   const providerRows = await q(`SELECT ${_catalogProvidersSql()} AS translation_providers, COUNT(*) AS count
     FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE} GROUP BY translation_providers`);

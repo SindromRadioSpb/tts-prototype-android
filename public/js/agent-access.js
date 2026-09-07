@@ -127,7 +127,7 @@
     button.disabled=true;
     try{
       const issued=await api(`/api/agent-access/proposals/${encodeURIComponent(row.proposal_id)}/execution`,{method:"POST",body:JSON.stringify({item_index:itemIndex})});
-      const action=issued.action;const ldb=await import("/db/local-db.js?v=485");await ldb.initLocalDB();let receipt;let machineWarning="";
+      const action=issued.action;const ldb=await import("/db/local-db.js?v=488");await ldb.initLocalDB();let receipt;let machineWarning="";
       if(action.type==="IMPORT_TEXT"){
         const existing=await ldb.dbQuery("SELECT id FROM texts WHERE text_key = ?",[action.text_key]);let textId=existing&&existing[0]&&existing[0].id;let rowsWritten=0;
         if(!textId){

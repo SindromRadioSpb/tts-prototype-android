@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=485';
+import * as localDb from '/db/local-db.js?v=488';
 import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -12196,7 +12196,7 @@ function corpusSwitcherBar(currentId) {
   const menu = el('div', { class: 'corpus-switch-menu', attrs: { role: 'menu' } });
   menu.hidden = true;
   for (const c of authorizedCorpusOptions()) {
-    const item = el('button', { class: 'corpus-switch-item room-vf1-focus' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem' } });
+    const item = el('button', { class: 'corpus-switch-item room-vf1-focus' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem', 'data-corpus': c.id } });
     const itemIcon = roomCorpusIconSpec(c);
     item.appendChild(roomIcon(itemIcon.symbol, itemIcon.fallback));
     item.appendChild(markRoomTextLanguage(el('bdi', { class: 'corpus-switch-label', text: corpusTitleOf(c) }), corpusTitleOf(c)));
@@ -12694,6 +12694,10 @@ async function renderMyTextsCorpus(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   const startedAt = performance.now();
+  // Replace the previous corpus immediately. Even bounded local projections are
+  // asynchronous; leaving the old corpus visible makes a valid transition look
+  // like a dead click and invites repeated navigation into the same DB queue.
+  showState('room.state.loading', '⏳');
   let facetsData = { total: 0, levels: [], tags: [], smartCounts: {} };
   let defaultPage = { items: [], matchedTotal: 0 };
   try {

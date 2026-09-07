@@ -53,7 +53,7 @@ async function waitForServer() {
 
 async function seedRange(page, from, count) {
   await page.evaluate(async ({ from, count }) => {
-    const db = await import("/db/local-db.js");
+    const db = window.__localDB;
     const chunks = [];
     for (let offset = 0; offset < count; offset += 1000) chunks.push({ start: from + offset, size: Math.min(1000, count - offset) });
     await db.execRaw("BEGIN;");
@@ -81,7 +81,7 @@ async function seedRange(page, from, count) {
 
 async function seedScopeEdges(page) {
   await page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = window.__localDB;
     for (const n of [1, 2500, 5000]) {
       const id = `b6-text-${String(n).padStart(5, "0")}`;
       await db.dbRun(`INSERT INTO sentences (id,text_id,order_index,he_plain,ru,created_at)
@@ -96,14 +96,14 @@ async function seedScopeEdges(page) {
 
 async function reviewSnapshot(page) {
   return page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = window.__localDB;
     return db.dbQuery("SELECT id,item_key,kind,reviewed_at,grade,source,channel,latency_ms,meta_json FROM review_log ORDER BY id", []);
   });
 }
 
 async function directContract(page, expectedTotal) {
   return page.evaluate(async ({ expectedTotal }) => {
-    const db = await import("/db/local-db.js");
+    const db = window.__localDB;
     const encodeBytes = (value) => new TextEncoder().encode(JSON.stringify(value)).byteLength;
     const started = performance.now();
     const first = await db.listPersonalTextsPage({ limit: 48, sort: "title_asc" });
@@ -230,7 +230,7 @@ async function main() {
 
     await page.locator(".mytexts-page-next").click(); await waitForRoom(page);
     await page.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = window.__localDB;
       await db.dbRun("UPDATE texts SET updated_at='2999-01-01T00:00:00.000Z' WHERE id='b6-text-00001'", []);
     });
     await page.locator(".mytexts-page-next").click(); await waitForRoom(page);
@@ -254,23 +254,23 @@ async function main() {
     // Establish its settled value before testing that popstate itself is read-only;
     // otherwise a fast Back can race that legitimate first write and fake a failure.
     await page.waitForFunction(async () => {
-      const db = await import("/db/local-db.js");
+      const db = window.__localDB;
       const stamp = (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
       const previous = window.__b6OpenedStampProbe;
       window.__b6OpenedStampProbe = stamp;
       return !!stamp && previous === stamp;
     }, null, { timeout: 30000, polling: 50 });
     const openedStamp = await page.evaluate(async () => {
-      const db = await import("/db/local-db.js"); return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
+      const db = window.__localDB; return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
     });
     await page.goBack(); await page.waitForSelector("#roomReader", { state: "hidden", timeout: 30000 }); await waitForRoom(page);
     const afterBackStamp = await page.evaluate(async () => {
-      const db = await import("/db/local-db.js"); return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
+      const db = window.__localDB; return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
     });
     check(afterBackStamp === openedStamp, "popstate Back adds no last-opened write");
     await page.goForward(); await page.waitForSelector("#roomReader:not([hidden])", { timeout: 30000 });
     const afterForwardStamp = await page.evaluate(async () => {
-      const db = await import("/db/local-db.js"); return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
+      const db = window.__localDB; return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
     });
     check(afterForwardStamp === openedStamp, "popstate Forward restores reader read-only");
     await page.goBack(); await page.waitForSelector("#roomReader", { state: "hidden", timeout: 30000 }); await waitForRoom(page);

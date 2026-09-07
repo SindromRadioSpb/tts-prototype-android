@@ -16,7 +16,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=485">
+    <link rel="modulepreload" href="/db/local-db.js?v=488">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -10813,7 +10813,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=485';
+  import * as _ldb from '/db/local-db.js?v=488';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13499,7 +13499,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.487";
+    window.APP_VERSION = "3.11.488";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

@@ -15,8 +15,8 @@ test('Studio loads the exact lexical-resolution projector before its morphology 
   assert.ok(core >= 0, 'Studio must load lexical-resolution-core.js');
   assert.ok(service >= 0, 'Studio must load lexical-resolution-service.js');
   assert.ok(core < service && service < adapter, 'exact resolution dependencies must load before studio-morph.js');
-  assert.match(html, /<script src="\/js\/studio-morph\.js\?v=2"><\/script>/);
-  assert.match(sw, /"\/js\/studio-morph\.js\?v=2"/,
+  assert.match(html, /<script src="\/js\/studio-morph\.js\?v=3"><\/script>/);
+  assert.match(sw, /"\/js\/studio-morph\.js\?v=3"/,
     'the service worker must precache the same Studio adapter URL');
 });
 

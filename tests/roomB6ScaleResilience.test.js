@@ -134,6 +134,29 @@ test("B6 implementation keeps list payload light, exact and DOM-windowed", () =>
   assert.match(myTexts, /room\.mytexts\.previousPage/);
 });
 
+test("My Texts facets and note filters stay set-based and show an immediate transition", () => {
+  const db = read("public/db/local-db.js");
+  const ui = read("public/js/library-ui.js");
+  const page = db.slice(db.indexOf("const _PERSONAL_TEXT_PREDICATE"), db.indexOf("export async function countPersonalTextsExact"));
+  const listPage = db.slice(db.indexOf("export async function listPersonalTextsPage"), db.indexOf("export async function countPersonalTextsExact"));
+  const facets = db.slice(db.indexOf("export async function getPersonalTextFacets"), db.indexOf("export async function getTextSourceText"));
+  const myTexts = ui.slice(ui.indexOf("async function renderMyTextsCorpus"), ui.indexOf("// L1 — graduated landing"));
+
+  assert.match(page, /function _noteForTextExistsSql/,
+    "note-backed filters must use the indexed text_id paths instead of a correlated OR scan");
+  assert.doesNotMatch(listPage, /n\.text_id\s*=\s*t\.id\s+OR\s+EXISTS/,
+    "a per-text OR over notes and occurrences makes the OPFS worker scan the note table repeatedly");
+  assert.match(facets, /WITH note_links AS/);
+  assert.match(facets, /note_flags AS/);
+  assert.doesNotMatch(facets, /SUM\(CASE WHEN EXISTS/,
+    "the initial facet pass must aggregate note links once, not run four correlated scans per text");
+
+  const loadingAt = myTexts.indexOf("showState('room.state.loading'");
+  const facetsAt = myTexts.indexOf("localDb.getPersonalTextFacets()");
+  assert.ok(loadingAt >= 0 && loadingAt < facetsAt,
+    "switching to My Texts must replace the old corpus with a loading state before local facets resolve");
+});
+
 test("B6 history/session and safe update hooks are wired on both shared shells", () => {
   const room = read("public/js/library-ui.js");
   const studio = read("public/index.html");
