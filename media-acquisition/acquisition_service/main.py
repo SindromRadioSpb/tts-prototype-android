@@ -20,6 +20,7 @@ from .receipts import TokenError, verify_capability
 
 MAX_JSON_BYTES = 64 * 1024
 JOB_PATH = re.compile(r"^/v1/jobs/(rma_[a-f0-9]{32})(?:/(stream|device-receipt))?$")
+REQUEST_PATH = re.compile(r"^/v1/requests/([a-f0-9]{32})$")
 
 
 def _tool_version(command: list[str]) -> str | None:
@@ -37,7 +38,8 @@ def runtime_report() -> dict[str, Any]:
         except importlib.metadata.PackageNotFoundError:
             return None
     return {
-        "worker": "0.1.0",
+        "worker": "0.2.0",
+        "features": ["range-resume-v1", "idempotent-create-v1", "verified-media-v1"],
         "yt_dlp": package("yt-dlp"),
         "yt_dlp_ejs": package("yt-dlp-ejs"),
         "deno": _tool_version(["deno", "--version"]),
@@ -55,7 +57,7 @@ class WorkerApplication:
         self.secret = str(secret)
         self.allowed_origins = set(allowed_origins)
         self.backend = backend or YtDlpBackend()
-        self.jobs = JobRegistry(secret=self.secret, root=temp_root, backend=self.backend, ttl_seconds=1800)
+        self.jobs = JobRegistry(secret=self.secret, root=temp_root, backend=self.backend, ttl_seconds=7200)
         self.runtime = runtime_report()
         self._rate_lock = threading.Lock()
         self._rate_events: dict[str, list[float]] = {}
@@ -98,16 +100,16 @@ class WorkerHandler(BaseHTTPRequestHandler):
         return self.server.application  # type: ignore[attr-defined]
 
     def log_message(self, fmt: str, *args: Any) -> None:
-        # Path and status only. Request bodies, source URLs, tokens and headers are never logged.
+        # Do not log the raw request line: query strings can contain credentials or source URLs.
         print(json.dumps({"at": int(time.time()), "method": self.command,
-                          "path": self.path.split("?", 1)[0], "message": fmt % args}, separators=(",", ":")))
+                          "route": "job" if JOB_PATH.fullmatch(self.path) else "api"}, separators=(",", ":")))
 
     def _cors(self) -> None:
         origin = str(self.headers.get("Origin") or "")
         if origin in self.app.allowed_origins:
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Credentials", "true")
-            self.send_header("Access-Control-Expose-Headers", "Content-Length, Content-Type, Content-Disposition, X-LP-Media-SHA256")
+            self.send_header("Access-Control-Expose-Headers", "Content-Length, Content-Type, Content-Disposition, X-LP-Media-SHA256, ETag, Accept-Ranges, Content-Range")
             self.send_header("Vary", "Origin")
 
     def _json(self, status: int, value: dict[str, Any]) -> None:
@@ -138,7 +140,7 @@ class WorkerHandler(BaseHTTPRequestHandler):
         return value
 
     def _error(self, exc: Exception) -> None:
-        code = str(getattr(exc, "code", None) or (exc.args[0] if exc.args else "WORKER_FAILED"))
+        code = str(getattr(exc, "code", None) or (exc.args[0] if isinstance(exc, TokenError) and exc.args else "REQUEST_INVALID"))
         status = 400
         if code in {"CAPABILITY_REQUIRED", "TOKEN_SIGNATURE", "TOKEN_EXPIRED", "TOKEN_MALFORMED"}:
             status = 401
@@ -146,12 +148,16 @@ class WorkerHandler(BaseHTTPRequestHandler):
             status = 403
         elif code == "JOB_NOT_FOUND":
             status = 404
-        elif code in {"QUEUE_FULL", "JOB_NOT_READY", "STREAM_RETRY_LIMIT"}:
+        elif code in {"QUEUE_FULL", "JOB_NOT_READY", "STREAM_RETRY_LIMIT", "REQUEST_CONFLICT"}:
             status = 409
         elif code == "RATE_LIMIT":
             status = 429
-        elif code in {"PREPARE_FAILED", "OUTPUT_FILE_INVALID"}:
+        elif code.startswith("SOURCE_") or code in {"PREPARE_FAILED", "OUTPUT_FILE_INVALID"}:
             status = 502
+        elif code == "RANGE_IDENTITY_MISMATCH":
+            status = 412
+        elif code == "RANGE_INVALID":
+            status = 416
         self._json(status, {"ok": False, "error_code": code})
 
     def do_OPTIONS(self) -> None:  # noqa: N802
@@ -161,7 +167,7 @@ class WorkerHandler(BaseHTTPRequestHandler):
         self.send_response(204)
         self._cors()
         self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type, Range, If-Range")
         self.send_header("Access-Control-Max-Age", "600")
         self.end_headers()
 
@@ -172,28 +178,55 @@ class WorkerHandler(BaseHTTPRequestHandler):
             if self.path == "/v1/runtime":
                 self.app.authenticate(self.headers, scope="resolve")
                 return self._json(200, {"ok": True, "worker_runtime": self.app.runtime})
+            request_match = REQUEST_PATH.fullmatch(self.path)
+            if request_match:
+                capability = self.app.authenticate(self.headers, scope="prepare")
+                return self._json(200, {"ok": True, **self.app.jobs.find_request(capability["sub"], request_match[1])})
             match = JOB_PATH.fullmatch(self.path)
             if not match:
                 return self._json(404, {"ok": False, "error_code": "NOT_FOUND"})
             job_id, suffix = match.groups()
             capability = self.app.authenticate(self.headers, scope="stream" if suffix == "stream" else "prepare")
             if suffix == "stream":
+                self.app.require_rate(capability["sub"], "stream", maximum=32)
                 result = self.app.jobs.open_stream(subject=capability["sub"], job_id=job_id)
-                self.send_response(200)
+                etag = '"' + result.sha256 + '"'
+                start, end = 0, result.size_bytes - 1
+                requested_range = self.headers.get("Range")
+                if requested_range:
+                    match_range = re.fullmatch(r"bytes=(\d+)-(\d*)", requested_range)
+                    if not match_range:
+                        raise JobError("RANGE_INVALID")
+                    if self.headers.get("If-Range") != etag:
+                        raise JobError("RANGE_IDENTITY_MISMATCH")
+                    start = int(match_range[1])
+                    end = int(match_range[2]) if match_range[2] else end
+                    if start > end or start >= result.size_bytes or end >= result.size_bytes:
+                        raise JobError("RANGE_INVALID")
+                self.send_response(206 if requested_range else 200)
                 self._cors()
                 self.send_header("Content-Type", result.mime_type)
-                self.send_header("Content-Length", str(result.size_bytes))
+                self.send_header("Content-Length", str(end - start + 1))
+                self.send_header("ETag", etag)
+                self.send_header("Accept-Ranges", "bytes")
+                if requested_range:
+                    self.send_header("Content-Range", f"bytes {start}-{end}/{result.size_bytes}")
                 self.send_header("Content-Disposition", f'attachment; filename="{result.download_name}"')
                 self.send_header("X-LP-Media-SHA256", result.sha256)
                 self.send_header("Cache-Control", "private, no-store, max-age=0")
                 self.end_headers()
                 with result.path.open("rb") as stream:
-                    while chunk := stream.read(1024 * 1024):
+                    stream.seek(start)
+                    remaining = end - start + 1
+                    while remaining and (chunk := stream.read(min(1024 * 1024, remaining))):
                         self.wfile.write(chunk)
+                        remaining -= len(chunk)
                 return
             self._json(200, {"ok": True, **self.app.jobs.status(capability["sub"], job_id)})
         except (JobError, PlannerError, TokenError) as exc:
             self._error(exc)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # A suspended browser resumes the same immutable file later.
 
     def do_POST(self) -> None:  # noqa: N802
         try:
@@ -210,7 +243,8 @@ class WorkerHandler(BaseHTTPRequestHandler):
                 capability = self.app.authenticate(self.headers, scope="prepare")
                 body = self._read_json()
                 job = self.app.jobs.create(subject=capability["sub"], plan_token=body.get("plan_token"),
-                                           option_id=body.get("option_id"), rights_basis=body.get("rights_basis") or {})
+                                           option_id=body.get("option_id"), rights_basis=body.get("rights_basis") or {},
+                                           request_id=body.get("request_id"))
                 return self._json(202, {"ok": True, **job})
             match = JOB_PATH.fullmatch(self.path)
             if not match or match.group(2) != "device-receipt":

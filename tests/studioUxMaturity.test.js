@@ -104,7 +104,7 @@ test("Reading Room restores the canonical exact media binding before deriving ro
   assert.match(libraryUi, /MediaHost\.pickExactBindingPassport\(/);
 });
 
-test("B2 Downr handoff is bounded, honest, replaceable and discardable", () => {
+test("legacy B2 intent remains bounded; approved built-in downloader replaces its UI", () => {
   const memory = new Map();
   const storage = {
     getItem: (key) => memory.has(key) ? memory.get(key) : null,
@@ -125,7 +125,9 @@ test("B2 Downr handoff is bounded, honest, replaceable and discardable", () => {
 });
 
 test("B2-B5 UI exposes return recovery, compact mobile navigation and Room continuation", () => {
-  assert.match(html, /id="v3DownrDiscard"/);
+  assert.doesNotMatch(html, /id="v3DownrDiscard"/);
+  assert.match(html, /id="v3RemoteMediaCancel"/);
+  assert.match(html, /id="v3RemoteMediaHistory"/);
   assert.match(studioImport, /readDownrIntent\(window\.localStorage/);
   assert.match(studioImport, /studio\.remoteMedia\.returnRemembered/);
   assert.match(html, /id="classicSecondaryNav"[^>]*class="classic-secondary-nav"/);

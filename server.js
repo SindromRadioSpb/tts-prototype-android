@@ -1065,6 +1065,9 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/js/media-stream-store.js",
+  "/js/remote-media-acquisition.js",
+  "/js/studio-import.js",
   "/css/catalog-discovery.css?v=485",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
@@ -1105,9 +1108,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=207",
-  "/i18n/locales/en.js?v=207",
-  "/i18n/locales/he.js?v=207",
+  "/i18n/locales/ru.js?v=208",
+  "/i18n/locales/en.js?v=208",
+  "/i18n/locales/he.js?v=208",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -1801,7 +1804,8 @@ app.post("/api/media-acquisition/capability", rlMediaAcquisitionCapability, requ
     { expires_at: expiresAt, scopes: ["prepare", "resolve", "stream"] }, req.ip);
   res.set("Cache-Control", "no-store");
   return res.json({ ok: true, schema_version: "lp_media_capability.1.0.0",
-    worker_url: workerUrl, capability: token, expires_at: expiresAt });
+    worker_url: workerUrl, capability: token, expires_at: expiresAt,
+    subject_scope: crypto.createHmac("sha256", secret).update("subject:" + String(auth.user.id)).digest("hex") });
 });
 
 // AA2-B2 — first-party consent/revoke controller. No route stages a trusted

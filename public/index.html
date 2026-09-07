@@ -4221,6 +4221,37 @@ body.theme-dark .p2-portable-dialog { --portable-ink:#5eead4; --portable-error:#
   font-weight: 700;
 }
 .v3-import-pane[hidden] { display: none; } /* [hidden] vs author-display trap — see feedback_hidden_attr_vs_display */
+.v3-rma-card { margin-block:16px; padding:16px; border:1px solid var(--theme-border-medium,#dee2e6); border-radius:12px; background:var(--theme-bg-card,#fff); }
+#v3ImportPaneVideo [hidden] { display:none !important; }
+.v3-rma-title { margin:0 0 6px; font-size:18px; line-height:1.4; color:var(--theme-text-primary,#212529); overflow-wrap:anywhere; }
+.v3-rma-meta,.v3-rma-size { margin:4px 0 12px; font-size:13px; color:var(--theme-text-secondary,#6c757d); }
+.v3-rma-choices { display:flex; gap:8px; margin-block:14px; }
+#v3ImportPaneVideo .v3-rma-choices button { width:auto; min-height:44px; flex:1; border:1px solid var(--theme-border-medium,#dee2e6); border-radius:8px; background:var(--theme-bg-card,#fff); color:var(--theme-text-primary,#212529); font:inherit; font-weight:600; }
+#v3ImportPaneVideo .v3-rma-choices button[aria-pressed="true"] { background:var(--theme-accent-soft,#e5f4ef); border-color:var(--theme-accent,#0b7673); color:var(--theme-accent-hover,#075e5b); }
+.v3-rma-quality { display:flex; align-items:center; gap:10px; margin-block:10px; font-size:14px; }
+.v3-rma-quality select { min-width:0; flex:1; min-height:44px; color:var(--theme-text-primary,#212529); background:var(--theme-bg-card,#fff); border:1px solid var(--theme-border-medium,#dee2e6); border-radius:8px; padding:8px; }
+.v3-rma-rights { display:flex; align-items:center; gap:10px; min-height:44px; margin-block:10px; font-size:13px; line-height:1.5; }
+.v3-rma-rights input { flex:none; width:18px; height:18px; accent-color:var(--theme-accent,#0b7673); }
+.v3-rma-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+#v3ImportPaneVideo .v3-rma-actions button { width:auto; min-height:44px; }
+#v3ImportPaneVideo #v3RemoteMediaResolve { min-height:44px; }
+.v3-rma-status { margin:12px 0; font-size:14px; line-height:1.5; color:var(--theme-text-secondary,#6c757d); overflow-wrap:anywhere; }
+.v3-rma-status[data-danger="true"] { color:var(--theme-danger,#b64637); }
+.v3-rma-progress { margin-block:14px; }
+.v3-rma-progress progress { display:block; width:100%; height:12px; margin-top:8px; accent-color:var(--theme-accent,#0b7673); }
+#v3RemoteMediaPlayer video,#v3RemoteMediaPlayer audio { display:block; width:100%; max-height:260px; margin-block:14px; }
+.v3-rma-alternatives,.v3-rma-history { border-top:1px solid var(--theme-border-medium,#dee2e6); margin-top:16px; padding-top:6px; }
+.v3-rma-alternatives > summary,.v3-rma-history > summary { cursor:pointer; min-height:44px; padding-block:10px; box-sizing:border-box; font-size:14px; font-weight:600; }
+#v3ImportPaneVideo .v3-rma-history-item { display:flex; flex-direction:column; gap:4px; width:100%; text-align:start; min-height:60px; padding:10px; margin-block:6px; border:1px solid var(--theme-border-medium,#dee2e6); border-radius:8px; color:var(--theme-text-primary,#212529); background:var(--theme-bg-card,#fff); overflow-wrap:anywhere; }
+.v3-rma-history-item span { color:var(--theme-text-secondary,#6c757d); font-size:12px; }
+#v3ImportPaneVideo button:focus-visible,#v3ImportPaneVideo select:focus-visible,#v3ImportPaneVideo summary:focus-visible { outline:2px solid var(--theme-accent,#0b7673); outline-offset:2px; }
+@media (max-width:480px) {
+  .v3-rma-card { padding:12px; }
+  #v3ImportPaneVideo .v3-import-url-row { flex-wrap:wrap; }
+  #v3ImportPaneVideo .v3-import-url-row input { flex-basis:100% !important; min-height:44px; }
+  #v3ImportPaneVideo .v3-import-url-row button { min-height:44px; width:100%; }
+  #v3ImportPaneVideo .v3-rma-actions button { flex:1 1 100%; }
+}
 
 /* P2-1: modal open animation */
 @keyframes v3ModalIn {
@@ -13309,9 +13340,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=207"></script>
-<script src="/i18n/locales/en.js?v=207"></script>
-<script src="/i18n/locales/he.js?v=207"></script>
+<script src="/i18n/locales/ru.js?v=208"></script>
+<script src="/i18n/locales/en.js?v=208"></script>
+<script src="/i18n/locales/he.js?v=208"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13410,6 +13441,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/table-chunks.js"></script>
 <script src="/js/table-job.js"></script>
 <script src="/js/media-store.js"></script>
+<script src="/vendor/hash-wasm/sha256.umd.min.js"></script>
+<script src="/js/media-stream-store.js"></script>
+<script src="/js/remote-media-acquisition.js" defer></script>
 <script src="/js/media-package-core.js"></script>
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
@@ -13499,7 +13533,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.488";
+    window.APP_VERSION = "3.11.489";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -50233,7 +50267,7 @@ document.addEventListener("i18n:changed", function () {
     <div class="v3-modal-body">
       <div id="v3ImportTabs" role="tablist" data-i18n-aria-label="studio.import.tabsAriaLabel" aria-label="Импорт — тип источника">
         <button type="button" class="v3-import-tab" id="v3ImportTabUrl" role="tab" aria-selected="true" aria-controls="v3ImportPaneUrl" onclick="StudioImport.switchTab('url')" data-i18n="studio.import.tabUrl">Статья</button>
-        <button type="button" class="v3-import-tab" id="v3ImportTabVideo" role="tab" aria-selected="false" aria-controls="v3ImportPaneVideo" onclick="StudioImport.switchTab('video')" data-i18n="studio.import.tabVideo">Видео</button>
+        <button type="button" class="v3-import-tab" id="v3ImportTabVideo" role="tab" aria-selected="false" aria-controls="v3ImportPaneVideo" onclick="StudioImport.switchTab('video')" data-i18n="studio.remoteMedia.byLink">По ссылке</button>
         <button type="button" class="v3-import-tab" id="v3ImportTabFile" role="tab" aria-selected="false" aria-controls="v3ImportPaneFile" onclick="StudioImport.switchTab('file')" data-i18n="studio.import.tabFile">С устройства</button>
       </div>
 
@@ -50246,35 +50280,42 @@ document.addEventListener("i18n:changed", function () {
       </div>
 
       <div id="v3ImportPaneVideo" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabVideo" hidden>
-        <label class="input-label" for="v3ImportVideoUrl" data-i18n="studio.import.videoUrlLabel">Ссылка на видео (YouTube)</label>
+        <label class="input-label" for="v3ImportVideoUrl" data-i18n="studio.remoteMedia.linkLabel">Ссылка YouTube</label>
         <div class="v3-import-url-row" style="display:flex; gap:6px;">
-          <input id="v3ImportVideoUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
-          <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.import.videoUrlBtn">Показать видео</button>
+          <input id="v3ImportVideoUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;" oninput="RemoteMediaAcquisition.sourceChanged()" onkeydown="if(event.key==='Enter'){event.preventDefault();RemoteMediaAcquisition.resolveFromField();}">
+          <button type="button" class="btn-secondary" id="v3RemoteMediaResolve" onclick="RemoteMediaAcquisition.resolveFromField()" data-i18n="studio.remoteMedia.resolve">Проверить ссылку</button>
         </div>
-
-        <aside id="v3DownrHandoff" class="v3-downr-handoff" aria-labelledby="v3DownrTitle">
-          <div class="v3-downr-head">
-            <div>
-              <span class="v3-downr-kicker" data-i18n="studio.remoteMedia.downloadKicker">Файл на устройстве</span>
-              <strong id="v3DownrTitle" class="v3-downr-title" data-i18n="studio.remoteMedia.downloadTitle">Скачать через Downr</strong>
-              <p class="v3-downr-copy" data-i18n="studio.remoteMedia.externalHint">Откроем Downr в новой вкладке и скопируем туда ссылку.</p>
+        <p id="v3RemoteMediaStatus" class="v3-rma-status" role="status" aria-live="polite" hidden></p>
+        <section id="v3RemoteMediaCard" class="v3-rma-card" aria-labelledby="v3RemoteMediaTitle" hidden>
+          <h3 id="v3RemoteMediaTitle" class="v3-rma-title" dir="auto"></h3>
+          <p id="v3RemoteMediaMeta" class="v3-rma-meta"></p>
+          <div id="v3RemoteMediaChoices" class="v3-rma-choices" role="group" data-i18n-aria-label="studio.remoteMedia.formatLabel" aria-label="Что загрузить">
+            <button id="v3RemoteMediaVideo" type="button" aria-pressed="true" onclick="RemoteMediaAcquisition.chooseKind('video')" data-i18n="studio.remoteMedia.videoChoice">Видео</button>
+            <button id="v3RemoteMediaAudio" type="button" aria-pressed="false" onclick="RemoteMediaAcquisition.chooseKind('audio')" data-i18n="studio.remoteMedia.audioChoice">Только аудио</button>
+          </div>
+          <label id="v3RemoteMediaQualityWrap" class="v3-rma-quality"><span data-i18n="studio.remoteMedia.quality">Качество</span><select id="v3RemoteMediaQuality" onchange="RemoteMediaAcquisition.chooseQuality(this.value)"></select></label>
+          <p id="v3RemoteMediaSize" class="v3-rma-size"></p>
+          <label id="v3RemoteMediaRightsWrap" class="v3-rma-rights"><input id="v3RemoteMediaRights" type="checkbox"><span data-i18n="studio.remoteMedia.rights">У меня есть разрешение правообладателя</span></label>
+          <div id="v3RemoteMediaProgressWrap" class="v3-rma-progress" hidden><span id="v3RemoteMediaProgressText" role="status" aria-live="polite"></span><progress id="v3RemoteMediaProgress" data-i18n-aria-label="studio.remoteMedia.progressLabel" aria-label="Ход загрузки"></progress></div>
+          <div class="v3-rma-actions">
+            <button type="button" id="v3RemoteMediaAdd" class="btn-primary" onclick="RemoteMediaAcquisition.addSelected()" data-i18n="studio.remoteMedia.addToApp">Добавить в LinguistPro</button>
+            <button type="button" id="v3RemoteMediaPause" class="btn-secondary" onclick="RemoteMediaAcquisition.pause()" data-i18n="studio.remoteMedia.pause" hidden>Приостановить</button>
+            <button type="button" id="v3RemoteMediaResume" class="btn-primary" onclick="RemoteMediaAcquisition.resume()" data-i18n="studio.remoteMedia.resume" hidden>Продолжить загрузку</button>
+            <button type="button" id="v3RemoteMediaCancel" class="btn-secondary" onclick="RemoteMediaAcquisition.cancel()" data-i18n="studio.remoteMedia.cancel" hidden>Отменить</button>
+          </div>
+          <div id="v3RemoteMediaDone" hidden>
+            <div id="v3RemoteMediaPlayer"></div>
+            <div class="v3-rma-actions">
+              <button type="button" id="v3RemoteMediaSaveCopy" class="btn-primary" onclick="RemoteMediaAcquisition.saveCopy()" data-i18n="studio.remoteMedia.saveFile">Сохранить файл на устройство</button>
+              <button type="button" id="v3RemoteMediaContinue" class="btn-secondary" onclick="RemoteMediaAcquisition.continueToTranscript()" data-i18n="studio.remoteMedia.continue">Перейти к расшифровке</button>
             </div>
-            <span class="v3-downr-mark" aria-hidden="true">↗</span>
+            <p class="v3-rma-meta" data-i18n="studio.remoteMedia.localHint">Медиа хранится в LinguistPro на этом устройстве. Для отдельной копии сохраните файл.</p>
           </div>
-          <ol class="v3-downr-steps">
-            <li><span>1</span><div><b data-i18n="studio.remoteMedia.stepDownload">Скачайте файл</b><small data-i18n="studio.remoteMedia.stepDownloadHint">M4A — для расшифровки; MP4 со звуком — для видео.</small></div></li>
-            <li><span>2</span><div><b data-i18n="studio.remoteMedia.stepReturn">Вернитесь в Студию</b><small data-i18n="studio.remoteMedia.stepReturnHint">Выберите файл из папки «Загрузки».</small></div></li>
-          </ol>
-          <div class="v3-downr-actions">
-            <button type="button" id="v3DownrOpen" class="btn-primary" onclick="StudioImport.openDownrFromField()" data-i18n="studio.remoteMedia.openDownr">Скачать через Downr ↗</button>
-            <button type="button" id="v3DownrChoose" class="btn-secondary" onclick="StudioImport.chooseDownloadedMedia()" hidden data-i18n="studio.remoteMedia.chooseDownloaded">Я скачал — выбрать файл</button>
-            <button type="button" id="v3DownrDiscard" class="btn-secondary" onclick="StudioImport.discardDownrHandoff()" hidden data-i18n="studio.remoteMedia.discardReturn">Начать с другой ссылки</button>
-            <a id="v3DownrFallback" class="v3-downr-fallback" href="https://downr.org/" target="_blank" rel="noopener noreferrer" hidden data-i18n="studio.remoteMedia.openFallback">Открыть Downr вручную ↗</a>
-          </div>
-          <p id="v3DownrStatus" class="v3-downr-status" role="status" aria-live="polite" hidden></p>
-          <p class="v3-downr-disclosure" data-i18n="studio.remoteMedia.externalDisclosure">Downr — внешний сервис. Скачивание и его условия происходят на стороне Downr.</p>
-        </aside>
-
+          <div class="v3-rma-actions"><button type="button" id="v3RemoteMediaNew" class="btn-secondary" onclick="RemoteMediaAcquisition.newSource()" data-i18n="studio.remoteMedia.anotherLink" hidden>Добавить по другой ссылке</button></div>
+        </section>
+        <details id="v3RemoteMediaHistory" class="v3-rma-history" hidden><summary data-i18n="studio.remoteMedia.downloadHistory">Загрузки на этом устройстве</summary><div id="v3RemoteMediaHistoryList"></div></details>
+        <details class="v3-rma-alternatives"><summary data-i18n="studio.remoteMedia.playerAndCaptions">Плеер YouTube и субтитры</summary>
+        <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.import.videoUrlBtn">Показать видео</button>
         <div class="v3-import-captions" id="v3ImportCaptionsBox">
           <div id="v3ImportYtMount" hidden></div>
           <div id="v3ImportYtHint" style="font-size:12px; color:#6c757d; margin:4px 0; white-space:pre-wrap;"></div>
@@ -50308,6 +50349,7 @@ document.addEventListener("i18n:changed", function () {
           <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
                  onchange="StudioImport.onCaptionsFileChosen(event)">
         </div>
+        </details>
       </div>
 
       <div id="v3ImportPaneFile" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabFile" hidden>

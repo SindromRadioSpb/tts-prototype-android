@@ -15,8 +15,113 @@
   }
   function header(response, name) { return String(response && response.headers && response.headers.get(name) || "").trim(); }
   function finiteSize(value) {
+    if (value == null || value === '') return null;
     var number = Number(value);
     return Number.isSafeInteger(number) && number >= 0 ? number : null;
+  }
+
+  function partialNameFor(jobId, sha) {
+    if (!/^rma_[a-f0-9]{32}$/.test(String(jobId)) || !/^[a-f0-9]{64}$/.test(String(sha))) throw failure("RESUME_IDENTITY_INVALID");
+    return "." + jobId + "." + sha + ".partial";
+  }
+  async function discardPartial(jobId, sha, root) {
+    var name = partialNameFor(jobId, sha);
+    var dir = await (root || await defaultRoot()).getDirectoryHandle(DIR, { create: true });
+    return removeQuietly(dir, name);
+  }
+  async function hashFile(file, hasher, signal) {
+    var reader = file.stream().getReader();
+    try {
+      while (true) {
+        if (signal && signal.aborted) throw failure("STREAM_PAUSED");
+        var next = await reader.read();
+        if (next.done) break;
+        hasher.update(next.value);
+      }
+    } finally { reader.releaseLock(); }
+  }
+  async function verifyStored(options) {
+    var dir = await (options.root || await defaultRoot()).getDirectoryHandle(DIR, { create: true });
+    var handle = await dir.getFileHandle(baseName(options.fileName));
+    var file = await handle.getFile();
+    if (file.size !== options.expectedSize) throw failure("SIZE_MISMATCH");
+    var hasher = await (options.hasherFactory || defaultHasherFactory)();
+    if (hasher.init) hasher.init();
+    await hashFile(file, hasher, options.signal);
+    if (hasher.digest("hex") !== options.expectedSha256) throw failure("HASH_MISMATCH");
+    return { ok: true, opfsPath: DIR + "/" + baseName(options.fileName), sha256: options.expectedSha256,
+      sizeBytes: file.size, mimeType: options.mimeType };
+  }
+
+  // Checkpointed network -> OPFS transfer. Each committed prefix is re-hashed before Range resume.
+  // No authority is inferred from persisted offsets or a file name. Only the final full SHA promotes.
+  async function downloadToOpfs(options) {
+    var sha = String(options.expectedSha256 || '').toLowerCase();
+    var partialName = partialNameFor(options.jobId, sha), finalName = baseName(options.fileName);
+    var size = finiteSize(options.expectedSize), checkpointBytes = options.checkpointBytes || 4 * 1024 * 1024;
+    if (size == null || size <= 0 || size > DEFAULT_MAX_BYTES) throw failure("SIZE_LIMIT");
+    var root = options.root || await defaultRoot(), dir = await root.getDirectoryHandle(DIR, { create: true });
+    try {
+      return await verifyStored(Object.assign({}, options, { root: root }));
+    } catch (error) {
+      if (!error || error.name !== "NotFoundError") throw error;
+    }
+    await ensureCapacity(size, options.storageEstimate);
+    var partial = await dir.getFileHandle(partialName, { create: true });
+    var prefix = await partial.getFile(), total = prefix.size, committed = total;
+    if (total > size) { await removeQuietly(dir, partialName); throw failure("SIZE_MISMATCH"); }
+    var hasher = await (options.hasherFactory || defaultHasherFactory)();
+    if (hasher.init) hasher.init();
+    await hashFile(prefix, hasher, options.signal);
+    var writable = null, reader = null, finalCreated = false;
+    try {
+      if (total < size) {
+        var response = await options.fetchResponse(total, options.signal);
+        var contentLength = finiteSize(header(response, "content-length"));
+        if (!response || !response.ok || !response.body) throw failure("STREAM_RESPONSE_INVALID");
+        var etag = '"' + sha + '"';
+        if (header(response, "etag") !== etag || header(response, "x-lp-media-sha256") !== sha) throw failure("RANGE_IDENTITY_MISMATCH");
+        if (total > 0 && (response.status !== 206 || header(response, "content-range") !== "bytes " + total + "-" + (size - 1) + "/" + size)) throw failure("RANGE_IDENTITY_MISMATCH");
+        if (!total && response.status !== 200) throw failure("RANGE_IDENTITY_MISMATCH");
+        if (contentLength !== size - total) throw failure("RESPONSE_SIZE_MISMATCH");
+        reader = response.body.getReader();
+        writable = await partial.createWritable({ keepExistingData: true });
+        await writable.seek(total);
+        while (true) {
+          if (options.signal && options.signal.aborted) throw failure("STREAM_PAUSED");
+          var next = await reader.read();
+          if (next.done) break;
+          var chunk = next.value;
+          if (total + chunk.byteLength > size) throw failure("SIZE_MISMATCH");
+          await writable.write(chunk); hasher.update(chunk); total += chunk.byteLength;
+          if (total - committed >= checkpointBytes) {
+            await writable.close(); writable = null; committed = total;
+            if (typeof options.onCheckpoint === "function") options.onCheckpoint(total);
+            writable = await partial.createWritable({ keepExistingData: true });
+            await writable.seek(total);
+          }
+          if (typeof options.onProgress === "function") options.onProgress({ bytes: total, total: size });
+        }
+        await writable.close(); writable = null;
+      }
+      if (total !== size) throw failure("STREAM_INTERRUPTED");
+      if (String(hasher.digest("hex")).toLowerCase() !== sha) throw failure("HASH_MISMATCH");
+      // Final output uses a distinct handle and atomic close; partial remains until success.
+      var finalHandle = await dir.getFileHandle(finalName, { create: true });
+      finalCreated = true;
+      await copyFileToHandle(await partial.getFile(), finalHandle, options.signal);
+      await removeQuietly(dir, partialName);
+      return { ok: true, opfsPath: DIR + "/" + finalName, sha256: sha, sizeBytes: total, mimeType: options.mimeType };
+    } catch (error) {
+      if (finalCreated) await removeQuietly(dir, finalName);
+      if (writable) {
+        // Network interruption keeps the last bytes; corruption never becomes a resumable prefix.
+        try { await writable.close(); } catch (_) { try { await writable.abort(); } catch (_) {} }
+      }
+      if (reader) { try { await reader.cancel(); } catch (_) {} }
+      if (["HASH_MISMATCH", "SIZE_MISMATCH", "RANGE_IDENTITY_MISMATCH", "RESPONSE_SIZE_MISMATCH"].includes(error.code)) await removeQuietly(dir, partialName);
+      throw error;
+    } finally { if (reader) { try { reader.releaseLock(); } catch (_) {} } }
   }
   async function defaultHasherFactory() {
     if (typeof hashwasm === "undefined" || typeof hashwasm.createSHA256 !== "function") throw failure("HASH_RUNTIME_UNAVAILABLE");
@@ -133,28 +238,32 @@
     }
   }
 
-  async function saveCopyFromOpfs(opfsPath, suggestedName) {
+  async function saveCopyFromOpfs(opfsPath, suggestedName, readyFile) {
     if (typeof window === "undefined" || !window.MediaStore) throw failure("MEDIA_STORE_UNAVAILABLE");
-    var file = await window.MediaStore.readMedia(opfsPath);
-    if (!file) throw failure("MEDIA_FILE_MISSING");
     var name = baseName(suggestedName || opfsPath);
+    // Open picker in the click's activation window, before asynchronous filesystem work.
     if (typeof window.showSaveFilePicker === "function") {
       var handle = await window.showSaveFilePicker({ suggestedName: name });
+      var file = readyFile || await window.MediaStore.readMedia(opfsPath);
+      if (!file) throw failure("MEDIA_FILE_MISSING");
       await copyFileToHandle(file, handle, null);
       return { owner_saved_copy: true, destination: "file_picker", at: new Date().toISOString() };
     }
+    var file = readyFile || await window.MediaStore.readMedia(opfsPath);
+    if (!file) throw failure("MEDIA_FILE_MISSING");
     var shareFile = file.name === name ? file : new File([file], name, { type: file.type, lastModified: file.lastModified });
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [shareFile] })) {
       await navigator.share({ files: [shareFile], title: name });
-      return { owner_saved_copy: true, destination: "share_sheet", at: new Date().toISOString() };
+      return { owner_saved_copy: false, save_requested: true, destination: "share_sheet", at: new Date().toISOString() };
     }
     var url = URL.createObjectURL(file), anchor = document.createElement("a");
     anchor.href = url; anchor.download = name; anchor.hidden = true; document.body.appendChild(anchor); anchor.click(); anchor.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 60_000);
-    return { owner_saved_copy: true, destination: "browser_download", at: new Date().toISOString() };
+    return { owner_saved_copy: false, save_requested: true, destination: "browser_download", at: new Date().toISOString() };
   }
 
   var API = { streamToOpfs: streamToOpfs, saveCopyFromOpfs: saveCopyFromOpfs, checkCapacity: checkCapacity,
+    downloadToOpfs: downloadToOpfs, discardPartial: discardPartial, verifyStored: verifyStored,
     DEFAULT_MAX_BYTES: DEFAULT_MAX_BYTES, QUOTA_MARGIN_BYTES: QUOTA_MARGIN_BYTES };
   if (typeof window !== "undefined") window.MediaStreamStore = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

@@ -42,8 +42,8 @@ class JobTests(unittest.TestCase):
             self.assertEqual(ready["output_sha256"], hashlib.sha256(b"abcdef").hexdigest())
             output = registry.open_stream(subject="owner-1", job_id=created["job_id"])
             self.assertEqual(output.path.read_bytes(), b"abcdef")
-            registry.open_stream(subject="owner-1", job_id=created["job_id"])
-            registry.open_stream(subject="owner-1", job_id=created["job_id"])
+            for _ in range(31):
+                registry.open_stream(subject="owner-1", job_id=created["job_id"])
             with self.assertRaisesRegex(JobError, "STREAM_RETRY_LIMIT"):
                 registry.open_stream(subject="owner-1", job_id=created["job_id"])
             receipt = registry.confirm_device(subject="owner-1", job_id=created["job_id"],

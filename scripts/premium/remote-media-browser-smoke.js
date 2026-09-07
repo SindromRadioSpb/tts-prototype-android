@@ -1,137 +1,135 @@
 #!/usr/bin/env node
 "use strict";
-
-// External-handoff visual gate: the real Studio shell, a deterministic player adapter, and no
-// upstream request. Proves that preview/transcript no longer depends on acquisition-worker and
-// that the Downr handoff fits/works at the 380px mobile contract in both LTR and RTL.
-const fs = require("fs");
-const path = require("path");
-const { spawn, spawnSync } = require("child_process");
-const { chromium } = require("playwright");
-
-const ROOT = path.resolve(__dirname, "..", "..");
-const PORT = 3296;
-const BASE = `http://127.0.0.1:${PORT}`;
-const SHOTS = path.join(ROOT, "docs", "research", "studio-downr-handoff", "2026-08-11", "screenshots");
-const failures = [];
-let checks = 0;
-const check = (condition, message) => { checks++; if (!condition) failures.push(message); };
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function startServer() {
-  return spawn(process.execPath, ["server.js"], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(PORT) },
-    stdio: ["ignore", "pipe", "pipe"],
-    windowsHide: true,
-  });
+// Real Studio/HTTP/jobs/OPFS/H264/AAC. Only authentication and source acquisition are fixtures.
+const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto');
+const { spawn } = require('child_process'), { chromium } = require('playwright');
+const ROOT = path.resolve(__dirname, '../..');
+const BASE = 'http://127.0.0.1:3296', WORKER = 'http://127.0.0.1:3297';
+const SHOTS = path.join(ROOT, 'docs/research/studio-media-downloader/2026-09-08/screenshots');
+const SECRET = 'browser-fixture-secret-not-production', KEY = 'studio.media-downloads.v1';
+const failures = []; let checks = 0;
+function check(value, label) { checks++; if (!value) failures.push(label); }
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+function child(command, args, env = {}) {
+  const result = spawn(command, args, { cwd: ROOT, env: { ...process.env, ...env }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  let log = ''; result.stdout.on('data', data => { log = (log + data).slice(-3000); });
+  result.stderr.on('data', data => { log = (log + data).slice(-3000); }); result.diagnostic = () => log; return result;
 }
-async function stopServer(child) {
-  if (!child || child.killed) return;
-  child.kill("SIGTERM");
-  const exited = await new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(false), 5000);
-    child.once("exit", () => { clearTimeout(timer); resolve(true); });
-  });
-  if (!exited && process.platform === "win32") spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-}
-async function ready(timeout = 20000) {
-  const started = Date.now();
-  while (Date.now() - started < timeout) {
-    try { if ((await fetch(BASE + "/healthz")).ok) return true; } catch (_) {}
-    await sleep(200);
+async function ready(base, proc) {
+  for (let i = 0; i < 150; i++) {
+    try { if ((await fetch(base + '/healthz')).ok) return; } catch (_) {}
+    if (proc.exitCode != null) break; await sleep(200);
   }
-  return false;
+  throw Error('Fixture server not ready: ' + proc.diagnostic());
 }
-
-async function inspect(browser, locale, viewport, label) {
-  const context = await browser.newContext({ viewport, serviceWorkers: "block" });
-  await context.addInitScript((value) => localStorage.setItem("app.locale", value), locale);
-  const page = await context.newPage();
-  const pageErrors = [];
-  page.on("pageerror", (error) => pageErrors.push(String(error.message || error)));
-  await page.goto(BASE + "/index.html", { waitUntil: "load", timeout: 60000 });
+function capability() {
+  const now = Math.floor(Date.now() / 1000);
+  const body = Buffer.from(JSON.stringify({ typ: 'lp_media_capability_v1', sub: 'browser-fixture', origin: BASE,
+    scopes: ['resolve', 'prepare', 'stream'], iat: now, exp: now + 300, nonce: crypto.randomUUID() })).toString('base64url');
+  return { ok: true, worker_url: WORKER, expires_at: now + 300,
+    subject_scope: crypto.createHmac('sha256', SECRET).update('subject:browser-fixture').digest('hex'),
+    capability: body + '.' + crypto.createHmac('sha256', SECRET).update(body).digest('base64url') };
+}
+async function open(page) {
   await page.evaluate(() => {
-    for (const id of ["v3OnboardingModal", "v3Phase6Modal"]) {
-      const node = document.getElementById(id); if (node) node.remove();
-    }
-    window.StudioYtPlayer.capability = () => ({ supported: true, reason: "fixture" });
-    window.StudioYtPlayer.create = async (mount) => {
-      const frame = document.createElement("div");
-      frame.style.cssText = "display:grid;place-items:center;min-height:150px;border-radius:8px;background:#173f3c;color:white;font-weight:700";
-      frame.textContent = "YouTube preview";
-      mount.appendChild(frame);
-      return {
-        tracklist: () => [{ languageCode: "he", languageName: "Hebrew", kind: "manual", isDefault: true }],
-        addEventListener: () => {}, removeEventListener: () => {}, destroy: () => frame.remove(),
-      };
-    };
-    window.StudioYtPlayer.destroy = (adapter) => adapter && adapter.destroy();
-    document.execCommand = () => true;
-    window.__downrOpened = null;
-    window.open = () => ({ opener: window, location: { replace: (url) => { window.__downrOpened = url; } } });
-    window.StudioImport.open();
-    window.StudioImport.switchTab("video");
+    for (const id of ['v3OnboardingModal', 'v3Phase6Modal']) document.getElementById(id)?.remove();
+    window.StudioImport.open(); window.StudioImport.switchTab('video');
   });
-  await page.fill("#v3ImportVideoUrl", "https://www.youtube.com/watch?v=wJgtBgZvQnU");
-  await page.click("#v3ImportVideoBtn");
-  await page.waitForSelector("#v3ImportCaptionsHow:not([hidden])", { timeout: 10000 });
-  await page.click("#v3DownrOpen");
-  await page.waitForSelector("#v3DownrChoose:not([hidden])", { timeout: 10000 });
-  const result = await page.evaluate(() => {
-    const panel = document.querySelector("#v3ImportModal .v3-modal-panel");
-    const handoff = document.getElementById("v3DownrHandoff");
-    const allTargets = [...handoff.querySelectorAll("button,a")].filter((node) => node.getClientRects().length > 0);
-    return {
-      dir: document.documentElement.dir,
-      panelInside: panel.getBoundingClientRect().left >= 0 && panel.getBoundingClientRect().right <= innerWidth,
-      noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth,
-      targets: allTargets.map((node) => Math.round(node.getBoundingClientRect().height)),
-      title: document.getElementById("v3ImportTitle").textContent.trim(),
-      pageLang: document.documentElement.lang,
-      previewMounted: !document.getElementById("v3ImportYtMount").hidden && !document.getElementById("v3ImportCaptionsHow").hidden,
-      oldWorkerSurfaceAbsent: !document.getElementById("v3RemoteMediaCard"),
-      downrOpened: window.__downrOpened,
-      status: document.getElementById("v3DownrStatus").textContent.trim(),
-    };
-  });
-  const prefix = `${locale}/${label}`;
-  check(result.dir === (locale === "he" ? "rtl" : "ltr"), `${prefix}: direction`);
-  check(result.pageLang === locale, `${prefix}: language`);
-  check(result.panelInside && result.noHorizontalOverflow, `${prefix}: horizontal fit`);
-  check(result.previewMounted && result.oldWorkerSurfaceAbsent, `${prefix}: preview is independent from worker UI`);
-  check(result.downrOpened === "https://downr.org/" && result.status.length > 0, `${prefix}: explicit Downr handoff`);
-  check(result.targets.every((height) => height >= 44), `${prefix}: tap targets >=44px (${result.targets.join(",")})`);
-  check(!/studio\.|remoteMedia/.test(result.title), `${prefix}: localized title`);
-  check(pageErrors.length === 0, `${prefix}: no page errors (${pageErrors.join(" | ")})`);
-  fs.mkdirSync(SHOTS, { recursive: true });
-  await page.screenshot({ path: path.join(SHOTS, `downr-${label}-${locale}.png`), fullPage: false });
-  const fileChoice = await page.evaluate(() => {
-    let clicks = 0;
-    document.getElementById("v3ImportAudio").click = () => { clicks++; };
-    window.StudioImport.chooseDownloadedMedia();
-    return { clicks, filePaneVisible: !document.getElementById("v3ImportPaneFile").hidden };
-  });
-  check(fileChoice.clicks === 1 && fileChoice.filePaneVisible, `${prefix}: return action opens device media picker`);
-  await context.close();
 }
-
+async function resolved(page) {
+  await page.fill('#v3ImportVideoUrl', 'https://www.youtube.com/watch?v=dH_OkB7Uym4');
+  await page.click('#v3RemoteMediaResolve');
+  await page.waitForSelector('#v3RemoteMediaCard:not([hidden])');
+  await page.waitForFunction(() => !document.getElementById('v3RemoteMediaResolve').disabled);
+}
+async function complete(page) {
+  await page.waitForSelector('#v3RemoteMediaDone:not([hidden])', { timeout: 45000 });
+  await page.waitForFunction(() => document.querySelector('#v3RemoteMediaPlayer video,#v3RemoteMediaPlayer audio')?.readyState >= 2);
+}
+async function inspect(browser, locale, viewport, thorough) {
+  const context = await browser.newContext({ viewport, serviceWorkers: 'block', acceptDownloads: true });
+  await context.addInitScript(value => { localStorage.setItem('app.locale', value); localStorage.setItem('phase6FirstOpenSeen', 'fixture'); }, locale);
+  await context.route('**/api/media-acquisition/capability', route => route.fulfill({ json: capability() }));
+  const page = await context.newPage(), errors = [], ranges = []; let asrCalls = 0;
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', async request => {
+    if (request.url().endsWith('/stream')) ranges.push((await request.allHeaders()).range || 'full');
+    if (request.method() === 'POST' && /generativelanguage|\/asr\b|transcribe/.test(request.url())) asrCalls++;
+  });
+  await page.goto(BASE + '/index.html', { waitUntil: 'load' }); await open(page); await resolved(page);
+  const layout = await page.evaluate(() => {
+    const panel = document.querySelector('#v3ImportModal .v3-modal-panel').getBoundingClientRect();
+    return { dir: document.documentElement.dir, fit: panel.left >= 0 && panel.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth,
+      heights: [...document.querySelectorAll('#v3RemoteMediaCard button, #v3RemoteMediaResolve')].filter(n => n.getClientRects().length).map(n => n.getBoundingClientRect().height),
+      options: document.getElementById('v3RemoteMediaQuality').options.length };
+  });
+  check(layout.fit && layout.dir === (locale === 'he' ? 'rtl' : 'ltr'), locale + ': mobile/RTL fit');
+  check(layout.heights.every(h => h >= 44), locale + ': tap targets 44px ' + layout.heights);
+  check(layout.options === 2, locale + ': actual format choices');
+  fs.mkdirSync(SHOTS, { recursive: true });
+  await page.screenshot({ path: path.join(SHOTS, 'choices-' + viewport.width + '-' + locale + '.png') });
+  if (thorough) await page.evaluate(() => {
+    const download = window.MediaStreamStore.downloadToOpfs;
+    window.MediaStreamStore.downloadToOpfs = options => download({ ...options, onCheckpoint: () => document.getElementById('v3RemoteMediaPause').click() });
+  });
+  await page.check('#v3RemoteMediaRights'); await page.click('#v3RemoteMediaAdd');
+  if (thorough) {
+    await page.waitForSelector('#v3RemoteMediaResume:not([hidden])');
+    const before = await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0].jobId, KEY);
+    await page.reload({ waitUntil: 'load' }); await open(page); await page.click('#v3RemoteMediaResume'); await complete(page);
+    const after = await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0].jobId, KEY);
+    check(before === after && ranges.some(value => /^bytes=[1-9]/.test(value)), 'reload resumes same job via HTTP Range: ' + JSON.stringify({before,after,ranges}));
+  } else await complete(page);
+  const media = await page.evaluate(async () => {
+    const player = document.querySelector('#v3RemoteMediaPlayer video'); await player.play();
+    return { duration: player.duration, height: player.videoHeight };
+  });
+  check(media.duration > 7 && media.height > 0, locale + ': actual video decoded and playing');
+  check(asrCalls === 0, locale + ': download/playback does not trigger ASR');
+  await page.screenshot({ path: path.join(SHOTS, 'complete-' + viewport.width + '-' + locale + '.png') });
+  if (thorough) {
+    await page.evaluate(() => { window.showSaveFilePicker = undefined; });
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('#v3RemoteMediaSaveCopy')]);
+    check(download.suggestedFilename().endsWith('.mp4'), 'explicit browser file export');
+    const exported = fs.readFileSync(await download.path());
+    const stored = await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0].stored, KEY);
+    check(exported.length === stored.sizeBytes && crypto.createHash('sha256').update(exported).digest('hex') === stored.sha256, 'exported file bytes match verified local media');
+    await page.waitForFunction(key => !!JSON.parse(localStorage.getItem(key))[0].exportReceipt, KEY);
+    check(await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0].exportReceipt.owner_saved_copy === false, KEY), 'save request is not device-save proof');
+    await page.click('#v3RemoteMediaContinue');
+    await page.waitForSelector('#v3ImportPaneFile:not([hidden])');
+    check(await page.locator('#v3ImportPaneFile').isVisible() && asrCalls === 0, 'transcription setup opens without provider call');
+    await page.reload({ waitUntil: 'load' }); await open(page); await context.setOffline(true);
+    await page.locator('#v3RemoteMediaHistory summary').click();
+    await page.locator('#v3RemoteMediaHistoryList button').first().click(); await complete(page);
+    check(await page.locator('#v3RemoteMediaPlayer video').isVisible(), 'completed local copy reopens offline');
+    await context.setOffline(false); await page.click('#v3RemoteMediaNew'); await resolved(page);
+    await context.route(WORKER + '/v1/jobs/*/device-receipt', route => route.request().method() === 'OPTIONS' ? route.continue() : route.fulfill({ status: 404, json: { ok: false, error_code: 'JOB_NOT_FOUND' },
+      headers: { 'Access-Control-Allow-Origin': BASE, 'Access-Control-Allow-Headers': 'Authorization, Content-Type' } }));
+    await page.click('#v3RemoteMediaAudio'); await page.check('#v3RemoteMediaRights'); await page.click('#v3RemoteMediaAdd'); await complete(page);
+    check(await page.locator('#v3RemoteMediaPlayer audio').isVisible(), 'audio-only M4A decoded');
+    check(await page.evaluate(key => { const r = JSON.parse(localStorage.getItem(key))[0]; return r.state === 'complete' && r.receipt.deletion_receipt.deleted === false; }, KEY), 'lost server receipt preserves verified local audio without claiming cleanup');
+    await page.click('#v3RemoteMediaNew');
+    await page.fill('#v3ImportVideoUrl', 'https://example.invalid/not-youtube'); await page.click('#v3RemoteMediaResolve');
+    await page.waitForFunction(() => !document.getElementById('v3RemoteMediaResolve').disabled);
+    check(!(await page.locator('#v3RemoteMediaCard').isVisible()), 'failed source clears stale formats');
+    check(!/Traceback|https?:\/\/|error_code/.test(await page.locator('#v3RemoteMediaStatus').innerText()), 'error copy hides upstream internals');
+  }
+  check(errors.length === 0, locale + ': no page errors ' + errors.join(' | ')); await context.close();
+}
 (async () => {
-  const server = startServer();
-  if (!(await ready())) { await stopServer(server); throw new Error("local server did not become ready"); }
-  const browser = await chromium.launch({ headless: true });
+  const data = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-media-browser-'));
+  const localPython = path.join(ROOT, '.tmp/rma-downloader-venv/Scripts/python.exe');
+  const python = process.env.LP_MEDIA_TEST_PYTHON || (fs.existsSync(localPython) ? localPython : 'python');
+  const server = child(process.execPath, ['server.js'], { PORT: '3296', DATA_DIR: data, DB_PATH: path.join(data, 'app.db') });
+  const worker = child(python, ['scripts/premium/fixtures/media-acquisition-worker.py', '--port', '3297', '--origin', BASE]);
+  let browser;
   try {
-    await inspect(browser, "ru", { width: 380, height: 844 }, "380");
-    await inspect(browser, "he", { width: 380, height: 844 }, "380");
-    await inspect(browser, "ru", { width: 1280, height: 900 }, "desktop");
-  } finally {
-    await browser.close();
-    await stopServer(server);
-  }
-  if (failures.length) {
-    console.error(`[remote-media-browser-smoke] FAIL ${checks - failures.length}/${checks}`);
-    failures.forEach((failure) => console.error(" - " + failure));
-    process.exit(1);
-  }
-  console.log(`[remote-media-browser-smoke] PASS ${checks}/${checks}`);
-})().catch((error) => { console.error("[remote-media-browser-smoke]", error); process.exit(1); });
+    await Promise.all([ready(BASE, server), ready(WORKER, worker)]); browser = await chromium.launch({ headless: true });
+    await inspect(browser, 'ru', { width: 380, height: 844 }, true);
+    await inspect(browser, 'he', { width: 380, height: 844 }, false);
+    await inspect(browser, 'ru', { width: 1280, height: 900 }, false);
+  } finally { if (browser) await browser.close(); server.kill(); worker.kill(); }
+  if (failures.length) throw Error(failures.join('\n'));
+  console.log('[remote-media-browser-smoke] PASS ' + checks + '/' + checks);
+})().catch(error => { console.error(error); process.exitCode = 1; });

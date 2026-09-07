@@ -8,6 +8,7 @@ import urllib.request
 
 from acquisition_service.main import WorkerApplication, WorkerServer
 from acquisition_service.receipts import issue_capability
+from tests.test_jobs import FakeBackend, plan_token
 
 
 class MetadataBackend:
@@ -108,6 +109,37 @@ class HttpBoundaryTests(unittest.TestCase):
         status, _, body = self.request("/v1/runtime", origin=self.origin, token=token)
         self.assertEqual(status, 200)
         self.assertIn("yt_dlp", body["worker_runtime"])
+
+    def test_range_resume_is_exact_identity_bound_and_cannot_read_another_users_job(self):
+        app = self.server.application
+        app.jobs.backend = FakeBackend()
+        created = app.jobs.create(subject="owner-1", plan_token=plan_token(), option_id="video-720",
+                                  rights_basis={"kind": "rights_holder_permission"}, request_id="a" * 32)
+        ready = app.jobs.wait(created["job_id"], timeout=2)
+        token = issue_capability(self.secret, subject="owner-1", origin=self.origin, scopes=["stream", "prepare"], nonce="range-test")
+        url = self.base + "/v1/jobs/" + created["job_id"] + "/stream"
+        headers = {"Origin": self.origin, "Authorization": "Bearer " + token,
+                   "Range": "bytes=2-", "If-Range": '"' + ready["output_sha256"] + '"'}
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers)) as response:
+            self.assertEqual(response.status, 206)
+            self.assertEqual(response.headers["Content-Range"], "bytes 2-5/6")
+            self.assertEqual(response.headers["ETag"], headers["If-Range"])
+            self.assertEqual(response.read(), b"cdef")
+        for update, expected in [({"If-Range": '"wrong"'}, 412), ({"Range": "bytes=7-"}, 416),
+                                 ({"Range": "bytes=0-1,3-4"}, 416)]:
+            with self.subTest(update=update):
+                with self.assertRaises(urllib.error.HTTPError) as caught:
+                    urllib.request.urlopen(urllib.request.Request(url, headers={**headers, **update}))
+                self.assertEqual(caught.exception.code, expected)
+                caught.exception.close()
+        other = issue_capability(self.secret, subject="other", origin=self.origin, scopes=["stream"], nonce="other")
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(urllib.request.Request(url, headers={**headers, "Authorization": "Bearer " + other}))
+        self.assertEqual(caught.exception.code, 404)
+        caught.exception.close()
+        status, _, result = self.request("/v1/requests/" + "a" * 32, origin=self.origin, token=token)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["job_id"], created["job_id"])
 
 
 if __name__ == "__main__":

@@ -1074,6 +1074,7 @@
       if (btn) btn.setAttribute("aria-selected", k === name ? "true" : "false");
     }
     if (leavingVideo) teardownVideo();
+    if (leavingVideo && window.RemoteMediaAcquisition) window.RemoteMediaAcquisition.pause();
     setStatus(null);
   }
 
@@ -2330,13 +2331,15 @@
     // W2-S5a.1 T2: same staleness trap for the video-tab URL field — a value left over from a
     // previous auto-switch (fetchUrlOrVideo()) must not greet the user on the next open().
     var vu = $("v3ImportVideoUrl");
-    // B2 is the single bounded exception to the old reset-on-open rule. A fresh/expired flow
-    // still opens on Article; a valid Downr return restores Video and an explicit file choice.
+    // Restore the current download journal; retain the legacy handoff only for older shells.
     resetDownrHandoff();
-    if (!restoreDownrHandoff()) {
+    if (!window.RemoteMediaAcquisition && restoreDownrHandoff()) {
+      // A previous release may still be loaded in an older tab.
+    } else {
       if (vu) vu.value = "";
       switchTab("url");
     }
+    if (window.RemoteMediaAcquisition) window.RemoteMediaAcquisition.onOpen();
     var preview = $("v3ImportPreview");
     if (preview && preview.dataset.ocrDraftBound !== "1") {
       preview.dataset.ocrDraftBound = "1";
@@ -2354,6 +2357,7 @@
     var wasOpen = !!(m && !m.classList.contains("hidden"));
     if (m) m.classList.add("hidden");
     cancelLocalAsr();
+    if (window.RemoteMediaAcquisition) window.RemoteMediaAcquisition.pause();
     if (mediaJobController) mediaJobController.abort();
     // W2-S5a: this modal owns ytAdapter's lifetime (it created it in mountVideo()) — every path
     // that hides the modal (Cancel, backdrop click, post-commit close() at the end of useText())
@@ -2885,6 +2889,7 @@
       worker_runtime: receipt.worker_runtime || null,
       device_receipt: { stored_in_studio_opfs: receipt.stored_in_studio_opfs === true,
                         owner_saved_copy: receipt.owner_saved_copy === true,
+                        owner_saved_copy_receipt: receipt.owner_saved_copy_receipt || null,
                         deletion_receipt: receipt.deletion_receipt || null },
     };
   }
@@ -2897,11 +2902,15 @@
     if (!/^[a-f0-9]{64}$/.test(sha) || sha !== String(acquired.stored.sha256 || "").toLowerCase()) throw new Error("REMOTE_ACQUISITION_SHA_MISMATCH");
     if (Number(file.size) !== Number(acquired.receipt.output_size_bytes)) throw new Error("REMOTE_ACQUISITION_SIZE_MISMATCH");
     var option = acquired.option, isVideo = option.kind === "video", mime = acquired.stored.mimeType || (isVideo ? "video/mp4" : "audio/mp4");
+    var verification = acquired.receipt.output_verification;
+    if (!verification || verification.method !== "ffprobe-and-faststart-remux-v1" || verification.audio_codec !== "aac"
+        || (isVideo && (verification.video_codec !== "h264" || verification.faststart !== true))) {
+      throw new Error("REMOTE_ACQUISITION_MEDIA_NOT_VERIFIED");
+    }
     var readiness = isVideo ? {
       outcome: "READY", state: "COMPLETE", canonical_sha256: sha, canonical_name: acquired.downloadName,
       bind_outcome: "bound_pending_import", target_contract: "linguistpro-mobile-v1",
-      codec_summary: { container: "mp4", faststart: true, video_codec: "h264", audio_codec: "aac",
-                       height: option.quality || null, sdr: true },
+      codec_summary: verification,
       disk_sufficient: true, cleanup_receipt: acquired.receipt.deletion_receipt || null,
     } : { outcome: "AUDIO_READY", state: "COMPLETE", canonical_sha256: sha,
           canonical_name: acquired.downloadName, bind_outcome: "bound_pending_import" };
@@ -2931,7 +2940,7 @@
 
   function recordRemoteSavedCopy(receipt) {
     if (!pendingAudio || !pendingAudio.remoteAcquisition) return false;
-    pendingAudio.remoteAcquisition.device_receipt.owner_saved_copy = true;
+    pendingAudio.remoteAcquisition.device_receipt.owner_saved_copy = receipt && receipt.owner_saved_copy === true;
     pendingAudio.remoteAcquisition.device_receipt.owner_saved_copy_receipt = receipt || null;
     return true;
   }

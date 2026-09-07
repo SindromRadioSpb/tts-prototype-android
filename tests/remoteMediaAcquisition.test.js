@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const R = require('../public/js/remote-media-acquisition.js');
 
-test('format presentation keeps complete video primary and hides raw tracks', () => {
+test('format presentation exposes complete video and audio as separate choices', () => {
   const matrix = R.presentOptions([
     { id: 'v360', kind: 'video', quality: 360, container: 'mp4', has_audio: true, size_bytes: 100 },
     { id: 'v720', kind: 'video', quality: 720, container: 'mp4', has_audio: true, size_bytes: 90, recommended: true },
@@ -13,9 +13,9 @@ test('format presentation keeps complete video primary and hides raw tracks', ()
     { id: 'a1', kind: 'audio', container: 'm4a', size_bytes: 30 },
     { id: 'c1', kind: 'captions', language: 'he', source_kind: 'auto' },
   ]);
-  assert.deepEqual(matrix.primary.map(x => x.id), ['v720', 'v360']);
-  assert.deepEqual(matrix.more.map(x => x.id), ['a1', 'c1']);
-  assert.equal(matrix.primary.some(x => x.has_audio === false), false);
+  assert.deepEqual(matrix.video.map(x => x.id), ['v360', 'v720']);
+  assert.deepEqual(matrix.audio.map(x => x.id), ['a1']);
+  assert.equal(matrix.video.some(x => x.has_audio === false), false);
 });
 
 test('job request requires explicit rights basis and immutable plan selection', () => {
@@ -25,14 +25,14 @@ test('job request requires explicit rights basis and immutable plan selection', 
   });
 });
 
-test('audio or captions remain immediately actionable when no complete video fits', () => {
+test('audio remains available when no complete video fits; captions are a separate existing flow', () => {
   const matrix = R.presentOptions([
     { id: 'raw', kind: 'video_track', quality: 1080, has_audio: false },
     { id: 'audio', kind: 'audio', container: 'm4a' },
     { id: 'captions', kind: 'captions', language: 'he', source_kind: 'manual' },
   ]);
-  assert.deepEqual(matrix.primary.map(x => x.id), ['audio', 'captions']);
-  assert.deepEqual(matrix.more, []);
+  assert.deepEqual(matrix.audio.map(x => x.id), ['audio']);
+  assert.deepEqual(matrix.video, []);
 });
 
 test('Node app exposes only a signed capability mint and contains no media proxy route', () => {
@@ -52,7 +52,7 @@ test('draft lifecycle stays in Import Center and cannot reappear as an Add Mater
   assert.doesNotMatch(shelf, /StudioImport\.open\(\{\s*tab:\s*['"]file['"]/);
 });
 
-test('Video preview is independent from the failed worker and Downr is an explicit external handoff', () => {
+test('link acquisition is embedded while video preview remains independent of the worker', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const studio = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'studio-import.js'), 'utf8');
   const videoButton = html.match(/<button[^>]+id="v3ImportVideoBtn"[^>]*>/)?.[0] || '';
@@ -60,11 +60,18 @@ test('Video preview is independent from the failed worker and Downr is an explic
   assert.match(videoButton, /onclick="StudioImport\.mountVideoFromField\(\)"/);
   assert.match(videoButton, /data-i18n="studio\.import\.videoUrlBtn"/);
   assert.doesNotMatch(videoButton, /RemoteMediaAcquisition/);
-  assert.doesNotMatch(html, /<script[^>]+remote-media-acquisition\.js/);
-  assert.match(html, /id="v3DownrOpen"[^>]+onclick="StudioImport\.openDownrFromField\(\)"/);
-  assert.match(html, /href="https:\/\/downr\.org\/"[^>]+rel="noopener noreferrer"/);
-  assert.match(studio, /var canonicalUrl = "https:\/\/www\.youtube\.com\/watch\?v=" \+ videoId/);
-  assert.match(studio, /externalWindow\.opener = null/);
-  assert.match(studio, /externalWindow\.location\.replace\(DOWNR_URL\)/);
-  assert.match(studio, /function chooseDownloadedMedia\(\) \{[\s\S]*?switchTab\("file"\);[\s\S]*?v3ImportAudio/);
+  assert.match(html, /<script[^>]+remote-media-acquisition\.js/);
+  assert.match(html, /id="v3RemoteMediaResolve"[^>]+onclick="RemoteMediaAcquisition\.resolveFromField\(\)"/);
+  assert.doesNotMatch(html, /href="https:\/\/downr\.org\/"/);
+  assert.match(studio, /verification\.method !== "ffprobe-and-faststart-remux-v1"/);
+});
+
+test('recovery journal rejects malformed paths and retains no competing media bytes', () => {
+  const record = { version: 1, requestId: 'a'.repeat(32), scope: 'b'.repeat(64), source: { video_id: 'dH_OkB7Uym4' },
+    option: { kind: 'video' }, state: 'complete', stored: { opfsPath: 'media/' + 'c'.repeat(64) + '.mp4',
+      sha256: 'c'.repeat(64), sizeBytes: 10 }, receipt: { output_sha256: 'c'.repeat(64), output_size_bytes: 10 } };
+  assert.equal(R.validateRecord(record), true);
+  assert.equal(R.validateRecord({ ...record, receipt: null }), false);
+  assert.equal(R.validateRecord({ ...record, stored: { ...record.stored, opfsPath: '../outside.mp4' } }), false);
+  assert.deepEqual(R.readRecords({ getItem: () => '{malformed' }), []);
 });
