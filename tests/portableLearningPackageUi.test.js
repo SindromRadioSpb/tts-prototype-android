@@ -21,7 +21,7 @@ test('P4 exposes one five-view Import Center and compatibility aliases use expli
   assert.match(studio,/importCenterCore\(\)\.buildCatalog/);
   for(const intent of ['move-device','restore','relink','recover','backup','inspect'])assert.match(studio,new RegExp(`['"]${intent}['"]`));
   assert.doesNotMatch(html,/id="v3PortableGlobalBtn"/,'Import Center must not compete with current-text actions in the composer');
-  assert.match(html,/id="v3PortabilityHubBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/,
+  assert.match(html,/id="v3PortabilityHubBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview'\}\)/,
     'Library must retain the primary Import Center overview');
   assert.match(studio,/['"]move-device['"]/,'move-device remains available inside Import Center');
 });
@@ -75,7 +75,7 @@ test('portability hub is discoverable from Library without duplicating the sourc
   assert.doesNotMatch(html,/id="l3WorkspaceCard"|id="l3WorkspaceShelf"/,
     'transcript correction must not reappear in the source composer or Add Material');
   assert.doesNotMatch(html,/id="v3PortableGlobalBtn"/,'composer must not duplicate the Library lifecycle hub');
-  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/);
+  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview'\}\)/);
 });
 
 test('one hub composes library, material, import and receipt-history scopes explicitly',()=>{

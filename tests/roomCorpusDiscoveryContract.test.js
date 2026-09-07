@@ -45,7 +45,7 @@ test("every corpus places optional profile fit before an explicit catalog region
 test("public corpora use the shared catalog search filter sort and bounded-page contract", () => {
   assert.match(ui, /const publicCorpusBrowseStates = new Map\(\)/);
   assert.match(ui, /corpusCatalogRegion\(['"]public-/);
-  assert.match(ui, /corpusFilterChrome\(['"]roomPublicCorpus/);
+  assert.match(ui, /CatalogDiscoveryUI\.create\(\{\s*id: ['"]roomPublicCorpus/);
   assert.match(ui, /roomPublicCorpusSearch/);
   assert.match(ui, /roomPublicCorpusScope/);
   assert.match(ui, /roomPublicCorpusAudio/);

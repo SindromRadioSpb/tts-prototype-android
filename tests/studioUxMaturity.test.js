@@ -62,7 +62,7 @@ test("the source composer exposes only current-text actions while Library owns l
     "neither the source composer nor Add Material may reveal transcript correction");
   assert.doesNotMatch(mediaPackage, /renderActiveWorkspace|renderWorkspaceShelf/,
     "opening Add Material must not project transcript lifecycle UI into the composer or modal");
-  assert.match(html, /id="v3PortabilityHubBtn"[^>]*StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/,
+  assert.match(html, /id="v3PortabilityHubBtn"[^>]*StudioPortableLearningPackage\.open\(\{view:'overview'\}\)/,
     "Library remains the discoverable Import Center entry");
 });
 

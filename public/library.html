@@ -3035,6 +3035,7 @@
       .shelf-rail::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
     }
   </style>
+<link rel="stylesheet" href="/css/catalog-discovery.css?v=485">
 </head>
 <body>
 <!-- No-flash theme: apply the shared Studio theme choice (appTheme_v1) before paint. -->
@@ -3162,7 +3163,7 @@
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.484</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.485</button>
   </div>
 </footer>
 
@@ -3350,9 +3351,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=204"></script>
-    <script src="/i18n/locales/en.js?v=204"></script>
-    <script src="/i18n/locales/he.js?v=204"></script>
+    <script src="/i18n/locales/ru.js?v=205"></script>
+    <script src="/i18n/locales/en.js?v=205"></script>
+    <script src="/i18n/locales/he.js?v=205"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3400,6 +3401,9 @@
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
 <script src="/js/learning-compass-core.js"></script>
+<script src="/js/catalog-discovery-core.js?v=485"></script>
+<script src="/js/catalog-discovery-ui.js?v=485"></script>
+<script src="/js/local-text-familiarity.js?v=485"></script>
 <!-- Legacy corpus-vocab loading/difficulty adapter; product fit decisions now delegate to B7. -->
 <script src="/js/corpus-vocab.js"></script>
 <script src="/js/scaffold-advisor.js"></script>
@@ -3427,7 +3431,7 @@
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/portable-learning-package-repository.js"></script>
-<script src="/js/studio-portable-learning-package.js"></script>
+<script src="/js/studio-portable-learning-package.js?v=485"></script>
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -3437,7 +3441,7 @@
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=422"></script>
-<script type="module" src="/js/library-ui.js?v=481"></script>
+<script src="/js/public-corpus-adapter.js?v=485"></script>
+<script type="module" src="/js/library-ui.js?v=485"></script>
 </body>
 </html>

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.484";
+const CACHE_VERSION = "v3.11.485";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -67,6 +67,11 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // proved flaky on iOS WebKit with a freshly-activated SW — precaching makes the
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
+  "/css/catalog-discovery.css?v=485",
+  "/js/catalog-discovery-core.js?v=485",
+  "/js/catalog-discovery-ui.js?v=485",
+  "/js/local-text-familiarity.js?v=485",
+  "/js/studio-library-discovery.js?v=485",
   "/",
   "/index.html",
   "/manifest.json",
@@ -85,8 +90,8 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=481",
-  "/js/room-b6-core.js",
+  "/js/library-ui.js?v=485",
+  "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
   "/js/learning-compass-worker.js",
@@ -130,7 +135,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=415",
-  "/js/public-corpus-adapter.js?v=422",
+  "/js/public-corpus-adapter.js?v=485",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
@@ -181,7 +186,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-package.js",
   "/js/studio-media-editor.js",
   "/js/studio-material-revision.js",
-  "/js/studio-portable-learning-package.js",
+  "/js/studio-portable-learning-package.js?v=485",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
@@ -231,9 +236,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=204",
-  "/i18n/locales/en.js?v=204",
-  "/i18n/locales/he.js?v=204",
+  "/i18n/locales/ru.js?v=205",
+  "/i18n/locales/en.js?v=205",
+  "/i18n/locales/he.js?v=205",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
@@ -242,7 +247,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js",
+  "/db/local-db.js?v=485",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

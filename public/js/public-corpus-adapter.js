@@ -27,6 +27,10 @@
       expected_audio_count: count(item.expected_audio_count), included_audio_count: count(item.included_audio_count),
       asset_missing: count(item.asset_missing), package_complete: yes(item.package_complete),
       edition_id: edition.edition_id, manifest_sha256: edition.manifest_sha256,
+      tags: Object.freeze(Array.isArray(item.tags) ? [...new Set(item.tags.map(value => String(value).trim().slice(0,64)).filter(Boolean))].slice(0,64) : []),
+      level: String(item.level || '').slice(0,64), topic: String(item.topic || '').slice(0,256),
+      rows_count: item.rows_count == null ? null : count(item.rows_count),
+      translation_providers: Object.freeze(Array.isArray(item.translation_providers) ? item.translation_providers.map(value => String(value).slice(0,64)).slice(0,16) : []),
     });
   }
   function normalizeCorpus(payload) {

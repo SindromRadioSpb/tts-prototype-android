@@ -18,7 +18,7 @@ export const ROOM_B6_LIMITS = Object.freeze({
 
 const CURSOR_VERSION = 1;
 const PRESENTATION_VERSION = 1;
-const SORTS = new Set(['opened_desc', 'updated_desc', 'title_asc', 'title_desc', 'topic_asc']);
+const SORTS = new Set(['opened_desc', 'updated_desc', 'title_asc', 'title_desc', 'topic_asc', 'level_asc']);
 const SCOPES = new Set(['texts', 'both', 'rows', 'notes']);
 const TAG_MODES = new Set(['all', 'any']);
 const SURFACES = new Set(['hub', 'corpus', 'mytexts', 'group', 'reader']);
@@ -81,6 +81,7 @@ export function normalizeBrowseFilters(input = {}) {
     scope: SCOPES.has(input.scope) ? input.scope : 'texts',
     sort: SORTS.has(input.sort) ? input.sort : 'opened_desc',
     smart: boundedString(input.smart, 48),
+    ...(input.provider ? { provider: boundedString(input.provider, 64) } : {}),
   };
 }
 

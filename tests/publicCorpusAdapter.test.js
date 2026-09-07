@@ -155,3 +155,12 @@ test("service worker leaves immutable task-resource PDFs network-only", () => {
   assert.match(publicBlock, /if \(\/\\\/resources/);
   assert.match(publicBlock, /file\$\/\.test\(url\.pathname\)\) return/);
 });
+
+test("published discovery metadata is bounded, optional and immutable",()=>{
+  const catalog=adapter.normalizeCorpus({corpus:{corpus_id:'pc',slug:'fixture',title:'Fixture'},edition:{edition_id:'ed',manifest_sha256:'a'.repeat(64),item_count:1,asset_count:0,asset_missing:0,package_complete:true},items:[{public_work_id:'w',public_read_allowed:1,position_no:1,snapshot_sha256:'b'.repeat(64),expected_audio_count:0,included_audio_count:0,asset_missing:0,tags:['physics','physics','x'.repeat(90)],level:'B1',topic:'Mechanics',rows_count:4,translation_providers:['gemini']}]});
+  assert.deepEqual(catalog.items[0].tags,['physics','x'.repeat(64)]);
+  assert.equal(catalog.items[0].rows_count,4);
+  assert.equal(catalog.items[0].level,'B1');
+  assert.equal(Object.isFrozen(catalog.items[0].tags),true);
+  assert.equal(Object.isFrozen(catalog.items[0].translation_providers),true);
+});

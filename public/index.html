@@ -16,7 +16,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js">
+    <link rel="modulepreload" href="/db/local-db.js?v=485">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -2512,7 +2512,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         /* Library filter toolbar: grid 2-колонки */
         .v3-lib-toolbar { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px !important; }
         .v3-lib-toolbar input[type="text"] { grid-column: 1 / -1; }
-        .v3-lib-toolbar select { font-size: 12px; }
+        .v3-lib-toolbar select { font-size: 12px; min-width:0; width:100%; max-width:100%; }
         .v3-lib-toolbar .btn-success { grid-column: 1 / -1; white-space: nowrap; }
         /* Dashboard modal header: заголовок сверху, кнопки в строку */
         #v3DashboardModal .v3-modal-header { flex-direction: column; align-items: stretch; gap: 6px; }
@@ -2539,6 +2539,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         /* Bottom sheet: Library + Dashboard модалы снизу экрана */
         #v3LibraryModal .v3-modal-panel,
         #v3DashboardModal .v3-modal-panel {
+            box-sizing: border-box;
             position: absolute;
             bottom: 0; left: 0; right: 0;
             width: 100%; max-width: 100%;
@@ -3861,14 +3862,14 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 /* L3a Correctable Media Package — focused listening editor, not a spreadsheet. */
 .p2-portable-backdrop { position:fixed; inset:0; z-index:10040; display:grid; place-items:center; padding:18px; background:rgba(7,22,28,.62); backdrop-filter:blur(8px); }
 .p2-portable-backdrop[hidden] { display:none; }
-.p2-portable-dialog { width:min(680px,100%); max-height:min(86vh,760px); overflow:auto; border:1px solid color-mix(in srgb,#0b7673 35%,var(--theme-border-medium,#cbd5e1)); border-radius:18px; padding:18px; background:var(--theme-bg-card,#fff); box-shadow:0 28px 80px rgba(2,21,26,.28); color:var(--theme-text-primary,#172b31); }
+.p2-portable-dialog { --portable-ink:#075e5b; --portable-error:#8b2d22; width:min(680px,100%); max-height:min(86vh,760px); overflow:auto; border:1px solid color-mix(in srgb,#0b7673 35%,var(--theme-border-medium,#cbd5e1)); border-radius:18px; padding:18px; background:var(--theme-bg-card,#fff); box-shadow:0 28px 80px rgba(2,21,26,.28); color:var(--theme-text-primary,#172b31); }
 .p2-portable-dialog header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
 .p2-portable-dialog h3 { margin:4px 0 0; font-size:clamp(20px,4vw,28px); }
-.p2-portable-kicker { color:#0b7673; font:750 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.06em; }
-.p2-portable-close { min-width:44px; min-height:44px; border:0; border-radius:50%; background:color-mix(in srgb,#0b7673 9%,transparent); font-size:26px; }
+.p2-portable-kicker { color:var(--portable-ink); font:750 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.06em; }
+.p2-portable-close { color:inherit; min-width:44px; min-height:44px; border:0; border-radius:50%; background:color-mix(in srgb,#0b7673 9%,transparent); font-size:26px; }
 .p2-portable-privacy { margin:14px 0; padding:12px; border-inline-start:3px solid #0b7673; border-radius:8px; background:color-mix(in srgb,#0b7673 6%,transparent); line-height:1.45; }
 .p2-format-help-row { display:flex; align-items:center; gap:10px; margin:-3px 0 13px; }
-.p2-format-help-toggle { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid color-mix(in srgb,#0b7673 42%,var(--theme-border-medium,#cbd5e1)); border-radius:999px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:800; }
+.p2-format-help-toggle { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid color-mix(in srgb,#0b7673 42%,var(--theme-border-medium,#cbd5e1)); border-radius:999px; background:var(--theme-bg-card,#fff); color:var(--portable-ink); font-weight:800; }
 .p2-format-help-toggle::before { content:'?'; display:grid; width:23px; height:23px; place-items:center; border-radius:50%; background:#0b7673; color:#fff; font:800 13px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
 .p2-format-help-hint { color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
 .p2-format-help { margin:0 0 14px; padding:14px; border:1px solid color-mix(in srgb,#0b7673 30%,var(--theme-border-medium,#cbd5e1)); border-radius:13px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
@@ -3880,27 +3881,27 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-format-help-path { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:3px 12px; padding:10px 11px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); }
 .p2-format-help-path b { font-size:14px; }
 .p2-format-help-path span { color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
-.p2-format-help-path code { grid-row:1/3; grid-column:2; align-self:center; padding:4px 7px; border-radius:7px; background:var(--theme-bg-soft,#f2f6f6); color:#075e5b; font-size:11px; white-space:nowrap; }
+.p2-format-help-path code { grid-row:1/3; grid-column:2; align-self:center; padding:4px 7px; border-radius:7px; background:var(--theme-bg-soft,#f2f6f6); color:var(--portable-ink); font-size:11px; white-space:nowrap; }
 .p2-portable-dialog label,.p2-portable-dialog select { display:block; width:100%; }
 .p2-portable-dialog select { min-height:46px; margin-top:7px; padding:8px 10px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); color:inherit; }
 .p2-portable-tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; margin:0 0 14px; padding:4px; border:1px solid color-mix(in srgb,#0b7673 18%,var(--theme-border-medium,#cbd5e1)); border-radius:12px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
 .p2-portable-tabs button { min-height:42px; border:0; border-radius:9px; background:transparent; color:var(--theme-text-secondary,#496966); font-weight:750; }
-.p2-portable-tabs button[aria-current="page"] { background:var(--theme-bg-card,#fff); color:#075e5b; box-shadow:0 3px 12px rgba(18,59,57,.1); }
+.p2-portable-tabs button[aria-current="page"] { background:var(--theme-bg-card,#fff); color:var(--portable-ink); box-shadow:0 3px 12px rgba(18,59,57,.1); }
 .p2-scope-map { display:grid; grid-template-columns:1.2fr .8fr; gap:12px; }
 .p2-scope-card,.p2-receipt-intro { padding:14px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:13px; background:var(--theme-bg-card,#fff); }
 .p2-scope-recommended { border-color:color-mix(in srgb,#0b7673 45%,var(--theme-border-medium,#cbd5e1)); background:linear-gradient(145deg,color-mix(in srgb,#0b7673 7%,var(--theme-bg-card,#fff)),var(--theme-bg-card,#fff) 58%); }
-.p2-scope-eyebrow { display:block; margin-bottom:5px; color:#0b7673; font:800 10px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.07em; }
+.p2-scope-eyebrow { display:block; margin-bottom:5px; color:var(--portable-ink); font:800 10px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.07em; }
 .p2-scope-card h4,.p2-receipt-intro h4 { margin:0 0 6px; font-size:17px; }
 .p2-scope-card p,.p2-receipt-intro p { margin:0; color:var(--theme-text-secondary,#496966); line-height:1.45; }
 .p2-scope-actions { display:flex; flex-wrap:wrap; gap:7px; margin-top:13px; }
-.p2-scope-actions button { min-height:44px; padding:8px 12px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:750; }
+.p2-scope-actions button { min-height:44px; padding:8px 12px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:var(--portable-ink); font-weight:750; }
 .p2-material-scope,.p2-import-scope { background:color-mix(in srgb,#0b7673 3%,var(--theme-bg-card,#fff)); }
 .p2-format-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
 .p2-format-grid article { padding:10px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); }
 .p2-format-grid b,.p2-format-grid span { display:block; }
 .p2-format-grid span { margin-top:4px; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
 .p2-portable-status { margin-top:14px; min-height:64px; padding:12px; border-radius:11px; background:var(--theme-bg-soft,#f2f6f6); overflow-wrap:anywhere; }
-.p2-portable-status.p2-portable-error,.p2-receipt-result.p2-portable-error { white-space:pre-line; color:#8b2d22; background:color-mix(in srgb,#c34b3e 8%,var(--theme-bg-card,#fff)); border-inline-start:3px solid #b64235; }
+.p2-portable-status.p2-portable-error,.p2-receipt-result.p2-portable-error { white-space:pre-line; color:var(--portable-error); background:color-mix(in srgb,#c34b3e 8%,var(--theme-bg-card,#fff)); border-inline-start:3px solid #b64235; }
 .p2-plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
 .p2-plan-grid span { display:flex; flex-direction:column; gap:2px; padding:8px 10px; border:1px solid color-mix(in srgb,#0b7673 16%,var(--theme-border-medium,#cbd5e1)); border-radius:9px; background:var(--theme-bg-card,#fff); color:var(--theme-text-secondary,#496966); font-size:11px; }
 .p2-plan-grid strong { color:var(--theme-text-primary,#172b31); font-size:18px; }
@@ -3909,7 +3910,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-recovery-summary { display:flex; flex-direction:column; gap:4px; margin:10px 0; padding:11px 12px; border-inline-start:4px solid #b36a00; border-radius:8px; background:#fff7e7; color:#663d00; }
 .p2-recovery-summary[data-recovery="archived"] { border-inline-start-color:#0b7673; background:#edf8f5; color:#075e5b; }
 .p2-portable-dialog footer { position:sticky; bottom:-18px; display:flex; flex-wrap:wrap; gap:8px; margin:18px -18px -18px; padding:12px 18px max(12px,env(safe-area-inset-bottom)); border-top:1px solid var(--theme-border-medium,#cbd5e1); background:color-mix(in srgb,var(--theme-bg-card,#fff) 94%,transparent); backdrop-filter:blur(10px); }
-.p2-portable-dialog footer button,.p2-portable-apply { min-height:44px; padding:9px 14px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:700; }
+.p2-portable-dialog footer button,.p2-portable-apply { min-height:44px; padding:9px 14px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:var(--portable-ink); font-weight:700; }
 .p2-portable-apply { margin-top:8px; background:#0b7673; color:#fff; }
 .p2-portable-primary { background:#0b7673 !important; color:#fff !important; }
 .p2-receipt-section { display:grid; gap:10px; }
@@ -3918,7 +3919,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-receipt-card div>* { display:block; }
 .p2-receipt-card div span,.p2-receipt-card code { margin-top:3px; color:var(--theme-text-secondary,#496966); font-size:11px; }
 .p2-receipt-card button { min-height:40px; padding:7px 10px; border:1px solid #9b3d32; border-radius:9px; background:var(--theme-bg-card,#fff); color:#8b2d22; font-weight:750; }
-.p2-receipt-card button.p2-media-relink { border-color:#0b7673; color:#075e5b; }
+.p2-receipt-card button.p2-media-relink { border-color:#0b7673; color:var(--portable-ink); }
 .p2-receipt-card button.p2-recovery-action { border-color:#0b7673; background:#0b7673; color:#fff; }
 .p2-receipt-media[data-available="true"] { color:#08785f !important; }
 .p2-receipt-health { margin-top:8px !important; padding:8px 9px; border-radius:8px; background:var(--theme-bg-soft,#f2f6f6); color:var(--theme-text-primary,#172b31) !important; font-size:12px !important; line-height:1.4; }
@@ -3931,7 +3932,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p4-overview,.p4-materials,.p4-material-list,.p4-reference { display:grid; gap:12px; }
 .p4-overview-stats { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
 .p4-overview-stats button { display:flex; align-items:baseline; gap:8px; min-height:54px; padding:10px 12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:12px; background:var(--theme-bg-card,#fff); color:inherit; text-align:start; }
-.p4-overview-stats strong { color:#0f766e; font-size:24px; }
+.p4-overview-stats strong { color:var(--portable-ink); font-size:24px; }
 .p4-overview-stats span { color:var(--theme-text-secondary,#64748b); font-weight:700; }
 .p4-material-card { padding:15px; border:1px solid color-mix(in srgb,#0f766e 30%,var(--theme-border-medium,#cbd5e1)); border-radius:14px; background:var(--theme-bg-card,#fff); }
 .p4-material-card>header { align-items:flex-start; }
@@ -3953,12 +3954,25 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 [dir="rtl"] .p4-continuity-rail li { direction:rtl; }
 .p4-honesty-note { margin:8px 0; padding:8px 10px; border-inline-start:3px solid #b45309; background:#fff7e8; color:#7a4a08; font-size:12px; }
 .p4-material-actions,.p4-save-confirm,.p4-catalog-toolbar { display:flex; flex-wrap:wrap; gap:7px; }
-.p4-material-actions button,.p4-save-confirm button,.p4-catalog-toolbar button,.p4-load-more,.p4-empty button,.p4-wizard button,.p4-reference button { min-height:44px; padding:8px 12px; border:1px solid #0f766e; border-radius:10px; background:var(--theme-bg-card,#fff); color:#0f5f59; font-weight:750; }
+.p4-material-actions button,.p4-save-confirm button,.p4-catalog-toolbar button,.p4-load-more,.p4-empty button,.p4-wizard button,.p4-reference button { min-height:44px; padding:8px 12px; border:1px solid #0f766e; border-radius:10px; background:var(--theme-bg-card,#fff); color:var(--portable-ink); font-weight:750; }
 .p4-primary-action { background:#0f766e !important; color:#fff !important; }
 .p4-material-card details,.p4-reference details,.p4-wizard details { margin-top:10px; }
 .p4-material-card code,.p4-reference code,.p4-wizard code { display:block; margin-top:7px; padding:9px; border-radius:8px; background:var(--theme-bg-soft,#f2f6f6); overflow-wrap:anywhere; white-space:pre-wrap; font-size:10px; }
+.p4-start-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.p4-wizard label { display:grid; gap:8px; }
+.p4-wizard select { width:100%; max-width:100%; min-height:44px; padding:10px; color:inherit; background:var(--theme-bg-card,#fff); border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:8px; }
+.p4-overview h4 { margin:0; font-size:18px; }
 .p4-task-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+body.theme-dark .p2-portable-dialog { --portable-ink:#5eead4; --portable-error:#fca5a5; }
+@media(prefers-color-scheme:dark) { body:not(.theme-light) .p2-portable-dialog { --portable-ink:#5eead4; --portable-error:#fca5a5; } }
 .p4-task-grid button { min-height:92px; padding:13px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:12px; background:var(--theme-bg-card,#fff); color:inherit; text-align:start; }
+.p4-task-grid.p4-start-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.p4-overview-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.p4-import-center .p2-portable-close { min-width:44px; min-height:44px; width:44px; height:44px; padding:0; }
+.p4-import-center .p2-scope-eyebrow { font-family:inherit; font-size:12px; letter-spacing:normal; }
+.p4-import-center .p2-portable-kicker { font-family:inherit; letter-spacing:normal; font-size:12px; }
+.p4-import-center .p2-portable-privacy { background:none; border:0; padding:0; color:var(--theme-text-secondary,#64748b); font-size:13px; }
+.p4-import-center .p2-format-help-row { margin-top:12px; }
 .p4-task-grid b,.p4-task-grid span,.p4-reference article b,.p4-reference article span { display:block; }
 .p4-task-grid span,.p4-reference article span { margin-top:5px; color:var(--theme-text-secondary,#64748b); font-size:12px; line-height:1.4; }
 .p4-wizard,.p4-reference article { padding:14px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:12px; background:var(--theme-bg-card,#fff); }
@@ -3983,7 +3997,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .p2-scope-actions,.p2-scope-actions button { width:100%; }
   .p2-receipt-card { grid-template-columns:1fr; }
   .p2-receipt-result { grid-column:1; }
-  .p4-task-grid { grid-template-columns:1fr; }
+  .p4-task-grid,.p4-task-grid.p4-start-grid { grid-template-columns:1fr; }
+  .p4-overview-stats button { flex-direction:column; gap:3px; padding:8px; }
+  .p4-overview-stats span { font-size:11px; }
   .p4-continuity-rail { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .p4-continuity-rail li::after { display:none; }
   .p4-material-actions,.p4-material-actions button,.p4-save-confirm,.p4-save-confirm button { width:100%; }
@@ -10791,7 +10807,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js';
+  import * as _ldb from '/db/local-db.js?v=485';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -10946,6 +10962,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   });
 </script>
 
+<link rel="stylesheet" href="/css/catalog-discovery.css?v=485">
 </head>
 <body>
 
@@ -11958,7 +11975,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
     <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
     <button class="btn-secondary" onclick="v3FeedbackOpen('cardrequest')" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
-    <button id="v3PortabilityHubBtn" class="btn-primary" onclick="StudioPortableLearningPackage.open({view:'overview',intent:'backup'})" data-i18n="studio.importCenter.hub">Импорт-центр</button>
+    <button id="v3PortabilityHubBtn" class="btn-primary" onclick="StudioPortableLearningPackage.open({view:'overview'})" data-i18n="studio.importCenter.hub">Импорт-центр</button>
     <button id="publicationCenterEntry" class="btn-secondary" type="button" hidden data-i18n="publication.open">Публикация</button>
     <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
     <button id="v3LibraryWipeAllBtn" class="btn-secondary" onclick="v3LibraryWipeAllConfirm()" style="display:none; color:#b91c1c; border-color:#fecaca; background:#fef2f2;" title="Удалить ВСЁ из локальной библиотеки. Полный сброс OPFS. Действие необратимо.">⚠ Сбросить локальную библиотеку</button>
@@ -12045,6 +12062,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <option value="title_asc" data-i18n="library.sortTitleAsc">Сорт: Название A→Я</option>
     <option value="level_asc" data-i18n="library.sortLevelAsc">Сорт: Уровень A→Я</option>
     <option value="topic_asc" data-i18n="library.sortTopicAsc">Сорт: Тема A→Я</option>
+    <option value="familiar_desc" data-i18n="room.compass.sortFamiliar">Сначала достоверно знакомые</option>
   </select>
 
   <button class="btn-success" onclick="v3LibrarySaveCurrent()" data-i18n="library.saveCurrentTable">Сохранить текущую таблицу</button>
@@ -12079,6 +12097,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
+      <div id="v3LibraryFamiliarityStatus" class="v3-lib-status" role="status" aria-live="polite" hidden></div>
 	  <div id="v3LibExportCardHost"></div>
 	  <div id="v3LibraryNotesMatches" class="v3-notes-matches" style="display:none;"></div>
 	  <div id="v3LibraryRowsMatches" class="v3-notes-matches" style="display:none;"></div>
@@ -13283,9 +13302,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=204"></script>
-<script src="/i18n/locales/en.js?v=204"></script>
-<script src="/i18n/locales/he.js?v=204"></script>
+<script src="/i18n/locales/ru.js?v=205"></script>
+<script src="/i18n/locales/en.js?v=205"></script>
+<script src="/i18n/locales/he.js?v=205"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13390,11 +13409,15 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/material-revision-repository.js"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
+<script src="/js/catalog-discovery-core.js?v=485"></script>
+<script src="/js/learning-compass-core.js"></script>
+<script src="/js/local-text-familiarity.js?v=485"></script>
+<script src="/js/studio-library-discovery.js?v=485"></script>
 <script src="/js/portable-learning-package-repository.js"></script>
 <script src="/js/studio-media-package.js"></script>
 <script src="/js/studio-media-editor.js"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js"></script>
+<script src="/js/studio-portable-learning-package.js?v=485"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13469,7 +13492,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.484";
+    window.APP_VERSION = "3.11.485";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -25730,6 +25753,7 @@ try { v3SyncTagMatchModeUi(); } catch (_) {}
 }
 
 function v3LibraryClose() {
+  if (window.StudioLibraryDiscovery) window.StudioLibraryDiscovery.cancel();
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
   const modal = v3LibEl("v3LibraryModal");
@@ -25804,6 +25828,9 @@ async function v3LibraryRefresh() {
 	v3LibraryApplyFilter();
 
     if (statusEl) statusEl.textContent = t("library.loaded", { count: v3LibraryTexts.length, date: v3FmtDate(v3LibraryLastLoadedAt) });
+    if (LOCAL_MODE && window.StudioLibraryDiscovery) {
+      window.StudioLibraryDiscovery.start(await ensureLocalDB(), v3LibraryTexts).catch(error => console.warn('Library familiarity', error));
+    }
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);
     const detail = (e && e.message) ? String(e.message) : String(e);
@@ -25915,13 +25942,7 @@ function v3TranslationT(key, fallback) {
 // Canonical grouping is deliberately narrower than model naming. It makes filters
 // stable across model upgrades while the exact model remains visible in provenance.
 function v3NormalizeTranslationProvider(raw) {
-  const value = String(raw || "").trim().toLowerCase();
-  if (!value) return "";
-  if (value === "madlad" || value.startsWith("madlad-")) return "madlad";
-  if (value === "gemini" || value.startsWith("gemini-")) return "gemini";
-  if (["gcp", "google-cloud", "google-cloud-translate", "google-translate-v3"].includes(value)) return "gcp";
-  if (["google", "google-free", "google-translate", "googletrans"].includes(value)) return "google-free";
-  return value;
+  return window.CatalogDiscovery.normalizeProvider(raw);
 }
 
 function v3TranslationProviderLabel(provider) {
@@ -25938,56 +25959,7 @@ function v3TranslationProviderLabel(provider) {
 }
 
 function v3TranslationProvenance(textRow, sentenceRows) {
-  const text = textRow && typeof textRow === "object" ? textRow : {};
-  const rows = Array.isArray(sentenceRows) ? sentenceRows : [];
-  const providers = new Set();
-  let knownRows = 0;
-  let model = "";
-  let generatedAt = "";
-
-  for (const row of rows) {
-    const provider = v3NormalizeTranslationProvider(row && (row.translation_provider ?? row.translationProvider ?? row._translationProvider));
-    if (provider) { providers.add(provider); knownRows += 1; }
-    const rowMeta = v3ParseJsonObject(row && (row.translation_meta_json ?? row.translationMetaJson ?? row._translationMetaJson));
-    if (!model && rowMeta) model = String(rowMeta.model || rowMeta.translator_version || "").trim();
-    if (!generatedAt && rowMeta) generatedAt = String(rowMeta.generatedAt || rowMeta.generated_at || "").trim();
-  }
-
-  // Lightweight Library rows carry a sentence-derived GROUP_CONCAT. This stays
-  // authoritative over table-level metadata and correctly exposes mixed cards.
-  if (!providers.size) {
-    const aggregate = text.translation_providers ?? text.translationProviders ?? "";
-    const values = Array.isArray(aggregate) ? aggregate : String(aggregate || "").split(",");
-    values.forEach((value) => { const p = v3NormalizeTranslationProvider(value); if (p) providers.add(p); });
-  }
-
-  const metas = [
-    v3ParseJsonObject(text.table_model_meta_json ?? text.tableModelMetaJson ?? text.tableModelMeta),
-    v3ParseJsonObject(text.source_meta_json ?? text.sourceMetaJson),
-  ].filter(Boolean);
-  const providerAuthority = providers.size ? (rows.length ? "sentences" : "sentence-summary") : "table-meta-fallback";
-  if (!providers.size) {
-    for (const meta of metas) {
-      const p = v3NormalizeTranslationProvider(meta.provider || meta.actual_provider || meta.translator_provider);
-      if (p) { providers.add(p); break; }
-    }
-  }
-  for (const meta of metas) {
-    if (!model) model = String(meta.model || meta.translator_version || "").trim();
-    if (!generatedAt) generatedAt = String(meta.generatedAt || meta.generated_at || "").trim();
-  }
-
-  const list = Array.from(providers).sort();
-  return {
-    providers: list,
-    kind: list.length > 1 ? "mixed" : (list.length === 1 ? "single" : "unknown"),
-    primary: list.length === 1 ? list[0] : "",
-    model,
-    generatedAt,
-    knownRows,
-    totalRows: rows.length,
-    authority: list.length ? providerAuthority : "unknown",
-  };
+  return window.CatalogDiscovery.translationProvenance(textRow || {}, Array.isArray(sentenceRows) ? sentenceRows : []);
 }
 
 function v3TranslationFieldsForSave(row, tableMeta) {
@@ -26449,7 +26421,7 @@ function v3LibrarySmartFilter(texts) {
   if (!v3LibrarySmartChip || !v3LibrarySmartCache) return texts;
   const set = v3LibrarySmartCache[v3LibrarySmartChip];
   if (!set) return texts;
-  if (v3LibrarySmartChip === "recent") return texts;  // sort handles it
+  if (v3LibrarySmartChip === "recent") return texts.filter(t => Date.parse(t.last_opened_at || "") >= Date.now() - 7 * 86400000);
   return texts.filter((t) => set.has(String(t.id)));
 }
 
@@ -26501,6 +26473,11 @@ function v3LibraryApplyFilter() {
     a.sort((x, y) => {
       const tx = x || {};
       const ty = y || {};
+
+      if (key === "familiar_desc" && window.StudioLibraryDiscovery) {
+        const delta = window.StudioLibraryDiscovery.compare(tx, ty);
+        if (delta) return delta;
+      }
 
       if (key === "opened_desc") {
         const ax = v3Ms(tx.last_opened_at) || v3Ms(tx.updated_at) || v3Ms(tx.created_at);
@@ -26583,8 +26560,8 @@ function v3LibraryApplyFilter() {
   // Recent is handled via sort below.
   filtered = v3LibrarySmartFilter(filtered);
 
-  // 2) Sort (always apply). Smart chip "recent" overrides user sort.
-  const effectiveSort = (v3LibrarySmartChip === "recent") ? "opened_desc" : sortKey;
+  // The selected sort always describes the visible order.
+  const effectiveSort = sortKey;
   const sorted = v3SortTextsCopy(filtered, effectiveSort);
 
   // 3) Render
@@ -26726,6 +26703,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 				<span class="v3-card-src-line">${t("library.source")}: ${sourceHtml}</span>
 				${t("library.lastOpened")}: ${v3EscapeHtml(v3FmtDate(lastOpened))}<br/>${t("library.created")}: ${v3EscapeHtml(v3FmtDate(createdAt))}
            </div>
+          ${window.StudioLibraryDiscovery ? window.StudioLibraryDiscovery.badge(id) : ''}
           <div style="margin-top:6px;">${tagsHtml}</div>
           ${(() => { try { const _p = v3NotesAutoBuildPending[String(id)]; return (_p && _p.length) ? `<div style="margin-top:6px;"><button type="button" data-act="pending" title="${t('review.pendingTitle','Сомнительные авто-кандидаты — открыть очередь проверки')}" style="width:auto;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid #fed7aa;background:#fff7ed;color:#b45309;cursor:pointer;">⚠ ${_p.length} ${t('review.pendingWord','на проверку')}</button></div>` : ""; } catch (_) { return ""; } })()}
         </div>

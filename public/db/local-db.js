@@ -40,8 +40,9 @@
 import '../js/nakdan-derived-core.js';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
+import '../js/catalog-discovery-core.js?v=485';
 import { LEXICAL_RESOLUTION_SCHEMA_SQL } from './migrations.js';
-import { encodeBrowseCursor, decodeBrowseCursor, fingerprintBrowseFilters, normalizeBrowseFilters, ROOM_B6_LIMITS } from '../js/room-b6-core.js';
+import { encodeBrowseCursor, decodeBrowseCursor, fingerprintBrowseFilters, normalizeBrowseFilters, ROOM_B6_LIMITS } from '../js/room-b6-core.js?v=485';
 
 const _nakdanDerived = globalThis.NakdanDerivedCore;
 
@@ -632,7 +633,8 @@ export async function listTextsLight({ limit = 500, archived = false } = {}) {
 const _PERSONAL_TEXT_PREDICATE = `t.is_archived = 0
   AND (NOT json_valid(t.source_meta_json)
        OR (json_type(t.source_meta_json, '$.corpus') IS NULL
-           AND json_type(t.source_meta_json, '$.group_corpus') IS NULL))`;
+           AND json_type(t.source_meta_json, '$.group_corpus') IS NULL
+           AND json_type(t.source_meta_json, '$.public_corpus') IS NULL))`;
 
 function _b6Like(value) {
   return '%' + String(value || '').replace(/([\\%_])/g, '\\$1') + '%';
@@ -651,13 +653,8 @@ function _b6TextVariants(value) {
 }
 
 function _b6SplitQuery(raw) {
-  const textTokens = [], tagTokens = [];
-  for (const part of String(raw || '').trim().split(/\s+/).filter(Boolean)) {
-    if (part[0] === '#') { const tag = part.slice(1).trim(); if (tag) tagTokens.push(tag); }
-    else if (/^tag:/i.test(part)) { const tag = part.slice(4).trim(); if (tag) tagTokens.push(tag); }
-    else textTokens.push(part);
-  }
-  return { textTokens: textTokens.slice(0, 24), tagTokens: tagTokens.slice(0, 12) };
+  const parsed = globalThis.CatalogDiscovery.parseQuery(raw);
+  return { textTokens: parsed.textTokens.slice(0, 24), tagTokens: parsed.tags.slice(0, 12) };
 }
 
 function _b6TokenClause(tokens, expression, params) {
@@ -673,6 +670,7 @@ function _b6TokenClause(tokens, expression, params) {
 
 function _b6SortSpec(sort) {
   switch (sort) {
+    case 'level_asc': return { primary: `COALESCE(t.level, '')`, secondary: `COALESCE(t.title, '')`, dir: 'asc', topic: true, collate: true };
     case 'updated_desc': return { primary: `COALESCE(t.updated_at, t.created_at, '')`, secondary: `''`, dir: 'desc', topic: false };
     case 'title_asc': return { primary: `COALESCE(t.title, '')`, secondary: `''`, dir: 'asc', topic: false, collate: true };
     case 'title_desc': return { primary: `COALESCE(t.title, '')`, secondary: `''`, dir: 'desc', topic: false, collate: true };
@@ -746,6 +744,52 @@ function _b6AudioSegmentCountSql() {
   return `COALESCE(${count('audio')}, ${count('captions')}, 0)`;
 }
 
+// Same provider precedence as Studio: sentence facts, then the saved table/source
+// passport. SQL returns only the small provider set, never table bodies.
+function _catalogProvidersSql() {
+  const normalize = expression => {
+    const raw = `LOWER(TRIM(COALESCE(${expression}, '')))`;
+    return `CASE WHEN ${raw}='madlad' OR ${raw} LIKE 'madlad-%' THEN 'madlad'
+      WHEN ${raw}='gemini' OR ${raw} LIKE 'gemini-%' THEN 'gemini'
+      WHEN ${raw} IN ('gcp','google-cloud','google-cloud-translate','google-translate-v3') THEN 'gcp'
+      WHEN ${raw} IN ('google','google-free','google-translate','googletrans') THEN 'google-free' ELSE ${raw} END`;
+  };
+  const meta = column => {
+    const safe = `CASE WHEN json_valid(t.${column}) THEN t.${column} ELSE '{}' END`;
+    return normalize(`COALESCE(json_extract(${safe},'$.provider'),json_extract(${safe},'$.actual_provider'),json_extract(${safe},'$.translator_provider'))`);
+  };
+  return `COALESCE(NULLIF((SELECT GROUP_CONCAT(DISTINCT ${normalize('s.translation_provider')}) FROM sentences s
+    WHERE s.text_id=t.id AND TRIM(COALESCE(s.translation_provider,''))<>''),''),NULLIF(${meta('table_model_meta_json')},''),${meta('source_meta_json')})`;
+}
+
+export async function getCatalogPersonalMetadata() {
+  return q(`SELECT t.id,t.text_key,t.tags_json,t.level,t.topic,t.created_at,t.updated_at,t.last_opened_at,
+    ${_catalogProvidersSql()} AS translation_providers FROM texts t WHERE t.is_archived=0`);
+}
+
+// Authorized catalog adapters supply exact local keys. Query results cannot
+// broaden a protected/public corpus to other materialized sources or editions.
+export async function findCatalogTextMatches({ textKeys = [], query = '', scope = 'both' } = {}) {
+  const split = globalThis.CatalogDiscovery.parseQuery(query);
+  if (!split.textTokens.length || !textKeys.length) return [];
+  const tokens = split.textTokens.slice(0, 24), params = [JSON.stringify(textKeys)];
+  const rows = _b6TokenClause(tokens, `COALESCE(s.he_plain,'') || ' ' || COALESCE(s.he_niqqud,'') || ' ' || COALESCE(s.ru,'') || ' ' || COALESCE(s.translit,'')`, []);
+  const notes = _b6TokenClause(tokens, `COALESCE(n.title,'') || ' ' || COALESCE(n.body_json,'')`, []);
+  const predicates = [];
+  if (scope === 'rows' || scope === 'both') {
+    const values = []; _b6TokenClause(tokens, '', values);
+    predicates.push(`EXISTS (SELECT 1 FROM sentences s WHERE s.text_id=t.id AND ${rows})`); params.push(...values);
+  }
+  if (scope === 'notes' || scope === 'both') {
+    const values = []; _b6TokenClause(tokens, '', values);
+    predicates.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id=t.id OR EXISTS
+      (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND ${notes})`); params.push(...values);
+  }
+  if (!predicates.length) return [];
+  return q(`SELECT t.text_key FROM texts t WHERE t.is_archived=0 AND t.text_key IN
+    (SELECT CAST(value AS TEXT) FROM json_each(?)) AND (${predicates.join(' OR ')})`, params);
+}
+
 export async function listPersonalTextsPage(options = {}) {
   const filters = normalizeBrowseFilters(options);
   const pageLimit = Math.max(1, Math.min(Number(options.limit) || ROOM_B6_LIMITS.pageSize, 96));
@@ -761,6 +805,12 @@ export async function listPersonalTextsPage(options = {}) {
   const params = [];
 
   if (filters.level) { where.push(`COALESCE(t.level, '') = ?`); params.push(filters.level); }
+  if (filters.provider) {
+    const providers = _catalogProvidersSql();
+    if (filters.provider === 'mixed') where.push(`instr(${providers}, ',') > 0`);
+    else if (filters.provider === 'unknown') where.push(`${providers} = ''`);
+    else { where.push(`instr(',' || ${providers} || ',', ',' || ? || ',') > 0`); params.push(filters.provider); }
+  }
   if (allTags.length) {
     if (filters.tagMode === 'any') {
       const variants = Array.from(new Set(allTags.flatMap(_b6TextVariants)));
@@ -787,7 +837,7 @@ export async function listPersonalTextsPage(options = {}) {
     const noteParams = [];
     const notes = _b6TokenClause(split.textTokens, `COALESCE(n.title, '') || ' ' || COALESCE(n.body_json, '')`, noteParams);
     const rowExists = `EXISTS (SELECT 1 FROM sentences s WHERE s.text_id = t.id AND ${rows})`;
-    const noteExists = `EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND ${notes})`;
+    const noteExists = `EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND ${notes})`;
     if (filters.scope === 'rows') { where.push(rowExists); params.push(...rowParams); }
     else if (filters.scope === 'notes') { where.push(noteExists); params.push(...noteParams); }
     else if (filters.scope === 'both') {
@@ -801,10 +851,10 @@ export async function listPersonalTextsPage(options = {}) {
   else if (filters.smart === 'fresh') {
     if (options.freshSince) { where.push(`t.created_at >= ?`); params.push(String(options.freshSince)); }
     else where.push('0 = 1');
-  } else if (filters.smart === 'with-note') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id)`);
-  else if (filters.smart === 'audio-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.audio_anchor_ms IS NOT NULL)`);
-  else if (filters.smart === 'srs-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.srs_card_id IS NOT NULL)`);
-  else if (filters.smart === 'templated') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note'))`);
+  } else if (filters.smart === 'with-note') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)))`);
+  else if (filters.smart === 'audio-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.audio_anchor_ms IS NOT NULL)`);
+  else if (filters.smart === 'srs-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.srs_card_id IS NOT NULL)`);
+  else if (filters.smart === 'templated') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note'))`);
   else if (filters.smart === 'struggling' || filters.smart === 'mastered') {
     if (smartIds.length) {
       where.push(`EXISTS (SELECT 1 FROM json_each(?) ids WHERE CAST(ids.value AS TEXT) = t.id)`);
@@ -845,6 +895,7 @@ export async function listPersonalTextsPage(options = {}) {
              SUBSTR(COALESCE(t.topic, ''), 1, 256) AS topic,
              t.is_pinned, t.pin_order, SUBSTR(COALESCE(t.manual_smart_tag, ''), 1, 128) AS manual_smart_tag,
              t.created_at, t.updated_at, t.last_opened_at,
+             ${_catalogProvidersSql()} AS translation_providers,
              tp.last_row_idx, tp.finished_at, tp.updated_at AS progress_updated_at,
              ${_b6MediaKindSql()} AS media_kind,
              (SELECT COUNT(*) FROM sentences media_rows WHERE media_rows.text_id = t.id) AS rows_count,
@@ -921,17 +972,25 @@ export async function getPersonalTextFacets() {
   const tags = await q(`SELECT TRIM(CAST(j.value AS TEXT)) AS value, COUNT(*) AS count
     FROM texts t, json_each(CASE WHEN json_valid(t.tags_json) THEN t.tags_json ELSE '[]' END) j
     WHERE ${_PERSONAL_TEXT_PREDICATE} AND TRIM(CAST(j.value AS TEXT)) <> ''
-    GROUP BY LOWER(TRIM(CAST(j.value AS TEXT))) ORDER BY count DESC, value COLLATE NOCASE ASC LIMIT 12`);
+    GROUP BY LOWER(TRIM(CAST(j.value AS TEXT))) ORDER BY count DESC, value COLLATE NOCASE ASC`);
   const smartRows = await q(`SELECT
       SUM(CASE WHEN t.last_opened_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS recent,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id) THEN 1 ELSE 0 END) AS with_note,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.audio_anchor_ms IS NOT NULL) THEN 1 ELSE 0 END) AS audio_noted,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.srs_card_id IS NOT NULL) THEN 1 ELSE 0 END) AS srs_noted,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')) THEN 1 ELSE 0 END) AS templated
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id))) THEN 1 ELSE 0 END) AS with_note,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.audio_anchor_ms IS NOT NULL) THEN 1 ELSE 0 END) AS audio_noted,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.srs_card_id IS NOT NULL) THEN 1 ELSE 0 END) AS srs_noted,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE (n.text_id = t.id OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.note_id=n.id AND no.text_id=t.id)) AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')) THEN 1 ELSE 0 END) AS templated
     FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE}`);
   const smart = smartRows[0] || {};
+  const providerRows = await q(`SELECT ${_catalogProvidersSql()} AS translation_providers, COUNT(*) AS count
+    FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE} GROUP BY translation_providers`);
+  const providerCounts = new Map();
+  for (const row of providerRows) {
+    const provenance = globalThis.CatalogDiscovery.translationProvenance(row);
+    for (const provider of provenance.providers.concat(provenance.kind === 'single' ? [] : [provenance.kind]))
+      providerCounts.set(provider, (providerCounts.get(provider) || 0) + Number(row.count));
+  }
   return {
-    total, levels, tags,
+    total, levels, tags, providers: Array.from(providerCounts, ([value, count]) => ({ value, count })),
     smartCounts: {
       recent: Number(smart.recent || 0), 'with-note': Number(smart.with_note || 0),
       'audio-noted': Number(smart.audio_noted || 0), 'srs-noted': Number(smart.srs_noted || 0),
@@ -4488,28 +4547,14 @@ export async function getNotesSmartCollectionsSummary() {
 // filter dropdown (ids only, sorted by last_opened_at). Application
 // code zips with the list of texts to render filtered Library.
 export async function getTextIdsForNotesSmartChip(kind) {
-  switch (kind) {
-    case 'with-note':
-      return (await q(
-        `SELECT DISTINCT text_id FROM notes_v2 WHERE text_id IS NOT NULL`
-      )).map(r => r.text_id);
-    case 'audio-noted':
-      return (await q(
-        `SELECT DISTINCT text_id FROM notes_v2 WHERE audio_anchor_ms IS NOT NULL AND text_id IS NOT NULL`
-      )).map(r => r.text_id);
-    case 'srs-noted':
-      return (await q(
-        `SELECT DISTINCT text_id FROM notes_v2 WHERE srs_card_id IS NOT NULL AND text_id IS NOT NULL`
-      )).map(r => r.text_id);
-    case 'templated':
-      return (await q(
-        `SELECT DISTINCT text_id FROM notes_v2
-           WHERE note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')
-             AND text_id IS NOT NULL`
-      )).map(r => r.text_id);
-    default:
-      return [];
-  }
+  const predicates = { 'with-note': '1=1', 'audio-noted': 'n.audio_anchor_ms IS NOT NULL',
+    'srs-noted': 'n.srs_card_id IS NOT NULL',
+    templated: "n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')" };
+  const predicate = predicates[kind];
+  if (!predicate) return [];
+  return (await q(`SELECT n.text_id FROM notes_v2 n WHERE n.text_id IS NOT NULL AND ${predicate}
+    UNION SELECT no.text_id FROM note_occurrences no JOIN notes_v2 n ON n.id=no.note_id
+    WHERE no.text_id IS NOT NULL AND ${predicate}`)).map(row=>row.text_id);
 }
 
 // ── B8 Reading Journey projections ────────────────────────────────────────

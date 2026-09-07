@@ -12,6 +12,7 @@ const { Worker } = require("worker_threads");
 const { getDb } = require("./sqlite");
 const { DATA_DIR } = require("../storage");
 const IngredientCore = require("../public/js/learning-compass-ingredients.js");
+const CatalogDiscovery = require("../public/js/catalog-discovery-core.js");
 
 const PERMISSIONS = Object.freeze([
   ["PUBLIC_READ", "public_read_allowed"],
@@ -599,8 +600,21 @@ function createPublicationRepo(options = {}) {
       FROM published_corpora c JOIN published_corpus_editions e ON e.edition_id=c.current_edition_id
      WHERE c.slug=? AND c.status='PUBLISHED'`, [clean]);
     if (!corpus) fail("CORPUS_NOT_FOUND", 404);
-    const items = await dbAll(database, `SELECT public_work_id,position_no,title,creator,snapshot_sha256,public_read_allowed,public_stream_allowed,package_download_allowed,rights_basis,rights_asserted_at,expected_audio_count,included_audio_count,asset_missing,package_complete
+    const itemRows = await dbAll(database, `SELECT public_work_id,position_no,title,creator,snapshot_sha256,public_read_allowed,public_stream_allowed,package_download_allowed,rights_basis,rights_asserted_at,expected_audio_count,included_audio_count,asset_missing,package_complete,
+      SUBSTR(COALESCE(json_extract(snapshot_json,'$.library.texts[0].level'),''),1,64) AS level,
+      SUBSTR(COALESCE(json_extract(snapshot_json,'$.library.texts[0].topic'),''),1,256) AS topic,
+      COALESCE(json_extract(snapshot_json,'$.library.texts[0].tags'),json_extract(snapshot_json,'$.library.texts[0].tags_json'),'[]') AS catalog_tags_json,
+      COALESCE(json_array_length(snapshot_json,'$.library.texts[0].rows'),0) AS rows_count,
+      (SELECT GROUP_CONCAT(DISTINCT SUBSTR(json_extract(row.value,'$.translation_provider'),1,64))
+        FROM json_each(snapshot_json,'$.library.texts[0].rows') row) AS translation_providers
       FROM published_corpus_edition_items WHERE edition_id=? AND public_read_allowed=1 ORDER BY position_no`, [corpus.edition_id]);
+    // Additive read-only projection of the already public, immutable snapshot.
+    // No bodies, private source passports or learner fields enter the catalog.
+    const items = itemRows.map(({ catalog_tags_json, ...item }) => {
+      let tags = []; try { tags = JSON.parse(catalog_tags_json); } catch (_) {}
+      return { ...item, tags: Array.isArray(tags) ? Array.from(new Set(tags.map(String).map(value => value.trim().slice(0,64)).filter(Boolean))).slice(0,64) : [],
+        translation_providers: CatalogDiscovery.translationProvenance(item).providers.slice(0,16) };
+    });
     return { corpus: { corpus_id: corpus.corpus_id, slug: corpus.slug, title: corpus.title, description: corpus.description }, edition: { edition_id: corpus.edition_id, edition_number: Number(corpus.edition_number), manifest_sha256: corpus.manifest_sha256, item_count: Number(corpus.item_count), asset_count: Number(corpus.asset_count), asset_missing: Number(corpus.asset_missing), package_complete: !!corpus.package_complete, published_at: corpus.published_at }, items };
   }
   function publicLearningIndexSignature(published, items) {

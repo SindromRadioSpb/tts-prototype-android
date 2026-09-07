@@ -1,0 +1,41 @@
+/* Discovery uses host theme tokens; logical properties keep all controls RTL-safe. */
+.catalog-discovery { --discovery-accent:var(--accent,var(--theme-accent,#2563eb)); --discovery-border:var(--border-soft,var(--theme-border-soft,#cbd5e1)); color:var(--text-primary,var(--theme-text-primary,#0f172a)); margin-block:12px 16px; min-width:0; }
+.catalog-discovery *, .v3-library-familiarity * { box-sizing:border-box; }
+.discovery-primary { display:grid; grid-template-columns:minmax(180px,1fr) minmax(190px,290px); gap:12px; align-items:end; }
+.discovery-field { display:flex; flex-direction:column; gap:5px; min-width:0; font-size:13px; }
+.catalog-discovery input, .catalog-discovery select { width:100%; min-width:0; max-width:100%; min-height:44px; border:1px solid var(--discovery-border); border-radius:8px; padding:9px 11px; background:var(--bg-card,var(--theme-bg-card,#fff)); color:inherit; font:inherit; }
+.catalog-discovery input::placeholder { color:var(--text-secondary,var(--theme-text-secondary,#475569)); opacity:1; }
+.discovery-filters { margin-block-start:10px; border-block:1px solid var(--discovery-border); }
+.discovery-filter-summary { cursor:pointer; font-weight:650; padding-block:12px; min-height:44px; }
+.discovery-filter-icon { width:16px; height:16px; vertical-align:-3px; margin-inline-end:7px; fill:none; stroke:currentColor; }
+.discovery-filter-panel { padding-block:0 14px; display:flex; flex-direction:column; gap:14px; }
+.discovery-selects { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+.discovery-smart, .discovery-tags, .discovery-active { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+.catalog-discovery button { width:auto!important; max-width:100%; min-height:40px; padding:7px 11px; border:1px solid var(--discovery-border); border-radius:8px; font:inherit; font-size:13px; line-height:1.35; background:var(--bg-card,var(--theme-bg-card,#fff)); color:inherit; cursor:pointer; }
+.catalog-discovery button:hover { border-color:var(--discovery-accent); }
+.catalog-discovery button[aria-pressed="true"] { color:var(--discovery-accent); border-color:var(--discovery-accent); background:color-mix(in srgb,var(--discovery-accent) 10%,transparent); }
+.catalog-discovery :is(button,input,select,summary):focus-visible, .v3-library-familiarity > summary:focus-visible { outline:3px solid var(--discovery-accent,#2563eb); outline-offset:3px; }
+.discovery-count { display:inline-block; margin-inline-start:7px; color:var(--text-secondary,var(--theme-text-secondary,#475569)); font-size:12px; font-variant-numeric:tabular-nums; }
+.discovery-hint { margin:0; font-size:12px; line-height:1.5; color:var(--text-secondary,var(--theme-text-secondary,#475569)); }
+.discovery-tags-header { display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin-block-end:9px; }
+.discovery-tags-header .discovery-field { flex-direction:row; align-items:center; }
+.discovery-tags-header select { width:auto; min-height:36px; padding-block:5px; }
+.discovery-tag-search { margin-block-end:10px; }
+.catalog-discovery .discovery-more-tags { border:0; color:var(--discovery-accent); padding-inline:0; }
+.discovery-active { margin-block-start:10px; }
+.catalog-discovery .discovery-active-chip { border-radius:20px; border-color:var(--discovery-accent); overflow-wrap:anywhere; text-align:start; }
+.discovery-remove { display:inline-block; margin-inline-start:8px; font-size:17px; line-height:1; }
+.catalog-discovery .discovery-reset { color:var(--discovery-accent); border:0; }
+.catalog-discovery [hidden] { display:none!important; }
+.v3-library-familiarity { display:block; width:fit-content; max-width:100%; margin-block-start:8px; font-size:12px; color:var(--theme-text-primary,#0f172a); }
+.v3-library-familiarity > summary { width:fit-content; cursor:pointer; border:1px solid var(--theme-border-soft,#cbd5e1); border-radius:12px; padding:5px 10px; background:var(--theme-bg-soft,#f8fafc); font-weight:600; }
+.v3-familiarity-help { max-width:52ch; margin-block-start:6px; padding:10px 12px; background:var(--theme-bg-soft,#f8fafc); border-inline-start:3px solid var(--theme-accent,#2563eb); line-height:1.5; }
+.v3-familiarity-help p { margin:0; }
+.v3-familiarity-help p+p { margin-block-start:6px; }
+@media(max-width:600px) {
+  .discovery-primary { grid-template-columns:minmax(0,1fr); gap:10px; }
+  .discovery-selects { grid-template-columns:minmax(0,1fr); }
+  .catalog-discovery button { min-height:44px; }
+  .discovery-tags-header .discovery-field { flex-wrap:wrap; }
+  .discovery-tags-header select { max-width:100%; }
+}

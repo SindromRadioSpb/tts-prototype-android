@@ -8,11 +8,11 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js';
+import * as localDb from '/db/local-db.js?v=485';
 import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js';
+import * as roomB6 from '/js/room-b6-core.js?v=485';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -260,12 +260,7 @@ function compassFailureContext(error) {
 }
 
 function myCompassDescriptor(item) {
-  if (!item || item.id == null) return null;
-  return {
-    cache_key: 'mytext:' + String(item.id), source_class: 'mytext', source_key: String(item.text_key || item.id),
-    local_id: String(item.id), content_revision: String(item.updated_at || 'unknown'), content_sha256: '',
-    entitlement_revision: null, resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
-  };
+  return window.LocalTextFamiliarity.descriptor(item, learningCompass);
 }
 
 function groupCompassDescriptor(corpusId, work, localRow) {
@@ -841,19 +836,24 @@ async function ensurePersonalSets() {
   if (_personalSets) return _personalSets;
   if (_personalSetsLoading) return _personalSetsLoading;
   _personalSetsLoading = (async () => {
-    const out = { idByKey: new Map(), lastOpenedByKey: new Map(), tagsByKey: new Map(),
+    const out = { idByKey: new Map(), lastOpenedByKey: new Map(), tagsByKey: new Map(), metadataByKey: new Map(),
       smart: { struggling: new Set(), mastered: new Set(), fresh: new Set(), 'with-note': new Set(), 'audio-noted': new Set(), 'srs-noted': new Set(), templated: new Set() } };
     try {
-      const rows = await localDb.dbQuery('SELECT id, text_key, last_opened_at, tags_json FROM texts WHERE is_archived = 0');
+      const rows = await localDb.getCatalogPersonalMetadata();
       for (const r of (rows || [])) {
         if (!r || !r.text_key) continue;
         out.idByKey.set(String(r.text_key), String(r.id));
+        out.metadataByKey.set(String(r.text_key), r);
         if (r.last_opened_at) out.lastOpenedByKey.set(String(r.text_key), r.last_opened_at);
         try { const t = r.tags_json ? JSON.parse(r.tags_json) : []; if (Array.isArray(t) && t.length) out.tagsByKey.set(String(r.text_key), t.map(String)); } catch (_) {}
       }
     } catch (_) {}
     // personal OVERLAY tags/meta (corpus texts; mig 061) override/extend the row tags
-    try { for (const m of (await localDb.listTextUserMeta() || [])) { try { const t = m.tags_json ? JSON.parse(m.tags_json) : []; if (Array.isArray(t) && t.length) out.tagsByKey.set(String(m.text_key), t.map(String)); } catch (_) {} } } catch (_) {}
+    try { for (const m of (await localDb.listTextUserMeta() || [])) {
+      const key=String(m.text_key), existing=out.metadataByKey.get(key)||{};
+      out.metadataByKey.set(key,{...existing,...(m.level?{level:m.level}:{}),...(m.topic?{topic:m.topic}:{})});
+      try { const tags=JSON.parse(m.tags_json||'[]'); if(Array.isArray(tags)&&tags.length)out.tagsByKey.set(key,tags.map(String)); } catch (_) {}
+    } } catch (_) {}
     try { for (const id of (await localDb.getStrugglingTexts({}) || [])) out.smart.struggling.add(String(id)); } catch (_) {}
     try { for (const id of (await localDb.getMasteredTexts() || [])) out.smart.mastered.add(String(id)); } catch (_) {}
     try {
@@ -871,17 +871,11 @@ async function ensurePersonalSets() {
 // #tag / tag: syntax (the SAME parse as «Мои тексты» — uniform PRO query line). Memoized per raw q.
 let _pqCache = { raw: null, textQ: '', tags: [] };
 function corpusPersonalQuery(raw) {
-  const s = String(raw || '');
-  if (_pqCache.raw === s) return _pqCache;
-  const textTokens = [], tags = [];
-  for (const p of s.trim().split(/\s+/).filter(Boolean)) {
-    if (p[0] === '#') { const t2 = p.slice(1).trim(); if (t2) tags.push(t2); }
-    else if (/^tag:/i.test(p)) { const t2 = p.slice(4).trim(); if (t2) tags.push(t2); }
-    else textTokens.push(p);
-  }
-  _pqCache = { raw: s, textQ: textTokens.join(' '), tags };
+  const value = String(raw || '');
+  if (_pqCache.raw !== value) _pqCache = { raw: value, ...window.CatalogDiscovery.parseQuery(value) };
   return _pqCache;
 }
+
 let corpusSearchInputEl = null;     // S12 — ref so recent/suggestion chips can set the query
 let corpusRecentsEl = null;         // S12 — recents/suggestions row (under the filter bar)
 const RECENTS_KEY = 'corpus_recent_searches_v1';
@@ -899,12 +893,13 @@ function _setFiltersExpanded(v) { try { localStorage.setItem('corpus_filters_exp
 function getSavedSearches() { return _lsGet(SAVED_SEARCHES_KEY); }
 function saveCurrentSearch() {
   const f = corpusFilter; const name = corpusFilterSummary();
-  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, scopeAuthor: f.scopeAuthor, scopeAuthorQid: f.scopeAuthorQid, scopeEra: f.scopeEra } };
+  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, scopeAuthor: f.scopeAuthor, scopeAuthorQid: f.scopeAuthorQid, scopeEra: f.scopeEra, scope: f.scope, level: f.level, provider: f.provider, smart: f.smart, tags: f.tags, tagMode: f.tagMode, sort: corpusL1Sort } };
   const a = getSavedSearches().filter((x) => x.name !== name);   // dedup by human name
   a.unshift(entry); _lsSet(SAVED_SEARCHES_KEY, a.slice(0, 20));
 }
 function removeSavedSearch(name) { _lsSet(SAVED_SEARCHES_KEY, getSavedSearches().filter((x) => x.name !== name)); }
 function restoreSavedSearch(f) {
+  if(f&&f.sort)corpusL1Sort=f.sort;
   corpusFilter = Object.assign({ q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }, f || {});
   if (corpusFilter.readableOnly) { ensureReadableSet().then(() => corpusNavTo('home')).catch(() => corpusNavTo('home')); }
   else corpusNavTo('home');
@@ -11175,7 +11170,7 @@ function corpusReadyKeyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) if (c.text_key != null) corpusReadyByKey.set(String(c.text_key), c);
   return corpusReadyByKey;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra || f.smart); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.exactForm || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra || f.smart || f.level || f.provider || f.tags?.length || f.scope && f.scope !== 'corpus'); }
 // BRR Epic-6 — scoped-search by author: match by QID when we have one (catches every name-variant /
 // co-authored work of that author, the L2-collapse payoff), else fall back to the exact author string.
 function corpusScopeAuthorPass(sr, f) {
@@ -11194,14 +11189,18 @@ function corpusAdvOk(row, readyMap) {
   if (f.reviewed && !(card.review_status === 'human_proofread' || card.review_status === 'machine_assisted')) return false;
   return true;
 }
+let benLocalMatches = new Set();
+function corpusDiscoveryMatch(row, readyMap, ignoreText = false) {
+  const item = readyMap.get(String(row.id)) || { id: row.id, title: row.t, author: row.a };
+  const key = String(item.text_key || '');
+  const state = ignoreText ? { ...corpusFilter, q: '', tags: [...(corpusFilter.tags || []), ...window.CatalogDiscovery.parseQuery(corpusFilter.q).tags] } : corpusFilter;
+  if (!ignoreText && state.scope === 'fulltext' && window.CatalogDiscovery.parseQuery(state.q).textTokens.length) return false;
+  return catalogMatches(item, key, state, _personalSets, benLocalMatches, [row.t, row.a, item.topic, item.level, ...catalogTags(item, key, _personalSets)].join(' '));
+}
 function corpusApplyFilter() {
   const rows = corpusSearch || [];
   const f = corpusFilter;
-  const pq = corpusPersonalQuery(f.q);          // #tag tokens ride the SAME query line (uniform contract)
-  const q = corpusNrm(pq.textQ);
   const readyMap = corpusReadyMap();
-  const ps = _personalSets;                     // renderResultsInto awaits ensurePersonalSets() when needed
-  const keyOf = (row) => { const c = readyMap.get(String(row.id)); return c ? String(c.text_key || '') : ''; };
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
     if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // B7 — valid exact profile count only
@@ -11210,26 +11209,7 @@ function corpusApplyFilter() {
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
     if ((f.hasAudio || f.reviewed) && !corpusAdvOk(row, readyMap)) return false;             // S16 — provenance
-    // uniform PERSONAL dimensions (materialized works only — honest device scope)
-    if (f.smart) {
-      if (!ps) return false;
-      const key = keyOf(row);
-      if (f.smart === 'recent') {
-        const lo = key && ps.lastOpenedByKey.get(key);
-        if (!lo || Date.parse(lo) < Date.now() - 7 * 24 * 3600 * 1000) return false;
-      } else {
-        const lid = key && ps.idByKey.get(key);
-        if (!lid || !(ps.smart[f.smart] && ps.smart[f.smart].has(lid))) return false;
-      }
-    }
-    if (pq.tags.length) {
-      if (!ps) return false;
-      const key = keyOf(row);
-      const mine = ((key && ps.tagsByKey.get(key)) || []).map((x) => x.toLowerCase());
-      if (!pq.tags.every((t2) => mine.includes(t2.toLowerCase()))) return false;   // ALL semantics (uniform default)
-    }
-    if (q && !(String(row._n || '').includes(q) || corpusNrm(row.a).includes(q))) return false;
-    return true;
+    return corpusDiscoveryMatch(row, readyMap);
   });
 }
 // Language label via the platform's locale-aware display names (he/en/ru), raw code fallback.
@@ -11552,12 +11532,13 @@ async function renderPublicCorpus(slug, token) {
       for (const section of definitions) {
         const value = String(section.section_no), active = String(browseState.section) === value;
         const button = el('button', { class: 'physics-section-button' + (active ? ' is-active' : ''), attrs: { type: 'button', 'aria-pressed': String(active) } });
+        button.dataset.section = value;
         button.appendChild(el('span', { class: 'physics-section-number', attrs: { 'aria-hidden': 'true' }, text: value === 'all' ? '∑' : String(section.section_no).padStart(2, '0') }));
         const copy = el('span', { class: 'physics-section-copy' });
         copy.appendChild(el('strong', { text: value === 'all' ? tt('room.publicCorpus.physicsAllTasks', 'Все задачи') : sectionTitle(section), dir: value !== 'all' && locale().startsWith('he') ? 'rtl' : 'auto' }));
         copy.appendChild(el('span', { text: roomNumber(section.task_count) + ' ' + taskCountLabel(section.task_count) }));
         button.append(copy, el('span', { class: 'physics-section-arrow', attrs: { 'aria-hidden': 'true' }, text: '→' }));
-        button.addEventListener('click', () => { browseState.section = value; browseState.start = 0; paintSectionButtons(); schedulePaint(); });
+        button.addEventListener('click', () => { browseState.section = value; browseState.start = 0; paintSectionButtons(); filterChrome.refresh(); schedulePaint(); });
         sectionButtons.appendChild(button);
       }
     };
@@ -11566,78 +11547,34 @@ async function renderPublicCorpus(slug, token) {
     // the first mobile viewport without changing the generic corpus order.
     paintSectionButtons(); sectionNav.appendChild(sectionButtons); wrap.insertBefore(sectionNav, guest);
   }
-  let filterChrome = null;
-  const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomPublicCorpusSearch' } });
-  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
-  const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: {
-    id: 'roomPublicCorpusSearch', name: 'room-public-corpus-search', type: 'search',
-    placeholder: tt('room.publicCorpus.search', 'Найти материал или автора'),
-    'aria-label': tt('room.publicCorpus.search', 'Найти материал или автора'),
-  } });
-  search.value = browseState.q; searchField.appendChild(search);
-  const makeSelect = (id, options, value, label, onChange) => {
-    const field = el('label', { class: 'room-field', attrs: { for: id } });
-    field.appendChild(el('span', { class: 'room-field-label', text: label }));
-    const select = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': label } });
-    for (const [optionValue, key, fallback] of options) {
-      const option = document.createElement('option'); option.value = optionValue; option.textContent = tt(key, fallback); select.appendChild(option);
-    }
-    select.value = value;
-    select.addEventListener('change', () => { onChange(select.value, select); filterChrome && filterChrome.refresh(); });
-    field.appendChild(select); return field;
-  };
-  const filterControls = el('div', { class: 'group-corpus-controls public-corpus-filter-controls' });
-  filterControls.appendChild(makeSelect('roomPublicCorpusScope', [
-    ['all', 'room.publicCorpus.scopeAll', 'Название и автор'],
-    ['title', 'room.publicCorpus.scopeTitle', 'Только название'],
-    ['creator', 'room.publicCorpus.scopeCreator', 'Только автор'],
-  ], browseState.scope, tt('room.publicCorpus.scopeLabel', 'Область поиска'), value => { browseState.scope = value; schedulePaint(); }));
-  const audioFilters = el('div', { class: 'corpus-facets group-corpus-smart public-corpus-audio-filter', attrs: { id: 'roomPublicCorpusAudio', 'aria-label': tt('room.publicCorpus.audioFilterLabel', 'Аудио') } });
-  const buildAudioFilters = () => {
-    audioFilters.replaceChildren();
-    for (const [value, key, fallback] of [
-      ['complete', 'room.publicCorpus.audioComplete', 'Полный аудиопакет'],
-      ['missing', 'room.publicCorpus.audioMissingOnly', 'Есть технические исключения'],
-    ]) {
-      const active = browseState.audio === value;
-      const button = el('button', { class: 'corpus-facet-chip' + (active ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(active), 'data-audio': value }, text: tt(key, fallback) });
-      button.addEventListener('click', () => {
-        browseState.audio = active ? 'all' : value;
-        buildAudioFilters(); schedulePaint(); filterChrome && filterChrome.refresh();
-      });
-      audioFilters.appendChild(button);
-    }
-  };
-  filterControls.appendChild(audioFilters);
-  const sortField = makeSelect('roomPublicCorpusSort', [
-    ['position', 'room.publicCorpus.sortPosition', 'Порядок корпуса'],
-    ['title_asc', 'room.publicCorpus.sortTitleAZ', 'Название А–Я'],
-    ['title_desc', 'room.publicCorpus.sortTitleZA', 'Название Я–А'],
-    ['creator_asc', 'room.publicCorpus.sortCreator', 'Автор А–Я'],
-    ['familiar_desc', 'room.compass.sortFamiliar', 'Сначала достоверно знакомые'],
-  ], browseState.sort, tt('room.corpus.sort.label', 'Сортировка'), async (value, select) => {
-    if (value === 'familiar_desc' && !await familiaritySortProfileAvailable()) { select.value = browseState.sort; return; }
-    if (value === 'familiar_desc') {
+  const personal = await ensurePersonalSets();
+  if (token !== corpusRenderToken) return;
+  const facets = catalogFacets(catalog.items, localKeyFor, personal);
+  const filterChrome = window.CatalogDiscoveryUI.create({
+    id: 'roomPublicCorpus', state: browseState, t: tt,
+    ids: { q: 'roomPublicCorpusSearch', scope: 'roomPublicCorpusScope', sort: 'roomPublicCorpusSort' },
+    defaults: { scope: 'all', sort: 'position' },
+    scopes: [['all', tt('discovery.scopeCatalog')], ['title', tt('room.publicCorpus.scopeTitle')], ['creator', tt('room.publicCorpus.scopeCreator')], ...catalogSearchScopes().filter(x => x[0] !== 'texts')],
+    sorts: catalogSortOptions([['position', tt('room.publicCorpus.sortPosition')], ['creator_asc', tt('room.publicCorpus.sortCreator')]]),
+    ...facets, providerLabel: catalogProviderLabel, smart: true, personalHint: true,
+    extra: [{ key: 'audio', id: 'roomPublicCorpusAudio', label: tt('room.publicCorpus.audioFilterLabel'), defaultValue: 'all',
+      options: [['all', tt('room.groupCorpus.audioAll')], ['complete', tt('room.publicCorpus.audioComplete')], ['missing', tt('room.publicCorpus.audioMissingOnly')]] },
+      { key: 'status', label: tt('discovery.status'), defaultValue: 'all', options: catalogStatusOptions() }],
+    activeEntries: () => physics && String(browseState.section) !== 'all' ? [{ label: tt('discovery.section') + ': ' + browseState.section,
+      remove() { browseState.section = 'all'; sectionButtons?.querySelector('[data-section="all"]')?.click(); } }] : [],
+    resetExtra: () => { browseState.section = 'all'; sectionButtons?.querySelector('[data-section="all"]')?.click(); },
+    beforeSort: async value => {
+      if (value !== 'familiar_desc') return true;
+      if (!await familiaritySortProfileAvailable()) return false;
       try {
         const ready = await ensurePublicLearningIndex(slug, catalog);
-        if (!reliableFamiliarityCount(ready && ready.fits && ready.fits.values())) {
-          select.value = browseState.sort; explainNoReliableFamiliaritySort(); return;
-        }
-      } catch (_) {
-        select.value = browseState.sort;
-        roomToast(tt('room.compass.corpusUnavailable', 'Подбор по знакомости временно недоступен')); return;
-      }
-    }
-    browseState.sort = value; schedulePaint();
+        if (!reliableFamiliarityCount(ready?.fits?.values())) { explainNoReliableFamiliaritySort(); return false; }
+        return true;
+      } catch (_) { roomToast(tt('room.compass.corpusUnavailable')); return false; }
+    },
+    onChange: () => schedulePaint(),
   });
-  filterChrome = corpusFilterChrome('roomPublicCorpus', searchField, filterControls, sortField, () => {
-    const labels = [];
-    if (browseState.scope === 'title') labels.push(tt('room.publicCorpus.scopeTitle', 'Только название'));
-    else if (browseState.scope === 'creator') labels.push(tt('room.publicCorpus.scopeCreator', 'Только автор'));
-    if (browseState.audio === 'complete') labels.push(tt('room.publicCorpus.audioComplete', 'Полный аудиопакет'));
-    else if (browseState.audio === 'missing') labels.push(tt('room.publicCorpus.audioMissingOnly', 'Есть технические исключения'));
-    return { count: labels.length, labels };
-  });
+  const search = filterChrome.search;
   catalogRegion.appendChild(filterChrome.node);
   catalogRegion.appendChild(corpusLearningIndexStatusNode('public:' + slug, catalog.items.length));
 
@@ -11652,38 +11589,29 @@ async function renderPublicCorpus(slug, token) {
   listSection.appendChild(resultLine); listSection.appendChild(grid); listSection.appendChild(pager);
   attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, pager], 'public:' + slug + ':materials');
   catalogRegion.appendChild(listSection); wrap.appendChild(catalogRegion); main.appendChild(wrap);
-  const paint = () => {
-    const query = String(browseState.q || '').trim().toLocaleLowerCase();
+  let paintSequence = 0;
+  const paint = async () => {
+    const sequence = ++paintSequence;
+    let localMatches;
+    try { localMatches = await catalogLocalMatches(catalog.items, localKeyFor, browseState); }
+    catch (_) { if (sequence === paintSequence) { resultLine.textContent = tt('room.state.error'); } return; }
+    if (sequence !== paintSequence || token !== corpusRenderToken) return;
     const found = catalog.items.filter(item => {
       const physicsTask = physics && physics.taskByWork.get(item.public_work_id);
       if (physics && String(browseState.section) !== 'all' && (!physicsTask || String(physicsTask.section.section_no) !== String(browseState.section))) return false;
       const searchable = browseState.scope === 'title' ? String(item.title || '')
         : browseState.scope === 'creator' ? String(item.creator || '')
-          : String((item.title || '') + ' ' + (item.creator || '') + ' ' + (physicsTask ? physicsTask.task_number + ' ' + physicsTask.section.title_ru + ' ' + physicsTask.section.title_en + ' ' + physicsTask.section.title_he : ''));
-      if (query && !searchable.toLocaleLowerCase().includes(query)) return false;
+          : [item.title, item.creator, item.topic, item.level, ...(item.tags || []), physicsTask ? physicsTask.task_number + ' ' + physicsTask.section.title_ru + ' ' + physicsTask.section.title_en + ' ' + physicsTask.section.title_he : ''].join(' ');
+      if (!catalogMatches(item, localKeyFor(item), browseState, personal, localMatches, searchable)) return false;
       if (browseState.audio === 'complete' && !item.package_complete) return false;
       if (browseState.audio === 'missing' && Number(item.asset_missing || 0) <= 0) return false;
+      if (browseState.status !== 'all' && catalogReadingStatus(localByKey.get(localKeyFor(item))) !== browseState.status) return false;
       return true;
     });
-    const compareText = (left, right) => String(left || '').localeCompare(String(right || ''), undefined, { sensitivity: 'base' });
     const publicIndex = _publicLearningIndexes.get(slug);
-    const familiarity = item => publicIndex && publicIndex.fits && publicIndex.fits.get(String(item.public_work_id));
-    found.sort((a, b) => {
-      if (browseState.sort === 'familiar_desc') {
-        const af = familiarity(a), bf = familiarity(b);
-        const ar = !!(af && af.status === 'AVAILABLE' && af.rank_eligible), br = !!(bf && bf.status === 'AVAILABLE' && bf.rank_eligible);
-        if (ar !== br) return ar ? -1 : 1;
-        if (ar && br) {
-          const delta = Number(bf.recorded_familiar_pct_lower_bound || 0) - Number(af.recorded_familiar_pct_lower_bound || 0);
-          if (delta) return delta;
-        }
-      }
-      if (browseState.sort === 'title_asc') return compareText(a.title, b.title) || Number(a.position_no) - Number(b.position_no);
-      if (browseState.sort === 'title_desc') return compareText(b.title, a.title) || Number(a.position_no) - Number(b.position_no);
-      if (browseState.sort === 'creator_asc') return compareText(a.creator, b.creator) || compareText(a.title, b.title) || Number(a.position_no) - Number(b.position_no);
-      return Number(a.position_no) - Number(b.position_no);
-    });
-    if (browseState.start >= found.length) browseState.start = 0;
+    const familiarity = item => publicIndex?.fits?.get(String(item.public_work_id));
+    found.sort((a, b) => catalogCompare(a, b, browseState.sort, localKeyFor, personal, familiarity));
+    if (browseState.start >= found.length && browseState.start > 0) browseState.start = 0;
     const page = found.slice(browseState.start, browseState.start + ROOM_BROWSE_PAGE);
     if (physics) {
       const activeSection = physics.sections.find(section => String(section.section_no) === String(browseState.section));
@@ -11745,8 +11673,7 @@ async function renderPublicCorpus(slug, token) {
     if (searchTimer) clearTimeout(searchTimer);
     searchTimer = setTimeout(paint, 120);
   }
-  search.addEventListener('input', () => { browseState.q = search.value || ''; schedulePaint(); });
-  buildAudioFilters(); filterChrome.refresh(); paint();
+  filterChrome.refresh(); paint();
   ensurePublicLearningIndex(slug, catalog).then(() => { if (token === corpusRenderToken) paint(); }).catch(() => {});
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
@@ -11841,68 +11768,29 @@ async function renderGroupCorpus(corpusId, token) {
   const groupProfileFitHost = el('div', { class: 'corpus-profile-fit-host group-profile-fit-host' });
   wrap.appendChild(groupProfileFitHost);
   const groupCatalogRegion = corpusCatalogRegion('group-' + corpusId);
-  const controls = el('div', { class: 'group-corpus-controls' });
-  const searchField = el('label', { class: 'room-field room-field-wide group-corpus-search-field', attrs: { for: 'roomGroupCorpusSearch' } });
-  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
-  const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: { id:'roomGroupCorpusSearch', name:'room-group-corpus-search', type:'search',
-    placeholder:tt('room.groupCorpus.search','Поиск: название, исполнитель или тег'),
-    'aria-label':tt('room.groupCorpus.search','Поиск: название, исполнитель или тег') } });
-  search.value = state.q; searchField.appendChild(search);
-  let filterChrome = null;
-  const mkSelect = (id, items, value, label, onChange) => {
-    const field=el('label',{class:'room-field',attrs:{for:id}});
-    field.appendChild(el('span',{class:'room-field-label',text:label}));
-    const s = el('select', { class:'mytexts-select', attrs:{ id, name:id, 'aria-label':label } });
-    for (const [v, txt] of items) { const o=document.createElement('option'); o.value=v; o.textContent=txt; s.appendChild(o); }
-    s.value=value; s.addEventListener('change',async()=>{try{await onChange(s.value,s);}finally{if(filterChrome)filterChrome.refresh();}}); field.appendChild(s); return field;
-  };
-  controls.appendChild(mkSelect('roomGroupStatus',[
-    ['all',tt('room.groupCorpus.statusAll','Все статусы')],['new',tt('room.groupCorpus.statusNew','Не начаты')],
-    ['reading',tt('room.groupCorpus.statusReading','Читаю')],['finished',tt('room.groupCorpus.statusFinished','Прочитаны')],
-  ],state.status,tt('room.groupCorpus.statusLabel','Статус'),(v)=>{state.status=v;paint();}));
-  controls.appendChild(mkSelect('roomGroupAudio',[
-    ['all',tt('room.groupCorpus.audioAll','Любое аудио')],['full',tt('room.groupCorpus.audioFull','Озвучено полностью')],
-    ['partial',tt('room.groupCorpus.audioPartial','Озвучено частично')],['none',tt('room.groupCorpus.audioNone','Без аудио')],
-  ],state.audio,tt('room.groupCorpus.audioLabel','Аудио'),(v)=>{state.audio=v;paint();}));
-  const sortField = mkSelect('roomGroupSort',[
-    ['position',tt('room.groupCorpus.sortPosition','Порядок библиотеки')],['recent',tt('room.groupCorpus.sortRecent','Последние открытые')],
-    ['progress',tt('room.groupCorpus.sortProgress','По прогрессу')],['title',tt('room.groupCorpus.sortTitle','Название А–Я')],
-    ['familiar_desc',tt('room.compass.sortFamiliar','Сначала достоверно знакомые')],
-  ],state.sort,tt('room.corpus.sort.label','Сортировка'),async(v,select)=>{
-    if(v==='familiar_desc'&&!await familiaritySortProfileAvailable()){select.value=state.sort;return;}
-    if(v==='familiar_desc'){
+  if (state.sort === 'recent') state.sort = 'opened_desc';
+  if (state.sort === 'title') state.sort = 'title_asc';
+  const groupKeyFor = item => String(item.text_key || '');
+  const facets = catalogFacets(catalog.works, groupKeyFor, personal);
+  const filterChrome = window.CatalogDiscoveryUI.create({
+    id: 'roomGroupCorpus', state, t: tt,
+    ids: { q: 'roomGroupCorpusSearch', sort: 'roomGroupSort' },
+    defaults: { sort: 'position' }, scopes: catalogSearchScopes(),
+    sorts: catalogSortOptions([['position', tt('room.groupCorpus.sortPosition')], ['progress', tt('room.groupCorpus.sortProgress')]]),
+    ...facets, providerLabel: catalogProviderLabel, smart: true, personalHint: true,
+    extra: [{ key: 'status', id: 'roomGroupStatus', label: tt('discovery.status'), defaultValue: 'all', options: catalogStatusOptions() },
+      { key: 'audio', id: 'roomGroupAudio', label: tt('room.groupCorpus.audioLabel'), defaultValue: 'all', options: [
+        ['all', tt('room.groupCorpus.audioAll')], ['full', tt('room.groupCorpus.audioFull')], ['partial', tt('room.groupCorpus.audioPartial')], ['none', tt('room.groupCorpus.audioNone')]] }],
+    beforeSort: async value => {
+      if (value !== 'familiar_desc') return true;
+      if (!await familiaritySortProfileAvailable()) return false;
       try {
-        const ready=await ensureGroupLearningIndex(corpusId,catalog);
-        if(!reliableFamiliarityCount(ready&&ready.fits&&ready.fits.values())){select.value=state.sort;explainNoReliableFamiliaritySort();return;}
-      } catch(_){select.value=state.sort;roomToast(tt('room.compass.corpusUnavailable','Подбор по знакомости временно недоступен'));return;}
-    }
-    state.sort=v;paint();
-  });
-  const smartRail=el('div',{class:'corpus-sort mytexts-smart group-corpus-smart',attrs:{title:tt('room.corpus.personalHint','Фильтры по вашей активности — работы, открытые на этом устройстве')}});
-  const SMART=[
-    ['recent','room.mytexts.smartRecent','⏱ Недавние'],['struggling','room.mytexts.smartStruggling','🔥 Сложные'],
-    ['mastered','room.mytexts.smartMastered','✓ Освоено'],['fresh','room.mytexts.smartNew','✨ Новые'],
-    ['with-note','room.mytexts.smartWithNote','📝 С заметкой'],['audio-noted','room.mytexts.smartAudio','📍 Audio-noted'],
-    ['srs-noted','room.mytexts.smartSrs','🎯 SRS-noted'],['templated','room.mytexts.smartTemplated','⭐ Templated'],
-  ];
-  const renderSmart=()=>{smartRail.textContent='';for(const [key,i18nKey,fb] of SMART){const active=state.smart===key,b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active),'data-smart':key},text:tt(i18nKey,fb)});b.addEventListener('click',()=>{state.smart=active?'':key;renderSmart();paint();if(filterChrome)filterChrome.refresh();});smartRail.appendChild(b);}};
-  renderSmart(); controls.appendChild(smartRail);
-  const tagCounts = new Map();
-  for (const w of catalog.works) for (const tag of (w.tags || [])) tagCounts.set(String(tag),(tagCounts.get(String(tag))||0)+1);
-  const tagRail = el('div',{class:'corpus-sort group-corpus-tags'});
-  for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) {
-    const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}});
-    b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();if(filterChrome)filterChrome.refresh();}); tagRail.appendChild(b);
-  }
-  const renderTags=()=>{ const fresh=tagRail.cloneNode(false); for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) { const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}}); b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();if(filterChrome)filterChrome.refresh();}); fresh.appendChild(b); } tagRail.replaceChildren(...fresh.childNodes); };
-  if (tagCounts.size) controls.appendChild(tagRail);
-  filterChrome = corpusFilterChrome('roomGroupCorpus', searchField, controls, sortField, () => {
-    const selectedText=(id)=>{const select=controls.querySelector('#'+id);return select&&select.selectedOptions&&select.selectedOptions[0]?select.selectedOptions[0].textContent:'';};
-    const labels=[]; if(state.status!=='all')labels.push(selectedText('roomGroupStatus')||state.status);
-    if(state.audio!=='all')labels.push(selectedText('roomGroupAudio')||state.audio);
-    if(state.smart)labels.push((SMART.find((item)=>item[0]===state.smart)||[])[2]||state.smart);
-    for(const tag of state.tags)labels.push('#'+tag);
-    return {count:(state.status!=='all'?1:0)+(state.audio!=='all'?1:0)+(state.smart?1:0)+state.tags.length,labels};
+        const ready = await ensureGroupLearningIndex(corpusId, catalog);
+        if (!reliableFamiliarityCount(ready?.fits?.values())) { explainNoReliableFamiliaritySort(); return false; }
+        return true;
+      } catch (_) { roomToast(tt('room.compass.corpusUnavailable')); return false; }
+    },
+    onChange: () => { clearTimeout(timer); timer = setTimeout(() => paint(), 120); },
   });
   groupCatalogRegion.appendChild(filterChrome.node);
   groupCatalogRegion.appendChild(corpusLearningIndexStatusNode('group:' + corpusId, catalog.works.length));
@@ -11959,23 +11847,20 @@ async function renderGroupCorpus(corpusId, token) {
   async function paint(resetPage=true){
     const sequence=++groupPaintSequence;
     if(resetPage)groupBrowseOffset=0;
-    const q=String(state.q||'').trim().toLocaleLowerCase(); let found=catalog.works.filter((w)=>{
-      const p=byKey.get(String(w.text_key)); if(state.status!=='all'&&workStatus(p)!==state.status)return false;
-      if(state.audio!=='all'&&workAudio(w)!==state.audio)return false;
-      if(state.tags.length&&!state.tags.every((t)=>(w.tags||[]).map(String).includes(t)))return false;
-      if(state.smart){const id=personal&&personal.idByKey.get(String(w.text_key));if(!id)return false;if(state.smart==='recent'){const opened=personal.lastOpenedByKey.get(String(w.text_key));if(!opened||Date.parse(opened)<Date.now()-7*24*3600*1000)return false;}else if(!(personal.smart[state.smart]&&personal.smart[state.smart].has(String(id))))return false;}
-      if(!q)return true; return [w.title,w.artist,w.topic,w.level,(w.tags||[]).join(' '),w.position_no].join(' ').toLocaleLowerCase().includes(q);
+    let localMatches;
+    try { localMatches = await catalogLocalMatches(catalog.works, groupKeyFor, state); }
+    catch (_) { if (sequence === groupPaintSequence) resultLine.textContent = tt('room.state.error'); return; }
+    if (sequence !== groupPaintSequence || token !== corpusRenderToken) return;
+    const found = catalog.works.filter(work => {
+      const key = groupKeyFor(work), progress = byKey.get(key);
+      if (state.status !== 'all' && workStatus(progress) !== state.status) return false;
+      if (state.audio !== 'all' && workAudio(work) !== state.audio) return false;
+      return catalogMatches(work, key, state, personal, localMatches, [work.title, work.artist, work.topic, work.level, ...(work.tags || []), work.position_no].join(' '));
     });
-    const opened=(w)=>{const p=byKey.get(String(w.text_key));return Date.parse(p&&p.last_opened_at||'')||0;};
     const groupIndex = _groupLearningIndexes.get(corpusId);
-    const familiarity = (work) => groupIndex && groupIndex.fits && groupIndex.fits.get(String(work.work_id));
-    const familiarComparator = (a,b) => {
-      const af=familiarity(a),bf=familiarity(b),ar=!!(af&&af.status==='AVAILABLE'&&af.rank_eligible),br=!!(bf&&bf.status==='AVAILABLE'&&bf.rank_eligible);
-      if(ar!==br)return ar?-1:1;
-      if(ar&&br){const delta=Number(bf.recorded_familiar_pct_lower_bound||0)-Number(af.recorded_familiar_pct_lower_bound||0);if(delta)return delta;}
-      return (Number(a.position_no)||9999)-(Number(b.position_no)||9999);
-    };
-    found=found.slice().sort(state.sort==='familiar_desc'?familiarComparator:state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
+    const familiarity = work => groupIndex?.fits?.get(String(work.work_id));
+    found.sort((a, b) => (state.sort === 'progress' ? progressPct(b, byKey.get(groupKeyFor(b))) - progressPct(a, byKey.get(groupKeyFor(a))) : 0)
+      || catalogCompare(a, b, state.sort, groupKeyFor, personal, familiarity));
     if(groupBrowseOffset>=found.length&&groupBrowseOffset>0)groupBrowseOffset=Math.max(0,Math.floor(Math.max(0,found.length-1)/ROOM_BROWSE_PAGE)*ROOM_BROWSE_PAGE);
     const shown=found.slice(groupBrowseOffset,groupBrowseOffset+ROOM_BROWSE_PAGE);
     await prepareLearningCompassPage(shown.map((work)=>groupCompassDescriptor(corpusId,work,byKey.get(String(work.text_key)))));
@@ -11991,7 +11876,7 @@ async function renderGroupCorpus(corpusId, token) {
       moreWrap.appendChild(previous);moreWrap.appendChild(page);moreWrap.appendChild(next);
     }
   }
-  let timer=null; search.addEventListener('input',()=>{state.q=search.value||'';if(timer)clearTimeout(timer);timer=setTimeout(paint,120);}); paint();
+  let timer = null; paint();
   ensureGroupLearningIndex(corpusId,catalog).then(()=>{
     if(token===corpusRenderToken){
       paint(false);
@@ -12119,6 +12004,98 @@ function corpusNextAction(options) {
   feature.appendChild(action);
   return feature;
 }
+function catalogSortOptions(extra = []) {
+  const standard = [
+    ['familiar_desc', tt('room.compass.sortFamiliar')],
+    ['opened_desc', tt('room.mytexts.sortOpened')], ['updated_desc', tt('room.mytexts.sortUpdated')],
+    ['title_asc', tt('room.publicCorpus.sortTitleAZ')], ['title_desc', tt('room.publicCorpus.sortTitleZA')],
+    ['level_asc', tt('discovery.sortLevel')], ['topic_asc', tt('discovery.sortTopic')],
+  ];
+  return extra.concat(standard);
+}
+function catalogSearchScopes() {
+  return [['texts', tt('discovery.scopeCatalog')], ['both', tt('discovery.scopeBoth')],
+    ['rows', tt('discovery.scopeRows')], ['notes', tt('discovery.scopeNotes')]];
+}
+function catalogReadingStatus(progress) {
+  return progress?.finished_at ? 'finished' : Number(progress?.last_row_idx) > 0 ? 'reading' : 'new';
+}
+function catalogStatusOptions() {
+  return [['all', tt('discovery.statusAll')], ['new', tt('discovery.statusNew')],
+    ['reading', tt('discovery.statusReading')], ['finished', tt('discovery.statusFinished')]];
+}
+function catalogProviderLabel(value) {
+  const labels = { gemini: 'library.providerGemini', madlad: 'library.providerMadlad', gcp: 'library.providerGcp',
+    'google-free': 'library.providerGoogleFree', mixed: 'library.providerMixed', unknown: 'library.providerUnknown' };
+  return labels[value] ? tt(labels[value]) : value;
+}
+function catalogTags(item, key, personal) {
+  let tags = item.tags;
+  if (!Array.isArray(tags)) { try { tags = JSON.parse(item.tags_json || '[]'); } catch (_) { tags = []; } }
+  return Array.from(new Set([...(Array.isArray(tags) ? tags : []), ...(personal?.tagsByKey.get(key) || [])].map(String)));
+}
+function catalogMetadata(item, key, personal) {
+  const own = personal?.metadataByKey.get(key) || {};
+  return { ...item, ...own, level: own.level || item.level || '', topic: own.topic || item.topic || '',
+    translation_providers: own.translation_providers || item.translation_providers || '' };
+}
+function catalogSmartMatches(key, smart, personal) {
+  if (!smart) return true;
+  const id = personal?.idByKey.get(key);
+  if (!id) return false;
+  if (smart === 'recent') {
+    const opened = personal.lastOpenedByKey.get(key);
+    return !!opened && Date.parse(opened) >= Date.now() - 7 * 86400000;
+  }
+  return !!personal.smart[smart]?.has(String(id));
+}
+function catalogFacets(items, keyFor, personal) {
+  const core = window.CatalogDiscovery, levels = new Map(), providers = new Map(), smartCounts = {};
+  for (const [smart] of core.SMART_FILTERS) smartCounts[smart] = 0;
+  for (const item of items) {
+    const key = keyFor(item), meta = catalogMetadata(item, key, personal);
+    if (meta.level) levels.set(meta.level, (levels.get(meta.level) || 0) + 1);
+    const provider = core.translationProvenance(meta);
+    for (const value of provider.providers.concat(provider.kind === 'single' ? [] : [provider.kind])) providers.set(value, (providers.get(value) || 0) + 1);
+    for (const [smart] of core.SMART_FILTERS) if (catalogSmartMatches(key, smart, personal)) smartCounts[smart]++;
+  }
+  return { tags: core.tagFacets(items, item => catalogTags(item, keyFor(item), personal), [], Infinity).items,
+    levels: Array.from(levels, ([value, count]) => ({ value, count })),
+    providers: Array.from(providers, ([value, count]) => ({ value, count })), smartCounts };
+}
+function catalogMatches(item, key, state, personal, localMatches, text) {
+  const core = window.CatalogDiscovery, query = core.parseQuery(state.q), meta = catalogMetadata(item, key, personal);
+  if (!core.matchesTags(catalogTags(item, key, personal), [...(state.tags || []), ...query.tags], state.tagMode)) return false;
+  if (state.level && meta.level !== state.level) return false;
+  if (!core.matchesProvider(core.translationProvenance(meta), state.provider)) return false;
+  if (!catalogSmartMatches(key, state.smart, personal)) return false;
+  if (!query.textTokens.length) return true;
+  if (state.scope === 'rows' || state.scope === 'notes') return !!localMatches?.has(key);
+  return core.matchesText(text, query.textTokens) || state.scope === 'both' && !!localMatches?.has(key);
+}
+async function catalogLocalMatches(items, keyFor, state) {
+  if (!['rows', 'notes', 'both'].includes(state.scope) || !window.CatalogDiscovery.parseQuery(state.q).textTokens.length) return new Set();
+  const rows = await localDb.findCatalogTextMatches({ textKeys: items.map(keyFor).filter(Boolean), query: state.q, scope: state.scope });
+  return new Set(rows.map(row => String(row.text_key)));
+}
+function catalogCompare(a, b, sort, keyFor, personal, fitFor = () => null) {
+  const left = catalogMetadata(a, keyFor(a), personal), right = catalogMetadata(b, keyFor(b), personal);
+  const text = (x, y) => String(x || '').localeCompare(String(y || ''), window.appGetLocale?.() || 'ru', { numeric: true, sensitivity: 'base' });
+  const date = value => Date.parse(value || '') || 0;
+  let delta = 0;
+  if (sort === 'familiar_desc') delta = window.CatalogDiscovery.compareFamiliarity(fitFor(a), fitFor(b));
+  else if (sort === 'opened_desc') delta = date(right.last_opened_at) - date(left.last_opened_at);
+  else if (sort === 'updated_desc') delta = date(right.updated_at || right.created_at) - date(left.updated_at || left.created_at);
+  else if (sort === 'title_asc') delta = text(a.title, b.title);
+  else if (sort === 'title_desc') delta = text(b.title, a.title);
+  else if (sort === 'creator_asc') delta = text(a.creator || a.artist || a.author, b.creator || b.artist || b.author);
+  else if (sort === 'level_asc' || sort === 'topic_asc') {
+    const field = sort === 'level_asc' ? 'level' : 'topic';
+    delta = !left[field] ? !right[field] ? 0 : 1 : !right[field] ? -1 : text(left[field], right[field]);
+  } else if (sort === 'length') delta = Number(a.rows_count || a.segments || 0) - Number(b.rows_count || b.segments || 0);
+  return delta || (Number(a.position_no) || 0) - (Number(b.position_no) || 0) || text(a.title, b.title) || text(a.id || a.work_id, b.id || b.work_id);
+}
+
 function corpusFilterChrome(id, searchField, filterPanel, sortField, stateReader) {
   const shell = el('section', { class: 'corpus-browse-tools', attrs: { 'aria-label': tt('room.shell.browse', 'Поиск и фильтры') } });
   const primary = el('div', { class: 'corpus-browse-primary' });
@@ -12726,113 +12703,17 @@ async function renderMyTextsCorpus(token) {
   wrap.appendChild(myProfileFitHost);
   const myCatalogRegion = corpusCatalogRegion('mytexts');
 
-  let filterChrome = null;
-  const controls = el('div', { class: 'mytexts-controls mytexts-filter-controls' });
-  const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomMyTextsSearch' } });
-  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
-  const input = el('input', { class: 'corpus-search-input mytexts-search', attrs: {
-    id: 'roomMyTextsSearch', name: 'room-mytexts-search', type: 'search',
-    placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'),
-    'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'),
-  } });
-  input.value = myCorpusState.q; searchField.appendChild(input);
-  const makeSelect = (id, options, value, label, onChange) => {
-    const field = el('label', { class: 'room-field', attrs: { for: id } });
-    field.appendChild(el('span', { class: 'room-field-label', text: label }));
-    const select = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': label } });
-    for (const [optionValue, key, fallback] of options) {
-      const option = document.createElement('option'); option.value = optionValue; option.textContent = tt(key, fallback); select.appendChild(option);
-    }
-    select.value = value;
-    select.addEventListener('change', () => { onChange(select.value, select); filterChrome && filterChrome.refresh(); });
-    field.appendChild(select); return field;
-  };
-  controls.appendChild(makeSelect('roomMyTextsScope', [
-    ['texts', 'room.mytexts.scopeTexts', 'Поиск: тексты'],
-    ['both', 'room.mytexts.scopeBoth', 'Поиск: тексты+строки+заметки'],
-    ['rows', 'room.mytexts.scopeRows', 'Поиск: только строки'],
-    ['notes', 'room.mytexts.scopeNotes', 'Поиск: только заметки'],
-  ], myCorpusState.scope, tt('room.mytexts.scopeLabel', 'Область поиска'), (value) => { myCorpusState.scope = value; schedulePaint(); }));
-  const sortField = makeSelect('roomMyTextsSort', [
-    ['opened_desc', 'room.mytexts.sortOpened', 'Последние открытые'],
-    ['updated_desc', 'room.mytexts.sortUpdated', 'Последние изменённые'],
-    ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
-    ['title_desc', 'room.mytexts.sortZA', 'Я–А'],
-    ['topic_asc', 'room.mytexts.sortTopic', 'Тема А–Я'],
-    ['familiar_desc', 'room.compass.sortFamiliar', 'Сначала достоверно знакомые'],
-  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), async (value, select) => {
-    if (value === 'familiar_desc' && !await familiaritySortProfileAvailable()) { select.value = myCorpusState.sort; return; }
-    myCorpusState.sort = value; paint({ reset: true });
+  const filterChrome = window.CatalogDiscoveryUI.create({
+    id: 'roomMyTexts', state: myCorpusState, t: tt,
+    ids: { q: 'roomMyTextsSearch', scope: 'roomMyTextsScope', sort: 'roomMyTextsSort' },
+    scopes: catalogSearchScopes(), sorts: catalogSortOptions(),
+    tags: facetsData.tags || [], levels: facetsData.levels || [], providers: facetsData.providers || [],
+    providerLabel: catalogProviderLabel, smart: true, smartCounts: facetsData.smartCounts,
+    beforeSort: async value => value !== 'familiar_desc' || await familiaritySortProfileAvailable(),
+    onChange: key => { if (key === 'q') schedulePaint(); else { clearTimeout(paintTimer); paint({ reset: true }); } },
   });
-
-  const smartDefinitions = [
-    ['recent', 'room.mytexts.smartRecent', '⏱ Недавние'],
-    ['struggling', 'room.mytexts.smartStruggling', '🔥 Сложные'],
-    ['mastered', 'room.mytexts.smartMastered', '✓ Освоено'],
-    ['fresh', 'room.mytexts.smartNew', '✨ Новые'],
-    ['with-note', 'room.mytexts.smartWithNote', '📝 С заметкой'],
-    ['audio-noted', 'room.mytexts.smartAudio', '📍 Audio-noted'],
-    ['srs-noted', 'room.mytexts.smartSrs', '🎯 SRS-noted'],
-    ['templated', 'room.mytexts.smartTemplated', '⭐ Templated'],
-  ];
-  const smartRail = el('div', { class: 'corpus-sort mytexts-smart' });
-  const buildSmart = () => {
-    smartRail.textContent = '';
-    for (const [key, i18nKey, fallback] of smartDefinitions) {
-      const active = myCorpusState.smart === key;
-      const button = el('button', { class: 'corpus-sort-btn' + (active ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(active), 'data-smart': key } });
-      button.textContent = tt(i18nKey, fallback);
-      const count = Number(facetsData.smartCounts && facetsData.smartCounts[key] || 0);
-      if (count) button.appendChild(el('span', { class: 'mytexts-smart-badge', text: String(count) }));
-      button.addEventListener('click', () => {
-        myCorpusState.smart = active ? '' : key; buildSmart(); paint({ reset: true }); filterChrome && filterChrome.refresh();
-      });
-      smartRail.appendChild(button);
-    }
-  };
-  controls.appendChild(smartRail);
-
-  const levels = (facetsData.levels || []).map((item) => String(item.value || '')).filter(Boolean);
-  const tags = (facetsData.tags || []).map((item) => String(item.value || '')).filter(Boolean).slice(0, 8);
-  const facets = el('div', { class: 'mytexts-facets' });
-  const facetButton = (label, active, onClick) => {
-    const button = el('button', { class: 'corpus-sort-btn' + (active ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(active) }, text: label });
-    button.addEventListener('click', onClick); return button;
-  };
-  const buildFacets = () => {
-    facets.textContent = '';
-    if (levels.length) {
-      const levelRail = el('div', { class: 'corpus-sort' });
-      for (const level of levels) levelRail.appendChild(facetButton(level, myCorpusState.level === level, () => {
-        myCorpusState.level = myCorpusState.level === level ? '' : level; buildFacets(); paint({ reset: true }); filterChrome && filterChrome.refresh();
-      }));
-      facets.appendChild(levelRail);
-    }
-    if (tags.length) {
-      const tagRail = el('div', { class: 'corpus-sort' });
-      if (myCorpusState.tags.length >= 2) {
-        tagRail.appendChild(facetButton(tt('room.mytexts.tagsAll', 'Теги: ALL'), myCorpusState.tagMode === 'all', () => { myCorpusState.tagMode = 'all'; buildFacets(); paint({ reset: true }); }));
-        tagRail.appendChild(facetButton(tt('room.mytexts.tagsAny', 'Теги: ANY'), myCorpusState.tagMode === 'any', () => { myCorpusState.tagMode = 'any'; buildFacets(); paint({ reset: true }); }));
-      }
-      for (const tag of tags) {
-        const active = myCorpusState.tags.includes(tag);
-        tagRail.appendChild(facetButton('#' + tag, active, () => {
-          myCorpusState.tags = active ? myCorpusState.tags.filter((item) => item !== tag) : myCorpusState.tags.concat([tag]);
-          buildFacets(); paint({ reset: true }); filterChrome && filterChrome.refresh();
-        }));
-      }
-      facets.appendChild(tagRail);
-    }
-  };
-  controls.appendChild(facets);
-  filterChrome = corpusFilterChrome('roomMyTexts', searchField, controls, sortField, () => {
-    const labels = [];
-    if (myCorpusState.scope !== 'texts') labels.push(tt('room.mytexts.scopeLabel', 'Область поиска'));
-    if (myCorpusState.level) labels.push(myCorpusState.level);
-    if (myCorpusState.smart) labels.push((smartDefinitions.find((item) => item[0] === myCorpusState.smart) || [])[2] || myCorpusState.smart);
-    for (const tag of myCorpusState.tags) labels.push('#' + tag);
-    return { count: (myCorpusState.scope !== 'texts' ? 1 : 0) + (myCorpusState.level ? 1 : 0) + (myCorpusState.smart ? 1 : 0) + myCorpusState.tags.length, labels };
-  });
+  const input = filterChrome.search;
+  const sortField = filterChrome.node.querySelector('.discovery-sort');
   myCatalogRegion.appendChild(filterChrome.node);
 
   const listSection = el('section', { class: 'room-primary-list mytexts-list-section' });
@@ -12940,8 +12821,7 @@ async function renderMyTextsCorpus(token) {
   }
   let paintTimer = null;
   const schedulePaint = () => { if (paintTimer) clearTimeout(paintTimer); paintTimer = setTimeout(() => paint({ reset: true }), 200); };
-  input.addEventListener('input', () => { myCorpusState.q = input.value || ''; schedulePaint(); filterChrome && filterChrome.refresh(); });
-  buildSmart(); buildFacets(); filterChrome.refresh();
+  filterChrome.refresh();
   await paint({ reset: true, anchorId: restoreAnchor && restoreAnchor.itemId, start: restoreAnchor && restoreAnchor.rowIndex });
   // Lower-priority continuation covers the rest of the recent personal library after
   // the visible page has been enqueued. It never blocks browsing or Reader opening.
@@ -13029,10 +12909,9 @@ async function renderCorpusHome(token) {
   const nextHost = el('div', { class: 'corpus-next-host' }); wrap.appendChild(nextHost);
   paintBenCorpusNext(nextHost, token);
   const profileFitHost = el('div', { class: 'corpus-profile-fit-host' }); wrap.appendChild(profileFitHost);
+  await ensurePersonalSets();
+  if (token !== corpusRenderToken) return;
   const filterChrome = buildCorpusFilterBar();
-  _corpusSmartRailEl = buildCorpusSmartRail();
-  const filterPanel = filterChrome.querySelector('.corpus-filterbar');
-  if (filterPanel) filterPanel.appendChild(_corpusSmartRailEl);
   const catalogRegion = corpusCatalogRegion('benyehuda');
   catalogRegion.appendChild(filterChrome);
   const readyTotal = Number(corpusIndex && corpusIndex.ready && corpusIndex.ready.length || 0);
@@ -13063,6 +12942,7 @@ async function corpusRefreshL1Body() {
   // S12 — recents/suggestions are a home-only affordance; repaint (history may have grown) + toggle.
   if (corpusRecentsEl) { if (corpusFilterActive()) corpusRecentsEl.hidden = true; else { paintRecents(); corpusRecentsEl.hidden = false; } }
   if (corpusFilterActive()) return renderResultsInto(body);
+  corpusFtsSeq++; // A cleared query also supersedes an in-flight FTS result.
   return renderHomeInto(body);
 }
 
@@ -13111,6 +12991,10 @@ function renderHomeInto(body) {
 // never a fabricated length ranking among unknowns, R10).
 function corpusL1Len(h, readyMap) { const c = readyMap.get(String(h.id)); return (c && (c.segments || 0)) || 0; }
 function corpusL1Comparator(mode, readyMap) {
+  if (['opened_desc','updated_desc','title_asc','title_desc','level_asc','topic_asc'].includes(mode)) {
+    const card = row => ({ ...(readyMap.get(String(row.id)) || {}), id: row.id, title: row.t || readyMap.get(String(row.id))?.title || '' });
+    return (a,b) => catalogCompare(card(a),card(b),mode,item=>String(item.text_key || ''),_personalSets);
+  }
   if (mode === 'familiar_desc') return (a, b) => {
     const af = _benFamiliarityScores && _benFamiliarityScores.get(String(a.id));
     const bf = _benFamiliarityScores && _benFamiliarityScores.get(String(b.id));
@@ -13154,10 +13038,13 @@ async function renderResultsInto(body) {
   if (corpusL1Body !== body) return;
   body.innerHTML = '';
   // uniform personal dimensions need the localDb sets loaded BEFORE the sync filter runs
-  if (corpusFilter.smart || corpusPersonalQuery(corpusFilter.q).tags.length) {
+  if (corpusFilter.smart || corpusFilter.tags?.length || corpusFilter.level || corpusFilter.provider || corpusPersonalQuery(corpusFilter.q).tags.length) {
     try { await ensurePersonalSets(); } catch (_) {}
     if (corpusL1Body !== body || mySeq !== corpusFtsSeq) return;
   }
+  try { benLocalMatches = await catalogLocalMatches((corpusIndex && corpusIndex.ready) || [], item => String(item.text_key || ''), corpusFilter); }
+  catch (_) { if (mySeq === corpusFtsSeq) body.appendChild(stateBoxNode('room.state.error', '⚠️')); return; }
+  if (corpusL1Body !== body || mySeq !== corpusFtsSeq) return;
   const hits = corpusApplyFilter();
   const summary = el('div', { class: 'corpus-results-summary' });
   summary.appendChild(el('span', { class: 'corpus-results-label', text: corpusFilterSummary() }));
@@ -13216,7 +13103,9 @@ async function renderResultsInto(body) {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   // Group B — BRR-P2-001 full-text «в тексте» (async; lazy-loads only the shard(s) a query needs).
   // Shows its own «Ищем в текстах…» placeholder while loading; the seq token drops stale late results.
-  await appendFtsGroup(body, corpusFilter.q, hits, mySeq, { countEl, titleN: hits.length });
+  if (!corpusFilter.scope || ['corpus','fulltext'].includes(corpusFilter.scope)) {
+    await appendFtsGroup(body, window.CatalogDiscovery.parseQuery(corpusFilter.q).textQ, hits, mySeq, { countEl, titleN: hits.length });
+  }
   // FB-20 — the FTS «в тексте» rows arrive after the title group; re-run the idempotent badge pass so a
   // read work surfaced only as an in-text hit also shows «✓ прочитано» (adversarial-caught inconsistency).
   ensureFinishedSet().then(() => { if (corpusL1Body === body) decorateFinishedBadges(body); }).catch(() => {});
@@ -13403,7 +13292,8 @@ function appendFtsSection(body, q, label, items, disclosureKey) {
   head.appendChild(el('h2', { class: 'shelf-title', text: label + ' (' + items.length + ')' }));
   sec.appendChild(head);
   body.appendChild(sec);
-  appendPagedWorkRows(sec, items, null, { openOpts: { ftsQuery: q } });   // BRR-P2-005/006 — opens AT the matched/phrase line
+  const sortedItems = items.slice().sort((a,b) => corpusL1Comparator(corpusL1Sort, corpusReadyMap())(a.sr,b.sr));
+  appendPagedWorkRows(sec, sortedItems, null, { openOpts: { ftsQuery: q } });   // Each explicit search group honors the visible sort.
   attachRoomLongListDisclosure(sec, head, Array.from(sec.children).filter((node) => node !== head), 'ben:results:fts:' + disclosureKey);
 }
 
@@ -13427,7 +13317,7 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
   const advReadyMap = corpusReadyMap();
-  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && corpusScopeAuthorPass(sr, f) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
+  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && corpusScopeAuthorPass(sr, f) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && corpusDiscoveryMatch(sr, advReadyMap, true) && !titleIds.has(String(sr.id));
   let ftsCount = 0;
   const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
 
@@ -13736,195 +13626,62 @@ async function fillConcordanceLines(node, card, q) {
 // from the root) + a clear chip when any filter is active. Each control refreshes only the L1
 // body, so the input focus + select values survive.
 function buildCorpusFilterBar() {
-  const bar = el('div', { class: 'corpus-filterbar' });
-  const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomCorpusSearch' } });
-  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
-  const inputWrap = el('div', { class: 'corpus-search-wrap' });
-  const input = el('input', { class: 'corpus-search-input', attrs: { id: 'roomCorpusSearch', name: 'room-corpus-search', type: 'search', enterkeyhint: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
-  input.value = corpusFilter.q || '';
-  corpusSearchInputEl = input;   // S12 — recents/suggestion chips set the query through this ref
-  // BRR-S4 — inline ✕ clear (tabindex -1: it's a mouse/touch affordance; Escape clears via keyboard).
-  const clearX = el('button', { class: 'corpus-search-clear', attrs: { type: 'button', tabindex: '-1', 'aria-label': tt('room.corpus.search.clearInput', 'Очистить') } });
-  setRoomIcon(clearX, 'lp-icon-close', '✕');
-  clearX.hidden = !input.value;
-  let deb;
-  const applyQuery = () => { corpusFilter.q = input.value; pushRecentSearch(input.value); corpusRefreshL1Body(); };   // S12 — record the search
-  const doClear = () => { input.value = ''; clearX.hidden = true; clearTimeout(deb); corpusFilter.q = ''; corpusRefreshL1Body(); try { input.focus(); } catch (_) {} };
-  input.addEventListener('input', () => {
-    // BRR-P2-006a — warm the exact-index shards this query will need IMMEDIATELY (before the debounce):
-    // a pasted phrase fires one `input` with the whole line → every prefix-shard starts loading at once,
-    // so by the time the debounced search runs they're in flight/cached. Fire-and-forget.
-    try { ensureFtsConfigured(); window.CorpusFTS && window.CorpusFTS.warmQuery(input.value); } catch (_) {}
-    clearX.hidden = !input.value;
-    clearTimeout(deb); deb = setTimeout(applyQuery, 200);
+  const ready = (corpusIndex && corpusIndex.ready) || [];
+  const personal = _personalSets;
+  const facets = catalogFacets(ready, item => String(item.text_key || ''), personal);
+  corpusFilter.sort = corpusL1Sort === 'alpha' ? 'title_asc' : corpusL1Sort === 'opened' ? 'opened_desc' : corpusL1Sort;
+  const facetOptions = (counts, title, label) => [['', title], ...Object.entries(counts || {}).filter(([key]) => key && key !== '(none)')
+    .sort((a,b) => b[1] - a[1]).map(([key,count]) => [key, (label(key) || key) + ' · ' + count])];
+  let debounce;
+  const refreshBody = async () => {
+    if (corpusFilter.readableOnly) await ensureReadableSet();
+    return corpusRefreshL1Body();
+  };
+  const controls = window.CatalogDiscoveryUI.create({
+    id: 'roomBenYehuda', state: corpusFilter, t: tt, ids: { q: 'roomCorpusSearch', sort: 'roomCorpusSort' },
+    defaults: { scope: 'corpus', sort: 'ready' },
+    scopes: [['corpus', tt('discovery.scopeCorpus')], ['texts', tt('discovery.scopeCatalog')], ['fulltext', tt('discovery.scopeFullText')], ...catalogSearchScopes().filter(x => x[0] !== 'texts')],
+    sorts: catalogSortOptions([['ready', tt('room.corpus.sort.readyFirst')], ['length', tt('room.corpus.sort.length')]]),
+    ...facets, providerLabel: catalogProviderLabel, smart: true, personalHint: true,
+    toggles: [
+      { key: 'readyOnly', label: tt('room.corpus.facets.ready'), help: tt('room.corpus.facets.readyHint') },
+      { key: 'readableOnly', label: tt('room.corpus.facets.readableShort'), help: tt('room.corpus.facets.readableHint') },
+      { key: 'exactForm', label: tt('room.corpus.search.exactForm'), help: tt('room.corpus.search.exactFormHint') },
+      { key: 'hasAudio', label: tt('room.corpus.facets.hasAudio') }, { key: 'reviewed', label: tt('room.corpus.facets.reviewed') },
+    ],
+    extra: [
+      { key: 'genre', id: 'roomCorpusFacetgenre', label: tt('room.corpus.facets.genre'), defaultValue: '', options: facetOptions(corpusRoot?.counts?.by_genre, tt('room.corpus.facets.genre'), corpusGenreLabel) },
+      { key: 'lang', id: 'roomCorpusFacetlang', label: tt('room.corpus.facets.lang'), defaultValue: '', options: facetOptions(corpusRoot?.counts?.by_lang, tt('room.corpus.facets.lang'), corpusLangLabel) },
+    ],
+    activeEntries: () => corpusFilter.scopeAuthor || corpusFilter.scopeEra ? [{
+      label: corpusFilter.scopeAuthor ? tt('room.corpus.scope.inAuthor') + ': ' + corpusFilter.scopeAuthor : tt('room.corpus.scope.inEra') + ': ' + corpusEraTitle(corpusFilter.scopeEra),
+      remove() { corpusFilter.scopeAuthor = ''; corpusFilter.scopeAuthorQid = ''; corpusFilter.scopeEra = ''; },
+    }] : [],
+    resetExtra: () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeAuthorQid = ''; corpusFilter.scopeEra = ''; },
+    beforeSort: async value => {
+      if (value !== 'familiar_desc') return true;
+      if (!await familiaritySortProfileAvailable()) return false;
+      try {
+        const scores = await ensureBenFamiliarityScores();
+        if (!reliableFamiliarityCount(scores?.values())) { explainNoReliableFamiliaritySort(); return false; }
+        return true;
+      } catch (_) { roomToast(tt('room.compass.corpusUnavailable')); return false; }
+    },
+    onChange: key => {
+      clearTimeout(debounce);
+      if (key === 'sort') corpusL1Sort = corpusFilter.sort;
+      if (key === 'q') {
+        try { ensureFtsConfigured(); window.CorpusFTS?.warmQuery(window.CatalogDiscovery.parseQuery(corpusFilter.q).textQ); } catch (_) {}
+        debounce = setTimeout(() => { pushRecentSearch(corpusFilter.q); refreshBody(); }, 200);
+      } else { if (key === 'enter') pushRecentSearch(corpusFilter.q); refreshBody(); }
+    },
   });
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(deb); applyQuery(); }      // BRR-S4 — search now (skip debounce)
-    else if (e.key === 'Escape' && input.value) { e.preventDefault(); doClear(); }       // BRR-S4 — Escape clears + keeps focus
-  });
-  clearX.addEventListener('click', (e) => { e.preventDefault(); doClear(); });
-  inputWrap.appendChild(roomIcon('lp-icon-search', '⌕', 'corpus-search-icon'));
-  inputWrap.appendChild(input); inputWrap.appendChild(clearX);
-  searchField.appendChild(inputWrap);
-  // B3 keeps search permanently visible; facets move behind one mobile disclosure.
-  // FB-6 — search history sits directly under the input (the universal position), ABOVE the filter facets,
-  // so a row of recent-QUERY chips is never read as filter/sort tabs (the owner's «блок сортировки» misread).
+  corpusSearchInputEl = controls.search;
+  corpusFilterChromeRefresh = () => { corpusFilter.sort = corpusL1Sort === 'alpha' ? 'title_asc' : corpusL1Sort === 'opened' ? 'opened_desc' : corpusL1Sort; controls.refresh(); };
   corpusRecentsEl = el('div', { class: 'corpus-recents' });
-  bar.appendChild(corpusRecentsEl);
-  paintRecents();
-  corpusRecentsEl.hidden = corpusFilterActive();
-  // FB-12 — group semantics so a screen reader announces «Фильтры корпуса», not a bare button stream.
-  const chips = el('div', { class: 'corpus-facets', attrs: { role: 'group', 'aria-label': tt('room.corpus.facets.groupLabel', 'Фильтры корпуса') } });
-  // BRR-S11 — when a scope is active, a removable «✕ в авторе/периоде: X» chip leads the row (honest,
-  // explicit scope; clearing it returns to global search). The bar is rebuilt on home render, so the
-  // chip appears/disappears with the scope.
-  if (corpusFilter.scopeAuthor || corpusFilter.scopeEra) {
-    const label = corpusFilter.scopeAuthor
-      ? (tt('room.corpus.scope.inAuthor', 'в авторе') + ': ' + corpusFilter.scopeAuthor)
-      : (tt('room.corpus.scope.inEra', 'в периоде') + ': ' + corpusEraTitle(corpusFilter.scopeEra));
-    const sc = el('button', { class: 'corpus-facet-chip on corpus-scope-chip', attrs: { type: 'button', title: tt('room.corpus.scope.clear', 'Искать по всему корпусу') } });
-    // FB-18 — the ✕ is a SEPARATE LTR span, the label dir-isolated: packing «✕ »+Hebrew into one RTL text
-    // node placed the remove glyph ambiguously on scoped Hebrew-author searches (bidi). Now each is isolated.
-    sc.appendChild(roomIcon('lp-icon-close', '✕', 'scope-x'));
-    const scLbl = el('span', { class: 'scope-label', text: label });
-    if (HEBREW_RE.test(label)) scLbl.setAttribute('dir', 'rtl');
-    sc.appendChild(scLbl);
-    sc.addEventListener('click', () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeAuthorQid = ''; corpusFilter.scopeEra = ''; renderCorpus(); });
-    chips.appendChild(sc);
-  }
-  const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly), title: tt('room.corpus.facets.readyHint', 'С переводом — можно открыть и читать') } });
-  appendRoomIconText(ready, 'lp-icon-success', '✓', tt('room.corpus.facets.ready', 'Готовые'));
-  ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
-  chips.appendChild(ready);
-  // B7 — valid exact-count filter. One projection snapshot prevents per-card DB fan-out;
-  // compact copy preserves the one-line 380px filter row without claiming comprehension.
-  const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly), 'aria-label': tt('room.corpus.facets.readable', 'С валидным профилем слов'), title: tt('room.corpus.facets.readableHint', 'Тексты с валидным точным подсчётом; это не оценка понимания') } });
-  appendRoomIconText(readable, 'lp-mark-room', '📖', tt('room.corpus.facets.readableShort', 'По профилю слов'));
-  readable.addEventListener('click', async () => {
-    corpusFilter.readableOnly = !corpusFilter.readableOnly;
-    readable.classList.toggle('on', corpusFilter.readableOnly);
-    readable.setAttribute('aria-pressed', String(corpusFilter.readableOnly));
-    if (corpusFilter.readableOnly) { readable.disabled = true; try { await ensureReadableSet(); } catch (_) {} readable.disabled = false; }
-    corpusRefreshL1Body();
-  });
-  chips.appendChild(readable);
-  // BRR-P3/B7 — keep the primary chips (Готовые/По профилю слов) in the lean main row,
-  // collapse the advanced filters (точная форма · аудио · проверено · жанр · язык) into a second row that
-  // the gear toggles. Persisted; AUTO-expands when any advanced filter is active (active filters stay
-  // visible); the gear shows «•» when advanced filters are on. Tames the @380px chip density (R4).
-  const advWrap = el('div', { class: 'corpus-facets-advanced' });
-  const advCount = (corpusFilter.exactForm ? 1 : 0) + (corpusFilter.hasAudio ? 1 : 0) + (corpusFilter.reviewed ? 1 : 0) + (corpusFilter.genre ? 1 : 0) + (corpusFilter.lang ? 1 : 0);
-  const advActive = advCount > 0;
-  let advExpanded = advActive || _filtersExpanded();
-  // FB-11 — the gear is icon-only; give AT a real name + the active count, and replace the decorative «•»
-  // with a numeric badge «⚙ 2» so sighted users see how many advanced filters hide here.
-  const gearLabel = tt('room.corpus.facets.more', 'Ещё фильтры');
-  const gear = el('button', { class: 'corpus-facet-chip corpus-facets-gear' + (advActive ? ' on' : ''), attrs: { type: 'button', 'aria-expanded': String(advExpanded), 'aria-controls': 'corpusFacetsAdv', title: gearLabel, 'aria-label': gearLabel + (advCount ? (', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + advCount) : '') } });
-  appendRoomIconText(gear, 'lp-icon-settings', '⚙', advCount ? String(advCount) : '');
-  // The bar is NOT rebuilt when an advanced filter toggles (corpusRefreshL1Body re-renders only the body),
-  // so the gear must sync from the LIVE corpusFilter — else its count/.on stay stale and FB-8 reads a stale
-  // advActive and could collapse the row over a just-enabled filter (adversarial-caught). Returns isActive.
-  const syncGear = () => {
-    const n = (corpusFilter.exactForm ? 1 : 0) + (corpusFilter.hasAudio ? 1 : 0) + (corpusFilter.reviewed ? 1 : 0) + (corpusFilter.genre ? 1 : 0) + (corpusFilter.lang ? 1 : 0);
-    appendRoomIconText(gear, 'lp-icon-settings', '⚙', n ? String(n) : '');
-    gear.classList.toggle('on', n > 0);
-    gear.setAttribute('aria-label', gearLabel + (n ? (', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + n) : ''));
-    return n > 0;
-  };
-  gear.addEventListener('click', () => {
-    // FB-8 — active advanced filters must never be hidden behind the gear: while any is on, the row stays
-    // open (collapsing it would hide an applied filter → results look wrong with no visible cause).
-    const active = syncGear();
-    advExpanded = active ? true : !advExpanded;
-    advWrap.hidden = !advExpanded;
-    gear.setAttribute('aria-expanded', String(advExpanded));
-    if (!active) _setFiltersExpanded(advExpanded);
-  });
-  chips.appendChild(gear);
-  advWrap.id = 'corpusFacetsAdv';
-  advWrap.setAttribute('role', 'group');
-  advWrap.setAttribute('aria-label', tt('room.corpus.facets.advGroupLabel', 'Дополнительные фильтры'));
-  // BRR-S9 — «🔤 Точная форма»: default search is lemma-tolerant («по корню» — all forms of the root);
-  // ON restricts the in-text «слова» group to the LITERAL consonantal form (Reverso-class exact toggle).
-  const exactChip = el('button', { class: 'corpus-facet-chip' + (corpusFilter.exactForm ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.exactForm), title: tt('room.corpus.search.exactFormHint', 'Только точная форма слова, без других форм корня') } });
-  exactChip.textContent = '🔤 ' + tt('room.corpus.search.exactForm', 'Точная форма');
-  exactChip.addEventListener('click', () => { corpusFilter.exactForm = !corpusFilter.exactForm; exactChip.classList.toggle('on', corpusFilter.exactForm); exactChip.setAttribute('aria-pressed', String(corpusFilter.exactForm)); corpusRefreshL1Body(); syncGear(); });
-  advWrap.appendChild(exactChip);
-  // BRR-S16 — provenance filters (data-feasible from ready cards; imply readable works). A simple toggle
-  // chip each: 🔊 has-audio, ✍ human-reviewed. (Length is covered by the L3 length-sort; niqqud-ratio
-  // would need a new corpus-search field — deferred, see the impl doc.)
-  const mkProvChip = (key, symbol, emoji, i18nKey, fb) => {
-    const c = el('button', { class: 'corpus-facet-chip' + (corpusFilter[key] ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter[key]) } });
-    appendRoomIconText(c, symbol, emoji, tt(i18nKey, fb));
-    c.addEventListener('click', () => { corpusFilter[key] = !corpusFilter[key]; c.classList.toggle('on', corpusFilter[key]); c.setAttribute('aria-pressed', String(corpusFilter[key])); corpusRefreshL1Body(); syncGear(); });
-    return c;
-  };
-  advWrap.appendChild(mkProvChip('hasAudio', 'lp-icon-audio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
-  advWrap.appendChild(mkProvChip('reviewed', 'lp-icon-note', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
-  advWrap.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel, syncGear));
-  advWrap.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel, syncGear));
-  advWrap.hidden = !advExpanded;
-  // The clear chip is ALWAYS in the bar (the bar is not rebuilt on filter change to keep the
-  // input focused) — its visibility is toggled by corpusRefreshL1Body.
-  const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
-  clear.textContent = '✕ ' + tt('room.corpus.facets.clear', 'Сбросить');
-  clear.hidden = !corpusFilterActive();
-  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }; corpusNavTo('home'); });
-  corpusClearChip = clear;
-  chips.appendChild(clear);
-  bar.appendChild(chips);
-  bar.appendChild(advWrap);
-  const sortField = el('label', { class: 'room-field corpus-browse-sort', attrs: { for: 'roomCorpusSort' } });
-  sortField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.sort.label', 'Сортировка') }));
-  const sortSelect = el('select', { class: 'mytexts-select', attrs: { id: 'roomCorpusSort', name: 'room-corpus-sort', 'aria-label': tt('room.corpus.sort.label', 'Сортировка') } });
-  for (const [mode,key,fb] of [['ready','room.corpus.sort.readyFirst','Сначала готовые'],['familiar_desc','room.compass.sortFamiliar','Сначала достоверно знакомые'],['opened','room.mytexts.sortOpened','Последние открытые'],['alpha','room.corpus.sort.alpha','По алфавиту'],['length','room.corpus.sort.length','По длине']]) {
-    sortSelect.appendChild(el('option', { text: tt(key,fb), attrs: { value: mode } }));
-  }
-  sortSelect.value=corpusL1Sort;
-  sortSelect.addEventListener('change',async()=>{
-    const nextSort=sortSelect.value;
-    if(nextSort==='familiar_desc'&&!await familiaritySortProfileAvailable()){sortSelect.value=corpusL1Sort;return;}
-    if(nextSort==='familiar_desc'){
-      let scores=null;try{scores=await ensureBenFamiliarityScores();}catch(_){sortSelect.value=corpusL1Sort;roomToast(tt('room.compass.corpusUnavailable','Подбор по знакомости временно недоступен'));return;}
-      if(!reliableFamiliarityCount(scores&&scores.values())){sortSelect.value=corpusL1Sort;explainNoReliableFamiliaritySort();return;}
-    }
-    corpusL1Sort=nextSort;
-    if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
-    else corpusRefreshL1Body();
-  });
-  sortField.appendChild(sortSelect);
-  const chrome = corpusFilterChrome('roomBenYehuda', searchField, bar, sortField, () => {
-    const labels=[];
-    if(corpusFilter.readyOnly)labels.push(tt('room.corpus.facets.ready','Готовые'));
-    if(corpusFilter.readableOnly)labels.push(tt('room.corpus.facets.readableShort','По профилю слов'));
-    if(corpusFilter.exactForm)labels.push(tt('room.corpus.search.exactForm','Точная форма'));
-    if(corpusFilter.hasAudio)labels.push(tt('room.corpus.facets.hasAudio','С аудио'));
-    if(corpusFilter.reviewed)labels.push(tt('room.corpus.facets.reviewed','Проверено'));
-    if(corpusFilter.genre)labels.push(corpusGenreLabel(corpusFilter.genre)||corpusFilter.genre);
-    if(corpusFilter.lang)labels.push(corpusLangLabel(corpusFilter.lang)||corpusFilter.lang);
-    if(corpusFilter.smart){const smart=CORPUS_SMART_CHIPS.find((item)=>item[0]===corpusFilter.smart);labels.push(smart?tt(smart[1],smart[2]):corpusFilter.smart);}
-    if(corpusFilter.scopeAuthor)labels.push(tt('room.corpus.scope.inAuthor','в авторе')+': '+corpusFilter.scopeAuthor);
-    else if(corpusFilter.scopeEra)labels.push(tt('room.corpus.scope.inEra','в периоде')+': '+corpusEraTitle(corpusFilter.scopeEra));
-    return {count:labels.length,labels};
-  });
-  corpusFilterChromeRefresh=chrome.refresh;
-  return chrome.node;
-}
-
-// A facet <select> (native = compact + accessible on mobile); options are the histogram keys
-// sorted by count desc, each with its count. The label gets an `on` class when a value is set.
-function buildFacetSelect(key, labelKey, counts, labelFn, onChange) {
-  const wrap = el('label', { class: 'corpus-facet-select' + (corpusFilter[key] ? ' on' : '') });
-  const facetId = 'roomCorpusFacet' + String(key || '').replace(/[^a-z0-9]+/gi, '-');
-  const sel = el('select', { attrs: { id: facetId, name: 'room-corpus-facet-' + String(key || ''), 'aria-label': tt(labelKey) } });
-  sel.appendChild(el('option', { text: tt(labelKey), attrs: { value: '' } }));
-  Object.entries(counts).filter(([k]) => k && k !== '(none)').sort((a, b) => b[1] - a[1]).forEach(([k, n]) => {
-    sel.appendChild(el('option', { text: (labelFn(k) || k) + ' (' + n + ')', attrs: { value: k } }));
-  });
-  sel.value = corpusFilter[key] || '';
-  sel.addEventListener('change', () => { corpusFilter[key] = sel.value; wrap.classList.toggle('on', !!sel.value); corpusRefreshL1Body(); if (onChange) onChange(); });
-  wrap.appendChild(sel);
-  return wrap;
+  controls.node.querySelector('.discovery-primary').after(corpusRecentsEl);
+  paintRecents(); corpusRecentsEl.hidden = corpusFilterActive();
+  return controls.node;
 }
 
 // Period card: title + floruit range + one-line gloss + counts (ready / works / authors).

@@ -170,7 +170,7 @@ test("MY_TEXTS publication resolves only referenced shared-cache audio and accep
       expectedVersion: created.draft_version,
       items: [{
         sourceWorkId: "physics-year1-task-1-1", title: "Физика — задача 1.1", expectedAudioCount: 1,
-        snapshot: { library: { texts: [{ text_key: "physics-year1-task-1-1", rows: [{ order_index: 0, hebrew_niqqud: "שָׁלוֹם", russian: "Привет", audio_asset_key: audioKey }] }], audio_assets: [{ asset_key: audioKey }] } },
+        snapshot: { library: { texts: [{ text_key: "physics-year1-task-1-1", level: "B1", topic: "Mechanics", tags_json: JSON.stringify(["physics", "physics", "year-1"]), rows: [{ order_index: 0, translation_provider: "gemini-3.7", hebrew_niqqud: "שָׁלוֹם", russian: "Привет", audio_asset_key: audioKey }] }], audio_assets: [{ asset_key: audioKey }] } },
       }],
     }, { idempotencyKey: "copy-physics" });
     const basis = "OWNER_ATTESTATION_PHYSICS_YEAR1_2026_08_25";
@@ -185,6 +185,13 @@ test("MY_TEXTS publication resolves only referenced shared-cache audio and accep
     assert.equal(receipt.package_complete, true);
     const publicCorpus = await fixture.repo.getPublicCorpus("physics-year-1");
     assert.equal(publicCorpus.items[0].rights_basis, basis);
+    assert.deepEqual(publicCorpus.items[0].tags, ['physics','year-1']);
+    assert.equal(publicCorpus.items[0].level,'B1');
+    assert.equal(publicCorpus.items[0].topic,'Mechanics');
+    assert.equal(publicCorpus.items[0].rows_count,1);
+    assert.deepEqual(publicCorpus.items[0].translation_providers,['gemini']);
+    assert.equal('snapshot_json' in publicCorpus.items[0],false);
+    assert.equal('source_text' in publicCorpus.items[0],false);
     const archive = new AdmZip((await fixture.repo.getPublicPackage("physics-year-1")).absolute_path);
     assert.ok(archive.getEntry("audio/" + audioKey + ".mp3"));
     assert.equal(archive.getEntries().filter(entry => entry.entryName.startsWith("audio/")).length, 1);

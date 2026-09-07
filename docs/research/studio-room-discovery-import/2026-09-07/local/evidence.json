@@ -1,0 +1,660 @@
+{
+  "base": "http://127.0.0.1:3327",
+  "mode": "isolated catalog fixtures",
+  "checks": [
+    "DB keyset pagination covers all 65 rows once",
+    "DB notes finds exact last-page material",
+    "DB rows finds exact last-page material",
+    "DB tags finds exact last-page material",
+    "DB phrase finds exact last-page material",
+    "DB provider finds exact last-page material",
+    "DB smart finds exact last-page material",
+    "canonical note occurrence counts match filter",
+    "all 66 tag facets remain available",
+    "My texts selected title order",
+    "My texts searches past page boundary",
+    "removing active query clears search",
+    "canonical note smart chip visible result",
+    "reset preserves chosen sorting",
+    "rare tag is clickable through tag search",
+    "my-desktop-ru no horizontal overflow",
+    "my-desktop-dark no horizontal overflow",
+    "Room dark text contrast >=4.5",
+    "my-380-ru no horizontal overflow",
+    "my-380-en no horizontal overflow",
+    "my-380-he no horizontal overflow",
+    "public discovery-fixture eight common smart filters",
+    "public tag search across catalog",
+    "public title sort exact result",
+    "public-discovery-fixture-desktop no horizontal overflow",
+    "public-discovery-fixture-380-he no horizontal overflow",
+    "Ben Yehuda eight common smart filters",
+    "ben-desktop no horizontal overflow",
+    "ben-380-he no horizontal overflow",
+    "group eight common smart filters",
+    "group tag search across catalog",
+    "group-desktop no horizontal overflow",
+    "group-380-he no horizontal overflow",
+    "Studio empty profile is explained",
+    "recorded learner projection available",
+    "Studio card displays independently expected 75 percent",
+    "Studio reliable familiarity orders 75 before 25",
+    "Studio cold lexical worker completes with real ingredients",
+    "studio-desktop-ru no horizontal overflow",
+    "studio-380-ru no horizontal overflow",
+    "studio-380-he no horizontal overflow",
+    "Import Center shows three clear primary actions",
+    "import-desktop-ru no horizontal overflow",
+    "import-desktop-dark no horizontal overflow",
+    "Import dark text contrast >=4.5",
+    "import-380-ru no horizontal overflow",
+    "import-380-en no horizontal overflow",
+    "import-380-he no horizontal overflow",
+    "import-380-he-200pct no horizontal overflow",
+    "transfer does not silently choose first material",
+    "restoration distinguishes full backup from one material",
+    "verified import preview precedes mutation",
+    "import-verified-preview no horizontal overflow",
+    "failed apply retains a usable retry and verified plan",
+    "real package import creates Library card",
+    "repeat import creates zero duplicates",
+    "damaged archive cannot be applied",
+    "valid file can be retried after invalid archive",
+    "Escape closes Import Center",
+    "selected material exposes archive and snapshot formats",
+    "material history backup downloads",
+    "saved-copy confirmation is explicit",
+    "support report contains integrity counts without material text",
+    "all discovery and import flows preserve review_log exactly",
+    "zero provider requests",
+    "zero browser page errors"
+  ],
+  "screenshots": [
+    {
+      "name": "my-desktop-ru",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "my-desktop-dark",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "my-380-ru",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "my-380-en",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "my-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "public-discovery-fixture-desktop",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "public-discovery-fixture-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "ben-desktop",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "ben-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "group-desktop",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "group-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "studio-desktop-ru",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "studio-380-ru",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "studio-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-desktop-ru",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-desktop-dark",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-380-ru",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-380-en",
+      "dir": "ltr",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-380-he",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-380-he-200pct",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    },
+    {
+      "name": "import-verified-preview",
+      "dir": "rtl",
+      "overflow": false,
+      "dialogOverflow": false
+    }
+  ],
+  "errors": [],
+  "provider_requests": [],
+  "db": {
+    "total": 65,
+    "pages": [
+      48,
+      17
+    ],
+    "notes": [
+      "disc-64"
+    ],
+    "rows": [
+      "disc-64"
+    ],
+    "tags": [
+      "disc-64"
+    ],
+    "phrase": [
+      "disc-64"
+    ],
+    "provider": [
+      "disc-64"
+    ],
+    "smart": [
+      "disc-64"
+    ],
+    "facets": {
+      "smartCounts": {
+        "recent": 65,
+        "with-note": 1,
+        "audio-noted": 0,
+        "srs-noted": 0,
+        "templated": 1
+      },
+      "tags": 66
+    }
+  },
+  "contrast": [
+    {
+      "label": "Room dark",
+      "rows": [
+        {
+          "text": "roomMyTextsSearch",
+          "ratio": 13.35
+        },
+        {
+          "text": "Сначала достоверно знакомыеПоследние открытыеПоследние измен",
+          "ratio": 13.35
+        },
+        {
+          "text": "Фильтры",
+          "ratio": 11.65
+        },
+        {
+          "text": "Название, автор и описаниеКаталог, строки и заметкиВ строках",
+          "ratio": 13.35
+        },
+        {
+          "text": "Все уровниB1 · 33A2 · 32",
+          "ratio": 13.35
+        },
+        {
+          "text": "Все провайдерыПровайдер неизвестен · 64Gemini · 1",
+          "ratio": 13.35
+        },
+        {
+          "text": "Недавние65",
+          "ratio": 13.35
+        },
+        {
+          "text": "Сложные",
+          "ratio": 13.35
+        },
+        {
+          "text": "Освоено",
+          "ratio": 13.35
+        },
+        {
+          "text": "Новые",
+          "ratio": 13.35
+        },
+        {
+          "text": "С заметкой1",
+          "ratio": 13.35
+        },
+        {
+          "text": "С аудиозаметкой0",
+          "ratio": 13.35
+        },
+        {
+          "text": "С заметкой для повторения0",
+          "ratio": 13.35
+        },
+        {
+          "text": "С учебной заметкой1",
+          "ratio": 13.35
+        },
+        {
+          "text": "Все выбранныеХотя бы один",
+          "ratio": 13.35
+        },
+        {
+          "text": "roomMyTextsTagSearch",
+          "ratio": 13.35
+        },
+        {
+          "text": "#sample65",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-01",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-11",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-101",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-111",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-121",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-131",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-141",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-151",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-161",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-171",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-181",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-191",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-21",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-201",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-211",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-221",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-231",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-241",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-251",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-261",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-271",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-281",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-291",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-31",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-301",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-311",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-321",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-331",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-341",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-351",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-361",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-371",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-381",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-391",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-41",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-401",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-411",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-421",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-431",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-441",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-451",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-461",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-471",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-481",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-491",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-51",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-501",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-511",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-521",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-531",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-541",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-551",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-561",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-571",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-581",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-591",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-61",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-601",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-611",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-621",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-631",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-641",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-71",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-81",
+          "ratio": 13.35
+        },
+        {
+          "text": "#tag-91",
+          "ratio": 13.35
+        },
+        {
+          "text": "Свернуть теги",
+          "ratio": 5.75
+        }
+      ]
+    },
+    {
+      "label": "Import dark",
+      "rows": [
+        {
+          "text": "Ваша библиотека на этом устройстве",
+          "ratio": 9.89
+        },
+        {
+          "text": "×",
+          "ratio": 12.36
+        },
+        {
+          "text": "Обзор",
+          "ratio": 9.89
+        },
+        {
+          "text": "Материалы",
+          "ratio": 9.56
+        },
+        {
+          "text": "Задачи",
+          "ratio": 9.56
+        },
+        {
+          "text": "История",
+          "ratio": 9.56
+        },
+        {
+          "text": "Справка",
+          "ratio": 9.56
+        },
+        {
+          "text": "Добавить материалТекст, аудио или видео для нового занятия.",
+          "ratio": 13.35
+        },
+        {
+          "text": "Восстановить из копииВернуть библиотеку или один материал из",
+          "ratio": 13.35
+        },
+        {
+          "text": "Сохранить резервную копиюСкачать библиотеку для хранения или",
+          "ratio": 13.35
+        },
+        {
+          "text": "0",
+          "ratio": 9.89
+        },
+        {
+          "text": "0",
+          "ratio": 9.89
+        },
+        {
+          "text": "0",
+          "ratio": 9.89
+        },
+        {
+          "text": "Как выбрать формат?",
+          "ratio": 9.89
+        }
+      ]
+    }
+  ],
+  "coldWorker": {
+    "schema_version": "room.recorded_familiarity.2.0.0",
+    "status": "AVAILABLE_LIMITED",
+    "reason_code": "UNRESOLVED_ABOVE_RANK_LIMIT",
+    "counts": {
+      "lexical_total": 2,
+      "eligible_denominator": 2,
+      "familiar": 0,
+      "explicit_new": 0,
+      "untracked": 0,
+      "unresolved": 2,
+      "ignored_excluded": 0,
+      "proper_names_excluded": 0
+    },
+    "recorded_familiar_pct_lower_bound": 0,
+    "unresolved_uncertainty_pp": 100,
+    "rank_eligible": false,
+    "top_unknown": [],
+    "learner_projection_version": "room-profile-v2:1:2026-09-07 08:16:11",
+    "resolver_version": "recorded-familiarity-v2",
+    "generated_at": "1970-01-01T00:00:00.000Z"
+  },
+  "status": "PASS"
+}
