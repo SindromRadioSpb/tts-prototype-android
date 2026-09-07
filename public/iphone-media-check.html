@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Проверка загрузки на iPhone — LinguistPro</title>
+  <link rel="stylesheet" href="/css/visual-foundations.css">
+  <link rel="stylesheet" href="/css/iphone-media-check.css?v=1">
+  <script defer src="/js/iphone-media-check.js?v=1"></script>
+</head>
+<body>
+<main>
+  <a class="brand" href="/">LinguistPro</a>
+  <header>
+    <p class="experiment">Проверка владельцем · комплект 1</p>
+    <h1>Загрузка на iPhone</h1>
+    <p class="intro">Chrome остаётся вашим браузером. Проверим, может ли бесплатный помощник скачать файл на самом телефоне, без нашего медиа-сервера.</p>
+    <aside class="notice"><strong>Это проверка, не готовая функция «По ссылке».</strong> Сейчас нужны a-Shell mini и несколько команд. Сам файл пока не передаётся автоматически в LinguistPro. Основной импорт не изменён.</aside>
+  </header>
+
+  <ol class="steps">
+    <li>
+      <section aria-labelledby="step1">
+        <h2 id="step1">Установите помощник</h2>
+        <p>Установите бесплатное приложение a-Shell mini из App Store. Отдельная подписка, компьютер и аккаунт YouTube для этого теста не нужны.</p>
+        <a class="action primary" href="https://apps.apple.com/app/a-shell-mini/id1543537943" target="_blank" rel="noopener noreferrer">Открыть App Store</a>
+        <p class="note">Нужны обычный интернет и свободное место на iPhone. Медиа и промежуточные файлы занимают дополнительную память.</p>
+      </section>
+    </li>
+    <li>
+      <section aria-labelledby="step2">
+        <h2 id="step2">Сохраните проверочный комплект</h2>
+        <p>Скачайте ZIP, сохраните в «Файлы» и нажмите на архив, чтобы распаковать. Откройте a-Shell mini и выполните:</p>
+        <a class="action primary" href="/downloads/linguistpro-iphone-probe-0744253a.zip" download="linguistpro-iphone-probe.zip">Скачать комплект · 24 КБ</a>
+        <div class="command"><code id="pick">pickFolder</code><button type="button" data-copy="pick" aria-label="Скопировать pickFolder">Копировать</button></div>
+        <p>Выберите распакованную папку <bdi>LinguistPro-iPhone-probe</bdi>. Подтвердите доступ только к ней. Команда <code>ls</code> должна показать <code>run.py</code>. Если папка не сменилась — остановитесь и сообщите версию a-Shell mini.</p>
+        <p>Установите три закреплённые зависимости в эту папку:</p>
+        <div class="command"><code id="install">python3 run.py --install-runtime</code><button type="button" data-copy="install" aria-label="Скопировать команду установки зависимостей">Копировать</button></div>
+        <p class="note">Ожидаемый ответ: <code>"runtime_install": "COMPLETE"</code>. Это ещё не проверка скачивания. Повторная установка не перезаписывает существующую папку.</p>
+      </section>
+    </li>
+    <li>
+      <section aria-labelledby="step3">
+        <h2 id="step3">Проверьте возможности телефона</h2>
+        <div class="command"><code id="preflight">python3 run.py --preflight</code><button type="button" data-copy="preflight" aria-label="Скопировать команду проверки телефона">Копировать</button></div>
+        <p>Продолжайте только после <code>NATIVE_PREFLIGHT_PASS</code>. Проверяются Apple WebKit и обработка короткого аудио на устройстве.</p>
+        <p class="note">При ошибке или зависании сохраните код либо снимок экрана и остановитесь. Не меняйте VPN, cookies, пакеты или настройки телефона наугад.</p>
+      </section>
+    </li>
+    <li>
+      <section aria-labelledby="step4">
+        <h2 id="step4">Скачайте один разрешённый ролик</h2>
+        <p>Вставьте публичную ссылку YouTube и укажите основание для сохранения. Открытый доступ сам по себе не означает разрешения.</p>
+        <label for="source">Ссылка на ролик</label>
+        <input id="source" type="url" inputmode="url" autocomplete="off" spellcheck="false" value="https://www.youtube.com/watch?v=dH_OkB7Uym4">
+        <label for="rights">На каком основании вы сохраняете файл?</label>
+        <select id="rights">
+          <option value="">Выберите основание</option>
+          <option value="owned">Это мой материал</option>
+          <option value="permission">Есть разрешение правообладателя</option>
+          <option value="public-domain">Материал в общественном достоянии</option>
+        </select>
+        <p id="sourceStatus" class="note" role="status">Выберите основание — появятся команды.</p>
+        <div id="downloadCommands" hidden>
+          <h3>Сначала — только аудио</h3>
+          <div class="command"><code id="audioCommand"></code><button type="button" data-copy="audioCommand" aria-label="Скопировать команду загрузки аудио">Копировать</button></div>
+          <h3>Затем — видео со звуком, 360p</h3>
+          <div class="command"><code id="videoCommand"></code><button type="button" data-copy="videoCommand" aria-label="Скопировать команду загрузки видео">Копировать</button></div>
+        </div>
+        <p>Вставляйте и запускайте команды по одной в a-Shell mini. Оставайтесь в помощнике до завершения; не блокируйте экран. Возобновление после выгрузки приложения пока не проверено.</p>
+        <p>Ожидаемый результат: <code>LOCAL_BYTES_VERIFIED</code>. Файл <code>verified.m4a</code> или <code>verified.mp4</code> и <code>report.json</code> появятся в <code>results/&lt;job_id&gt;</code> внутри выбранной папки.</p>
+        <p class="note">Не более 3 часов и 300 MiB итогового файла. Не запускайте два скачивания одновременно. Расшифровка не запускается: у облачной ASR отдельная стоимость.</p>
+      </section>
+    </li>
+    <li>
+      <section aria-labelledby="step5">
+        <h2 id="step5">Вернитесь в Chrome и откройте файл</h2>
+        <p>Из отчёта скопируйте значение <code>job_id</code> без кавычек — 32 символа.</p>
+        <label for="jobId">Идентификатор завершённой проверки</label>
+        <input id="jobId" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" placeholder="job_id из отчёта">
+        <div id="returnBlock" hidden>
+          <div class="command"><code id="returnCommand"></code><button type="button" data-copy="returnCommand" aria-label="Скопировать команду возврата в Chrome">Копировать</button></div>
+        </div>
+        <p id="returnStatus" class="note" role="status">Введите job_id — появится команда возврата.</p>
+        <p>Выполните её в a-Shell mini. Должен открыться <strong>Chrome</strong> с LinguistPro; возможна новая вкладка. Ответ <code>REQUESTED</code> означает только отправленный запрос, не передачу файла.</p>
+        <p>В LinguistPro: «Добавить материал» → «С устройства» → выберите <code>verified.*</code> через «Файлы». Проверьте начало, середину и конец, звук и видео. Пока не запускайте облачную расшифровку.</p>
+        <a class="action" href="/">Открыть LinguistPro</a>
+      </section>
+    </li>
+  </ol>
+  <section class="report" aria-labelledby="reportTitle">
+    <h2 id="reportTitle">Что прислать по результатам</h2>
+    <p>Модель iPhone, версии iOS, Chrome и a-Shell mini; файл <code>report.json</code>; получилось ли вернуться в Chrome, выбрать файл и воспроизвести его. При ошибке — этап и видимый код.</p>
+    <p class="note">Медиа присылать не нужно. Отчёт содержит ID ролика — просмотрите его перед отправкой. Тестовые файлы остаются на телефоне; удаляйте только выбранную тестовую папку после проверки сохранности медиа.</p>
+  </section>
+  <details>
+    <summary>Технические сведения о комплекте</summary>
+    <p>Источник: commit <code>78dd8996</code>. yt-dlp 2026.8.19, EJS 0.8.0, Apple WebKit JSI 0.1.1. SHA-256 архива:</p>
+    <code class="digest">0744253ad45912fd53f641b10f9832e68511641f211d1bf82ae8151d6f7e4282</code>
+    <p>Страница не отправляет ссылку или файлы на сервер, не хранит введённое и не скачивает медиа. Команды запускаете вы в помощнике. Проверка на настоящем iPhone ещё не завершена.</p>
+  </details>
+  <p id="copyStatus" class="copy-status" role="status" aria-live="polite"></p>
+  <footer>Проверочная страница · v3.11.490 · основной импорт без изменений</footer>
+</main>
+</body>
+</html>
