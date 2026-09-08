@@ -23,6 +23,19 @@ test('table-job journal restores only a proven contiguous prefix for the exact p
   assert.equal(Job.resume(journal, { text: 'source', provider: 'google-free', segments, chunkSize: 2 }), null);
 });
 
+test('table-job journal identity is model-specific', () => {
+  const Job = require('../public/js/table-job.js');
+  const segments = [{ i: 0, text: 'segment 0' }];
+  const input = { text: 'source', provider: 'gemini', model: 'gemini-3.8-flash', segments, chunkSize: 1 };
+  let journal = Job.create(input);
+  journal = Job.acceptChunk(journal, { index: 0, rows: [{ he: 'א', segment_index: 0 }] });
+
+  assert.equal(journal.model, 'gemini-3.8-flash');
+  assert.ok(Job.resume(journal, input));
+  assert.equal(Job.resume(journal, { ...input, model: 'gemini-3.7-flash' }), null);
+  assert.equal(Job.resume(journal, { ...input, model: '' }), null);
+});
+
 test('table-job repair evidence survives reload and rejects invalid or duplicate repair indexes', () => {
   const Job = require('../public/js/table-job.js');
   const segments = Array.from({ length: 3 }, (_, i) => ({ i, text: `segment ${i}` }));

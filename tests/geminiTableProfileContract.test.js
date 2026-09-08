@@ -18,15 +18,25 @@ test("Studio sends the selected transliteration profile to Gemini table routes",
 });
 
 test("local table cache cannot cross direction or transliteration contracts", () => {
+  const browserModel = indexHtml.match(/EXPECTED_GEMINI_STUDIO_MODEL = "([^"]+)"/);
+  assert.ok(browserModel, "browser model pin is required for local cache identity");
+  assert.equal(browserModel[1], getGeminiScenario("table-seg-he-ru").model);
   assert.match(indexHtml, /TABLE_CACHE_CONTRACT_VERSION = "table-cache-v3-local-niqqud-normalization"/);
   assert.match(indexHtml, /cache\.tableCacheContract === TABLE_CACHE_CONTRACT_VERSION/);
   assert.match(indexHtml, /cache\.translitProfile === requestedTranslitProfile/);
   assert.match(indexHtml, /cache\.direction === requestedDirection/);
   assert.match(indexHtml, /cache\.segmentMode === requestedSegmentMode/);
   assert.match(indexHtml, /cache\.promptId === requestedPromptId/);
+  assert.match(indexHtml, /cache\.model === EXPECTED_GEMINI_STUDIO_MODEL/);
   assert.match(indexHtml, /tableCacheContract: TABLE_CACHE_CONTRACT_VERSION/);
   assert.match(indexHtml, /translitProfile: translit_profile/);
   assert.match(indexHtml, /promptId: v3LastGeminiMeta && v3LastGeminiMeta\.promptId \|\| null/);
+  assert.match(indexHtml, /model: v3LastGeminiMeta && \(v3LastGeminiMeta\.requestedModel \|\| v3LastGeminiMeta\.model\) \|\| EXPECTED_GEMINI_STUDIO_MODEL/);
+});
+
+test("Gemini resumable table jobs are bound to the pinned browser model", () => {
+  assert.match(indexHtml, /provider: "gemini", model: EXPECTED_GEMINI_STUDIO_MODEL,/);
+  assert.match(indexHtml, /const jobInput = \{ text: getText\(\)\.trim\(\), provider: "gemini", model: EXPECTED_GEMINI_STUDIO_MODEL,/);
 });
 
 test("restored browser tables use the same audited local niqqud normalizer", () => {

@@ -47,7 +47,8 @@ async function main() {
       if (segments.length === 120) rows = segments.slice(0, 119).map((segment, index) => translatedRow(index, segment.text));
       else rows = segments.map((segment, index) => translatedRow(index, segment.text));
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-        rows, fromCache: false, cacheKey: null, warnings: rows.length === segments.length ? [] : ['SEG_COVERAGE_PARTIAL'],
+        rows, fromCache: false, cacheKey: null, model: 'gemini-3.8-flash', requestedModel: 'gemini-3.8-flash',
+        warnings: rows.length === segments.length ? [] : ['SEG_COVERAGE_PARTIAL'],
       }) });
     });
     await page.goto(`${BASE}/index.html?table_resume=${Date.now()}`, { waitUntil: 'load' });
@@ -63,8 +64,11 @@ async function main() {
       await v3TranslateTableChunked(segments, { package: { media_sha256: 'a'.repeat(64) } });
       const coverage = TableChunks.coverageForRows(currentTableData, segments.length);
       const journal = await TableJob.loadDurable();
+      const wrongModelResume = TableJob.resume(journal, { text: getText().trim(), provider: 'gemini',
+        model: 'gemini-3.7-flash', segments, chunkSize: TableChunks.CHUNK_SIZE });
       return { rows: currentTableData.length, coverage, state: journal && journal.state,
         chunks: journal && journal.completed.length, repairs: journal && journal.repairs.length,
+        model: journal && journal.model, wrongModelRejected: wrongModelResume === null,
         localStorageCopy: localStorage.getItem(TableJob.STORAGE_KEY),
         hud: document.getElementById('v3TableJobRows').textContent };
     });
@@ -78,7 +82,7 @@ async function main() {
         mime: 'video/mp4', originalName: 'resume-smoke.mp4' }, segments } };
       currentTableData = [];
       const result = await v3TableJobRestoreLocalOnly({ text: getText().trim(), provider: 'gemini',
-        segments, chunkSize: TableChunks.CHUNK_SIZE });
+        model: 'gemini-3.8-flash', segments, chunkSize: TableChunks.CHUNK_SIZE });
       return { restored: !!result, rows: currentTableData.length,
         coverage: TableChunks.coverageForRows(currentTableData, segments.length), provider: getSelectedProvider() };
     });
@@ -86,7 +90,8 @@ async function main() {
       providerCalls: calls.map((segments) => ({ count: segments.length, first: segments[0], last: segments.at(-1) })),
       pageErrors };
     if (first.rows !== 121 || first.coverage.covered !== 121 || first.coverage.missing.length || first.state !== 'done' ||
-        first.chunks !== 2 || first.repairs !== 1 || first.localStorageCopy !== null || !/121\/121/.test(first.hud) ||
+        first.chunks !== 2 || first.repairs !== 1 || first.model !== 'gemini-3.8-flash' || !first.wrongModelRejected ||
+        first.localStorageCopy !== null || !/121\/121/.test(first.hud) ||
         !restored.restored || restored.rows !== 121 || restored.coverage.covered !== 121 || restored.coverage.missing.length ||
         restored.provider !== 'google-free' || calls.length !== 3 || calls[0].length !== 120 ||
         calls[1][0] !== 'segment-120' || calls[2][0] !== 'segment-119' || pageErrors.length) {

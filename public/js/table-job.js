@@ -1,4 +1,5 @@
-// Honest resumable journal for long Studio table jobs. Pure core + one bounded localStorage slot.
+// Honest resumable journal for long Studio table jobs. Its signature binds source,
+// provider, exact model, chunk plan and segments. Pure core + one bounded localStorage slot.
 (function (root, factory) {
   var api = factory();
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -17,6 +18,7 @@
   function signature(input) {
     var segments = Array.isArray(input.segments) ? input.segments : [];
     return fingerprint(JSON.stringify({ text: String(input.text || ""), provider: String(input.provider || ""),
+      model: String(input.model || ""),
       chunkSize: Number(input.chunkSize) || 0, segments: segments.map(function (s) { return [s.i, String(s.text || "")]; }) }));
   }
   function create(input) {
@@ -26,6 +28,7 @@
       plan.push({ index: index, base: base, count: Math.min(size, segments.length - base) });
     }
     return { schema: "studio-table-job-v1", signature: signature(input), provider: String(input.provider || ""),
+      model: String(input.model || ""),
       plan: plan, completed: [], repairs: [], mediaSha: /^[a-f0-9]{64}$/i.test(String(input.mediaSha || "")) ? String(input.mediaSha).toLowerCase() : null,
       startedAt: Number(input.now) || Date.now(), updatedAt: Number(input.now) || Date.now(), state: "stopped" };
   }

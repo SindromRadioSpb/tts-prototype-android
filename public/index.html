@@ -13501,7 +13501,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.495";
+    window.APP_VERSION = "3.11.496";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17595,6 +17595,10 @@ function v3NotesRefreshAllButtons() {
 
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+    // Browser-side cache and recovery identity must move in lockstep with
+    // ingest/geminiPolicy.js. A historical table may still be displayed, but an
+    // explicit rebuild never treats another model's rows as the current result.
+    const EXPECTED_GEMINI_STUDIO_MODEL = "gemini-3.8-flash";
     // Cache identity is separate from the storage key so existing offline rows
     // remain recoverable after upgrades, while an explicit Rebuild cannot reuse
     // rows produced under another direction/transliteration contract.
@@ -35695,6 +35699,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     cache.direction === requestedDirection &&
                     cache.segmentMode === requestedSegmentMode &&
                     (requestedProvider !== "gemini" || cache.promptId === requestedPromptId) &&
+                    (requestedProvider !== "gemini" || cache.model === EXPECTED_GEMINI_STUDIO_MODEL) &&
                     Array.isArray(cache.rows) &&
                     cache.rows.length > 0
                 ) {
@@ -35903,6 +35908,7 @@ try {
                         translitProfile: translit_profile,
                         segmentMode: segModeSent,
                         promptId: v3LastGeminiMeta && v3LastGeminiMeta.promptId || null,
+                        model: v3LastGeminiMeta && (v3LastGeminiMeta.requestedModel || v3LastGeminiMeta.model) || EXPECTED_GEMINI_STUDIO_MODEL,
                         rows: currentTableData,
                         createdAt: new Date().toISOString(),
                         lastDocxFilename: lastDocxFilename
@@ -36161,7 +36167,7 @@ try {
             // The resumable long-media contract is Gemini-specific. UI provider defaults may
             // reset to Google-free on reload; they must not invalidate a proven Gemini journal.
             const restored = await v3TableJobRestoreLocalOnly({ text: getText().trim(), provider: "gemini",
-                segments, chunkSize: TableChunks.CHUNK_SIZE });
+                model: EXPECTED_GEMINI_STUDIO_MODEL, segments, chunkSize: TableChunks.CHUNK_SIZE });
             if (!restored || !restored.rows.length) return;
             v3TableJobStartedAt = Number(restored.journal.startedAt) || Date.now();
             const restoredCoverage = TableChunks.coverageForRows(restored.rows, segments.length);
@@ -36385,7 +36391,7 @@ try {
         const jobTotalRows = segs.length;
         const jobMediaSha = v3TableJobMediaSha(mediaContext);
         const jobMediaIntended = !!(jobMediaSha || (window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.media_intended));
-        const jobInput = { text: getText().trim(), provider: "gemini", segments: segs,
+        const jobInput = { text: getText().trim(), provider: "gemini", model: EXPECTED_GEMINI_STUDIO_MODEL, segments: segs,
             chunkSize: TableChunks.CHUNK_SIZE, mediaSha: jobMediaSha };
         let jobJournal = window.TableJob ? TableJob.create(Object.assign({}, jobInput, { now: Date.now() })) : null;
         if (jobJournal) jobJournal.mediaIntended = jobMediaIntended;
@@ -36612,6 +36618,7 @@ try {
         lastDocxFilename = generateDocxFileName();
         v3NotifyTableCacheOutcome(v3StoreTableCache({
             text: getText().trim(), provider: "gemini", rows: currentTableData,
+            model: v3LastGeminiMeta && (v3LastGeminiMeta.requestedModel || v3LastGeminiMeta.model) || EXPECTED_GEMINI_STUDIO_MODEL,
             createdAt: new Date().toISOString(), lastDocxFilename: lastDocxFilename,
         }));
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
