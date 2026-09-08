@@ -30,6 +30,8 @@ const {
   validateHebrewSourceCoverage,
 } = require("./ingest/tableRows.js");
 const { buildGeminiTableResponseSchema } = require("./ingest/geminiTableSchema.js");
+const { recoverTableNiqqud, buildRepairSchema } = require("./ingest/geminiTableRepair.js");
+const { classifyGeminiError: classifyTableGeminiError } = require("./ingest/geminiError.js");
 const { generateGeminiContent } = require("./ingest/geminiClient.js");
 const {
   GEMINI_STUDIO_MODEL,
@@ -1111,9 +1113,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=211",
-  "/i18n/locales/en.js?v=211",
-  "/i18n/locales/he.js?v=211",
+  "/i18n/locales/ru.js?v=212",
+  "/i18n/locales/en.js?v=212",
+  "/i18n/locales/he.js?v=212",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -7116,6 +7118,7 @@ app.post("/api/translate-table", async (req, res) => {
             translitProfile: cached.translitProfile || translitProfile,
             translitProfileVersion: local.resolvedTranslitProfile,
             localNiqqudCorrections: local.corrections,
+            semanticRepair: cached.semanticRepair || null,
           });
         }
       } catch (e) {
@@ -7190,6 +7193,36 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
 
+    let semanticRepair = null;
+    // Recover a paid but semantically rejected answer without regenerating the
+    // chunk or changing its source/good rows. The original raw cache is immutable.
+    try {
+      const recovered = await recoverTableNiqqud({
+        parsed, direction, segMode, rawText, scenario, translitProfile,
+        cacheFile: path.join(geminiCacheDir, `table-repair-v1-${hashKey}.json`),
+        generate: async ({ prompt: repairPrompt }) => {
+          const answer = await generateGeminiContent({
+            apiKey: trimmedKey, scenario, contents: repairPrompt,
+            config: { temperature: 0, maxOutputTokens: 16384,
+              responseMimeType: "application/json", responseSchema: buildRepairSchema(Type) },
+          });
+          updateUsage("gemini", 1);
+          return answer;
+        },
+      });
+      parsed = recovered.parsed;
+      semanticRepair = recovered.repair;
+      if (recovered.providerCalls > 0) rawFromCache = false;
+    } catch (e) {
+      if (e.code === "GEMINI_TABLE_REVIEW_REQUIRED") {
+        return res.status(422).json({
+          error: "Gemini не смог сохранить исходный иврит при расстановке огласовок. Автоматические попытки остановлены; исходный текст и ответы сохранены.",
+          error_code: e.code, retryable: false, repair: e.repair, rawCacheKey: hashKey,
+        });
+      }
+      throw e;
+    }
+
     let preparedRows;
     try {
       preparedRows = buildRowsFromGeminiPayload(parsed, { direction }, { keepSegmentIndex: segMode });
@@ -7221,10 +7254,12 @@ app.post("/api/translate-table", async (req, res) => {
         schemaId: scenario.schemaId,
         translitProfile: resolvedTranslitProfile,
         localNiqqudNormalization: local.corrections.length > 0,
+        semanticRepair,
       });
     });
 
     let warnings = local.corrections.length > 0 ? ["LOCAL_NIQQUD_CANONICALIZED"] : [];
+    if (semanticRepair) warnings.push("GEMINI_NIQQUD_REPAIRED");
     if (segMode) {
       if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {
         preparedRows.forEach((r) => { delete r.segment_index; });
@@ -7249,6 +7284,7 @@ app.post("/api/translate-table", async (req, res) => {
       translitProfile,
       translitProfileVersion: resolvedTranslitProfile,
       localNiqqudCorrections: local.corrections,
+      semanticRepair,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -7271,15 +7307,13 @@ app.post("/api/translate-table", async (req, res) => {
       translitProfile,
       translitProfileVersion: resolvedTranslitProfile,
       localNiqqudCorrections: local.corrections,
+      semanticRepair,
     });
   } catch (error) {
     // Sanitize: log only flat scalars, never the raw error object (it can
     // include the user's BYOK key in some Gemini SDK paths).
-    console.error("Gemini Error:", {
-      message: error && error.message,
-      status: error && (error.status || error.statusCode),
-      code: error && error.code,
-    });
+    const classified = classifyTableGeminiError(error);
+    console.error("Gemini table request failed:", { status: classified.status, code: classified.error_code });
 
     if (error && (error.status === 429 || error.statusCode === 429)) {
       let retryAfterSec = null;
@@ -7352,13 +7386,16 @@ app.post("/api/translate-table", async (req, res) => {
         errorType,
         retryAfterSec,
         resetAt,
-        details: error.message,
+        error_code: "GEMINI_QUOTA",
       });
     }
 
-    res.status(500).json({
-      error: "Ошибка Gemini",
-      details: error.message,
+    res.status(classified.status).json({
+      error: classified.error_code === "GEMINI_KEY_REJECTED"
+        ? "Google отклонил ключ Gemini. Проверьте ключ и его права в настройках."
+        : "Gemini временно не смог обработать запрос. Исходный текст и сохранённые результаты не изменены.",
+      error_code: classified.error_code,
+      retryable: classified.error_code !== "GEMINI_KEY_REJECTED",
     });
   }
 });

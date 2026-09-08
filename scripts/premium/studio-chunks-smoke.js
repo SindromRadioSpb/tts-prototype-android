@@ -231,8 +231,10 @@ async function installFakeFetch(ctx) {
         if (plan._active && plan.times > 0) {
           plan.times -= 1;
           if (plan.times <= 0) plan._active = false; // exhausted — next call succeeds
-          const status = plan.status === 429 ? 429 : 500;
+          const status = [422, 429].includes(plan.status) ? plan.status : 500;
           let errBody = status === 429 ? { error: "Лимит" } : { error: "boom" };
+          if (status === 422) errBody = { error: "Огласовки не прошли проверку", error_code: "GEMINI_TABLE_REVIEW_REQUIRED",
+            retryable: false, repair: { pendingRows: [44], attempts: 2 } };
           if (status === 500 && plan.malformedJson) {
             const malformedRows = segments.map((s) => ({ segment_index: s.i, he: s.text,
               he_niqqud: s.i === 0 ? 'רמב"ם' : s.text, translit: "t" + s.i, ru: "r" + s.i }));
@@ -399,6 +401,47 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     const ctx = await browser.newContext({ serviceWorkers: "block" });
     await installFakeFetch(ctx);
     const page = await ctx.newPage();
+
+    // Bounded targeted UI gate; provider work is fault-injected and costs zero.
+    // Can also run independently of the longer historical media scenarios.
+    if (process.argv.includes("--gemini-recovery-only")) {
+      for (const width of [1440, 380]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const failAtCall of [1, 2]) {
+          await page.goto(BASE + "/?v=gemini-recovery-smoke", { waitUntil: "load" });
+          await preparePage(page);
+          await page.evaluate((failAtCall) => { window.__failPlan = { failAtCall, times: 1, status: 422 }; translateTable(); }, failAtCall);
+          const stopped = await pollUntil(page, s => !!s.err, 30000, 50);
+          must(stopped.ok, "recovery: no actionable stop");
+          const state = await page.evaluate(async () => ({
+            calls: window.__chunkCalls.length, text: getText(), rows: currentTableData.length,
+            hud: document.getElementById("v3TableJobHud").textContent,
+            error: document.getElementById("errorMsg").textContent,
+            journal: await TableJob.loadDurable(),
+          }));
+          const expected = (failAtCall - 1) * CHUNK_SIZE;
+          must(state.calls === failAtCall, "recovery: permanent failure was retried");
+          must(state.rows === expected && state.text === TEXT, "recovery: source/partial rows changed");
+          must(state.error.includes(expected + "/300") && state.error.includes("45"), "recovery: missing honest coverage / row location");
+          must(!state.error.includes("докачается только упавшее"), "recovery: misleading retry advice");
+          must(state.hud.includes("Проверить исходную транскрипцию"), "recovery: wrong next action");
+          if (expected) must(state.journal.completed.length === 1, "recovery: completed prefix not durable");
+          // Simulated operator resolution: same source, validated endpoint results
+          // now available. Re-enter the normal click path and reuse the prefix.
+          await page.evaluate(() => { translateTable(); });
+          const resumed = await pollUntil(page, s => s.rows === N_SEGS && !s.partial && !s.err, 30000, 50);
+          must(resumed.ok, "recovery: resolved job did not complete");
+          const endState = await page.evaluate(() => ({ calls: window.__chunkCalls.length,
+            coverage: TableChunks.coverageForRows(currentTableData, 300).covered,
+            source: getText(), timing: v3MediaPassport(v3LastGeminiMeta.source).timing.entries.length }));
+          must(endState.calls === 4 && endState.coverage === 300 && endState.source === TEXT && endState.timing === 300,
+            "recovery: completed prefix/coverage/media continuity broken: " + JSON.stringify(endState));
+          console.log("gemini-recovery OK width=" + width + " failurePart=" + failAtCall + " ready=" + expected + " resumed=300 calls=4 timing=300");
+        }
+      }
+      console.log("Gemini recovery browser gate: PASS (1440px + 380px; first/second chunk; no provider charges)");
+      return;
+    }
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 1: success — 300 segments → 3 chunks [120,120,60], progressive render,
@@ -845,8 +888,9 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     // 1:N сама по себе больше не повод убивать караоке (сценарий 6 это и показывает). Настоящий
     // инвариант, который обязан остаться красным на любой поблажке, — ДРУГОЙ: строка, которой в
     // звуке нет, не может получить время, и весь маппинг тогда недоказуем.
-    // После добавления безопасного premium chunk loop такой плоский текст >250 строк не должен
-    // вызывать провайдера вообще: guard обязан отказать с маршрутом восстановления идентичности.
+    // The current plain-document contract reflows visual lines and permits a flat
+    // translation. Losing exact media identity must still drop ALL old timing;
+    // an obsolete 250-line refusal is not evidence of that invariant.
     // ══════════════════════════════════════════════════════════════════════════════════════
     await page.evaluate((k) => {
       try { localStorage.removeItem(k); } catch (_) {}
@@ -857,15 +901,15 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     }, TABLE_CACHE_LS_KEY);
     await page.evaluate(() => { translateTable(); });
 
-    // Число строк здесь НЕ признак завершения (таблица сценария 6 уже отрисована ровно такой
-    // длины) — ждём честный >250 refusal и снятый паспорт прежней таблицы. Провайдер не зовём.
+    // Wait for the actual flat response and media refusal, not the old table's row count.
     try {
       await page.waitForFunction(() => {
         const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
         const refused = window.v3LastMediaContextResolution &&
           window.v3LastMediaContextResolution.reason === "NO_EXACT_REVISION";
         const err = (document.getElementById("errorMsg") || {}).textContent || "";
-        return err.includes("250") && !p && refused;
+        return window.__premiumCalls === 4 && !err && !p && refused
+          && currentTableData.some(r => r.he.includes("שורה נוספת שלא הייתה בייבוא"));
       }, { timeout: 30000 });
     } catch (_) {
       const st = await page.evaluate(() => {
@@ -877,25 +921,27 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
         " — a re-split text must drop karaoke, not keep the previous response's timing (R11)");
     }
     const err7 = await page.evaluate(() => (document.getElementById("errorMsg").textContent || "").trim());
-    must(err7.includes("250") && /Следующее действие|Next action|הפעולה הבאה/.test(err7),
-      "scenario7: refusal must name the next action: " + err7);
+    must(!err7, "scenario7: flat translation must not inherit the obsolete 250-line refusal: " + err7);
 
     const s7 = await page.evaluate(() => {
       const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
       return { premiumCalls: window.__premiumCalls || 0,
                entries: p && p.timing ? p.timing.entries.length : 0,
                drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
-               contextReason: window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.reason };
+               contextReason: window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.reason,
+               source: getText(), rendered: currentTableData.map(r => r.he).join("") };
     });
-    must(s7.premiumCalls === Math.ceil(N_SEGS / 120), "scenario7: premium calls=" + s7.premiumCalls +
-      " expected no provider call after the edited text lost canonical identity");
+    must(s7.premiumCalls === Math.ceil(N_SEGS / 120) + 1, "scenario7: expected one bounded flat request");
+    const expected7 = K2_TEXT + "\nשורה נוספת שלא הייתה בייבוא";
+    must(s7.source === expected7 && s7.rendered.replace(/\s/g, "") === expected7.replace(/\s/g, ""),
+      "scenario7: translated text does not exactly cover the edited source");
     must(s7.entries === 0, "scenario7: karaoke kept " + s7.entries + " entries after the text was re-split — " +
       "line index no longer means segment index, timing MUST be dropped (R11)");
     must(s7.drop === "NO_SEGMENT_MAPPING" || s7.contextReason === "NO_EXACT_REVISION",
       "scenario7: expected an explicit refusal, got timingDropReason=" + JSON.stringify(s7.drop) +
       " contextReason=" + JSON.stringify(s7.contextReason));
 
-    console.log("scenario7 OK — re-split long text: provider not called, karaoke dropped, next action named (" +
+    console.log("scenario7 OK — edited text: one flat request, exact source coverage, old karaoke dropped (" +
       (s7.drop || s7.contextReason) + "/" + s7.detail + ")");
 
     // ══════════════════════════════════════════════════════════════════════════════════════

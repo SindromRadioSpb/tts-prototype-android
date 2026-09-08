@@ -13309,9 +13309,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=211"></script>
-<script src="/i18n/locales/en.js?v=211"></script>
-<script src="/i18n/locales/he.js?v=211"></script>
+<script src="/i18n/locales/ru.js?v=212"></script>
+<script src="/i18n/locales/en.js?v=212"></script>
+<script src="/i18n/locales/he.js?v=212"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13501,7 +13501,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.493";
+    window.APP_VERSION = "3.11.494";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -36290,7 +36290,9 @@ try {
                 if (onState && result.fromCache === true) onState("cache", { attempt: attempt + 1, attempts: 2 });
                 return result;
             } catch (error) {
-                if (error.httpStatus === 429) throw error;
+                error.tableAttempt = attempt + 1;
+                if (error.httpStatus === 429 || error.httpStatus === 401 || error.httpStatus === 403
+                    || (error.raw && error.raw.retryable === false)) throw error;
                 if (onState && v3IsGeminiChunkJsonError(error)) onState("repair", { attempt: attempt + 1, attempts: 2 });
                 const recovered = v3RecoverGeminiChunkJsonError(error, chunkSegs.length);
                 if (recovered) {
@@ -36451,8 +36453,14 @@ try {
                 } catch (e) {
                     // Готовое остаётся на экране; повторный клик докачает по кэшу (см. шапку).
                     if (e.httpStatus === 429) handleGeminiLimitError(e);
-                    showError(t("classic.tableChunkFailed")
-                        .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                    const needsReview = !!(e.raw && e.raw.error_code === "GEMINI_TABLE_REVIEW_REQUIRED");
+                    const readySegments = TableChunks.coverageForRows(accum, segs.length).covered;
+                    if (e.httpStatus !== 429) showError(t(needsReview ? "classic.tableChunkReviewRequired" : "classic.tableChunkStopped", {
+                        k: k + 1, m: chunks.length, ready: readySegments, total: segs.length,
+                        reason: e.message || t("classic.error"),
+                        rows: e.raw && e.raw.repair && Array.isArray(e.raw.repair.pendingRows)
+                            ? e.raw.repair.pendingRows.map(i => i + 1).join(", ") : "",
+                    }));
                     // Important 2 (review): honest provenance/timing for the PARTIAL rows already
                     // on screen — without this, the stale meta/passport from the previous
                     // generation would get pinned to Library save + row-replay under new rows.
@@ -36478,8 +36486,9 @@ try {
                     }
                     v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] }, true);
                     v3TableJobHudUpdate("stopped", { chunk: k + 1, chunks: chunks.length,
-                        attempt: 2, attempts: 2, readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows,
-                        nextAction: t("tableJob.actionRetry"), mediaSha: jobMediaSha,
+                        attempt: e.tableAttempt || 1, attempts: 2, readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows,
+                        nextAction: needsReview ? t("classic.tableReviewSourceAction")
+                            : (e.raw && e.raw.retryable === false ? e.message : t("tableJob.actionRetry")), mediaSha: jobMediaSha,
                         mediaIntended: jobMediaIntended });
                     return;
                 }

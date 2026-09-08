@@ -65,7 +65,11 @@ test("actual Gemini generations are counted before parse or semantic rejection",
   assert.ok(preserved > counted && preserved < parsed,
     "paid raw output is preserved before parsing/semantic validation can reject it");
   assert.ok(parsed > counted, "usage increments before parsing/semantic validation can reject the response");
-  assert.equal(route.indexOf('updateUsage("gemini", 1);', counted + 1), -1, "one generation is counted once");
+  const repairCounted = route.indexOf('updateUsage("gemini", 1);', counted + 1);
+  assert.ok(repairCounted > route.indexOf('const answer = await generateGeminiContent'),
+    'a targeted repair is a separate paid generation and must also be counted');
+  assert.equal(route.indexOf('updateUsage("gemini", 1);', repairCounted + 1), -1,
+    'no duplicate counter after validation or cache publication');
 });
 
 test("Hebrew table prompt revisions are cache-distinct v3 scenarios", () => {

@@ -65,7 +65,7 @@ function validateHebrewSourceCoverage(rows, sourceText) {
   }
 }
 
-function buildRowsFromGeminiPayload(parsed, options, opts) {
+function prepareRowsFromGeminiPayload(parsed, options, opts) {
   opts = opts || {};
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Пустой ответ от Gemini");
@@ -156,8 +156,6 @@ function buildRowsFromGeminiPayload(parsed, options, opts) {
       return true;
     });
 
-  validateNiqqudBase(preparedRows);
-
   if (droppedEmptyHe > 0) {
     console.warn(
       `translate-table any-he: dropped ${droppedEmptyHe} row(s) with empty he (no fallback to source-language segments, R11)`
@@ -167,8 +165,15 @@ function buildRowsFromGeminiPayload(parsed, options, opts) {
   return preparedRows;
 }
 
+function buildRowsFromGeminiPayload(parsed, options, opts) {
+  const rows = prepareRowsFromGeminiPayload(parsed, options, opts);
+  validateNiqqudBase(rows);
+  return rows;
+}
+
 module.exports = {
   buildRowsFromGeminiPayload,
+  prepareRowsFromGeminiPayload,
   canonicalizeKnownNiqqudRows,
   comparableHebrewBase,
   comparableHebrewConsonantalSkeleton,
