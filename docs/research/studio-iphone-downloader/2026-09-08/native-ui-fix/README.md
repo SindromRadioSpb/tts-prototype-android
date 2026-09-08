@@ -1,5 +1,11 @@
 # Native UI compatibility correction — 3.11.492
 
+DEPLOYED_TECHNICAL_PASS: `70b779d7513310db807ff88aeee6fbc6025be227`.
+Live assets verified 2026-09-08 02:23 UTC; two production browser runs passed.
+Cache upgrade passed with actual service workers over exact release fixtures;
+the first production-rollout attempt timed out and remains INCONCLUSIVE.
+See [RELEASE_VERIFIED.md](RELEASE_VERIFIED.md) for evidence boundaries.
+
 Source base: main `c91023c10d728cde5ad1d7164f2c80424872334a` (3.11.491),
 plus evidence-only predecessor `ef0d30f1`. Owner report, 2026-09-08:
 `--in-window is not supported anymore` and `NATIVE_UI_UNAVAILABLE` for video
@@ -59,6 +65,9 @@ All below refer to a-Shell SwiftTerm2 commit
   production 3.11.491 before deployment; waits for 3.11.492, uses the ordinary
   Studio Update button and checks the new helper after two reloads with the
   real service worker enabled. Output in `upgrade/` when completed.
+  `--fixture` instead serves exact Git release bytes on a disposable local origin
+  and deterministically transitions from 3.11.491 to 3.11.492; this passed and is
+  recorded separately in `upgrade-fixture/`, not presented as live rollout proof.
 - Browser production repeat uses `LP_IPHONE_DOWNLOAD_BASE` and
   `LP_IPHONE_TEST_PYTHON` (if Python needs an explicit path).
 

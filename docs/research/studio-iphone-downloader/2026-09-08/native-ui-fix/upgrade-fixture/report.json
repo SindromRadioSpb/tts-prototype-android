@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "mode": "EXACT_GIT_RELEASE_FIXTURE",
+  "from": "3.11.491",
+  "to": "3.11.492",
+  "actual_service_worker": true,
+  "normal_update_button": true,
+  "reloads": 2,
+  "helper_sha256": "6a4996c9cb7a307f128861a73eb20f49a38860503773e74dff17ae7af4f41c31",
+  "page_errors": [],
+  "physical_iphone": "NOT_TESTED",
+  "media_download": "NOT_RUN",
+  "asr": "NOT_RUN"
+}

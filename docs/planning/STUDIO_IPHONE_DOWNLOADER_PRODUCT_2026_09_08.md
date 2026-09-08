@@ -6,6 +6,10 @@ download flow; **do not touch transcription**. Base main/production:
 
 ## Superseding correction — 3.11.492
 
+DEPLOYED_TECHNICAL_PASS: `70b779d7`. Live assets + two 13-group production browser
+runs verified. Exact-release cache-upgrade fixture passed; first real-rollout
+upgrade attempt timed out (INCONCLUSIVE). Corrected physical iPhone path pending.
+
 Owner testing of 3.11.491 FAILED at native UI startup:
 `--in-window is not supported anymore` followed by `NATIVE_UI_UNAVAILABLE`.
 This happened before source resolution/download; it does not invalidate the
