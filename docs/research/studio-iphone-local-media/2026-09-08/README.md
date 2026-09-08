@@ -35,5 +35,7 @@ $env:LP_IPHONE_CHECK_BASE='https://linguistpro.kolosei.com'
 node scripts/premium/iphone-media-check-browser-smoke.js
 ```
 
-Archive/guide hash and core release checks are recorded after actual deployment.
+Published v3.11.490, code/main/image `97dee98f`. Live hashes and release checks:
+[production/RELEASE_VERIFIED.md](production/RELEASE_VERIFIED.md).
+Evidence-only closure is on the release branch; main/deployed code remain `97dee98f`.
 Canon: `docs/planning/STUDIO_IPHONE_CHECK_RELEASE_2026_09_08.md`.

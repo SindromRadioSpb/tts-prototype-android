@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "base": "https://linguistpro.kolosei.com",
+  "checks": [
+    "commands hidden before explicit rights",
+    "380px top no overflow",
+    "safe audio/video command generation",
+    "invalid source clears stale commands",
+    "actual clipboard write",
+    "return command cannot carry arbitrary input",
+    "all visible controls at least 44px",
+    "actual browser ZIP download SHA256",
+    "two reloads, no persisted rights or stale commands",
+    "desktop and dark 380px layout",
+    "no page errors or API/provider requests"
+  ],
+  "page_errors": [],
+  "api_calls": [],
+  "archive_sha256": "0744253ad45912fd53f641b10f9832e68511641f211d1bf82ae8151d6f7e4282",
+  "physical_iphone": "NOT_TESTED",
+  "native_app": "NOT_TESTED"
+}
