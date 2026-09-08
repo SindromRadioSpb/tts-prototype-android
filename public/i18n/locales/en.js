@@ -57,6 +57,8 @@ window.I18N_LOCALES.en = {
     "savedLocation": "Files → On My iPhone → a-Shell mini → LinguistPro → Downloads",
     "preview": "Open / Share",
     "previewHint": "In the preview, tap Share to save a copy elsewhere or send the file.",
+    "errorPreview": "The file is saved, but the preview could not open. Tap Open/Share again, or open the file in Files at the location below.",
+    "errorReturn": "Chrome could not open. Try again or open Chrome yourself. The download result has not changed.",
     "chrome": "Return to Chrome",
     "cancel": "Cancel",
     "canceling": "Canceling…",

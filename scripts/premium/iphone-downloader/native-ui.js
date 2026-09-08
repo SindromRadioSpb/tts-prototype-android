@@ -117,8 +117,8 @@
       buttons.download.hidden = phase !== 'options'; buttons.download.disabled = phase !== 'options' || waitingDownload;
       buttons.preview.hidden = phase !== 'ready'; buttons.retry.hidden = !['failed', 'canceled', 'interrupted'].includes(phase) || next.retry === false;
       buttons.return.hidden = busy; buttons.cancel.hidden = !busy && phase !== 'options'; buttons.cancel.disabled = waitingCancel;
-      location.hidden = phase !== 'ready'; details.hidden = !next.error && phase !== 'ready';
-      technical.textContent = next.error || (next.sha256 ? 'SHA-256\n' + next.sha256 : '');
+      location.hidden = phase !== 'ready'; details.hidden = !next.error && !next.action_error && phase !== 'ready';
+      technical.textContent = [next.error, next.action_error, next.sha256 ? 'SHA-256\n' + next.sha256 : ''].filter(Boolean).join('\n\n');
       symbol.textContent = phase === 'ready' ? '✓' : phase === 'failed' ? '!' : '↓';
       symbol.classList.toggle('phone-success', phase === 'ready');
       if (!lastPhase) main.classList.add('phone-pane');

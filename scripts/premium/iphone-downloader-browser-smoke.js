@@ -36,7 +36,7 @@ async function nativeFixture(release) {
 async function main() {
   let child, dataDir, native, base = process.env.LP_IPHONE_DOWNLOAD_BASE;
   const label = base ? 'production' : 'local';
-  const out = path.join(ROOT, 'docs/research/studio-iphone-downloader/2026-09-08/native-ui-fix', label);
+  const out = path.join(ROOT, 'docs/research/studio-iphone-downloader/2026-09-08/preview-fix', label);
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const checks = [], errors = [], acquisitionCalls = [];
@@ -166,6 +166,24 @@ async function main() {
     await nativePage.locator('#lp-phone-native [data-action="preview"]').click();
     await nativePage.waitForTimeout(900);
     assert.ok(native.messages.some(x => x.action === 'preview'));
+    assert.equal(await nativePage.locator('#lp-phone-native h1').textContent(), 'Видео сохранено на iPhone');
+    assert.match(await nativePage.locator('#lp-phone-native .phone-note').first().textContent(), /Файл сохранён, но открыть/);
+    await nativePage.locator('#lp-phone-native summary').click();
+    assert.match(await nativePage.locator('#lp-phone-native pre').textContent(), /NATIVE_ACTION_FAILED/);
+    assert.match(await nativePage.locator('#lp-phone-native pre').textContent(), /SHA-256\n[b]{64}/);
+    assert.match(await nativePage.locator('#lp-phone-native .phone-metadata').first().textContent(), /Eichmann's execution/);
+    await nativePage.screenshot({ path: path.join(out, 'native-preview-warning-380.png') });
+    await nativePage.emulateMedia({ colorScheme: 'dark' });
+    await nativePage.locator('#lp-phone-native [data-action="preview"]:enabled').waitFor();
+    await nativePage.screenshot({ path: path.join(out, 'native-preview-warning-380-dark.png') });
+    await nativePage.reload({ waitUntil: 'domcontentloaded' });
+    await nativePage.waitForFunction(() => document.querySelector('#lp-phone-native pre')?.textContent.includes('NATIVE_ACTION_FAILED'));
+    assert.equal(await nativePage.locator('#lp-phone-native h1').textContent(), 'Видео сохранено на iPhone');
+    await nativePage.locator('#lp-phone-native [data-action="preview"]').click();
+    await nativePage.waitForFunction(() => !document.querySelector('#lp-phone-native pre')?.textContent.includes('NATIVE_ACTION_FAILED'));
+    assert.equal(native.messages.filter(x => x.action === 'preview').length, 2);
+    assert.equal(native.messages.filter(x => x.action === 'download').length, 2); // canceled fixture + explicit retry only
+    checks.push('preview failure retains READY/name/SHA, reload and preview retry without another download');
     await nativePage.locator('#lp-phone-native [data-action="return"]').click();
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('LOCAL_UI_FIXTURE_DID_NOT_EXIT')), 5000);

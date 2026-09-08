@@ -4,6 +4,19 @@ Date: 2026-09-08. Owner direction: finish and deploy a mature Chrome/iPhone
 download flow; **do not touch transcription**. Base main/production:
 `97dee98f1dbe145eef8a5a7bfa31c283b22793b5`, 3.11.490.
 
+## Preview correction — 3.11.493
+
+Owner testing of 3.11.492 confirmed the automatic native UI, quality selection,
+download and exact-file compatibility in Chrome/Studio for `RXasnfAF3SE`:
+OWNER_REPORTED_PASS. Open/Share failed for the apostrophe-bearing title.
+The owner explicitly authorized correcting the quoting and false failure state,
+and publishing. The correction preserves verified READY on action failure,
+allows retry/reopen without another download, and keeps missing/changed files
+fail-closed. No ASR, saved-file naming/deletion or frozen engine change.
+Local gates: 30 Python, 1377 Node, API/ingest/i18n and 14 browser groups PASS.
+Publication and corrected physical native-preview acceptance remain pending.
+Evidence: `docs/research/studio-iphone-downloader/2026-09-08/preview-fix/README.md`.
+
 ## Superseding correction — 3.11.492
 
 DEPLOYED_TECHNICAL_PASS: `70b779d7`. Live assets + two 13-group production browser

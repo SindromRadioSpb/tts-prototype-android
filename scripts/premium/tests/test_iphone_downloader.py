@@ -33,6 +33,21 @@ request = {'v': 1, 'job': 'a' * 32, 'source': 'njtNjn4ya2U', 'rights': 'permissi
 
 
 class ProtocolTests(unittest.TestCase):
+    def test_native_preview_keeps_one_literal_argument(self):
+        # ios_system strips one pair of quotes; it does NOT concatenate POSIX
+        # shlex.quote fragments. Quoted arguments also skip its variable/glob pass.
+        for name in ["The Jews Are Coming - Eichmann's execution.mp4",
+                     "שם עם ' גרש.mp4", "$(touch nope); & `id` $HOME [a].mp4"]:
+            path = '/private/Documents/LinguistPro/Downloads/' + name
+            with patch.object(runner.os, 'system', return_value=0) as command:
+                runner.native_preview(path)
+            self.assertEqual(command.call_args.args, ('view "' + path + '"',))
+        for path in ['/private/a"b.mp4', '/private/a\\b.mp4', '/private/a\nb.mp4']:
+            with patch.object(runner.os, 'system') as command:
+                with self.assertRaisesRegex(RuntimeError, 'LOCAL_PATH_INVALID'):
+                    runner.native_preview(path)
+                command.assert_not_called()
+
     def test_strict_payload(self):
         self.assertEqual(runner.validate_request(request), request)
         for change in [{'job': '../owner'}, {'source': 'x;ls'}, {'rights': ''}, {'language': 'sh'},
@@ -291,7 +306,7 @@ class SessionTests(unittest.TestCase):
         self.probe.activate_runtime = lambda root: None
         self.probe.native_preflight = lambda: {'status': 'TEST_FIXTURE_ONLY'}
 
-    def run_fixture(self, messages, behavior='ready'):
+    def run_fixture(self, messages, behavior='ready', native=None):
         from acquisition_service import jobs
         cancel = threading.Event()
         actions = iter(messages)
@@ -304,7 +319,7 @@ class SessionTests(unittest.TestCase):
             def resolve(self, url):
                 if behavior == 'network':
                     raise jobs.JobError('SOURCE_NETWORK_ERROR')
-                return {'id': request['source'], 'title': 'TEST_FIXTURE_ONLY', 'duration': 2,
+                return {'id': request['source'], 'title': "TEST_FIXTURE_ONLY Eichmann's execution", 'duration': 2,
                         'formats': [{'format_id': '18', 'height': 360, 'ext': 'mp4',
                                      'vcodec': 'avc1.42001e', 'acodec': 'mp4a.40.2', 'filesize': 1024}]}
             def prepare(self, **args):
@@ -315,7 +330,7 @@ class SessionTests(unittest.TestCase):
                 if behavior == 'cancel':
                     cancel.set()
                 return file, 'video/mp4', 'fixture.mp4', {'method': 'TEST_FIXTURE_ONLY'}
-        with patch.object(jobs, 'YtDlpBackend', Backend), patch.object(runner.os, 'system', return_value=0) as calls:
+        with patch.object(jobs, 'YtDlpBackend', Backend), patch.object(runner.os, 'system', side_effect=native, return_value=0) as calls:
             result = runner.run_session(self.store, self.ui, inputs, self.probe)
         return result, Backend.calls, calls
 
@@ -347,6 +362,61 @@ class SessionTests(unittest.TestCase):
         self.assertEqual(result['error'], 'SOURCE_NETWORK_ERROR')
         self.assertEqual(downloads, 0)
         self.assertEqual(self.views[-1]['hint'], 'errorNetwork')
+
+    def test_preview_failure_preserves_ready_and_can_retry(self):
+        attempts = []
+        def native(command):
+            if command.startswith('view '):
+                attempts.append(command)
+                return 1 if len(attempts) == 1 else 0
+            return 0
+        result, downloads, _ = self.run_fixture(['download', 'preview', 'preview', 'return'], native=native)
+        self.assertEqual(result['state'], 'ready')
+        self.assertEqual(downloads, 1)
+        self.assertEqual(len(attempts), 2)
+        warning = next(x for x in self.views if x.get('action_error'))
+        self.assertEqual(warning['phase'], 'ready')
+        self.assertEqual(warning['sha256'], result['sha256'])
+        self.assertEqual(warning['hint'], 'errorPreview')
+        self.assertNotIn('action_error', self.views[-1])
+        self.assertFalse(any(x['phase'] == 'failed' for x in self.views))
+
+    def test_reopen_preview_failure_does_not_redownload_or_lose_ready(self):
+        saved, _, _ = self.run_fixture(['download', 'return'])
+        self.store = runner.JobStore(self.root, {**request, 'action': 'open'})
+        self.views.clear()
+        result, downloads, _ = self.run_fixture(['return'], native=lambda cmd: 1 if cmd.startswith('view ') else 0)
+        self.assertEqual(downloads, 0)
+        self.assertEqual(result['sha256'], saved['sha256'])
+        self.assertEqual(result['state'], 'ready')
+        self.assertEqual(self.views[-1]['hint'], 'errorPreview')
+
+    def test_changed_file_still_invalidates_readiness_before_preview(self):
+        self.run_fixture(['download', 'return'])
+        self.store = runner.JobStore(self.root, {**request, 'action': 'open'})
+        original_verify = self.store.verify_result
+        calls = []
+        def verify(*args):
+            calls.append(True)
+            if len(calls) > 1:
+                raise RuntimeError('LOCAL_FILE_CHANGED')
+            return original_verify(*args)
+        with patch.object(self.store, 'verify_result', side_effect=verify):
+            result, downloads, commands = self.run_fixture(['return'])
+        self.assertEqual(result['state'], 'failed')
+        self.assertEqual(result['error'], 'LOCAL_FILE_CHANGED')
+        self.assertEqual(downloads, 0)
+        self.assertFalse(any(call.args[0].startswith('view ') for call in commands.call_args_list))
+
+    def test_failed_chrome_return_preserves_ready(self):
+        calls = []
+        def native(command):
+            calls.append(command)
+            return 1 if len(calls) == 1 else 0
+        result, _, _ = self.run_fixture(['download', 'return', 'return'], native=native)
+        self.assertEqual(result['state'], 'ready')
+        self.assertEqual(self.views[-1]['hint'], 'errorReturn')
+        self.assertFalse(any(x['phase'] == 'failed' for x in self.views))
 
 
 if __name__ == '__main__':

@@ -57,6 +57,8 @@ window.I18N_LOCALES.he = {
     "savedLocation": "קבצים ← ב־iPhone שלי ← a-Shell mini ← LinguistPro ← Downloads",
     "preview": "פתיחה / שיתוף",
     "previewHint": "בתצוגה המקדימה לחצו על שיתוף כדי לשמור עותק בתיקייה אחרת או לשלוח את הקובץ.",
+    "errorPreview": "הקובץ נשמר, אך לא ניתן לפתוח את התצוגה המקדימה. לחצו שוב על פתיחה/שיתוף, או פתחו את הקובץ ביישום קבצים במיקום שמופיע למטה.",
+    "errorReturn": "לא ניתן לפתוח את Chrome. נסו שוב או פתחו את Chrome בעצמכם. תוצאת ההורדה לא השתנתה.",
     "chrome": "חזרה ל־Chrome",
     "cancel": "ביטול",
     "canceling": "מבטלים…",

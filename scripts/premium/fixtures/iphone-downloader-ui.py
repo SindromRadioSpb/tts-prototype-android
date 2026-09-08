@@ -42,6 +42,8 @@ def main():
                                        {'key': 'audio', 'kind': 'audio', 'quality': None, 'bytes': 15509473}]})
             options()
             attempts = 0
+            previews = 0
+            ready = {'phase': 'ready', 'kind': 'video', 'name': "TEST_FIXTURE_ONLY Eichmann's execution.mp4", 'bytes': 31975909, 'sha256': 'b' * 64}
             while True:
                 message = inputs.next(timeout=60)
                 action = message['action']
@@ -53,7 +55,10 @@ def main():
                     ui.render({'phase': 'downloading', 'title': 'TEST_FIXTURE_ONLY', 'bytes': 16000000, 'total': 32000000})
                     if attempts > 1:
                         time.sleep(.8)
-                        ui.render({'phase': 'ready', 'kind': 'video', 'name': 'TEST_FIXTURE_ONLY.mp4', 'bytes': 31975909, 'sha256': 'b' * 64})
+                        ui.render(ready)
+                elif action == 'preview':
+                    previews += 1
+                    ui.render({**ready, **({'action_error': 'NATIVE_ACTION_FAILED', 'hint': 'errorPreview'} if previews == 1 else {})})
                 elif action == 'cancel':
                     ui.render({'phase': 'canceled', 'hint': 'cancelDone', 'retry': True})
                 elif action == 'retry':

@@ -1,5 +1,5 @@
 'use strict';
-// Start against 3.11.491 BEFORE deployment, then verify the ordinary Update button.
+// Start against 3.11.492 BEFORE deployment, then verify the ordinary Update button.
 // Disposable Chromium profile; no owner account, iPhone, media or ASR invocation.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
@@ -13,13 +13,13 @@ const mime = require('mime-types');
 const ROOT = path.resolve(__dirname, '../..');
 const production = 'https://linguistpro.kolosei.com';
 let base = production;
-const target = '3.11.492';
+const target = '3.11.493';
 const fixtureMode = process.argv.includes('--fixture');
-const out = path.join(ROOT, 'docs/research/studio-iphone-downloader/2026-09-08/native-ui-fix', fixtureMode ? 'upgrade-fixture' : 'upgrade');
+const out = path.join(ROOT, 'docs/research/studio-iphone-downloader/2026-09-08/preview-fix', fixtureMode ? 'upgrade-fixture' : 'upgrade');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function releaseFixture() {
-  const old = 'c91023c1', next = '70b779d7'; let active = old;
+  const old = '70b779d7', next = process.env.LP_IPHONE_UPGRADE_REF || 'HEAD'; let active = old;
   const git = (ref, file) => execFileSync('git', ['show', ref + ':' + file], { cwd: ROOT, maxBuffer: 10 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
   const current = await (await fetch(production + '/api/client-config?fixture=' + Date.now())).json();
   const configs = {}, overrides = {};
@@ -29,10 +29,10 @@ async function releaseFixture() {
     for (const file of changed) { try { overrides[ref].set('/' + file.slice(7), git(ref, file)); } catch (_) {} }
     const integrity = {};
     for (const key of Object.keys(current.shellIntegrity)) {
-      const url = ref === old ? key.replace('v=210', 'v=209') : key;
+      const url = key.replace(/(\/i18n\/locales\/\w+\.js\?v=)\d+/, '$1' + (ref === old ? '210' : '211'));
       integrity[url] = crypto.createHash('sha256').update(git(ref, 'public' + url.split('?')[0])).digest('hex');
     }
-    configs[ref] = { ...current, version: ref === old ? '3.11.491' : target, shellIntegrity: integrity };
+    configs[ref] = { ...current, version: ref === old ? '3.11.492' : target, shellIntegrity: integrity };
   }
   const server = http.createServer(async (req, res) => {
     try {
@@ -61,7 +61,7 @@ async function main() {
   const fixture = fixtureMode ? await releaseFixture() : null;
   if (fixture) base = fixture.base;
   const initial = await (await fetch(base + '/api/client-config?upgrade=' + Date.now())).json();
-  assert.equal(initial.version, '3.11.491', 'must start before the new deployment');
+  assert.equal(initial.version, '3.11.492', 'must start before the new deployment');
   const expected = { window: {} };
   vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'public/js/iphone-downloader-release.js'), 'utf8'), expected);
   const browser = await chromium.launch({ headless: true });
@@ -73,10 +73,10 @@ async function main() {
     await page.goto(base + '/', { waitUntil: 'load' });
     await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 120000 });
     await page.reload({ waitUntil: 'load' });
-    await page.waitForFunction(() => window.APP_VERSION === '3.11.491');
+    await page.waitForFunction(() => window.APP_VERSION === '3.11.492');
     await page.goto(base + '/download-media.html', { waitUntil: 'load' });
-    assert.equal(await page.evaluate(() => IPhoneDownloaderRelease.sha256), 'e1e5906d9803b052899ed729e05fdc02b38284ddaaa6f55758c0dd54eec22000');
-    console.log('BASELINE_CACHED_491_READY');
+    assert.equal(await page.evaluate(() => IPhoneDownloaderRelease.sha256), '6a4996c9cb7a307f128861a73eb20f49a38860503773e74dff17ae7af4f41c31');
+    console.log('BASELINE_CACHED_492_READY');
     if (fixture) fixture.advance();
     let updated = false;
     for (let attempt = 0; attempt < 96; attempt++) {
@@ -96,12 +96,12 @@ async function main() {
       for (const id of ['v3OnboardingModal', 'v3Phase6Modal']) document.getElementById(id)?.remove();
     });
     await page.locator('#v3PwaUpdateToast button').first().click();
-    await page.waitForFunction(() => window.APP_VERSION === '3.11.492', null, { timeout: 60000 });
+    await page.waitForFunction(() => window.APP_VERSION === '3.11.493', null, { timeout: 60000 });
     await page.goto(base + '/download-media.html', { waitUntil: 'load' });
     for (let run = 0; run < 3; run++) {
       if (run) await page.reload({ waitUntil: 'load' });
       assert.equal(await page.evaluate(() => IPhoneDownloaderRelease.sha256), expected.window.IPhoneDownloaderRelease.sha256);
-      assert.match(await page.locator('body').textContent(), /3\.11\.492/);
+      assert.match(await page.locator('body').textContent(), /3\.11\.493/);
       assert.ok(await page.evaluate(() => !!navigator.serviceWorker.controller));
     }
     assert.deepEqual(errors, []);

@@ -16,7 +16,6 @@ from pathlib import Path
 import queue
 import re
 import select
-import shlex
 import shutil
 import sys
 import threading
@@ -62,6 +61,18 @@ def callback_url(request, result):
         value['error'] = result['error']
     payload = base64.urlsafe_b64encode(json.dumps(value, ensure_ascii=True, separators=(',', ':')).encode()).decode().rstrip('=')
     return 'googlechromes://linguistpro.kolosei.com/download-media.html#result=' + payload
+
+
+def native_preview(path):
+    # a-Shell's ios_system is NOT a POSIX shell: unquoteArgument only removes
+    # the outer pair. A fully double-quoted argument is literal (dontExpand).
+    # Saved names exclude double quotes, backslashes and control characters;
+    # fail closed if a path outside that contract reaches this boundary.
+    value = os.fspath(path)
+    if not (value.startswith('/') or Path(path).is_absolute()) or re.search(r'["\\\x00-\x1f\x7f]', value):
+        raise RuntimeError('LOCAL_PATH_INVALID')
+    if os.system('view "' + value + '"') != 0:
+        raise RuntimeError('NATIVE_ACTION_FAILED')
 
 
 def safe_name(title, request, option):
@@ -433,6 +444,19 @@ def run_session(store, ui, inputs, probe):
         if cancel.is_set():
             raise RuntimeError('OWNER_CANCELED')
 
+    def show_ready(**extra):
+        show('ready', **{key: current[key] for key in ('kind', 'quality', 'title', 'name', 'bytes', 'sha256')}, **extra)
+
+    def preview():
+        # A missing/changed file invalidates readiness; a UI action failure does
+        # not. Keep verification outside the action-only exception boundary.
+        _, path = store.verify_result()
+        show_ready()
+        try:
+            native_preview(path.as_posix())
+        except Exception as error:
+            show_ready(action_error=safe_error(error, probe), hint='errorPreview')
+
     first = True
     while True:
         attempt = None
@@ -514,11 +538,9 @@ def run_session(store, ui, inputs, probe):
                 current = store.retain(output, title, option, verification, native, cancel)
                 store.cleanup_attempt(attempt)
                 attempt = None
-            show('ready', **{key: current[key] for key in ('kind', 'quality', 'title', 'name', 'bytes', 'sha256')})
+            show_ready()
             if first and request['action'] == 'open':
-                _, path = store.verify_result()
-                if os.system('view ' + shlex.quote(str(path))) != 0:
-                    raise RuntimeError('NATIVE_ACTION_FAILED')
+                preview()
         except (Exception, KeyboardInterrupt) as error:
             code = failure_cause or ('OWNER_CANCELED' if isinstance(error, KeyboardInterrupt) or cancel.is_set() else safe_error(error, probe))
             if attempt:
@@ -536,14 +558,14 @@ def run_session(store, ui, inputs, probe):
             ui.render(last_view)  # acknowledge command before native preview/app switch
             if action == 'return':
                 if os.system('open ' + callback_url(request, current)) != 0:
-                    show('failed', error='NATIVE_ACTION_FAILED', hint='errorGeneric', retry=False)
+                    values = {key: value for key, value in last_view.items() if key != 'phase'}
+                    values.update(action_error='NATIVE_ACTION_FAILED', hint='errorReturn')
+                    show(last_view['phase'], **values)
                     continue
                 return current
             if action == 'preview' and current['state'] == 'ready':
                 try:
-                    _, path = store.verify_result()
-                    if os.system('view ' + shlex.quote(str(path))) != 0:
-                        raise RuntimeError('NATIVE_ACTION_FAILED')
+                    preview()
                 except Exception as error:
                     code = safe_error(error, probe)
                     current = {'state': 'failed', 'error': code}
