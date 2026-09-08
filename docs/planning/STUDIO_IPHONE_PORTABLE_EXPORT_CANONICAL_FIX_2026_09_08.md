@@ -1,9 +1,9 @@
 # Studio iPhone portable export canonical-number fix — 2026-09-08
 
-> Status: IMPLEMENTED AND LOCALLY VERIFIED; production and physical-iPhone
-> owner acceptance are recorded separately below.
+> Status: PRODUCTION VERIFIED; physical-iPhone owner acceptance is pending and
+> recorded separately below.
 >
-> Release target: `v3.11.497`.
+> Release: `v3.11.497` / `bd2c4a24`.
 
 ## Owner reproduction
 
@@ -71,8 +71,15 @@ provider call is changed.
 
 ## Production and owner-live boundary
 
-- Production deployment: PENDING.
-- Repeated production version/asset/health probes: PENDING.
-- Automated production export probe: PENDING.
+- Production deployment: PASS at `v3.11.497` / `bd2c4a24`.
+- Five consecutive production reload probes: PASS. Every probe returned
+  `APP_VERSION=3.11.497`, `CACHE_VERSION=v3.11.497`, the expected core SHA-256
+  `56401a1273a52af194c3c43125da08e77ce215525c9a45709d8219a3a234644b`,
+  `health.ok`, DB ready, migrations ready, and zero page errors.
+- Automated production Import Center export: PASS with the raw fractional
+  iPhone receipt; downloaded archive values were canonical strings. Import,
+  retry, duplicate, support-report, and exact `review_log` preservation checks
+  passed with zero provider requests and zero page errors. Expected signed-out
+  401s and cancelled background prefetch requests were classified separately.
 - Physical iPhone repetition of the owner's original end-to-end flow:
   `OWNER_LIVE_PENDING`; it must not be inferred from Chromium.
