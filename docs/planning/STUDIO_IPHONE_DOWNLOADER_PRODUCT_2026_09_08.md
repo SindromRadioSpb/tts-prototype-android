@@ -4,6 +4,34 @@ Date: 2026-09-08. Owner direction: finish and deploy a mature Chrome/iPhone
 download flow; **do not touch transcription**. Base main/production:
 `97dee98f1dbe145eef8a5a7bfa31c283b22793b5`, 3.11.490.
 
+## Superseding correction — 3.11.492
+
+Owner testing of 3.11.491 FAILED at native UI startup:
+`--in-window is not supported anymore` followed by `NATIVE_UI_UNAVAILABLE`.
+This happened before source resolution/download; it does not invalidate the
+earlier owner-qualified engine or establish a failure of the supplied video.
+The original native design below is historical and superseded.
+
+Root cause: `master` retains the old WebView terminal; current shipped behavior
+matches `SwiftTerm2` (`c26eb4e5429b023f408cb047ea6b4fad208c6b59`). It removes both
+the in-terminal jsc option and the old `input:` message handler. Browser tests
+mocked that removed handler and thus did not independently test compatibility.
+
+Correction: `internalbrowser` opens a packaged UI on an ephemeral 127.0.0.1
+listener inside a-Shell. Commands and state use actual HTTP, not jsc, terminal
+stdin or a fake WebKit bridge. Binding: exact Host, opaque 256-bit path, same
+Origin, session header, JSON and 4096-byte body cap, strict command grammar and
+idempotent sequence. No CORS, media route, owner-file route or arbitrary command.
+Listener closes on failed startup and process return. Native preview and the
+frozen download/verification engine are unchanged; no ASR changes.
+
+Gates before release: 25 Python PASS, 1377 full Node PASS, API smoke PASS,
+ingest 22 PASS, i18n 233 PASS, 13 browser groups PASS. New browser test uses a
+real Python listener, real page requests and real state/commands, including
+reload, cancel, retry, preview and return. Media/native app launch remain
+TEST_FIXTURE_ONLY / NOT_TESTED respectively. Never upgrade that to iPhone PASS.
+Details: `docs/research/studio-iphone-downloader/2026-09-08/native-ui-fix/README.md`.
+
 ## Established evidence and scope
 
 The owner accepted installation of free a-Shell mini. Owner-reported native

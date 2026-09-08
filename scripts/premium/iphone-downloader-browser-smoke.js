@@ -6,15 +6,37 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { fork } = require('node:child_process');
+const { fork, spawn } = require('node:child_process');
 const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require('../smoke-server-env');
 const ROOT = path.resolve(__dirname, '../..');
 const userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/140.0.0.0 Mobile/15E148 Safari/604.1';
 
+async function nativeFixture(release) {
+  const child = spawn(process.env.LP_IPHONE_TEST_PYTHON || 'python',
+    [path.join(ROOT, 'scripts/premium/fixtures/iphone-downloader-ui.py'), path.join(ROOT, 'public', release.path)],
+    { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+  const messages = []; let buffered = '', stderr = '';
+  child.stderr.on('data', data => { stderr += String(data); });
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { child.kill(); reject(new Error('LOCAL_UI_FIXTURE_TIMEOUT ' + stderr)); }, 25000);
+    child.once('error', error => { clearTimeout(timer); reject(error); });
+    child.once('exit', code => { clearTimeout(timer); if (!messages.some(x => x.url)) reject(new Error('LOCAL_UI_FIXTURE_EXIT ' + code + ' ' + stderr)); });
+    child.stdout.on('data', data => {
+      buffered += String(data); const lines = buffered.split('\n'); buffered = lines.pop();
+      for (const line of lines) {
+        try {
+          const message = JSON.parse(line); messages.push(message);
+          if (message.url) { clearTimeout(timer); resolve({ child, url: message.url, messages }); }
+        } catch (_) { /* Only fixture JSON is consumed. */ }
+      }
+    });
+  });
+}
+
 async function main() {
-  let child, dataDir, base = process.env.LP_IPHONE_DOWNLOAD_BASE;
+  let child, dataDir, native, base = process.env.LP_IPHONE_DOWNLOAD_BASE;
   const label = base ? 'production' : 'local';
-  const out = path.join(ROOT, 'docs/research/studio-iphone-downloader/2026-09-08', label);
+  const out = path.join(ROOT, 'docs/research/studio-iphone-downloader/2026-09-08/native-ui-fix', label);
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const checks = [], errors = [], acquisitionCalls = [];
@@ -82,6 +104,13 @@ async function main() {
     const reopened = JSON.parse(Buffer.from(decodeURIComponent(launches[1].slice('ashellmini://'.length)).split(' ').at(-1), 'base64url').toString());
     assert.equal(reopened.action, 'open'); assert.equal(reopened.job, request.job);
     checks.push('reopen uses same job, never a new download command');
+    await page.goto(base + '/download-media.html' + returnFragment({ v: 1, job: request.job, source: request.source,
+      state: 'failed', error: 'NATIVE_UI_UNAVAILABLE' }), { waitUntil: 'networkidle' });
+    assert.match(await page.locator('#phoneHistory').textContent(), /скачивание ещё не начиналось/);
+    assert.doesNotMatch(await page.locator('#phoneHistory').textContent(), /Помощник мог быть закрыт/);
+    await page.locator('#phoneHistory').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(out, 'native-start-error-380-fixture.png') });
+    checks.push('native startup failure is distinguished from source failure or interrupted download');
     await page.locator('[data-action="forget"]').click();
     assert.equal(await page.locator('.phone-history-item').count(), 0);
     assert.match(await page.locator('#phoneNotice').textContent(), /не удалён/);
@@ -92,6 +121,7 @@ async function main() {
     assert.equal(crypto.createHash('sha256').update(await response.body()).digest('hex'), release.sha256);
     checks.push('actual published helper archive bytes match launch SHA256');
     await page.selectOption('#phoneLanguage', 'he'); await page.evaluate(() => scrollTo(0, 0));
+    assert.equal(await page.locator('#phoneNotice').textContent(), '');
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({ path: path.join(out, 'download-380-he.png') });
@@ -107,39 +137,42 @@ async function main() {
     assert.deepEqual(acquisitionCalls, []);
     checks.push('download surface makes no API/provider/ASR/media request');
 
-    // Native UI renderer is exercised with a recorded input bridge, explicitly
-    // not with a native WebKit runtime or an actual a-Shell command executor.
+    // Real packaged UI -> real loopback HTTP -> Python -> UI. Only native app
+    // launch and source/media states are TEST_FIXTURE_ONLY. No window.webkit shim.
+    native = await nativeFixture(release);
     const nativePage = await context.newPage();
     nativePage.on('pageerror', e => errors.push(e.message));
-    await nativePage.goto(base + '/download-media.html', { waitUntil: 'networkidle' });
+    await nativePage.goto(native.url, { waitUntil: 'domcontentloaded' });
     await nativePage.setViewportSize({ width: 380, height: 844 });
-    await nativePage.evaluate(() => { window.__nativeMessages = []; window.webkit = { messageHandlers: { aShell: { postMessage: text => __nativeMessages.push(text) } } }; });
-    await nativePage.addScriptTag({ content: fs.readFileSync(path.join(ROOT, 'scripts/premium/iphone-downloader/native-ui.js'), 'utf8') });
-    const css = fs.readFileSync(path.join(ROOT, 'public/css/iphone-downloader.css'), 'utf8');
-    await nativePage.evaluate(css => LPPhoneNative.install({ session: 'fixture-session', language: 'ru', copy: I18N_LOCALES.ru.phoneDownload, css }), css);
-    await nativePage.waitForFunction(() => __nativeMessages.length >= 1);
-    const handshake = await nativePage.evaluate(() => JSON.parse(__nativeMessages[0].slice(6)));
-    assert.equal(handshake.action, 'ui-ready');
-    await nativePage.evaluate(() => LPPhoneNative.render({ phase: 'options', ack: 1, title: 'בדידות בערב החג', duration: 959,
-      options: [{ key: 'video-720', kind: 'video', quality: 720, bytes: 50000000 }, { key: 'video-360', kind: 'video', quality: 360, bytes: 31975909 }, { key: 'audio', kind: 'audio', quality: null, bytes: 15509473 }] }));
-    await nativePage.waitForTimeout(200);
+    await nativePage.locator('#lp-phone-native input[value="video-360"]').waitFor({ state: 'visible' });
+    assert.equal(await nativePage.evaluate(() => typeof window.webkit), 'undefined');
     await nativePage.screenshot({ path: path.join(out, 'native-options-380-fixture.png') });
     await nativePage.locator('#lp-phone-native input[value="video-360"]').check();
     await nativePage.locator('#lp-phone-native [data-action="download"]').click();
-    await nativePage.waitForFunction(() => __nativeMessages.some(x => x.includes('"action":"download"')));
-    const selection = await nativePage.evaluate(() => __nativeMessages.map(x => JSON.parse(x.slice(6))).find(x => x.action === 'download'));
-    assert.equal(selection.option, 'video-360'); assert.equal(selection.session, 'fixture-session');
-    await nativePage.evaluate(ack => LPPhoneNative.render({ phase: 'downloading', ack, title: 'בדידות בערב החג', bytes: 16000000, total: 32000000 }), selection.seq);
+    await nativePage.waitForFunction(() => document.querySelector('#lp-phone-native progress')?.value === 50);
+    assert.equal(native.messages.find(x => x.action === 'download').option, 'video-360');
     await nativePage.screenshot({ path: path.join(out, 'native-progress-380-fixture.png') });
+    await nativePage.reload({ waitUntil: 'domcontentloaded' });
+    await nativePage.waitForFunction(() => document.querySelector('#lp-phone-native progress')?.value === 50);
     await nativePage.locator('#lp-phone-native [data-action="cancel"]').click();
-    await nativePage.waitForFunction(() => __nativeMessages.some(x => x.includes('"action":"cancel"')));
-    assert.match(await nativePage.locator('#lp-phone-native h1').textContent(), /Отменяем/);
+    await nativePage.locator('#lp-phone-native [data-action="retry"]').waitFor({ state: 'visible' });
     assert.equal(await nativePage.locator('#lp-phone-native [data-action="preview"]').isVisible(), false);
-    await nativePage.evaluate(() => LPPhoneNative.render({ phase: 'ready', ack: 100, kind: 'video', name: 'Fixture.mp4', bytes: 31975909, sha256: 'b'.repeat(64) }));
+    await nativePage.locator('#lp-phone-native [data-action="retry"]').click();
+    await nativePage.locator('#lp-phone-native input[value="video-360"]').check();
+    await nativePage.locator('#lp-phone-native [data-action="download"]').click();
+    await nativePage.locator('#lp-phone-native [data-action="preview"]').waitFor({ state: 'visible' });
     await nativePage.screenshot({ path: path.join(out, 'native-ready-380-fixture.png') });
-    assert.equal(await nativePage.locator('#lp-phone-native [data-action="preview"]').isVisible(), true);
     assert.equal(await nativePage.locator('#lp-phone-native [data-action="cancel"]').isVisible(), false);
-    checks.push('native UI TEST_FIXTURE_ONLY handshake, selection, progress, cancel acknowledgement and ready rendering');
+    await nativePage.locator('#lp-phone-native [data-action="preview"]').click();
+    await nativePage.waitForTimeout(900);
+    assert.ok(native.messages.some(x => x.action === 'preview'));
+    await nativePage.locator('#lp-phone-native [data-action="return"]').click();
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('LOCAL_UI_FIXTURE_DID_NOT_EXIT')), 5000);
+      native.child.once('exit', code => { clearTimeout(timeout); code === 0 ? resolve() : reject(new Error('FIXTURE_EXIT_' + code)); });
+    });
+    await nativePage.close();
+    checks.push('real loopback UI/Python handshake, quality, progress, reload, cancel, retry, preview and return; media TEST_FIXTURE_ONLY');
     const studio = await context.newPage();
     studio.on('pageerror', e => errors.push(e.message));
     await studio.goto(base + '/index.html', { waitUntil: 'load' });
@@ -160,12 +193,13 @@ async function main() {
     checks.push('actual Studio Video entry hands off the selected source without changing ASR');
     assert.deepEqual(errors, []);
     const report = { result: 'PASS', base, checks, page_errors: errors, acquisition_calls: acquisitionCalls,
-      archive_sha256: release.sha256, physical_iphone_new_flow: 'NOT_TESTED', native_bridge: 'TEST_FIXTURE_ONLY',
+      archive_sha256: release.sha256, physical_iphone_new_flow: 'NOT_TESTED', native_bridge: 'REAL_LOOPBACK_HTTP_PASS; APP_LAUNCH_NOT_TESTED',
       source_download: 'NOT_RUN', transcription: 'NOT_TOUCHED' };
     fs.writeFileSync(path.join(out, 'browser-report.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report));
   } finally {
     await browser.close();
+    if (native && native.child.exitCode === null) native.child.kill();
     if (child) { child.kill(); await new Promise(resolve => child.exitCode !== null ? resolve() : child.once('exit', resolve)); }
     if (dataDir && path.dirname(path.resolve(dataDir)) === path.resolve(os.tmpdir()) && path.basename(dataDir).startsWith('lp-phone-download-smoke-')) fs.rmSync(dataDir, { recursive: true, force: true });
   }

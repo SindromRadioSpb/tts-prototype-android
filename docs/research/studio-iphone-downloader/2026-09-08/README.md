@@ -1,5 +1,9 @@
 # iPhone downloader delivery evidence
 
+**Current correction:** see [native-ui-fix/README.md](native-ui-fix/README.md).
+The owner rejected the 3.11.491 native route with a concrete compatibility error.
+The original engineering evidence below is historical, not native acceptance.
+
 Owner request: production Chrome/iPhone video downloading with the already
 accepted a-Shell mini, without terminal commands and without touching ASR.
 Source base: `97dee98f1dbe145eef8a5a7bfa31c283b22793b5`; target app 3.11.491.

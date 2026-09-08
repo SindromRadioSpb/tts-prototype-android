@@ -20,7 +20,7 @@ def package_files():
     data = archive.read_bytes()
     if hashlib.sha256(data).hexdigest() != PROBE_HASH:
         raise ValueError('OWNER_QUALIFIED_ENGINE_HASH_MISMATCH')
-    files = {name: (SOURCE / name).read_bytes() for name in ('__main__.py', 'runner.py')}
+    files = {name: (SOURCE / name).read_bytes() for name in ('__main__.py', 'runner.py', 'http_ui.py')}
     with zipfile.ZipFile(io.BytesIO(data)) as probe:
         prefix = 'LinguistPro-iPhone-probe/'
         files['probe.py'] = probe.read(prefix + 'run.py')

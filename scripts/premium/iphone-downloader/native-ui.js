@@ -1,15 +1,14 @@
-/* Trusted, packaged a-Shell overlay. User/source text is never HTML or commands. */
+/* Packaged local screen, hosted in a-Shell's supported internal browser. */
 (function (root) {
   'use strict';
   if (root.LPPhoneNative && root.LPPhoneNative.timer) root.clearInterval(root.LPPhoneNative.timer);
   function install(config) {
     const doc = root.document, copy = config.copy;
+    if (root.location.protocol !== 'http:' || root.location.hostname !== '127.0.0.1' ||
+      !/^\/session\/[a-f0-9]{64}\/$/.test(config.endpoint) || root.location.pathname !== config.endpoint) throw new Error('NATIVE_UI_UNAVAILABLE');
     const tr = (key, params) => String(copy[key] || key).replace(/\{(\w+)\}/g, (_, k) => String(params && params[k] != null ? params[k] : ''));
     const old = doc.getElementById('lp-phone-native');
     if (old) old.remove();
-    const oldStyle = doc.getElementById('lp-phone-style');
-    if (oldStyle) oldStyle.remove();
-    const style = doc.createElement('style'); style.id = 'lp-phone-style'; style.textContent = config.css; doc.head.appendChild(style);
     const el = (tag, cls, text) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
     const overlay = el('section', 'lp-phone'); overlay.id = 'lp-phone-native';
     overlay.lang = config.language; overlay.dir = config.language === 'he' ? 'rtl' : 'ltr';
@@ -29,24 +28,49 @@
     const actions = el('div', 'phone-actions'); main.appendChild(actions);
     const buttons = {};
     let state = { phase: 'connecting' }, lastPhase = '', optionsSignature = '', waitingCancel = false, updated = Date.now();
-    let sequence = 0, pending = null;
+    let sequence = Number(config.ack) || 0, pending = null, fetching = false, failures = 0, lastRevision = -1;
+    let disconnected = false, waitingDownload = false;
+    async function exchange() {
+      if (fetching) return;
+      fetching = true;
+      const message = pending;
+      const abort = new AbortController(); const timeout = root.setTimeout(() => abort.abort(), 6000);
+      try {
+        const response = await root.fetch(config.endpoint + (message ? 'command' : 'state'), {
+          method: message ? 'POST' : 'GET', cache: 'no-store', credentials: 'omit', redirect: 'error', signal: abort.signal,
+          ...(message ? { headers: { 'Content-Type': 'application/json', 'X-LP-Session': config.session }, body: JSON.stringify(message) } : {})
+        });
+        if (!response.ok) throw new Error('LOCAL_UI_HTTP');
+        const next = await response.json();
+        if (!Number.isSafeInteger(next.revision) || !Number.isSafeInteger(next.ack)) throw new Error('LOCAL_UI_STATE');
+        const reconnecting = disconnected;
+        failures = 0; disconnected = false; sequence = Math.max(sequence, next.ack);
+        if (reconnecting || next.revision !== lastRevision || pending && next.ack >= pending.seq) {
+          lastRevision = next.revision; render(next);
+        }
+      } catch (_) {
+        if (++failures >= 3) {
+          disconnected = true; slow.hidden = false; slow.textContent = tr('connectionLost');
+          buttons.return.hidden = false;
+        }
+      } finally { root.clearTimeout(timeout); fetching = false; }
+    }
     function send(action, extra) {
       if (pending && action !== 'cancel') return;
       const message = { action, session: config.session, seq: ++sequence, ...(extra || {}) };
-      const bridge = root.webkit && root.webkit.messageHandlers && root.webkit.messageHandlers.aShell;
-      if (!bridge || typeof bridge.postMessage !== 'function') throw new Error('NATIVE_UI_UNAVAILABLE');
       pending = message;
-      // jsc --in-window briefly owns a-Shell's JS input route. Send after that
-      // call returns, and retry until the Python receiver acknowledges the seq.
-      root.setTimeout(() => { if (pending === message) bridge.postMessage('input:' + JSON.stringify(message) + '\n'); }, 150);
+      exchange();
     }
     function button(action, key, primary) {
       const b = el('button', primary ? 'phone-primary' : '', tr(key)); b.type = 'button'; b.dataset.action = action;
       b.addEventListener('click', () => {
+        if (action === 'return' && disconnected) {
+          root.location.href = 'googlechromes://linguistpro.kolosei.com/download-media.html'; return;
+        }
         if (action === 'download') {
           const selected = choiceList.querySelector('input:checked');
           if (!selected) return;
-          b.disabled = true; send(action, { option: selected.value });
+          waitingDownload = true; b.disabled = true; send(action, { option: selected.value });
         } else if (action === 'cancel') {
           waitingCancel = true; b.disabled = true; heading.textContent = tr('canceling'); hint.textContent = tr('cancelHint'); send(action);
         } else { b.disabled = true; send(action); root.setTimeout(() => { b.disabled = false; }, 1500); }
@@ -64,7 +88,7 @@
     try { if (doc.activeElement && doc.activeElement !== doc.body) doc.activeElement.blur(); } catch (_) {}
     function size(bytes) { return (Number(bytes) / (1024 * 1024)).toFixed(1) + ' MB'; }
     function render(next) {
-      state = next; updated = Date.now(); slow.hidden = true;
+      state = next; updated = Date.now(); slow.hidden = true; slow.textContent = tr('slow');
       if (pending && Number(next.ack) >= pending.seq) pending = null;
       const phase = next.phase;
       const busy = ['connecting', 'installing', 'checking', 'resolving', 'downloading', 'merging', 'verifying'].includes(phase);
@@ -89,7 +113,8 @@
           body.appendChild(el('small', '', option.bytes ? tr('estimated', { size: size(option.bytes) }) : tr('unknownSize'))); label.appendChild(body); choiceList.appendChild(label);
         });
       }
-      buttons.download.hidden = phase !== 'options'; buttons.download.disabled = phase !== 'options';
+      if (phase !== 'options') waitingDownload = false;
+      buttons.download.hidden = phase !== 'options'; buttons.download.disabled = phase !== 'options' || waitingDownload;
       buttons.preview.hidden = phase !== 'ready'; buttons.retry.hidden = !['failed', 'canceled', 'interrupted'].includes(phase) || next.retry === false;
       buttons.return.hidden = busy; buttons.cancel.hidden = !busy && phase !== 'options'; buttons.cancel.disabled = waitingCancel;
       location.hidden = phase !== 'ready'; details.hidden = !next.error && phase !== 'ready';
@@ -101,12 +126,9 @@
     }
     if (root.LPPhoneNative && root.LPPhoneNative.timer) root.clearInterval(root.LPPhoneNative.timer);
     const timer = root.setInterval(() => {
-      if (pending) {
-        const bridge = root.webkit && root.webkit.messageHandlers && root.webkit.messageHandlers.aShell;
-        if (bridge) bridge.postMessage('input:' + JSON.stringify(pending) + '\n');
-      }
+      exchange();
       const busy = !['options', 'ready', 'failed', 'canceled', 'interrupted'].includes(state.phase);
-      slow.hidden = !(busy && Date.now() - updated > 90000);
+      slow.hidden = !disconnected && !(busy && Date.now() - updated > 90000);
     }, 700);
     root.LPPhoneNative = { install, render, timer };
     render(state);

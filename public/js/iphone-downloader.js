@@ -60,7 +60,12 @@
       if (ready) {
         item.appendChild(node('p', 'phone-metadata', (row.result.bytes / (1024 * 1024)).toFixed(1) + ' MB · ' + (row.result.kind === 'video' ? row.result.quality + 'p' : 'M4A')));
         item.appendChild(node('p', 'phone-note', tr('helperEvidence')));
-      } else item.appendChild(node('p', 'phone-note', tr('interruptedHint')));
+      } else {
+        const code = row.result && row.result.error;
+        const hint = row.state !== 'failed' ? 'interruptedHint' : code === 'NATIVE_UI_UNAVAILABLE' ? 'errorBridge'
+          : code && code.startsWith('SOURCE_') ? 'errorSource' : 'errorGeneric';
+        item.appendChild(node('p', 'phone-note', tr(hint)));
+      }
       const actions = node('div', 'phone-actions');
       const open = node('button', ready ? 'phone-primary' : '', tr(ready ? 'openFile' : 'openAgain'));
       open.type = 'button'; open.dataset.action = 'open';
@@ -124,6 +129,8 @@
   byId('phoneLanguage').addEventListener('change', event => root.appSetLocale(event.target.value));
   root.document.addEventListener('i18n:changed', () => {
     byId('phoneLanguage').value = root.appGetLocale();
+    byId('phoneNotice').textContent = '';
+    byId('phoneFormError').hidden = true;
     root.document.title = tr('title') + ' — LinguistPro'; render();
   });
   root.addEventListener('hashchange', consumeFragment);

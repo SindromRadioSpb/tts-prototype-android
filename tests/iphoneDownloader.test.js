@@ -62,6 +62,7 @@ test('shipped helper matches current sources and the owner-qualified engine exac
     assert.equal(crypto.createHash('sha256').update(zip.readFile(name)).digest('hex'), hash, name);
   }
   const sources = { '__main__.py': 'scripts/premium/iphone-downloader/__main__.py',
+    'http_ui.py': 'scripts/premium/iphone-downloader/http_ui.py',
     'runner.py': 'scripts/premium/iphone-downloader/runner.py', 'ui.js': 'scripts/premium/iphone-downloader/native-ui.js',
     'ui.css': 'public/css/iphone-downloader.css' };
   for (const [packed, source] of Object.entries(sources)) assert.ok(zip.readFile(packed).equals(fs.readFileSync(path.join(root, source))), source + ' requires package rebuild');
@@ -84,10 +85,15 @@ test('shipped helper matches current sources and the owner-qualified engine exac
 
 test('navigation and downloader assets do not call transcription or acquisition APIs', () => {
   const root = path.resolve(__dirname, '..');
-  for (const file of ['public/js/iphone-downloader.js', 'public/js/iphone-downloader-entry.js', 'scripts/premium/iphone-downloader/native-ui.js']) {
+  for (const file of ['public/js/iphone-downloader.js', 'public/js/iphone-downloader-entry.js']) {
     const code = fs.readFileSync(path.join(root, file), 'utf8');
     assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|sendBeacon|innerHTML|clipboard\.|transcribeAudio\s*\(|acceptRemoteAcquisition\s*\(/);
   }
+  const native = fs.readFileSync(path.join(root, 'scripts/premium/iphone-downloader/native-ui.js'), 'utf8');
+  assert.doesNotMatch(native, /messageHandlers|postMessage|innerHTML|transcribeAudio|acceptRemoteAcquisition|\/api\//);
+  assert.match(native, /root\.location\.hostname !== '127\.0\.0\.1'/);
+  assert.match(native, /root\.fetch\(config\.endpoint/);
+  assert.match(native, /'X-LP-Session': config\.session/);
   const shell = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(root, 'public/sw.js'), 'utf8');
   const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');

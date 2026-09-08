@@ -1,7 +1,8 @@
 """LinguistPro iPhone downloader: local UI, pinned engine, persistent verified files.
 
-No HTTP listener, media server, ASR, cookie access, remote code update, or global
-Python configuration. The bundled probe and engine are immutable predecessor bytes.
+An ephemeral loopback listener serves only this helper's UI and control messages.
+No media server, ASR, cookie access, remote code update or global Python changes.
+The bundled probe and engine are immutable predecessor bytes.
 """
 from __future__ import annotations
 
@@ -247,8 +248,11 @@ class Inputs:
         self.cancel = threading.Event()
         self.closed = threading.Event()
         self.ack = 0
-        self.thread = threading.Thread(target=self._read, daemon=True)
-        self.thread.start()
+        self.lock = threading.Lock()
+        self.thread = None
+        if stream is not None:  # Finite streams remain useful for protocol tests.
+            self.thread = threading.Thread(target=self._read, daemon=True)
+            self.thread.start()
 
     def _read(self):
         # No daemon thread may hold TextIOWrapper's buffered stdin lock at
@@ -299,16 +303,20 @@ class Inputs:
                 return
             if action == 'download' and value.get('option') not in {'video-360', 'video-480', 'video-720', 'video-1080', 'audio'}:
                 return
-            self.ack = seq
-            if action == 'cancel':
-                self.cancel.set()
-            self.messages.put_nowait(value)
+            with self.lock:
+                if seq <= self.ack:
+                    return
+                self.messages.put_nowait(value)
+                self.ack = seq
+                if action == 'cancel':
+                    self.cancel.set()
         except (ValueError, TypeError, AttributeError, KeyError, queue.Full):
             return
 
     def stop(self):
         self.closed.set()
-        self.thread.join(timeout=1)
+        if self.thread:
+            self.thread.join(timeout=1)
 
     def next(self, timeout=1800):
         until = time.monotonic() + timeout
@@ -324,29 +332,37 @@ class Inputs:
 
 class NativeUI:
     def __init__(self, code, request, inputs):
+        from http_ui import LocalUI
         self.code, self.inputs = Path(code), inputs
-        self.folder = self.code.parent / ('.ui-' + inputs.session)
-        self.folder.mkdir(exist_ok=False)
+        self.lock = threading.Lock()
+        self.state = {'phase': 'connecting', 'revision': 0}
         translations = json.loads((self.code / 'copy.json').read_text(encoding='utf-8'))
         config = {'session': inputs.session, 'language': request['language'],
-                  'copy': translations[request['language']], 'css': (self.code / 'ui.css').read_text(encoding='utf-8')}
-        script = (self.code / 'ui.js').read_text(encoding='utf-8') + '\nwindow.LPPhoneNative.install(' + json.dumps(config, ensure_ascii=True) + ');'
-        self._execute(script)
-        message = inputs.next(timeout=15)
-        if message['action'] != 'ui-ready':
-            raise RuntimeError('NATIVE_UI_UNAVAILABLE')
+                  'copy': translations[request['language']]}
+        self.local = LocalUI(self.code, config, self.snapshot, inputs._message)
+        try:
+            # SwiftTerm2 explicitly supports internalbrowser, not jsc --in-window.
+            # Both the UI and Python stay inside a-Shell; Chrome is not localhost UI.
+            if os.system('internalbrowser ' + self.local.url) != 0:
+                raise RuntimeError('NATIVE_UI_UNAVAILABLE')
+            message = inputs.next(timeout=30)
+            if message['action'] != 'ui-ready':
+                raise RuntimeError('NATIVE_UI_UNAVAILABLE')
+        except BaseException:
+            self.close()
+            raise
         self.render({'phase': 'connecting'})
 
-    def _execute(self, script):
-        target = self.folder / 'update.js'
-        target.write_text(script, encoding='utf-8')
-        # a-Shell takes the SCRIPT as argv[1]; flags follow it.
-        if os.system('jsc ' + shlex.quote(str(target)) + ' --in-window --silent') != 0:
-            raise RuntimeError('NATIVE_UI_UNAVAILABLE')
+    def snapshot(self):
+        with self.lock:
+            return {**self.state, 'ack': self.inputs.ack}
 
     def render(self, state):
-        value = {**state, 'ack': self.inputs.ack}
-        self._execute('window.LPPhoneNative.render(' + json.dumps(value, ensure_ascii=True) + ');')
+        with self.lock:
+            self.state = {**state, 'revision': self.state['revision'] + 1}
+
+    def close(self):
+        self.local.close()
 
 
 def safe_error(error, probe):
@@ -539,14 +555,14 @@ def run_session(store, ui, inputs, probe):
 
 def main(code, root):
     import probe
-    request, inputs = None, None
+    request, inputs, ui = None, None, None
     try:
         if not probe.is_ios():
             raise RuntimeError('IOS_REQUIRED')
         request = decode_request(sys.argv[1] if len(sys.argv) == 2 else '')
         root = Path(root).resolve()
         with exclusive_helper(root):
-            inputs = Inputs(sys.stdin, uuid.uuid4().hex)
+            inputs = Inputs(None, uuid.uuid4().hex)
             ui = NativeUI(code, request, inputs)
             store = JobStore(root, request)
             run_session(store, ui, inputs, probe)
@@ -558,5 +574,7 @@ def main(code, root):
             os.system('open ' + callback_url(request, {'state': 'failed', 'error': code}))
         return 1
     finally:
+        if ui:
+            ui.close()
         if inputs:
             inputs.stop()

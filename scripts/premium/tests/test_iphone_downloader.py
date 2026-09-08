@@ -10,11 +10,14 @@ import tempfile
 import threading
 import types
 import unittest
+import urllib.request
+import urllib.error
 import zipfile
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / 'scripts/premium/iphone-downloader'
+sys.path.insert(0, str(SOURCE))
 
 
 def module(name, path):
@@ -193,10 +196,8 @@ class PackagingTests(unittest.TestCase):
         self.assertNotIn(b'--remote-components', files['runner.py'])
 
     def test_handshake_fails_closed_without_ready_message(self):
-        class Inputs:
-            session = 'b' * 32
-            def next(self, timeout):
-                raise RuntimeError('NATIVE_UI_UNAVAILABLE')
+        inputs = runner.Inputs(None, 'b' * 32)
+        opened = []
         with tempfile.TemporaryDirectory() as directory:
             code = Path(directory) / 'code'
             code.mkdir()
@@ -204,20 +205,41 @@ class PackagingTests(unittest.TestCase):
                 path = code / name
                 path.parent.mkdir(exist_ok=True, parents=True)
                 path.write_bytes(data)
-            with patch.object(runner.NativeUI, '_execute'):
+            with patch.object(runner.os, 'system', side_effect=lambda command: opened.append(command) or 0), \
+                    patch.object(inputs, 'next', side_effect=RuntimeError('NATIVE_UI_UNAVAILABLE')):
                 with self.assertRaisesRegex(RuntimeError, 'NATIVE_UI_UNAVAILABLE'):
-                    runner.NativeUI(code, request, Inputs())
+                    runner.NativeUI(code, request, inputs)
+            self.assertEqual(len(opened), 1)
+            self.assertTrue(opened[0].startswith('internalbrowser http://127.0.0.1:'))
+            with self.assertRaises(urllib.error.URLError):
+                urllib.request.urlopen(opened[0].split(' ', 1)[1], timeout=1)
 
-    def test_jsc_script_precedes_flags(self):
+    def test_native_ui_uses_real_http_handshake_without_jsc_or_stdin(self):
         with tempfile.TemporaryDirectory() as directory:
-            ui = object.__new__(runner.NativeUI)
-            ui.folder = Path(directory)
-            with patch.object(runner.os, 'system', return_value=0) as command:
-                ui._execute('window.TEST_FIXTURE_ONLY = true;')
-            called = command.call_args.args[0]
-            self.assertTrue(called.startswith('jsc '))
-            self.assertTrue(called.endswith(' --in-window --silent'))
-            self.assertLess(called.index('update.js'), called.index('--in-window'))
+            code = Path(directory)
+            for name, data in builder.package_files().items():
+                path = code / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+            inputs = runner.Inputs(None, 'c' * 32)
+            def open_browser(command):
+                self.assertTrue(command.startswith('internalbrowser http://127.0.0.1:'))
+                url = command.split(' ', 1)[1]
+                origin = url.split('/session/')[0]
+                data = json.dumps({'session': inputs.session, 'seq': 1, 'action': 'ui-ready', 'version': 1}).encode()
+                headers = {'Origin': origin, 'Content-Type': 'application/json', 'X-LP-Session': inputs.session}
+                with urllib.request.urlopen(urllib.request.Request(url + 'command', data=data, headers=headers)) as response:
+                    self.assertEqual(json.load(response)['ack'], 1)
+                return 0
+            with patch.object(runner.os, 'system', side_effect=open_browser):
+                ui = runner.NativeUI(code, request, inputs)
+            try:
+                ui.render({'phase': 'downloading', 'bytes': 42})
+                with urllib.request.urlopen(ui.local.url + 'state') as response:
+                    self.assertEqual(json.load(response)['bytes'], 42)
+                self.assertIsNone(inputs.thread)
+            finally:
+                ui.close(); inputs.stop()
 
     def test_bootstrap_rejects_tamper_before_any_run(self):
         template = (SOURCE / 'bootstrap.py').read_text()
