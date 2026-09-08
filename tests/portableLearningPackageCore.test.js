@@ -59,6 +59,44 @@ test('verified codec state is metadata-only and media bytes remain absent', asyn
   assert.equal(Object.keys(files).some((name) => /^source\/media\//.test(name)), false);
 });
 
+test('iPhone device receipt decimals export as canonical diagnostic strings', async () => {
+  const input = fixture();
+  input.package.compatibility = {
+    contract: 'verified-on-selected-device',
+    outcome: 'DEVICE_READY',
+    canonical_sha256: input.package.media_sha256,
+    codec_summary: null,
+    codec_hint: null,
+    device_session_receipt: {
+      pass: true,
+      tested_at: '2026-09-08T12:34:56.789Z',
+      device_family: 'iPhone/iPad',
+      os_family: 'iOS/iPadOS',
+      browser_family: 'Safari',
+      audio_evidence: 'decodedBytes',
+      duration: 1080.16907,
+      width: 1920,
+      height: 1080,
+      seek25: 270.0422675,
+      seek75: 810.1268025,
+    },
+  };
+
+  const files = await Core.buildPackageFiles(input, { mode: 'snapshot' });
+  const mediaRef = Core.parseJsonStrict(files['source/media-ref.json']);
+  const manifest = Core.parseJsonStrict(files['manifest.json']);
+  const receipt = manifest.media.compatibility.device_session_receipt;
+
+  assert.equal(receipt.duration, '1080.16907');
+  assert.equal(receipt.seek25, '270.0422675');
+  assert.equal(receipt.seek75, '810.1268025');
+  assert.equal(receipt.width, 1920);
+  assert.deepEqual(mediaRef.compatibility, manifest.media.compatibility);
+  assert.equal(input.package.compatibility.device_session_receipt.duration, 1080.16907, 'export does not mutate saved package evidence');
+  await Core.verifyPackageFiles(files);
+  assert.throws(() => Core.canonicalJson({ value: 1.5 }), /CANONICAL_NUMBER_INVALID/);
+});
+
 test('archive is history-complete and preserves immutable field authority/mapping', async () => {
   const input = fixture();
   const files = await Core.buildPackageFiles(input, { mode: 'archive' });

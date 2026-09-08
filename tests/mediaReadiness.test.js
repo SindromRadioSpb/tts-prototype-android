@@ -82,12 +82,15 @@ test('post-relink device gate rechecks exact SHA before actual-file playback', a
     expected,
     {
       sha256Hex: async () => expected,
-      playback: async () => { playbackCalls += 1; return { pass: true, device_family: 'iPhone/iPad', seek25: 25, seek75: 75 }; },
+      playback: async () => { playbackCalls += 1; return { pass: true, device_family: 'iPhone/iPad', duration: 1080.16907, seek25: 270.0422675, seek75: 810.1268025 }; },
     },
   );
   assert.equal(playbackCalls, 1);
   assert.equal(receipt.media_sha256, expected);
   assert.equal(receipt.device_family, 'iPhone/iPad');
+  assert.equal(receipt.duration, 1080.16907);
+  assert.equal(receipt.seek25, 270.0422675);
+  assert.equal(receipt.seek75, 810.1268025);
 });
 
 test('post-relink device gate names exact-SHA mismatch and never tries playback', async () => {
