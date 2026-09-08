@@ -11,6 +11,9 @@ Scope: Studio BYOK model-policy migration only
 - No model fallback and no ordinary-user model selector.
 - Existing 3.7 caches and provenance are preserved; 3.8 uses distinct cache
   identities.
+- Browser table-cache reuse and long-table OPFS resume are also bound to the
+  exact `gemini-3.8-flash` model, preventing mixed 3.7/3.8 tables after an app
+  update.
 
 ## Live provider gate
 

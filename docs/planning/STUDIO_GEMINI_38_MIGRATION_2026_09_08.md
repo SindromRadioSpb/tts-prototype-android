@@ -21,6 +21,13 @@ and saved provenance are not rewritten.
 - No fallback or silent downgrade is allowed.
 - Cache identity continues to include the exact model, prompt, schema, and
   content SHA-256. A 3.7 cache can therefore never satisfy a 3.8 request.
+- The browser's optional table cache accepts Gemini rows only when its recorded
+  model is the current pinned model. Model-less and 3.7 entries may still be
+  displayed as historical local state, but an explicit rebuild cannot reuse
+  them as a current 3.8 result.
+- The durable long-table journal signature includes the exact model as well as
+  source text, provider, chunk size, and segment identities. An unfinished 3.7
+  prefix therefore cannot be resumed and mixed with newly generated 3.8 rows.
 - Existing 3.7 raw and validated cache files remain immutable; the first 3.8
   request for existing content is a new paid/free-tier provider request.
 - Archival corpus-repair tools stay pinned to the model recorded by their
@@ -59,6 +66,7 @@ probe key access, and never silently fall back.
 ## Verification gates
 
 - policy/config/cache unit tests;
+- browser-cache and durable-journal model-identity tests;
 - OCR route and targeted table-repair route tests;
 - one real owner-BYOK structured table request with no key or content logging;
 - full repository test suite and focused API/ingest/i18n gates;
