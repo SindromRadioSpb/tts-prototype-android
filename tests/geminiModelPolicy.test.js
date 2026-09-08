@@ -12,12 +12,13 @@ const extract = require("../ingest/geminiExtract.js");
 test("Studio BYOK scenarios pin the approved current model without an implicit fallback", () => {
   for (const scenario of ["ocr", "table-he-ru", "table-any-he", "table-seg-he-ru", "retell"]) {
     const selected = policy.getGeminiScenario(scenario);
-    assert.equal(selected.model, "gemini-3.7-flash");
+    assert.equal(selected.model, "gemini-3.8-flash");
     assert.equal(selected.fallbackModel, null);
     assert.ok(selected.promptId);
     assert.ok(selected.schemaId);
   }
   assert.equal(policy.GEMINI_ECONOMY_MODEL, "gemini-3.5-flash-lite");
+  assert.equal(policy.GEMINI_STUDIO_THINKING_LEVEL, "medium");
 });
 
 test("usage UI reports the pinned model and does not guess the BYOK billing tier", () => {
@@ -25,7 +26,7 @@ test("usage UI reports the pinned model and does not guess the BYOK billing tier
   const shell = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
   assert.match(server, /geminiModelName:\s*GEMINI_STUDIO_MODEL/);
   assert.match(server, /geminiBillingTier:\s*"byok"/);
-  assert.match(shell, /data\.geminiModelName \|\| "gemini-3\.7-flash"/);
+  assert.match(shell, /data\.geminiModelName \|\| "gemini-3\.8-flash"/);
   assert.match(shell, /geminiBillingTier === "byok"[^\n]+tierLabel = "BYOK"/);
   assert.doesNotMatch(shell, /geminiModelName \|\| "Gemini 2\.5 Flash"/);
 });
@@ -39,11 +40,36 @@ test("cache identity changes with model, prompt and schema", () => {
   assert.notEqual(first, policy.buildGeminiCacheKey({ ...base, schemaId: "schema-v2" }));
 });
 
+test("3.8 generation config pins medium thinking and rejects deprecated controls", () => {
+  assert.deepEqual(policy.buildGeminiStudioConfig({
+    maxOutputTokens: 65536,
+    responseMimeType: "application/json",
+  }), {
+    maxOutputTokens: 65536,
+    responseMimeType: "application/json",
+    thinkingConfig: { thinkingLevel: "medium" },
+  });
+  for (const config of [
+    { temperature: 0 },
+    { topP: 0.9 },
+    { topK: 40 },
+    { candidateCount: 1 },
+    { thinkingBudget: 0 },
+    { thinkingConfig: { thinkingBudget: 0 } },
+  ]) {
+    assert.throws(() => policy.buildGeminiStudioConfig(config), (error) => {
+      assert.equal(error.code, "BAD_GEMINI_GENERATION_CONFIG");
+      return true;
+    });
+  }
+});
+
 test("cached provenance is accepted only for the exact requested identity", () => {
   const scenario = policy.getGeminiScenario("ocr");
   const good = { model: scenario.model, promptId: scenario.promptId, schemaId: scenario.schemaId };
   assert.equal(policy.cacheMatchesScenario(good, scenario), true);
   assert.equal(policy.cacheMatchesScenario({ ...good, model: "gemini-flash-latest" }, scenario), false);
+  assert.equal(policy.cacheMatchesScenario({ ...good, model: "gemini-3.7-flash" }, scenario), false);
   assert.equal(policy.cacheMatchesScenario({ ...good, promptId: "old" }, scenario), false);
   assert.equal(policy.cacheMatchesScenario({ text: "legacy cache" }, scenario), false);
 });

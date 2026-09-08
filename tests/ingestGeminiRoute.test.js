@@ -35,9 +35,13 @@ async function invoke(handler, body) {
 
 test("OCR route writes model-aware cache and attaches request-local source-page provenance", async (t) => {
   let calls = 0;
-  const harness = makeHarness(async ({ scenario }) => {
+  const harness = makeHarness(async ({ scenario, config }) => {
     calls += 1;
-    assert.equal(scenario.model, "gemini-3.7-flash");
+    assert.equal(scenario.model, "gemini-3.8-flash");
+    assert.equal(config.temperature, undefined);
+    assert.equal(config.topP, undefined);
+    assert.equal(config.topK, undefined);
+    assert.deepEqual(config.thinkingConfig, { thinkingLevel: "medium" });
     return {
       text: JSON.stringify({
         pages: [{ page_index: 1, text: "עמוד אחד" }, { page_index: 2, text: "עמוד שתיים" }],
@@ -45,7 +49,7 @@ test("OCR route writes model-aware cache and attaches request-local source-page 
         warnings: [],
       }),
       requestedModel: scenario.model,
-      modelVersion: "gemini-3.7-flash-20260813",
+      modelVersion: "gemini-3.8-flash-20260902",
       responseId: "response-fixture",
       usageMetadata: null,
     };
@@ -66,8 +70,8 @@ test("OCR route writes model-aware cache and attaches request-local source-page 
     ],
   });
   assert.equal(first.statusCode, 200);
-  assert.equal(first.payload.model, "gemini-3.7-flash");
-  assert.equal(first.payload.modelVersion, "gemini-3.7-flash-20260813");
+  assert.equal(first.payload.model, "gemini-3.8-flash");
+  assert.equal(first.payload.modelVersion, "gemini-3.8-flash-20260902");
   assert.equal(first.payload.promptId, "ingest-extract-pages-v2");
   assert.equal(first.payload.fromCache, false);
   assert.deepEqual(first.payload.pages.map((page) => page.sourcePage), [5, 6]);
@@ -87,7 +91,7 @@ test("OCR route writes model-aware cache and attaches request-local source-page 
   const cacheFiles = fs.readdirSync(harness.geminiCacheDir);
   assert.equal(cacheFiles.length, 1);
   const cached = JSON.parse(fs.readFileSync(path.join(harness.geminiCacheDir, cacheFiles[0]), "utf8"));
-  assert.equal(cached.model, "gemini-3.7-flash");
+  assert.equal(cached.model, "gemini-3.8-flash");
   assert.equal(cached.promptId, "ingest-extract-pages-v2");
   assert.equal(cached.schemaId, "ingest-extract-pages-schema-v1");
   assert.equal(JSON.stringify(cached).includes("renamed-05.png"), false, "source filenames stay outside shared server cache");

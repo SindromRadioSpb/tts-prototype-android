@@ -18,6 +18,7 @@ const {
   getGeminiScenario,
   buildGeminiCacheKey,
   cacheMatchesScenario,
+  buildGeminiStudioConfig,
 } = require("./geminiPolicy.js");
 const {
   buildGeminiExtractSchema,
@@ -161,12 +162,11 @@ function registerIngestRoutes(app, deps) {
           { inlineData: { mimeType, data: dataBase64 } },
           { text: EXTRACT_PROMPT },
         ] }],
-        config: {
-          temperature: 0,
+        config: buildGeminiStudioConfig({
           responseMimeType: "application/json",
           responseSchema: buildGeminiExtractSchema(Type),
           maxOutputTokens: 65536,
-        },
+        }),
       });
       const raw = generated.text;
       const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
@@ -244,7 +244,7 @@ function registerIngestRoutes(app, deps) {
         contents: retell.buildRetellPrompt(text, level),
         // maxOutputTokens 16384: thinking входит в бюджет вывода — 8192 обрезало list-вариант
         // (замер M1, docs/research/studio-ingest-graded-retell/2026-07-28/README.md)
-        config: { temperature: 0, maxOutputTokens: 16384 },
+        config: buildGeminiStudioConfig({ maxOutputTokens: 16384 }),
       });
       const raw = generated.text;
       const out = raw.replace(/^```[a-z]*\s*/i, "").replace(/```\s*$/i, "").trim();

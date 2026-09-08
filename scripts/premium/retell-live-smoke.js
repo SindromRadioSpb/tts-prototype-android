@@ -22,11 +22,11 @@ const SRC = "החתול ישב על החלון והסתכל על הציפורי�
 (async () => {
   let resp;
   try {
-    resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent", {
+    resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent", {
       method: "POST",
       headers: { "x-goog-api-key": KEY, "Content-Type": "application/json" },
       body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: IR.buildRetellPrompt(SRC, "A2") }] }],
-                             generationConfig: { temperature: 0, maxOutputTokens: 16384 } }),
+                             generationConfig: { thinkingConfig: { thinkingLevel: "medium" }, maxOutputTokens: 16384 } }),
       signal: AbortSignal.timeout(30000), // hard cap — undici default has no ceiling and can hang ~5 min
     });
   } catch (e) {

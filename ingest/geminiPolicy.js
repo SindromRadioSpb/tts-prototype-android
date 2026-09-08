@@ -2,8 +2,12 @@
 
 const crypto = require("crypto");
 
-const GEMINI_STUDIO_MODEL = "gemini-3.7-flash";
+const GEMINI_STUDIO_MODEL = "gemini-3.8-flash";
 const GEMINI_ECONOMY_MODEL = "gemini-3.5-flash-lite";
+const GEMINI_STUDIO_THINKING_LEVEL = "medium";
+const DEPRECATED_GEMINI_3_CONFIG_FIELDS = Object.freeze([
+  "temperature", "topP", "topK", "candidateCount", "thinkingBudget",
+]);
 
 const SCENARIOS = Object.freeze({
   ocr: Object.freeze({
@@ -75,10 +79,37 @@ function cacheMatchesScenario(cached, scenario) {
   );
 }
 
+function buildGeminiStudioConfig(config = {}) {
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    const error = new Error("Gemini generation config must be an object");
+    error.code = "BAD_GEMINI_GENERATION_CONFIG";
+    throw error;
+  }
+  const deprecated = DEPRECATED_GEMINI_3_CONFIG_FIELDS.find((field) =>
+    Object.prototype.hasOwnProperty.call(config, field));
+  const thinking = config.thinkingConfig;
+  const badThinking = thinking !== undefined && (
+    !thinking || typeof thinking !== "object" || Array.isArray(thinking)
+    || Object.keys(thinking).some((field) => field !== "thinkingLevel")
+    || thinking.thinkingLevel !== GEMINI_STUDIO_THINKING_LEVEL
+  );
+  if (deprecated || badThinking) {
+    const error = new Error("Gemini 3.8 config must use the managed thinking level and default sampling");
+    error.code = "BAD_GEMINI_GENERATION_CONFIG";
+    throw error;
+  }
+  return {
+    ...config,
+    thinkingConfig: { thinkingLevel: GEMINI_STUDIO_THINKING_LEVEL },
+  };
+}
+
 module.exports = {
   GEMINI_STUDIO_MODEL,
   GEMINI_ECONOMY_MODEL,
+  GEMINI_STUDIO_THINKING_LEVEL,
   getGeminiScenario,
   buildGeminiCacheKey,
   cacheMatchesScenario,
+  buildGeminiStudioConfig,
 };

@@ -38,6 +38,7 @@ const {
   getGeminiScenario,
   buildGeminiCacheKey,
   cacheMatchesScenario,
+  buildGeminiStudioConfig,
 } = require("./ingest/geminiPolicy.js");
 const {
   buildRawTableCachePayload,
@@ -7143,12 +7144,11 @@ app.post("/api/translate-table", async (req, res) => {
         apiKey: trimmedKey,
         scenario,
         contents: prompt,
-        config: {
-          temperature: 0,
+        config: buildGeminiStudioConfig({
           maxOutputTokens: 65536,
           responseMimeType: "application/json",
           responseSchema: buildGeminiTableResponseSchema(Type),
-        },
+        }),
       });
       rawText = generated.text;
       // The upstream generation has already consumed the owner's provider quota
@@ -7203,8 +7203,8 @@ app.post("/api/translate-table", async (req, res) => {
         generate: async ({ prompt: repairPrompt }) => {
           const answer = await generateGeminiContent({
             apiKey: trimmedKey, scenario, contents: repairPrompt,
-            config: { temperature: 0, maxOutputTokens: 16384,
-              responseMimeType: "application/json", responseSchema: buildRepairSchema(Type) },
+            config: buildGeminiStudioConfig({ maxOutputTokens: 16384,
+              responseMimeType: "application/json", responseSchema: buildRepairSchema(Type) }),
           });
           updateUsage("gemini", 1);
           return answer;

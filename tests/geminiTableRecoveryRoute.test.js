@@ -52,6 +52,8 @@ test('real endpoint reuses rejected raw cache, repairs one row, publishes and re
     calls++;
     assert.equal(args.apiKey, 'NOT_A_REAL_KEY');
     assert.match(args.contents, /REJECTED ROW DATA/);
+    assert.equal(args.config.temperature, undefined);
+    assert.deepEqual(args.config.thinkingConfig, { thinkingLevel: 'medium' });
     return { text: JSON.stringify({ repairs: [{ row_index: 1, he_niqqud: 'רָאִיתִי', translit: "ra'iti", ru: 'я увидела' }] }), modelVersion: 'test' };
   });
   const first = await f.request();

@@ -1,6 +1,7 @@
 "use strict";
 
 const { GoogleGenAI } = require("@google/genai");
+const { buildGeminiStudioConfig } = require("./geminiPolicy");
 
 async function generateGeminiContent({ apiKey, scenario, contents, config = {} }) {
   if (!scenario || !scenario.model || scenario.fallbackModel) {
@@ -12,7 +13,7 @@ async function generateGeminiContent({ apiKey, scenario, contents, config = {} }
   const response = await ai.models.generateContent({
     model: scenario.model,
     contents,
-    config,
+    config: buildGeminiStudioConfig(config),
   });
   return {
     text: typeof response.text === "string" ? response.text : "",

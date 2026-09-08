@@ -16,8 +16,6 @@ const {
 } = require("../../ingest/tableRows.js");
 const {
   buildGeminiCacheKey,
-  cacheMatchesScenario,
-  getGeminiScenario,
 } = require("../../ingest/geminiPolicy.js");
 const { transliterateWithProfile } = require("../../db/premium/translit.js");
 const { translitProfileVersion } = require("../../db/premium/versions.js");
@@ -63,11 +61,20 @@ function main() {
   const rawCache = readJson(rawPath);
   const correctionSpec = readJson(correctionsPath);
   const correctedText = fs.readFileSync(inputPath, "utf8").trim();
-  const scenario = getGeminiScenario("table-he-ru");
   const profile = rawCache.translitProfile || "learner-latin";
 
-  if (!cacheMatchesScenario(rawCache, scenario)) {
-    throw new Error("Raw cache does not match the current table-he-ru scenario");
+  // This is an archival Physics-corpus repair tool, not a new provider call.
+  // Its immutable 2026-08-24 evidence must retain the model identity that
+  // actually produced it even after Studio advances to a newer managed model.
+  const scenario = Object.freeze({
+    model: "gemini-3.7-flash",
+    promptId: "he-ru-table-v3",
+    schemaId: "studio-table-rows-schema-v1",
+  });
+  if (rawCache.model !== scenario.model
+      || rawCache.promptId !== scenario.promptId
+      || rawCache.schemaId !== scenario.schemaId) {
+    throw new Error("Raw cache does not match the archived Physics table scenario");
   }
   const parsed = JSON.parse(cleanRawJson(rawCache.rawText));
   if (!Array.isArray(parsed.rows) || parsed.rows.length === 0) {

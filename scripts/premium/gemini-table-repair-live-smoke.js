@@ -8,7 +8,7 @@ const { Type } = require('@google/genai');
 const { generateGeminiContent } = require('../../ingest/geminiClient');
 const { recoverTableNiqqud, buildRepairSchema } = require('../../ingest/geminiTableRepair');
 const { buildRowsFromGeminiPayload, prepareRowsFromGeminiPayload, validateNiqqudBase } = require('../../ingest/tableRows');
-const { getGeminiScenario } = require('../../ingest/geminiPolicy');
+const { getGeminiScenario, buildGeminiStudioConfig } = require('../../ingest/geminiPolicy');
 const args = Object.fromEntries(process.argv.slice(2).map(s => { const i = s.indexOf('='); return [s.slice(0, i), s.slice(i + 1)]; }));
 async function main() {
   if (!args['--raw'] || !args['--key-file'] || !args['--repair-cache']) throw new Error('Required: --raw --key-file --repair-cache');
@@ -28,7 +28,7 @@ async function main() {
     generate: async ({ prompt }) => {
       calls++;
       return generateGeminiContent({ apiKey, scenario, contents: prompt,
-        config: { temperature: 0, maxOutputTokens: 16384, responseMimeType: 'application/json', responseSchema: buildRepairSchema(Type) } });
+        config: buildGeminiStudioConfig({ maxOutputTokens: 16384, responseMimeType: 'application/json', responseSchema: buildRepairSchema(Type) }) });
     },
   });
   const rows = buildRowsFromGeminiPayload(result.parsed, { direction: 'he-ru' }, { keepSegmentIndex: true });
