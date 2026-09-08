@@ -37,3 +37,6 @@ allowlist only after a concrete expert workflow requires it.
 
 Engineering plan and invariants:
 [STUDIO_GEMINI_38_MIGRATION_2026_09_08.md](../../../planning/STUDIO_GEMINI_38_MIGRATION_2026_09_08.md)
+
+Production verification:
+[RELEASE_VERIFIED.md](./RELEASE_VERIFIED.md)
