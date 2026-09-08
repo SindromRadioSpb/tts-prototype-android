@@ -1,6 +1,6 @@
 # Studio Gemini table recovery — 2026-09-08
 
-Status: implemented; relevant pre-release gates passed. Production/owner-browser evidence is recorded separately below after verification.
+Status: deployed v3.11.494; relevant gates passed; `OWNER_REPORTED_PASS` for the table workflow (owner: «готово успешно»). Physical iPhone table-repair acceptance is not separately inferred.
 
 ## Scope and evidence
 
@@ -51,4 +51,12 @@ Pre-release: 1397/1397 unit tests; API smoke PASS; full Studio chunks/media smok
 
 An auxiliary `train-queue-smoke` inspection passes its exact shell-integrity URL/precache checks but fails one unrelated historical assertion (320/321): it requires the unchanged `library-ui.js?v=488` asset version to equal *every* global release patch. The identical failure was verified on the unchanged predecessor v3.11.493. The module bytes and its matching HTML/SW/integrity URL remain unchanged; no train-queue or Reading Room runtime change is included here.
 
-Release commit, deployed version, exact owner-browser result and reload/cache proof: pending release verification. Do not infer production acceptance from local fixtures or the live one-row provider gate.
+Release commit: `1a8858c8ebbab4d3ec4cd23c760b534b37570de4`; local main/origin main/deployed container image matched. Production v3.11.494 and HTTP 200 health confirmed twice; 12 public assets match exact release Git bytes, including unchanged Studio ASR/media-readiness/downloader modules. Evidence: `docs/research/studio-gemini-table-recovery/2026-09-08/production-assets.json`.
+
+Actual ordinary owner-tab rebuild on the existing 437-segment transcript completed all four parts: 120 + 120 + 121 + 77 = **438 rows**, **437/437 segment coverage**, no missing segment, no consonant-guard violation, no error banner, durable journal `done`. Four rejected rows were repaired in three one-attempt requests (part-local row indexes: 46; 20/21; 100). Original transcript and ASR segment array stayed exact. Five plain-Hebrew comparisons in the already-vocalized closing passage differ only by the established full/defective spelling allowance; this is not five missing/replaced source segments.
+
+The owner saved the card and the tab was subsequently observed on v3.11.494 with all 438 rows, unchanged 19,187-character source and Gemini provenance; owner then reported «готово успешно». No automated reload was forced over the open save dialog. An attempted read-only four-part cache probe coincided with the navigation and timed out, so its result is **INCONCLUSIVE**, not claimed as a completed live zero-charge repeat proof. The deterministic endpoint cache test and live one-row repair replay separately prove reuse without a new provider generation.
+
+Media SHA remained exact. Timing had 435 entries at initial completion and 424 after the saved-card reload; timing remains a conservative derived mapping and this release does **not** claim full row-audio coverage or physical playback acceptance. No ASR/media runtime was changed. Completed rows/metadata/journal also have a secret-guarded local OPFS recovery snapshot (`gemini-table-complete-2026-09-08.json`, 1,397,432 bytes).
+
+Operational follow-up: server root disk was 95% used during deployment (1.9 GB free); application and acquisition worker remained healthy. No cleanup, cache deletion, volume removal or extra infrastructure change was performed.

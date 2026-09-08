@@ -1,0 +1,93 @@
+{
+  "status": "TECHNICAL_PASS",
+  "checkedAt": "2026-09-08T12:32:27.912Z",
+  "releaseCommit": "1a8858c8ebbab4d3ec4cd23c760b534b37570de4",
+  "version": "3.11.494",
+  "healthStatus": 200,
+  "assets": [
+    {
+      "url": "/index.html",
+      "status": 200,
+      "bytes": 2297263,
+      "sha256": "a866694b805b26a819563a1325f6dba45c600c5bdb1dfb15686c2f2802b8eb72",
+      "matchesRelease": true
+    },
+    {
+      "url": "/sw.js",
+      "status": 200,
+      "bytes": 32058,
+      "sha256": "f7988b901376c6b50a6481778a420717f5386ee4a5dafc6ed08ac961b5d39fc7",
+      "matchesRelease": true
+    },
+    {
+      "url": "/library.html",
+      "status": 200,
+      "bytes": 312301,
+      "sha256": "be5bea7a31aa654e2d39d3917e6d5bd426a5d9915bd17f365130942f588f01d0",
+      "matchesRelease": true
+    },
+    {
+      "url": "/download-media.html",
+      "status": 200,
+      "bytes": 5006,
+      "sha256": "eb0477b04ab061e475ea8dc5f1843964898220593e69984b38b7fa5345b1c682",
+      "matchesRelease": true
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=212",
+      "status": 200,
+      "bytes": 429504,
+      "sha256": "c6e12adcbf42e795696171a900c00c5f9f0e40a70778be4c505f3ddd893c0445",
+      "matchesRelease": true
+    },
+    {
+      "url": "/i18n/locales/en.js?v=212",
+      "status": 200,
+      "bytes": 286402,
+      "sha256": "dc39759a3308f25101aa6abf96a08c284901ec7c46dd976dfbeb97f56304f6ad",
+      "matchesRelease": true
+    },
+    {
+      "url": "/i18n/locales/he.js?v=212",
+      "status": 200,
+      "bytes": 353179,
+      "sha256": "d3b662f018668976ea793f051be65383a78f90f020757d50acae592830d737e5",
+      "matchesRelease": true
+    },
+    {
+      "url": "/js/studio-import.js",
+      "status": 200,
+      "bytes": 188490,
+      "sha256": "b60fb7d7e80c51e5e3d68b016777f3b77b5026fd3730ce91e18a4054a7b54995",
+      "matchesRelease": true
+    },
+    {
+      "url": "/js/media-readiness.js",
+      "status": 200,
+      "bytes": 13371,
+      "sha256": "976545f8e7e3c7f5f5af637ee3d429894180a45475da1321460a1f0506621c6d",
+      "matchesRelease": true
+    },
+    {
+      "url": "/js/iphone-downloader-release.js",
+      "status": 200,
+      "bytes": 3162,
+      "sha256": "02b2d754ceb8351f91f6fc893d94f4ed1d849990ef5e1fd143c4b766267748a1",
+      "matchesRelease": true
+    },
+    {
+      "url": "/js/table-chunks.js",
+      "status": 200,
+      "bytes": 9298,
+      "sha256": "7a22598eb8a5f2eb976783f72cfd347c51ff4312d2d4a2d744db12646c530d6c",
+      "matchesRelease": true
+    },
+    {
+      "url": "/js/table-job.js",
+      "status": 200,
+      "bytes": 7385,
+      "sha256": "c7f0f6baaff79f00498932c8ff53926b5727ed6a58a8116ae5d5c1eccc863b3b",
+      "matchesRelease": true
+    }
+  ]
+}
