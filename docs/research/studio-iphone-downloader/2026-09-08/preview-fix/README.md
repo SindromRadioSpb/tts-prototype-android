@@ -1,6 +1,8 @@
 # iPhone saved-file preview correction — 3.11.493
 
-Status: LOCAL_GATES_PASS; publication verification pending.
+Status: DEPLOYED_TECHNICAL_PASS, commit `756555be6a89f7a9013bf7c647d433b4a00bd87a`.
+Live assets and two independent 14-group production browser runs passed.
+See [RELEASE_VERIFIED.md](RELEASE_VERIFIED.md) for evidence and remaining gates.
 Source baseline: production `70b779d7` (3.11.492), evidence predecessor `38114f82`.
 Owner explicitly approved correcting both defects and publishing to production.
 
@@ -78,8 +80,9 @@ acceptance remains pending a new owner test on the physical iPhone.
 ## Owner check
 
 Update Studio normally, open `/download-media.html` and confirm footer 3.11.493.
-Open the helper for the existing history entry: it verifies and opens the saved
-file, without downloading it again. Check Open/Share for the same title with its
+Open the helper for the existing history entry: it verifies the saved file
+without downloading it again. Tap Open/Share if the viewer does not open
+automatically. Check Open/Share for the same title with its
 apostrophe, then return to Chrome. If the native viewer still fails, the helper
 must retain the saved result/SHA and show an opening-specific warning, not
 "Could not download". The file remains accessible in Files at its existing path.

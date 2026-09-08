@@ -14,7 +14,10 @@ and publishing. The correction preserves verified READY on action failure,
 allows retry/reopen without another download, and keeps missing/changed files
 fail-closed. No ASR, saved-file naming/deletion or frozen engine change.
 Local gates: 30 Python, 1377 Node, API/ingest/i18n and 14 browser groups PASS.
-Publication and corrected physical native-preview acceptance remain pending.
+DEPLOYED_TECHNICAL_PASS: `756555be`, live 3.11.493; 11 assets matched Git bytes,
+two independent production browser runs passed, exact-release SW upgrade passed.
+Real rollout upgrade probe aborted on a transient 502 and is INCONCLUSIVE.
+Corrected physical native-preview acceptance remains pending owner testing.
 Evidence: `docs/research/studio-iphone-downloader/2026-09-08/preview-fix/README.md`.
 
 ## Superseding correction — 3.11.492

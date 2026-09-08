@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "time": "2026-09-08T10:44:48.882Z",
+  "release": "756555be6a89f7a9013bf7c647d433b4a00bd87a",
+  "version": "3.11.493",
+  "health": 200,
+  "assets": [
+    {
+      "path": "/download-media.html",
+      "bytes": 5006,
+      "sha256": "d61da5190b9c47dcbdc6b8dbd1e7181e297cbd0e99a0d2075e125a82e959f3c8"
+    },
+    {
+      "path": "/js/iphone-downloader-release.js",
+      "bytes": 3162,
+      "sha256": "02b2d754ceb8351f91f6fc893d94f4ed1d849990ef5e1fd143c4b766267748a1"
+    },
+    {
+      "path": "/downloads/iphone-downloader-bfd5524471de702d.pyz",
+      "bytes": 43756,
+      "sha256": "bfd5524471de702d2b280d8d3761340c3b2c3013e0f695a6bb20cf67de114512"
+    },
+    {
+      "path": "/index.html",
+      "bytes": 2296382,
+      "sha256": "5232b9f692ad85431dabfabe0aacbff00827dce3a46b1e66af466ad4fd41642e"
+    },
+    {
+      "path": "/library.html",
+      "bytes": 312301,
+      "sha256": "1f5d950773047c4bded0fe6b48b0322abf03bb6c278670e94c0e5c957102f70a"
+    },
+    {
+      "path": "/sw.js",
+      "bytes": 32058,
+      "sha256": "c4803fddabff3c1f253b99b921c23d6dd5104c9053857712cd692bed0e2d6a81"
+    },
+    {
+      "path": "/i18n/locales/ru.js",
+      "bytes": 428535,
+      "sha256": "40baa718d16013b02962b5b79a7a0642883f0d1c553f30b6d25d1264b689e79a"
+    },
+    {
+      "path": "/i18n/locales/en.js",
+      "bytes": 285825,
+      "sha256": "608499e6e3d7a47c23533822b894995910b3fd675f946d8fd4dcadb29e47cb45"
+    },
+    {
+      "path": "/i18n/locales/he.js",
+      "bytes": 352445,
+      "sha256": "4575c6d355b909638ddf318ceb598aba0bcffd2ff5f899f8f783282150caaaa2"
+    },
+    {
+      "path": "/js/studio-import.js",
+      "bytes": 188490,
+      "sha256": "b60fb7d7e80c51e5e3d68b016777f3b77b5026fd3730ce91e18a4054a7b54995"
+    },
+    {
+      "path": "/js/media-readiness.js",
+      "bytes": 13371,
+      "sha256": "976545f8e7e3c7f5f5af637ee3d429894180a45475da1321460a1f0506621c6d"
+    }
+  ],
+  "asr": "UNCHANGED",
+  "physical_native_preview": "OWNER_CHECK_PENDING"
+}

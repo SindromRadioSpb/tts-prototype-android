@@ -1,7 +1,10 @@
 # iPhone downloader delivery evidence
 
-**Current correction:** see [native-ui-fix/README.md](native-ui-fix/README.md).
-The owner rejected the 3.11.491 native route with a concrete compatibility error.
+**Current correction, 3.11.493:** see [preview-fix/README.md](preview-fix/README.md).
+The owner confirmed native UI, quality selection, download and compatibility on
+3.11.492; the remaining Open/Share quoting/false-failure defects are corrected.
+Corrected native preview still needs owner verification. The previous native UI
+correction is in [native-ui-fix/README.md](native-ui-fix/README.md).
 The original engineering evidence below is historical, not native acceptance.
 
 Owner request: production Chrome/iPhone video downloading with the already
