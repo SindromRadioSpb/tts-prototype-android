@@ -13309,9 +13309,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=207"></script>
-<script src="/i18n/locales/en.js?v=207"></script>
-<script src="/i18n/locales/he.js?v=207"></script>
+<script src="/i18n/locales/ru.js?v=209"></script>
+<script src="/i18n/locales/en.js?v=209"></script>
+<script src="/i18n/locales/he.js?v=209"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13464,6 +13464,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import.js" defer></script>
+<script src="/js/iphone-downloader-core.js?v=1" defer></script>
+<script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
 <!-- PAS-B (слайс B) — агент-UI Студии: ВЕСЬ агент-код в studio-agent.js (чартер §7.7,
      inline здесь только script-теги + host-bridge). .row-agent-btn инжектится
@@ -13499,7 +13501,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.490";
+    window.APP_VERSION = "3.11.491";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -50251,6 +50253,11 @@ document.addEventListener("i18n:changed", function () {
           <input id="v3ImportVideoUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
           <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.import.videoUrlBtn">Показать видео</button>
         </div>
+
+        <aside id="v3PhoneDownloader" hidden aria-labelledby="v3PhoneDownloadLink" style="margin-block:16px; padding-block:16px; border-block:1px solid var(--theme-border-medium,#cbd5e1)">
+          <a id="v3PhoneDownloadLink" class="btn-primary" href="/download-media.html" style="display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 18px; border-radius:10px; text-decoration:none" data-i18n="phoneDownload.studioLink">Скачать на iPhone</a>
+          <p style="margin:10px 0 0; color:var(--theme-text-secondary,#475569); font-size:14px" data-i18n="phoneDownload.studioHint">Через установленный a-Shell mini. Без сервера для скачивания.</p>
+        </aside>
 
         <aside id="v3DownrHandoff" class="v3-downr-handoff" aria-labelledby="v3DownrTitle">
           <div class="v3-downr-head">

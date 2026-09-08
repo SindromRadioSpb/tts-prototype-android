@@ -1,0 +1,84 @@
+/* One task surface, shared by Chrome and the device-local helper. */
+.lp-phone {
+  --phone-bg: #f4f6f9; --phone-surface: #fff; --phone-text: #0f172a;
+  --phone-muted: #475569; --phone-border: #cbd5e1; --phone-accent: #2563eb;
+  --phone-soft: #eff6ff; --phone-success: #166534; --phone-danger: #b91c1c;
+  color-scheme: light; color: var(--phone-text); background: var(--phone-bg);
+  font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: start; overflow-wrap: anywhere;
+}
+.lp-phone, .lp-phone * { box-sizing: border-box; }
+body.lp-phone { margin: 0; min-height: 100svh; }
+.lp-phone main, .lp-phone .phone-main { max-width: 650px; margin: auto; padding: 20px 24px max(32px, env(safe-area-inset-bottom)); }
+.lp-phone header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
+.lp-phone .phone-brand { font-size: 20px; font-weight: 750; letter-spacing: -.03em; text-decoration: none; color: var(--phone-text); }
+.lp-phone a { color: var(--phone-accent); text-underline-offset: 3px; }
+.lp-phone h1 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 36px); line-height: 1.15; letter-spacing: -.035em; }
+.lp-phone h2 { font-size: 21px; line-height: 1.3; margin: 0 0 16px; letter-spacing: -.02em; }
+.lp-phone p { margin: 10px 0; }
+.lp-phone .phone-intro { font-size: 18px; color: var(--phone-muted); margin-bottom: 26px; }
+.lp-phone .phone-note { color: var(--phone-muted); font-size: 14px; }
+.lp-phone label:not(.phone-choice), .lp-phone legend { display: block; margin: 20px 0 8px; font-weight: 650; }
+.lp-phone input:not([type="radio"]), .lp-phone select {
+  display: block; width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--phone-border);
+  border-radius: 9px; background: var(--phone-surface); color: var(--phone-text); font: inherit;
+}
+.lp-phone input[type="url"] { direction: ltr; }
+.lp-phone button, .lp-phone .phone-button {
+  display: inline-flex; width: auto; min-height: 48px; align-items: center; justify-content: center;
+  gap: 8px; padding: 12px 18px; border: 1px solid var(--phone-border); border-radius: 10px;
+  background: var(--phone-surface); color: var(--phone-text); font: 650 16px/1.3 system-ui, sans-serif;
+  cursor: pointer; text-decoration: none; touch-action: manipulation;
+}
+.lp-phone .phone-primary { color: #fff; background: var(--phone-accent); border-color: var(--phone-accent); }
+.lp-phone .phone-full { width: 100%; margin-top: 20px; }
+.lp-phone button:disabled { opacity: .6; cursor: default; }
+.lp-phone :focus-visible { outline: 3px solid var(--phone-accent); outline-offset: 4px; }
+.lp-phone .phone-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.lp-phone .phone-actions > * { flex: 1 1 180px; }
+.lp-phone .phone-link { border: 0; background: transparent; color: var(--phone-accent); padding-inline: 0; justify-content: start; }
+.lp-phone details { border-block-start: 1px solid var(--phone-border); padding-block: 12px; margin-top: 24px; }
+.lp-phone summary { min-height: 44px; padding-block: 10px; cursor: pointer; font-size: 15px; }
+.lp-phone .phone-status { border-inline-start: 3px solid var(--phone-accent); padding: 2px 0 2px 16px; margin: 24px 0; }
+.lp-phone .phone-status:empty { display: none; }
+.lp-phone .phone-error { color: var(--phone-danger); }
+.lp-phone .phone-history { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--phone-border); }
+.lp-phone .phone-history-list { margin: 0; padding: 0; list-style: none; }
+.lp-phone .phone-history-item { padding-block: 22px; border-top: 1px solid var(--phone-border); }
+.lp-phone .phone-history-item:first-child { border-top: 0; padding-top: 0; }
+.lp-phone .phone-file { display: block; font-weight: 650; word-break: break-word; }
+.lp-phone .phone-success { color: var(--phone-success); }
+.lp-phone .phone-metadata { color: var(--phone-muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.lp-phone .phone-language { width: auto; min-height: 44px; font-size: 14px; padding: 8px; }
+.lp-phone fieldset { margin: 20px 0; padding: 0; border: 0; }
+.lp-phone .phone-choice {
+  display: flex; align-items: center; gap: 12px; min-height: 62px; padding: 14px;
+  border: 1px solid var(--phone-border); background: var(--phone-surface); border-radius: 9px;
+  margin-block: 8px; cursor: pointer;
+}
+.lp-phone .phone-choice:has(input:checked) { border-color: var(--phone-accent); background: var(--phone-soft); }
+.lp-phone .phone-choice input { width: 20px; height: 20px; margin: 0; accent-color: var(--phone-accent); flex-shrink: 0; }
+.lp-phone .phone-choice strong { display: block; }
+.lp-phone .phone-choice small { display: block; color: var(--phone-muted); font-size: 13px; }
+.lp-phone progress { display: block; width: 100%; height: 8px; accent-color: var(--phone-accent); margin: 24px 0 14px; }
+.lp-phone .phone-symbol { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; margin-bottom: 22px; background: var(--phone-soft); color: var(--phone-accent); font-size: 24px; }
+.lp-phone .phone-source-title { font-size: 19px; line-height: 1.4; font-weight: 650; margin-top: 20px; }
+.lp-phone pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 ui-monospace, monospace; direction: ltr; text-align: left; }
+.lp-phone [hidden] { display: none !important; }
+#lp-phone-native { position: fixed; inset: 0; z-index: 2147483646; overflow: auto; overscroll-behavior: contain; padding-top: env(safe-area-inset-top); }
+#lp-phone-native .phone-main { padding-top: 22px; }
+.lp-phone .phone-pane { animation: phone-enter 160ms ease-out; }
+@keyframes phone-enter { from { opacity: .65; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lp-phone .phone-pane { animation: none; } }
+@media (max-width: 480px) {
+  .lp-phone main, .lp-phone .phone-main { padding-inline: 20px; }
+  .lp-phone header { margin-bottom: 28px; }
+}
+@media (prefers-color-scheme: dark) {
+  .lp-phone { color-scheme: dark; --phone-bg: #0f172a; --phone-surface: #1e293b;
+    --phone-text: #f1f5f9; --phone-muted: #cbd5e1; --phone-border: #475569;
+    --phone-accent: #2563eb; --phone-soft: #172554; --phone-success: #86efac; --phone-danger: #fca5a5; }
+  .lp-phone a, .lp-phone .phone-link { color: #93c5fd; }
+  .lp-phone .phone-symbol { color: #93c5fd; }
+  .lp-phone :focus-visible { outline-color: #93c5fd; }
+}

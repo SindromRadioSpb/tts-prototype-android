@@ -1065,6 +1065,12 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/js/iphone-downloader-core.js?v=1",
+  "/js/iphone-downloader-entry.js?v=1",
+  "/download-media.html",
+  "/css/iphone-downloader.css?v=1",
+  "/js/iphone-downloader.js?v=1",
+  "/js/iphone-downloader-release.js?v=1",
   "/css/catalog-discovery.css?v=485",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
@@ -1105,9 +1111,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=207",
-  "/i18n/locales/en.js?v=207",
-  "/i18n/locales/he.js?v=207",
+  "/i18n/locales/ru.js?v=209",
+  "/i18n/locales/en.js?v=209",
+  "/i18n/locales/he.js?v=209",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

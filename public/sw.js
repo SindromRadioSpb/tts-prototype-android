@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.490";
+const CACHE_VERSION = "v3.11.491";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -151,6 +151,12 @@ const PRECACHE_URLS = [
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
   "/js/studio-import.js",
+  "/js/iphone-downloader-core.js?v=1",
+  "/js/iphone-downloader-entry.js?v=1",
+  "/download-media.html",
+  "/css/iphone-downloader.css?v=1",
+  "/js/iphone-downloader.js?v=1",
+  "/js/iphone-downloader-release.js?v=1",
   // W2-S11 — «Упростить до моего уровня» graded-пересказ (cost estimate, coverage,
   // provenance passport; pure-core is dual-exported for tests/studioRetell.test.js).
   "/js/studio-retell.js",
@@ -236,9 +242,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=207",
-  "/i18n/locales/en.js?v=207",
-  "/i18n/locales/he.js?v=207",
+  "/i18n/locales/ru.js?v=209",
+  "/i18n/locales/en.js?v=209",
+  "/i18n/locales/he.js?v=209",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

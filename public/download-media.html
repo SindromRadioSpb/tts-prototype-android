@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Скачать видео — LinguistPro</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/iphone-downloader.css?v=1">
+  <script src="/i18n/locales/ru.js?v=209" defer></script>
+  <script src="/i18n/locales/en.js?v=209" defer></script>
+  <script src="/i18n/locales/he.js?v=209" defer></script>
+  <script src="/i18n/index.js" defer></script>
+  <script src="/js/iphone-downloader-core.js?v=1" defer></script>
+  <script src="/js/iphone-downloader-release.js?v=1" defer></script>
+  <script src="/js/iphone-downloader.js?v=1" defer></script>
+</head>
+<body class="lp-phone">
+  <main>
+    <header>
+      <a class="phone-brand phone-button phone-link" href="/">LinguistPro</a>
+      <select id="phoneLanguage" class="phone-language" aria-label="Язык" data-i18n-aria-label="phoneDownload.language">
+        <option value="ru">Русский</option><option value="en">English</option><option value="he">עברית</option>
+      </select>
+    </header>
+    <h1 data-i18n="phoneDownload.title">Скачать видео</h1>
+    <p class="phone-intro" data-i18n="phoneDownload.intro">Видео со звуком — прямо на iPhone.</p>
+    <p id="phonePlatform" class="phone-status" hidden data-i18n="phoneDownload.onlyPhone"></p>
+    <form id="phoneForm" novalidate>
+      <label for="phoneSource" data-i18n="phoneDownload.source">Ссылка на YouTube</label>
+      <input id="phoneSource" type="url" inputmode="url" autocomplete="off" spellcheck="false" required
+             placeholder="Вставьте ссылку на ролик" data-i18n-placeholder="phoneDownload.sourcePlaceholder">
+      <label for="phoneRights" data-i18n="phoneDownload.rights">Право на скачивание</label>
+      <select id="phoneRights" required>
+        <option value="" data-i18n="phoneDownload.rightsChoose">Выберите основание</option>
+        <option value="owned" data-i18n="phoneDownload.owned">Моё видео</option>
+        <option value="permission" data-i18n="phoneDownload.permission">Есть разрешение правообладателя</option>
+        <option value="public-domain" data-i18n="phoneDownload.publicDomain">Общественное достояние</option>
+      </select>
+      <p id="phoneFormError" class="phone-error" role="alert" hidden></p>
+      <button id="phoneStart" class="phone-primary phone-full" type="submit" data-i18n="phoneDownload.start">Продолжить в помощнике</button>
+      <p class="phone-note" data-i18n="phoneDownload.switchHint">Откроется a-Shell mini. Там выберите качество и скачайте файл. Держите помощник на экране до завершения.</p>
+    </form>
+    <div id="phoneLaunchStatus" class="phone-status" role="status" aria-live="polite" hidden>
+      <strong data-i18n="phoneDownload.requested">Помощник открыт по запросу</strong>
+      <p class="phone-note" data-i18n="phoneDownload.requestedHint"></p>
+      <button id="phoneReopen" class="phone-link" type="button" data-i18n="phoneDownload.openAgain">Открыть помощник</button>
+    </div>
+    <p id="phoneStorageWarning" class="phone-note" role="status" hidden data-i18n="phoneDownload.historyUnavailable"></p>
+    <p id="phoneReturnError" class="phone-error" role="alert" hidden data-i18n="phoneDownload.returnInvalid"></p>
+    <details id="phoneSetup">
+      <summary data-i18n="phoneDownload.setup">Нужен a-Shell mini — один раз</summary>
+      <p class="phone-note" data-i18n="phoneDownload.setupHint"></p>
+      <a class="phone-button" href="https://apps.apple.com/app/id1543537943" rel="noopener noreferrer" target="_blank" data-i18n="phoneDownload.install">Установить a-Shell mini</a>
+    </details>
+    <p class="phone-note" data-i18n="phoneDownload.noServer">Без передачи медиа нашему серверу. Расшифровка не запускается.</p>
+    <section class="phone-history" aria-labelledby="phoneHistoryTitle">
+      <h2 id="phoneHistoryTitle" data-i18n="phoneDownload.recent">Последние загрузки</h2>
+      <p id="phoneEmpty" class="phone-note" data-i18n="phoneDownload.noHistory"></p>
+      <ul id="phoneHistory" class="phone-history-list"></ul>
+    </section>
+    <p id="phoneNotice" class="phone-note" role="status" aria-live="polite"></p>
+    <a class="phone-button phone-link" href="/" data-i18n="phoneDownload.back">В Студию</a>
+    <noscript>Для скачивания включите JavaScript. / Enable JavaScript to download.</noscript>
+  </main>
+</body>
+</html>

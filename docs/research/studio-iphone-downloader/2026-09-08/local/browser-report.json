@@ -1,0 +1,25 @@
+{
+  "result": "PASS",
+  "base": "http://127.0.0.1:55700",
+  "checks": [
+    "source fragment consumed; rights required before launch or journal write",
+    "real deep-link request; no copied commands; launch is not success",
+    "two reloads retain pending job, not success or reusable rights consent",
+    "unbound return cannot create a completed job",
+    "bound TEST_FIXTURE_ONLY return stays helper-reported, not OPFS/File verification",
+    "reopen uses same job, never a new download command",
+    "forget removes journal entry only",
+    "actual published helper archive bytes match launch SHA256",
+    "RU/EN/HE RTL, 380px/desktop/dark, no overflow, 44px controls",
+    "download surface makes no API/provider/ASR/media request",
+    "native UI TEST_FIXTURE_ONLY handshake, selection, progress, cancel acknowledgement and ready rendering",
+    "actual Studio Video entry hands off the selected source without changing ASR"
+  ],
+  "page_errors": [],
+  "acquisition_calls": [],
+  "archive_sha256": "e1e5906d9803b052899ed729e05fdc02b38284ddaaa6f55758c0dd54eec22000",
+  "physical_iphone_new_flow": "NOT_TESTED",
+  "native_bridge": "TEST_FIXTURE_ONLY",
+  "source_download": "NOT_RUN",
+  "transcription": "NOT_TOUCHED"
+}
