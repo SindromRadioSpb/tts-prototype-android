@@ -91,7 +91,9 @@ repeat browser tests. Keep physical-device checks explicitly pending until run.
 - https://github.com/chromium/chromium/blob/main/docs/ios/opening_links.md:
   fixed googlechromes return opens Chrome, not a file-import API.
 
-Status: IMPLEMENTED, LOCAL_GATES_PASS. Production verification pending.
+Status: DEPLOYED_TECHNICAL_PASS, 3.11.491, commit `c91023c1`.
+Live verification completed 2026-09-08 01:29 UTC; 15 live assets matched committed
+bytes, health 200, two independent 12-check browser runs PASS. See evidence README.
 New physical-device interaction acceptance remains NOT_TESTED.
 
 Local gates: 22 Python protocol/storage/package tests; 6 focused Node tests;
