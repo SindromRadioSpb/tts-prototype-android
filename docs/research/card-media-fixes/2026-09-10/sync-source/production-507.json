@@ -1,0 +1,42 @@
+{
+  "version": "3.11.507",
+  "runtime_commit": "6ca306f6bce27804093cac5c57582839f524d96e",
+  "verified_shell_assets": 71,
+  "nova": {
+    "ok": true,
+    "bindingPreserved": true,
+    "sourceRowsReviewsUnchanged": true,
+    "playable_rows": 423,
+    "total_rows": 424,
+    "replay": [
+      {"row":2,"start":12,"end":14,"stopped":14.01652019645691,"ok":true},
+      {"row":0,"start":8,"end":10,"stopped":10.012846935150147,"ok":true},
+      {"row":1,"start":10,"end":12,"stopped":12.019814925613403,"ok":true},
+      {"row":212,"start":897,"end":901,"stopped":901.010366164032,"ok":true},
+      {"row":403,"start":1577,"end":1578,"stopped":1578.0110320629426,"ok":true}
+    ],
+    "errors": []
+  },
+  "hadas_isolated_fixture": {
+    "ok":true,"rows":438,"playable":425,"unconfirmedExplained":true,
+    "fixtureOnlyConfirmation":true,"realYoutubeRowReplay":true,
+    "youtubeDenial":null,"localPersists":true,"errors":[]
+  },
+  "owner_hadas": {
+    "source_confirmation_basis": "Owner explicitly stated both local videos are full unchanged copies of their YouTube videos",
+    "offset_ms": 0,
+    "saved_via_existing_ui": true,
+    "confirmed_source_survives_reload": true,
+    "owner_row_replay_acceptance": "Not claimed: automation click target could not be reached; real replay passed in isolated production fixture",
+    "owner_review_log_equality": "Not measured"
+  },
+  "production_cleanup": {
+    "before_root_use_percent":100,"after_root_use_percent":89,
+    "after_root_available":"4.1G",
+    "removed_unused_app_images":6,
+    "preserved_runtime_commits":["6ca306f6bce27804093cac5c57582839f524d96e","cdd185642f01775ca44e8f36850759a01e19930e"],
+    "volumes_containers_databases_build_cache_untouched":true,
+    "coolify_health_after":"healthy",
+    "recovery":"Rebuild removed image versions from their source commits"
+  }
+}

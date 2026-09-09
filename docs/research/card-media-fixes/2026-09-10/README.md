@@ -59,3 +59,20 @@ The owner explicitly confirmed both local videos are full unchanged YouTube copi
 3.11.507 clarifies that source-confirmation route in RU/EN/HE and fixes the source
 dialog's mobile border-box sizing; screenshots in `sync-source/` were inspected.
 Physical iPhone/VoiceOver acceptance is not claimed.
+
+Final 3.11.507 evidence: `sync-source/production-507.json`. All 71 shell assets
+verified; Nova repeated five actual YouTube replay/follow/stop intervals successfully.
+Hadas real YouTube replay passed in an isolated production profile (425/438 timed
+rows, no denial or page errors). In the owner profile its zero-offset binding was
+explicitly confirmed through the existing UI on the owner's full-copy declaration,
+and the confirmed state survived F5. Owner-profile replay itself is not claimed:
+the automation could not reach the row button; the isolated fixture is separate evidence.
+The 13 Hadas rows and one fresh Nova row without usable timing remain unplayable,
+not guessed. Confirmation does not certify ASR timestamp accuracy.
+
+Owner-requested server cleanup found the root disk at 100%, despite successful
+deployment. Removed six explicitly inventoried unused older app images, preserving
+current and immediately preceding releases. Root available space is now 4.1G (89%
+used); volumes, containers, databases and build cache were untouched. Coolify reports
+healthy afterward. Removed releases can be rebuilt from source; no server-data
+deletion or rollback was performed.
