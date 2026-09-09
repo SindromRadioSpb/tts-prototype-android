@@ -1187,4 +1187,32 @@ export const MIGRATIONS = [
   // Owner/teacher decisions are an append-only overlay over sentence_morph;
   // they never rewrite provider evidence or touch review_log / FSRS.
   LEXICAL_RESOLUTION_SCHEMA_SQL,
+  // 052_portable_playback_receipts — preserve every receipt byte while allowing
+  // the v3 package envelope (required per-card playback source). No learner rows change.
+  `CREATE TABLE studio_portable_import_receipts_v52 (
+    receipt_id TEXT PRIMARY KEY,
+    portable_package_id TEXT NOT NULL,
+    content_root_sha256 TEXT NOT NULL,
+    manifest_sha256 TEXT NOT NULL,
+    schema_version INTEGER NOT NULL CHECK(schema_version IN (2,3)),
+    package_mode TEXT NOT NULL CHECK(package_mode IN ('snapshot','archive')),
+    status TEXT NOT NULL CHECK(status IN ('committed','rolled_back')),
+    plan_sha256 TEXT NOT NULL,
+    result_sha256 TEXT NOT NULL,
+    counts_json TEXT NOT NULL,
+    id_map_json TEXT NOT NULL,
+    rollback_json TEXT NOT NULL,
+    missing_media_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    rolled_back_at TEXT,
+    UNIQUE(portable_package_id,content_root_sha256)
+  );
+  INSERT INTO studio_portable_import_receipts_v52
+    SELECT receipt_id,portable_package_id,content_root_sha256,manifest_sha256,schema_version,
+      package_mode,status,plan_sha256,result_sha256,counts_json,id_map_json,rollback_json,
+      missing_media_json,created_at,rolled_back_at FROM studio_portable_import_receipts;
+  DROP TABLE studio_portable_import_receipts;
+  ALTER TABLE studio_portable_import_receipts_v52 RENAME TO studio_portable_import_receipts;
+  CREATE INDEX ix_studio_portable_receipts_root
+    ON studio_portable_import_receipts(content_root_sha256,status);`,
 ];

@@ -13,6 +13,17 @@
   function timestamp() { return new Date().toISOString(); }
   function shortHash(id) { const match = /([a-f0-9]{64})$/.exec(String(id || '')); if (!match) throw failure('PORTABLE_ID_INVALID', id); return match[1]; }
   function quoteIdentifier(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }
+  function playbackCore() { return typeof module === 'object' && module.exports ? require('./playback-source.js') : globalThis.PlaybackSource; }
+  function playbackForText(text, externalRef) {
+    const P = playbackCore(), source = parse(text && text.source_meta_json, {});
+    if (Object.prototype.hasOwnProperty.call(source, 'playback_source')) return P.validate(source.playback_source);
+    for (const meta of [parse(text && text.table_model_meta_json,{}),source]) {
+      const holder = meta && meta.source;
+      const found = holder && P.fromLegacy(holder.audio || holder.captions);
+      if (found) return found;
+    }
+    return P.fromPackageReference(parse(externalRef,null));
+  }
 
   function createRepository(adapter, Core, ImportCenterCore) {
     if (!adapter || !adapter.dbQuery || !adapter.dbRun || !adapter.execRaw) throw failure('REPOSITORY_ADAPTER_REQUIRED');
@@ -45,12 +56,12 @@
           nodes[id] = { canonical_hash: value.canonical_hash, local_id: value.local_id };
         }
       }
-      for (const row of await q(`SELECT t.text_key,m.current_table_revision_id,r.id_map_json
+      for (const row of await q(`SELECT t.text_key,t.source_meta_json,m.current_table_revision_id,r.id_map_json
         FROM texts t LEFT JOIN studio_learning_materials m ON m.text_id=t.id
         LEFT JOIN studio_portable_import_receipts r ON r.status='committed'
           AND json_extract(r.id_map_json,'$.text.local_id')=t.id`)) {
         const map = parse(row.id_map_json, {});
-        texts[row.text_key] = { local_id: map.text && map.text.local_id, table_revision_id: map.selected_table_portable_id || null };
+        texts[row.text_key] = { local_id: map.text && map.text.local_id, table_revision_id: map.selected_table_portable_id || null, playback_source: parse(row.source_meta_json,{}).playback_source || null };
       }
       for (const row of await q("SELECT DISTINCT media_sha256 FROM studio_media_packages WHERE media_sha256 IS NOT NULL AND opfs_path IS NOT NULL AND deleted_at IS NULL")) media.push(String(row.media_sha256).toLowerCase());
       return { nodes, texts, media_sha256: media };
@@ -272,7 +283,7 @@
           const selectedCaption = p.caption_revisions.find((item) => item.portable_revision_id === manifest.roots.caption_revision);
           const portableSource = { kind: 'portable-package', method: 'verified-package', source: p.media_ref.original_name || text.title || null, at: ts, portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, audio: { media: { sha256: manifest.media.sha256 || null, originalName: p.media_ref.original_name || null, durationSec: manifest.media.duration_ms == null ? null : Math.round(Number(manifest.media.duration_ms) / 1000), mime: manifest.media.mime || null, sizeBytes: manifest.media.size_bytes == null ? null : Number(manifest.media.size_bytes) }, segments: selectedCaption ? selectedCaption.revision.segments || [] : [], timing: true } };
           await r(`INSERT INTO texts(id,text_key,title,source_text,level,tags_json,source,topic,source_meta_json,created_at,updated_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?)`, [textId, p.material.portable_text_key, text.title || '', text.source_text || '', text.level || null, json(text.tags || []), text.source || null, text.topic || null, json({ schema: 'portable-learning-package-v2', portable_material_id: manifest.roots.learning_material, portable_import: { portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, imported_at: ts }, source: portableSource }), ts, ts]);
+            VALUES(?,?,?,?,?,?,?,?,?,?,?)`, [textId, p.material.portable_text_key, text.title || '', text.source_text || '', text.level || null, json(text.tags || []), text.source || null, text.topic || null, json({ schema: 'portable-learning-package-v2', portable_material_id: manifest.roots.learning_material, portable_import: { portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, imported_at: ts }, source: portableSource, ...(p.playback_source ? {playback_source:p.playback_source} : {}) }), ts, ts]);
           created.text = true;
         }
         const existingMaterial = await one('SELECT * FROM studio_learning_materials WHERE material_id=? OR text_id=?', [materialId, effectiveTextId]);
@@ -369,7 +380,7 @@
             rollback_json=excluded.rollback_json,
             missing_media_json=excluded.missing_media_json,
             created_at=excluded.created_at,
-            rolled_back_at=NULL`, [receiptId, manifest.portable_package_id, manifest.content_root_sha256, verified.manifest_sha256, 2, manifest.package_mode, currentPlan.plan_sha256, resultHash, json(counts), json(idMap), json(rollback), json(currentPlan.media.status === 'missing' ? [manifest.media.sha256] : []), ts]);
+            rolled_back_at=NULL`, [receiptId, manifest.portable_package_id, manifest.content_root_sha256, verified.manifest_sha256, manifest.schema_version, manifest.package_mode, currentPlan.plan_sha256, resultHash, json(counts), json(idMap), json(rollback), json(currentPlan.media.status === 'missing' ? [manifest.media.sha256] : []), ts]);
         inject(options.fault_inject, 'after_receipt');
         await x('RELEASE p2_portable_import;');
         return { imported: !repairing, repaired: repairing, duplicate: false, receipt: await getReceiptByRoot(manifest.portable_package_id, manifest.content_root_sha256) };
@@ -602,7 +613,7 @@
         b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
         ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
         br.track_id AS bound_revision_track_id,br.canonical_sha256 AS bound_revision_actual_sha256,
-        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,
+        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,t.source_meta_json,t.table_model_meta_json,
         (SELECT rr.canonical_sha256 FROM studio_caption_tracks rt JOIN studio_caption_revisions rr ON rr.revision_id=rt.current_revision_id WHERE rt.package_id=m.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_revision_sha256,
         (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=m.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id
@@ -633,10 +644,10 @@
           caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
           table_current_revision_id:row.current_table_revision_id||null,table_content_sha256:row.table_content_sha256||null,table_mapping_sha256:row.table_mapping_sha256||null,table_bound_caption_revision_id:row.bound_caption_revision_id||null,table_bound_caption_revision_sha256:row.bound_caption_revision_sha256||null,
           mapping_total:Number(mapping.total||0),mapping_mapped:Number(mapping.mapped||0),mapping_invalid:!!bindingConflict,
-          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          playback_source:playbackForText(row,row.external_ref_json),media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
           import_integrity_state:integrity,import_receipt_id:receipt&&receipt.receipt_id||null,
         };
-        item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:portableScope,caption_sha256:item.caption_current_sha256,table_content_sha256:item.table_content_sha256,table_mapping_sha256:item.table_mapping_sha256,media_sha256:item.media_expected_sha256});
+        item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:portableScope,caption_sha256:item.caption_current_sha256,table_content_sha256:item.table_content_sha256,table_mapping_sha256:item.table_mapping_sha256,media_sha256:item.media_expected_sha256,playback_source:item.playback_source});
         result.push(item);
       }
       // F2 (packet 2026-08-06): карточки с медиа, которые ещё не стали учебным материалом. Раньше
@@ -646,7 +657,7 @@
       const unpromoted=await q(`SELECT t.id AS text_id,t.text_key AS portable_text_key,t.title,t.is_archived,t.created_at,
         b.package_id,b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
         ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
-        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,
+        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,t.source_meta_json,t.table_model_meta_json,
         (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=b.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
         FROM studio_text_media_bindings b
         JOIN texts t ON t.id=b.text_id
@@ -663,10 +674,10 @@
           caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
           table_current_revision_id:null,table_content_sha256:null,table_mapping_sha256:null,table_bound_caption_revision_id:null,table_bound_caption_revision_sha256:null,
           mapping_total:0,mapping_mapped:0,mapping_invalid:false,
-          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          playback_source:playbackForText(row,row.external_ref_json),media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
           import_integrity_state:'not-promoted',import_receipt_id:null,
         };
-        item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:scope,caption_sha256:item.caption_current_sha256,table_content_sha256:null,table_mapping_sha256:null,media_sha256:item.media_expected_sha256});
+        item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:scope,caption_sha256:item.caption_current_sha256,table_content_sha256:null,table_mapping_sha256:null,media_sha256:item.media_expected_sha256,playback_source:item.playback_source});
         result.push(item);
       }
       return result;
@@ -762,6 +773,7 @@
         tts_profile: null, text_audio_asset_key: null, source_meta: null, table_model_meta: null, passport_in: null,
       } };
       return {
+        playback_source: playbackForText(material,pkg.external_ref_json),
         package: { package_id: pkg.package_id, media_sha256: pkg.media_sha256 || null, mime: pkg.mime || null, duration_ms: pkg.duration_ms == null ? null : Number(pkg.duration_ms), original_name: pkg.original_name || null, size_bytes: pkg.size_bytes == null ? null : Number(pkg.size_bytes), codec_hint: ((parse(pkg.external_ref_json, null) || {}).compatibility || {}).codec_hint || null, compatibility: (parse(pkg.external_ref_json, null) || {}).compatibility || null },
         raw_track: { track_id: rawTrack.track_id, role: rawTrack.role, language: rawTrack.language || null, current_revision_id: rawTrack.current_revision_id }, raw_revisions: rawRevisions,
         corrected_track: { track_id: correctedTrack.track_id, role: correctedTrack.role, language: correctedTrack.language || null, parent_track_id: correctedTrack.parent_track_id || null, current_revision_id: correctedTrack.current_revision_id }, corrected_revisions: correctedRevisions,

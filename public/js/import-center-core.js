@@ -38,6 +38,7 @@
       table_content_sha256: String(input.table_content_sha256 || ''),
       table_mapping_sha256: String(input.table_mapping_sha256 || ''),
       media_sha256: String(input.media_sha256 || input.media_expected_sha256 || ''),
+      ...(input.playback_source ? {playback_source:input.playback_source} : {}),
     };
   }
 
@@ -78,12 +79,18 @@
     return mapped === total ? 'exact' : 'partial';
   }
 
-  function mediaState(item) {
+  function localMediaState(item) {
     if (!item.media_expected_sha256) return 'unverified';
     if (!item.media_present) return 'missing';
     if (item.media_actual_sha256 && String(item.media_actual_sha256).toLowerCase() !== String(item.media_expected_sha256).toLowerCase()) return 'sha-mismatch';
     if (item.media_codec_supported === false) return 'unsupported-codec';
     return 'present';
+  }
+  function mediaState(item) {
+    const history = item.playback_source && item.playback_source.history;
+    const source = Array.isArray(history) && history.length && history[history.length-1].source;
+    if (source && source.kind === 'youtube' && /^[A-Za-z0-9_-]{11}$/.test(String(source.video_id || ''))) return 'external';
+    return localMediaState(item);
   }
 
   function importState(item) {
@@ -134,6 +141,7 @@
         table_state: tableState(item),
         mapping_state: mappingState(item),
         media_state: mediaState(item),
+        local_media_state: localMediaState(item),
         import_state: importState(item),
       };
       states.backup_state = backupState(item, exportReceipts);

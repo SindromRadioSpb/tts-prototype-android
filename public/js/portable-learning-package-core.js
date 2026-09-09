@@ -9,6 +9,8 @@
 
   const SCHEMA = 'linguistpro-portable-learning-package';
   const SCHEMA_VERSION = 2;
+  const PLAYBACK_SCHEMA_VERSION = 3;
+  function playbackCore() { return typeof module === 'object' && module.exports ? require('./playback-source.js') : globalThis.PlaybackSource; }
   const MiB = 1024 * 1024;
   const LIMITS = Object.freeze({ archive: 128 * MiB, uncompressed: 512 * MiB, entries: 4096, entry: 64 * MiB, manifest: MiB, readme: 256 * 1024, ratio: 100, pathBytes: 240, depth: 5, jsonDepth: 64 });
   const NODE_TYPES = Object.freeze(['media_asset', 'media_package', 'import_run', 'caption_track', 'caption_revision', 'learning_material', 'table_revision', 'learning_row_version', 'projection', 'portable_package']);
@@ -156,6 +158,8 @@
   async function portableModel(input, mode) {
     if (!input || !input.package || !input.raw_track || !input.corrected_track || !input.material) fail('PACKAGE_INPUT_INVALID');
     if (!['snapshot', 'archive'].includes(mode)) fail('PACKAGE_MODE_INVALID');
+    const playback = input.playback_source ? playbackCore().validate(input.playback_source) : null;
+    const schemaVersion = playback ? PLAYBACK_SCHEMA_VERSION : SCHEMA_VERSION;
     const rawAll = clone(input.raw_revisions || []);
     const correctedAll = clone(input.corrected_revisions || []);
     const tablesAll = clone(input.table_revisions || []);
@@ -222,7 +226,7 @@
       if (correctedSelected.parent_revision_id) history.external_ancestors.push({ type: 'caption_revision', portable_id: captionPortable.get(String(correctedSelected.parent_revision_id)) || null });
       if (tableSelected.parent_revision_id) history.external_ancestors.push({ type: 'table_revision', portable_id: tablePortable.get(String(tableSelected.parent_revision_id)) || null });
     }
-    const packageDescriptorHash = await hashObject({ schema: SCHEMA, schema_version: SCHEMA_VERSION, package_mode: mode, roots, history: { caption_complete: history.caption_complete, table_complete: history.table_complete } });
+    const packageDescriptorHash = await hashObject({ schema: SCHEMA, schema_version: schemaVersion, package_mode: mode, roots, history: { caption_complete: history.caption_complete, table_complete: history.table_complete }, ...(playback ? {playback_sha256:await hashObject(playback)} : {}) });
     const portablePackageId = 'portable-package:sha256:' + packageDescriptorHash;
     const material = { portable_material_id: materialId, portable_text_key: textKey, media_package_id: mediaPackageId, selected_caption_revision_id: selectedPortableCaption, selected_table_revision_id: selectedPortableTable };
     const mapping = { schema: 'portable-segment-row-map-v2', table_revision_id: selectedPortableTable, rows: portableTables.find((item) => item.portable_table_revision_id === selectedPortableTable).rows.map((row) => ({ portable_row_id: row.portable_row_id, order_index: row.order_index, caption_segment_id: row.caption_segment_id, source_segment_ids: row.source_segment_ids, mapping_meta: row.mapping_meta })) };
@@ -232,7 +236,7 @@
       textCard.card.text_key = textKey;
       (textCard.card.rows || []).forEach((row, order) => { delete row.row_id; row.portable_row_id = portableTables.find((item) => item.portable_table_revision_id === selectedPortableTable).rows[order] && portableTables.find((item) => item.portable_table_revision_id === selectedPortableTable).rows[order].portable_row_id; });
     }
-    return { input, mode, mediaSha, mediaId, mediaPackageId, rawTrackId, correctedTrackId, captionPortable, materialId, tablePortable, rowPortable, roots, history, portablePackageId, packageDescriptorHash, raw, corrected, portableTables, material, mapping, textCard };
+    return { input, mode, schemaVersion, playback, mediaSha, mediaId, mediaPackageId, rawTrackId, correctedTrackId, captionPortable, materialId, tablePortable, rowPortable, roots, history, portablePackageId, packageDescriptorHash, raw, corrected, portableTables, material, mapping, textCard };
   }
 
   function vttTime(ms) { const n = Math.max(0, Number(ms) || 0); const h = Math.floor(n / 3600000), m = Math.floor(n % 3600000 / 60000), s = Math.floor(n % 60000 / 1000), x = Math.floor(n % 1000); return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':') + '.' + String(x).padStart(3, '0'); }
@@ -297,6 +301,7 @@
   async function buildPackageFiles(input, options) {
     options = options || {}; const mode = options.mode || 'snapshot'; const model = await portableModel(input, mode);
     const files = {};
+    if (model.playback) files['source/playback.json'] = canonicalJson(model.playback);
     const compatibility = canonicalDiagnosticValue(input.package.compatibility || null);
     const rawTrack = { schema: 'portable-caption-track-v2', portable_track_id: model.rawTrackId, role: 'raw_original', language: input.raw_track.language || null, current_revision_id: model.captionPortable.get(String(model.raw[model.raw.length - 1].revision_id)) };
     const correctedTrack = { schema: 'portable-caption-track-v2', portable_track_id: model.correctedTrackId, role: 'user_corrected', language: input.corrected_track.language || null, parent_track_id: model.rawTrackId, current_revision_id: model.roots.caption_revision };
@@ -320,7 +325,9 @@
     const graph = await buildGraph(model, [{ id: 'projection:vtt:sha256:' + vttHash, hash: vttHash, kind: 'vtt', source: model.roots.caption_revision }, { id: 'projection:text_card:sha256:' + cardHash, hash: cardHash, kind: 'text_card', source: model.materialId }]);
     files['graph/artifacts.json'] = canonicalJson({ schema: 'portable-artifacts-v2', artifacts: graph.artifacts });
     files['graph/edges.json'] = canonicalJson({ schema: 'portable-edges-v2', edges: graph.edges });
-    files['README.txt'] = 'LinguistPro Portable Learning Package v2\nMedia bytes are not included. Relink by exact SHA-256.\n';
+    files['README.txt'] = model.playback
+      ? 'LinguistPro Portable Learning Package v3\nLearning data and playback source history are included. YouTube video requires an internet connection and may become unavailable. Media bytes are not included. Any optional local original still uses exact SHA-256 relinking.\n'
+      : 'LinguistPro Portable Learning Package v2\nMedia bytes are not included. Relink by exact SHA-256.\n';
     const entries = [];
     for (const path of Object.keys(files).sort(keyCompare)) {
       const semantic = path !== 'provenance/export.json' && path !== 'README.txt';
@@ -329,13 +336,13 @@
     const semanticList = entries.filter((entry) => entry.semantic).map((entry) => [entry.path, entry.sha256, entry.size_bytes, entry.media_type]);
     const contentRoot = await hashObject(semanticList);
     const privacy = { included: ['caption-canon', 'learning-table-canon', 'compatibility-projections'], excluded: ['media-bytes', 'notes', 'bookmarks', 'progress', 'review-memory', 'cloud-state', 'provider-secrets', 'device-identifiers'] };
-    const manifest = { schema: SCHEMA, schema_version: SCHEMA_VERSION, package_mode: mode, portable_package_id: model.portablePackageId, content_root_sha256: contentRoot, roots: model.roots, history: model.history, media: { included: false, sha256: model.mediaSha, size_bytes: input.package.size_bytes == null ? null : Number(input.package.size_bytes), mime: input.package.mime || null, duration_ms: input.package.duration_ms == null ? null : Number(input.package.duration_ms), codec_hint: input.package.codec_hint || null, compatibility }, entries, privacy };
+    const manifest = { schema: SCHEMA, schema_version: model.schemaVersion, package_mode: mode, portable_package_id: model.portablePackageId, content_root_sha256: contentRoot, roots: model.roots, history: model.history, media: { included: false, sha256: model.mediaSha, size_bytes: input.package.size_bytes == null ? null : Number(input.package.size_bytes), mime: input.package.mime || null, duration_ms: input.package.duration_ms == null ? null : Number(input.package.duration_ms), codec_hint: input.package.codec_hint || null, compatibility }, entries, privacy };
     files['manifest.json'] = canonicalJson(manifest);
     return files;
   }
 
   function pathAllowed(path) {
-    return ['manifest.json', 'graph/artifacts.json', 'graph/edges.json', 'source/media-ref.json', 'provenance/import-run.json', 'provenance/export.json', 'quality/report.json', 'tracks/raw/track.json', 'tracks/corrected/track.json', 'learning/material.json', 'learning/text-card.json', 'README.txt'].includes(path)
+    return ['manifest.json', 'graph/artifacts.json', 'graph/edges.json', 'source/media-ref.json', 'source/playback.json', 'provenance/import-run.json', 'provenance/export.json', 'quality/report.json', 'tracks/raw/track.json', 'tracks/corrected/track.json', 'learning/material.json', 'learning/text-card.json', 'README.txt'].includes(path)
       || /^tracks\/(?:raw|corrected)\/revisions\/[a-f0-9]{64}\.json$/.test(path)
       || /^tracks\/projections\/[a-f0-9]{64}\.vtt$/.test(path)
       || /^learning\/table\/revisions\/[a-f0-9]{64}\.json$/.test(path)
@@ -401,8 +408,9 @@
     const manifest = parseJsonStrict(files['manifest.json']);
     if (manifest.schema !== SCHEMA) fail('PACKAGE_SCHEMA_UNKNOWN');
     if (!Number.isInteger(manifest.schema_version)) fail('PACKAGE_SCHEMA_INVALID');
-    if (manifest.schema_version > SCHEMA_VERSION) fail('PACKAGE_SCHEMA_FUTURE');
-    if (manifest.schema_version !== SCHEMA_VERSION) fail('PACKAGE_SCHEMA_UNKNOWN');
+    if (manifest.schema_version > PLAYBACK_SCHEMA_VERSION) fail('PACKAGE_SCHEMA_FUTURE');
+    if (![SCHEMA_VERSION,PLAYBACK_SCHEMA_VERSION].includes(manifest.schema_version)) fail('PACKAGE_SCHEMA_UNKNOWN');
+    if ((manifest.schema_version === PLAYBACK_SCHEMA_VERSION) !== !!files['source/playback.json']) fail('PACKAGE_PLAYBACK_CONTRACT_MISSING');
     assertExactKeys(manifest, MANIFEST_KEYS, 'PACKAGE_MANIFEST_FIELDS_INVALID');
     if (!['snapshot', 'archive'].includes(manifest.package_mode)) fail('PACKAGE_MODE_INVALID');
     if (!manifest.media || manifest.media.included !== false) fail('PACKAGE_MEDIA_POLICY_INVALID');
@@ -428,6 +436,7 @@
     const selectedTable=tableDocs.find((item)=>item.portable_table_revision_id===manifest.roots.table_revision),cardRows=payload.text_card&&payload.text_card.card&&payload.text_card.card.rows;
     if(!selectedTable||!Array.isArray(cardRows)||cardRows.length!==selectedTable.rows.length)fail('PACKAGE_TEXT_CARD_PARITY_MISMATCH');
     for(let index=0;index<selectedTable.rows.length;index++){const row=selectedTable.rows[index],card=cardRows[index];if(String(card.hebrew_plain||'')!==row.he_plain||String(card.hebrew_niqqud||'')!==row.he_niqqud||String(card.translit||'')!==row.translit||String(card.translit_ru||'')!==row.translit_ru||String(card.russian||'')!==row.ru)fail('PACKAGE_TEXT_CARD_PARITY_MISMATCH',String(index));}
+    if (manifest.schema_version === PLAYBACK_SCHEMA_VERSION) payload.playback_source = playbackCore().validate(parseJsonStrict(files['source/playback.json']));
     return { manifest, graph, payload, files, manifest_sha256: await sha256Hex(files['manifest.json']) };
   }
 
@@ -443,9 +452,12 @@
     const textKey = verified.payload.material.portable_text_key, text = (inventory.texts || {})[textKey];
     if (text && text.table_revision_id && text.table_revision_id !== verified.manifest.roots.table_revision) conflicts.push({ code: 'TEXT_KEY_CONTENT_CONFLICT', text_key: textKey });
     const mediaSha = verified.manifest.media.sha256, mediaPresent = !!mediaSha && (inventory.media_sha256 || []).includes(mediaSha);
+    const playback = verified.payload.playback_source || null;
+    const external = playback && playbackCore().selected(playback).source;
+    if (text && (text.playback_source || playback) && canonicalJson(text.playback_source || null) !== canonicalJson(playback)) conflicts.push({code:'PLAYBACK_SOURCE_CONFLICT',text_key:textKey});
     const selectedTable = verified.payload.table_revisions.find((item) => item.portable_table_revision_id === verified.manifest.roots.table_revision);
     const selectedCaption = verified.payload.caption_revisions.find((item) => item.portable_revision_id === verified.manifest.roots.caption_revision);
-    const planBase = { portable_package_id: verified.manifest.portable_package_id, content_root_sha256: verified.manifest.content_root_sha256, package_mode: verified.manifest.package_mode, actions, conflicts, text_key: textKey, media: { sha256: mediaSha, status: mediaSha ? (mediaPresent ? 'exact' : 'missing') : 'unbound', original_name: verified.payload.media_ref && verified.payload.media_ref.original_name || null, size_bytes: verified.manifest.media.size_bytes == null ? null : Number(verified.manifest.media.size_bytes), mime: verified.manifest.media.mime || null }, estimated: { node_count: verified.graph.artifacts.length, edge_count: verified.graph.edges.length, row_count: selectedTable ? (selectedTable.rows || []).length : 0, cue_count: selectedCaption ? (selectedCaption.revision.segments || []).length : 0, history_row_count: verified.payload.table_revisions.reduce((count, revision) => count + (revision.rows || []).length, 0), table_revision_count: verified.payload.table_revisions.length, caption_revision_count: verified.payload.caption_revisions.length, write_count: actions.filter((item) => item.action === 'insert').length } };
+    const planBase = { portable_package_id: verified.manifest.portable_package_id, content_root_sha256: verified.manifest.content_root_sha256, package_mode: verified.manifest.package_mode, actions, conflicts, text_key: textKey, media: { sha256: mediaSha, status: external ? 'external' : (mediaSha ? (mediaPresent ? 'exact' : 'missing') : 'unbound'), local_status: mediaSha ? (mediaPresent ? 'exact' : 'missing') : 'unbound', original_name: verified.payload.media_ref && verified.payload.media_ref.original_name || null, size_bytes: verified.manifest.media.size_bytes == null ? null : Number(verified.manifest.media.size_bytes), mime: verified.manifest.media.mime || null }, estimated: { node_count: verified.graph.artifacts.length, edge_count: verified.graph.edges.length, row_count: selectedTable ? (selectedTable.rows || []).length : 0, cue_count: selectedCaption ? (selectedCaption.revision.segments || []).length : 0, history_row_count: verified.payload.table_revisions.reduce((count, revision) => count + (revision.rows || []).length, 0), table_revision_count: verified.payload.table_revisions.length, caption_revision_count: verified.payload.caption_revisions.length, write_count: actions.filter((item) => item.action === 'insert').length } };
     return { ...planBase, plan_sha256: await hashObject(planBase), can_apply: conflicts.length === 0 };
   }
 

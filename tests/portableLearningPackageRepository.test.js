@@ -33,6 +33,7 @@ async function harness() {
   const { MIGRATIONS } = await import('../public/db/migrations.js');
   assert.ok(MIGRATIONS.length >= 49);
   db.run(MIGRATIONS[44]); db.run(MIGRATIONS[45]); db.run(MIGRATIONS[46]); db.run(MIGRATIONS[47]);
+  db.run(MIGRATIONS[51]);
   const rows=(sql,params=[])=>{const s=db.prepare(sql);s.bind(params);const out=[];while(s.step())out.push(s.getAsObject());s.free();return out;};
   const adapter={dbQuery:async(sql,p)=>rows(sql,p),dbRun:async(sql,p)=>{const s=db.prepare(sql);s.run(p||[]);s.free();return{changes:db.getRowsModified()};},execRaw:async(sql)=>db.run(sql)};
   return {db,rows,repo:Repository.createRepository(adapter,Core,ImportCenterCore)};
@@ -40,6 +41,37 @@ async function harness() {
 
 async function verified() { return Core.verifyPackageFiles(await Core.buildPackageFiles(fixture(),{mode:'archive'})); }
 function count(h,table){return h.rows(`SELECT COUNT(*) n FROM ${table}`)[0].n;}
+
+test('YouTube-only package survives export, clean import and re-export without a local media file', async () => {
+  const Playback = require('../public/js/playback-source.js');
+  const input = fixture(); input.package.media_sha256 = null; input.package.mime = null; input.package.size_bytes = null;
+  input.playback_source = Playback.fromLegacy({video:{videoId:'iG9CE55wbtY'}});
+  const files = await Core.buildPackageFiles(input,{mode:'archive'});
+  const v = await Core.verifyPackageFiles(files);
+  assert.equal(v.manifest.schema_version,3,'old clients must reject the required playback contract');
+  assert.equal(v.payload.playback_source.history[0].source.video_id,'iG9CE55wbtY');
+  const h = await harness(),plan = await h.repo.dryRun(v);
+  assert.equal(plan.media.status,'external');
+  const imported = await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const text = h.rows('SELECT source_meta_json FROM texts')[0];
+  assert.deepEqual(JSON.parse(text.source_meta_json).playback_source,input.playback_source);
+  const snapshot = await h.repo.snapshotForMaterial(imported.receipt.id_map.material.local_id);
+  const again = await Core.verifyPackageFiles(await Core.buildPackageFiles(snapshot,{mode:'archive'}));
+  assert.deepEqual(again.payload.playback_source,input.playback_source);
+  assert.deepEqual(again.manifest.roots,v.manifest.roots,'selected canonical revisions survive; generated diagnostic/card metadata may differ');
+  assert.deepEqual(again.payload.table_revisions[0].rows,v.payload.table_revisions[0].rows,'including manual field locks and cue mapping');
+  const catalog = await h.repo.lifecycleInventory();
+  assert.equal(ImportCenterCore.buildCatalog(catalog,[],{})[0].media_state,'external');
+});
+
+test('legacy media package external_ref exports its YouTube source instead of silently discarding it', async () => {
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
+  const applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  h.db.run('UPDATE studio_media_packages SET external_ref_json=?',[JSON.stringify({platform:'youtube',videoId:'iG9CE55wbtY',url:'https://www.youtube.com/watch?v=iG9CE55wbtY'})]);
+  const snapshot=await h.repo.snapshotForMaterial(applied.receipt.id_map.material.local_id);
+  const roundtrip=await Core.verifyPackageFiles(await Core.buildPackageFiles(snapshot,{mode:'snapshot'}));
+  assert.equal(roundtrip.payload.playback_source.history[0].source.video_id,'iG9CE55wbtY');
+});
 
 function localRevisionId(portableId) {
   const match = /([a-f0-9]{64})$/.exec(String(portableId));

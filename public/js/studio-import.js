@@ -2612,6 +2612,7 @@
   }
 
   async function useTextAndCorrect() { return useText(true); }
+  async function useTextAndPrepare() { if(await useText())await window.LearningMaterialTaskUI.start(); }
 
   // W2-S11: «→ В поле ввода» + сразу открыть модал пересказа (шорткат превью импорта).
   async function useTextAndRetell() {
@@ -2974,7 +2975,7 @@
                            restoreOcrDraft: restoreOcrDraft, clearOcrDraft: clearOcrDraft,
                            acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,
                            recordRemoteSavedCopy: recordRemoteSavedCopy,
-                           useText: useText, useTextAndCorrect: useTextAndCorrect,
+                           useText: useText, useTextAndCorrect: useTextAndCorrect, useTextAndPrepare: useTextAndPrepare,
                            useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,
                            clipSegmentsToRange: clipSegmentsToRange, ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC,

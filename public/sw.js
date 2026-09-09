@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.497";
+const CACHE_VERSION = "v3.11.498";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -67,6 +67,16 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // proved flaky on iOS WebKit with a freshly-activated SW — precaching makes the
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
+  "/study-video.html",
+  "/css/study-video.css",
+  "/css/study-video-source.css",
+  "/js/playback-source.js",
+  "/js/study-video-transfer.js",
+  "/js/study-video.js",
+  "/js/study-video-source-ui.js",
+  "/js/learning-material-task.js",
+  "/js/learning-material-task-ui.js",
+
   "/css/catalog-discovery.css?v=485",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
@@ -90,7 +100,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=488",
+  "/js/library-ui.js?v=498",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -192,7 +202,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-package.js",
   "/js/studio-media-editor.js",
   "/js/studio-material-revision.js",
-  "/js/studio-portable-learning-package.js?v=486",
+  "/js/studio-portable-learning-package.js?v=498",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
@@ -242,9 +252,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=212",
-  "/i18n/locales/en.js?v=212",
-  "/i18n/locales/he.js?v=212",
+  "/i18n/locales/ru.js?v=213",
+  "/i18n/locales/en.js?v=213",
+  "/i18n/locales/he.js?v=213",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",

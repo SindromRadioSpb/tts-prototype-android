@@ -301,6 +301,7 @@ app.use((req, res, next) => {
   const isMiniappShell = req.path === MINIAPP_SHELL_PATH;
   const isAgentAccessShell = req.path === AGENT_ACCESS_SHELL_PATH;
   const isPronunciationShell = req.path === PRONUNCIATION_SHELL_PATH;
+  const isStudyVideoShell = req.path === '/study-video.html';
   if (isMiniappShell) {
     res.setHeader("Content-Security-Policy", MINIAPP_CSP);
     res.setHeader("Cache-Control", "no-cache");
@@ -309,6 +310,12 @@ app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
+  } else if (isStudyVideoShell) {
+    // Top-level read-only projection: no SQLite/OPFS worker on this screen.
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://i.ytimg.com; connect-src 'self' https://www.youtube.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'");
   } else if (isPronunciationShell) {
     res.setHeader("Content-Security-Policy", PRONUNCIATION_CSP);
     res.setHeader("Cache-Control", "no-cache");
@@ -1068,6 +1075,23 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/study-video.html",
+  "/css/study-video.css",
+  "/css/study-video-source.css",
+  "/js/playback-source.js",
+  "/js/study-video-transfer.js",
+  "/js/study-video.js",
+  "/js/study-video-source-ui.js",
+  "/js/learning-material-task.js",
+  "/js/learning-material-task-ui.js",
+  "/js/studio-yt-player.js",
+  "/js/studio-media-karaoke.js",
+  "/js/portable-learning-package-core.js",
+  "/js/portable-learning-package-repository.js",
+  "/js/import-center-core.js",
+  "/js/text-card-format.js",
+  "/js/studio-import.js",
+
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -1080,10 +1104,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/local-text-familiarity.js?v=485",
   "/js/studio-library-discovery.js?v=486",
   "/index.html",
-  "/js/studio-portable-learning-package.js?v=486",
+  "/js/studio-portable-learning-package.js?v=498",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=488",
+  "/js/library-ui.js?v=498",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1114,9 +1138,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=403",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=212",
-  "/i18n/locales/en.js?v=212",
-  "/i18n/locales/he.js?v=212",
+  "/i18n/locales/ru.js?v=213",
+  "/i18n/locales/en.js?v=213",
+  "/i18n/locales/he.js?v=213",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

@@ -4,7 +4,7 @@ const Core=require('../public/js/portable-learning-package-core.js');
 const Studio=require('../public/js/studio-portable-learning-package.js');
 
 test('future schema fails before entries or any repository access',async()=>{
-  const manifest={schema:Core.SCHEMA,schema_version:3,package_mode:'snapshot',portable_package_id:'portable-package:sha256:'+'a'.repeat(64),content_root_sha256:'b'.repeat(64),roots:{},history:{caption_complete:false,table_complete:false,external_ancestors:[]},media:{included:false,sha256:null,size_bytes:null,mime:null,duration_ms:null,codec_hint:null},entries:[],privacy:{included:[],excluded:[]}};
+  const manifest={schema:Core.SCHEMA,schema_version:4,package_mode:'snapshot',portable_package_id:'portable-package:sha256:'+'a'.repeat(64),content_root_sha256:'b'.repeat(64),roots:{},history:{caption_complete:false,table_complete:false,external_ancestors:[]},media:{included:false,sha256:null,size_bytes:null,mime:null,duration_ms:null,codec_hint:null},entries:[],privacy:{included:[],excluded:[]}};
   await assert.rejects(()=>Core.verifyPackageFiles({'manifest.json':Core.canonicalJson(manifest)}),/PACKAGE_SCHEMA_FUTURE/);
 });
 

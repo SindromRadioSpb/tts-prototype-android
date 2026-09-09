@@ -11982,6 +11982,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
     <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
     <button class="btn-secondary" onclick="v3FeedbackOpen('cardrequest')" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
+    <button type="button" id="v3LearningTasks" class="btn-secondary" onclick="LearningMaterialTaskUI.list()">Задачи подготовки</button>
     <button id="v3PortabilityHubBtn" class="btn-primary" onclick="StudioPortableLearningPackage.open({view:'overview'})" data-i18n="studio.importCenter.hub">Импорт-центр</button>
     <button id="publicationCenterEntry" class="btn-secondary" type="button" hidden data-i18n="publication.open">Публикация</button>
     <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
@@ -12519,6 +12520,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
     <div class="v3-modal-body">
       <div id="v3TextMetaStatus" class="v3-help"></div>
+      <div class="study-source-actions"><button type="button" id="v3TextMetaVideoOpen" class="btn-secondary study-video-entry">Видео и строки</button><button type="button" id="v3TextMetaVideoSource" class="btn-secondary study-video-entry">Источник видео</button></div>
 
       <!-- R9 provenance (read-only): import source passport; shown only for imported cards -->
       <div id="v3TextMetaProvenance" class="v3-meta-provenance" dir="auto" style="display:none;"></div>
@@ -13309,9 +13311,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=212"></script>
-<script src="/i18n/locales/en.js?v=212"></script>
-<script src="/i18n/locales/he.js?v=212"></script>
+<script src="/i18n/locales/ru.js?v=213"></script>
+<script src="/i18n/locales/en.js?v=213"></script>
+<script src="/i18n/locales/he.js?v=213"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13414,6 +13416,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
+<link rel="stylesheet" href="/css/study-video-source.css">
+<script src="/js/playback-source.js"></script>
+<script src="/js/study-video-transfer.js"></script>
+<script src="/js/study-video-source-ui.js"></script>
+<script src="/js/learning-material-task.js"></script>
+<script src="/js/learning-material-task-ui.js"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13424,7 +13432,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-package.js"></script>
 <script src="/js/studio-media-editor.js"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js?v=486"></script>
+<script src="/js/studio-portable-learning-package.js?v=498"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13501,7 +13509,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.497";
+    window.APP_VERSION = "3.11.498";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -25221,6 +25229,11 @@ async function v3MediaPlayOriginal() {
   // so THIS module is responsible for destroying it — at the media-reset points next to the
   // existing StudioMediaKaraoke.stop() calls AND in v3AttachAudioTiming when the active video
   // identity changes (CRITICAL 1), never inside the karaoke module itself.
+  const savedSession = typeof v3SessionGet === 'function' ? v3SessionGet() : null;
+  if (savedSession && ['saved','library'].includes(savedSession.mode) && savedSession.textId && window.StudyVideoSourceUI) {
+    const context = await StudyVideoSourceUI.context(savedSession.textId);
+    if (context.record) return StudyVideoSourceUI.open(savedSession.textId);
+  }
   if (!audio.video || !audio.video.videoId) return;
   // MINOR 4 (review 2026-07-27): self-contained capability check, mirroring mountVideo()'s
   // explicit pre-check in studio-import.js — don't lean on v3MediaBarRefresh's async
@@ -27491,6 +27504,17 @@ async function v3LibrarySaveCurrentCore(meta) {
         : (window.StudioImport && window.StudioImport.mediaSourceSha)
         ? window.StudioImport.mediaSourceSha(payload.tableModelMeta && payload.tableModelMeta.source)
         : null;
+      const task = m.learningMaterialTask || null;
+      if (task && (!/^[0-9a-f-]{36}$/i.test(String(task.id || '')) || !/^[0-9a-f]{64}$/.test(String(task.signature || '')))) throw new Error('TASK_ID_INVALID');
+      if (task) {
+        const existingTaskText = await ldb.getTextById(task.id);
+        if (existingTaskText) {
+          const existingTaskMeta = v3ParseJsonObject(existingTaskText.source_meta_json);
+          if (!existingTaskMeta || !existingTaskMeta.learning_material_task || existingTaskMeta.learning_material_task.signature !== task.signature) throw new Error('TASK_SAVE_CONFLICT');
+          return existingTaskText;
+        }
+        payload.tableModelMeta = Object.assign({}, payload.tableModelMeta || {}, {learning_material_task:{id:task.id,signature:task.signature}});
+      }
       if (mediaSha && m.allowDuplicateMedia !== true && typeof ldb.findTextsByMediaSha === "function") {
         const duplicates = await ldb.findTextsByMediaSha(mediaSha);
         if (duplicates.length) {
@@ -27507,7 +27531,7 @@ async function v3LibrarySaveCurrentCore(meta) {
           return null;
         }
       }
-      const newTextId = crypto.randomUUID();
+      const newTextId = task ? task.id : crypto.randomUUID();
       const textKey = 'text-' + Date.now();
       let mediaBindingOutcome = null;
       await ldb.execRaw('BEGIN;');
@@ -34216,6 +34240,66 @@ window.v3SaveMetaDone = v3SaveMetaDone;
 window.v3SaveMetaOpenLibrary = v3SaveMetaOpenLibrary;
 window.v3SaveMetaOpenTransfer = v3SaveMetaOpenTransfer;
 
+// The task UI owns orchestration; these adapters reuse the canonical Studio engines.
+window.LearningMaterialTaskUI.configure({
+  capture() {
+    return {source_text:String(getText() || '').trim(),title:v3GuessTitleFromSourceText(getText()),
+      import_meta:window.v3LastImportMeta || null,provider:getSelectedProvider(),model:getSelectedProvider()==='gemini'?EXPECTED_GEMINI_STUDIO_MODEL:null,
+      translit_profile:getSelectedTranslitProfile(),direction:getTableDirection()};
+  },
+  async translate(input) {
+    if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
+    document.getElementById('inputText').value=input.source_text;
+    document.getElementById('inputText').dispatchEvent(new Event('input',{bubbles:true}));
+    v3SessionSet({mode:'draft',textId:null,baseTextId:null,origin:'import',openMode:null});
+    window.v3LastImportMeta=input.import_meta;
+    const ref=input.import_meta && input.import_meta.media_package_ref;
+    if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);
+    document.getElementById('providerSelect').value=input.provider;
+    document.getElementById('translitProfileSelect').value=input.translit_profile;
+    if(getTableDirection()!==input.direction)throw new Error('TASK_DIRECTION_CHANGED');
+    if(input.provider==='gemini' && input.model!==EXPECTED_GEMINI_STUDIO_MODEL)throw new Error('TASK_MODEL_CHANGED');
+    currentTableData=[];v3LastGeminiMeta=null;tableIsStale=true;
+    await translateTable();
+    if(tableIsStale || !currentTableData.length)throw new Error('TASK_TABLE_INCOMPLETE');
+    return {rows:currentTableData,meta:v3LastGeminiMeta || null};
+  },
+  async save(job) {
+    document.getElementById('inputText').value=job.input.source_text;
+    window.v3LastImportMeta=job.input.import_meta;
+    currentTableData=job.table.rows;v3LastGeminiMeta=job.table.meta;tableIsStale=false;
+    const ref=job.input.import_meta && job.input.import_meta.media_package_ref;
+    if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);
+    renderTable(currentTableData);
+    return v3LibrarySaveCurrentCore({title:job.input.title,learningMaterialTask:{id:job.id,signature:job.signature}});
+  },
+  async preparePackage(job) {
+    const ldb=await ensureLocalDB(),repo=MaterialRevisionRepository.createRepository(ldb,MaterialRevisionCore);
+    const binding=(await ldb.dbQuery('SELECT package_id FROM studio_text_media_bindings WHERE text_id=?',[job.saved_text_id]))[0];
+    if(!binding){
+      const card=await v3TcsBuildCardPayload(job.saved_text_id);
+      if(!TextCardFormat.detectCard(card).supported)throw new Error('TASK_CARD_INVALID');
+      return {type:'text-card',text_id:job.saved_text_id,sha256:await PlaybackSource.digest(JSON.stringify(card))};
+    }
+    let material=await StudioPortableLearningPackage.materialForText(job.saved_text_id);
+    if(!material){await repo.promoteLegacyText(job.saved_text_id);material=await StudioPortableLearningPackage.materialForText(job.saved_text_id);}
+    if(!material)throw new Error('TASK_MATERIAL_MISSING');
+    const built=await StudioPortableLearningPackage.exportMaterial(material.material_id || material.id,'archive',{no_download:true,no_receipt:true});
+    return {type:'learning-material',material_id:material.material_id || material.id,sha256:built.manifest.content_root_sha256};
+  },
+  async download(job) {
+    if(job.package.type!=='text-card')return StudioPortableLearningPackage.exportMaterial(job.package.material_id,'archive');
+    const card=await v3TcsBuildCardPayload(job.saved_text_id),bundle=TextCardFormat.cardToBundle(card);
+    const artifact=await ShareService.buildLearningPackage({JSZip:await v3LoadJSZip(),bundle,filename:'linguistpro-material-'+job.id+'.zip',generator:'learning-material-task',fetchAudio:(key,options)=>ShareService.fetchAudioAsset(key,options)});
+    return ShareService.saveFile({blob:artifact.blob,filename:artifact.filename});
+  },
+  async openMaterial(job) {
+    const context=await StudyVideoSourceUI.context(job.saved_text_id);
+    if(context.record && PlaybackSource.selected(context.record).source)return StudyVideoSourceUI.open(job.saved_text_id);
+    return v3LibraryOpenText(job.saved_text_id);
+  }
+});
+
 // init once (script is after DOM)
 try { v3InitLevelEnumUi(); } catch (_) {}
 try { v3InitTagMatchModeUi(); } catch (_) {}
@@ -34679,6 +34763,17 @@ async function v3TextMetaOpen(textId) {
     v3TextMetaRenderMediaBindingOutcome(sm);
   } catch (_) { try { v3TextMetaRenderProvenance(null); v3TextMetaRenderMediaBindingOutcome(null); } catch (_2) {} }
   await v3TextMetaRenderPortableMedia(id);
+  for (const [buttonId, action, key] of [['v3TextMetaVideoOpen','open','open'],['v3TextMetaVideoSource','manage','source']]) {
+    const button = document.getElementById(buttonId);
+    button.textContent = StudyVideoSourceUI.label(key);
+    button.hidden = !LOCAL_MODE;
+    button.onclick = async () => {
+      button.disabled = true;
+      try { await StudyVideoSourceUI[action](id); }
+      catch (_) { document.getElementById('v3TextMetaStatus').textContent = StudyVideoSourceUI.label('error'); }
+      finally { button.disabled = false; }
+    };
+  }
   try {
     const ttl = v3MetaEl("v3TextMetaTitle"), src = v3MetaEl("v3TextMetaSource");
     ttl.readOnly = isCorpus; src.readOnly = isCorpus;
@@ -43530,7 +43625,7 @@ window.v3PublicationBuildSelectedItems = async function (ids) {
       title: String(card.title || sourceWorkId),
       creator: String(card.author || card.creator || ""),
       expectedAudioCount: audio.size,
-      snapshot,
+      snapshot: window.TextCardFormat.cardToBundle(snapshot),
     });
   }
   return out;
@@ -50436,6 +50531,7 @@ document.addEventListener("i18n:changed", function () {
         <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
           <button type="button" class="btn-primary" onclick="StudioImport.useTextAndCorrect()" data-i18n="studio.mediaPackage.correctBtn">Исправить транскрипт</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.useText()" data-i18n="studio.mediaPackage.continueDraftBtn">Продолжить с черновиком</button>
+          <button type="button" id="v3ImportPrepareTask" class="btn-primary" onclick="StudioImport.useTextAndPrepare()">Подготовить и сохранить</button>
           <button type="button" class="btn-secondary" id="v3ImportExportOcrBtn" hidden onclick="StudioImport.exportOcrEvidence()" data-i18n="studio.import.exportOcrBtn">Скачать OCR JSON</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.useTextAndRetell()" data-i18n="studio.retell.fromImportBtn">✨ Упростить…</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>

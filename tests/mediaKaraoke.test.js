@@ -101,6 +101,24 @@ function freshModule() {
   return require(MODULE_PATH);
 }
 
+test('YouTube backward replay arms its end only after confirmed seek and ignores stale completions', async () => {
+  installBrowserMocks();
+  try {
+    const mod=freshModule(),ad=makeFakeAdapter();ad.currentTime=70;
+    let resolveSeek; ad.seekAndWait=()=>new Promise(resolve=>{resolveSeek=resolve;});
+    const run=mod.bind({media:ad,entries:[{o:0,t:2,end:4},{o:1,t:60,end:80}],rowCount:2});
+    const pending=mod.playSegment(0);
+    assert.equal(run.stopAtT,null,'old clock cannot end the new fragment');
+    ad.currentTime=2;resolveSeek();await pending;assert.equal(run.stopAtT,4);
+    const stale=mod.playSegment(0);mod.stop();resolveSeek();await stale;
+    assert.equal(ad.paused,true,'late seek resolution cannot restart an abandoned player');
+  } finally { uninstallBrowserMocks(); }
+});
+
+test('known cue ends leave silence unhighlighted', () => {
+  assert.equal(activeSegmentRange([{o:0,t:2,end:4},{o:1,t:8,end:10}],2,6),null);
+});
+
 test("ensureRun: a Blob source builds its own Audio+object-URL; an adapter source is used AS the media element with url=null", () => {
   var mocks = installBrowserMocks();
   try {
@@ -235,4 +253,15 @@ test("stopOtherAudio hook: used when provided (fresh bind AND playSegment), wind
   } finally {
     uninstallBrowserMocks();
   }
+});
+
+test('pause during pending YouTube seek cannot resume after backgrounding', async()=>{
+  installBrowserMocks();
+  try {
+    const mod=freshModule(),adapter=makeFakeAudioEl();let resolveSeek,plays=0;
+    adapter.seekAndWait=()=>new Promise(resolve=>{resolveSeek=resolve;});adapter.play=()=>{plays++;return Promise.resolve();};
+    mod.bind({media:adapter,entries:[{o:0,t:3,end:5}],rowCount:1});
+    const pending=mod.playSegment(0);mod.pause();resolveSeek();
+    assert.equal((await pending).reason,'YT_SEEK_CANCELLED');assert.equal(plays,0);
+  }finally{uninstallBrowserMocks();}
 });

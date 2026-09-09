@@ -5885,6 +5885,17 @@ function roomMediaTeardown() {
 }
 async function roomMediaSetup(textRow, textId) {
   roomMediaTeardown();
+  const studyButton = $('readerStudyVideo');
+  if (studyButton && window.StudyVideoSourceUI) {
+    studyButton.hidden = false; studyButton.textContent = StudyVideoSourceUI.label('open');
+    $('readerStudyVideoStatus').textContent = '';
+    studyButton.onclick = async () => {
+      studyButton.disabled = true;
+      try { await StudyVideoSourceUI.open(textId); }
+      catch (_) { $('readerStudyVideoStatus').textContent = StudyVideoSourceUI.label('error'); }
+      finally { studyButton.disabled = false; }
+    };
+  }
   if (!window.MediaHost || !window.StudioMediaKaraoke) return;   // офлайн до precache → фичи честно нет
   const serial = ++roomMediaSetupSerial;
   let audio = window.MediaHost.passportFromTextRow(textRow);
@@ -5956,6 +5967,11 @@ async function roomMediaPlayOriginal() {
     const player = st.ensure(audio, blob);
     await window.StudioMediaKaraoke.start({ media: player || blob, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
     return;
+  }
+  if (readerTextId != null && window.StudyVideoSourceUI) {
+    const context = await StudyVideoSourceUI.context(readerTextId);
+    if (roomMediaAudio !== audio) return;
+    if (context.record) return StudyVideoSourceUI.open(readerTextId);
   }
   if (!audio.video || !audio.video.videoId) return;
   if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return;

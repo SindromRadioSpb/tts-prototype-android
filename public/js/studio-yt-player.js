@@ -10,6 +10,8 @@
   var ID_RE = /^[A-Za-z0-9_-]{11}$/;
 
   function parseVideoId(input) {
+    if (typeof window !== 'undefined' && window.PlaybackSource) return window.PlaybackSource.parseVideoId(input);
+    if (typeof window === 'undefined' && typeof require === 'function') return require('./playback-source.js').parseVideoId(input);
     if (typeof input !== "string" || !input.trim()) return null;
     var u;
     try { u = new URL(input.trim()); } catch (_) { return null; }
@@ -29,6 +31,11 @@
   }
 
   function capability() {
+    // A dedicated top-level reader has no COEP and needs no credentialless exception.
+    // The isolated Studio/Room shells keep their existing capability gate.
+    if (typeof window !== 'undefined' && typeof HTMLIFrameElement !== 'undefined' && window.crossOriginIsolated === false) {
+      return { supported: true, reason: 'ordinary-embed', credentialless: false };
+    }
     if (typeof window === "undefined" || typeof HTMLIFrameElement === "undefined" ||
         !("credentialless" in HTMLIFrameElement.prototype)) {
       return { supported: false, reason: "no-credentialless" };
@@ -75,7 +82,7 @@
   // — not just PLAYING/PAUSED/ENDED) because YouTube's captions module can finish loading around
   // any of them, not only around the ones that already had a named event.
   function makeAdapter(player, iframe) {
-    var listeners = { play: [], pause: [], ended: [], error: [], statechange: [] };
+    var listeners = { play: [], pause: [], ended: [], error: [], statechange: [], blocked: [] };
     function emit(ev, arg) { (listeners[ev] || []).forEach(function (fn) { try { fn(arg); } catch (_) {} }); }
     // W2-S5a Task 10 live-smoke finding (2026-07-27, reproduced 9/9): playVideo()/pauseVideo() are
     // fire-and-forget postMessage calls — getPlayerState() does NOT reflect the new state until the
@@ -88,6 +95,7 @@
     // controls, playback fails) always wins over a stale intent. No polling/timer: intent is
     // retired by the next real event, never by a clock.
     var intent = null; // null = no pending intent, trust getPlayerState(); true/false = pending play/pause
+    var cancelSeek = null, destroyed = false;
     function clearIntent() { intent = null; }
     var adapter = {
       isYouTube: true,
@@ -106,6 +114,32 @@
       },
       play: function () { intent = true; try { player.playVideo(); } catch (_) {} return Promise.resolve(); },
       pause: function () { intent = false; try { player.pauseVideo(); } catch (_) {} },
+      seekAndWait: function (seconds, options) {
+        if (cancelSeek) cancelSeek();
+        var target = Number(seconds), end = options && Number(options.end);
+        if (destroyed || !Number.isFinite(target) || target < 0) return Promise.reject(new Error('YT_SEEK_CANCELLED'));
+        return new Promise(function (resolve, reject) {
+          var timer = null, done = false, started = Date.now();
+          function finish(error) {
+            if (done) return; done = true; if (timer) clearTimeout(timer);
+            if (cancelSeek === cancel) cancelSeek = null;
+            if (error) reject(error); else resolve();
+          }
+          function cancel() { finish(new Error('YT_SEEK_CANCELLED')); }
+          cancelSeek = cancel;
+          try { player.seekTo(target, true); } catch (_) { finish(new Error('YT_SEEK_FAILED')); return; }
+          function poll() {
+            if (destroyed) { cancel(); return; }
+            var current; try { current = player.getCurrentTime(); } catch (_) {}
+            if (Number.isFinite(current) && Math.abs(current-target) <= 0.75 && (!Number.isFinite(end) || current < end)) { finish(); return; }
+            if (Date.now()-started >= 8000) { finish(new Error('YT_SEEK_TIMEOUT')); return; }
+            timer = setTimeout(poll, 50);
+          }
+          // One asynchronous sample is mandatory; the first synchronous clock can still
+          // describe the preceding seek. No timer ever fabricates a successful position.
+          timer = setTimeout(poll, 50);
+        });
+      },
       addEventListener: function (ev, fn) { if (listeners[ev]) listeners[ev].push(fn); },
       removeEventListener: function (ev, fn) {
         if (!listeners[ev]) return;
@@ -122,6 +156,7 @@
         } catch (_) { return []; }
       },
       destroy: function () {
+        destroyed = true; if (cancelSeek) cancelSeek();
         try { player.destroy(); } catch (_) {}
         if (iframe && iframe.parentNode) { try { iframe.parentNode.removeChild(iframe); } catch (_) {} }
         Object.keys(listeners).forEach(function (k) { listeners[k] = []; });
@@ -133,6 +168,7 @@
       // denied / autoplay blocked → adapter must not claim "playing" forever) satisfied: the next
       // genuine state YouTube reports — even a failed/blocked one — always overrides a stale intent.
       _clearIntent: clearIntent,
+      _cancelSeek: function () { if (cancelSeek) cancelSeek(); },
     };
     return adapter;
   }
@@ -155,8 +191,10 @@
     return loadApi().then(function () {
       return new Promise(function (resolve, reject) {
         var iframe = document.createElement("iframe");
-        iframe.setAttribute("credentialless", "");
+        if (cap.reason !== 'ordinary-embed') iframe.setAttribute("credentialless", "");
         iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
+        iframe.setAttribute("allowfullscreen", "");
+        iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
         iframe.setAttribute("title", "YouTube");
         iframe.width = "100%"; iframe.height = "200"; iframe.style.border = "0";
         iframe.src = "https://www.youtube.com/embed/" + videoId +
@@ -189,12 +227,13 @@
               adapter._emit("statechange", e.data);
             },
             onError: function (e) {
-              if (adapter) { adapter._clearIntent(); adapter._emit("error"); } // a failure is a real signal too
+              if (adapter) { adapter._clearIntent(); adapter._cancelSeek(); adapter._emit("error", e.data); }
               if (settled) return;
               settled = true; clearTimeout(to);
               destroyFailedPlayer(player, iframe);
-              reject(Object.assign(new Error("yt error " + e.data), { code: "YT_EMBED_DENIED" }));
+              reject(Object.assign(new Error("yt error " + e.data), { code: "YT_EMBED_DENIED", ytCode: e.data }));
             },
+            onAutoplayBlocked: function () { if (adapter) { adapter._clearIntent(); adapter._emit('blocked'); } },
           },
         });
         adapter = makeAdapter(player, iframe);

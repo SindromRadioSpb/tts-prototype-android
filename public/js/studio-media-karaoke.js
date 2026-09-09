@@ -20,6 +20,7 @@
     // воспроизведение. Не подсвечиваем ничего: удерживать последнюю честную строку — это тот же
     // запрещённый путь «уверенно показываем не ту строку», только тише (R11).
     if (entries[k].blind) return null;
+    if (entries[k].end != null && Number.isFinite(Number(entries[k].end)) && t >= Number(entries[k].end)) return null;
     var rowStart = entries[k].o;
     var rowEnd = k + 1 < entries.length ? entries[k + 1].o : Math.max(Number(rowCount) || 0, rowStart + 1);
     return { idx: k, rowStart: rowStart, rowEnd: rowEnd };
@@ -51,7 +52,7 @@
     if (!cur) return;
     var t = cur.audioEl ? cur.audioEl.currentTime : 0;
     if (cur.stopAtT != null && t >= cur.stopAtT) { try { cur.audioEl.pause(); } catch (_) {} cur.stopAtT = null; }
-    var range = activeSegmentRange(cur.entries, cur.rowCount, t);
+    var range = cur.seeking ? null : activeSegmentRange(cur.entries, cur.rowCount, t);
     var idx = range ? range.idx : -1;
     if (idx !== cur.lastIdx) {
       paintRange(range); cur.lastIdx = idx;
@@ -62,7 +63,7 @@
 
   function syncCurrent() {
     if (!cur) return null;
-    var range = activeSegmentRange(cur.entries, cur.rowCount, cur.audioEl ? cur.audioEl.currentTime : 0);
+    var range = cur.seeking ? null : activeSegmentRange(cur.entries, cur.rowCount, cur.audioEl ? cur.audioEl.currentTime : 0);
     paintRange(range); cur.lastIdx = range ? range.idx : -1;
     if (typeof cur.onRangeChange === "function") { try { cur.onRangeChange(range); } catch (_) {} }
     return range;
@@ -166,6 +167,8 @@
       var source = opts.media || opts.blob;
       var run = (cur && cur.source === source && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, false, opts.stopOtherAudio);
       if (opts.onRangeChange) run.onRangeChange = opts.onRangeChange;
+      run.seekSerial = (run.seekSerial || 0) + 1; run.seeking = false;
+      if (run.audioEl._cancelSeek) run.audioEl._cancelSeek();
       run.stopAtT = null;
       await run.audioEl.play();
     } catch (_) { /* best-effort: никогда не ломаем Студию */ }
@@ -175,45 +178,53 @@
     if (!cur || !cur.entries) return;
     var k = segIdxForRow(cur.entries, Number(rowIdx));
     if (k < 0) return;
+    cur.seekSerial = (cur.seekSerial || 0) + 1; cur.seeking = false; cur.stopAtT = null;
+    if (cur.audioEl._cancelSeek) cur.audioEl._cancelSeek();
     try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; syncCurrent(); } catch (_) {}
   }
 
-  // IMPORTANT 3 (whole-branch review 2026-07-28) — TRAP for whoever wires per-row replay to the
-  // YouTube adapter next (it is deliberately NOT wired today — index.html only renders the
-  // "▶︎ replay segment" row button when `audio.media` exists, i.e. never for a captions/video-
-  // URL passport, so `cur.audioEl` here is only ever a native <audio> in practice right now).
-  // On the adapter, `currentTime = X` is `player.seekTo(X, true)` — a fire-and-forget postMessage
-  // call, same mechanism Task 10's live smoke measured at ~100ms round-trip for play/pause state
-  // (studio-yt-player.js:73-82). `getCurrentTime()` lags that same seek by roughly the same
-  // window: it keeps reporting the PRE-seek position until the round-trip lands. Replaying an
-  // EARLIER segment while playback is currently further along would seek backward, immediately
-  // set `stopAtT` to a value BELOW the still-stale (later) `currentTime` tick() reads on the very
-  // next rAF frame, and `tick()`'s `t >= cur.stopAtT` fires instantly — the segment pauses on its
-  // first frame instead of playing. A native <audio> element's `currentTime` updates synchronously
-  // on assignment, so this trap does not exist for the local-file path. Fixing it for real needs
-  // either a short grace window before arming `stopAtT` on an adapter source, or reading the
-  // adapter's own seek-confirmation rather than racing tick()'s next poll — do that BEFORE
-  // wiring this to the adapter, not after.
+  // YouTube seeks are asynchronous. Arm the segment end only after the adapter confirms
+  // its clock reached the target; a newer command or teardown invalidates this request.
   async function playSegment(rowIdx) {
     if (!cur || !cur.entries) return;
     var k = segIdxForRow(cur.entries, Number(rowIdx));
     if (k < 0) return;
     var stopHook = (cur && cur.stopOtherAudio) || window.v3StopRowAudio;
     if (typeof stopHook === "function") { try { stopHook(); } catch (_) {} }
+    var run = cur, serial = run.seekSerial = (run.seekSerial || 0) + 1;
     try {
-      cur.audioEl.currentTime = Number(cur.entries[k].t) || 0;
       var exactEnd = Number(cur.entries[k] && cur.entries[k].end);
-      cur.stopAtT = Number.isFinite(exactEnd) && exactEnd > Number(cur.entries[k].t)
+      var stopAt = Number.isFinite(exactEnd) && exactEnd > Number(cur.entries[k].t)
         ? exactEnd
         : (k + 1 < cur.entries.length ? Number(cur.entries[k + 1].t) : null);
-      await cur.audioEl.play();
-    } catch (_) {}
+      run.stopAtT = null;
+      if (typeof run.audioEl.seekAndWait === 'function') {
+        run.seeking = true; run.audioEl.pause(); syncCurrent();
+        await run.audioEl.seekAndWait(Number(run.entries[k].t) || 0, {end:stopAt});
+        if (cur !== run || run.seekSerial !== serial) return {ok:false,reason:'YT_SEEK_CANCELLED'};
+        run.seeking = false;
+      } else run.audioEl.currentTime = Number(run.entries[k].t) || 0;
+      run.stopAtT = stopAt;
+      await run.audioEl.play();
+      return {ok:true};
+    } catch (error) {
+      if (cur === run && run.seekSerial === serial) { run.seeking = false; run.stopAtT = null; run.audioEl.pause(); }
+      return {ok:false,reason:error && (error.code || error.message) || 'YT_SEEK_FAILED'};
+    }
+  }
+
+  // Explicit user/lifecycle pause also invalidates a pending asynchronous replay.
+  function pause() {
+    if (!cur) return;
+    cur.seekSerial = (cur.seekSerial || 0) + 1; cur.seeking = false; cur.stopAtT = null;
+    if (cur.audioEl._cancelSeek) cur.audioEl._cancelSeek();
+    cur.audioEl.pause(); syncCurrent();
   }
 
   function isActive() { return !!(cur && cur.audioEl && !cur.audioEl.paused); }
   function getAudioEl() { return cur ? cur.audioEl : null; }
 
-  var API = { activeSegmentRange: activeSegmentRange, bind: bind, start: start, stop: stop, isActive: isActive,
+  var API = { activeSegmentRange: activeSegmentRange, bind: bind, start: start, stop: stop, pause: pause, isActive: isActive,
               seekToRow: seekToRow, playSegment: playSegment, syncCurrent: syncCurrent, getAudioEl: getAudioEl,
               _ensureRun: ensureRun };
   window.StudioMediaKaraoke = API;

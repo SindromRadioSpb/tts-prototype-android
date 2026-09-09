@@ -1,0 +1,92 @@
+{
+  "schema": "youtube-learning-evidence-v1",
+  "date": "2026-09-09",
+  "release": "3.11.498",
+  "base_commit": "02124fb1",
+  "unit": {
+    "tests": 1427,
+    "pass": 1427,
+    "fail": 0
+  },
+  "browser": {
+    "ok": true,
+    "providerFixtureCalls": 2,
+    "checks": [
+      "task-end-to-end",
+      "crash-after-commit-no-duplicate",
+      "source-offset",
+      "rows-unchanged",
+      "review-log-unchanged",
+      "source-RU-HE-380",
+      "clean-profile-package",
+      "plain-text-ZIP",
+      "source-UI-save-preview-detach",
+      "public-reader-YouTube"
+    ]
+  },
+  "offline_browser": {
+    "ok": true,
+    "checks": [
+      "ordinary-top-level",
+      "frame-deny",
+      "RU-380",
+      "HE-380-RTL",
+      "reload",
+      "offline-text",
+      "service-worker-offline-reload"
+    ],
+    "pageErrors": []
+  },
+  "real_youtube_clock": {
+    "provider_ready": true,
+    "clock_advances": true,
+    "replay": [
+      {
+        "row": 2,
+        "during": {
+          "time": 24.237314877929688,
+          "paused": false
+        },
+        "after": {
+          "time": 26.00567690272522,
+          "paused": true,
+          "highlighted": 0
+        }
+      },
+      {
+        "row": 0,
+        "during": {
+          "time": 2.2409958683929445,
+          "paused": false
+        },
+        "after": {
+          "time": 4.0080529866485595,
+          "paused": true,
+          "highlighted": 0
+        }
+      },
+      {
+        "row": 1,
+        "during": {
+          "time": 12.24711297138977,
+          "paused": false
+        },
+        "after": {
+          "time": 14.13440518310547,
+          "paused": true,
+          "highlighted": 0
+        }
+      }
+    ],
+    "crossOriginIsolated": false,
+    "pageErrors": []
+  },
+  "physical_device": "NOT_TESTED",
+  "gemini_url_pilot": "NOT_QUALIFIED",
+  "production": "PENDING",
+  "baseline_harness_failures": {
+    "portable_browser": "same missing v3PortableGlobalBtn on clean 02124fb1",
+    "import_center_browser": "same missing selected material before task wizard on clean 02124fb1",
+    "text_card": "same 31 passed / 4 failed pre-adoption media probe on clean 02124fb1"
+  }
+}

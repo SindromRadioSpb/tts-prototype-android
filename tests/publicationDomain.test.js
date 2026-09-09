@@ -124,6 +124,32 @@ test("I1 red contract files exist", () => {
   assert.ok(fs.existsSync(REPO), "single publication repository is missing");
 });
 
+test('YouTube-only publication keeps hash-covered source and needs no original video asset',async()=>{
+  const fixture=await buildFixture();
+  try{
+    const P=require('../public/js/playback-source'),record=P.append(null,{url:'https://www.youtube.com/watch?v=iG9CE55wbtY'},{now:'2026-09-09T00:00:00Z'});
+    const created=await fixture.repo.createCorpus(fixture.owner,{slug:'youtube-study',title:'YouTube study fixture'},{idempotencyKey:'youtube-create'});
+    const copied=await fixture.repo.copyMyTextItems(fixture.owner,created.corpus_id,{expectedVersion:created.draft_version,items:[{
+      sourceWorkId:'youtube-study',title:'Video and text',expectedAudioCount:0,
+      snapshot:{library:{texts:[{text_key:'youtube-study',source_meta:{playback_source:record,learning_material_task:{id:'private'},apiKey:'secret'},rows:[{order_index:0,hebrew_plain:'שלום',russian:'Привет'}]}],audio_assets:[]}}
+    }]},{idempotencyKey:'youtube-copy'});
+    const rights=await fixture.repo.applyRightsPreset(fixture.owner,created.corpus_id,{itemIds:copied.items.map(item=>item.item_id),expectedVersion:copied.draft_version,preset:{public_read_allowed:true,public_stream_allowed:true,package_download_allowed:true,basis:'OWNER_ATTESTATION_FIXTURE_YOUTUBE_2026_09_09',asserted_at:'2026-09-09'}},{idempotencyKey:'youtube-rights'});
+    const validation=await fixture.repo.validateDraft(fixture.owner,created.corpus_id,rights.draft_version);
+    assert.equal(validation.ready,true);assert.equal(validation.included_assets,0);assert.equal(validation.asset_missing,0);
+    await fixture.repo.publish(fixture.owner,created.corpus_id,{expectedVersion:rights.draft_version},{idempotencyKey:'youtube-publish'});
+    const corpus=await fixture.repo.getPublicCorpus('youtube-study');
+    const work=await fixture.repo.getPublicWork('youtube-study',corpus.items[0].public_work_id);
+    const source=work.item.snapshot.library.texts[0].source_meta;
+    assert.deepEqual(source.playback_source,record);assert.equal(source.apiKey,undefined);assert.equal(source.learning_material_task,undefined);
+    assert.equal(sha256(require('../db/publicationRepo').canonicalJson(work.item.snapshot)),work.item.snapshot_sha256);
+    const bundle=require('../public/js/public-corpus-adapter').prepareImportBundle(work);
+    assert.deepEqual(bundle.library.texts[0].source_meta.playback_source,record);
+    assert.equal(bundle.library.texts[0].source_meta.public_corpus.slug,'youtube-study');
+    const archive=new AdmZip((await fixture.repo.getPublicPackage('youtube-study')).absolute_path);
+    assert.equal(archive.getEntries().filter(entry=>/\.(mp4|webm|mp3)$/i.test(entry.entryName)).length,0);
+  }finally{await close(fixture.db);fs.rmSync(fixture.root,{recursive:true,force:true});}
+});
+
 test("063 migration supports up, down and reapply", async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "lp-publication-migration-"));
   const db = await openDatabase(path.join(root, "app.db"));

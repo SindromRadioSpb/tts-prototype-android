@@ -463,7 +463,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // placement — an insert would renumber every later migration and re-run it on live profiles.
     // 051 is appended at index 50; it adds the lexical decision overlay without
     // moving review_log, FSRS, or the word-context cache.
-    eq(res.migCount === 51, `MIGRATIONS.length ${res.migCount} != 51 — verify labels and real indexes (last = 051_lexical_resolution_events)`);
+    eq(res.migCount === 52, `MIGRATIONS.length ${res.migCount} != 52 — verify labels and real indexes (last = 052_portable_playback_receipts)`);
     eq(res.mig051IsLexicalResolution, "051_lexical_resolution_events is not at index 50");
     eq(res.rlQueryable, "review_log not queryable");
     eq(res.compassCacheQueryable, "room_learning_compass_cache not queryable");

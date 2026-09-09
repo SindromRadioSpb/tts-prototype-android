@@ -93,6 +93,31 @@ function freshModule() {
   return require(MODULE_PATH);
 }
 
+test('ordinary top-level study page supports browsers without credentialless, isolated Studio remains guarded', () => {
+  installBrowserMocks();
+  try {
+    delete global.HTMLIFrameElement.prototype.credentialless;
+    global.window.crossOriginIsolated = false;
+    assert.equal(freshModule().capability().supported,true);
+    global.window.crossOriginIsolated = true;
+    assert.equal(freshModule().capability().supported,false);
+  } finally { uninstallBrowserMocks(); }
+});
+
+test('seek confirmation waits for the actual clock and teardown rejects outstanding seeks', async () => {
+  installBrowserMocks(); FakePlayer.instances.length=0; global.window.YT={Player:FakePlayer};
+  try {
+    const mod=freshModule(),ad=await mod.create(makeFakeEl('div'),'iG9CE55wbtY'),p=FakePlayer.instances[0];
+    p._time=60; p.seekTo=function(t){setTimeout(()=>{this._time=t;},40);};
+    let settled=false;const pending=ad.seekAndWait(5).then(()=>{settled=true;});
+    await new Promise(resolve=>setTimeout(resolve,10)); assert.equal(settled,false);
+    await pending; assert.equal(ad.currentTime,5);
+    p.seekTo=function(){};
+    const abandoned=ad.seekAndWait(12);ad.destroy();
+    await assert.rejects(abandoned,/YT_SEEK_CANCELLED/);
+  } finally { uninstallBrowserMocks(); }
+});
+
 // loadApi() returns an already-resolved Promise.resolve() when window.YT.Player is preset, so
 // create()'s iframe/player construction runs inside a deferred .then() callback (a microtask),
 // not synchronously within the create() call itself. Tests that need to reach into the player

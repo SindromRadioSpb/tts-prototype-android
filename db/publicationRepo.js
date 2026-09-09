@@ -13,6 +13,7 @@ const { getDb } = require("./sqlite");
 const { DATA_DIR } = require("../storage");
 const IngredientCore = require("../public/js/learning-compass-ingredients.js");
 const CatalogDiscovery = require("../public/js/catalog-discovery-core.js");
+const PlaybackSource = require('../public/js/playback-source.js');
 
 const PERMISSIONS = Object.freeze([
   ["PUBLIC_READ", "public_read_allowed"],
@@ -25,6 +26,7 @@ const FORBIDDEN_KEYS = new Set([
   "anki_word_exports", "translation_overrides", "events", "provider_keys", "api_keys",
   "mentor_memory", "mentor_history", "telegram_identity", "telegram_preferences",
   "absolute_path", "browser_profile_id", "session", "sessions", "consent_records",
+  "opfspath", "opfs_path", "sessiononly", "learning_material_task", "apikey", "geminiapikey", "access_token", "pairing_token",
 ]);
 
 function fail(code, status) {
@@ -66,8 +68,13 @@ function sanitizeSnapshot(value, depth = 0) {
   for (const [key, child] of Object.entries(value)) {
     const normalized = String(key).toLowerCase();
     if (FORBIDDEN_KEYS.has(normalized) || normalized === "group_corpus" || normalized === "group_corpus_schema_version" || normalized.startsWith("srs_") || normalized.includes("private_key")) continue;
-    if (normalized === "source_meta_json" && typeof child === "string") {
-      try { out[key] = canonicalJson(sanitizeSnapshot(JSON.parse(child), depth + 1)); } catch (_) { out[key] = "{}"; }
+    if (normalized === 'playback_source') {
+      try { out[key] = PlaybackSource.validate(child); } catch (_) { fail('SOURCE_SNAPSHOT_INVALID',400); }
+      continue;
+    }
+    if (["source_meta_json", "table_model_meta_json"].includes(normalized) && typeof child === "string") {
+      let parsed; try { parsed = JSON.parse(child); } catch (_) { out[key] = '{}'; continue; }
+      out[key] = canonicalJson(sanitizeSnapshot(parsed, depth + 1));
       continue;
     }
     out[key] = sanitizeSnapshot(child, depth + 1);

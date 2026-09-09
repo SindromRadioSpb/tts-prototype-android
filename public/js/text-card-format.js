@@ -72,7 +72,11 @@
       audio = mediaPassport(h && h.source);
       if (audio) break;
     }
-    if (!audio) return null;
+    var playbackCore = typeof require === 'function' ? require('./playback-source.js') : (typeof window !== 'undefined' && window.PlaybackSource);
+    var playback = playbackCore ? playbackCore.fromText({source_meta:c.source_meta},audio) : null;
+    if (!audio && !playback) return null;
+    var selectedSource = playback ? playbackCore.selected(playback).source : null;
+    audio = audio || {};
     var media = audio.media || null;
     var segments = Array.isArray(audio.segments) ? audio.segments.length : 0;
     var timingEntries = (audio.timing && Array.isArray(audio.timing.entries)) ? audio.timing.entries.length : 0;
@@ -85,7 +89,7 @@
       sessionOnly: !!(media && media.sessionOnly),
       mediaName: media && media.name ? String(media.name) : null,
       sizeBytes: media && Number.isFinite(Number(media.sizeBytes)) ? Number(media.sizeBytes) : null,
-      videoId: audio.video && audio.video.videoId ? String(audio.video.videoId) : null,
+      videoId: playback ? (selectedSource && selectedSource.video_id || null) : (audio.video && audio.video.videoId ? String(audio.video.videoId) : null),
       segments: segments,
       timingEntries: timingEntries,
       hasTiming: timingEntries > 0,
