@@ -1,6 +1,6 @@
 # YouTube learning implementation
 
-Owner approved implementation through production on 2026-09-09. The final full-table workflow correction is released as 3.11.503, runtime commit `83f38afb`; Chrome production acceptance and the gzip-only proxy correction pass. Conditional P5 remains NOT QUALIFIED, and physical iPhone acceptance remains pending.
+Owner approved implementation through production on 2026-09-09. Production currently serves the full-table workflow correction as 3.11.503, runtime commit `83f38afb`; Chrome production acceptance and the gzip-only proxy correction pass. A 3.11.504 release candidate locally fixes saved-card F5 first paint, native-control row following and Room player width. Conditional P5 remains NOT QUALIFIED, and physical iPhone acceptance remains pending.
 Canon: [research and implementation plan](YOUTUBE_LEARNING_MATERIAL_RESEARCH_AND_PLAN_2026_09_09.md).
 Base: `origin/main` at `02124fb1`; isolated branch `feat/youtube-learning-materials-2026-09-09`.
 

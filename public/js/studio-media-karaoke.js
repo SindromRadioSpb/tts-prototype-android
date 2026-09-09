@@ -34,7 +34,7 @@
   }
 
   var CLS = "smk-row-active";
-  var cur = null; // {source, audioEl, url, entries, rowCount, rafId, lastIdx, stopAtT, listeners, onRangeChange, persistent}
+  var cur = null; // {source, audioEl, url, entries, rowCount, rafId, pollId, lastIdx, stopAtT, listeners, onRangeChange, persistent}
 
   function paintRange(range) {
     var table = document.getElementById("proTable");
@@ -48,17 +48,43 @@
     }
   }
 
+  function cancelLoop(run) {
+    if (!run) return;
+    if (run.rafId) { try { window.cancelAnimationFrame(run.rafId); } catch (_) {} }
+    if (run.pollId && typeof window.clearTimeout === "function") { try { window.clearTimeout(run.pollId); } catch (_) {} }
+    run.rafId = 0; run.pollId = 0;
+  }
+
+  function scheduleLoop(run) {
+    if (!run || cur !== run || run.rafId || run.pollId) return;
+    if (run.audioEl && !run.audioEl.paused) {
+      run.rafId = window.requestAnimationFrame(tick);
+    } else if (run.audioEl && run.audioEl.isYouTube && typeof window.setTimeout === "function") {
+      // Some real embeds advance getPlayerState()/getCurrentTime but omit the
+      // IFrame API onStateChange callback when playback starts in native controls.
+      // A low-rate paused probe notices that transition without burning a 60 Hz
+      // loop; once playing, the regular rAF clock resumes precise row following.
+      run.pollId = window.setTimeout(function () {
+        if (cur !== run) return;
+        run.pollId = 0;
+        tick();
+      }, 250);
+    }
+  }
+
   function tick() {
     if (!cur) return;
-    var t = cur.audioEl ? cur.audioEl.currentTime : 0;
-    if (cur.stopAtT != null && t >= cur.stopAtT) { try { cur.audioEl.pause(); } catch (_) {} cur.stopAtT = null; }
-    var range = cur.seeking ? null : activeSegmentRange(cur.entries, cur.rowCount, t);
+    var run = cur;
+    run.rafId = 0; run.pollId = 0;
+    var t = run.audioEl ? run.audioEl.currentTime : 0;
+    if (run.stopAtT != null && t >= run.stopAtT) { try { run.audioEl.pause(); } catch (_) {} run.stopAtT = null; }
+    var range = run.seeking ? null : activeSegmentRange(run.entries, run.rowCount, t);
     var idx = range ? range.idx : -1;
-    if (idx !== cur.lastIdx) {
-      paintRange(range); cur.lastIdx = idx;
-      if (typeof cur.onRangeChange === "function") { try { cur.onRangeChange(range); } catch (_) {} }
+    if (idx !== run.lastIdx) {
+      paintRange(range); run.lastIdx = idx;
+      if (typeof run.onRangeChange === "function") { try { run.onRangeChange(range); } catch (_) {} }
     }
-    cur.rafId = window.requestAnimationFrame(tick);
+    if (cur === run) scheduleLoop(run);
   }
 
   function syncCurrent() {
@@ -71,7 +97,7 @@
 
   function stop() {
     if (!cur) { paintRange(null); return; }
-    if (cur.rafId) { try { window.cancelAnimationFrame(cur.rafId); } catch (_) {} }
+    cancelLoop(cur);
     if (cur.audioEl) {
       try { cur.audioEl.pause(); } catch (_) {}
       if (cur.listeners) for (var ev in cur.listeners) {
@@ -119,26 +145,24 @@
       audioEl = new Audio(url);
       audioEl.preload = "auto";
     }
-    var run = { source: source, audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null, onRangeChange: onRangeChange || null, persistent: !!persistent, stopOtherAudio: stopOtherAudio || null };
+    var run = { source: source, audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, pollId: 0, lastIdx: -2, stopAtT: null, listeners: null, onRangeChange: onRangeChange || null, persistent: !!persistent, stopOtherAudio: stopOtherAudio || null };
     // W2-S4.1 FIX C: пауза ≠ teardown (позиция сохраняется), НО rAF-цикл обязан остановиться —
     // иначе уже запланированный кадр перерисует подсветку поверх paintRange(null) (гонка).
     var onPause = function () {
       if (cur !== run) return;
-      if (run.rafId) { try { window.cancelAnimationFrame(run.rafId); } catch (_) {} }
-      run.rafId = 0;
-      syncCurrent();
+      cancelLoop(run);
+      syncCurrent(); scheduleLoop(run);
     };
     // play (start()/playSegment() resume) → перезапустить цикл; двойной старт исключён проверкой rafId.
     var onPlayResume = function () {
       if (cur !== run) return;
-      if (run.rafId) return;
-      run.rafId = window.requestAnimationFrame(tick);
+      cancelLoop(run); scheduleLoop(run);
     };
     var onEnded = function () {
       if (cur !== run) return;
       if (!run.persistent) { stop(); return; }
-      if (run.rafId) { try { window.cancelAnimationFrame(run.rafId); } catch (_) {} }
-      run.rafId = 0; run.stopAtT = null; syncCurrent();
+      cancelLoop(run);
+      run.stopAtT = null; syncCurrent(); scheduleLoop(run);
     };
     var onError = function () { if (cur === run) stop(); };
     run.listeners = { pause: onPause, play: onPlayResume, ended: onEnded, error: onError };
@@ -146,7 +170,7 @@
       if (Object.prototype.hasOwnProperty.call(run.listeners, ev)) audioEl.addEventListener(ev, run.listeners[ev]);
     }
     cur = run;
-    if (!audioEl.paused) run.rafId = window.requestAnimationFrame(tick);
+    scheduleLoop(run);
     return run;
   }
 

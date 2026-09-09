@@ -13412,10 +13412,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=503">
+<link rel="stylesheet" href="/css/study-video-source.css?v=504">
 <script src="/js/playback-source.js"></script>
 <script src="/js/study-video-transfer.js"></script>
-<script src="/js/study-video-source-ui.js?v=503"></script>
+<script src="/js/study-video-source-ui.js?v=504"></script>
 <script src="/js/learning-material-task.js"></script>
 <script src="/js/learning-material-task-ui.js"></script>
 <script src="/js/portable-learning-package-core.js"></script>
@@ -13505,7 +13505,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.503";
+    window.APP_VERSION = "3.11.504";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14778,6 +14778,7 @@ if (header) {
 
     // Store in global for compatibility
     currentTableData = rows;
+    let immutableMaterial = false;
 
     // Also set v3ActiveTextId for notes compatibility
     if (typeof window.v3SetActiveTextId === "function") {
@@ -14808,6 +14809,7 @@ if (header) {
       try {
         const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
+        immutableMaterial = !!(activation && activation.binding);
         if (activation && activation.media_passport) {
           // Точная привязка замещает восстановленный тайминг ТОЛЬКО если играбельных строк
           // станет не меньше: живой дефект 2026-08-05 — привязка 8 строк из 236 гасила полный
@@ -14843,7 +14845,9 @@ if (header) {
 
     // Premium UX (IDE mode): lazy-fill missing translit / translit_ru in
     // OPFS. Symmetric to v3LibraryOpenText. Idempotent.
-    try { await v3LazyFillTranslit(textId, rows); } catch (_) {}
+    if (!immutableMaterial) {
+      try { await v3LazyFillTranslit(textId, rows); } catch (_) {}
+    }
 
     // Load notes for this text
     try {
@@ -21514,6 +21518,19 @@ updatePlaylistButtonUI();
     // ----------------------------
     (function restoreTableFromCache() {
         try {
+            // A saved/library session owns first paint. Prefer its card-scoped
+            // cache and never expose the unrelated Classic draft table while
+            // the canonical OPFS read is still in flight. Hash navigation keeps
+            // priority and is handled by v3DeeplinkBoot below.
+            const restoreSession = (typeof v3SessionGet === "function") ? v3SessionGet() : null;
+            const hasHashTarget = String(window.location.hash || "").includes("/t/");
+            if (!hasHashTarget && restoreSession &&
+                (restoreSession.mode === "library" || restoreSession.mode === "saved") &&
+                restoreSession.textId) {
+                if (v3LibraryTryRestoreFromCache(restoreSession)) return;
+                v3PrepareForNewTableRender();
+                return;
+            }
             const raw = localStorage.getItem(TABLE_CACHE_KEY);
             if (!raw) return;
 
@@ -25366,7 +25383,16 @@ function v3MediaAugmentRows() {
       // replay-button insertion itself must never form a refresh loop.
       const session=v3SessionGet();
       const key=JSON.stringify([session && session.textId,(Array.isArray(currentTableData)?currentTableData:[]).map(row=>row.he || row.he_plain || '')]);
-      if(key!==playbackRowsKey){playbackRowsKey=key;v3MediaBarRefresh();return;}
+      if(key!==playbackRowsKey){
+        playbackRowsKey=key;
+        // v3LibraryOpenText has already restored this card's passport and owns
+        // the prepared refresh immediately after render. A second generic
+        // refresh re-entered activateTextBinding(), whose no-binding event could
+        // clear that passport before the prepared YouTube projection committed.
+        // Cached F5 paint starts without a passport and still needs the fallback.
+        if(window.v3ActiveMediaAudio){v3MediaAugmentRows();return;}
+        v3MediaBarRefresh();return;
+      }
       // Re-augment only when the rendered button SET differs from the proven playable set.
       // Partial-proven/exact maps intentionally contain holes; treating those rows as missing
       // created a perpetual remove/re-add loop and could starve interactions on mobile Safari.
@@ -27050,6 +27076,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
   try {
   // meta + sentences (blocking) — local-db when LOCAL_MODE, else API
   let notesPromise, text, sentences;
+  let immutableMaterial = false;
   if (LOCAL_MODE) {
     const ldb = await ensureLocalDB();
     notesPromise = ldb.listNotes(textId).then(notes => ({ ok: true, notes })).catch(e => {
@@ -27129,6 +27156,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       try {
         const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
+        immutableMaterial = !!(activation && activation.binding);
         if (activation && activation.media_passport) {
           // Точная привязка замещает восстановленный тайминг ТОЛЬКО если играбельных строк
           // станет не меньше: живой дефект 2026-08-05 — привязка 8 строк из 236 гасила полный
@@ -27181,12 +27209,8 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     // and the "card-level TTS profile auto-apply" UX improvement.
     try { await v3LibraryAutoApplyCardProfile(text, sentences); } catch (_) {}
 
-    // Premium UX: lazy-fill missing translit / translit_ru in OPFS (LOCAL_MODE
-    // only). Symmetric to server-mode getExportRowsByTextId. Idempotent.
-    try { await v3LazyFillTranslit(textId, sentences); } catch (_) {}
-
     // map sentences -> UI rows
-        const rows = sentences
+        let rows = sentences
       .slice()
       .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
       .map((r) => {
@@ -27217,12 +27241,34 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
 	  //// W10-NOTES-PREMIUM-03: reset notes for this text BEFORE render (avoid cross-text leakage)
 try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 
+    // Paint the requested card before optional enrichment. The generic Classic
+    // cache may belong to a different draft; keeping it visible while a network
+    // transliteration batch runs made F5 appear to reopen that unrelated card.
     v3PrepareForNewTableRender();
 
-	const renderToken = v3RenderTableFromLibrary(rows);
+	let renderToken = v3RenderTableFromLibrary(rows);
     // Resolve the playback source against THIS rendered table, after the reset above.
     // Earlier restore passes can still see the preceding card's currentTableData.
     try { await v3MediaBarRefresh({ id: textId, card: text, rows: currentTableData, audio: window.v3ActiveMediaAudio }); } catch (_) {}
+
+    // Immutable learning-material rows reject legacy sentence writes by design.
+    // Do not issue hundreds of doomed updateSentence calls. Mutable legacy cards
+    // still receive the existing lazy fill, but the correct table is already on
+    // screen while it runs; a successful fill is then painted from the same rows.
+    if (!immutableMaterial) {
+      try {
+        const filled = await v3LazyFillTranslit(textId, sentences);
+        if (filled > 0) {
+          rows = sentences
+            .slice()
+            .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
+            .map((r) => v3MapSentenceApiRowToUiRow(r, textId));
+          v3PrepareForNewTableRender();
+          renderToken = v3RenderTableFromLibrary(rows);
+          saveLibCache();
+        }
+      } catch (_) {}
+    }
 
 	// BRR-P0-002b — hydrate source_text AFTER render (non-blocking). The lite fetch
 	// above skipped the blob so the table paints ~300ms sooner; the Studio composer,
@@ -35629,14 +35675,35 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 await addRef({ package_id: row.package_id, revision_id: row.current_revision_id });
             }
             const resolved = MH.resolveUniqueRevisionContext(candidates, lines);
+            const savedPassport = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+            const savedSession = (typeof v3SessionGet === "function") ? v3SessionGet() : null;
+            const savedTextId = savedSession && ["saved", "library"].includes(savedSession.mode)
+                ? String(savedSession.textId || "") : "";
+            const activeSavedId = (typeof v3ActiveTextId !== "undefined" && v3ActiveTextId)
+                ? String(v3ActiveTextId) : "";
+            const activeSavedMeta = (typeof v3ActiveLibraryTextMeta !== "undefined" && v3ActiveLibraryTextMeta &&
+                String(v3ActiveLibraryTextMeta.textId || "") === savedTextId) ? v3ActiveLibraryTextMeta : null;
+            const savedSourceText = activeSavedMeta ? String(activeSavedMeta.sourceText || "").trim() : "";
+            const savedCardExact = !!(savedPassport && savedTextId && savedTextId === activeSavedId &&
+                (!savedSourceText || savedSourceText === getText().trim()));
+            const savedSegmentsExact = !!(savedPassport && typeof MH.revisionMatchesLines === "function" &&
+                MH.revisionMatchesLines(savedPassport.segments, lines));
+            const savedPassportExact = savedCardExact || savedSegmentsExact;
             window.v3LastMediaContextResolution = {
                 reason: resolved.reason, match_count: resolved.match_count,
                 media_intended: mediaIntended, at: new Date().toISOString(), line_count: lines.length,
             };
             if (!resolved.context) {
                 window.v3LastImportMeta = null;
-                window.v3ActiveMediaAudio = null;
-                window.v3LastMediaPackageRef = null;
+                // A canonical saved-card passport can legitimately predate the workspace
+                // repository, and legacy 1:N tables do not have one segment per final row.
+                // Keep it only for the active saved entity while its source text is unchanged,
+                // or when segment identity independently proves the current composer lines.
+                // An edited or unrelated draft still clears every ambient projection. This
+                // also prevents a late no-workspace refresh from erasing the passport
+                // v3LibraryOpenText just restored during cold reload.
+                window.v3ActiveMediaAudio = savedPassportExact ? savedPassport : null;
+                if (!savedPassportExact) window.v3LastMediaPackageRef = null;
                 return null;
             }
             const context = resolved.context;

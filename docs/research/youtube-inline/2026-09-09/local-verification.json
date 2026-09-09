@@ -1,64 +1,81 @@
 {
-  "at": "2026-09-09T16:43:18.351Z",
-  "version": "3.11.503",
-  "unit_tests": 1428,
+  "at": "2026-09-09T19:23:48.1345409Z",
+  "version": "3.11.504",
+  "unit_tests": 1429,
   "unit_status": "PASS",
   "inline_live": {
     "ok": true,
+    "video": "iG9CE55wbtY",
     "results": [
       {
         "surface": "studio",
-        "nativePlayerStart": true,
-        "from": 0,
-        "to": 0.3114082155303955
+        "nativePlayerFollow": true,
+        "from": 1.5,
+        "to": 2.024096900817871,
+        "activeRow": 0
       },
       {
         "surface": "studio",
         "row": 2,
-        "time": 26.014734129699708
+        "time": 26.020267
       },
       {
         "surface": "studio",
         "row": 0,
-        "time": 4.006076891281127
+        "time": 4.006339
       },
       {
         "surface": "studio",
         "row": 1,
-        "time": 14.011943089645385
+        "time": 14.010171
       },
       {
         "surface": "studio",
         "morphologyPauseResume": true,
-        "from": 14.014375,
-        "to": 14.332039950408936
+        "from": 14.010171,
+        "to": 14.324737982833863
+      },
+      {
+        "surface": "studio-local",
+        "nativeMediaFollow": true,
+        "activeRow": 0
       },
       {
         "surface": "room",
-        "nativePlayerStart": true,
-        "from": 0,
-        "to": 0.3153238455047608
+        "youtubeFullWidth": {
+          "bar": 856,
+          "mount": 856,
+          "iframe": 856,
+          "table": 880
+        }
+      },
+      {
+        "surface": "room",
+        "nativePlayerFollow": true,
+        "from": 1.5,
+        "to": 2.034058015258789,
+        "activeRow": 0
       },
       {
         "surface": "room",
         "row": 2,
-        "time": 26.01789222697449
+        "time": 26.012806
       },
       {
         "surface": "room",
         "row": 0,
-        "time": 4.006892059127807
+        "time": 4.015769
       },
       {
         "surface": "room",
         "row": 1,
-        "time": 14.011257164031983
+        "time": 14.019888
       },
       {
         "surface": "room",
         "morphologyPauseResume": true,
-        "from": 14.013676,
-        "to": 15.35829320980835
+        "from": 14.019888,
+        "to": 14.863496910354614
       }
     ],
     "errors": []
@@ -102,12 +119,17 @@
     "errors": []
   },
   "gates": [
+    "unit-1429",
+    "i18n-233",
+    "media-karaoke-10",
+    "studio-karaoke-18",
     "room-media",
+    "text-card-35",
     "reader-parity",
-    "task-package-public-reader-browser",
+    "train-queue-321",
+    "youtube-inline-browser",
     "api-smoke",
-    "release-locks-44",
-    "log-hygiene"
+    "offline-compatible-shells"
   ],
   "owner_profile_written": false,
   "physical_iphone_acceptance": "PENDING",
@@ -166,12 +188,22 @@
       "room-he-380.png"
     ],
     "service_worker_shell_integrity": {
-      "version": "3.11.503",
+      "version": "3.11.504",
       "paths": 71,
       "missing": 0,
       "mismatch": 0,
       "studio_offline": true,
       "room_offline": true
+    },
+    "native_control_drives_active_row": true,
+    "local_media_drives_active_row": true,
+    "unrelated_classic_cache_first_paint": false,
+    "saved_card_passport_survives_no_workspace_refresh": true,
+    "room_youtube_width": {
+      "bar": 856,
+      "mount": 856,
+      "iframe": 856,
+      "table": 880
     }
   }
 }

@@ -211,6 +211,30 @@ test("bind(): a visible local player supports paused row seek and explicit time-
   }
 });
 
+test("bound YouTube player follows native-control playback even when no play event arrives", () => {
+  installBrowserMocks();
+  try {
+    var polls = [];
+    global.window.setTimeout = function (fn) { polls.push(fn); return polls.length; };
+    global.window.clearTimeout = function () {};
+    var mod = freshModule(), adapter = makeFakeAdapter(), observed = [];
+    mod.bind({ media: adapter, entries: [{ o: 0, t: 2, end: 4 }, { o: 1, t: 8, end: 10 }], rowCount: 2,
+      onRangeChange: function (range) { observed.push(range); } });
+    assert.equal(polls.length, 1, "a paused YouTube binding keeps one low-rate state probe");
+
+    // Native iframe controls change the underlying clock/state. This intentionally
+    // emits no adapter 'play' event, matching the production failure.
+    adapter._paused = false;
+    adapter.currentTime = 2.25;
+    polls.shift()();
+
+    assert.deepEqual(observed.at(-1), { idx: 0, rowStart: 0, rowEnd: 1 });
+    mod.stop();
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
 test("playSegment(): a 1:N mapped row replays the exact cue and stops at its explicit end", async () => {
   installBrowserMocks();
   try {

@@ -5,4 +5,4 @@
 .playback-source-switcher button[aria-pressed="true"]{border-color:var(--theme-accent,#0b7673);background:color-mix(in srgb,var(--theme-accent,#0b7673) 14%,var(--theme-bg-card,#fff));color:var(--theme-accent,#0b7673);font-weight:700;box-shadow:inset 0 0 0 1px var(--theme-accent,#0b7673)}
 .playback-source-switcher button:focus-visible{outline:3px solid var(--theme-accent,#0b7673);outline-offset:2px}
 #v3MediaYtMount iframe,#roomMediaYtMount iframe{display:block;width:100%;height:clamp(200px,32vw,340px);min-height:200px;border:0}
-#v3MediaYtMount{flex:1 0 100%;width:100%;min-width:0}#v3MediaYtMount[hidden]{display:none}
+#v3MediaYtMount,#roomMediaYtMount{flex:1 0 100%;width:100%;min-width:0}#v3MediaYtMount[hidden],#roomMediaYtMount[hidden]{display:none}

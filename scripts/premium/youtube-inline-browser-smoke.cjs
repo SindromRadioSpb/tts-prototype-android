@@ -14,9 +14,9 @@ try{
    const db=await ensureLocalDB();appSetLocale('ru');
    const rows=['שלום עולם','בוקר טוב','תודה רבה'].map((he,i)=>({id:'inline-row-'+i,he_plain:he,he_niqqud:he,ru:'Проверка строки '+i,translit:'shalom',edit_meta_json:{ru:{locked:true}}}));
    // A real local WAV in OPFS coexists with a selected YouTube source.
-   const buffer=new ArrayBuffer(44+8000*2),d=new DataView(buffer);function str(o,s){for(let i=0;i<s.length;i++)d.setUint8(o+i,s.charCodeAt(i));}str(0,'RIFF');d.setUint32(4,buffer.byteLength-8,true);str(8,'WAVE');str(12,'fmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,8000,true);d.setUint32(28,16000,true);d.setUint16(32,2,true);d.setUint16(34,16,true);str(36,'data');d.setUint32(40,16000,true);
+   const buffer=new ArrayBuffer(44+8000*2*30),d=new DataView(buffer);function str(o,s){for(let i=0;i<s.length;i++)d.setUint8(o+i,s.charCodeAt(i));}str(0,'RIFF');d.setUint32(4,buffer.byteLength-8,true);str(8,'WAVE');str(12,'fmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,8000,true);d.setUint32(28,16000,true);d.setUint16(32,2,true);d.setUint16(34,16,true);str(36,'data');d.setUint32(40,buffer.byteLength-44,true);
    await MediaStore.saveMedia(buffer,'inline.wav');
-   const audio={v:1,media:{opfsPath:'inline.wav',mime:'audio/wav',sha256:await MediaStore.sha256Hex(buffer),durationSec:1},segments:rows.map((r,i)=>({start_ms:[2,12,24][i]*1000,end_ms:[4,14,26][i]*1000,text:r.he_plain,caption_segment_id:'cue-'+i,quality_flags:[]})),timing:true};
+   const audio={v:1,media:{opfsPath:'inline.wav',mime:'audio/wav',sha256:await MediaStore.sha256Hex(buffer),durationSec:30},segments:rows.map((r,i)=>({start_ms:[2,12,24][i]*1000,end_ms:[4,14,26][i]*1000,text:r.he_plain,caption_segment_id:'cue-'+i,quality_flags:[]})),timing:true};
    MediaHost.restoreForRows(audio,rows.map(r=>({he:r.he_plain})));audio.timing.entries.forEach((entry,i)=>entry.end=[4,14,26][i]);
    await db.createText({id:'inline',text_key:'inline-key',title:'Inline YouTube fixture',source_text:rows.map(r=>r.he_plain).join('\n'),source_meta_json:JSON.stringify({source:{audio}})});await db.addSentences('inline',rows);
    const c=await StudyVideoSourceUI.context('inline');if(!c.basis)throw new Error('NO_TIMING');
@@ -70,10 +70,11 @@ try{
    if(await control.count())await control.click();else{const box=await iframe.boundingBox();assert.ok(box,surface+' YouTube player is visible');await page.mouse.click(box.x+box.width/2,box.y+box.height/2);}
  }
  async function replay(surface){
+   await page.evaluate(async()=>{const a=StudioMediaKaraoke.getAudioEl();StudioMediaKaraoke.pause();await a.seekAndWait(1.5);StudioMediaKaraoke.syncCurrent();});
    const nativeStart=await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().currentTime);
    await nativePlay(surface);
-   await page.waitForFunction(t=>{const a=StudioMediaKaraoke.getAudioEl();return a&&!a.paused&&a.currentTime>t+.3;},nativeStart,{timeout:15000});
-   results.push({surface,nativePlayerStart:true,from:nativeStart,to:await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().currentTime)});
+   await page.waitForFunction(()=>{const a=StudioMediaKaraoke.getAudioEl();return a&&!a.paused&&a.currentTime>=2&&a.currentTime<4&&!!document.querySelector('tr[data-row-idx="0"].smk-row-active');},null,{timeout:15000});
+   results.push({surface,nativePlayerFollow:true,from:nativeStart,to:await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().currentTime),activeRow:0});
    await page.evaluate(()=>StudioMediaKaraoke.pause());
    for(const row of [2,0,1]){
      await page.locator('#proTable tr[data-row-idx="'+row+'"] .smk-row-replay').click();
@@ -105,6 +106,10 @@ try{
  await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'Локальный файл',exact:true}).click();
  await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});assert.equal(await page.locator('#v3MediaYtMount iframe').count(),0);
  assert.deepEqual((await sourceSelectorState('v3')).pressed,['local']);
+ await page.evaluate(async()=>{const a=StudioMediaKaraoke.getAudioEl();a.currentTime=1.5;await a.play();});
+ await page.waitForFunction(()=>{const a=StudioMediaKaraoke.getAudioEl();return a&&!a.paused&&a.currentTime>=2&&a.currentTime<4&&!!document.querySelector('tr[data-row-idx="0"].smk-row-active');},null,{timeout:10000});
+ results.push({surface:'studio-local',nativeMediaFollow:true,activeRow:0});
+ await page.evaluate(()=>StudioMediaKaraoke.pause());
  await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'YouTube-видео',exact:true}).click();
  await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && !!document.querySelector('#v3MediaYtMount iframe') && StudioMediaKaraoke.getAudioEl()?.isYouTube);
  assert.equal(await page.locator('#v3MediaYtMount iframe').count(),1);
@@ -112,6 +117,17 @@ try{
  assert.deepEqual((await sourceSelectorState('v3')).pressed,['youtube']);
  const after=await page.evaluate(async()=>{const db=await ensureLocalDB();return {rows:await db.getSentences('inline'),reviews:await db.dbQuery('SELECT * FROM review_log'),source:(await db.getTextById('inline')).source_meta_json};});assert.deepEqual(after,fixture);
  // Same OPFS card through the compatible full Studio shell.
+ // Reproduce the owner's F5 failure: the generic Classic cache belongs to a
+ // different task, while the saved session and card-scoped cache point here.
+ await page.evaluate(()=>{
+  localStorage.setItem('ttsDashboard_text_v1','PHYSICS_SENTINEL_TEXT');
+  localStorage.setItem('ttsDashboard_table_cache_v1',JSON.stringify({text:'PHYSICS_SENTINEL_TEXT',rows:[{he:'PHYSICS_SENTINEL_ROW',heNiqqud:'PHYSICS_SENTINEL_ROW',tr:'',ru:'wrong cached task'}]}));
+ });
+ await page.addInitScript(()=>{
+  window.__tablePaints=[];
+  new MutationObserver(()=>{const row=document.querySelector('#proTable tbody tr');if(row){const value=row.innerText||'';if(!window.__tablePaints.includes(value))window.__tablePaints.push(value);}})
+    .observe(document,{subtree:true,childList:true});
+ });
  // A late image intentionally never finishes. The real app must restore on
  // DOM readiness instead of waiting for an unrelated resource to release
  // window.load (the production regression this gate was added for).
@@ -130,7 +146,7 @@ try{
  await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});
  await page.evaluate(()=>{StudioYtPlayer.capability=()=>({supported:false});});
  await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'YouTube-видео',exact:true}).click();await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});
- async function waitForRestored(label){await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && document.querySelectorAll('#proTable tbody tr').length===3,null,{timeout:15000}).catch(async e=>{console.log({label,browserLogs:browserLogs.slice(-20),state:await page.evaluate(async()=>{let context;try{const c=await StudyVideoSourceUI.context('inline');context={audio:!!c.audio,record:!!c.record,sourceMeta:c.card.source_meta_json,basis:c.basis};}catch(error){context={error:error.message,stack:error.stack};}return{session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),context,text:document.getElementById('v3MediaBarNote').textContent};})});throw e;});}
+ async function waitForRestored(label){await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && document.querySelectorAll('#proTable tbody tr').length===3,null,{timeout:15000}).catch(async e=>{console.log({label,browserLogs:browserLogs.slice(-20),state:await page.evaluate(async()=>{let context;try{const c=await StudyVideoSourceUI.context('inline');context={audio:!!c.audio,record:!!c.record,sourceMeta:c.card.source_meta_json,basis:c.basis};}catch(error){context={error:error.message,stack:error.stack};}return{session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),context,text:document.getElementById('v3MediaBarNote').textContent};})});throw e;});const paints=await page.evaluate(()=>window.__tablePaints||[]);assert.equal(paints.some(value=>value.includes('PHYSICS_SENTINEL_ROW')),false,label+' must never paint the unrelated Classic cache');}
  await waitForRestored('compatible-0');
  assert.equal(await page.evaluate(()=>crossOriginIsolated),false);
  assert.equal(await page.evaluate(async()=>!!(await (await ensureLocalDB()).getTextById('inline'))),true);
@@ -145,6 +161,10 @@ try{
  await page.waitForFunction(()=>!!StudioMediaKaraoke.getAudioEl(),null,{timeout:35000});
  assert.equal(await page.locator('#roomMediaYtMount iframe').count(),1);
  assert.equal(await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().paused),true);
+ const roomWidths=await page.evaluate(()=>{const box=id=>document.getElementById(id).getBoundingClientRect().width;return{bar:box('roomMediaBar'),mount:box('roomMediaYtMount'),iframe:document.querySelector('#roomMediaYtMount iframe').getBoundingClientRect().width,table:box('roomReaderTable')};});
+ assert.ok(roomWidths.mount>=roomWidths.bar*.9,JSON.stringify(roomWidths));
+ assert.ok(roomWidths.iframe>=roomWidths.mount*.98,JSON.stringify(roomWidths));
+ results.push({surface:'room',youtubeFullWidth:roomWidths});
  assert.deepEqual(await sourceSelectorState('room'),{links:0,labels:['Локальный файл','YouTube-видео'],sources:['local','youtube'],pressed:['youtube'],group:'Источник воспроизведения'});
  assert.equal(await page.locator('#proTable .smk-row-replay').count(),3);
  await replay('room');
