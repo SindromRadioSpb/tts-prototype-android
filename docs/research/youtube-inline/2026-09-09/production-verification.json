@@ -106,5 +106,108 @@
     "recovered_health_probe_pairs": 4,
     "recovered_health_status": 200
   },
-  "physical_iphone": "PENDING"
+  "physical_iphone": "PENDING",
+  "release_3_11_501": {
+    "verified_at": "2026-09-09T15:19:26.092Z",
+    "version": "3.11.501",
+    "commit": "569dfadbbe6dfca02bbd5e2ed42e3329da007da7",
+    "runtime_image_match": true,
+    "shell_integrity": {
+      "assets": 71,
+      "assets_pass": 71,
+      "failures": []
+    },
+    "repeated_health_config_pairs": {
+      "count": 8,
+      "status": 200,
+      "version": "3.11.501"
+    },
+    "compatible_shell_headers": {
+      "coep": null,
+      "coop": "same-origin",
+      "x_frame_options": "DENY"
+    },
+    "inline_browser": {
+      "video": "PngchpnAS5E",
+      "first_handoff_via_play_button": true,
+      "compatible_restore_cycles": 4,
+      "isolated_restore_cycles": 3,
+      "ok": true,
+      "results": [
+        {
+          "surface": "studio",
+          "row": 2,
+          "time": 26.01781884169006
+        },
+        {
+          "surface": "studio",
+          "row": 0,
+          "time": 4.005258984741211
+        },
+        {
+          "surface": "studio",
+          "row": 1,
+          "time": 14.012140017166137
+        },
+        {
+          "surface": "studio",
+          "morphologyPauseResume": true,
+          "from": 14.013795,
+          "to": 14.327742076293946
+        },
+        {
+          "surface": "room",
+          "row": 2,
+          "time": 26.002122839782714
+        },
+        {
+          "surface": "room",
+          "row": 0,
+          "time": 4.0084348722076415
+        },
+        {
+          "surface": "room",
+          "row": 1,
+          "time": 14.014570047683716
+        },
+        {
+          "surface": "room",
+          "morphologyPauseResume": true,
+          "from": 14.016995,
+          "to": 14.328845064849853
+        }
+      ],
+      "errors": []
+    },
+    "offline": {
+      "ok": true,
+      "results": [
+        {
+          "path": "/study-studio.html",
+          "isolated": false,
+          "card": true,
+          "rows": 1,
+          "vfs": {
+            "name": "AccessHandlePool",
+            "kind": "sync"
+          },
+          "controlled": true
+        },
+        {
+          "path": "/study-library.html",
+          "isolated": false,
+          "card": true,
+          "rows": 1,
+          "vfs": {
+            "name": "AccessHandlePool",
+            "kind": "sync"
+          },
+          "controlled": true
+        }
+      ],
+      "errors": []
+    },
+    "owner_profile_written": false,
+    "physical_iphone": "PENDING"
+  }
 }

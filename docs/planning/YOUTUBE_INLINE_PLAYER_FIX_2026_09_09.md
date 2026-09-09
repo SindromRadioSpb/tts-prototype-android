@@ -1,6 +1,6 @@
 # YouTube inside the full Studio and Reading Room — owner workflow correction
 
-Status: 3.11.499 verified in production; 3.11.500 deployed and exposed a slower media-restore race; 3.11.501 fixes both restore stages and is verified locally pending rollout.
+Status: production-complete in 3.11.501; physical iPhone/Safari/PWA/VoiceOver acceptance remains separate and pending.
 
 ## Owner case and concrete causes
 
@@ -49,3 +49,5 @@ Release 3.11.499 (`4644ce72`) was verified at 13:56 UTC: 71/71 served shell asse
 A later availability incident was observed around 13:59–14:12 UTC. Retained `sar` evidence showed host-wide memory/page-cache thrashing on the 2-vCPU, 3819-MB host with no swap: 21 MB available memory, 96.28% system CPU, run queue 54, about 933 MB/s reads, 7908 major faults/s and 331817 direct page scans/s at 14:10 UTC. Coolify, Docker operations, application health and SSH were starved. The episode followed the build/deploy; the retained evidence establishes the exhaustion mechanism but cannot attribute the initiating work to one process with process-level certainty.
 
 The owner-authorized bounded cleanup retained the running 3.11.499 image, one rollback image, all 8 containers, all 3 volumes, application data and backups. It removed only three verified-unreferenced old application images plus Docker build cache. Root usage fell from 88% (4.4 GB free) to 71% (11 GB free); build cache fell from 5.041 GB to zero. Four consecutive health/config probe pairs returned 200. A read-only pre-3.11.500 check at 14:46 UTC still showed 11 GB free, 1778 MB available memory, zero build cache and the same container/volume counts. Evidence: `docs/research/youtube-inline/2026-09-09/infrastructure-cleanup.json`.
+
+Release 3.11.501 (`569dfadb`) was verified after the production-only timing race was reproduced in 3.11.500. The runtime image matched the commit, 71/71 shell assets matched their SHA-256 manifest, eight repeated health/config pairs returned 200, and the owner video `PngchpnAS5E` passed the real play-button handoff plus three additional isolated↔compatible restore cycles. Studio and Room passed forward/backward row replay and morphology pause/resume; compatible Studio/Room retained the same AccessHandlePool card offline. Post-release build-cache cleanup removed 3.651 GB of cache only, left all containers/volumes/images/data intact, and finished with 8.9 GB free. No proxy/application restart was required.

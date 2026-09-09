@@ -28,9 +28,22 @@
     "completed_at": "2026-09-09T14:29:00Z",
     "authorization": "owner-requested bounded safe cleanup",
     "before": {
-      "root_disk": { "size_gb": 38, "used_gb": 32, "available_gb": 4.4, "used_percent": 88 },
-      "images": { "total": 13, "active": 8, "size_gb": 14.32, "reclaimable_gb": 4.002 },
-      "build_cache": { "records": 23, "size_gb": 5.041 },
+      "root_disk": {
+        "size_gb": 38,
+        "used_gb": 32,
+        "available_gb": 4.4,
+        "used_percent": 88
+      },
+      "images": {
+        "total": 13,
+        "active": 8,
+        "size_gb": 14.32,
+        "reclaimable_gb": 4.002
+      },
+      "build_cache": {
+        "records": 23,
+        "size_gb": 5.041
+      },
       "containers": 8,
       "volumes": 3
     },
@@ -55,9 +68,22 @@
       "application_data": false
     },
     "after": {
-      "root_disk": { "size_gb": 38, "used_gb": 26, "available_gb": 11, "used_percent": 71 },
-      "images": { "total": 10, "active": 8, "size_gb": 7.576, "reclaimable_gb": 1.428 },
-      "build_cache": { "records": 0, "size_gb": 0 },
+      "root_disk": {
+        "size_gb": 38,
+        "used_gb": 26,
+        "available_gb": 11,
+        "used_percent": 71
+      },
+      "images": {
+        "total": 10,
+        "active": 8,
+        "size_gb": 7.576,
+        "reclaimable_gb": 1.428
+      },
+      "build_cache": {
+        "records": 0,
+        "size_gb": 0
+      },
       "containers": 8,
       "healthy_containers": 7,
       "application_container_without_healthcheck": 1,
@@ -76,6 +102,38 @@
       "build_cache_gb": 0,
       "containers": 8,
       "volumes": 3
+    },
+    "post_3_11_501_release": {
+      "at": "2026-09-09T15:21:51Z",
+      "runtime_image_commit": "569dfadbbe6dfca02bbd5e2ed42e3329da007da7",
+      "post_build_cache_gb": 3.651,
+      "cache_action": "docker builder prune -af only",
+      "removed_build_cache_gb": 3.651,
+      "final_build_cache_gb": 0,
+      "root_disk": {
+        "size_gb": 38,
+        "used_gb": 27,
+        "available_gb": 8.9,
+        "used_percent": 76
+      },
+      "images": {
+        "total": 12,
+        "active": 8,
+        "size_gb": 9.514,
+        "reclaimable_gb": 3.147
+      },
+      "containers": 8,
+      "volumes": 3,
+      "health_probe_pairs": 4,
+      "health_status": 200,
+      "served_version": "3.11.501",
+      "memory_follow_up": {
+        "available_mb": 1341,
+        "proxy_rss_mib": 784.2,
+        "proxy_health": "healthy",
+        "proxy_restart_performed": false
+      },
+      "note": "Proxy RSS fell without intervention after the build; no proxy or application restart was performed."
     }
   }
 }
