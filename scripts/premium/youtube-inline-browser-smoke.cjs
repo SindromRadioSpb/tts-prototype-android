@@ -6,6 +6,7 @@ const video=process.env.STUDY_VIDEO_ID||'iG9CE55wbtY';
 try{
  const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1180,height:900}}),page=await ctx.newPage();
   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(['warning','error'].includes(m.type()))browserLogs.push(m.type()+': '+m.text());});
+  async function sourceSelectorState(prefix){return page.locator('#'+prefix+'MediaBar .playback-source-actions').evaluate(actions=>({links:actions.querySelectorAll('a').length,labels:[...actions.querySelectorAll('[data-playback-source]')].map(button=>button.textContent),sources:[...actions.querySelectorAll('[data-playback-source]')].map(button=>button.dataset.playbackSource),pressed:[...actions.querySelectorAll('[data-playback-source][aria-pressed="true"]')].map(button=>button.dataset.playbackSource),group:actions.querySelector('[role="group"]')?.getAttribute('aria-label')}));}
  await page.addInitScript(()=>{for(const key of ['localMode','v3OnboardingSeenV1','onboardingSeen_v1','v3.byokOnboardingDismissed','v3.byokTourCompleted'])localStorage.setItem(key,'1');});
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>typeof ensureLocalDB==='function' && !!window.StudyVideoSourceUI);
@@ -23,7 +24,8 @@ try{
    await v3LibraryOpenText('inline');
    return {rows:await db.getSentences('inline'),reviews:await db.dbQuery('SELECT * FROM review_log'),source: (await db.getTextById('inline')).source_meta_json};
  },video);
- await page.waitForFunction(()=>document.querySelector('#v3MediaPlayBtn')?.hidden===false && v3MediaCurrentAudio()?.playbackKind==='youtube');
+  await page.waitForFunction(()=>document.querySelector('#v3MediaPlayBtn')?.hidden===false && v3MediaCurrentAudio()?.playbackKind==='youtube');
+  assert.deepEqual(await sourceSelectorState('v3'),{links:0,labels:['Локальный файл','YouTube-видео'],sources:['local','youtube'],pressed:['youtube'],group:'Источник воспроизведения'});
  assert.equal(await page.locator('#v3MediaLocalPlayer').isVisible(),false);
  assert.equal(await page.locator('#proTable .smk-row-replay').count(),3);
  // Saving a source refreshes the open player immediately, including a pending mapping.
@@ -44,7 +46,8 @@ try{
      const prefix=surface==='studio'?'v3':'room';
      if(surface==='room'){await page.goto(origin+'/study-library.html?canon=skip&open=inline-key');await page.locator('#roomMediaPlayBtn').click();await page.waitForFunction(()=>!!document.querySelector('#roomMediaBarNote').dataset.youtubeError,null,{timeout:35000});}
      await page.waitForFunction(id=>!!document.getElementById(id).dataset.youtubeError,prefix+'MediaBarNote',{timeout:35000});
-     const code=await page.locator('#'+prefix+'MediaBarNote').getAttribute('data-youtube-error');assert.ok(['101','150'].includes(code),JSON.stringify({surface,code,note:await page.locator('#'+prefix+'MediaBarNote').textContent()}));
+      const code=await page.locator('#'+prefix+'MediaBarNote').getAttribute('data-youtube-error');assert.ok(['101','150'].includes(code),JSON.stringify({surface,code,note:await page.locator('#'+prefix+'MediaBarNote').textContent()}));
+      assert.equal((await sourceSelectorState(prefix)).links,0);
      assert.equal(await page.locator('#proTable tbody tr').count(),3);
      await page.locator('#'+prefix+'MediaBar .playback-source-actions').getByRole('button',{name:'Локальный файл',exact:true}).click();
      await page.locator('#'+prefix+'MediaLocalPlayer').waitFor({state:'visible'});
@@ -86,8 +89,10 @@ try{
  await page.evaluate(()=>appSetLocale('ru'));await page.setViewportSize({width:1180,height:900});
  await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'Локальный файл',exact:true}).click();
  await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});assert.equal(await page.locator('#v3MediaYtMount iframe').count(),0);
- await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'YouTube',exact:true}).click();
+ assert.deepEqual((await sourceSelectorState('v3')).pressed,['local']);
+ await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'YouTube-видео',exact:true}).click();
  await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube');
+ assert.deepEqual((await sourceSelectorState('v3')).pressed,['youtube']);
  const after=await page.evaluate(async()=>{const db=await ensureLocalDB();return {rows:await db.getSentences('inline'),reviews:await db.dbQuery('SELECT * FROM review_log'),source:(await db.getTextById('inline')).source_meta_json};});assert.deepEqual(after,fixture);
  // Same OPFS card through the compatible full Studio shell.
  // A late image intentionally never finishes. The real app must restore on
@@ -117,6 +122,7 @@ try{
   await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});await waitForRestored('compatible-'+cycle);
  }
  await page.goto(origin+'/study-library.html?canon=skip&open=inline-key');await page.locator('#roomMediaPlayBtn').waitFor({state:'visible'});
+ assert.deepEqual(await sourceSelectorState('room'),{links:0,labels:['Локальный файл','YouTube-видео'],sources:['local','youtube'],pressed:['youtube'],group:'Источник воспроизведения'});
  assert.equal(await page.locator('#proTable .smk-row-replay').count(),3);
  await page.locator('#roomMediaPlayBtn').click();await page.waitForFunction(()=>!!StudioMediaKaraoke.getAudioEl(),null,{timeout:35000});await replay('room');
  fs.mkdirSync('artifacts/youtube-inline',{recursive:true});

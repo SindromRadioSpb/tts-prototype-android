@@ -8,9 +8,9 @@
   function locale(){return ['ru','en','he'].includes(document.documentElement.lang)?document.documentElement.lang:'ru';}
   function label(key){return text[locale()][key];}
   const playerText={
-    ru:{youtube:'YouTube',local:'Локальный файл',pending:'YouTube · синхронизация не подтверждена. Проверьте её в «Источник видео».',changed:'YouTube · строки или тайминги изменились. Проверьте синхронизацию заново.',ready:'YouTube · строки синхронизированы',denied:'YouTube запретил встраивание этого ролика. Откройте YouTube или выберите локальный файл.',failed:'YouTube недоступен. Повторите воспроизведение или выберите локальный файл.',blocked:'Нажмите ▶ в самом плеере YouTube.',external:'Открыть на YouTube',savedPending:'Привязка сохранена. Синхронизация не подтверждена.',savedReady:'Привязка сохранена. Синхронизация включена.',savedLocal:'YouTube отвязан. Доступен исходный локальный файл.'},
-    en:{youtube:'YouTube',local:'Local file',pending:'YouTube · synchronization is unconfirmed. Check Video source.',changed:'YouTube · rows or timing changed. Check synchronization again.',ready:'YouTube · rows synchronized',denied:'YouTube does not allow this video to be embedded. Open YouTube or use the local file.',failed:'YouTube is unavailable. Retry playback or use the local file.',blocked:'Press ▶ in the YouTube player.',external:'Open on YouTube',savedPending:'Video source saved. Synchronization is unconfirmed.',savedReady:'Video source saved. Synchronization enabled.',savedLocal:'YouTube detached. The original local file is available.'},
-    he:{youtube:'YouTube',local:'קובץ מקומי',pending:'YouTube · הסנכרון לא אושר. בדקו את מקור הסרטון.',changed:'YouTube · השורות או התזמון השתנו. בדקו שוב את הסנכרון.',ready:'YouTube · השורות מסונכרנות',denied:'YouTube אינו מאפשר להטמיע את הסרטון. פתחו ב-YouTube או בחרו בקובץ המקומי.',failed:'YouTube אינו זמין. נסו שוב או בחרו בקובץ המקומי.',blocked:'לחצו על ▶ בנגן YouTube.',external:'פתיחה ב-YouTube',savedPending:'מקור הסרטון נשמר. הסנכרון לא אושר.',savedReady:'מקור הסרטון נשמר. הסנכרון מופעל.',savedLocal:'YouTube נותק. הקובץ המקומי המקורי זמין.'}
+    ru:{youtube:'YouTube-видео',local:'Локальный файл',sourceGroup:'Источник воспроизведения',pending:'YouTube · синхронизация не подтверждена. Проверьте её в «Источник видео».',changed:'YouTube · строки или тайминги изменились. Проверьте синхронизацию заново.',ready:'YouTube · строки синхронизированы',denied:'YouTube запретил встраивание этого ролика. Проверьте источник видео или выберите локальный файл.',failed:'YouTube недоступен. Повторите воспроизведение или выберите локальный файл.',blocked:'Нажмите ▶ в самом плеере YouTube.',savedPending:'Привязка сохранена. Синхронизация не подтверждена.',savedReady:'Привязка сохранена. Синхронизация включена.',savedLocal:'YouTube отвязан. Доступен исходный локальный файл.'},
+    en:{youtube:'YouTube video',local:'Local file',sourceGroup:'Playback source',pending:'YouTube · synchronization is unconfirmed. Check Video source.',changed:'YouTube · rows or timing changed. Check synchronization again.',ready:'YouTube · rows synchronized',denied:'YouTube does not allow this video to be embedded. Check Video source or use the local file.',failed:'YouTube is unavailable. Retry playback or use the local file.',blocked:'Press ▶ in the YouTube player.',savedPending:'Video source saved. Synchronization is unconfirmed.',savedReady:'Video source saved. Synchronization enabled.',savedLocal:'YouTube detached. The original local file is available.'},
+    he:{youtube:'סרטון YouTube',local:'קובץ מקומי',sourceGroup:'מקור ההפעלה',pending:'YouTube · הסנכרון לא אושר. בדקו את מקור הסרטון.',changed:'YouTube · השורות או התזמון השתנו. בדקו שוב את הסנכרון.',ready:'YouTube · השורות מסונכרנות',denied:'YouTube אינו מאפשר להטמיע את הסרטון. בדקו את מקור הסרטון או בחרו בקובץ המקומי.',failed:'YouTube אינו זמין. נסו שוב או בחרו בקובץ המקומי.',blocked:'לחצו על ▶ בנגן YouTube.',savedPending:'מקור הסרטון נשמר. הסנכרון לא אושר.',savedReady:'מקור הסרטון נשמר. הסנכרון מופעל.',savedLocal:'YouTube נותק. הקובץ המקומי המקורי זמין.'}
   };
   function playbackNote(audio){const t=playerText[locale()];return audio.playbackReason?(audio.playbackReason==='PLAYBACK_TIMING_CHANGED'?t.changed:t.pending):t.ready;}
   function playerError(node,error){if(!node)return;node.dataset.youtubeError=String(error.ytCode || error || '');node.textContent=[101,150].includes(Number(error.ytCode || error))?playerText[locale()].denied:playerText[locale()].failed;}
@@ -19,11 +19,14 @@
     if(!bar)return;let actions=bar.querySelector('.playback-source-actions');if(actions)actions.remove();
     if(!options.id)return;
     actions=document.createElement('div');actions.className='study-source-actions playback-source-actions';
-    function button(caption,fn,key){const b=document.createElement('button');b.type='button';b.textContent=caption;b.className='btn-secondary';b.dataset.playbackLabel=key;b.onclick=fn;actions.append(b);}
-    button(label('source'),options.onSource,'source');
-    if(options.audio && options.audio.playbackKind==='youtube' && options.local)button(playerText[locale()].local,options.onLocal,'local');
-    if(options.onYoutube)button('YouTube',options.onYoutube,'youtube');
-    if(options.audio && options.audio.video){const a=document.createElement('a');a.dataset.playbackLabel='external';a.textContent=playerText[locale()].external;a.href=PlaybackSource.canonicalUrl(options.audio.video.videoId);a.target='_blank';a.rel='noopener noreferrer';actions.append(a);}
+    function button(parent,caption,fn,key,pressed){const b=document.createElement('button');b.type='button';b.textContent=caption;b.className='btn-secondary';b.dataset.playbackLabel=key;if(pressed!=null){b.dataset.playbackSource=key;b.setAttribute('aria-pressed',String(pressed));}if(fn)b.onclick=fn;parent.append(b);return b;}
+    button(actions,label('source'),options.onSource,'source');
+    const youtubeSelected=!!(options.audio && options.audio.playbackKind==='youtube');
+    const hasYoutube=youtubeSelected || typeof options.onYoutube==='function';
+    const switcher=document.createElement('div');switcher.className='playback-source-switcher';switcher.setAttribute('role','group');switcher.dataset.playbackGroupLabel='sourceGroup';switcher.setAttribute('aria-label',playerText[locale()].sourceGroup);
+    if(options.local)button(switcher,playerText[locale()].local,youtubeSelected?options.onLocal:null,'local',!youtubeSelected);
+    if(hasYoutube)button(switcher,playerText[locale()].youtube,youtubeSelected?null:options.onYoutube,'youtube',youtubeSelected);
+    if(switcher.childElementCount)actions.append(switcher);
     const note=bar.querySelector('[id$="BarNote"]');
     if(note){delete note.dataset.youtubeError;if(options.audio && options.audio.playbackKind==='youtube')note.dataset.playbackReason=options.audio.playbackReason || '';else delete note.dataset.playbackReason;}
     bar.append(actions);
@@ -38,6 +41,7 @@
   window.addEventListener('pagehide',pauseEmbeddedVideo);
   document.addEventListener('i18n:changed',()=>{
     document.querySelectorAll('[data-playback-label]').forEach(node=>{const key=node.dataset.playbackLabel;node.textContent=key==='source'?label(key):playerText[locale()][key];});
+    document.querySelectorAll('[data-playback-group-label]').forEach(node=>node.setAttribute('aria-label',playerText[locale()][node.dataset.playbackGroupLabel]));
     document.querySelectorAll('[data-playback-reason]').forEach(node=>{if(!node.dataset.youtubeError)node.textContent=playbackNote({playbackReason:node.dataset.playbackReason || null});});
   });
   async function db(){

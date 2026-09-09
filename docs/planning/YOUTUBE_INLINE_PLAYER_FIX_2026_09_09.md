@@ -1,6 +1,6 @@
 # YouTube inside the full Studio and Reading Room — owner workflow correction
 
-Status: production-complete in 3.11.501; physical iPhone/Safari/PWA/VoiceOver acceptance remains separate and pending.
+Status: 3.11.501 production-complete; the owner-requested source-selector follow-up is locally complete for 3.11.502 and awaiting production verification. Physical iPhone/Safari/PWA/VoiceOver acceptance remains separate and pending.
 
 ## Owner case and concrete causes
 
@@ -18,13 +18,13 @@ Read-only Kapture inspection of the saved source form confirmed the supplied URL
 
 - `PlaybackSource.playbackAudio` selects the explicit per-card source into a runtime-only passport. It never overwrites the original local-media passport, original clock, rows, manual corrections or SRS history. Explicit detach suppresses legacy YouTube resurrection.
 - Studio and Room use their existing full tables and the shared media clock. Confirmed timing uses the selected offset; unconfirmed or changed timing is explained and cannot produce synchronized highlighting/replay.
-- Saving a source refreshes the open host. A local-file button provides a reversible, per-session return to the original media; it does not delete or rewrite the saved YouTube binding. The learner can switch back to YouTube.
+- Saving a source refreshes the open host. The permanent `Local file` / `YouTube video` selector changes the source in the same player above the same table and marks the active source with `aria-pressed`. It does not delete or rewrite either source.
 - The ordinary play button, native YouTube controls, pause, word morphology, row seek and asynchronous row replay stay in the full working surface. Switching cards/sources destroys the old player. Background/page-hide pauses invalidate pending seek intent.
 - The source-opening action stays in Studio/Room. The small read-only screen remains an explicit source audition tool, not the normal learner route. Redundant Room video-opening chrome is hidden once the normal media bar exists.
 - Chromium keeps its working credentialless embed. Browsers without that capability navigate to `/study-studio.html` or `/study-library.html`: server aliases of the same HTML bytes, with ordinary iframe-compatible headers. They use the same origin, same AccessHandlePool database and same leader/proxy mechanism. There is no database migration or alternate copy of the learner profile.
 - The compatible shells and SQLite glue/WASM are hash-covered in the service-worker precache. Main Studio/Room isolation headers remain unchanged. Live isolated → compatible → offline-reload tests retain the same card and VFS.
 - The final Studio render projects playback from the card, rows and media passport it has already loaded. It does not start another database/package lookup; superseded background refreshes remain serial-guarded. A transient optional source-resolution failure retains the restored local passport instead of blanking the media bar.
-- YouTube errors have visible recovery: retry, open on YouTube, or use available local media. No embedding-policy workaround or paid transcription was introduced.
+- YouTube errors have visible recovery: retry, inspect the saved source, or use available local media. Player actions contain no external YouTube link; `YouTube video` always means the embedded source in the current Studio/Room surface. No embedding-policy workaround or paid transcription was introduced.
 
 Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 separates timing confirmation from URL storage; R11 preserves full-table morphology and local playback; R12 uses a runtime projection over one source record; R13 keeps the same database and verifies reload/offline preservation; R14 keeps same-origin storage and frame-deny on compatible shells; R16 adds no provider cost.
 
@@ -39,6 +39,7 @@ Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 s
 - Existing task/import/package/public-reader browser gate passes with full-table inline playback. Source offset and revision survive clean-profile import and immutable publication projection.
 - `smoke:room-media` passes its local-video, exact/partial timing, replay, morphology/scroll and reload regressions. Its harness now reuses the page's initialized DB module instead of importing a second uninitialized module instance; Playwright timeout options use the correct argument position.
 - `smoke:reader-parity`, API smoke and 39 release/style lock checks passed. No parity-locked table builder was changed.
+- The 3.11.502 selector regression keeps both sources visible, asserts exactly one `aria-pressed` source, proves zero external links in the action panel, switches local→YouTube in Studio and Room, and compares rows, source metadata and `review_log` before/after. Chrome real-clock playback, RU/HE 380 px screenshots, the task/package/public-reader browser flow, 1428/1428 unit tests, 233 i18n checks, 321 train-queue checks, Room media, karaoke, API and 71/71 offline shell-integrity checks pass locally.
 
 Physical iPhone/Safari/PWA/VoiceOver acceptance remains pending. No manual owner-card/source/SRS edit, paid-provider request or owner-content publication is part of this correction. Live opening/playback can update the ordinary reading position.
 
