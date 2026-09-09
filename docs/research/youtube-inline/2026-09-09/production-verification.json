@@ -251,9 +251,20 @@
           "gzip_after_first_full_run": 148.2,
           "gzip_before_second_full_run": 148.2,
           "gzip_after_second_full_run": 160.6,
-          "gzip_after_shell_and_health_probes": 160.6
+          "gzip_after_shell_and_health_probes": 160.6,
+          "gzip_after_idle_follow_up": 47.58
         },
         "host_available_memory_mb_after_final_probes": 1960,
+        "idle_follow_up": {
+          "at": "2026-09-09T17:37:25Z",
+          "host_available_memory_mb": 2079,
+          "application_restart_count": 0,
+          "application_status": "running",
+          "application_oom_killed": false,
+          "health_status": 200,
+          "config_status": 200,
+          "version": "3.11.503"
+        },
         "host_swap_mb": 0
       },
       "external_corroboration": {
