@@ -432,5 +432,142 @@
     "paid_provider_requests": 0,
     "owner_content_publication": false,
     "physical_iphone": "PENDING"
+  },
+  "release_3_11_505": {
+    "verified_at": "2026-09-09T20:15:40.776Z",
+    "version": "3.11.505",
+    "commit": "b5e7ff6310ec243304811c4b39f2ebf79ed53bf0",
+    "deployment": {
+      "coolify_id": "e9j9mu9p1jkz6j04utiysfks",
+      "trigger": "Webhook",
+      "started_at": "2026-09-09T20:05:30Z",
+      "ended_at": "2026-09-09T20:08:12Z",
+      "duration": "02m 42s",
+      "status": "Success"
+    },
+    "revision_alignment": {
+      "local_head": "b5e7ff6310ec243304811c4b39f2ebf79ed53bf0",
+      "origin_main": "b5e7ff6310ec243304811c4b39f2ebf79ed53bf0",
+      "coolify_commit": "b5e7ff6310ec243304811c4b39f2ebf79ed53bf0",
+      "served_version": "3.11.505"
+    },
+    "repeated_health_config_pairs": {
+      "count": 8,
+      "health_path": "/healthz",
+      "health_status": 200,
+      "config_status": 200,
+      "version": "3.11.505"
+    },
+    "shell_integrity": {
+      "version": "3.11.505",
+      "paths": 71,
+      "matched": 71,
+      "failures": [],
+      "status": "PASS"
+    },
+    "served_encoding_with_accept_br_gzip": {
+      "index": "gzip",
+      "library": "gzip"
+    },
+    "inline_browser": {
+      "video": "PngchpnAS5E",
+      "clean_ephemeral_profile": true,
+      "ok": true,
+      "stale_state_regression": {
+        "session_card_rows": 3,
+        "stale_ide_physics_rows": 16,
+        "physics_paint_observed": false,
+        "compatible_restore_cycles": 4,
+        "isolated_restore_cycles": 3
+      },
+      "results": [
+        {
+          "surface": "studio",
+          "native_player_follow": true,
+          "from": 1.5,
+          "to": 2.0278680648498533,
+          "active_row": 0
+        },
+        {
+          "surface": "studio",
+          "row": 2,
+          "time": 26.006054
+        },
+        {
+          "surface": "studio",
+          "row": 0,
+          "time": 4.009187
+        },
+        {
+          "surface": "studio",
+          "row": 1,
+          "time": 14.012336
+        },
+        {
+          "surface": "studio",
+          "morphology_pause_resume": true,
+          "from": 14.012336,
+          "to": 14.32155884550476
+        },
+        {
+          "surface": "studio-local",
+          "native_media_follow": true,
+          "active_row": 0
+        },
+        {
+          "surface": "room",
+          "youtube_full_width": {
+            "bar": 856,
+            "mount": 856,
+            "iframe": 856,
+            "table": 880
+          }
+        },
+        {
+          "surface": "room",
+          "native_player_follow": true,
+          "from": 1.5,
+          "to": 2.021008809265137,
+          "active_row": 0
+        },
+        {
+          "surface": "room",
+          "row": 2,
+          "time": 26.009904
+        },
+        {
+          "surface": "room",
+          "row": 0,
+          "time": 4.01344
+        },
+        {
+          "surface": "room",
+          "row": 1,
+          "time": 14.016396
+        },
+        {
+          "surface": "room",
+          "morphology_pause_resume": true,
+          "from": 14.016396,
+          "to": 14.331110022888184
+        }
+      ],
+      "errors": []
+    },
+    "owner_browser": {
+      "surface": "Studio",
+      "mode": "read_only_reload_observation",
+      "reload_observations": 4,
+      "version": "3.11.505",
+      "title": "«Извините, что спрашиваю», Выжившие Нова",
+      "rows": 424,
+      "video": "PngchpnAS5E",
+      "physics_marker_observed": false,
+      "operator_card_source_or_srs_edit": false,
+      "review_log_equality": "NOT_MEASURED"
+    },
+    "paid_provider_requests": 0,
+    "owner_content_publication": false,
+    "physical_iphone": "PENDING"
   }
 }
