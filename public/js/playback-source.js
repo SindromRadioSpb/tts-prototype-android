@@ -60,7 +60,8 @@
     history.push({ revision: history.length + 1,
       source: id ? { kind: 'youtube', video_id: id, url: canonicalUrl(id) } : null,
       offset_ms: input.remove ? 0 : offset,
-      timing: { status: confirmed ? 'owner-confirmed' : 'unverified', basis_sha256: confirmed ? options.basis_sha256 : null },
+      // A default mapping may retain a basis without claiming a human checked it.
+      timing: { status: confirmed ? 'owner-confirmed' : 'unverified', basis_sha256: !input.remove && HASH.test(String(options.basis_sha256 || '')) ? options.basis_sha256 : null },
       created_at: options.now || new Date().toISOString() });
     return validate({ schema: SCHEMA, revision: history.length, history });
   }
@@ -124,8 +125,10 @@
     const current = selected(binding);
     if (!current.source) return {video:null,entries:null,reason:'PLAYBACK_SOURCE_MISSING',revision:binding.revision};
     const result = {video:{platform:'youtube',videoId:current.source.video_id,url:current.source.url},entries:null,reason:null,revision:binding.revision,offset_ms:current.offset_ms};
-    if (current.timing.status === 'unverified') { result.reason = 'PLAYBACK_TIMING_UNVERIFIED'; return result; }
-    if (current.timing.status === 'owner-confirmed' && await timingBasis(audio,rows) !== current.timing.basis_sha256) { result.reason = 'PLAYBACK_TIMING_CHANGED'; return result; }
+    // Product default: the selected YouTube video uses the local source clock.
+    // This is a runtime policy, NOT an owner-confirmed assertion or a DB migration.
+    result.timingPolicy = current.timing.status === 'unverified' ? 'same-video-default' : current.timing.status;
+    if (current.timing.basis_sha256 && await timingBasis(audio,rows) !== current.timing.basis_sha256) { result.reason = 'PLAYBACK_TIMING_CHANGED'; return result; }
     const entries = safeEntries(audio,(rows||[]).length);
     if (!entries) { result.reason = 'PLAYBACK_TIMING_MISSING'; return result; }
     const offset = current.offset_ms/1000;
@@ -148,7 +151,7 @@
     const view=await youtubeView(audio,rows,record);
     return {...(audio || {}),media:null,video:view.video,
       timing:view.entries?{...(audio && audio.timing || {}),entries:view.entries}:null,
-      playbackKind:'youtube',playbackReason:view.reason,playbackRevision:view.revision};
+      playbackKind:'youtube',playbackReason:view.reason,playbackRevision:view.revision,playbackTimingPolicy:view.timingPolicy};
   }
   function isPublished(meta) { return !!(meta && (meta.corpus || meta.public_corpus || meta.group_corpus)); }
   function createRepository(adapter) {

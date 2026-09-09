@@ -20,7 +20,7 @@ try{
    MediaHost.restoreForRows(audio,rows.map(r=>({he:r.he_plain})));audio.timing.entries.forEach((entry,i)=>entry.end=[4,14,26][i]);
    await db.createText({id:'inline',text_key:'inline-key',title:'Inline YouTube fixture',source_text:rows.map(r=>r.he_plain).join('\n'),source_meta_json:JSON.stringify({source:{audio}})});await db.addSentences('inline',rows);
    const c=await StudyVideoSourceUI.context('inline');if(!c.basis)throw new Error('NO_TIMING');
-   await PlaybackSource.createRepository(db).save('inline',{url:'https://youtu.be/'+video,confirmed:true},{expected_revision:0,basis_sha256:c.basis});
+   await PlaybackSource.createRepository(db).save('inline',{url:'https://youtu.be/'+video},{expected_revision:0,basis_sha256:c.basis});
    await v3LibraryOpenText('inline');
    return {rows:await db.getSentences('inline'),reviews:await db.dbQuery('SELECT * FROM review_log'),source: (await db.getTextById('inline')).source_meta_json};
  },video);
@@ -51,21 +51,18 @@ try{
    assert.equal(await page.locator('#v3MediaYtMount iframe').count(),1);
    assert.equal(await page.locator('#v3MediaLocalPlayer').isVisible(),false);
  }
- // Saving a source refreshes the open player immediately, including a pending mapping.
+ // No hidden checkbox: default playback and saving settings retain all row controls.
  await page.evaluate(()=>v3TextMetaOpen('inline'));
  await page.locator('#v3TextMetaVideoSource').waitFor({state:'visible'});
  assert.equal(await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'Источник видео',exact:true}).count(),0);
  await page.locator('#v3TextMetaVideoSource').click();
- await page.locator('dialog.study-source-dialog input[type=checkbox]').uncheck();
- await page.locator('dialog.study-source-dialog').getByRole('button',{name:'Сохранить привязку',exact:true}).click();
- await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackReason==='PLAYBACK_TIMING_UNVERIFIED');
- assert.equal(await page.locator('#proTable .smk-row-replay').count(),0);
- await page.locator('dialog.study-source-dialog input[type=checkbox]').check();
+ assert.equal(await page.locator('dialog.study-source-dialog input[type=checkbox]').count(),0);
  await page.locator('dialog.study-source-dialog').getByRole('button',{name:'Сохранить привязку',exact:true}).click();
  await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackReason===null && document.querySelectorAll('#proTable .smk-row-replay').length===3);
  await page.locator('dialog.study-source-dialog').getByRole('button',{name:'Закрыть',exact:true}).click();
  await page.evaluate(()=>v3TextMetaClose());
  fixture.source=await page.evaluate(async()=>(await (await ensureLocalDB()).getTextById('inline')).source_meta_json);
+ assert.equal(JSON.parse(fixture.source).playback_source.history.at(-1).timing.status,'unverified');
  await page.waitForFunction(()=>!!StudioMediaKaraoke.getAudioEl()||!!document.querySelector('#v3MediaBarNote').dataset.youtubeError,null,{timeout:35000});
  if(process.env.STUDY_VIDEO_EXPECT_DENIED==='1'){
    for(const surface of ['studio','room']){

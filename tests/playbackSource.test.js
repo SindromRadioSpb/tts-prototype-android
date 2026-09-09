@@ -35,8 +35,8 @@ test('runtime source selection overrides local playback without altering acquisi
   const local=await P.playbackAudio({...audio,video:{videoId:A}},rows,{source_meta_json:JSON.stringify({playback_source:detached})});
   assert.deepEqual(local.media,audio.media); assert.equal(local.video,null);
   const pending=await P.playbackAudio(audio,rows,{source_meta_json:{playback_source:P.append(null,{url:`https://youtu.be/${A}`})}});
-  assert.equal(pending.playbackKind,'youtube'); assert.equal(pending.timing,null);
-  assert.equal(pending.playbackReason,'PLAYBACK_TIMING_UNVERIFIED');
+  assert.equal(pending.playbackKind,'youtube'); assert.deepEqual(pending.timing,audio.timing);
+  assert.equal(pending.playbackReason,null);
 });
 
 test('YouTube identity only accepts HTTPS/HTTP official video URLs, never credentials or lookalike hosts', () => {
@@ -44,14 +44,35 @@ test('YouTube identity only accepts HTTPS/HTTP official video URLs, never creden
   for (const url of [`javascript://youtube.com/watch?v=${A}`, `https://user:pw@youtube.com/watch?v=${A}`, `https://youtube.com.evil.test/watch?v=${A}`, `https://youtu.be/${A}/extra`, `https://youtube.com:444/watch?v=${A}`]) assert.equal(P.parseVideoId(url), null, url);
 });
 
-test('attaching another video preserves rows and local clock; unconfirmed timing cannot drive YouTube', async () => {
+test('same-video default enables existing unconfirmed bindings without writing a human assertion', async () => {
   const before = JSON.stringify({audio,rows});
   const binding = P.append(null, { url: `https://youtu.be/${A}`, offset_ms: 2500, confirmed: false }, { now: '2026-09-09T12:00:00Z' });
   const view = await P.youtubeView(audio, rows, binding);
   assert.equal(view.video.videoId, A);
-  assert.equal(view.entries, null);
-  assert.equal(view.reason, 'PLAYBACK_TIMING_UNVERIFIED');
+  assert.deepEqual(view.entries, [{o:0,t:3.5,end:5.5},{o:1,t:7.5,end:10.5}]);
+  assert.equal(view.reason, null);
+  assert.equal(view.timingPolicy, 'same-video-default');
+  assert.equal(P.selected(binding).timing.status,'unverified');
   assert.equal(JSON.stringify({audio,rows}), before);
+});
+
+test('default source settings bind to current timing without claiming owner confirmation', async () => {
+  const basis=await P.timingBasis(audio,rows);
+  const binding=P.append(null,{url:`https://youtu.be/${A}`},{basis_sha256:basis});
+  assert.deepEqual(P.selected(binding).timing,{status:'unverified',basis_sha256:basis});
+  assert.ok((await P.youtubeView(audio,rows,binding)).entries);
+  assert.equal((await P.youtubeView(audio,[{he:'changed'},rows[1]],binding)).reason,'PLAYBACK_TIMING_CHANGED');
+});
+
+test('default playback still rejects missing, invalid and out-of-range timing and retains blind rows', async () => {
+  const binding=P.append(null,{url:`https://youtu.be/${A}`});
+  assert.equal((await P.youtubeView({media:audio.media},rows,binding)).reason,'PLAYBACK_TIMING_MISSING');
+  const invalid=structuredClone(audio);invalid.timing.entries[1].t=-1;
+  assert.equal((await P.youtubeView(invalid,rows,binding)).reason,'PLAYBACK_TIMING_MISSING');
+  const blind=structuredClone(audio);blind.timing.entries[1].blind=true;
+  assert.equal((await P.youtubeView(blind,rows,binding)).entries[1].blind,true);
+  const offset=P.append(null,{url:`https://youtu.be/${A}`,offset_ms:-2000});
+  assert.equal((await P.youtubeView(audio,rows,offset)).reason,'PLAYBACK_OFFSET_OUTSIDE');
 });
 
 test('confirmed mapping uses a separate source clock and invalidates if source rows/timing change', async () => {

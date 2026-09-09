@@ -1,6 +1,6 @@
 'use strict';
 // Read an owner-exported text-card locally into an isolated browser profile.
-// Only the engineering fixture confirms its timing; the owner DB is never changed.
+// Existing unverified metadata must play by default without any confirmation or DB rewrite.
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
 const origin=process.env.STUDY_VIDEO_ORIGIN||'http://127.0.0.1:3340';
 const source=process.argv[2];
@@ -25,19 +25,13 @@ const card=JSON.parse(fs.readFileSync(source,'utf8')).card;
    await db.addSentences('unrelated',[{id:'unrelated-row',he_plain:'שלום',ru:'Previous card'}]);
    await v3LibraryOpenText('unrelated');await v3LibraryOpenText('owner-fixture');
    const c=await StudyVideoSourceUI.context('owner-fixture');
-   return {reason:v3MediaCurrentAudio()?.playbackReason,basis:!!c.basis,coverage:MediaHost.replayCoverage(c.audio,c.rows.length),rows:c.rows.length,reviews:await db.dbQuery('SELECT * FROM review_log')};
+   return {reason:v3MediaCurrentAudio()?.playbackReason,basis:!!c.basis,coverage:MediaHost.replayCoverage(c.audio,c.rows.length),rows:c.rows.length,reviews:await db.dbQuery('SELECT * FROM review_log'),source:(await db.getTextById('owner-fixture')).source_meta_json,sentences:await db.getSentences('owner-fixture')};
   },card);
-  assert.equal(initial.reason,'PLAYBACK_TIMING_UNVERIFIED');assert.equal(initial.basis,true);
+  assert.equal(initial.reason,null);assert.equal(initial.basis,true);
   assert.ok(initial.coverage.playable_rows>0);
-  await page.locator('#v3MediaBar [data-playback-label="source"]').waitFor({state:'visible'});
-  await page.locator('#v3MediaBar [data-playback-label="source"]').click();
-  assert.equal(await page.locator('dialog.study-source-dialog input[type=checkbox]').isEnabled(),true);
+  await page.evaluate(()=>StudyVideoSourceUI.manage('owner-fixture'));
+  assert.equal(await page.locator('dialog.study-source-dialog input[type=checkbox]').count(),0);
   await page.locator('dialog.study-source-dialog').getByRole('button',{name:'Закрыть',exact:true}).click();
-  await page.evaluate(async()=>{
-   const c=await StudyVideoSourceUI.context('owner-fixture'),entry=PlaybackSource.selected(c.record);
-   await PlaybackSource.createRepository(c.ldb).save('owner-fixture',{url:entry.source.url,offset_ms:entry.offset_ms,confirmed:true},{expected_revision:c.record.revision,basis_sha256:c.basis});
-   await v3LibraryOpenText('owner-fixture');
-  });
   await page.waitForFunction(()=>!!StudioMediaKaraoke.getAudioEl()?.isYouTube||!!document.querySelector('#v3MediaBarNote')?.dataset.youtubeError,null,{timeout:35000}).catch(async error=>{
     console.log(await page.evaluate(()=>({note:document.querySelector('#v3MediaBarNote')?.textContent,kind:v3MediaCurrentAudio()?.playbackKind,reason:v3MediaCurrentAudio()?.playbackReason,rows:currentTableData.length,iframes:document.querySelectorAll('#v3MediaYtMount iframe').length,barHidden:document.querySelector('#v3MediaBar').hidden})));
     throw error;
@@ -64,7 +58,9 @@ const card=JSON.parse(fs.readFileSync(source,'utf8')).card;
   assert.equal(await page.locator('#v3MediaYtMount iframe').count(),0);
   const after=await page.evaluate(async()=>({reviews:await __localDB.dbQuery('SELECT * FROM review_log'),coverage:MediaHost.replayCoverage(v3MediaCurrentAudio(),currentTableData.length)}));
   assert.deepEqual(after.reviews,initial.reviews);assert.equal(after.coverage.playable_rows,initial.coverage.playable_rows);
+  assert.equal(await page.evaluate(async()=>(await __localDB.getTextById('owner-fixture')).source_meta_json),initial.source);
+  assert.deepEqual(await page.evaluate(()=>__localDB.getSentences('owner-fixture')),initial.sentences);
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({ok:true,rows:initial.rows,playable:initial.coverage.playable_rows,unconfirmedExplained:true,fixtureOnlyConfirmation:true,realYoutubeRowReplay:!denied,youtubeDenial:denied||null,localPersists:true,errors}));
+  console.log(JSON.stringify({ok:true,rows:initial.rows,playable:initial.coverage.playable_rows,defaultPlayback:true,noConfirmation:true,sourceRowsReviewsUnchanged:true,realYoutubeRowReplay:!denied,youtubeDenial:denied||null,localPersists:true,errors}));
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

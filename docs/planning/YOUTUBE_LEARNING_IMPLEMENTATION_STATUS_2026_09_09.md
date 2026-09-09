@@ -6,6 +6,12 @@ Base: `origin/main` at `02124fb1`; isolated branch `feat/youtube-learning-materi
 
 ## Contract decisions
 
+**Superseded timing UX, 2026-09-10 / 3.11.508:** the owner explicitly removed
+mandatory timing confirmation. Same-video playback is now the default for usable
+table timestamps; no hidden checkbox and no synthetic owner-confirmed history.
+Existing non-null timing basis, invalid/blind timing and detach guards remain.
+See `YOUTUBE_SYNC_EXISTING_AND_NEW_TABLES_2026_09_10.md` for the current contract.
+
 - Per-card canon is `texts.source_meta_json.playback_source`, with append-only bounded revision history and atomic compare-and-swap. Package `external_ref_json` remains original acquisition provenance, not a second editable playback source. Local SHA relinking remains separate.
 - Newly attached YouTube timing is unverified until the owner confirms. The confirmation binds to a deterministic fingerprint of Hebrew rows and local timing; a changed basis disables YouTube timing. Offset changes only the derived YouTube clock.
 - Packages containing playback history use format v3; legacy v2 stays supported. Required source file is hash-covered. Older clients reject v3 instead of dropping the source. Browser migration 052 preserves all old receipts while widening their package format constraint to 2/3; no learner state changes.

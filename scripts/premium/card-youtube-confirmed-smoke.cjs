@@ -1,8 +1,9 @@
 'use strict';
-// Uses an owner-exported JSON only in a fresh test profile. Does not confirm/rewrite sources.
+// Uses an owner-exported JSON only in a fresh test profile. Tests existing confirmed
+// and default/unverified sources without confirmation, rewriting or settings saves.
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
 const origin=process.env.STUDY_VIDEO_ORIGIN||'http://127.0.0.1:3340';
-if(!process.argv[2])throw new Error('Pass a text-card JSON with an already confirmed YouTube source');
+if(!process.argv[2])throw new Error('Pass a text-card JSON with a YouTube source');
 const card=JSON.parse(fs.readFileSync(process.argv[2],'utf8')).card;
 (async()=>{const browser=await chromium.launch({channel:'chrome',headless:true}),errors=[];
  try{
@@ -23,13 +24,15 @@ const card=JSON.parse(fs.readFileSync(process.argv[2],'utf8')).card;
    for(const ratio of [.5,.95])anchors.push(timed.reduce((a,b)=>Math.abs(b.row-c.rows.length*ratio)<Math.abs(a.row-c.rows.length*ratio)?b:a));
    return {anchors,basis:c.basis,savedBasis:PlaybackSource.selected(c.record).timing.basis_sha256,coverage:MediaHost.replayCoverage(c.audio,c.rows.length),source:(await db.getTextById('confirmed-fixture')).source_meta_json,rows:await db.getSentences('confirmed-fixture'),reviews:await db.dbQuery('SELECT * FROM review_log')};
   },card);
-  assert.equal(initial.basis,initial.savedBasis,'opening must preserve the confirmed timing basis');
+  if(initial.savedBasis)assert.equal(initial.basis,initial.savedBasis,'opening must preserve the saved timing basis');
+  assert.equal(await page.evaluate(()=>v3MediaCurrentAudio().playbackReason),null);
   if(process.env.CARD_SYNC_SCREENSHOTS){
    fs.mkdirSync(process.env.CARD_SYNC_SCREENSHOTS,{recursive:true});
    for(const locale of ['ru','he']){
     await page.evaluate(async locale=>{appSetLocale(locale);await StudyVideoSourceUI.manage('confirmed-fixture');},locale);
     await page.setViewportSize({width:380,height:844});
     const bounds=await page.locator('dialog.study-source-dialog').boundingBox();
+    assert.equal(await page.locator('dialog.study-source-dialog input[type=checkbox]').count(),0);
     assert.ok(bounds.x>=0&&bounds.x+bounds.width<=380,'source dialog must fit the mobile viewport');
     await page.locator('dialog.study-source-dialog').screenshot({path:process.env.CARD_SYNC_SCREENSHOTS+'/source-'+locale+'-380.png'});
     await page.evaluate(()=>document.querySelector('dialog.study-source-dialog').close());
