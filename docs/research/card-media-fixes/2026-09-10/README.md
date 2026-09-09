@@ -45,5 +45,17 @@ No owner `review_log` equality claim: exact equality was checked only in test pr
 
 ## Release acceptance
 
-Production deployment and owner-profile retest pending at this source commit.
+3.11.506 / cdd18564 was deployed and repeatedly verified: 71/71 served integrity
+assets match; the production inline YouTube/local fixture and archive test passed.
+In the owner's profile Hadas first switch showed only the local video; F5 retained
+that selection and 425/438 timing. Nova was restored from archive through the new UI.
+The original release commit preceded these production checks; this paragraph updates it.
+
+Follow-up: [existing/new-table synchronization plan](../../../planning/YOUTUBE_SYNC_EXISTING_AND_NEW_TABLES_2026_09_10.md).
+The fresh Nova JSON differs from the old ZIP: its existing confirmation survives
+opening and F5, and real production replay/follow/stop passed on five early/middle/late
+intervals without rewriting confirmation. See `sync-source/nova-production.json`.
+The owner explicitly confirmed both local videos are full unchanged YouTube copies.
+3.11.507 clarifies that source-confirmation route in RU/EN/HE and fixes the source
+dialog's mobile border-box sizing; screenshots in `sync-source/` were inspected.
 Physical iPhone/VoiceOver acceptance is not claimed.
