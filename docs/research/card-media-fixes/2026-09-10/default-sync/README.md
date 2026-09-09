@@ -34,3 +34,22 @@ source metadata, rows and review_log. `card-youtube-confirmed-smoke.cjs` accepts
 both existing confirmed and default sources and checks five recorded intervals.
 Physical Safari/VoiceOver and independently scored timestamp accuracy remain separate.
 No user action is needed on these evidence files.
+
+## Production 3.11.508
+
+Runtime `53d7292c3ebaf23a17ce37e6148f1124ce65272a` served and verified: 71 shell
+hashes plus three repeated no-cache version probes. An initial rolling-cutover
+hash mismatch was not accepted; the stable retry passed.
+`production.json` records five real YouTube replay/follow/stop intervals for each
+owner-exported card. Hadas uses its original unverified JSON with no settings save
+or confirmation; Nova retains its existing confirmation. Source metadata, rows and
+review_log are unchanged in both isolated profiles, including F5. Coverage remains
+425/438 and 423/424; no missing timestamps were guessed.
+The owner's ordinary browser loaded v508, showed the new playback note and a row
+replay button after reload; no owner metadata was modified in this follow-up.
+The broader inline production test's first attempt encountered HTTP 502 asset
+loads and consequently a missing MediaHost on navigation; it is not counted as a
+pass. The runtime container showed zero restarts and OOMKilled=false afterward.
+The independent complete retry passed with zero page errors: real player/row
+following, forward/back replay, local switching, F5/reopen, repeated compatible
+and isolated shell navigation, and Room. See `production-inline.json`.

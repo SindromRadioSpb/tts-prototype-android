@@ -1,0 +1,76 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "surface": "studio",
+      "nativePlayerFollow": true,
+      "from": 1.5,
+      "to": 2.023441963760376,
+      "activeRow": 0
+    },
+    {
+      "surface": "studio",
+      "row": 2,
+      "time": 26.018918
+    },
+    {
+      "surface": "studio",
+      "row": 0,
+      "time": 4.018154
+    },
+    {
+      "surface": "studio",
+      "row": 1,
+      "time": 14.018075
+    },
+    {
+      "surface": "studio",
+      "morphologyPauseResume": true,
+      "from": 14.018075,
+      "to": 14.326583858856202
+    },
+    {
+      "surface": "studio-local",
+      "nativeMediaFollow": true,
+      "activeRow": 0
+    },
+    {
+      "surface": "room",
+      "youtubeFullWidth": {
+        "bar": 856,
+        "mount": 856,
+        "iframe": 856,
+        "table": 880
+      }
+    },
+    {
+      "surface": "room",
+      "nativePlayerFollow": true,
+      "from": 1.5,
+      "to": 2.027637933242798,
+      "activeRow": 0
+    },
+    {
+      "surface": "room",
+      "row": 2,
+      "time": 26.004825
+    },
+    {
+      "surface": "room",
+      "row": 0,
+      "time": 4.007949
+    },
+    {
+      "surface": "room",
+      "row": 1,
+      "time": 14.011856
+    },
+    {
+      "surface": "room",
+      "morphologyPauseResume": true,
+      "from": 14.011856,
+      "to": 14.327403003814696
+    }
+  ],
+  "errors": []
+}

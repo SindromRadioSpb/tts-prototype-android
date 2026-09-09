@@ -1,0 +1,121 @@
+{
+  "runtime_commit": "53d7292c",
+  "version": "3.11.508",
+  "hadas_unverified_original": {
+    "ok": true,
+    "bindingPreserved": true,
+    "sourceRowsReviewsUnchanged": true,
+    "coverage": {
+      "playable_rows": 425,
+      "total_rows": 438,
+      "blind_rows": 13,
+      "ratio": 0.9703196347031964,
+      "label": "425/438",
+      "complete": false
+    },
+    "replay": [
+      {
+        "row": 2,
+        "start": 14,
+        "end": 19,
+        "stopped": 19.016619053405762,
+        "ok": true
+      },
+      {
+        "row": 0,
+        "start": 8,
+        "end": 11,
+        "stopped": 11.011130908447265,
+        "ok": true
+      },
+      {
+        "row": 1,
+        "start": 11,
+        "end": 14,
+        "stopped": 14.013848948501588,
+        "ok": true
+      },
+      {
+        "row": 219,
+        "start": 805,
+        "end": 808,
+        "stopped": 808.0228149198914,
+        "ok": true
+      },
+      {
+        "row": 416,
+        "start": 1613,
+        "end": 1619,
+        "stopped": 1619.0178320076293,
+        "ok": true
+      }
+    ],
+    "errors": []
+  },
+  "nova_existing_confirmation": {
+    "ok": true,
+    "bindingPreserved": true,
+    "sourceRowsReviewsUnchanged": true,
+    "coverage": {
+      "playable_rows": 423,
+      "total_rows": 424,
+      "blind_rows": 1,
+      "ratio": 0.9976415094339622,
+      "label": "423/424",
+      "complete": false
+    },
+    "replay": [
+      {
+        "row": 2,
+        "start": 12,
+        "end": 14,
+        "stopped": 14.02098015449524,
+        "ok": true
+      },
+      {
+        "row": 0,
+        "start": 8,
+        "end": 10,
+        "stopped": 10.013504967575074,
+        "ok": true
+      },
+      {
+        "row": 1,
+        "start": 10,
+        "end": 12,
+        "stopped": 12.008695862670898,
+        "ok": true
+      },
+      {
+        "row": 212,
+        "start": 897,
+        "end": 901,
+        "stopped": 901.0148808226165,
+        "ok": true
+      },
+      {
+        "row": 403,
+        "start": 1577,
+        "end": 1578,
+        "stopped": 1578.010069868393,
+        "ok": true
+      }
+    ],
+    "errors": []
+  },
+  "integrity": {
+    "version": "3.11.508",
+    "verifiedShellAssets": 71,
+    "repeatedVersionProbes": 3
+  },
+  "owner_profile": {
+    "loaded_module": "study-video-source-ui.js?v=508",
+    "replay_button_present": true,
+    "metadata_writes_this_turn": 0
+  },
+  "notes": [
+    "No source confirmation or settings save in either real-card fixture.",
+    "Initial rolling-cutover integrity mismatch was not accepted; stable all-assets retry passed.",
+    "Clock agreement with stored timings is not independent ASR accuracy scoring."
+  ]
+}
