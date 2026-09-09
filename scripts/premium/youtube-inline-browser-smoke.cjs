@@ -125,7 +125,12 @@ try{
  });
  await page.addInitScript(()=>{
   window.__tablePaints=[];
-  new MutationObserver(()=>{const row=document.querySelector('#proTable tbody tr');if(row){const value=row.innerText||'';if(!window.__tablePaints.includes(value))window.__tablePaints.push(value);}})
+  new MutationObserver(records=>{for(const record of records)for(const added of record.addedNodes){
+   const rows=[];
+   if(added.nodeType===1 && added.matches?.('#proTable tbody tr'))rows.push(added);
+   if(added.nodeType===1)rows.push(...added.querySelectorAll?.('#proTable tbody tr')||[]);
+   for(const row of rows){const value=row.innerText||row.textContent||'';if(value&&!window.__tablePaints.includes(value))window.__tablePaints.push(value);}
+  }})
     .observe(document,{subtree:true,childList:true});
  });
  // A late image intentionally never finishes. The real app must restore on
@@ -145,16 +150,27 @@ try{
  await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'Локальный файл',exact:true}).click();
  await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});
  await page.evaluate(()=>{StudioYtPlayer.capability=()=>({supported:false});});
+ await page.evaluate(async()=>{
+  const db=await ensureLocalDB();
+  const physicsRows=Array.from({length:16},(_,index)=>({id:'physics-row-'+index,he_plain:'PHYSICS_IDE_SENTINEL_ROW_'+index,he_niqqud:'PHYSICS_IDE_SENTINEL_ROW_'+index,ru:'wrong IDE task '+index,translit:'physics'}));
+  await db.createText({id:'physics-card',text_key:'physics-key',title:'Physics 1.1',source_text:'PHYSICS_SENTINEL_TEXT'});
+  await db.addSentences('physics-card',physicsRows);
+  localStorage.setItem('v3_ide_mode_enabled','1');
+  localStorage.setItem('v3_ide_state_v1',JSON.stringify({leftTab:'search',rightTab:'notes',leftOpen:true,rightOpen:true,mobileInitCollapsed:false,selectedRowIdx:null,activeTextId:'physics-card',searchQuery:'',searchScope:'both'}));
+ });
  await page.locator('#v3MediaBar .playback-source-actions').getByRole('button',{name:'YouTube-видео',exact:true}).click();await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});
- async function waitForRestored(label){await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && document.querySelectorAll('#proTable tbody tr').length===3,null,{timeout:15000}).catch(async e=>{console.log({label,browserLogs:browserLogs.slice(-20),state:await page.evaluate(async()=>{let context;try{const c=await StudyVideoSourceUI.context('inline');context={audio:!!c.audio,record:!!c.record,sourceMeta:c.card.source_meta_json,basis:c.basis};}catch(error){context={error:error.message,stack:error.stack};}return{session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),context,text:document.getElementById('v3MediaBarNote').textContent};})});throw e;});const paints=await page.evaluate(()=>window.__tablePaints||[]);assert.equal(paints.some(value=>value.includes('PHYSICS_SENTINEL_ROW')),false,label+' must never paint the unrelated Classic cache');}
+ async function waitForRestored(label){await page.waitForFunction(()=>{const ide=document.body.classList.contains('v3-ide-mode');const rows=ide?document.querySelectorAll('#v3IdeCenterContent #proTable tbody tr').length:document.querySelectorAll('#tableContainer #proTable tbody tr').length;return v3MediaCurrentAudio()?.playbackKind==='youtube'&&rows===3;},null,{timeout:15000}).catch(async e=>{console.log({label,browserLogs:browserLogs.slice(-20),state:await page.evaluate(async()=>{let context;try{const c=await StudyVideoSourceUI.context('inline');context={audio:!!c.audio,record:!!c.record,sourceMeta:c.card.source_meta_json,basis:c.basis};}catch(error){context={error:error.message,stack:error.stack};}return{session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,ideRows:document.querySelectorAll('#v3IdeCenterContent #proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),context,text:document.getElementById('v3MediaBarNote').textContent};})});throw e;});const paints=await page.evaluate(()=>window.__tablePaints||[]);assert.equal(paints.some(value=>value.includes('PHYSICS_SENTINEL_ROW')||value.includes('PHYSICS_IDE_SENTINEL_ROW')),false,label+' must never paint an unrelated Classic cache or stale IDE card');}
  await waitForRestored('compatible-0');
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('v3_ide_state_v1')).activeTextId),'inline');
  assert.equal(await page.evaluate(()=>crossOriginIsolated),false);
  assert.equal(await page.evaluate(async()=>!!(await (await ensureLocalDB()).getTextById('inline'))),true);
+ await page.evaluate(()=>{localStorage.setItem('v3_ide_mode_enabled','0');v3NavAwayWithDbClose('/index.html');});
+  await page.waitForURL('**/index.html',{waitUntil:'domcontentloaded'});await waitForRestored('classic-after-ide-conflict');
   for(let cycle=1;cycle<=3;cycle++){
-   await page.evaluate(()=>v3NavAwayWithDbClose('/index.html'));
-   await page.waitForURL('**/index.html',{waitUntil:'domcontentloaded'});await waitForRestored('isolated-'+cycle);
   await page.evaluate(()=>v3NavAwayWithDbClose('/study-studio.html'));
   await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});await waitForRestored('compatible-'+cycle);
+  await page.evaluate(()=>v3NavAwayWithDbClose('/index.html'));
+  await page.waitForURL('**/index.html',{waitUntil:'domcontentloaded'});await waitForRestored('isolated-'+cycle);
  }
  await page.goto(origin+'/study-library.html?canon=skip&open=inline-key');await page.locator('#roomMediaYtMount iframe').waitFor({state:'visible'});
  assert.equal(await page.locator('#roomMediaPlayBtn').count(),0);

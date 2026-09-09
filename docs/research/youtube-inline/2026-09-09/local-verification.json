@@ -1,39 +1,38 @@
 {
-  "at": "2026-09-09T19:23:48.1345409Z",
-  "version": "3.11.504",
+  "at": "2026-09-09T20:02:45.082Z",
+  "version": "3.11.505",
   "unit_tests": 1429,
   "unit_status": "PASS",
   "inline_live": {
     "ok": true,
-    "video": "iG9CE55wbtY",
     "results": [
       {
         "surface": "studio",
         "nativePlayerFollow": true,
         "from": 1.5,
-        "to": 2.024096900817871,
+        "to": 2.027709015258789,
         "activeRow": 0
       },
       {
         "surface": "studio",
         "row": 2,
-        "time": 26.020267
+        "time": 26.01558
       },
       {
         "surface": "studio",
         "row": 0,
-        "time": 4.006339
+        "time": 4.018417
       },
       {
         "surface": "studio",
         "row": 1,
-        "time": 14.010171
+        "time": 14.007171
       },
       {
         "surface": "studio",
         "morphologyPauseResume": true,
-        "from": 14.010171,
-        "to": 14.324737982833863
+        "from": 14.007171,
+        "to": 14.323827837875367
       },
       {
         "surface": "studio-local",
@@ -53,29 +52,29 @@
         "surface": "room",
         "nativePlayerFollow": true,
         "from": 1.5,
-        "to": 2.034058015258789,
+        "to": 2.036019036239624,
         "activeRow": 0
       },
       {
         "surface": "room",
         "row": 2,
-        "time": 26.012806
+        "time": 26.016572
       },
       {
         "surface": "room",
         "row": 0,
-        "time": 4.015769
+        "time": 4.019484
       },
       {
         "surface": "room",
         "row": 1,
-        "time": 14.019888
+        "time": 14.006764
       },
       {
         "surface": "room",
         "morphologyPauseResume": true,
-        "from": 14.019888,
-        "to": 14.863496910354614
+        "from": 14.006764,
+        "to": 15.304235937057495
       }
     ],
     "errors": []
@@ -188,7 +187,7 @@
       "room-he-380.png"
     ],
     "service_worker_shell_integrity": {
-      "version": "3.11.504",
+      "version": "3.11.505",
       "paths": 71,
       "missing": 0,
       "mismatch": 0,
@@ -204,6 +203,17 @@
       "mount": 856,
       "iframe": 856,
       "table": 880
-    }
+    },
+    "stale_ide_card_first_paint": false,
+    "ide_session_state_converged": true
+  },
+  "stale_ide_session_regression": {
+    "status": "PASS",
+    "trigger": "IDE activeTextId points to a 16-row Physics card while the saved session points to the 3-row active YouTube card",
+    "stale_card_painted": false,
+    "ide_state_reconciled_to_session": true,
+    "competing_classic_restore_in_ide": false,
+    "subsequent_compatible_cycles": 3,
+    "subsequent_isolated_cycles": 3
   }
 }
