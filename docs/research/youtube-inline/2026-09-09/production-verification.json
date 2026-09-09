@@ -96,13 +96,15 @@
     "manual_card_or_srs_edit": false
   },
   "later_incident": {
-    "observed_at": "2026-09-09T14:06:30Z",
+    "observed_window_utc": "2026-09-09T13:59:00Z/2026-09-09T14:12:00Z",
     "coolify": "504 Gateway Time-out",
     "site_health": "Request timed out",
     "ssh": "Timed out during banner exchange",
-    "disk_inventory": "UNAVAILABLE",
-    "cleanup_performed": false,
-    "root_cause": "UNDETERMINED"
+    "root_cause": "Host-wide memory and page-cache thrashing without swap starved Coolify, Docker and SSH; process-level initiator not conclusively retained",
+    "bounded_cleanup_performed": true,
+    "cleanup_evidence": "infrastructure-cleanup.json",
+    "recovered_health_probe_pairs": 4,
+    "recovered_health_status": 200
   },
   "physical_iphone": "PENDING"
 }

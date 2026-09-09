@@ -1,6 +1,6 @@
 {
-  "at": "2026-09-09T13:52:26.8001061Z",
-  "version": "3.11.499",
+  "at": "2026-09-09T14:49:24.149Z",
+  "version": "3.11.500",
   "unit_tests": 1428,
   "unit_status": "PASS",
   "inline_live": {
@@ -9,32 +9,44 @@
       {
         "surface": "studio",
         "row": 2,
-        "time": 26.011554017166137
+        "time": 26.002070975204468
       },
       {
         "surface": "studio",
         "row": 0,
-        "time": 4.0145559141693115
+        "time": 4.007534131607056
       },
       {
         "surface": "studio",
         "row": 1,
-        "time": 14.017961912261963
+        "time": 14.008164996185302
+      },
+      {
+        "surface": "studio",
+        "morphologyPauseResume": true,
+        "from": 14.00998,
+        "to": 14.318521034332276
       },
       {
         "surface": "room",
         "row": 2,
-        "time": 26.010776007629396
+        "time": 26.01567619454956
       },
       {
         "surface": "room",
         "row": 0,
-        "time": 4.014931080108642
+        "time": 4.002024912261962
       },
       {
         "surface": "room",
         "row": 1,
-        "time": 14.00225311062622
+        "time": 14.007306017166139
+      },
+      {
+        "surface": "room",
+        "morphologyPauseResume": true,
+        "from": 14.009505,
+        "to": 14.379653122070312
       }
     ],
     "errors": []
@@ -86,5 +98,19 @@
     "log-hygiene"
   ],
   "owner_profile_written": false,
-  "physical_iphone_acceptance": "PENDING"
+  "physical_iphone_acceptance": "PENDING",
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "api_smoke": "PASS",
+  "stalled_window_load_regression": {
+    "resource_left_pending": true,
+    "dom_content_loaded": true,
+    "window_load": false,
+    "compatible_studio_restored_card": true,
+    "rows": 3,
+    "playback_source": "youtube",
+    "page_errors": 0
+  }
 }

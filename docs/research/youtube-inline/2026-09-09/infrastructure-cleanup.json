@@ -1,0 +1,81 @@
+{
+  "incident": {
+    "window_utc": "2026-09-09T13:59:00Z/2026-09-09T14:12:00Z",
+    "symptoms": [
+      "Coolify returned 504 Gateway Time-out",
+      "application health requests timed out",
+      "SSH banner exchange timed out",
+      "Docker health and image-resolution operations timed out"
+    ],
+    "host_capacity": {
+      "cpu_count": 2,
+      "memory_mb": 3819,
+      "swap_mb": 0
+    },
+    "resource_evidence": {
+      "at_2026-09-09T14:10:16Z": {
+        "memory_available_mb": 21,
+        "system_cpu_percent": 96.28,
+        "run_queue": 54,
+        "disk_read_kb_per_sec": 933068.22,
+        "major_faults_per_sec": 7908.34,
+        "direct_page_scan_per_sec": 331816.51
+      }
+    },
+    "finding": "The outage mechanism was host-wide memory and page-cache thrashing with no swap, which starved Coolify, Docker and SSH. It followed the application build/deploy while Docker occupied most persistent disk capacity. The retained metrics do not identify one initiating process with process-level certainty."
+  },
+  "cleanup": {
+    "completed_at": "2026-09-09T14:29:00Z",
+    "authorization": "owner-requested bounded safe cleanup",
+    "before": {
+      "root_disk": { "size_gb": 38, "used_gb": 32, "available_gb": 4.4, "used_percent": 88 },
+      "images": { "total": 13, "active": 8, "size_gb": 14.32, "reclaimable_gb": 4.002 },
+      "build_cache": { "records": 23, "size_gb": 5.041 },
+      "containers": 8,
+      "volumes": 3
+    },
+    "retained": {
+      "active_application_image_commit": "4644ce72b9dc583be5e075d01b106d8edfee18cc",
+      "rollback_application_image_commit": "8a8f5bb37591969081649fc04c22a61a25fc9853",
+      "containers": 8,
+      "volumes": 3,
+      "application_data": true,
+      "backups": true
+    },
+    "removed": {
+      "verified_unreferenced_application_image_commits": [
+        "0931ce463e38b87be9df51d991b13ddd2ce32bdb",
+        "02124fb1ad70811dd9f3f03b2a5c908a6f53a7d9",
+        "bd2c4a2467f84b75e103163dea86b8c30f8d707e"
+      ],
+      "docker_build_cache": true,
+      "containers": 0,
+      "volumes": 0,
+      "backups": 0,
+      "application_data": false
+    },
+    "after": {
+      "root_disk": { "size_gb": 38, "used_gb": 26, "available_gb": 11, "used_percent": 71 },
+      "images": { "total": 10, "active": 8, "size_gb": 7.576, "reclaimable_gb": 1.428 },
+      "build_cache": { "records": 0, "size_gb": 0 },
+      "containers": 8,
+      "healthy_containers": 7,
+      "application_container_without_healthcheck": 1,
+      "volumes": 3,
+      "memory_available_mb": 1856,
+      "health_probe_pairs": 4,
+      "health_status": 200,
+      "client_config_status": 200,
+      "served_version": "3.11.499"
+    },
+    "pre_3_11_500_deploy_check": {
+      "at": "2026-09-09T14:46:03Z",
+      "root_disk_available_gb": 11,
+      "root_disk_used_percent": 71,
+      "memory_available_mb": 1778,
+      "build_cache_gb": 0,
+      "containers": 8,
+      "volumes": 3
+    }
+  }
+}

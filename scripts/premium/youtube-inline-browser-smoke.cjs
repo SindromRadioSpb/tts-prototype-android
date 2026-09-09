@@ -90,8 +90,22 @@ try{
  await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube');
  const after=await page.evaluate(async()=>{const db=await ensureLocalDB();return {rows:await db.getSentences('inline'),reviews:await db.dbQuery('SELECT * FROM review_log'),source:(await db.getTextById('inline')).source_meta_json};});assert.deepEqual(after,fixture);
  // Same OPFS card through the compatible full Studio shell.
+ // A late image intentionally never finishes. The real app must restore on
+ // DOM readiness instead of waiting for an unrelated resource to release
+ // window.load (the production regression this gate was added for).
+ await page.route('**/__linguistpro_load_stall__',()=>{});
+ await page.addInitScript(()=>{
+  if(location.pathname!=='/study-studio.html')return;
+  document.addEventListener('DOMContentLoaded',()=>{
+   const img=document.createElement('img');
+   img.hidden=true;
+   img.alt='';
+   img.src='/__linguistpro_load_stall__';
+   document.body.appendChild(img);
+  },{once:true});
+ });
  await page.evaluate(()=>{StudioYtPlayer.capability=()=>({supported:false});});
- await page.locator('#v3MediaPlayBtn').click();await page.waitForURL('**/study-studio.html');
+ await page.locator('#v3MediaPlayBtn').click();await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && document.querySelectorAll('#proTable tbody tr').length===3).catch(async e=>{console.log(await page.evaluate(()=>({session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),text:document.getElementById('v3MediaBarNote').textContent})));throw e;});
  assert.equal(await page.evaluate(()=>crossOriginIsolated),false);
  assert.equal(await page.evaluate(async()=>!!(await (await ensureLocalDB()).getTextById('inline'))),true);

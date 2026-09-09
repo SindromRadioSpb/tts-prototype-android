@@ -13507,7 +13507,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.499";
+    window.APP_VERSION = "3.11.500";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -50060,10 +50060,11 @@ async function v3NotesDelete() {
 // bind once
 initRowUxDelegatesOnce();
 
-// Restore last opened Library/Dashboard text after reload (F5).
-// Runs after initial UI bootstrap; safe even if the Library modal is closed.
+// Restore last opened Library/Dashboard text after the DOM is ready (F5).
+// Do not wait for window.load: a slow font, image, or third-party resource must
+// not leave the compatible Studio shell without its saved card and media.
 // NAV-DEEPLINK-RUNTIME-01: boot priority is hash > session (ADR-0001)
-window.addEventListener("load", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
 try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchResumeIfNeeded({ openModalIfRunning: false }); } catch (_) {}
 try {
   if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) {
@@ -50117,16 +50118,16 @@ try {
           fromRestore: true,
         };
         v3LibraryOpenText(String(st.textId), opts).catch((e) => {
-          console.warn("restore-on-load: failed to reopen last text", e);
+          console.warn("restore-on-dom-ready: failed to reopen last text", e);
         });
       } catch (e) {
-        console.warn("restore-on-load: failed", e);
+        console.warn("restore-on-dom-ready: failed", e);
       }
     }, 0);
   } catch (e) {
     // non-fatal
   }
-});
+}, { once: true });
 
 // ──────────────────────────────────────────────
 // i18n:changed — re-render dynamic JS content

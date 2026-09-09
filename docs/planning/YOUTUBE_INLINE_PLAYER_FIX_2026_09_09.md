@@ -1,6 +1,6 @@
 # YouTube inside the full Studio and Reading Room — owner workflow correction
 
-Status: implementation verified locally; production 3.11.499 pending verification.
+Status: 3.11.499 verified in production; 3.11.500 compatible-shell restore fix verified locally and awaiting rollout.
 
 ## Owner case and concrete causes
 
@@ -30,6 +30,7 @@ Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 s
 ## Verification
 
 - Red→green source-priority/preservation regression, plus unknown-end seek regression.
+- Red→green compatible-shell boot regression: an image request is deliberately left pending after `DOMContentLoaded`, so `window.load` never fires. The same saved OPFS card, three rows and selected YouTube source must still restore before that unrelated request completes.
 - Full unit suite: 1428 tests passed before final release checks; final run recorded with release evidence.
 - `youtube-inline-browser-smoke.cjs`: actual OPFS local WAV coexists with the selected YouTube source; source UI pending→confirmed refresh; full Studio and Room real YouTube clock; forwards/backwards row replay; morphology on pause; local/YouTube switching; automatic compatible-shell handoff and saved-session restore; RU/HE at 380 px; zero page errors. This is clock/UI evidence, not transcript-quality certification.
 - The same browser runner on localhost with `STUDY_VIDEO_ID=PngchpnAS5E` and `STUDY_VIDEO_EXPECT_DENIED=1`: embed denial and local fallback in both hosts; unchanged rows, manual edit metadata, saved source and `review_log`. On the production origin this URL is playable; the localhost denial is not a production verdict.
@@ -44,4 +45,6 @@ Physical iPhone/Safari/PWA/VoiceOver acceptance remains pending. No manual owner
 
 Release 3.11.499 (`4644ce72`) was verified at 13:56 UTC: 71/71 served shell assets matched Git, real Studio/Room playback and morphology pause/resume passed, and compatible-shell offline reload retained the database. The owner video also played in the owner's Chrome Studio tab. Evidence: `docs/research/youtube-inline/2026-09-09/production-verification.json`.
 
-A later availability incident was observed around 14:01–14:06 UTC: Coolify returned 504, the application health request timed out, and SSH could not complete banner exchange. This is subsequent to successful release verification; its cause is undetermined. Disk/container inventory could not be obtained and no cleanup was performed.
+A later availability incident was observed around 13:59–14:12 UTC. Retained `sar` evidence showed host-wide memory/page-cache thrashing on the 2-vCPU, 3819-MB host with no swap: 21 MB available memory, 96.28% system CPU, run queue 54, about 933 MB/s reads, 7908 major faults/s and 331817 direct page scans/s at 14:10 UTC. Coolify, Docker operations, application health and SSH were starved. The episode followed the build/deploy; the retained evidence establishes the exhaustion mechanism but cannot attribute the initiating work to one process with process-level certainty.
+
+The owner-authorized bounded cleanup retained the running 3.11.499 image, one rollback image, all 8 containers, all 3 volumes, application data and backups. It removed only three verified-unreferenced old application images plus Docker build cache. Root usage fell from 88% (4.4 GB free) to 71% (11 GB free); build cache fell from 5.041 GB to zero. Four consecutive health/config probe pairs returned 200. A read-only pre-3.11.500 check at 14:46 UTC still showed 11 GB free, 1778 MB available memory, zero build cache and the same container/volume counts. Evidence: `docs/research/youtube-inline/2026-09-09/infrastructure-cleanup.json`.
