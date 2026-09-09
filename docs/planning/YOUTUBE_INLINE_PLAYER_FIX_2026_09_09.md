@@ -12,7 +12,7 @@ Read-only Kapture inspection of the saved source form confirmed the supplied URL
 2. The 3.11.498 source-opening action navigated to a reduced text projection instead of the full morphology table.
 3. Session/cache restoration could repaint a table without reconnecting its playback source.
 4. A YouTube seek with an unknown last-segment end converted `null` to 0 and waited for an impossible clock condition.
-5. Separately, the owner's particular URL returns YouTube error 150 in live embedding tests. This restriction cannot be fixed by changing the application player.
+5. The owner's URL returned error 150 on the localhost test origin, but subsequently played on production, including in the owner's Chrome session. The local result must not be generalized into a permanent restriction on that video. Recovery for actual embed failures remains necessary.
 
 ## Implemented contract
 
@@ -32,14 +32,16 @@ Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 s
 - Red→green source-priority/preservation regression, plus unknown-end seek regression.
 - Full unit suite: 1428 tests passed before final release checks; final run recorded with release evidence.
 - `youtube-inline-browser-smoke.cjs`: actual OPFS local WAV coexists with the selected YouTube source; source UI pending→confirmed refresh; full Studio and Room real YouTube clock; forwards/backwards row replay; morphology on pause; local/YouTube switching; automatic compatible-shell handoff and saved-session restore; RU/HE at 380 px; zero page errors. This is clock/UI evidence, not transcript-quality certification.
-- The same browser runner with `STUDY_VIDEO_ID=PngchpnAS5E` and `STUDY_VIDEO_EXPECT_DENIED=1`: live embed denial and local fallback in both hosts; unchanged rows, manual edit metadata, saved source and `review_log`.
+- The same browser runner on localhost with `STUDY_VIDEO_ID=PngchpnAS5E` and `STUDY_VIDEO_EXPECT_DENIED=1`: embed denial and local fallback in both hosts; unchanged rows, manual edit metadata, saved source and `review_log`. On the production origin this URL is playable; the localhost denial is not a production verdict.
 - `youtube-inline-offline-smoke.cjs`: real service-worker install, compatible Studio/Room offline reload, same AccessHandlePool database and exact saved card/rows.
 - Existing task/import/package/public-reader browser gate passes with full-table inline playback. Source offset and revision survive clean-profile import and immutable publication projection.
 - `smoke:room-media` passes its local-video, exact/partial timing, replay, morphology/scroll and reload regressions. Its harness now reuses the page's initialized DB module instead of importing a second uninitialized module instance; Playwright timeout options use the correct argument position.
 - `smoke:reader-parity`, API smoke and 39 release/style lock checks passed. No parity-locked table builder was changed.
 
-Physical iPhone/Safari/PWA/VoiceOver acceptance remains pending. No owner profile write, paid-provider request or owner-content publication is part of this correction.
+Physical iPhone/Safari/PWA/VoiceOver acceptance remains pending. No manual owner-card/source/SRS edit, paid-provider request or owner-content publication is part of this correction. Live opening/playback can update the ordinary reading position.
 
 ## Production verification
 
-Pending deployment convergence and live checks. Stable evidence will be recorded under `docs/research/youtube-inline/2026-09-09/`.
+Release 3.11.499 (`4644ce72`) was verified at 13:56 UTC: 71/71 served shell assets matched Git, real Studio/Room playback and morphology pause/resume passed, and compatible-shell offline reload retained the database. The owner video also played in the owner's Chrome Studio tab. Evidence: `docs/research/youtube-inline/2026-09-09/production-verification.json`.
+
+A later availability incident was observed around 14:01–14:06 UTC: Coolify returned 504, the application health request timed out, and SSH could not complete banner exchange. This is subsequent to successful release verification; its cause is undetermined. Disk/container inventory could not be obtained and no cleanup was performed.

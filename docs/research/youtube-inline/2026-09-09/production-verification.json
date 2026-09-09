@@ -1,0 +1,108 @@
+{
+  "integrity": {
+    "at": "2026-09-09T13:56:36.199Z",
+    "version": "3.11.499",
+    "commit": "4644ce72b9dc583be5e075d01b106d8edfee18cc",
+    "assets": 71,
+    "assets_pass": 71,
+    "failures": [],
+    "study_headers": {
+      "coep": null,
+      "coop": "same-origin",
+      "xfo": "DENY"
+    },
+    "sw_version": "v3.11.499"
+  },
+  "inline": {
+    "ok": true,
+    "results": [
+      {
+        "surface": "studio",
+        "row": 2,
+        "time": 26.00487108773804
+      },
+      {
+        "surface": "studio",
+        "row": 0,
+        "time": 4.0113219122619626
+      },
+      {
+        "surface": "studio",
+        "row": 1,
+        "time": 14.016675998092651
+      },
+      {
+        "surface": "studio",
+        "morphologyPauseResume": true,
+        "from": 14.016717,
+        "to": 14.321655940872192
+      },
+      {
+        "surface": "room",
+        "row": 2,
+        "time": 26.014390853134156
+      },
+      {
+        "surface": "room",
+        "row": 0,
+        "time": 4.014753977111816
+      },
+      {
+        "surface": "room",
+        "row": 1,
+        "time": 14.017257998092651
+      },
+      {
+        "surface": "room",
+        "morphologyPauseResume": true,
+        "from": 14.019911,
+        "to": 14.331918137329101
+      }
+    ],
+    "errors": []
+  },
+  "offline": {
+    "ok": true,
+    "results": [
+      {
+        "path": "/study-studio.html",
+        "isolated": false,
+        "card": true,
+        "rows": 1,
+        "vfs": {
+          "name": "AccessHandlePool",
+          "kind": "sync"
+        },
+        "controlled": true
+      },
+      {
+        "path": "/study-library.html",
+        "isolated": false,
+        "card": true,
+        "rows": 1,
+        "vfs": {
+          "name": "AccessHandlePool",
+          "kind": "sync"
+        },
+        "controlled": true
+      }
+    ],
+    "errors": []
+  },
+  "owner_browser": {
+    "video": "PngchpnAS5E",
+    "surface": "Studio",
+    "observed": "YouTube playback, moving row highlight, paused word morphology, resume",
+    "manual_card_or_srs_edit": false
+  },
+  "later_incident": {
+    "observed_at": "2026-09-09T14:06:30Z",
+    "coolify": "504 Gateway Time-out",
+    "site_health": "Request timed out",
+    "ssh": "Timed out during banner exchange",
+    "disk_inventory": "UNAVAILABLE",
+    "cleanup_performed": false,
+    "root_cause": "UNDETERMINED"
+  },
+  "physical_iphone": "PENDING"
+}

@@ -7,7 +7,8 @@ try{
  const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1180,height:900}}),page=await ctx.newPage();
  page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{for(const key of ['localMode','v3OnboardingSeenV1','onboardingSeen_v1','v3.byokOnboardingDismissed','v3.byokTourCompleted'])localStorage.setItem(key,'1');});
- await page.goto(origin+'/index.html');
+ await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>typeof ensureLocalDB==='function' && !!window.StudyVideoSourceUI);
  const fixture=await page.evaluate(async video=>{
    const db=await ensureLocalDB();appSetLocale('ru');
    const rows=['שלום עולם','בוקר טוב','תודה רבה'].map((he,i)=>({id:'inline-row-'+i,he_plain:he,he_niqqud:he,ru:'Проверка строки '+i,translit:'shalom',edit_meta_json:{ru:{locked:true}}}));
@@ -42,7 +43,8 @@ try{
    for(const surface of ['studio','room']){
      const prefix=surface==='studio'?'v3':'room';
      if(surface==='room'){await page.goto(origin+'/study-library.html?canon=skip&open=inline-key');await page.locator('#roomMediaPlayBtn').click();await page.waitForFunction(()=>!!document.querySelector('#roomMediaBarNote').dataset.youtubeError,null,{timeout:35000});}
-     const code=await page.locator('#'+prefix+'MediaBarNote').getAttribute('data-youtube-error');assert.ok(['101','150'].includes(code));
+     await page.waitForFunction(id=>!!document.getElementById(id).dataset.youtubeError,prefix+'MediaBarNote',{timeout:35000});
+     const code=await page.locator('#'+prefix+'MediaBarNote').getAttribute('data-youtube-error');assert.ok(['101','150'].includes(code),JSON.stringify({surface,code,note:await page.locator('#'+prefix+'MediaBarNote').textContent()}));
      assert.equal(await page.locator('#proTable tbody tr').count(),3);
      await page.locator('#'+prefix+'MediaBar .playback-source-actions').getByRole('button',{name:'Локальный файл',exact:true}).click();
      await page.locator('#'+prefix+'MediaLocalPlayer').waitFor({state:'visible'});
@@ -67,6 +69,11 @@ try{
    await page.locator('.rm-sheet.rm-open').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().paused),true);
    await page.keyboard.press('Escape');
+   const pausedAt=await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().currentTime);
+   await page.locator(surface==='studio'?'#v3MediaPlayBtn':'#roomMediaPlayBtn').click();
+   await page.waitForFunction(t=>{const a=StudioMediaKaraoke.getAudioEl();return a&&!a.paused&&a.currentTime>t+.3;},pausedAt,{timeout:15000});
+   results.push({surface,morphologyPauseResume:true,from:pausedAt,to:await page.evaluate(()=>StudioMediaKaraoke.getAudioEl().currentTime)});
+   await page.evaluate(()=>StudioMediaKaraoke.pause());
  }
  await replay('studio');
  fs.mkdirSync('artifacts/youtube-inline',{recursive:true});
