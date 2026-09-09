@@ -83,7 +83,7 @@
   },
   "physical_device": "NOT_TESTED",
   "gemini_url_pilot": "NOT_QUALIFIED",
-  "production": "PENDING",
+  "production": "PASS_3.11.498_0931ce46",
   "baseline_harness_failures": {
     "portable_browser": "same missing v3PortableGlobalBtn on clean 02124fb1",
     "import_center_browser": "same missing selected material before task wizard on clean 02124fb1",

@@ -1,6 +1,6 @@
 # YouTube learning implementation
 
-Owner approved implementation through production on 2026-09-09. Release candidate ready; production verification pending.
+Owner approved implementation through production on 2026-09-09. Released to production as 3.11.498, runtime commit `0931ce46`. Conditional P5 remains NOT QUALIFIED.
 Canon: [research and implementation plan](YOUTUBE_LEARNING_MATERIAL_RESEARCH_AND_PLAN_2026_09_09.md).
 Base: `origin/main` at `02124fb1`; isolated branch `feat/youtube-learning-materials-2026-09-09`.
 
@@ -27,7 +27,7 @@ Base: `origin/main` at `02124fb1`; isolated branch `feat/youtube-learning-materi
 - `youtube-learning-browser-smoke.cjs`: actual browser SQLite/OPFS, caption import → one mocked translation request → save/package; reload after simulated lost save acknowledgement creates no duplicate and makes no second translation request. Source offset survives clean-profile v3 import, with exact timing and unchanged rows/review_log. Source-dialog RU/HE screenshots inspected.
 - `study-video-live-smoke.cjs`, Chrome, real YouTube `iG9CE55wbtY`: clock advances; replay 24–26 s, backwards 2–4 s, then 12–14 s; pauses at 26.003 / 4.007 / 14.010 seconds, zero highlighted rows in the gap, zero page errors. These are clock fixtures, not a transcript-quality oracle.
 - User pilot video `djzKaEoqka8` (726 seconds): the real iframe returned YouTube error 150. The publisher's embed restriction is respected; the table remains available and the user can open YouTube separately.
-- Production and physical iPhone acceptance remain pending. Version 3.11.498 is being prepared; baseline production and freshly fetched origin/main remain 3.11.497 / `02124fb1`.
+- Production 3.11.498 / `0931ce46` verified on 2026-09-09. Physical iPhone acceptance remains pending. Baseline was 3.11.497 / `02124fb1`.
 
 ## Gemini pilot and conditional P5 gate
 
@@ -43,7 +43,7 @@ Official sources checked on 2026-09-09: [video inputs and clipping](https://ai.g
 
 ## Final local release gates
 
-- Full unit suite: 1427 tests (final run recorded in evidence.json).
+- Full unit suite: 1427/1427 PASS (final run recorded in evidence.json).
 - Actual public-reader browser fixture: publication bridge → sanitized immutable snapshot → clean Room profile → video screen, exact source and derived timing retained; no original video asset required.
 - Plain text → task → card → ZIP download; source UI save/preview/detach PASS. Preparation history belongs to Library, preserving current-text composer actions.
 - Explicit lifecycle pause cancels pending seek intent, so a late seek completion cannot resume playback after backgrounding; red→green regression recorded.
@@ -52,3 +52,15 @@ Official sources checked on 2026-09-09: [video inputs and clipping](https://ai.g
 - [Stable evidence and usage guide](../research/youtube-learning/2026-09-09/README.md). Raw paid-provider responses and keys are excluded from Git.
 
 Do not infer physical-device or independent transcript-quality acceptance from these engineering tests.
+
+
+## Production acceptance — 2026-09-09
+
+- Runtime commit `0931ce463e38b87be9df51d991b13ddd2ce32bdb` pushed to main; Coolify webhook deployment served 3.11.498 by 12:54:25 UTC.
+- 65/65 shell assets match both the served integrity manifest and Git bytes. Service worker v3.11.498; study page has no COEP, COOP same-origin and X-Frame-Options DENY.
+- Five consecutive no-cache config probes: HTTP 200 / 3.11.498.
+- Production fresh-profile task/source/package/public-reader fixtures, plain-text ZIP, source form preview/save/detach and service-worker offline reload PASS; zero page errors. Translation responses in this engineering gate were mocked (two requests for two distinct tasks), not provider-quality evidence.
+- Separate real YouTube playback on production: advancing clock, forwards/backwards row replay; stops at 26.010 / 4.014 / 14.020 seconds, paused and no highlighted gap rows. No transcript-quality claim.
+- Existing Chrome/Kapture successfully loaded the new screen; original owner working tab was not reloaded or modified. No owner profile acceptance claim and no owner content publication.
+- P5 direct Gemini URL route is disabled after the bounded pilot's 503 failures. No additional paid generation was run. Physical Safari/PWA/VoiceOver remain owner-device checks.
+- Machine-readable evidence: [production-verification.json](../research/youtube-learning/2026-09-09/production-verification.json).
