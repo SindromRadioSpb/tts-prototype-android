@@ -2,10 +2,10 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
 const origin=process.env.STUDY_VIDEO_ORIGIN||'http://127.0.0.1:3336';
 const video=process.env.STUDY_VIDEO_ID||'iG9CE55wbtY';
-(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});const errors=[];
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});const errors=[],browserLogs=[];
 try{
  const ctx=await browser.newContext({serviceWorkers:'block',viewport:{width:1180,height:900}}),page=await ctx.newPage();
- page.on('pageerror',e=>errors.push(e.message));
+  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(['warning','error'].includes(m.type()))browserLogs.push(m.type()+': '+m.text());});
  await page.addInitScript(()=>{for(const key of ['localMode','v3OnboardingSeenV1','onboardingSeen_v1','v3.byokOnboardingDismissed','v3.byokTourCompleted'])localStorage.setItem(key,'1');});
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>typeof ensureLocalDB==='function' && !!window.StudyVideoSourceUI);
@@ -106,9 +106,16 @@ try{
  });
  await page.evaluate(()=>{StudioYtPlayer.capability=()=>({supported:false});});
  await page.locator('#v3MediaPlayBtn').click();await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});
- await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && document.querySelectorAll('#proTable tbody tr').length===3).catch(async e=>{console.log(await page.evaluate(()=>({session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),text:document.getElementById('v3MediaBarNote').textContent})));throw e;});
+ async function waitForRestored(label){await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube' && document.querySelectorAll('#proTable tbody tr').length===3,null,{timeout:15000}).catch(async e=>{console.log({label,browserLogs:browserLogs.slice(-20),state:await page.evaluate(async()=>{let context;try{const c=await StudyVideoSourceUI.context('inline');context={audio:!!c.audio,record:!!c.record,sourceMeta:c.card.source_meta_json,basis:c.basis};}catch(error){context={error:error.message,stack:error.stack};}return{session:v3SessionGet(),rows:document.querySelectorAll('#proTable tbody tr').length,base:window.v3ActiveMediaAudio,playback:v3MediaCurrentAudio(),context,text:document.getElementById('v3MediaBarNote').textContent};})});throw e;});}
+ await waitForRestored('compatible-0');
  assert.equal(await page.evaluate(()=>crossOriginIsolated),false);
  assert.equal(await page.evaluate(async()=>!!(await (await ensureLocalDB()).getTextById('inline'))),true);
+  for(let cycle=1;cycle<=3;cycle++){
+   await page.evaluate(()=>v3NavAwayWithDbClose('/index.html'));
+   await page.waitForURL('**/index.html',{waitUntil:'domcontentloaded'});await waitForRestored('isolated-'+cycle);
+  await page.evaluate(()=>v3NavAwayWithDbClose('/study-studio.html'));
+  await page.waitForURL('**/study-studio.html',{waitUntil:'domcontentloaded'});await waitForRestored('compatible-'+cycle);
+ }
  await page.goto(origin+'/study-library.html?canon=skip&open=inline-key');await page.locator('#roomMediaPlayBtn').waitFor({state:'visible'});
  assert.equal(await page.locator('#proTable .smk-row-replay').count(),3);
  await page.locator('#roomMediaPlayBtn').click();await page.waitForFunction(()=>!!StudioMediaKaraoke.getAudioEl(),null,{timeout:35000});await replay('room');

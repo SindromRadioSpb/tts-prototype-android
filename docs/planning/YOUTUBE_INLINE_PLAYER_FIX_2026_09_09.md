@@ -1,6 +1,6 @@
 # YouTube inside the full Studio and Reading Room — owner workflow correction
 
-Status: 3.11.499 verified in production; 3.11.500 compatible-shell restore fix verified locally and awaiting rollout.
+Status: 3.11.499 verified in production; 3.11.500 deployed and exposed a slower media-restore race; 3.11.501 fixes both restore stages and is verified locally pending rollout.
 
 ## Owner case and concrete causes
 
@@ -10,7 +10,7 @@ Read-only Kapture inspection of the saved source form confirmed the supplied URL
 
 1. Both player hosts preferred available local bytes and consulted the editable source only when bytes were absent.
 2. The 3.11.498 source-opening action navigated to a reduced text projection instead of the full morphology table.
-3. Session/cache restoration could repaint a table without reconnecting its playback source.
+3. Session/cache restoration waited for `window.load`; after moving it to DOM readiness, the table could paint while redundant asynchronous media-context resolutions were still in flight on the slower production origin.
 4. A YouTube seek with an unknown last-segment end converted `null` to 0 and waited for an impossible clock condition.
 5. The owner's URL returned error 150 on the localhost test origin, but subsequently played on production, including in the owner's Chrome session. The local result must not be generalized into a permanent restriction on that video. Recovery for actual embed failures remains necessary.
 
@@ -23,6 +23,7 @@ Read-only Kapture inspection of the saved source form confirmed the supplied URL
 - The source-opening action stays in Studio/Room. The small read-only screen remains an explicit source audition tool, not the normal learner route. Redundant Room video-opening chrome is hidden once the normal media bar exists.
 - Chromium keeps its working credentialless embed. Browsers without that capability navigate to `/study-studio.html` or `/study-library.html`: server aliases of the same HTML bytes, with ordinary iframe-compatible headers. They use the same origin, same AccessHandlePool database and same leader/proxy mechanism. There is no database migration or alternate copy of the learner profile.
 - The compatible shells and SQLite glue/WASM are hash-covered in the service-worker precache. Main Studio/Room isolation headers remain unchanged. Live isolated → compatible → offline-reload tests retain the same card and VFS.
+- The final Studio render projects playback from the card, rows and media passport it has already loaded. It does not start another database/package lookup; superseded background refreshes remain serial-guarded. A transient optional source-resolution failure retains the restored local passport instead of blanking the media bar.
 - YouTube errors have visible recovery: retry, open on YouTube, or use available local media. No embedding-policy workaround or paid transcription was introduced.
 
 Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 separates timing confirmation from URL storage; R11 preserves full-table morphology and local playback; R12 uses a runtime projection over one source record; R13 keeps the same database and verifies reload/offline preservation; R14 keeps same-origin storage and frame-deny on compatible shells; R16 adds no provider cost.
@@ -30,7 +31,7 @@ Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 s
 ## Verification
 
 - Red→green source-priority/preservation regression, plus unknown-end seek regression.
-- Red→green compatible-shell boot regression: an image request is deliberately left pending after `DOMContentLoaded`, so `window.load` never fires. The same saved OPFS card, three rows and selected YouTube source must still restore before that unrelated request completes.
+- Red→green compatible-shell boot regression: an image request is deliberately left pending after `DOMContentLoaded`, so `window.load` never fires. The same saved OPFS card, three rows and selected YouTube source must still restore before that unrelated request completes. The final 3.11.501 gate repeats three isolated↔compatible round trips after the first real play-button handoff.
 - Full unit suite: 1428 tests passed before final release checks; final run recorded with release evidence.
 - `youtube-inline-browser-smoke.cjs`: actual OPFS local WAV coexists with the selected YouTube source; source UI pending→confirmed refresh; full Studio and Room real YouTube clock; forwards/backwards row replay; morphology on pause; local/YouTube switching; automatic compatible-shell handoff and saved-session restore; RU/HE at 380 px; zero page errors. This is clock/UI evidence, not transcript-quality certification.
 - The same browser runner on localhost with `STUDY_VIDEO_ID=PngchpnAS5E` and `STUDY_VIDEO_EXPECT_DENIED=1`: embed denial and local fallback in both hosts; unchanged rows, manual edit metadata, saved source and `review_log`. On the production origin this URL is playable; the localhost denial is not a production verdict.

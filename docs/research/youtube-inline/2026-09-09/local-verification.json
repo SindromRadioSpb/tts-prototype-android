@@ -1,6 +1,6 @@
 {
-  "at": "2026-09-09T14:49:24.149Z",
-  "version": "3.11.500",
+  "at": "2026-09-09T15:11:36.636Z",
+  "version": "3.11.501",
   "unit_tests": 1428,
   "unit_status": "PASS",
   "inline_live": {
@@ -9,44 +9,44 @@
       {
         "surface": "studio",
         "row": 2,
-        "time": 26.002070975204468
+        "time": 26.008052017166136
       },
       {
         "surface": "studio",
         "row": 0,
-        "time": 4.007534131607056
+        "time": 4.010843015258789
       },
       {
         "surface": "studio",
         "row": 1,
-        "time": 14.008164996185302
+        "time": 14.018305883651733
       },
       {
         "surface": "studio",
         "morphologyPauseResume": true,
-        "from": 14.00998,
-        "to": 14.318521034332276
+        "from": 14.020315,
+        "to": 14.325637076293946
       },
       {
         "surface": "room",
         "row": 2,
-        "time": 26.01567619454956
+        "time": 26.015045893188475
       },
       {
         "surface": "room",
         "row": 0,
-        "time": 4.002024912261962
+        "time": 4.001284860763549
       },
       {
         "surface": "room",
         "row": 1,
-        "time": 14.007306017166139
+        "time": 14.007796830245972
       },
       {
         "surface": "room",
         "morphologyPauseResume": true,
-        "from": 14.009505,
-        "to": 14.379653122070312
+        "from": 14.009763,
+        "to": 14.714185828338623
       }
     ],
     "errors": []
@@ -111,6 +111,9 @@
     "compatible_studio_restored_card": true,
     "rows": 3,
     "playback_source": "youtube",
+    "prepared_projection_avoids_requery": true,
+    "compatible_restore_cycles": 4,
+    "isolated_restore_cycles": 3,
     "page_errors": 0
   }
 }

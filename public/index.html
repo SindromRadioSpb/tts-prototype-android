@@ -13507,7 +13507,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.500";
+    window.APP_VERSION = "3.11.501";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14825,7 +14825,7 @@ if (header) {
             v3MediaResolverClear();
           }
         }
-        if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+        if (typeof v3MediaBarRefresh === "function") await v3MediaBarRefresh({ id: textId, card: t, rows, audio: window.v3ActiveMediaAudio });
       } catch (_) {}
     }
     try {
@@ -25169,17 +25169,31 @@ function v3MediaEnsureLocalStage(audio, blob) {
 let v3PlaybackAudio = null, v3PlaybackBase = null, v3PlaybackSerial = 0;
 let v3PlaybackRefreshPromise = null, v3PlaybackLocalId = null;
 function v3MediaCurrentAudio() { return v3PlaybackBase === window.v3ActiveMediaAudio ? v3PlaybackAudio : window.v3ActiveMediaAudio; }
-function v3MediaBarRefresh() {
+function v3MediaBarRefresh(prepared) {
   const serial=++v3PlaybackSerial, base=window.v3ActiveMediaAudio;
   const session=v3SessionGet(), id=session && ['saved','library'].includes(session.mode) ? session.textId : null;
   v3PlaybackRefreshPromise=(async()=>{
     let audio=base, original=base;
     if(id && window.StudyVideoSourceUI) {
       try {
-        const ctx=await StudyVideoSourceUI.context(id);
-        original=base || ctx.audio;
-        audio=String(id)===v3PlaybackLocalId ? original : await PlaybackSource.playbackAudio(original,currentTableData,ctx.card);
-      } catch (_) { audio=null; }
+        let ctx, playbackRows=currentTableData;
+        if(prepared && String(prepared.id)===String(id) && prepared.card) {
+          playbackRows=Array.isArray(prepared.rows)?prepared.rows:currentTableData;
+          const metaAudio=window.MediaHost?MediaHost.passportFromTextRow(prepared.card):null;
+          original=base || prepared.audio || metaAudio;
+          if(original && window.MediaHost)MediaHost.restoreForRows(original,playbackRows);
+          ctx={card:prepared.card,audio:original};
+        } else {
+          ctx=await StudyVideoSourceUI.context(id);
+          original=base || ctx.audio;
+        }
+        audio=String(id)===v3PlaybackLocalId ? original : await PlaybackSource.playbackAudio(original,playbackRows,ctx.card);
+      } catch (error) {
+        // Source projection is optional. A transient DB/package resolver failure
+        // must not erase an already restored local media passport.
+        console.warn('[playback-source] refresh failed; retaining original media',error);
+        audio=original;
+      }
     }
     if(serial!==v3PlaybackSerial || base!==window.v3ActiveMediaAudio) return;
     const old=v3MediaCurrentAudio();
@@ -27210,7 +27224,7 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	const renderToken = v3RenderTableFromLibrary(rows);
     // Resolve the playback source against THIS rendered table, after the reset above.
     // Earlier restore passes can still see the preceding card's currentTableData.
-    try { await v3MediaBarRefresh(); } catch (_) {}
+    try { await v3MediaBarRefresh({ id: textId, card: text, rows: currentTableData, audio: window.v3ActiveMediaAudio }); } catch (_) {}
 
 	// BRR-P0-002b — hydrate source_text AFTER render (non-blocking). The lite fetch
 	// above skipped the blob so the table paints ~300ms sooner; the Studio composer,
