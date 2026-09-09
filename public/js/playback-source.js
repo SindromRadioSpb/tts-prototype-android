@@ -136,10 +136,14 @@
   }
   // Runtime projection only. Never persist it over the original acquisition passport:
   // local bytes and their clock remain available when the learner switches back.
-  async function playbackAudio(audio, rows, text) {
+  async function playbackAudio(audio, rows, text, preference) {
+    if (preference === 'local' && audio && audio.media) return {...audio,video:null,playbackKind:'local'};
     const meta=parseMeta(text && (text.source_meta_json || text.sourceMetaJson || text.source_meta));
-    if (!Object.prototype.hasOwnProperty.call(meta,'playback_source')) return audio;
-    const record=validate(meta.playback_source), entry=selected(record);
+    const explicit=Object.prototype.hasOwnProperty.call(meta,'playback_source');
+    if (!explicit && preference !== 'youtube') return audio;
+    const record=explicit?validate(meta.playback_source):fromLegacy(audio);
+    if (!record) return audio;
+    const entry=selected(record);
     if (!entry.source) return audio ? {...audio,video:null} : null;
     const view=await youtubeView(audio,rows,record);
     return {...(audio || {}),media:null,video:view.video,

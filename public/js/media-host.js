@@ -678,6 +678,8 @@
       stage.hidden = false;
       // REFERENCE EQUALITY CONTRACT: entries — ссылка на audio.timing.entries, не копия.
       var entries = audio.timing ? audio.timing.entries : null;
+      var syncNote = stage.querySelector('[data-i18n="studio.media.sourceSync"]');
+      if (syncNote) syncNote.hidden = !entries;
       window.StudioMediaKaraoke.bind({ media: player, entries: entries, rowCount: getRowCount(), onRangeChange: onRangeChange, stopOtherAudio: stopOtherAudio });
       player.onseeked = function () { try { window.StudioMediaKaraoke.syncCurrent(); } catch (_) {} };
       return player;
@@ -698,14 +700,14 @@
       table.querySelectorAll(".smk-row-replay").forEach(function (b) { b.remove(); });
       if (!audio || !audio.timing) return;
       if (audio.video && !audio.media && opts.onReplayVideo) {
-        if (stillActive(audio)) renderRowReplay(table,audio,()=>Promise.resolve(true),t,(idx)=>opts.onReplayVideo(idx,audio));
+        if (stillActive(audio)) renderRowReplay(table,audio,()=>Promise.resolve(stillActive(audio)),t,(idx)=>opts.onReplayVideo(idx,audio));
         return;
       }
       if (!audio.media) return;
       Promise.resolve(resolveBlob(audio)).then(function (blob) {
         if (!blob) return;
         if (!stillActive(audio)) return; // текст сменился, пока резолвили
-        renderRowReplay(table, audio, resolveBlob, t, onReplay);
+        renderRowReplay(table, audio, async function(a) { var b=await resolveBlob(a);return stillActive(a)?b:null; }, t, onReplay);
       }).catch(function () {});
     } catch (_) {}
   }

@@ -5872,6 +5872,7 @@ function roomMediaFollowRange(range) {
 }
 function roomMediaTeardown() {
   roomMediaSetupSerial++;
+  if(roomMediaYtAbort)roomMediaYtAbort.abort();
   try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}
   try { if (roomMediaStage) roomMediaStage.destroy(); } catch (_) {}
   // YT-адаптер привязан к КОНКРЕТНОМУ videoId (спека, ловушка №9) — при смене текста/закрытии
@@ -5913,7 +5914,7 @@ async function roomMediaSetup(textRow, textId) {
   if (serial !== roomMediaSetupSerial) return;
   try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}
   roomMediaBaseAudio=audio;
-  if(window.PlaybackSource && String(textId)!==roomMediaLocalId)audio=await PlaybackSource.playbackAudio(audio,readerRows,textRow);
+  if(window.PlaybackSource)audio=await PlaybackSource.playbackAudio(audio,readerRows,textRow,StudyVideoSourceUI.preferredSource(textId));
   if(!audio || serial!==roomMediaSetupSerial)return;
   if(studyButton)studyButton.hidden=true;
   roomMediaAudio = audio;
@@ -5921,22 +5922,23 @@ async function roomMediaSetup(textRow, textId) {
   bar.hidden = false;
   roomMediaWireOnce();
   roomMediaRefresh();
+  const playbackRecord=PlaybackSource.fromText(textRow,roomMediaBaseAudio);
   if(window.StudyVideoSourceUI)StudyVideoSourceUI.playerActions(bar,{
     id:textId,audio,local:roomMediaBaseAudio && roomMediaBaseAudio.media,
-    onLocal:()=>{roomMediaLocalId=String(textId);roomMediaSetup(textRow,textId);},
-    onYoutube:()=>{if(String(textId)===roomMediaLocalId){roomMediaLocalId=null;roomMediaSetup(textRow,textId);}else roomMediaEnsureYoutubeStage(audio);}
+    onLocal:()=>{StudyVideoSourceUI.selectSource(textId,'local');roomMediaSetup(textRow,textId);},
+    onYoutube:playbackRecord && PlaybackSource.selected(playbackRecord).source?()=>{StudyVideoSourceUI.selectSource(textId,'youtube');roomMediaSetup(textRow,textId);}:null
   });
 }
-let roomMediaBaseAudio=null, roomMediaLocalId=null;
+let roomMediaBaseAudio=null;
 window.addEventListener('playback-source-changed',async e=>{
   if(String(readerTextId)!==String(e.detail.textId))return;
   const id=readerTextId,ctx=await StudyVideoSourceUI.context(id);
   if(String(readerTextId)!==String(id))return;
-  roomMediaLocalId=null;await roomMediaSetup(ctx.card,id);
+  StudyVideoSourceUI.selectSource(id,'youtube');await roomMediaSetup(ctx.card,id);
 });
 window.StudyVideoInlineOpen=async id=>{
   if(String(readerTextId)!==String(id))return;
-  roomMediaLocalId=null;const ctx=await StudyVideoSourceUI.context(id);
+  StudyVideoSourceUI.selectSource(id,'youtube');const ctx=await StudyVideoSourceUI.context(id);
   await roomMediaSetup(ctx.card,id);$('roomMediaBar').scrollIntoView({block:'start'});
 };
 function roomMediaRefresh() {
@@ -5956,7 +5958,7 @@ function roomMediaRefresh() {
       if (note) note.textContent = tt('studio.media.fileMissing', 'Аудио-файл не найден в этом браузере');
       if (link && readerTextId != null) { link.href = deepLinkForText(readerTextId); link.hidden = false; }
     } else if (!blob && hasVideo && note) { note.textContent = tt('studio.media.viaYouTube', 'Воспроизведение через YouTube'); }
-    if(audio.playbackKind && note)note.textContent=StudyVideoSourceUI.playbackNote(audio);
+    if(audio.playbackKind==='youtube' && note)note.textContent=StudyVideoSourceUI.playbackNote(audio);
     if (blob) { const st = roomMediaStageInst(); if (st) st.ensure(audio, blob); }
     else {
       if (roomMediaStage) roomMediaStage.destroy();
@@ -5976,7 +5978,7 @@ function roomMediaAugment() {
     resolveBlob: (a) => (res ? res.resolve(a) : Promise.resolve(null)),
     t: (k) => tt(k, k),
     stillActive: (a) => roomMediaAudio === a,
-    onReplayVideo:async(idx,audio)=>{const adapter=await roomMediaEnsureYoutubeStage(audio);if(roomMediaAudio===audio && adapter)await StudioMediaKaraoke.playSegment(idx);},
+    onReplayVideo:async(idx,audio)=>{const adapter=await roomMediaEnsureYoutubeStage(audio);if(roomMediaAudio===audio && adapter)await StudyVideoSourceUI.replayRow(idx,$('roomMediaBarNote'),()=>roomMediaAudio===audio);},
     onReplay: async (rowIdx, audio, blob) => {
       const st = roomMediaStageInst(); if (!st) return;
       const player = st.ensure(audio, blob);   // bind внутри дергает stopOtherAudio при fresh-run
@@ -5984,6 +5986,7 @@ function roomMediaAugment() {
     },
   });
 }
+let roomMediaYtAbort=null;
 async function roomMediaEnsureYoutubeStage(audio) {
   if(!audio || roomMediaAudio!==audio || !audio.video || !audio.video.videoId)return null;
   delete $('roomMediaBarNote').dataset.youtubeError;
@@ -6003,7 +6006,8 @@ async function roomMediaEnsureYoutubeStage(audio) {
     const mountEl = $('roomMediaYtMount'); if (!mountEl) return null;
     mountEl.hidden = false;
     const wantedVideoId = audio.video.videoId;
-    roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId)
+    roomMediaYtAbort=new AbortController();
+    roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId,{signal:roomMediaYtAbort.signal})
       .then((adapter) => {
         const stillWanted = roomMediaAudio === audio;
         if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mountEl.hidden = true; return null; }
@@ -6019,7 +6023,11 @@ async function roomMediaEnsureYoutubeStage(audio) {
     if(!adapter && roomMediaAudio===audio && !roomMediaYtCreating)return roomMediaEnsureYoutubeStage(audio);
     return adapter;
   }
-  catch (error) { StudyVideoSourceUI.playerError($('roomMediaBarNote'),error); return null; }
+  catch (error) {
+    if(roomMediaAudio!==audio)return null;
+    if(error.code==='YT_CREATE_CANCELLED')return roomMediaEnsureYoutubeStage(audio);
+    StudyVideoSourceUI.playerError($('roomMediaBarNote'),error); return null;
+  }
 }
 async function roomMediaPlayOriginal() {
   const audio = roomMediaAudio; if (!audio || !window.StudioMediaKaraoke) return;

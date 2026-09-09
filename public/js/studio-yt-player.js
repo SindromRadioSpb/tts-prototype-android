@@ -185,11 +185,14 @@
     try { if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe); } catch (_) {}
   }
 
-  function create(mountEl, videoId) {
+  function create(mountEl, videoId, options) {
+    var signal = options && options.signal;
+    var cancelled = function () { return Object.assign(new Error('player cancelled'), { code: 'YT_CREATE_CANCELLED' }); };
     var cap = capability();
     if (!cap.supported) return Promise.reject(Object.assign(new Error(cap.reason), { code: "YT_UNSUPPORTED" }));
     if (!ID_RE.test(String(videoId || ""))) return Promise.reject(Object.assign(new Error("bad id"), { code: "YT_BAD_ID" }));
     return loadApi().then(function () {
+      if (signal && signal.aborted) throw cancelled();
       return new Promise(function (resolve, reject) {
         var iframe = document.createElement("iframe");
         if (cap.reason !== 'ordinary-embed') iframe.setAttribute("credentialless", "");
@@ -202,9 +205,16 @@
                      "?enablejsapi=1&playsinline=1&rel=0&origin=" + encodeURIComponent(location.origin);
         mountEl.appendChild(iframe);
         var settled = false;
+        function removeAbort() { if (signal) signal.removeEventListener('abort', abort); }
+        function abort() {
+          if (settled) return;
+          settled = true; clearTimeout(to); removeAbort();
+          destroyFailedPlayer(player, iframe);
+          reject(cancelled());
+        }
         var to = setTimeout(function () {
           if (settled) return;
-          settled = true;
+          settled = true; removeAbort();
           destroyFailedPlayer(player, iframe);
           reject(Object.assign(new Error("ready timeout"), { code: "YT_NOT_READY" }));
         }, 20000);
@@ -213,7 +223,7 @@
           events: {
             onReady: function () {
               if (settled) return;
-              settled = true; clearTimeout(to);
+              settled = true; clearTimeout(to); removeAbort();
               resolve(adapter);
             },
             onStateChange: function (e) {
@@ -230,7 +240,7 @@
             onError: function (e) {
               if (adapter) { adapter._clearIntent(); adapter._cancelSeek(); adapter._emit("error", e.data); }
               if (settled) return;
-              settled = true; clearTimeout(to);
+              settled = true; clearTimeout(to); removeAbort();
               destroyFailedPlayer(player, iframe);
               reject(Object.assign(new Error("yt error " + e.data), { code: "YT_EMBED_DENIED", ytCode: e.data }));
             },
@@ -238,6 +248,7 @@
           },
         });
         adapter = makeAdapter(player, iframe);
+        if (signal) { signal.addEventListener('abort', abort, {once:true}); if (signal.aborted) abort(); }
       });
     });
   }

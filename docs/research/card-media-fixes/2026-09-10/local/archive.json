@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "immediateUndo": true,
+  "archiveFilter": true,
+  "restore": true,
+  "rowsAndReviewsUnchanged": true,
+  "mobile": [
+    "ru",
+    "he"
+  ],
+  "errors": []
+}

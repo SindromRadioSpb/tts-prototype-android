@@ -229,6 +229,23 @@ HangingPlayer.prototype.playVideo = function () {};
 HangingPlayer.prototype.pauseVideo = function () {};
 HangingPlayer.prototype.destroy = function () { this._destroyed = true; };
 
+test('switching source cancels an unready iframe immediately and ignores its late ready event', async () => {
+  installBrowserMocks(); HangingPlayer.instances.length=0; global.window.YT={Player:HangingPlayer};
+  try {
+    const mod=freshModule(), mount=makeFakeEl('div'), controller=new AbortController();
+    const pending=mod.create(mount,'iG9CE55wbtY',{signal:controller.signal});
+    await flushMicrotasks();
+    assert.equal(mount.children.length,1);
+    const player=HangingPlayer.instances[0];
+    controller.abort();
+    await assert.rejects(pending,{code:'YT_CREATE_CANCELLED'});
+    assert.equal(mount.children.length,0);
+    assert.equal(player._destroyed,true);
+    player._opts.events.onReady();
+    assert.equal(mount.children.length,0);
+  } finally {uninstallBrowserMocks();}
+});
+
 // Models the REAL YouTube IFrame API's async gap: playVideo()/pauseVideo() are fire-and-forget
 // postMessage calls that do NOT update getPlayerState() by themselves — only a later
 // onStateChange postMessage (simulated here via _fireState()) does. FakePlayer above updates

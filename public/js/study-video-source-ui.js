@@ -7,6 +7,20 @@
   };
   function locale(){return ['ru','en','he'].includes(document.documentElement.lang)?document.documentElement.lang:'ru';}
   function label(key){return text[locale()][key];}
+  // A device-local viewing preference, not acquisition provenance or learner state.
+  const choices=new Map();
+  function preferredSource(id){
+    if(id==null)return null;
+    const key=String(id);
+    if(choices.has(key))return choices.get(key);
+    try{const value=localStorage.getItem('lp.playback-source.v1:'+key);return value==='local'||value==='youtube'?value:null;}catch(_){return null;}
+  }
+  function selectSource(id,value){
+    if(id==null)return;
+    choices.set(String(id),value);
+    try{localStorage.setItem('lp.playback-source.v1:'+String(id),value);}catch(_){}
+  }
+  window.addEventListener('storage',event=>{if(event.key?.startsWith('lp.playback-source.v1:'))choices.delete(event.key.slice('lp.playback-source.v1:'.length));});
   const playerText={
     ru:{youtube:'YouTube-видео',local:'Локальный файл',sourceGroup:'Источник воспроизведения',pending:'YouTube · синхронизация не подтверждена. Проверьте её в «Источник видео».',changed:'YouTube · строки или тайминги изменились. Проверьте синхронизацию заново.',ready:'YouTube · строки синхронизированы',denied:'YouTube запретил встраивание этого ролика. Проверьте источник видео или выберите локальный файл.',failed:'YouTube недоступен. Нажмите «YouTube-видео» ещё раз или выберите локальный файл.',blocked:'Нажмите ▶ в самом плеере YouTube.',savedPending:'Привязка сохранена. Синхронизация не подтверждена.',savedReady:'Привязка сохранена. Синхронизация включена.',savedLocal:'YouTube отвязан. Доступен исходный локальный файл.'},
     en:{youtube:'YouTube video',local:'Local file',sourceGroup:'Playback source',pending:'YouTube · synchronization is unconfirmed. Check Video source.',changed:'YouTube · rows or timing changed. Check synchronization again.',ready:'YouTube · rows synchronized',denied:'YouTube does not allow this video to be embedded. Check Video source or use the local file.',failed:'YouTube is unavailable. Select YouTube video again or use the local file.',blocked:'Press ▶ in the YouTube player.',savedPending:'Video source saved. Synchronization is unconfirmed.',savedReady:'Video source saved. Synchronization enabled.',savedLocal:'YouTube detached. The original local file is available.'},
@@ -15,6 +29,11 @@
   function playbackNote(audio){const t=playerText[locale()];return audio.playbackReason?(audio.playbackReason==='PLAYBACK_TIMING_CHANGED'?t.changed:t.pending):t.ready;}
   function playerError(node,error){if(!node)return;node.dataset.youtubeError=String(error.ytCode || error || '');node.textContent=[101,150].includes(Number(error.ytCode || error))?playerText[locale()].denied:playerText[locale()].failed;}
   function watchPlayer(adapter,node,audio){adapter.addEventListener('error',e=>playerError(node,e));adapter.addEventListener('blocked',()=>{node.textContent=playerText[locale()].blocked;});adapter.addEventListener('play',()=>{delete node.dataset.youtubeError;node.textContent=playbackNote(audio);});}
+  async function replayRow(index,node,stillActive){
+    const result=await StudioMediaKaraoke.playSegment(index);
+    if(stillActive && !stillActive())return;
+    if(result && !result.ok && result.reason!=='YT_SEEK_CANCELLED')playerError(node,{ytCode:result.reason});
+  }
   function playerActions(bar,options){
     if(!bar)return;let actions=bar.querySelector('.playback-source-actions');if(actions)actions.remove();
     if(!options.id)return;
@@ -32,6 +51,9 @@
     }
     const note=bar.querySelector('[id$="BarNote"]');
     if(note){delete note.dataset.youtubeError;if(options.audio && options.audio.playbackKind==='youtube')note.dataset.playbackReason=options.audio.playbackReason || '';else delete note.dataset.playbackReason;}
+    if(options.audio && options.audio.playbackKind==='youtube' && options.audio.playbackReason){
+      button(actions,label('source'),()=>manage(options.id),'source');
+    }
   }
   function compatibleShell(){
     const url=new URL(location.href);url.pathname=url.pathname.includes('library')?'/study-library.html':'/study-studio.html';
@@ -58,7 +80,16 @@
     const sentences=await ldb.getSentences(String(id));
     const rows=sentences.map(row=>({...row,he:row.he || row.he_plain || '',ru:row.ru || '',tr:row.tr || row.translit || ''}));
     let audio=MediaHost.passportFromTextRow(card);if(audio)MediaHost.restoreForRows(audio,rows);
-    if(window.StudioMediaPackage)try{const active=await StudioMediaPackage.activateTextBinding(String(id));audio=MediaHost.pickExactBindingPassport(audio,active && active.media_passport,rows.length);}catch(_){}
+    if(window.StudioMediaPackage)try{
+      // Source inspection is read-only: activation emits workspace events and replaces
+      // the active player's passport, including while a source switch is in flight.
+      const repo=StudioMediaPackage.browserRepository(),binding=await repo.getTextBinding(String(id));
+      if(binding){
+        const revision=await repo.getRevision(binding.revision_id),media=await repo.getPackage(binding.package_id);
+        const exact=revision&&media?StudioMediaPackage.buildExactBindingPassport(revision,binding,media):null;
+        audio=MediaHost.pickExactBindingPassport(audio,exact,rows.length);
+      }
+    }catch(_){}
     if(audio)MediaHost.restoreForRows(audio,rows);
     const record=PlaybackSource.fromText(card,audio);
     return {ldb,card,rows,audio,record,basis:await PlaybackSource.timingBasis(audio,rows)};
@@ -115,5 +146,5 @@
     function renderHistory(){list.replaceChildren();if(ctx.record)ctx.record.history.forEach(entry=>{const li=document.createElement('li');li.textContent=(entry.source?entry.source.url:t.replaced)+' · '+entry.offset_ms/1000+' s';list.append(li);});}renderHistory();
     dialog.addEventListener('close',()=>{dialog.remove();if(oldFocus && oldFocus.isConnected)oldFocus.focus();});document.body.append(dialog);dialog.showModal();url.focus();
   }
-  window.StudyVideoSourceUI={open,manage,context,launch,label,playbackNote,playerError,watchPlayer,playerActions,compatibleShell};
+  window.StudyVideoSourceUI={open,manage,context,launch,label,playbackNote,playerError,watchPlayer,replayRow,playerActions,compatibleShell,preferredSource,selectSource};
 })();

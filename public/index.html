@@ -4710,6 +4710,8 @@ body.theme-dark .p2-portable-dialog { --portable-ink:#5eead4; --portable-error:#
   align-items: center;
   margin-bottom: 10px;
 }
+.v3-library-archive-toggle { display:flex; align-items:center; gap:6px; font-size:13px; }
+#v3LibraryIncludeArchived { width:auto; margin:0; }
 
 .v3-lib-toolbar input[type="text"]{
   flex: 1;
@@ -12005,6 +12007,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
     <div class="v3-modal-body">
      <div class="v3-lib-toolbar">
+  <label class="v3-library-archive-toggle"><input id="v3LibraryIncludeArchived" type="checkbox" onchange="v3LibraryRefresh()" /> <span data-i18n="library.includeArchived">Включая архив</span></label>
   <input
     id="v3LibrarySearch"
     type="text"
@@ -13307,9 +13310,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=214"></script>
-<script src="/i18n/locales/en.js?v=214"></script>
-<script src="/i18n/locales/he.js?v=214"></script>
+<script src="/i18n/locales/ru.js?v=215"></script>
+<script src="/i18n/locales/en.js?v=215"></script>
+<script src="/i18n/locales/he.js?v=215"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13413,9 +13416,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
 <link rel="stylesheet" href="/css/study-video-source.css?v=505">
-<script src="/js/playback-source.js"></script>
+<script src="/js/playback-source.js?v=506"></script>
 <script src="/js/study-video-transfer.js"></script>
-<script src="/js/study-video-source-ui.js?v=505"></script>
+<script src="/js/study-video-source-ui.js?v=506"></script>
 <script src="/js/learning-material-task.js"></script>
 <script src="/js/learning-material-task-ui.js"></script>
 <script src="/js/portable-learning-package-core.js"></script>
@@ -13440,7 +13443,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-karaoke.js"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/media-host.js?v=499"></script>
+<script src="/js/media-host.js?v=506"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13456,7 +13459,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      this page's own inline script block below (v3MediaBarRefresh/v3MediaPlayOriginal call
      window.StudioYtPlayer directly). -->
 <script src="/js/captions-parse.js"></script>
-<script src="/js/studio-yt-player.js"></script>
+<script src="/js/studio-yt-player.js?v=506"></script>
 
 <!-- W2-S11 graded-retell deps — corpus-vocab.js provides the canon coverage-zone engine
      (window.CorpusVocab.CFG.KNOWN_STATES/classifyZone) that studio-retell.js's
@@ -13505,7 +13508,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.505";
+    window.APP_VERSION = "3.11.506";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -24046,9 +24049,7 @@ async function v3NotesSearchNow(scope, opts) {
   if (scope === "dash") {
     includeArchived = !!(document.getElementById("v3DashIncludeArchived") && document.getElementById("v3DashIncludeArchived").checked);
   } else {
-    // Library: по текущей семантике библиотека грузит тексты без includeArchived-параметра,
-    // поэтому для notes search тоже держим includeArchived=0
-    includeArchived = false;
+    includeArchived = !!document.getElementById('v3LibraryIncludeArchived')?.checked;
   }
 
   const tagMode = (typeof v3GetTagMatchMode === "function") ? v3GetTagMatchMode() : "all";
@@ -24345,6 +24346,8 @@ async function v3RowsSearchNow(scope, opts) {
   let includeArchived = false;
   if (scope === "dash") {
     includeArchived = !!(document.getElementById("v3DashIncludeArchived") && document.getElementById("v3DashIncludeArchived").checked);
+  } else {
+    includeArchived = !!document.getElementById('v3LibraryIncludeArchived')?.checked;
   }
 
   const tagMode = (typeof v3GetTagMatchMode === "function") ? v3GetTagMatchMode() : "all";
@@ -25206,27 +25209,24 @@ function v3MediaEnsureLocalStage(audio, blob) {
 }
 
 let v3PlaybackAudio = null, v3PlaybackBase = null, v3PlaybackSerial = 0;
-let v3PlaybackRefreshPromise = null, v3PlaybackLocalId = null;
+let v3PlaybackRefreshPromise = null;
 function v3MediaCurrentAudio() { return v3PlaybackBase === window.v3ActiveMediaAudio ? v3PlaybackAudio : window.v3ActiveMediaAudio; }
 function v3MediaBarRefresh(prepared) {
   const serial=++v3PlaybackSerial, base=window.v3ActiveMediaAudio;
   const session=v3SessionGet(), id=session && ['saved','library'].includes(session.mode) ? session.textId : null;
   v3PlaybackRefreshPromise=(async()=>{
-    let audio=base, original=base;
+    let audio=base, original=base, hasYoutube=!!(base && base.video && base.video.videoId);
+    if(!prepared && id && currentTableData?.some(row=>row._v3_textId && String(row._v3_textId)!==String(id)))return;
     if(id && window.StudyVideoSourceUI) {
       try {
-        let ctx, playbackRows=currentTableData;
-        if(prepared && String(prepared.id)===String(id) && prepared.card) {
-          playbackRows=Array.isArray(prepared.rows)?prepared.rows:currentTableData;
-          const metaAudio=window.MediaHost?MediaHost.passportFromTextRow(prepared.card):null;
-          original=base || prepared.audio || metaAudio;
-          if(original && window.MediaHost)MediaHost.restoreForRows(original,playbackRows);
-          ctx={card:prepared.card,audio:original};
-        } else {
-          ctx=await StudyVideoSourceUI.context(id);
-          original=base || ctx.audio;
-        }
-        audio=String(id)===v3PlaybackLocalId ? original : await PlaybackSource.playbackAudio(original,playbackRows,ctx.card);
+        // Use the same read-only exact-binding projection as the source confirmation
+        // dialog. Ambient composer timing can describe a different (positional) map.
+        const ctx=await StudyVideoSourceUI.context(id);
+        const playbackRows=prepared && Array.isArray(prepared.rows)?prepared.rows:currentTableData;
+        original=ctx.audio || base;
+        const record=PlaybackSource.fromText(ctx.card,original);
+        hasYoutube=!!(record && PlaybackSource.selected(record).source);
+        audio=await PlaybackSource.playbackAudio(original,playbackRows,ctx.card,StudyVideoSourceUI.preferredSource(id));
       } catch (error) {
         // Source projection is optional. A transient DB/package resolver failure
         // must not erase an already restored local media passport.
@@ -25235,8 +25235,9 @@ function v3MediaBarRefresh(prepared) {
       }
     }
     if(serial!==v3PlaybackSerial || base!==window.v3ActiveMediaAudio) return;
-    const old=v3MediaCurrentAudio();
-    if(JSON.stringify(old)!==JSON.stringify(audio)) {
+    const old=v3PlaybackAudio;
+    if(prepared?.retry || JSON.stringify(old)!==JSON.stringify(audio)) {
+      if(v3YtStageAbort) v3YtStageAbort.abort();
       StudioMediaKaraoke.stop(); v3MediaDestroyLocalStage();
       if(window.v3YtStageAdapter) StudioYtPlayer.destroy(window.v3YtStageAdapter);
       window.v3YtStageAdapter=null; window.v3YtStageVideoId=null;
@@ -25246,22 +25247,22 @@ function v3MediaBarRefresh(prepared) {
     v3MediaRenderBar();
     if(window.StudyVideoSourceUI) StudyVideoSourceUI.playerActions(document.getElementById('v3MediaBar'),{
       id,audio,local:original && original.media,
-      onYoutube:()=>{if(String(id)===v3PlaybackLocalId){v3PlaybackLocalId=null;v3MediaBarRefresh();}else v3MediaEnsureYoutubeStage(audio);},
-      onLocal:()=>{v3PlaybackLocalId=String(id);v3MediaBarRefresh();}
+      onYoutube:hasYoutube?()=>{StudyVideoSourceUI.selectSource(id,'youtube');v3MediaBarRefresh({retry:true});}:null,
+      onLocal:()=>{StudyVideoSourceUI.selectSource(id,'local');v3MediaBarRefresh();}
     });
   })();
   return v3PlaybackRefreshPromise;
 }
 window.addEventListener('playback-source-changed',e=>{
   const session=v3SessionGet();
-  if(session && String(session.textId)===String(e.detail.textId)) {v3PlaybackLocalId=null;v3MediaBarRefresh();}
+  if(session && String(session.textId)===String(e.detail.textId)) {StudyVideoSourceUI.selectSource(session.textId,'youtube');v3MediaBarRefresh();}
 });
 window.StudyVideoInlineOpen=async id=>{
   if(typeof v3TextMetaClose==='function')v3TextMetaClose();
   if(typeof v3LibraryClose==='function')v3LibraryClose();
   const session=v3SessionGet();
   if(!session || String(session.textId)!==String(id)) await v3LibraryOpenText(id);
-  v3PlaybackLocalId=null; await v3MediaBarRefresh();
+  StudyVideoSourceUI.selectSource(id,'youtube'); await v3MediaBarRefresh();
   document.getElementById('v3MediaBar').scrollIntoView({block:'center'});
 };
 function v3MediaRenderBar() {
@@ -25290,7 +25291,7 @@ function v3MediaRenderBar() {
     const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer);
     if (!window.v3MediaPackageStale && !blob && !hasVideo && note) note.textContent = t("studio.media.fileMissing");
     if (!window.v3MediaPackageStale && !blob && hasVideo && note) note.textContent = t("studio.media.viaYouTube");
-    if (audio.playbackKind && note) note.textContent=StudyVideoSourceUI.playbackNote(audio);
+    if (audio.playbackKind==='youtube' && note) note.textContent=StudyVideoSourceUI.playbackNote(audio);
     if (blob) v3MediaEnsureLocalStage(audio, blob);
     else {
       v3MediaDestroyLocalStage();
@@ -25300,7 +25301,7 @@ function v3MediaRenderBar() {
   }).catch(() => { if (v3MediaCurrentAudio() === audio) { v3MediaDestroyLocalStage(); v3MediaAugmentRows(); } });
 }
 
-let v3YtStageCreatePromise = null; // CRITICAL 2 (review 2026-07-27) — re-entrancy guard, see below
+let v3YtStageCreatePromise = null, v3YtStageAbort = null;
 
 async function v3MediaEnsureYoutubeStage(audio) {
   if(!audio || !audio.video || !audio.video.videoId || v3MediaCurrentAudio()!==audio)return null;
@@ -25321,7 +25322,8 @@ async function v3MediaEnsureYoutubeStage(audio) {
     if (!mount) return null;
     mount.hidden = false;
     const wantedVideoId = audio.video.videoId;
-    v3YtStageCreatePromise = window.StudioYtPlayer.create(mount, wantedVideoId)
+    v3YtStageAbort = new AbortController();
+    v3YtStageCreatePromise = window.StudioYtPlayer.create(mount, wantedVideoId, {signal:v3YtStageAbort.signal})
       .then((adapter) => {
         const stillWanted = v3MediaCurrentAudio() === audio;
         if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mount.hidden = true; return null; }
@@ -25337,7 +25339,11 @@ async function v3MediaEnsureYoutubeStage(audio) {
     if(!adapter && v3MediaCurrentAudio()===audio && !v3YtStageCreatePromise)return v3MediaEnsureYoutubeStage(audio);
     return adapter;
   }
-  catch (error) { StudyVideoSourceUI.playerError(document.getElementById('v3MediaBarNote'),error); return null; }
+  catch (error) {
+    if(v3MediaCurrentAudio()!==audio)return null;
+    if(error.code==='YT_CREATE_CANCELLED')return v3MediaEnsureYoutubeStage(audio);
+    StudyVideoSourceUI.playerError(document.getElementById('v3MediaBarNote'),error); return null;
+  }
 }
 
 async function v3MediaPlayOriginal() {
@@ -25379,7 +25385,7 @@ function v3MediaAugmentRows() {
   MediaHost.augmentRows({
     table, audio: v3MediaCurrentAudio(), resolveBlob: v3MediaResolveBlob, t: t,
     stillActive: (a) => v3MediaCurrentAudio() === a,
-    onReplayVideo: async(idx,audio)=>{const adapter=await v3MediaEnsureYoutubeStage(audio);if(v3MediaCurrentAudio()===audio && adapter)await StudioMediaKaraoke.playSegment(idx);},
+    onReplayVideo: async(idx,audio)=>{const adapter=await v3MediaEnsureYoutubeStage(audio);if(v3MediaCurrentAudio()===audio && adapter)await StudyVideoSourceUI.replayRow(idx,document.getElementById('v3MediaBarNote'),()=>v3MediaCurrentAudio()===audio);},
     onReplay: async (idx, audio, blob) => {
       // Same reference-equality contract as v3MediaPlayOriginal() above.
       const player = v3MediaEnsureLocalStage(audio, blob);
@@ -25941,7 +25947,9 @@ async function v3LibraryRefresh() {
       // LIGHT-список (без source_text/table_model blob-ов): полный listTexts на iPhone
       // (async-VFS) детерминированно ронял WASM OOM — карточкам blob-ы не нужны, открытие
       // текста и так идёт отдельным getTextByIdLite+getSentences.
-      raw = await (typeof ldb.listTextsLight === 'function' ? ldb.listTextsLight({ limit: 2000 }) : ldb.listTexts({ limit: 2000 }));
+      const listTexts=typeof ldb.listTextsLight === 'function' ? ldb.listTextsLight : ldb.listTexts;
+      raw = await listTexts({ limit: 2000 });
+      if(v3LibEl('v3LibraryIncludeArchived')?.checked)raw=raw.concat(await listTexts({ limit:2000, archived:true }));
       // Mark corpus rows (source_meta.corpus — the canonical discriminator) and merge the
       // PERSONAL overlay meta (text_user_meta, keyed by stable text_key; mig 061, R9:
       // canon row untouched, личный слой поверх) so cards/filters/modal see one merged view.
@@ -25965,7 +25973,7 @@ async function v3LibraryRefresh() {
         }
       } catch (_) {}
     } else {
-      const data = await v3GetJson("/api/library/texts?limit=200");
+      const data = await v3GetJson("/api/library/texts?limit=200&includeArchived="+(v3LibEl('v3LibraryIncludeArchived')?.checked?'1':'0'));
       raw = (data && data.texts) ? data.texts : [];
     }
     v3LibraryTexts = raw.map(v3NormalizeTextDto);
@@ -26877,7 +26885,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
         <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
         <button class="btn-secondary" data-act="enrich" data-enrich-id="${v3EscapeHtml(id)}" title="${t("library.enrichTitle")}">${t("library.enrich")}</button>
         <button class="btn-secondary" data-act="buildkn" title="${t("library.buildknTitle")}">${t("library.buildkn")}</button>
-        <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
+        <button class="btn-secondary" data-act="archive">${t(isArchived ? "library.restoreArchived" : "library.archive")}</button>
         <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
       </div>
     `;
@@ -26920,7 +26928,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 		const _p = v3NotesAutoBuildPending[String(id)];
 		if (_p && _p.length) v3ReviewQueueOpenWith(id, _p); else v3ReviewQueueOpen(id);
 	});
-    if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
+    if (btnArchive) btnArchive.addEventListener("click", () => isArchived ? v3LibraryRestoreText(id) : v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
 
     // Multi-select checkbox handler.
@@ -27391,11 +27399,24 @@ async function v3LibraryArchiveText(textId) {
     } else {
       await v3PostJson("/api/library/texts/" + encodeURIComponent(textId) + "/archive", {});
     }
-    showToast(t("toast.textArchived"), "success");
-    v3LibraryRefresh();
+    showToast(t("toast.textArchived"), "success", {action:{label:t('library.restoreArchived'),onClick:()=>v3LibraryRestoreText(textId)}});
+    await v3LibraryRefresh();
   } catch (e) {
     console.warn("archive failed", e);
     showToast(t("toast.archiveFailed"), "error");
+  }
+}
+
+async function v3LibraryRestoreText(textId) {
+  try {
+    if(!LOCAL_MODE)throw new Error('LOCAL_LIBRARY_REQUIRED');
+    const ldb=await ensureLocalDB();
+    await ldb.updateText(textId,{is_archived:0});
+    await v3LibraryRefresh();
+    showToast(t('library.restoredArchived'),'success');
+  } catch(error) {
+    console.warn('restore archived text failed',error);
+    showToast(t('library.restoreArchivedFailed'),'error');
   }
 }
 
@@ -35728,6 +35749,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 // v3LibraryOpenText just restored during cold reload.
                 window.v3ActiveMediaAudio = savedPassportExact ? savedPassport : null;
                 if (!savedPassportExact) window.v3LastMediaPackageRef = null;
+                if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
                 return null;
             }
             const context = resolved.context;
@@ -35760,6 +35782,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             window.v3LastImportMeta = restored;
             window.v3ActiveMediaAudio = passport;
             window.v3LastMediaPackageRef = Object.assign({}, ref);
+            if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
             return {
                 package: media, track, revision, segments: passport.segments,
                 rows_provenance: {

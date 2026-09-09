@@ -16,7 +16,7 @@ try{
    // A real local WAV in OPFS coexists with a selected YouTube source.
    const buffer=new ArrayBuffer(44+8000*2*30),d=new DataView(buffer);function str(o,s){for(let i=0;i<s.length;i++)d.setUint8(o+i,s.charCodeAt(i));}str(0,'RIFF');d.setUint32(4,buffer.byteLength-8,true);str(8,'WAVE');str(12,'fmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,8000,true);d.setUint32(28,16000,true);d.setUint16(32,2,true);d.setUint16(34,16,true);str(36,'data');d.setUint32(40,buffer.byteLength-44,true);
    await MediaStore.saveMedia(buffer,'inline.wav');
-   const audio={v:1,media:{opfsPath:'inline.wav',mime:'audio/wav',sha256:await MediaStore.sha256Hex(buffer),durationSec:30},segments:rows.map((r,i)=>({start_ms:[2,12,24][i]*1000,end_ms:[4,14,26][i]*1000,text:r.he_plain,caption_segment_id:'cue-'+i,quality_flags:[]})),timing:true};
+   const audio={v:1,video:{videoId:video},media:{opfsPath:'inline.wav',mime:'audio/wav',sha256:await MediaStore.sha256Hex(buffer),durationSec:30},segments:rows.map((r,i)=>({start_ms:[2,12,24][i]*1000,end_ms:[4,14,26][i]*1000,text:r.he_plain,caption_segment_id:'cue-'+i,quality_flags:[]})),timing:true};
    MediaHost.restoreForRows(audio,rows.map(r=>({he:r.he_plain})));audio.timing.entries.forEach((entry,i)=>entry.end=[4,14,26][i]);
    await db.createText({id:'inline',text_key:'inline-key',title:'Inline YouTube fixture',source_text:rows.map(r=>r.he_plain).join('\n'),source_meta_json:JSON.stringify({source:{audio}})});await db.addSentences('inline',rows);
    const c=await StudyVideoSourceUI.context('inline');if(!c.basis)throw new Error('NO_TIMING');
@@ -30,6 +30,27 @@ try{
   assert.deepEqual(await sourceSelectorState('v3'),{links:0,labels:['Локальный файл','YouTube-видео'],sources:['local','youtube'],pressed:['youtube'],group:'Источник воспроизведения'});
  assert.equal(await page.locator('#v3MediaLocalPlayer').isVisible(),false);
  assert.equal(await page.locator('#proTable .smk-row-replay').count(),3);
+ // First switch, repeated switches, reopening and F5 retain exactly one selected source.
+ for(let cycle=0;cycle<3;cycle++){
+   await page.locator('[data-playback-source="local"]').click();
+   await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});
+   assert.equal(await page.locator('#v3MediaYtMount').isVisible(),false);
+   assert.equal(await page.locator('#v3MediaYtMount iframe').count(),0);
+   assert.equal(await page.locator('#proTable .smk-row-replay').count(),3);
+   if(cycle===0){
+     await page.reload({waitUntil:'domcontentloaded'});
+     await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});
+     assert.deepEqual((await sourceSelectorState('v3')).pressed,['local']);
+     assert.equal(await page.locator('#v3MediaYtMount iframe').count(),0);
+     await page.evaluate(()=>v3LibraryOpenText('inline'));
+     await page.locator('#v3MediaLocalPlayer').waitFor({state:'visible'});
+     assert.deepEqual((await sourceSelectorState('v3')).pressed,['local']);
+   }
+   await page.locator('[data-playback-source="youtube"]').click();
+   await page.waitForFunction(()=>v3MediaCurrentAudio()?.playbackKind==='youtube'&&!!StudioMediaKaraoke.getAudioEl()?.isYouTube);
+   assert.equal(await page.locator('#v3MediaYtMount iframe').count(),1);
+   assert.equal(await page.locator('#v3MediaLocalPlayer').isVisible(),false);
+ }
  // Saving a source refreshes the open player immediately, including a pending mapping.
  await page.evaluate(()=>v3TextMetaOpen('inline'));
  await page.locator('#v3TextMetaVideoSource').waitFor({state:'visible'});

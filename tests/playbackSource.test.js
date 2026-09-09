@@ -7,6 +7,23 @@ const A = 'iG9CE55wbtY', B = 'M7lc1UVf-VE';
 const audio = { media: { sha256: 'a'.repeat(64) }, segments: [{ start: 1, end: 3, text: 'שלום' }, { start: 5, end: 8, text: 'עולם' }], timing: { entries: [{ o: 0, t: 1, end: 3 }, { o: 1, t: 5, end: 8 }] } };
 const rows = [{ he: 'שלום', ru: 'привет' }, { he: 'עולם', ru: 'мир' }];
 
+test('explicit local selection excludes the legacy YouTube source without changing the passport', async () => {
+  const original={...audio,video:{videoId:A}}, before=JSON.stringify(original);
+  const local=await P.playbackAudio(original,rows,{},'local');
+  assert.equal(local.video,null);
+  assert.equal(local.playbackKind,'local');
+  assert.deepEqual(local.timing,original.timing);
+  assert.equal(JSON.stringify(original),before);
+});
+
+test('explicit YouTube selection projects legacy mixed passports to the video clock', async () => {
+  const original={...audio,video:{videoId:A}};
+  const video=await P.playbackAudio(original,rows,{},'youtube');
+  assert.equal(video.media,null);
+  assert.equal(video.playbackKind,'youtube');
+  assert.ok(video.timing);
+});
+
 test('runtime source selection overrides local playback without altering acquisition or saved timing', async () => {
   const before=JSON.stringify(audio), basis=await P.timingBasis(audio,rows);
   const record=P.append(null,{url:`https://youtu.be/${A}`,offset_ms:2000,confirmed:true},{basis_sha256:basis});
