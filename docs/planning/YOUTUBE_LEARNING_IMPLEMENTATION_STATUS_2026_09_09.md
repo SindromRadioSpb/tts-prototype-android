@@ -1,6 +1,6 @@
 # YouTube learning implementation
 
-Owner approved implementation through production on 2026-09-09. Released to production as 3.11.498, runtime commit `0931ce46`. Conditional P5 remains NOT QUALIFIED.
+Owner approved implementation through production on 2026-09-09. The final full-table workflow correction is released as 3.11.503, runtime commit `83f38afb`; Chrome production acceptance and the gzip-only proxy correction pass. Conditional P5 remains NOT QUALIFIED, and physical iPhone acceptance remains pending.
 Canon: [research and implementation plan](YOUTUBE_LEARNING_MATERIAL_RESEARCH_AND_PLAN_2026_09_09.md).
 Base: `origin/main` at `02124fb1`; isolated branch `feat/youtube-learning-materials-2026-09-09`.
 
@@ -56,7 +56,7 @@ Do not infer physical-device or independent transcript-quality acceptance from t
 
 ## Production acceptance — 2026-09-09
 
-Follow-up owner workflow correction: [full-table inline player](YOUTUBE_INLINE_PLAYER_FIX_2026_09_09.md). The evidence below describes the earlier 3.11.498 release; it does not substitute for acceptance of the correction.
+Follow-up owner workflow correction: [full-table inline player](YOUTUBE_INLINE_PLAYER_FIX_2026_09_09.md). The first list records the earlier 3.11.498 release; the final paragraph records the accepted 3.11.503 correction.
 
 - Runtime commit `0931ce463e38b87be9df51d991b13ddd2ce32bdb` pushed to main; Coolify webhook deployment served 3.11.498 by 12:54:25 UTC.
 - 65/65 shell assets match both the served integrity manifest and Git bytes. Service worker v3.11.498; study page has no COEP, COOP same-origin and X-Frame-Options DENY.
@@ -66,3 +66,5 @@ Follow-up owner workflow correction: [full-table inline player](YOUTUBE_INLINE_P
 - Existing Chrome/Kapture successfully loaded the new screen; original owner working tab was not reloaded or modified. No owner profile acceptance claim and no owner content publication.
 - P5 direct Gemini URL route is disabled after the bounded pilot's 503 failures. No additional paid generation was run. Physical Safari/PWA/VoiceOver remain owner-device checks.
 - Machine-readable evidence: [production-verification.json](../research/youtube-learning/2026-09-09/production-verification.json).
+
+The final 3.11.503 image matches `83f38afbf1955b3877a4804a9c94cf4dbe394169`. Two consecutive fresh Chrome runs on owner video `PngchpnAS5E` passed native playback start, row replay, word morphology pause/resume and rapid compatible-shell restoration in both Studio and Room with zero page errors. Fresh service-worker acceptance passed 71/71 paths plus Studio/Room offline reopen; eight no-cache pairs returned 200 / 3.11.503. Production's Traefik compression label was changed from `br,gzip` to `gzip` after an on-host A/B isolated Brotli as the source of large proxy allocations and simultaneous 502s. Proxy cgroup memory ended at 160.6 MiB after two full gzip-only runs versus about 578 MiB after one Brotli-enabled run. Physical Safari/PWA/VoiceOver remains pending. Machine evidence: [production-verification.json](../research/youtube-inline/2026-09-09/production-verification.json).

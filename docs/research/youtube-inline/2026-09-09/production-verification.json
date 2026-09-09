@@ -209,5 +209,217 @@
     },
     "owner_profile_written": false,
     "physical_iphone": "PENDING"
+  },
+  "release_3_11_503": {
+    "verified_at": "2026-09-09T17:31:20Z",
+    "version": "3.11.503",
+    "commit": "83f38afbf1955b3877a4804a9c94cf4dbe394169",
+    "deployment": {
+      "coolify_id": "yh49o16y10gnstaqslbllxis",
+      "started_at": "2026-09-09T17:22:17.942152Z",
+      "image_reused": true,
+      "new_container_started_at": "2026-09-09T17:23:11.494100713Z",
+      "rolling_update_completed_at": "2026-09-09T17:23:43.151132Z"
+    },
+    "runtime": {
+      "container": "glmw0wjd6nm70fntxgjy6fkp-172214742922",
+      "image_commit": "83f38afbf1955b3877a4804a9c94cf4dbe394169",
+      "image_match": true,
+      "restart_count": 0,
+      "status": "running"
+    },
+    "proxy_compression_correction": {
+      "proxy": "Traefik v3.6.17",
+      "pre_fix_label": "traefik.http.middlewares.gzip.compress.encodings=br,gzip",
+      "applied_label": "traefik.http.middlewares.gzip.compress.encodings=gzip",
+      "compression_enabled_label": "traefik.http.middlewares.gzip.compress=true",
+      "all_other_container_labels_preserved": true,
+      "saved_in_coolify_and_redeployed": true,
+      "application_image_rebuilt": false,
+      "served_encoding_with_accept_br_gzip": {
+        "index": "gzip",
+        "library": "gzip"
+      },
+      "diagnosis": "A/B_CONFIRMED_ON_PRODUCTION_HOST",
+      "evidence": {
+        "application_restart_or_oom_during_502": false,
+        "failed_requests_scope": "simultaneous static assets and APIs",
+        "proxy_cgroup_mib": {
+          "after_diagnostic_restart": 98.66,
+          "after_one_brotli_enabled_full_browser_run": 577.8,
+          "gzip_before_first_full_run": 48.24,
+          "gzip_after_first_full_run": 148.2,
+          "gzip_before_second_full_run": 148.2,
+          "gzip_after_second_full_run": 160.6,
+          "gzip_after_shell_and_health_probes": 160.6
+        },
+        "host_available_memory_mb_after_final_probes": 1960,
+        "host_swap_mb": 0
+      },
+      "external_corroboration": {
+        "traefik_issue": "https://github.com/traefik/traefik/issues/10859",
+        "coolify_labels_docs": "https://coolify.io/docs/knowledge-base/proxy/traefik/custom-middlewares"
+      }
+    },
+    "final_health_config_pairs": {
+      "count": 8,
+      "health_status": 200,
+      "config_status": 200,
+      "version": "3.11.503",
+      "disk_pct_used": 75
+    },
+    "shell_integrity": {
+      "version": "3.11.503",
+      "script_version": "3.11.503",
+      "paths": 71,
+      "missing": [],
+      "mismatch": [],
+      "status": "PASS"
+    },
+    "offline": {
+      "studio": true,
+      "room": true,
+      "service_worker_controller": true,
+      "errors": []
+    },
+    "inline_browser": {
+      "video": "PngchpnAS5E",
+      "clean_ephemeral_profiles": true,
+      "owner_profile_written": false,
+      "runs": [
+        {
+          "ok": true,
+          "results": [
+            {
+              "surface": "studio",
+              "nativePlayerStart": true,
+              "from": 0,
+              "to": 0.3090890991821289
+            },
+            {
+              "surface": "studio",
+              "row": 2,
+              "time": 26.004249851226806
+            },
+            {
+              "surface": "studio",
+              "row": 0,
+              "time": 4.010266122070313
+            },
+            {
+              "surface": "studio",
+              "row": 1,
+              "time": 14.01738087411499
+            },
+            {
+              "surface": "studio",
+              "morphologyPauseResume": true,
+              "from": 14.019419,
+              "to": 14.331726868392945
+            },
+            {
+              "surface": "room",
+              "nativePlayerStart": true,
+              "from": 0,
+              "to": 0.3094190476837158
+            },
+            {
+              "surface": "room",
+              "row": 2,
+              "time": 26.008054080108643
+            },
+            {
+              "surface": "room",
+              "row": 0,
+              "time": 4.007407935150146
+            },
+            {
+              "surface": "room",
+              "row": 1,
+              "time": 14.014328038146973
+            },
+            {
+              "surface": "room",
+              "morphologyPauseResume": true,
+              "from": 14.016041,
+              "to": 14.330213169754028
+            }
+          ],
+          "errors": []
+        },
+        {
+          "ok": true,
+          "results": [
+            {
+              "surface": "studio",
+              "nativePlayerStart": true,
+              "from": 0,
+              "to": 0.3145568798370362
+            },
+            {
+              "surface": "studio",
+              "row": 2,
+              "time": 26.01187502861023
+            },
+            {
+              "surface": "studio",
+              "row": 0,
+              "time": 4.002018099182129
+            },
+            {
+              "surface": "studio",
+              "row": 1,
+              "time": 14.008105893188477
+            },
+            {
+              "surface": "studio",
+              "morphologyPauseResume": true,
+              "from": 14.010481,
+              "to": 14.321807961853027
+            },
+            {
+              "surface": "room",
+              "nativePlayerStart": true,
+              "from": 0,
+              "to": 0.3171940228881836
+            },
+            {
+              "surface": "room",
+              "row": 2,
+              "time": 26.015351935150147
+            },
+            {
+              "surface": "room",
+              "row": 0,
+              "time": 4.015299956130981
+            },
+            {
+              "surface": "room",
+              "row": 1,
+              "time": 14.005237933242798
+            },
+            {
+              "surface": "room",
+              "morphologyPauseResume": true,
+              "from": 14.007276,
+              "to": 14.322780942779541
+            }
+          ],
+          "errors": []
+        }
+      ],
+      "expected_surface_sequence": [
+        "studio",
+        "room"
+      ],
+      "expected_row_sequence": [
+        2,
+        0,
+        1
+      ]
+    },
+    "paid_provider_requests": 0,
+    "owner_content_publication": false,
+    "physical_iphone": "PENDING"
   }
 }
