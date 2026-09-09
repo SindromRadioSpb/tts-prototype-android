@@ -5877,7 +5877,10 @@ function roomMediaTeardown() {
   // YT-адаптер привязан к КОНКРЕТНОМУ videoId (спека, ловушка №9) — при смене текста/закрытии
   // обязан быть уничтожен, иначе плеер управляет видео A при таблице B.
   if (roomMediaYtAdapter && window.StudioYtPlayer) { try { window.StudioYtPlayer.destroy(roomMediaYtAdapter); } catch (_) {} }
-  roomMediaYtAdapter = null; roomMediaYtVideoId = null; roomMediaYtCreating = null;
+  // An in-flight create owns its iframe until it resolves and proves whether it is stale.
+  // Keeping the promise here prevents a same-card reload from starting a second iframe;
+  // the stale completion destroys itself, then the current setup retries once.
+  roomMediaYtAdapter = null; roomMediaYtVideoId = null;
   roomMediaAudio = null;
   if (roomMediaResolver) { try { roomMediaResolver.clear(); } catch (_) {} }
   for (const id of ['roomMediaBar', 'roomMediaYtMount', 'roomMediaStudioLink']) { const n = $(id); if (n) n.hidden = true; }
@@ -5920,9 +5923,8 @@ async function roomMediaSetup(textRow, textId) {
   roomMediaRefresh();
   if(window.StudyVideoSourceUI)StudyVideoSourceUI.playerActions(bar,{
     id:textId,audio,local:roomMediaBaseAudio && roomMediaBaseAudio.media,
-    onSource:()=>StudyVideoSourceUI.manage(textId),
     onLocal:()=>{roomMediaLocalId=String(textId);roomMediaSetup(textRow,textId);},
-    onYoutube:String(textId)===roomMediaLocalId?()=>{roomMediaLocalId=null;roomMediaSetup(textRow,textId);}:null
+    onYoutube:()=>{if(String(textId)===roomMediaLocalId){roomMediaLocalId=null;roomMediaSetup(textRow,textId);}else roomMediaEnsureYoutubeStage(audio);}
   });
 }
 let roomMediaBaseAudio=null, roomMediaLocalId=null;
@@ -5936,11 +5938,10 @@ window.StudyVideoInlineOpen=async id=>{
   if(String(readerTextId)!==String(id))return;
   roomMediaLocalId=null;const ctx=await StudyVideoSourceUI.context(id);
   await roomMediaSetup(ctx.card,id);$('roomMediaBar').scrollIntoView({block:'start'});
-  await roomMediaPlayOriginal();
 };
 function roomMediaRefresh() {
   const audio = roomMediaAudio; if (!audio) return;
-  const note = $('roomMediaBarNote'), btn = $('roomMediaPlayBtn'), link = $('roomMediaStudioLink');
+  const note = $('roomMediaBarNote'), link = $('roomMediaStudioLink');
   // Причина отсутствия караоке словами — та же реализация, что в Студии (MediaHost).
   if (note) {
     let why = '';
@@ -5951,14 +5952,16 @@ function roomMediaRefresh() {
   (res ? res.resolve(audio) : Promise.resolve(null)).then((blob) => {
     if (roomMediaAudio !== audio) return;   // текст сменился, пока резолвили
     const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer);
-    if (btn) { btn.hidden = !!blob; btn.disabled = !blob && !hasVideo; }
     if (!blob && !hasVideo) {
       if (note) note.textContent = tt('studio.media.fileMissing', 'Аудио-файл не найден в этом браузере');
       if (link && readerTextId != null) { link.href = deepLinkForText(readerTextId); link.hidden = false; }
     } else if (!blob && hasVideo && note) { note.textContent = tt('studio.media.viaYouTube', 'Воспроизведение через YouTube'); }
     if(audio.playbackKind && note)note.textContent=StudyVideoSourceUI.playbackNote(audio);
     if (blob) { const st = roomMediaStageInst(); if (st) st.ensure(audio, blob); }
-    else if (roomMediaStage) roomMediaStage.destroy();
+    else {
+      if (roomMediaStage) roomMediaStage.destroy();
+      if(hasVideo)roomMediaEnsureYoutubeStage(audio).catch(error=>StudyVideoSourceUI.playerError(note,error));
+    }
     roomMediaAugment();
     roomMediaApplyLayout();   // стейдж определился → включить/выключить скролл-окно таблицы
   }).catch(() => {});
@@ -5973,13 +5976,50 @@ function roomMediaAugment() {
     resolveBlob: (a) => (res ? res.resolve(a) : Promise.resolve(null)),
     t: (k) => tt(k, k),
     stillActive: (a) => roomMediaAudio === a,
-    onReplayVideo:async(idx,audio)=>{await roomMediaPlayOriginal();if(roomMediaAudio===audio && roomMediaYtAdapter)await StudioMediaKaraoke.playSegment(idx);},
+    onReplayVideo:async(idx,audio)=>{const adapter=await roomMediaEnsureYoutubeStage(audio);if(roomMediaAudio===audio && adapter)await StudioMediaKaraoke.playSegment(idx);},
     onReplay: async (rowIdx, audio, blob) => {
       const st = roomMediaStageInst(); if (!st) return;
       const player = st.ensure(audio, blob);   // bind внутри дергает stopOtherAudio при fresh-run
       if (player) window.StudioMediaKaraoke.playSegment(rowIdx);
     },
   });
+}
+async function roomMediaEnsureYoutubeStage(audio) {
+  if(!audio || roomMediaAudio!==audio || !audio.video || !audio.video.videoId)return null;
+  delete $('roomMediaBarNote').dataset.youtubeError;
+  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) {
+    StudyVideoSourceUI.compatibleShell();
+    return null;
+  }
+  const entries=audio.timing ? audio.timing.entries : null;
+  const bind=adapter=>{
+    if(!adapter || roomMediaAudio!==audio)return null;
+    StudioMediaKaraoke.bind({media:adapter,entries,rowCount:readerRows.length,onRangeChange:roomMediaFollowRange,stopOtherAudio:roomMediaStopOthers});
+    roomMediaApplyLayout();
+    return adapter;
+  };
+  if(roomMediaYtAdapter)return bind(roomMediaYtAdapter);
+  if (!roomMediaYtCreating) {
+    const mountEl = $('roomMediaYtMount'); if (!mountEl) return null;
+    mountEl.hidden = false;
+    const wantedVideoId = audio.video.videoId;
+    roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId)
+      .then((adapter) => {
+        const stillWanted = roomMediaAudio === audio;
+        if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mountEl.hidden = true; return null; }
+        roomMediaYtAdapter = adapter; roomMediaYtVideoId = wantedVideoId;
+        StudyVideoSourceUI.watchPlayer(adapter,$('roomMediaBarNote'),audio);
+        return bind(adapter);
+      })
+      .catch((e) => { mountEl.hidden = true; throw e; })
+      .finally(() => { roomMediaYtCreating = null; });
+  }
+  try {
+    const adapter=await roomMediaYtCreating;
+    if(!adapter && roomMediaAudio===audio && !roomMediaYtCreating)return roomMediaEnsureYoutubeStage(audio);
+    return adapter;
+  }
+  catch (error) { StudyVideoSourceUI.playerError($('roomMediaBarNote'),error); return null; }
 }
 async function roomMediaPlayOriginal() {
   const audio = roomMediaAudio; if (!audio || !window.StudioMediaKaraoke) return;
@@ -5994,37 +6034,13 @@ async function roomMediaPlayOriginal() {
     return;
   }
   if (!audio.video || !audio.video.videoId) return;
-  delete $('roomMediaBarNote').dataset.youtubeError;
-  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return StudyVideoSourceUI.compatibleShell();
-  if (!roomMediaYtAdapter) {
-    // Re-entrancy guard — зеркало CRITICAL 2 Студии (index.html v3MediaPlayOriginal): два быстрых
-    // клика не должны создать два адаптера в один маунт (осиротевший играющий iframe).
-    if (!roomMediaYtCreating) {
-      const mountEl = $('roomMediaYtMount'); if (!mountEl) return;
-      mountEl.hidden = false;
-      const wantedVideoId = audio.video.videoId;
-      roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId)
-        .then((adapter) => {
-          const stillWanted = roomMediaAudio === audio;
-          if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mountEl.hidden = true; return null; }
-          roomMediaYtAdapter = adapter; roomMediaYtVideoId = wantedVideoId;
-          StudyVideoSourceUI.watchPlayer(adapter,$('roomMediaBarNote'),audio);
-          return adapter;
-        })
-        .catch((e) => { mountEl.hidden = true; throw e; })
-        .finally(() => { roomMediaYtCreating = null; });
-    }
-    try { await roomMediaYtCreating; } catch (error) { StudyVideoSourceUI.playerError($('roomMediaBarNote'),error); return; }
-    if (!roomMediaYtAdapter) return;
-  }
-  roomMediaApplyLayout();   // YT-маунт показан → скролл-окно таблицы
+  const adapter=await roomMediaEnsureYoutubeStage(audio);
+  if(!adapter)return;
   // Row replay awaits the adapter's observed seek before arming the segment end.
   await window.StudioMediaKaraoke.start({ media: roomMediaYtAdapter, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
 }
 function roomMediaWireOnce() {
   if (_roomMediaWired) return; _roomMediaWired = true;
-  const btn = $('roomMediaPlayBtn');
-  if (btn) btn.addEventListener('click', () => { roomMediaPlayOriginal(); });
   // Tap-seek: делегат на СТАБИЛЬНОМ #roomReaderTable (innerHTML пересобирается ВНУТРИ него).
   // Интерактивные цели Зала (морфология .rm-w, кнопки, ссылки) не перехватываются — тап по
   // слову остаётся морфологией, тап по «пустому» месту строки во время playback = перемотка.

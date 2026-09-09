@@ -1,6 +1,6 @@
 # YouTube inside the full Studio and Reading Room — owner workflow correction
 
-Status: 3.11.501 production-complete; the owner-requested source-selector follow-up is locally complete for 3.11.502 and awaiting production verification. Physical iPhone/Safari/PWA/VoiceOver acceptance remains separate and pending.
+Status: 3.11.501 production-complete; 3.11.502 was deployed and passed shell/health integrity, while its rapid-transition browser gate saw transient static `502` responses. The owner-requested low-noise player follow-up is locally complete for 3.11.503 and awaiting production verification. Physical iPhone/Safari/PWA/VoiceOver acceptance remains separate and pending.
 
 ## Owner case and concrete causes
 
@@ -40,6 +40,7 @@ Roles applied: R4/R5 retain the existing learner flow and visible recovery; R9 s
 - `smoke:room-media` passes its local-video, exact/partial timing, replay, morphology/scroll and reload regressions. Its harness now reuses the page's initialized DB module instead of importing a second uninitialized module instance; Playwright timeout options use the correct argument position.
 - `smoke:reader-parity`, API smoke and 39 release/style lock checks passed. No parity-locked table builder was changed.
 - The 3.11.502 selector regression keeps both sources visible, asserts exactly one `aria-pressed` source, proves zero external links in the action panel, switches local→YouTube in Studio and Room, and compares rows, source metadata and `review_log` before/after. Chrome real-clock playback, RU/HE 380 px screenshots, the task/package/public-reader browser flow, 1428/1428 unit tests, 233 i18n checks, 321 train-queue checks, Room media, karaoke, API and 71/71 offline shell-integrity checks pass locally.
+- The 3.11.503 follow-up removes the duplicate source editor and app-level `Original` control from both media bars. Source editing remains under Text metadata. Selecting YouTube mounts exactly one paused iframe immediately; native YouTube controls start playback and continue to drive the shared karaoke clock. Rapid source revisions and Room reloads retain one in-flight player owner, destroy stale completions and never leave duplicate iframes. The full real-clock browser gate, embed-denial/local fallback, task/package/public-reader browser gate, 1428/1428 unit tests, 233 i18n checks, 321 train-queue checks, Room media, karaoke, API and 71/71 offline shell-integrity pass locally.
 
 Physical iPhone/Safari/PWA/VoiceOver acceptance remains pending. No manual owner-card/source/SRS edit, paid-provider request or owner-content publication is part of this correction. Live opening/playback can update the ordinary reading position.
 

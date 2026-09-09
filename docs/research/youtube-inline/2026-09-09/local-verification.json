@@ -1,6 +1,6 @@
 {
-  "at": "2026-09-09T15:43:41.458Z",
-  "version": "3.11.502",
+  "at": "2026-09-09T16:43:18.351Z",
+  "version": "3.11.503",
   "unit_tests": 1428,
   "unit_status": "PASS",
   "inline_live": {
@@ -8,45 +8,57 @@
     "results": [
       {
         "surface": "studio",
+        "nativePlayerStart": true,
+        "from": 0,
+        "to": 0.3114082155303955
+      },
+      {
+        "surface": "studio",
         "row": 2,
-        "time": 26.008052017166136
+        "time": 26.014734129699708
       },
       {
         "surface": "studio",
         "row": 0,
-        "time": 4.010843015258789
+        "time": 4.006076891281127
       },
       {
         "surface": "studio",
         "row": 1,
-        "time": 14.018305883651733
+        "time": 14.011943089645385
       },
       {
         "surface": "studio",
         "morphologyPauseResume": true,
-        "from": 14.020315,
-        "to": 14.325637076293946
+        "from": 14.014375,
+        "to": 14.332039950408936
+      },
+      {
+        "surface": "room",
+        "nativePlayerStart": true,
+        "from": 0,
+        "to": 0.3153238455047608
       },
       {
         "surface": "room",
         "row": 2,
-        "time": 26.015045893188475
+        "time": 26.01789222697449
       },
       {
         "surface": "room",
         "row": 0,
-        "time": 4.001284860763549
+        "time": 4.006892059127807
       },
       {
         "surface": "room",
         "row": 1,
-        "time": 14.007796830245972
+        "time": 14.011257164031983
       },
       {
         "surface": "room",
         "morphologyPauseResume": true,
-        "from": 14.009763,
-        "to": 14.714185828338623
+        "from": 14.013676,
+        "to": 15.35829320980835
       }
     ],
     "errors": []
@@ -133,8 +145,15 @@
       ]
     },
     "selected_state": "aria-pressed",
+    "source_editor_location": "text-metadata-only",
+    "duplicate_source_editor_above_table": false,
     "studio_inline_switch": true,
     "room_inline_switch": true,
+    "youtube_mount_on_selection": true,
+    "autoplay": false,
+    "native_youtube_control_starts_playback": true,
+    "legacy_original_button": false,
+    "iframes_per_surface": 1,
     "external_links_in_player_actions": 0,
     "full_table_retained": true,
     "rows_source_and_review_log_unchanged": true,
@@ -147,7 +166,7 @@
       "room-he-380.png"
     ],
     "service_worker_shell_integrity": {
-      "version": "3.11.502",
+      "version": "3.11.503",
       "paths": 71,
       "missing": 0,
       "mismatch": 0,

@@ -24,7 +24,7 @@
 //      с ЖИВЫМ ивритом. Старый адаптер слал `he:`, а importBundle читает
 //      `hebrew_plain || he_plain` — ивритская колонка терялась целиком.
 //   E. честная деградация без аудио (R11): у получателя байтов медиа нет — медиа-бар
-//      виден, play выключен, причина названа, построчные «▶︎» НЕ отрисованы. Проверяется
+//      виден, лишней app-кнопки play нет, причина названа, построчные «▶︎» НЕ отрисованы. Проверяется
 //      на реально открытом в Студии импортированном тексте, а не на моке.
 
 const path = require("path");
@@ -342,7 +342,6 @@ async function main() {
         // медиа-бар резолвит blob асинхронно; ждём стабилизации
         await new Promise((r) => setTimeout(r, 1200));
         const bar = document.getElementById("v3MediaBar");
-        const btn = document.getElementById("v3MediaPlayBtn");
         const note = document.getElementById("v3MediaBarNote");
         const a = window.v3ActiveMediaAudio;
         return {
@@ -350,7 +349,7 @@ async function main() {
           timingAlive: !!(a && a.timing && a.timing.entries && a.timing.entries.length),
           blob: !!(await (window.v3MediaResolveBlob ? window.v3MediaResolveBlob(a) : null)),
           barVisible: !!bar && !bar.hidden,
-          playDisabled: !!btn && btn.disabled === true,
+          legacyPlayButtonAbsent: !document.getElementById("v3MediaPlayBtn"),
           noteText: note ? note.textContent : "",
           expectedNote: window.t ? window.t("studio.media.fileMissing") : "",
           rowReplayButtons: document.querySelectorAll(".smk-row-replay").length,
@@ -361,7 +360,7 @@ async function main() {
       test("тайминг НЕ выродился (иначе проверка кнопок была бы холостой)", E.timingAlive === true, E);
       test("аудио-байтов у получателя действительно нет", E.blob === false, E);
       test("медиа-бар виден", E.barVisible === true, E);
-      test("кнопка «▶ Оригинал» выключена", E.playDisabled === true, E);
+      test("лишней кнопки «▶ Оригинал» нет", E.legacyPlayButtonAbsent === true, E);
       test("причина названа словами (studio.media.fileMissing)", !!E.expectedNote && E.noteText === E.expectedNote, E);
       test("построчные «▶︎» НЕ отрисованы (нет тупиковых кнопок)", E.rowReplayButtons === 0, E);
       test("караоке не запущено", E.karaokeRunning === false, E);
