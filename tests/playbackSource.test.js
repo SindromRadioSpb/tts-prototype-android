@@ -7,6 +7,21 @@ const A = 'iG9CE55wbtY', B = 'M7lc1UVf-VE';
 const audio = { media: { sha256: 'a'.repeat(64) }, segments: [{ start: 1, end: 3, text: 'שלום' }, { start: 5, end: 8, text: 'עולם' }], timing: { entries: [{ o: 0, t: 1, end: 3 }, { o: 1, t: 5, end: 8 }] } };
 const rows = [{ he: 'שלום', ru: 'привет' }, { he: 'עולם', ru: 'мир' }];
 
+test('runtime source selection overrides local playback without altering acquisition or saved timing', async () => {
+  const before=JSON.stringify(audio), basis=await P.timingBasis(audio,rows);
+  const record=P.append(null,{url:`https://youtu.be/${A}`,offset_ms:2000,confirmed:true},{basis_sha256:basis});
+  const view=await P.playbackAudio(audio,rows,{source_meta_json:JSON.stringify({playback_source:record})});
+  assert.equal(view.playbackKind,'youtube'); assert.equal(view.media,null);
+  assert.equal(view.video.videoId,A); assert.equal(view.timing.entries[0].t,3);
+  assert.equal(JSON.stringify(audio),before);
+  const detached=P.append(record,{remove:true});
+  const local=await P.playbackAudio({...audio,video:{videoId:A}},rows,{source_meta_json:JSON.stringify({playback_source:detached})});
+  assert.deepEqual(local.media,audio.media); assert.equal(local.video,null);
+  const pending=await P.playbackAudio(audio,rows,{source_meta_json:{playback_source:P.append(null,{url:`https://youtu.be/${A}`})}});
+  assert.equal(pending.playbackKind,'youtube'); assert.equal(pending.timing,null);
+  assert.equal(pending.playbackReason,'PLAYBACK_TIMING_UNVERIFIED');
+});
+
 test('YouTube identity only accepts HTTPS/HTTP official video URLs, never credentials or lookalike hosts', () => {
   for (const url of [`https://youtu.be/${A}?t=20`, `https://www.youtube.com/watch?v=${A}`, `https://m.youtube.com/shorts/${A}`, `https://youtube.com/live/${A}`]) assert.equal(P.parseVideoId(url), A);
   for (const url of [`javascript://youtube.com/watch?v=${A}`, `https://user:pw@youtube.com/watch?v=${A}`, `https://youtube.com.evil.test/watch?v=${A}`, `https://youtu.be/${A}/extra`, `https://youtube.com:444/watch?v=${A}`]) assert.equal(P.parseVideoId(url), null, url);

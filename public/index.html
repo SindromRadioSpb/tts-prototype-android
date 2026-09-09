@@ -11922,10 +11922,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             </div>
                             <audio id="v3MediaLocalPlayer" controls preload="metadata" data-i18n-aria-label="studio.media.sourcePlayer" aria-label="Исходное аудио / видео"></audio>
                           </div>
+                          <div id="v3MediaYtMount" hidden></div>
                         </div>
-                        <!-- W2-S5a Task 8: YouTube playback stage for captions-imported video (no
-                             local media blob) — mounted on-demand by v3MediaPlayOriginal(). -->
-                        <div id="v3MediaYtMount" hidden style="margin-top:8px;"></div>
                         <div id="tableContainer"></div>
                         <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
                         <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden data-i18n="classic.editOrientationLandscape">↔ Альбом</button>
@@ -13444,7 +13442,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-karaoke.js"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/media-host.js?v=403"></script>
+<script src="/js/media-host.js?v=499"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13509,7 +13507,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.498";
+    window.APP_VERSION = "3.11.499";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -25168,10 +25166,56 @@ function v3MediaEnsureLocalStage(audio, blob) {
   return st ? st.ensure(audio, blob) : null;
 }
 
+let v3PlaybackAudio = null, v3PlaybackBase = null, v3PlaybackSerial = 0;
+let v3PlaybackRefreshPromise = null, v3PlaybackLocalId = null;
+function v3MediaCurrentAudio() { return v3PlaybackBase === window.v3ActiveMediaAudio ? v3PlaybackAudio : window.v3ActiveMediaAudio; }
 function v3MediaBarRefresh() {
+  const serial=++v3PlaybackSerial, base=window.v3ActiveMediaAudio;
+  const session=v3SessionGet(), id=session && ['saved','library'].includes(session.mode) ? session.textId : null;
+  v3PlaybackRefreshPromise=(async()=>{
+    let audio=base, original=base;
+    if(id && window.StudyVideoSourceUI) {
+      try {
+        const ctx=await StudyVideoSourceUI.context(id);
+        original=base || ctx.audio;
+        audio=String(id)===v3PlaybackLocalId ? original : await PlaybackSource.playbackAudio(original,currentTableData,ctx.card);
+      } catch (_) { audio=null; }
+    }
+    if(serial!==v3PlaybackSerial || base!==window.v3ActiveMediaAudio) return;
+    const old=v3MediaCurrentAudio();
+    if(JSON.stringify(old)!==JSON.stringify(audio)) {
+      StudioMediaKaraoke.stop(); v3MediaDestroyLocalStage();
+      if(window.v3YtStageAdapter) StudioYtPlayer.destroy(window.v3YtStageAdapter);
+      window.v3YtStageAdapter=null; window.v3YtStageVideoId=null;
+      const mount=document.getElementById('v3MediaYtMount'); if(mount)mount.hidden=true;
+    } else audio=old;
+    v3PlaybackBase=base; v3PlaybackAudio=audio;
+    v3MediaRenderBar();
+    if(window.StudyVideoSourceUI) StudyVideoSourceUI.playerActions(document.getElementById('v3MediaBar'),{
+      id,audio,local:original && original.media,onSource:()=>StudyVideoSourceUI.manage(id),
+      onYoutube:String(id)===v3PlaybackLocalId?()=>{v3PlaybackLocalId=null;v3MediaBarRefresh();}:null,
+      onLocal:()=>{v3PlaybackLocalId=String(id);v3MediaBarRefresh();}
+    });
+  })();
+  return v3PlaybackRefreshPromise;
+}
+window.addEventListener('playback-source-changed',e=>{
+  const session=v3SessionGet();
+  if(session && String(session.textId)===String(e.detail.textId)) {v3PlaybackLocalId=null;v3MediaBarRefresh();}
+});
+window.StudyVideoInlineOpen=async id=>{
+  if(typeof v3TextMetaClose==='function')v3TextMetaClose();
+  if(typeof v3LibraryClose==='function')v3LibraryClose();
+  const session=v3SessionGet();
+  if(!session || String(session.textId)!==String(id)) await v3LibraryOpenText(id);
+  v3PlaybackLocalId=null; await v3MediaBarRefresh();
+  document.getElementById('v3MediaBar').scrollIntoView({block:'center'});
+  await v3MediaPlayOriginal();
+};
+function v3MediaRenderBar() {
   const bar = document.getElementById("v3MediaBar");
   if (!bar) return;
-  const audio = window.v3ActiveMediaAudio;
+  const audio = v3MediaCurrentAudio();
   bar.hidden = !audio;
   if (!audio) { v3MediaResolverClear(); v3MediaDestroyLocalStage(); try { v3MediaAugmentRows(); } catch (_) {} return; }
   const note = document.getElementById("v3MediaBarNote");
@@ -25190,25 +25234,26 @@ function v3MediaBarRefresh() {
     ? t("studio.mediaPackage.staleTable")
     : (audio.timing ? coverageNote() : noTimingNote());
   v3MediaResolveBlob(audio).then((blob) => {
-    if (window.v3ActiveMediaAudio !== audio) return;
+    if (v3MediaCurrentAudio() !== audio) return;
     const btn = document.getElementById("v3MediaPlayBtn");
     // W2-S5a: no local blob is fine when the passport carries a YouTube video AND this browser
     // can actually embed it (capability-before-offer, R5) — the "▶ Оригинал" button then drives
     // v3MediaPlayOriginal()'s external-player branch instead of a local <audio>.
-    const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer &&
-                        window.StudioYtPlayer.capability().supported);
+    const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer);
     if (btn) { btn.hidden = !!blob; btn.disabled = !blob && !hasVideo; }
     if (!window.v3MediaPackageStale && !blob && !hasVideo && note) note.textContent = t("studio.media.fileMissing");
     if (!window.v3MediaPackageStale && !blob && hasVideo && note) note.textContent = t("studio.media.viaYouTube");
+    if (audio.playbackKind && note) note.textContent=StudyVideoSourceUI.playbackNote(audio);
     if (blob) v3MediaEnsureLocalStage(audio, blob); else v3MediaDestroyLocalStage();
     v3MediaAugmentRows();
-  }).catch(() => { if (window.v3ActiveMediaAudio === audio) { v3MediaDestroyLocalStage(); v3MediaAugmentRows(); } });
+  }).catch(() => { if (v3MediaCurrentAudio() === audio) { v3MediaDestroyLocalStage(); v3MediaAugmentRows(); } });
 }
 
 let v3YtStageCreatePromise = null; // CRITICAL 2 (review 2026-07-27) — re-entrancy guard, see below
 
 async function v3MediaPlayOriginal() {
-  const audio = window.v3ActiveMediaAudio;
+  if(v3PlaybackRefreshPromise) await v3PlaybackRefreshPromise;
+  const audio = v3MediaCurrentAudio();
   if (!audio) return;
   const rowCount = Array.isArray(currentTableData) ? currentTableData.length : 0;
   // REFERENCE EQUALITY CONTRACT (Task 7 review): StudioMediaKaraoke.start() decides
@@ -25218,6 +25263,7 @@ async function v3MediaPlayOriginal() {
   // across calls — never .map()/.slice()/re-derive this.
   const entries = audio.timing ? audio.timing.entries : null;
   const blob = await v3MediaResolveBlob(audio);
+  if(v3MediaCurrentAudio()!==audio)return;
   if (blob) {
     const player = v3MediaEnsureLocalStage(audio, blob);
     await StudioMediaKaraoke.start({ media: player || blob, entries, rowCount, onRangeChange: v3MediaFollowTableRange });
@@ -25229,16 +25275,12 @@ async function v3MediaPlayOriginal() {
   // so THIS module is responsible for destroying it — at the media-reset points next to the
   // existing StudioMediaKaraoke.stop() calls AND in v3AttachAudioTiming when the active video
   // identity changes (CRITICAL 1), never inside the karaoke module itself.
-  const savedSession = typeof v3SessionGet === 'function' ? v3SessionGet() : null;
-  if (savedSession && ['saved','library'].includes(savedSession.mode) && savedSession.textId && window.StudyVideoSourceUI) {
-    const context = await StudyVideoSourceUI.context(savedSession.textId);
-    if (context.record) return StudyVideoSourceUI.open(savedSession.textId);
-  }
   if (!audio.video || !audio.video.videoId) return;
+  delete document.getElementById('v3MediaBarNote').dataset.youtubeError;
   // MINOR 4 (review 2026-07-27): self-contained capability check, mirroring mountVideo()'s
   // explicit pre-check in studio-import.js — don't lean on v3MediaBarRefresh's async
   // button-disable (a stale race there is exactly what CRITICAL 2 below guards against).
-  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return;
+  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return StudyVideoSourceUI.compatibleShell();
   if (!window.v3YtStageAdapter) {
     // CRITICAL 2 (review 2026-07-27): re-entrancy guard. Two quick clicks on "▶ Оригинал" must
     // not both call StudioYtPlayer.create() into the same #v3MediaYtMount — the LOSING call's
@@ -25260,19 +25302,19 @@ async function v3MediaPlayOriginal() {
           // was in flight (a Translate response landed mid-click and CRITICAL 1's check
           // fired) — such an adapter is already stale on arrival. Never publish it into the
           // shared slot; destroy it immediately instead of leaking it.
-          const stillWanted = window.v3ActiveMediaAudio && window.v3ActiveMediaAudio.video &&
-                               window.v3ActiveMediaAudio.video.videoId === wantedVideoId;
+          const stillWanted = v3MediaCurrentAudio() === audio;
           if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mount.hidden = true; return null; } // MINOR: don't leave an empty stage div visible
           window.v3YtStageAdapter = adapter; window.v3YtStageVideoId = wantedVideoId;
+          StudyVideoSourceUI.watchPlayer(adapter,document.getElementById('v3MediaBarNote'),audio);
           return adapter;
         })
         .catch((e) => { mount.hidden = true; throw e; })
         .finally(() => { v3YtStageCreatePromise = null; }); // released on the failure path too
     }
-    try { await v3YtStageCreatePromise; } catch (_) { return; }
+    try { await v3YtStageCreatePromise; } catch (error) { StudyVideoSourceUI.playerError(document.getElementById('v3MediaBarNote'),error); return; }
     if (!window.v3YtStageAdapter) return; // resolved but discarded as stale, or create() failed
   }
-  await StudioMediaKaraoke.start({ media: window.v3YtStageAdapter, entries, rowCount });
+  await StudioMediaKaraoke.start({ media: window.v3YtStageAdapter, entries, rowCount, onRangeChange:v3MediaFollowTableRange });
 }
 
 // S4-ROWPLAY: per-row "▶︎ replay this segment" button, injected POST-render (renderTable
@@ -25282,8 +25324,9 @@ function v3MediaAugmentRows() {
   const table = document.getElementById("proTable");
   if (!table || !window.MediaHost) return;
   MediaHost.augmentRows({
-    table, audio: window.v3ActiveMediaAudio, resolveBlob: v3MediaResolveBlob, t: t,
-    stillActive: (a) => window.v3ActiveMediaAudio === a,
+    table, audio: v3MediaCurrentAudio(), resolveBlob: v3MediaResolveBlob, t: t,
+    stillActive: (a) => v3MediaCurrentAudio() === a,
+    onReplayVideo: async(idx,audio)=>{await v3MediaPlayOriginal();if(v3MediaCurrentAudio()===audio && window.v3YtStageAdapter)await StudioMediaKaraoke.playSegment(idx);},
     onReplay: async (idx, audio, blob) => {
       // Same reference-equality contract as v3MediaPlayOriginal() above.
       const player = v3MediaEnsureLocalStage(audio, blob);
@@ -25301,15 +25344,21 @@ function v3MediaAugmentRows() {
 (function v3MediaObserveTable() {
   const container = document.getElementById("tableContainer");
   if (!container || !window.MutationObserver) return;
-  let scheduled = false;
+  let scheduled = false, playbackRowsKey = null;
   new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false;
+      // Offline/session restoration paints cached rows without v3LibraryOpenText.
+      // Reconnect the canonical source once per material/semantic table change;
+      // replay-button insertion itself must never form a refresh loop.
+      const session=v3SessionGet();
+      const key=JSON.stringify([session && session.textId,(Array.isArray(currentTableData)?currentTableData:[]).map(row=>row.he || row.he_plain || '')]);
+      if(key!==playbackRowsKey){playbackRowsKey=key;v3MediaBarRefresh();return;}
       // Re-augment only when the rendered button SET differs from the proven playable set.
       // Partial-proven/exact maps intentionally contain holes; treating those rows as missing
       // created a perpetual remove/re-add loop and could starve interactions on mobile Safari.
-      var a = window.v3ActiveMediaAudio;
+      var a = v3MediaCurrentAudio();
       var table = document.getElementById('proTable');
       if (a && a.timing && table && window.MediaHost && window.MediaHost.rowsNeedReplayAugment) {
         var rowCount = table.querySelectorAll('tbody tr[data-row-idx]').length;
@@ -27159,6 +27208,9 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
     v3PrepareForNewTableRender();
 
 	const renderToken = v3RenderTableFromLibrary(rows);
+    // Resolve the playback source against THIS rendered table, after the reset above.
+    // Earlier restore passes can still see the preceding card's currentTableData.
+    try { await v3MediaBarRefresh(); } catch (_) {}
 
 	// BRR-P0-002b — hydrate source_text AFTER render (non-blocking). The lite fetch
 	// above skipped the blob so the table paints ~300ms sooner; the Studio composer,

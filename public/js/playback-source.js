@@ -134,6 +134,18 @@
     result.entries = entries.map(entry => ({...entry,t:entry.t+offset,...(entry.end==null?{}:{end:entry.end+offset})}));
     return result;
   }
+  // Runtime projection only. Never persist it over the original acquisition passport:
+  // local bytes and their clock remain available when the learner switches back.
+  async function playbackAudio(audio, rows, text) {
+    const meta=parseMeta(text && (text.source_meta_json || text.sourceMetaJson || text.source_meta));
+    if (!Object.prototype.hasOwnProperty.call(meta,'playback_source')) return audio;
+    const record=validate(meta.playback_source), entry=selected(record);
+    if (!entry.source) return audio ? {...audio,video:null} : null;
+    const view=await youtubeView(audio,rows,record);
+    return {...(audio || {}),media:null,video:view.video,
+      timing:view.entries?{...(audio && audio.timing || {}),entries:view.entries}:null,
+      playbackKind:'youtube',playbackReason:view.reason,playbackRevision:view.revision};
+  }
   function isPublished(meta) { return !!(meta && (meta.corpus || meta.public_corpus || meta.group_corpus)); }
   function createRepository(adapter) {
     const one = async id => (await adapter.dbQuery('SELECT id,source_meta_json FROM texts WHERE id=?',[String(id)]))[0] || null;
@@ -157,5 +169,5 @@
     };
   }
   return {SCHEMA,MAX_REVISIONS,parseVideoId,canonicalUrl,validate,selected,append,fromLegacy,fromText,fromPackageReference,
-    parseMeta,isPublished,timingBasis,youtubeView,safeEntries,digest,createRepository};
+    parseMeta,isPublished,timingBasis,youtubeView,playbackAudio,safeEntries,digest,createRepository};
 });

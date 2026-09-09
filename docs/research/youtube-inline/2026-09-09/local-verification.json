@@ -1,0 +1,90 @@
+{
+  "at": "2026-09-09T13:52:26.8001061Z",
+  "version": "3.11.499",
+  "unit_tests": 1428,
+  "unit_status": "PASS",
+  "inline_live": {
+    "ok": true,
+    "results": [
+      {
+        "surface": "studio",
+        "row": 2,
+        "time": 26.011554017166137
+      },
+      {
+        "surface": "studio",
+        "row": 0,
+        "time": 4.0145559141693115
+      },
+      {
+        "surface": "studio",
+        "row": 1,
+        "time": 14.017961912261963
+      },
+      {
+        "surface": "room",
+        "row": 2,
+        "time": 26.010776007629396
+      },
+      {
+        "surface": "room",
+        "row": 0,
+        "time": 4.014931080108642
+      },
+      {
+        "surface": "room",
+        "row": 1,
+        "time": 14.00225311062622
+      }
+    ],
+    "errors": []
+  },
+  "owner_url_embed": {
+    "ok": true,
+    "video": "PngchpnAS5E",
+    "embedDenied": true,
+    "localFallback": [
+      "studio",
+      "room"
+    ],
+    "rowsAndReviewsUnchanged": true
+  },
+  "offline": {
+    "ok": true,
+    "results": [
+      {
+        "path": "/study-studio.html",
+        "isolated": false,
+        "card": true,
+        "rows": 1,
+        "vfs": {
+          "name": "AccessHandlePool",
+          "kind": "sync"
+        },
+        "controlled": true
+      },
+      {
+        "path": "/study-library.html",
+        "isolated": false,
+        "card": true,
+        "rows": 1,
+        "vfs": {
+          "name": "AccessHandlePool",
+          "kind": "sync"
+        },
+        "controlled": true
+      }
+    ],
+    "errors": []
+  },
+  "gates": [
+    "room-media",
+    "reader-parity",
+    "task-package-public-reader-browser",
+    "api-smoke",
+    "release-locks-44",
+    "log-hygiene"
+  ],
+  "owner_profile_written": false,
+  "physical_iphone_acceptance": "PENDING"
+}

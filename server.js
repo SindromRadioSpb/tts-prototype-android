@@ -293,7 +293,7 @@ const PRONUNCIATION_CSP = [
 ].join("; ");
 
 // Security + cross-origin-isolation headers on every response.
-//   • COOP/COEP/CORP enable SharedArrayBuffer (wa-sqlite AccessHandlePoolVFS).
+//   • COOP/COEP/CORP enable SharedArrayBuffer for isolated application surfaces.
 //   • HSTS: site is HTTPS-only behind Traefik + Let's Encrypt — pin it.
 //   • nosniff / frame-deny / referrer / permissions: standard hardening.
 //   • CSP: Report-Only (see above) — observational, never blocks.
@@ -302,6 +302,7 @@ app.use((req, res, next) => {
   const isAgentAccessShell = req.path === AGENT_ACCESS_SHELL_PATH;
   const isPronunciationShell = req.path === PRONUNCIATION_SHELL_PATH;
   const isStudyVideoShell = req.path === '/study-video.html';
+  const isStudyFullShell = ['/study-studio.html','/study-library.html'].includes(req.path);
   if (isMiniappShell) {
     res.setHeader("Content-Security-Policy", MINIAPP_CSP);
     res.setHeader("Cache-Control", "no-cache");
@@ -310,6 +311,12 @@ app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
+  } else if (isStudyFullShell) {
+    // Same application and same AccessHandlePool database; ordinary YouTube embeds
+    // for browsers without credentialless iframes. No alternate storage backend.
+    res.setHeader('Cross-Origin-Opener-Policy','same-origin');
+    res.setHeader('X-Frame-Options','DENY');
+    res.setHeader('Cache-Control','no-cache');
   } else if (isStudyVideoShell) {
     // Top-level read-only projection: no SQLite/OPFS worker on this screen.
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -606,6 +613,8 @@ app.use("/data/benyehuda/context", express.static(path.join(DATA_DIR, "benyehuda
   },
 }));
 
+app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
+app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -1075,6 +1084,12 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  '/db/wa-sqlite.mjs',
+  '/db/wa-sqlite.wasm',
+  '/db/wa-sqlite-async.mjs',
+  '/db/wa-sqlite-async.wasm',
+  '/study-studio.html',
+  '/study-library.html',
   "/study-video.html",
   "/css/study-video.css",
   "/css/study-video-source.css",
@@ -1107,7 +1122,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-portable-learning-package.js?v=498",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=498",
+  "/js/library-ui.js?v=499",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1135,7 +1150,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lexical-resolution-service.js?v=5",
   "/js/lexical-resolution-ui.js?v=12",
   "/js/material-actions.js?v=1",
-  "/js/media-host.js?v=403",
+  "/js/media-host.js?v=499",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/i18n/locales/ru.js?v=213",
@@ -1151,7 +1166,8 @@ function shellIntegrity() {
     // keys, including their release query. The filesystem lookup uses only
     // the URL pathname; otherwise "?v=..." becomes part of the filename and
     // makes every cache-busted worker install fail closed forever.
-    const pathname = new URL(url, "http://linguistpro.local").pathname;
+    let pathname = new URL(url, "http://linguistpro.local").pathname;
+    pathname=({'/study-studio.html':'/index.html','/study-library.html':'/library.html'})[pathname] || pathname;
     const file = path.join(__dirname, "public", ...pathname.slice(1).split("/"));
     out[url] = crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
   }

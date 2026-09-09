@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.498";
+const CACHE_VERSION = "v3.11.499";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -68,6 +68,8 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
   "/study-video.html",
+  "/study-studio.html",
+  "/study-library.html",
   "/css/study-video.css",
   "/css/study-video-source.css",
   "/js/playback-source.js",
@@ -100,7 +102,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=498",
+  "/js/library-ui.js?v=499",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -218,7 +220,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=403",
+  "/js/media-host.js?v=499",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js",
@@ -256,6 +258,10 @@ const PRECACHE_URLS = [
   "/i18n/locales/en.js?v=213",
   "/i18n/locales/he.js?v=213",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
+  "/db/wa-sqlite.mjs",
+  "/db/wa-sqlite.wasm",
+  "/db/wa-sqlite-async.mjs",
+  "/db/wa-sqlite-async.wasm",
   "/db/sqlite-api.js",
   "/db/sqlite-constants.js",
   "/db/IDBBatchAtomicVFS.js",

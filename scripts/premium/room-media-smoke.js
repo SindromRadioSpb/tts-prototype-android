@@ -32,7 +32,7 @@ async function stopServer(child) {
 async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s < ms) { try { const r = await fetch(BASE + "/healthz"); if (r.status === 200) return true; } catch (_) {} await sleep(200); } return false; }
 
 const SEED = `(async () => {
-  const db = await import("/db/local-db.js");
+  const db = window.__localDB; if (!db) throw new Error("Room DB is not initialized"); await db.initLocalDB();
   // ~2s валидного mp3: 80 кадров MPEG1 Layer3 128kbps/44.1kHz (заголовок FF FB 90 00 + нули).
   const frame = new Uint8Array(417); frame[0] = 0xFF; frame[1] = 0xFB; frame[2] = 0x90; frame[3] = 0x00;
   const buf = new Uint8Array(417 * 80); for (let i = 0; i < 80; i++) buf.set(frame, i * 417);
@@ -190,7 +190,7 @@ async function main() {
 
       const openCard = async (marker) => {
         await pg.evaluate((m) => { const cards = Array.from(document.querySelectorAll(".mytexts-grid .mytext-card-v")); const c = cards.find((x) => x.textContent.includes(m)); if (c) c.click(); }, marker);
-        await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, { timeout: 15000 });
+        await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, null, { timeout: 15000 });
       };
       const backToGrid = async () => {
         await pg.click("#readerBack");
@@ -203,7 +203,7 @@ async function main() {
         const stage = document.getElementById("roomMediaLocalStage");
         const p = document.getElementById("roomMediaLocalPlayer");
         return stage && !stage.hidden && p && p.getAttribute("src");
-      }, { timeout: 15000 }).catch(() => failures.push("t1: local stage did not appear with a src"));
+      }, null, { timeout: 15000 }).catch(() => failures.push("t1: local stage did not appear with a src"));
       const t1 = await pg.evaluate(() => ({
         barVisible: !(document.getElementById("roomMediaBar") || {}).hidden,
         note: (document.getElementById("roomMediaBarNote") || {}).textContent || "",
@@ -275,7 +275,7 @@ async function main() {
       await pg.waitForFunction(() => {
         const n = document.getElementById("roomMediaBarNote");
         return n && n.textContent === window.t("studio.media.fileMissing");
-      }, { timeout: 10000 }).catch(() => failures.push("t3: fileMissing note did not appear"));
+      }, null, { timeout: 10000 }).catch(() => failures.push("t3: fileMissing note did not appear"));
       const t3 = await pg.evaluate(() => ({
         linkHidden: (document.getElementById("roomMediaStudioLink") || {}).hidden,
         linkHref: (document.getElementById("roomMediaStudioLink") || {}).getAttribute
@@ -312,7 +312,7 @@ async function main() {
         const stage = document.getElementById("roomMediaLocalStage");
         const p = document.getElementById("roomMediaLocalPlayer");
         return stage && !stage.hidden && p && p.getAttribute("src");
-      }, { timeout: 15000 }).catch(() => failures.push("t5: stage did not appear (SHA-fallback blob resolve broken)"));
+      }, null, { timeout: 15000 }).catch(() => failures.push("t5: stage did not appear (SHA-fallback blob resolve broken)"));
       const t5 = await pg.evaluate(() => ({
         note: (document.getElementById("roomMediaBarNote") || {}).textContent || "",
         replayButtons: document.querySelectorAll("#roomReaderTable .smk-row-replay").length,
@@ -371,7 +371,7 @@ async function main() {
         const wrap = document.getElementById("roomReaderTable");
         const row = wrap && wrap.querySelector('tr[data-row-idx="8"]');
         if (!wrap || !row) return null;
-        const db = await import("/db/local-db.js");
+        const db = window.__localDB; if (!db) throw new Error("Room DB is not initialized"); await db.initLocalDB();
         // The synthetic MP3 is deliberately short, so Chromium may asynchronously
         // clamp the row-12 seek to its real duration. Let that genuine media signal
         // settle before isolating the passive-scroll invariant.
@@ -425,7 +425,7 @@ async function main() {
         const wrap = document.getElementById("roomReaderTable");
         const stage = document.getElementById("roomMediaLocalStage");
         return wrap && wrap.classList.contains("room-media-scroll") && stage && !stage.hidden;
-      }, { timeout: 15000 }).catch(() => failures.push("t5 reopen: media layout did not settle"));
+      }, null, { timeout: 15000 }).catch(() => failures.push("t5 reopen: media layout did not settle"));
       await pg.waitForTimeout(1800);
       const t5Reopen = await pg.evaluate((wanted) => {
         const wrap = document.getElementById("roomReaderTable");
@@ -453,7 +453,7 @@ async function main() {
         const wrap = document.getElementById("roomReaderTable");
         const stage = document.getElementById("roomMediaLocalStage");
         return wrap && wrap.classList.contains("room-media-scroll") && stage && !stage.hidden;
-      }, { timeout: 15000 }).catch(() => failures.push("t5 reload: media layout did not settle"));
+      }, null, { timeout: 15000 }).catch(() => failures.push("t5 reload: media layout did not settle"));
       await pg.waitForTimeout(1800);
       const t5Reload = await pg.evaluate((wanted) => {
         const wrap = document.getElementById("roomReaderTable");
@@ -482,7 +482,7 @@ async function main() {
       await pg.waitForFunction(() => {
         const p = document.getElementById("roomMediaLocalPlayer");
         return p && p.tagName === "VIDEO";
-      }, { timeout: 15000 }).catch(() => failures.push("t6: player did not swap to <video>"));
+      }, null, { timeout: 15000 }).catch(() => failures.push("t6: player did not swap to <video>"));
       const t6 = await pg.evaluate(() => {
         const p = document.getElementById("roomMediaLocalPlayer");
         return p ? { tag: p.tagName, inline: p.hasAttribute("playsinline"), webkit: p.hasAttribute("webkit-playsinline") } : null;

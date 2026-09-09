@@ -696,7 +696,12 @@
       var onReplay = opts.onReplay, stillActive = opts.stillActive || function () { return true; };
       if (!table) return;
       table.querySelectorAll(".smk-row-replay").forEach(function (b) { b.remove(); });
-      if (!audio || !audio.timing || !audio.media) return;
+      if (!audio || !audio.timing) return;
+      if (audio.video && !audio.media && opts.onReplayVideo) {
+        if (stillActive(audio)) renderRowReplay(table,audio,()=>Promise.resolve(true),t,(idx)=>opts.onReplayVideo(idx,audio));
+        return;
+      }
+      if (!audio.media) return;
       Promise.resolve(resolveBlob(audio)).then(function (blob) {
         if (!blob) return;
         if (!stillActive(audio)) return; // текст сменился, пока резолвили

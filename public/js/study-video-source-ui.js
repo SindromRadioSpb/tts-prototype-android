@@ -7,7 +7,46 @@
   };
   function locale(){return ['ru','en','he'].includes(document.documentElement.lang)?document.documentElement.lang:'ru';}
   function label(key){return text[locale()][key];}
-  async function db(){if(window.__localDB)return window.__localDB;if(typeof window.ensureLocalDB==='function')return window.ensureLocalDB();return import('/db/local-db.js?v=488');}
+  const playerText={
+    ru:{youtube:'YouTube',local:'Локальный файл',pending:'YouTube · синхронизация не подтверждена. Проверьте её в «Источник видео».',changed:'YouTube · строки или тайминги изменились. Проверьте синхронизацию заново.',ready:'YouTube · строки синхронизированы',denied:'YouTube запретил встраивание этого ролика. Откройте YouTube или выберите локальный файл.',failed:'YouTube недоступен. Повторите воспроизведение или выберите локальный файл.',blocked:'Нажмите ▶ в самом плеере YouTube.',external:'Открыть на YouTube',savedPending:'Привязка сохранена. Синхронизация не подтверждена.',savedReady:'Привязка сохранена. Синхронизация включена.',savedLocal:'YouTube отвязан. Доступен исходный локальный файл.'},
+    en:{youtube:'YouTube',local:'Local file',pending:'YouTube · synchronization is unconfirmed. Check Video source.',changed:'YouTube · rows or timing changed. Check synchronization again.',ready:'YouTube · rows synchronized',denied:'YouTube does not allow this video to be embedded. Open YouTube or use the local file.',failed:'YouTube is unavailable. Retry playback or use the local file.',blocked:'Press ▶ in the YouTube player.',external:'Open on YouTube',savedPending:'Video source saved. Synchronization is unconfirmed.',savedReady:'Video source saved. Synchronization enabled.',savedLocal:'YouTube detached. The original local file is available.'},
+    he:{youtube:'YouTube',local:'קובץ מקומי',pending:'YouTube · הסנכרון לא אושר. בדקו את מקור הסרטון.',changed:'YouTube · השורות או התזמון השתנו. בדקו שוב את הסנכרון.',ready:'YouTube · השורות מסונכרנות',denied:'YouTube אינו מאפשר להטמיע את הסרטון. פתחו ב-YouTube או בחרו בקובץ המקומי.',failed:'YouTube אינו זמין. נסו שוב או בחרו בקובץ המקומי.',blocked:'לחצו על ▶ בנגן YouTube.',external:'פתיחה ב-YouTube',savedPending:'מקור הסרטון נשמר. הסנכרון לא אושר.',savedReady:'מקור הסרטון נשמר. הסנכרון מופעל.',savedLocal:'YouTube נותק. הקובץ המקומי המקורי זמין.'}
+  };
+  function playbackNote(audio){const t=playerText[locale()];return audio.playbackReason?(audio.playbackReason==='PLAYBACK_TIMING_CHANGED'?t.changed:t.pending):t.ready;}
+  function playerError(node,error){if(!node)return;node.dataset.youtubeError=String(error.ytCode || error || '');node.textContent=[101,150].includes(Number(error.ytCode || error))?playerText[locale()].denied:playerText[locale()].failed;}
+  function watchPlayer(adapter,node,audio){adapter.addEventListener('error',e=>playerError(node,e));adapter.addEventListener('blocked',()=>{node.textContent=playerText[locale()].blocked;});adapter.addEventListener('play',()=>{delete node.dataset.youtubeError;node.textContent=playbackNote(audio);});}
+  function playerActions(bar,options){
+    if(!bar)return;let actions=bar.querySelector('.playback-source-actions');if(actions)actions.remove();
+    if(!options.id)return;
+    actions=document.createElement('div');actions.className='study-source-actions playback-source-actions';
+    function button(caption,fn,key){const b=document.createElement('button');b.type='button';b.textContent=caption;b.className='btn-secondary';b.dataset.playbackLabel=key;b.onclick=fn;actions.append(b);}
+    button(label('source'),options.onSource,'source');
+    if(options.audio && options.audio.playbackKind==='youtube' && options.local)button(playerText[locale()].local,options.onLocal,'local');
+    if(options.onYoutube)button('YouTube',options.onYoutube,'youtube');
+    if(options.audio && options.audio.video){const a=document.createElement('a');a.dataset.playbackLabel='external';a.textContent=playerText[locale()].external;a.href=PlaybackSource.canonicalUrl(options.audio.video.videoId);a.target='_blank';a.rel='noopener noreferrer';actions.append(a);}
+    const note=bar.querySelector('[id$="BarNote"]');
+    if(note){delete note.dataset.youtubeError;if(options.audio && options.audio.playbackKind==='youtube')note.dataset.playbackReason=options.audio.playbackReason || '';else delete note.dataset.playbackReason;}
+    bar.append(actions);
+  }
+  function compatibleShell(){
+    const url=new URL(location.href);url.pathname=url.pathname.includes('library')?'/study-library.html':'/study-studio.html';
+    if(typeof window.v3NavAwayWithDbClose==='function')return window.v3NavAwayWithDbClose(url.pathname+url.search+url.hash);
+    location.assign(url.href);
+  }
+  function pauseEmbeddedVideo(){const player=window.StudioMediaKaraoke && StudioMediaKaraoke.getAudioEl();if(player && player.isYouTube)StudioMediaKaraoke.pause();}
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')pauseEmbeddedVideo();});
+  window.addEventListener('pagehide',pauseEmbeddedVideo);
+  document.addEventListener('i18n:changed',()=>{
+    document.querySelectorAll('[data-playback-label]').forEach(node=>{const key=node.dataset.playbackLabel;node.textContent=key==='source'?label(key):playerText[locale()][key];});
+    document.querySelectorAll('[data-playback-reason]').forEach(node=>{if(!node.dataset.youtubeError)node.textContent=playbackNote({playbackReason:node.dataset.playbackReason || null});});
+  });
+  async function db(){
+    const ldb=window.__localDB || (typeof window.ensureLocalDB==='function'?await window.ensureLocalDB():await import('/db/local-db.js?v=488'));
+    // Cached tables can paint before the database worker finishes initialization.
+    // The module reference alone is not a readiness signal.
+    if(typeof ldb.initLocalDB==='function')await ldb.initLocalDB();
+    return ldb;
+  }
   async function context(id){
     const ldb=await db(), card=await ldb.getTextById(String(id));if(!card)throw new Error('PLAYBACK_TEXT_MISSING');
     const sentences=await ldb.getSentences(String(id));
@@ -28,7 +67,7 @@
     try{if(window.v3StopRowAudio)window.v3StopRowAudio();if(window.StudioMediaKaraoke)StudioMediaKaraoke.stop();}catch(_){}
     (target || window).location.assign('/study-video.html#'+token);
   }
-  async function open(id){const ctx=await context(id);if(!ctx.record || !PlaybackSource.selected(ctx.record).source)return manage(id);return launch(ctx,ctx.record,false);}
+  async function open(id){const ctx=await context(id);if(!ctx.record || !PlaybackSource.selected(ctx.record).source)return manage(id);if(window.StudyVideoInlineOpen)return window.StudyVideoInlineOpen(id);return launch(ctx,ctx.record,false);}
   async function manage(id){
     const ctx=await context(id), t=text[locale()], oldFocus=document.activeElement;
     const dialog=document.createElement('dialog');dialog.className='study-source-dialog';dialog.setAttribute('aria-label',t.source);
@@ -60,7 +99,8 @@
       const fresh=await context(id);
       if(fresh.basis!==ctx.basis)throw new Error('PLAYBACK_TIMING_CHANGED');
       ctx.record=await repo.save(id,remove?{remove:true}:input(),{expected_revision:ctx.explicitRevision,basis_sha256:ctx.basis});
-      ctx.explicitRevision=ctx.record.revision;status.textContent=t.saved;renderHistory();
+      ctx.explicitRevision=ctx.record.revision;status.textContent=playerText[locale()][remove?'savedLocal':confirm.checked?'savedReady':'savedPending'];renderHistory();
+      window.dispatchEvent(new CustomEvent('playback-source-changed',{detail:{textId:String(id)}}));
     }
     const explicit=PlaybackSource.parseMeta(ctx.card.source_meta_json).playback_source;ctx.explicitRevision=explicit?explicit.revision:0;
     if(!published){button(t.save,()=>save(false));button(t.detach,()=>save(true));}else{url.readOnly=true;offset.readOnly=true;confirm.disabled=true;status.textContent=t.readOnly;}
@@ -69,5 +109,5 @@
     function renderHistory(){list.replaceChildren();if(ctx.record)ctx.record.history.forEach(entry=>{const li=document.createElement('li');li.textContent=(entry.source?entry.source.url:t.replaced)+' · '+entry.offset_ms/1000+' s';list.append(li);});}renderHistory();
     dialog.addEventListener('close',()=>{dialog.remove();if(oldFocus && oldFocus.isConnected)oldFocus.focus();});document.body.append(dialog);dialog.showModal();url.focus();
   }
-  window.StudyVideoSourceUI={open,manage,context,launch,label};
+  window.StudyVideoSourceUI={open,manage,context,launch,label,playbackNote,playerError,watchPlayer,playerActions,compatibleShell};
 })();

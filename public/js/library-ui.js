@@ -5907,14 +5907,37 @@ async function roomMediaSetup(textRow, textId) {
       audio = window.MediaHost.pickExactBindingPassport(audio, activation && activation.media_passport, readerRows.length);
     } catch (_) { /* legacy/non-package cards keep their saved passport */ }
   }
-  if (!audio || serial !== roomMediaSetupSerial) return;
+  if (serial !== roomMediaSetupSerial) return;
   try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}
+  roomMediaBaseAudio=audio;
+  if(window.PlaybackSource && String(textId)!==roomMediaLocalId)audio=await PlaybackSource.playbackAudio(audio,readerRows,textRow);
+  if(!audio || serial!==roomMediaSetupSerial)return;
+  if(studyButton)studyButton.hidden=true;
   roomMediaAudio = audio;
   const bar = $('roomMediaBar'); if (!bar) return;
   bar.hidden = false;
   roomMediaWireOnce();
   roomMediaRefresh();
+  if(window.StudyVideoSourceUI)StudyVideoSourceUI.playerActions(bar,{
+    id:textId,audio,local:roomMediaBaseAudio && roomMediaBaseAudio.media,
+    onSource:()=>StudyVideoSourceUI.manage(textId),
+    onLocal:()=>{roomMediaLocalId=String(textId);roomMediaSetup(textRow,textId);},
+    onYoutube:String(textId)===roomMediaLocalId?()=>{roomMediaLocalId=null;roomMediaSetup(textRow,textId);}:null
+  });
 }
+let roomMediaBaseAudio=null, roomMediaLocalId=null;
+window.addEventListener('playback-source-changed',async e=>{
+  if(String(readerTextId)!==String(e.detail.textId))return;
+  const id=readerTextId,ctx=await StudyVideoSourceUI.context(id);
+  if(String(readerTextId)!==String(id))return;
+  roomMediaLocalId=null;await roomMediaSetup(ctx.card,id);
+});
+window.StudyVideoInlineOpen=async id=>{
+  if(String(readerTextId)!==String(id))return;
+  roomMediaLocalId=null;const ctx=await StudyVideoSourceUI.context(id);
+  await roomMediaSetup(ctx.card,id);$('roomMediaBar').scrollIntoView({block:'start'});
+  await roomMediaPlayOriginal();
+};
 function roomMediaRefresh() {
   const audio = roomMediaAudio; if (!audio) return;
   const note = $('roomMediaBarNote'), btn = $('roomMediaPlayBtn'), link = $('roomMediaStudioLink');
@@ -5927,12 +5950,13 @@ function roomMediaRefresh() {
   const res = roomMediaResolverInst();
   (res ? res.resolve(audio) : Promise.resolve(null)).then((blob) => {
     if (roomMediaAudio !== audio) return;   // текст сменился, пока резолвили
-    const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer && window.StudioYtPlayer.capability().supported);
+    const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer);
     if (btn) { btn.hidden = !!blob; btn.disabled = !blob && !hasVideo; }
     if (!blob && !hasVideo) {
       if (note) note.textContent = tt('studio.media.fileMissing', 'Аудио-файл не найден в этом браузере');
       if (link && readerTextId != null) { link.href = deepLinkForText(readerTextId); link.hidden = false; }
     } else if (!blob && hasVideo && note) { note.textContent = tt('studio.media.viaYouTube', 'Воспроизведение через YouTube'); }
+    if(audio.playbackKind && note)note.textContent=StudyVideoSourceUI.playbackNote(audio);
     if (blob) { const st = roomMediaStageInst(); if (st) st.ensure(audio, blob); }
     else if (roomMediaStage) roomMediaStage.destroy();
     roomMediaAugment();
@@ -5949,6 +5973,7 @@ function roomMediaAugment() {
     resolveBlob: (a) => (res ? res.resolve(a) : Promise.resolve(null)),
     t: (k) => tt(k, k),
     stillActive: (a) => roomMediaAudio === a,
+    onReplayVideo:async(idx,audio)=>{await roomMediaPlayOriginal();if(roomMediaAudio===audio && roomMediaYtAdapter)await StudioMediaKaraoke.playSegment(idx);},
     onReplay: async (rowIdx, audio, blob) => {
       const st = roomMediaStageInst(); if (!st) return;
       const player = st.ensure(audio, blob);   // bind внутри дергает stopOtherAudio при fresh-run
@@ -5968,13 +5993,9 @@ async function roomMediaPlayOriginal() {
     await window.StudioMediaKaraoke.start({ media: player || blob, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
     return;
   }
-  if (readerTextId != null && window.StudyVideoSourceUI) {
-    const context = await StudyVideoSourceUI.context(readerTextId);
-    if (roomMediaAudio !== audio) return;
-    if (context.record) return StudyVideoSourceUI.open(readerTextId);
-  }
   if (!audio.video || !audio.video.videoId) return;
-  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return;
+  delete $('roomMediaBarNote').dataset.youtubeError;
+  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return StudyVideoSourceUI.compatibleShell();
   if (!roomMediaYtAdapter) {
     // Re-entrancy guard — зеркало CRITICAL 2 Студии (index.html v3MediaPlayOriginal): два быстрых
     // клика не должны создать два адаптера в один маунт (осиротевший играющий iframe).
@@ -5984,19 +6005,20 @@ async function roomMediaPlayOriginal() {
       const wantedVideoId = audio.video.videoId;
       roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId)
         .then((adapter) => {
-          const stillWanted = roomMediaAudio && roomMediaAudio.video && roomMediaAudio.video.videoId === wantedVideoId;
+          const stillWanted = roomMediaAudio === audio;
           if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mountEl.hidden = true; return null; }
           roomMediaYtAdapter = adapter; roomMediaYtVideoId = wantedVideoId;
+          StudyVideoSourceUI.watchPlayer(adapter,$('roomMediaBarNote'),audio);
           return adapter;
         })
         .catch((e) => { mountEl.hidden = true; throw e; })
         .finally(() => { roomMediaYtCreating = null; });
     }
-    try { await roomMediaYtCreating; } catch (_) { return; }
+    try { await roomMediaYtCreating; } catch (error) { StudyVideoSourceUI.playerError($('roomMediaBarNote'),error); return; }
     if (!roomMediaYtAdapter) return;
   }
   roomMediaApplyLayout();   // YT-маунт показан → скролл-окно таблицы
-  // Per-row replay на адаптер НЕ подключён — ловушка асинхронного seekTo (karaoke.js IMPORTANT 3).
+  // Row replay awaits the adapter's observed seek before arming the segment end.
   await window.StudioMediaKaraoke.start({ media: roomMediaYtAdapter, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
 }
 function roomMediaWireOnce() {

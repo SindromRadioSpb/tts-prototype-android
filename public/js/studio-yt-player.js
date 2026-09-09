@@ -1,8 +1,9 @@
 // public/js/studio-yt-player.js
 // W2-S5a · Адаптер YouTube-плеера для Студии. index.html отдаётся с COEP: require-corp
-// (cross-origin isolation нужна wa-sqlite/OPFS), поэтому ОБЫЧНЫЙ iframe YouTube не стартует —
+// поэтому ОБЫЧНЫЙ iframe YouTube не стартует —
 // проверено разведкой 2026-07-27. Работает <iframe credentialless> (Chromium): плеер готов,
-// часы идут, crossOriginIsolated остаётся true. Safari/Firefox — честная деградация.
+// часы идут, crossOriginIsolated остаётся true. Совместимые полные оболочки study-studio/library
+// используют обычный iframe без COEP над той же AccessHandlePool БД.
 // Канон: docs/planning/STUDIO_INGEST_W2_S5A_CAPTIONS_KARAOKE_DESIGN_2026_07_27.md §5.2.
 (function () {
   "use strict";
@@ -116,7 +117,7 @@
       pause: function () { intent = false; try { player.pauseVideo(); } catch (_) {} },
       seekAndWait: function (seconds, options) {
         if (cancelSeek) cancelSeek();
-        var target = Number(seconds), end = options && Number(options.end);
+        var target = Number(seconds), end = options && options.end != null ? Number(options.end) : NaN;
         if (destroyed || !Number.isFinite(target) || target < 0) return Promise.reject(new Error('YT_SEEK_CANCELLED'));
         return new Promise(function (resolve, reject) {
           var timer = null, done = false, started = Date.now();

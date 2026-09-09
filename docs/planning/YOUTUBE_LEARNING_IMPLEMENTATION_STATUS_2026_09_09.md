@@ -56,6 +56,8 @@ Do not infer physical-device or independent transcript-quality acceptance from t
 
 ## Production acceptance — 2026-09-09
 
+Follow-up owner workflow correction: [full-table inline player](YOUTUBE_INLINE_PLAYER_FIX_2026_09_09.md). The evidence below describes the earlier 3.11.498 release; it does not substitute for acceptance of the correction.
+
 - Runtime commit `0931ce463e38b87be9df51d991b13ddd2ce32bdb` pushed to main; Coolify webhook deployment served 3.11.498 by 12:54:25 UTC.
 - 65/65 shell assets match both the served integrity manifest and Git bytes. Service worker v3.11.498; study page has no COEP, COOP same-origin and X-Frame-Options DENY.
 - Five consecutive no-cache config probes: HTTP 200 / 3.11.498.

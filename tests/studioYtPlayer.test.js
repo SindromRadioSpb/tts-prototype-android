@@ -112,6 +112,7 @@ test('seek confirmation waits for the actual clock and teardown rejects outstand
     let settled=false;const pending=ad.seekAndWait(5).then(()=>{settled=true;});
     await new Promise(resolve=>setTimeout(resolve,10)); assert.equal(settled,false);
     await pending; assert.equal(ad.currentTime,5);
+    await ad.seekAndWait(7,{end:null}); assert.equal(ad.currentTime,7,'an unknown segment end is not zero');
     p.seekTo=function(){};
     const abandoned=ad.seekAndWait(12);ad.destroy();
     await assert.rejects(abandoned,/YT_SEEK_CANCELLED/);
