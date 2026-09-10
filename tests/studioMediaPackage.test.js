@@ -478,3 +478,35 @@ test('google-free long-table confirmation never quotes Gemini price or duration'
     'Gemini token-price estimate must remain exclusive to the Gemini chunk path',
   );
 });
+
+test('a transcript recognised from a YouTube link is not filed as an imported subtitle', () => {
+  const input = StudioMediaPackage.passportToPromotionInput({
+    kind: 'captions', at: '2026-09-11T00:00:00Z',
+    captions: {
+      captions: { origin: 'gemini-url-asr', format: 'asr', language: 'he',
+                  asr: { provider: 'gemini-url', model: 'gemini-flash-latest' } },
+      video: { platform: 'youtube', videoId: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' },
+      media: { durationSec: 1560 },
+      segments: [{ i: 0, start: 7, text: 'שלום' }, { i: 1, start: 20, text: 'עולם' }],
+    },
+  });
+  assert.equal(input.kind, 'captions');
+  assert.equal(input.provider, 'gemini-url', 'the provider that actually produced the text must be recorded');
+  assert.equal(input.model, 'gemini-flash-latest');
+  assert.equal(input.media.sha256, null, 'a link-only material owns no local media');
+  assert.deepEqual(input.media.external_ref, { platform: 'youtube', videoId: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' });
+  assert.equal(input.segments[0].start_ms, 7000);
+  assert.equal(input.segments[0].quality_flags.includes('blind'), false);
+});
+
+test('a withdrawn clock reaches the package as blind cues, never as invented marks', () => {
+  const input = StudioMediaPackage.passportToPromotionInput({
+    kind: 'captions',
+    captions: {
+      captions: { origin: 'gemini-url-asr', format: 'asr', language: 'he' },
+      segments: [{ i: 0, start: null, text: 'שלום' }, { i: 1, start: null, text: 'עולם' }],
+    },
+  });
+  assert.equal(input.segments.every(s => s.start_ms === null && s.quality_flags.includes('blind')), true);
+  assert.equal(input.segments.map(s => s.text).join(' '), 'שלום עולם');
+});

@@ -14,3 +14,72 @@ test('cancel during translation retains result and prevents saving; explicit res
   runner=T.createRunner(store,{translate:async()=>{translate++;await runner.cancel(job.id);return {rows:[{he:'שלום'}]};},save:async j=>(save++,{id:j.id}),preparePackage:async()=>({sha256:'b'.repeat(64)})});
   await runner.run(job.id);assert.equal(save,0);assert.equal((await store.get(job.id)).state,'cancelled');await runner.run(job.id);assert.equal(translate,1);assert.equal(save,1);
 });
+
+// ── P5: материал начинается со ссылки, а не с готового текста ──
+const link={youtube_source:{video_id:'eLYgTqNFn-s',url:'https://www.youtube.com/watch?v=eLYgTqNFn-s'},title:'Kan 11',provider:'gemini'};
+function linkOps(log){return {
+  transcribe:async()=>{log.transcribe++;return {text:'שלום עולם',segments:[{startSec:7,text:'שלום עולם'}],durationSec:1560,timing:{verdict:'verified'},blind:false};},
+  translate:async i=>{log.translate++;log.translatedText=i.source_text;return {rows:[{he:'שלום עולם',ru:'Привет мир'}]};},
+  save:async j=>{log.save++;return {id:'text-1'};},
+  bindPlaybackSource:async(j,src)=>{log.bind++;log.bound=src;return {revision:1};},
+  preparePackage:async()=>{log.pkg++;return {sha256:'c'.repeat(64)};}};}
+
+test('a link alone is enough to create a task',async()=>{
+  const job=await T.create(link);
+  assert.equal(job.input.youtube_source.video_id,'eLYgTqNFn-s');
+  assert.equal(job.phase,'imported');
+  await assert.rejects(T.create({title:'x',provider:'gemini'}),/TASK_INPUT_INVALID/);
+});
+
+test('the link runs all the way to a saved card with its video source attached',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  const runner=T.createRunner(store,linkOps(log));
+  const done=await runner.run(job.id);
+  assert.equal(done.state,'ready');
+  assert.equal(log.translatedText,'שלום עולם','the table is built from the transcript');
+  assert.deepEqual(log.bound,{url:'https://www.youtube.com/watch?v=eLYgTqNFn-s',offset_ms:0});
+  assert.equal(done.transcript.segments.length,1);
+  assert.equal(done.saved_text_id,'text-1');
+});
+
+test('a resumed task never pays for the same transcript twice',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  const ops=linkOps(log);let fail=true;
+  ops.translate=async i=>{log.translate++;if(fail){fail=false;throw new Error('injected');}log.translatedText=i.source_text;return {rows:[{he:'א',ru:'а'}]};};
+  const runner=T.createRunner(store,ops);
+  await assert.rejects(runner.run(job.id),/injected/);
+  assert.equal((await store.get(job.id)).transcript.text,'שלום עולם','a paid transcript survives a failed step');
+  await runner.run(job.id);
+  assert.equal(log.transcribe,1,'the provider must not be asked for the transcript again');
+  assert.equal(log.translate,2);
+});
+
+test('a text-only task never reaches the transcribe or bind stages',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(input);await store.add(job);
+  await T.createRunner(store,linkOps(log)).run(job.id);
+  assert.equal(log.transcribe,0);
+  assert.equal(log.bind,0);
+  assert.equal(log.translatedText,'שלום');
+});
+
+test('cancelling before the table is built stops without paying for translation',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  const ops=linkOps(log);let runner;
+  ops.transcribe=async()=>{log.transcribe++;await runner.cancel(job.id);return {text:'שלום',segments:[],durationSec:10,timing:{verdict:'inconclusive'},blind:false};};
+  runner=T.createRunner(store,ops);
+  await runner.run(job.id);
+  assert.equal((await store.get(job.id)).state,'cancelled');
+  assert.equal(log.translate,0);
+  assert.equal((await store.get(job.id)).transcript.text,'שלום','the paid result is kept for the resume');
+});
+
+test('the transcript carries its own provenance into the table and the saved card',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  const ops=linkOps(log);
+  ops.transcribe=async()=>({text:'שלום',segments:[{startSec:7,text:'שלום'}],durationSec:1560,timing:{verdict:'verified'},blind:false,
+    import_meta:{v:1,captions:{origin:'gemini-url-asr'},video:{platform:'youtube',videoId:'eLYgTqNFn-s'}}});
+  ops.translate=async i=>{log.translate++;log.meta=i.import_meta;return {rows:[{he:'שלום',ru:'Привет'}]};};
+  await T.createRunner(store,ops).run(job.id);
+  assert.equal(log.meta.captions.origin,'gemini-url-asr','the table must be built against the transcript it came from');
+  assert.equal((await store.get(job.id)).input.import_meta,null,'the immutable task input is not rewritten');
+});

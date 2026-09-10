@@ -220,6 +220,12 @@ app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, LEAR
 // (BYOK TTS/Translate/Gemini go through our /api proxy), so connect-src 'self'
 // should cover normal traffic — anything else will surface in the reports.
 //
+// Update 2026-09-11: the "no direct client-side calls to Google APIs" note above is no longer
+// true and has not been since W2-S4. BYOK media work deliberately goes browser→provider so no
+// media byte and no provider call passes through this host: gemini-files.js uploads to the Files
+// API, and youtube-asr.js sends a YouTube link for transcription (plus YouTube's oEmbed for the
+// material title). Those origins are listed so the reports keep showing what we did NOT expect.
+//
 // Kill switch: set CSP_REPORT_ONLY=0 (or "off") to drop the header instantly
 // via an env change + restart, no code edit. Report-Only cannot regress
 // behaviour, so it ships enabled by default.
@@ -240,7 +246,7 @@ const CSP_REPORT_ONLY_VALUE = [
   "font-src 'self' data:",
   "media-src 'self' blob: data:",
   "worker-src 'self' blob:",
-  "connect-src 'self'",
+  "connect-src 'self' https://generativelanguage.googleapis.com https://www.youtube.com",
   "manifest-src 'self'",
   "report-uri /api/csp-report",
   "report-to csp-endpoint",
@@ -1097,8 +1103,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/study-video-transfer.js",
   "/js/study-video.js",
   "/js/study-video-source-ui.js?v=508",
-  "/js/learning-material-task.js",
-  "/js/learning-material-task-ui.js",
+  "/js/youtube-asr.js?v=509",
+  "/js/learning-material-task.js?v=509",
+  "/js/learning-material-task-ui.js?v=509",
   "/js/studio-yt-player.js?v=506",
   "/js/studio-media-karaoke.js",
   "/js/portable-learning-package-core.js",
@@ -1153,9 +1160,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=506",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=215",
-  "/i18n/locales/en.js?v=215",
-  "/i18n/locales/he.js?v=215",
+  "/i18n/locales/ru.js?v=216",
+  "/i18n/locales/en.js?v=216",
+  "/i18n/locales/he.js?v=216",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

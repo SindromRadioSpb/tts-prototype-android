@@ -10,10 +10,21 @@
       for(const [key,child]of Object.entries(v)){if(/api.?key|access.?token|secret|password|private.?key|review_log|word_status|srs_/i.test(key))throw new Error('TASK_PRIVATE_DATA');walk(child,depth+1);}}
     walk(value,0);if(new TextEncoder().encode(JSON.stringify(value)).length>MAX_BYTES)throw new Error('TASK_TOO_LARGE');return clone(value);
   }
+  function youtubeSource(value){
+    const id=P().parseVideoId(value&&value.url);
+    if(!id||(value.video_id&&value.video_id!==id))return null;
+    return {video_id:id,url:P().canonicalUrl(id)};
+  }
+  // Один ответ на вопрос «откуда этот текст» для ВСЕХ потребителей задачи: транскрипт, который
+  // задача оплатила, приносит свой провенанс сам и перекрывает пустой провенанс входа.
+  function effectiveImportMeta(job){return (job&&job.transcript&&job.transcript.import_meta)||(job&&job.input&&job.input.import_meta)||null;}
   async function create(input){
-    if(!input||!String(input.source_text||'').trim()||!String(input.title||'').trim()||!['gemini','gcp','google-free','madlad'].includes(input.provider))throw new Error('TASK_INPUT_INVALID');
-    const source=safe({source_text:input.source_text,title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
-    return {schema:SCHEMA,id:crypto.randomUUID(),signature:await P().digest(JSON.stringify(source)),input:source,phase:'imported',state:'paused',cancel_requested:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),table:null,saved_text_id:null,package:null,error:null};
+    // P5: материал начинается ЛИБО с готового текста, ЛИБО со ссылки, транскрипт за которую
+    // задача добудет и заплатит сама. Ссылка проверяется тем же разбором, что и канон источника.
+    const link=input&&input.youtube_source?youtubeSource(input.youtube_source):null;
+    if(!input||(!String(input.source_text||'').trim()&&!link)||!String(input.title||'').trim()||!['gemini','gcp','google-free','madlad'].includes(input.provider))throw new Error('TASK_INPUT_INVALID');
+    const source=safe({source_text:input.source_text||'',youtube_source:link,title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
+    return {schema:SCHEMA,id:crypto.randomUUID(),signature:await P().digest(JSON.stringify(source)),input:source,phase:'imported',state:'paused',cancel_requested:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),transcript:null,table:null,saved_text_id:null,playback_bound:null,package:null,error:null};
   }
   function createStore(){
     const open=()=>new Promise((resolve,reject)=>{const r=indexedDB.open('linguistpro-material-tasks-v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('tasks',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
@@ -35,9 +46,17 @@
       try{
         let job=await store.get(id);if(!job||job.schema!==SCHEMA)throw new Error('TASK_MISSING');
         await update({cancel_requested:false,state:'running',error:null});
+        if(job.input.youtube_source&&!job.transcript){
+          await update({phase:'transcribing'});
+          const transcript=await operations.transcribe(clone(job.input),job.id);
+          if(!transcript||!String(transcript.text||'').trim())throw new Error('TASK_TRANSCRIPT_INCOMPLETE');
+          job=await update({transcript:safe(transcript),phase:'transcribed'});
+        }
+        if(await cancelled())return await update({state:'cancelled'});
         if(!job.table){
           await update({phase:'translating'});
-          const table=await operations.translate(clone(job.input),job.id);
+          // Таблица всегда строится из уже оплаченного транскрипта, а не из повторного запроса.
+          const table=await operations.translate(clone(job.transcript?{...job.input,source_text:job.transcript.text,import_meta:effectiveImportMeta(job)}:job.input),job.id);
           if(!table||!Array.isArray(table.rows)||!table.rows.length)throw new Error('TASK_TABLE_INCOMPLETE');
           job=await update({table:safe(table),phase:'table_ready'});
         }
@@ -47,6 +66,14 @@
           const saved=await operations.save(clone(job));
           if(!saved||!saved.id)throw new Error('TASK_SAVE_INCOMPLETE');
           job=await update({saved_text_id:String(saved.id),phase:'saved'});
+        }
+        if(await cancelled())return await update({state:'cancelled'});
+        if(job.input.youtube_source&&!job.playback_bound){
+          // «Источник видео» подставляется сам: пользователь больше не открывает метаданные руками.
+          await update({phase:'binding'});
+          const bound=await operations.bindPlaybackSource(clone(job),{url:job.input.youtube_source.url,offset_ms:0});
+          if(!bound)throw new Error('TASK_BINDING_INCOMPLETE');
+          job=await update({playback_bound:safe(bound),phase:'bound'});
         }
         if(await cancelled())return await update({state:'cancelled'});
         if(!job.package){
@@ -61,5 +88,5 @@
     }
     return {run,cancel:id=>store.update(id,old=>({...old,cancel_requested:true,state:active.has(id)?'stopping':'cancelled'})),isRunning:id=>active.has(id)};
   }
-  return {SCHEMA,MAX_BYTES,MAX_TASKS,safe,create,createStore,createRunner};
+  return {SCHEMA,MAX_BYTES,MAX_TASKS,safe,create,createStore,createRunner,effectiveImportMeta,youtubeSource};
 });

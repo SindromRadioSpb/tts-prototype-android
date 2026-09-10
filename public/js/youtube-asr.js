@@ -174,6 +174,31 @@
     return 'inconclusive';
   }
 
+  // Транскрипт по ссылке входит В ТУ ЖЕ ДВЕРЬ, что и субтитры YouTube: «текст с метками, привязанный
+  // к ролику, без локального файла» — уже отгруженный и проверенный случай. Второго пути тайминга в
+  // проекте не заводим (R12), провенанс при этом называет настоящего автора текста (R9).
+  function buildImportMeta(result, model) {
+    const r = result || {};
+    const at = new Date().toISOString();
+    return {
+      kind: 'captions', method: 'gemini-url-asr', model: model || null, at,
+      warnings: (r.warnings || []).slice(),
+      textSnapshot: (r.segments || []).map((s) => s.text).join('\n'),
+      captions: {
+        v: 1,
+        captions: { origin: 'gemini-url-asr', format: 'asr', language: r.language || 'he', at,
+                    asr: { provider: 'gemini-url', model: model || null, windows: r.windows || 1 },
+                    timing: r.timing || null },
+        video: { platform: 'youtube', videoId: r.video_id, url: r.url },
+        media: { durationSec: r.durationSec == null ? null : r.durationSec },
+        segments: (r.segments || []).map((s, i) => ({ i, start: s.startSec, text: s.text })),
+        timing: null,
+        // Отозванные часы названы по имени, а не спрятаны за молчаливым null.
+        timingDropReason: r.blind ? 'ASR_CLOCK_UNVERIFIED' : null,
+      },
+    };
+  }
+
   function probeWindow(durationSec) {
     const d = Number(durationSec) || 0;
     if (d <= PROBE_SEC) return null;
@@ -235,6 +260,6 @@
     FPS, AUDIO_TOKENS_PER_SEC, SINGLE_CALL_MAX_SEC, RETRY_DELAYS_MS,
     PROBE_SEC, ANCHOR_MAX_ERROR_SEC,
     canonicalize, durationFromTokens, planWindows, buildRequest, classifyFailure, retryable,
-    matchAnchors, judgeTiming, probeWindow, estimate, transcribe,
+    matchAnchors, judgeTiming, probeWindow, buildImportMeta, estimate, transcribe,
   };
 });

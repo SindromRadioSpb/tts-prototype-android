@@ -3835,6 +3835,13 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 
 /* External file handoff: the original preview/transcript path remains primary and independent. */
 .v3-downr-handoff { margin-top:12px; padding:13px 14px; border:1px solid #bed5d0; border-inline-start:4px solid #0b7673; border-radius:12px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
+/* P5 — «материал из ссылки». Тот же язык, что у соседнего handoff-блока; собственная кнопка
+   объявлена явно, иначе мобильное правило button{width:100%} растянет её без спроса. */
+.v3-yt-material { margin-top:12px; padding:13px 14px; border:1px solid #c9d6ec; border-inline-start:4px solid #2f5fb0; border-radius:12px; background:color-mix(in srgb,#2f5fb0 4%,var(--theme-bg-card,#fff)); }
+.v3-yt-material strong { display:block; color:#1d3a6b; font-size:15px; line-height:1.35; }
+.v3-yt-material p { margin:4px 0 10px; color:var(--theme-text-secondary,#64748b); font-size:12px; line-height:1.45; }
+#v3YtMaterial button { width:auto; min-height:44px; }
+@media (max-width:600px){ #v3YtMaterial button { width:100%; } }
 .v3-downr-head { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:12px; }
 .v3-downr-kicker { display:block; margin-bottom:3px; color:#08736f; font:750 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.055em; text-transform:uppercase; }
 .v3-downr-title { display:block; color:#173f3c; font-size:15px; line-height:1.35; }
@@ -13310,9 +13317,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=215"></script>
-<script src="/i18n/locales/en.js?v=215"></script>
-<script src="/i18n/locales/he.js?v=215"></script>
+<script src="/i18n/locales/ru.js?v=216"></script>
+<script src="/i18n/locales/en.js?v=216"></script>
+<script src="/i18n/locales/he.js?v=216"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13419,8 +13426,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=508"></script>
-<script src="/js/learning-material-task.js"></script>
-<script src="/js/learning-material-task-ui.js"></script>
+<script src="/js/youtube-asr.js?v=509"></script>
+<script src="/js/learning-material-task.js?v=509"></script>
+<script src="/js/learning-material-task-ui.js?v=509"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13508,7 +13516,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.508";
+    window.APP_VERSION = "3.11.509";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34398,9 +34406,43 @@ window.v3SaveMetaOpenTransfer = v3SaveMetaOpenTransfer;
 // The task UI owns orchestration; these adapters reuse the canonical Studio engines.
 window.LearningMaterialTaskUI.configure({
   capture() {
-    return {source_text:String(getText() || '').trim(),title:v3GuessTitleFromSourceText(getText()),
-      import_meta:window.v3LastImportMeta || null,provider:getSelectedProvider(),model:getSelectedProvider()==='gemini'?EXPECTED_GEMINI_STUDIO_MODEL:null,
+    // P5: когда выбран маршрут «из ссылки», текста ещё нет — его добудет и оплатит сама задача.
+    const link = window.v3PendingYoutubeMaterial || null;
+    return {source_text:link?'':String(getText() || '').trim(),
+      youtube_source:link?{video_id:link.video_id,url:link.url}:null,
+      title:link?(link.title || link.video_id):v3GuessTitleFromSourceText(getText()),
+      import_meta:link?null:(window.v3LastImportMeta || null),provider:getSelectedProvider(),model:getSelectedProvider()==='gemini'?EXPECTED_GEMINI_STUDIO_MODEL:null,
       translit_profile:getSelectedTranslitProfile(),direction:getTableDirection()};
+  },
+  async estimate(input) {
+    const key = typeof window.geminiKeyGet === 'function' ? window.geminiKeyGet() : '';
+    if (!key) { const e = new Error('GEMINI_KEY_REQUIRED'); e.code = 'GEMINI_KEY_REQUIRED'; throw e; }
+    return YoutubeAsr.estimate({fetch:(u,i)=>fetch(u,i),apiKey:key},input.youtube_source.url);
+  },
+  async transcribe(input, id) {
+    if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
+    const key = typeof window.geminiKeyGet === 'function' ? window.geminiKeyGet() : '';
+    if (!key) { const e = new Error('GEMINI_KEY_REQUIRED'); e.code = 'GEMINI_KEY_REQUIRED'; throw e; }
+    const result = await YoutubeAsr.transcribe({fetch:(u,i)=>fetch(u,i),apiKey:key},input.youtube_source.url,
+      (phase,at)=>{ try { window.dispatchEvent(new CustomEvent('youtube-asr-progress',{detail:{id,phase,at}})); } catch (_) {} });
+    const meta = YoutubeAsr.buildImportMeta(result, AsrTranscript.ASR_MODEL);
+    // Тот же промоушен в корректируемый пакет, что и у субтитр: второго хранилища меток нет.
+    const pkg = await window.StudioMediaPackage.createFromImportMeta(meta);
+    const projection = window.StudioMediaPackage.buildCompatibilityProjection(pkg.revision,{kind:'captions',media:pkg.input.media});
+    meta.media_package_ref = projection.media_package_ref;
+    meta.captions = Object.assign({},meta.captions,projection.captions);
+    meta.textSnapshot = pkg.revision.segments.map(s=>s.text).join('\n');
+    return {text:meta.textSnapshot,segments:result.segments,durationSec:result.durationSec,
+      timing:result.timing,blind:result.blind,warnings:result.warnings,windows:result.windows,import_meta:meta};
+  },
+  async bindPlaybackSource(job, input) {
+    const ldb = await ensureLocalDB();
+    const row = (await ldb.dbQuery('SELECT source_meta_json FROM texts WHERE id=?',[String(job.saved_text_id)]))[0];
+    const existing = row ? PlaybackSource.parseMeta(row.source_meta_json).playback_source : null;
+    const ctx = await StudyVideoSourceUI.context(job.saved_text_id);
+    // Метки принадлежат этой карточке и этому ролику; basis фиксирует, на чём привязка держится.
+    return PlaybackSource.createRepository(ldb).save(job.saved_text_id,input,
+      {expected_revision:existing?existing.revision:0,basis_sha256:ctx.basis});
   },
   async translate(input) {
     if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
@@ -34420,10 +34462,11 @@ window.LearningMaterialTaskUI.configure({
     return {rows:currentTableData,meta:v3LastGeminiMeta || null};
   },
   async save(job) {
-    document.getElementById('inputText').value=job.input.source_text;
-    window.v3LastImportMeta=job.input.import_meta;
+    document.getElementById('inputText').value=job.transcript?job.transcript.text:job.input.source_text;
+    window.v3LastImportMeta=LearningMaterialTask.effectiveImportMeta(job);
     currentTableData=job.table.rows;v3LastGeminiMeta=job.table.meta;tableIsStale=false;
-    const ref=job.input.import_meta && job.input.import_meta.media_package_ref;
+    const savedMeta=LearningMaterialTask.effectiveImportMeta(job);
+    const ref=savedMeta && savedMeta.media_package_ref;
     if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);
     renderTable(currentTableData);
     return v3LibrarySaveCurrentCore({title:job.input.title,learningMaterialTask:{id:job.id,signature:job.signature}});
@@ -50550,6 +50593,12 @@ document.addEventListener("i18n:changed", function () {
           <input id="v3ImportVideoUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
           <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.import.videoUrlBtn">Показать видео</button>
         </div>
+
+        <aside id="v3YtMaterial" class="v3-yt-material" aria-labelledby="v3YtMaterialTitle">
+          <strong id="v3YtMaterialTitle" data-i18n="studio.import.ytMaterialTitle">Учебный материал из ссылки</strong>
+          <p data-i18n="studio.import.ytMaterialHint">Речь распознаёт провайдер прямо по ссылке: скачивать видео не нужно. Стоимость покажем до начала.</p>
+          <button type="button" id="v3YtMaterialBtn" class="btn-primary" onclick="StudioImport.prepareFromYoutubeLink()" data-i18n="studio.import.ytMaterialBtn">Оценить и подготовить</button>
+        </aside>
 
         <aside id="v3PhoneDownloader" hidden aria-labelledby="v3PhoneDownloadLink" style="margin-block:16px; padding-block:16px; border-block:1px solid var(--theme-border-medium,#cbd5e1)">
           <a id="v3PhoneDownloadLink" class="btn-primary" href="/download-media.html" style="display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 18px; border-radius:10px; text-decoration:none" data-i18n="phoneDownload.studioLink">Скачать на iPhone</a>

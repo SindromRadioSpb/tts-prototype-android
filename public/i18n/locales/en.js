@@ -3809,6 +3809,9 @@ window.I18N_LOCALES.en = {
       // string isn't recognized as a video; plus the explanation for the auto-switch from Article
       videoUrlLabel: "Video link (YouTube)",
       videoUrlBtn: "Show video",
+      ytMaterialTitle: "Learning material from a link",
+      ytMaterialHint: "The provider recognises the speech from the link itself, so nothing has to be downloaded. The cost is shown before anything is spent.",
+      ytMaterialBtn: "Estimate and prepare",
       errNotVideoUrl: "This doesn't look like a YouTube link",
       switchedToVideo: "Looks like a video — opened the “Video” tab",
       // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + embedded player

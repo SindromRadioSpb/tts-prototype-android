@@ -2614,6 +2614,30 @@
   async function useTextAndCorrect() { return useText(true); }
   async function useTextAndPrepare() { if(await useText())await window.LearningMaterialTaskUI.start(); }
 
+  // P5 — учебный материал прямо из ссылки: медиа не скачивается вовсе, транскрипт делает провайдер
+  // по самой ссылке. Здесь только опознание ссылки и имя материала; смета и запуск — в диалоге
+  // задачи, чтобы платный шаг не начинался без показанной цены.
+  async function prepareFromYoutubeLink() {
+    var raw = ($("v3ImportVideoUrl").value || "").trim();
+    var target = window.YoutubeAsr && window.YoutubeAsr.canonicalize(raw);
+    if (!target) { setStatus("studio.import.errNotVideoUrl"); return; }
+    window.v3PendingYoutubeMaterial = { video_id: target.video_id, url: target.url, title: "" };
+    // Имя материала берём у самого YouTube (oEmbed, без ключа и без плеера). Не вышло — не беда:
+    // владелец увидит поле названия в диалоге и допишет сам, платный шаг от этого не зависит.
+    try {
+      var r = await fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent(target.url));
+      if (r.ok) {
+        var info = await r.json();
+        if (window.v3PendingYoutubeMaterial && window.v3PendingYoutubeMaterial.video_id === target.video_id) {
+          window.v3PendingYoutubeMaterial.title = String(info.title || "").slice(0, 160);
+          window.v3PendingYoutubeMaterial.author = String(info.author_name || "").slice(0, 160);
+        }
+      }
+    } catch (_) {}
+    try { await window.LearningMaterialTaskUI.start(); }
+    finally { window.v3PendingYoutubeMaterial = null; }
+  }
+
   // W2-S11: «→ В поле ввода» + сразу открыть модал пересказа (шорткат превью импорта).
   async function useTextAndRetell() {
     var t2 = ($("v3ImportPreview").value || "").trim();
@@ -2959,6 +2983,7 @@
 
   window.StudioImport = { open: open, close: close, switchTab: switchTab,
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
+                           prepareFromYoutubeLink: prepareFromYoutubeLink,
                            openDownrFromField: openDownrFromField, chooseDownloadedMedia: chooseDownloadedMedia,
                            discardDownrHandoff: discardDownrHandoff,
                            onFileChosen: onFileChosen, chooseAudioFile: chooseAudioFile, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,

@@ -99,8 +99,12 @@
       kind: isAudio ? 'audio' : 'captions',
       format: isAudio ? 'asr' : String(captionMeta.format || 'vtt').toLowerCase(),
       language: isAudio ? (asr.language || 'he') : (captionMeta.language || 'he'),
-      provider: isAudio ? (asr.actualProvider || asr.method || holder.method || null) : 'subtitle-import',
-      model: isAudio ? (asr.model || holder.model || null) : null,
+      // Не всякий timed-text без локального медиа — импортированные субтитры: транскрипт по ссылке
+      // YouTube приходит той же дверью, но произведён провайдером. Записываем того, кто его создал
+      // на самом деле (R9: провенанс не назначается по форме контейнера).
+      provider: isAudio ? (asr.actualProvider || asr.method || holder.method || null)
+                        : ((captionMeta.asr && captionMeta.asr.provider) || 'subtitle-import'),
+      model: isAudio ? (asr.model || holder.model || null) : ((captionMeta.asr && captionMeta.asr.model) || null),
       model_revision: isAudio ? (asr.modelRevision || asr.runtime && asr.runtime.model_revision || null) : null,
       media: {
         sha256: mediaSrc.sha256 || null, mime: mediaSrc.mime || null, duration_ms: durationMs,

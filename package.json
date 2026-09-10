@@ -335,7 +335,11 @@
     "smoke:portable-learning-package:browser": "node scripts/premium/portable-learning-package-browser-smoke.js",
     "smoke:import-center": "node --test tests/importCenterCore.test.js tests/portableLearningPackageRepository.test.js tests/portableLearningPackageBackup.test.js tests/portableLearningPackageUi.test.js",
     "smoke:import-center:perf": "node scripts/premium/import-center-performance-smoke.js",
-    "smoke:import-center:browser": "node scripts/premium/import-center-browser-smoke.js"
+    "smoke:import-center:browser": "node scripts/premium/import-center-browser-smoke.js",
+    "smoke:youtube-asr": "node --test tests/youtubeAsr.test.js tests/learningMaterialTask.test.js",
+    "smoke:youtube-material": "node scripts/premium/youtube-material-browser-smoke.cjs",
+    "smoke:youtube-material:e2e": "node scripts/premium/youtube-material-e2e-smoke.cjs",
+    "smoke:youtube-asr:live": "node scripts/premium/youtube-asr-live-smoke.cjs"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

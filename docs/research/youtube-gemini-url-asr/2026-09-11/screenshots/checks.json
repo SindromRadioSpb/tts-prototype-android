@@ -1,0 +1,47 @@
+{
+ "origin": "http://127.0.0.1:3010",
+ "live": false,
+ "checks": [
+  {
+   "name": "the shell serves the release under test",
+   "ok": true
+  },
+  {
+   "name": "a link with tracking parameters is canonicalised before it can be rejected",
+   "ok": true
+  },
+  {
+   "name": "the link route is offered on the Video tab",
+   "ok": true
+  },
+  {
+   "name": "the price is shown before anything is spent",
+   "ok": true,
+   "detail": "Ролик 26:00 · распознавание речи ≈$0.10"
+  },
+  {
+   "name": "the estimate reports the real duration, not a guess",
+   "ok": true,
+   "detail": "Ролик 26:00 · распознавание речи ≈$0.10"
+  },
+  {
+   "name": "preparation only unlocks once the price is on screen",
+   "ok": true
+  },
+  {
+   "name": "the material is named from the video itself",
+   "ok": true,
+   "detail": "סליחה על השאלה עונה 3 💙 | חרדים"
+  },
+  {
+   "name": "the Hebrew surface states the cost in Hebrew",
+   "ok": true,
+   "detail": "סרטון 26:00 · זיהוי דיבור ≈$0.10"
+  },
+  {
+   "name": "no page error was raised",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

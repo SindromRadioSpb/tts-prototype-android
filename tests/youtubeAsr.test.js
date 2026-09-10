@@ -175,3 +175,30 @@ test('a failed probe does not destroy an otherwise complete transcript',async()=
   assert.equal(out.timing.verdict,'inconclusive');
   assert.equal(out.blind,false,'an unproven clock is not a disproven one');
 });
+
+// ── транскрипт → паспорт материала (той же дверью, что и субтитры YouTube) ──
+test('the transcript becomes an import passport that names its real origin',()=>{
+  const meta=Y.buildImportMeta({video_id:ID,url:`https://www.youtube.com/watch?v=${ID}`,durationSec:1560,blind:false,
+    timing:{verdict:'verified',medianErrorSec:0,checked:3,matched:3},warnings:['PARTIALLY_UNCLEAR'],
+    segments:[{startSec:7,text:'שלום'},{startSec:20,text:'עולם'}]},'gemini-flash-latest');
+  assert.equal(meta.kind,'captions');
+  assert.equal(meta.captions.captions.origin,'gemini-url-asr');
+  assert.equal(meta.captions.captions.asr.provider,'gemini-url');
+  assert.equal(meta.captions.captions.asr.model,'gemini-flash-latest');
+  assert.deepEqual(meta.captions.video,{platform:'youtube',videoId:ID,url:`https://www.youtube.com/watch?v=${ID}`});
+  assert.equal(meta.captions.media.durationSec,1560);
+  assert.deepEqual(meta.captions.segments,[{i:0,start:7,text:'שלום'},{i:1,start:20,text:'עולם'}]);
+  assert.equal(meta.textSnapshot,'שלום\nעולם');
+  assert.deepEqual(meta.warnings,['PARTIALLY_UNCLEAR']);
+  assert.equal(meta.captions.timingDropReason,null);
+  assert.equal(meta.captions.captions.timing.verdict,'verified');
+});
+
+test('a withdrawn clock is stated in the passport instead of being hidden',()=>{
+  const meta=Y.buildImportMeta({video_id:ID,url:`https://www.youtube.com/watch?v=${ID}`,durationSec:1560,blind:true,
+    timing:{verdict:'suspect',medianErrorSec:210,checked:3,matched:3},warnings:[],
+    segments:[{startSec:null,text:'שלום'},{startSec:null,text:'עולם'}]},'gemini-flash-latest');
+  assert.equal(meta.captions.timingDropReason,'ASR_CLOCK_UNVERIFIED');
+  assert.deepEqual(meta.captions.segments.map(s=>s.start),[null,null]);
+  assert.equal(meta.textSnapshot,'שלום\nעולם','no word is lost with the clock');
+});
