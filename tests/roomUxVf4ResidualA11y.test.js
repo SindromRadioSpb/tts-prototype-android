@@ -119,9 +119,9 @@ test("RU EN HE carry exact row-audio action and state keys", () => {
 });
 
 test("current release lock cache-busts changed Room, media host and locale assets exactly", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.510"/);
-  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.510</);
-  assert.match(sw, /const CACHE_VERSION = "v3\.11\.510"/);
+  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.511"/);
+  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.511</);
+  assert.match(sw, /const CACHE_VERSION = "v3\.11\.511"/);
   assert.match(studio, /\/js\/media-host\.js\?v=506/);
   assert.match(roomHtml, /\/js\/media-host\.js\?v=506/);
   assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);

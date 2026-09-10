@@ -13422,13 +13422,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=507">
+<link rel="stylesheet" href="/css/study-video-source.css?v=511">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=508"></script>
-<script src="/js/youtube-asr.js?v=510"></script>
-<script src="/js/learning-material-task.js?v=510"></script>
-<script src="/js/learning-material-task-ui.js?v=510"></script>
+<script src="/js/youtube-asr.js?v=511"></script>
+<script src="/js/learning-material-task.js?v=511"></script>
+<script src="/js/learning-material-task-ui.js?v=511"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13516,7 +13516,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.510";
+    window.APP_VERSION = "3.11.511";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34417,7 +34417,12 @@ window.LearningMaterialTaskUI.configure({
   async estimate(input) {
     const key = typeof window.geminiKeyGet === 'function' ? window.geminiKeyGet() : '';
     if (!key) { const e = new Error('GEMINI_KEY_REQUIRED'); e.code = 'GEMINI_KEY_REQUIRED'; throw e; }
-    return YoutubeAsr.estimate({fetch:(u,i)=>fetch(u,i),apiKey:key},input.youtube_source.url);
+    const asr = await YoutubeAsr.estimate({fetch:(u,i)=>fetch(u,i),apiKey:key},input.youtube_source.url);
+    // Одна смета на весь прогон: распознавание считается точно (бесплатный countTokens), таблица —
+    // вилкой, потому что число реплик до распознавания неизвестно. Показать обе цены здесь — это
+    // то, что снимает второй window.confirm в середине задачи.
+    const table = window.TableChunks ? YoutubeAsr.estimateTableRange(asr.durationSec, TableChunks.CHUNK_SIZE) : null;
+    return Object.assign({}, asr, { table });
   },
   async transcribe(input, id) {
     if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
@@ -34492,6 +34497,9 @@ window.LearningMaterialTaskUI.configure({
     return ShareService.saveFile({blob:artifact.blob,filename:artifact.filename});
   },
   async openMaterial(job) {
+    // «Один модал владеет фокусом» — та же доктрина, что и у Send-or-save. Иначе «Добавить
+    // материал» остаётся висеть поверх открытого материала (найдено владельцем 2026-09-11).
+    try { if (window.StudioImport && window.StudioImport.close) window.StudioImport.close(); } catch (_) {}
     const context=await StudyVideoSourceUI.context(job.saved_text_id);
     if(context.record && PlaybackSource.selected(context.record).source)return StudyVideoSourceUI.open(job.saved_text_id);
     return v3LibraryOpenText(job.saved_text_id);
@@ -36283,7 +36291,11 @@ try {
             const msg = t(confirmKey)
                 .replace("{rows}", String(segs.length))
                 .replace("{chunks}", String(chunkCount));
-            if (!window.confirm(msg)) {
+            // Цена таблицы уже показана на экране сметы задачи — второй вопрос посреди прогона
+            // ломал обещание «одна кнопка». Спрашиваем только если счёт заметно перерос показанный
+            // тогда потолок (P5-UX, найдено владельцем 2026-09-11).
+            const preQuoted = v3TableCostPreQuoted({ rows: segs.length });
+            if (!preQuoted && !window.confirm(msg)) {
                 if (Array.isArray(currentTableData) && currentTableData.length) renderTable(currentTableData);
                 else document.getElementById("tableContainer").innerHTML = "";
                 setLoading(false);
@@ -36408,6 +36420,12 @@ try {
         const raw = context && context.package && context.package.media_sha256;
         return /^[a-f0-9]{64}$/i.test(String(raw || "")) ? String(raw).toLowerCase() : null;
     }
+    // Единственная точка, решающая «эта цена уже согласована». Пустая котировка = не согласована:
+    // молча тратить без показанной цены нельзя ни при каких обстоятельствах.
+    function v3TableCostPreQuoted(actual) {
+        if (!window.YoutubeAsr || !window.v3TableCostQuote) return false;
+        return window.YoutubeAsr.tableCostWithinQuote(actual, window.v3TableCostQuote);
+    }
     function v3TableJobHudUpdate(state, fields) {
         if (!window.TableJob) return;
         const f = fields || {};
@@ -36417,6 +36435,9 @@ try {
             totalRows: f.totalRows, startedAt: v3TableJobStartedAt, now: Date.now(),
             nextAction: f.nextAction || "" });
         v3TableJobLastTelemetry = Object.assign({}, snap, { mediaSha: f.mediaSha || null, mediaIntended: !!f.mediaIntended });
+        // Тот же снимок — единственный источник правды о прогрессе таблицы. Диалог задачи
+        // подписывается на него вместо собственного счётчика (P5-UX, 2026-09-11).
+        try { window.dispatchEvent(new CustomEvent('table-job-progress', { detail: v3TableJobLastTelemetry })); } catch (_) {}
         const el = (id) => document.getElementById(id), hud = el("v3TableJobHud");
         if (!hud) return;
         hud.hidden = false;
@@ -36681,7 +36702,11 @@ try {
             const msg = t("classic.tableCostConfirm")
                 .replace("{rows}", String(est.expRows)).replace("{usd}", est.tableUsd.toFixed(2))
                 .replace("{min}", String(Math.ceil(est.chunks * 140 / 60)));
-            if (!window.confirm(msg)) {
+            // Цена таблицы уже показана на экране сметы задачи — второй вопрос посреди прогона
+            // ломал обещание «одна кнопка». Спрашиваем только если счёт заметно перерос показанный
+            // тогда потолок (P5-UX, найдено владельцем 2026-09-11).
+            const preQuoted = v3TableCostPreQuoted({ usd: est.tableUsd, rows: est.expRows });
+            if (!preQuoted && !window.confirm(msg)) {
                 // Fix1 (review): translateTable() already painted v3TableSkeletonHtml() into
                 // #tableContainer BEFORE the fork that led here — a bare return would leave that
                 // skeleton stuck forever (setLoading only toggles the separate #loader overlay).

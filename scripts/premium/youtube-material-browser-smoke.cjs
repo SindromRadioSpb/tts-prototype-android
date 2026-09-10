@@ -44,10 +44,10 @@ function check(name, ok, detail) {
     await page.addInitScript((k) => { try { localStorage.setItem('v3.geminiApiKey', k); } catch (_) {} }, key);
   }
 
-  await page.goto(ORIGIN + '/?v=510', { waitUntil: 'domcontentloaded' });
+  await page.goto(ORIGIN + '/?v=511', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.StudioImport && window.YoutubeAsr && window.LearningMaterialTaskUI);
 
-  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.510');
+  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.511');
   check('a link with tracking parameters is canonicalised before it can be rejected',
     await page.evaluate((u) => JSON.stringify(window.YoutubeAsr.canonicalize(u)), VIDEO) ===
     JSON.stringify({ video_id: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' }));

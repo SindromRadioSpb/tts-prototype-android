@@ -124,6 +124,41 @@
     return null;
   }
 
+  // ── Единая смета (обещание «одна кнопка») ──
+  // Стоимость таблицы зависит от числа реплик, а его до распознавания никто не знает. Общая
+  // константа проекта (SEGS_PER_MIN_ASR = 6) откалибрована на монолог-подкаст; замер пилота
+  // 2026-09-11 дал 11.5 реплик/мин на многоголосом интервью — точка вместо диапазона занизила бы
+  // цену вдвое. Поэтому вилка по двум плотностям, а арифметика — ЕДИНСТВЕННАЯ, из estimateLongJob.
+  const SEGS_PER_MIN_DENSE = 12;
+  // Спрашивать повторно только когда счёт заметно перерос показанный потолок: мелкое превышение
+  // внутри вилки — это и есть вилка, а не сюрприз.
+  const QUOTE_OVERRUN_TOLERANCE = 1.5;
+
+  function estimateTableRange(durationSec, chunkSize) {
+    const d = Math.max(0, Number(durationSec) || 0);
+    if (!d || !Number.isInteger(chunkSize) || chunkSize <= 0) return null;
+    const low = AT().estimateLongJob(d, { chunkSize: chunkSize });
+    const high = AT().estimateLongJob(d, { chunkSize: chunkSize,
+      segmentsKnown: Math.ceil((d / 60) * SEGS_PER_MIN_DENSE) });
+    return { lowUsd: low.tableUsd, highUsd: high.tableUsd,
+      lowRows: low.expRows, highRows: high.expRows, chunks: high.chunks };
+  }
+
+  // Принимает либо доллары (Gemini-таблица), либо {usd, rows} — премиум-провайдер долларов не
+  // считает вовсе, там согласуется ОБЪЁМ. Отсутствующая котировка всегда значит «не согласовано»:
+  // молча тратить без показанной цены нельзя.
+  function tableCostWithinQuote(actual, quote) {
+    if (!quote) return false;
+    const asked = (actual !== null && typeof actual === 'object') ? actual : { usd: actual };
+    const within = (value, ceiling) => {
+      if (value == null) return true;                       // об этом измерении не спрашивали
+      if (!Number.isFinite(Number(ceiling))) return false;   // котировка о нём молчит — не ручаемся
+      return Number(value) <= Number(ceiling) * QUOTE_OVERRUN_TOLERANCE;
+    };
+    if (asked.usd == null && asked.rows == null) return false;
+    return within(asked.usd, quote.highUsd) && within(asked.rows, quote.highRows);
+  }
+
   async function callWindow(deps, url, win, state) {
     for (let attempt = 0; ; attempt++) {
       state.attempts++;
@@ -302,6 +337,7 @@
     FPS, AUDIO_TOKENS_PER_SEC, SINGLE_CALL_MAX_SEC, RETRY_DELAYS_MS,
     PROBE_SEC, ANCHOR_MAX_ERROR_SEC,
     canonicalize, durationFromTokens, planWindows, buildRequest, classifyFailure, retryable,
-    matchAnchors, judgeTiming, probeWindow, buildImportMeta, classifyResponse, estimate, transcribe,
+    matchAnchors, judgeTiming, probeWindow, buildImportMeta, classifyResponse,
+    estimateTableRange, tableCostWithinQuote, QUOTE_OVERRUN_TOLERANCE, estimate, transcribe,
   };
 });

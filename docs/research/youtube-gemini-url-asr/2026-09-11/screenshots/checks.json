@@ -17,12 +17,12 @@
   {
    "name": "the price is shown before anything is spent",
    "ok": true,
-   "detail": "Ролик 26:00 · распознавание речи ≈$0.10"
+   "detail": "Ролик 26:00 · распознавание ≈$0.10 · таблица ≈$0.09–0.18 · всего ≈$0.19–0.28"
   },
   {
    "name": "the estimate reports the real duration, not a guess",
    "ok": true,
-   "detail": "Ролик 26:00 · распознавание речи ≈$0.10"
+   "detail": "Ролик 26:00 · распознавание ≈$0.10 · таблица ≈$0.09–0.18 · всего ≈$0.19–0.28"
   },
   {
    "name": "preparation only unlocks once the price is on screen",
@@ -36,7 +36,7 @@
   {
    "name": "the Hebrew surface states the cost in Hebrew",
    "ok": true,
-   "detail": "סרטון 26:00 · זיהוי דיבור ≈$0.10"
+   "detail": "סרטון 26:00 · זיהוי ≈$0.10 · טבלה ≈$0.09–0.18 · סה\"כ ≈$0.19–0.28"
   },
   {
    "name": "no page error was raised",

@@ -251,3 +251,31 @@ test('the task dialog has a named sentence for every failure the route can produ
     assert.equal((src.match(new RegExp(code+':',"g"))||[]).length,3,code+' must be phrased in ru, en and he');
   }
 });
+
+// ── единая смета: одна кнопка не должна ломаться вторым вопросом посреди прогона ──
+test('the table price is quoted as a range, because its size is unknown until speech is recognised',()=>{
+  // Замер пилота 2026-09-11: 26-мин интервью дало 300 сегментов = 11.5/мин, тогда как общая
+  // константа рассчитана на монолог (6/мин). Точка вместо диапазона занизила бы цену вдвое.
+  const r=Y.estimateTableRange(1560,120);
+  assert.ok(r.lowUsd>0 && r.highUsd>r.lowUsd,JSON.stringify(r));
+  assert.ok(r.highRows>=300,'the range must cover the density actually measured: '+r.highRows);
+  assert.ok(r.lowRows<r.highRows);
+  assert.equal(Y.estimateTableRange(0,120),null);
+});
+
+test('a run only stops to ask again when reality outgrows the price already shown',()=>{
+  assert.equal(Y.tableCostWithinQuote(0.18,{highUsd:0.20}),true);
+  assert.equal(Y.tableCostWithinQuote(0.20,{highUsd:0.20}),true);
+  assert.equal(Y.tableCostWithinQuote(0.31,{highUsd:0.20}),false,'a materially bigger bill must be asked about');
+  assert.equal(Y.tableCostWithinQuote(0.18,null),false,'no quote shown means no silent spending');
+});
+
+test('a quote also covers the size of the table, not only its dollars',()=>{
+  // Премиум-провайдер (google-free/gcp) не считает долларов вовсе — там согласуется ОБЪЁМ.
+  const quote={highUsd:0.20,highRows:315};
+  assert.equal(Y.tableCostWithinQuote({rows:300},quote),true);
+  assert.equal(Y.tableCostWithinQuote({rows:600},quote),false,'twice the promised size must be asked about');
+  assert.equal(Y.tableCostWithinQuote({usd:0.18,rows:300},quote),true);
+  assert.equal(Y.tableCostWithinQuote({usd:0.40,rows:300},quote),false);
+  assert.equal(Y.tableCostWithinQuote({rows:300},{highUsd:0.2}),false,'a quote without a size cannot vouch for size');
+});

@@ -8,18 +8,32 @@
 //   node scripts/premium/youtube-material-e2e-smoke.cjs [--origin=http://127.0.0.1:3010]
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const arg = (n, d) => { const h = process.argv.find((a) => a.startsWith('--' + n + '=')); return h ? h.slice(n.length + 3) : d; };
 const ORIGIN = arg('origin', process.env.STUDY_VIDEO_ORIGIN || 'http://127.0.0.1:3010');
+const SHOTS = arg('shots', '');
 const VIDEO_ID = 'eLYgTqNFn-s';
 const LINK = 'https://www.youtube.com/watch?v=' + VIDEO_ID + '&t=42s&list=PLnoise';
 const CANONICAL = 'https://www.youtube.com/watch?v=' + VIDEO_ID;
-const DURATION_SEC = 300;
-const SEGMENTS = [
-  { start: '0:07', text: 'יש מקרי גירושים בציבור החרדי שנובעים מחוסר התאמה' },
-  { start: '0:21', text: 'אני בגיל שמונה עשרה וחצי התארסתי ואחר כך התחתנתי' },
-  { start: '0:36', text: 'שלושה חודשים אחרי זה התגרשתי כי הוא לא התאים לי' },
+// 130 реплик на 700 с ≈ 11 в минуту — плотность, измеренная на настоящем пилоте. При более
+// плотной записи маршрут ОБЯЗАН переспросить (предохранитель на превышение сметы), и это
+// поведение закрыто юнит-тестами tableCostWithinQuote.
+const DURATION_SEC = 700;
+const ANCHORS = [
+  'יש מקרי גירושים בציבור החרדי שנובעים מחוסר התאמה',
+  'אני בגיל שמונה עשרה וחצי התארסתי ואחר כך התחתנתי',
+  'שלושה חודשים אחרי זה התגרשתי כי הוא לא התאים לי',
 ];
+// 130 реплик — выше TableChunks.CHUNK_SIZE (120), иначе чанк-цикл не включится и вместе с ним не
+// проверится ни прогресс таблицы, ни отсутствие второго window.confirm посреди прогона.
+const SEGMENTS = Array.from({ length: 130 }, (_, i) => ({
+  start: Math.floor((7 + i * 2) / 60) + ':' + String((7 + i * 2) % 60).padStart(2, '0'),
+  // Номер идёт ПЕРВЫМ: якорь строится по первым словам, и общий хвост делал бы все реплики
+  // неотличимыми друг от друга — зонд часов честно считал бы такой таймлайн сбитым.
+  text: 'משפט מספר ' + (i + 1) + ' ' + ANCHORS[i % ANCHORS.length],
+}));
 
 const checks = [];
 const check = (name, ok, detail) => {
@@ -27,12 +41,22 @@ const check = (name, ok, detail) => {
   console.log((ok ? 'PASS  ' : 'FAIL  ') + name + (ok || detail == null ? '' : ' — ' + String(detail).slice(0, 200)));
 };
 
+const jobNow = (page) => page.evaluate(async () => {
+  const jobs = await LearningMaterialTask.createStore().list();
+  return jobs[0] && { state: jobs[0].state, phase: jobs[0].phase, error: jobs[0].error, saved: jobs[0].saved_text_id };
+});
+
+// Задача переходит в 'running' не мгновенно после клика: если ждать сразу терминального
+// состояния, увидишь ПРЕДЫДУЩЕЕ ('paused') и решишь, что прогон уже кончился. Сначала дожидаемся
+// старта, и только потом финала — иначе проверки читают задачу на середине.
 async function waitTask(page) {
-  for (let i = 0; i < 600; i++) {
-    const job = await page.evaluate(async () => {
-      const jobs = await LearningMaterialTask.createStore().list();
-      return jobs[0] && { state: jobs[0].state, phase: jobs[0].phase, error: jobs[0].error };
-    });
+  for (let i = 0; i < 100; i++) {
+    const job = await jobNow(page);
+    if (job && job.state === 'running') break;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  for (let i = 0; i < 900; i++) {
+    const job = await jobNow(page);
     if (job && ['ready', 'paused', 'cancelled'].includes(job.state) && job.phase !== 'imported') return job;
     await new Promise((r) => setTimeout(r, 100));
   }
@@ -46,6 +70,8 @@ async function waitTask(page) {
   const errors = [];
   const provider = { countTokens: 0, generateContent: 0, table: 0 };
   page.on('pageerror', (e) => errors.push(e.message));
+  const dialogs = [];
+  page.on('dialog', async (d) => { dialogs.push(d.type() + ': ' + d.message().slice(0, 80)); await d.accept(); });
 
   await page.addInitScript(() => {
     for (const key of ['localMode', 'v3OnboardingSeenV1', 'onboardingSeen_v1', 'v3.byokOnboardingDismissed', 'v3.byokTourCompleted']) localStorage.setItem(key, '1');
@@ -100,7 +126,42 @@ async function waitTask(page) {
   check('the material is named from the video', (await dialog.locator('input[type="text"]').inputValue()) === 'סליחה על השאלה');
 
   await startBtn.click();
+  if (SHOTS) {
+    // Момент, ради которого всё делалось: пользователь видит, на каком этапе прогон и что идёт.
+    fs.mkdirSync(SHOTS, { recursive: true });
+    await page.waitForFunction(() => document.querySelectorAll('dialog .lmt-stages li').length > 0, null, { timeout: 20000 }).catch(() => {});
+    await page.setViewportSize({ width: 380, height: 844 });
+    await page.screenshot({ path: path.join(SHOTS, 'yt-material-progress-380-ru.png') });
+    await page.setViewportSize({ width: 1180, height: 900 });
+  }
   const job = await waitTask(page);
+  if (SHOTS) {
+    await page.setViewportSize({ width: 380, height: 844 });
+    await page.screenshot({ path: path.join(SHOTS, 'yt-material-done-380-ru.png') });
+    // Тот же экран на иврите: этапы и знаки обязаны читаться в RTL, а не только в русской раскладке.
+    await page.evaluate(async () => {
+      const d = document.querySelector('dialog.study-source-dialog'); if (d) d.close();
+      appSetLocale('he');
+      const jobs = await LearningMaterialTask.createStore().list();
+      await LearningMaterialTaskUI.list();
+      const b = [...document.querySelectorAll('dialog button')].find((x) => x.textContent.includes(jobs[0].input.title));
+      if (b) b.click();
+    });
+    await page.waitForFunction(() => document.querySelectorAll('dialog .lmt-stages li').length > 0, null, { timeout: 15000 }).catch(() => {});
+    await page.screenshot({ path: path.join(SHOTS, 'yt-material-done-380-he-rtl.png') });
+    // Съёмка не имеет права менять сценарий: возвращаем русский диалог задачи ровно в то
+    // состояние, в котором его застали, иначе следующая проверка кликнет не туда.
+    await page.evaluate(async () => {
+      const d = document.querySelector('dialog.study-source-dialog'); if (d) d.close();
+      appSetLocale('ru');
+      const jobs = await LearningMaterialTask.createStore().list();
+      await LearningMaterialTaskUI.list();
+      const b = [...document.querySelectorAll('dialog button')].find((x) => x.textContent.includes(jobs[0].input.title));
+      if (b) b.click();
+    });
+    await page.waitForFunction(() => document.querySelectorAll('dialog .lmt-stages li').length > 0, null, { timeout: 15000 }).catch(() => {});
+    await page.setViewportSize({ width: 1180, height: 900 });
+  }
   check('one click carries the link all the way to a ready material', job.state === 'ready', JSON.stringify(job));
 
   const result = await page.evaluate(async () => {
@@ -129,9 +190,29 @@ async function waitTask(page) {
   check('the transcript records that a provider produced it from the link', result.provenance === 'gemini-url-asr', result.provenance);
   check('an independently probed clock is reported as measured', result.timingVerdict === 'verified' && result.blind === false, result.timingVerdict);
   check('every spoken line became a study row', result.rows === SEGMENTS.length, result.rows);
+  check('one agreed price carries the whole run: nothing else is asked mid-flight',
+    dialogs.length === 0, dialogs.join(' | '));
   check('the rows carry a YouTube clock, so karaoke can follow', result.entries === SEGMENTS.length && result.firstEntry && result.firstEntry.t === 7, JSON.stringify(result.firstEntry));
   check('exactly one card exists', result.texts === 1, result.texts);
   check('passive preparation never writes learner memory', result.reviews === 0, result.reviews);
+
+  const leftovers = await page.evaluate(async () => {
+    const shown = (el) => !!(el && el.getClientRects().length);   // факт отрисовки, не признак реализации
+    const before = shown(document.getElementById('v3ImportModal'));
+    const d = document.querySelector('dialog[open]');
+    const btn = d && [...d.querySelectorAll('button')].find((b) => /Открыть материал|Open material/.test(b.textContent));
+    if (btn) btn.click();
+    await new Promise((r) => setTimeout(r, 1500));
+    return {
+      importWasOpen: before,
+      dialogs: [...document.querySelectorAll('dialog[open]')].map((x) => x.className || x.id),
+      importVisible: shown(document.getElementById('v3ImportModal')),
+    };
+  });
+  check('the scenario is real: the import modal was still open when the material was opened',
+    leftovers.importWasOpen === true, JSON.stringify(leftovers));
+  check('opening the material leaves no modal standing over it',
+    leftovers.dialogs.length === 0 && leftovers.importVisible === false, JSON.stringify(leftovers));
 
   const paidBefore = provider.generateContent;
   await page.reload({ waitUntil: 'load' });
@@ -151,6 +232,19 @@ async function waitTask(page) {
     return { texts: (await db.dbQuery('SELECT id FROM texts')).length, reviews: (await db.dbQuery('SELECT * FROM review_log')).length };
   });
   check('the resume creates no duplicate card', after.texts === 1, after.texts);
+  const stages = await page.evaluate(async () => {
+    const jobs = await LearningMaterialTask.createStore().list();
+    await LearningMaterialTaskUI.list();
+    const btn = [...document.querySelectorAll('dialog button')].find((b) => b.textContent.includes(jobs[0].input.title));
+    if (btn) btn.click();
+    await new Promise((r) => setTimeout(r, 300));
+    const li = [...document.querySelectorAll('dialog .lmt-stages li')];
+    return { count: li.length, marks: li.map((x) => x.dataset.mark).join(','), labels: li.map((x) => x.textContent.trim()) };
+  });
+  check('the dialog shows the stages of the run, each with its own state', stages.count === 4, JSON.stringify(stages));
+  check('a finished run marks every stage done, none left looking unfinished',
+    stages.marks === 'done,done,done,done', stages.marks);
+
   check('no page error was raised', errors.length === 0, errors.join(' | '));
 
   await browser.close();
