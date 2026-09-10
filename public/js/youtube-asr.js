@@ -109,11 +109,28 @@
     };
   }
 
+  // HTTP 200 ещё не значит «есть транскрипт» (живой прогон владельца 2026-09-11 встал на
+  // ASR_BAD_JSON). Ответ бывает пустым, обрезанным по бюджету вывода или заблокированным — это
+  // РАЗНЫЕ беды с разным лечением, и валить их в «плохой JSON» значит скрыть от пользователя
+  // причину и лишить прогон восстановления.
+  const SPLIT_MIN_SEC = 120;   // делить короче нечего: половина уже меньше одной реплики-другой
+  function classifyResponse(data) {
+    const cand = ((data && data.candidates) || [])[0];
+    if (!cand) return (data && data.promptFeedback && data.promptFeedback.blockReason) ? 'ASR_BLOCKED' : 'ASR_EMPTY';
+    const parts = ((cand.content || {}).parts) || [];
+    const text = parts.map((p) => p.text || '').join('').trim();
+    if (cand.finishReason && cand.finishReason !== 'STOP') return cand.finishReason === 'MAX_TOKENS' ? 'ASR_TRUNCATED' : 'ASR_BLOCKED';
+    if (!text) return 'ASR_EMPTY';
+    return null;
+  }
+
   async function callWindow(deps, url, win, state) {
     for (let attempt = 0; ; attempt++) {
       state.attempts++;
       try {
         const data = await post(deps, 'generateContent', buildRequest(url, win));
+        const unusable = classifyResponse(data);
+        if (unusable) fail(unusable);
         const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
         const parsed = AT().parseAsrResponse(parts.map((p) => p.text || '').join(''));
         return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language, usage: data.usageMetadata || null };
@@ -127,6 +144,31 @@
   }
 
   function defaultSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  // Лечение непригодного ответа — тем же приёмом, что у файлового пути: делим ЗВУК пополам и
+  // режем шов по ТЕКСТУ. Блокировку делением не вылечить, поэтому её не переспрашиваем.
+  const SPLITTABLE = ['ASR_TRUNCATED', 'ASR_EMPTY', 'ASR_BAD_JSON'];
+
+  async function transcribeRange(deps, url, win, state, durationSec, report) {
+    try { return await callWindow(deps, url, win, state); }
+    catch (error) {
+      const startSec = win ? win.startSec : 0;
+      const endSec = win ? win.endSec : (durationSec || 0);
+      if (!SPLITTABLE.includes(error.code) || (endSec - startSec) < SPLIT_MIN_SEC) throw error;
+      const mid = Math.round((startSec + endSec) / 2);
+      state.recovered = 'split';
+      if (report) report('splitting', { fromSec: startSec, toSec: endSec });
+      const a = await transcribeRange(deps, url, { startSec: startSec, endSec: mid }, state, durationSec, report);
+      const b = await transcribeRange(deps, url,
+        { startSec: Math.max(startSec, mid - AT().ASR_WINDOW_OVERLAP_SEC), endSec: endSec }, state, durationSec, report);
+      return {
+        segments: AT().stitchWindowSegments([a.segments, b.segments], [mid]).segments,
+        warnings: (a.warnings || []).concat(b.warnings || []),
+        language: a.language || b.language,
+        usage: a.usage,
+      };
+    }
+  }
 
   // ── Независимая проверка часов (R17: кто генерирует метки, тот их не сертифицирует) ──
   // Существующий gate по окнам (classifyClockCompression) СОЗНАТЕЛЬНО молчит, когда окно одно:
@@ -214,7 +256,7 @@
     let segments, warnings = [], usage = [];
     if (!wins.length) {
       report('transcribing', 0);
-      const one = await callWindow(deps, est.url, null, state);
+      const one = await transcribeRange(deps, est.url, null, state, est.durationSec, report);
       segments = one.segments;
       warnings = one.warnings;
       usage = [one.usage];
@@ -222,7 +264,7 @@
       const perWindow = [];
       for (let i = 0; i < wins.length; i++) {
         report('transcribing', i);
-        const part = await callWindow(deps, est.url, wins[i], state);
+        const part = await transcribeRange(deps, est.url, wins[i], state, est.durationSec, report);
         perWindow.push(part.segments);
         warnings = warnings.concat(part.warnings || []);
         usage.push(part.usage);
@@ -251,7 +293,7 @@
       video_id: est.video_id, url: est.url, durationSec: est.durationSec, timing, blind,
       segments: rows,
       text: segments.map((s) => s.text).join('\n'),
-      attempts: state.attempts, windows: wins.length || 1, usage,
+      attempts: state.attempts, windows: wins.length || 1, usage, recovered: state.recovered || null,
       warnings: Array.from(new Set(warnings)),
     };
   }
@@ -260,6 +302,6 @@
     FPS, AUDIO_TOKENS_PER_SEC, SINGLE_CALL_MAX_SEC, RETRY_DELAYS_MS,
     PROBE_SEC, ANCHOR_MAX_ERROR_SEC,
     canonicalize, durationFromTokens, planWindows, buildRequest, classifyFailure, retryable,
-    matchAnchors, judgeTiming, probeWindow, buildImportMeta, estimate, transcribe,
+    matchAnchors, judgeTiming, probeWindow, buildImportMeta, classifyResponse, estimate, transcribe,
   };
 });

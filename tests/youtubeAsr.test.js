@@ -202,3 +202,52 @@ test('a withdrawn clock is stated in the passport instead of being hidden',()=>{
   assert.deepEqual(meta.captions.segments.map(s=>s.start),[null,null]);
   assert.equal(meta.textSnapshot,'שלום\nעולם','no word is lost with the clock');
 });
+
+// ── непригодный ответ: 200 ещё не значит «есть транскрипт» (живой прогон 2026-09-11) ──
+const emptyBody={candidates:[{content:{parts:[]},finishReason:'MAX_TOKENS'}],usageMetadata:{promptTokenCount:100,candidatesTokenCount:8192}};
+const blockedBody={candidates:[],promptFeedback:{blockReason:'SAFETY'}};
+const truncatedBody={candidates:[{content:{parts:[{text:'{"language":"he","segments":[{"start":"0:07","text":"שלום'}]},finishReason:'MAX_TOKENS'}],usageMetadata:{}};
+
+test('an answer that ran out of room is named for what it is, not called bad JSON',()=>{
+  assert.equal(Y.classifyResponse(emptyBody),'ASR_TRUNCATED');
+  assert.equal(Y.classifyResponse(truncatedBody),'ASR_TRUNCATED');
+  assert.equal(Y.classifyResponse(blockedBody),'ASR_BLOCKED');
+  assert.equal(Y.classifyResponse({candidates:[{content:{parts:[{text:'{"language":"he","segments":[]}'}]},finishReason:'STOP'}]}),null);
+});
+
+test('a transcript that would not fit is recovered by halving the audio, not abandoned',async()=>{
+  const half=segs=>({status:200,body:asrBody(segs)});
+  const fetch=fakeFetch([{status:200,body:countBody},
+    {status:200,body:emptyBody},                                    // whole video: no usable answer
+    half([seg('0:07','ראשון של החצי הראשון'),seg('12:00','אמצע ההקלטה כאן')]),
+    half([seg('13:00','ההמשך אחרי האמצע'),seg('25:00','סוף ההקלטה הזאת')])]);
+  const out=await Y.transcribe({fetch,apiKey:'k',sleep:async()=>{}},`https://youtu.be/${ID}`,null,{verifyTiming:false});
+  const clips=fetch.calls.slice(1).map(c=>c.body.contents[0].parts[0].video_metadata);
+  assert.equal(clips[0].start_offset,undefined,'the first attempt is still the whole video');
+  assert.deepEqual([clips[1].start_offset,clips[1].end_offset],['0s','780s']);
+  assert.deepEqual([clips[2].start_offset,clips[2].end_offset],['750s','1560s']);
+  assert.equal(out.segments.length,4);
+  assert.equal(out.recovered,'split');
+});
+
+test('a blocked answer is never retried by splitting, because splitting cannot unblock it',async()=>{
+  const fetch=fakeFetch([{status:200,body:countBody},{status:200,body:blockedBody}]);
+  await assert.rejects(Y.transcribe({fetch,apiKey:'k',sleep:async()=>{}},`https://youtu.be/${ID}`,null,{verifyTiming:false}),e=>e.code==='ASR_BLOCKED');
+  assert.equal(fetch.calls.length,2);
+});
+
+test('a window that is already short is not split forever',async()=>{
+  const short={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*60}]};
+  const fetch=fakeFetch([{status:200,body:short},{status:200,body:emptyBody}]);
+  await assert.rejects(Y.transcribe({fetch,apiKey:'k',sleep:async()=>{}},`https://youtu.be/${ID}`,null,{verifyTiming:false}),e=>e.code==='ASR_TRUNCATED');
+  assert.equal(fetch.calls.length,2,'a one-minute clip has nothing left to halve');
+});
+
+// ── UI обязан назвать причину, а не показать одну и ту же фразу на всё ──
+test('the task dialog has a named sentence for every failure the route can produce',()=>{
+  const fs=require('node:fs');
+  const src=fs.readFileSync(require.resolve('../public/js/learning-material-task-ui.js'),'utf8');
+  for(const code of ['YT_QUOTA','YT_OVERLOADED','YT_URL_REJECTED','ASR_TRUNCATED','ASR_BLOCKED','GEMINI_KEY_REQUIRED']){
+    assert.equal((src.match(new RegExp(code+':',"g"))||[]).length,3,code+' must be phrased in ru, en and he');
+  }
+});
