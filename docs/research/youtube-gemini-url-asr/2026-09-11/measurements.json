@@ -1,0 +1,164 @@
+{
+ "probe_date": "2026-09-11",
+ "pilot": {
+  "url": "https://www.youtube.com/watch?v=eLYgTqNFn-s",
+  "durationSec": 1560,
+  "channel": "kan11",
+  "availability": "public",
+  "youtubeCaptions": "none (no manual, no automatic)"
+ },
+ "model": "gemini-flash-latest",
+ "endpoint": "v1beta/models/{model}:generateContent with parts[0].file_data.file_uri = YouTube watch URL",
+ "full_run_1": {
+  "segments": 327,
+  "firstSec": 7,
+  "lastSec": 1550,
+  "words": 3609,
+  "wordsPerSec": 2.31,
+  "nonMonotonic": 0,
+  "gapsOver25s": 0,
+  "promptTokens": 142211,
+  "outTokens": 11754,
+  "latencyMs": 46794
+ },
+ "full_run_2": {
+  "segments": 286,
+  "firstSec": 7,
+  "lastSec": 1544,
+  "words": 3588,
+  "wordsPerSec": 2.3,
+  "nonMonotonic": 0,
+  "gapsOver25s": 0,
+  "promptTokens": 142211,
+  "outTokens": 11346,
+  "latencyMs": 55503
+ },
+ "run_to_run_anchor_agreement": {
+  "matchedAnchors": 210,
+  "unmatched": 34,
+  "medianErrorSec": 0,
+  "p95AbsErrorSec": 1,
+  "minErrorSec": -5,
+  "maxErrorSec": 1
+ },
+ "oracle_local_cut": [
+  {
+   "offsetSec": 480,
+   "error": "asr 503 {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently "
+  },
+  {
+   "offsetSec": 1380,
+   "windowSec": 90,
+   "localSegments": 24,
+   "matchedAnchors": 15,
+   "medianErrorSec": 0,
+   "minErrorSec": -6,
+   "maxErrorSec": 1
+  },
+  {
+   "offsetSec": 1470,
+   "windowSec": 90,
+   "localSegments": 23,
+   "matchedAnchors": 13,
+   "medianErrorSec": -1,
+   "minErrorSec": -5,
+   "maxErrorSec": 0
+  }
+ ],
+ "clip_window": [
+  {
+   "label": "clip600-720_repeat",
+   "vm": {
+    "start_offset": "600s",
+    "end_offset": "720s"
+   },
+   "mediaRes": "MEDIA_RESOLUTION_LOW",
+   "videoTokens": 10921,
+   "promptTokens": 11170,
+   "outTokens": 1003,
+   "segments": 31,
+   "first": "10:00",
+   "last": "11:56",
+   "latencyMs": 7991
+  },
+  {
+   "label": "clip600-720_defaultRes",
+   "vm": {
+    "start_offset": "600s",
+    "end_offset": "720s"
+   },
+   "mediaRes": null,
+   "videoTokens": 10921,
+   "promptTokens": 11170,
+   "outTokens": 938,
+   "segments": 25,
+   "first": "10:00",
+   "last": "11:51",
+   "latencyMs": 8163
+  }
+ ],
+ "clip_vs_full_agreement": {
+  "clipSegments": 31,
+  "matchedAnchors": 28,
+  "medianErrorSec": 0,
+  "minErrorSec": -6,
+  "maxErrorSec": 1
+ },
+ "fps_0_2_run": {
+  "promptTokens": 4834,
+  "outTokens": 902,
+  "segments": 23,
+  "first": "10:00",
+  "last": "11:52",
+  "matchedAnchors": 22,
+  "medianErrorSec": 0,
+  "minErrorSec": -5,
+  "maxErrorSec": 1
+ },
+ "url_forms": [
+  {
+   "label": "bad-video-id",
+   "ok": false,
+   "status": 400
+  },
+  {
+   "label": "non-youtube-url",
+   "ok": false,
+   "status": 400
+  },
+  {
+   "label": "youtu.be-shortform",
+   "ok": true,
+   "status": 200,
+   "first": "10:00",
+   "last": "10:57"
+  },
+  {
+   "label": "url-with-params",
+   "ok": false,
+   "status": 400
+  }
+ ],
+ "count_tokens_preflight": {
+  "full_video": {
+   "totalTokens": 160928,
+   "video": 110760,
+   "audio": 49919
+  },
+  "clip120s_fps_default": {
+   "totalTokens": 12362,
+   "video": 8520,
+   "audio": 3840
+  },
+  "clip120s_fps_0_2": {
+   "totalTokens": 5546,
+   "video": 1704,
+   "audio": 3840
+  }
+ },
+ "transient_failures": {
+  "http503": 5,
+  "http429": 1,
+  "note": "all on generateContent; countTokens never failed"
+ }
+}
