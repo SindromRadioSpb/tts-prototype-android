@@ -98,6 +98,15 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
     });
   }
 
+  // Наши собственные реплики запроса — источник истины о тексте; эхо модели им не является.
+  const sourceByIndex = new Map();
+  for (const seg of (Array.isArray(opts.sourceSegments) ? opts.sourceSegments : [])) {
+    if (!seg || typeof seg !== "object") continue;
+    const key = Number.isInteger(seg.i) ? seg.i : (Number.isInteger(seg.index) ? seg.index : null);
+    const text = String(seg.text == null ? "" : seg.text).trim();
+    if (key !== null && text) sourceByIndex.set(key, text);
+  }
+
   let droppedEmptyHe = 0;
 
   const preparedRows = rows
@@ -123,6 +132,14 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
         // segment 0 and segment 1 normalize to key 1), corrupting row 0's he with
         // segment 1's text. Bypass that legacy path entirely in segMode.
         heBase = (row.he || "").trim();
+        // Прод-инцидент 2026-09-11: реплика с ASCII-кавычкой внутри (`לחו"ל`) возвращалась с
+        // ОБОРВАННЫМ на этой кавычке эхо-полем he, хотя огласовка приходила целой. Валидатор затем
+        // обвинял огласовку в «изменении источника», и вся таблица вставала. Источник — НАШ текст,
+        // и когда эхо оказалось лишь его началом, восстанавливаем его целиком. Любое ДРУГОЕ
+        // расхождение не трогаем: оно может означать сбитое соответствие строк, и подмена там
+        // склеила бы чужой перевод с нашей репликой (R11).
+        const ours = sourceByIndex.get(segIndex);
+        if (ours && heBase && ours !== heBase && ours.startsWith(heBase)) heBase = ours;
       } else if (direction === "any-he") {
         // R11: in any-he, parsed.segments[].he holds the SOURCE-language
         // text (kept only for alignment, per ANY_HE_PROMPT), not Hebrew.

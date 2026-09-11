@@ -12,6 +12,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
   buildRowsFromGeminiPayload,
+  prepareRowsFromGeminiPayload,
   canonicalizeKnownNiqqudRows,
   validateHebrewSourceCoverage,
 } = require("../ingest/tableRows.js");
@@ -146,4 +147,36 @@ test("known physics terms are canonicalized locally without changing plain Hebre
   const unrelated = canonicalizeKnownNiqqudRows([{ he: "מכונית בלבד", he_niqqud: "אֶוֹפַנּוֹעַ" }]);
   assert.equal(unrelated.rows[0].he_niqqud, "אֶוֹפַנּוֹעַ");
   assert.equal(unrelated.corrections.length, 0);
+});
+
+test('a quote in the source cannot truncate the row it came from', () => {
+  // Прод, материал владельца 2026-09-11: реплика `בגיל 23 טסתי לחו"ל…` содержит ASCII-кавычку.
+  // Модель вернула ПОЛНУЮ огласовку (с ивритским гершаим), но эхо-поле he оборвалось ровно на
+  // кавычке — и валидатор обвинил огласовку в «изменении источника». Источник наш, и он же
+  // должен оставаться источником.
+  const source = 'בגיל 23 טסתי לחו"ל, חשבתי שזה יהיה חצי שנה-שנה, ו-17 שנים מאז הייתי בחו"ל.';
+  const parsed = { rows: [{
+    segment_index: 50,
+    he: 'בגיל 23 טסתי לחו',
+    he_niqqud: 'בְּגִיל 23 טַסְתִּי לְחוּ״ל, חָשַׁבְתִּי שֶׁזֶּה יִהְיֶה חֲצִי שָׁנָה-שָׁנָה, וְ-17 שָׁנִים מֵאָז הָיִיתִי בְּחוּ״ל.',
+    translit: 'Be-gil 23 tasti le-Hul…', ru: 'В 23 года я улетел за границу…',
+  }] };
+  const rows = prepareRowsFromGeminiPayload(parsed, { direction: 'he-ru' },
+    { keepSegmentIndex: true, sourceSegments: [{ i: 50, text: source }] });
+  assert.equal(rows[0].he, source, 'the row must carry OUR source, not the truncated echo');
+});
+
+test('a genuinely different echo is not quietly replaced by our text', () => {
+  // Обрезка — это префикс. Любое ДРУГОЕ расхождение может означать сбитое соответствие строк,
+  // и подменять там текст молча означало бы склеить чужой перевод с нашей репликой.
+  const parsed = { rows: [{ segment_index: 7, he: 'משפט אחר לגמרי', he_niqqud: 'מִשְׁפָּט אַחֵר לְגַמְרֵי', translit: 'x', ru: 'y' }] };
+  const rows = prepareRowsFromGeminiPayload(parsed, { direction: 'he-ru' },
+    { keepSegmentIndex: true, sourceSegments: [{ i: 7, text: 'שלום עולם' }] });
+  assert.equal(rows[0].he, 'משפט אחר לגמרי', 'a real mismatch stays visible to the validator');
+});
+
+test('without our segments the behaviour is unchanged', () => {
+  const parsed = { rows: [{ segment_index: 3, he: 'שלום', he_niqqud: 'שָׁלוֹם', translit: 'shalom', ru: 'мир' }] };
+  const rows = prepareRowsFromGeminiPayload(parsed, { direction: 'he-ru' }, { keepSegmentIndex: true });
+  assert.equal(rows[0].he, 'שלום');
 });

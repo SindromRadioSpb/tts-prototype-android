@@ -7246,6 +7246,7 @@ app.post("/api/translate-table", async (req, res) => {
     try {
       const recovered = await recoverTableNiqqud({
         parsed, direction, segMode, rawText, scenario, translitProfile,
+        sourceSegments: segMode ? req.body.segments : null,
         cacheFile: path.join(geminiCacheDir, `table-repair-v1-${hashKey}.json`),
         generate: async ({ prompt: repairPrompt }) => {
           const answer = await generateGeminiContent({
@@ -7272,7 +7273,9 @@ app.post("/api/translate-table", async (req, res) => {
 
     let preparedRows;
     try {
-      preparedRows = buildRowsFromGeminiPayload(parsed, { direction }, { keepSegmentIndex: segMode });
+      // Наши сегменты уходят вместе с ответом: текст реплики принадлежит нам, а не эху модели.
+      preparedRows = buildRowsFromGeminiPayload(parsed, { direction },
+        { keepSegmentIndex: segMode, sourceSegments: segMode ? req.body.segments : null });
       if (!segMode && direction === "he-ru") {
         validateHebrewSourceCoverage(preparedRows, text.trim());
       }

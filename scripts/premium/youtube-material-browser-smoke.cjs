@@ -47,7 +47,7 @@ function check(name, ok, detail) {
   await page.goto(ORIGIN + '/?v=514', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.StudioImport && window.YoutubeAsr && window.LearningMaterialTaskUI);
 
-  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.514');
+  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.515');
   check('a link with tracking parameters is canonicalised before it can be rejected',
     await page.evaluate((u) => JSON.stringify(window.YoutubeAsr.canonicalize(u)), VIDEO) ===
     JSON.stringify({ video_id: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' }));

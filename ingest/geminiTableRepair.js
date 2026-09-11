@@ -39,10 +39,13 @@ function buildRepairSchema(Type) {
 }
 
 async function runRepair(opts) {
-  const { parsed, direction, segMode, rawText, scenario, translitProfile, cacheFile, generate } = opts;
+  const { parsed, direction, segMode, rawText, scenario, translitProfile, cacheFile, generate, sourceSegments } = opts;
   // Mapping prepared rows back to raw indices is exact except legacy any-he can
   // drop empty rows; that case remains fail-closed in the existing validator.
-  const prepared = prepareRowsFromGeminiPayload(parsed, { direction }, { keepSegmentIndex: segMode });
+  // Тот же источник истины, что и у основного пути: судить починку по покалеченному эху модели
+  // значило бы чинить то, что не сломано (прод-инцидент 2026-09-11).
+  const prepared = prepareRowsFromGeminiPayload(parsed, { direction },
+    { keepSegmentIndex: segMode, sourceSegments });
   const faults = [];
   prepared.forEach((row, index) => {
     try { validateNiqqudBase([row]); } catch (e) {
