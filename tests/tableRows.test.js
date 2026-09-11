@@ -180,3 +180,32 @@ test('without our segments the behaviour is unchanged', () => {
   const rows = prepareRowsFromGeminiPayload(parsed, { direction: 'he-ru' }, { keepSegmentIndex: true });
   assert.equal(rows[0].he, 'שלום');
 });
+
+test('an explicitly marked row may ship without niqqud; a silently empty one may not', () => {
+  // Решение владельца (вариант A): строку, которую нельзя огласовать без правки источника, лучше
+  // отдать без огласовки и СКАЗАТЬ об этом, чем потерять весь материал. Пометка — обязательна:
+  // именно она отличает честный пробел от молчаливой потери.
+  const marked = [{ he: 'גבוה ממני באיזה 30 ס"מ', he_niqqud: '', niqqud_status: 'not_vocalized' }];
+  buildRowsFromGeminiPayload({ rows: [{ segment_index: 1, ...marked[0], translit: 'x', ru: 'y' }] },
+    { direction: 'he-ru' }, { keepSegmentIndex: true });
+  assert.throws(() => buildRowsFromGeminiPayload(
+    { rows: [{ segment_index: 1, he: 'שלום', he_niqqud: '', translit: 'x', ru: 'y' }] },
+    { direction: 'he-ru' }, { keepSegmentIndex: true }),
+    (e) => e.code === 'HE_NIQQUD_MISSING', 'a row that just lost its vocalization must still fail closed');
+});
+
+test('the mark travels with the row, so the surface can say it out loud', () => {
+  const rows = prepareRowsFromGeminiPayload(
+    { rows: [{ segment_index: 4, he: 'שלום', he_niqqud: '', niqqud_status: 'not_vocalized', translit: 'x', ru: 'y' }] },
+    { direction: 'he-ru' }, { keepSegmentIndex: true });
+  assert.equal(rows[0].niqqud_status, 'not_vocalized');
+});
+
+test('a marked row cannot smuggle a changed source past the validator', () => {
+  // Пометка освобождает ТОЛЬКО от требования наличия огласовки. Если огласовка всё же есть и она
+  // переписывает источник — это по-прежнему отказ.
+  assert.throws(() => buildRowsFromGeminiPayload(
+    { rows: [{ segment_index: 1, he: 'מעשר המשפחות', he_niqqud: 'מֵעֲשֶׂרֶת הַמִּשְׁפָּחוֹת', niqqud_status: 'not_vocalized', translit: 'x', ru: 'y' }] },
+    { direction: 'he-ru' }, { keepSegmentIndex: true }),
+    (e) => e.code === 'HE_NIQQUD_CONSONANT_MISMATCH');
+});

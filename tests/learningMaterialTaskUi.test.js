@@ -176,3 +176,18 @@ test('stage clocks are shown next to their stage, in mm:ss',()=>{
   assert.equal(model.find((s) => s.key === 'transcribing').elapsedText, '9:41');
   assert.equal(model.find((s) => s.key === 'translating').elapsedText, '2:10');
 });
+
+test('a material that shipped rows without niqqud says so on the result screen',()=>{
+  // Вариант A владельца: пробел допустим, молчание — нет. Цена качества обязана быть на экране
+  // там же, где объявлен успех, а не обнаруживаться потом в таблице.
+  const job = linkJob('ready','ready');
+  job.table = { rows: [
+    { he: 'שלום', he_niqqud: 'שָׁלוֹם' },
+    { he: '30 ס"מ', he_niqqud: '', niqqud_status: 'not_vocalized' },
+    { he: 'מעשר', he_niqqud: '', niqqud_status: 'not_vocalized' },
+  ] };
+  const notes = UI.qualityNotes(job);
+  assert.equal(notes.length, 1, JSON.stringify(notes));
+  assert.match(notes[0], /2/, 'the count of affected rows must be named: ' + notes[0]);
+  assert.equal(UI.qualityNotes(linkJob('ready','ready')).length, 0, 'a clean material claims nothing');
+});

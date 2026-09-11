@@ -1098,14 +1098,14 @@ const SHELL_INTEGRITY_PATHS = [
   '/study-library.html',
   "/study-video.html",
   "/css/study-video.css",
-  "/css/study-video-source.css?v=516",
+  "/css/study-video-source.css?v=517",
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
   "/js/study-video-source-ui.js?v=508",
-  "/js/youtube-asr.js?v=516",
-  "/js/learning-material-task.js?v=516",
-  "/js/learning-material-task-ui.js?v=516",
+  "/js/youtube-asr.js?v=517",
+  "/js/learning-material-task.js?v=517",
+  "/js/learning-material-task-ui.js?v=517",
   "/js/studio-yt-player.js?v=506",
   "/js/studio-media-karaoke.js",
   "/js/portable-learning-package-core.js",
@@ -7310,6 +7310,10 @@ app.post("/api/translate-table", async (req, res) => {
 
     let warnings = local.corrections.length > 0 ? ["LOCAL_NIQQUD_CANONICALIZED"] : [];
     if (semanticRepair) warnings.push("GEMINI_NIQQUD_REPAIRED");
+    // Отдельный сигнал: строки, отданные БЕЗ огласовки, — это не «починено», а честный пробел.
+    if (semanticRepair && Array.isArray(semanticRepair.unvocalizedRows) && semanticRepair.unvocalizedRows.length) {
+      warnings.push("GEMINI_NIQQUD_UNVOCALIZED");
+    }
     if (segMode) {
       if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {
         preparedRows.forEach((r) => { delete r.segment_index; });

@@ -41,6 +41,11 @@ function validateNiqqudBase(rows) {
     const plain = comparableHebrewBase(row && row.he);
     const niqqud = comparableHebrewBase(row && row.he_niqqud);
     if (!niqqud) {
+      // Строка, которую модель не смогла огласовать, не переписав источник, едет БЕЗ огласовки —
+      // но только с явной пометкой (решение владельца 2026-09-11, вариант A). Молчаливо пустая
+      // огласовка по-прежнему фейлит закрыто: пометка и есть то, что отличает честный пробел от
+      // потери. Требование «не менять согласные» ниже действует и для помеченных строк.
+      if (row && row.niqqud_status === "not_vocalized") return;
       throw semanticError("HE_NIQQUD_MISSING", `Row ${index} has no vocalized Hebrew`, { index });
     }
     if (plain !== niqqud
@@ -163,6 +168,8 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
       if (opts.keepSegmentIndex && Number.isInteger(row.segment_index)) {
         out.segment_index = row.segment_index;
       }
+      // Пометка едет вместе со строкой: поверхность обязана иметь возможность сказать о пробеле.
+      if (row.niqqud_status === "not_vocalized") out.niqqud_status = "not_vocalized";
       return out;
     })
     .filter((row) => {

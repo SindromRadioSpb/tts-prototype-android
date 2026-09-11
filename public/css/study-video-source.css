@@ -40,3 +40,5 @@
 .lmt-stages li{grid-template-columns:24px minmax(0,1fr) auto auto}
 .lmt-stage-clock{justify-self:end;margin-inline-end:10px;color:var(--theme-text-secondary,#64748b);font-size:12px;font-variant-numeric:tabular-nums}
 .lmt-stages li[data-mark="current"] .lmt-stage-clock{color:var(--theme-accent,#0b7673);font-weight:600}
+/* Цена качества рядом с итогом: заметно, но не тревожно (решение владельца, вариант A). */
+.lmt-quality-note{margin:8px 0 0;padding:8px 10px;border-inline-start:3px solid #b45309;border-radius:6px;background:color-mix(in srgb,#b45309 7%,transparent);color:var(--theme-text,#24342c);font-size:13px;line-height:1.45}

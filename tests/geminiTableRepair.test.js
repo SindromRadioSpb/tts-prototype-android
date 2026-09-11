@@ -42,17 +42,22 @@ test('exhausted repair is durable and never causes infinite paid retries', async
   let calls = 0;
   const opts = fixture(t, async () => { calls++; return { text: JSON.stringify({ repairs: [] }) }; });
   for (let i = 0; i < 3; i++) {
-    await assert.rejects(recoverTableNiqqud(opts), e => e.code === 'GEMINI_TABLE_REVIEW_REQUIRED' && e.retryable === false);
+    const r = await recoverTableNiqqud(opts);
+    assert.deepEqual(r.repair.unvocalizedRows, [1], 'the unfixable row stays named, run after run');
+    assert.equal(r.parsed.rows[1].niqqud_status, 'not_vocalized');
   }
-  assert.equal(calls, 2);
+  assert.equal(calls, 2, 'the ledger still bounds paid attempts: marking is not a licence to keep paying');
 });
 test('provider cannot overwrite good rows, source or segment identity', async t => {
   const opts = fixture(t, async () => ({ text: JSON.stringify({ repairs: [
     { ...fixed, he: 'changed', ru: 'changed', segment_index: 77 },
     { row_index: 0, he_niqqud: 'שונה', translit: 'changed' },
   ] }) }));
-  await assert.rejects(recoverTableNiqqud(opts), { code: 'GEMINI_TABLE_REVIEW_REQUIRED' });
+  const out = await recoverTableNiqqud(opts);
+  assert.deepEqual(out.repair.unvocalizedRows, [1], 'a patch that reaches outside its row is refused');
   assert.deepEqual(opts.parsed.rows[0], good);
+  assert.deepEqual(out.parsed.rows[0], good, 'a healthy row is never touched by a rejected patch');
+  assert.equal(out.parsed.rows[1].he, bad.he, 'nor is the source of the row it targeted');
 });
 test('valid output makes no provider request and no repair file', async t => {
   const opts = fixture(t, async () => assert.fail('must not generate'));
@@ -81,7 +86,12 @@ test('a received repair is replayed after a crash without spending again', async
 });
 test('unvocalized copy is not an acceptable repair placeholder', async t => {
   const opts = fixture(t, async () => ({ text: JSON.stringify({ repairs: [{ ...fixed, he_niqqud: bad.he }] }) }));
-  await assert.rejects(recoverTableNiqqud(opts), { code: 'GEMINI_TABLE_REVIEW_REQUIRED' });
+  const out = await recoverTableNiqqud(opts);
+  // Существенное различие: неогласованную ПОДДЕЛКУ модели не принимаем как починку. Строка
+  // получает честную пометку от НАС, а не выдаётся за выполненную работу провайдера.
+  assert.deepEqual(out.repair.unvocalizedRows, [1]);
+  assert.equal(out.parsed.rows[1].he_niqqud, '', 'the model copy is discarded, not stored as a vocalization');
+  assert.equal(out.parsed.rows[1].niqqud_status, 'not_vocalized');
 });
 test('accepted repairs survive partial failure and are not requested again', async t => {
   const targets = [];
@@ -91,7 +101,9 @@ test('accepted repairs survive partial failure and are not requested again', asy
   });
   opts.parsed.rows.push({ ...bad, segment_index: 2 });
   opts.rawText = JSON.stringify(opts.parsed);
-  await assert.rejects(recoverTableNiqqud(opts), e => e.code === 'GEMINI_TABLE_REVIEW_REQUIRED' && e.repair.pendingRows.join() === '2');
+  const first = await recoverTableNiqqud(opts);
+  assert.deepEqual(first.repair.unvocalizedRows, [2], 'only the row that never came back stays unvocalized');
+  assert.equal(first.parsed.rows[1].he_niqqud, fixed.he_niqqud, 'the accepted repair is kept');
   assert.deepEqual(targets, [[1, 2], [2]]);
   assert.equal(JSON.parse(fs.readFileSync(opts.cacheFile)).patches.length, 1);
 });
@@ -103,4 +115,37 @@ test('rate rejection leaves repair budget available after cooldown', async t => 
   });
   await assert.rejects(recoverTableNiqqud(opts), { status: 429 });
   assert.equal((await recoverTableNiqqud(opts)).repair.attempts, 1);
+});
+
+// ── Владелец, 2026-09-11: содержательный конфликт «модель правит источник при огласовке» ──
+// На проде модель превращала `מעשר` в `מעשרת` и `30 ס"מ` в `30 סנטימטר`. Валидатор прав, но целая
+// таблица из-за шести строк из 637 не собиралась вовсе. Решение владельца (вариант A): такие
+// строки едут дальше БЕЗ огласовки и с явной пометкой — материал собирается, правда не страдает.
+const stubborn = { segment_index: 2, he: 'גבוה ממני באיזה 30 ס"מ', he_niqqud: 'גָּבוֹהַּ מִמֶּנִּי בְּאֵיזֶה 30 סֶנְטִימֶטֶר', translit: 'x', ru: 'y' };
+function stubbornFixture(t, generate) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-table-repair-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  return { parsed: { rows: [good, stubborn] }, direction: 'he-ru', segMode: true,
+    rawText: JSON.stringify({ rows: [good, stubborn] }), cacheFile: path.join(dir, 'repair.json'),
+    scenario, translitProfile: 'learner-latin', generate };
+}
+
+test('a row the model cannot vocalize without rewriting ships unvocalized and says so', async t => {
+  const opts = stubbornFixture(t, async () => ({ text: JSON.stringify({ repairs: [] }), modelVersion: 'test-1' }));
+  const result = await recoverTableNiqqud(opts);
+  const row = result.parsed.rows[1];
+  assert.equal(row.he, stubborn.he, 'the source is untouched — that is the whole point of the validator');
+  assert.equal(row.he_niqqud, '', 'a vocalization that rewrites the source is not shipped at all');
+  assert.equal(row.niqqud_status, 'not_vocalized', 'the gap is stated, never silent');
+  assert.deepEqual(result.repair.unvocalizedRows, [1]);
+  assert.equal(result.parsed.rows[0].he_niqqud, good.he_niqqud, 'healthy rows are untouched');
+});
+
+test('the repair tells the model exactly what it broke, not only that something broke', async t => {
+  let seenPrompt = '';
+  const opts = stubbornFixture(t, async ({ prompt }) => { seenPrompt = prompt; return { text: JSON.stringify({ repairs: [] }) }; });
+  await recoverTableNiqqud(opts);
+  assert.ok(seenPrompt.includes('ס\\"מ') || seenPrompt.includes('ס"מ'),
+    'the source token it must keep has to appear in the instruction');
+  assert.match(seenPrompt, /סֶנְטִימֶטֶר|סנטימטר/, 'so does the substitution it made');
 });

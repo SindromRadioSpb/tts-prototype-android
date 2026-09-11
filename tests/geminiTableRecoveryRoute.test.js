@@ -68,18 +68,25 @@ test('real endpoint reuses rejected raw cache, repairs one row, publishes and re
   assert.equal(f.usage(), 1);
   assert.equal(f.preserved(), true);
 });
-test('endpoint returns non-retryable 422 after durable bounded attempts; never publishes invalid rows', async t => {
+test('after bounded attempts the row ships unvocalized and marked; an invalid vocalization never ships', async t => {
+  // Контракт изменён решением владельца 2026-09-11 (вариант A): раньше эндпоинт отвечал 422 и
+  // весь материал пропадал из-за нескольких строк. Теперь строка едет БЕЗ огласовки и с пометкой.
+  // Всё остальное, что защищал прежний тест, обязано сохраниться: попытки ограничены, источник
+  // неприкосновенен, недостоверная огласовка не публикуется, сырой ответ не утекает.
   let calls = 0;
   const f = fixture(t, async () => { calls++; return { text: '{"repairs":[]}' }; });
-  for(let i=0;i<3;i++) {
+  for (let i = 0; i < 3; i++) {
     const r = await f.request();
-    assert.equal(r.statusCode, 422);
-    assert.equal(r.payload.error_code, 'GEMINI_TABLE_REVIEW_REQUIRED');
-    assert.equal(r.payload.retryable, false);
+    assert.equal(r.statusCode, 200);
+    const bad = r.payload.rows[1];
+    assert.equal(bad.he, 'ראיתי', 'the source stays exactly as we sent it');
+    assert.equal(bad.he_niqqud, '', 'the rejected vocalization is never published');
+    assert.equal(bad.niqqud_status, 'not_vocalized', 'and the gap is stated, not silent');
+    assert.equal(r.payload.rows[0].he_niqqud, 'שָׁלוֹם', 'a healthy row is untouched');
+    assert.ok((r.payload.warnings || []).includes('GEMINI_NIQQUD_UNVOCALIZED'), JSON.stringify(r.payload.warnings));
     assert.equal(r.payload.raw, undefined);
   }
-  assert.equal(calls, 2);
-  assert.equal(fs.readdirSync(f.dir).some(n => n.startsWith('table-v2-')), false);
+  assert.equal(calls, 2, 'marking is not a licence to keep paying for retries');
   assert.equal(f.preserved(), true);
 });
 test('upstream rejected key remains actionable and cannot leak an SDK message in API response', async t => {
