@@ -13417,18 +13417,20 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/table-niqqud-normalizer.js?v=429"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/table-job.js"></script>
+<script src="/js/local-cache-budget.js?v=518"></script>
+<script src="/js/chunk-retry.js?v=518"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/media-package-core.js"></script>
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=517">
+<link rel="stylesheet" href="/css/study-video-source.css?v=518">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=508"></script>
-<script src="/js/youtube-asr.js?v=517"></script>
-<script src="/js/learning-material-task.js?v=517"></script>
-<script src="/js/learning-material-task-ui.js?v=517"></script>
+<script src="/js/youtube-asr.js?v=518"></script>
+<script src="/js/learning-material-task.js?v=518"></script>
+<script src="/js/learning-material-task-ui.js?v=518"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13516,7 +13518,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.517";
+    window.APP_VERSION = "3.11.518";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17355,6 +17357,14 @@ window.v3IdeResetColumns = v3IdeResetColumns;
 document.addEventListener("DOMContentLoaded", v3IdeInit);
 document.addEventListener("DOMContentLoaded", function() {
     try { orientationFabUpdate(); } catch (_) {}
+    // Переполненный localStorage ломает НЕ кеш, а всех остальных его писателей, и молча.
+    // Один проход на загрузке возвращает кеш библиотеки в его бюджет.
+    try {
+        const pruned = v3LibraryCachePrune();
+        if (pruned && pruned.removed.length) {
+            console.info("[library-cache] freed", Math.round(pruned.freedChars / 1024), "K chars in", pruned.removed.length, "entries");
+        }
+    } catch (_) {}
 });
 
 // ============================================
@@ -17722,14 +17732,33 @@ function v3LibraryCacheKey(textId) {
   return V3_LIBRARY_CACHE_PREFIX + String(textId || "");
 }
 
+// Кеш живёт в СВОЁМ бюджете. До 2026-09-11 он писал по записи на каждый открытый текст, ничего
+// не удалял и глотал ошибку: у владельца это выросло в 142 ключа / ~10 МБ, после чего ЛЮБАЯ
+// запись в localStorage — включая чужие — падала QuotaExceededError. Кеш не имеет права морить
+// голодом остальных писателей ради собственного удобства.
+const V3_LIBRARY_CACHE_MAX_ENTRIES = 6;
+const V3_LIBRARY_CACHE_MAX_CHARS = 1500000;   // ≈30 % от потолка Chrome (≈5 M символов)
+
 function v3LibraryCacheSave(textId, payload) {
   try {
     const tid = String(textId || "").trim();
     if (!tid) return;
     const obj = (payload && typeof payload === "object") ? payload : null;
     if (!obj) return;
-    localStorage.setItem(v3LibraryCacheKey(tid), JSON.stringify(obj));
+    const value = JSON.stringify(obj);
+    if (!window.LocalCacheBudget) { localStorage.setItem(v3LibraryCacheKey(tid), value); return; }
+    LocalCacheBudget.save(localStorage, { prefix: V3_LIBRARY_CACHE_PREFIX, key: v3LibraryCacheKey(tid),
+      value, maxEntries: V3_LIBRARY_CACHE_MAX_ENTRIES, maxChars: V3_LIBRARY_CACHE_MAX_CHARS });
   } catch (_) {}
+}
+
+// Лечение браузеров, выросших ДО бюджета: один проход на загрузке приводит префикс к квоте.
+function v3LibraryCachePrune() {
+  try {
+    if (!window.LocalCacheBudget) return null;
+    return LocalCacheBudget.prune(localStorage, { prefix: V3_LIBRARY_CACHE_PREFIX,
+      maxEntries: V3_LIBRARY_CACHE_MAX_ENTRIES, maxChars: V3_LIBRARY_CACHE_MAX_CHARS });
+  } catch (_) { return null; }
 }
 
 function v3LibraryCacheLoad(textId) {
@@ -36430,6 +36459,8 @@ try {
     let v3TableJobStartedAt = 0;
     let v3TableJobLastTelemetry = null;
     let v3TableJobTimer = null;
+    // Вердикт журнала последнего восстановления: почему прогон начался с нуля или с куска N.
+    let v3TableJobLastVerdict = null;
 
     function v3TableJobMediaSha(context) {
         const raw = context && context.package && context.package.media_sha256;
@@ -36502,7 +36533,10 @@ try {
     }
     async function v3TableJobRestoreLocalOnly(input) {
         if (!window.TableJob || !input || !Array.isArray(input.segments)) return null;
-        const restored = TableJob.resume(await TableJob.loadDurable(), input);
+        // Журнал читается ОДИН раз: из него же берётся и вердикт, и сами восстановленные строки.
+        const journal = await TableJob.loadDurable();
+        v3TableJobLastVerdict = TableJob.diagnose ? TableJob.diagnose(journal, input) : null;
+        const restored = TableJob.resume(journal, input);
         if (!restored || !restored.rows.length) return restored;
         restored.rows = TableChunks.mergeRepairRows(restored.chunkRows || restored.rows, restored.repairRows || []);
         if (!Array.isArray(currentTableData) || !currentTableData.length) {
@@ -36639,19 +36673,37 @@ try {
         const request = () => apiCall("/api/translate-table", {
             geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunkSegs,
         });
+        // Лестница с ожиданием вместо двух попыток подряд: у распознавания именно она доводила
+        // прогоны до конца при 503, а таблица переспрашивала в ту же секунду и теряла кусок.
+        // Отдельно ловим заморозку фоновой вкладки — её лечит не пауза, а возвращение на экран.
+        const ladder = window.ChunkRetry || null;
+        const attempts = ladder ? ladder.ATTEMPTS : 2;
+        const watch = ladder ? ladder.createTabWatch(document) : null;
         let lastError = null;
-        for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+        for (let attempt = 0; attempt < attempts; attempt++) {
             try {
-                if (onState) onState(attempt ? "retry" : "generate", { attempt: attempt + 1, attempts: 2 });
+                if (onState) onState(attempt ? "retry" : "generate", { attempt: attempt + 1, attempts });
+                if (watch) watch.begin();
                 const result = await request();
                 result.clientRetried = attempt > 0;
-                if (onState && result.fromCache === true) onState("cache", { attempt: attempt + 1, attempts: 2 });
+                if (onState && result.fromCache === true) onState("cache", { attempt: attempt + 1, attempts });
                 return result;
             } catch (error) {
                 error.tableAttempt = attempt + 1;
-                if (error.httpStatus === 429 || error.httpStatus === 401 || error.httpStatus === 403
-                    || (error.raw && error.raw.retryable === false)) throw error;
-                if (onState && v3IsGeminiChunkJsonError(error)) onState("repair", { attempt: attempt + 1, attempts: 2 });
+                const jsonDamaged = v3IsGeminiChunkJsonError(error);
+                if (jsonDamaged) error.jsonDamaged = true;
+                const verdict = ladder
+                    ? ladder.classify(error, { attempt: attempt + 1, hiddenDuringRequest: !!(watch && watch.sawHidden()) })
+                    : null;
+                // Жёсткий отказ (429/401/403/retryable:false) выходит немедленно. Повреждённый
+                // разбор НИКОГДА не выходит здесь: его лечат ремонт кавычек и дробление ниже.
+                const fatal = verdict
+                    ? (!verdict.retryable && !jsonDamaged)
+                    : (error.httpStatus === 429 || error.httpStatus === 401 || error.httpStatus === 403
+                       || (error.raw && error.raw.retryable === false));
+                if (fatal) throw error;
+                if (onState && jsonDamaged) onState("repair", { attempt: attempt + 1, attempts });
                 const recovered = v3RecoverGeminiChunkJsonError(error, chunkSegs.length);
                 if (recovered) {
                     recovered.clientRetried = attempt > 0;
@@ -36659,8 +36711,23 @@ try {
                     return recovered;
                 }
                 lastError = error;
+                // Исчерпанный бюджет этого класса ошибки — выход из цикла к дроблению/отказу,
+                // а не молчаливый новый оплаченный вызов.
+                if (verdict && !verdict.retryable) break;
+                if (verdict && attempt + 1 < attempts) {
+                    // Пауза названа: код причины, номер попытки и срок уходят в диалог задачи.
+                    try {
+                        window.dispatchEvent(new CustomEvent("table-job-retry", { detail: { at: {
+                            code: verdict.code, attempt: verdict.attempt, attempts: verdict.attempts,
+                            waitMs: verdict.waitMs || 0, needsForeground: verdict.needsForeground } } }));
+                    } catch (_) {}
+                    if (onState) onState("retry", { attempt: attempt + 1, attempts });
+                    if (verdict.needsForeground) await ladder.waitForForeground(document);
+                    else if (verdict.waitMs) await new Promise((resolve) => setTimeout(resolve, verdict.waitMs));
+                }
             }
         }
+        } finally { if (watch) watch.stop(); }
 
         // Owner-live 2026-08-07: a complete 120-row Gemini answer can be syntactically damaged
         // in a way that the strict quote repair cannot prove safe. After the existing one retry,
@@ -36752,6 +36819,16 @@ try {
         let jobJournal = window.TableJob ? TableJob.create(Object.assign({}, jobInput, { now: Date.now() })) : null;
         if (jobJournal) jobJournal.mediaIntended = jobMediaIntended;
         const restoredJob = window.TableJob ? await v3TableJobRestoreLocalOnly(jobInput) : null;
+        // Вердикт журнала объявляется ВСЕГДА. Молчаливый отказ означает, что уже оплаченные куски
+        // считаются заново, и на экране это неотличимо от обычного старта (владелец, 2026-09-11).
+        const verdict = v3TableJobLastVerdict;
+        if (verdict && (verdict.resumable ? verdict.nextChunk > 0 : verdict.reason !== "NO_JOURNAL")) {
+            try {
+                window.dispatchEvent(new CustomEvent("table-job-resume", { detail: { at: {
+                    from: verdict.resumable ? verdict.nextChunk + 1 : 0, of: chunks.length,
+                    reason: verdict.resumable ? null : verdict.reason, changed: verdict.changed } } }));
+            } catch (_) {}
+        }
         let startChunk = 0;
         if (restoredJob && restoredJob.journal) {
             jobJournal = restoredJob.journal;

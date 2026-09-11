@@ -44,10 +44,10 @@ function check(name, ok, detail) {
     await page.addInitScript((k) => { try { localStorage.setItem('v3.geminiApiKey', k); } catch (_) {} }, key);
   }
 
-  await page.goto(ORIGIN + '/?v=517', { waitUntil: 'domcontentloaded' });
+  await page.goto(ORIGIN + '/?v=518', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.StudioImport && window.YoutubeAsr && window.LearningMaterialTaskUI);
 
-  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.517');
+  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.518');
   check('a link with tracking parameters is canonicalised before it can be rejected',
     await page.evaluate((u) => JSON.stringify(window.YoutubeAsr.canonicalize(u)), VIDEO) ===
     JSON.stringify({ video_id: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' }));
@@ -73,6 +73,12 @@ function check(name, ok, detail) {
   const priceText = (await priceLine.textContent() || '').trim();
   check('the price is shown before anything is spent', /\$\d/.test(priceText) && /\p{L}/u.test(priceText), priceText);
   check('the estimate reports the real duration, not a guess', priceText.includes('26:00'), priceText);
+
+  // Требование среды объявляется ДО трат: Chrome замораживает фоновую вкладку и обрывает
+  // висящий запрос куска (замер 2026-09-11). 26-минутный ролик считается в несколько кусков.
+  const frontNote = await dialog.locator('.lmt-foreground-note').textContent().catch(() => '');
+  check('a chunked build says up front that the tab must stay in front',
+    /вкладк|tab|לשונית/i.test(frontNote || ''), frontNote);
 
   const startBtn = dialog.locator('button', { hasText: /Подготовить и сохранить|Prepare and save/ }).first();
   check('preparation only unlocks once the price is on screen', await startBtn.isEnabled());
@@ -123,7 +129,7 @@ function check(name, ok, detail) {
     const ctx = await browser.newContext();
     const p2 = await ctx.newPage();
     await p2.addInitScript((kv) => { for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, storage);
-    await p2.goto(ORIGIN + '/?v=517', { waitUntil: 'load' });
+    await p2.goto(ORIGIN + '/?v=518', { waitUntil: 'load' });
     await p2.waitForFunction(() => document.getElementById('providerSelect'));
     const value = await p2.evaluate(() => document.getElementById('providerSelect').value);
     await ctx.close();
@@ -135,6 +141,38 @@ function check(name, ok, detail) {
     (await providerFor({})) === 'google-free');
   check('an explicit choice is never silently overridden',
     (await providerFor({ 'v3.geminiApiKey': 'AIza' + 'f'.repeat(35), 'v3.translateProvider': 'google-free' })) === 'google-free');
+
+  // ── Кеш библиотеки живёт в своём бюджете ──
+  // До 2026-09-11 он рос без предела (у владельца 142 ключа / ~10 МБ) и валил ЧУЖИЕ записи в
+  // localStorage QuotaExceededError. Проверяем на живой странице, а не только в модуле.
+  const budget = await page.evaluate(() => {
+    for (let i = 0; i < 12; i++) localStorage.setItem('ttsDashboard_v3_library_cache_v1:seed' + i, JSON.stringify({ rows: ['x'.repeat(20000)] }));
+    localStorage.setItem('someone-else', 'keep me');
+    for (let i = 0; i < 3; i++) v3LibraryCacheSave('fresh' + i, { rows: [{ he: 'א' }] });
+    const usage = LocalCacheBudget.usage(localStorage, { prefix: V3_LIBRARY_CACHE_PREFIX });
+    return { entries: usage.entries, chars: usage.chars, other: localStorage.getItem('someone-else'),
+      newest: localStorage.getItem('ttsDashboard_v3_library_cache_v1:fresh2') != null,
+      max: V3_LIBRARY_CACHE_MAX_ENTRIES, maxChars: V3_LIBRARY_CACHE_MAX_CHARS };
+  });
+  check('the library cache stays inside its own budget',
+    budget.entries <= budget.max && budget.chars <= budget.maxChars, JSON.stringify(budget));
+  check('the cache evicts itself, never another writer', budget.other === 'keep me' && budget.newest, JSON.stringify(budget));
+
+  // Браузер, выросший ДО бюджета, лечится одним проходом на загрузке.
+  const healed = await (async () => {
+    const ctx = await browser.newContext();
+    const p3 = await ctx.newPage();
+    await p3.addInitScript(() => {
+      for (let i = 0; i < 14; i++) localStorage.setItem('ttsDashboard_v3_library_cache_v1:old' + i, JSON.stringify({ rows: ['y'.repeat(30000)] }));
+    });
+    await p3.goto(ORIGIN + '/?v=518', { waitUntil: 'load' });
+    await p3.waitForFunction(() => window.LocalCacheBudget);
+    const after = await p3.evaluate(() => LocalCacheBudget.usage(localStorage, { prefix: V3_LIBRARY_CACHE_PREFIX }));
+    await ctx.close();
+    return after;
+  })();
+  check('an already over-grown cache is brought back into budget on load',
+    healed.entries <= 6 && healed.chars <= 1500000, JSON.stringify(healed));
 
   await browser.close();
 

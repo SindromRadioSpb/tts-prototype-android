@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.517";
+const CACHE_VERSION = "v3.11.518";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -71,14 +71,14 @@ const PRECACHE_URLS = [
   "/study-studio.html",
   "/study-library.html",
   "/css/study-video.css",
-  "/css/study-video-source.css?v=517",
+  "/css/study-video-source.css?v=518",
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
   "/js/study-video-source-ui.js?v=508",
-  "/js/youtube-asr.js?v=517",
-  "/js/learning-material-task.js?v=517",
-  "/js/learning-material-task-ui.js?v=517",
+  "/js/youtube-asr.js?v=518",
+  "/js/learning-material-task.js?v=518",
+  "/js/learning-material-task-ui.js?v=518",
 
   "/css/catalog-discovery.css?v=485",
   "/js/catalog-discovery-core.js?v=485",
@@ -194,6 +194,10 @@ const PRECACHE_URLS = [
   // or an offline session after a CACHE_VERSION bump loses window.TableChunks silently.
   "/js/table-chunks.js",
   "/js/table-job.js",
+  // Бюджет кеша в localStorage и лестница повторов куска: без них переполненное хранилище
+  // снова начнёт молча ронять чужие записи, а разовая перегрузка провайдера — стоить куска.
+  "/js/local-cache-budget.js?v=518",
+  "/js/chunk-retry.js?v=518",
   "/js/media-store.js",
   "/js/media-package-core.js",
   "/js/media-package-repository.js",

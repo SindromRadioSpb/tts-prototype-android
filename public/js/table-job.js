@@ -21,14 +21,22 @@
       model: String(input.model || ""),
       chunkSize: Number(input.chunkSize) || 0, segments: segments.map(function (s) { return [s.i, String(s.text || "")]; }) }));
   }
+  // Отпечаток КАЖДОГО поля отдельно: общая подпись говорит только «не совпало», а человеку и
+  // журналу нужно ЧТО именно изменилось — иначе повторная оплата выглядит как норма.
+  function fieldPrints(input) {
+    var segments = Array.isArray(input.segments) ? input.segments : [];
+    return { text: fingerprint(String(input.text || "")), provider: fingerprint(String(input.provider || "")),
+      model: fingerprint(String(input.model || "")), chunkSize: fingerprint(String(Number(input.chunkSize) || 0)),
+      segments: fingerprint(JSON.stringify(segments.map(function (s) { return [s.i, String(s.text || "")]; }))) };
+  }
   function create(input) {
     var segments = Array.isArray(input.segments) ? input.segments : [];
     var size = Math.max(1, Number(input.chunkSize) || 1), plan = [];
     for (var base = 0, index = 0; base < segments.length; base += size, index++) {
       plan.push({ index: index, base: base, count: Math.min(size, segments.length - base) });
     }
-    return { schema: "studio-table-job-v1", signature: signature(input), provider: String(input.provider || ""),
-      model: String(input.model || ""),
+    return { schema: "studio-table-job-v1", signature: signature(input), fields: fieldPrints(input),
+      provider: String(input.provider || ""), model: String(input.model || ""),
       plan: plan, completed: [], repairs: [], mediaSha: /^[a-f0-9]{64}$/i.test(String(input.mediaSha || "")) ? String(input.mediaSha).toLowerCase() : null,
       startedAt: Number(input.now) || Date.now(), updatedAt: Number(input.now) || Date.now(), state: "stopped" };
   }
@@ -68,6 +76,26 @@
     return { rows: rows, chunkRows: chunkRows, repairRows: repairRows,
       nextChunk: completed.length, repairs: repairs.length,
       mediaSha: journal.mediaSha || null, journal: journal };
+  }
+  // Вердикт возобновления. Возвращает либо «можно, с куска N», либо ПРИЧИНУ отказа: молчаливый
+  // отказ означает, что уже оплаченные куски считаются заново (владелец, 2026-09-11).
+  function diagnose(journal, input) {
+    if (!journal || typeof journal !== "object" || journal.schema !== "studio-table-job-v1") {
+      return { resumable: false, reason: "NO_JOURNAL", changed: null, nextChunk: 0, of: 0 };
+    }
+    var of = Array.isArray(journal.plan) ? journal.plan.length : 0;
+    if (journal.signature !== signature(input)) {
+      var changed = null;
+      if (journal.fields && typeof journal.fields === "object") {
+        var now = fieldPrints(input);
+        changed = Object.keys(now).filter(function (key) { return journal.fields[key] !== now[key]; });
+      }
+      return { resumable: false, reason: "SIGNATURE_MISMATCH", changed: changed, nextChunk: 0, of: of };
+    }
+    var restored = resume(journal, input);
+    if (!restored) return { resumable: false, reason: "BROKEN_CHAIN", changed: null, nextChunk: 0, of: of };
+    return { resumable: true, reason: null, changed: null, nextChunk: restored.nextChunk, of: of,
+      rows: restored.rows.length };
   }
   function telemetry(input) {
     var state = String(input.state || "stopped");
@@ -120,7 +148,7 @@
       var dir = await root.getDirectoryHandle(OPFS_DIRECTORY); await dir.removeEntry(OPFS_FILE);
     } catch (_) {}
   }
-  return { STATES: STATES, STORAGE_KEY: STORAGE_KEY, fingerprint: fingerprint, create: create,
+  return { STATES: STATES, STORAGE_KEY: STORAGE_KEY, fingerprint: fingerprint, create: create, diagnose: diagnose,
     acceptChunk: acceptChunk, acceptRepair: acceptRepair, resume: resume, telemetry: telemetry,
     markState: markState, load: load, store: store, clear: clear,
     loadDurable: loadDurable, storeDurable: storeDurable, clearDurable: clearDurable };

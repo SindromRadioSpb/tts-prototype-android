@@ -96,10 +96,18 @@ async function waitTask(page) {
       usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 50 },
     }) });
   });
+  // Кусок опознаётся по первой реплике: только так видно, ЗА ЧТО именно платит прогон.
+  const tableCalls = [];
+  const fail = { firstText: null, times: 0, status: 503, body: { error: 'overloaded' } };
   await page.route('**/api/translate-table', async (route) => {
     provider.table++;
     const body = route.request().postDataJSON();
     const source = body.segments || String(body.text || '').split('\n').map((text, i) => ({ i, text }));
+    tableCalls.push(source[0] ? String(source[0].text) : '');
+    if (fail.times > 0 && source[0] && String(source[0].text) === fail.firstText) {
+      fail.times--;
+      return route.fulfill({ status: fail.status, contentType: 'application/json', body: JSON.stringify(fail.body) });
+    }
     const rows = source.map((row, i) => ({ segment_index: i, source_line_index: i, he: row.text, he_niqqud: row.text, translit: 'x', ru: 'Строка ' + (i + 1) }));
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       rows, model: 'gemini-3.8-flash', requestedModel: 'gemini-3.8-flash',
@@ -256,6 +264,51 @@ async function waitTask(page) {
     stages.clocks.length === 4 && stages.clocks.every((c) => /^\d+:\d\d$/.test(c)), JSON.stringify(stages.clocks));
   check('each stage is labelled in words, not only by a glyph',
     stages.words.length === 4 && stages.words.every((w) => w && w.length > 2), JSON.stringify(stages.words));
+
+  // ── Падение в середине сборки не стоит нового прогона ──
+  // Владелец, 2026-09-11: «сделай, чтобы падение в середине длинной сборки не стоило нового
+  // прогона». Здесь это измеряется деньгами: сколько раз провайдера просят про КАЖДЫЙ кусок.
+  const CHUNK0 = SEGMENTS[0].text, CHUNK1 = SEGMENTS[120].text;
+  const callsFor = (first) => tableCalls.filter((t) => t === first).length;
+  async function rerunTable() {
+    await page.evaluate(async (id) => {
+      const store = LearningMaterialTask.createStore();
+      await store.update(id, (j) => ({ ...j, table: null, saved_text_id: null, playback_bound: null, package: null, state: 'paused', phase: 'translating' }));
+      const m = document.getElementById('v3Phase6Modal'); if (m) m.remove();
+      await LearningMaterialTaskUI.list();
+    }, result.id);
+    await page.locator('dialog').getByRole('button', { name: /סליחה/ }).first().click();
+    await page.locator('dialog').getByRole('button', { name: 'Продолжить', exact: true }).click();
+    return waitTask(page);
+  }
+
+  // A. Разовая перегрузка провайдера больше не стоит куска: лестница ждёт и переспрашивает.
+  await page.evaluate(() => TableJob.clearDurable());
+  fail.firstText = CHUNK1; fail.times = 1; fail.status = 503; fail.body = { error: 'overloaded' };
+  const before503 = callsFor(CHUNK1);
+  const afterOverload = await rerunTable();
+  check('a transient provider overload is waited out instead of losing the chunk',
+    afterOverload.state === 'ready' && callsFor(CHUNK1) - before503 === 2,
+    afterOverload.state + ' · chunk1 calls ' + (callsFor(CHUNK1) - before503));
+
+  // B. Жёсткий отказ на втором куске: первый кусок УЖЕ оплачен и обязан пережить падение.
+  await page.evaluate(() => TableJob.clearDurable());
+  fail.firstText = CHUNK1; fail.times = 9; fail.status = 400; fail.body = { error: 'nope', retryable: false };
+  const brokenRun = await rerunTable();
+  const paidChunk0 = callsFor(CHUNK0);
+  check('a hard failure mid-table stops the run instead of pretending', brokenRun.state !== 'ready', JSON.stringify(brokenRun));
+  fail.times = 0;
+  const healedRun = await rerunTable();
+  check('the chunk already paid for is taken from the journal, not bought again',
+    callsFor(CHUNK0) === paidChunk0, callsFor(CHUNK0) + ' vs ' + paidChunk0);
+  check('the run that resumed from the journal still reaches a finished material',
+    healedRun.state === 'ready', JSON.stringify(healedRun));
+  const resumeNote = await page.evaluate(() => {
+    const p = document.querySelector('dialog .lmt-resume-note');
+    return p && !p.hidden ? p.textContent : '';
+  });
+  check('the screen says the run continued from a chunk, so nothing looks re-paid',
+    /куска\s*2/.test(resumeNote || ''), resumeNote);
 
   check('no page error was raised', errors.length === 0, errors.join(' | '));
 

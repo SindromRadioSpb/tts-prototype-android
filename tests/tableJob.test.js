@@ -91,3 +91,56 @@ test('durable journal uses bounded OPFS recovery when localStorage quota is exha
     else delete global.navigator;
   }
 });
+
+// 2026-09-11, разбор прогона владельца: возобновление НЕ подхватило журнал и заново прошло куски
+// 0–1 (спасло только серверное кеширование — `fromCache: true`). Молчание здесь недопустимо:
+// «журнал не подошёл» обязано быть названо и показано, иначе повторная оплата выглядит как норма.
+test('the journal says whether it can be resumed, and names what changed when it cannot', () => {
+  const Job = require('../public/js/table-job.js');
+  const segments = Array.from({ length: 4 }, (_, i) => ({ i, text: `segment ${i}` }));
+  const input = { text: 'source', provider: 'gemini', model: 'gemini-3.8-flash', segments, chunkSize: 2 };
+  let journal = Job.create({ ...input, now: 1000 });
+  journal = Job.acceptChunk(journal, { index: 0, rows: [{ he: 'a', segment_index: 0 }], now: 2000 });
+
+  const ok = Job.diagnose(journal, input);
+  assert.equal(ok.resumable, true);
+  assert.equal(ok.nextChunk, 1);
+  assert.equal(ok.of, 2);
+
+  assert.equal(Job.diagnose(null, input).reason, 'NO_JOURNAL');
+  assert.equal(Job.diagnose({ schema: 'something-else' }, input).reason, 'NO_JOURNAL');
+
+  const changedText = Job.diagnose(journal, { ...input, text: 'other source' });
+  assert.equal(changedText.resumable, false);
+  assert.equal(changedText.reason, 'SIGNATURE_MISMATCH');
+  assert.deepEqual(changedText.changed, ['text']);
+
+  const changedModel = Job.diagnose(journal, { ...input, model: 'gemini-3.7-flash' });
+  assert.deepEqual(changedModel.changed, ['model']);
+
+  const changedSegments = Job.diagnose(journal, { ...input, segments: segments.slice(0, 3) });
+  assert.deepEqual(changedSegments.changed, ['segments']);
+});
+
+test('a journal written before this diagnosis says "unknown", never a guess', () => {
+  const Job = require('../public/js/table-job.js');
+  const segments = [{ i: 0, text: 'segment 0' }];
+  const input = { text: 'source', provider: 'gemini', model: 'gemini-3.8-flash', segments, chunkSize: 1 };
+  const legacy = Job.create(input);
+  delete legacy.fields;
+  const verdict = Job.diagnose(legacy, { ...input, text: 'changed' });
+  assert.equal(verdict.resumable, false);
+  assert.equal(verdict.reason, 'SIGNATURE_MISMATCH');
+  assert.equal(verdict.changed, null, 'an old journal cannot be asked what changed');
+});
+
+test('a journal whose completed chunks are broken is not offered as resumable', () => {
+  const Job = require('../public/js/table-job.js');
+  const segments = Array.from({ length: 4 }, (_, i) => ({ i, text: `segment ${i}` }));
+  const input = { text: 'source', provider: 'gemini', model: 'gemini-3.8-flash', segments, chunkSize: 2 };
+  const journal = Job.create(input);
+  journal.completed = [{ index: 1, rows: [{ he: 'b' }] }];
+  const verdict = Job.diagnose(journal, input);
+  assert.equal(verdict.resumable, false);
+  assert.equal(verdict.reason, 'BROKEN_CHAIN');
+});

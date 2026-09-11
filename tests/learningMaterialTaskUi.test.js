@@ -191,3 +191,48 @@ test('a material that shipped rows without niqqud says so on the result screen',
   assert.match(notes[0], /2/, 'the count of affected rows must be named: ' + notes[0]);
   assert.equal(UI.qualityNotes(linkJob('ready','ready')).length, 0, 'a clean material claims nothing');
 });
+
+// ── Длинная сборка: не терять оплаченное и не молчать о том, что мешает ──
+test('a retry caused by a frozen background tab asks for the tab, not for patience', () => {
+  // Замер 2026-09-11: Chrome заморозил фоновую вкладку и убил висящий запрос куска. Обратный
+  // отсчёт здесь бесполезен — пока вкладка в фоне, ждать нечего, нужно вернуться в неё.
+  const d = UI.liveDetail(linkJob('translating'), { retry: { code: 'TAB_BACKGROUNDED', attempt: 1, attempts: 4, waitSec: 0, needsForeground: true } });
+  assert.match(d.text, /вкладк/i, d.text);
+  assert.doesNotMatch(d.text, /повтор через 0/i, d.text);
+});
+
+test('a table chunk waiting out an overloaded provider says the cause, attempt and countdown', () => {
+  const d = UI.liveDetail(linkJob('translating'), { retry: { code: 'PROVIDER_OVERLOADED', attempt: 2, attempts: 4, waitSec: 12 } });
+  assert.equal(d.text.includes('2') && d.text.includes('4') && d.text.includes('12'), true, d.text);
+  assert.ok(d.text.length < 70, d.text);
+});
+
+test('a resumed run says which chunk it continued from, so nothing looks re-paid', () => {
+  assert.match(UI.resumeNote({ resume: { from: 3, of: 6 } }), /3.*6/);
+  assert.equal(UI.resumeNote({}), '');
+});
+
+test('a journal that could not be reused names what changed instead of silently re-paying', () => {
+  // Прогон владельца 2026-09-11: возобновление молча прошло куски заново (спасло только серверное
+  // кеширование). Отказ журнала обязан быть НАЗВАН.
+  const note = UI.resumeNote({ resume: { reason: 'SIGNATURE_MISMATCH', changed: ['text'] } });
+  assert.ok(note.length > 0);
+  assert.match(note, /текст/i, note);
+  const unknown = UI.resumeNote({ resume: { reason: 'SIGNATURE_MISMATCH', changed: null } });
+  assert.ok(unknown.length > 0, 'an old journal still has to admit it was not reused');
+  assert.doesNotMatch(unknown, /undefined|null/);
+});
+
+test('a long build warns that the tab has to stay in front, a short one does not', () => {
+  assert.match(UI.foregroundNote({ table: { chunks: 6 } }), /вкладк/i);
+  assert.equal(UI.foregroundNote({ table: { chunks: 1 } }), '');
+  assert.equal(UI.foregroundNote({}), '');
+});
+
+test('every new line of this screen exists in all three locales', () => {
+  const fs2 = require('node:fs');
+  const src = fs2.readFileSync(require.resolve('../public/js/learning-material-task-ui.js'), 'utf8');
+  for (const key of ['detailForeground', 'foregroundNote', 'resumeFrom', 'resumeRefused', 'causeTAB_BACKGROUNDED', 'causePROVIDER_OVERLOADED', 'causeNETWORK']) {
+    assert.equal((src.match(new RegExp('[,{]' + key + ':', 'g')) || []).length, 3, key + ' must be phrased in ru, en and he');
+  }
+});
