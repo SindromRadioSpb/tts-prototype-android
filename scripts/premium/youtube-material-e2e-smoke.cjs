@@ -310,6 +310,45 @@ async function waitTask(page) {
   check('the screen says the run continued from a chunk, so nothing looks re-paid',
     /куска\s*2/.test(resumeNote || ''), resumeNote);
 
+  // ── D: возобновление не выглядит как «заплатить снова» ──
+  const paidLine = await page.evaluate(async (id) => {
+    const store = LearningMaterialTask.createStore();
+    await store.update(id, (j) => ({ ...j, table: null, saved_text_id: null, state: 'paused', phase: 'translating' }));
+    const m = document.getElementById('v3Phase6Modal'); if (m) m.remove();
+    await LearningMaterialTaskUI.list();
+    const btn = [...document.querySelectorAll('dialog button')].find((b) => b.textContent.includes('סליחה'));
+    if (btn) btn.click();
+    await new Promise((r) => setTimeout(r, 300));
+    const note = document.querySelector('dialog .lmt-paid-note');
+    return note ? note.textContent : '';
+  }, result.id);
+  check('a resumable run says the recognition is already paid for',
+    /распознаван/i.test(paidLine) && paidLine.length > 20, paidLine);
+
+  // ── A: готовность видна, даже когда на вкладку не смотрят ──
+  // Вкладку «прячем» подменой свойства: настоящую фоновую вкладку Playwright не изображает, а
+  // проверить надо именно правило «трогаем заголовок только у скрытой вкладки».
+  const titles = await page.evaluate(async (id) => {
+    const store = LearningMaterialTask.createStore();
+    const before = document.title;
+    await store.update(id, (j) => ({ ...j, state: 'ready', phase: 'ready' }));
+    const job = await store.get(id);
+    LearningMaterialTaskUI.applyTitleNotice(document, job);
+    const whileSeen = document.title;
+    Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    LearningMaterialTaskUI.applyTitleNotice(document, job);
+    const whileHidden = document.title;
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    return { before, whileSeen, whileHidden, afterReturn: document.title };
+  }, result.id);
+  check('a tab nobody is looking at learns the material is ready',
+    titles.whileSeen === titles.before && /готов/i.test(titles.whileHidden), JSON.stringify(titles));
+  check('the tab title is handed back untouched when the person returns',
+    titles.afterReturn === titles.before, JSON.stringify(titles));
+
   check('no page error was raised', errors.length === 0, errors.join(' | '));
 
   await browser.close();

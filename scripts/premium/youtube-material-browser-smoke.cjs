@@ -44,10 +44,10 @@ function check(name, ok, detail) {
     await page.addInitScript((k) => { try { localStorage.setItem('v3.geminiApiKey', k); } catch (_) {} }, key);
   }
 
-  await page.goto(ORIGIN + '/?v=518', { waitUntil: 'domcontentloaded' });
+  await page.goto(ORIGIN + '/?v=519', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.StudioImport && window.YoutubeAsr && window.LearningMaterialTaskUI);
 
-  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.518');
+  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.519');
   check('a link with tracking parameters is canonicalised before it can be rejected',
     await page.evaluate((u) => JSON.stringify(window.YoutubeAsr.canonicalize(u)), VIDEO) ===
     JSON.stringify({ video_id: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' }));
@@ -129,7 +129,7 @@ function check(name, ok, detail) {
     const ctx = await browser.newContext();
     const p2 = await ctx.newPage();
     await p2.addInitScript((kv) => { for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, storage);
-    await p2.goto(ORIGIN + '/?v=518', { waitUntil: 'load' });
+    await p2.goto(ORIGIN + '/?v=519', { waitUntil: 'load' });
     await p2.waitForFunction(() => document.getElementById('providerSelect'));
     const value = await p2.evaluate(() => document.getElementById('providerSelect').value);
     await ctx.close();
@@ -165,7 +165,7 @@ function check(name, ok, detail) {
     await p3.addInitScript(() => {
       for (let i = 0; i < 14; i++) localStorage.setItem('ttsDashboard_v3_library_cache_v1:old' + i, JSON.stringify({ rows: ['y'.repeat(30000)] }));
     });
-    await p3.goto(ORIGIN + '/?v=518', { waitUntil: 'load' });
+    await p3.goto(ORIGIN + '/?v=519', { waitUntil: 'load' });
     await p3.waitForFunction(() => window.LocalCacheBudget);
     const after = await p3.evaluate(() => LocalCacheBudget.usage(localStorage, { prefix: V3_LIBRARY_CACHE_PREFIX }));
     await ctx.close();

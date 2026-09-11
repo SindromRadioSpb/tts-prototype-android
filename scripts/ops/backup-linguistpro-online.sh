@@ -12,6 +12,13 @@ set -Eeuo pipefail
 # Optional:
 #   LINGUISTPRO_BACKUP_DIR=/opt/backups/linguistpro
 #   LINGUISTPRO_BACKUP_KEEP_DAYS=14
+#   LINGUISTPRO_BACKUP_EXCLUDE="backups"   # volume-relative dirs left OUT of a daily archive
+#   LINGUISTPRO_BACKUP_KEEP_FULL_DAYS=28   # retention for --full archives
+#
+# `--full` archives the whole volume with nothing excluded, under the name
+# app-data-full-<date>.tar.gz, so a weekly full run and the daily runs retain
+# independently. Whatever a daily run leaves out is written into that archive's
+# own manifest (excluded=...): a restore must never silently lack something.
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 umask 077
@@ -28,9 +35,28 @@ VOLUME_NAME="$LINGUISTPRO_VOLUME_NAME"
 VOLUME_SRC="${LINGUISTPRO_VOLUME_SRC:-/var/lib/docker/volumes/${VOLUME_NAME}/_data}"
 DEST="${LINGUISTPRO_BACKUP_DIR:-/opt/backups/linguistpro}"
 KEEP_DAYS="${LINGUISTPRO_BACKUP_KEEP_DAYS:-14}"
+KEEP_FULL_DAYS="${LINGUISTPRO_BACKUP_KEEP_FULL_DAYS:-28}"
+# Дневной архив не хранит того, что восстанавливать незачем: вложенный каталог backups/ —
+# это снимки ВНУТРИ тома, и каждую ночь они переархивировались заново (замер 2026-09-11:
+# 598 МБ в каждой из 8 копий). Полный прогон (--full) не исключает ничего.
+EXCLUDE_DEFAULT="backups"
+FULL_RUN=0
+for arg in "$@"; do
+  case "$arg" in
+    --full) FULL_RUN=1 ;;
+    *) echo "unknown argument: $arg" >&2; exit 2 ;;
+  esac
+done
+if [[ "$FULL_RUN" -eq 1 ]]; then
+  EXCLUDE_LIST=""
+else
+  EXCLUDE_LIST="${LINGUISTPRO_BACKUP_EXCLUDE-$EXCLUDE_DEFAULT}"
+fi
 DATE="$(date +%Y%m%d-%H%M%S)"
-ARCHIVE="$DEST/app-data-$DATE.tar.gz"
-ARCHIVE_TMP="$DEST/.app-data-$DATE.tar.gz.tmp"
+ARCHIVE_PREFIX="app-data"
+[[ "$FULL_RUN" -eq 1 ]] && ARCHIVE_PREFIX="app-data-full"
+ARCHIVE="$DEST/$ARCHIVE_PREFIX-$DATE.tar.gz"
+ARCHIVE_TMP="$DEST/.$ARCHIVE_PREFIX-$DATE.tar.gz.tmp"
 LOCK_FILE="$DEST/.backup.lock"
 WORK_DIR=""
 CONTAINER_ID=""
@@ -54,6 +80,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 [[ "$KEEP_DAYS" =~ ^[0-9]+$ ]] || die "LINGUISTPRO_BACKUP_KEEP_DAYS must be a non-negative integer"
+[[ "$KEEP_FULL_DAYS" =~ ^[0-9]+$ ]] || die "LINGUISTPRO_BACKUP_KEEP_FULL_DAYS must be a non-negative integer"
 [[ -d "$VOLUME_SRC" ]] || die "volume source not found: $VOLUME_SRC"
 mkdir -p -- "$DEST"
 
@@ -90,18 +117,20 @@ printf '%s\n' \
   'sqlite_integrity_check=ok' \
   "snapshot_bytes=$SNAPSHOT_BYTES" \
   "snapshot_sha256=$SNAPSHOT_SHA256" \
+  "archive_kind=$([[ "$FULL_RUN" -eq 1 ]] && echo full || echo daily)" \
+  "excluded=${EXCLUDE_LIST:-none}" \
   > "$WORK_DIR/backup-manifest.txt"
 
 # Preserve the rest of the volume, but replace the three live SQLite files with
 # the verified snapshot above. tar exit 1 means a non-DB volume file changed
 # while being read; retain the current best-effort behavior, but reject >1.
+TAR_EXCLUDES=(--exclude='./app.db' --exclude='./app.db-wal' --exclude='./app.db-shm')
+for path in $EXCLUDE_LIST; do TAR_EXCLUDES+=("--exclude=./${path#./}"); done
 set +e
 tar --warning=no-file-changed -czf "$ARCHIVE_TMP" \
   -C "$WORK_DIR" app.db app.db.sha256 backup-manifest.txt \
   -C "$VOLUME_SRC" \
-  --exclude='./app.db' \
-  --exclude='./app.db-wal' \
-  --exclude='./app.db-shm' \
+  "${TAR_EXCLUDES[@]}" \
   .
 TAR_RC=$?
 set -e
@@ -123,7 +152,10 @@ EXTRACTED_SHA256="$(sha256sum "$EXTRACTED_DB" | awk '{print $1}')"
 [[ "$EXTRACTED_SHA256" == "$SNAPSHOT_SHA256" ]] || die "archived snapshot checksum mismatch"
 
 mv -- "$ARCHIVE_TMP" "$ARCHIVE"
-find "$DEST" -maxdepth 1 -type f -name 'app-data-*.tar.gz' -mtime "+$KEEP_DAYS" -delete
+# Дневные и полные архивы чистятся РАЗНЫМИ правилами: шаблон app-data-*.tar.gz накрыл бы и те
+# и другие, и недельная история умирала бы вместе с дневной.
+find "$DEST" -maxdepth 1 -type f -name 'app-data-[0-9]*.tar.gz' -mtime "+$KEEP_DAYS" -delete
+find "$DEST" -maxdepth 1 -type f -name 'app-data-full-*.tar.gz' -mtime "+$KEEP_FULL_DAYS" -delete
 
 ARCHIVE_BYTES="$(stat -c '%s' "$ARCHIVE")"
-echo "$(date -Is) backup OK: $(basename "$ARCHIVE") bytes=$ARCHIVE_BYTES sqlite_snapshot_bytes=$SNAPSHOT_BYTES sqlite_sha256=$SNAPSHOT_SHA256 method=online_backup_api"
+echo "$(date -Is) backup OK: $(basename "$ARCHIVE") bytes=$ARCHIVE_BYTES sqlite_snapshot_bytes=$SNAPSHOT_BYTES sqlite_sha256=$SNAPSHOT_SHA256 method=online_backup_api kind=$([[ "$FULL_RUN" -eq 1 ]] && echo full || echo daily) excluded=${EXCLUDE_LIST:-none}"

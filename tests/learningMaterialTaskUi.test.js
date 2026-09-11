@@ -236,3 +236,58 @@ test('every new line of this screen exists in all three locales', () => {
     assert.equal((src.match(new RegExp('[,{]' + key + ':', 'g')) || []).length, 3, key + ' must be phrased in ru, en and he');
   }
 });
+
+// ── A: готовность видна, даже когда на вкладку не смотрят ──
+test('a finished run announces itself in the tab title, a running one never does', () => {
+  assert.equal(UI.titleNotice(linkJob('transcribing', 'running')), null, 'a run in progress is not news');
+  assert.match(UI.titleNotice(linkJob('ready', 'ready')) || '', /готов/i);
+  assert.match(UI.titleNotice(linkJob('translating', 'paused')) || '', /останов/i);
+  const failed = linkJob('translating', 'paused');
+  failed.error = 'TASK_TABLE_INCOMPLETE';
+  assert.match(UI.titleNotice(failed) || '', /останов/i);
+});
+
+test('the title is touched only while the tab is out of sight, and put back on return', () => {
+  // Заголовок — чужая собственность: пока человек смотрит на вкладку, подменять его незачем,
+  // а вернувшись, он должен увидеть свой прежний заголовок, а не наш след.
+  const listeners = {};
+  const doc = { title: 'Студия', hidden: true, visibilityState: 'hidden',
+    addEventListener: (n, fn) => { (listeners[n] = listeners[n] || []).push(fn); },
+    removeEventListener: (n, fn) => { listeners[n] = (listeners[n] || []).filter((x) => x !== fn); } };
+  UI.applyTitleNotice(doc, linkJob('ready', 'ready'));
+  assert.match(doc.title, /готов/i);
+  assert.match(doc.title, /Студия/, 'the original title survives inside the notice: ' + doc.title);
+  doc.hidden = false; doc.visibilityState = 'visible';
+  (listeners.visibilitychange || []).slice().forEach((fn) => fn());
+  assert.equal(doc.title, 'Студия');
+
+  const seen = { title: 'Студия', hidden: false, visibilityState: 'visible', addEventListener() {}, removeEventListener() {} };
+  UI.applyTitleNotice(seen, linkJob('ready', 'ready'));
+  assert.equal(seen.title, 'Студия', 'nothing to announce to someone already looking');
+});
+
+// ── D: при возобновлении видно, что распознавание уже оплачено ──
+test('a resumable job says the recognition is already paid for and will not be repeated', () => {
+  const withTranscript = linkJob('translating', 'paused');
+  withTranscript.transcript = { text: 'שלום', segments: [{ start: 0, text: 'שלום' }] };
+  const notes = UI.paidNotes(withTranscript);
+  assert.equal(notes.length, 1, JSON.stringify(notes));
+  assert.match(notes[0], /распознаван/i);
+  assert.match(notes[0], /не|уже/i);
+});
+
+test('nothing claims a payment that has not happened, and a finished run does not nag', () => {
+  // Массив приходит из другого realm (vm) — сравниваем содержимое, а не прототип.
+  assert.equal(UI.paidNotes(linkJob('transcribing', 'paused')).length, 0, 'no transcript yet, no claim');
+  const done = linkJob('ready', 'ready');
+  done.transcript = { text: 'שלום', segments: [] };
+  assert.equal(UI.paidNotes(done).length, 0, 'a finished material has nothing left to resume');
+});
+
+test('the new lines of A and D exist in all three locales', () => {
+  const fs2 = require('node:fs');
+  const src = fs2.readFileSync(require.resolve('../public/js/learning-material-task-ui.js'), 'utf8');
+  for (const key of ['titleReady', 'titleStopped', 'paidTranscript']) {
+    assert.equal((src.match(new RegExp('[,{]' + key + ':', 'g')) || []).length, 3, key + ' must be phrased in ru, en and he');
+  }
+});

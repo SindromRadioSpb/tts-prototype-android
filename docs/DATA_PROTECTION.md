@@ -23,8 +23,17 @@ transactionally consistent `app.db` while the application remains running.
 The resulting archive contains:
 - the verified Online Backup snapshot as root `app.db`;
 - `app.db.sha256` and `backup-manifest.txt`;
-- all other volume content;
+- all other volume content, minus whatever `LINGUISTPRO_BACKUP_EXCLUDE` names
+  (default `backups` — the volume's own pre-migrate snapshots, which a daily
+  archive would otherwise re-archive every night);
 - no live root `app.db-wal` or `app.db-shm`.
+
+What a daily run leaves out is never silent: the archive's own
+`backup-manifest.txt` carries `archive_kind=daily|full` and `excluded=...`, and
+the same pair is printed in the run's log line. A weekly `--full` run excludes
+nothing, is named `app-data-full-<date>.tar.gz`, and retains independently
+(`LINGUISTPRO_BACKUP_KEEP_FULL_DAYS`, default 28) — daily and full archives are
+pruned by separate patterns so a weekly history cannot die with the daily one.
 
 The script refuses publication unless the snapshot passes `PRAGMA
 integrity_check`, the gzip stream is valid, exactly one root `app.db` exists,
@@ -39,7 +48,22 @@ root-owned configuration file (default `/etc/linguistpro-backup.env`):
 LINGUISTPRO_VOLUME_NAME=<docker-volume-name>
 LINGUISTPRO_BACKUP_DIR=<external-backup-directory>
 LINGUISTPRO_BACKUP_KEEP_DAYS=14
+LINGUISTPRO_BACKUP_EXCLUDE="backups"      # optional; volume-relative dirs kept out of a daily
+LINGUISTPRO_BACKUP_KEEP_FULL_DAYS=28      # optional; retention for --full archives
 ```
+
+Schedule in production (2026-09-11): daily at 03:00 UTC, weekly full on Sunday
+at 04:30 UTC.
+
+**Measured on 2026-09-11** (why the exclusion exists): the backup directory held
+13 GB — 8 dailies of ~1.26 GB plus a `milestones/` subdirectory of 3.4 GB that
+retention never touches (`-maxdepth 1`). The 2.6 GB volume is dominated by
+`audio-cache` (747 MB, regenerable TTS output), the nested `backups/` directory
+(598 MB, a single 2026-07-30 pre-WAL-truncate snapshot) and `benyehuda`
+(386 MB). Excluding only the nested `backups/` brought a daily from 1.265 GB to
+1.202 GB; excluding `audio-cache` as well would roughly halve it, at the price
+of re-synthesising server-side TTS audio after a restore — that trade-off is the
+owner's call and is NOT applied by default.
 
 Before replacing the installed script, keep a rollback copy. The mandatory
 installation proof is: `bash -n` → one real run → snapshot integrity → `gzip -t`
