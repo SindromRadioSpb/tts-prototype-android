@@ -44,10 +44,10 @@ function check(name, ok, detail) {
     await page.addInitScript((k) => { try { localStorage.setItem('v3.geminiApiKey', k); } catch (_) {} }, key);
   }
 
-  await page.goto(ORIGIN + '/?v=514', { waitUntil: 'domcontentloaded' });
+  await page.goto(ORIGIN + '/?v=516', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.StudioImport && window.YoutubeAsr && window.LearningMaterialTaskUI);
 
-  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.515');
+  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.516');
   check('a link with tracking parameters is canonicalised before it can be rejected',
     await page.evaluate((u) => JSON.stringify(window.YoutubeAsr.canonicalize(u)), VIDEO) ===
     JSON.stringify({ video_id: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' }));
@@ -123,7 +123,7 @@ function check(name, ok, detail) {
     const ctx = await browser.newContext();
     const p2 = await ctx.newPage();
     await p2.addInitScript((kv) => { for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, storage);
-    await p2.goto(ORIGIN + '/?v=514', { waitUntil: 'load' });
+    await p2.goto(ORIGIN + '/?v=516', { waitUntil: 'load' });
     await p2.waitForFunction(() => document.getElementById('providerSelect'));
     const value = await p2.evaluate(() => document.getElementById('providerSelect').value);
     await ctx.close();

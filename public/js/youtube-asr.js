@@ -61,6 +61,8 @@
   function classifyFailure(status) {
     const code = Number(status);
     if (code === 400) return 'YT_URL_REJECTED';   // API не сообщает причину: приватное, битый id, чужой хост
+    // 429 на ПЛАТНОМ аккаунте — это лимит частоты (RPM/TPM на модель), а не исчерпанный
+    // бесплатный tier: владелец на постоплате, и «квота кончилась» было бы неверным диагнозом.
     if (code === 403 || code === 429) return 'YT_QUOTA';
     if (code === 503) return 'YT_OVERLOADED';
     return 'YT_FAILED';
