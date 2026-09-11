@@ -17,12 +17,12 @@
   {
    "name": "the price is shown before anything is spent",
    "ok": true,
-   "detail": "Ролик 26:00 · распознавание ≈$0.10 · таблица ≈$0.09–0.18 · всего ≈$0.19–0.28"
+   "detail": "Ролик 26:00 · распознавание ≈$0.10 · таблица ≈$0.09–0.18 · всего ≈$0.19–0.28 · обычно 8 мин"
   },
   {
    "name": "the estimate reports the real duration, not a guess",
    "ok": true,
-   "detail": "Ролик 26:00 · распознавание ≈$0.10 · таблица ≈$0.09–0.18 · всего ≈$0.19–0.28"
+   "detail": "Ролик 26:00 · распознавание ≈$0.10 · таблица ≈$0.09–0.18 · всего ≈$0.19–0.28 · обычно 8 мин"
   },
   {
    "name": "preparation only unlocks once the price is on screen",
@@ -34,14 +34,36 @@
    "detail": "סליחה על השאלה עונה 3 💙 | חרדים"
   },
   {
+   "name": "the decision comes before the explanation: price and action sit above the prose",
+   "ok": true,
+   "detail": "{\"button\":370,\"price\":260,\"prose\":505,\"viewport\":844,\"buttonBottom\":414}"
+  },
+  {
+   "name": "the action needs no scrolling at 380px",
+   "ok": true,
+   "detail": "{\"button\":370,\"price\":260,\"prose\":505,\"viewport\":844,\"buttonBottom\":414}"
+  },
+  {
    "name": "the Hebrew surface states the cost in Hebrew",
    "ok": true,
-   "detail": "סרטון 26:00 · זיהוי ≈$0.10 · טבלה ≈$0.09–0.18 · סה\"כ ≈$0.19–0.28"
+   "detail": "סרטון 26:00 · זיהוי ≈$0.10 · טבלה ≈$0.09–0.18 · סה\"כ ≈$0.19–0.28 · בדרך כלל 8 דק׳"
   },
   {
    "name": "no page error was raised",
    "ok": true,
    "detail": ""
+  },
+  {
+   "name": "a configured Gemini key makes Gemini the default table provider",
+   "ok": true
+  },
+  {
+   "name": "without a key nothing pretends Gemini is available",
+   "ok": true
+  },
+  {
+   "name": "an explicit choice is never silently overridden",
+   "ok": true
   }
  ]
 }

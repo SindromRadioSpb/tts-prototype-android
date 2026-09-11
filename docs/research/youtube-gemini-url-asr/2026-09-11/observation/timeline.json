@@ -1,0 +1,413 @@
+{
+ "url": "https://www.youtube.com/watch?v=3DyWmEZj5ww",
+ "quote": "Ролик 11:41 · распознавание ≈$0.04 · таблица ≈$0.04–0.08 · всего ≈$0.09–0.13 · обычно 5 мин",
+ "totalSec": 266,
+ "timeline": [
+  {
+   "atSec": 0,
+   "phase": "imported",
+   "state": "paused",
+   "error": null,
+   "marks": "",
+   "detail": "",
+   "status": "Ролик 11:41 · распознавание ≈$0.04 · таблица ≈$0.04–0.08 · всего ≈$0.09–0.13 · обычно 5 мин",
+   "bar": null,
+   "buttons": [
+    "Подготовить и сохранить",
+    "Закрыть",
+    "Повторить оценку"
+   ]
+  },
+  {
+   "atSec": 2,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "идёт 0:02",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 38,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 2 с (попытка 1 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 40,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "идёт 0:40",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 85,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 11 с (попытка 2 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 87,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 9 с (попытка 2 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 89,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 7 с (попытка 2 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 91,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 5 с (попытка 2 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 93,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 3 с (попытка 2 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 95,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 1 с (попытка 2 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 97,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "идёт 1:36",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 153,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 30 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 155,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 28 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 157,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 26 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 159,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 24 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 161,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 22 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 164,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 20 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 166,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 18 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 168,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 16 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 170,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 14 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 172,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 12 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 174,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 10 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 176,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 8 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 178,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 6 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 180,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 4 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 182,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "провайдер перегружен · повтор через 2 с (попытка 3 из 4)",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 184,
+   "phase": "transcribing",
+   "state": "running",
+   "error": null,
+   "marks": "current,pending,pending,pending",
+   "detail": "идёт 3:03",
+   "status": "",
+   "bar": null,
+   "buttons": [
+    "Остановить после текущего шага"
+   ]
+  },
+  {
+   "atSec": 266,
+   "phase": "transcribing",
+   "state": "paused",
+   "error": "YT_OVERLOADED",
+   "marks": "stalled,pending,pending,pending",
+   "detail": "",
+   "status": "Задача приостановлена. Источник и готовые шаги сохранены.",
+   "bar": null,
+   "buttons": [
+    "Продолжить",
+    "Закрыть",
+    "Удалить задачу из списка"
+   ]
+  }
+ ],
+ "result": {
+  "phase": "transcribing",
+  "state": "paused",
+  "error": "YT_OVERLOADED",
+  "saved": null,
+  "segments": null,
+  "timing": null,
+  "blind": null,
+  "rows": 0
+ },
+ "dialogs": [],
+ "errors": [],
+ "failures": [
+  {
+   "at": 38,
+   "status": 503,
+   "url": "leapis.com/v1beta/models/gemini-flash-latest:generateContent",
+   "body": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"
+  },
+  {
+   "at": 85,
+   "status": 503,
+   "url": "leapis.com/v1beta/models/gemini-flash-latest:generateContent",
+   "body": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"
+  },
+  {
+   "at": 155,
+   "status": 503,
+   "url": "leapis.com/v1beta/models/gemini-flash-latest:generateContent",
+   "body": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"
+  },
+  {
+   "at": 267,
+   "status": 503,
+   "url": "leapis.com/v1beta/models/gemini-flash-latest:generateContent",
+   "body": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"
+  }
+ ]
+}

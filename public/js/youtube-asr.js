@@ -159,7 +159,7 @@
     return within(asked.usd, quote.highUsd) && within(asked.rows, quote.highRows);
   }
 
-  async function callWindow(deps, url, win, state) {
+  async function callWindow(deps, url, win, state, report) {
     for (let attempt = 0; ; attempt++) {
       state.attempts++;
       try {
@@ -172,7 +172,14 @@
       } catch (error) {
         // «Перегружен» — это продолжаемое состояние, а не провал прогона: измерено 5×503 и 1×429
         // за одну сессию. Отвергнутая ссылка не ретраится никогда — ответ не изменится.
-        if (!retryable(error.code) || attempt >= RETRY_DELAYS_MS.length - 1) throw error;
+        // Сдаёмся ПОСЛЕ того, как израсходованы все объявленные задержки: прежнее условие
+        // обрывало цикл на шаг раньше, и самая длинная пауза — самая полезная при перегрузке —
+        // не использовалась никогда (наблюдение 2026-09-11).
+        if (!retryable(error.code) || attempt >= RETRY_DELAYS_MS.length) throw error;
+        // Пауза перед повтором — это состояние прогона, а не тишина: без неё пользователь видит
+        // замерший экран и не знает, ждать ему или всё сломалось (наблюдение 2026-09-11).
+        if (report) report('retrying', { code: error.code, attempt: attempt + 1,
+          attempts: RETRY_DELAYS_MS.length + 1, waitMs: RETRY_DELAYS_MS[attempt] });
         await (deps.sleep || defaultSleep)(RETRY_DELAYS_MS[attempt]);
       }
     }
@@ -185,7 +192,7 @@
   const SPLITTABLE = ['ASR_TRUNCATED', 'ASR_EMPTY', 'ASR_BAD_JSON'];
 
   async function transcribeRange(deps, url, win, state, durationSec, report) {
-    try { return await callWindow(deps, url, win, state); }
+    try { return await callWindow(deps, url, win, state, report); }
     catch (error) {
       const startSec = win ? win.startSec : 0;
       const endSec = win ? win.endSec : (durationSec || 0);
@@ -287,10 +294,13 @@
     const est = await estimate(deps, url);
     const wins = planWindows(est.durationSec);
     const state = { attempts: 0 };
-    const report = (phase, index) => { if (onPhase) onPhase(phase, { index, total: wins.length || 1 }); };
+    // Payload передаётся КАК ЕСТЬ: прежняя сигнатура заворачивала любой объект в поле index,
+    // и структурные отчёты (повтор, дробление) приходили слушателю пустыми.
+    const total = wins.length || 1;
+    const report = (phase, at) => { if (onPhase) onPhase(phase, at || {}); };
     let segments, warnings = [], usage = [];
     if (!wins.length) {
-      report('transcribing', 0);
+      report('transcribing', { index: 0, total });
       const one = await transcribeRange(deps, est.url, null, state, est.durationSec, report);
       segments = one.segments;
       warnings = one.warnings;
@@ -298,7 +308,7 @@
     } else {
       const perWindow = [];
       for (let i = 0; i < wins.length; i++) {
-        report('transcribing', i);
+        report('transcribing', { index: i, total });
         const part = await transcribeRange(deps, est.url, wins[i], state, est.durationSec, report);
         perWindow.push(part.segments);
         warnings = warnings.concat(part.warnings || []);
@@ -311,9 +321,9 @@
     let timing = { verdict: 'inconclusive', medianErrorSec: null, checked: 0, matched: 0 };
     const win = (!opts || opts.verifyTiming !== false) ? probeWindow(est.durationSec) : null;
     if (win) {
-      report('verifying', null);
+      report('verifying', { index: null, total });
       try {
-        const probe = await callWindow(deps, est.url, win, state);
+        const probe = await callWindow(deps, est.url, win, state, report);
         const measured = matchAnchors(rows, probe.segments.map((s) => ({ startSec: s.start, text: s.text })));
         timing = Object.assign({ verdict: judgeTiming(measured) }, measured);
       } catch (error) {

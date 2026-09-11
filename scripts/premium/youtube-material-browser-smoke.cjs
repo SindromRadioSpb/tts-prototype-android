@@ -44,10 +44,10 @@ function check(name, ok, detail) {
     await page.addInitScript((k) => { try { localStorage.setItem('v3.geminiApiKey', k); } catch (_) {} }, key);
   }
 
-  await page.goto(ORIGIN + '/?v=511', { waitUntil: 'domcontentloaded' });
+  await page.goto(ORIGIN + '/?v=512', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.StudioImport && window.YoutubeAsr && window.LearningMaterialTaskUI);
 
-  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.511');
+  check('the shell serves the release under test', await page.evaluate(() => window.APP_VERSION) === '3.11.512');
   check('a link with tracking parameters is canonicalised before it can be rejected',
     await page.evaluate((u) => JSON.stringify(window.YoutubeAsr.canonicalize(u)), VIDEO) ===
     JSON.stringify({ video_id: 'eLYgTqNFn-s', url: 'https://www.youtube.com/watch?v=eLYgTqNFn-s' }));
@@ -79,6 +79,22 @@ function check(name, ok, detail) {
   const titleValue = await dialog.locator('input[type="text"]').inputValue();
   check('the material is named from the video itself', titleValue.length > 0 && titleValue !== 'eLYgTqNFn-s', titleValue);
 
+  // Премиальность измеряется и так: решающая кнопка обязана быть на экране без прокрутки.
+  const reach = await page.evaluate(() => {
+    const d = document.querySelector('dialog.study-source-dialog');
+    const b = [...d.querySelectorAll('button')].find((x) => /Подготовить|Prepare/.test(x.textContent));
+    const price = d.querySelector('p[role="status"]');
+    // Пояснительный абзац ищем по СОДЕРЖАНИЮ, а не по классу: проверяем то, что видит человек,
+    // а не то, как это свёрстано.
+    const prose = [...d.querySelectorAll('p')].filter((p2) => /переводчик|translator|מתרגם/.test(p2.textContent))[0];
+    const y = (el) => Math.round(el.getBoundingClientRect().top);
+    return { button: y(b), price: y(price), prose: prose ? y(prose) : null, viewport: window.innerHeight,
+      buttonBottom: Math.round(b.getBoundingClientRect().bottom) };
+  });
+  check('the decision comes before the explanation: price and action sit above the prose',
+    reach.prose !== null && reach.price < reach.prose && reach.button < reach.prose, JSON.stringify(reach));
+  check('the action needs no scrolling at 380px', reach.buttonBottom <= reach.viewport, JSON.stringify(reach));
+
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'yt-material-estimate-380-ru.png') });
 
   // Настоящее переключение локали, а не разворот dir: иначе скриншот показал бы русские строки в
@@ -100,6 +116,26 @@ function check(name, ok, detail) {
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'yt-material-estimate-380-he-rtl.png') });
 
   check('no page error was raised', errors.length === 0, errors.join(' | '));
+
+  // Провайдер таблицы по умолчанию: с ключом Gemini незачем каждый раз переключать руками, но
+  // ЯВНЫЙ выбор пользователя остаётся за ним — молча менять выбранное нельзя.
+  async function providerFor(storage) {
+    const ctx = await browser.newContext();
+    const p2 = await ctx.newPage();
+    await p2.addInitScript((kv) => { for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v); }, storage);
+    await p2.goto(ORIGIN + '/?v=512', { waitUntil: 'load' });
+    await p2.waitForFunction(() => document.getElementById('providerSelect'));
+    const value = await p2.evaluate(() => document.getElementById('providerSelect').value);
+    await ctx.close();
+    return value;
+  }
+  check('a configured Gemini key makes Gemini the default table provider',
+    (await providerFor({ 'v3.geminiApiKey': 'AIza' + 'f'.repeat(35) })) === 'gemini');
+  check('without a key nothing pretends Gemini is available',
+    (await providerFor({})) === 'google-free');
+  check('an explicit choice is never silently overridden',
+    (await providerFor({ 'v3.geminiApiKey': 'AIza' + 'f'.repeat(35), 'v3.translateProvider': 'google-free' })) === 'google-free');
+
   await browser.close();
 
   const failed = checks.filter((c) => !c.ok);

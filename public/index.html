@@ -13422,13 +13422,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=511">
+<link rel="stylesheet" href="/css/study-video-source.css?v=512">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=508"></script>
-<script src="/js/youtube-asr.js?v=511"></script>
-<script src="/js/learning-material-task.js?v=511"></script>
-<script src="/js/learning-material-task-ui.js?v=511"></script>
+<script src="/js/youtube-asr.js?v=512"></script>
+<script src="/js/learning-material-task.js?v=512"></script>
+<script src="/js/learning-material-task-ui.js?v=512"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13516,7 +13516,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.511";
+    window.APP_VERSION = "3.11.512";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34422,14 +34422,22 @@ window.LearningMaterialTaskUI.configure({
     // вилкой, потому что число реплик до распознавания неизвестно. Показать обе цены здесь — это
     // то, что снимает второй window.confirm в середине задачи.
     const table = window.TableChunks ? YoutubeAsr.estimateTableRange(asr.durationSec, TableChunks.CHUNK_SIZE) : null;
-    return Object.assign({}, asr, { table });
+    // Ожидаемое время — из того же единственного калькулятора, что и цена: человек, которому
+    // предстоит ждать минуты, узнаёт сколько ДО запуска, а не методом наблюдения.
+    const plan = window.TableChunks && window.AsrTranscript
+      ? AsrTranscript.estimateLongJob(asr.durationSec || 0, { chunkSize: TableChunks.CHUNK_SIZE, video: true }) : null;
+    return Object.assign({}, asr, { table, minutes: plan ? plan.minutes : null });
   },
   async transcribe(input, id) {
     if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
     const key = typeof window.geminiKeyGet === 'function' ? window.geminiKeyGet() : '';
     if (!key) { const e = new Error('GEMINI_KEY_REQUIRED'); e.code = 'GEMINI_KEY_REQUIRED'; throw e; }
     const result = await YoutubeAsr.transcribe({fetch:(u,i)=>fetch(u,i),apiKey:key},input.youtube_source.url,
-      (phase,at)=>{ try { window.dispatchEvent(new CustomEvent('youtube-asr-progress',{detail:{id,phase,at}})); } catch (_) {} });
+      (phase,at)=>{ try {
+        // Повтор после перегрузки — отдельное событие: у него своё отображение и свой срок.
+        const name = phase === 'retrying' ? 'youtube-asr-retry' : 'youtube-asr-progress';
+        window.dispatchEvent(new CustomEvent(name,{detail:{id,phase,at}}));
+      } catch (_) {} });
     const meta = YoutubeAsr.buildImportMeta(result, AsrTranscript.ASR_MODEL);
     // Тот же промоушен в корректируемый пакет, что и у субтитр: второго хранилища меток нет.
     const pkg = await window.StudioMediaPackage.createFromImportMeta(meta);
@@ -37028,6 +37036,26 @@ try {
         try { return localStorage.getItem(GEMINI_KEY_LS_KEY) || ""; } catch (_) { return ""; }
     }
 
+    // Настроен ключ Gemini ⇒ и таблицу по умолчанию строит Gemini. Заставлять человека каждый раз
+    // переключать провайдер вручную — плохая настройка по умолчанию, а не осторожность. ЯВНЫЙ
+    // выбор владельца при этом неприкосновенен: молча менять выбранное нельзя (та же доктрина,
+    // что и у MADLAD). Живёт здесь, а не в initProviderSelect, потому что тот блок выполняется
+    // раньше этого и geminiKeyGet там ещё не определён.
+    function v3ApplyDefaultProviderFromKey() {
+        try {
+            if (localStorage.getItem(PROVIDER_LS_KEY)) return;   // выбор уже сделан
+            const el = document.getElementById("providerSelect");
+            if (el && geminiKeyGet()) {
+                el.value = "gemini";
+                // НЕ сохраняем: умолчание должно оставаться умолчанием. Записать его значило бы
+                // выдать за явный выбор владельца то, чего он не выбирал — и провайдер не вернулся
+                // бы к бесплатному пути, если ключ потом убрать.
+                if (typeof v3UpdateTranslationCardStatus === "function") v3UpdateTranslationCardStatus();
+            }
+        } catch (_) {}
+    }
+    v3ApplyDefaultProviderFromKey();
+
     function geminiKeySave() {
         const inp = document.getElementById("geminiApiKeyInput");
         if (!inp) return;
@@ -37550,9 +37578,14 @@ try {
         try {
             const saved = localStorage.getItem(PROVIDER_LS_KEY);
             if (saved && ["gemini", "gcp", "madlad", "google-free"].includes(saved)) {
-                el.value = saved;
+                el.value = saved;                 // явный выбор владельца — молча не меняем
             } else {
-                el.value = "google-free"; // default provider
+                // Ключ Gemini настроен ⇒ и таблицу по умолчанию строит Gemini: держать человека
+                // обязанным каждый раз переключать провайдер вручную — плохая настройка по
+                // умолчанию, а не осторожность. Без ключа остаётся бесплатный путь.
+                // Провайдер по умолчанию доопределяется ниже, в блоке ключа Gemini: здесь
+                // geminiKeyGet ещё не существует (этот блок выполняется раньше).
+                el.value = "google-free";
             }
         } catch (_) {}
         el.addEventListener("change", () => {

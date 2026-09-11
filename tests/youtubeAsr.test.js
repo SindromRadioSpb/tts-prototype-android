@@ -248,7 +248,8 @@ test('the task dialog has a named sentence for every failure the route can produ
   const fs=require('node:fs');
   const src=fs.readFileSync(require.resolve('../public/js/learning-material-task-ui.js'),'utf8');
   for(const code of ['YT_QUOTA','YT_OVERLOADED','YT_URL_REJECTED','ASR_TRUNCATED','ASR_BLOCKED','GEMINI_KEY_REQUIRED']){
-    assert.equal((src.match(new RegExp(code+':',"g"))||[]).length,3,code+' must be phrased in ru, en and he');
+    // Границу слева задаём явно: иначе счёт ловит и ключи коротких причин (causeYT_OVERLOADED).
+    assert.equal((src.match(new RegExp('[,{]'+code+':',"g"))||[]).length,3,code+' must be phrased in ru, en and he');
   }
 });
 
@@ -278,4 +279,27 @@ test('a quote also covers the size of the table, not only its dollars',()=>{
   assert.equal(Y.tableCostWithinQuote({usd:0.18,rows:300},quote),true);
   assert.equal(Y.tableCostWithinQuote({usd:0.40,rows:300},quote),false);
   assert.equal(Y.tableCostWithinQuote({rows:300},{highUsd:0.2}),false,'a quote without a size cannot vouch for size');
+});
+
+test('a wait between attempts is announced, not spent in silence',async()=>{
+  const fetch=fakeFetch([{status:200,body:countBody},{status:503,body:{}},{status:200,body:asrBody([seg('0:07','שלום')])}]);
+  const seen=[];
+  await Y.transcribe({fetch,apiKey:'k',sleep:async()=>{}},`https://youtu.be/${ID}`,
+    (phase,at)=>seen.push({phase,at}),{verifyTiming:false});
+  const retry=seen.find(s=>s.phase==='retrying');
+  assert.ok(retry,'the pause before a retry must be reported: '+JSON.stringify(seen));
+  assert.equal(retry.at.code,'YT_OVERLOADED');
+  assert.equal(retry.at.attempt,1);
+  assert.equal(retry.at.attempts,4);
+  assert.equal(retry.at.waitMs,4000);
+});
+
+test('every configured wait is actually used before the run gives up',async()=>{
+  // Наблюдение 2026-09-11: лестница объявляла три задержки, а цикл сдавался после двух —
+  // последняя (самая длинная, и потому самая полезная при перегрузке) не использовалась никогда.
+  const waits=[];
+  const fetch=fakeFetch([{status:200,body:countBody},...Y.RETRY_DELAYS_MS.map(()=>({status:503,body:{}})),{status:200,body:asrBody([seg('0:07','שלום')])}]);
+  const out=await Y.transcribe({fetch,apiKey:'k',sleep:async(ms)=>{waits.push(ms);}},`https://youtu.be/${ID}`,null,{verifyTiming:false});
+  assert.deepEqual(waits.join(','),Y.RETRY_DELAYS_MS.join(','),'all configured waits must be reachable');
+  assert.equal(out.segments.length,1,'the run survives when the provider finally answers');
 });
