@@ -121,3 +121,21 @@ test('cancelling during a provider wait stops the run instead of failing it',asy
   assert.equal(after.error,null,'stopping on request leaves no error to explain away');
   assert.equal(log.translate,0);
 });
+
+test('the price the person agreed to is kept with the task, not in a page variable',async()=>{
+  // Наблюдение владельца 2026-09-11: после возобновления согласованная смета исчезала, маршрут
+  // снова спрашивал подтверждение, и закрытый вопрос оставлял пустую таблицу (TASK_TABLE_INCOMPLETE).
+  const quote={lowUsd:0.2,highUsd:0.5,lowRows:400,highRows:693,chunks:6};
+  const job=await T.create({...link,table_quote:quote});
+  assert.deepEqual(job.input.table_quote,quote);
+  const store=memory();await store.add(job);
+  const log={transcribe:0,translate:0,save:0,bind:0,pkg:0},ops=linkOps(log);
+  ops.translate=async i=>{log.translate++;log.quoteSeen=i.table_quote;return {rows:[{he:'א',ru:'а'}]};};
+  await T.createRunner(store,ops).run(job.id);
+  assert.deepEqual(log.quoteSeen,quote,'the table stage must receive the agreed price on every run, resume included');
+});
+
+test('a task created without a quote does not invent one',async()=>{
+  const job=await T.create(link);
+  assert.equal(job.input.table_quote,null);
+});

@@ -219,13 +219,18 @@ async function waitTask(page) {
   await page.evaluate(async () => { if (window.__localDBInitPromise) await window.__localDBInitPromise; });
   await page.evaluate(async (id) => {
     const store = LearningMaterialTask.createStore();
-    await store.update(id, (j) => ({ ...j, saved_text_id: null, playback_bound: null, package: null, state: 'paused', phase: 'saving' }));
+    // Сбрасываем И таблицу: иначе возобновление проскакивает мимо стадии, где цена и спрашивается.
+    await store.update(id, (j) => ({ ...j, table: null, saved_text_id: null, playback_bound: null, package: null, state: 'paused', phase: 'translating' }));
   }, result.id);
   await page.evaluate(async () => { const m = document.getElementById('v3Phase6Modal'); if (m) m.remove(); await LearningMaterialTaskUI.list(); });
   await page.locator('dialog').getByRole('button', { name: /סליחה|Подготовка|סליחה על השאלה/ }).first().click();
   await page.locator('dialog').getByRole('button', { name: 'Продолжить', exact: true }).click();
   await waitTask(page);
   check('a resumed run never pays for the same transcript twice', provider.generateContent === paidBefore, provider.generateContent + ' vs ' + paidBefore);
+  // Сценарий владельца 2026-09-11: согласованная цена жила в переменной страницы, возобновление её
+  // теряло, маршрут спрашивал заново — и закрытый вопрос оставлял пустую таблицу.
+  check('a resumed run does not ask again about a price already agreed',
+    dialogs.length === 0, dialogs.join(' | '));
 
   const after = await page.evaluate(async () => {
     const db = await ensureLocalDB();

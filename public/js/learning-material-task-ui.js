@@ -183,7 +183,7 @@
       liveReset();liveAttach(d);
       try{const job=await runner.run(id,next=>{if(d.isConnected)showTask(next,d);});await showTask(job,d);}
       catch(_){await showTask(await store.get(id),d);}
-      finally{liveReset();try{delete window.v3TableCostQuote;}catch(_){}if(d.isConnected&&d.__job)showTask(d.__job,d);}
+      finally{liveReset();if(d.isConnected&&d.__job)showTask(d.__job,d);}
     };
     // Studio globals cannot run two independent table jobs concurrently.
     if(navigator.locks)await navigator.locks.request('linguistpro-material-preparation',{ifAvailable:true},work);
@@ -214,7 +214,7 @@
     notes.append(element('p',t('note')+input.provider),element('p',t('cost')));
     if(link)notes.append(element('p',t('linkNote')),element('p',t('captionsFree')));
     d.append(notes);
-    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value});await store.add(job);if(quoted)window.v3TableCostQuote=quoted;liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(_){d.append(element('p',t('error')));startButton.disabled=false;}});
+    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(_){d.append(element('p',t('error')));startButton.disabled=false;}});
     button(actions,t('close'),()=>d.close());title.focus();
     // Платный шаг не начинается вслепую: пока цена не показана, «Подготовить» недоступно. Смета
     // берётся бесплатным countTokens, поэтому сам показ цены ничего не стоит.

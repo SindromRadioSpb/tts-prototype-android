@@ -13422,13 +13422,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=513">
+<link rel="stylesheet" href="/css/study-video-source.css?v=514">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=508"></script>
-<script src="/js/youtube-asr.js?v=513"></script>
-<script src="/js/learning-material-task.js?v=513"></script>
-<script src="/js/learning-material-task-ui.js?v=513"></script>
+<script src="/js/youtube-asr.js?v=514"></script>
+<script src="/js/learning-material-task.js?v=514"></script>
+<script src="/js/learning-material-task-ui.js?v=514"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13516,7 +13516,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.513";
+    window.APP_VERSION = "3.11.514";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34462,6 +34462,9 @@ window.LearningMaterialTaskUI.configure({
   },
   async translate(input) {
     if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
+    // Согласованная цена приходит из журнала задачи, а не из переменной страницы: возобновление
+    // теряло её, и маршрут снова спрашивал подтверждение (владелец, TASK_TABLE_INCOMPLETE 2026-09-11).
+    window.v3TableCostQuote = input.table_quote || null;
     document.getElementById('inputText').value=input.source_text;
     document.getElementById('inputText').dispatchEvent(new Event('input',{bubbles:true}));
     v3SessionSet({mode:'draft',textId:null,baseTextId:null,origin:'import',openMode:null});
@@ -34475,6 +34478,7 @@ window.LearningMaterialTaskUI.configure({
     currentTableData=[];v3LastGeminiMeta=null;tableIsStale=true;
     await translateTable();
     if(tableIsStale || !currentTableData.length)throw new Error('TASK_TABLE_INCOMPLETE');
+    try { delete window.v3TableCostQuote; } catch (_) {}
     return {rows:currentTableData,meta:v3LastGeminiMeta || null};
   },
   async save(job) {
