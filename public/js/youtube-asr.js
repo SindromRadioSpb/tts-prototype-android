@@ -161,6 +161,7 @@
 
   async function callWindow(deps, url, win, state, report) {
     for (let attempt = 0; ; attempt++) {
+      if (deps.shouldStop && await deps.shouldStop()) fail('TASK_CANCELLED');
       state.attempts++;
       try {
         const data = await post(deps, 'generateContent', buildRequest(url, win));
@@ -175,12 +176,16 @@
         // Сдаёмся ПОСЛЕ того, как израсходованы все объявленные задержки: прежнее условие
         // обрывало цикл на шаг раньше, и самая длинная пауза — самая полезная при перегрузке —
         // не использовалась никогда (наблюдение 2026-09-11).
+        if (error.code === 'TASK_CANCELLED') throw error;
         if (!retryable(error.code) || attempt >= RETRY_DELAYS_MS.length) throw error;
         // Пауза перед повтором — это состояние прогона, а не тишина: без неё пользователь видит
         // замерший экран и не знает, ждать ему или всё сломалось (наблюдение 2026-09-11).
         if (report) report('retrying', { code: error.code, attempt: attempt + 1,
           attempts: RETRY_DELAYS_MS.length + 1, waitMs: RETRY_DELAYS_MS[attempt] });
         await (deps.sleep || defaultSleep)(RETRY_DELAYS_MS[attempt]);
+        // Просьбу остановиться слушаем СРАЗУ после ожидания и до следующего платного вызова:
+        // иначе кнопка «Остановить» во время паузы выглядит неработающей, а деньги всё равно уходят.
+        if (deps.shouldStop && await deps.shouldStop()) fail('TASK_CANCELLED');
       }
     }
   }

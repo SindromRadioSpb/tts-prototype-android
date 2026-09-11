@@ -239,11 +239,18 @@ async function waitTask(page) {
     if (btn) btn.click();
     await new Promise((r) => setTimeout(r, 300));
     const li = [...document.querySelectorAll('dialog .lmt-stages li')];
-    return { count: li.length, marks: li.map((x) => x.dataset.mark).join(','), labels: li.map((x) => x.textContent.trim()) };
+    return { count: li.length, marks: li.map((x) => x.dataset.mark).join(','),
+      clocks: li.map((x) => (x.querySelector('.lmt-stage-clock') || {}).textContent).filter(Boolean),
+      words: li.map((x) => (x.querySelector('.lmt-mark-word') || {}).textContent).filter(Boolean),
+      labels: li.map((x) => x.textContent.trim()) };
   });
   check('the dialog shows the stages of the run, each with its own state', stages.count === 4, JSON.stringify(stages));
   check('a finished run marks every stage done, none left looking unfinished',
     stages.marks === 'done,done,done,done', stages.marks);
+  check('every finished stage reports how long it actually took',
+    stages.clocks.length === 4 && stages.clocks.every((c) => /^\d+:\d\d$/.test(c)), JSON.stringify(stages.clocks));
+  check('each stage is labelled in words, not only by a glyph',
+    stages.words.length === 4 && stages.words.every((w) => w && w.length > 2), JSON.stringify(stages.words));
 
   check('no page error was raised', errors.length === 0, errors.join(' | '));
 

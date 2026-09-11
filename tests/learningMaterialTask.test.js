@@ -83,3 +83,41 @@ test('the transcript carries its own provenance into the table and the saved car
   assert.equal(log.meta.captions.origin,'gemini-url-asr','the table must be built against the transcript it came from');
   assert.equal((await store.get(job.id)).input.import_meta,null,'the immutable task input is not rewritten');
 });
+
+test('the journal records when each stage began and ended',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  await T.createRunner(store,linkOps(log)).run(job.id);
+  const done=await store.get(job.id);
+  for(const key of ['transcribing','translating','saving','binding']){
+    const rec=done.stage_times[key];
+    assert.ok(rec&&Number.isFinite(rec.startedAt),key+' must have a start: '+JSON.stringify(done.stage_times));
+    assert.ok(Number.isFinite(rec.endedAt),key+' must be closed when the next stage begins');
+    assert.ok(rec.endedAt>=rec.startedAt,key+' cannot end before it starts');
+  }
+});
+
+test('a resumed stage is timed by its own attempt, not by the wall clock since the first one',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  const ops=linkOps(log);let fail=true;
+  ops.translate=async i=>{log.translate++;if(fail){fail=false;throw new Error('injected');}return {rows:[{he:'א',ru:'а'}]};};
+  const runner=T.createRunner(store,ops);
+  await assert.rejects(runner.run(job.id),/injected/);
+  const afterFail=(await store.get(job.id)).stage_times.translating.startedAt;
+  await new Promise(r=>setTimeout(r,25));
+  await runner.run(job.id);
+  const afterResume=(await store.get(job.id)).stage_times.translating;
+  assert.ok(afterResume.startedAt>afterFail,'the retried attempt restarts its own clock');
+  assert.ok(Number.isFinite(afterResume.endedAt));
+});
+
+test('cancelling during a provider wait stops the run instead of failing it',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
+  const ops=linkOps(log);let runner;
+  ops.transcribe=async()=>{await runner.cancel(job.id);const e=new Error('TASK_CANCELLED');e.code='TASK_CANCELLED';throw e;};
+  runner=T.createRunner(store,ops);
+  await runner.run(job.id);
+  const after=await store.get(job.id);
+  assert.equal(after.state,'cancelled','a stop asked for by the person is not a failure');
+  assert.equal(after.error,null,'stopping on request leaves no error to explain away');
+  assert.equal(log.translate,0);
+});

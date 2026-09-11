@@ -55,7 +55,8 @@ test('recognition reports the window it is on, and nothing it cannot know',()=>{
   assert.match(single.text, /1:23/);
   const many = UI.liveDetail(linkJob('transcribing'), { asr: { index: 1, total: 3, elapsedSec: 5 } });
   assert.equal(many.text.includes('2') && many.text.includes('3'), true, many.text);
-  assert.equal(many.percent, null, 'window count is not completion');
+  // Законченные окна — настоящий знаменатель (в отличие от доли ВНУТРИ окна, которой нет).
+  assert.equal(many.percent, 33, 'one of three windows is behind');
 });
 
 test('the table reports the coverage it has actually proven',()=>{
@@ -81,12 +82,13 @@ test('a running stage never paints from a snapshot taken before the run started'
   assert.equal(UI.stageModel(stale).find((s) => s.key === 'transcribing').mark, 'stalled');
 });
 
-test('a running stage always shows how long it has been running, even before any provider signal',()=>{
-  // Для одного ASR-вызова провайдер шлёт ровно одно событие. Пока оно не пришло, секундомер —
-  // единственная честная динамика, и молчать всё это время нельзя.
-  const d = UI.liveDetail(linkJob('transcribing'), { elapsedSec: 47 });
-  assert.match(d.text, /0:47/);
-  assert.equal(d.percent, null);
+test('the line under the stages never repeats the clock the stage already shows',()=>{
+  // Часы теперь стоят у самого этапа, поэтому дублировать их строкой ниже — шум. Строка
+  // оставлена тому, чего часы сказать не могут: окну, строкам, повтору, затянувшемуся прогону.
+  const plain = UI.liveDetail(linkJob('transcribing'), { elapsedSec: 47 });
+  assert.equal(plain.text, '', 'a bare elapsed time is the stage clock’s job');
+  const slow = UI.liveDetail(linkJob('transcribing'), { elapsedSec: 520, expectedSec: 300 });
+  assert.match(slow.text, /дольше/i, slow.text);
 });
 
 test('a silent retry is not silent: the wait says why and which attempt it is',()=>{
@@ -139,8 +141,38 @@ test('when a run outlasts its estimate the screen admits it instead of pretendin
   // Наблюдение 2026-09-11: смета обещала «обычно 5 мин», а прогон под нагрузкой провайдера шёл
   // вдвое дольше. Молчать в этот момент — значит подтверждать обещание, которое уже нарушено.
   const inTime = UI.liveDetail(linkJob('transcribing'), { elapsedSec: 120, expectedSec: 300 });
-  assert.doesNotMatch(inTime.text, /дольше|longer/i, inTime.text);
+  assert.equal(inTime.text, '', 'on time there is nothing extra to say');
   const late = UI.liveDetail(linkJob('transcribing'), { elapsedSec: 520, expectedSec: 300 });
   assert.match(late.text, /дольше/i, late.text);
   assert.match(late.text, /8:40/, 'the clock keeps running while it says so: ' + late.text);
+});
+
+// ── E: у длинного ролика окна дают настоящий знаменатель ──
+test('a long video measures recognition by the windows it has finished',()=>{
+  const start = UI.liveDetail(linkJob('transcribing'), { asr: { index: 0, total: 4, elapsedSec: 5 } });
+  assert.equal(start.percent, 0, 'nothing is finished yet at the first window');
+  const mid = UI.liveDetail(linkJob('transcribing'), { asr: { index: 2, total: 4, elapsedSec: 300 } });
+  assert.equal(mid.percent, 50, 'two of four windows behind');
+  const single = UI.liveDetail(linkJob('transcribing'), { asr: { index: 0, total: 1, elapsedSec: 5 } });
+  assert.equal(single.percent, null, 'one window is not a scale');
+});
+
+// ── B: время каждого этапа — и по ходу, и в итоге ──
+test('each stage carries its own clock, running and finished alike',()=>{
+  const job = linkJob('translating');
+  job.stage_times = { transcribing: { startedAt: 1000, endedAt: 582000 }, translating: { startedAt: 582000 } };
+  const model = UI.stageModel(job, { now: 700000 });
+  const done = model.find((s) => s.key === 'transcribing');
+  const current = model.find((s) => s.key === 'translating');
+  assert.equal(done.elapsedSec, 581, 'a finished stage reports what it actually took');
+  assert.equal(current.elapsedSec, 118, 'a running stage counts from its own start, not the run start');
+  assert.equal(model.find((s) => s.key === 'saved').elapsedSec, null, 'a stage that has not started has no clock');
+});
+
+test('stage clocks are shown next to their stage, in mm:ss',()=>{
+  const job = linkJob('ready', 'ready');
+  job.stage_times = { transcribing: { startedAt: 0, endedAt: 581000 }, translating: { startedAt: 581000, endedAt: 711000 } };
+  const model = UI.stageModel(job, { now: 711000 });
+  assert.equal(model.find((s) => s.key === 'transcribing').elapsedText, '9:41');
+  assert.equal(model.find((s) => s.key === 'translating').elapsedText, '2:10');
 });

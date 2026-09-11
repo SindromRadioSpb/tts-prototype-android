@@ -303,3 +303,20 @@ test('every configured wait is actually used before the run gives up',async()=>{
   assert.deepEqual(waits.join(','),Y.RETRY_DELAYS_MS.join(','),'all configured waits must be reachable');
   assert.equal(out.segments.length,1,'the run survives when the provider finally answers');
 });
+
+test('a stop asked for during a retry wait is honoured at once, not after the wait',async()=>{
+  // Кнопка «Остановить» во время паузы 30 с выглядела неработающей: отмена проверялась только
+  // между фазами, а ожидание её не слушало.
+  let stopped=false,slept=0;
+  const fetch=fakeFetch([{status:200,body:countBody},{status:503,body:{}},{status:200,body:asrBody([seg('0:07','שלום')])}]);
+  const deps={fetch,apiKey:'k',shouldStop:()=>stopped,
+    sleep:async(ms)=>{slept+=ms;stopped=true;}};   // человек нажал «Остановить» посреди ожидания
+  await assert.rejects(Y.transcribe(deps,`https://youtu.be/${ID}`,null,{verifyTiming:false}),e=>e.code==='TASK_CANCELLED');
+  assert.equal(fetch.calls.length,2,'no further paid call may start after a stop');
+});
+
+test('a run with no stop signal is unaffected',async()=>{
+  const fetch=fakeFetch([{status:200,body:countBody},{status:503,body:{}},{status:200,body:asrBody([seg('0:07','שלום')])}]);
+  const out=await Y.transcribe({fetch,apiKey:'k',sleep:async()=>{},shouldStop:()=>false},`https://youtu.be/${ID}`,null,{verifyTiming:false});
+  assert.equal(out.segments.length,1);
+});

@@ -15,7 +15,18 @@
   const TEXT_STAGES=['imported','translating','saved','ready'];
   // Куда попадает каждая фаза журнала на шкале этапов.
   const PHASE_AT={imported:0,transcribing:0,transcribed:1,translating:1,table_ready:2,saving:2,saved:3,binding:3,bound:4,exporting:4,ready:4};
-  function stageModel(job){
+  // Время каждого этапа берётся из журнала задачи: он переживает перезагрузку и возобновление,
+  // поэтому итог показывает, сколько ЭТАП реально занял, а не сколько открыт диалог.
+  function stageElapsedSec(job,key,now){
+    const rec=job&&job.stage_times&&job.stage_times[key];
+    // Числовая проверка, а не истинность: startedAt=0 — законная метка, и на falsy-проверке
+    // часы этапа молча исчезали.
+    if(!rec||!Number.isFinite(Number(rec.startedAt)))return null;
+    const end=rec.endedAt||now||Date.now();
+    return Math.max(0,Math.round((end-rec.startedAt)/1000));
+  }
+  function stageModel(job,opts){
+    const now=(opts&&opts.now)||Date.now();
     const stages=(job&&job.input&&job.input.youtube_source)?LINK_STAGES:TEXT_STAGES;
     const at=PHASE_AT[job&&job.phase];
     const reached=Number.isInteger(at)?at:0;
@@ -26,6 +37,8 @@
       label:t('stage'+key.charAt(0).toUpperCase()+key.slice(1)),
       mark:mark(i),
       markLabel:t('mark'+mark(i).charAt(0).toUpperCase()+mark(i).slice(1)),
+      elapsedSec:stageElapsedSec(job,key,now),
+      elapsedText:stageElapsedSec(job,key,now)==null?null:clockShort(stageElapsedSec(job,key,now)),
     }));
     function mark(i){return finished?'done':i<reached?'done':i===reached?(stalled?'stalled':'current'):'pending';}
   }
@@ -41,8 +54,10 @@
     if(phase==='transcribing'&&l.asr){
       const total=Number(l.asr.total)||1,index=(Number(l.asr.index)||0)+1;
       const elapsed=clockShort(l.asr.elapsedSec);
-      // Номер окна — это НЕ доля выполненного: внутри окна прогресса нам никто не сообщает.
-      return {percent:null,text:total>1?fill(t('detailWindow'),{i:index,n:total,time:elapsed}):fill(t('detailElapsed'),{time:elapsed})};
+      // Внутри окна долей нам никто не сообщает, но ЗАКОНЧЕННЫЕ окна — настоящий знаменатель.
+      // У единственного окна шкалы нет, и рисовать её было бы выдумкой.
+      const percent=total>1?Math.round((Number(l.asr.index)||0)*100/total):null;
+      return {percent,text:total>1?fill(t('detailWindow'),{i:index,n:total,time:elapsed}):fill(t('detailElapsed'),{time:elapsed})};
     }
     if(phase==='translating'&&l.table){
       const ready=Number(l.table.readyRows)||0,total=Number(l.table.totalRows)||0;
@@ -55,10 +70,10 @@
     }
     // Пока провайдер не прислал ни одного сигнала, единственная честная динамика — время работы.
     if(job&&job.state==='running'&&l.elapsedSec!=null){
-      // Оценка времени — обещание. Когда прогон его перерос, экран обязан сказать это сам,
-      // а не молчать, подтверждая нарушенное обещание.
+      // Оценка времени — обещание. Когда прогон его перерос, экран обязан сказать это сам. Пока
+      // прогон укладывается — молчим: голое время уже показано часами самого этапа.
       const slow=l.expectedSec&&l.elapsedSec>Number(l.expectedSec);
-      return {percent:null,text:fill(t(slow?'detailSlow':'detailElapsed'),{time:clockShort(l.elapsedSec)})};
+      return slow?{percent:null,text:fill(t('detailSlow'),{time:clockShort(l.elapsedSec)})}:{percent:null,text:''};
     }
     return {percent:null,text:''};
   }
@@ -135,6 +150,8 @@
       steps.replaceChildren();
       for(const stage of stageModel(current)){
         const li=element('li',stage.label);li.dataset.mark=stage.mark;
+        // Часы этапа стоят рядом с самим этапом: и пока он идёт, и когда закончился.
+        if(stage.elapsedText){const clk=element('span',stage.elapsedText);clk.className='lmt-stage-clock';li.append(clk);}
         const word=element('span',stage.markLabel);word.className='lmt-mark-word';li.append(word);
         li.setAttribute('aria-current',stage.mark==='current'?'step':'false');
         steps.append(li);

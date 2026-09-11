@@ -36,3 +36,7 @@
 .lmt-notes{margin-top:18px;padding-top:14px;border-top:1px solid var(--theme-border-medium,#cbd5e1)}
 .lmt-notes p{margin:6px 0;color:var(--theme-text-secondary,#64748b);font-size:13px;line-height:1.5}
 .study-source-dialog p[role="status"]{margin:14px 0 2px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+/* Часы этапа: моноширинные цифры, чтобы строка не дёргалась на каждой секунде. */
+.lmt-stages li{grid-template-columns:24px minmax(0,1fr) auto auto}
+.lmt-stage-clock{justify-self:end;margin-inline-end:10px;color:var(--theme-text-secondary,#64748b);font-size:12px;font-variant-numeric:tabular-nums}
+.lmt-stages li[data-mark="current"] .lmt-stage-clock{color:var(--theme-accent,#0b7673);font-weight:600}
