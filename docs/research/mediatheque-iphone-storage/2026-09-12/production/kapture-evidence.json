@@ -1,0 +1,21 @@
+{
+  "mode": "manually recorded Kapture UI actions and read-only aggregate DB checks",
+  "runtimeVersion": "3.11.524",
+  "runtimeCommit": "962cb80046ebb7056ec2bcbbdec99e4cbc0d332d",
+  "checks": [
+    "Mediatheque module v4",
+    "Room footer 3.11.524",
+    "personal catalogue completed",
+    "Mediatheque to Room to Mediatheque completed",
+    "saved video/list presentation restored",
+    "zero console errors"
+  ],
+  "ownerReviewLog": {
+    "beforeCount": 7758,
+    "afterCount": 7758,
+    "beforeSha256": "688839bce8b13302f4f10f236de020d2d6a3ab35c7f66c969f44632af5cf76ad",
+    "afterSha256": "688839bce8b13302f4f10f236de020d2d6a3ab35c7f66c969f44632af5cf76ad",
+    "existingStudioDocument": "3.11.523; not forcibly reloaded"
+  },
+  "physicalIPhone": "OWNER_RETEST_PENDING"
+}

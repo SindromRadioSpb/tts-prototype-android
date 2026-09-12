@@ -2,8 +2,8 @@
   "mode": "manual summary of read-only SSH inventory; no cleanup performed",
   "runtimeCommit": "962cb80046ebb7056ec2bcbbdec99e4cbc0d332d",
   "targetVersion": "3.11.524",
-  "servedVersion": "3.11.523",
-  "status": "DEPLOYMENT_BLOCKED_DISK_FULL",
+  "servedVersion": "3.11.524",
+  "status": "PRODUCTION_VERIFIED",
   "rootFilesystem": {
     "size": "38G",
     "used": "37G",
@@ -21,13 +21,34 @@
     "activeVolumes": 3
   },
   "proposedAction": "docker builder prune --all --force",
-  "approval": "PENDING",
-  "unchanged": [
-    "images",
-    "containers",
+  "approval": "APPROVED_BY_OWNER",
+  "recordedDate": "2026-09-12",
+  "cleanup": {
+    "command": "docker builder prune --all --force",
+    "reportedReclaimed": "7.868GB",
+    "rootAvailableAfter": "4.7G",
+    "rootUsedAfter": "87%",
+    "removed": "unused build cache only"
+  },
+  "deployment": {
+    "previous": "x3866y3ut53ge3opx8jz0z05",
+    "previousOutcome": "stale after disk full; cancelled using Coolify check:deployment-queue after exact single-job inventory",
+    "retry": "p9r0qdqc1qyxfxcjtv7c15xy",
+    "commit": "962cb80046ebb7056ec2bcbbdec99e4cbc0d332d",
+    "method": "Coolify queue_application_deployment",
+    "status": "finished",
+    "startedAt": "2026-09-12 09:45:03 UTC",
+    "finishedAt": "2026-09-12 09:46:38 UTC"
+  },
+  "preserved": [
+    "application images",
+    "application containers until normal rolling deployment",
     "volumes",
     "databases",
     "user data"
   ],
-  "recordedDate": "2026-09-12"
+  "rootFilesystemAfterDeployment": {
+    "available": "4.2G",
+    "usedPercent": "89%"
+  }
 }

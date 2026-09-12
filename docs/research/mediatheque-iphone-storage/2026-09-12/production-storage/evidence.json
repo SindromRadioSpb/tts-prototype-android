@@ -1,0 +1,19 @@
+{
+  "base": "https://linguistpro.kolosei.com",
+  "mode": "real OPFS contention, disposable Chromium profile; not physical iPhone",
+  "checks": [
+    "locked original store never appears as an empty personal library",
+    "Retry reconnects to the original OPFS library after its lock is released",
+    "sticky storage identity is preserved",
+    "original material and nonempty review log remain byte-equivalent",
+    "separate IndexedDB library remains byte-equivalent and can still be opened",
+    "Room and Mediatheque release their connection before cross-navigation",
+    "personal library remains available after Room roundtrip",
+    "real transient OPFS lock heals automatically without a Retry click",
+    "storage tests perform no remote publication or provider writes"
+  ],
+  "remoteWrites": [],
+  "version": "3.11.524",
+  "blockedText": "Не удалось подключиться к исходному хранилищу личной библиотеки. Закройте другие вкладки LinguistPro и нажмите «Повторить». Данные не переносились и не удалялись.\nПовторить",
+  "status": "PASS"
+}

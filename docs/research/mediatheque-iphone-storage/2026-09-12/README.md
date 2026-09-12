@@ -1,6 +1,6 @@
 # Медиатека: проверка исправления хранилища
 
-Дата: 2026-09-12. Исходный runtime: `0321d092`, 3.11.523. Целевой runtime: 3.11.524, commit `962cb80046ebb7056ec2bcbbdec99e4cbc0d332d` (main). Пока обслуживается 3.11.523: выкладка остановлена заполненным production-диском, запрошено отдельное согласие на очистку только неиспользуемого Docker build cache. См. `deployment-inventory.json`.
+Дата: 2026-09-12. Исходный runtime: `0321d092`, 3.11.523. Опубликован runtime 3.11.524, commit `962cb80046ebb7056ec2bcbbdec99e4cbc0d332d` (main и работающий production-контейнер). Статус: PRODUCTION VERIFIED. После разрешённой владельцем очистки только unused Docker build cache и штатного перезапуска зависшей сборки Coolify завершил deployment `p9r0qdqc1qyxfxcjtv7c15xy` в 09:46:38 UTC. После выкладки свободно 4,2 ГБ (89% занято). См. `deployment-inventory.json`.
 Это вручную поддерживаемый отчёт. Редактировать README и `docs/planning/ROOM_MEDIATHEQUE_IPHONE_STORAGE_FIX_2026_09_12.md`; JSON/PNG генерируются скриптами. `.tmp/` содержит временные логи и изолированные серверные БД. Личные материалы владельца не включаются.
 
 ## Команды
@@ -16,4 +16,11 @@
 Исходный физический iPhone-баг подтверждён владельцем. После исправления физическая приёмка ожидает повторного открытия на том же устройстве. Контролируемое воспроизведение не устанавливает конкретную низкоуровневую ошибку того iPhone.
 Ни очищение браузерных данных, ни смена VFS preference, ни перенос пользовательской библиотеки для восстановления не требуются и владельцу не предлагались. Изменение preference используется только внутри явно одноразового тестового профиля для проверки двух разных хранилищ.
 
-Для того же storage-сценария на production-файлах: установить `$env:MEDIATHEQUE_STORAGE_BASE="https://linguistpro.kolosei.com"` и `$env:MEDIATHEQUE_EVIDENCE_DIR="docs/research/mediatheque-iphone-storage/2026-09-12/production-storage"`, затем `node scripts/premium/mediatheque-storage-smoke.cjs`. Этот режим не запускает сервер и использует только одноразовый browser-профиль. До успешной выкладки не считается production-приёмкой.
+Для того же storage-сценария на production-файлах: установить `$env:MEDIATHEQUE_STORAGE_BASE="https://linguistpro.kolosei.com"` и `$env:MEDIATHEQUE_EVIDENCE_DIR="docs/research/mediatheque-iphone-storage/2026-09-12/production-storage"`, затем `node scripts/premium/mediatheque-storage-smoke.cjs`. Этот режим не запускает сервер и использует только одноразовый browser-профиль. После завершения выкладки выполнен: 9/9 PASS, включая реальную конкуренцию за OPFS, Retry, автоматическое восстановление, оба разных хранилища и неизменность непустого review_log. Ноль remote publication/provider writes.
+
+## Production-результат
+
+- Общий live smoke: 41/41 PASS, 211 публичных материалов, worker/VFS/UI/locale integrity, три завершённые перезагрузки, RU/EN/HE 380px, actual public reader/back и disposable local video reader/back; ноль page errors. Первая ранняя проба поймала смесь old/new файлов при rolling deployment и не была принята; после завершения deployment полный проход успешен.
+- Kapture: UI module v4, Room 3.11.524, личный каталог и переход Медиатека → Room → Медиатека; восстановились сохранённые условия видео/список. Консоль без ошибок. Профиль владельца не использовался для искусственного повреждения или тестовых записей.
+- Read-only owner review_log до/после: 7758 записей, одинаковый SHA-256 `688839bce8b13302f4f10f236de020d2d6a3ab35c7f66c969f44632af5cf76ad`. Исходная рабочая вкладка Studio оставалась на своём уже открытом документе 3.11.523; её принудительно не перезагружали. Свежие production-профили отдельно проверили worker 3.11.524.
+- Физический повтор на iPhone после исправления остаётся OWNER RETEST PENDING.
