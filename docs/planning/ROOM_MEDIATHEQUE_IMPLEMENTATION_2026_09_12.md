@@ -1,6 +1,6 @@
 # Медиатека — реализация выбранного гибрида
 
-Дата: 2026-09-12. Статус: LOCAL PASS; production deployment and live Kapture acceptance in progress. Пользователь утвердил гибрид и поручил начать реализацию, включая редакторскую витрину, гибкий каталог и конструктор представлений.
+Дата: 2026-09-12. Статус: PRODUCTION VERIFIED, версия 3.11.522, runtime commit `0319f4215f70e6d117a73f475c2642b7ccf505a5`. Пользователь утвердил гибрид и поручил начать реализацию, включая редакторскую витрину, гибкий каталог и конструктор представлений.
 Исходный commit: a58dbcfbf49ec062f04159dbfdaa583eccab87d4. Изолированный checkout: `E:/projects/tts-room-mediatheque`, ветка `feat/room-mediatheque-2026-09-12`.
 Этот файл — вручную поддерживаемый план и журнал проверок; исходная концепция: `ROOM_MEDIA_LIBRARY_OPTIONS_2026_09_12.md`. Команды воспроизведения проверок будут записаны ниже. Runtime и owner-device evidence разделяются.
 
@@ -53,3 +53,12 @@ R3/R12: единые ссылки, CAS, очередь публикации. R4/
 Live navigation exposed a Room-only back button after a Mediatheque drill-down. Material links now carry an allowlisted same-origin return URL. The reader flushes the existing progress writer and tears down playback before returning to the precise space/search/filter/view/page. Pagination itself now survives reload. No arbitrary return host or path is accepted.
 
 Verification: 73 relevant domain/release checks, API smoke and complete isolated browser scenario PASS, including a new actual reader-back assertion for exact personal search/list context and a second-page reload assertion.
+
+## Итоговая проверка production
+
+- `node scripts/premium/mediatheque-live-smoke.cjs`: PASS, 32 проверки. Подтверждены версия 3.11.522, восемь served integrity hashes, 211 публичных материалов, три завершённые перезагрузки, RU/EN/HE на 380px, desktop и тёмная тема, настоящий публичный читатель и возврат с сохранением поиска. Изолированный локальный видеообразец в production-браузере проверяет iframe и возврат в личный список. Ноль page errors и запросов к provider/publication writers.
+- Kapture MCP отдельно проверил настоящий личный видеоматериал владельца, запуск и остановку YouTube, точный возврат в личный каталог со списком, фильтром видео и сортировкой. В версии 3.11.522 ошибок консоли в проверенном сценарии нет.
+- Временные личные категории и публичный черновик отменены. Production-публикация тестового оформления не выполнялась: подтверждение было отменено; полный commit публикации проверен на изолированном localhost.
+- После завершения Kapture-сценария read-only проверка исходного профиля: версия 3.11.522, `review_log` 7758 записей; SHA-256 сериализованного `SELECT * FROM review_log ORDER BY id` до и после совпадает: `688839bce8b13302f4f10f236de020d2d6a3ab35c7f66c969f44632af5cf76ad`. Исходные материалы сохранены; существующий reader штатно сохраняет прогресс открытия.
+- Полный npm test (1563 PASS) выполнен для исходной реализации; после двух узких исправлений выполнены 73 релевантные проверки, API smoke и полный локальный браузерный сценарий. Это не утверждение о повторном полном npm test после 3.11.522.
+- Отчёты и публичные/синтетические снимки: `docs/research/room-mediatheque/2026-09-12/`. Физический iPhone и VoiceOver не проверены. Личная структура хранится в текущем браузере с явным экспортом/восстановлением; межустройственная синхронизация и поиск внутри расшифровок остаются вне этого этапа.
