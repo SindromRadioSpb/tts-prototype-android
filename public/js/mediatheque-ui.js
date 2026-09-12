@@ -266,9 +266,9 @@ function sectionHead(title, section, filters = {}) {
 function collectionHtml(c, index) {
   const items = c.items.map(k => state.prepared.byKey.get(k)).filter(Boolean), available = items.filter(i => i.available);
   const summary = C.durationSummary(items), resume = available.filter(i=>i.progressKnown && i.progress === 'in_progress').sort((a,b)=>(Date.parse(b.openedAt)||0)-(Date.parse(a.openedAt)||0))[0];
-  const parts = available.slice(0, 3); while (parts.length < 3) parts.push({ kind: 'text', title: c.title, durationSeconds: null });
+  const parts = available.slice(0, 3);
   return `<article class="ml-collection" ${organizeMode() ? `draggable="true" data-drag-type="collection" data-drag-id="${esc(c.id)}"` : ''}>
-    <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ collection: c.id }) }))}"><div class="ml-collection-art">${parts.map(i => cover(i, false)).join('')}</div>
+    <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ collection: c.id }) }))}"><div class="ml-collection-art" data-parts="${parts.length}">${parts.length ? parts.map(i => cover(i, false)).join('') : '<span class="ml-collection-empty" aria-hidden="true">▤</span>'}</div>
     <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: c.items.length }))}${summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
     ${c.description ? `<p dir="auto">${esc(c.description)}</p>` : ''}
     ${resume ? `<div class="ml-collection-resume"><a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}</a><span dir="auto">${esc(resume.title)}</span></div>` : ''}

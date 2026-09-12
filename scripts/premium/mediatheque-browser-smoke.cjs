@@ -203,6 +203,25 @@ async function management(browser) {
  check('management preserves exact texts sentences and nonempty review log',await contents()===before);
  await context.close();
 }
+async function collectionPresentation(browser) {
+ const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),page=await context.newPage();
+ page.on('pageerror',e=>evidence.errors.push(e.message));await page.goto(BASE+'/mediatheque.html?space=personal&section=collections');await ready(page);
+ await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520'),C=window.MediathequeCore;let d=C.empty();
+  for(let n=0;n<3;n++){await db.createText({id:'cover-'+n,text_key:'cover-'+n,title:'Материал '+(n+1)});}
+  for(let count=0;count<=3;count++){d=C.command(d,{type:'collection.create',id:'cover-list-'+count,title:'Подборка '+count});if(count)d=C.command(d,{type:'items.add',target:'collection',id:'cover-list-'+count,references:Array.from({length:count},(_,n)=>({kind:'personal',textKey:'cover-'+n}))});}
+  await db.saveMediathequeStructure(d,0);
+ });await page.reload();await ready(page);
+ for(let count=0;count<=3;count++){
+  const card=page.locator('.ml-collection').nth(count),art=card.locator('.ml-collection-art');
+  check('collection with '+count+' materials has only real cover parts',await art.locator('.ml-cover').count()===count);
+  check('collection '+count+' title is not repeated in artwork',!(await art.innerText()).includes('Подборка'));
+ }
+ await shot(page,'collections-real-covers-desktop');
+ for(const lang of ['ru','en','he']){await page.setViewportSize({width:380,height:844});await page.evaluate(l=>window.appSetLocale(l),lang);await shot(page,'collections-real-covers-380-'+lang);
+  check(lang+' uses one topic vocabulary throughout media library',await page.evaluate(()=>!/(категор|categor|קטגור)/i.test(JSON.stringify(window.I18N_LOCALES[window.appGetLocale()].mediatheque).replace(/"[^"\n]+":/g,''))));
+ }
+ await context.close();
+}
 async function main(){
  const server=spawn(process.execPath,['server.js'],{cwd:ROOT,windowsHide:true,env:{...process.env,PORT:String(PORT),BIND_HOST:'127.0.0.1',DATA_DIR:TEMP,DB_PATH:path.join(TEMP,'app.db'),AUTH_BOOTSTRAP_SECRET:SECRET},stdio:['ignore','pipe','pipe']});
  let log='';server.stdout.on('data',b=>log+=b);server.stderr.on('data',b=>log+=b);
@@ -210,7 +229,7 @@ async function main(){
  try{for(let n=0;n<150;n++){if(server.exitCode!==null)throw Error('server exited '+server.exitCode);try{const r=await fetch(BASE+'/api/client-config');if(r.ok)break;}catch{}await delay(200);}
  browser=await chromium.launch();const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),guestContext=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
  for(const c of [context,guestContext]){await c.addInitScript(()=>{try { localStorage.setItem('localMode','1');localStorage.setItem('onboardingSeen_v1','1'); } catch (_) {}});c.on('page',p=>p.on('pageerror',e=>evidence.errors.push(e.message)));}
- page=await context.newPage();const guest=await guestContext.newPage();await management(browser);await personal(page);await stageTwo(page);await editorial(page,guest);await offline(browser);await scaleBrowser(browser);check('zero browser page errors',evidence.errors.length===0);evidence.status='PASS';
+ page=await context.newPage();const guest=await guestContext.newPage();await collectionPresentation(browser);await management(browser);await personal(page);await stageTwo(page);await editorial(page,guest);await offline(browser);await scaleBrowser(browser);check('zero browser page errors',evidence.errors.length===0);evidence.status='PASS';
  }catch(e){evidence.status='FAIL';evidence.failure=e.stack;if(page)await page.screenshot({path:path.join(OUT,'failure.png')}).catch(()=>{});throw e;}
  finally{fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2));if(browser)await browser.close();server.kill();fs.writeFileSync(path.join(TEMP,'server.log'),log);}
 }

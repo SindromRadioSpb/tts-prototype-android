@@ -3,7 +3,7 @@
 // Read-only production HTTP + disposable browser storage. Never calls a publication writer.
 const {chromium}=require('playwright'),{execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.525';
+const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.526';
 const OUT=process.env.MEDIATHEQUE_EVIDENCE_DIR || path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/production');
 const evidence={base:BASE,expectedVersion:VERSION,commit:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),mode:'production reads; fresh isolated Chromium profile; no owner data',checks:[],errors:[],providerRequests:[]};
 fs.mkdirSync(OUT,{recursive:true});
@@ -51,6 +51,9 @@ try{
  check('served add-video flow creates category with parent and membership',(await stored()).categories.some(c=>c.title==='QA Свидетельства'&&c.parentId&&c.items.length===1));
  await page.locator('[data-action=add-item]').click();await page.locator('[name=newTitle]').fill('QA Подборка');await submit();await page.locator('[data-action=section][data-section=collections]').click();await page.locator('[data-action=edit-collection]').click();await page.locator('[name=title]').fill('QA Подборка изменена');await submit();await page.reload();await ready(page);
  check('served collection edit persists without organize mode',(await stored()).collections[0].title==='QA Подборка изменена');
+ check('served one-material collection has one real cover and no repeated collection title',await page.locator('.ml-collection-art .ml-cover').count()===1&&!(await page.locator('.ml-collection-art').innerText()).includes('QA Подборка'));
+ for(const lang of ['ru','en','he']){await page.evaluate(l=>window.appSetLocale(l),lang);check(lang+' served media library uses only topic terminology',await page.evaluate(()=>!/(категор|categor|קטגור)/i.test(JSON.stringify(window.I18N_LOCALES[window.appGetLocale()].mediatheque).replace(/"[^"\n]+":/g,''))));await shot(page,'collection-cover-380-'+lang);}
+ await page.evaluate(()=>window.appSetLocale('ru'));
  await page.locator('.ml-collection a[data-nav]').first().click();await page.locator('[data-action=delete-collection]').click();await submit();check('served collection deletion clears its route and preserves material',!(await stored()).collections.length&&!new URL(page.url()).searchParams.has('collection')&&await page.locator('.ml-item').count()===1);
  await page.locator('[data-action=undo]').click();await page.waitForFunction(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.getMediathequeStructure()).structure.collections.length===1;});check('served undo restores collection membership',(await stored()).collections[0].items.length===1);
  check('served management leaves texts sentences and reviews byte-for-byte equivalent',await content()===beforeManagement);
