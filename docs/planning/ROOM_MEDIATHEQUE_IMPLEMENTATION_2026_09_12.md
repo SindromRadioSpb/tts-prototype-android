@@ -47,3 +47,9 @@ R3/R12: единые ссылки, CAS, очередь публикации. R4/
 - Live finding: known YouTube videos without stored channel author showed “source unspecified”. Projection now retains caption-channel authors where present and uses factual “YouTube” platform fallback when the channel is unknown.
 - Live finding: permitted YouTube playback generated report-only CSP frame violations. The report-only policy now names only the existing YouTube API/frame/thumbnail hosts; enforced standalone-page policies remain unchanged.
 - Follow-up verification: metadata projection test, 47 relevant domain/release checks and API smoke PASS. Production re-verification follows the 3.11.521 rollout.
+
+## Return continuity follow-up 3.11.522
+
+Live navigation exposed a Room-only back button after a Mediatheque drill-down. Material links now carry an allowlisted same-origin return URL. The reader flushes the existing progress writer and tears down playback before returning to the precise space/search/filter/view/page. Pagination itself now survives reload. No arbitrary return host or path is accepted.
+
+Verification: 73 relevant domain/release checks, API smoke and complete isolated browser scenario PASS, including a new actual reader-back assertion for exact personal search/list context and a second-page reload assertion.

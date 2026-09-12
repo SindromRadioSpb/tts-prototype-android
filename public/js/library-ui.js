@@ -1767,10 +1767,21 @@ async function restoreReaderReturnContext(context) {
 function setReaderReturnRoute(route) {
   readerReturnRoute = route || null;
   const back = $('readerBack'); if (!back) return;
-  const key = readerReturnRoute === 'lesson-builder' ? 'room.lesson.backToLesson' : 'room.reader.back';
+  const key = readerReturnRoute === 'mediatheque' ? 'mediatheque.title' : readerReturnRoute === 'lesson-builder' ? 'room.lesson.backToLesson' : 'room.reader.back';
   back.setAttribute('data-i18n', key);
-  back.textContent = readerReturnRoute === 'lesson-builder'
+  back.textContent = readerReturnRoute === 'mediatheque' ? tt(key, 'Медиатека') : readerReturnRoute === 'lesson-builder'
     ? tt(key, '← К уроку') : tt(key, '← Полки');
+}
+
+function mediathequeReturnHref() {
+  const query = new URLSearchParams(location.search);
+  if (query.get('from') !== 'mediatheque') return null;
+  const fallback = '/mediatheque.html?space=' + (query.has('my_text') ? 'personal' : 'public');
+  try {
+    const raw = query.get('return_to'); if (!raw || raw.length > 12000) return fallback;
+    const url = new URL(raw, location.origin);
+    return url.origin === location.origin && url.pathname === '/mediatheque.html' ? url.pathname + url.search : fallback;
+  } catch (_) { return fallback; }
 }
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
@@ -8317,6 +8328,10 @@ async function closeReader(options) {
   if (content) content.setAttribute('aria-busy', 'true');
   setReaderReturnRoute(null);
   readerReturnContext = null;
+  if (returnRoute === 'mediatheque' && !presentationRestore && !returnHome) {
+    location.href = mediathequeReturnHref() || '/mediatheque.html';
+    return;
+  }
   if (returnRoute === 'lesson-builder') {
     if (reader) reader.hidden = true;
     if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
@@ -14326,7 +14341,7 @@ async function boot() {
       const myTextId = new URLSearchParams(location.search).get('my_text');
       if (myTextId) {
         const row = await localDb.getTextByIdLite(myTextId);
-        if (row) await openReader(row.id, row.title, { resume: true });
+        if (row) { await openReader(row.id, row.title, { resume: true }); if (mediathequeReturnHref()) setReaderReturnRoute('mediatheque'); }
         else roomToast(tt('mediatheque.missingPersonal', 'Личный материал не найден в этом браузере'));
       }
     } catch (_) { roomToast(tt('mediatheque.localFailed', 'Не удалось открыть личную библиотеку')); }
@@ -14346,6 +14361,7 @@ async function boot() {
             const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
             if (publicWork && (!qp.get('public_snapshot') || qp.get('public_snapshot') === publicWork.snapshot_sha256)) {
               await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
+              if (mediathequeReturnHref()) setReaderReturnRoute('mediatheque');
               if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
                 const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);
                 await renderReaderTaskLearningSupport(publicSlug, publicWorkId, readerOpenEpoch);

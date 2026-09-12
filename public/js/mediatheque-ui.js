@@ -47,11 +47,12 @@ function makeHref(next = {}) {
   params.set('filters', JSON.stringify(f));
   if (f.category) params.set('category', f.category); if (f.collection) params.set('collection', f.collection);
   if (next.viewId) params.set('view', next.viewId);
+  if (Number.isSafeInteger(next.page) && next.page > 1) params.set('page', next.page);
   return '/mediatheque.html?' + params.toString();
 }
 function persist() {
   try { localStorage.setItem('mediatheque.presentation.' + state.space, JSON.stringify({ filters: state.filters, section: state.section, viewId: state.viewId })); } catch (_) {}
-  history.replaceState(null, '', makeHref({ viewId: state.viewId }));
+  history.replaceState(null, '', makeHref({ viewId: state.viewId, page: state.page }));
 }
 function restorePresentation(space, useUrl = false) {
   state.space = space; state.filters = C.filters(); state.section = 'home'; state.viewId = ''; state.page = 1; state.selected.clear();
@@ -65,6 +66,7 @@ function restorePresentation(space, useUrl = false) {
     if (p.has('section')) {
       try { state.filters = C.filters(p.has('filters') ? JSON.parse(p.get('filters')) : {}); } catch (_) { state.filters = C.filters(); }
       state.filters.category = p.get('category') || state.filters.category; state.filters.collection = p.get('collection') || state.filters.collection; state.viewId = p.get('view') || '';
+      const page = Number(p.get('page')); if (Number.isSafeInteger(page) && page > 0 && page <= 100000) state.page = page;
     }
   }
 }
@@ -159,10 +161,11 @@ function duration(value) {
 }
 function materialHref(item) {
   if (!item.available) return '';
-  if (item.localId) return '/library.html?my_text=' + encodeURIComponent(item.localId) + '&from=mediatheque';
+  const back = '&from=mediatheque&return_to=' + encodeURIComponent(makeHref({ viewId: state.viewId, page: state.page }));
+  if (item.localId) return '/library.html?my_text=' + encodeURIComponent(item.localId) + back;
   const r = item.ref;
   return '/library.html?public_corpus=' + encodeURIComponent(r.slug) + '&public_work=' + encodeURIComponent(r.workId)
-    + '&public_snapshot=' + r.snapshotHash + '&from=mediatheque';
+    + '&public_snapshot=' + r.snapshotHash + back;
 }
 function cover(item, time = true) {
   const symbol = item.kind === 'video' ? '▷' : item.kind === 'audio' ? '♫' : 'א';
@@ -540,7 +543,7 @@ async function onAction(action, node) {
   if (action === 'reset-filters') return navigate('catalog', C.filters({ layout: state.filters.layout }));
   if (action === 'clear-filter') { const f = node.dataset.field; state.filters[f] = C.filters()[f]; state.page = 1; persist(); render(); return; }
   if (action === 'clear-selection') { state.selected.clear(); render(); return; }
-  if (action === 'previous-page' || action === 'next-page') { state.page += action === 'next-page' ? 1 : -1; render(); $('ml-content').scrollIntoView({ block:'start' }); return; }
+  if (action === 'previous-page' || action === 'next-page') { state.page += action === 'next-page' ? 1 : -1; persist(); render(); $('ml-content').scrollIntoView({ block:'start' }); return; }
   if (action === 'retry') return loadAll();
   if (action === 'add-item') return addToCollection(node.dataset.key);
   if (action === 'use-view') { const v = structure().views.find(v => v.id === id); if (v) return navigate('catalog', v.filters, { viewId:id }); return; }

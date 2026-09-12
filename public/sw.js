@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.521";
+const CACHE_VERSION = "v3.11.522";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=1",
-  "/js/mediatheque-ui.js?v=1",
+  "/js/mediatheque-ui.js?v=2",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -110,7 +110,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=520",
+  "/js/library-ui.js?v=522",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",

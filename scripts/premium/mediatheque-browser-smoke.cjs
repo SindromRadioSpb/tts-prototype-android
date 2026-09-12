@@ -34,7 +34,7 @@ async function personal(page){
   return db.dbQuery('SELECT * FROM review_log ORDER BY id',[]);
  });
  await page.reload();await ready(page);check('45 materials render in bounded 36-card page',await page.locator('.ml-item').count()===36);
- await act(page,'next-page');check('second page contains remaining nine materials',await page.locator('.ml-item').count()===9);
+ await act(page,'next-page');check('second page contains remaining nine materials',await page.locator('.ml-item').count()===9);await page.reload();await ready(page);check('pagination survives reload',await page.locator('.ml-item').count()===9);
  await act(page,'organize');
  for(const title of ['Наука','История']){await act(page,'new-category');await page.locator('[name=title]').fill(title);await submit(page);}
  let s=await structure(page);const science=s.structure.categories[0].id,history=s.structure.categories[1].id;
@@ -61,8 +61,9 @@ async function personal(page){
  for(const locale of ['ru','en','he']){await page.setViewportSize({width:380,height:844});await page.evaluate(l=>window.appSetLocale(l),locale);await shot(page,'catalog-380-'+locale);}
  await page.evaluate(()=>window.appSetLocale('ru'));await page.setViewportSize({width:1280,height:900});
  await page.locator('#ml-search').fill('космос');await page.waitForFunction(()=>document.querySelectorAll('.ml-item').length===1);
- await page.locator('.ml-item .ml-open').click();await page.locator('#roomReader').waitFor({timeout:60000});await page.waitForFunction(()=>document.querySelector('#roomReader')?.innerText.includes('שלום'),null,{timeout:60000});check('material opens original Hebrew rows in Room reader',true);
+ await page.locator('[data-action=layout][data-layout=list]').click();await page.locator('.ml-item .ml-open').click();await page.locator('#roomReader').waitFor({timeout:60000});await page.waitForFunction(()=>document.querySelector('#roomReader')?.innerText.includes('שלום'),null,{timeout:60000});check('material opens original Hebrew rows in Room reader',true);
  const after=await page.evaluate(()=>window.__localDB.dbQuery('SELECT * FROM review_log ORDER BY id',[]));check('organization and reader navigation preserve review_log exactly',JSON.stringify(before)===JSON.stringify(after));
+ await page.locator('#readerBack').click();await ready(page);check('reader returns to exact personal search and list view',await page.locator('#ml-search').inputValue()==='космос'&&await page.locator('.ml-materials[data-layout=list]').count()===1&&await page.locator('.ml-item').count()===1);
  await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);check('original 45 materials remain after all organizational edits',await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.dbQuery("SELECT COUNT(*) n FROM texts WHERE id LIKE 'ml-fixture-%'",[]))[0].n===45;}));
 }
 async function editorial(page,guest){

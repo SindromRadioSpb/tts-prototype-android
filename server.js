@@ -1093,7 +1093,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 const SHELL_INTEGRITY_PATHS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=1",
-  "/js/mediatheque-ui.js?v=1",
+  "/js/mediatheque-ui.js?v=2",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -1137,7 +1137,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-portable-learning-package.js?v=498",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=520",
+  "/js/library-ui.js?v=522",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
