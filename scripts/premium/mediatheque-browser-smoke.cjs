@@ -120,6 +120,8 @@ async function editorial(page,guest){
  const noCsrf=await post(page,'/api/publication/mediatheque/draft',{}, {'X-LP-CSRF':'bad'});check('editorial writes reject incorrect CSRF',noCsrf.status===403);
  const guestWrite=await post(guest,'/api/publication/mediatheque/draft',{});check('anonymous editor writes rejected',guestWrite.status===401);
  await guest.locator('[data-action=section][data-section=catalog]').click();await act(guest,'add-item');await guest.locator('[name=newTitle]').fill('Моя публичная подборка');await submit(guest);
+ await act(guest,'add-item');await guest.locator('[name=newType]').selectOption('category');await guest.locator('[name=newTitle]').fill('Личная тема публичного видео');await submit(guest);
+ check('public video can create a private category without editorial writes',(await structure(guest)).structure.categories[0].items.length===1);
  await guest.locator('[data-action=space][data-space=personal]').click();await guest.locator('[data-action=section][data-section=collections]').click();check('public reference saved in visitor personal collection',await guest.locator('.ml-collection').count()===1);
  const saved=await structure(guest);check('saving public reference does not clone material content',await guest.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.dbQuery('SELECT COUNT(*) n FROM texts',[]))[0].n===0;}));
  const withdrawal=await post(page,`/api/publication/corpora/${corpusId}:withdraw`,{reason:'SYNTHETIC_TEST_WITHDRAWAL'});assert.ok(withdrawal.ok,JSON.stringify(withdrawal));
@@ -154,6 +156,53 @@ async function scaleBrowser(browser) {
  check('large library title search returns actual result within 1500 ms',searchMs<1500&&(await page.locator('.ml-item h3').innerText()).includes('04999'));
  evidence.scale={materials:5000,loadMs,searchMs,sourceCount:250};await context.close();
 }
+async function management(browser) {
+ const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),page=await context.newPage();
+ page.on('pageerror',e=>evidence.errors.push(e.message));
+ await page.goto(BASE+'/mediatheque.html?space=personal&section=topics');await ready(page);
+ await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');
+  await db.createText({id:'management-video',text_key:'management-video',title:'Видео для проверки управления',source_meta_json:JSON.stringify({source:{audio:{video:{videoId:'iG9CE55wbtY'},durationSec:480}}})});
+  await db.addSentence('management-video',{id:'management-row',order_index:0,he_plain:'שלום',ru:'Привет'});
+  await db.dbRun("INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,channel,latency_ms,meta_json) VALUES('management-review','lemma:proof','review',datetime('now'),3,'fixture','lab',123,'{}')",[]);
+ });
+ const contents=()=>page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return JSON.stringify(await Promise.all(['texts','sentences','review_log'].map(table=>db.dbQuery('SELECT * FROM '+table+' ORDER BY id',[]))));});
+ const before=await contents();await page.reload();await ready(page);
+ await act(page,'new-category');await page.locator('[name=title]').fill('7.10 Чёрная Суббота');await submit(page);
+ const root=(await structure(page)).structure.categories[0].id;
+ await page.reload();await ready(page);
+ check('empty personal topic visible after creation and reload without organize mode',await page.locator('.ml-tree-line').innerText().then(x=>x.includes('7.10 Чёрная Суббота')&&x.includes('0')));
+ check('topic edit and delete directly available',await page.locator('[data-action=edit-category]').count()===1&&await page.locator('[data-action=delete-category]').count()===1);
+ await act(page,'edit-category');await page.locator('[name=title]').fill('7.10 — История');await page.locator('[name=description]').fill('Материалы и свидетельства');await submit(page);
+ check('direct topic editing retains identity',(await structure(page)).structure.categories[0].id===root);
+ await shot(page,'management-topics-desktop');
+ for(const locale of ['ru','en','he']) {await page.setViewportSize({width:380,height:844});await page.evaluate(l=>window.appSetLocale(l),locale);await shot(page,'management-topics-380-'+locale);}
+ await page.evaluate(()=>window.appSetLocale('ru'));
+ await page.locator('[data-action=section][data-section=catalog]').click();await act(page,'add-item');
+ await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-form-error:not([hidden])').waitFor();
+ check('empty destination reports actionable validation',await page.locator('#ml-form-error').innerText().then(x=>x.includes('Выберите')));
+ await page.locator('[name=newType]').selectOption('category');await page.locator('[name=newTitle]').fill('Свидетельства');await page.locator('[name=newParentId]').selectOption(root);
+ await shot(page,'management-new-category-380');await submit(page);
+ let s=(await structure(page)).structure,child=s.categories.find(c=>c.title==='Свидетельства');
+ check('add video creates nested category and assigns reference atomically',child.parentId===root&&child.items.length===1);
+ await act(page,'add-item');await page.locator('[name=target]').selectOption('category:'+child.id);await submit(page);
+ check('adding existing member does not duplicate reference',(await structure(page)).structure.categories.find(c=>c.id===child.id).items.length===1);
+ await act(page,'add-item');await page.locator('[name=newTitle]').fill('7.10 Чёрная Суббота');await submit(page);
+ await page.locator('[data-action=section][data-section=collections]').click();await act(page,'edit-collection');await page.locator('[name=title]').fill('7.10 — Подборка');await page.locator('[name=description]').fill('Сохранённые свидетельства');await submit(page);
+ await page.reload();await ready(page);check('collection editing persists without organize mode',(await structure(page)).structure.collections[0].title==='7.10 — Подборка');
+ await shot(page,'management-collections-380');
+ await page.locator('.ml-collection a[data-nav]').first().click();await act(page,'delete-collection');await act(page,'cancel-dialog');
+ check('cancel collection deletion preserves collection',(await structure(page)).structure.collections.length===1);
+ await act(page,'delete-collection');await submit(page);
+ check('deleting open collection clears removed route and retains video',!new URL(page.url()).searchParams.has('collection')&&await page.locator('.ml-item').count()===1);
+ await act(page,'undo');check('undo directly restores collection and membership',(await structure(page)).structure.collections[0].items.length===1);
+ await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog&category='+encodeURIComponent(child.id));await ready(page);await act(page,'delete-category');await submit(page);
+ check('deleting open category clears removed route',!new URL(page.url()).searchParams.has('category')&&await page.locator('.ml-item').count()===1);
+ await act(page,'undo');check('undo restores nested category',(await structure(page)).structure.categories.some(c=>c.id===child.id&&c.parentId===root));
+ await page.locator('[data-action=section][data-section=topics]').click();await page.locator('[data-action=delete-category][data-id="'+root+'"]').click();await submit(page);
+ check('default category deletion lifts children and preserves assignments',(await structure(page)).structure.categories.some(c=>c.id===child.id&&c.parentId===null&&c.items.length===1));
+ check('management preserves exact texts sentences and nonempty review log',await contents()===before);
+ await context.close();
+}
 async function main(){
  const server=spawn(process.execPath,['server.js'],{cwd:ROOT,windowsHide:true,env:{...process.env,PORT:String(PORT),BIND_HOST:'127.0.0.1',DATA_DIR:TEMP,DB_PATH:path.join(TEMP,'app.db'),AUTH_BOOTSTRAP_SECRET:SECRET},stdio:['ignore','pipe','pipe']});
  let log='';server.stdout.on('data',b=>log+=b);server.stderr.on('data',b=>log+=b);
@@ -161,7 +210,7 @@ async function main(){
  try{for(let n=0;n<150;n++){if(server.exitCode!==null)throw Error('server exited '+server.exitCode);try{const r=await fetch(BASE+'/api/client-config');if(r.ok)break;}catch{}await delay(200);}
  browser=await chromium.launch();const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),guestContext=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
  for(const c of [context,guestContext]){await c.addInitScript(()=>{try { localStorage.setItem('localMode','1');localStorage.setItem('onboardingSeen_v1','1'); } catch (_) {}});c.on('page',p=>p.on('pageerror',e=>evidence.errors.push(e.message)));}
- page=await context.newPage();const guest=await guestContext.newPage();await personal(page);await stageTwo(page);await editorial(page,guest);await offline(browser);await scaleBrowser(browser);check('zero browser page errors',evidence.errors.length===0);evidence.status='PASS';
+ page=await context.newPage();const guest=await guestContext.newPage();await management(browser);await personal(page);await stageTwo(page);await editorial(page,guest);await offline(browser);await scaleBrowser(browser);check('zero browser page errors',evidence.errors.length===0);evidence.status='PASS';
  }catch(e){evidence.status='FAIL';evidence.failure=e.stack;if(page)await page.screenshot({path:path.join(OUT,'failure.png')}).catch(()=>{});throw e;}
  finally{fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2));if(browser)await browser.close();server.kill();fs.writeFileSync(path.join(TEMP,'server.log'),log);}
 }

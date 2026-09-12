@@ -3,7 +3,7 @@
 // Read-only production HTTP + disposable browser storage. Never calls a publication writer.
 const {chromium}=require('playwright'),{execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.524';
+const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.525';
 const OUT=process.env.MEDIATHEQUE_EVIDENCE_DIR || path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/production');
 const evidence={base:BASE,expectedVersion:VERSION,commit:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),mode:'production reads; fresh isolated Chromium profile; no owner data',checks:[],errors:[],providerRequests:[]};
 fs.mkdirSync(OUT,{recursive:true});
@@ -38,6 +38,22 @@ try{
  await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);await page.locator('#ml-search').fill('QA video');await page.waitForTimeout(350);await page.locator('[data-action=layout][data-layout=list]').click();check('known platform is shown without inventing a channel',await page.locator('.ml-item-meta').innerText()==='YouTube');
  await page.locator('.ml-item .ml-open').click();await page.locator('#roomMediaYtMount iframe').waitFor({timeout:60000});check('video identity reaches existing reader iframe',(await page.locator('#roomMediaYtMount iframe').getAttribute('src')).includes('/7qh3Q-FuwQE?'));
  await page.locator('#readerBack').click();await ready(page);check('personal reader back preserves search and list',await page.locator('#ml-search').inputValue()==='QA video'&&await page.locator('.ml-materials[data-layout=list]').count()===1);
+ const submit=async()=>{await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});};
+ const stored=()=>page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.getMediathequeStructure()).structure;});
+ const content=()=>page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return JSON.stringify(await Promise.all(['texts','sentences','review_log'].map(table=>db.dbQuery('SELECT * FROM '+table+' ORDER BY id',[]))));});
+ const beforeManagement=await content();
+ await page.locator('[data-action=section][data-section=topics]').click();await page.locator('[data-action=new-category]').click();await page.locator('[name=title]').fill('7.10 Чёрная Суббота — QA');await submit();await page.reload();await ready(page);
+ check('empty private topic visible after reload without organize mode',await page.locator('.ml-tree-line').innerText().then(s=>s.includes('7.10 Чёрная Суббота — QA')&&s.includes('0')));
+ await page.locator('[data-action=edit-category]').click();await page.locator('[name=title]').fill('7.10 — QA переименовано');await submit();
+ check('direct private topic rename persists',(await stored()).categories[0].title==='7.10 — QA переименовано');
+ await page.setViewportSize({width:380,height:844});await shot(page,'management-topics-380');
+ await page.locator('[data-action=section][data-section=catalog]').click();await page.locator('[data-action=add-item]').click();await page.locator('[name=newType]').selectOption('category');await page.locator('[name=newTitle]').fill('QA Свидетельства');await page.locator('[name=newParentId]').selectOption((await stored()).categories[0].id);await shot(page,'management-destination-380');await submit();
+ check('served add-video flow creates category with parent and membership',(await stored()).categories.some(c=>c.title==='QA Свидетельства'&&c.parentId&&c.items.length===1));
+ await page.locator('[data-action=add-item]').click();await page.locator('[name=newTitle]').fill('QA Подборка');await submit();await page.locator('[data-action=section][data-section=collections]').click();await page.locator('[data-action=edit-collection]').click();await page.locator('[name=title]').fill('QA Подборка изменена');await submit();await page.reload();await ready(page);
+ check('served collection edit persists without organize mode',(await stored()).collections[0].title==='QA Подборка изменена');
+ await page.locator('.ml-collection a[data-nav]').first().click();await page.locator('[data-action=delete-collection]').click();await submit();check('served collection deletion clears its route and preserves material',!(await stored()).collections.length&&!new URL(page.url()).searchParams.has('collection')&&await page.locator('.ml-item').count()===1);
+ await page.locator('[data-action=undo]').click();await page.waitForFunction(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.getMediathequeStructure()).structure.collections.length===1;});check('served undo restores collection membership',(await stored()).collections[0].items.length===1);
+ check('served management leaves texts sentences and reviews byte-for-byte equivalent',await content()===beforeManagement);
  check('disposable profile has no generated review events',await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.dbQuery('SELECT COUNT(*) n FROM review_log',[]))[0].n===0;}));
  check('no provider calls or production editorial writes',evidence.providerRequests.length===0);check('zero page errors',evidence.errors.length===0);evidence.status='PASS';
 }catch(e){evidence.status='FAIL';evidence.failure=e.stack;if(page)await page.screenshot({path:path.join(OUT,'failure.png')}).catch(()=>{});throw e;}

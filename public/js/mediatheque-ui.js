@@ -61,6 +61,7 @@ function errorText(error) {
   if (/CONFLICT/.test(code)) return t('conflict');
   if (/UNAVAILABLE|REFERENCE_MISSING/.test(code)) return t('referenceUnavailable');
   if (/CYCLE|DEPTH|PARENT/.test(code)) return t('invalidTree');
+  if (code === 'DESTINATION_REQUIRED') return t('destinationRequired');
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF/.test(code)) return t('signInOwner');
   return t('failed');
 }
@@ -80,6 +81,11 @@ function documentState() { return state.space === 'personal' ? state.personal : 
 function structure() { return documentState().structure; }
 function canEdit() { return !state.preview && (state.space === 'personal' ? state.localReady : state.owner && state.editing && !!state.draft); }
 function organizeMode() { return state.editing && canEdit(); }
+function structureActions(type, id) {
+  if (!canEdit()) return '';
+  return button('edit-' + type, t('edit'), `data-id="${esc(id)}"`)
+    + button('delete-' + type, t('delete'), `data-id="${esc(id)}"`, 'ml-quiet');
+}
 function makeHref(next = {}) {
   const params = new URLSearchParams();
   params.set('space', next.space || state.space); params.set('section', next.section || state.section);
@@ -266,7 +272,7 @@ function collectionHtml(c, index) {
     <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: c.items.length }))}${summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
     ${c.description ? `<p dir="auto">${esc(c.description)}</p>` : ''}
     ${resume ? `<div class="ml-collection-resume"><a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}</a><span dir="auto">${esc(resume.title)}</span></div>` : ''}
-    ${organizeMode() ? `<div class="ml-actions">${button('edit-collection', t('edit'), `data-id="${esc(c.id)}"`)}${orderButtons('collection', c.id, index > 0, index < structure().collections.length - 1)}</div>` : ''}</article>`;
+    ${canEdit() ? `<div class="ml-actions">${structureActions('collection', c.id)}${organizeMode() ? orderButtons('collection', c.id, index > 0, index < structure().collections.length - 1) : ''}</div>` : ''}</article>`;
 }
 function categoryCount(id) {
   return topicCounts.get(id) || 0;
@@ -278,7 +284,7 @@ function collectionContextHtml(collection) {
     ${resume ? `<a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}: <span dir="auto">${esc(resume.title)}</span></a>` : ''}</div>`;
 }
 function topicsOverview() {
-  const roots = structure().categories.filter(c => !c.parentId && (organizeMode() || categoryCount(c.id) > 0));
+  const roots = structure().categories.filter(c => !c.parentId && (state.space === 'personal' || organizeMode() || categoryCount(c.id) > 0));
   return `<div class="ml-topics-grid">${roots.map(c => `<a class="ml-topic-link" data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}"><span dir="auto">${esc(c.title)}</span><small>${categoryCount(c.id)}</small></a>`).join('')}</div>`;
 }
 function homeHtml() {
@@ -393,7 +399,7 @@ function catalogHtml() {
         <div class="ml-layout-toggle" role="group" aria-label="${esc(t('layout'))}">${['cards','list'].map(l => button('layout', t(l), `data-layout="${l}" aria-pressed="${f.layout === l}"`)).join('')}</div></div></div>
       ${context?.description ? `<p class="ml-tree-description">${esc(context.description)}</p>` : ''}
       ${collection ? collectionContextHtml(collection) : ''}
-      ${organizeMode() && context ? `<div class="ml-toolbar">${button(collection ? 'edit-collection' : 'edit-category', t('edit'), `data-id="${esc(context.id)}"`)}${button('assign', t('addSelectedHere'), state.selected.size ? '' : 'disabled')}</div>` : ''}
+      ${canEdit() && context ? `<div class="ml-toolbar">${structureActions(collection ? 'collection' : 'category', context.id)}${organizeMode() ? button('assign', t('addSelectedHere'), state.selected.size ? '' : 'disabled') : ''}</div>` : ''}
       ${filtersHtml()}${activeFiltersHtml()}
       <div class="ml-view-controls">${d.views.length ? `<label class="ml-view-select"><span>${esc(t('savedViews'))}</span><select id="ml-view-select" aria-label="${esc(t('savedViews'))}">${option('', t('currentView'), state.viewId)}${d.views.map(v => option(v.id, v.title, state.viewId)).join('')}</select></label>` : ''}
       ${canEdit() ? button('save-view', t('saveView')) : ''}</div>
@@ -409,14 +415,14 @@ function topicsHtml() {
   const level = parentId => d.categories.filter(c => c.parentId === parentId && visibleIds.has(c.id)).map((c) => {
     const siblings = d.categories.filter(x => x.parentId === parentId), index = siblings.indexOf(c), children = d.categories.filter(x => x.parentId === c.id);
     const count = categoryCount(c.id);
-    if (!organizeMode() && count === 0 && !tokens.length) return '';
+    if (state.space === 'public' && !organizeMode() && count === 0 && !tokens.length) return '';
     return `<div class="ml-tree-item" ${organizeMode() ? `draggable="true" data-drag-type="category" data-drag-id="${esc(c.id)}"` : ''}><div class="ml-tree-line">
       <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}" dir="auto">${esc(c.title)}</a><small>${esc(t('materialCount', { count }))}</small>
-      ${organizeMode() ? `<div class="ml-actions">${orderButtons('category', c.id, index > 0, index < siblings.length - 1)}${button('edit-category', t('edit'), `data-id="${esc(c.id)}"`)}${button('new-category', '+', `data-parent="${esc(c.id)}" aria-label="${esc(t('newSubcategory'))}"`)}</div>` : ''}</div>
+      ${canEdit() ? `<div class="ml-actions">${organizeMode() ? orderButtons('category', c.id, index > 0, index < siblings.length - 1) : ''}${structureActions('category', c.id)}${button('new-category', '+', `data-parent="${esc(c.id)}" aria-label="${esc(t('newSubcategory'))}"`)}</div>` : ''}</div>
       ${c.description ? `<p class="ml-tree-description" dir="auto">${esc(c.description)}</p>` : ''}
       ${children.length ? `<details data-expand="${esc(c.id)}" ${state.expanded.has(c.id) || tokens.length ? 'open' : ''}><summary>${esc(t('subcategoryCount', { count: children.length }))}</summary>${level(c.id)}</details>` : ''}</div>`;
   }).join('');
-  return `<section><div class="ml-section-head"><div><h2>${esc(t('topicMap'))}</h2><p>${esc(t('topicMapHelp'))}</p></div></div>
+  return `<section><div class="ml-section-head"><div><h2>${esc(t('topicMap'))}</h2><p>${esc(t('topicMapHelp'))}</p></div>${canEdit() && d.categories.length ? button('new-category', t('newCategory')) : ''}</div>
     <input class="ml-topic-search" id="ml-topic-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('findTopic'))}" aria-label="${esc(t('findTopic'))}">
     <div class="ml-tree">${level(null) || `<div class="ml-empty"><p>${esc(t('noTopics'))}</p>${canEdit() ? button('new-category', t('newCategory'), '', 'ml-primary') : ''}</div>`}</div></section>`;
 }
@@ -441,7 +447,7 @@ function render() {
   $('ml-root').setAttribute('aria-busy', String(state.loading));
   $('ml-root').classList.toggle('ml-has-selection', organizeMode() && state.selected.size > 0);
   $('ml-root').innerHTML = `<div class="ml-heading"><div class="ml-heading-copy"><h1>${esc(t('title'))}</h1><p>${esc(d.home.title || t(state.space === 'public' ? 'publicSubtitle' : 'personalSubtitle'))}</p></div>
-    <div class="ml-actions">${state.preview ? '' : state.space === 'personal' && state.localReady ? button('organize', t(state.editing ? 'finishEditing' : 'organize'))
+    <div class="ml-actions">${canEdit() && !organizeMode() && documentState().canUndo ? button('undo', t('undo')) : ''}${state.preview ? '' : state.space === 'personal' && state.localReady ? button('organize', t(state.editing ? 'finishEditing' : 'organize'))
       : state.owner ? button('organize', t(state.editing ? 'finishEditing' : 'editPublic')) : ''}
       ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : ''}</div></div>
     <div class="ml-space" role="group" aria-label="${esc(t('space'))}">${button('space', t('public'), 'data-space="public" aria-pressed="' + (state.space === 'public') + '"')}${button('space', t('personal'), 'data-space="personal" aria-pressed="' + (state.space === 'personal') + '"')}</div>
@@ -505,10 +511,20 @@ function previewStructure(next, title, applyLabel = t('applyChanges'), success =
 function formActions(label = t('save'), danger = false) {
   return `<div class="ml-form-actions">${button('cancel-dialog', t('cancel'))}<button type="submit" class="${danger ? 'ml-danger' : 'ml-primary'}">${esc(label)}</button></div>`;
 }
-async function formSave(next, message = t('saved')) { await save(next); closeDialog(); state.selected.clear(); render(); announce(message); }
-function categoryOptions(current, exclude = new Set()) {
-  return option('', t('rootCategory'), current || '') + structure().categories.filter(c => !exclude.has(c.id))
-    .map(c => option(c.id, C.categoryPath(structure(), c.id).map(x => x.title).join(' / '), current)).join('');
+async function formSave(next, message = t('saved')) {
+  await save(next);
+  // Repair only references removed by this write; unrelated search/filter state survives.
+  const d = structure(); let changed = false;
+  for (const [field, entries] of [['category', d.categories], ['collection', d.collections]]) {
+    if (state.filters[field] && !entries.some(c => c.id === state.filters[field])) { state.filters[field] = ''; changed = true; }
+  }
+  if (state.viewId && !d.views.some(v => v.id === state.viewId)) { state.viewId = ''; changed = true; }
+  if (changed) { state.page = 1; persist(); }
+  closeDialog(); state.selected.clear(); render(); announce(message);
+}
+function categoryOptions(current, exclude = new Set(), d = structure()) {
+  return option('', t('rootCategory'), current || '') + d.categories.filter(c => !exclude.has(c.id))
+    .map(c => option(c.id, C.categoryPath(d, c.id).map(x => x.title).join(' / '), current)).join('');
 }
 function editCategory(id, parentId) {
   const c = structure().categories.find(x => x.id === id), excluded = c ? C.descendants(structure(), c.id) : new Set();
@@ -547,16 +563,31 @@ function mergeCategory(id) {
   showDialog(t('merge'), `<p>${esc(t('mergeHelp', { title: c.title }))}</p><label>${esc(t('mergeTarget'))}<select name="targetId">${targets.map(x => option(x.id, C.categoryPath(structure(), x.id).map(y => y.title).join(' / '), '')).join('')}</select></label>${formActions(t('reviewChanges'))}`,
     data => previewStructure(C.command(structure(), { type: 'category.merge', id, targetId: data.get('targetId') }), t('merge'), t('merge')));
 }
+function destinationFields(d, saveOnly = false) {
+  const values = [...d.categories.map(c => ['category:' + c.id, t('category') + ': ' + C.categoryPath(d,c.id).map(x => x.title).join(' / ')]),
+    ...d.collections.map(c => ['collection:' + c.id, t('collection') + ': ' + c.title])];
+  return `<label>${esc(t('destination'))}<select name="target">${option('', t(saveOnly ? 'saveToMineOnly' : 'chooseDestination'), '')}${values.map(([v,l]) => option(v,l,'')).join('')}</select></label>
+    <fieldset><legend>${esc(t('orCreateDestination'))}</legend>
+    <label>${esc(t('destinationType'))}<select name="newType">${option('collection', t('collection'), 'collection')}${option('category', t('category'), 'collection')}</select></label>
+    <label>${esc(t('name'))}<input name="newTitle" maxlength="200"></label>
+    <label id="ml-new-parent" hidden>${esc(t('parentCategory'))}<select name="newParentId">${categoryOptions('', new Set(), d)}</select></label></fieldset>`;
+}
+function resolveDestination(d, data) {
+  const title = data.get('newTitle').trim(); let target = data.get('target');
+  if (title) {
+    const type = data.get('newType') === 'category' ? 'category' : 'collection', id = uid();
+    d = C.command(d, { type: type + '.create', id, title, parentId: data.get('newParentId') || null }); target = type + ':' + id;
+  }
+  return { next: d, target };
+}
 async function addToCollection(key) {
   const item = state.prepared.byKey.get(key); if (!item) return;
   if (state.space === 'public' && !organizeMode()) {
     if (!state.localReady) { announce(t('localFailed'), true); return; }
     const d = state.personal.structure, personalRevision = state.personal.revision;
-    showDialog(t('addToMyCollection'), `<p dir="auto">${esc(item.title)}</p><label>${esc(t('collection'))}<select name="collection"><option value="">${esc(t('saveToMineOnly'))}</option>${d.collections.map(c => option(c.id,c.title,'')).join('')}</select></label>
-      <label>${esc(t('orNewCollection'))}<input name="newTitle" maxlength="200"></label>${formActions(t('add'))}`, async data => {
-      let next = d, id = data.get('collection');
-      if (data.get('newTitle').trim()) { id = uid(); next = C.command(next, { type: 'collection.create', id, title: data.get('newTitle').trim() }); }
-      next = C.command(next, id ? { type: 'items.add', target: 'collection', id, references: [item.ref] } : { type: 'reference.save', references: [item.ref] });
+    showDialog(t('addToMyCollection'), `<p dir="auto">${esc(item.title)}</p>${destinationFields(d, true)}${formActions(t('add'))}`, async data => {
+      let { next, target } = resolveDestination(d, data); const [type, id] = (target || '').split(':');
+      next = C.command(next, id ? { type: 'items.add', target: type, id, references: [item.ref] } : { type: 'reference.save', references: [item.ref] });
       state.personal = await localDb.saveMediathequeStructure(next, personalRevision); closeDialog(); render(); announce(t('savedToMine'));
     }); return;
   }
@@ -564,17 +595,14 @@ async function addToCollection(key) {
 }
 function assignmentDialog() {
   const items = selectedMaterials(); if (!items.length) return;
-  const d = structure(), values = [...d.categories.map(c => ['category:' + c.id, t('category') + ': ' + C.categoryPath(d,c.id).map(x => x.title).join(' / ')]),
-    ...d.collections.map(c => ['collection:' + c.id, t('collection') + ': ' + c.title])];
+  const d = structure();
   const fromId = state.filters.collection || state.filters.category, fromType = state.filters.collection ? 'collection' : 'category';
   showDialog(t('distribute'), `<p>${esc(t('selectedCount', { count: items.length }))}</p>
-    <label>${esc(t('destination'))}<select name="target">${option('', t('chooseDestination'), '')}${values.map(([v,l]) => option(v,l,'')).join('')}</select></label>
-    <label>${esc(t('orNewCollection'))}<input name="newTitle" maxlength="200"></label>
+    ${destinationFields(d)}
     ${fromId ? `<label class="ml-checkbox"><input type="checkbox" name="move">${esc(t('moveFromCurrent'))}</label>` : ''}${formActions(t('add'))}`,
   async data => {
-    let next = d, target = data.get('target'), newTitle = data.get('newTitle').trim();
-    if (newTitle) { const id = uid(); next = C.command(next, { type: 'collection.create', id, title: newTitle }); target = 'collection:' + id; }
-    if (!target) throw new Error('MEDIATHEQUE_INVALID');
+    let { next, target } = resolveDestination(d, data);
+    if (!target) throw new Error('DESTINATION_REQUIRED');
     const [type,id] = target.split(':');
     next = C.command(next, { type: 'items.add', target: type, id, references: items.map(i => i.ref) }, { publicOnly: state.space === 'public' });
     if (data.has('move') && !(type === fromType && id === fromId)) next = C.command(next,{type:'items.remove',target:fromType,id:fromId,keys:items.map(i=>i.key)},{publicOnly:state.space==='public'});
@@ -753,6 +781,7 @@ document.addEventListener('click', event => {
   }
 });
 document.addEventListener('input', event => {
+  if (event.target.closest('#ml-form') && $('ml-form').dataset.conflict !== 'true') $('ml-form-error').hidden = true;
   if (event.target.id === 'ml-picker-search') { topicQuery = event.target.value; $('ml-topic-picker').innerHTML = topicPickerHtml(); }
   if (event.target.dataset.filter === 'source') { const q = C.normalize(event.target.value); $(event.target.getAttribute('list')).innerHTML = Array.from(new Set(state.prepared.items.map(i=>i.source).filter(Boolean))).filter(s=>C.normalize(s).includes(q)).slice(0,80).map(s=>`<option value="${esc(s)}"></option>`).join(''); }
   if (event.target.id === 'ml-search') { clearTimeout(searchTimer); searchTimer = setTimeout(() => { rememberLocation(); state.filters.q = $('ml-search').value; state.section = 'catalog'; state.page = 1; state.selected.clear(); persist(searchRouteStarted ? 'replace' : 'push'); searchRouteStarted = true; render(); }, 200); }
@@ -760,6 +789,8 @@ document.addEventListener('input', event => {
 });
 document.addEventListener('change', event => {
   const node = event.target;
+  if (node.closest('#ml-form') && $('ml-form').dataset.conflict !== 'true') $('ml-form-error').hidden = true;
+  if (node.name === 'newType') $('ml-new-parent').hidden = node.value !== 'category';
   if (node.dataset.filter && !node.closest('.ml-filter-dialog')) {
     rememberLocation(); searchRouteStarted = false;
     const key = node.dataset.filter; state.filters[key] = node.type === 'checkbox' ? node.checked : key === 'maxDuration' ? node.value ? Number(node.value) : null : key === 'tags' ? node.value.split(',').map(v => v.trim()).filter(Boolean) : node.value;
