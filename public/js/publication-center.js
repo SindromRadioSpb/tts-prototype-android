@@ -88,7 +88,7 @@
   function close() { const dialog = $("publicationCenterDialog"); if (dialog && dialog.open) dialog.close(); }
   function renderSpine() {
     const host = $("pcCorpusList"); if (!host) return;
-    host.innerHTML = state.corpora.map(corpus => `<button type="button" class="pc-corpus-tab" data-corpus-id="${esc(corpus.corpus_id)}" aria-current="${corpus.corpus_id === state.selectedId}"><span>${esc(corpus.title)}</span><small>${esc(corpus.status)}</small></button>`).join("");
+    host.innerHTML = `<a class="pc-corpus-tab" href="/mediatheque.html?space=public">${esc(tt("mediatheque.title", "Медиатека"))}</a>` + state.corpora.map(corpus => `<button type="button" class="pc-corpus-tab" data-corpus-id="${esc(corpus.corpus_id)}" aria-current="${corpus.corpus_id === state.selectedId}"><span>${esc(corpus.title)}</span><small>${esc(corpus.status)}</small></button>`).join("");
     host.querySelectorAll("[data-corpus-id]").forEach(button => button.addEventListener("click", () => run(async () => { state.creating = false; state.selectedId = button.dataset.corpusId; await refreshDetail(); }, "")));
   }
   function renderCreate() {

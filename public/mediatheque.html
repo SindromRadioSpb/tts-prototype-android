@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#2358a8">
+  <title>Медиатека · LinguistPro</title>
+  <link rel="icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/css/mediatheque.css?v=1">
+</head>
+<body>
+  <a class="ml-skip" href="#ml-content" data-i18n="mediatheque.skip">К материалам</a>
+  <header class="ml-header">
+    <a href="/library.html" class="ml-brand" aria-label="LinguistPro"><span class="ml-brand-mark" aria-hidden="true">ל</span>LinguistPro</a>
+    <nav class="ml-crossnav" aria-label="LinguistPro">
+      <a href="/library.html" data-i18n="mediatheque.room">Учебный зал</a>
+      <a href="/" data-i18n="mediatheque.studio">Студия</a>
+    </nav>
+    <div class="ml-preferences">
+      <button type="button" id="ml-theme" data-i18n-title="mediatheque.theme" data-i18n-aria-label="mediatheque.theme" aria-label="Тема">◐</button>
+      <select id="ml-language" aria-label="Язык / Language / שפה"><option value="ru">Рус</option><option value="en">Eng</option><option value="he">עברית</option></select>
+    </div>
+  </header>
+  <main id="ml-root" class="ml-root" aria-busy="true"><p class="ml-loading" role="status" data-i18n="mediatheque.loading">Загрузка Медиатеки…</p></main>
+  <div id="ml-status" class="ml-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <dialog id="ml-dialog" class="ml-dialog" aria-labelledby="ml-dialog-title">
+    <header class="ml-dialog-header"><h2 id="ml-dialog-title"></h2><button type="button" id="ml-dialog-close" data-i18n-aria-label="mediatheque.close" aria-label="Закрыть">×</button></header>
+    <div id="ml-dialog-body"></div>
+  </dialog>
+  <script src="/i18n/locales/ru.js?v=217"></script>
+  <script src="/i18n/locales/en.js?v=217"></script>
+  <script src="/i18n/locales/he.js?v=217"></script>
+  <script src="/i18n/index.js"></script>
+  <script type="module" src="/js/mediatheque-ui.js?v=1"></script>
+</body>
+</html>

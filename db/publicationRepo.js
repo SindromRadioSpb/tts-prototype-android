@@ -14,6 +14,8 @@ const { DATA_DIR } = require("../storage");
 const IngredientCore = require("../public/js/learning-compass-ingredients.js");
 const CatalogDiscovery = require("../public/js/catalog-discovery-core.js");
 const PlaybackSource = require('../public/js/playback-source.js');
+const Mediatheque = require('../public/js/mediatheque-core.js');
+const MediathequeMetadata = require('../public/js/mediatheque-metadata.js');
 
 const PERMISSIONS = Object.freeze([
   ["PUBLIC_READ", "public_read_allowed"],
@@ -799,11 +801,112 @@ function createPublicationRepo(options = {}) {
     });
   }
 
+  // Site-wide editorial organization. Only the owner curates this namespace;
+  // corpus publishers retain their existing corpus-specific capabilities.
+  function mediathequeOwner(actor) {
+    if (String(actor && actor.role).toLowerCase() !== 'owner') fail('PUBLISHER_FORBIDDEN', 403);
+    return actorId(actor);
+  }
+  async function getMediathequeDraft(actor) {
+    mediathequeOwner(actor);
+    const row = await dbGet(database, 'SELECT * FROM publication_mediatheque_draft WHERE singleton=1');
+    const pointer = await dbGet(database, 'SELECT edition_id FROM publication_mediatheque_pointer WHERE singleton=1');
+    const editions = await dbAll(database, 'SELECT edition_id,revision,published_at FROM publication_mediatheque_editions ORDER BY rowid DESC LIMIT 20');
+    return { revision: row ? Number(row.revision) : 0, structure: row ? Mediatheque.validate(parseJson(row.structure_json), { publicOnly: true }) : Mediatheque.empty(),
+      canUndo: !!(row && row.undo_json), edition_id: pointer && pointer.edition_id || null, editions };
+  }
+  async function mediathequeCatalog() {
+    const source = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].source_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].source_meta_json'),'{}')`;
+    const table = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta_json'),'{}')`;
+    const rows = await dbAll(database, `SELECT c.slug,c.title corpus_title,e.published_at,ei.public_work_id,ei.snapshot_sha256,ei.title,ei.creator,ei.position_no,
+      SUBSTR(COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].topic'),''),1,256) topic,
+      COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].tags'),json_extract(ei.snapshot_json,'$.library.texts[0].tags_json'),'[]') tags_json,
+      ${MediathequeMetadata.projectionSql(source, table)} media_projection,
+      EXISTS(SELECT 1 FROM json_each(ei.snapshot_json,'$.library.texts[0].rows') r
+        WHERE LENGTH(TRIM(COALESCE(json_extract(r.value,'$.russian'),json_extract(r.value,'$.ru'),'')))>0) has_translation
+      FROM published_corpora c JOIN published_corpus_editions e ON e.edition_id=c.current_edition_id
+      JOIN published_corpus_edition_items ei ON ei.edition_id=e.edition_id
+      WHERE c.status='PUBLISHED' AND ei.public_read_allowed=1 ORDER BY c.slug,ei.position_no,ei.public_work_id`);
+    return rows.map(({ media_projection, tags_json, ...row }) => {
+      let tags; try { tags = JSON.parse(tags_json); } catch (_) {};
+      return { ...row, tags: Array.isArray(tags) ? tags.filter(t => typeof t === 'string').map(t => t.slice(0,80)).slice(0,30) : [],
+        media: MediathequeMetadata.normalize(media_projection),
+        ref: { kind: 'public', slug: row.slug, workId: row.public_work_id, snapshotHash: row.snapshot_sha256 } };
+    });
+  }
+  async function getPublicMediatheque() {
+    const row = await dbGet(database, `SELECT e.* FROM publication_mediatheque_pointer p
+      JOIN publication_mediatheque_editions e ON e.edition_id=p.edition_id WHERE p.singleton=1`);
+    const items = await mediathequeCatalog();
+    const available = new Set(items.map(item => Mediatheque.refKey(item.ref)));
+    let structure = row ? Mediatheque.validate(parseJson(row.structure_json), { publicOnly: true }) : Mediatheque.empty();
+    // Withdrawal/current-edition replacement immediately removes inaccessible references.
+    // A structure edition never grants permission to read an old or private material.
+    structure = Mediatheque.command(structure, { type: 'reference.forget', keys: structure.references.map(Mediatheque.refKey).filter(k => !available.has(k)) }, { publicOnly: true });
+    return { revision: row ? row.revision : 0, edition_id: row && row.edition_id || null, structure, items };
+  }
+  async function saveMediathequeDraft(actor, input, opts) {
+    mediathequeOwner(actor);
+    const structure = Mediatheque.validate(input.structure, { publicOnly: true });
+    return withIdempotency(actor, 'MEDIATHEQUE_SAVE', opts, input, async () => {
+      const current = await getMediathequeDraft(actor);
+      if (current.revision !== input.expectedVersion) fail('MEDIATHEQUE_CONFLICT', 409);
+      const revision = current.revision + 1;
+      await dbRun(database, `INSERT INTO publication_mediatheque_draft(singleton,revision,structure_json,undo_json,updated_by,updated_at)
+        VALUES(1,?,?,?,?,?) ON CONFLICT(singleton) DO UPDATE SET revision=excluded.revision,structure_json=excluded.structure_json,
+        undo_json=excluded.undo_json,updated_by=excluded.updated_by,updated_at=excluded.updated_at`,
+      [revision, canonicalJson(structure), canonicalJson(current.structure), actorId(actor), now()]);
+      return { revision, structure, canUndo: true };
+    });
+  }
+  async function undoMediathequeDraft(actor, input, opts) {
+    mediathequeOwner(actor);
+    return withIdempotency(actor, 'MEDIATHEQUE_UNDO', opts, input, async () => {
+      const row = await dbGet(database, 'SELECT * FROM publication_mediatheque_draft WHERE singleton=1');
+      if (!row || Number(row.revision) !== input.expectedVersion || !row.undo_json) fail('MEDIATHEQUE_CONFLICT', 409);
+      const structure = Mediatheque.validate(parseJson(row.undo_json), { publicOnly: true });
+      await dbRun(database, 'UPDATE publication_mediatheque_draft SET revision=revision+1,structure_json=undo_json,undo_json=NULL,updated_by=?,updated_at=? WHERE singleton=1', [actorId(actor), now()]);
+      return { revision: row.revision + 1, structure, canUndo: false };
+    });
+  }
+  async function publishMediatheque(actor, input, opts) {
+    mediathequeOwner(actor);
+    return withIdempotency(actor, 'MEDIATHEQUE_PUBLISH', opts, input, async () => {
+      const draft = await getMediathequeDraft(actor);
+      if (draft.revision !== input.expectedVersion || !draft.revision || draft.edition_id !== (input.expectedEdition || null)) fail('MEDIATHEQUE_CONFLICT', 409);
+      const available = new Set((await mediathequeCatalog()).map(item => Mediatheque.refKey(item.ref)));
+      // Only references actively used in organization need to be live; unused retained
+      // references are discarded from the public edition, without altering the draft.
+      const used = new Set([...draft.structure.categories, ...draft.structure.collections].flatMap(c => c.items));
+      if (draft.structure.home.featured) used.add(draft.structure.home.featured);
+      draft.structure.annotations.forEach(a => used.add(a.key));
+      if (Array.from(used).some(k => !available.has(k))) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
+      const structure = Mediatheque.command(draft.structure, { type: 'reference.forget', keys: draft.structure.references.map(Mediatheque.refKey).filter(k => !used.has(k)) }, { publicOnly: true });
+      const json = canonicalJson(structure), editionId = id('me_');
+      await dbRun(database, `INSERT INTO publication_mediatheque_editions(edition_id,revision,structure_json,sha256,published_by,published_at)
+        VALUES(?,?,?,?,?,?)`, [editionId, draft.revision, json, sha256(json), actorId(actor), now()]);
+      await dbRun(database, 'INSERT INTO publication_mediatheque_pointer(singleton,edition_id) VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET edition_id=excluded.edition_id', [editionId]);
+      return { revision: draft.revision, edition_id: editionId };
+    });
+  }
+  async function rollbackMediatheque(actor, input, opts) {
+    mediathequeOwner(actor);
+    return withIdempotency(actor, 'MEDIATHEQUE_ROLLBACK', opts, input, async () => {
+      const draft = await getMediathequeDraft(actor);
+      if (draft.revision !== input.expectedVersion || draft.edition_id !== (input.expectedEdition || null)) fail('MEDIATHEQUE_CONFLICT', 409);
+      const row = await dbGet(database, 'SELECT * FROM publication_mediatheque_editions WHERE edition_id=?', [cleanId(input.editionId)]);
+      if (!row || sha256(row.structure_json) !== row.sha256) fail('MEDIATHEQUE_INVALID', 400);
+      await dbRun(database, 'INSERT INTO publication_mediatheque_pointer(singleton,edition_id) VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET edition_id=excluded.edition_id', [row.edition_id]);
+      return { edition_id: row.edition_id, revision: row.revision };
+    });
+  }
+
   return {
     grantPublisher, createCorpus, copyGroupCorpusItems, copyMyTextItems, reorderDraftItems, applyRightsPreset,
     validateDraft, publish, createRevisionDraft, getPublisherCorpus, listPublisherCorpora,
     listPublicCorpora, getPublicCorpus, getPublicLearningIndex, prewarmPublicLearningIndexes, getPublicWork, getPublicAsset, getPublicPackage,
     withdraw, restore, rollback,
+    getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, publishMediatheque, rollbackMediatheque,
   };
 }
 

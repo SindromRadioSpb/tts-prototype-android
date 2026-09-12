@@ -16,7 +16,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=488">
+    <link rel="modulepreload" href="/db/local-db.js?v=520">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -10821,7 +10821,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=488';
+  import * as _ldb from '/db/local-db.js?v=520';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13317,9 +13317,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=216"></script>
-<script src="/i18n/locales/en.js?v=216"></script>
-<script src="/i18n/locales/he.js?v=216"></script>
+<script src="/i18n/locales/ru.js?v=217"></script>
+<script src="/i18n/locales/en.js?v=217"></script>
+<script src="/i18n/locales/he.js?v=217"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13427,7 +13427,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <link rel="stylesheet" href="/css/study-video-source.css?v=519">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
-<script src="/js/study-video-source-ui.js?v=508"></script>
+<script src="/js/study-video-source-ui.js?v=520"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
 <script src="/js/learning-material-task.js?v=519"></script>
 <script src="/js/learning-material-task-ui.js?v=519"></script>
@@ -13490,7 +13490,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      паттерн studio-karaoke; room-mode = читальный вид, инъекция скипается).
      cloud-sync.js — dormant UMD (нужен CS.me()/consents; ничего не вызывает сам). -->
 <script src="/js/cloud-sync.js"></script>
-<script src="/js/publication-center.js?v=415"></script>
+<script src="/js/publication-center.js?v=520"></script>
 <!-- Wave 2 C3a — shared browser-owned voice -> editable draft controller. -->
 <script src="/js/voice-draft.js"></script>
 <script src="/js/studio-agent.js"></script>
@@ -13518,7 +13518,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.519";
+    window.APP_VERSION = "3.11.520";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

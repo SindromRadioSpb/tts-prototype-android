@@ -69,7 +69,7 @@
     document.querySelectorAll('[data-playback-reason]').forEach(node=>{if(!node.dataset.youtubeError)node.textContent=playbackNote({playbackReason:node.dataset.playbackReason || null});});
   });
   async function db(){
-    const ldb=window.__localDB || (typeof window.ensureLocalDB==='function'?await window.ensureLocalDB():await import('/db/local-db.js?v=488'));
+    const ldb=window.__localDB || (typeof window.ensureLocalDB==='function'?await window.ensureLocalDB():await import('/db/local-db.js?v=520'));
     // Cached tables can paint before the database worker finishes initialization.
     // The module reference alone is not a readiness signal.
     if(typeof ldb.initLocalDB==='function')await ldb.initLocalDB();

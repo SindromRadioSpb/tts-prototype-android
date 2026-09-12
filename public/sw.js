@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.519";
+const CACHE_VERSION = "v3.11.520";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -67,6 +67,13 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // proved flaky on iOS WebKit with a freshly-activated SW — precaching makes the
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
+  "/mediatheque.html",
+  "/css/mediatheque.css?v=1",
+  "/js/mediatheque-ui.js?v=1",
+  "/js/mediatheque-core.js",
+  "/js/mediatheque-local-repository.js",
+  "/js/mediatheque-metadata.js",
+
   "/study-video.html",
   "/study-studio.html",
   "/study-library.html",
@@ -75,7 +82,7 @@ const PRECACHE_URLS = [
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
-  "/js/study-video-source-ui.js?v=508",
+  "/js/study-video-source-ui.js?v=520",
   "/js/youtube-asr.js?v=519",
   "/js/learning-material-task.js?v=519",
   "/js/learning-material-task-ui.js?v=519",
@@ -103,7 +110,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=506",
+  "/js/library-ui.js?v=520",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -147,7 +154,7 @@ const PRECACHE_URLS = [
   "/js/retention-report.js?v=461",
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
-  "/js/publication-center.js?v=415",
+  "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=485",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
@@ -259,9 +266,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=216",
-  "/i18n/locales/en.js?v=216",
-  "/i18n/locales/he.js?v=216",
+  "/i18n/locales/ru.js?v=217",
+  "/i18n/locales/en.js?v=217",
+  "/i18n/locales/he.js?v=217",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -274,7 +281,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=488",
+  "/db/local-db.js?v=520",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

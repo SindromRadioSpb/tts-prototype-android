@@ -1090,6 +1090,13 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/mediatheque.html",
+  "/css/mediatheque.css?v=1",
+  "/js/mediatheque-ui.js?v=1",
+  "/js/mediatheque-core.js",
+  "/js/mediatheque-local-repository.js",
+  "/js/mediatheque-metadata.js",
+
   '/db/wa-sqlite.mjs',
   '/db/wa-sqlite.wasm',
   '/db/wa-sqlite-async.mjs',
@@ -1102,7 +1109,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
-  "/js/study-video-source-ui.js?v=508",
+  "/js/study-video-source-ui.js?v=520",
   "/js/youtube-asr.js?v=519",
   "/js/learning-material-task.js?v=519",
   "/js/learning-material-task-ui.js?v=519",
@@ -1129,18 +1136,18 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-portable-learning-package.js?v=498",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=506",
+  "/js/library-ui.js?v=520",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
-  "/js/publication-center.js?v=415",
+  "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=485",
   "/js/reader-morph.js?v=454",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=416",
   "/js/room-b6-core.js?v=485",
-  "/db/local-db.js?v=488",
+  "/db/local-db.js?v=520",
   "/db/migrations.js",
   "/db/db-worker.js",
   "/js/mentor-connection-core.js?v=414",
@@ -1160,9 +1167,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=506",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=216",
-  "/i18n/locales/en.js?v=216",
-  "/i18n/locales/he.js?v=216",
+  "/i18n/locales/ru.js?v=217",
+  "/i18n/locales/en.js?v=217",
+  "/i18n/locales/he.js?v=217",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -3921,6 +3928,7 @@ function publicationError(res, error) {
     "SOURCE_CHANGED", "SOURCE_ALREADY_COPIED", "RIGHTS_PRESET_INVALID",
     "RIGHTS_REVIEW_REQUIRED", "PUBLIC_READ_NOT_ALLOWED", "IDEMPOTENCY_KEY_REQUIRED",
     "IDEMPOTENCY_CONFLICT", "EDITION_HASH_MISMATCH", "PUBLICATION_ASSET_INVALID",
+    "MEDIATHEQUE_INVALID", "MEDIATHEQUE_CONFLICT", "MEDIATHEQUE_PRIVATE_REFERENCE", "MEDIATHEQUE_REFERENCE_UNAVAILABLE",
   ]);
   const status = Number(error && error.status) || (code === "PUBLISHER_FORBIDDEN" ? 403 : 500);
   return res.status(status).json({ ok: false, error: safe.has(code) ? code : "PUBLICATION_FAILED" });
@@ -3950,6 +3958,12 @@ async function publicationWrite(req, res, operation, action, created = false) {
 
 app.get("/api/publication/corpora", rlPublicationRead, (req, res) => publicationRead(req, res,
   async (repo, actor) => ({ schema_version: "publication_center.1.0.0", corpora: await repo.listPublisherCorpora(actor) })));
+app.get('/api/publication/mediatheque', rlPublicationRead, (req, res) => publicationRead(req, res,
+  (repo, actor) => repo.getMediathequeDraft(actor)));
+for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', 'undoMediathequeDraft'], ['publish', 'publishMediatheque'], ['rollback', 'rollbackMediatheque']]) {
+  app.post('/api/publication/mediatheque/' + operation, rlPublicationWrite, requireStrictSameOriginJson,
+    (req, res) => publicationWrite(req, res, 'mediatheque_' + operation, (repo, actor, opts) => repo[method](actor, req.body || {}, opts)));
+}
 app.get("/api/publication/corpora/:corpusId", rlPublicationRead, (req, res) => publicationRead(req, res,
   async (repo, actor) => ({ schema_version: "publication_center_detail.1.0.0", corpus: await repo.getPublisherCorpus(actor, req.params.corpusId) })));
 
@@ -4006,6 +4020,11 @@ app.get("/api/public-corpora", rlPublicCorpusRead, (req, res) => publicCorpusRea
   const corpora = await repo.listPublicCorpora();
   res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
   return res.json({ ok: true, schema_version: "public_corpora.1.0.0", corpora });
+}));
+app.get('/api/mediatheque', rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  // Public metadata only. No session, learner data or read-time mutation.
+  res.set('Cache-Control', 'no-store');
+  return res.json({ ok: true, schema_version: 'mediatheque.1.0.0', ...await repo.getPublicMediatheque() });
 }));
 app.get("/api/public-corpora/:slug", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
   const published = await repo.getPublicCorpus(req.params.slug);

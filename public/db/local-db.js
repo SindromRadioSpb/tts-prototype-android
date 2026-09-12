@@ -41,6 +41,9 @@ import '../js/nakdan-derived-core.js';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
 import '../js/catalog-discovery-core.js?v=485';
+import '../js/mediatheque-core.js';
+import '../js/mediatheque-local-repository.js';
+import '../js/mediatheque-metadata.js';
 import { LEXICAL_RESOLUTION_SCHEMA_SQL } from './migrations.js';
 import { encodeBrowseCursor, decodeBrowseCursor, fingerprintBrowseFilters, normalizeBrowseFilters, ROOM_B6_LIMITS } from '../js/room-b6-core.js?v=485';
 
@@ -363,6 +366,36 @@ export function vfsBackendChanged() { return _vfsBackendChanged; }
 const q = (sql, p) => _call('query', sql, p);
 const r = (sql, p) => _call('run',   sql, p);
 const x = (sql)    => _call('exec',  sql);
+
+let _mediathequeRepository = null;
+function _mediaLibraryRepo() {
+  if (!_mediathequeRepository) _mediathequeRepository = globalThis.MediathequeLocalRepository.createRepository({ query: q });
+  return _mediathequeRepository;
+}
+export function getMediathequeStructure() { return _mediaLibraryRepo().load(); }
+export function saveMediathequeStructure(structure, revision) { return _mediaLibraryRepo().save(structure, revision); }
+export function undoMediathequeStructure(revision) { return _mediaLibraryRepo().undo(revision); }
+
+// Bounded metadata pages, without source text, notes, ASR segments or morphology.
+// Includes locally read public editions for exact personal progress lookup; protected/canon
+// materials are excluded rather than silently exposed as personal materials.
+export async function listMediathequeMaterials({ after = '', limit = 500 } = {}) {
+  const safeSource = `CASE WHEN json_valid(t.source_meta_json) THEN t.source_meta_json ELSE '{}' END`;
+  const rows = await q(`SELECT t.id,t.text_key,SUBSTR(t.title,1,512) title,
+    SUBSTR(COALESCE(t.topic,''),1,256) topic,SUBSTR(COALESCE(t.source,''),1,256) source,
+    CASE WHEN LENGTH(t.tags_json)<=4096 THEN t.tags_json ELSE '[]' END tags_json,
+    t.created_at,t.updated_at,t.last_opened_at,tp.last_row_idx,tp.finished_at,
+    SUBSTR(json_extract(${safeSource},'$.public_corpus.slug'),1,80) public_slug,
+    SUBSTR(json_extract(${safeSource},'$.public_corpus.public_work_id'),1,160) public_work_id,
+    SUBSTR(json_extract(${safeSource},'$.public_corpus.snapshot_sha256'),1,64) public_snapshot,
+    ${globalThis.MediathequeMetadata.projectionSql('t.source_meta_json', 't.table_model_meta_json')} media_projection,
+    EXISTS(SELECT 1 FROM sentences s WHERE s.text_id=t.id AND LENGTH(TRIM(COALESCE(s.ru,'')))>0) has_translation
+    FROM texts t LEFT JOIN text_progress tp ON tp.text_id=t.id
+    WHERE t.is_archived=0 AND t.id>? AND json_type(${safeSource},'$.corpus') IS NULL
+      AND json_type(${safeSource},'$.group_corpus') IS NULL
+    ORDER BY t.id LIMIT ?`, [String(after), Math.max(1, Math.min(1000, Math.trunc(Number(limit) || 500)))]);
+  return rows.map(({ media_projection, ...row }) => ({ ...row, media: globalThis.MediathequeMetadata.normalize(media_projection) }));
+}
 
 let _lexicalResolutionRepo = null;
 function _lexResRepo() {

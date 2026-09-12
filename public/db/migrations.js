@@ -2,6 +2,15 @@
 // Каждый элемент = одна транзакция. Порядок критичен.
 // schema_migrations tracker хранит применённые версии.
 
+// Organization only; text_key/public snapshot references survive text-id remapping.
+export const MEDIATHEQUE_SCHEMA_SQL = `CREATE TABLE IF NOT EXISTS mediatheque_personal (
+  singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+  revision INTEGER NOT NULL CHECK(revision>0),
+  structure_json TEXT NOT NULL CHECK(json_valid(structure_json)),
+  undo_json TEXT CHECK(undo_json IS NULL OR json_valid(undo_json)),
+  updated_at TEXT NOT NULL
+);`;
+
 // One SQL authority shared by migration 051 and the repository's idempotent
 // repair-on-access path for an installed client that missed a worker upgrade.
 export const LEXICAL_RESOLUTION_SCHEMA_SQL = `CREATE TABLE IF NOT EXISTS lexical_resolution_events (
@@ -1215,4 +1224,6 @@ export const MIGRATIONS = [
   ALTER TABLE studio_portable_import_receipts_v52 RENAME TO studio_portable_import_receipts;
   CREATE INDEX ix_studio_portable_receipts_root
     ON studio_portable_import_receipts(content_root_sha256,status);`,
+  // 053_mediatheque_personal — no changes to materials or learner state.
+  MEDIATHEQUE_SCHEMA_SQL,
 ];

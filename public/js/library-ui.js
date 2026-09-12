@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=488';
+import * as localDb from '/db/local-db.js?v=520';
 import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -14321,6 +14321,15 @@ async function boot() {
     roomCommitPresentation('replace');
     if (_roomHistoryFallbackNotice) roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
     const dueReviewHandoff = consumeDueReviewHandoff();
+    // Mediatheque keeps materials in the existing reader and shared progress store.
+    try {
+      const myTextId = new URLSearchParams(location.search).get('my_text');
+      if (myTextId) {
+        const row = await localDb.getTextByIdLite(myTextId);
+        if (row) await openReader(row.id, row.title, { resume: true });
+        else roomToast(tt('mediatheque.missingPersonal', 'Личный материал не найден в этом браузере'));
+      }
+    } catch (_) { roomToast(tt('mediatheque.localFailed', 'Не удалось открыть личную библиотеку')); }
     // Anonymous public-corpus deep link. The current pointer resolves to an
     // immutable edition; no account or group entitlement is consulted.
     try {
@@ -14335,7 +14344,7 @@ async function boot() {
           if (publicWorkId) {
             const publicCatalog = await ensurePublicCatalog(publicSlug);
             const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
-            if (publicWork) {
+            if (publicWork && (!qp.get('public_snapshot') || qp.get('public_snapshot') === publicWork.snapshot_sha256)) {
               await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
               if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
                 const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);

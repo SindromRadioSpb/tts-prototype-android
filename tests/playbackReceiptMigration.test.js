@@ -5,7 +5,7 @@ const initSqlJs=require('sql.js');
 test('v52 preserves every legacy receipt and learner row; transactional rollback restores the old schema',async()=>{
   const SQL=await initSqlJs(),db=new SQL.Database();
   const {MIGRATIONS}=await import('../public/db/migrations.js');
-  assert.equal(MIGRATIONS.length,52);db.run(MIGRATIONS[46]);
+  assert.equal(MIGRATIONS.length,53);db.run(MIGRATIONS[46]);
   db.run(`CREATE TABLE review_log(id TEXT PRIMARY KEY,payload TEXT);INSERT INTO review_log VALUES('owner','untouched');
     INSERT INTO studio_portable_import_receipts VALUES('r','p','root','manifest',2,'archive','committed','plan','result','{"n":4}','{"x":"שלום"}','{}','["missing"]','t',NULL);`);
   const read=()=>db.exec('SELECT * FROM studio_portable_import_receipts ORDER BY receipt_id');
