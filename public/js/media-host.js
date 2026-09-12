@@ -142,8 +142,17 @@
   // R9 (derived ≠ asserted): восстановленный тайминг помечается timingSource="aligned-offline" +
   // timingAlign{версия ядра, счётчики, что было до него}. В БД он НЕ пишется: детерминированно
   // пересчитывается при каждом открытии за миллисекунды.
+  function hasExactRevisionTiming(audio, rows) {
+    var map=audio&&audio.timingMap;
+    return !!(audio&&audio.timingSource==='studio-exact-binding'&&map&&map.authority==='studio-exact-binding'&&
+      audio.projection_of_revision_id&&audio.projection_of_revision_id===map.revision_id&&
+      audio.projection_sha256&&audio.projection_sha256===map.revision_sha256&&
+      audio.timing&&Array.isArray(audio.timing.entries)&&Array.isArray(map.row_caption_segment_ids)&&
+      Array.isArray(rows)&&map.row_caption_segment_ids.length===rows.length);
+  }
   function alignSavedTimingOffline(audio, rows, deps) {
     if (!audio) return;
+    if (hasExactRevisionTiming(audio, rows)) return;
     // Утверждённые причины импорта (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты о САМИХ метках:
     // выравнивание строк их не опровергает, поэтому молчим.
     if (audio.timingDropReason && !isDerivedTimingDrop(audio.timingDropReason)) return;
@@ -377,6 +386,9 @@
   function restoreForRows(audio, rows, deps) {
     if (!audio) return;
     var list = Array.isArray(rows) ? rows : [];
+    // The selected immutable revision already owns row mapping and segment ends.
+    // Legacy heuristics must not replace that verified projection after restore/open.
+    if (hasExactRevisionTiming(audio, list)) return;
     var AT = resolveDeps(deps).AT;
     // Портативный/композитный паспорт хранит timing БУЛЕВОЙ сводкой («у реплик есть метки»),
     // а не {entries} — играть по нему нечем: честно считаем «тайминга нет» и строим заново.

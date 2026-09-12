@@ -1,0 +1,47 @@
+{
+  "version": "3.11.527",
+  "recorded_at": "2026-09-12T17:06:44.470161+00:00",
+  "mode": "local automated gates; synthetic data; no owner writes",
+  "checks": {
+    "unit": {
+      "status": "PASS",
+      "summary": "143/143"
+    },
+    "i18n": {
+      "status": "PASS",
+      "summary": "233/233"
+    },
+    "api": {
+      "status": "PASS",
+      "summary": "live isolated server"
+    },
+    "room_media": {
+      "status": "PASS",
+      "summary": "real OPFS Room media, seek/follow/reopen"
+    },
+    "reader_parity": {
+      "status": "PASS",
+      "summary": "37 leaf checks; 4 builder and reader cases"
+    },
+    "lifecycle": {
+      "status": "PASS",
+      "evidence": "evidence.json",
+      "checks": 30
+    },
+    "mediatheque": {
+      "status": "PASS",
+      "evidence": "mediatheque-regression/evidence.json",
+      "checks": 99
+    },
+    "portable": {
+      "status": "PASS",
+      "evidence": "portable-regression/evidence.json",
+      "checks": "P2_PRODUCT_PORTABILITY_RECOVERY_EXACT_MEDIA_TRANSCRIPT"
+    },
+    "import_center": {
+      "status": "PASS",
+      "evidence": "import-center-regression/evidence.json",
+      "checks": "P4_IMPORT_CENTER_FRESH_CHROMIUM_DESKTOP_380_RU_HE_ACTIONS"
+    }
+  }
+}

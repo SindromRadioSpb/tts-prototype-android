@@ -158,6 +158,10 @@ function rebuild() {
     if (included.has(key)) continue;
     const ref = refs.get(key); if (!ref) continue;
     const item = pubByKey.get(key) || (state.space === 'personal' ? localByKey.get(key) : null);
+    // Personal membership is a portable link, not proof that its text is on this device.
+    // Archived/deleted texts leave the active catalogue; keep their links for restore/import.
+    // Public withdrawals remain visible as unavailable editions with their access boundary.
+    if (ref.kind === 'personal' && !item) continue;
     items.push(item || { ref, title: t(ref.kind === 'personal' ? 'missingPersonal' : 'missingPublic'), source: ref.slug || '', kind: 'text',
       available: false, progressKnown: false, tags: [], durationSeconds: null }); included.add(key);
   }
@@ -269,7 +273,7 @@ function collectionHtml(c, index) {
   const parts = available.slice(0, 3);
   return `<article class="ml-collection" ${organizeMode() ? `draggable="true" data-drag-type="collection" data-drag-id="${esc(c.id)}"` : ''}>
     <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ collection: c.id }) }))}"><div class="ml-collection-art" data-parts="${parts.length}">${parts.length ? parts.map(i => cover(i, false)).join('') : '<span class="ml-collection-empty" aria-hidden="true">▤</span>'}</div>
-    <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: c.items.length }))}${summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
+    <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: items.length }))}${summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
     ${c.description ? `<p dir="auto">${esc(c.description)}</p>` : ''}
     ${resume ? `<div class="ml-collection-resume"><a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}</a><span dir="auto">${esc(resume.title)}</span></div>` : ''}
     ${canEdit() ? `<div class="ml-actions">${structureActions('collection', c.id)}${organizeMode() ? orderButtons('collection', c.id, index > 0, index < structure().collections.length - 1) : ''}</div>` : ''}</article>`;
@@ -845,6 +849,13 @@ document.addEventListener('i18n:changed', () => { $('ml-language').value = windo
 window.addEventListener('pagehide', () => rememberLocation());
 window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
 window.addEventListener('online', () => loadAll());
+let localRefresh = null;
+function refreshVisibleLibrary() {
+  if (document.visibilityState !== 'visible' || state.loading || state.busy || $('ml-dialog').open || localRefresh) return;
+  localRefresh = loadLocal().then(() => render()).finally(() => { localRefresh = null; });
+}
+window.addEventListener('focus', refreshVisibleLibrary);
+document.addEventListener('visibilitychange', refreshVisibleLibrary);
 window.addEventListener('popstate', () => { clearTimeout(searchTimer); searchRouteStarted = false; state.editing = false; state.preview = false; restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true); render(); restoreLocation(history.state?.ml); });
 applyTheme(); restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true);
 loadAll();

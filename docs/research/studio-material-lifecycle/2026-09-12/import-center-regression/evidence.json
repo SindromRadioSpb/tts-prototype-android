@@ -1,0 +1,130 @@
+{
+  "gate": "P4_IMPORT_CENTER_FRESH_CHROMIUM_DESKTOP_380_RU_HE_ACTIONS",
+  "desktop": {
+    "dir": "ltr",
+    "title": "Импорт-центр",
+    "views": [
+      "overview",
+      "materials",
+      "tasks",
+      "history",
+      "reference"
+    ],
+    "active": "overview",
+    "cards": 1,
+    "document_overflow": false,
+    "dialog_overflow": false,
+    "live": true,
+    "details": true,
+    "focused": "p2-portable-close"
+  },
+  "actions": {
+    "generate_dispatched": true,
+    "file_picker_opened": true,
+    "delete_plan_dispatched": true,
+    "diagnostics_download": "linguistpro-import-center-diagnostics.json",
+    "integrity": {
+      "visible": true,
+      "state": "ok",
+      "text": "Целостность архивов материалов0 разрывов: каждый учебный материал связан со своим медиа-пакетом и историей субтитров."
+    },
+    "diagnostics_integrity": {
+      "status": "ok",
+      "gap_count": 0,
+      "reason_counts": {},
+      "next_action": null
+    },
+    "persist_calls": 1,
+    "back_to_tasks": true
+  },
+  "filtered": {
+    "cards": 30,
+    "visibleLimit": true,
+    "rail": [
+      "source",
+      "transcript",
+      "table",
+      "media",
+      "backup"
+    ]
+  },
+  "ru": {
+    "dir": "ltr",
+    "title": "Импорт-центр",
+    "views": [
+      "overview",
+      "materials",
+      "tasks",
+      "history",
+      "reference"
+    ],
+    "active": "tasks",
+    "cards": 0,
+    "document_overflow": false,
+    "dialog_overflow": false,
+    "live": true,
+    "details": false,
+    "focused": "p2-portable-close"
+  },
+  "zoom200": {
+    "dir": "ltr",
+    "title": "Импорт-центр",
+    "views": [
+      "overview",
+      "materials",
+      "tasks",
+      "history",
+      "reference"
+    ],
+    "active": "tasks",
+    "cards": 0,
+    "document_overflow": false,
+    "dialog_overflow": false,
+    "live": true,
+    "details": false,
+    "focused": "p2-portable-close"
+  },
+  "he": {
+    "dir": "rtl",
+    "title": "מרכז הייבוא",
+    "views": [
+      "overview",
+      "materials",
+      "tasks",
+      "history",
+      "reference"
+    ],
+    "active": "overview",
+    "cards": 0,
+    "document_overflow": false,
+    "dialog_overflow": false,
+    "live": true,
+    "details": false,
+    "focused": "p2-portable-close"
+  },
+  "unpromoted": {
+    "listed": true,
+    "continuity": "not-prepared",
+    "action": "prepare-transfer",
+    "label": "Подготовить к переносу",
+    "document_overflow": false
+  },
+  "missing": {
+    "honest": true,
+    "cards": 0
+  },
+  "focus_trap": true,
+  "closed": {
+    "hidden": true,
+    "focusReturned": "p2FormatHelpToggle"
+  },
+  "provider_requests": 0,
+  "page_errors": 0,
+  "screenshots": [
+    "p4-desktop-ru.png",
+    "p4-380-ru.png",
+    "p4-380-ru-200pct.png",
+    "p4-380-he.png",
+    "p4-380-ru-not-prepared.png"
+  ]
+}

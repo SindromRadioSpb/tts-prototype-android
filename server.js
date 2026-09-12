@@ -1093,7 +1093,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 const SHELL_INTEGRITY_PATHS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=6",
+  "/js/mediatheque-ui.js?v=7",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -1117,8 +1117,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-yt-player.js?v=506",
   "/js/studio-media-karaoke.js",
   "/js/portable-learning-package-core.js",
-  "/js/portable-learning-package-repository.js",
-  "/js/import-center-core.js",
+  "/js/portable-learning-package-repository.js?v=527",
+  "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
   "/js/studio-import.js",
 
@@ -1134,7 +1134,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/local-text-familiarity.js?v=485",
   "/js/studio-library-discovery.js?v=486",
   "/index.html",
-  "/js/studio-portable-learning-package.js?v=498",
+  "/js/studio-portable-learning-package.js?v=527",
   "/js/learning-compass-core.js",
   "/library.html",
   "/js/library-ui.js?v=524",
@@ -1166,12 +1166,12 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lexical-resolution-service.js?v=5",
   "/js/lexical-resolution-ui.js?v=12",
   "/js/material-actions.js?v=1",
-  "/js/media-host.js?v=506",
+  "/js/media-host.js?v=527",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=221",
-  "/i18n/locales/en.js?v=221",
-  "/i18n/locales/he.js?v=221",
+  "/i18n/locales/ru.js?v=222",
+  "/i18n/locales/en.js?v=222",
+  "/i18n/locales/he.js?v=222",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

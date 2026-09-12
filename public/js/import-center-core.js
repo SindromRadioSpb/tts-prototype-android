@@ -47,12 +47,12 @@
   }
 
   function projectionState(item) {
+    if (item.projection_archived) return 'archived';
     // F2: «материала ещё нет» — не то же самое, что «материал пропал». Первое — обычное состояние
     // карточки, которую ни разу не готовили к переносу; второе — повреждение.
     if (item.import_integrity_state === 'not-promoted') return item.projection_present ? 'present' : 'conflict';
     if (!item.material_id && item.projection_present) return 'conflict';
     if (item.import_integrity_state === 'conflict') return 'conflict';
-    if (item.projection_archived) return 'archived';
     if (item.projection_present) return 'present';
     return item.projection_rebuildable ? 'missing-rebuildable' : 'conflict';
   }
@@ -117,6 +117,7 @@
 
   function route(item, states) {
     const integrity = String(item.import_integrity_state || 'native');
+    if (states.projection_state === 'archived') return ['archived', 'unarchive'];
     // Единственное действие, которое здесь честно: подготовить карточку к переносу. Ни backup, ни
     // recovery для неё не определены — переносить пока нечего.
     if (integrity === 'not-promoted') return ['not-prepared', 'prepare-transfer'];
@@ -162,6 +163,7 @@
   }
 
   function lifecycleGroup(item) {
+    if (item && item.projection_state === 'archived') return 'archived';
     if (item && (item.entity_kind === 'workspace-draft' || item.continuity_state === 'draft')) return 'draft';
     return item && item.continuity_state === 'ready' ? 'ready' : 'attention';
   }

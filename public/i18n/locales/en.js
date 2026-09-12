@@ -4592,3 +4592,40 @@ window.I18N_LOCALES.en.mediatheque = {
 };
 
 Object.assign(window.I18N_LOCALES.en.mediatheque, {"forgetReference": "Remove from my media library", "forgetReferenceHelp": "Remove this reference from your topics and collections. Downloaded text, notes and progress remain. You can undo the last change.", "clearProperties": "Clear my additional tags, genre and language"});
+
+window.I18N_LOCALES.en.studio.importCenter.materialActions = {
+  "manage": "Manage material",
+  "back": "Back to materials",
+  "untitled": "Untitled",
+  "draftHelp": "This is a source with a transcript draft. No study table has been saved yet.",
+  "archivedHelp": "This material is archived. Restore it to the Library to continue studying.",
+  "savedHelp": "These actions apply to the selected study material.",
+  "name": "Material name",
+  "rename": "Save name",
+  "study": "Open for study",
+  "export": "Export",
+  "archive": "Archive",
+  "restore": "Restore from archive",
+  "delete": "Delete…",
+  "source": "Open source and transcript",
+  "sourceHelp": "A source may be used by several study materials. Its settings and transcript draft open separately.",
+  "details": "Material status",
+  "renamed": "Name saved.",
+  "archived": "Material archived.",
+  "restored": "Material restored to the Library.",
+  "deleteTitle": "Delete study material?",
+  "deleteScope": "The text, table ({rows} rows), table history ({versions} versions), bindings and this text’s notes will be deleted.",
+  "deleteRetained": "Word states, review history and other study materials will be preserved.",
+  "deleteUndo": "There is no undo button for this deletion. Save an export first if you want to restore it later.",
+  "sourceAfterDelete": "Source video, transcript and their history will be preserved. If no other study versions remain, the source will appear among drafts.",
+  "blocked": "Deletion is blocked by additional related data. Export remains available.",
+  "cancel": "Cancel",
+  "exportFirst": "Export first",
+  "deleteConfirm": "Delete material",
+  "exported": "Archive created. Check that the file is saved before deleting the material.",
+  "deleted": "Study material deleted. Sources and review history preserved.",
+  "stale": "The material changed after this preview. Go back to its actions and open deletion again.",
+  "search": "Find a material by name",
+  "archiveFilter": "Archived",
+  "savedRefreshFailed": "The change was saved, but the list could not refresh. Close Import Center and open it again."
+};

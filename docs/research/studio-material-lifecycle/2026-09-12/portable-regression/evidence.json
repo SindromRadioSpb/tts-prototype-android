@@ -1,0 +1,213 @@
+{
+  "gate": "P2_PRODUCT_PORTABILITY_RECOVERY_EXACT_MEDIA_TRANSCRIPT",
+  "desktop": {
+    "dir": "ltr",
+    "overflow": false,
+    "globalEntry": true,
+    "tabs": [
+      "Библиотека",
+      "Один материал",
+      "Импорт",
+      "История"
+    ],
+    "active": "library",
+    "fullBackup": true,
+    "privacy": "Вы сами выбираете, какие файлы добавить, восстановить или сохранить.",
+    "helpVisible": true,
+    "helpExpanded": true,
+    "helpChoices": 4,
+    "helpCopy": "Выберите по тому, что нужно сохранитьПолный перенос на другое устройствоОдин материал с историейКомпактное текущее состояниеТолько совместимостьmedia bytes remain explicit"
+  },
+  "ru": {
+    "dir": "ltr",
+    "documentOverflow": false,
+    "dialogOverflow": false,
+    "contextHidden": true,
+    "helpVisible": true,
+    "helpOverflow": false
+  },
+  "he": {
+    "dir": "rtl",
+    "documentOverflow": false,
+    "dialogOverflow": false,
+    "contextHidden": true,
+    "title": "חבילת לימוד ניידת",
+    "tabs": [
+      "ספרייה",
+      "חומר אחד",
+      "ייבוא",
+      "היסטוריה"
+    ],
+    "helpVisible": true,
+    "helpOverflow": false
+  },
+  "share": {
+    "visible": true,
+    "state": "linked"
+  },
+  "legacyShare": {
+    "visible": true,
+    "state": "legacy",
+    "title": "Portable history ещё не создана",
+    "button": "Почему и как создать portable history"
+  },
+  "empty": {
+    "workspaceHidden": true,
+    "globalEntry": true,
+    "materials": 0,
+    "receipts": 0
+  },
+  "emptyEntry": {
+    "active": "import",
+    "fileInput": true,
+    "copy": "Файл не выбран. Локальная библиотека не изменена."
+  },
+  "dry": {
+    "status": "Файл проверен — можно добавить материал3 строк текущей таблицыПосле импорта нужно связать исходный медиафайлПодробности проверки3реплик транскрипта3строк текущей таблицы2версий транскрипта1версий таблицыПосле импорта нужно связать исходный медиафайлoriginal-media.mp4 · 21.8 KB · SHA 0edca34f…e8041b0 конфликтовДобавить в библиотеку",
+    "receipts": 0,
+    "materials": 0
+  },
+  "exported": {
+    "root": "65b83fe19396c3b426cb421d33d58697401d749c26563d63cfa08a7f8ded06d8",
+    "package_id": "portable-package:sha256:d8a9c5decf2047a4849fb07b1cb77ca210b592d45bf4706348ec48780287693e",
+    "rows": 3,
+    "history": {
+      "caption_complete": true,
+      "external_ancestors": [],
+      "table_complete": true
+    }
+  },
+  "imported": {
+    "receipts": 1,
+    "materials": 1,
+    "rows": 3,
+    "manual_lock": {
+      "authority": "user",
+      "locked": true,
+      "status": "current"
+    }
+  },
+  "reopened": {
+    "status": "committed",
+    "root": "65b83fe19396c3b426cb421d33d58697401d749c26563d63cfa08a7f8ded06d8",
+    "entries": {
+      "graph/artifacts.json": "4821b1b558c441ba5e6192252cb8d869658166800aa911c9c7d4179589003bdc",
+      "graph/edges.json": "21c7e0e5f5057f02ae2e74253ecd1ef778c90f20fce6f6179502b5d51a7dbaa2",
+      "learning/mapping/81bab5b237bf14f2681349199d0edc319dfa1a0f7a8334ea3bf50c1e077ae296.json": "5d93eb7cc44cdfd1788577f3a68cce9a93055d21a56e7aa71b05de39cb62e293",
+      "learning/material.json": "c6483f244e0b5c9e895db83121edf18f5d628f92ec443614d052ffd1d5f74974",
+      "learning/table/revisions/81bab5b237bf14f2681349199d0edc319dfa1a0f7a8334ea3bf50c1e077ae296.json": "11881af840469edba67e39c4ab0638cf8a008417d9832cf703cf498b447f1346",
+      "learning/text-card.json": "7ba6a007887fae3e20a2894e1c1c38b0e44c99b837c853f1eddfa6db248448a6",
+      "provenance/import-run.json": "53b68b706d89d317fdf3dea82b0497661c46b77082134eb973db7e81961ab333",
+      "quality/report.json": "8fa16f105f38917e6efe86fecbcdb6106027f2a8fd33e894f13ba5975299ebbd",
+      "source/media-ref.json": "b9342406955d383b5124b460add4484164846f244f341da63968116ca7fc1fbe",
+      "tracks/corrected/revisions/2457bf6b9cbb3dffcc3601dcef1fcd93b7ce45ee684dd3745bf34ab0c6c1224a.json": "0d1a844609a5e7bd976d4586a24e0bbedaf02e600a6740a70c4fd636567732fe",
+      "tracks/corrected/track.json": "21c1ad8058d8cc0f3e86ee98ab76d782cfa1df4e9847b858114f1ed13a1f3b95",
+      "tracks/projections/49f7c3b27a68f3dac159bda62a942170b09e8bed567d44a1f162573e77e84139.vtt": "49f7c3b27a68f3dac159bda62a942170b09e8bed567d44a1f162573e77e84139",
+      "tracks/raw/revisions/3ecc79c1b2db4647f44f27da1741e7fc31d577f4c6b06da5426e5287f7d734fa.json": "2bc445ce8a442aadc18b07755f6ba4ff6db3cd3a6232cf09304771fa66c79294",
+      "tracks/raw/track.json": "d8658f0af833a504299901c7f1398eabc8ddbb3bd48117429353bbf89bb1a309"
+    },
+    "receipts": 1,
+    "materials": 1,
+    "historyVisible": true,
+    "relinkVisible": true
+  },
+  "relinked": {
+    "available": true,
+    "sha": "0edca34ffe1df39933ff696ac1b5c39af4325b036cbb77e8bb8e67595ce8041b",
+    "historyConnected": true,
+    "metadataVisible": true,
+    "metadataStatus": "Медиа связано и доступно на этом устройстве",
+    "metadataOverflow": false,
+    "documentOverflow": false,
+    "source": "https://example.test/original-lesson",
+    "topic": "browser round trip",
+    "provenance": "portable-package"
+  },
+  "undo": {
+    "materials": 0,
+    "receipt_status": "rolled_back"
+  },
+  "reimport": {
+    "materials": 1,
+    "receipts": 1,
+    "receipt_status": "committed",
+    "idempotent": true
+  },
+  "safe_archive": {
+    "confirm": {
+      "action": "explicit-library-archive"
+    },
+    "state": "archived",
+    "restored": "complete"
+  },
+  "historical_delete_recovery": {
+    "broken": {
+      "state": "repairable",
+      "missing": [
+        "material",
+        "table_revisions",
+        "text",
+        "text_media_binding"
+      ],
+      "counts": {
+        "texts": 0,
+        "materials": 0,
+        "tables": 0,
+        "media": 1,
+        "captions": 2,
+        "receipts": 1
+      }
+    },
+    "plan": {
+      "status": "Проверено — доступно восстановлениеПакет уже известен, но карточка Библиотеки или учебная таблица отсутствует.Выбранный исходный пакет восстановит отсутствующее представление без дублирования сохранившейся истории.3 строк текущей таблицыТочное медиа уже есть на устройствеПодробности проверки3реплик транскрипта3строк текущей таблицы2версий транскрипта1версий таблицыТочное медиа уже есть на устройствеoriginal-media.mp4 · 21.8 KB · SHA 0edca34f…e8041b0 конфликтовВосстановить карточку и учебную таблицу",
+      "apply": "Восстановить карточку и учебную таблицу"
+    },
+    "repaired": {
+      "state": "complete",
+      "textId": "text-portable:1503902c3fe699776f37e7a94a939388fea465f5898a1315a789396d5e777bde",
+      "materialId": "material-portable:1503902c3fe699776f37e7a94a939388fea465f5898a1315a789396d5e777bde",
+      "rows": 3,
+      "mediaAvailable": true,
+      "receipts": 1
+    }
+  },
+  "exact_open": {
+    "source": "studio-exact-binding",
+    "opfsPath": "media/0edca34ffe1df39933ff696ac1b5c39af4325b036cbb77e8bb8e67595ce8041b.mp4",
+    "timing": [
+      {
+        "o": 0,
+        "t": 0,
+        "end": 0.8
+      },
+      {
+        "o": 1,
+        "t": 0.9,
+        "end": 1.8
+      },
+      {
+        "o": 2,
+        "t": 1.9,
+        "end": 2.8
+      }
+    ],
+    "replayButtons": 3,
+    "rows": 3,
+    "mediaVisible": true,
+    "blobCache": false
+  },
+  "transcript_open": {
+    "rows": 3,
+    "history": 1,
+    "noExact": false,
+    "media": "VIDEO",
+    "mediaSrc": "blob:http://127.0.0.1:3292/f5f55443-9220-44b5-af61-5e77cc7ef7d2"
+  },
+  "provider_calls": 0,
+  "page_errors": 0,
+  "screenshots": [
+    "p2-desktop-ru.png",
+    "p2-380-ru.png",
+    "p2-380-he.png"
+  ]
+}

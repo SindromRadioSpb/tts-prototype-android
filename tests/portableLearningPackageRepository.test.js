@@ -381,3 +381,65 @@ test('delete/GC plan blocks when imported closure gained an external user refere
   await assert.rejects(()=>h.repo.undo(applied.receipt.receipt_id,{confirm:true}),/UNDO_EXTERNAL_REFERENCE_CONFLICT/);
   assert.equal(count(h,'texts'),1);assert.equal(h.rows('SELECT status FROM studio_portable_import_receipts')[0].status,'committed');
 });
+
+function seedLifecycleState(h) {
+  h.db.run(`CREATE TABLE artifact_sync_intents(id INTEGER PRIMARY KEY,op TEXT,artifact_key TEXT,deleted_at TEXT);
+    CREATE TABLE review_log(id TEXT PRIMARY KEY,item_key TEXT,grade INTEGER);
+    INSERT INTO review_log VALUES('review-1','word',3);
+    CREATE TABLE word_status(lemma_key TEXT PRIMARY KEY,status TEXT);
+    INSERT INTO word_status VALUES('word','learning');
+    CREATE TABLE events(id TEXT PRIMARY KEY,text_id TEXT,sentence_id TEXT);
+    CREATE TABLE note_occurrences(id TEXT PRIMARY KEY,text_id TEXT,sentence_id TEXT);`);
+}
+
+test('material delete removes imported text and versions, preserves shared source, row versions and learner truth',async()=>{
+  const h=await harness(),v=await verified(),p=await h.repo.dryRun(v),applied=await h.repo.applyVerified(v,{plan_sha256:p.plan_sha256});
+  seedLifecycleState(h);
+  const id=applied.receipt.id_map.text.local_id,m=h.rows('SELECT * FROM studio_learning_materials')[0],row=h.rows('SELECT * FROM studio_table_revision_rows')[0];
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text) VALUES('neighbor','neighbor','Neighbor','שלום')");
+  h.db.run("INSERT INTO studio_learning_materials(material_id,package_id,text_id,created_at,updated_at) VALUES('neighbor-material',?,'neighbor','t','t')",[m.package_id]);
+  h.db.run("INSERT INTO studio_table_revisions(table_revision_id,material_id,revision_no,content_sha256,mapping_sha256,created_at,committed_at) VALUES('neighbor-revision','neighbor-material',1,'hash','map','t','t')");
+  h.db.run("INSERT INTO studio_table_revision_rows(table_revision_id,row_version_id,order_index) VALUES('neighbor-revision',?,0)",[row.row_version_id]);
+  h.db.run("INSERT INTO events VALUES('e',?,NULL)",[id]);h.db.run("INSERT INTO note_occurrences VALUES('o',?,NULL)",[id]);
+  const source=h.rows('SELECT * FROM studio_media_packages'),captions=h.rows('SELECT * FROM studio_caption_revisions'),review=h.rows('SELECT * FROM review_log'),words=h.rows('SELECT * FROM word_status');
+  const plan=await h.repo.previewMaterialDelete(id);assert.equal(plan.blockers.length,0);assert.equal(plan.revision_count,1);
+  await assert.rejects(h.repo.deleteMaterial(id,{}),/CONFIRM_REQUIRED/);
+  await h.repo.deleteMaterial(id,{confirm:true,plan_sha256:plan.plan_sha256});
+  assert.deepEqual(h.rows('SELECT id FROM texts'),[{id:'neighbor'}]);assert.equal(count(h,'studio_table_revisions'),1);assert.equal(count(h,'studio_learning_row_versions'),1);
+  assert.equal(count(h,'events'),0);assert.equal(count(h,'note_occurrences'),0);
+  assert.deepEqual(h.rows('SELECT * FROM studio_media_packages'),source);assert.deepEqual(h.rows('SELECT * FROM studio_caption_revisions'),captions);
+  assert.deepEqual(h.rows('SELECT * FROM review_log'),review);assert.deepEqual(h.rows('SELECT * FROM word_status'),words);
+  assert.equal(h.rows('SELECT op FROM artifact_sync_intents')[0].op,'delete');assert.equal(count(h,'studio_portable_import_receipts'),1);
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+  const restore=await h.repo.dryRun(v);assert.equal(restore.can_apply,true);await h.repo.applyVerified(v,{plan_sha256:restore.plan_sha256});assert.equal(count(h,'texts'),2,'export can restore the explicitly deleted material');
+});
+
+test('native material rename, archive and restore need no import receipt; stale delete and interrupted write preserve everything',async()=>{
+  const h=await harness(),v=await verified(),p=await h.repo.dryRun(v);await h.repo.applyVerified(v,{plan_sha256:p.plan_sha256});seedLifecycleState(h);
+  h.db.run('DELETE FROM studio_portable_import_receipts');const id=h.rows('SELECT id FROM texts')[0].id;
+  const initial=await h.repo.previewMaterialDelete(id);
+  await h.repo.updateMaterialDetails(id,{title:'В тайне — новая версия'});
+  await assert.rejects(h.repo.deleteMaterial(id,{confirm:true,plan_sha256:initial.plan_sha256}),/PLAN_STALE/);
+  await h.repo.updateMaterialDetails(id,{archived:true});let catalog=ImportCenterCore.buildCatalog(await h.repo.lifecycleInventory(),[],{});assert.equal(catalog[0].next_action,'unarchive');assert.equal(catalog[0].continuity_state,'archived');assert.equal(ImportCenterCore.filterLifecycleCatalog(catalog,'archived').length,1);
+  await h.repo.updateMaterialDetails(id,{archived:false});assert.equal(h.rows('SELECT is_archived FROM texts')[0].is_archived,0);
+  const plan=await h.repo.previewMaterialDelete(id),before=h.rows('SELECT * FROM texts');
+  h.db.run("CREATE TRIGGER stop_delete BEFORE DELETE ON texts BEGIN SELECT RAISE(ABORT,'test_interrupted'); END");
+  await assert.rejects(h.repo.deleteMaterial(id,{confirm:true,plan_sha256:plan.plan_sha256}),/test_interrupted/);
+  assert.deepEqual(h.rows('SELECT * FROM texts'),before);assert.equal(count(h,'artifact_sync_intents'),0);assert.equal(count(h,'studio_table_revisions'),1);
+  h.db.run('DROP TRIGGER stop_delete');h.db.run('CREATE TABLE future_reference(text_id TEXT)');h.db.run('INSERT INTO future_reference VALUES(?)',[id]);
+  const blocked=await h.repo.previewMaterialDelete(id);assert.equal(blocked.blockers[0].table,'future_reference');
+  await assert.rejects(h.repo.deleteMaterial(id,{confirm:true,plan_sha256:blocked.plan_sha256}),/REFERENCE_CONFLICT/);assert.equal(count(h,'texts'),1);
+  h.db.run('DROP TABLE future_reference');const final=await h.repo.previewMaterialDelete(id);await h.repo.deleteMaterial(id,{confirm:true,plan_sha256:final.plan_sha256});assert.equal(count(h,'studio_learning_row_versions'),0);assert.equal(count(h,'review_log'),1);
+});
+
+test('receipt undo follows source-track dependencies instead of hash order and blocks shared source deletion',async()=>{
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v),result=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const receipt=await h.repo.getReceipt(result.receipt.receipt_id),tracks=h.rows('SELECT track_id,role FROM studio_caption_tracks'),rollback=receipt.rollback;
+  rollback.created.tracks=[tracks.find(t=>t.role==='user_corrected').track_id,tracks.find(t=>t.role==='raw_original').track_id];
+  h.db.run('UPDATE studio_portable_import_receipts SET rollback_json=?',[JSON.stringify(rollback)]);
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text) VALUES('neighbor','neighbor','Neighbor','שלום')");
+  h.db.run("INSERT INTO studio_learning_materials(material_id,package_id,text_id,created_at,updated_at) VALUES('neighbor-material',?,'neighbor','t','t')",[rollback.package_id]);
+  const blocked=await h.repo.reverseReferencePlan(receipt.receipt_id);assert.equal(blocked.can_delete,false);assert.ok(blocked.blockers.some(b=>b.code==='SHARED_SOURCE_PACKAGE'));
+  await assert.rejects(h.repo.undo(receipt.receipt_id,{confirm:true}),/EXTERNAL_REFERENCE/);assert.equal(count(h,'studio_caption_tracks'),2);
+  h.db.run("DELETE FROM texts WHERE id='neighbor'");await h.repo.undo(receipt.receipt_id,{confirm:true});assert.equal(count(h,'studio_caption_tracks'),0);assert.equal(count(h,'studio_media_packages'),0);assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+});

@@ -390,6 +390,75 @@
       }
     }
 
+    // Material deletion is independent of import rollback. Shared sources and historical
+    // import receipts are retained. The caller must confirm a freshly computed preview.
+    async function previewMaterialDelete(textId) {
+      textId=String(textId||'');
+      const text=await one('SELECT * FROM texts WHERE id=?',[textId]);
+      if(!text)throw failure('MATERIAL_NOT_FOUND');
+      const material=await one('SELECT * FROM studio_learning_materials WHERE text_id=?',[textId]);
+      const sentences=await q('SELECT * FROM sentences WHERE text_id=? ORDER BY id',[textId]);
+      const revisions=material?await q('SELECT * FROM studio_table_revisions WHERE material_id=? ORDER BY table_revision_id',[material.material_id]):[];
+      const rows=material?await q(`SELECT rr.* FROM studio_table_revision_rows rr JOIN studio_table_revisions tr
+        ON tr.table_revision_id=rr.table_revision_id WHERE tr.material_id=? ORDER BY rr.table_revision_id,rr.order_index`,[material.material_id]):[];
+      const bindings=await q('SELECT * FROM studio_text_media_bindings WHERE text_id=?',[textId]);
+      const dependents=[],blockers=[];
+      for(const table of await q("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")){
+        const name=table.name,quoted=quoteIdentifier(name);
+        if(['sentences','studio_learning_materials','studio_text_media_bindings'].includes(name))continue;
+        const columns=new Set((await q(`PRAGMA table_info(${quoted})`)).map(c=>c.name));
+        if(!columns.has('text_id')&&!columns.has('sentence_id'))continue;
+        const keys=await q(`PRAGMA foreign_key_list(${quoted})`);
+        for(const [column,values,target] of [['text_id',[textId],'texts'],['sentence_id',sentences.map(s=>s.id),'sentences']]){
+          if(!columns.has(column)||!values.length)continue;
+          let count=0;
+          for(let i=0;i<values.length;i+=400){const batch=values.slice(i,i+400);count+=Number((await one(`SELECT COUNT(*) n FROM ${quoted} WHERE ${quoteIdentifier(column)} IN (${batch.map(()=>'?').join(',')})`,batch)).n);}
+          if(!count)continue;
+          const cascade=keys.some(k=>k.from===column&&k.table===target&&String(k.on_delete).toUpperCase()==='CASCADE');
+          const explicit=['events','note_occurrences','word_context'].includes(name);
+          (cascade||explicit?dependents:blockers).push({table:name,column,values,count,explicit:!cascade&&explicit});
+        }
+      }
+      const packageIds=uniqueSorted([material&&material.package_id,...bindings.map(b=>b.package_id)]);
+      const plan={text_id:textId,title:text.title,archived:!!Number(text.is_archived),sentence_count:sentences.length,
+        revision_count:revisions.length,source_count:packageIds.length,source_action:'retained',blockers,dependents,
+        row_version_ids:uniqueSorted(rows.map(row=>row.row_version_id))};
+      plan.plan_sha256=await Core.hashObject({text,material,sentences,revisions,rows,bindings,plan});
+      return plan;
+    }
+    async function deleteMaterial(textId,options) {
+      if(!options||!options.confirm||!options.plan_sha256)throw failure('MATERIAL_DELETE_CONFIRM_REQUIRED');
+      await x('SAVEPOINT material_lifecycle_delete;');
+      try {
+        const plan=await previewMaterialDelete(textId);
+        if(plan.plan_sha256!==options.plan_sha256)throw failure('MATERIAL_DELETE_PLAN_STALE');
+        if(plan.blockers.length)throw failure('MATERIAL_DELETE_REFERENCE_CONFLICT');
+        const text=await one('SELECT text_key,source_meta_json FROM texts WHERE id=?',[plan.text_id]);
+        const meta=parse(text.source_meta_json,{})||{};
+        if(text.text_key&&!meta.corpus&&!meta.group_corpus){
+          await r('DELETE FROM artifact_sync_intents WHERE artifact_key=?',[text.text_key]);
+          await r("INSERT INTO artifact_sync_intents(op,artifact_key,deleted_at) VALUES('delete',?,?)",[text.text_key,timestamp()]);
+        }
+        for(const ref of plan.dependents.filter(ref=>ref.explicit)){
+          for(let i=0;i<ref.values.length;i+=400){const batch=ref.values.slice(i,i+400);await r(`DELETE FROM ${quoteIdentifier(ref.table)} WHERE ${quoteIdentifier(ref.column)} IN (${batch.map(()=>'?').join(',')})`,batch);}
+        }
+        await r('DELETE FROM texts WHERE id=?',[plan.text_id]);
+        for(const id of plan.row_version_ids)await r('DELETE FROM studio_learning_row_versions WHERE row_version_id=? AND NOT EXISTS(SELECT 1 FROM studio_table_revision_rows WHERE row_version_id=?)',[id,id]);
+        await x('RELEASE material_lifecycle_delete;');
+        return {text_id:plan.text_id,source_action:'retained'};
+      }catch(error){await x('ROLLBACK TO material_lifecycle_delete; RELEASE material_lifecycle_delete;');throw error;}
+    }
+    async function updateMaterialDetails(textId,fields) {
+      const text=await one('SELECT id FROM texts WHERE id=?',[String(textId)]);
+      if(!text)throw failure('MATERIAL_NOT_FOUND');
+      if(Object.prototype.hasOwnProperty.call(fields,'title')){
+        const title=String(fields.title||'').trim();if(!title||title.length>240)throw failure('MATERIAL_TITLE_INVALID');
+        await r('UPDATE texts SET title=?,updated_at=? WHERE id=?',[title,timestamp(),text.id]);
+      }else if(typeof fields.archived==='boolean')await r('UPDATE texts SET is_archived=?,updated_at=? WHERE id=?',[fields.archived?1:0,timestamp(),text.id]);
+      else throw failure('MATERIAL_ACTION_INVALID');
+      return {text_id:text.id};
+    }
+
     async function reverseReferencePlan(receiptId) {
       const receipt=await getReceipt(receiptId);if(!receipt||receipt.status!=='committed')throw failure('RECEIPT_NOT_COMMITTED');
       const rollback=receipt.rollback||{},created=rollback.created||{},blockers=[],cascadeRefs=[],explicitDeleteRefs=[];
@@ -416,7 +485,22 @@
       }
       if(!created.text)blockers.push({table:'texts',column:'id',values:rollback.text_id?[rollback.text_id]:[],count:rollback.text_id?1:0,code:'REUSED_TEXT_CANON'});
       if(created.text){await external('text_id',rollback.text_id,['sentences','studio_learning_materials','studio_text_media_bindings'],'texts');await external('sentence_id',Object.values(receipt.id_map.rows||{}),[],'sentences');}
-      if(created.package)await external('package_id',rollback.package_id,['studio_media_packages','studio_caption_tracks','studio_text_media_bindings','studio_learning_materials'],null);
+      if(created.package){
+        await external('package_id',rollback.package_id,['studio_media_packages','studio_caption_tracks','studio_text_media_bindings','studio_learning_materials'],null);
+        for(const [table,column,id] of [['studio_learning_materials','material_id',rollback.material_id],['studio_text_media_bindings','text_id',rollback.text_id]]){
+          const hit=await one(`SELECT COUNT(*) n FROM ${table} WHERE package_id=? AND ${column}!=?`,[rollback.package_id,id||'']);
+          if(Number(hit.n))blockers.push({table,column:'package_id',values:[rollback.package_id],count:Number(hit.n),code:'SHARED_SOURCE_PACKAGE'});
+        }
+      }
+      const tracks=new Set(created.tracks||[]);
+      for(const id of tracks){
+        const children=(await q('SELECT track_id FROM studio_caption_tracks WHERE parent_track_id=?',[id])).filter(row=>!tracks.has(row.track_id));
+        if(children.length)blockers.push({table:'studio_caption_tracks',column:'parent_track_id',values:[id],count:children.length,code:'SHARED_SOURCE_TRACK'});
+      }
+      for(const id of created.caption_revisions||[]){
+        const hit=await one('SELECT COUNT(*) n FROM studio_table_revisions WHERE bound_caption_revision_id=? AND material_id!=?',[id,rollback.material_id||'']);
+        if(Number(hit.n))blockers.push({table:'studio_table_revisions',column:'bound_caption_revision_id',values:[id],count:Number(hit.n),code:'SHARED_SOURCE_REVISION'});
+      }
       const byLocation=(a,b)=>String(a.table+'\0'+a.column).localeCompare(String(b.table+'\0'+b.column));
       return{receipt_id:receiptId,can_delete:blockers.length===0,blockers:blockers.sort(byLocation),cascade_refs:cascadeRefs.sort(byLocation),explicit_delete_refs:explicitDeleteRefs.sort(byLocation),created,media_blob_action:'retained'};
     }
@@ -443,7 +527,17 @@
         for (const id of (created.row_versions || []).slice().reverse()) await r('DELETE FROM studio_learning_row_versions WHERE row_version_id=? AND NOT EXISTS(SELECT 1 FROM studio_table_revision_rows WHERE row_version_id=?)', [id, id]);
         if (created.text) await r('DELETE FROM texts WHERE id=?', [rollback.text_id]);
         for (const id of (created.caption_revisions || []).slice().reverse()) await r('DELETE FROM studio_caption_revisions WHERE revision_id=? AND NOT EXISTS(SELECT 1 FROM studio_caption_tracks WHERE current_revision_id=?)', [id, id]);
-        for (const id of (created.tracks || []).slice().reverse()) await r('DELETE FROM studio_caption_tracks WHERE track_id=?', [id]);
+        // Receipt ids are hash-sorted, not a parent/child order. Delete only leaves;
+        // a child outside this receipt blocks deletion instead of being detached.
+        const pendingTracks=new Set(created.tracks||[]);
+        while(pendingTracks.size){
+          let changed=false;
+          for(const id of pendingTracks){
+            if(await one('SELECT track_id FROM studio_caption_tracks WHERE parent_track_id=? LIMIT 1',[id]))continue;
+            await r('DELETE FROM studio_caption_tracks WHERE track_id=?',[id]);pendingTracks.delete(id);changed=true;
+          }
+          if(!changed)throw failure('UNDO_EXTERNAL_REFERENCE_CONFLICT');
+        }
         if (created.package) await r('DELETE FROM studio_media_packages WHERE package_id=?', [rollback.package_id]);
         const residualPlan=await reverseReferencePlan(receiptId);if(!residualPlan.can_delete)throw failure('UNDO_EXTERNAL_REFERENCE_CONFLICT');
         inject(options.fault_inject, 'before_receipt_update');
@@ -785,7 +879,7 @@
       };
     }
 
-    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial, listExportReceipts, recordExportGenerated, confirmExportSaved, restoreExportReceipts, lifecycleInventory, materialArchiveGaps };
+    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial, listExportReceipts, recordExportGenerated, confirmExportSaved, restoreExportReceipts, lifecycleInventory, materialArchiveGaps, previewMaterialDelete, deleteMaterial, updateMaterialDetails };
   }
 
   return { createRepository };

@@ -139,7 +139,7 @@ test('recovery UX names broken, archived and complete receipt states without tre
   assert.match(studio,/Source package/);
   assert.match(html,/materialForText\(textId\)/);
   assert.match(html,/archiveText\(textId\)/);
-  assert.match(html,/Studio history/);
+  assert.match(html,/openMaterialActions\(textId,\{intent:'delete'\}\)/,'Library Delete opens the material deletion preview');
   assert.match(html,/studio-media-binding-outcome-v1/);
   assert.match(html,/_studio_source/);
 });

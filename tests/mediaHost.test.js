@@ -555,3 +555,14 @@ test('P0 replay coverage is one invariant and intentional partial holes do not r
   });
   assert.equal(MH.rowsNeedReplayAugment(exact, 3, [0, 2]), false);
 });
+
+test('restoring a saved immutable material preserves verified revision timing and segment ends',()=>{
+  const audio={projection_of_revision_id:'rev:exact',projection_sha256:'a'.repeat(64),
+    segments:[{i:0,start:0,end:0.8,text:'שלום'},{i:1,start:0.9,end:1.8,text:'מיה'},{i:2,start:1.9,end:2.8,text:'חדש'}],
+    timing:{entries:[{o:0,t:0,end:0.8},{o:1,t:0.9,end:1.8},{o:2,t:1.9,end:2.8}]},timingSource:'studio-exact-binding',
+    timingMap:{authority:'studio-exact-binding',revision_id:'rev:exact',revision_sha256:'a'.repeat(64),row_caption_segment_ids:['c0','c1','c2']}};
+  const before=JSON.stringify(audio),entries=audio.timing.entries;
+  MH.restoreForRows(audio,[{he:'שלום'},{he:'מיה'},{he:'חדש'}],deps);
+  assert.equal(JSON.stringify(audio),before,'derived restoration must not overwrite immutable revision boundaries');
+  assert.equal(audio.timing.entries,entries,'resume retains the same entries identity');
+});

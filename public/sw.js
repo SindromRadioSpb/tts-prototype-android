@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.526";
+const CACHE_VERSION = "v3.11.527";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=6",
+  "/js/mediatheque-ui.js?v=7",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -211,12 +211,12 @@ const PRECACHE_URLS = [
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js",
   "/js/portable-learning-package-core.js",
-  "/js/import-center-core.js",
-  "/js/portable-learning-package-repository.js",
+  "/js/import-center-core.js?v=527",
+  "/js/portable-learning-package-repository.js?v=527",
   "/js/studio-media-package.js",
   "/js/studio-media-editor.js",
   "/js/studio-material-revision.js",
-  "/js/studio-portable-learning-package.js?v=498",
+  "/js/studio-portable-learning-package.js?v=527",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
@@ -232,7 +232,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=506",
+  "/js/media-host.js?v=527",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=506",
@@ -266,9 +266,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=221",
-  "/i18n/locales/en.js?v=221",
-  "/i18n/locales/he.js?v=221",
+  "/i18n/locales/ru.js?v=222",
+  "/i18n/locales/en.js?v=222",
+  "/i18n/locales/he.js?v=222",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
