@@ -4516,6 +4516,7 @@ window.I18N_LOCALES.en.mediatheque = {
   "retryHelp": "Retry loading to continue.",
   "publicFailed": "Could not load public materials. Check your connection and retry.",
   "localFailed": "Could not open your personal library. Retry loading; your data has not changed.",
+  "storageUnavailable": "Could not connect to your personal library’s original storage. Close other LinguistPro tabs and select Retry. No data was moved or deleted.",
   "storageChanged": "The browser opened a different storage backend. Open Studio diagnostics before editing the library.",
   "conflict": "The structure changed in another tab. Refresh it and try again.",
   "referenceUnavailable": "A material is unavailable. Check the collection before publishing.",

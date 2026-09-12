@@ -174,7 +174,7 @@ async function loadLocal() {
       if (batch.length < 500) break; after = batch[batch.length - 1].id;
     }
     state.personal = personal; state.localItems = rows.map(personalMaterial).filter(Boolean); state.localReady = true; state.localError = '';
-  } catch (e) { state.localError = /STORAGE_CHANGED/.test(e.message) ? t('storageChanged') : t('localFailed'); state.localReady = false; }
+  } catch (e) { state.localError = /STORAGE_CHANGED/.test(e.message) ? t('storageChanged') : /DB_PREFERRED_STORAGE_UNAVAILABLE/.test(e.message) ? t('storageUnavailable') : t('localFailed'); state.localReady = false; }
 }
 async function loadPublic() {
   try { const payload = await api('/api/mediatheque'); payload.structure = C.validate(payload.structure, { publicOnly: true });
@@ -448,7 +448,7 @@ function render() {
     ${state.preview ? `<div class="ml-banner"><div><strong>${esc(t('previewTitle'))}</strong><p>${esc(t('previewHelp'))}</p></div><div class="ml-actions">${button('publish', t('publish'), '', 'ml-primary')}${button('exit-preview', t('backToDraft'))}</div></div>`
       : state.editing && state.space === 'public' ? `<div class="ml-banner"><span>${esc(t('draftNotice'))} · ${esc(t('revision', { count: state.draft?.revision || 0 }))}</span>${button('preview', t('preview'))}</div>` : ''}
     ${state.publicError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.publicError)}</span>${button('retry', t('retry'))}</div>` : ''}
-    ${state.localError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.localError)}</span>${button('retry', t('retry'))}</div>` : ''}
+    ${state.localError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.localError)}</span>${button('retry-local', t('retry'))}</div>` : ''}
     ${updateWorker || updateRequired ? `<div class="ml-banner"><span>${esc(t('updateAvailable'))}</span>${button('update-app',t('updateNow'))}</div>` : ''}
     <div class="ml-searchbar"><label class="ml-search"><span class="sr-only">${esc(t('search'))}</span><input type="search" id="ml-search" value="${esc(state.filters.q)}" placeholder="${esc(t('searchPlaceholder'))}"></label>
     ${state.section !== 'catalog' ? button('search-submit', t('search')) : ''}</div>
@@ -692,6 +692,7 @@ async function onAction(action, node) {
   if (action === 'clear-selection') { state.selected.clear(); render(); return; }
   if (action === 'previous-page' || action === 'next-page') { rememberLocation(); state.page += action === 'next-page' ? 1 : -1; persist('push'); render(); $('ml-content').focus({preventScroll:true}); $('ml-content').scrollIntoView({ block:'start' }); return; }
   if (action === 'retry') return loadAll();
+  if (action === 'retry-local') { rememberLocation(); await localDb.closeLocalDB(); location.reload(); return; }
   if (action === 'add-item') return addToCollection(node.dataset.key);
   if (action === 'use-view') { const v = structure().views.find(v => v.id === id); if (v) return navigate('catalog', v.filters, { viewId:id }); return; }
   if (action === 'exit-preview') { state.preview = false; render(); return; }
@@ -740,6 +741,15 @@ document.addEventListener('click', event => {
     event.preventDefault(); const p = new URL(link.href).searchParams;
     let filters; try { filters = C.filters(p.has('filters') ? JSON.parse(p.get('filters')) : { category:p.get('category') || '', collection:p.get('collection') || '' }); } catch (_) { filters = C.filters(); }
     navigate(p.get('section') || 'catalog', filters);
+    return;
+  }
+  const outbound = event.target.closest('a[href]');
+  if (!event.defaultPrevented && outbound && event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && !outbound.download && (!outbound.target || outbound.target === '_self')) {
+    const url = new URL(outbound.href, location.href);
+    if (url.origin === location.origin && ['/', '/index.html', '/library.html'].includes(url.pathname)) {
+      event.preventDefault();
+      (async () => { await localDb.closeLocalDB(); location.href = url.href; })().catch(e => announce(errorText(e), true));
+    }
   }
 });
 document.addEventListener('input', event => {
@@ -802,7 +812,7 @@ $('ml-language').value = window.appGetLocale();
 $('ml-language').addEventListener('change', event => window.appSetLocale(event.target.value));
 document.addEventListener('i18n:changed', () => { $('ml-language').value = window.appGetLocale(); document.title = t('title') + ' · LinguistPro'; render(); });
 window.addEventListener('pagehide', () => rememberLocation());
-window.addEventListener('pageshow', event => { if (event.persisted) { pendingPosition = returnPosition(); loadAll(); } });
+window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
 window.addEventListener('online', () => loadAll());
 window.addEventListener('popstate', () => { clearTimeout(searchTimer); searchRouteStarted = false; state.editing = false; state.preview = false; restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true); render(); restoreLocation(history.state?.ml); });
 applyTheme(); restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true);

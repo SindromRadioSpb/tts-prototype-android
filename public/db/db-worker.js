@@ -10,10 +10,12 @@
 //      iOS Safari 15+, Android Chrome 80+, older desktop). Uses the
 //      ASYNC (Asyncify) wa-sqlite build.
 //
-// Selection happens at init: try #1 inside a try/catch; on any failure
+// First-install selection: try #1 inside a try/catch; on any failure
 // (NotSupportedError / TypeError on createSyncAccessHandle / capacity
 // errors / etc.) fall back to #2. The choice is reported back to the
 // main thread in the init response.
+// Once a storage preference exists, open/retry ONLY that physical backend.
+// Falling back after a transient lock would expose an unrelated library.
 //
 // Protocol:
 //   Request:  { id, type: 'init'|'query'|'run'|'exec', sql?, params? }
@@ -157,7 +159,7 @@ async function initWithIDB() {
 // AccessHandlePoolVFS first regardless of which VFS actually holds the user's data).
 async function initDBOnce(preferVfs) {
   const errors = [];
-  const order = computeVfsOrder(preferVfs);
+  const order = computeVfsOrder(preferVfs, { allowFallback: false });
 
   for (const choice of order) {
     if (db) break;
@@ -176,7 +178,7 @@ async function initDBOnce(preferVfs) {
 
   if (!db) {
     const summary = errors.map(x => `${x.vfs}: ${x.error}`).join(' | ');
-    throw new Error('All VFS init attempts failed. ' + summary);
+    throw new Error((preferVfs ? 'DB_PREFERRED_STORAGE_UNAVAILABLE: ' : 'All VFS init attempts failed. ') + summary);
   }
 
   await execMulti('PRAGMA foreign_keys = ON;');

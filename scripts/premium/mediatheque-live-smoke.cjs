@@ -3,8 +3,8 @@
 // Read-only production HTTP + disposable browser storage. Never calls a publication writer.
 const {chromium}=require('playwright'),{execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.523';
-const OUT=path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/production');
+const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.524';
+const OUT=process.env.MEDIATHEQUE_EVIDENCE_DIR || path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/production');
 const evidence={base:BASE,expectedVersion:VERSION,commit:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),mode:'production reads; fresh isolated Chromium profile; no owner data',checks:[],errors:[],providerRequests:[]};
 fs.mkdirSync(OUT,{recursive:true});
 const check=(name,value)=>{assert.ok(value,name);evidence.checks.push(name);console.log('PASS',name);};
@@ -16,7 +16,7 @@ try{
  let config;
  for(let n=0;n<180;n++){try{const r=await fetch(BASE+'/api/client-config?mediatheque_verify='+Date.now(),{cache:'no-store'});config=await r.json();if(config.version===VERSION)break;}catch{}await delay(2000);}
  check('target version is served',config?.version===VERSION);
- const urls=Object.keys(config.shellIntegrity).filter(url=>/mediatheque|\/library-ui\.js|\/local-db\.js|\/i18n\/locales\//.test(url));
+ const urls=Object.keys(config.shellIntegrity).filter(url=>/db-worker|vfs-order|mediatheque|\/library-ui\.js|\/local-db\.js|\/i18n\/locales\//.test(url));
  for(const url of urls){const r=await fetch(BASE+url+(url.includes('?')?'&':'?')+'ml_verify='+Date.now(),{cache:'no-store'}),bytes=Buffer.from(await r.arrayBuffer()),hash=crypto.createHash('sha256').update(bytes).digest('hex');check('served integrity '+url,r.ok&&hash===config.shellIntegrity[url]);}
  const catalog=await fetch(BASE+'/api/mediatheque',{cache:'no-store'}),body=await catalog.json();check('public metadata is explicitly uncached',/no-store/.test(catalog.headers.get('cache-control')));check('public material catalog resolves',body.ok&&body.items.length>0);evidence.publicItems=body.items.length;
  const shell=await fetch(BASE+'/library.html?ml_verify='+Date.now());const csp=shell.headers.get('content-security-policy-report-only');check('report-only policy recognizes the supported YouTube frame and thumbnail',csp.includes('frame-src')&&csp.includes('https://www.youtube.com')&&csp.includes('https://i.ytimg.com'));

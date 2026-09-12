@@ -14,10 +14,16 @@
 // torn down before its own cleanup completes.
 export const VFS_CHOICE_NAME = { AccessHandlePool: 'AccessHandlePool', IDBBatchAtomic: 'tts-opfs-idb' };
 
-export function computeVfsOrder(preferVfs) {
+export function computeVfsOrder(preferVfs, { allowFallback = true } = {}) {
   const order = ['AccessHandlePool', 'IDBBatchAtomic'];
   if (preferVfs) {
     const preferredChoice = Object.keys(VFS_CHOICE_NAME).find((k) => VFS_CHOICE_NAME[k] === preferVfs);
+    // Existing libraries belong to one physical store. An open failure must retry
+    // that store, never turn an unrelated empty backend into a successful boot.
+    if (!allowFallback) {
+      if (!preferredChoice) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: unknown storage preference');
+      return [preferredChoice];
+    }
     if (preferredChoice) order.sort((a, b) => (a === preferredChoice ? -1 : (b === preferredChoice ? 1 : 0)));
   }
   return order;

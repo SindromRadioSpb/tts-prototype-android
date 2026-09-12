@@ -6,7 +6,7 @@ const {spawn}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const P=require('../../public/js/playback-source');
 const ROOT=path.resolve(__dirname,'../..'),PORT=3343,BASE='http://127.0.0.1:'+PORT;
-const OUT=path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/local');
+const OUT=process.env.MEDIATHEQUE_EVIDENCE_DIR || path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/local');
 const TEMP=fs.mkdtempSync(path.join(ROOT,'.tmp/mediatheque-smoke-'));
 const SECRET='isolated-mediatheque-fixture-only-'+Date.now();
 const evidence={checks:[],errors:[],screenshots:[],mode:'isolated local server; synthetic content; fresh browser profiles'};

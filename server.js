@@ -1093,7 +1093,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 const SHELL_INTEGRITY_PATHS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=2",
-  "/js/mediatheque-ui.js?v=3",
+  "/js/mediatheque-ui.js?v=4",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -1137,7 +1137,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-portable-learning-package.js?v=498",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=522",
+  "/js/library-ui.js?v=524",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1151,6 +1151,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/local-db.js?v=520",
   "/db/migrations.js",
   "/db/db-worker.js",
+  "/db/vfs-order.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
   "/js/reader-core.js?v=402",
@@ -1168,9 +1169,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=506",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=218",
-  "/i18n/locales/en.js?v=218",
-  "/i18n/locales/he.js?v=218",
+  "/i18n/locales/ru.js?v=219",
+  "/i18n/locales/en.js?v=219",
+  "/i18n/locales/he.js?v=219",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

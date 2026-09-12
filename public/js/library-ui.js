@@ -5006,6 +5006,7 @@ function _roomStudioNavInit() {
   };
   wire($('roomStudioLink'));
   wire($('roomFooterStudioLink'));
+  document.querySelectorAll('.room-mediatheque-entry a').forEach(wire);
 }
 function roomCloudInit() {
   const btn = $('roomCloud'); const els = _cloudEls();
@@ -8329,6 +8330,7 @@ async function closeReader(options) {
   setReaderReturnRoute(null);
   readerReturnContext = null;
   if (returnRoute === 'mediatheque' && !presentationRestore && !returnHome) {
+    try { await localDb.closeLocalDB(); } catch (_) {}
     location.href = mediathequeReturnHref() || '/mediatheque.html';
     return;
   }
