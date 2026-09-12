@@ -1,0 +1,33 @@
+{
+  "probes": [
+    {
+      "version": "3.11.526",
+      "integrity": true
+    },
+    {
+      "version": "3.11.526",
+      "integrity": true
+    },
+    {
+      "version": "3.11.526",
+      "integrity": true
+    }
+  ],
+  "health": {
+    "ok": true,
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 83,
+    "disk_warn": true
+  },
+  "cleanup": {
+    "final_free_gib": 6.5,
+    "host_used_percent": 82,
+    "containers_preserved": 9,
+    "volumes_preserved": 3
+  }
+}
