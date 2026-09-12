@@ -37,3 +37,13 @@ R3/R12: единые ссылки, CAS, очередь публикации. R4/
 - `node scripts/premium/mediatheque-browser-smoke.cjs`: PASS, real OPFS in isolated browser profiles and real local publication API. Includes multi-category identity, merge/undo, JSON restore, saved-view reloads, 36-card paging, RU/EN/HE 380px, reader navigation, exact unchanged review_log, owner/anonymous/CSRF boundaries, draft isolation, immutable publication, withdrawn-reference honesty, offline cold reload and offline edits.
 - Visual review caught and corrected dark body background inheritance. Exact computed body background/text checked after fix. Screenshot refresh and production evidence follow deployment.
 - User explicitly authorized deployment to main/production and live Kapture MCP testing on 2026-09-12. Physical iPhone/VoiceOver acceptance remains separate.
+
+## Production observations and follow-up 3.11.521
+
+- 3.11.520 / `52673149` deployed from main; live no-cache client config and Mediatheque shell integrity confirmed.
+- Kapture MCP: entry from Room, existing owner OPFS library, video filter (28 matching materials at observation), cards/list and added-time sort, temporary category create/undo, original material reader, real YouTube playback start/stop — completed.
+- Public runtime catalog: 211 readable published entries at observation. The current published items carry text/TTS data; no original-video identity was inferred from the presence of TTS assets.
+- Kapture owner draft: temporary category → preview → publication confirmation → cancel → undo. Anonymous/public API never exposed the draft. Temporary test category was not published.
+- Live finding: known YouTube videos without stored channel author showed “source unspecified”. Projection now retains caption-channel authors where present and uses factual “YouTube” platform fallback when the channel is unknown.
+- Live finding: permitted YouTube playback generated report-only CSP frame violations. The report-only policy now names only the existing YouTube API/frame/thumbnail hosts; enforced standalone-page policies remain unchanged.
+- Follow-up verification: metadata projection test, 47 relevant domain/release checks and API smoke PASS. Production re-verification follows the 3.11.521 rollout.

@@ -240,9 +240,10 @@ const CSP_REPORT_ONLY_VALUE = [
   // Inline tolerated for now (known refactor); wasm-unsafe-eval for wa-sqlite /
   // sherpa-onnx WASM; blob: for worker/wasm bootstrap. No 'unsafe-eval' — we
   // want a report if any plain eval()/new Function() sneaks in.
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.youtube.com https://s.ytimg.com",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://i.ytimg.com",
   "font-src 'self' data:",
   "media-src 'self' blob: data:",
   "worker-src 'self' blob:",
