@@ -1,6 +1,6 @@
 # Медиатека, второй этап — результаты проверок
 
-Дата: 2026-09-12. Исходная production-база: `0319f421` (3.11.522); утверждённый план: `706e863c`. Целевой релиз: 3.11.523. Статус: локальная приёмка завершена; production-проверка выполняется после выкладки.
+Дата: 2026-09-12. Исходная production-база: `0319f421` (3.11.522); утверждённый план: `706e863c`. Runtime release: 3.11.523, commit `0321d092db0b5010c7328efdee8f2941382cc2d4`, main и production. Статус: LOCAL + PRODUCTION PASS; физический iPhone/VoiceOver NOT TESTED.
 
 Это вручную поддерживаемый указатель на свидетельства; редактировать README и `docs/planning/ROOM_MEDIATHEQUE_STAGE2_PLAN_2026_09_12.md`. JSON и PNG — результаты скриптов, вручную не править. `.tmp/` содержит только временные логи и изолированные тестовые БД. Личные материалы владельца сюда не копируются; `private/` исключён из git.
 
@@ -11,6 +11,8 @@
 - `node scripts/premium/mediatheque-live-smoke.cjs` — `production/evidence.json` и публичные PNG. Только читающие production HTTP-запросы; отдельный профиль Chromium, учебный видеообразец хранится только локально в нём. Скрипт проверяет target version, served integrity, завершённые перезагрузки, публичные материалы и reader, темы/виды/навигацию, RU/EN/HE и нулевые provider/publication writes.
 - `npm test`: 1568/1568 PASS. Неизменённые исходники iPhone-хелпера временно приведены к точным байтам HEAD, поскольку CRLF Windows отличается от LF внутри проверяемого архива; после проверки исходные локальные байты возвращены. Generated physics artifacts, которые переписывает существующий тест, восстановлены в чистом отдельном checkout.
 - `npm run test:api-smoke`: PASS. `node tests/i18n.smoke.js --write-lock`: 233/233 PASS, locale cache version 218.
+
+Итог: локальный browser scenario 63/63 PASS; после финальной UI-полировки 61 релевантная доменная/release-проверка PASS; production 39/39 PASS. Последний OPFS browser benchmark: 5000 материалов, загрузка 333 мс, поиск 230 мс, 36 карточек в DOM. `production/kapture-evidence.json` — вручную составленная квитанция фактических действий через Kapture и read-only сравнения owner review_log: 7758 записей, одинаковый SHA-256 до/после. Kapture подтвердил завершённый публичный каталог, browser history и настоящий public reader/back. Тестовая редакция витрины на production не публиковалась.
 
 ## Границы свидетельств
 

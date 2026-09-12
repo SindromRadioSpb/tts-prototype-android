@@ -10,7 +10,7 @@ fs.mkdirSync(OUT,{recursive:true});
 const check=(name,value)=>{assert.ok(value,name);evidence.checks.push(name);console.log('PASS',name);};
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function ready(page){await page.locator('#ml-root[aria-busy=false]').waitFor({timeout:60000});}
-async function shot(page,name){await page.screenshot({path:path.join(OUT,name+'.png')});check(name+' no overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+async function shot(page,name){await page.screenshot({path:path.join(OUT,name+'.png'),animations:'disabled'});check(name+' no overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
 async function main(){let browser,page;
 try{
  let config;

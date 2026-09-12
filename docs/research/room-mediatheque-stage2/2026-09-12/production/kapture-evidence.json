@@ -1,0 +1,28 @@
+{
+  "mode": "Manual Kapture MCP acceptance; original owner profile queried read-only for review integrity",
+  "runtimeVersion": "3.11.523",
+  "runtimeCommit": "0321d092db0b5010c7328efdee8f2941382cc2d4",
+  "deployment": {
+    "status": "Success",
+    "startedAt": "2026-09-12 08:23:52 UTC",
+    "endedAt": "2026-09-12 08:26:40 UTC"
+  },
+  "checks": [
+    "actual public catalogue completes with 211 materials",
+    "typographic cover uses actual public material title and source",
+    "next page then browser Back restores page 1 of 6",
+    "browser Forward restores page 2 of 6",
+    "actual published Physics material opens reader rows",
+    "reader Back restores search and its two results",
+    "owner review_log identical before and after"
+  ],
+  "reviewLog": {
+    "beforeCount": 7758,
+    "afterCount": 7758,
+    "sha256": "688839bce8b13302f4f10f236de020d2d6a3ab35c7f66c969f44632af5cf76ad"
+  },
+  "productionEditorialWrites": 0,
+  "physicalIPhone": "NOT_TESTED",
+  "voiceOver": "NOT_TESTED",
+  "status": "PASS"
+}
