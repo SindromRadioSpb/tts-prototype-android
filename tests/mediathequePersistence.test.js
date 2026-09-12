@@ -21,6 +21,26 @@ test('personal CAS and undo preserve content and reject stale updates', async t 
   const undone = await repo.undo(1); assert.deepEqual(undone.structure, C.empty());
   assert.deepEqual(await query(db, 'SELECT * FROM review_log'), [{ value: 'unchanged' }]);
 });
+test('interrupted statement rolls back structure and undo; lost acknowledgement cannot duplicate a save', async t => {
+  const { createRepository } = require('../public/js/mediatheque-local-repository');
+  const { MEDIATHEQUE_SCHEMA_SQL } = await import('../public/db/migrations.js');
+  const db = new sqlite3.Database(':memory:'); t.after(() => new Promise(r=>db.close(r)));
+  await exec(db,MEDIATHEQUE_SCHEMA_SQL);
+  const repo = createRepository({query:(sql,params)=>query(db,sql,params)});
+  const first = await repo.save(C.command(C.empty(),{type:'category.create',id:'a',title:'A'}),0);
+  const before = await query(db,'SELECT * FROM mediatheque_personal');
+  await exec(db,"CREATE TRIGGER interrupt_save AFTER UPDATE ON mediatheque_personal BEGIN SELECT RAISE(ABORT,'interrupted_write'); END;");
+  await assert.rejects(repo.save(C.empty(),first.revision),/interrupted_write/);
+  assert.deepEqual(await query(db,'SELECT * FROM mediatheque_personal'),before);
+  await exec(db,'DROP TRIGGER interrupt_save');
+  let loseReply = true;
+  const interrupted = createRepository({query:async(sql,params)=>{const rows=await query(db,sql,params);if(loseReply&&sql.startsWith('UPDATE')){loseReply=false;throw new Error('reply_lost');}return rows;}});
+  await assert.rejects(interrupted.save(C.empty(),first.revision),/reply_lost/);
+  await assert.rejects(interrupted.save(C.empty(),first.revision),/CONFLICT/);
+  const recovered = await repo.load();assert.equal(recovered.revision,first.revision+1);assert.deepEqual(recovered.structure,C.empty());
+  assert.deepEqual((await repo.undo(recovered.revision)).structure,first.structure);
+});
+
 test('public editorial drafts, atomic publication, rollback and owner-only authorization', async t => {
   const db = new sqlite3.Database(':memory:'); t.after(() => new Promise(r => db.close(r)));
   for (const file of ['020_identity.sql', '063_publication_domain.sql', '067_mediatheque_structure.sql'])

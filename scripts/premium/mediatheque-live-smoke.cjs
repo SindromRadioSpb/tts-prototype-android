@@ -3,8 +3,8 @@
 // Read-only production HTTP + disposable browser storage. Never calls a publication writer.
 const {chromium}=require('playwright'),{execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.522';
-const OUT=path.join(ROOT,'docs/research/room-mediatheque/2026-09-12/production');
+const ROOT=path.resolve(__dirname,'../..'),BASE='https://linguistpro.kolosei.com',VERSION=process.env.MEDIATHEQUE_EXPECT_VERSION||'3.11.523';
+const OUT=path.join(ROOT,'docs/research/room-mediatheque-stage2/2026-09-12/production');
 const evidence={base:BASE,expectedVersion:VERSION,commit:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),mode:'production reads; fresh isolated Chromium profile; no owner data',checks:[],errors:[],providerRequests:[]};
 fs.mkdirSync(OUT,{recursive:true});
 const check=(name,value)=>{assert.ok(value,name);evidence.checks.push(name);console.log('PASS',name);};
@@ -16,7 +16,7 @@ try{
  let config;
  for(let n=0;n<180;n++){try{const r=await fetch(BASE+'/api/client-config?mediatheque_verify='+Date.now(),{cache:'no-store'});config=await r.json();if(config.version===VERSION)break;}catch{}await delay(2000);}
  check('target version is served',config?.version===VERSION);
- const urls=Object.keys(config.shellIntegrity).filter(url=>/mediatheque|\/library-ui\.js|\/local-db\.js/.test(url));
+ const urls=Object.keys(config.shellIntegrity).filter(url=>/mediatheque|\/library-ui\.js|\/local-db\.js|\/i18n\/locales\//.test(url));
  for(const url of urls){const r=await fetch(BASE+url+(url.includes('?')?'&':'?')+'ml_verify='+Date.now(),{cache:'no-store'}),bytes=Buffer.from(await r.arrayBuffer()),hash=crypto.createHash('sha256').update(bytes).digest('hex');check('served integrity '+url,r.ok&&hash===config.shellIntegrity[url]);}
  const catalog=await fetch(BASE+'/api/mediatheque',{cache:'no-store'}),body=await catalog.json();check('public metadata is explicitly uncached',/no-store/.test(catalog.headers.get('cache-control')));check('public material catalog resolves',body.ok&&body.items.length>0);evidence.publicItems=body.items.length;
  const shell=await fetch(BASE+'/library.html?ml_verify='+Date.now());const csp=shell.headers.get('content-security-policy-report-only');check('report-only policy recognizes the supported YouTube frame and thumbnail',csp.includes('frame-src')&&csp.includes('https://www.youtube.com')&&csp.includes('https://i.ytimg.com'));
@@ -24,9 +24,13 @@ try{
  page.on('pageerror',e=>evidence.errors.push(e.message));page.on('request',r=>{if(r.method()==='POST'&&/\/api\/(tts|translate|gemini|asr|publication)/.test(r.url()))evidence.providerRequests.push(new URL(r.url()).pathname);});
  await page.goto(BASE+'/mediatheque.html?space=public&section=catalog');await ready(page);check('guest has no editor entry',await page.locator('[data-action=organize]').count()===0);check('real public catalog uses at most 36 cards',await page.locator('.ml-item').count()===Math.min(36,body.items.length));
  for(let n=0;n<3;n++){await page.reload();await ready(page);check('completed guest reload '+(n+1),await page.locator('.ml-item').count()>0);}
+ check('public text covers display actual titles',await page.locator('.ml-cover[data-kind=text] .ml-cover-type strong').first().innerText().then(Boolean));
+ await page.locator('[data-action=next-page]').click();await page.goBack();await ready(page);check('public Back restores first page',!new URL(page.url()).searchParams.has('page'));
+ await page.goForward();await ready(page);check('public Forward restores second page',new URL(page.url()).searchParams.get('page')==='2');await page.locator('[data-action=previous-page]').click();await page.evaluate(()=>scrollTo(0,0));
  await shot(page,'public-desktop-ru');await page.locator('#ml-theme').click();await shot(page,'public-desktop-dark');
  const colors=await page.evaluate(()=>({bg:getComputedStyle(document.body).backgroundColor,fg:getComputedStyle(document.body).color}));check('dark theme changes both body background and text',colors.bg==='rgb(23, 33, 50)'&&colors.fg==='rgb(236, 241, 250)');await page.locator('#ml-theme').click();
  for(const lang of ['ru','en','he']){await page.setViewportSize({width:380,height:844});await page.evaluate(l=>window.appSetLocale(l),lang);await shot(page,'public-380-'+lang);}
+ await page.locator('[data-action=open-filters]').click();await shot(page,'public-380-he-filters');await page.locator('[data-action=cancel-dialog]').click();
  await page.evaluate(()=>window.appSetLocale('ru'));await page.setViewportSize({width:1280,height:900});
  const title=body.items.find(i=>i.ref.slug==='physics-year1-problems')?.title||body.items[0].title;await page.locator('#ml-search').fill(title);await page.waitForTimeout(350);check('public title search finds actual result',await page.locator('.ml-item').count()>0);
  await page.locator('.ml-item .ml-open').first().click();await page.locator('#roomReaderTable tbody tr').first().waitFor({timeout:60000});check('real published material opens reader rows',true);await page.locator('#readerBack').click();await ready(page);check('public reader back preserves search',await page.locator('#ml-search').inputValue()===title);

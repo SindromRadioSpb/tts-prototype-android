@@ -250,10 +250,58 @@
       .filter(c => tokens.every(t => normalize(c.title + ' ' + c.description + ' ' + c.path).includes(t)));
   }
   function exportStructure(d, now = new Date().toISOString()) { return { schema: 'linguistpro-mediatheque-export-v1', exportedAt: now, structure: validate(d) }; }
+  function sameFilters(a, b) {
+    const left = filters(a), right = filters(b);
+    left.tags.sort(); right.tags.sort();
+    return Object.keys(left).every(k => JSON.stringify(left[k]) === JSON.stringify(right[k]));
+  }
+  function durationSummary(items) {
+    const out = { seconds: 0, known: 0, unknown: 0, unavailable: 0, total: items.length };
+    for (const item of items) {
+      if (item.available === false) { out.unavailable++; continue; }
+      if (Number.isFinite(item.durationSeconds) && item.durationSeconds >= 0) { out.seconds += item.durationSeconds; out.known++; }
+      else out.unknown++;
+    }
+    return out;
+  }
+  // Stable IDs, not array offsets, define entity changes. Insertions are not reorders.
+  function structureChanges(before, after) {
+    const a = validate(before), b = validate(after), changes = [];
+    const sequence = (left = [], right = []) => {
+      const l = new Set(left), r = new Set(right);
+      return { added: right.filter(k => !l.has(k)), removed: left.filter(k => !r.has(k)),
+        reordered: JSON.stringify(left.filter(k => r.has(k))) !== JSON.stringify(right.filter(k => l.has(k))) };
+    };
+    for (const type of ['categories', 'collections', 'views', 'annotations']) {
+      const key = e => type === 'annotations' ? e.key : e.id;
+      const left = new Map(a[type].map(e => [key(e), e])), right = new Map(b[type].map(e => [key(e), e]));
+      for (const id of new Set([...left.keys(), ...right.keys()])) {
+        const old = left.get(id), next = right.get(id);
+        if (!old || !next) { changes.push({ type, id, kind: old ? 'removed' : 'added', title: (next || old).title || id,
+          fields: [], added: next?.items || [], removed: old?.items || [], reordered: false }); continue; }
+        const fields = Object.keys(next).filter(k => !['id','key','items'].includes(k) &&
+          (k === 'filters' ? !sameFilters(old[k], next[k]) : JSON.stringify(old[k]) !== JSON.stringify(next[k])));
+        const membership = sequence(old.items, next.items);
+        if (fields.length || membership.added.length || membership.removed.length || membership.reordered)
+          changes.push({ type, id, kind: 'changed', title: next.title || id, previousTitle: old.title || '', fields, ...membership,
+            before: Object.fromEntries(fields.map(k => [k, old[k]])), after: Object.fromEntries(fields.map(k => [k, next[k]])) });
+      }
+      if (type !== 'annotations' && sequence([...left.keys()], [...right.keys()]).reordered)
+        changes.push({ type, kind: 'order', fields: [], added: [], removed: [], reordered: true });
+    }
+    for (const type of ['references', 'saved']) {
+      const s = sequence(type === 'references' ? a.references.map(refKey) : a.saved, type === 'references' ? b.references.map(refKey) : b.saved);
+      if (s.added.length || s.removed.length) changes.push({ type, kind: 'changed', fields: [], ...s, reordered: false });
+    }
+    const fields = Object.keys(b.home).filter(k => JSON.stringify(a.home[k]) !== JSON.stringify(b.home[k]));
+    if (fields.length) changes.push({ type: 'home', kind: 'changed', fields, added: [], removed: [], reordered: false,
+      before: Object.fromEntries(fields.map(k => [k, a.home[k]])), after: Object.fromEntries(fields.map(k => [k, b.home[k]])) });
+    return changes;
+  }
   function importStructure(value, options = {}) {
     exact(value, ['schema', 'exportedAt', 'structure']); if (value.schema !== 'linguistpro-mediatheque-export-v1') fail(); string(value.exportedAt, 40);
     return validate(value.structure, options);
   }
   return Object.freeze({ SCHEMA, LIMITS, SORTS, SECTIONS, empty, validate, reference, refKey, filters, normalize, descendants, categoryPath,
-    command, prepare, query, navigationMatches, exportStructure, importStructure });
+    command, prepare, query, navigationMatches, exportStructure, importStructure, sameFilters, durationSummary, structureChanges });
 });
