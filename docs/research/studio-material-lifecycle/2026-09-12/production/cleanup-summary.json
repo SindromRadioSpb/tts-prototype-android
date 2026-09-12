@@ -1,0 +1,30 @@
+{
+  "at": "2026-09-12T17:14:37.079805+00:00",
+  "mutation": "authorized unused build-cache only: docker builder prune -af",
+  "reported_cache_reclaimed": "2.295 GB",
+  "containers_before": 9,
+  "containers_after": 9,
+  "same_containers": true,
+  "volumes_before": 3,
+  "volumes_after": 3,
+  "same_volumes": true,
+  "images_removed": 0,
+  "build_cache_after": 0,
+  "retained_active_commit": "ff41fae5",
+  "retained_rollback_commit": "50fad4da",
+  "host_root_available": "5.5 GiB",
+  "host_root_used_percent": 85,
+  "health": {
+    "ok": true,
+    "uptimeSec": 211,
+    "now": "2026-09-12T17:14:35.374Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 85,
+    "disk_warn": true
+  }
+}

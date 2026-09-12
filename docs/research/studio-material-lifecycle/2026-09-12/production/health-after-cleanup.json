@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "uptimeSec": 211,
+  "now": "2026-09-12T17:14:35.374Z",
+  "db": {
+    "ready": true
+  },
+  "migrations": {
+    "ready": true
+  },
+  "disk_pct_used": 85,
+  "disk_warn": true
+}

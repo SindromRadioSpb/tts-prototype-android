@@ -1,0 +1,204 @@
+{
+  "status": "PASS",
+  "version": "3.11.527",
+  "commit": "ff41fae5",
+  "mode": "read-only production HTTP, exact local and served SHA-256 parity",
+  "probes": [
+    {
+      "at": "2026-09-12T17:11:40.525Z",
+      "version": "3.11.527",
+      "checks": [
+        {
+          "url": "/mediatheque.html",
+          "ok": true,
+          "sha256": "5320a04e22704a571844be873578488c6e72ebc03d36490ad53e241e74f92bd1"
+        },
+        {
+          "url": "/js/mediatheque-ui.js?v=7",
+          "ok": true,
+          "sha256": "979883e57e41fac8b615b7f4829aa06076300541256a20f155ca027b38454f20"
+        },
+        {
+          "url": "/js/portable-learning-package-repository.js?v=527",
+          "ok": true,
+          "sha256": "48045aa19327ded0672be915b90f716be69549b4628bf6a0f3bde256a8e70d19"
+        },
+        {
+          "url": "/js/import-center-core.js?v=527",
+          "ok": true,
+          "sha256": "ee784fed0b1987f534f9b20e971c6fa4ba884e50d31743b0fb5c06de8941e24b"
+        },
+        {
+          "url": "/index.html",
+          "ok": true,
+          "sha256": "d66440addc984c42502f8b0ddd2f78352496f89fcfac7abdd277e9a697e0449f"
+        },
+        {
+          "url": "/js/studio-portable-learning-package.js?v=527",
+          "ok": true,
+          "sha256": "6feb3dd433f00198860c428f5ea11463f4e48b12195732d7697808e2bef37b35"
+        },
+        {
+          "url": "/library.html",
+          "ok": true,
+          "sha256": "76f39eb44ad8be168dfabb80b165ed9990b0e9740aa693725469192556dbd7b0"
+        },
+        {
+          "url": "/js/media-host.js?v=527",
+          "ok": true,
+          "sha256": "f0ad0df32d077e0693e39b09bc9526256c1943202ee654b3596ce0b7bf2ece87"
+        },
+        {
+          "url": "/i18n/locales/ru.js?v=222",
+          "ok": true,
+          "sha256": "0f9559133a01be8c2d035dba535a30d8504b4dd41cca56a0676b75d8faf9439d"
+        },
+        {
+          "url": "/i18n/locales/en.js?v=222",
+          "ok": true,
+          "sha256": "e8b0c93df318b536b0d009f0b81ced0f653f440afba77f1f9905304cf6e838b4"
+        },
+        {
+          "url": "/i18n/locales/he.js?v=222",
+          "ok": true,
+          "sha256": "e3b9fd5ed7465f0bb9f78d1269af2b96ea055a824eda3e9b79830c6d25706ba1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-12T17:11:44.150Z",
+      "version": "3.11.527",
+      "checks": [
+        {
+          "url": "/mediatheque.html",
+          "ok": true,
+          "sha256": "5320a04e22704a571844be873578488c6e72ebc03d36490ad53e241e74f92bd1"
+        },
+        {
+          "url": "/js/mediatheque-ui.js?v=7",
+          "ok": true,
+          "sha256": "979883e57e41fac8b615b7f4829aa06076300541256a20f155ca027b38454f20"
+        },
+        {
+          "url": "/js/portable-learning-package-repository.js?v=527",
+          "ok": true,
+          "sha256": "48045aa19327ded0672be915b90f716be69549b4628bf6a0f3bde256a8e70d19"
+        },
+        {
+          "url": "/js/import-center-core.js?v=527",
+          "ok": true,
+          "sha256": "ee784fed0b1987f534f9b20e971c6fa4ba884e50d31743b0fb5c06de8941e24b"
+        },
+        {
+          "url": "/index.html",
+          "ok": true,
+          "sha256": "d66440addc984c42502f8b0ddd2f78352496f89fcfac7abdd277e9a697e0449f"
+        },
+        {
+          "url": "/js/studio-portable-learning-package.js?v=527",
+          "ok": true,
+          "sha256": "6feb3dd433f00198860c428f5ea11463f4e48b12195732d7697808e2bef37b35"
+        },
+        {
+          "url": "/library.html",
+          "ok": true,
+          "sha256": "76f39eb44ad8be168dfabb80b165ed9990b0e9740aa693725469192556dbd7b0"
+        },
+        {
+          "url": "/js/media-host.js?v=527",
+          "ok": true,
+          "sha256": "f0ad0df32d077e0693e39b09bc9526256c1943202ee654b3596ce0b7bf2ece87"
+        },
+        {
+          "url": "/i18n/locales/ru.js?v=222",
+          "ok": true,
+          "sha256": "0f9559133a01be8c2d035dba535a30d8504b4dd41cca56a0676b75d8faf9439d"
+        },
+        {
+          "url": "/i18n/locales/en.js?v=222",
+          "ok": true,
+          "sha256": "e8b0c93df318b536b0d009f0b81ced0f653f440afba77f1f9905304cf6e838b4"
+        },
+        {
+          "url": "/i18n/locales/he.js?v=222",
+          "ok": true,
+          "sha256": "e3b9fd5ed7465f0bb9f78d1269af2b96ea055a824eda3e9b79830c6d25706ba1"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-12T17:11:47.787Z",
+      "version": "3.11.527",
+      "checks": [
+        {
+          "url": "/mediatheque.html",
+          "ok": true,
+          "sha256": "5320a04e22704a571844be873578488c6e72ebc03d36490ad53e241e74f92bd1"
+        },
+        {
+          "url": "/js/mediatheque-ui.js?v=7",
+          "ok": true,
+          "sha256": "979883e57e41fac8b615b7f4829aa06076300541256a20f155ca027b38454f20"
+        },
+        {
+          "url": "/js/portable-learning-package-repository.js?v=527",
+          "ok": true,
+          "sha256": "48045aa19327ded0672be915b90f716be69549b4628bf6a0f3bde256a8e70d19"
+        },
+        {
+          "url": "/js/import-center-core.js?v=527",
+          "ok": true,
+          "sha256": "ee784fed0b1987f534f9b20e971c6fa4ba884e50d31743b0fb5c06de8941e24b"
+        },
+        {
+          "url": "/index.html",
+          "ok": true,
+          "sha256": "d66440addc984c42502f8b0ddd2f78352496f89fcfac7abdd277e9a697e0449f"
+        },
+        {
+          "url": "/js/studio-portable-learning-package.js?v=527",
+          "ok": true,
+          "sha256": "6feb3dd433f00198860c428f5ea11463f4e48b12195732d7697808e2bef37b35"
+        },
+        {
+          "url": "/library.html",
+          "ok": true,
+          "sha256": "76f39eb44ad8be168dfabb80b165ed9990b0e9740aa693725469192556dbd7b0"
+        },
+        {
+          "url": "/js/media-host.js?v=527",
+          "ok": true,
+          "sha256": "f0ad0df32d077e0693e39b09bc9526256c1943202ee654b3596ce0b7bf2ece87"
+        },
+        {
+          "url": "/i18n/locales/ru.js?v=222",
+          "ok": true,
+          "sha256": "0f9559133a01be8c2d035dba535a30d8504b4dd41cca56a0676b75d8faf9439d"
+        },
+        {
+          "url": "/i18n/locales/en.js?v=222",
+          "ok": true,
+          "sha256": "e8b0c93df318b536b0d009f0b81ced0f653f440afba77f1f9905304cf6e838b4"
+        },
+        {
+          "url": "/i18n/locales/he.js?v=222",
+          "ok": true,
+          "sha256": "e3b9fd5ed7465f0bb9f78d1269af2b96ea055a824eda3e9b79830c6d25706ba1"
+        }
+      ]
+    }
+  ],
+  "health": {
+    "ok": true,
+    "uptimeSec": 41,
+    "now": "2026-09-12T17:11:46.301Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 90,
+    "disk_warn": true
+  }
+}
