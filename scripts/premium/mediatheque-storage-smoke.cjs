@@ -4,22 +4,25 @@
 const { chromium } = require('playwright');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
-const ROOT = path.resolve(__dirname, '../..'), BASE = 'http://127.0.0.1:3347';
-const OUT = path.join(ROOT, 'docs/research/mediatheque-iphone-storage/2026-09-12/local');
+const ROOT = path.resolve(__dirname, '../..'), BASE = process.env.MEDIATHEQUE_STORAGE_BASE || 'http://127.0.0.1:3347';
+const OUT = process.env.MEDIATHEQUE_EVIDENCE_DIR || path.join(ROOT, 'docs/research/mediatheque-iphone-storage/2026-09-12/local');
 const TEMP = fs.mkdtempSync(path.join(ROOT, '.tmp/ml-storage-'));
-const evidence = { mode: 'real OPFS contention, disposable Chromium profile; not physical iPhone', checks: [] };
+const evidence = { base:BASE,mode: 'real OPFS contention, disposable Chromium profile; not physical iPhone', checks: [],remoteWrites:[] };
 const check = (name, ok) => { assert.ok(ok, name); evidence.checks.push(name); console.log('PASS', name); };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const ready = page => page.locator('#ml-root[aria-busy="false"]').waitFor({ timeout: 60000 });
 async function main() {
  fs.mkdirSync(OUT, { recursive: true });
- const server = spawn(process.execPath, ['server.js'], { cwd: ROOT, windowsHide: true,
+ const server = process.env.MEDIATHEQUE_STORAGE_BASE ? null : spawn(process.execPath, ['server.js'], { cwd: ROOT, windowsHide: true,
   env: { ...process.env, PORT: '3347', BIND_HOST: '127.0.0.1', DATA_DIR: TEMP, DB_PATH: path.join(TEMP, 'app.db') }, stdio: 'ignore' });
  let browser;
  try {
-  for (let n=0; n<150; n++) { try { if ((await fetch(BASE+'/api/client-config')).ok) break; } catch {} await wait(200); }
+  for (let n=0; n<150; n++) { try { const config=await fetch(BASE+'/api/client-config');if(config.ok) { evidence.version=(await config.json()).version;break; } } catch {} await wait(200); }
+  if(process.env.MEDIATHEQUE_STORAGE_BASE) assert.equal(evidence.version,'3.11.524','verify completed target deployment before testing');
   browser = await chromium.launch();
+  const monitor=context=>context.on('request',r=>{if(r.method()==='POST'&&/\/api\/(publication|translate|gemini|tts|ingest)/.test(r.url()))evidence.remoteWrites.push(new URL(r.url()).pathname);});
   const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 380, height: 844 } });
+  monitor(context);
   await context.addInitScript(() => {
    const send=Worker.prototype.postMessage;
    Worker.prototype.postMessage=function(message,...args) {
@@ -72,6 +75,7 @@ async function main() {
   // An outgoing OPFS worker releases its handles during the automatic retry window.
   await context.close();
   const transient=await browser.newContext({serviceWorkers:'block'});
+  monitor(transient);
   await transient.route('**/__storage-holder',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Transient lock fixture</title>'}));
   const outgoing=await transient.newPage();await outgoing.addInitScript(()=>Object.defineProperty(navigator,'locks',{value:undefined}));
   await outgoing.goto(BASE+'/__storage-holder');await outgoing.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');await db.initLocalDB();await db.createText({id:'transient',text_key:'transient',title:'После перехода'});});
@@ -80,8 +84,9 @@ async function main() {
   await incoming.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(incoming);if(release)await release;
   check('real transient OPFS lock heals automatically without a Retry click',!!release&&await incoming.locator('.ml-banner-error').count()===0&&(await incoming.locator('.ml-item h3').innerText()).includes('После перехода'));
   await transient.close();
+  check('storage tests perform no remote publication or provider writes',evidence.remoteWrites.length===0);
   evidence.status='PASS';
  } catch(e) { evidence.status='FAIL'; evidence.failure=e.stack; throw e; }
- finally { if(browser) await browser.close(); server.kill(); fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2)); }
+ finally { if(browser) await browser.close(); if(server)server.kill(); fs.writeFileSync(path.join(OUT,'evidence.json'),JSON.stringify(evidence,null,2)); }
 }
 main().catch(e=>{ console.error(e); process.exitCode=1; });

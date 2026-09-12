@@ -1,4 +1,5 @@
 {
+  "base": "http://127.0.0.1:3347",
   "mode": "real OPFS contention, disposable Chromium profile; not physical iPhone",
   "checks": [
     "locked original store never appears as an empty personal library",
@@ -8,8 +9,11 @@
     "separate IndexedDB library remains byte-equivalent and can still be opened",
     "Room and Mediatheque release their connection before cross-navigation",
     "personal library remains available after Room roundtrip",
-    "real transient OPFS lock heals automatically without a Retry click"
+    "real transient OPFS lock heals automatically without a Retry click",
+    "storage tests perform no remote publication or provider writes"
   ],
+  "remoteWrites": [],
+  "version": "3.11.524",
   "blockedText": "Не удалось подключиться к исходному хранилищу личной библиотеки. Закройте другие вкладки LinguistPro и нажмите «Повторить». Данные не переносились и не удалялись.\nПовторить",
   "status": "PASS"
 }
