@@ -20,6 +20,7 @@ test("passport: audio | captions | null", () => {
 test("isDerivedTimingDrop", () => {
   assert.equal(MH.isDerivedTimingDrop("NO_SEGMENT_MAPPING"), true);
   assert.equal(MH.isDerivedTimingDrop("SEG_MAPPING_LOST"), true);
+  assert.equal(MH.isDerivedTimingDrop("NO_EXACT_SEGMENT_MAPPING"), true);
   assert.equal(MH.isDerivedTimingDrop("PREVIEW_EDITED"), false);
   assert.equal(MH.isDerivedTimingDrop(null), false);
 });
@@ -417,6 +418,42 @@ test('W3 offline restore keeps proven rows, leaves holes blind, and surfaces cov
   assert.equal(MH.timingCoverageExplain(audio, (key, vars) =>
     key === 'studio.media.partialCoverage' ? `${vars.mapped}/${vars.total} rows with audio` : key),
   '2/3 rows with audio');
+});
+
+test('legacy composite package with split table rows restores only proven row timing', () => {
+  const audio = {
+    media: { sha256: 'c'.repeat(64), mime: 'video/mp4' },
+    segments: [
+      { start_ms: 0, end_ms: 2000, text: 'שלום עולם' },
+      { start_ms: 4000, end_ms: 6000, text: 'שורה אחרת' },
+      { start_ms: 8000, end_ms: 10000, text: 'מיה באה' },
+    ],
+    timing: null,
+    timingDropReason: 'NO_EXACT_SEGMENT_MAPPING',
+    timingMap: {
+      authority: 'studio-exact-binding',
+      row_caption_segment_ids: [null, null, null, null],
+      mapped_rows: 0,
+      missing_rows: 4,
+    },
+  };
+  const rows = [
+    { he: 'שלום עולם' },
+    { he: 'לא נמצא' },
+    { he: 'שורה אחרת' },
+    { he: 'מיה באה' },
+  ];
+
+  MH.restoreForRows(audio, rows, deps);
+
+  assert.equal(audio.timingSource, 'aligned-partial-proven');
+  assert.deepEqual(audio.timingMap.row_seg_idx, [0, null, 1, 2]);
+  assert.deepEqual(MH.replayCoverage(audio, rows.length), {
+    playable_rows: 3, total_rows: 4, blind_rows: 1, ratio: 3 / 4,
+    label: '3/4', complete: false,
+  });
+  assert.equal(MH.rowReplayAllowed(audio, 1), false,
+    'an unmatched legacy row must stay blind instead of borrowing adjacent media');
 });
 
 test('W3 never exposes karaoke timing for a canon segment marked blind at ASR promotion', () => {

@@ -21,7 +21,7 @@
   // «Утверждённые» причины (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты САМОГО импорта:
   // сегменты уже непригодны, никакой ответ переводчика этого не изменит. «Производные» (ниже) —
   // вывод ОДНОГО ответа translate-table; жить дольше своего ответа они не имеют права.
-  var DERIVED_TIMING_DROPS = ["NO_SEGMENT_MAPPING", "SEG_MAPPING_LOST"];
+  var DERIVED_TIMING_DROPS = ["NO_SEGMENT_MAPPING", "SEG_MAPPING_LOST", "NO_EXACT_SEGMENT_MAPPING"];
   function isDerivedTimingDrop(reason) { return DERIVED_TIMING_DROPS.indexOf(reason) !== -1; }
 
   // S12.7: диапазоны, чьи часы прогон признал сжатыми и НЕ смог вылечить. Единственный
@@ -184,7 +184,17 @@
       // W3: the strict verdict remains recorded, then an explicitly named per-row proof gets
       // its own chance. Sparse timing uses canonical segment ends as blind gap boundaries;
       // a row without proof is never painted as part of its neighbour's range.
-      if (!isCompositeSegments(audio.segments) &&
+      // Composite packages normally use the stronger positional contract below. Legacy
+      // exports can contain a translated table with split/merged rows, so row and segment
+      // counts differ and positional identity is impossible. In that narrow case the same
+      // per-row proof is safe: unmatched rows stay blind and never borrow adjacent media.
+      var exactMap = audio.timingMap;
+      var compositeNeedsNonPositionalRecovery = isCompositeSegments(audio.segments) &&
+        list.length !== audio.segments.length && exactMap &&
+        exactMap.authority === "studio-exact-binding" &&
+        Array.isArray(exactMap.row_caption_segment_ids) &&
+        !exactMap.row_caption_segment_ids.some(Boolean);
+      if ((!isCompositeSegments(audio.segments) || compositeNeedsNonPositionalRecovery) &&
           typeof AT.alignRowsToSegmentsPartialProven === "function" &&
           typeof AT.buildPartialProvenTiming === "function") {
         var partial = AT.alignRowsToSegmentsPartialProven(texts, segs);
