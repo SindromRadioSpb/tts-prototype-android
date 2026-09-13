@@ -51,7 +51,7 @@ Screenshots were inspected. Video success is established by actual media `play()
 - A fresh Windows checkout applied CRLF to Python helper sources while their committed downloadable package contains LF. For packaged-byte verification these three local source files were restored to their exact Git blob bytes; no downloader product change is included.
 - Some pre-existing corpus tests rewrite tracked generated artifacts. Those test-only changes were restored in this initially clean isolated worktree and are excluded from the change.
 - Production was queried read-only: `/api/client-config` reported `3.11.527`. No deployment took place.
-- Physical iPhone/Chrome/Safari/PWA, long iOS background suspension, the supplied YouTube scenario, and VoiceOver remain separate acceptance gates. Device OS/browser version was requested and was not available when this evidence was recorded.
+- Physical iPhone/Chrome/Safari/PWA, long iOS background suspension, the supplied YouTube scenario, and VoiceOver remain separate acceptance gates. The owner subsequently reported Chrome on iPhone, iOS 26.6.2. This is owner-reported configuration, not a completed physical-device test.
 - Active draft/session storage is tab-scoped. The change does not claim durable recovery of every unsaved tab after permanently closing it; saved materials remain in shared SQLite.
 
 Architecture and release procedure: [decision](../../../planning/MULTITAB_RUNTIME_ARCHITECTURE_2026_09_13.md).
