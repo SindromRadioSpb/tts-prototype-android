@@ -1091,9 +1091,14 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/db/db-worker-runtime.js?v=528",
+  "/db/operation-lease.js",
+  "/db/storage-identity.js",
+  "/db/AccessHandlePoolVFS.js",
+  "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=7",
+  "/js/mediatheque-ui.js?v=8",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -1110,7 +1115,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
-  "/js/study-video-source-ui.js?v=520",
+  "/js/study-video-source-ui.js?v=528",
   "/js/youtube-asr.js?v=519",
   "/js/learning-material-task.js?v=519",
   "/js/learning-material-task-ui.js?v=519",
@@ -1137,7 +1142,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-portable-learning-package.js?v=527",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=524",
+  "/js/library-ui.js?v=528",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1148,7 +1153,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=416",
   "/js/room-b6-core.js?v=485",
-  "/db/local-db.js?v=520",
+  "/db/local-db.js?v=528",
   "/db/migrations.js",
   "/db/db-worker.js",
   "/db/vfs-order.js",
@@ -1169,9 +1174,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=527",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=222",
-  "/i18n/locales/en.js?v=222",
-  "/i18n/locales/he.js?v=222",
+  "/i18n/locales/ru.js?v=223",
+  "/i18n/locales/en.js?v=223",
+  "/i18n/locales/he.js?v=223",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

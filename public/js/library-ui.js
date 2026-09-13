@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=520';
+import * as localDb from '/db/local-db.js?v=528';
 import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -14511,3 +14511,17 @@ else boot();
 
 // Exposed for the screenshot/smoke harness to await readiness.
 window.__roomReady = true;
+
+// Refresh shared catalogue projections without navigating, replacing a reader,
+// restarting media, or changing a Studio draft in another tab.
+let externalLibraryRefresh = null;
+function refreshExternalLibrary() {
+  invalidatePersonalSets(); invalidateReadableSet(); invalidateFinishedSet();
+  invalidateCorpusPresentationProgress();
+  _asdCache = null;
+  morphHost.invalidateWordStates();
+  if (document.visibilityState !== 'visible' || externalLibraryRefresh || !$('roomReader')?.hidden) return;
+  externalLibraryRefresh = loadData().then(() => renderTrack()).catch(() => {}).finally(() => { externalLibraryRefresh = null; });
+}
+window.addEventListener('localdb:changed', refreshExternalLibrary);
+window.addEventListener('localdb:refresh', refreshExternalLibrary);

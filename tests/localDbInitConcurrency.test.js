@@ -9,20 +9,20 @@ function harness() {
   const source = fs.readFileSync(path.join(__dirname, "../public/db/local-db.js"), "utf8");
   const body = source.slice(source.indexOf("export async function initLocalDB()"), source.indexOf("export function isReady()"));
   const calls = [];
-  let proxies = 0;
+  let lifecycles = 0;
   const context = vm.createContext({
-    _initialized: false, _initInFlight: null, _followerMode: false, _worker: null,
+    _initialized: false, _initInFlight: null, _worker: null,
     _pending: new Map(), _VFS_PREF_KEY: "test-vfs", _vfs: null,
-    acquireDbOwnership: async () => {}, _preflightSupport: async () => {},
+    _preflightSupport: async () => {},
     Worker: class {}, DbUnavailableError: class extends Error {},
     _call: () => new Promise((resolve, reject) => calls.push({ resolve, reject })),
-    _startProxyServer: () => { proxies++; },
+    _installDbLifecycle: () => { lifecycles++; },
   });
   vm.runInContext(body.replace("export async function", "async function"), context);
-  return { init: () => context.initLocalDB(), calls, proxies: () => proxies };
+  return { init: () => context.initLocalDB(), calls, lifecycles: () => lifecycles };
 }
 
-test("concurrent local DB callers share one worker initialization and proxy startup", async () => {
+test("concurrent local DB callers share one worker initialization and lifecycle setup", async () => {
   const h = harness();
   const pending = Promise.all([h.init(), h.init(), h.init()]);
   await new Promise(resolve => setImmediate(resolve));
@@ -30,7 +30,7 @@ test("concurrent local DB callers share one worker initialization and proxy star
   h.calls.forEach(call => call.resolve());
   await pending;
   assert.equal(count, 1, "a second init closes the connection used by the first caller");
-  assert.equal(h.proxies(), 1);
+  assert.equal(h.lifecycles(), 1);
   await h.init();
   assert.equal(h.calls.length, 1);
 });
@@ -46,5 +46,5 @@ test("failed shared initialization rejects all callers and permits an explicit r
   h.calls.at(-1).resolve();
   await retry;
   assert.equal(h.calls.length, 2);
-  assert.equal(h.proxies(), 1);
+  assert.equal(h.lifecycles(), 1);
 });

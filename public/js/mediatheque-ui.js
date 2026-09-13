@@ -1,4 +1,4 @@
-import * as localDb from '/db/local-db.js?v=520';
+import * as localDb from '/db/local-db.js?v=528';
 import './mediatheque-core.js';
 const C = globalThis.MediathequeCore;
 const $ = id => document.getElementById(id);
@@ -724,7 +724,7 @@ async function onAction(action, node) {
   if (action === 'clear-selection') { state.selected.clear(); render(); return; }
   if (action === 'previous-page' || action === 'next-page') { rememberLocation(); state.page += action === 'next-page' ? 1 : -1; persist('push'); render(); $('ml-content').focus({preventScroll:true}); $('ml-content').scrollIntoView({ block:'start' }); return; }
   if (action === 'retry') return loadAll();
-  if (action === 'retry-local') { rememberLocation(); await localDb.closeLocalDB(); location.reload(); return; }
+  if (action === 'retry-local') { await localDb.recoverLocalDB(); await loadLocal(); render(); return; }
   if (action === 'add-item') return addToCollection(node.dataset.key);
   if (action === 'use-view') { const v = structure().views.find(v => v.id === id); if (v) return navigate('catalog', v.filters, { viewId:id }); return; }
   if (action === 'exit-preview') { state.preview = false; render(); return; }
@@ -847,7 +847,7 @@ $('ml-language').value = window.appGetLocale();
 $('ml-language').addEventListener('change', event => window.appSetLocale(event.target.value));
 document.addEventListener('i18n:changed', () => { $('ml-language').value = window.appGetLocale(); document.title = t('title') + ' · LinguistPro'; render(); });
 window.addEventListener('pagehide', () => rememberLocation());
-window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
+window.addEventListener('pageshow', event => { if (event.persisted) refreshVisibleLibrary(); });
 window.addEventListener('online', () => loadAll());
 let localRefresh = null;
 function refreshVisibleLibrary() {
@@ -855,6 +855,8 @@ function refreshVisibleLibrary() {
   localRefresh = loadLocal().then(() => render()).finally(() => { localRefresh = null; });
 }
 window.addEventListener('focus', refreshVisibleLibrary);
+window.addEventListener('localdb:changed', refreshVisibleLibrary);
+window.addEventListener('localdb:refresh', refreshVisibleLibrary);
 document.addEventListener('visibilitychange', refreshVisibleLibrary);
 window.addEventListener('popstate', () => { clearTimeout(searchTimer); searchRouteStarted = false; state.editing = false; state.preview = false; restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true); render(); restoreLocation(history.state?.ml); });
 applyTheme(); restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true);

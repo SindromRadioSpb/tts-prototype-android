@@ -16,7 +16,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=520">
+    <link rel="modulepreload" href="/db/local-db.js?v=528">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -10828,7 +10828,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=520';
+  import * as _ldb from '/db/local-db.js?v=528';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13324,9 +13324,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=222"></script>
-<script src="/i18n/locales/en.js?v=222"></script>
-<script src="/i18n/locales/he.js?v=222"></script>
+<script src="/i18n/locales/ru.js?v=223"></script>
+<script src="/i18n/locales/en.js?v=223"></script>
+<script src="/i18n/locales/he.js?v=223"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13434,7 +13434,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <link rel="stylesheet" href="/css/study-video-source.css?v=519">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
-<script src="/js/study-video-source-ui.js?v=520"></script>
+<script src="/js/study-video-source-ui.js?v=528"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
 <script src="/js/learning-material-task.js?v=519"></script>
 <script src="/js/learning-material-task-ui.js?v=519"></script>
@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.527";
+    window.APP_VERSION = "3.11.528";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17653,6 +17653,17 @@ function v3NotesRefreshAllButtons() {
 
     let toastTimeoutId = null;
 
+    // Snapshot the pre-multitab draft once. Subsequent edits and reloads are
+    // scoped to this tab. Durable library materials remain in shared SQLite.
+    try {
+      if (!sessionStorage.getItem('studio.tabDraftMigrated.v1')) {
+        for (const key of ['ttsDashboard_text_v1', 'ttsDashboard_table_cache_v1', 'ttsDashboard_session_state_v1', 'ttsDashboard_last_selected_row_idx_v1']) {
+          const value = localStorage.getItem(key);
+          if (value !== null && sessionStorage.getItem(key) === null) sessionStorage.setItem(key, value);
+        }
+        sessionStorage.setItem('studio.tabDraftMigrated.v1', '1');
+      }
+    } catch (_) {}
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
     // Browser-side cache and recovery identity must move in lockstep with
@@ -17671,7 +17682,7 @@ function v3NotesRefreshAllButtons() {
 
     function v3StoreTableCache(payload) {
         try {
-            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(payload));
+            sessionStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(payload));
             v3TableCacheWriteOutcome = {
                 status: "stored", error_code: null, recorded_at: new Date().toISOString()
             };
@@ -18131,9 +18142,13 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") v3EmitTextCloseCurrent();
 }, { passive: true });
 
+window.addEventListener('localdb:changed', () => {
+  const modal = document.getElementById('v3LibraryModal');
+  if (modal && !modal.classList.contains('hidden')) v3LibraryRefresh();
+});
 function v3SessionGet() {
   try {
-    const raw = localStorage.getItem(V3_SESSION_STATE_KEY);
+    const raw = sessionStorage.getItem(V3_SESSION_STATE_KEY);
     if (!raw) return null;
     const obj = JSON.parse(raw);
     if (!obj || typeof obj !== "object") return null;
@@ -18148,7 +18163,7 @@ function v3SessionSet(patch) {
     const prev = v3SessionGet() || {};
     const next = Object.assign({}, prev, patch || {});
     next.updatedAt = new Date().toISOString();
-    localStorage.setItem(V3_SESSION_STATE_KEY, JSON.stringify(next));
+    sessionStorage.setItem(V3_SESSION_STATE_KEY, JSON.stringify(next));
   } catch (e) {
     // non-fatal
   }
@@ -19685,7 +19700,7 @@ const LAST_SELECTED_ROW_STORAGE_KEY = "ttsDashboard_last_selected_row_idx_v1";
 
 function loadLastSelectedRowIdx() {
     try {
-        const raw = localStorage.getItem(LAST_SELECTED_ROW_STORAGE_KEY);
+        const raw = sessionStorage.getItem(LAST_SELECTED_ROW_STORAGE_KEY);
         if (raw === null || raw === "") return null;
         const n = Number(raw);
         return Number.isFinite(n) ? n : null;
@@ -19697,9 +19712,9 @@ function loadLastSelectedRowIdx() {
 function saveLastSelectedRowIdx(idx) {
     try {
         if (typeof idx === "number" && Number.isFinite(idx) && idx >= 0) {
-            localStorage.setItem(LAST_SELECTED_ROW_STORAGE_KEY, String(idx));
+            sessionStorage.setItem(LAST_SELECTED_ROW_STORAGE_KEY, String(idx));
         } else {
-            localStorage.removeItem(LAST_SELECTED_ROW_STORAGE_KEY);
+            sessionStorage.removeItem(LAST_SELECTED_ROW_STORAGE_KEY);
         }
     } catch (_) {}
 }
@@ -21479,7 +21494,7 @@ updatePlaylistButtonUI();
     // ----------------------------
     (function restoreText() {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY);
+            const saved = sessionStorage.getItem(STORAGE_KEY);
             if (saved && saved.trim()) {
                 inputTextEl.value = saved;
             }
@@ -21577,7 +21592,7 @@ updatePlaylistButtonUI();
         if (saveTimer) clearTimeout(saveTimer);
         saveTimer = setTimeout(function () {
             try {
-                localStorage.setItem(STORAGE_KEY, inputTextEl.value);
+                sessionStorage.setItem(STORAGE_KEY, inputTextEl.value);
             } catch (e) {
                 console.error("LocalStorage save error", e);
             }
@@ -21602,7 +21617,7 @@ updatePlaylistButtonUI();
                 v3PrepareForNewTableRender();
                 return;
             }
-            const raw = localStorage.getItem(TABLE_CACHE_KEY);
+            const raw = sessionStorage.getItem(TABLE_CACHE_KEY);
             if (!raw) return;
 
             const cache = JSON.parse(raw);
@@ -22386,7 +22401,7 @@ updatePlaylistButtonUI();
         textChangedNoticeEl.classList.remove("notice-visible");
 
         try {
-            localStorage.removeItem(TABLE_CACHE_KEY);
+            sessionStorage.removeItem(TABLE_CACHE_KEY);
             localStorage.removeItem(AUDIO_CACHE_KEY);
         } catch (e) {
             console.error("Table/Audio cache clear error", e);
@@ -27184,6 +27199,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       v3SessionSet({
 	mode: "library",
 	textId: String(textId),
+	baseUpdatedAt: text?.updated_at || null,
 	baseTextId: null,
 	origin: (opts && opts.origin) ? String(opts.origin) : "library",
 	openMode: (opts && opts.openMode) ? String(opts.openMode) : (resume ? "resume" : "open"),
@@ -27852,6 +27868,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       v3SessionSet({
   mode: "saved",
   textId: String(text.id),
+  baseUpdatedAt: text.updated_at || null,
   baseTextId: null,
   resumeSentenceId: null,
   title: effectiveTitle,
@@ -27960,31 +27977,30 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
           return null;
         }
       }
-      await ldb.updateText(textId, {
-        title: title || null, level: level || null,
-        tags_json: JSON.stringify(tags || []),
-        source: source || null, topic: topic || null,
-        tts_profile_json: JSON.stringify(payload.ttsProfile || null),
-        table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
-      });
-      // Replace all sentences: delete existing, add new ones from currentTableData
-      const existing = await ldb.getSentences(textId);
-      for (const s of existing) await ldb.deleteSentence(textId, s.id);
-      for (const [rowIndex, row] of currentTableData.entries()) {
+      const replacementRows = currentTableData.map((row, rowIndex) => {
         const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
           ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
           : (row.edit_meta_json || null);
         const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
-        await ldb.addSentence(textId, {
+        return {
           id: crypto.randomUUID(),
           he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
           translit: row.translit || '', translit_ru: row.translit_ru || '',
           ru: row.ru || '', edit_meta_json: portableEditMeta,
           translation_provider: translation.translation_provider,
           translation_meta_json: translation.translation_meta_json,
-        });
-      }
-      text = await ldb.getTextById(textId);
+        };
+      });
+      text = await ldb.replaceStudioText(textId, {
+        expectedUpdatedAt: v3SessionGet()?.baseUpdatedAt,
+        fields: {
+          title: title || null, level: level || null,
+          tags_json: JSON.stringify(tags || []), source: source || null, topic: topic || null,
+          tts_profile_json: JSON.stringify(payload.ttsProfile || null),
+          table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
+        },
+        rows: replacementRows,
+      });
     } else {
       const updated = await v3PutJson("/api/library/texts/" + encodeURIComponent(String(textId)), payload);
       text = updated && updated.text ? updated.text : null;
@@ -28006,6 +28022,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
         v3SessionSet({
           mode: "saved",
           textId: String(text.id),
+          baseUpdatedAt: text.updated_at || null,
           baseTextId: null,
           resumeSentenceId: null,
           title: (text.title ? String(text.title) : null),
@@ -28048,6 +28065,10 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
     }
     if (e && e.httpStatus === 404) {
       showToast(t("toast.textForUpdateNotFound"), "error");
+      return null;
+    }
+    if (e?.code === 'DB_TEXT_CHANGED') {
+      showToast(t('saveMeta.concurrentChange'), 'warning');
       return null;
     }
     console.warn("v3LibraryUpdateCurrentCore failed", e);
@@ -28553,6 +28574,11 @@ function v3TabCoordBuildBanner() {
 }
 
 function v3TabCoordRefreshBanner() {
+  // Multiple studios are normal. Operation leases require no owner banner.
+  if (window.__localDB?.getOwnershipState?.() === "shared") {
+    if (v3TabCoord.bannerEl) v3TabCoord.bannerEl.style.display = "none";
+    return;
+  }
   // P0-1: follower tabs get the full-screen overlay instead of the advisory
   // banner — the DB is genuinely unavailable here, not just "risky".
   // P0-1 v2: a PROXIED follower is fully functional — never overlay it (live-caught bug:
@@ -28724,6 +28750,7 @@ function v3TabCoordHandleMessage(ev) {
   } else if (m.type === "leave") {
     v3TabCoord.peers.delete(m.tabId);
   } else if (m.type === "request-takeover") {
+    if (window.__localDB?.getOwnershipState?.() === "shared") return;
     // A follower asked to become owner. If we own the DB, yield it: this
     // releases our Web Lock so the requester's queued failover waiter fires.
     try {
@@ -34399,6 +34426,7 @@ async function v3SaveMetaSaveAsNew() {
         v3SessionSet({
           mode: "saved",
           textId: String(text.id),
+          baseUpdatedAt: text.updated_at || null,
           baseTextId: null,
           resumeSentenceId: null,
           title: (text.title ? String(text.title) : null),
@@ -35994,7 +36022,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             clearTableStale();
             tableIsStale = false;
             lastDocxFilename = generateDocxFileName();
-            const cacheWrite = window.LocalMtTable.persistTableCache(localStorage, TABLE_CACHE_KEY, {
+            const cacheWrite = window.LocalMtTable.persistTableCache(sessionStorage, TABLE_CACHE_KEY, {
                 text: currentText,
                 provider: "madlad",
                 tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
@@ -36055,7 +36083,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
 
         // 1) local table cache first
         try {
-            const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
+            const rawCache = sessionStorage.getItem(TABLE_CACHE_KEY);
             if (rawCache) {
                 const cache = JSON.parse(rawCache);
                 if (
