@@ -120,6 +120,21 @@ test('the estimate says how long this will take, not only what it costs',()=>{
   assert.match(shown, /9/, 'the person waiting minutes deserves to know how many: ' + shown);
 });
 
+test('a linked video recommends Gemini before continuing with Google Translate',()=>{
+  const withKey = UI.geminiRecommendation('google-free', true, { video_id: 'x' });
+  assert.equal(withKey.canContinue, true);
+  assert.match(withKey.message, /Gemini/);
+  assert.equal(UI.geminiRecommendation('gemini', true, { video_id: 'x' }), null);
+  assert.equal(UI.geminiRecommendation('google-free', true, null), null);
+});
+
+test('a linked video without a Gemini key cannot pretend Google Translate can recognise speech',()=>{
+  const missing = UI.geminiRecommendation('google-free', false, { video_id: 'x' });
+  assert.equal(missing.canContinue, false);
+  assert.match(missing.message, /распознавания видео/i);
+  assert.equal(UI.geminiRecommendation('gcp', false, { video_id: 'x' }).canContinue, false);
+});
+
 test('the chunk counter shows the chunk being worked on, not one ahead of it',()=>{
   // Наблюдение 2026-09-11: телеметрия уже 1-based, а строка прибавляла ещё единицу — первый
   // кусок объявлялся вторым, то есть работа выглядела почти законченной, едва начавшись.
@@ -232,7 +247,7 @@ test('a long build warns that the tab has to stay in front, a short one does not
 test('every new line of this screen exists in all three locales', () => {
   const fs2 = require('node:fs');
   const src = fs2.readFileSync(require.resolve('../public/js/learning-material-task-ui.js'), 'utf8');
-  for (const key of ['detailForeground', 'foregroundNote', 'resumeFrom', 'resumeRefused', 'causeTAB_BACKGROUNDED', 'causePROVIDER_OVERLOADED', 'causeNETWORK']) {
+  for (const key of ['detailForeground', 'foregroundNote', 'resumeFrom', 'resumeRefused', 'causeTAB_BACKGROUNDED', 'causePROVIDER_OVERLOADED', 'causeNETWORK', 'geminiRecommended', 'geminiRequiredForLink', 'useGemini', 'openTranslationSettings', 'continueGoogle']) {
     assert.equal((src.match(new RegExp('[,{]' + key + ':', 'g')) || []).length, 3, key + ' must be phrased in ru, en and he');
   }
 });

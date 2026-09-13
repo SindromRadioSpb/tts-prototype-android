@@ -13431,13 +13431,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=519">
+<link rel="stylesheet" href="/css/study-video-source.css?v=520">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=528"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
 <script src="/js/learning-material-task.js?v=519"></script>
-<script src="/js/learning-material-task-ui.js?v=519"></script>
+<script src="/js/learning-material-task-ui.js?v=520"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.530";
+    window.APP_VERSION = "3.11.531";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34463,6 +34463,24 @@ window.v3SaveMetaOpenTransfer = v3SaveMetaOpenTransfer;
 
 // The task UI owns orchestration; these adapters reuse the canonical Studio engines.
 window.LearningMaterialTaskUI.configure({
+  hasGeminiKey() {
+    return !!(typeof window.geminiKeyGet === 'function' && window.geminiKeyGet());
+  },
+  async selectGemini() {
+    const provider = document.getElementById('providerSelect');
+    if (!provider) throw new Error('TASK_PROVIDER_SELECT_MISSING');
+    provider.value = 'gemini';
+    provider.dispatchEvent(new Event('change', { bubbles: true }));
+  },
+  openTranslationSettings() {
+    const card = document.getElementById('classicTranslationCard');
+    if (card) {
+      card.open = true;
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const input = document.getElementById('geminiApiKeyInput');
+    if (input) setTimeout(() => input.focus(), 250);
+  },
   capture() {
     // P5: когда выбран маршрут «из ссылки», текста ещё нет — его добудет и оплатит сама задача.
     const link = window.v3PendingYoutubeMaterial || null;
