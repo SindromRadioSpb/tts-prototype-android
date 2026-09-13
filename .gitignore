@@ -168,3 +168,7 @@ public/data/benyehuda/context/
 
 # superpowers SDD scratch (ledger/briefs/review packages) — never committed
 .superpowers/
+
+# Local generated reports, rendered PDFs/screenshots, and production rehearsals.
+# Durable user-facing artifacts belong under docs/research or output/ instead.
+/tmp/
