@@ -139,7 +139,7 @@ test('optional table cache failure is named and does not impersonate card-save f
   assert.match(html, /v3TableCacheWriteOutcome\s*=\s*\{\s*status:\s*"failed"/);
   assert.match(html, /saveMeta\.cacheUnavailableNext/);
   assert.equal(
-    (html.match(/localStorage\.setItem\(TABLE_CACHE_KEY/g) || []).length,
+    (html.match(/sessionStorage\.setItem\(TABLE_CACHE_KEY/g) || []).length,
     1,
     'all table-cache writes must flow through the named outcome helper',
   );

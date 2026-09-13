@@ -67,6 +67,15 @@ export class IDBBatchAtomicVFS extends VFS.Base {
     });
   }
 
+  // Reopen after an operation lease released its IDB connection. The SQLite
+  // VFS registration stays stable; no new WASM runtime or registration leaks.
+  async reset() {
+    if (this.#idb) await this.close();
+    this.#idb = new IDBContext(openDatabase(this.name), {
+      durability: this.#options.durability
+    });
+  }
+
   async close() {
     for (const fileId of this.#mapIdToFile.keys()) {
       await this.xClose(fileId);

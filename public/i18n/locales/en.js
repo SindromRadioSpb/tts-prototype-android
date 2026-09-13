@@ -697,6 +697,7 @@ window.I18N_LOCALES.en = {
     actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press AI Translate again; completed chunks will restore locally", actionRetryMissing: "press AI Translate again; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media intended, but an exact binding is not proven yet", mediaNone: "No media declared"
   },
   saveMeta: {
+    concurrentChange: "This material changed in another tab. Your draft remains in this tab. Open the current version or save your draft as a new material.",
     title: "Save to Library",
     completeTitle: "Card saved",
     completeSummary: "You do not need to save it again.",
@@ -4519,7 +4520,7 @@ window.I18N_LOCALES.en.mediatheque = {
   "retryHelp": "Retry loading to continue.",
   "publicFailed": "Could not load public materials. Check your connection and retry.",
   "localFailed": "Could not open your personal library. Retry loading; your data has not changed.",
-  "storageUnavailable": "Could not connect to your personal library’s original storage. Close other LinguistPro tabs and select Retry. No data was moved or deleted.",
+  "storageUnavailable": "Could not connect to your personal library’s original storage. Select Retry. No data was moved or deleted.",
   "storageChanged": "The browser opened a different storage backend. Open Studio diagnostics before editing the library.",
   "conflict": "The structure changed in another tab. Refresh it and try again.",
   "referenceUnavailable": "A material is unavailable. Check the collection before publishing.",

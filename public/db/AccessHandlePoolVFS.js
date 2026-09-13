@@ -270,7 +270,7 @@ export class AccessHandlePoolVFS extends VFS.Base {
     }
 
     // Open access handles in parallel, separating associated and unassociated.
-    await Promise.all(files.map(async ([name, handle]) => {
+    const acquired = await Promise.allSettled(files.map(async ([name, handle]) => {
       const accessHandle = await handle.createSyncAccessHandle();
       this.#mapAccessHandleToName.set(accessHandle, name);
       const path = this.#getAssociatedPath(accessHandle);
@@ -280,6 +280,11 @@ export class AccessHandlePoolVFS extends VFS.Base {
         this.#availableAccessHandles.add(accessHandle);
       }
     }));
+    // Wait for EVERY in-flight handle acquisition before cleanup. Promise.all
+    // rejects early: a late success used to leak a handle after close(), which
+    // could leave even a single iPhone tab unable to reopen its original store.
+    const failed = acquired.find(result => result.status === 'rejected');
+    if (failed) { this.#releaseAccessHandles(); throw failed.reason; }
   }
 
   #releaseAccessHandles() {

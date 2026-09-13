@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.527";
+const CACHE_VERSION = "v3.11.528";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=7",
+  "/js/mediatheque-ui.js?v=8",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -82,7 +82,7 @@ const PRECACHE_URLS = [
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
-  "/js/study-video-source-ui.js?v=520",
+  "/js/study-video-source-ui.js?v=528",
   "/js/youtube-asr.js?v=519",
   "/js/learning-material-task.js?v=519",
   "/js/learning-material-task-ui.js?v=519",
@@ -110,7 +110,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=524",
+  "/js/library-ui.js?v=528",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -266,9 +266,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=222",
-  "/i18n/locales/en.js?v=222",
-  "/i18n/locales/he.js?v=222",
+  "/i18n/locales/ru.js?v=223",
+  "/i18n/locales/en.js?v=223",
+  "/i18n/locales/he.js?v=223",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -281,12 +281,15 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=520",
+  "/db/local-db.js?v=528",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
   "/db/vfs-order.js",
   "/db/db-worker.js",
+  "/db/db-worker-runtime.js?v=528",
+  "/db/operation-lease.js",
+  "/db/storage-identity.js",
   "/db/jszip.min.js",
   // ⑤ Anki-sync A2b — client .apkg export (small UMD core + builders). sql.js (/db/sql-wasm.*) is LAZY
   // (~700KB, fetched only on first export) → intentionally NOT precached.

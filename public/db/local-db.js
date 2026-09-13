@@ -57,297 +57,72 @@ let _initInFlight = null;
 let _seq    = 0;
 const _pending = new Map();
 
-// ── P0-1: single-owner multi-tab coordination ──────────────────────────────
-// OPFS FileSystemSyncAccessHandle is exclusive per-origin. If two tabs each
-// open the SQLite DB, the second corrupts the shared WASM heap → raw
-// "memory access out of bounds". We elect a single owner tab via the Web
-// Locks API; follower tabs do NOT open the DB and fail every query fast with
-// a typed, recoverable error instead of crashing.
+// Each tab owns a worker, not the database. The worker takes the shared Web
+// Lock only for an operation/transaction and closes physical handles before
+// releasing it. An idle or suspended Studio cannot pin another tab's library.
 export class DbUnavailableError extends Error {
   constructor(code, message) {
-    super(message || code);
-    this.name = 'DbUnavailableError';
-    this.code = code; // DB_OWNED_BY_OTHER_TAB | DB_WORKER_CRASHED | DB_INIT_FAILED
+    super(message || code); this.name = 'DbUnavailableError'; this.code = code;
   }
 }
-
-const _DB_OWNER_LOCK = 'linguistpro-opfs-db-owner-v1';
-let _ownerState = 'unknown';      // 'owner' | 'follower' | 'unknown'
-let _followerMode = false;
 let _workerCrashed = false;
-let _ownershipPromise = null;
-let _releaseOwnerLock = null;     // call to voluntarily yield the owner lock
-let _failoverArmed = false;
-let _ownerHooksInstalled = false;
-// P0-1 v2 — multi-tab UNBLOCK (owner request 2026-07-02): follower tabs no longer dead-end on
-// «БД занята». The OPFS/wa-sqlite connection stays SINGLE (owner tab only — sync access handles
-// are exclusive; two connections corrupt the heap, the original P0-1 crash), but followers now
-// PROXY their queries to the owner over a same-origin BroadcastChannel. Writes serialize through
-// the owner's worker queue; the Web-Locks failover is unchanged (owner dies → a follower reloads
-// into ownership). Known limit: other tabs' in-memory caches don't auto-invalidate on remote
-// writes — same freshness model as two devices; refresh to resync.
-const _PROXY_CH_NAME = 'localdb-proxy_v1';
-let _proxyMode = false;           // this tab serves its API through the owner's proxy
-let _proxyCh = null;              // BroadcastChannel (server on the owner, client on followers)
-const _proxyPending = new Map();  // reqId → {resolve, reject, timer}
-const _proxyTag = Math.random().toString(36).slice(2, 10) + '-';   // per-tab reqId namespace
-const _PROXY_TIMEOUT_MS = 30000;
-
+let _lastDbError = null;
+let _lifecycleInstalled = false;
+let _changesChannel = null;
 function _crashRegex(msg) {
-  return /memory access out of bounds|RuntimeError|abort\(|table index is out of bounds|null function or function signature mismatch/i
-    .test(String(msg || ''));
+  return /memory access out of bounds|RuntimeError|abort\(|table index is out of bounds|null function or function signature mismatch/i.test(String(msg || ''));
 }
-
-// Pure, side-effect-free classifier — exported so the worker-error wrapping
-// logic is unit-testable in node without a browser/Worker. Returns the
-// DbUnavailableError code for WASM-crash signatures, else null.
-export function classifyWorkerError(msg) {
-  return _crashRegex(msg) ? 'DB_WORKER_CRASHED' : null;
-}
-
-export function getOwnershipState() { return _ownerState; }
-export function isFollower() { return _followerMode; }
-export function isProxy() { return _proxyMode; }   // follower with a live route to the owner's DB
-export function getDbError() {
-  if (_workerCrashed) return new DbUnavailableError('DB_WORKER_CRASHED', 'Local database is temporarily unavailable.');
-  // P0-1 v2: a PROXIED follower has a live route to the owner's DB — it carries NO active error
-  // (live-caught: the Studio library/SRS/Dashboard error panels consult getDbError and treated a
-  // healthy proxied tab as «Database is in use by another tab»).
-  if (_followerMode && !_proxyMode) return new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.');
-  return null;
-}
-
-function _wrapWorkerError(rawMsg) {
+export function classifyWorkerError(msg) { return _crashRegex(msg) ? 'DB_WORKER_CRASHED' : null; }
+export function getOwnershipState() { return _initialized ? 'shared' : 'unknown'; }
+export function isFollower() { return false; }
+export function isProxy() { return false; }
+export function getDbError() { return _lastDbError; }
+export async function acquireDbOwnership() { /* Physical ownership lives in db-worker. */ }
+function _wrapWorkerError(rawMsg, code) {
   const msg = String(rawMsg || 'Worker error');
-  if (_crashRegex(msg)) {
-    _workerCrashed = true;
-    try {
-      if (typeof window !== 'undefined' && typeof window.v3OpfsTelemetryPush === 'function') {
-        window.v3OpfsTelemetryPush({ kind: 'db.crash', detail: msg.slice(0, 200) });
-      }
-    } catch (_) {}
-    return new DbUnavailableError('DB_WORKER_CRASHED', 'Local database is temporarily unavailable.');
+  if (_crashRegex(msg)) { _workerCrashed = true; code = 'DB_WORKER_CRASHED'; }
+  const error = code ? new DbUnavailableError(code, msg) : new Error(msg);
+  if (code) _lastDbError = error;
+  return error;
+}
+function _installDbLifecycle() {
+  if (_lifecycleInstalled || typeof window === 'undefined') return;
+  _lifecycleInstalled = true;
+  // Do not terminate/reload on visibilitychange: a Studio may be processing
+  // media. Idle workers hold no database handles. BFCache resumes in place.
+  window.addEventListener('pageshow', () => {
+    window.dispatchEvent(new CustomEvent('localdb:refresh'));
+  });
+  if (typeof BroadcastChannel === 'function') {
+    _changesChannel = new BroadcastChannel('localdb-commits-v2');
+    _changesChannel.onmessage = () => window.dispatchEvent(new CustomEvent('localdb:changed'));
   }
-  return new Error(msg);
 }
-
-function _installOwnerReleaseHooks() {
-  if (_ownerHooksInstalled || typeof window === 'undefined') return;
-  _ownerHooksInstalled = true;
-  const rel = () => {
-    try { if (_proxyCh) _proxyCh.postMessage({ kind: 'bye' }); } catch (_) {}   // fail followers' in-flight calls fast
-    try { if (_releaseOwnerLock) { _releaseOwnerLock(); _releaseOwnerLock = null; } } catch (_) {}
-  };
-  window.addEventListener('pagehide', rel);
-  window.addEventListener('beforeunload', rel);
-}
-
-// ── P0-1 v2 proxy plumbing ───────────────────────────────────────────────────
-// Owner side: serve followers' {kind:'req'} messages by running them through the SAME _call
-// path (one worker queue = one serialization point). Rows are plain JSON → structured-clone-safe.
-function _startProxyServer() {
-  if (_proxyCh || typeof BroadcastChannel === 'undefined') return;
-  try { _proxyCh = new BroadcastChannel(_PROXY_CH_NAME); } catch (_) { _proxyCh = null; return; }
-  // late-binding: a follower whose handshake timed out while THIS owner was still initializing
-  // (simultaneous open) hears 'hello' and reloads into a clean re-handshake.
-  try { _proxyCh.postMessage({ kind: 'hello' }); } catch (_) {}
-  _proxyCh.onmessage = async ({ data }) => {
-    if (!data || _followerMode) return;
-    if (data.kind === 'ping') { try { _proxyCh.postMessage({ kind: 'pong' }); } catch (_) {} return; }
-    if (data.kind !== 'req' || !data.reqId) return;
-    try {
-      const result = await _call(data.type, data.sql, data.params, data.opts);
-      _proxyCh.postMessage({ kind: 'res', reqId: data.reqId, ok: true, result });
-    } catch (e) {
-      _proxyCh.postMessage({ kind: 'res', reqId: data.reqId, ok: false, error: { code: (e && e.code) || 'DB_PROXY_ERROR', message: String((e && e.message) || e) } });
-    }
-  };
-}
-// Follower side: handshake (ping→pong) proves a proxy-capable owner is alive; then _call routes
-// through _proxyCall. No pong (owner on an old build / gone) → legacy dbBusy behaviour + failover.
-function _startProxyClient() {
-  if (typeof BroadcastChannel === 'undefined') return Promise.resolve(false);
-  try { _proxyCh = new BroadcastChannel(_PROXY_CH_NAME); } catch (_) { _proxyCh = null; return Promise.resolve(false); }
-  let pongResolve = null;
-  _proxyCh.onmessage = ({ data }) => {
-    if (!data) return;
-    if (data.kind === 'pong' && pongResolve) { const r = pongResolve; pongResolve = null; r(true); return; }
-    if (data.kind === 'bye') {
-      const err = new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Owner tab is closing; awaiting takeover.');
-      for (const h of _proxyPending.values()) { try { clearTimeout(h.timer); } catch (_) {} h.reject(err); }
-      _proxyPending.clear();
-      return;
-    }
-    if (data.kind !== 'res' || !data.reqId) return;
-    const h = _proxyPending.get(data.reqId);
-    if (!h) return;                                        // another follower's reply
-    _proxyPending.delete(data.reqId);
-    try { clearTimeout(h.timer); } catch (_) {}
-    if (data.ok) h.resolve(data.result);
-    else { const e = new DbUnavailableError(data.error && data.error.code || 'DB_PROXY_ERROR', data.error && data.error.message || 'proxy error'); h.reject(e); }
-  };
-  return new Promise((resolve) => {
-    let tries = 0;
-    const attempt = () => {
-      // ~5s window: an owner elected in the same instant may still be opening OPFS/worker —
-      // its proxy server only starts at init-complete (live-caught race, 2026-07-02).
-      if (++tries > 10) { resolve(false); _armProxyLateJoin(); return; }
-      pongResolve = resolve;
-      try { _proxyCh.postMessage({ kind: 'ping' }); } catch (_) { resolve(false); return; }
-      setTimeout(() => { if (pongResolve) attempt(); }, 500);
-    };
-    attempt();
-  });
-}
-// Handshake gave up (owner still initializing / old build). Keep trying ACTIVELY: a one-shot
-// 'hello' can be missed while THIS tab is still booting (live-caught deadlock: both tabs reload
-// simultaneously, the owner's init on a large profile outlives the 5s window, hello broadcast
-// lands before our listener arms → the follower sat in the overlay until a manual reload).
-// The owner answers pings at ANY later moment → we reload into a clean re-handshake.
-function _armProxyLateJoin() {
-  if (!_proxyCh) return;
-  const prev = _proxyCh.onmessage;
-  let pinger = null;
-  const upgrade = () => {
-    try { if (pinger) clearInterval(pinger); } catch (_) {}
-    try { window.location.reload(); } catch (_) {}
-  };
-  _proxyCh.onmessage = (ev) => {
-    const d = ev && ev.data;
-    if (d && (d.kind === 'hello' || d.kind === 'pong')) { upgrade(); return; }
-    if (typeof prev === 'function') prev(ev);
-  };
-  pinger = setInterval(() => { try { _proxyCh.postMessage({ kind: 'ping' }); } catch (_) { try { clearInterval(pinger); } catch (_) {} } }, 2000);
-  setTimeout(() => { try { if (pinger) clearInterval(pinger); } catch (_) {} }, 5 * 60 * 1000);   // stop after 5 min (legacy owner — the overlay's manual actions apply)
-}
-function _proxyCall(type, sql, params, opts) {
-  return new Promise((resolve, reject) => {
-    if (!_proxyCh) { reject(getDbError() || new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.')); return; }
-    const reqId = _proxyTag + (++_seq);
-    const timer = setTimeout(() => {
-      _proxyPending.delete(reqId);
-      reject(new DbUnavailableError('DB_PROXY_TIMEOUT', 'Owner tab did not answer in time.'));
-    }, _PROXY_TIMEOUT_MS);
-    _proxyPending.set(reqId, { resolve, reject, timer });
-    try { _proxyCh.postMessage({ kind: 'req', reqId, type, sql, params, opts: opts || null }); }
-    catch (e) { _proxyPending.delete(reqId); clearTimeout(timer); reject(e); }
-  });
-}
-
-// Follower tabs queue a (non-ifAvailable) lock request. When the current
-// owner closes/crashes (Web Locks auto-releases) or voluntarily yields, this
-// callback fires → this tab becomes the owner. Cold-reload to init cleanly.
-function _armFailover() {
-  if (_failoverArmed || typeof navigator === 'undefined' || !navigator.locks) return;
-  _failoverArmed = true;
-  navigator.locks.request(_DB_OWNER_LOCK, () => {
-    _ownerState = 'owner';
-    _followerMode = false;
-    if (typeof window !== 'undefined') {
-      try { window.dispatchEvent(new CustomEvent('localdb:became-owner')); } catch (_) {}
-      // Cleanest path to a healthy owner: cold reload to fresh-init the DB.
-      try { window.location.reload(); } catch (_) {}
-    }
-    // Hold the lock until reload tears us down.
-    return new Promise(() => {});
-  }).catch(() => {});
-}
-
-export async function acquireDbOwnership() {
-  if (_ownershipPromise) return _ownershipPromise;
-  _ownershipPromise = (async () => {
-    if (typeof navigator === 'undefined' || !navigator.locks || typeof navigator.locks.request !== 'function') {
-      // No Web Locks (old browsers / node test env): preserve legacy
-      // single-owner-assumed behaviour, no regression.
-      _ownerState = 'owner';
-      return;
-    }
-    const becameOwner = await new Promise((resolveOwner) => {
-      let settled = false;
-      const done = (v) => { if (!settled) { settled = true; resolveOwner(v); } };
-      navigator.locks.request(_DB_OWNER_LOCK, { ifAvailable: true }, (lock) => {
-        if (!lock) { done(false); return; }   // someone else owns it
-        done(true);
-        return new Promise((releaseLock) => { _releaseOwnerLock = releaseLock; });
-      }).catch(() => done(false));
-    });
-    if (becameOwner) {
-      _ownerState = 'owner';
-      _installOwnerReleaseHooks();
-    } else {
-      _ownerState = 'follower';
-      _followerMode = true;
-      if (typeof window !== 'undefined') window.__localDBFollower = true;
-      _armFailover();
-    }
-  })();
-  return _ownershipPromise;
-}
-
-// Voluntarily yield ownership so a follower that requested takeover can
-// become owner. Tears down our worker to fully release the OPFS handle.
-export function releaseDbOwnership() {
-  try { if (_releaseOwnerLock) { _releaseOwnerLock(); _releaseOwnerLock = null; } } catch (_) {}
-  try { if (_worker) { _worker.terminate(); _worker = null; } } catch (_) {}
-  _initialized = false;
-  _ownerState = 'follower';
-  _followerMode = true;
-  if (typeof window !== 'undefined') window.__localDBFollower = true;
-}
-
-// Graceful pre-navigation teardown for the Room↔Studio cross-nav (owner 2026-07-05 iPhone repro):
-// explicitly release the sync access handle / IDB connection BEFORE a hard `location.href` nav,
-// instead of relying on the browser's own worker-termination timing to release it "in time" for
-// the next page's open() — a race that produced a raw SQLITE_CANTOPEN ("unable to open database
-// file") and, once, a page landing on a DIFFERENT (empty) VFS backend. Callers should `await`
-// this, THEN navigate. Bounded by a timeout so a stuck worker can never block navigation forever.
+export async function releaseDbOwnership() { await closeLocalDB(); }
 export async function closeLocalDB() {
-  try {
-    if (_proxyMode) { try { if (_proxyCh) _proxyCh.close(); } catch (_) {} return; }
-    if (_followerMode || !_worker) return;
-    await Promise.race([
-      _call('close', null, null, null).catch(() => {}),
-      new Promise((resolve) => setTimeout(resolve, 1500)),
-    ]);
-    try { if (_releaseOwnerLock) { _releaseOwnerLock(); _releaseOwnerLock = null; } } catch (_) {}
-    try { if (_proxyCh) { _proxyCh.postMessage({ kind: 'bye' }); _proxyCh.close(); } } catch (_) {}
-    try { _worker.terminate(); } catch (_) {}
-    _worker = null;
-    _initialized = false;
-  } catch (_) {}
+  if (!_worker) return;
+  await _call('close');
+  // Keep the worker and initialized API usable on BFCache / same-page retry.
+  // 'close' is acknowledged only after physical resources have been released.
 }
-
-// Recovery entry point for the "Retry" affordance (P0-2 / P1-6). Re-spawns
-// the worker and re-inits if we own the DB; followers must reload instead.
 export async function recoverLocalDB() {
-  if (_followerMode) {
-    throw new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.');
+  if (_workerCrashed) {
+    try { _worker?.terminate(); } catch (_) {}
+    _worker = null; _initialized = false; _workerCrashed = false;
   }
-  _workerCrashed = false;
-  _initialized = false;
-  try { if (_worker) { _worker.terminate(); _worker = null; } } catch (_) {}
+  _lastDbError = null;
+  if (_worker) await closeLocalDB();
   await initLocalDB();
+  await _call('query', 'SELECT 1 AS ready');
 }
-
 function _call(type, sql, params, opts) {
-  if (_proxyMode) return _proxyCall(type, sql, params, opts);   // P0-1 v2: follower → owner
   return new Promise((resolve, reject) => {
-    if (_followerMode || _workerCrashed) {
-      reject(getDbError() || new DbUnavailableError('DB_INIT_FAILED', 'Local database is unavailable.'));
-      return;
-    }
-    if (!_worker) {
-      reject(new Error('local-db: worker not started (call initLocalDB() first)'));
-      return;
-    }
+    if (_workerCrashed) { reject(_lastDbError); return; }
+    if (!_worker) { reject(new DbUnavailableError('DB_INIT_FAILED', 'Local database is not initialized.')); return; }
     const id = ++_seq;
     _pending.set(id, { resolve, reject });
-    try {
-      _worker.postMessage({ id, type, sql, params, ...(opts || {}) });
-    } catch (e) {
-      _pending.delete(id);
-      reject(e);
-    }
+    try { _worker.postMessage({ id, type, sql, params, ...(opts || {}) }); }
+    catch (e) { _pending.delete(id); reject(e); }
   });
 }
 
@@ -497,43 +272,29 @@ export async function initLocalDB() {
 
 async function _initializeLocalDB() {
   if (_initialized) return; // idempotent on success
-  // P0-1: elect a single owner tab. Follower tabs must NOT open the DB.
-  await acquireDbOwnership();
-  if (_followerMode) {
-    // P0-1 v2: try the owner's proxy BEFORE dead-ending — a proxy-capable owner makes this tab
-    // fully functional (queries route to the single OPFS connection; failover stays armed).
-    const routed = await _startProxyClient();
-    if (routed) {
-      _proxyMode = true;
-      _initialized = true;
-      if (typeof window !== 'undefined') {
-        window.__localDBProxy = true;
-        // acquireDbOwnership set this BEFORE the handshake; a proxied tab is NOT a dead-end
-        // follower — clear it so secondary UI paths (Studio tab-coord overlay) don't fire.
-        window.__localDBFollower = false;
-      }
-      return;
-    }
-    if (typeof window !== 'undefined') window.__localDBFollower = true;
-    return; // resolve without a worker — _call() fails fast & recoverably
-  }
   await _preflightSupport();
   if (!_worker) {
-    _worker = new Worker('/db/db-worker.js', { type: 'module' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=528', { type: 'module' });
     _worker.onmessage = ({ data }) => {
+      if (data.kind === 'committed') {
+        try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}
+        return;
+      }
       const h = _pending.get(data.id);
       if (!h) return;
       _pending.delete(data.id);
       if (data.ok) {
         if (data.vfs) _vfs = data.vfs;
         if (data.vfsKind) _vfsKind = data.vfsKind;
+        _lastDbError = null;
         h.resolve(data.rows ?? data.changes ?? data);
       } else {
-        h.reject(_wrapWorkerError(data.error));
+        h.reject(_wrapWorkerError(data.error, data.code));
       }
     };
     _worker.onerror = (e) => {
-      const err = _wrapWorkerError(e && e.message ? e.message : 'Worker crashed: unknown');
+      _workerCrashed = true;
+      const err = _wrapWorkerError(e?.message || 'Worker crashed', 'DB_WORKER_CRASHED');
       for (const h of _pending.values()) h.reject(err);
       _pending.clear();
     };
@@ -549,7 +310,7 @@ async function _initializeLocalDB() {
     throw new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));
   }
   _initialized = true;
-  _startProxyServer();   // P0-1 v2: serve follower tabs (multi-tab unblock)
+  _installDbLifecycle();
   // Remember the VFS that actually worked, so a later browser upgrade
   // doesn't silently switch storage backends and orphan the user's data.
   try {
@@ -1096,6 +857,27 @@ export async function updateText(id, fields) {
   const vals = entries.map(([, v]) => v);
   await r(`UPDATE texts SET ${sets}, updated_at = ? WHERE id = ?`,
     [...vals, new Date().toISOString(), id]);
+}
+
+// Legacy Studio table replacement is a single compare-and-swap transaction.
+// A second editor cannot silently replace rows saved since this editor opened.
+// Versioned media continues through MaterialRevisionRepository instead.
+export async function replaceStudioText(id, { expectedUpdatedAt, fields, rows }) {
+  if (!expectedUpdatedAt) throw new DbUnavailableError('DB_TEXT_CHANGED');
+  await x('BEGIN IMMEDIATE;');
+  try {
+    const current = await getTextById(id);
+    if (!current || current.updated_at !== expectedUpdatedAt) throw new DbUnavailableError('DB_TEXT_CHANGED');
+    if ((await q('SELECT 1 FROM studio_text_media_bindings WHERE text_id=?', [id])).length) throw new DbUnavailableError('DB_TEXT_CHANGED');
+    await updateText(id, fields);
+    await r('DELETE FROM sentences WHERE text_id=?', [id]);
+    await addSentences(id, rows);
+    const stamp = new Date(Math.max(Date.now(), Date.parse(expectedUpdatedAt) + 1)).toISOString();
+    await r('UPDATE texts SET updated_at=? WHERE id=?', [stamp, id]);
+    const saved = await getTextById(id);
+    await x('COMMIT;');
+    return saved;
+  } catch (error) { await x('ROLLBACK;').catch(() => {}); throw error; }
 }
 
 // B+C: a repeated local media import must not silently create another random text_key.

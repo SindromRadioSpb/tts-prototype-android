@@ -7,14 +7,14 @@ const vm = require('node:vm');
 const { pathToFileURL } = require('node:url');
 async function harness(failures = {}) {
  const { computeVfsOrder } = await import(pathToFileURL(path.join(__dirname,'../public/db/vfs-order.js')).href);
- const source = fs.readFileSync(path.join(__dirname,'../public/db/db-worker.js'),'utf8');
+ const source = fs.readFileSync(path.join(__dirname,'../public/db/db-worker-runtime.js'),'utf8');
  const calls = [], closed = [], writes = [];
  const open = name => async () => {
   calls.push(name);
   if (failures[name] > 0) { failures[name]--; throw Error('fixture storage lock'); }
   return { sqlite: { close: async () => closed.push(name) }, db: name, vfs: { close: async () => {} }, vfsName: name, vfsKind: name==='AccessHandlePool'?'sync':'async' };
  };
- const ctx = vm.createContext({ db:null,sqlite3:null,vfs:null,vfsName:null,vfsKind:null,computeVfsOrder,
+ const ctx = vm.createContext({ migrated:false,db:null,sqlite3:null,vfs:null,vfsName:null,vfsKind:null,computeVfsOrder,
   initWithAccessHandlePool:open('AccessHandlePool'),initWithIDB:open('tts-opfs-idb'),
   execMulti:async()=>{},runMigrations:async()=>writes.push(ctx.db),console:{warn:()=>{}},setTimeout:fn=>fn() });
  vm.runInContext(source.slice(source.indexOf('async function initDBOnce('),source.indexOf('// ── message handler')),ctx);
