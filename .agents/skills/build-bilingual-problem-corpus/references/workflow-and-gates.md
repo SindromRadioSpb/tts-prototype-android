@@ -4,14 +4,16 @@ Read only for implementation, audio generation, import, publication, or producti
 verification. Corpus-specific scripts may be adapted, but their Physics constants and
 paths are not defaults.
 
-## 1. Recon and red tests
+## 1. Targeted recon and validation
 
 1. Inventory source files, existing caches, legacy tables, scripts, schemas, packages,
-   database/publication state, and relevant production version.
+   database/publication state when relevant; inspect production version only for a production operation.
 2. Measure tasks, pages, expected row types, diagrams, missing inputs, and provider
    request size before choosing batch boundaries.
-3. Write source- and corpus-specific tests that fail on missing tasks, row drift,
-   consonant changes hidden under niqqud, semantic-kind mismatch, and missing provenance.
+3. Reuse corpus checks for missing tasks, row drift, consonant changes hidden under
+   niqqud, semantic-kind mismatch and missing provenance. Add a meaningful regression
+   test when changing behavior or closing a demonstrated coverage gap; do not create
+   red tests merely to begin a data-preparation task.
 4. Produce a plan with a scoped file allowlist, cost boundary, stop list, rollback, and
    explicit owner decisions. Do not start paid generation merely because recon passed.
 
@@ -76,10 +78,14 @@ outside publication remain byte-stable.
 
 ## 6. Acceptance
 
-Run focused source tests plus package/import tests, i18n, anonymous API read-back,
-asset/hash/Range checks, desktop and 380 px RU/LTR and HE/RTL, audio playback where
-present, and zero horizontal overflow. Cache-bust fresh-anonymous probes and separately
-test an existing PWA profile without clearing OPFS or user data.
+For a local corpus, run focused source and package/hash/import/reopen checks.
+For changed user-visible surfaces, check affected i18n, desktop and 380 px RU/LTR
+and HE/RTL layouts, interactions and overflow. For audio, check its actual assets
+and playback; HTTP Range applies when serving those assets.
+For an authorized publication, add anonymous API/asset read-back and cache-busted
+fresh-anonymous probes. Check an existing PWA profile only within the authorized
+read-only scope, without clearing OPFS or user data. Local preparation alone does
+not require production probes or an owner profile.
 
 After a deployment, require a stable streak of the target version with healthy DB and
 migrations. Confirm the exact deployed immutable image, not only Git state. Record

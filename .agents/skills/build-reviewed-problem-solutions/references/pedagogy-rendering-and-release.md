@@ -11,10 +11,10 @@ computed results, or comparison status. Each task should contain:
 - a plain-language physical or engineering picture;
 - the minimum prerequisites;
 - the deep principle and its applicability conditions;
-- a roadmap of at least three subgoals;
+- a roadmap with the subgoals needed for this task;
 - one task-specific trap;
 - common misconceptions;
-- at least two retrieval/self-check questions that do not reveal the final answer.
+- retrieval/self-check questions appropriate to the learning objective, without revealing the final answer.
 
 Reject unfinished scaffold markers and phrases such as “obvious” or “just substitute.” Check automatically
 that the overlay does not introduce numeric claims absent from verified ledgers.
