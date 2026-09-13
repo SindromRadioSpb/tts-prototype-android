@@ -4,6 +4,8 @@ Date: 2026-09-13. Baseline: `ff41fae5` / production 3.11.527.
 Candidate: `fix/multitab-runtime-2026-09-13` / 3.11.528.
 Profiles: disposable browser contexts; application server uses `smokeServerEnv` and a temporary data directory, with dotenv suppressed. No owner profile, paid provider, production mutation, or external media request.
 
+Subsequent authorized deployment and live checks: [production receipt](PRODUCTION.md). The results below describe the pre-release local validation.
+
 ## Results
 
 | Command / configuration | Result |
