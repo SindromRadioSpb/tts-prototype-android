@@ -11,12 +11,13 @@ Profiles: disposable browser contexts; application server uses `smokeServerEnv` 
 | `npm test` | PASS, 1586/1586, 36.11 s on final canonical LF sources, including cleanup hardening. |
 | `node --test tests/operationLease.test.js tests/accessHandleCleanup.test.js tests/vfsBootRecovery.test.js` after final cleanup hardening | PASS, 14/14. |
 | `node --test tests/localDbInitConcurrency.test.js` after fixture terminology cleanup | PASS, 2/2. |
+| `npm run smoke:memory-canon` | PASS, 90/90, including schema index and learner-history checks. |
 | `npm run test:api-smoke` | PASS. Disposable server/API and migration checks. |
 | `node scripts/multitab/operation-lease-smoke.js` | PASS: Chromium, 4 tabs, OPFS and IndexedDB; final runtime rerun 1824 / 1593 ms. |
 | Same, `MULTITAB_TABS=8` | PASS: Chromium, 8 tabs, OPFS 2170 ms / IndexedDB 1979 ms. Timings describe the small synthetic scenario, not an owner-library benchmark. |
 | Same, `MULTITAB_ENGINE=webkit MULTITAB_BACKENDS=tts-opfs-idb` | PASS: Windows WebKit 26.4, 4 tabs, IndexedDB, 3587 ms. |
 | Same, WebKit with forced OPFS | UNSUPPORTED in this test build: `navigator.storage.getDirectory` unavailable. The error was not counted as a pass. |
-| `node scripts/multitab/studio-surfaces-smoke.js` | PASS: 2 full Studios + Room + Mediatheque; independent input/active identities, same-tab reload, peer close without reload, visible catalogue invalidation, actual local MP4 playback, frozen idle Studio, zero pageerrors. |
+| `node scripts/multitab/studio-surfaces-smoke.js` | PASS: 2 full Studios + Room + Mediatheque; independent input/active identities, same-tab reload, peer close without reload, visible catalogue invalidation, deferred refresh after dialog close, actual local MP4 playback, frozen idle Studio, zero pageerrors. |
 | `git diff --check` | PASS. |
 
 `npm run smoke:multitab` now runs both maintained browser scripts; the retired owner/follower entry point no longer accepts an unavailable/crashed database as success.
@@ -47,6 +48,7 @@ Screenshots were inspected. Video success is established by actual media `play()
 
 ## Limits and reproducibility notes
 
+- Initial GitHub CI run 34769496888 passed unit/API/ingest/sync/FSRS gates but found a pre-existing memory-canon assertion pinned to 52 migrations on a baseline already containing 53. The gate now requires exactly 53 and checks the appended Mediatheque migration at index 52; the full local replay passes 90/90.
 - Full unit tests initially found changed storage fixtures and stale release-version assertions. Storage fixtures were aligned with the new runtime, release assertions with candidate 528 / locale 223, and table-cache assertion with tab storage. Behavioural assertions were retained.
 - A fresh Windows checkout applied CRLF to Python helper sources while their committed downloadable package contains LF. For packaged-byte verification these three local source files were restored to their exact Git blob bytes; no downloader product change is included.
 - Some pre-existing corpus tests rewrite tracked generated artifacts. Those test-only changes were restored in this initially clean isolated worktree and are excluded from the change.

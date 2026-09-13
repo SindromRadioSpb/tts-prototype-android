@@ -54,6 +54,15 @@ async function main() {
     assert.equal(await b.evaluate(() => v3SessionGet().textId), 'mt-studio-b');
     await b.evaluate(() => __localDB.createText({ id: 'mt-studio-c', text_key: 'mt-studio-c', title: 'Multitab gamma', source_text: 'ספר' }));
     await m.getByText('Multitab gamma', { exact: true }).first().waitFor({ timeout: 15000 });
+    // A commit arriving while a dialog is open must refresh after it closes.
+    await m.evaluate(() => {
+      document.getElementById('ml-dialog').showModal();
+      window.mtDeferredCommit = new Promise(resolve => window.addEventListener('localdb:changed', resolve, { once: true }));
+    });
+    await b.evaluate(() => __localDB.createText({ id: 'mt-deferred', text_key: 'mt-deferred', title: 'Multitab deferred', source_text: 'ספר' }));
+    await m.evaluate(() => window.mtDeferredCommit.then(() => true));
+    await m.evaluate(() => document.getElementById('ml-dialog').close());
+    await m.getByText('Multitab deferred', { exact: true }).first().waitFor({ timeout: 15000 });
     for (const p of [b, m, r]) {
       const body = await p.locator('body').innerText();
       assert.doesNotMatch(body, /Запросы идут через одну вкладку|Закройте другие вкладки|Библиотека открыта в другой вкладке|memory access out of bounds/);
@@ -94,7 +103,7 @@ async function main() {
     assert.equal(await b.inputValue('#inputText'), 'Черновик второй Студии');
     await m.screenshot({ path: path.join(OUT, 'video-playing-380.png') });
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ result: 'PASS', studios: 2, room: 1, mediatheque: 1, draftsIsolated: true, noReloadOnPeerClose: true, liveCatalogueRefresh: true, localVideoPlayback: true, frozenIdleStudio: true, errors }));
+    console.log(JSON.stringify({ result: 'PASS', studios: 2, room: 1, mediatheque: 1, draftsIsolated: true, noReloadOnPeerClose: true, liveCatalogueRefresh: true, deferredDialogRefresh: true, localVideoPlayback: true, frozenIdleStudio: true, errors }));
   } catch (e) { fs.writeFileSync(path.join(OUT, 'server-failure.log'), logs.join('')); throw e; }
   finally {
     if (browser) await browser.close();

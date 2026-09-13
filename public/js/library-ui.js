@@ -14525,3 +14525,6 @@ function refreshExternalLibrary() {
 }
 window.addEventListener('localdb:changed', refreshExternalLibrary);
 window.addEventListener('localdb:refresh', refreshExternalLibrary);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshExternalLibrary();
+});

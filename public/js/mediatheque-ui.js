@@ -200,6 +200,7 @@ async function loadAll() {
   results.forEach(r => { if (r.status === 'rejected') announce(errorText(r.reason), true); });
   render();
   if (pendingPosition) { restoreLocation(pendingPosition); pendingPosition = null; }
+  if (externalRefreshDirty) refreshVisibleLibrary();
 }
 async function save(next) {
   if (!canEdit()) throw new Error('PUBLISHER_FORBIDDEN');
@@ -212,7 +213,7 @@ async function mutate(command, success = t('saved')) {
   try { const next = typeof command === 'function' ? command(structure()) : C.command(structure(), command, { publicOnly: state.space === 'public' });
     await save(next); state.selected.clear(); render(); announce(success); }
   catch (e) { announce(errorText(e), true); if (/CONFLICT/.test(e.message)) await refreshStructure(); }
-  finally { state.busy = false; }
+  finally { state.busy = false; if (externalRefreshDirty) queueMicrotask(refreshVisibleLibrary); }
 }
 async function refreshStructure() {
   if (state.space === 'personal') state.personal = await localDb.getMediathequeStructure();
@@ -751,7 +752,7 @@ async function onAction(action, node) {
   if (action === 'undo') { state.busy = true; try {
     if (state.space === 'personal') state.personal = await localDb.undoMediathequeStructure(state.personal.revision);
     else state.draft = { ...state.draft, ...await api('/api/publication/mediatheque/undo', { expectedVersion: state.draft.revision }) };
-    render(); announce(t('undone')); } finally { state.busy = false; } return;
+    render(); announce(t('undone')); } finally { state.busy = false; if (externalRefreshDirty) queueMicrotask(refreshVisibleLibrary); } return;
   }
   if (action === 'up' || action === 'down') return reorder(node.dataset.orderType, id, action === 'up' ? -1 : 1);
   if (action === 'remove-items') return showDialog(t('removeFromHere'), `<p>${esc(t('removeItemsHelp', { count:state.selected.size }))}</p>${formActions(t('remove'))}`, () => formSave(C.command(structure(), { type:'items.remove', target: state.filters.collection ? 'collection' : 'category', id:state.filters.collection || state.filters.category, keys:Array.from(state.selected) })));
@@ -836,7 +837,7 @@ $('ml-dialog').addEventListener('submit', async event => {
     }
     else { const error = $('ml-form-error'); if (error) { error.hidden = false; error.textContent = errorText(e); } }
   }
-  finally { state.busy = false; if (submit?.isConnected) submit.disabled = event.target.dataset.conflict === 'true'; }
+  finally { state.busy = false; if (externalRefreshDirty) queueMicrotask(refreshVisibleLibrary); if (submit?.isConnected) submit.disabled = event.target.dataset.conflict === 'true'; }
 });
 function applyTheme() {
   let theme; try { theme = localStorage.getItem('appTheme_v1'); } catch (_) {}
@@ -849,14 +850,19 @@ document.addEventListener('i18n:changed', () => { $('ml-language').value = windo
 window.addEventListener('pagehide', () => rememberLocation());
 window.addEventListener('pageshow', event => { if (event.persisted) refreshVisibleLibrary(); });
 window.addEventListener('online', () => loadAll());
-let localRefresh = null;
+let localRefresh = null, externalRefreshDirty = false;
 function refreshVisibleLibrary() {
   if (document.visibilityState !== 'visible' || state.loading || state.busy || $('ml-dialog').open || localRefresh) return;
-  localRefresh = loadLocal().then(() => render()).finally(() => { localRefresh = null; });
+  externalRefreshDirty = false;
+  localRefresh = loadLocal().then(() => render()).finally(() => {
+    localRefresh = null;
+    if (externalRefreshDirty) refreshVisibleLibrary();
+  });
 }
 window.addEventListener('focus', refreshVisibleLibrary);
-window.addEventListener('localdb:changed', refreshVisibleLibrary);
+window.addEventListener('localdb:changed', () => { externalRefreshDirty = true; refreshVisibleLibrary(); });
 window.addEventListener('localdb:refresh', refreshVisibleLibrary);
+$('ml-dialog').addEventListener('close', () => { if (externalRefreshDirty) refreshVisibleLibrary(); });
 document.addEventListener('visibilitychange', refreshVisibleLibrary);
 window.addEventListener('popstate', () => { clearTimeout(searchTimer); searchRouteStarted = false; state.editing = false; state.preview = false; restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true); render(); restoreLocation(history.state?.ml); });
 applyTheme(); restorePresentation(new URLSearchParams(location.search).get('space') === 'personal' ? 'personal' : 'public', true);
