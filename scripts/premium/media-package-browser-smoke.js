@@ -149,17 +149,28 @@ async function main() {
     await page.screenshot({ path: path.join(SHOTS, 'l3a-reopen-shelf-380-he.png'), fullPage: false });
     await page.evaluate(async () => {
       window.StudioImport.close();
+      window.v3LibraryOpen();
       await window.StudioPortableLearningPackage.open({ view: 'materials' });
     });
     await page.locator('#p2PortableModal:not([hidden]) .p4-material-card[data-lifecycle-group="draft"]').waitFor();
     await page.locator('#p2PortableModal button[data-filter="draft"]').click();
     const importCenterItems = await page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"]').count();
+    await page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"] button[data-next="more"]').first().click();
+    await page.locator('#p2PortableModal .p4-material-detail').waitFor();
+    const draftDeleteAvailable = await page.locator('#p2PortableModal button[data-material-action="delete-draft"]').count() === 1;
+    await page.locator('#p2PortableModal [data-material-back]').click();
+    await page.locator('#p2PortableModal button[data-filter="draft"]').click();
     const importCenterOpen = page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"] button[data-next="continue-correction"]');
     if (await importCenterOpen.count() !== 1) throw new Error('IMPORT_CENTER_REOPEN_BUTTON_COUNT');
     await importCenterOpen.click();
     await page.locator('#l3MediaEditorModal:not(.hidden)').waitFor();
     const reopenedFromImportCenter = await page.locator('#l3CueText').inputValue() === 'שלום מיה — תיקון אנושי';
-    await page.evaluate(() => window.StudioMediaEditor.close(true));
+    await page.locator('#l3ContinueTableBtn').click();
+    await page.waitForFunction(() => document.getElementById('l3MediaEditorModal').classList.contains('hidden'));
+    const continuedToStudio = await page.evaluate(() => ({
+      library_hidden: document.getElementById('v3LibraryModal').classList.contains('hidden'),
+      source_text: document.getElementById('inputText').value,
+    }));
     await page.reload({ waitUntil: 'load' });
     await page.evaluate(async () => {
       if (window.__localDBInitPromise) await window.__localDBInitPromise;
@@ -217,10 +228,19 @@ async function main() {
     await page.screenshot({ path: path.join(SHOTS, 'l3a-table-source-sync-380-he.png'), fullPage: false });
     await page.setViewportSize({ width: 1280, height: 900 });
     const desktopResize = await page.evaluate(() => getComputedStyle(document.getElementById('l3MediaEditorPanel')).resize);
-    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || !sourceSurface.workspace_card_absent || !sourceSurface.workspace_shelf_absent || sourceSurface.source_action_count !== 2 || sourceSurface.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || !addMaterial.visible || !addMaterial.file_tab_selected || !addMaterial.workspace_card_absent || !addMaterial.workspace_shelf_absent || addMaterial.overflow || importCenterItems !== 1 || !reopenedFromImportCenter || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || pageErrors.length) {
-      throw new Error(`BROWSER_GATE:${JSON.stringify({ setup, editorSync, ru, saved, sourceSurface, he, addMaterial, importCenterItems, reopenedFromImportCenter, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, pageErrors })}`);
+    await page.evaluate(() => window.StudioPortableLearningPackage.open({ view: 'materials' }));
+    await page.locator('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"] button[data-next="more"]').first().click();
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#p2PortableModal button[data-material-action="delete-draft"]').click();
+    await page.waitForFunction(() => document.querySelector('#p2PortableModal .p4-materials') && document.querySelectorAll('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"]').length === 0);
+    const draftDeletion = await page.evaluate(async packageId => ({
+      package_count: Number((await window.__localDB.dbQuery('SELECT COUNT(*) AS n FROM studio_media_packages WHERE package_id=? AND deleted_at IS NULL', [packageId]))[0].n),
+      draft_count: document.querySelectorAll('#p2PortableModal .p4-material-card[data-lifecycle-group="draft"]').length,
+    }), setup.package_id);
+    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || !sourceSurface.workspace_card_absent || !sourceSurface.workspace_shelf_absent || sourceSurface.source_action_count !== 2 || sourceSurface.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || !addMaterial.visible || !addMaterial.file_tab_selected || !addMaterial.workspace_card_absent || !addMaterial.workspace_shelf_absent || addMaterial.overflow || importCenterItems !== 1 || !draftDeleteAvailable || !reopenedFromImportCenter || !continuedToStudio.library_hidden || continuedToStudio.source_text !== 'שלום מיה — תיקון אנושי\nזהו מבחן מקומי' || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || draftDeletion.package_count !== 0 || draftDeletion.draft_count !== 0 || pageErrors.length) {
+      throw new Error(`BROWSER_GATE:${JSON.stringify({ setup, editorSync, ru, saved, sourceSurface, he, addMaterial, importCenterItems, draftDeleteAvailable, reopenedFromImportCenter, continuedToStudio, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, draftDeletion, pageErrors })}`);
     }
-    console.log(JSON.stringify({ gate: 'L3A_BROWSER_380_RU_HE_IMPORT_CENTER_REOPEN_MEDIA_SYNC', setup, editorSync, ru, saved, sourceSurface, he, addMaterial, importCenterItems, reopenedFromImportCenter, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, screenshots: ['l3a-380-ru.png', 'l3a-reopen-composer-380-ru.png', 'l3a-380-he.png', 'l3a-reopen-shelf-380-he.png', 'l3a-table-source-sync-380-he.png'], page_errors: pageErrors }, null, 2));
+    console.log(JSON.stringify({ gate: 'L3A_BROWSER_380_RU_HE_IMPORT_CENTER_REOPEN_MEDIA_SYNC', setup, editorSync, ru, saved, sourceSurface, he, addMaterial, importCenterItems, draftDeleteAvailable, reopenedFromImportCenter, continuedToStudio, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, draftDeletion, screenshots: ['l3a-380-ru.png', 'l3a-reopen-composer-380-ru.png', 'l3a-380-he.png', 'l3a-reopen-shelf-380-he.png', 'l3a-table-source-sync-380-he.png'], page_errors: pageErrors }, null, 2));
   } finally {
     await browser.close(); await stopServer(server);
     if (serverData) fs.rmSync(serverData, { recursive: true, force: true });

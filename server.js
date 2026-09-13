@@ -1122,7 +1122,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-yt-player.js?v=506",
   "/js/studio-media-karaoke.js",
   "/js/portable-learning-package-core.js",
-  "/js/portable-learning-package-repository.js?v=527",
+  "/js/portable-learning-package-repository.js?v=529",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
   "/js/studio-import.js",
@@ -1139,7 +1139,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/local-text-familiarity.js?v=485",
   "/js/studio-library-discovery.js?v=486",
   "/index.html",
-  "/js/studio-portable-learning-package.js?v=527",
+  "/js/studio-portable-learning-package.js?v=529",
+  "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
   "/js/library-ui.js?v=528",
@@ -1174,9 +1175,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=527",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=223",
-  "/i18n/locales/en.js?v=223",
-  "/i18n/locales/he.js?v=223",
+  "/i18n/locales/ru.js?v=224",
+  "/i18n/locales/en.js?v=224",
+  "/i18n/locales/he.js?v=224",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

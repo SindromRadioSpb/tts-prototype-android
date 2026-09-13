@@ -14,10 +14,15 @@
   function shortHash(id) { const match = /([a-f0-9]{64})$/.exec(String(id || '')); if (!match) throw failure('PORTABLE_ID_INVALID', id); return match[1]; }
   function quoteIdentifier(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }
   function playbackCore() { return typeof module === 'object' && module.exports ? require('./playback-source.js') : globalThis.PlaybackSource; }
+  function playbackFromSourceMeta(value) {
+    const source = parse(value, null);
+    return source && typeof source === 'object' && !Array.isArray(source) ? source.playback_source || null : null;
+  }
   function playbackForText(text, externalRef) {
-    const P = playbackCore(), source = parse(text && text.source_meta_json, {});
-    if (Object.prototype.hasOwnProperty.call(source, 'playback_source')) return P.validate(source.playback_source);
-    for (const meta of [parse(text && text.table_model_meta_json,{}),source]) {
+    const P = playbackCore(), source = parse(text && text.source_meta_json, null);
+    const safeSource = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+    if (Object.prototype.hasOwnProperty.call(safeSource, 'playback_source')) return P.validate(safeSource.playback_source);
+    for (const meta of [parse(text && text.table_model_meta_json,{}),safeSource]) {
       const holder = meta && meta.source;
       const found = holder && P.fromLegacy(holder.audio || holder.captions);
       if (found) return found;
@@ -61,7 +66,7 @@
         LEFT JOIN studio_portable_import_receipts r ON r.status='committed'
           AND json_extract(r.id_map_json,'$.text.local_id')=t.id`)) {
         const map = parse(row.id_map_json, {});
-        texts[row.text_key] = { local_id: map.text && map.text.local_id, table_revision_id: map.selected_table_portable_id || null, playback_source: parse(row.source_meta_json,{}).playback_source || null };
+        texts[row.text_key] = { local_id: map.text && map.text.local_id, table_revision_id: map.selected_table_portable_id || null, playback_source: playbackFromSourceMeta(row.source_meta_json) };
       }
       for (const row of await q("SELECT DISTINCT media_sha256 FROM studio_media_packages WHERE media_sha256 IS NOT NULL AND opfs_path IS NOT NULL AND deleted_at IS NULL")) media.push(String(row.media_sha256).toLowerCase());
       return { nodes, texts, media_sha256: media };

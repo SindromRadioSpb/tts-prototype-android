@@ -16,6 +16,11 @@ test('P2 scripts load in dependency order and remain offline/provider-free',()=>
   assert.equal(cacheVersion,appVersion,'portability UX ships in the same coherent app/SW release');
 });
 
+test('workspace drafts expose a dedicated destructive action behind material management', () => {
+  assert.match(studio, /data-material-action="delete-draft"/);
+  assert.match(studio, /deletePackageAndGc\(item\.package_id,true\)/);
+});
+
 test('P4 exposes one five-view Import Center and compatibility aliases use explicit intents',()=>{
   for(const view of ['overview','materials','tasks','history','reference']) assert.match(studio,new RegExp(`data-view="${view}"`));
   assert.match(studio,/importCenterCore\(\)\.buildCatalog/);

@@ -4608,6 +4608,8 @@ window.I18N_LOCALES.en.studio.importCenter.materialActions = {
   "archive": "Archive",
   "restore": "Restore from archive",
   "delete": "Delete…",
+  "deleteDraft": "Delete draft…",
+  "draftDeleted": "The draft and its transcript were deleted. The local source file was removed if nothing else uses it.",
   "source": "Open source and transcript",
   "sourceHelp": "A source may be used by several study materials. Its settings and transcript draft open separately.",
   "details": "Material status",
