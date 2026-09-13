@@ -73,6 +73,14 @@ test('legacy media package external_ref exports its YouTube source instead of si
   assert.equal(roundtrip.payload.playback_source.history[0].source.video_id,'iG9CE55wbtY');
 });
 
+test('legacy JSON null source metadata does not break archive dry-run inventory', async () => {
+  const h=await harness(),v=await verified();
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text,source_meta_json) VALUES('legacy-null','legacy-null','Legacy','שלום','null')");
+  const plan=await h.repo.dryRun(v);
+  assert.equal(plan.can_apply,true);
+  assert.equal(plan.text_key,'owner-lesson-1');
+});
+
 function localRevisionId(portableId) {
   const match = /([a-f0-9]{64})$/.exec(String(portableId));
   assert.ok(match, `portable revision id must end with a SHA-256: ${portableId}`);

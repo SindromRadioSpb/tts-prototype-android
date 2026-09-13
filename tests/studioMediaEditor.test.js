@@ -55,3 +55,11 @@ test('direct cue jump is one-based, finite and clamped', () => {
   assert.equal(Editor.cueJumpIndex(514, '0'), 0);
   assert.equal(Editor.cueJumpIndex(514, 'bad'), null);
 });
+
+test('continue-to-table closes the parent Library surface after populating Studio', () => {
+  const calls=[];
+  global.window={v3LibraryClose:()=>calls.push('library-close'),classicSyncMainPanels:(options)=>calls.push(['panels',options])};
+  try { Editor.revealStudioAfterCorrection(); }
+  finally { delete global.window; }
+  assert.deepEqual(calls,['library-close',['panels',{force:true}]]);
+});

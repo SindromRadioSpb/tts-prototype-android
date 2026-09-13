@@ -204,6 +204,11 @@
       return revision;
     } catch (e) { setStatus(e.code === 'DRAFT_BASE_STALE' ? 'studio.mediaPackage.staleDraft' : 'studio.mediaPackage.saveFailed', e.code, 'error'); throw e; }
   }
+  function revealStudioAfterCorrection() {
+    if (typeof window === 'undefined') return;
+    if (typeof window.v3LibraryClose === 'function') window.v3LibraryClose();
+    if (typeof window.classicSyncMainPanels === 'function') window.classicSyncMainPanels({ force: true });
+  }
   async function continueToTable() {
     var revision = await saveVersion(); if (!revision) return;
     var input = $('inputText'); if (input) { input.value = revision.segments.map(function (s) { return s.text; }).join('\n'); input.dispatchEvent(new Event('input', { bubbles: true })); }
@@ -221,6 +226,9 @@
       }
     });
     close(true);
+    // Import Center is opened from the Library. Once correction is complete, reveal the
+    // already-populated Studio composer instead of leaving that parent modal on top of it.
+    revealStudioAfterCorrection();
   }
   async function discardDraft() { await repo().discardDraft(state.trackId); var revision = await repo().getCurrentRevision(state.trackId); state.segments = clone(revision.segments); state.baseRevisionId = revision.revision_id; state.operations = []; state.dirty = false; state.undo = []; state.redo = []; render(); if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) await window.StudioMediaPackage.refreshWorkspaceUi(); }
   function downloadBlob(blob, name) {
@@ -278,7 +286,7 @@
     }
   }
 
-  var API = { open: open, close: close, move: move, jumpFromInput: jumpFromInput, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, cueIndexForTime: cueIndexForTime, cueJumpIndex: cueJumpIndex, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs, getCaptionContext:getCaptionContext, selectCaptionSegment:selectCaptionSegment };
+  var API = { open: open, close: close, move: move, jumpFromInput: jumpFromInput, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, revealStudioAfterCorrection: revealStudioAfterCorrection, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, cueIndexForTime: cueIndexForTime, cueJumpIndex: cueJumpIndex, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs, getCaptionContext:getCaptionContext, selectCaptionSegment:selectCaptionSegment };
   if (typeof window !== 'undefined') window.StudioMediaEditor = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })();

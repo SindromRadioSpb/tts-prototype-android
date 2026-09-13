@@ -235,7 +235,7 @@
     const body=modal.querySelector('#p2PortableBody'),actions=modal.querySelector('#p2PortableActions'),draft=item.entity_kind==='workspace-draft',archived=item.projection_state==='archived';
     actions.innerHTML=`<button type="button" data-material-back>${esc(life('back'))}</button>`;
     const button=(action,label)=>`<button type="button" data-material-action="${action}">${esc(life(label||action))}</button>`;
-    body.innerHTML=`<section class="p4-material-detail" data-selected-material="${esc(item.catalog_key)}"><h4 dir="auto">${esc(item.title||life('untitled'))}</h4><p>${esc(draft?life('draftHelp'):archived?life('archivedHelp'):life('savedHelp'))}</p>${draft?'':`<label>${esc(life('name'))}<input id="p4MaterialName" type="text" maxlength="240" value="${esc(item.title||'')}" dir="auto" required></label>${button('rename')}<div class="p4-material-actions">${archived?button('restore'):button('study')}${button('export')}${!archived?button('archive'):''}${button('delete')}</div>`}${item.package_id&&item.binding_track_id?`<div class="p4-material-actions">${button('source')}</div><p>${esc(life('sourceHelp'))}</p>`:''}<div id="p4MaterialStatus" class="p2-portable-status" role="status"></div><details><summary>${esc(life('details'))}</summary>${continuityRail(item)}</details></section>`;
+    body.innerHTML=`<section class="p4-material-detail" data-selected-material="${esc(item.catalog_key)}"><h4 dir="auto">${esc(item.title||life('untitled'))}</h4><p>${esc(draft?life('draftHelp'):archived?life('archivedHelp'):life('savedHelp'))}</p>${draft?`<div class="p4-material-actions"><button type="button" class="p4-danger-action" data-material-action="delete-draft">${esc(life('deleteDraft'))}</button></div>`:`<label>${esc(life('name'))}<input id="p4MaterialName" type="text" maxlength="240" value="${esc(item.title||'')}" dir="auto" required></label>${button('rename')}<div class="p4-material-actions">${archived?button('restore'):button('study')}${button('export')}${!archived?button('archive'):''}${button('delete')}</div>`}${item.package_id&&item.binding_track_id?`<div class="p4-material-actions">${button('source')}</div><p>${esc(life('sourceHelp'))}</p>`:''}<div id="p4MaterialStatus" class="p2-portable-status" role="status"></div><details><summary>${esc(life('details'))}</summary>${continuityRail(item)}</details></section>`;
     actions.onclick=()=>{state.materialId=null;return renderView(modal,state,'materials');};
     body.onclick=async event=>{
       const selected=actionTarget(event,'[data-material-action]');if(!selected||state.materialBusy)return;
@@ -243,6 +243,14 @@
       state.materialBusy=true;selected.disabled=true;let saved=false;
       try{
         if(action==='delete')return await renderMaterialDelete(modal,state);
+        if(action==='delete-draft'){
+          await window.StudioMediaPackage.deletePackageAndGc(item.package_id,true);
+          saved=true;
+          if(window.v3LastMediaPackageRef&&window.v3LastMediaPackageRef.package_id===item.package_id&&window.StudioMediaPackage.clearActiveWorkspace)window.StudioMediaPackage.clearActiveWorkspace();
+          else if(window.StudioMediaPackage.refreshWorkspaceUi)window.StudioMediaPackage.refreshWorkspaceUi();
+          state.materialId=null;Object.assign(state,await getCatalog());await renderView(modal,state,'materials');
+          const notice=document.createElement('p');notice.setAttribute('role','status');notice.textContent=life('draftDeleted');modal.querySelector('#p2PortableBody').prepend(notice);return;
+        }
         if(action==='study'||action==='source'){closeModal(modal);return action==='study'?await window.v3LibraryOpenText(item.text_id,{resume:true}):await window.StudioMediaPackage.openWorkspace(item.package_id,item.binding_track_id);}
         if(action==='export'){
           if(item.material_id){state.intent='move-device';return await renderView(modal,state,'tasks');}
@@ -258,7 +266,7 @@
         Object.assign(state,await getCatalog());
         await renderMaterialDetails(modal,state);
         body.querySelector('#p4MaterialStatus').textContent=life(action==='rename'?'renamed':action==='archive'?'archived':'restored');
-      }catch(error){status.textContent=saved?life('savedRefreshFailed'):formatPortableError(error);status.setAttribute('role','alert');}
+      }catch(error){if(error&&error.cancelled)return;status.textContent=saved?life('savedRefreshFailed'):formatPortableError(error);status.setAttribute('role','alert');}
       finally{state.materialBusy=false;if(selected.isConnected)selected.disabled=false;}
     };
   }

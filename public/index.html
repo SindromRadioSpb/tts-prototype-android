@@ -13324,9 +13324,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=223"></script>
-<script src="/i18n/locales/en.js?v=223"></script>
-<script src="/i18n/locales/he.js?v=223"></script>
+<script src="/i18n/locales/ru.js?v=224"></script>
+<script src="/i18n/locales/en.js?v=224"></script>
+<script src="/i18n/locales/he.js?v=224"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13444,11 +13444,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/learning-compass-core.js"></script>
 <script src="/js/local-text-familiarity.js?v=485"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
-<script src="/js/portable-learning-package-repository.js?v=527"></script>
+<script src="/js/portable-learning-package-repository.js?v=529"></script>
 <script src="/js/studio-media-package.js"></script>
-<script src="/js/studio-media-editor.js"></script>
+<script src="/js/studio-media-editor.js?v=529"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js?v=527"></script>
+<script src="/js/studio-portable-learning-package.js?v=529"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.528";
+    window.APP_VERSION = "3.11.529";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
