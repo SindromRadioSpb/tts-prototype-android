@@ -195,9 +195,12 @@ test('cloud slim filter removes local track snapshots but leaves an honest packa
   const sourceMeta = { source: {
     kind: 'audio', media_package_ref: { package_id: 'mpkg:1', track_id: 'track:1', revision_id: 'rev:1', projection_sha256: 'b'.repeat(64) },
     audio: { media: { sha256: SHA }, segments: [{ text: 'personal speech' }], raw: { text: 'secret' }, timing: { entries: [] } },
-    captions: { segments: [{ text: 'also secret' }] },
+    captions: { segments: [{ text: 'also secret' }],captions:{timing_evidence:{timeline:[{text:'private paid evidence'}]},timing:{verdict:'suspect'}} },
   } };
   const filtered = StudioMediaPackage.filterForCloudSlim(sourceMeta);
+  assert.equal(filtered.source.captions.captions.timing_evidence,undefined);
+  assert.equal(filtered.source.captions.captions.timing.verdict,'suspect');
+  assert.ok(sourceMeta.source.captions.captions.timing_evidence,'local evidence remains intact');
   assert.equal(filtered.source.audio.segments, undefined);
   assert.equal(filtered.source.audio.raw, undefined);
   assert.equal(filtered.source.captions.segments, undefined);

@@ -143,9 +143,10 @@
       if(evidence.probes.some(p=>p.window.startSec===window.startSec&&p.window.endSec===window.endSec))continue;
       const rec={window,segments:[],state:'pending-charge-unknown'};
       evidence.probes.push(rec);if(onEvidence)await onEvidence(evidence);
-      try{const result=await callWindow({...deps,noRetry:true},target.url,window,{attempts:0},onProgress);
+      const attemptState={attempts:0};
+      try{const result=await callWindow({...deps,noRetry:true},target.url,window,attemptState,onProgress);
         rec.segments=result.segments.map(s=>({startSec:s.start,text:s.text}));rec.raw=result.raw;rec.state='complete';
-      }catch(e){rec.error=String(e.code||e.message).slice(0,80);rec.state='failed-charge-unknown';}
+      }catch(e){rec.error=String(e.code||e.message).slice(0,80);rec.state='failed-charge-unknown';if(attemptState.responses)rec.responses=attemptState.responses;}
       if(onEvidence)await onEvidence(evidence);
       if(rec.error)break;
     }

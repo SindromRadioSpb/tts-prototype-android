@@ -238,6 +238,10 @@
       var value = source[key]; if (!value || typeof value !== 'object') return;
       delete value.segments; delete value.raw; delete value.corrected; delete value.draft;
       delete value.revisions; delete value.timing;
+      // Provider clock evidence includes full private transcript text. It belongs to local
+      // journals / explicit full archives, not the cloud-slim source passport.
+      if(value.captions)delete value.captions.timing_evidence;
+      if(value.asr)delete value.asr.timing_evidence;
     });
     var ref = source.media_package_ref;
     source.media_package_ref = {
