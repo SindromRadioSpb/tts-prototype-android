@@ -43,3 +43,9 @@ test('prefer observed intervals away from cut edges and refine coarse existing b
     {state:'complete',window:{startSec:100,endSec:220},segments:[{row:1,startSec:18,endSec:21,heard:'שלום עולם'},{row:2,startSec:21.2,endSec:24,heard:'משפט נוסף'}]}]};
   const r=F.collect(evidence);assert.equal(r.coverage.playable,2);assert.equal(r.segments[0].endSec,121);assert.equal(r.segments[1].startSec,121.2);
 });
+test('reopening fractional clip timestamps does not propose a duplicate saved revision',()=>{
+  const e={timeline:[{text:'שלום עולם',startSec:null,endSec:null}],calls:[{state:'complete',window:{startSec:300,endSec:420},segments:[{row:1,startSec:39.84,endSec:44.52,heard:'שלום עולם'}]}]};
+  const r=F.collect(e);assert.equal(r.segments[0].startSec,339.84);assert.equal(r.segments[0].endSec,344.52);
+  const persisted=r.segments.map(s=>({...s,startSec:Math.round(s.startSec*1000)/1000,endSec:Math.round(s.endSec*1000)/1000}));
+  assert.deepEqual(F.collect({...e,timeline:persisted}).segments,persisted);
+});

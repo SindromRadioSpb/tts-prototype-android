@@ -54,7 +54,7 @@
         const i=s.row-1;
         if(seen.has(i)){conflicts.add(i);continue;}
         if(!Number.isInteger(i)||!rows[i]||!finite(s.startSec)||!finite(s.endSec)||s.startSec<0||s.endSec<=s.startSec||s.endSec>span||!matchSpeech(rows,i,s.heard)){rejected.push({row:s.row,reason:'unmatched-or-invalid'});continue;}
-        seen.add(i);const next={text:rows[i].text,startSec:win.startSec+s.startSec,endSec:win.startSec+s.endSec},old=choices.get(i);
+        seen.add(i);const next={text:rows[i].text,startSec:Math.round((win.startSec+s.startSec)*1000)/1000,endSec:Math.round((win.startSec+s.endSec)*1000)/1000},old=choices.get(i);
         if(norm(s.heard)!==norm(rows[i].text))approximate.push(s.row);
         const distance=Math.min(s.startSec,span-s.endSec);
         if(old&&(Math.abs(old.startSec-next.startSec)>2||Math.abs(old.endSec-next.endSec)>2))conflicts.add(i);
