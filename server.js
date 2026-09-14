@@ -1127,7 +1127,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/study-video-source-ui.js?v=545",
   "/js/youtube-asr.js?v=519",
   "/js/table-source-recovery.js?v=551",
-  "/js/learning-material-task.js?v=551",
+  "/js/learning-material-task.js?v=552",
   "/js/learning-material-task-ui.js?v=551",
   "/js/studio-yt-player.js?v=506",
   "/js/studio-media-karaoke.js",

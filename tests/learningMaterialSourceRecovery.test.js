@@ -46,6 +46,7 @@ test('general review handles a changed split segment and a missing segment witho
   await assert.rejects(T.applySourceReview(job,review,[choices[0],choices[0]]),/TASK_REVIEW_INCOMPLETE/);
   const table=await T.applySourceReview(job,review,choices);await T.verifySource({...job,table});
   assert.deepEqual(table.rows.map(r=>r.he),texts);assert.deepEqual(table.source_recovery.original_table,job.table);
+  assert.ok(table.rows.every(r=>r.translation_provider==='manual'&&JSON.parse(r.translation_meta_json).reviewed));
   for(const r of table.rows){assert.equal(r.he_niqqud,'');assert.equal(r.translit,'');assert.equal(r.niqqud_status,'not_vocalized');assert.equal(r.source_recovery.reviewed,true);}
 });
 test('review leaves correct split rows untouched and refuses stale or invalid mapping',async()=>{

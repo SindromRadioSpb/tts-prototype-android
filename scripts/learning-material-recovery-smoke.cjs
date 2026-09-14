@@ -61,5 +61,44 @@ let browser;
     assert.deepEqual(errors,[]);receipts.push({lang,width,calls:state.calls,completed:state.completed,overflow:false,errors});
     await context.close();
   }
+  // Full Studio adapters: reviewed source -> real OPFS card -> video -> ZIP.
+  const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),paid=[];
+  await page.route('**/*',route=>{
+    const url=route.request().url();
+    if(/generativelanguage|\/api\/translate-table|\/api\/tts(?:\?|$)/.test(url)){paid.push(url);return route.abort();}
+    if(!url.startsWith(base))return route.abort();
+    return route.continue();
+  });
+  await page.goto(base+'/?recovery-full=1');
+  await page.waitForFunction(()=>window.LearningMaterialTaskUI&&window.StudioMediaPackage);
+  const id=await page.evaluate(async()=>{
+    await ensureLocalDB();document.documentElement.lang='ru';
+    const source='היום אנחנו לומדים משפט חדש בעברית.';
+    const job=await LearningMaterialTask.create({title:'Full Studio reviewed recovery',provider:'gemini',youtube_source:{url:'https://www.youtube.com/watch?v=0h7uhp2l-lo'}});
+    const meta=YoutubeAsr.buildImportMeta({video_id:'0h7uhp2l-lo',url:job.input.youtube_source.url,durationSec:10,segments:[{startSec:0,text:source}],timing:{verdict:'inconclusive'}},'synthetic');
+    const pkg=await StudioMediaPackage.createFromImportMeta(meta);
+    const projection=StudioMediaPackage.buildCompatibilityProjection(pkg.revision,{kind:'captions',media:pkg.input.media});
+    meta.media_package_ref=projection.media_package_ref;meta.captions={...meta.captions,...projection.captions};meta.textSnapshot=pkg.revision.segments.map(s=>s.text).join('\n');
+    job.transcript={text:meta.textSnapshot,import_meta:meta};
+    job.table={rows:[{segment_index:0,he:'טקסט אחר',he_niqqud:'',translit:'',ru:'Текст модели'}]};
+    job.table.source_receipt={source_sha256:await PlaybackSource.digest(job.transcript.text),rows_sha256:await PlaybackSource.digest(JSON.stringify(job.table.rows))};
+    job.phase='table_ready';job.error='TASK_SOURCE_MISMATCH';job.error_reason='table';
+    await LearningMaterialTask.createStore().add(job);await LearningMaterialTaskUI.list();return job.id;
+  });
+  await page.getByRole('button',{name:/Full Studio reviewed recovery/}).click();
+  await page.getByRole('button',{name:'Проверить расхождения',exact:true}).click();
+  await page.locator('dialog textarea').fill('Сегодня мы изучаем новое предложение на иврите.');
+  await page.locator('dialog input[type=checkbox]').check();
+  await page.getByRole('button',{name:'Сохранить проверенные строки и продолжить',exact:true}).click();
+  try{await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog')?.__job?.state==='ready',{},{timeout:45000});}
+  catch(e){console.error(await page.evaluate(async id=>{const j=await LearningMaterialTask.createStore().get(id);return {phase:j.phase,state:j.state,error:j.error,reason:j.error_reason,saved:j.saved_text_id,dialog:document.querySelector('dialog.study-source-dialog')?.innerText};},id));throw e;}
+  const full=await page.evaluate(async id=>{
+    const job=await LearningMaterialTask.createStore().get(id),db=await ensureLocalDB(),rows=await db.getSentences(job.saved_text_id);
+    const [text]=await db.dbQuery('SELECT source_meta_json FROM texts WHERE id=?',[job.saved_text_id]);
+    const reviews=await db.dbQuery('SELECT COUNT(*) AS n FROM review_log');
+    return {state:job.state,rows:rows.length,he:rows[0].he_plain,ru:rows[0].ru,provider:rows[0].translation_provider,package:job.package.type,video:PlaybackSource.parseMeta(text.source_meta_json).playback_source,reviewCount:reviews[0].n};
+  },id);
+  assert.equal(full.rows,1);assert.equal(full.reviewCount,0);assert.equal(full.ru,'Сегодня мы изучаем новое предложение на иврите.');assert.equal(full.provider,'manual');assert.deepEqual(paid,[]);
+  receipts.push({fullStudio:full,paidCalls:paid.length});await context.close();
   fs.writeFileSync(path.join(output,'receipt.json'),JSON.stringify(receipts,null,2));console.log(JSON.stringify(receipts));
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();child.kill();});

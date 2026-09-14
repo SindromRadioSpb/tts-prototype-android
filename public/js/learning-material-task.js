@@ -102,6 +102,7 @@
       const selected=choices.filter(c=>c.segment_index===group.segment_index);
       if(selected.length!==1||selected[0].confirmed!==true||!String(selected[0].ru||'').trim())throw new Error('TASK_REVIEW_INCOMPLETE');
       replacements.set(group.segment_index,{segment_index:group.segment_index,he:group.source,ru:String(selected[0].ru).trim(),he_niqqud:'',translit:'',niqqud_status:'not_vocalized',
+        translation_provider:'manual',translation_meta_json:JSON.stringify({provider:'manual',reviewed:true,task_id:job.id}),
         source_recovery:{version:'source-review-v1',translit_status:'unavailable',reviewed:true}});
     }
     const rows=[];

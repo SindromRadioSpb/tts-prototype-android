@@ -13451,7 +13451,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-source-ui.js?v=545"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
-<script src="/js/learning-material-task.js?v=551"></script>
+<script src="/js/learning-material-task.js?v=552"></script>
 <script src="/js/learning-material-task-ui.js?v=551"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
@@ -13540,7 +13540,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.551";
+    window.APP_VERSION = "3.11.552";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34633,7 +34633,11 @@ window.LearningMaterialTaskUI.configure({
     v3SessionSet({mode:'draft',textId:null,baseTextId:null,origin:'import',openMode:null});
     document.getElementById('inputText').value=job.transcript?job.transcript.text:job.input.source_text;
     window.v3LastImportMeta=LearningMaterialTask.effectiveImportMeta(job);
-    currentTableData=job.table.rows;v3LastGeminiMeta=job.table.meta;tableIsStale=false;
+    currentTableData=job.table.rows;
+    // Provenance belongs to the task's transcript, even when table metadata is
+    // absent (legacy/provider results or a reviewed recovery).
+    v3LastGeminiMeta={...(job.table.meta||{}),source:LearningMaterialTask.effectiveImportMeta(job)};
+    tableIsStale=false;
     const savedMeta=LearningMaterialTask.effectiveImportMeta(job);
     const ref=savedMeta && savedMeta.media_package_ref;
     if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);

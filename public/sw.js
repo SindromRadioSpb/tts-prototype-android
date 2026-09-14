@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.551";
+const CACHE_VERSION = "v3.11.552";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,7 +85,7 @@ const PRECACHE_URLS = [
   "/js/study-video-source-ui.js?v=545",
   "/js/youtube-asr.js?v=519",
   "/js/table-source-recovery.js?v=551",
-  "/js/learning-material-task.js?v=551",
+  "/js/learning-material-task.js?v=552",
   "/js/learning-material-task-ui.js?v=551",
 
   "/css/catalog-discovery.css?v=485",
