@@ -247,3 +247,11 @@ statement даже для IDB. Это нужно для OPFS sync handles, но 
 Ни backend, ни схема/страницы, ни learner state, ни механизм последней рабочей
 строки не меняются. Сброс библиотеки, перехват чужого lock и принудительное
 прерывание записи не используются. Physical iPhone acceptance остаётся открытым.
+
+Release hardening: worker → operation-lease/sqlite-api/IDBBatchAtomicVFS →
+IDBContext используют явные `?v=531`, а не старые unversioned ключи controlling
+SW. Все четыре зависимости включены в precache и shell integrity. Дополнительный
+contract test фиксирует весь изменённый dependency graph (итого 81 node check).
+Финальный shell этой поставки — 3.11.539, отдельный cache namespace от уже
+отправленного в сборку промежуточного 3.11.538. Релиз проверять по финальному
+image SHA и всем 90 integrity assets, а не только по ответу healthz.

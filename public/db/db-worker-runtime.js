@@ -22,10 +22,10 @@
 //   Response: { id, ok: true,  rows?, changes?, vfs? }
 //           | { id, ok: false, error: string }
 
-import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js';
+import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js?v=531';
 import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
-import { OperationLease } from './operation-lease.js';
+import { OperationLease } from './operation-lease.js?v=531';
 import { storageIdentity } from './storage-identity.js';
 import { createRuntimeDiagnostics } from './runtime-diagnostics.js';
 
@@ -167,7 +167,7 @@ async function initWithIDB() {
 
   // Async wa-sqlite build + async VFS.
   const SQLiteModule = (await import('./wa-sqlite-async.mjs')).default;
-  const { IDBBatchAtomicVFS } = await import('./IDBBatchAtomicVFS.js');
+  const { IDBBatchAtomicVFS } = await import('./IDBBatchAtomicVFS.js?v=531');
 
   const module = await SQLiteModule();
   const sqlite = Factory(module);

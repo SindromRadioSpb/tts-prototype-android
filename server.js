@@ -1092,6 +1092,10 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/db/db-worker-runtime.js?v=531",
+  "/db/sqlite-api.js?v=531",
+  "/db/operation-lease.js?v=531",
+  "/db/IDBBatchAtomicVFS.js?v=531",
+  "/db/IDBContext.js?v=531",
   "/db/operation-lease.js",
   "/db/runtime-diagnostics.js",
   "/db/storage-identity.js",

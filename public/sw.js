@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.538";
+const CACHE_VERSION = "v3.11.539";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -288,6 +288,10 @@ const PRECACHE_URLS = [
   "/db/vfs-order.js",
   "/db/db-worker.js",
   "/db/db-worker-runtime.js?v=531",
+  "/db/sqlite-api.js?v=531",
+  "/db/operation-lease.js?v=531",
+  "/db/IDBBatchAtomicVFS.js?v=531",
+  "/db/IDBContext.js?v=531",
   "/db/operation-lease.js",
   "/db/runtime-diagnostics.js",
   "/db/storage-identity.js",

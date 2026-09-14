@@ -16,3 +16,16 @@ test('all production surfaces import one identical local DB module URL', () => {
   }
   assert.equal(urls.size, 1, 'different query strings instantiate separate workers in one document');
 });
+
+test('worker dependency graph cache-busts all repaired async lifecycle modules', () => {
+  const worker = fs.readFileSync(path.join(root, 'public/db/db-worker-runtime.js'), 'utf8');
+  const vfs = fs.readFileSync(path.join(root, 'public/db/IDBBatchAtomicVFS.js'), 'utf8');
+  const sw = fs.readFileSync(path.join(root, 'public/sw.js'), 'utf8');
+  const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+  for (const [source, name] of [[worker, 'sqlite-api.js'], [worker, 'operation-lease.js'],
+    [worker, 'IDBBatchAtomicVFS.js'], [vfs, 'IDBContext.js']]) {
+    assert.ok(source.includes(`./${name}?v=531`), name + ' must not reuse a stale unversioned SW dependency');
+    assert.ok(sw.includes(`/db/${name}?v=531`));
+    assert.ok(server.includes(`/db/${name}?v=531`));
+  }
+});
