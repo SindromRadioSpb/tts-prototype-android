@@ -14,9 +14,11 @@ export class OperationLease {
     this.poisoned = false;
     this.timer = null;
     this.lastTransactionActivity = 0;
+    this.openFailure = null;
   }
   error(code) { return Object.assign(new Error(code), { code }); }
   async ensureOpen() {
+    if (this.openFailure) throw this.openFailure;
     if (this.opened) return;
     if (!this.locks?.request) throw this.error('DB_COORDINATION_UNSUPPORTED');
     // IndexedDB VFS serializes complete SQLite transactions with its own
@@ -24,7 +26,7 @@ export class OperationLease {
     // still require exclusive physical ownership outside SQLite.
     if (!this.requiresExternalLock()) {
       try { await this.openConnection(); this.opened = true; }
-      catch (error) { await this.close(); throw error; }
+      catch (error) { this.openFailure = error; await this.close(); throw error; }
       return;
     }
     const abort = new AbortController();
@@ -47,6 +49,7 @@ export class OperationLease {
       await this.openConnection();
       this.opened = true;
     } catch (e) {
+      this.openFailure = e;
       await this.close();
       throw e;
     } finally { clearTimeout(timer); }
@@ -72,11 +75,15 @@ export class OperationLease {
     await this.rollback();
     await this.close();
   }
-  run(operation, { reset = false, sql = '' } = {}) {
+  run(operation, { reset = false, retryOpen = false, sql = '' } = {}) {
     const result = this.queue.then(async () => {
       clearTimeout(this.timer);
       if (reset) this.poisoned = false;
       if (this.poisoned) throw this.error('DB_TRANSACTION_ABORTED');
+      // Only an explicit init may retry a failed physical open. A lifecycle
+      // close must remain possible, but must not revive queued background SQL.
+      if (retryOpen) this.openFailure = null;
+      if (!reset && this.openFailure) throw this.openFailure;
       if (!reset) await this.abortExpiredTransaction();
       if (this.poisoned) throw this.error('DB_TRANSACTION_ABORTED');
       let value;

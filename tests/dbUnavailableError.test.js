@@ -60,11 +60,13 @@ test("pagehide queues physical DB closure before a BFCache document can freeze",
     "BFCache cleanup must preserve the page worker and only release physical DB resources");
 });
 
-test("Retry replaces a timed-out waiter instead of queueing another close timeout", () => {
+test("Retry cannot terminate a live worker based on a historical lock timeout", () => {
   const start = localDbSource.indexOf("export async function recoverLocalDB()");
   const end = localDbSource.indexOf("function _call(", start);
   const recovery = localDbSource.slice(start, end);
-  assert.match(recovery, /DB_LOCK_WAIT_TIMEOUT/);
+  assert.doesNotMatch(recovery, /replaceTimedOutWaiter/);
+  assert.match(recovery, /if \(_workerCrashed\) \{/);
   assert.match(recovery, /_worker\?\.terminate\(\)/);
   assert.ok(recovery.indexOf("_worker?.terminate()") < recovery.indexOf("await closeLocalDB()"));
+  assert.match(recovery, /await closeLocalDB\(\);\s*_initialized = false;\s*await initLocalDB\(\)/);
 });

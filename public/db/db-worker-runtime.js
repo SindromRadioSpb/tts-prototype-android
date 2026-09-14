@@ -25,7 +25,7 @@
 import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js?v=531';
 import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
-import { OperationLease } from './operation-lease.js?v=531';
+import { OperationLease } from './operation-lease.js?v=542';
 import { storageIdentity } from './storage-identity.js';
 import { createRuntimeDiagnostics } from './runtime-diagnostics.js?v=541';
 
@@ -290,7 +290,7 @@ const lease = new OperationLease({
 });
 
 function runtimeSnapshot() { return {
-  runtime: 532, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
+  runtime: 542, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
   holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
   coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,
@@ -323,7 +323,7 @@ self.onmessage = ({ data }) => {
     if (type === 'run') return { changes: await runSingle(sql, params || []) };
     if (type === 'exec') { await execMulti(sql); return {}; }
     throw new Error(`Unknown type: ${type}`);
-  }, { reset: type === 'close', sql }).then(
+  }, { reset: type === 'close', retryOpen: type === 'init', sql }).then(
     result => { setPhase('ready'); self.postMessage({ id, ok: true, ...result }); },
     async error => {
       let detail = null;

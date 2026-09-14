@@ -137,3 +137,22 @@ test('failed physical cleanup retains exclusion and blocks subsequent writes', a
   await lease.run(() => lease.close(), { reset: true });
   assert.equal(events.includes('release'), true);
 });
+
+for (const external of [true, false]) test(`failed open stops queued SQL until explicit retry (external=${external})`, async () => {
+  const failure = Object.assign(new Error('fixture open failure'), { code: 'DB_LOCK_WAIT_TIMEOUT' });
+  let attempts = 0, writes = 0, broken = true;
+  const { lease } = await fixture({ requiresExternalLock: () => external,
+    open: async () => { attempts++; if (broken) throw failure; } });
+  const results = await Promise.allSettled(Array.from({ length: 8 }, () => lease.run(async () => {
+    await lease.ensureOpen(); writes++;
+  })));
+  assert.equal(attempts, 1, 'queued callers must not each retry the failed open');
+  assert.equal(writes, 0);
+  for (const result of results) assert.equal(result.reason, failure);
+  await lease.run(() => lease.close(), { reset: true });
+  await assert.rejects(lease.run(() => lease.ensureOpen()), error => error === failure,
+    'lifecycle close is not permission for background SQL to retry');
+  broken = false;
+  await lease.run(() => lease.ensureOpen(), { retryOpen: true });
+  assert.equal(attempts, 2);
+});

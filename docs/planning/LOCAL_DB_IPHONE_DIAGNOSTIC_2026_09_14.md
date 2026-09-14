@@ -1,5 +1,40 @@
 # iPhone local DB: diagnostic handoff 3.11.541
 
+## Follow-up 3.11.542: failed-open queue repair (not full device acceptance)
+
+Owner supplied both requested 541 reports. Normal profile: AccessHandlePool,
+held/pending `linguistpro-opfs-db-owner-v1`; recorded worker holdsLease=false.
+Private profile: IDB, held/pending `/app.db-outer`, migration-stage wait.
+Both reports follow a hidden event; no respondingWorkers does not prove death.
+Reported storage usage is below quota; this says nothing about process RAM.
+The original holder and the native failed-page cause remain UNPROVEN.
+
+Confirmed in source and a red/green test: after a failed open, eight queued
+operations caused eight independent open attempts. Close followed that queue.
+The facade also posted SQL while init was pending/failed. Repair:
+
+- Startup SQL awaits the shared init and propagates its failure without posting.
+- OperationLease latches physical-open failure; queued SQL fails without opening.
+  Close remains allowed, but does not clear the failure. Explicit init retries.
+- Recovery no longer terminates a live worker based on a historical timeout;
+  it awaits cooperative closure and explicitly reinitializes the same backend.
+- The diagnostic pending duration now uses actual elapsed time, not literal 8000.
+
+Evidence: 30 targeted node tests pass. `failed-open-queue-smoke.js` passes with
+Chromium/AccessHandlePool and WebKit/IDB: real fixture-held browser locks,
+nine rejected init/write calls, prompt close, no delayed writes after recovery,
+same-store read/write and integrity_check=ok. Only fixture-served lock deadlines
+are shortened to 100ms; production deadlines remain unchanged. Existing actual
+Studio lifecycle gates pass for both backends (five Library cycles, 100 reads,
+numeric SRS, Studio-to-Room, unchanged nonempty review_log). Four-tab operation
+gates pass with Chromium on both backends.
+
+No reset, backend migration, unknown-lock stealing or owner-data access. The
+patch fixes the cascade after the first failure, not its unidentified holder.
+Do not ask for another identical 541 report. Next investigation must distinguish
+holder lifecycle/physical-resource closure from the now-bounded waiter queue.
+Release validation is recorded separately from physical iPhone acceptance.
+
 Baseline: `0d79f0f3` / 3.11.540. Owner acceptance is FAIL, not inferred from
 desktop/WebKit automation. Owner's latest normal-profile screenshot explicitly
 says `vfs=AccessHandlePool`, `DB_LOCK_WAIT_TIMEOUT`, `held=1`, `holder=unknown`.

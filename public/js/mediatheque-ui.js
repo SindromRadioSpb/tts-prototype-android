@@ -1,4 +1,4 @@
-import * as localDb from '/db/local-db.js?v=533';
+import * as localDb from '/db/local-db.js?v=542';
 import './mediatheque-core.js';
 const C = globalThis.MediathequeCore;
 const $ = id => document.getElementById(id);

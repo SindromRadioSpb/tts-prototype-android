@@ -11,7 +11,7 @@ function harness() {
   const calls = [];
   let lifecycles = 0;
   const context = vm.createContext({
-    _initialized: false, _initInFlight: null, _worker: null,
+    _initialized: false, _initInFlight: null, _worker: null, _lastDbError: null,
     _pending: new Map(), _VFS_PREF_KEY: "test-vfs", _vfs: null,
     _preflightSupport: async () => {},
     Worker: class {}, DbUnavailableError: class extends Error {},

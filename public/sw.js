@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.541";
+const CACHE_VERSION = "v3.11.542";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=12",
+  "/js/mediatheque-ui.js?v=13",
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
@@ -82,7 +82,7 @@ const PRECACHE_URLS = [
   "/js/playback-source.js?v=508",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
-  "/js/study-video-source-ui.js?v=532",
+  "/js/study-video-source-ui.js?v=542",
   "/js/youtube-asr.js?v=519",
   "/js/learning-material-task.js?v=519",
   "/js/learning-material-task-ui.js?v=521",
@@ -110,7 +110,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=532",
+  "/js/library-ui.js?v=542",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -281,22 +281,22 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=533",
+  "/db/local-db.js?v=542",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
   "/db/vfs-order.js",
   "/db/db-worker.js",
-  "/db/db-worker-runtime.js?v=532",
+  "/db/db-worker-runtime.js?v=542",
   "/db/sqlite-api.js?v=531",
-  "/db/operation-lease.js?v=531",
+  "/db/operation-lease.js?v=542",
   "/db/IDBBatchAtomicVFS.js?v=531",
   "/db/IDBContext.js?v=531",
   "/db/operation-lease.js",
   "/db/runtime-diagnostics.js",
   "/db/runtime-diagnostics.js?v=541",
   "/db/diagnostic-journal.js?v=541",
-  "/db/diagnostic-page.js?v=541",
+  "/db/diagnostic-page.js?v=542",
   "/db-diagnostics.html",
   "/db/storage-identity.js",
   "/db/jszip.min.js",

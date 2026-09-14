@@ -64,7 +64,7 @@ function _startDbDiagnostics() {
   try {
     _diagnosticWorkerId = crypto.randomUUID();
     const surface = /library\.html$/.test(location.pathname) ? 'room' : /(?:index\.html|study-studio\.html|\/)$/.test(location.pathname) ? 'studio' : 'other';
-    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, version: '3.11.541', surface });
+    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, version: '3.11.542', surface });
     _dbJournal.record({ phase: 'browser-preflight', event: 'page-db-start' });
     if (!_diagnosticLifecycle) {
       _diagnosticLifecycle = true;
@@ -137,35 +137,39 @@ export async function closeLocalDB() {
   // 'close' is acknowledged only after physical resources have been released.
 }
 export async function recoverLocalDB() {
-  // A lock-wait timeout means this worker never acquired physical ownership.
-  // Do not queue Retry behind another 30-second close attempt in that same
-  // worker: replace the waiter and start a clean request. This cannot steal a
-  // live lock or switch VFS; the new worker still uses the same Web Lock and
-  // sticky storage identity.
-  const replaceTimedOutWaiter = _lastDbError && _lastDbError.code === 'DB_LOCK_WAIT_TIMEOUT';
-  if (_workerCrashed || replaceTimedOutWaiter) {
+  // A historical timeout says nothing about subsequently queued operations.
+  // Never terminate a live worker on that evidence: close it cooperatively.
+  if (_workerCrashed) {
     const resetError = new DbUnavailableError('DB_RECOVERED_WORKER_REPLACED');
-    for (const h of _pending.values()) h.reject(resetError);
+    for (const h of _pending.values()) { clearTimeout(h.diagnosticTimer); h.reject(resetError); }
     _pending.clear();
     try { _worker?.terminate(); } catch (_) {}
     _worker = null; _initialized = false; _workerCrashed = false; _vfs = null; _vfsKind = null;
   }
   _lastDbError = null;
+  if (_initInFlight) await _initInFlight.catch(() => {});
   if (_worker) await closeLocalDB();
+  _initialized = false;
   await initLocalDB();
   await _call('query', 'SELECT 1 AS ready');
 }
 function _call(type, sql, params, opts) {
+  if (['query', 'run', 'exec'].includes(type) && !_initialized) {
+    // Startup callers share init, not a growing worker queue behind it. A
+    // failed initialization remains failed until an explicit init/recovery.
+    if (_initInFlight) return _initInFlight.then(() => _call(type, sql, params, opts));
+    return Promise.reject(_lastDbError || new DbUnavailableError('DB_INIT_FAILED', 'Local database is not initialized.'));
+  }
   return new Promise((resolve, reject) => {
     if (_workerCrashed) { reject(_lastDbError); return; }
     if (!_worker) { reject(new DbUnavailableError('DB_INIT_FAILED', 'Local database is not initialized.')); return; }
     const id = ++_seq;
-    const h = { resolve, reject };
+    const h = { resolve, reject, startedAt: Date.now() };
     _pending.set(id, h);
     if (_dbJournal.enabled()) {
       _dbJournal.record({ event: 'rpc-queued', operation: type, requestId: id, pendingCount: _pending.size });
       h.diagnosticTimer = setTimeout(() => {
-        if (_pending.get(id) === h) _dbJournal.record({ event: 'rpc-still-pending', operation: type, requestId: id, oldestPendingMs: 8000, pendingCount: _pending.size });
+        if (_pending.get(id) === h) _dbJournal.record({ event: 'rpc-still-pending', operation: type, requestId: id, oldestPendingMs: Date.now() - h.startedAt, pendingCount: _pending.size });
       }, 8000);
     }
     try { _worker.postMessage({ id, type, sql, params, ...(opts || {}) }); }
@@ -323,7 +327,7 @@ async function _initializeLocalDB() {
   await _preflightSupport();
   if (!_worker) {
     if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-    _worker = new Worker('/db/db-worker-runtime.js?v=532', { type: 'module' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=542', { type: 'module' });
     _worker.onmessage = ({ data }) => {
       if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
       if (data.kind === 'committed') {
@@ -365,8 +369,8 @@ async function _initializeLocalDB() {
     await _call('init', null, null, { preferVfs, diagnosticWorkerId: typeof _diagnosticWorkerId === 'string' ? _diagnosticWorkerId : null,
       diagnosticEnabled: typeof _dbJournal !== 'undefined' && _dbJournal.enabled() });
   } catch (e) {
-    if (e instanceof DbUnavailableError) throw e;
-    throw new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));
+    _lastDbError = e instanceof DbUnavailableError ? e : new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));
+    throw _lastDbError;
   }
   _initialized = true;
   _installDbLifecycle();
