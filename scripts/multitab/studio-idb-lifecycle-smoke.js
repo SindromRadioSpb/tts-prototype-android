@@ -23,7 +23,7 @@ async function main() {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   const browser = await playwright[engine].launch();
-  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: Number(process.env.STUDIO_WIDTH || 380), height: 844 } });
   await context.route('**/*', route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
   const page = await context.newPage();
   page.setDefaultTimeout(30000);
@@ -49,12 +49,16 @@ async function main() {
       return __localDB.dbQuery('SELECT * FROM review_log ORDER BY id');
     });
     for (let i = 0; i < 5; i++) {
+      await page.evaluate(locale => window.appSetLocale(locale), ['ru', 'en', 'he', 'ru', 'ru'][i]);
       await page.evaluate(async () => {
         await Promise.all([refreshStudioReviewStatus(), v3LibraryOpen(), ...Array.from({length: 20}, () => __localDB.dbQuery('SELECT COUNT(*) AS n FROM texts'))]);
       });
       await page.waitForFunction(() => document.querySelector('#v3LibraryList')?.textContent.includes('Lifecycle fixture'));
       assert.match(await page.locator('[data-studio-due]').first().textContent(), /^\d+$/);
       assert.match(await page.locator('[data-studio-progress]').first().textContent(), /^\d+$/);
+      await page.evaluate(() => window.applyI18n());
+      assert.notEqual(await page.locator('#studioReviewState').getAttribute('data-i18n'), 'studioReview.loading');
+      assert.doesNotMatch(await page.locator('#studioReviewState').textContent(), /Загрузка|Loading/);
     }
     await page.evaluate(() => { void v3NavAwayWithDbClose('/library.html'); });
     await page.waitForURL('**/library.html');

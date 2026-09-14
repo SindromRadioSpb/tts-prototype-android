@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.539";
+    window.APP_VERSION = "3.11.540";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -32375,6 +32375,9 @@ async function refreshStudioReviewStatus() {
     document.querySelectorAll('[data-studio-progress]').forEach((node) => { node.textContent = String(v3StudioReviewCounts.inProgress); });
     const state = document.getElementById('studioReviewState');
     if (state) {
+      // Later applyI18n must translate the resolved state, not restore Loading.
+      state.dataset.i18n = v3StudioReviewCounts.dueNow > 0 ? 'studioReview.start'
+        : (v3StudioReviewCounts.scheduled > 0 ? 'studioReview.allDone' : 'studioReview.noSchedule');
       state.textContent = v3StudioReviewCounts.dueNow > 0
         ? v3NotesT('studioReview.start', 'Начать тренировку')
         : (v3StudioReviewCounts.scheduled > 0
@@ -32389,6 +32392,7 @@ async function refreshStudioReviewStatus() {
   } catch (_) {
     const state = document.getElementById('studioReviewState');
     if (state) {
+      state.dataset.i18n = 'studioReview.openRoom';
       state.textContent = v3NotesT('studioReview.openRoom', 'Открыть Читальный зал');
       state.dataset.kind = 'warning';
     }
