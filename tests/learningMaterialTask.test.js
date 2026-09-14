@@ -16,10 +16,12 @@ test('cancel during translation retains result and prevents saving; explicit res
 });
 
 // ── P5: материал начинается со ссылки, а не с готового текста ──
+const sourceMeta={captions:{video:{videoId:'eLYgTqNFn-s',url:'https://www.youtube.com/watch?v=eLYgTqNFn-s'}}};
 const link={youtube_source:{video_id:'eLYgTqNFn-s',url:'https://www.youtube.com/watch?v=eLYgTqNFn-s'},title:'Kan 11',provider:'gemini'};
 function linkOps(log){return {
-  transcribe:async()=>{log.transcribe++;return {text:'שלום עולם',segments:[{startSec:7,text:'שלום עולם'}],durationSec:1560,timing:{verdict:'verified'},blind:false};},
+  transcribe:async()=>{log.transcribe++;return {text:'שלום עולם',segments:[{startSec:7,text:'שלום עולם'}],durationSec:1560,timing:{verdict:'verified'},blind:false,import_meta:sourceMeta};},
   translate:async i=>{log.translate++;log.translatedText=i.source_text;return {rows:[{he:'שלום עולם',ru:'Привет мир'}]};},
+  verifySaved:async()=>true,
   save:async j=>{log.save++;return {id:'text-1'};},
   bindPlaybackSource:async(j,src)=>{log.bind++;log.bound=src;return {revision:1};},
   preparePackage:async()=>{log.pkg++;return {sha256:'c'.repeat(64)};}};}
@@ -45,7 +47,7 @@ test('the link runs all the way to a saved card with its video source attached',
 test('a resumed task never pays for the same transcript twice',async()=>{
   const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
   const ops=linkOps(log);let fail=true;
-  ops.translate=async i=>{log.translate++;if(fail){fail=false;throw new Error('injected');}log.translatedText=i.source_text;return {rows:[{he:'א',ru:'а'}]};};
+  ops.translate=async i=>{log.translate++;if(fail){fail=false;throw new Error('injected');}log.translatedText=i.source_text;return {rows:[{he:i.source_text,ru:'а'}]};};
   const runner=T.createRunner(store,ops);
   await assert.rejects(runner.run(job.id),/injected/);
   assert.equal((await store.get(job.id)).transcript.text,'שלום עולם','a paid transcript survives a failed step');
@@ -99,7 +101,7 @@ test('the journal records when each stage began and ended',async()=>{
 test('a resumed stage is timed by its own attempt, not by the wall clock since the first one',async()=>{
   const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(link);await store.add(job);
   const ops=linkOps(log);let fail=true;
-  ops.translate=async i=>{log.translate++;if(fail){fail=false;throw new Error('injected');}return {rows:[{he:'א',ru:'а'}]};};
+  ops.translate=async i=>{log.translate++;if(fail){fail=false;throw new Error('injected');}return {rows:[{he:i.source_text,ru:'а'}]};};
   const runner=T.createRunner(store,ops);
   await assert.rejects(runner.run(job.id),/injected/);
   const afterFail=(await store.get(job.id)).stage_times.translating.startedAt;
@@ -130,7 +132,7 @@ test('the price the person agreed to is kept with the task, not in a page variab
   assert.deepEqual(job.input.table_quote,quote);
   const store=memory();await store.add(job);
   const log={transcribe:0,translate:0,save:0,bind:0,pkg:0},ops=linkOps(log);
-  ops.translate=async i=>{log.translate++;log.quoteSeen=i.table_quote;return {rows:[{he:'א',ru:'а'}]};};
+  ops.translate=async i=>{log.translate++;log.quoteSeen=i.table_quote;return {rows:[{he:i.source_text,ru:'а'}]};};
   await T.createRunner(store,ops).run(job.id);
   assert.deepEqual(log.quoteSeen,quote,'the table stage must receive the agreed price on every run, resume included');
 });
@@ -138,4 +140,33 @@ test('the price the person agreed to is kept with the task, not in a page variab
 test('a task created without a quote does not invent one',async()=>{
   const job=await T.create(link);
   assert.equal(job.input.table_quote,null);
+});
+
+for(const defect of ['transcript','table','input','saved'])test('source mismatch at '+defect+' retains results and prevents dependent work',async()=>{
+  const store=memory(),job=await T.create(link),log={transcribe:0,translate:0,save:0,bind:0,pkg:0};await store.add(job);
+  const ops=linkOps(log);
+  if(defect==='transcript')ops.transcribe=async()=>({text:'שלום עולם',import_meta:{captions:{video:{videoId:'MlX2x9QJIMk'}}}});
+  if(defect==='table')ops.translate=async()=>({rows:[{he:'old unrelated text'}]});
+  if(defect==='input')await store.update(job.id,j=>({...j,input:{...j.input,title:'changed behind dialog'}}));
+  if(defect==='saved')ops.verifySaved=async()=>{throw Error('TASK_SOURCE_MISMATCH');};
+  await assert.rejects(T.createRunner(store,ops).run(job.id),/TASK_SOURCE_MISMATCH/);
+  const after=await store.get(job.id);assert.equal(after.state,'paused');assert.equal(log.pkg,0);assert.equal(log.bind,0);
+  if(defect!=='saved')assert.equal(log.save,0);
+  if(defect==='table')assert.equal(after.table.rows[0].he,'old unrelated text','provider result retained for diagnosis');
+  if(defect!=='input')assert.ok(after.transcript,'paid transcript retained');
+  else assert.equal(log.transcribe,0,'modified input must fail before paid recognition');
+});
+test('table receipt catches a changed translation on resume without paying again',async()=>{
+  const store=memory(),job=await T.create(link),log={transcribe:0,translate:0,save:0,bind:0,pkg:0};await store.add(job);
+  const ops=linkOps(log);ops.save=async()=>{throw Error('save interrupted');};
+  const runner=T.createRunner(store,ops);await assert.rejects(runner.run(job.id),/save interrupted/);
+  await store.update(job.id,j=>{j.table.rows[0].ru='foreign translation';return j;});
+  await assert.rejects(runner.run(job.id),/TASK_SOURCE_MISMATCH/);assert.equal(log.transcribe,1);assert.equal(log.translate,1);
+});
+test('conflicting saved video is rejected even when transcript video matches',()=>{
+  assert.throws(()=>T.assertVideoSource(link.youtube_source,{...sourceMeta,video:{videoId:'MlX2x9QJIMk'}}),/TASK_SOURCE_MISMATCH/);
+  assert.throws(()=>T.assertSavedRows({table:{rows:[{he:'שלום'}]}},[{he_plain:'אחר'}]),/TASK_SOURCE_MISMATCH/);
+});
+test('invalid explicit YouTube input never falls back to the open card text',async()=>{
+  await assert.rejects(T.create({...input,youtube_source:{url:'invalid'}}),/TASK_INPUT_INVALID/);
 });

@@ -9,6 +9,10 @@
   Object.assign(words.ru,{geminiRecommended:'Для более качественной учебной таблицы рекомендуем Gemini. Ключ и провайдер настраиваются в «Настройки перевода и таблицы».',geminiRequiredForLink:'Для распознавания видео по ссылке нужен ключ Gemini. Google Translate может переводить готовый текст, но не распознаёт речь из видео.',useGemini:'Использовать Gemini',openTranslationSettings:'Вернуться и настроить Gemini',continueGoogle:'Продолжить с Google Translate'});
   Object.assign(words.en,{geminiRecommended:'For a higher-quality study table, we recommend Gemini. Configure the key and provider in Translation and table settings.',geminiRequiredForLink:'A Gemini key is required to transcribe a linked video. Google Translate can translate prepared text, but cannot recognise speech from the video.',useGemini:'Use Gemini',openTranslationSettings:'Go back and configure Gemini',continueGoogle:'Continue with Google Translate'});
   Object.assign(words.he,{geminiRecommended:'לטבלת לימוד איכותית יותר מומלץ להשתמש ב-Gemini. אפשר להגדיר את המפתח והספק בהגדרות התרגום והטבלה.',geminiRequiredForLink:'נדרש מפתח Gemini כדי לתמלל סרטון מקישור. Google Translate יכול לתרגם טקסט מוכן, אך אינו מזהה דיבור מתוך הסרטון.',useGemini:'שימוש ב-Gemini',openTranslationSettings:'חזרה להגדרת Gemini',continueGoogle:'המשך עם Google Translate'});
+  Object.assign(words.ru,{history:'Завершённые материалы',historyNote:'Готовые задачи автоматически переходят в историю и не занимают очередь. Материалы и результаты обработки сохранены.',TASK_SOURCE_MISMATCH:'Источник задачи не совпадает с расшифровкой или карточкой. Сохранение остановлено; полученные результаты сохранены. Проверьте ссылку в задаче.',TASK_STORAGE_UPGRADE_BLOCKED:'Закройте другие вкладки Студии и повторите: обновляется журнал задач.',removeConfirm:'Убрать задачу и её журнал обработки? Сохранённый библиотечный материал останется. Незавершённые результаты этой задачи будут удалены.'});
+  Object.assign(words.en,{history:'Completed materials',historyNote:'Completed tasks move to history automatically and free the queue. Materials and processing results are retained.',TASK_SOURCE_MISMATCH:'The task source does not match the transcript or card. Saving stopped; received results are retained. Check the task link.',TASK_STORAGE_UPGRADE_BLOCKED:'Close other Studio tabs and retry: the task journal needs an upgrade.',removeConfirm:'Remove this task and its processing journal? The saved library material will remain. Unfinished results for this task will be deleted.'});
+  Object.assign(words.he,{history:'חומרים שהושלמו',historyNote:'משימות שהושלמו עוברות אוטומטית להיסטוריה ומפנות את התור. החומרים ותוצאות העיבוד נשמרים.',TASK_SOURCE_MISMATCH:'מקור המשימה אינו תואם לתמלול או לכרטיס. השמירה נעצרה; התוצאות שהתקבלו נשמרו. בדקו את הקישור במשימה.',TASK_STORAGE_UPGRADE_BLOCKED:'סגרו לשוניות אחרות של הסטודיו ונסו שוב: נדרש עדכון של יומן המשימות.',removeConfirm:'להסיר את המשימה ואת יומן העיבוד שלה? החומר השמור בספרייה יישאר. תוצאות של משימה שלא הושלמה יימחקו.'});
+  function sourceLink(parent,input){if(!input.youtube_source)return;const p=element('p'),a=element('a',input.youtube_source.url);a.href=input.youtube_source.url;a.target='_blank';a.rel='noopener noreferrer';a.style.overflowWrap='anywhere';p.append(a);parent.append(p);}
   const t=key=>(words[document.documentElement.lang]||words.ru)[key];
   // ── Модель этапов и живой детали ──
   // Правило одно: показываем ТОЛЬКО то, чему есть знаменатель. У одного ASR-вызова провайдер не
@@ -213,7 +217,7 @@
   function dialog(title){if(currentDialog)currentDialog.close();const d=element('dialog');d.className='study-source-dialog';d.setAttribute('aria-label',title);d.append(element('h2',title));const focus=document.activeElement;d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(focus&&focus.isConnected)focus.focus();});document.body.append(d);d.showModal();currentDialog=d;return d;}
   function button(parent,label,fn){const b=element('button',label);b.type='button';b.onclick=fn;parent.append(b);return b;}
   async function showTask(job,d){
-    d=d||dialog(t('title'));d.replaceChildren(element('h2',job.input.title));
+    d=d||dialog(t('title'));d.replaceChildren(element('h2',job.input.title));sourceLink(d,job.input);
     const status=element('p',job.state==='running'?'':t(job.state));status.setAttribute('role','status');d.append(status);
     // Этапы с состояниями и живая деталь ТЕКУЩЕГО этапа. Полоса рисуется только когда у
     // прогресса есть настоящий знаменатель (доказанные строки таблицы); у одного ASR-вызова его
@@ -254,7 +258,7 @@
     else if(job.state!=='ready')button(actions,t('resume'),()=>execute(job.id,d));
     if(job.package){button(actions,t('download'),async()=>{try{await operations.download(job);status.textContent=t('downloaded');}catch(_){status.textContent=t('error');}});}
     if(job.saved_text_id)button(actions,t('open'),async()=>{try{await operations.openMaterial(job);d.close();}catch(_){status.textContent=t('error');}});
-    if(!runner.isRunning(job.id)){button(actions,t('close'),()=>d.close());button(actions,t('remove'),async()=>{await store.remove(job.id);await list(d);});}
+    if(!runner.isRunning(job.id)){button(actions,t('close'),()=>d.close());button(actions,t('remove'),async()=>{if(!window.confirm(t('removeConfirm')))return;await store.remove(job.id);await list(d);});}
     // Итог объявляется ОДИН раз и только скрытой вкладке (см. applyTitleNotice).
     try{applyTitleNotice(document,job);}catch(_){}
     d.oncancel=event=>{if(runner.isRunning(job.id))event.preventDefault();};
@@ -302,12 +306,12 @@
       d.addEventListener('cancel',event=>{event.preventDefault();finish(null);});
     });
   }
-  async function start(){
-    ready();const input=operations.capture(),d=dialog(t('title'));
+  async function start(capturedInput){
+    ready();const input=JSON.parse(JSON.stringify(capturedInput||operations.capture())),d=dialog(t('title'));
     const link=input.youtube_source || null;
     if(!input.source_text && !link){d.append(element('p',t('missing')));button(d,t('close'),()=>d.close());return;}
     const title=element('input');title.type='text';title.maxLength=160;title.value=input.title || '';
-    const label=element('label',t('name'));label.append(title);d.append(label);
+    const label=element('label',t('name'));label.append(title);d.append(label);sourceLink(d,input);
     // Порядок экрана: имя → ЦЕНА → действие → пояснения. Раньше решающая кнопка пряталась под
     // четырьмя абзацами прозы, и на 380 px до неё надо было доскроллить (наблюдение 2026-09-11).
     const actions=element('div');actions.className='study-source-actions';d.append(actions);
@@ -315,14 +319,20 @@
     notes.append(element('p',t('note')+input.provider),element('p',t('cost')));
     if(link)notes.append(element('p',t('linkNote')),element('p',t('captionsFree')));
     d.append(notes);
-    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(_){d.append(element('p',t('error')));startButton.disabled=false;}});
+    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
     button(actions,t('close'),()=>d.close());title.focus();
     const recommendation=geminiRecommendation(input.provider,!!(operations.hasGeminiKey&&operations.hasGeminiKey()),link);
     if(recommendation){
       const notice=element('p',recommendation.message);notice.className='lmt-provider-recommendation';notice.setAttribute('role','alert');d.insertBefore(notice,actions);
       if(recommendation.canContinue){
         startButton.textContent=t('continueGoogle');
-        const use=button(actions,t('useGemini'),async()=>{use.disabled=true;try{await operations.selectGemini();d.close();await start();}catch(_){use.disabled=false;}});
+        const use=button(actions,t('useGemini'),async()=>{use.disabled=true;try{
+          await operations.selectGemini();
+          const selected=operations.capture();
+          // The import modal has already cleared its temporary YouTube link. Keep
+          // this dialog's source and edited title; only refresh provider settings.
+          d.close();await start({...input,title:title.value,provider:selected.provider,model:selected.model});
+        }catch(_){use.disabled=false;}});
         actions.insertBefore(use,startButton);
       }else{
         startButton.disabled=true;
@@ -356,7 +366,19 @@
       quote();
     }
   }
-  async function list(d){ready();d=d||dialog(t('tasks'));d.replaceChildren(element('h2',t('tasks')));const jobs=await store.list();if(!jobs.length)d.append(element('p',t('empty')));for(const job of jobs){const item=element('p');button(item,job.input.title+' · '+t(job.state),()=>showTask(job,d));d.append(item);}button(d,t('close'),()=>d.close());}
+  async function list(d){
+    ready();d=d||dialog(t('tasks'));d.replaceChildren(element('h2',t('tasks')));
+    const jobs=await store.list();if(!jobs.length)d.append(element('p',t('empty')));
+    const add=(parent,job)=>{const item=element('p');button(item,job.input.title+' · '+t(job.state),()=>showTask(job,d));parent.append(item);};
+    jobs.forEach(job=>add(d,job));
+    d.append(element('p',t('historyNote')));
+    const history=element('details');history.append(element('summary',t('history')));d.append(history);
+    history.addEventListener('toggle',async()=>{if(!history.open||history.dataset.loaded)return;
+      try{const completed=await store.listCompleted();completed.forEach(job=>add(history,job));history.dataset.loaded='true';}
+      catch(_){history.append(element('p',t('error')));}
+    });
+    button(d,t('close'),()=>d.close());
+  }
   function labels(){const start=document.getElementById('v3ImportPrepareTask');if(start)start.textContent=t('start');const tasks=document.getElementById('v3LearningTasks');if(tasks)tasks.textContent=t('tasks');}
   window.LearningMaterialTaskUI={configure:value=>{operations=value;},start,list,labels,stageModel,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
   document.addEventListener('DOMContentLoaded',labels);document.addEventListener('i18n:changed',labels);

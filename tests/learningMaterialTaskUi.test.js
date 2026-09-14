@@ -13,6 +13,54 @@ function load() {
   return window.LearningMaterialTaskUI;
 }
 const UI = load();
+test('switching to Gemini retains the YouTube source after the import handoff is cleared', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { this.children.splice(this.children.indexOf(before), 0, node); }
+    setAttribute() {}
+    addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {}
+    showModal() {}
+    close() { if (this.events.close) this.events.close(); }
+    remove() {}
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  let created, pending = true, provider = 'google-free';
+  const quotes = [];
+  const link = { video_id: 'MlX2x9QJIMk', url: 'https://www.youtube.com/watch?v=MlX2x9QJIMk' };
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: {
+    createStore: () => ({ add: async () => { throw new Error('stop before provider calls'); } }),
+    createRunner: () => ({}), create: async input => { created = input; return input; }
+  } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({
+    capture: () => ({ source_text: pending ? '' : 'old card text', youtube_source: pending ? link : null,
+      title: pending ? 'New video' : 'Old card', import_meta: pending ? null : { old: true },
+      provider, model: provider === 'gemini' ? 'current-model' : null, direction: 'he-ru' }),
+    hasGeminiKey: () => true, selectGemini: async () => { provider = 'gemini'; },
+    estimate: async input => { quotes.push(input); return { durationSec: 703, estimatedUsd: 0.04 }; }
+  });
+  await ui.start();
+  pending = false; // prepareFromYoutubeLink's finally has now run.
+  const first = body.children.at(-1);
+  first.children.find(n => n.tag === 'label').children[0].value = 'Edited video title';
+  const buttons = d => d.children.find(n => n.className === 'study-source-actions').children;
+  await buttons(first).find(n => n.textContent === 'Использовать Gemini').onclick();
+  await Promise.resolve();
+  assert.equal(quotes.length, 2, 'the new dialog must still estimate the linked video');
+  const second = body.children.at(-1);
+  await buttons(second).find(n => n.textContent === 'Подготовить и сохранить').onclick();
+  assert.equal(created.youtube_source.video_id, 'MlX2x9QJIMk');
+  assert.equal(created.source_text, '');
+  assert.equal(created.import_meta, null);
+  assert.equal(created.title, 'Edited video title');
+  assert.equal(created.provider, 'gemini');
+  assert.equal(created.model, 'current-model');
+});
 const linkJob = (phase, state) => ({
   input: { title: 'x', youtube_source: { video_id: 'eLYgTqNFn-s', url: 'u' } },
   phase, state: state || 'running', transcript: null, table: null, saved_text_id: null,

@@ -13450,8 +13450,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=545"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
-<script src="/js/learning-material-task.js?v=519"></script>
-<script src="/js/learning-material-task-ui.js?v=521"></script>
+<script src="/js/learning-material-task.js?v=548"></script>
+<script src="/js/learning-material-task-ui.js?v=548"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13539,7 +13539,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.547";
+    window.APP_VERSION = "3.11.548";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34628,6 +34628,8 @@ window.LearningMaterialTaskUI.configure({
     return {rows:currentTableData,meta:v3LastGeminiMeta || null};
   },
   async save(job) {
+    await LearningMaterialTask.verifySource(job);
+    v3SessionSet({mode:'draft',textId:null,baseTextId:null,origin:'import',openMode:null});
     document.getElementById('inputText').value=job.transcript?job.transcript.text:job.input.source_text;
     window.v3LastImportMeta=LearningMaterialTask.effectiveImportMeta(job);
     currentTableData=job.table.rows;v3LastGeminiMeta=job.table.meta;tableIsStale=false;
@@ -34636,6 +34638,14 @@ window.LearningMaterialTaskUI.configure({
     if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);
     renderTable(currentTableData);
     return v3LibrarySaveCurrentCore({title:job.input.title,learningMaterialTask:{id:job.id,signature:job.signature}});
+  },
+  async verifySaved(job) {
+    const ldb=await ensureLocalDB();
+    const row=(await ldb.dbQuery('SELECT source_meta_json FROM texts WHERE id=?',[job.saved_text_id]))[0];
+    const meta=row&&PlaybackSource.parseMeta(row.source_meta_json);
+    if(!meta||meta.learning_material_task?.id!==job.id||meta.learning_material_task?.signature!==job.signature)throw new Error('TASK_SOURCE_MISMATCH');
+    LearningMaterialTask.assertVideoSource(job.input.youtube_source,meta);
+    LearningMaterialTask.assertSavedRows(job,await ldb.getSentences(job.saved_text_id));
   },
   async preparePackage(job) {
     const ldb=await ensureLocalDB(),repo=MaterialRevisionRepository.createRepository(ldb,MaterialRevisionCore);
