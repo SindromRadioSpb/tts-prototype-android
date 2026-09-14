@@ -1,7 +1,7 @@
 // Copyright 2022 Roy T. Hashimoto. All Rights Reserved.
 import * as VFS from './VFS.js';
 import { WebLocksExclusive as WebLocks } from './WebLocks.js';
-import { IDBContext } from './IDBContext.js?v=531';
+import { IDBContext } from './IDBContext.js?v=543';
 
 const SECTOR_SIZE = 512;
 const MAX_TASK_MILLIS = 3000;
@@ -437,16 +437,21 @@ export class IDBBatchAtomicVFS extends VFS.Base {
       const file = this.#mapIdToFile.get(fileId);
       log(`xUnlock ${file.path} ${flags}`);
       
+      // Native VFS locking is the authority for IDB connections. Publish
+      // queued block/version writes before the next connection can acquire
+      // SQLite's lock, including relaxed-durability atomic commits.
+      let synced = true;
       try {
-        // Native VFS locking is the authority for IDB connections. Publish
-        // queued block/version writes before the next connection can acquire
-        // SQLite's lock, including relaxed-durability atomic commits.
         await this.#idb.sync();
-        return file.locks.unlock(flags);
       } catch(e) {
         console.error(e);
-        return VFS.SQLITE_IOERR;
+        synced = false;
       }
+      // SQLite has left this lock level even when IndexedDB reports a failed
+      // write. Report I/O error, but never keep the origin-wide Web Lock: a
+      // retained lock blocks every other page until this worker terminates.
+      const unlocked = await file.locks.unlock(flags);
+      return synced ? unlocked : VFS.SQLITE_IOERR;
     });
   }
 

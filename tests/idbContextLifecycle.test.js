@@ -48,3 +48,25 @@ test('an aborted transaction is reported by sync and never swallowed by a later 
   transactions[0].dispatchEvent(new Event('complete'));
   await synced;
 });
+
+test('an aborted transaction is reported once and does not poison later transactions', async () => {
+  const { context, transactions } = await fixture();
+  await context.run('readwrite', () => {});
+  const failure = new DOMException('Fixture write aborted', 'AbortError');
+  transactions[0].error = failure;
+  transactions[0].dispatchEvent(new Event('abort'));
+  await assert.rejects(context.sync(), error => error === failure);
+  // SQLite's next unlock/write must observe only transactions since that report.
+  await context.run('readwrite', () => {});
+  const later = context.sync();
+  transactions[1].dispatchEvent(new Event('complete'));
+  await later;
+});
+
+test('explicit abort is typed and close still releases the IndexedDB connection', async () => {
+  const { context, transactions, isClosed } = await fixture();
+  await context.run('readwrite', () => {});
+  transactions[0].dispatchEvent(new Event('abort'));
+  await assert.rejects(context.close(), error => error instanceof DOMException && error.name === 'AbortError');
+  assert.equal(isClosed(), true);
+});

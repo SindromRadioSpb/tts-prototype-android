@@ -16,7 +16,7 @@ async function harness(failures = {}) {
  };
  const ctx = vm.createContext({ migrated:false,db:null,sqlite3:null,vfs:null,vfsName:null,vfsKind:null,computeVfsOrder,
   initWithAccessHandlePool:open('AccessHandlePool'),initWithIDB:open('tts-opfs-idb'),
-  execMulti:async()=>{},runMigrations:async()=>writes.push(ctx.db),console:{warn:()=>{}},setTimeout:fn=>fn() });
+  execMulti:async()=>{},runMigrations:async()=>writes.push(ctx.db),console:{warn:()=>{}},setTimeout:fn=>fn(),setPhase:()=>{} });
  vm.runInContext(source.slice(source.indexOf('async function initDBOnce('),source.indexOf('// ── message handler')),ctx);
  return { boot: pref=>ctx.initDB(pref), calls,closed,writes,ctx };
 }

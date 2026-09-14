@@ -179,7 +179,7 @@ async function initWithIDB() {
   // Async wa-sqlite build + async VFS.
   setPhase('loading-wasm-async-module');
   const SQLiteModule = (await import('./wa-sqlite-async.mjs')).default;
-  const { IDBBatchAtomicVFS } = await import('./IDBBatchAtomicVFS.js?v=531');
+  const { IDBBatchAtomicVFS } = await import('./IDBBatchAtomicVFS.js?v=543');
 
   setPhase('wasm-async-initializing');
   const module = await SQLiteModule();
@@ -290,7 +290,7 @@ const lease = new OperationLease({
 });
 
 function runtimeSnapshot() { return {
-  runtime: 542, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
+  runtime: 543, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
   holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
   coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,

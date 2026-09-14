@@ -64,7 +64,7 @@ function _startDbDiagnostics() {
   try {
     _diagnosticWorkerId = crypto.randomUUID();
     const surface = /library\.html$/.test(location.pathname) ? 'room' : /(?:index\.html|study-studio\.html|\/)$/.test(location.pathname) ? 'studio' : 'other';
-    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, version: '3.11.542', surface });
+    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, version: '3.11.543', surface });
     _dbJournal.record({ phase: 'browser-preflight', event: 'page-db-start' });
     if (!_diagnosticLifecycle) {
       _diagnosticLifecycle = true;
@@ -327,7 +327,7 @@ async function _initializeLocalDB() {
   await _preflightSupport();
   if (!_worker) {
     if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-    _worker = new Worker('/db/db-worker-runtime.js?v=542', { type: 'module' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=543', { type: 'module' });
     _worker.onmessage = ({ data }) => {
       if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
       if (data.kind === 'committed') {

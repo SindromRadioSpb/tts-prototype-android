@@ -24,7 +24,7 @@ test('worker dependency graph cache-busts all repaired async lifecycle modules',
   const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
   for (const [source, name] of [[worker, 'sqlite-api.js'], [worker, 'operation-lease.js'],
     [worker, 'IDBBatchAtomicVFS.js'], [vfs, 'IDBContext.js']]) {
-    const version = name === 'operation-lease.js' ? 542 : 531;
+    const version = { 'sqlite-api.js': 531, 'operation-lease.js': 542, 'IDBBatchAtomicVFS.js': 543, 'IDBContext.js': 543 }[name];
     assert.ok(source.includes(`./${name}?v=${version}`), name + ' must not reuse a stale unversioned SW dependency');
     assert.ok(sw.includes(`/db/${name}?v=${version}`));
     assert.ok(server.includes(`/db/${name}?v=${version}`));

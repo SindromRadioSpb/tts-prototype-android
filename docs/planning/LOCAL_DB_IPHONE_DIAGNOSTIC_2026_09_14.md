@@ -1,5 +1,92 @@
 # iPhone local DB: diagnostic handoff 3.11.541
 
+## Follow-up 3.11.543: confirmed IDB lock retention; OPFS holder still unidentified
+
+Baseline `b4806833` (3.11.542). Physical iPhone acceptance remains FAIL/open.
+
+Owner observation after 542, normal profile: Studio stalled on a fresh load.
+After switching to another tab and returning, the review counter showed the
+correct value for about a second; the page then reloaded by itself and the
+counters and Studio materials list stalled again (Library opens, list does
+not). One query therefore succeeded after the hidden period, and a fresh
+document waits again. Studio has no unconditional reload on return (only
+explicit Retry, a requested SW update, follower takeover), so a browser
+content-process restart is possible but NOT established.
+
+### Confirmed defect: one aborted IndexedDB transaction pins `/app.db-outer`
+
+- `IDBContext` left its completion chain permanently rejected after a single
+  aborted readwrite transaction. `IDBBatchAtomicVFS.xUnlock` awaited that sync
+  before releasing SQLite's Web Lock, so every unlock failed: `/app.db-outer`
+  and `/app.db-reserved` stayed held by a live worker, later writes in that
+  worker returned `disk I/O error`, and close threw a TypeError (an explicit
+  abort carries a null error) without closing the IDB connection.
+- Real-browser repro `scripts/multitab/idb-failed-sync-unlock-smoke.js` with
+  `IDB_FAULT_EXPECT_RED=1` (baseline files): WebKit and Chromium keep both
+  locks and a second document gets `database is locked`. This is the lock
+  state of the Incognito report (held + pending `/app.db-outer`, waiter in
+  migrations).
+- Fix: latch the first transaction failure and report it once; typed
+  AbortError for an abort without error; close always closes the IDB
+  connection; xUnlock always releases the Web Lock after SQLite leaves the
+  lock level and returns SQLITE_IOERR when sync failed.
+- Evidence: IDBContext unit 4/4. Smoke, commit-record fault, WebKit and
+  Chromium: failure reported, row absent, locks released, second document
+  reads, later write succeeds, close releases, integrity ok, review_log
+  unchanged. Cleanup-transaction fault: same lock/poison/integrity results.
+  Existing gates pass: IDB legacy/native coordination (WebKit, Chromium),
+  failed-open queue (WebKit IDB), Studio lifecycle (WebKit IDB, Chromium
+  AccessHandlePool), operation lease (Chromium 4 tabs both backends, WebKit
+  IDB 8 tabs).
+- NOT established: that the owner's Incognito session had an aborted IDB
+  transaction; its iOS trigger (quota, suspension interruption, I/O error)
+  was not observed. AccessHandlePool (normal profile, owner library) does not
+  use this path: this does not fix the normal-profile failure.
+- Separate observation, unchanged: if only the abandoned-version cleanup
+  transaction aborts, SQLite reports `disk I/O error` although the row commits
+  (both engines, before and after the fix). A false failure, not data loss.
+
+### Automation limit
+
+Scratch engine experiment without app code: Playwright WebKit (Windows) and
+Chromium never placed a page with a dedicated worker in back/forward cache
+(`pageshow.persisted=false`, with and without `no-store`). CDP
+`Page.setWebLifecycleState=frozen` did not suspend the dedicated worker (a
+500 ms lock operation finished while frozen). Neither engine models a
+suspended lock holder, so earlier green gates could not detect that class.
+
+### Code facts relevant to the OPFS owner lock
+
+- Studio writes to the local DB from `visibilitychange:hidden` and `pagehide`:
+  `session_end` and `text_close` via `recordEvent`, progress via `setProgress`.
+  Up to three separate lease cycles start while the page is being hidden, each
+  reacquiring every AccessHandlePool OPFS sync handle.
+- A client suspended while holding the owner lock, or whose pending request is
+  granted after suspension, holds it without answering the probe. 541/542
+  diagnostics cannot distinguish that from other holders: Web Lock clientIds
+  are excluded and locks carry no identity.
+- No iframe loads an app document; all production importers share one
+  `local-db.js` URL. No second DB worker in one document was found in code.
+
+Unranked, unproven holder candidates: the tab's back/forward-cached
+Studio/Room document; another LinguistPro tab in background; a same-document
+worker; a client not running instrumented code.
+
+### Missing fact and proposed collection (not implemented)
+
+Missing fact: which client holds `linguistpro-opfs-db-owner-v1` while a fresh
+document waits: same document or another; same tab (cached) or another tab;
+surface, release, age; its last lifecycle event and RPC before holding.
+
+Proposal: while opt-in recording is enabled, every document and DB worker
+holds a never-contended identity Web Lock whose name contains only allowlisted
+fields (kind, surface, release, random document/worker id, creation minute).
+The support page joins the owner lock's holder and waiter clientIds from
+`navigator.locks.query()` to those identity locks and prints per-report labels,
+never raw clientIds; a holder without an identity lock is reported as
+uninstrumented. The lock manager answers even when the holder is frozen.
+The journal adds per-worker lease acquired/released events.
+
 ## Follow-up 3.11.542: failed-open queue repair (not full device acceptance)
 
 Owner supplied both requested 541 reports. Normal profile: AccessHandlePool,

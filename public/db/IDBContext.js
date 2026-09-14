@@ -21,6 +21,7 @@ export class IDBContext {
   #txTimestamp = 0;
   #runChain = Promise.resolve();
   #putChain = Promise.resolve();
+  #failure = null;
 
   /**
    * @param {IDBDatabase|Promise<IDBDatabase>} idbDatabase
@@ -32,9 +33,13 @@ export class IDBContext {
 
   async close() {
     const db = this.#db ?? await this.#dbReady;
-    await this.#runChain;
-    await this.sync();
-    db.close();
+    try {
+      await this.#runChain;
+      await this.sync();
+    } finally {
+      // Report a failed transaction, but never keep the connection open for it.
+      db.close();
+    }
   }
   
   /**
@@ -98,8 +103,9 @@ export class IDBContext {
             });
             transaction.addEventListener('abort', event => {
               console.warn('tx abort', (performance.now() - timestamp)/1000);
+              // An explicit or interrupted abort may carry no error object.
               // @ts-ignore
-              const e = event.target.error;
+              const e = event.target.error || new DOMException('IndexedDB transaction aborted', 'AbortError');
               reject(e);
               if (this.#tx === event.target) {
                 this.#tx = null;
@@ -107,10 +113,10 @@ export class IDBContext {
               log(`transaction ${mapTxToId.get(event.target)} aborted`, e);
             });
         });
-        this.#putChain = Promise.all([this.#putChain, completion]).then(() => {});
-        // A transaction can abort before sync is called. Observe rejection now,
-        // but retain it in the chain so sync still reports the write failure.
-        this.#putChain.catch(() => {});
+        // Wait for every transaction, but latch the first failure instead of
+        // leaving the chain rejected: a permanently rejected chain made every
+        // later sync fail, so xUnlock never released SQLite's Web Lock.
+        this.#putChain = Promise.all([this.#putChain, completion.catch(error => { this.#failure ??= error; })]).then(() => {});
 
         log(`new transaction ${nextTxId} ${mode}`);
         mapTxToId.set(this.#tx, nextTxId++);
@@ -130,12 +136,15 @@ export class IDBContext {
   }
 
   async sync() {
-    // Wait until all transactions since the previous sync have committed.
-    // Throw if any transaction failed.
+    // Wait until all transactions since the previous sync have settled.
+    // Report a failed transaction once; later transactions start clean.
     await this.#runChain;
     const pending = this.#putChain;
     await pending;
     if (this.#putChain === pending) this.#putChain = Promise.resolve();
+    const failure = this.#failure;
+    this.#failure = null;
+    if (failure) throw failure;
   }
 }
 
