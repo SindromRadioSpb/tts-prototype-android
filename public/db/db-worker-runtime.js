@@ -27,7 +27,7 @@ import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
 import { OperationLease } from './operation-lease.js?v=531';
 import { storageIdentity } from './storage-identity.js';
-import { createRuntimeDiagnostics } from './runtime-diagnostics.js';
+import { createRuntimeDiagnostics } from './runtime-diagnostics.js?v=541';
 
 const runtimes = new Map();
 let migrated = false;
@@ -38,7 +38,11 @@ let vfs = null;       // the live VFS instance — needed to release its resourc
 let vfsName = null;   // 'AccessHandlePool' or 'tts-opfs-idb'
 let vfsKind = null;   // 'sync' or 'async' (for diagnostic surface)
 let phase = 'starting', phaseSince = Date.now();
-function setPhase(value) { phase = value; phaseSince = Date.now(); }
+let diagnosticEnabled = false, diagnosticUntil = 0, workerId = null, requestId = 0, operation = 'starting';
+function setPhase(value) {
+  phase = value; phaseSince = Date.now();
+  if (diagnosticEnabled && Date.now() < diagnosticUntil) self.postMessage({ kind: 'diagnostic-phase', snapshot: runtimeSnapshot() });
+}
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -119,24 +123,30 @@ async function initWithAccessHandlePool() {
   const cached = runtimes.get('AccessHandlePool');
   if (cached) {
     try {
+      setPhase('opfs-reacquiring-handles');
       await cached.vfs.reset();
+      setPhase('sqlite-opening');
       const opened = await cached.sqlite.open_v2('app.db', SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, cached.vfs.name);
       return { ...cached, db: opened };
     } catch (e) { await cached.vfs.close(); throw e; }
   }
 
   // Sync wa-sqlite build + sync VFS.
+  setPhase('loading-wasm-sync-module');
   const SQLiteModule = (await import('./wa-sqlite.mjs')).default;
   const { AccessHandlePoolVFS } = await import('./AccessHandlePoolVFS.js');
 
+  setPhase('wasm-sync-initializing');
   const module = await SQLiteModule();
   const sqlite = Factory(module);
 
+  setPhase('opfs-acquiring-handles');
   const vfs = new AccessHandlePoolVFS('/tts-opfs');
   try {
     await vfs.isReady;
     sqlite.vfs_register(vfs, true);
 
+    setPhase('sqlite-opening');
     const opened = await sqlite.open_v2(
       'app.db',
       SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
@@ -159,6 +169,7 @@ async function initWithIDB() {
   const cached = runtimes.get('tts-opfs-idb');
   if (cached) {
     try {
+      setPhase('idb-reopening');
       await cached.vfs.reset();
       const opened = await cached.sqlite.open_v2('app.db', SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, cached.vfs.name);
       return { ...cached, db: opened };
@@ -166,12 +177,15 @@ async function initWithIDB() {
   }
 
   // Async wa-sqlite build + async VFS.
+  setPhase('loading-wasm-async-module');
   const SQLiteModule = (await import('./wa-sqlite-async.mjs')).default;
   const { IDBBatchAtomicVFS } = await import('./IDBBatchAtomicVFS.js?v=531');
 
+  setPhase('wasm-async-initializing');
   const module = await SQLiteModule();
   const sqlite = Factory(module);
 
+  setPhase('idb-opening');
   const vfs = new IDBBatchAtomicVFS('tts-opfs-idb', { durability: 'relaxed', lockTimeoutMillis: 30000 });
   try {
     await vfs.isReady;
@@ -275,16 +289,23 @@ const lease = new OperationLease({
   onCommit: () => self.postMessage({ kind: 'committed' }),
 });
 
-const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: () => ({
-  runtime: 531, phase, elapsedMs: Date.now() - phaseSince,
+function runtimeSnapshot() { return {
+  runtime: 532, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
   holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
   coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,
-}) });
+}; }
+const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: runtimeSnapshot });
 
 self.onmessage = ({ data }) => {
   const { id, type, sql, params, preferVfs } = data;
+  if (type === 'init') {
+    diagnosticEnabled = data.diagnosticEnabled === true;
+    diagnosticUntil = Date.now() + 15 * 60 * 1000;
+    workerId = /^[0-9a-f-]{36}$/.test(data.diagnosticWorkerId || '') ? data.diagnosticWorkerId : null;
+  }
   lease.run(async () => {
+    requestId = id; operation = ['init', 'query', 'run', 'exec', 'close'].includes(type) ? type : 'unknown';
     setPhase(lease.opened ? 'transaction' : 'waiting-lock');
     if (type === 'init') {
       if (preferVfs && selectedVfs && preferVfs !== selectedVfs) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: storage identity mismatch');
@@ -303,7 +324,7 @@ self.onmessage = ({ data }) => {
     if (type === 'exec') { await execMulti(sql); return {}; }
     throw new Error(`Unknown type: ${type}`);
   }, { reset: type === 'close', sql }).then(
-    result => self.postMessage({ id, ok: true, ...result }),
+    result => { setPhase('ready'); self.postMessage({ id, ok: true, ...result }); },
     async error => {
       let detail = null;
       if (String(error.code || '').startsWith('DB_LOCK_') || error.code === 'DB_STORAGE_CLOSE_FAILED') {

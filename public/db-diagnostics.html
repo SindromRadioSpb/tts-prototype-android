@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LinguistPro — диагностика локальной библиотеки</title>
+<style>
+body{font:17px/1.5 system-ui,sans-serif;max-width:850px;margin:24px auto;padding:0 18px;color:#15223b;background:#f7f9fc}button,a{font:inherit}button{min-height:48px;padding:10px 16px;margin:6px 6px 6px 0;border:1px solid #8a99b0;border-radius:8px;background:white;color:#15223b;cursor:pointer}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #2563eb;outline-offset:3px}textarea{box-sizing:border-box;width:100%;min-height:320px;font:13px/1.5 monospace;padding:12px}#status{padding:12px;background:#e8eefb;white-space:pre-line}nav{display:flex;gap:18px;flex-wrap:wrap}h1{font-size:25px}
+</style></head><body>
+<h1>Диагностика локальной библиотеки</h1>
+<p>Эта страница не открывает SQLite, не загружает канон и не меняет библиотеку. Отчёт содержит только техническое состояние, без текстов, SQL-запросов, ключей API и истории обучения. Ничего не отправляется автоматически.</p>
+<ol><li>Включите запись на 15 минут.</li><li>Откройте Студию или Зал и повторите сбой.</li><li>Вернитесь сюда в том же браузере и режиме (обычном или Инкогнито), обновите отчёт и скопируйте его.</li></ol>
+<p>После падения вкладки откройте этот адрес вручную. Предыдущий технический след сохранится, если браузер сохранил локальное хранилище. Закрытие всех вкладок Инкогнито может удалить его. Незавершённый след сам по себе не доказывает причину падения.</p>
+<button id="enable">Включить запись на 15 минут</button><button id="stop">Отключить запись</button>
+<nav><a href="/index.html">Открыть Студию</a><a href="/library.html">Открыть Читальный зал</a></nav>
+<p id="status" role="status" aria-live="polite">Собираем техническое состояние…</p>
+<button id="refresh">Обновить отчёт</button><button id="copy">Скопировать отчёт</button>
+<p>Если копирование недоступно, выделите содержимое поля вручную. Хранилище не сбрасывайте.</p>
+<label for="report">Технический отчёт</label><textarea id="report" readonly spellcheck="false"></textarea>
+<script type="module" src="/db/diagnostic-page.js?v=541"></script>
+</body></html>

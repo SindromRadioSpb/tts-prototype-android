@@ -38,6 +38,7 @@
 //   importBundle()  — POST /api/library/import/bundle
 
 import '../js/nakdan-derived-core.js';
+import { createDiagnosticJournal } from './diagnostic-journal.js?v=541';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
 import '../js/catalog-discovery-core.js?v=485';
@@ -56,6 +57,22 @@ let _initialized = false;
 let _initInFlight = null;
 let _seq    = 0;
 const _pending = new Map();
+let _diagnosticWorkerId = null;
+let _dbJournal = { enabled: () => false, record() {} };
+let _diagnosticLifecycle = false;
+function _startDbDiagnostics() {
+  try {
+    _diagnosticWorkerId = crypto.randomUUID();
+    const surface = /library\.html$/.test(location.pathname) ? 'room' : /(?:index\.html|study-studio\.html|\/)$/.test(location.pathname) ? 'studio' : 'other';
+    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, version: '3.11.541', surface });
+    _dbJournal.record({ phase: 'browser-preflight', event: 'page-db-start' });
+    if (!_diagnosticLifecycle) {
+      _diagnosticLifecycle = true;
+      for (const event of ['pagehide', 'pageshow']) window.addEventListener(event, e => _dbJournal.record({ event, persisted: !!e.persisted }), { passive: true });
+      window.addEventListener('visibilitychange', () => _dbJournal.record({ event: document.visibilityState === 'hidden' ? 'hidden' : 'visible' }), { passive: true });
+    }
+  } catch (_) { /* Optional diagnostics cannot prevent initialization. */ }
+}
 
 // Each tab owns a worker, not the database. The worker takes the shared Web
 // Lock only for an operation/transaction and closes physical handles before
@@ -143,9 +160,16 @@ function _call(type, sql, params, opts) {
     if (_workerCrashed) { reject(_lastDbError); return; }
     if (!_worker) { reject(new DbUnavailableError('DB_INIT_FAILED', 'Local database is not initialized.')); return; }
     const id = ++_seq;
-    _pending.set(id, { resolve, reject });
+    const h = { resolve, reject };
+    _pending.set(id, h);
+    if (_dbJournal.enabled()) {
+      _dbJournal.record({ event: 'rpc-queued', operation: type, requestId: id, pendingCount: _pending.size });
+      h.diagnosticTimer = setTimeout(() => {
+        if (_pending.get(id) === h) _dbJournal.record({ event: 'rpc-still-pending', operation: type, requestId: id, oldestPendingMs: 8000, pendingCount: _pending.size });
+      }, 8000);
+    }
     try { _worker.postMessage({ id, type, sql, params, ...(opts || {}) }); }
-    catch (e) { _pending.delete(id); reject(e); }
+    catch (e) { clearTimeout(h.diagnosticTimer); _pending.delete(id); reject(e); }
   });
 }
 
@@ -295,10 +319,13 @@ export async function initLocalDB() {
 
 async function _initializeLocalDB() {
   if (_initialized) return; // idempotent on success
+  if (!_worker && typeof _startDbDiagnostics === 'function') _startDbDiagnostics();
   await _preflightSupport();
   if (!_worker) {
-    _worker = new Worker('/db/db-worker-runtime.js?v=531', { type: 'module' });
+    if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=532', { type: 'module' });
     _worker.onmessage = ({ data }) => {
+      if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
       if (data.kind === 'committed') {
         try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}
         return;
@@ -306,6 +333,8 @@ async function _initializeLocalDB() {
       const h = _pending.get(data.id);
       if (!h) return;
       _pending.delete(data.id);
+      clearTimeout(h.diagnosticTimer);
+      _dbJournal.record({ event: data.ok ? 'rpc-completed' : 'rpc-error', requestId: data.id, code: data.code, pendingCount: _pending.size });
       if (data.ok) {
         if (data.vfs) _vfs = data.vfs;
         if (data.vfsKind) _vfsKind = data.vfsKind;
@@ -321,6 +350,7 @@ async function _initializeLocalDB() {
       }
     };
     _worker.onerror = (e) => {
+      _dbJournal.record({ event: 'worker-error', code: 'DB_WORKER_CRASHED', pendingCount: _pending.size });
       _workerCrashed = true;
       const err = _wrapWorkerError(e?.message || 'Worker crashed', 'DB_WORKER_CRASHED');
       for (const h of _pending.values()) h.reject(err);
@@ -332,7 +362,8 @@ async function _initializeLocalDB() {
     if (typeof localStorage !== 'undefined') preferVfs = localStorage.getItem(_VFS_PREF_KEY);
   } catch (_) {}
   try {
-    await _call('init', null, null, preferVfs ? { preferVfs } : null);
+    await _call('init', null, null, { preferVfs, diagnosticWorkerId: typeof _diagnosticWorkerId === 'string' ? _diagnosticWorkerId : null,
+      diagnosticEnabled: typeof _dbJournal !== 'undefined' && _dbJournal.enabled() });
   } catch (e) {
     if (e instanceof DbUnavailableError) throw e;
     throw new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));

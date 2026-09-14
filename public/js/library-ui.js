@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=532';
+import * as localDb from '/db/local-db.js?v=533';
 import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -1310,6 +1310,9 @@ function showState(i18nKey, icon) {
   if (!main) return;
   main.innerHTML = '';
   main.appendChild(stateBoxNode(i18nKey, icon));
+  if (i18nKey === 'room.state.dbBusy' || i18nKey === 'room.state.error') {
+    main.appendChild(el('a', { text: tt('dashboard.secDiag', 'Диагностика системы'), attrs: { href: '/db-diagnostics.html', target: '_blank', rel: 'noopener' } }));
+  }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 

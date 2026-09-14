@@ -8,6 +8,7 @@ const http = require('node:http');
 const playwright = require('playwright');
 const root = path.resolve(__dirname, '../../public');
 const engine = process.env.MULTITAB_ENGINE || 'webkit';
+const backend = process.env.STUDIO_BACKEND || 'tts-opfs-idb';
 const types = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.html': 'text/html', '.css': 'text/css', '.json': 'application/json' };
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -30,8 +31,9 @@ async function main() {
   const watchdog = setTimeout(() => { console.error('FAIL: lifecycle gate exceeded 120s'); void browser.close(); }, 120000);
   try {
     await page.goto(base + '/fixture');
-    await page.evaluate(async () => {
-      localStorage.setItem('opfsVfsPreference_v1', 'tts-opfs-idb');
+    await page.evaluate(async backend => {
+      localStorage.setItem('opfsVfsPreference_v1', backend);
+      localStorage.setItem('localdb-diagnostic-until-v1', String(Date.now() + 15*60*1000));
       const db = await import('/db/local-db.js');
       await db.initLocalDB();
       for (let i = 0; i < 20; i++) {
@@ -41,7 +43,7 @@ async function main() {
       await db.dbRun("INSERT INTO word_status(lemma_key,status,updated_at) VALUES('שלום','learning','2026-09-14')");
       await db.dbRun("INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,meta_json) VALUES('lifecycle-review','lemma:שלום','review','2026-09-14',3,'fixture','{}')");
       await db.closeLocalDB();
-    });
+    }, backend);
     await page.goto(base + '/index.html', { waitUntil: 'load' });
     await page.waitForFunction(() => typeof window.refreshStudioReviewStatus === 'function' && !!window.__localDB);
     const reviewBefore = await page.evaluate(async () => {
@@ -60,6 +62,31 @@ async function main() {
       assert.notEqual(await page.locator('#studioReviewState').getAttribute('data-i18n'), 'studioReview.loading');
       assert.doesNotMatch(await page.locator('#studioReviewState').textContent(), /Загрузка|Loading/);
     }
+    const inspector = await context.newPage();
+    const requests = [];
+    inspector.on('request', request => requests.push(request.url()));
+    let holder;
+    if (backend === 'AccessHandlePool') {
+      holder = await context.newPage(); await holder.goto(base + '/fixture');
+      await holder.evaluate(() => new Promise(resolve => navigator.locks.request('linguistpro-opfs-db-owner-v1', () => new Promise(release => { window.releaseDiagnosticLock=release; resolve(); }))));
+      await page.evaluate(() => { window.diagnosticPendingRead = __localDB.dbQuery('SELECT 1 AS n'); });
+    }
+    await inspector.goto(base + '/db-diagnostics.html');
+    await inspector.waitForFunction(() => document.querySelector('#report')?.value.includes('reportVersion'));
+    const report = JSON.parse(await inspector.locator('#report').inputValue());
+    assert.equal(await inspector.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'diagnostic controls fit viewport');
+    assert.ok(report.history.length > 0);
+    assert.equal(JSON.stringify(report).includes('Lifecycle fixture'), false, 'no text titles in report');
+    assert.equal(JSON.stringify(report).includes('SELECT'), false, 'no SQL in report');
+    assert.equal(requests.some(url => /\.wasm|local-db\.js|db-worker/.test(url)), false, 'diagnostic page never starts SQLite');
+    if (holder) {
+      assert.equal(report.locks.held.length, 1);
+      assert.ok(report.respondingWorkers.some(row => row.phase === 'waiting-lock'), 'probe answers outside blocked SQL queue');
+      await holder.evaluate(() => releaseDiagnosticLock());
+      assert.deepEqual(await page.evaluate(() => diagnosticPendingRead), [{n:1}]);
+      await holder.close();
+    }
+    await inspector.close();
     await page.evaluate(() => { void v3NavAwayWithDbClose('/library.html'); });
     await page.waitForURL('**/library.html');
     // The Room's actual import (including its release URL), not another module instance.
