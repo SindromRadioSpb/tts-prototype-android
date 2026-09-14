@@ -727,12 +727,12 @@ export function Factory(Module) {
         while (prepared = await sqlite3.prepare_v2(db, prepared.sql)) {
           // console.log(sqlite3.sql(prepared.stmt));
           yield prepared.stmt;
-          sqlite3.finalize(prepared.stmt);
+          await sqlite3.finalize(prepared.stmt);
           prepared.stmt = null;
         }
       } finally {
         if (prepared?.stmt) {
-          sqlite3.finalize(prepared.stmt);
+          await sqlite3.finalize(prepared.stmt);
         }
         sqlite3.str_finish(str);
       }

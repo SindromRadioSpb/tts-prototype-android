@@ -3,9 +3,10 @@
 // transaction locks. No tab-owner election, proxy, lock stealing or reload.
 export class OperationLease {
   constructor({ locks, lockName, open, close, inTransaction, rollback, onCommit,
-    waitMs = 30000, transactionIdleMs = 30000, now = () => Date.now(), requiresExternalLock = () => true }) {
+    waitMs = 30000, transactionIdleMs = 30000, now = () => Date.now(), requiresExternalLock = () => true,
+    keepConnectionOpen = () => false }) {
     Object.assign(this, { locks, lockName, openConnection: open, closeConnection: close,
-      inTransaction, rollback, onCommit, waitMs, transactionIdleMs, now, requiresExternalLock });
+      inTransaction, rollback, onCommit, waitMs, transactionIdleMs, now, requiresExternalLock, keepConnectionOpen });
     this.queue = Promise.resolve();
     this.release = null;
     this.opened = false;
@@ -92,7 +93,13 @@ export class OperationLease {
           }, this.transactionIdleMs);
         } else {
           const committed = this.changed && !/^\s*ROLLBACK\b/i.test(sql);
-          await this.close();
+          // IDB owns no OPFS sync handles: SQLite xUnlock already released its
+          // transaction lock. Keep its connection alive instead of reopening
+          // the database for every catalogue/SRS statement. OPFS still closes
+          // physical handles before releasing its external lease.
+          if (!this.opened || !this.keepConnectionOpen()) await this.close();
+          else if (this.release) { this.release(); this.release = null; }
+          this.changed = false;
           if (committed) this.onCommit?.();
         }
       }

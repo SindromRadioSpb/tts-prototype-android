@@ -199,3 +199,51 @@ Regression runner сохраняет реальный исходный runtime 3
 не требуется. Известные WebKit issues 239614/309251/316072 проверены как возможные
 объяснения неотвечающего владельца, но не объявлены доказанной причиной этого
 устройства; исправление не зависит от такой гипотезы.
+
+## 2026-09-14 — 3.11.538: IDB connection lifetime and completion tracking
+
+Основание: owner сообщил FAIL после 3.11.537 — список висит, оба счётчика
+повторения не завершаются, Studio → Room не переходит. Приёмка предыдущего
+релиза на физическом iPhone НЕ пройдена. Исходный commit: `8beaa4b3`.
+
+Проверено по коду: все три пути ждут общую DB RPC очередь; навигация ожидает
+`closeLocalDB`. Изменение 127c8f76 добавило закрытие SQLite + VFS после каждого
+statement даже для IDB. Это нужно для OPFS sync handles, но не для IDB:
+его SQLite xUnlock уже освобождает транзакционные Web Locks.
+
+Исправления:
+
+- IDB сохраняет соединение между запросами, закрывает его явно при уходе;
+  OPFS по-прежнему закрывает физические handles перед освобождением lease.
+  При первом выборе IDB внешний selection lock освобождается после init.
+- IDBContext подписывается на complete/abort немедленно и на конкретный tx.
+  Раньше подписка откладывалась за предыдущим tx и читала изменяемый `#tx`:
+  событие завершения/отмены могло остаться без наблюдателя, а sync — без ответа.
+  Контролируемый regression тест на старом коде: отсутствуют listeners второго
+  tx, abort/sync остаётся pending. На исправленном коде оба теста PASS.
+- Async statement generator дожидается finalize и при ошибке/раннем выходе,
+  чтобы cleanup Asyncify не пересекался со следующим запросом или close.
+
+Транзакционная модель сверена с https://www.w3.org/TR/IndexedDB/#transaction-lifecycle.
+Тестируемый дефект в коде установлен; точный порядок событий на iPhone владельца
+без трассы устройства не установлен. Не объявляем его доказанным единственным
+объяснением всех предыдущих симптомов.
+
+Проверки локального исправления:
+
+- Targeted node gates: 80 PASS (IDB lifecycle, lease, DB errors/init/identity,
+  shell integrity/version, Studio save progress и затронутые release locks).
+- i18n 233 PASS; reader-resume 53 PASS.
+- Real SQLite operation-lease smoke: Chromium 4 вкладки, OPFS и IDB — PASS;
+  WebKit IDB 8 вкладок — PASS, без migration retries.
+- Native/legacy coordination: Chromium и WebKit PASS, COMMIT/ROLLBACK,
+  integrity=ok, непустой review_log неизменён.
+- Новый `scripts/multitab/studio-idb-lifecycle-smoke.js`: Chromium и WebKit PASS;
+  реальные Studio/Room assets, изолированный профиль и 20 synthetic карточек,
+  5 открытий списка, 100 queued reads, числовые SRS counters, навигация в Room,
+  карточки сохранены, integrity=ok, review_log неизменён. Серверные API в этом
+  gate не эмулируются как успешные: static server возвращает 404 вне assets.
+
+Ни backend, ни схема/страницы, ни learner state, ни механизм последней рабочей
+строки не меняются. Сброс библиотеки, перехват чужого lock и принудительное
+прерывание записи не используются. Physical iPhone acceptance остаётся открытым.

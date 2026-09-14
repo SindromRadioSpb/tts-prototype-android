@@ -84,16 +84,19 @@ export class IDBContext {
 
         // Chain the result of every transaction. If any transaction is
         // aborted then the next sync() call will throw.
-        this.#putChain = this.#putChain.then(() => {
-          return new Promise((resolve, reject) => {
-            this.#tx.addEventListener('complete', event => {
+        // Subscribe synchronously to this exact transaction. Deferring listener
+        // installation behind an older transaction can miss completion/abort
+        // or subscribe to a newer #tx, leaving sync (and the DB queue) pending.
+        const transaction = this.#tx;
+        const completion = new Promise((resolve, reject) => {
+            transaction.addEventListener('complete', event => {
               resolve();
               if (this.#tx === event.target) {
                 this.#tx = null;
               }
               log(`transaction ${mapTxToId.get(event.target)} complete`);
             });
-            this.#tx.addEventListener('abort', event => {
+            transaction.addEventListener('abort', event => {
               console.warn('tx abort', (performance.now() - timestamp)/1000);
               // @ts-ignore
               const e = event.target.error;
@@ -103,8 +106,11 @@ export class IDBContext {
               }
               log(`transaction ${mapTxToId.get(event.target)} aborted`, e);
             });
-          });
         });
+        this.#putChain = Promise.all([this.#putChain, completion]).then(() => {});
+        // A transaction can abort before sync is called. Observe rejection now,
+        // but retain it in the chain so sync still reports the write failure.
+        this.#putChain.catch(() => {});
 
         log(`new transaction ${nextTxId} ${mode}`);
         mapTxToId.set(this.#tx, nextTxId++);
@@ -127,8 +133,9 @@ export class IDBContext {
     // Wait until all transactions since the previous sync have committed.
     // Throw if any transaction failed.
     await this.#runChain;
-    await this.#putChain;
-    this.#putChain = Promise.resolve();
+    const pending = this.#putChain;
+    await pending;
+    if (this.#putChain === pending) this.#putChain = Promise.resolve();
   }
 }
 

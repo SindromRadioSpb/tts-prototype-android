@@ -260,6 +260,7 @@ const lease = new OperationLease({
   locks: navigator.locks,
   lockName: 'linguistpro-opfs-db-owner-v1',
   requiresExternalLock: () => selectedVfs !== 'tts-opfs-idb',
+  keepConnectionOpen: () => vfsName === 'tts-opfs-idb',
   open: async () => {
     setPhase('storage-identity');
     selectedVfs = await storageIdentity(selectedVfs);
@@ -275,7 +276,7 @@ const lease = new OperationLease({
 });
 
 const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: () => ({
-  runtime: 530, phase, elapsedMs: Date.now() - phaseSince,
+  runtime: 531, phase, elapsedMs: Date.now() - phaseSince,
   holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
   coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,

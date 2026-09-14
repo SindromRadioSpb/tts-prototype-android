@@ -297,7 +297,7 @@ async function _initializeLocalDB() {
   if (_initialized) return; // idempotent on success
   await _preflightSupport();
   if (!_worker) {
-    _worker = new Worker('/db/db-worker-runtime.js?v=530', { type: 'module' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=531', { type: 'module' });
     _worker.onmessage = ({ data }) => {
       if (data.kind === 'committed') {
         try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}

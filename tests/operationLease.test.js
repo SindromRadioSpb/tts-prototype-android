@@ -96,6 +96,30 @@ test('native VFS still requires browser locking support', async () => {
   assert.deepEqual(events, []);
 });
 
+test('IDB keeps one connection across reads and commits, then closes explicitly', async () => {
+  const { lease, events, tx } = await fixture({ requiresExternalLock: () => false, keepConnectionOpen: () => true });
+  for (let i = 0; i < 100; i++) await lease.run(() => lease.ensureOpen(), { sql: 'SELECT 1' });
+  assert.deepEqual(events, ['open']);
+  await lease.run(async () => { tx(true); }, { sql: 'BEGIN' });
+  await lease.run(async () => {}, { sql: 'INSERT INTO fixture VALUES (1)' });
+  await lease.run(async () => { tx(false); }, { sql: 'COMMIT' });
+  await lease.run(() => lease.ensureOpen(), { sql: 'SELECT 1' });
+  assert.deepEqual(events, ['open', 'commit-notification']);
+  await lease.run(() => lease.close(), { reset: true });
+  assert.deepEqual(events, ['open', 'commit-notification', 'close']);
+  await lease.run(() => lease.ensureOpen());
+  assert.equal(events.filter(e => e === 'open').length, 2);
+  await lease.close();
+});
+
+test('first selection releases OPFS selection lease after choosing persistent IDB', async () => {
+  const { lease, events } = await fixture({ keepConnectionOpen: () => true });
+  await lease.run(() => lease.ensureOpen());
+  assert.deepEqual(events, ['acquire', 'open', 'release']);
+  assert.equal(lease.opened, true);
+  await lease.close();
+});
+
 test('only an expired acquisition deadline is a lock-wait timeout', async () => {
   const { lease } = await fixture({ waitMs: 5, locks: { request: (_name, { signal }) =>
     new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason))) } });
