@@ -14,6 +14,12 @@
   Object.assign(words.he,{history:'חומרים שהושלמו',historyNote:'משימות שהושלמו עוברות אוטומטית להיסטוריה ומפנות את התור. החומרים ותוצאות העיבוד נשמרים.',TASK_SOURCE_MISMATCH:'מקור המשימה אינו תואם לתמלול או לכרטיס. השמירה נעצרה; התוצאות שהתקבלו נשמרו. בדקו את הקישור במשימה.',TASK_STORAGE_UPGRADE_BLOCKED:'סגרו לשוניות אחרות של הסטודיו ונסו שוב: נדרש עדכון של יומן המשימות.',removeConfirm:'להסיר את המשימה ואת יומן העיבוד שלה? החומר השמור בספרייה יישאר. תוצאות של משימה שלא הושלמה יימחקו.'});
   function sourceLink(parent,input){if(!input.youtube_source)return;const p=element('p'),a=element('a',input.youtube_source.url);a.href=input.youtube_source.url;a.target='_blank';a.rel='noopener noreferrer';a.style.overflowWrap='anywhere';p.append(a);parent.append(p);}
   const t=key=>(words[document.documentElement.lang]||words.ru)[key];
+  const recoveryWords={
+    ru:{reviewSource:'Проверить расхождения',exportResults:'Скачать исходник и результаты',reviewIntro:'Проверьте перевод по исходной расшифровке. Изменённые строки сохранятся с исходным текстом и проверенным переводом, без неподтверждённых огласовки и транслитерации. Ответ модели останется в журнале. Платных запросов не будет.',sourceOriginal:'Расшифровка',sourceModel:'Ответ модели',reviewTranslation:'Перевод — проверьте и исправьте',reviewConfirmed:'Перевод проверен по расшифровке',applyReview:'Сохранить проверенные строки и продолжить',reviewIncomplete:'Проверьте перевод и подтвердите каждую строку.',recoveredNote:'Исходный текст восстановлен в {n} строках. Ответ модели сохранён в журнале.',recoveryMissing:'Огласовка и транслитерация требуют подготовки в {n} восстановленных строках.',mismatch_input:'Изменились исходные параметры задачи.',mismatch_video:'Видео в расшифровке не совпадает со ссылкой задачи.',mismatch_receipt:'Нарушена целостность сохранённых результатов.',mismatch_table:'Модель изменила текст. Проверьте расхождения, чтобы сохранить результаты без повторного распознавания.',mismatch_mapping:'Не удалось однозначно сопоставить строки с расшифровкой. Скачайте данные для ручного восстановления.',mismatch_saved:'Сохранённая карточка отличается от результатов задачи. Автоматическая перезапись остановлена.',TASK_TRANSLITERATION_RETRY:'Не удалось пересчитать транслитерацию. Продолжите без повторной оплаты распознавания и перевода.'},
+    en:{reviewSource:'Review differences',exportResults:'Download source and results',reviewIntro:'Check the translation against the transcript. Changed rows will retain the source text and reviewed translation, without unverified vocalization or transliteration. Model output stays in the journal. No paid requests will run.',sourceOriginal:'Transcript',sourceModel:'Model output',reviewTranslation:'Translation — check and edit',reviewConfirmed:'Translation checked against the transcript',applyReview:'Save reviewed rows and continue',reviewIncomplete:'Check the translation and confirm every row.',recoveredNote:'Source text restored in {n} rows. Model output is retained in the journal.',recoveryMissing:'Vocalization and transliteration need preparation in {n} restored rows.',mismatch_input:'The task input changed.',mismatch_video:'The transcript video differs from the task link.',mismatch_receipt:'Saved result integrity checks failed.',mismatch_table:'The model changed the text. Review differences to save results without repeating recognition.',mismatch_mapping:'Rows could not be matched unambiguously to the transcript. Download the data for manual recovery.',mismatch_saved:'The saved card differs from task results. Automatic overwriting stopped.',TASK_TRANSLITERATION_RETRY:'Transliteration could not be recalculated. Continue without paying again for recognition or translation.'},
+    he:{reviewSource:'בדיקת הבדלים',exportResults:'הורדת המקור והתוצאות',reviewIntro:'בדקו את התרגום מול התמלול. שורות שהשתנו יישמרו עם טקסט המקור והתרגום שנבדק, ללא ניקוד או תעתיק שלא אומתו. תשובת המודל נשמרת ביומן. לא יבוצעו בקשות בתשלום.',sourceOriginal:'תמלול',sourceModel:'תשובת המודל',reviewTranslation:'תרגום — בדקו ותקנו',reviewConfirmed:'התרגום נבדק מול התמלול',applyReview:'שמירת השורות שנבדקו והמשך',reviewIncomplete:'בדקו את התרגום ואשרו כל שורה.',recoveredNote:'טקסט המקור שוחזר ב־{n} שורות. תשובת המודל נשמרת ביומן.',recoveryMissing:'נדרשים ניקוד ותעתיק ב־{n} שורות ששוחזרו.',mismatch_input:'נתוני המקור של המשימה השתנו.',mismatch_video:'הסרטון בתמלול אינו תואם לקישור המשימה.',mismatch_receipt:'בדיקות תקינות התוצאות נכשלו.',mismatch_table:'המודל שינה את הטקסט. בדקו את ההבדלים לשמירת התוצאות ללא זיהוי דיבור חוזר.',mismatch_mapping:'לא ניתן לשייך את השורות לתמלול באופן חד־משמעי. הורידו את הנתונים לשחזור ידני.',mismatch_saved:'הכרטיס השמור שונה מתוצאות המשימה. הכתיבה האוטומטית נעצרה.',TASK_TRANSLITERATION_RETRY:'לא ניתן לחשב מחדש את התעתיק. המשיכו ללא תשלום חוזר על זיהוי דיבור ותרגום.'}
+  };
+  for(const lang of Object.keys(recoveryWords))Object.assign(words[lang],recoveryWords[lang]);
   // ── Модель этапов и живой детали ──
   // Правило одно: показываем ТОЛЬКО то, чему есть знаменатель. У одного ASR-вызова провайдер не
   // отдаёт доли выполненного — там честны лишь номер окна и время, но не проценты. У таблицы
@@ -52,8 +58,13 @@
   // Цена качества объявляется там же, где успех: пробел допустим, молчание о нём — нет.
   function qualityNotes(job){
     const rows=(job&&job.table&&job.table.rows)||[];
-    const n=rows.filter(r=>r&&r.niqqud_status==='not_vocalized').length;
-    return n?[fill(t('unvocalizedNote'),{n})]:[];
+    const restored=rows.filter(r=>r&&r.source_recovery),notes=[];
+    const n=rows.filter(r=>r&&r.niqqud_status==='not_vocalized'&&!r.source_recovery).length;
+    if(n)notes.push(fill(t('unvocalizedNote'),{n}));
+    if(restored.length)notes.push(fill(t('recoveredNote'),{n:restored.length}));
+    const missing=restored.filter(r=>!r.he_niqqud||!r.translit).length;
+    if(missing)notes.push(fill(t('recoveryMissing'),{n:missing}));
+    return notes;
   }
   function clockShort(sec){const s=Math.max(0,Math.round(Number(sec)||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
   function liveDetail(job,live){
@@ -252,10 +263,17 @@
     if(job.transcript&&job.transcript.blind){const b=element('p',t('blindNote'));b.dataset.code='ASR_CLOCK_UNVERIFIED';d.append(b);}
     for(const note of paidNotes(job)){const q=element('p',note);q.className='lmt-paid-note';d.append(q);}
     for(const note of qualityNotes(job)){const q=element('p',note);q.className='lmt-quality-note';d.append(q);}
-    if(job.error){const named=(words[document.documentElement.lang]||words.ru)[job.error];const error=element('p',named||t('error'));error.setAttribute('role','alert');d.append(error);const details=element('details');details.append(element('summary',({ru:'Подробности',en:'Details',he:'פרטים'})[document.documentElement.lang]||'Details'),element('code',job.error));d.append(details);}
+    if(job.error){const named=t('mismatch_'+job.error_reason)||(words[document.documentElement.lang]||words.ru)[job.error];const error=element('p',named||t('error'));error.setAttribute('role','alert');d.append(error);const details=element('details');details.append(element('summary',({ru:'Подробности',en:'Details',he:'פרטים'})[document.documentElement.lang]||'Details'),element('code',job.error+(job.error_reason?': '+job.error_reason:'')));d.append(details);}
     const actions=element('div');actions.className='study-source-actions';d.append(actions);
     if(runner.isRunning(job.id))button(actions,t('cancel'),async()=>{await runner.cancel(job.id);status.textContent=t('stopping');});
-    else if(job.state!=='ready')button(actions,t('resume'),()=>execute(job.id,d));
+    else if(job.state!=='ready'&&!(job.error==='TASK_SOURCE_MISMATCH'&&job.error_reason))button(actions,t('resume'),()=>execute(job.id,d));
+    if(job.error==='TASK_SOURCE_MISMATCH'&&!runner.isRunning(job.id)){
+      if(!job.error_reason||job.error_reason==='table')button(actions,t('reviewSource'),()=>showSourceReview(job.id,d));
+    }
+    if(job.transcript||job.table)button(actions,t('exportResults'),()=>{
+      const blob=new Blob([JSON.stringify(LearningMaterialTask.safe(job),null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob),a=element('a');a.href=url;a.download='material-task-'+job.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    });
     if(job.package){button(actions,t('download'),async()=>{try{await operations.download(job);status.textContent=t('downloaded');}catch(_){status.textContent=t('error');}});}
     if(job.saved_text_id)button(actions,t('open'),async()=>{try{await operations.openMaterial(job);d.close();}catch(_){status.textContent=t('error');}});
     if(!runner.isRunning(job.id)){button(actions,t('close'),()=>d.close());button(actions,t('remove'),async()=>{if(!window.confirm(t('removeConfirm')))return;await store.remove(job.id);await list(d);});}
@@ -276,6 +294,44 @@
     // Studio globals cannot run two independent table jobs concurrently.
     if(navigator.locks)await navigator.locks.request('linguistpro-material-preparation',{ifAvailable:true},work);
     else await work(true);
+  }
+  async function showSourceReview(id,d){
+    const job=await store.get(id);
+    let review;
+    try{review=await LearningMaterialTask.sourceReview(job);}catch(_){d.append(element('p',t('mismatch_mapping')));return;}
+    if(!review.groups.length)return;
+    d.replaceChildren(element('h2',t('reviewSource')),element('p',t('reviewIntro')));
+    const fields=[];
+    for(const group of review.groups){
+      const section=element('fieldset'),legend=element('legend',String(group.segment_index+1));section.append(legend);
+      section.style.minWidth='0';
+      for(const [label,text]of [[t('sourceOriginal'),group.source],[t('sourceModel'),group.rows.map(r=>r.he).join('\n')]]){
+        const p=element('p',text);p.dir='rtl';p.style.overflowWrap='anywhere';section.append(element('strong',label),p);
+      }
+      const label=element('label',t('reviewTranslation')),translation=element('textarea');
+      translation.value=group.rows.map(r=>r.ru||'').join('\n');translation.rows=4;translation.style.width='100%';translation.style.boxSizing='border-box';translation.dir='auto';label.append(translation);
+      const confirmed=element('input');confirmed.type='checkbox';const check=element('label');check.append(confirmed,document.createTextNode(t('reviewConfirmed')));
+      section.append(label,check);d.append(section);fields.push({group,translation,confirmed});
+    }
+    const status=element('p');status.setAttribute('role','alert');d.append(status);
+    const actions=element('div');actions.className='study-source-actions';d.append(actions);
+    button(actions,t('applyReview'),async()=>{
+      if(fields.some(f=>!f.confirmed.checked||!f.translation.value.trim())){status.textContent=t('reviewIncomplete');return;}
+      const work=async lock=>{
+        if(!lock){status.textContent=t('busy');return;}
+        const current=await store.get(id),before=JSON.stringify(current);
+        const table=await LearningMaterialTask.applySourceReview(current,review,fields.map(f=>({segment_index:f.group.segment_index,ru:f.translation.value,confirmed:f.confirmed.checked})));
+        await store.update(id,old=>{if(JSON.stringify(old)!==before)throw new Error('TASK_SOURCE_MISMATCH');return {...old,table,error:null,error_reason:null};});
+      };
+      try{
+        let applied=false;
+        const apply=async lock=>{await work(lock);applied=!!lock;};
+        if(navigator.locks)await navigator.locks.request('linguistpro-material-preparation',{ifAvailable:true},apply);else await apply(true);
+        if(applied)await execute(id,d);
+      }catch(_){status.textContent=t('mismatch_receipt');}
+    });
+    button(actions,t('close'),()=>showTask(job,d));
+    fields[0]?.translation.focus();
   }
   // Одна строка сметы на всех потребителей: цена, объём и ОЖИДАЕМОЕ ВРЕМЯ. Человек, которому
   // предстоит ждать минуты, имеет право знать сколько — это такая же часть согласия, как цена.

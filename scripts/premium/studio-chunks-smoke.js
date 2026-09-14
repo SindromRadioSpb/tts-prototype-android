@@ -901,6 +901,9 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     }, TABLE_CACHE_LS_KEY);
     await page.evaluate(() => { translateTable(); });
 
+    // Rebuilding an existing Google table now asks whether to switch to Gemini.
+    // Exercise the explicit Google choice before awaiting its network response.
+    await page.getByRole('button', { name: 'Продолжить с Google Translate', exact: true }).click();
     // Wait for the actual flat response and media refusal, not the old table's row count.
     try {
       await page.waitForFunction(() => {

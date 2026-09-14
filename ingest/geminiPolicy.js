@@ -31,7 +31,7 @@ const SCENARIOS = Object.freeze({
   "table-seg-he-ru": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "he-ru-table-seg-v3",
+    promptId: "he-ru-table-seg-v4",
     schemaId: "studio-table-rows-schema-v1",
   }),
   retell: Object.freeze({

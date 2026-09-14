@@ -32,11 +32,12 @@ TASK:
 1) Keep the given segmentation: NEVER merge text from two different input segments into one row.
 2) You MAY split one long input segment into several rows (in original order).
 3) Every row MUST carry "segment_index" = the k of the input segment the row came from.
-4) For each row produce: "he" (Hebrew as in the input, cleaned, WITHOUT niqqud), "he_niqqud" (the same Hebrew fully vocalized), "translit" (Latin transliteration of the vocalized Hebrew), "ru" (Russian translation).
+4) For each row produce: "he" (an EXACT span of the input, WITHOUT niqqud; never clean up or correct spelling), "he_niqqud" (the same Hebrew fully vocalized), "translit" (Latin transliteration of the vocalized Hebrew), "ru" (Russian translation).
 5) Echo the input segments as "segments": [{"index": k, "he": "<input segment text>"}].
 Rules:
 - Preserve the original order; "segment_index" values must be non-decreasing, starting at 0.
 - Do NOT invent, drop or reorder content; do NOT translate the Hebrew column.
+- The input owns the source text. Concatenating all he spans of each segment must reproduce its entire input text. Preserve repetitions, apparent typos, abbreviations and numbers. Your echoed segments are not a replacement source.
 - In every row, "he_niqqud" MUST preserve the same lexical Hebrew and consonants as "he". Standard full-to-defective spelling changes involving matres א/ה/ו/י are allowed only where required by vocalized Hebrew. Never change morphology, expand abbreviations, or change digits/punctuation.
 - The input is a speech transcript and may contain fillers or "[…]" for unclear regions — keep them as-is.
 Output ONLY JSON, no markdown fences:

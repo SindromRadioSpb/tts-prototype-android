@@ -8,6 +8,7 @@
 
 const HEBREW_MARKS_RE = /[\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7]/g;
 const { normalizeRows: canonicalizeKnownNiqqudRows } = require("../public/js/table-niqqud-normalizer.js");
+const sourceRecovery = require('../public/js/table-source-recovery');
 
 function comparableHebrewBase(value) {
   return String(value || "")
@@ -113,6 +114,8 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
   }
 
   let droppedEmptyHe = 0;
+  const sourceRowCounts = new Map();
+  for (const row of rows) if (Number.isInteger(row?.segment_index)) sourceRowCounts.set(row.segment_index, (sourceRowCounts.get(row.segment_index) || 0) + 1);
 
   const preparedRows = rows
     .map((row, idx) => {
@@ -143,8 +146,14 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
         // и когда эхо оказалось лишь его началом, восстанавливаем его целиком. Любое ДРУГОЕ
         // расхождение не трогаем: оно может означать сбитое соответствие строк, и подмена там
         // склеила бы чужой перевод с нашей репликой (R11).
-        const ours = sourceByIndex.get(segIndex);
-        if (ours && heBase && ours !== heBase && ours.startsWith(heBase)) heBase = ours;
+        const ours = sourceByIndex.get(row.segment_index);
+        // Only a whole, uniquely mapped segment can replace its echo. A split
+        // segment must not be expanded into several duplicate full paragraphs.
+        if (ours && sourceRowCounts.get(row.segment_index) === 1) {
+          const repaired = sourceRecovery.recoverRow(row, ours);
+          if (repaired) { row = repaired; heBase = row.he; }
+          else if (heBase && ours !== heBase && ours.startsWith(heBase)) heBase = ours;
+        }
       } else if (direction === "any-he") {
         // R11: in any-he, parsed.segments[].he holds the SOURCE-language
         // text (kept only for alignment, per ANY_HE_PROMPT), not Hebrew.
@@ -170,6 +179,7 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
       }
       // Пометка едет вместе со строкой: поверхность обязана иметь возможность сказать о пробеле.
       if (row.niqqud_status === "not_vocalized") out.niqqud_status = "not_vocalized";
+      if (row.source_recovery) out.source_recovery = row.source_recovery;
       return out;
     })
     .filter((row) => {

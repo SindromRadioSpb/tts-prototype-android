@@ -17,6 +17,21 @@ const {
   validateHebrewSourceCoverage,
 } = require("../ingest/tableRows.js");
 
+test('adjacent-letter echo in segment zero is repaired from our source before niqqud validation',()=>{
+  const source='וכשמגיע האוכל, פה שוכחים מהכל.';
+  const raw={segment_index:0,he:'וככשמגיע האוכל, פה שוכחים מהכל.',he_niqqud:'וּכְכְשֶׁמַּגִּיעַ הָאוֹכֶל, פֹּה שׁוֹכְחִים מֵהַכֹּל.',translit:'stale',ru:'Когда приносят еду, всё забывают.'};
+  const rows=buildRowsFromGeminiPayload({rows:[raw]}, {direction:'he-ru'}, {keepSegmentIndex:true,sourceSegments:[{i:0,text:source}]});
+  assert.equal(rows[0].he,source);assert.equal(rows[0].translit,'');
+  assert.deepEqual(rows[0].source_recovery.original,raw);
+  assert.equal(raw.he.startsWith('וככש'),true,'raw provider answer is immutable');
+});
+
+test('a split segment is never expanded into repeated complete source paragraphs',()=>{
+  const input=[{segment_index:0,he:'שלום',he_niqqud:'שָׁלוֹם'},{segment_index:0,he:'עולם',he_niqqud:'עוֹלָם'}];
+  const rows=prepareRowsFromGeminiPayload({rows:input},{direction:'he-ru'},{keepSegmentIndex:true,sourceSegments:[{i:0,text:'שלום עולם'}]});
+  assert.deepEqual(rows.map(r=>r.he),['שלום','עולם']);
+});
+
 test("seg-mode (opts.keepSegmentIndex): row 0 gets its OWN segment's he, not segment 1's (reviewer's repro)", () => {
   const parsed = {
     segments: [

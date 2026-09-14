@@ -13450,8 +13450,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=545"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
-<script src="/js/learning-material-task.js?v=548"></script>
-<script src="/js/learning-material-task-ui.js?v=550"></script>
+<script src="/js/table-source-recovery.js?v=551"></script>
+<script src="/js/learning-material-task.js?v=551"></script>
+<script src="/js/learning-material-task-ui.js?v=551"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13539,7 +13540,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.550";
+    window.APP_VERSION = "3.11.551";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17695,7 +17696,7 @@ function v3NotesRefreshAllButtons() {
     // rows produced under another direction/transliteration contract.
     const TABLE_CACHE_CONTRACT_VERSION = "table-cache-v3-local-niqqud-normalization";
     function v3ExpectedGeminiTablePromptId(direction, segmentMode) {
-        if (segmentMode) return "he-ru-table-seg-v3";
+        if (segmentMode) return "he-ru-table-seg-v4";
         return direction === "any-he" ? "any-he-table-v3" : "he-ru-table-v3";
     }
     let v3TableCacheWriteOutcome = { status: "unknown", error_code: null, recorded_at: null };
@@ -34637,7 +34638,24 @@ window.LearningMaterialTaskUI.configure({
     const ref=savedMeta && savedMeta.media_package_ref;
     if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);
     renderTable(currentTableData);
+    const recoveredRows=job.table.rows.flatMap((row,i)=>row.source_recovery?[{row_index:i,version:row.source_recovery.version,reviewed:!!row.source_recovery.reviewed,niqqud_status:row.niqqud_status||null}]:[]);
+    if(recoveredRows.length)v3LastGeminiMeta={...(v3LastGeminiMeta||{}),source_recovery:{task_id:job.id,rows:recoveredRows}};
     return v3LibrarySaveCurrentCore({title:job.input.title,learningMaterialTask:{id:job.id,signature:job.signature}});
+  },
+  async completeSourceRecovery(table,input) {
+    const targets=table.rows.flatMap((r,i)=>r.source_recovery?.translit_status==='pending'?[{id:String(i),he_niqqud:r.he_niqqud}]:[]);
+    const response=await fetch('/api/transliterate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({profile:input.translit_profile,items:targets})});
+    if(!response.ok)throw new Error('TASK_TRANSLITERATION_RETRY');
+    const result=await response.json();
+    if(!result.ok||!Array.isArray(result.items)||result.items.length!==targets.length)throw new Error('TASK_TRANSLITERATION_RETRY');
+    for(const target of targets){
+      const matches=result.items.filter(r=>r.id===target.id),row=table.rows[Number(target.id)];
+      if(matches.length!==1||(row.he_niqqud&&!String(matches[0].translit||matches[0].translit_ru||'').trim()))throw new Error('TASK_TRANSLITERATION_RETRY');
+      row.translit=matches[0].translit||matches[0].translit_ru||'';
+      if(matches[0].translit_ru)row.translit_ru=matches[0].translit_ru;
+      row.source_recovery.translit_status=row.he_niqqud?'local':'unavailable';
+    }
   },
   async verifySaved(job) {
     const ldb=await ensureLocalDB();

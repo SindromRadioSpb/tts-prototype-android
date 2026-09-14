@@ -4,6 +4,7 @@
   'use strict';
   const SCHEMA='learning-material-task-v1',MAX_BYTES=20*1024*1024;
   const P=()=>typeof require==='function'?require('./playback-source'):globalThis.PlaybackSource;
+  const R=()=>typeof require==='function'?require('./table-source-recovery'):globalThis.TableSourceRecovery;
   const clone=value=>JSON.parse(JSON.stringify(value));
   function safe(value){
     function walk(v,depth){if(depth>64)throw new Error('TASK_INPUT_INVALID');if(!v||typeof v!=='object')return;
@@ -35,17 +36,88 @@
     if(rows.length!==job.table.rows.length||rows.some((r,i)=>textIdentity(r.he_plain)!==textIdentity(job.table.rows[i].he)))throw new Error('TASK_SOURCE_MISMATCH');
   }
   async function tableReceipt(job,table){return {source_sha256:await P().digest(sourceText(job)),rows_sha256:await P().digest(JSON.stringify(table.rows))};}
-  async function verifySource(job){
+  async function verifyIntegrity(job){
     if(await P().digest(JSON.stringify(job.input))!==job.signature)throw new Error('TASK_SOURCE_MISMATCH');
     if(job.input.youtube_source){
       if(!job.transcript)throw new Error('TASK_TRANSCRIPT_INCOMPLETE');
       assertVideoSource(job.input.youtube_source,job.transcript.import_meta);
-      if(job.table&&textIdentity(job.table.rows.map(r=>r.he).join(''))!==textIdentity(sourceText(job)))throw new Error('TASK_SOURCE_MISMATCH');
     }
     if(job.table&&job.table.source_receipt){
       const receipt=await tableReceipt(job,job.table);
       if(JSON.stringify(receipt)!==JSON.stringify(job.table.source_receipt))throw new Error('TASK_SOURCE_MISMATCH');
     }
+    const archive=job.table?.source_recovery;
+    if(archive){
+      const original=archive.original_table||{rows:job.table.rows.map(r=>r.source_recovery?.original||r)};
+      const expected=archive.original_table?.source_receipt||archive.original_receipt;
+      if(!expected||JSON.stringify(await tableReceipt(job,original))!==JSON.stringify(expected))throw new Error('TASK_SOURCE_MISMATCH');
+    }
+  }
+  async function verifySource(job){
+    await verifyIntegrity(job);
+    if(job.input.youtube_source&&job.table&&textIdentity(job.table.rows.map(r=>r.he).join(''))!==textIdentity(sourceText(job)))throw new Error('TASK_SOURCE_MISMATCH');
+  }
+  async function recoverSourceTable(job){
+    await verifyIntegrity(job); // Do not re-sign changed input or corrupted paid results.
+    if(!job.input.youtube_source||!job.table||textIdentity(job.table.rows.map(r=>r.he).join(''))===textIdentity(sourceText(job)))return null;
+    if(job.saved_text_id||!job.table.source_receipt||!R())throw new Error('TASK_SOURCE_MISMATCH');
+    const segments=job.transcript.import_meta?.captions?.segments;
+    const rows=job.table.rows;
+    if(!Array.isArray(segments)||segments.length!==rows.length||textIdentity(segments.map(s=>s.text).join(''))!==textIdentity(sourceText(job)))throw new Error('TASK_SOURCE_MISMATCH');
+    const repaired=rows.map((row,i)=>{
+      if(row.segment_index!==i)throw new Error('TASK_SOURCE_MISMATCH');
+      if(textIdentity(row.he)===textIdentity(segments[i].text))return clone(row);
+      const fixed=R().recoverRow(row,segments[i].text);
+      if(!fixed)throw new Error('TASK_SOURCE_MISMATCH');
+      return fixed;
+    });
+    const indexes=repaired.flatMap((r,i)=>r.source_recovery?[i]:[]);
+    if(indexes.length>3)throw new Error('TASK_SOURCE_MISMATCH');
+    const table={...clone(job.table),rows:repaired,source_recovery:{version:R().VERSION,row_indexes:indexes,original_table:clone(job.table)}};
+    table.source_receipt=await tableReceipt(job,table);
+    await verifySource({...job,table});
+    return table;
+  }
+  // A review is bound to the immutable transcript and the retained table receipt.
+  // Many rows may belong to one segment; comparing whole groups preserves splits.
+  async function sourceReview(job){
+    await verifyIntegrity(job);
+    if(!job.input.youtube_source||!job.table||job.saved_text_id||!job.table.source_receipt)throw new Error('TASK_SOURCE_MISMATCH');
+    const segments=job.transcript.import_meta?.captions?.segments;
+    if(!Array.isArray(segments)||textIdentity(segments.map(s=>s.text).join(''))!==textIdentity(sourceText(job)))throw new Error('TASK_SOURCE_MISMATCH');
+    const groups=segments.map((s,i)=>({segment_index:i,source:s.text,rows:[],row_indexes:[]}));
+    let previous=-1;
+    job.table.rows.forEach((row,i)=>{
+      const index=row.segment_index;
+      if(!Number.isInteger(index)||index<previous||!groups[index])throw new Error('TASK_SOURCE_MISMATCH');
+      previous=index;groups[index].rows.push(clone(row));groups[index].row_indexes.push(i);
+    });
+    return {receipt:clone(job.table.source_receipt),groups:groups.filter(g=>textIdentity(g.rows.map(r=>r.he).join(''))!==textIdentity(g.source))};
+  }
+  async function applySourceReview(job,review,choices){
+    const current=await sourceReview(job);
+    if(JSON.stringify(current)!==JSON.stringify(review)||!current.groups.length||!Array.isArray(choices)||choices.length!==current.groups.length)throw new Error('TASK_SOURCE_MISMATCH');
+    const replacements=new Map();
+    for(const group of current.groups){
+      const selected=choices.filter(c=>c.segment_index===group.segment_index);
+      if(selected.length!==1||selected[0].confirmed!==true||!String(selected[0].ru||'').trim())throw new Error('TASK_REVIEW_INCOMPLETE');
+      replacements.set(group.segment_index,{segment_index:group.segment_index,he:group.source,ru:String(selected[0].ru).trim(),he_niqqud:'',translit:'',niqqud_status:'not_vocalized',
+        source_recovery:{version:'source-review-v1',translit_status:'unavailable',reviewed:true}});
+    }
+    const rows=[];
+    const segments=job.transcript.import_meta.captions.segments;
+    for(let i=0;i<segments.length;i++)rows.push(...(replacements.has(i)?[replacements.get(i)]:job.table.rows.filter(r=>r.segment_index===i).map(clone)));
+    const table={...clone(job.table),rows,source_recovery:{version:'source-review-v1',original_table:clone(job.table),segment_indexes:[...replacements.keys()]}};
+    table.source_receipt=await tableReceipt(job,table);
+    await verifySource({...job,table});
+    return table;
+  }
+  async function sourceDiagnosis(job){
+    if(await P().digest(JSON.stringify(job.input))!==job.signature)return 'input';
+    try{if(job.input.youtube_source)assertVideoSource(job.input.youtube_source,job.transcript?.import_meta);}catch(_){return 'video';}
+    try{await verifyIntegrity(job);}catch(_){return 'receipt';}
+    if(job.saved_text_id)return 'saved';
+    try{const review=await sourceReview(job);return review.groups.length?'table':'mapping';}catch(_){return 'mapping';}
   }
   async function create(input){
     // P5: материал начинается ЛИБО с готового текста, ЛИБО со ссылки, транскрипт за которую
@@ -123,7 +195,7 @@
       try{
         let job=await store.get(id);if(!job||job.schema!==SCHEMA)throw new Error('TASK_MISSING');
         if(await P().digest(JSON.stringify(job.input))!==job.signature)throw new Error('TASK_SOURCE_MISMATCH');
-        await update({cancel_requested:false,state:'running',error:null});
+        await update({cancel_requested:false,state:'running',error:null,error_reason:null});
         if(job.input.youtube_source&&!job.transcript){
           await update({phase:'transcribing'});
           const transcript=await operations.transcribe(clone(job.input),job.id);
@@ -131,6 +203,8 @@
           job=await update({transcript:safe(transcript),phase:'transcribed'});
         }
         if(await cancelled())return await update({state:'cancelled'});
+        const recovered=await recoverSourceTable(job);
+        if(recovered)job=await update({table:safe(recovered)});
         await verifySource(job);
         if(!job.table){
           await update({phase:'translating'});
@@ -139,6 +213,14 @@
           if(!table||!Array.isArray(table.rows)||!table.rows.length)throw new Error('TASK_TABLE_INCOMPLETE');
           table.source_receipt=await tableReceipt(job,table);
           job=await update({table:safe(table),phase:'table_ready'});
+        }
+        const freshRecovery=await recoverSourceTable(job);
+        if(freshRecovery)job=await update({table:safe(freshRecovery)});
+        if(job.table.rows.some(r=>r.source_recovery?.translit_status==='pending')&&operations.completeSourceRecovery){
+          const table=clone(job.table);
+          await operations.completeSourceRecovery(table,clone(job.input));
+          table.source_receipt=await tableReceipt(job,table);
+          job=await update({table:safe(table)});
         }
         await verifySource(job);
         if(await cancelled())return await update({state:'cancelled'});
@@ -170,11 +252,14 @@
           stage_times:closeOpen((await store.get(id)).stage_times,finishedAt)});
       }catch(error){
         if(error&&error.code==='TASK_CANCELLED'){await update({state:'cancelled',error:null});return await store.get(id);}
-        await update({state:'paused',error:String(error.code||error.message||'TASK_FAILED').slice(0,120)});throw error;
+        const code=String(error.code||error.message||'TASK_FAILED').slice(0,120);
+        let reason=null;
+        if(code==='TASK_SOURCE_MISMATCH')try{reason=await sourceDiagnosis(await store.get(id));}catch(_){}
+        await update({state:'paused',error:code,error_reason:reason});throw error;
       }
       finally{active.delete(id);}
     }
     return {run,cancel:id=>store.update(id,old=>({...old,cancel_requested:true,state:active.has(id)?'stopping':'cancelled'})),isRunning:id=>active.has(id)};
   }
-  return {SCHEMA,MAX_BYTES,safe,create,createStore,createRunner,effectiveImportMeta,youtubeSource,assertVideoSource,assertSavedRows,verifySource};
+  return {SCHEMA,MAX_BYTES,safe,create,createStore,createRunner,effectiveImportMeta,youtubeSource,assertVideoSource,assertSavedRows,verifySource,recoverSourceTable,sourceReview,applySourceReview,sourceDiagnosis};
 });

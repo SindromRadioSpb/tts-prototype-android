@@ -49,7 +49,7 @@ test("restored browser tables use the same audited local niqqud normalizer", () 
 });
 
 test("Gemini local-cache prompt identity distinguishes direction and segment mode", () => {
-  assert.match(indexHtml, /if \(segmentMode\) return "he-ru-table-seg-v3"/);
+  assert.match(indexHtml, /if \(segmentMode\) return "he-ru-table-seg-v4"/);
   assert.match(indexHtml, /direction === "any-he" \? "any-he-table-v3" : "he-ru-table-v3"/);
 });
 
@@ -85,5 +85,5 @@ test("actual Gemini generations are counted before parse or semantic rejection",
 test("Hebrew table prompt revisions are cache-distinct v3 scenarios", () => {
   assert.equal(getGeminiScenario("table-he-ru").promptId, "he-ru-table-v3");
   assert.equal(getGeminiScenario("table-any-he").promptId, "any-he-table-v3");
-  assert.equal(getGeminiScenario("table-seg-he-ru").promptId, "he-ru-table-seg-v3");
+  assert.equal(getGeminiScenario("table-seg-he-ru").promptId, "he-ru-table-seg-v4");
 });
