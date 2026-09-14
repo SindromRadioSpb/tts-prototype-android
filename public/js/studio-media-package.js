@@ -13,9 +13,10 @@
   }
   function compatibilityMedia(media) {
     media = media || {};
+    var external = media.external_ref && typeof media.external_ref === 'object' ? media.external_ref : null;
     var durationSec = media.durationSec;
     if (durationSec == null && media.duration_ms != null) durationSec = Number(media.duration_ms) / 1000;
-    return {
+    var result = {
       sha256: media.sha256 || media.media_sha256 || null,
       mime: media.mime || null,
       opfsPath: media.opfsPath || media.opfs_path || null,
@@ -24,6 +25,16 @@
       sizeBytes: media.sizeBytes == null ? (media.size_bytes == null ? null : Number(media.size_bytes)) : Number(media.sizeBytes),
       sessionOnly: media.sessionOnly == null ? !!media.session_only : !!media.sessionOnly,
     };
+    if (external && external.compatibility) result.compatibility = copy(external.compatibility);
+    return result;
+  }
+  function externalPlaybackSource(media) {
+    var external = media && media.external_ref && typeof media.external_ref === 'object' ? media.external_ref : null;
+    if (!external) return null;
+    var source = external.source && typeof external.source === 'object' ? external.source : external;
+    var videoId = source.videoId || source.video_id || null;
+    var url = source.url || source.canonical_url || null;
+    return videoId || url ? { platform: 'youtube', videoId: videoId, url: url } : null;
   }
   function getCore() {
     if (typeof window !== 'undefined' && window.MediaPackageCore) return window.MediaPackageCore;
@@ -151,6 +162,8 @@
       projection_sha256: revision.canonical_sha256,
       media: compatibilityMedia(context.media), segments: segments, timing: null, timingDropReason: null,
     };
+    var video = externalPlaybackSource(context.media);
+    if (video) trackProjection.video = video;
     var out = { media_package_ref: projectionRef };
     out[kind] = trackProjection;
     return out;

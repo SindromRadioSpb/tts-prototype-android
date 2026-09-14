@@ -365,6 +365,19 @@ test('attachMediaSaveOutcome preserves the source passport and replaces only the
   assert.equal(meta.media_binding_outcome, undefined, 'caller metadata is not mutated');
 });
 
+test('workspace projection retains the YouTube source needed after an Import Center rebuild', () => {
+  const projection = StudioMediaPackage.buildCompatibilityProjection({
+    package_id: 'mpkg:X', track_id: 'track:X', revision_id: 'rev:X', canonical_sha256: SHA,
+    segments: [{ caption_segment_id: 'cap:1', source_segment_ids: ['raw:1'], text: 'שלום', start_ms: 0, end_ms: 1000 }],
+  }, { kind: 'captions', media: {
+    external_ref: { compatibility: { outcome: 'READY' }, source: {
+      platform: 'youtube', videoId: 'djzKaEoqka8', url: 'https://www.youtube.com/watch?v=djzKaEoqka8',
+    } },
+  } });
+  assert.equal(projection.captions.video.videoId, 'djzKaEoqka8');
+  assert.equal(projection.captions.media.compatibility.outcome, 'READY');
+});
+
 test('W2 contract: local save resolves canon and persists an outcome outside the optional bind branch', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const start = html.indexOf('async function v3LibrarySaveCurrentCore(meta)');
@@ -376,6 +389,9 @@ test('W2 contract: local save resolves canon and persists an outcome outside the
   assert.match(save, /mediaBindingOutcome\.status === ["']not_bound["']/, 'toast decision lives after the binding attempt, including no-ref saves');
   assert.match(save, /promoteLegacyText\(newTextId\)/, 'a saved media card becomes a first-class learning material');
   assert.match(save, /OPEN_IMPORT_CENTER_PREPARE_TRANSFER/, 'promotion refusal records its next action');
+  assert.match(save, /PlaybackSource\.fromLegacy/, 'manual Import Center save promotes YouTube provenance into card playback');
+  assert.match(save, /hasOwnProperty\.call\(payload\.tableModelMeta, 'playback_source'\)/,
+    'an explicit playback choice is never overwritten');
 });
 
 test('W3 derived partial timing is never written into the card canon', () => {

@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.532";
+    window.APP_VERSION = "3.11.533";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -27720,6 +27720,18 @@ async function v3LibrarySaveCurrentCore(meta) {
       // serialize the partial result into the card's canonical passport.
       if (window.StudioMediaPackage && window.StudioMediaPackage.withoutDerivedMediaTiming) {
         payload.tableModelMeta = window.StudioMediaPackage.withoutDerivedMediaTiming(payload.tableModelMeta);
+      }
+      // The Import Center rebuild route does not run LearningMaterialTask's later
+      // bindPlaybackSource step. Promote the YouTube acquisition reference into the card's
+      // canonical playback_source while saving, so reopening a Google/Gemini table keeps the
+      // embedded player and row playback controls. Never replace an explicit saved choice.
+      if (window.PlaybackSource && payload.tableModelMeta &&
+          !Object.prototype.hasOwnProperty.call(payload.tableModelMeta, 'playback_source')) {
+        const importedPlayback = PlaybackSource.fromLegacy(
+          v3MediaPassport(payload.tableModelMeta && payload.tableModelMeta.source));
+        if (importedPlayback) payload.tableModelMeta = Object.assign({}, payload.tableModelMeta, {
+          playback_source: importedPlayback,
+        });
       }
       const mediaSha = saveMediaContext && saveMediaContext.package && saveMediaContext.package.media_sha256
         ? String(saveMediaContext.package.media_sha256).toLowerCase()
