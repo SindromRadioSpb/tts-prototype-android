@@ -37,7 +37,7 @@
     if(snapshot.entries){
       while(cue+1<snapshot.entries.length && snapshot.entries[cue+1].o<=index)cue++;
       const k=cue;
-      if(k>=0 && !snapshot.entries[k].blind){
+      if(k>=0 && !snapshot.entries[k].blind && (snapshot.entries[k].end_o==null || index<snapshot.entries[k].end_o)){
         const button=document.createElement('button'); button.type='button'; button.textContent='↻'; button.disabled=true; button.setAttribute('aria-label',t.row+' '+(index+1));
         button.onclick=async()=>{const result=await StudioMediaKaraoke.playSegment(index);if(result && !result.ok && result.reason!=='YT_SEEK_CANCELLED') $('videoStatus').textContent=t.seek;};
         buttons.push(button);action.append(button);

@@ -10,6 +10,9 @@
   Object.assign(text.en,{intro:'Restore playback buttons where timing can be recovered. All text and translations stay. Other rows can remain without buttons.',auto:'Restore automatically',run:'Restore for ≈ ${price}',cost:'Check three video samples and automatically save recovered intervals. Estimated cost: ${price}. Translation is not repeated.',coverage:'Playback buttons: {n} of {total}. Other rows stay without buttons; manual timing is optional.',ready:'Recovered intervals ready: {n}. Save them without new paid requests.',saveReady:'Save recovered buttons ({n})',advanced:'More options',details:'View intervals',waiting:'Checking video automatically: sample {n} of {total}. No input needed.',saving:'Saving recovered intervals…',saved:'Done: playback buttons for {n} of {total} utterances. Other rows remain without buttons.',open:'Open card',noMarks:'No new usable intervals found. The card and existing buttons are preserved. Filling gaps is optional.',estimate:'Estimating cost…',manualError:'Enter an utterance number, start and end in seconds. End must follow start and be within the video.',error:'Recovery did not finish. Results are retained when local storage is available. Reopening uses saved evidence.',review:'Confirm only intervals you entered manually or loaded from a file.',stop:'Stop verification'});
   Object.assign(text.he,{intro:'נשחזר כפתורי ניגון במקום שבו ניתן לזהות תזמון. כל הטקסט והתרגום יישמרו. שאר השורות יכולות להישאר ללא כפתורים.',auto:'שחזור אוטומטי',run:'שחזור תמורת ≈ ${price}',cost:'נבדוק שלושה קטעים מהסרטון ונשמור אוטומטית את התזמון שנמצא. עלות משוערת: ${price}. התרגום לא יחזור.',coverage:'כפתורי ניגון: {n} מתוך {total}. שאר השורות יישמרו ללא כפתורים; אין צורך בתזמון ידני.',ready:'נמצאו {n} קטעים מוכנים. ניתן לשמור ללא בקשות נוספות בתשלום.',saveReady:'שמירת הכפתורים שנמצאו ({n})',advanced:'אפשרויות נוספות',details:'הצגת התזמון',waiting:'בדיקה אוטומטית של הסרטון: קטע {n} מתוך {total}. אין צורך להזין דבר.',saving:'שומרים את התזמון שנמצא…',saved:'הושלם: כפתורי ניגון עבור {n} מתוך {total} קטעים. שאר השורות נשמרו ללא כפתורים.',open:'פתיחת הכרטיס',noMarks:'לא נמצא תזמון חדש מתאים. הכרטיס והכפתורים הקיימים נשמרו. אין חובה למלא את החסר.',estimate:'מחשבים עלות…',manualError:'הזינו מספר קטע וזמני התחלה וסיום בשניות. הסיום חייב להיות אחרי ההתחלה ובתחומי הסרטון.',error:'השחזור לא הושלם. התוצאות נשמרות כאשר האחסון המקומי זמין. פתיחה מחדש תשתמש בנתונים שנשמרו.',review:'אשרו רק תזמון שהזנתם ידנית או טענתם מקובץ.',stop:'עצירת הבדיקה'});
   const tr=(key,values={})=>Object.entries(values).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',String(v)),(text[document.documentElement.lang]||text.ru)[key]||key);
+  Object.assign(text.ru,{full:'Восстановить все реплики — повторный запрос',fullRun:'Запустить полный проход — до ${price}',fullCost:'Будет заново прослушано всё видео: {n} участков. Бюджет до ${price}. Текст, перевод и уже работающие кнопки сохранятся. Найденная разметка сохранится автоматически.',fullProgress:'Полное восстановление: участок {n} из {total}.',partial:'Синхронизация неполная: {n} из {total} реплик. Без кнопок: {missing}. Доступен полный повторный запрос.',near:'Почти полная синхронизация: {n} из {total}. Без кнопок: {missing}.',complete:'Синхронизация восстановлена для всех {total} реплик.',resume:'Продолжить полный проход',fullInterrupted:'Полный проход прерван. Полученные интервалы сохранены; можно продолжить оставшиеся участки. Неуспешные запросы автоматически не повторяются.'});
+  Object.assign(text.en,{full:'Recover all utterances — new request',fullRun:'Run full recovery — up to ${price}',fullCost:'Listen to the whole video again: {n} windows. Budget up to ${price}. Text, translation and existing buttons stay. Recovered timing is saved automatically.',fullProgress:'Full recovery: window {n} of {total}.',partial:'Synchronization incomplete: {n} of {total} utterances. Missing buttons: {missing}. Full recovery is available.',near:'Almost complete: {n} of {total}. Missing buttons: {missing}.',complete:'Synchronization recovered for all {total} utterances.',resume:'Resume full recovery',fullInterrupted:'Full recovery stopped. Results are saved; remaining windows can be resumed. Failed requests are not automatically repeated.'});
+  Object.assign(text.he,{full:'שחזור כל הקטעים — בקשה חדשה',fullRun:'הפעלת שחזור מלא — עד ${price}',fullCost:'הסרטון כולו ייבדק מחדש: {n} קטעים. תקציב עד ${price}. הטקסט, התרגום והכפתורים הקיימים יישמרו. התזמון שיימצא יישמר אוטומטית.',fullProgress:'שחזור מלא: קטע {n} מתוך {total}.',partial:'הסנכרון אינו מלא: {n} מתוך {total} קטעים. ללא כפתורים: {missing}. ניתן להפעיל שחזור מלא.',near:'הסנכרון כמעט מלא: {n} מתוך {total}. ללא כפתורים: {missing}.',complete:'הסנכרון שוחזר לכל {total} הקטעים.',resume:'המשך שחזור מלא',fullInterrupted:'השחזור המלא נעצר. התוצאות נשמרו; ניתן להמשיך בקטעים שנותרו. בקשות שנכשלו אינן חוזרות אוטומטית.'});
   function journal(key,value){return new Promise((resolve,reject)=>{
     const req=indexedDB.open('linguistpro-timing-repair-v1',1);
     req.onupgradeneeded=()=>req.result.createObjectStore('evidence');req.onerror=()=>reject(req.error);
@@ -47,7 +50,8 @@
       expected_source_meta_json:ctx.card.source_meta_json,expected_rows_json:ctx.rowsSnapshot,
       segments:proposed(ctx,times,authority),author_kind:authority==='user'?'user':'provider',
       mapping:StudioMediaPackage.verifiedRowMapping(ctx.revision,ctx.binding,ctx.rows),
-      provenance:{schema:'timing-repair-v1',source:ctx.source,evidence:copy(evidence),preserves_text:true},
+      provenance:{schema:'timing-repair-v1',source:ctx.source,evidence:copy(evidence),preserves_text:true,
+        ...(evidence?.schema==='youtube-full-timing-v1'?{alignment_policy:'unique-token-edit-v1'}:{})},
       onTimingBinding:(old,next)=>materialRepo.rebindTimingWithinTransaction(ctx.id,old,next),
       prepareSourceMeta:async(revision,binding,media)=>{
         const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json),audio=StudioMediaPackage.buildExactBindingPassport(revision,binding,media);
@@ -69,8 +73,11 @@
     const status=el('p');status.setAttribute('role','status');d.append(status);
     let ctx;try{ctx=await context(id);}catch(e){status.textContent=tr('unavailable');status.dataset.code=e.message;const close=el('button',tr('close'));close.onclick=()=>d.close();d.append(close);return d;}
     const count=list=>list.filter(s=>s.startSec!=null&&s.endSec!=null).length;
+    const initialRows=ctx.rowsSnapshot;
     const base=ctx.revision.segments.map(s=>({text:s.text,startSec:s.start_ms==null?null:s.start_ms/1000,endSec:s.end_ms==null?null:s.end_ms/1000}));
     let times=copy(base),evidence=null,authority='provider',quote=null,busy=false,stopped=false,finished=false;
+    let fullQuote=null,fullEvidence=null,resuming=false;
+    const fullKey=window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
     const matches=e=>e?.source?.video_id===ctx.source.video_id&&e.source.durationSec===ctx.source.durationSec;
     const compatible=list=>list?.length===base.length&&list.every((s,i)=>s.text===base[i].text);
     try{
@@ -78,16 +85,19 @@
       evidence=await journal(ctx.journalKey)||meta.source?.captions?.captions?.timing_evidence||null;
       if(matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(evidence).segments);
       if(matches(evidence)&&compatible(evidence.proposed)){times=copy(evidence.proposed);authority='user';}
+      if(fullKey){fullEvidence=await journal(fullKey);if(fullEvidence&&matches(fullEvidence)&&compatible(fullEvidence.timeline)&&authority!=='user'){times=YoutubeFullTiming.collect({...fullEvidence,timeline:base}).segments;if(JSON.stringify(times)!==JSON.stringify(base)){evidence=fullEvidence;authority='provider';}}}
     }catch(e){status.textContent=tr('error');status.dataset.code=e.message;}
     const coverage=el('p');coverage.setAttribute('aria-live','polite');d.append(coverage);
     const primary=el('button'),stop=el('button',tr('stop')),close=el('button',tr('close'));primary.className='btn-primary';
     primary.dataset.action='recover';stop.dataset.action='stop';close.dataset.action='close';
     const actions=el('div');actions.className='study-source-actions';actions.append(primary,stop,close);d.append(actions);
+    const full=el('button',tr('full')),resume=el('button',tr('resume'));full.dataset.action='full';resume.dataset.action='resumeFull';actions.prepend(full);actions.append(resume);
     const advanced=el('details');advanced.dataset.section='advanced';advanced.append(el('summary',tr('advanced')));d.append(advanced);
     const link=el('a',ctx.source.url);link.href=ctx.source.url;link.target='_blank';link.rel='noopener noreferrer';advanced.append(link);
     const detail=el('details');detail.append(el('summary',tr('details')));const preview=el('pre');preview.style.cssText='max-height:220px;overflow:auto;white-space:pre-wrap';detail.append(preview);advanced.append(detail);
     const confirmed=el('input');confirmed.type='checkbox';const check=el('label',tr('confirm'));check.prepend(confirmed);const review=el('p',tr('review'));advanced.append(review,check);
     const changed=()=>JSON.stringify(times)!==JSON.stringify(base);
+    const resultText=()=>{const n=count(times),total=times.length;return tr(n===total?'complete':n/total>=.95?'near':'partial',{n,total,missing:total-n});};
     const render=()=>{
       const n=count(times);coverage.textContent=tr('coverage',{n,total:times.length});
       preview.textContent=times.map((s,i)=>(i+1)+'. '+(s.startSec==null?'—':s.startSec+'–'+s.endSec)+'  '+s.text).join('\n');
@@ -95,6 +105,9 @@
       check.hidden=review.hidden=authority!=='user'||!changed();
       primary.textContent=finished?tr('open'):changed()?tr('saveReady',{n}):quote?tr('run',{price:quote.estimatedUsd.toFixed(4)}):tr('auto');
       close.disabled=busy;d.dataset.running=String(busy);
+      full.disabled=resume.disabled=busy;full.hidden=!fullKey;
+      full.textContent=fullQuote?tr('fullRun',{price:fullQuote.maxUsd.toFixed(4)}):tr('full');
+      resume.hidden=!fullEvidence||fullEvidence.calls.length>=YoutubeFullTiming.plan(ctx.source.durationSec).length;
     };
     confirmed.onchange=render;
     const fail=e=>{status.dataset.code=e.code||e.message;status.textContent=tr(/STALE/.test(e.message)?'stale':/SEGMENT_TIMING_INVALID/.test(e.message)?'manualError':'error');};
@@ -106,10 +119,32 @@
       status.textContent=tr('saving');
       const work=async lock=>{if(!lock)throw new Error('TIMING_REPAIR_BUSY');await apply(ctx,times,evidence,authority);};
       if(navigator.locks)await navigator.locks.request('linguistpro-material-preparation',{ifAvailable:true},work);else await work(true);
-      finished=true;status.textContent=tr('saved',{n:count(times),total:times.length});
+      finished=true;status.textContent=resultText();
       window.dispatchEvent(new CustomEvent('playback-source-changed',{detail:{textId:ctx.id}}));
     };
     const key=()=>typeof window.geminiKeyGet==='function'?window.geminiKeyGet():localStorage.getItem('v3.geminiApiKey')||'';
+    const fullAction=async resumePrevious=>{
+      if(!key()){status.textContent=tr('key');return;}
+      if(!fullQuote||resuming!==resumePrevious){
+        status.textContent=tr('estimate');resuming=resumePrevious;
+        fullQuote=await YoutubeFullTiming.estimate({fetch:(u,i)=>fetch(u,i),apiKey:key()},ctx.source,base);
+        status.textContent=tr('fullCost',{n:fullQuote.maxCalls,price:fullQuote.maxUsd.toFixed(4)});return;
+      }
+      const work=async lock=>{
+        if(!lock)throw Error('TIMING_REPAIR_BUSY');
+        ctx=await context(ctx.id);
+        if(ctx.rowsSnapshot!==initialRows||!compatible(ctx.revision.segments))throw Error('TIMING_REPAIR_STALE');
+        const current=ctx.revision.segments.map(s=>({text:s.text,startSec:s.start_ms==null?null:s.start_ms/1000,endSec:s.end_ms==null?null:s.end_ms/1000}));
+        const prior=resumePrevious?await journal(fullKey):null;stopped=false;stop.disabled=false;
+        const result=await YoutubeFullTiming.run({fetch:(u,i)=>fetch(u,i),apiKey:key(),savedEvidence:prior,shouldStop:()=>stopped},ctx.source,prior?prior.timeline:current,fullQuote,
+          p=>{status.textContent=tr('fullProgress',{n:p.index,total:p.total});},async e=>{fullEvidence=e;await journal(fullKey+':'+e.runId,e);await journal(fullKey,e);});
+        times=YoutubeFullTiming.collect({...result.evidence,timeline:current}).segments;evidence=result.evidence;authority='provider';
+        if(JSON.stringify(times)!==JSON.stringify(current)){await save();}else status.textContent=resultText();
+        if(result.completedWindows<result.totalWindows)status.textContent+=' '+tr('fullInterrupted');
+      };
+      try{if(navigator.locks)await navigator.locks.request('linguistpro-timing-verification:'+ctx.id,{ifAvailable:true},work);else await work(true);}finally{fullQuote=null;}
+    };
+    full.onclick=()=>action(()=>fullAction(fullQuote?resuming:false));resume.onclick=()=>action(()=>fullAction(true));
     const estimate=async()=>{
       if(!key()){status.textContent=tr('key');return;}
       status.textContent=tr('estimate');
@@ -150,7 +185,7 @@
     });advanced.append(manual);
     button(advanced,'export',()=>{const u=URL.createObjectURL(new Blob([JSON.stringify({source:ctx.source,base_revision_id:ctx.revision.revision_id,evidence,proposed:times},null,2)],{type:'application/json'}));const a=el('a');a.href=u;a.download='timing-review-'+ctx.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
     if(changed()){status.textContent=authority==='provider'?tr('ready',{n:count(times)}):tr('review');if(authority==='user')advanced.open=true;}
-    else if(count(base)){finished=true;status.textContent=tr('saved',{n:count(base),total:base.length});}
+    else if(count(base)){finished=true;status.textContent=resultText();}
     render();return d;
   }
   window.StudyTimingRepair={open,context,apply,proposed,journal};
