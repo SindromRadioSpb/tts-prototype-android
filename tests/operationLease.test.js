@@ -69,6 +69,24 @@ test('missing Web Locks never permits uncoordinated physical access', async () =
   await assert.rejects(lease.run(() => lease.ensureOpen()), { code: 'DB_COORDINATION_UNSUPPORTED' });
   assert.deepEqual(events, []);
 });
+
+test('browser rejection is not mislabeled as a lock-wait timeout', async () => {
+  const cause = new DOMException('Access denied', 'SecurityError');
+  const { lease, events } = await fixture({ locks: { request: () => Promise.reject(cause) } });
+  await assert.rejects(lease.run(() => lease.ensureOpen()), error => {
+    assert.equal(error.code, 'DB_LOCK_REQUEST_FAILED');
+    assert.equal(error.browserError, 'SecurityError');
+    assert.equal(error.cause, cause);
+    return true;
+  });
+  assert.equal(events.includes('open'), false);
+});
+
+test('only an expired acquisition deadline is a lock-wait timeout', async () => {
+  const { lease } = await fixture({ waitMs: 5, locks: { request: (_name, { signal }) =>
+    new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason))) } });
+  await assert.rejects(lease.run(() => lease.ensureOpen()), { code: 'DB_LOCK_WAIT_TIMEOUT' });
+});
 test('failed physical cleanup retains exclusion and blocks subsequent writes', async () => {
   let broken = true;
   const { lease, events } = await fixture({ close: async () => { if (broken) throw new Error('fixture close failure'); } });

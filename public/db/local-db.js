@@ -77,6 +77,8 @@ export function getOwnershipState() { return _initialized ? 'shared' : 'unknown'
 export function isFollower() { return false; }
 export function isProxy() { return false; }
 export function getDbError() { return _lastDbError; }
+let _lastDbDiagnostics = null;
+export function getLastDbDiagnostics() { return _lastDbDiagnostics; }
 export async function acquireDbOwnership() { /* Physical ownership lives in db-worker. */ }
 function _wrapWorkerError(rawMsg, code) {
   const msg = String(rawMsg || 'Worker error');
@@ -295,7 +297,7 @@ async function _initializeLocalDB() {
   if (_initialized) return; // idempotent on success
   await _preflightSupport();
   if (!_worker) {
-    _worker = new Worker('/db/db-worker-runtime.js?v=528', { type: 'module' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=529', { type: 'module' });
     _worker.onmessage = ({ data }) => {
       if (data.kind === 'committed') {
         try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}
@@ -310,7 +312,12 @@ async function _initializeLocalDB() {
         _lastDbError = null;
         h.resolve(data.rows ?? data.changes ?? data);
       } else {
-        h.reject(_wrapWorkerError(data.error, data.code));
+        const error = _wrapWorkerError(data.error, data.code);
+        if (data.diagnostics) {
+          error.diagnostics = data.diagnostics;
+          _lastDbDiagnostics = { at: new Date().toISOString(), code: data.code, ...data.diagnostics };
+        }
+        h.reject(error);
       }
     };
     _worker.onerror = (e) => {

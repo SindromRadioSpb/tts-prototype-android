@@ -27,6 +27,7 @@ import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
 import { OperationLease } from './operation-lease.js';
 import { storageIdentity } from './storage-identity.js';
+import { createRuntimeDiagnostics } from './runtime-diagnostics.js';
 
 const runtimes = new Map();
 let migrated = false;
@@ -36,6 +37,8 @@ let db = null;
 let vfs = null;       // the live VFS instance — needed to release its resources on close()
 let vfsName = null;   // 'AccessHandlePool' or 'tts-opfs-idb'
 let vfsKind = null;   // 'sync' or 'async' (for diagnostic surface)
+let phase = 'starting', phaseSince = Date.now();
+function setPhase(value) { phase = value; phaseSince = Date.now(); }
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -209,17 +212,20 @@ async function initDBOnce(preferVfs) {
   }
 
   await execMulti('PRAGMA foreign_keys = ON;');
-  if (!migrated) { await runMigrations(); migrated = true; }
+  if (!migrated) { setPhase('migrations'); await runMigrations(); migrated = true; }
 }
 
 // initDBOnce can fail AFTER a real open() succeeded (e.g. runMigrations() hits a transient lock
 // mid-transaction) — in that case db/sqlite3/vfs ARE live and must be closed before a retry, or
 // the leaked connection/handles defeat the whole point of this cleanup.
 async function _closeCurrentConnection() {
+  setPhase('closing-sqlite');
   if (sqlite3 && db) await sqlite3.close(db);
   db = null;
+  setPhase('closing-vfs');
   if (vfs && typeof vfs.close === 'function') await vfs.close();
   db = null; sqlite3 = null; vfs = null; vfsName = null; vfsKind = null;
+  setPhase('idle');
 }
 
 // Retry wrapper: absorbs a TRANSIENT open failure (e.g. the previous page's worker/handle hasn't
@@ -231,6 +237,7 @@ async function initDB(preferVfs) {
   for (let i = 0; i < ATTEMPTS; i++) {
     if (DELAYS_MS[i]) await new Promise((r) => setTimeout(r, DELAYS_MS[i]));
     await _closeCurrentConnection();
+    setPhase('opening-vfs');
     try { await initDBOnce(preferVfs); return; }
     catch (e) { lastErr = e; console.warn(`[db-worker] init attempt ${i + 1}/${ATTEMPTS} failed:`, e && e.message); }
   }
@@ -245,8 +252,11 @@ const lease = new OperationLease({
   locks: navigator.locks,
   lockName: 'linguistpro-opfs-db-owner-v1',
   open: async () => {
+    setPhase('storage-identity');
     selectedVfs = await storageIdentity(selectedVfs);
+    setPhase('opening-vfs');
     await initDB(selectedVfs);
+    setPhase('saving-storage-identity');
     selectedVfs = await storageIdentity(vfsName);
   },
   close: _closeCurrentConnection,
@@ -255,9 +265,16 @@ const lease = new OperationLease({
   onCommit: () => self.postMessage({ kind: 'committed' }),
 });
 
+const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: () => ({
+  runtime: 529, phase, elapsedMs: Date.now() - phaseSince,
+  holdsLease: !!lease.release, transactionIdle: lease.opened && !!lease.timer,
+  vfs: selectedVfs,
+}) });
+
 self.onmessage = ({ data }) => {
   const { id, type, sql, params, preferVfs } = data;
   lease.run(async () => {
+    setPhase(lease.opened ? 'transaction' : 'waiting-lock');
     if (type === 'init') {
       if (preferVfs && selectedVfs && preferVfs !== selectedVfs) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: storage identity mismatch');
       selectedVfs = preferVfs || selectedVfs;
@@ -266,12 +283,21 @@ self.onmessage = ({ data }) => {
     }
     if (type === 'close') { await lease.close(); return {}; }
     await lease.ensureOpen();
+    setPhase('executing-sql');
     if (type === 'query') return { rows: await queryRows(sql, params || []) };
     if (type === 'run') return { changes: await runSingle(sql, params || []) };
     if (type === 'exec') { await execMulti(sql); return {}; }
     throw new Error(`Unknown type: ${type}`);
   }, { reset: type === 'close', sql }).then(
     result => self.postMessage({ id, ok: true, ...result }),
-    error => self.postMessage({ id, ok: false, error: String(error.message || error), code: error.code || null })
+    async error => {
+      let detail = null;
+      if (String(error.code || '').startsWith('DB_LOCK_') || error.code === 'DB_STORAGE_CLOSE_FAILED') {
+        try { detail = await diagnostics.capture(); } catch (_) {}
+      }
+      const holder = detail?.peers.find(peer => peer?.holdsLease);
+      const suffix = detail ? ` [browser=${error.browserError || 'none'}; held=${detail.locks.held?.length ?? 'unknown'}; holder=${holder?.phase || 'unknown'}; vfs=${selectedVfs || 'unknown'}]` : '';
+      self.postMessage({ id, ok: false, error: String(error.message || error) + suffix, code: error.code || null, diagnostics: detail });
+    }
   );
 };

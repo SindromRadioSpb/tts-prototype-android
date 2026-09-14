@@ -62,6 +62,13 @@ async function main() {
         fields: { title: 'Must roll back' }, rows: [{ id: 'duplicate', he_plain: 'א' }, { id: 'duplicate', he_plain: 'ב' }] }), currentStamp));
       assert.deepEqual(await sql(c, "SELECT * FROM sentences WHERE text_id='cas-material'"), beforeFailedSave, 'failed replacement restores all original rows');
       await sql(a, 'CREATE TABLE mt_fixture (id INTEGER PRIMARY KEY, value TEXT)');
+      await sql(a, "INSERT INTO mt_fixture VALUES (99, 'constraint-fixture')");
+      for (let i = 0; i < 10; i++) {
+        await assert.rejects(sql(a, "INSERT INTO mt_fixture VALUES (99, 'duplicate')"), /UNIQUE constraint failed/);
+        assert.equal((await sql(a, 'SELECT 1 AS ready'))[0].ready, 1, 'SQL failure must finish cleanup before the next operation');
+        assert.equal((await sql(b, 'SELECT 1 AS ready'))[0].ready, 1, 'SQL failure must release the physical lease for another client');
+      }
+      await sql(a, 'DELETE FROM mt_fixture WHERE id=99');
       await Promise.all(pages.map((p, i) => sql(p, 'INSERT INTO mt_fixture VALUES (?, ?)', [i, `tab-${i}`])));
       for (const p of pages) assert.equal((await sql(p, 'SELECT * FROM mt_fixture')).length, tabCount);
       await sql(a, 'BEGIN IMMEDIATE');
@@ -95,6 +102,26 @@ async function main() {
       assert.equal((await sql(b, 'SELECT * FROM mt_fixture')).length, tabCount + 1);
       assert.deepEqual(await sql(b, 'SELECT * FROM review_log ORDER BY id'), reviews);
       assert.deepEqual(await sql(b, 'SELECT * FROM word_status ORDER BY lemma_key'), words);
+      if (process.env.MULTITAB_DIAGNOSTICS === '1') {
+        // A synthetic external holder emulates a legacy/unresponsive client.
+        // Exercise the real 30s deadline, without replacing production code.
+        await c.evaluate(() => new Promise(resolve => {
+          navigator.locks.request('linguistpro-opfs-db-owner-v1', () => new Promise(release => {
+            window.releaseFixtureLock = release; resolve();
+          }));
+        }));
+        const failure = await b.evaluate(async () => {
+          try { await db.dbQuery('SELECT 1'); return null; }
+          catch (error) { return { code: error.code, message: error.message, diagnostics: error.diagnostics }; }
+        });
+        assert.equal(failure.code, 'DB_LOCK_WAIT_TIMEOUT');
+        assert.match(failure.message, /held=1; holder=unknown/);
+        assert.equal(failure.diagnostics.locks.held.length, 1);
+        await c.evaluate(() => window.releaseFixtureLock());
+        assert.equal((await sql(b, 'SELECT 1 AS ready'))[0].ready, 1);
+        assert.equal(await b.evaluate(() => db.getLastDbDiagnostics().code), 'DB_LOCK_WAIT_TIMEOUT', 'successful reads preserve diagnostic evidence');
+        assert.deepEqual(await sql(b, 'SELECT * FROM review_log ORDER BY id'), reviews);
+      }
       assert.deepEqual(errors, []);
       console.log(JSON.stringify({ engine, backend, tabs: tabCount, result: 'PASS', elapsedMs: Date.now() - started }));
       await context.close();

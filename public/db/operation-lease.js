@@ -24,7 +24,15 @@ export class OperationLease {
         this.locks.request(this.lockName, { signal: abort.signal }, () => {
           clearTimeout(timer);
           return new Promise(release => { this.release = release; resolve(); });
-        }).catch(() => reject(this.error('DB_LOCK_WAIT_TIMEOUT')));
+        }).catch(error => {
+          // A browser/API rejection is not evidence that another client held
+          // the lock for 30 seconds. Only our deadline can classify a timeout.
+          const code = abort.signal.aborted ? 'DB_LOCK_WAIT_TIMEOUT' : 'DB_LOCK_REQUEST_FAILED';
+          const failure = this.error(code);
+          failure.cause = error;
+          failure.browserError = error?.name || 'Error';
+          reject(failure);
+        });
       });
       await this.openConnection();
       this.opened = true;
