@@ -2,6 +2,10 @@
 export const JOURNAL_KEY = 'localdb-diagnostic-journal-v1';
 export const ENABLE_KEY = 'localdb-diagnostic-until-v1';
 const phases = /^[a-z][a-z0-9-]{0,63}$/;
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+// Page lifecycle is kept apart from phase/RPC events: a burst of SQL phases
+// must not evict the pagehide/pageshow facts that explain a lock holder.
+const LIFECYCLE = new Set(['page-db-start', 'worker-created', 'worker-error', 'pagehide', 'pageshow', 'hidden', 'visible']);
 export function safeSnapshot(value = {}) {
   if (!value || typeof value !== 'object') return {};
   const out = {};
@@ -23,16 +27,19 @@ export function readJournal(storage) {
     if (!Array.isArray(rows)) return [];
     return rows.slice(-8).map(row => ({
       workerId: safeSnapshot(row).workerId,
+      documentId: uuid.test(row.documentId || '') ? row.documentId : undefined,
+      generation: Number.isInteger(row.generation) && row.generation >= 1 && row.generation <= 99 ? row.generation : undefined,
       version: /^\d+\.\d+\.\d+$/.test(row.version || '') ? row.version : 'unknown',
       surface: ['studio', 'room', 'other'].includes(row.surface) ? row.surface : 'other',
+      lifecycle: Array.isArray(row.lifecycle) ? row.lifecycle.slice(-12).map(safeSnapshot) : [],
       events: Array.isArray(row.events) ? row.events.slice(-24).map(safeSnapshot) : [],
     }));
   } catch (_) { return []; }
 }
-export function createDiagnosticJournal({ storage, workerId, version, surface, now = Date.now }) {
+export function createDiagnosticJournal({ storage, workerId, documentId, generation, version, surface, now = Date.now }) {
   let until = 0;
   try { until = Math.min(Number(storage.getItem(ENABLE_KEY)) || 0, now() + 15 * 60 * 1000); } catch (_) {}
-  const entry = { workerId, version, surface, events: [] };
+  const entry = { workerId, documentId, generation, version, surface, lifecycle: [], events: [] };
   const enabled = () => {
     try { return now() < until && now() < Number(storage.getItem(ENABLE_KEY)); } catch (_) { return false; }
   };
@@ -40,10 +47,11 @@ export function createDiagnosticJournal({ storage, workerId, version, surface, n
     enabled,
     record(value) {
       if (!enabled()) return;
-      entry.events.push({ ...safeSnapshot(value), at: now() });
-      entry.events = entry.events.slice(-24);
+      const row = { ...safeSnapshot(value), at: now() };
+      if (LIFECYCLE.has(row.event)) entry.lifecycle = [...entry.lifecycle, row].slice(-12);
+      else entry.events = [...entry.events, row].slice(-24);
       try {
-        const rows = readJournal(storage).filter(row => row.workerId !== workerId).slice(-7);
+        const rows = readJournal(storage).filter(item => item.workerId !== workerId).slice(-7);
         storage.setItem(JOURNAL_KEY, JSON.stringify([...rows, entry]));
       } catch (_) { /* Diagnostic quota/access failure must never affect DB work. */ }
     },

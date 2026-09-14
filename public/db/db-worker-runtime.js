@@ -27,7 +27,7 @@ import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
 import { OperationLease } from './operation-lease.js?v=542';
 import { storageIdentity } from './storage-identity.js';
-import { createRuntimeDiagnostics } from './runtime-diagnostics.js?v=541';
+import { createRuntimeDiagnostics, identityLockName, holdIdentityLock, holderSummary } from './runtime-diagnostics.js?v=544';
 
 const runtimes = new Map();
 let migrated = false;
@@ -39,6 +39,8 @@ let vfsName = null;   // 'AccessHandlePool' or 'tts-opfs-idb'
 let vfsKind = null;   // 'sync' or 'async' (for diagnostic surface)
 let phase = 'starting', phaseSince = Date.now();
 let diagnosticEnabled = false, diagnosticUntil = 0, workerId = null, requestId = 0, operation = 'starting';
+let documentId = null, generation = 0, identityHeld = false;
+const workerCreatedSec = Math.floor(Date.now() / 1000);
 function setPhase(value) {
   phase = value; phaseSince = Date.now();
   if (diagnosticEnabled && Date.now() < diagnosticUntil) self.postMessage({ kind: 'diagnostic-phase', snapshot: runtimeSnapshot() });
@@ -290,12 +292,13 @@ const lease = new OperationLease({
 });
 
 function runtimeSnapshot() { return {
-  runtime: 543, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
+  runtime: 544, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
   holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
   coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,
 }; }
-const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: runtimeSnapshot });
+const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: runtimeSnapshot,
+  self: () => (workerId ? { workerId, documentId } : null) });
 
 self.onmessage = ({ data }) => {
   const { id, type, sql, params, preferVfs } = data;
@@ -303,6 +306,14 @@ self.onmessage = ({ data }) => {
     diagnosticEnabled = data.diagnosticEnabled === true;
     diagnosticUntil = Date.now() + 15 * 60 * 1000;
     workerId = /^[0-9a-f-]{36}$/.test(data.diagnosticWorkerId || '') ? data.diagnosticWorkerId : null;
+    documentId = /^[0-9a-f-]{36}$/.test(data.diagnosticDocumentId || '') ? data.diagnosticDocumentId : null;
+    generation = Number.isInteger(data.diagnosticGeneration) ? data.diagnosticGeneration : 0;
+    // Opt-in only: lets the support page identify this worker as a DB lock
+    // holder or waiter even if the worker is later frozen.
+    if (diagnosticEnabled && !identityHeld) {
+      identityHeld = holdIdentityLock({ locks: navigator.locks, holdMs: diagnosticUntil - Date.now(), name: identityLockName({
+        surface: data.diagnosticSurface, release: '3.11.544', documentId, workerId, generation, createdSec: workerCreatedSec }) });
+    }
   }
   lease.run(async () => {
     requestId = id; operation = ['init', 'query', 'run', 'exec', 'close'].includes(type) ? type : 'unknown';
@@ -331,7 +342,7 @@ self.onmessage = ({ data }) => {
         try { detail = await diagnostics.capture(); } catch (_) {}
       }
       const holder = detail?.peers.find(peer => peer?.holdsLease);
-      const suffix = detail ? ` [browser=${error.browserError || 'none'}; held=${detail.locks.held?.length ?? 'unknown'}; holder=${holder?.phase || 'unknown'}; vfs=${selectedVfs || 'unknown'}]` : '';
+      const suffix = detail ? ` [browser=${error.browserError || 'none'}; held=${detail.locks.held?.length ?? 'unknown'}; holder=${holder?.phase || 'unknown'}; holderId=${holderSummary(detail.locks)}; vfs=${selectedVfs || 'unknown'}]` : '';
       self.postMessage({ id, ok: false, error: String(error.message || error) + suffix, code: error.code || null, diagnostics: detail });
     }
   );

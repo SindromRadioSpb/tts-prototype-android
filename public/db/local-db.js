@@ -38,7 +38,7 @@
 //   importBundle()  — POST /api/library/import/bundle
 
 import '../js/nakdan-derived-core.js';
-import { createDiagnosticJournal } from './diagnostic-journal.js?v=541';
+import { createDiagnosticJournal } from './diagnostic-journal.js?v=544';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
 import '../js/catalog-discovery-core.js?v=485';
@@ -58,13 +58,20 @@ let _initInFlight = null;
 let _seq    = 0;
 const _pending = new Map();
 let _diagnosticWorkerId = null;
+// One document id per module instance; a replacement worker in the same
+// document gets the next generation, so two workers in one page are visible.
+let _diagnosticDocumentId = null, _diagnosticGeneration = 0, _diagnosticSurface = 'other';
 let _dbJournal = { enabled: () => false, record() {} };
 let _diagnosticLifecycle = false;
 function _startDbDiagnostics() {
   try {
     _diagnosticWorkerId = crypto.randomUUID();
+    _diagnosticDocumentId = _diagnosticDocumentId || crypto.randomUUID();
+    _diagnosticGeneration += 1;
     const surface = /library\.html$/.test(location.pathname) ? 'room' : /(?:index\.html|study-studio\.html|\/)$/.test(location.pathname) ? 'studio' : 'other';
-    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, version: '3.11.543', surface });
+    _diagnosticSurface = surface;
+    _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, documentId: _diagnosticDocumentId,
+      generation: _diagnosticGeneration, version: '3.11.544', surface });
     _dbJournal.record({ phase: 'browser-preflight', event: 'page-db-start' });
     if (!_diagnosticLifecycle) {
       _diagnosticLifecycle = true;
@@ -327,7 +334,7 @@ async function _initializeLocalDB() {
   await _preflightSupport();
   if (!_worker) {
     if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-    _worker = new Worker('/db/db-worker-runtime.js?v=543', { type: 'module' });
+    _worker = new Worker('/db/db-worker-runtime.js?v=544', { type: 'module' });
     _worker.onmessage = ({ data }) => {
       if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
       if (data.kind === 'committed') {
@@ -367,6 +374,9 @@ async function _initializeLocalDB() {
   } catch (_) {}
   try {
     await _call('init', null, null, { preferVfs, diagnosticWorkerId: typeof _diagnosticWorkerId === 'string' ? _diagnosticWorkerId : null,
+      diagnosticDocumentId: typeof _diagnosticDocumentId === 'string' ? _diagnosticDocumentId : null,
+      diagnosticGeneration: typeof _diagnosticGeneration === 'number' ? _diagnosticGeneration : 0,
+      diagnosticSurface: typeof _diagnosticSurface === 'string' ? _diagnosticSurface : 'other',
       diagnosticEnabled: typeof _dbJournal !== 'undefined' && _dbJournal.enabled() });
   } catch (e) {
     _lastDbError = e instanceof DbUnavailableError ? e : new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));

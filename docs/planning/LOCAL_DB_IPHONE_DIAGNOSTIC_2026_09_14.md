@@ -1,5 +1,56 @@
 # iPhone local DB: diagnostic handoff 3.11.541
 
+## 3.11.544: lock-holder identity collection (owner-approved)
+
+Owner answers (2026-09-14): exactly one LinguistPro tab in normal Chrome and
+one in Incognito; the tab visited before the brief recovery was not
+LinguistPro. Normal and Incognito are separate storage/lock partitions, so a
+background LinguistPro tab is excluded as the normal-profile holder. Remaining
+candidates: the same document (second worker or lost release), a
+back/forward-cached document of the same tab, a terminated worker whose lock
+was not released, or an uninstrumented client. None is established.
+
+Implementation (opt-in recording only):
+
+- Each DB worker holds one uncontended identity Web Lock (`ifAvailable`, never
+  awaited by DB work, released when the 15-minute window ends). Its name has
+  only allowlisted fields: surface enum, release, random document id, random
+  worker id, worker generation within that document, creation second.
+- `navigator.locks.query()` reports that name with the same client as the
+  worker's DB locks. The support page labels clients C1, C2, ... and never
+  outputs raw clientIds. The browser lock manager answers even when the holder
+  is frozen.
+- Report v2 `locks.relations`: per held DB lock, its holder label, whether it
+  is identified, and each waiter (identified, same client, same document).
+  The status text adds the holder's surface, release, document, generation,
+  age and its last recorded page lifecycle event.
+- A worker failing with a DB lock error adds
+  `holderId=self|<surface>/<release>/same-document|other-document/gen/age|uninstrumented`.
+- The journal stores page lifecycle events (page start, worker created/error,
+  pagehide/pageshow with `persisted`, hidden/visible) separately from SQL
+  phases, with document id and generation, so phase bursts cannot evict them.
+
+Interpretation for the next device report: `self` means a same-worker
+deadlock; same document with a different generation means two workers in one
+page; another document whose last event is `pagehide persisted=true` without a
+later `pageshow` means a cached document holds it; another document whose last
+event is `pagehide persisted=false` means a torn-down page's worker still
+holds it; `uninstrumented` means a worker created before recording was enabled
+or not running this release.
+
+Caveats: only workers created after enabling recording carry an identity.
+Holding an extra lock while recording may change browser caching decisions;
+the recorded `persisted` values show whether caching still occurred.
+
+Evidence: unit tests RED on 3.11.543 (5 failing: missing identity
+functions, lifecycle eviction), GREEN 45/45 with the DB startup/lease tests.
+`scripts/multitab/lock-holder-identity-smoke.js`: Chromium AccessHandlePool and
+WebKit IDB — no identity without opt-in, holder identified as the earlier
+page's worker, waiter as another document, no raw clientIds, SQL or titles in
+the report, AccessHandlePool timeout message carries `holderId=other/...
+/other-document`, integrity ok, review_log unchanged. Studio lifecycle gates
+pass on both engines. Physical iPhone acceptance remains open.
+
 ## Follow-up 3.11.543: confirmed IDB lock retention; OPFS holder still unidentified
 
 Baseline `b4806833` (3.11.542). Physical iPhone acceptance remains FAIL/open.
