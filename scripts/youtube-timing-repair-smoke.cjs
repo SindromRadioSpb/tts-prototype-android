@@ -4,7 +4,8 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
 const {spawn}=require('node:child_process'),{chromium}=require('playwright');
 const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer}=require('./smoke-server-env');
 const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'lp-timing-'));
-const output=path.join(root,'.tmp/election-row-playback/browser');fs.mkdirSync(output,{recursive:true});
+const mode=process.argv.includes('--auto')?'auto':process.argv.includes('--paid')?'paid':'manual';
+const output=path.join(root,'.tmp/election-row-playback/browser-'+mode);fs.mkdirSync(output,{recursive:true});
 const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(dir,0),stdio:['ignore','ignore','pipe','ipc'],windowsHide:true});let browser;
 (async()=>{
   const port=await waitForSmokeServer(child,30000),base='http://127.0.0.1:'+port;browser=await chromium.launch({headless:true});
@@ -27,7 +28,7 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
   await page.getByRole('button',{name:/Synthetic missing timing/}).click();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   try{await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog')?.__job?.state==='ready',null,{timeout:45000});}
   catch(e){console.error(await page.evaluate(async id=>await LearningMaterialTask.createStore().get(id),id));throw e;}
-  const before=await page.evaluate(async id=>{
+  const before=await page.evaluate(async({id,mode})=>{
     document.querySelectorAll('dialog').forEach(d=>d.close());
     // Reproduce legacy Number(null) -> 0 corruption without changing sentence content.
     const repo=StudioMediaPackage.browserRepository(),old=await repo.getTextBinding(id);
@@ -35,20 +36,41 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     const ctx=await StudyTimingRepair.context(id);window.timingBefore=ctx;
     const mr=MaterialRevisionRepository.createRepository(ctx.ldb,MaterialRevisionCore),material=await mr.getMaterialByText(id),revision=await mr.getCurrentRevision(material.material_id);
     window.timingMaterial=material;window.tableBefore=revision;
+    const timeline=ctx.revision.segments.map(s=>({text:s.text,startSec:null,endSec:null}));
+    const evidence={schema:'youtube-asr-timing-evidence-v2',source:ctx.source,timeline,probes:YoutubeTiming.windows(30).map((window,i)=>({window,state:'complete',segments:i?[]:[{text:timeline[0].text,startSec:1},{text:'גבול נוסף שאינו משפט זהה',startSec:5}]}))};
+    window.recoveryCalls={estimates:0,paid:0};
+    if(mode==='auto')await StudyTimingRepair.journal(ctx.journalKey,evidence);
+    if(mode==='paid'){
+      localStorage.setItem('v3.geminiApiKey','synthetic');window.geminiKeyGet=()=> 'synthetic';
+      YoutubeAsr.estimate=async()=>{recoveryCalls.estimates++;return {durationSec:30,timingQuote:{estimatedUsd:0.001}};};
+      YoutubeAsr.verifySavedTiming=async(opts,source,timeline,quote,progress,persist)=>{recoveryCalls.paid++;await persist(evidence);return {diagnosis:YoutubeTiming.diagnose(evidence)};};
+    }
     await StudyTimingRepair.open(id);return {rows:ctx.rowsSnapshot,revision:ctx.revision.revision_id,table:revision.table_revision_id};
-  },id);
-  await page.getByText('Ручная разметка',{exact:true}).click();await page.getByLabel('Начало, секунды',{exact:true}).fill('1');await page.getByLabel('Конец, секунды',{exact:true}).fill('5');
-  await page.getByRole('button',{name:'Применить время к реплике',exact:true}).click();
-  await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog')?.innerText.includes('Размечено реплик: 1 из 3'));
-  assert.match(await page.locator('dialog.study-source-dialog').innerText(),/Размечено реплик: 1 из 3/);
+  },{id,mode});
+  assert.equal(await page.locator('dialog input[type=number]').first().isVisible(),false,'manual timing is not the default route');
+  if(mode==='manual'){
+    await page.getByText('Дополнительные способы',{exact:true}).click();
+    await page.getByText('Ручная разметка',{exact:true}).click();await page.getByLabel('Начало, секунды',{exact:true}).fill('1');await page.getByLabel('Конец, секунды',{exact:true}).fill('5');
+    await page.getByRole('button',{name:'Применить время к реплике',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog')?.innerText.includes('Кнопки воспроизведения: 1 из 3'));
+  }
   for(const [lang,width]of [['ru',380],['he',380],['en',1280]]){
     if(lang!=='ru')await page.evaluate(async({id,lang})=>{document.querySelectorAll('dialog').forEach(d=>d.close());document.documentElement.lang=lang;document.documentElement.dir=lang==='he'?'rtl':'ltr';await StudyTimingRepair.open(id);},{id,lang});
     await page.setViewportSize({width,height:900});assert.equal(await page.locator('dialog.study-source-dialog').evaluate(d=>d.scrollWidth>d.clientWidth+1),false);
     await page.screenshot({path:path.join(output,`repair-${lang}-${width}.png`),fullPage:true});
   }
-  await page.locator('dialog.study-source-dialog input[type=checkbox]').check();await page.getByRole('button',{name:'Save new timing',exact:true}).click();
-  try{await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog [role=status]')?.textContent.startsWith('New timing saved'));}
+  if(mode==='manual')await page.locator('dialog.study-source-dialog input[type=checkbox]').check();
+  else assert.equal(await page.locator('dialog input[type=checkbox]').isVisible(),false,'provider evidence does not demand a false listening confirmation');
+  if(mode==='paid'){
+    assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:0,paid:0});
+    await page.getByRole('button',{name:'Restore automatically',exact:true}).click();
+    await page.getByRole('button',{name:/Restore for ≈/}).waitFor();
+    assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:1,paid:0},'show price before spending');
+  }
+  await page.locator('dialog [data-action=recover]').click();
+  try{await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog [role=status]')?.textContent.startsWith('Done: playback buttons'));}
   catch(e){console.error(await page.locator('dialog.study-source-dialog').innerText());console.error(await page.locator('dialog.study-source-dialog [role=status]').getAttribute('data-code'));throw e;}
+  assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:mode==='paid'?1:0,paid:mode==='paid'?1:0});
   await page.evaluate(async id=>{document.querySelectorAll('dialog').forEach(d=>d.close());await StudyVideoInlineOpen(id);},id);
   try{await page.waitForFunction(()=>document.querySelectorAll('#proTable .smk-row-replay').length===1,null,{timeout:10000});}
   catch(e){console.error(JSON.stringify(await page.evaluate(async id=>{const c=await StudyVideoSourceUI.context(id);return {buttons:document.querySelectorAll('.smk-row-replay').length,audio:c.audio,bar:document.querySelector('#v3MediaBar')?.innerText};},id)));throw e;}

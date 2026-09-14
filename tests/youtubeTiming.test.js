@@ -35,3 +35,13 @@ test('subtitles recover whole identical rows only without changing source text',
   const e=fixture(),cues=e.timeline.map(s=>({text:s.text,start_ms:s.startSec*1000,end_ms:s.endSec*1000}));cues[2].text+=' אחר';
   const r=T.fromSubtitles(e.timeline,cues,600);assert.equal(r[2].startSec,null);assert.equal(r.filter(s=>s.startSec!=null).length,11);
 });
+
+test('partial recovery preserves existing intervals and rejects new overlaps',()=>{
+  const saved=[{text:'a',startSec:1,endSec:5},{text:'b',startSec:null,endSec:null},{text:'c',startSec:10,endSec:14}];
+  const recovered=[{text:'a',startSec:100,endSec:105},{text:'b',startSec:6,endSec:9},{text:'c',startSec:null,endSec:null}];
+  const result=T.mergeRecovered(saved,recovered);assert.deepEqual(result[0],saved[0]);assert.deepEqual(result[2],saved[2]);assert.equal(result[1].startSec,6);
+  recovered[1].endSec=11;assert.equal(T.mergeRecovered(saved,recovered)[1].startSec,null);
+  recovered[1].endSec=9;recovered[1].startSec=4;assert.equal(T.mergeRecovered(saved,recovered)[1].startSec,null);
+  recovered[1].text='different';assert.throws(()=>T.mergeRecovered(saved,recovered),/TEXT_CHANGED/);
+  assert.equal(saved[1].startSec,null);
+});

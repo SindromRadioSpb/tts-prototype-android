@@ -83,5 +83,20 @@
     for(const a of matched.sort((a,b)=>a.row-b.row)){const c=usable[a.probe];if(a.exact&&finite(c.startSec)&&finite(c.endSec)&&c.startSec>=end&&c.endSec>c.startSec&&c.endSec<=duration){segments[a.row]=c;end=c.endSec;}}
     return segments;
   }
-  return {VERSION,TOLERANCE,windows,anchors,clock,diagnose,fromSubtitles};
+  // Recovery may add observed intervals, but must never erase existing playback.
+  function mergeRecovered(saved,recovered){
+    if(saved.length!==recovered.length||saved.some((s,i)=>s.text!==recovered[i].text))throw new Error('TIMING_REPAIR_TEXT_CHANGED');
+    const out=saved.map(s=>({...s}));
+    for(let i=0;i<out.length;i++){
+      if(finite(out[i].startSec)&&finite(out[i].endSec))continue;
+      const candidate=recovered[i];if(!finite(candidate.startSec)||!finite(candidate.endSec)||candidate.startSec<0||candidate.endSec<=candidate.startSec)continue;
+      let previous=null,next=null;
+      for(let j=i-1;j>=0;j--)if(finite(out[j].endSec)){previous=out[j];break;}
+      for(let j=i+1;j<out.length;j++)if(finite(out[j].startSec)){next=out[j];break;}
+      if(previous&&candidate.startSec<previous.endSec||next&&candidate.endSec>next.startSec)continue;
+      out[i]={...out[i],startSec:candidate.startSec,endSec:candidate.endSec};
+    }
+    return out;
+  }
+  return {VERSION,TOLERANCE,windows,anchors,clock,diagnose,fromSubtitles,mergeRecovered};
 });
