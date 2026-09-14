@@ -1,10 +1,11 @@
-// One physical connection per origin, leased for a statement or a complete
-// SQLite transaction. No tab-owner election, proxy, lock stealing or reload.
+// Serialized statement/transaction lifetime per worker. OPFS additionally
+// leases one physical connection per origin; IDB uses SQLite's native VFS
+// transaction locks. No tab-owner election, proxy, lock stealing or reload.
 export class OperationLease {
   constructor({ locks, lockName, open, close, inTransaction, rollback, onCommit,
-    waitMs = 30000, transactionIdleMs = 30000, now = () => Date.now() }) {
+    waitMs = 30000, transactionIdleMs = 30000, now = () => Date.now(), requiresExternalLock = () => true }) {
     Object.assign(this, { locks, lockName, openConnection: open, closeConnection: close,
-      inTransaction, rollback, onCommit, waitMs, transactionIdleMs, now });
+      inTransaction, rollback, onCommit, waitMs, transactionIdleMs, now, requiresExternalLock });
     this.queue = Promise.resolve();
     this.release = null;
     this.opened = false;
@@ -17,6 +18,14 @@ export class OperationLease {
   async ensureOpen() {
     if (this.opened) return;
     if (!this.locks?.request) throw this.error('DB_COORDINATION_UNSUPPORTED');
+    // IndexedDB VFS serializes complete SQLite transactions with its own
+    // xLock/xUnlock protocol. OPFS sync handles (and first backend selection)
+    // still require exclusive physical ownership outside SQLite.
+    if (!this.requiresExternalLock()) {
+      try { await this.openConnection(); this.opened = true; }
+      catch (error) { await this.close(); throw error; }
+      return;
+    }
     const abort = new AbortController();
     const timer = setTimeout(() => abort.abort(), this.waitMs);
     try {

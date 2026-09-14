@@ -1,5 +1,5 @@
-// Access only under the physical DB operation lock. This small shared record
-// makes simultaneous first boots agree on one backend before opening it.
+// This record is protected by its own atomic IndexedDB transaction. Physical
+// first-backend selection is additionally serialized by the OPFS operation lock.
 // Existing localStorage preference is authoritative; a mismatch fails closed.
 export async function storageIdentity(preference) {
   if (preference && !['AccessHandlePool', 'tts-opfs-idb'].includes(preference)) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: unknown storage preference');

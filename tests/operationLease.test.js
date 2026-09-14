@@ -82,6 +82,20 @@ test('browser rejection is not mislabeled as a lock-wait timeout', async () => {
   assert.equal(events.includes('open'), false);
 });
 
+test('native VFS coordination does not acquire the OPFS ownership lock', async () => {
+  const { lease, events, tx } = await fixture({ requiresExternalLock: () => false,
+    locks: { request() { throw new Error('must not request OPFS ownership'); } } });
+  await lease.run(async () => { await lease.ensureOpen(); tx(true); }, { sql: 'BEGIN' });
+  await lease.run(async () => { tx(false); }, { sql: 'COMMIT' });
+  assert.deepEqual(events, ['open', 'close']);
+});
+
+test('native VFS still requires browser locking support', async () => {
+  const { lease, events } = await fixture({ requiresExternalLock: () => false, locks: undefined });
+  await assert.rejects(lease.run(() => lease.ensureOpen()), { code: 'DB_COORDINATION_UNSUPPORTED' });
+  assert.deepEqual(events, []);
+});
+
 test('only an expired acquisition deadline is a lock-wait timeout', async () => {
   const { lease } = await fixture({ waitMs: 5, locks: { request: (_name, { signal }) =>
     new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason))) } });

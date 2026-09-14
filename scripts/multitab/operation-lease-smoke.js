@@ -30,7 +30,14 @@ async function main() {
       const context = await browser.newContext({ serviceWorkers: 'block' });
       const pages = await Promise.all(Array.from({ length: tabCount }, () => context.newPage()));
       const errors = [];
+      const migrationRetries = [];
       for (const p of pages) p.on('pageerror', error => errors.push(error.message));
+      for (const p of pages) p.on('console', msg => {
+        if (msg.text().includes('[db-worker] init attempt')) migrationRetries.push(msg.text());
+      });
+      if (process.env.MULTITAB_LOG === '1') for (const p of pages) p.on('console', msg => {
+        if (['warning', 'error'].includes(msg.type())) console.log(msg.type(), msg.text());
+      });
       const started = Date.now();
       await Promise.all(pages.map(async p => {
         await p.goto(base + '/fixture');
@@ -40,6 +47,7 @@ async function main() {
           await window.db.initLocalDB();
         }, backend);
       }));
+      assert.deepEqual(migrationRetries, [], 'simultaneous cold boots must not rely on migration failure/retry');
       const [a, b, c, d] = pages;
       await sql(a, "INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,meta_json) VALUES('mt-review','lemma:שלום','review','2026-09-13',3,'fixture','{}')");
       await sql(a, "INSERT INTO word_status(lemma_key,status,updated_at) VALUES('שלום','learning','2026-09-13')");
@@ -114,12 +122,16 @@ async function main() {
           try { await db.dbQuery('SELECT 1'); return null; }
           catch (error) { return { code: error.code, message: error.message, diagnostics: error.diagnostics }; }
         });
-        assert.equal(failure.code, 'DB_LOCK_WAIT_TIMEOUT');
-        assert.match(failure.message, /held=1; holder=unknown/);
-        assert.equal(failure.diagnostics.locks.held.length, 1);
+        if (backend === 'tts-opfs-idb') {
+          assert.equal(failure, null, 'IDB uses native SQLite locks, not OPFS ownership');
+        } else {
+          assert.equal(failure.code, 'DB_LOCK_WAIT_TIMEOUT');
+          assert.match(failure.message, /held=1; holder=unknown/);
+          assert.equal(failure.diagnostics.locks.held.length, 1);
+        }
         await c.evaluate(() => window.releaseFixtureLock());
         assert.equal((await sql(b, 'SELECT 1 AS ready'))[0].ready, 1);
-        assert.equal(await b.evaluate(() => db.getLastDbDiagnostics().code), 'DB_LOCK_WAIT_TIMEOUT', 'successful reads preserve diagnostic evidence');
+        if (backend !== 'tts-opfs-idb') assert.equal(await b.evaluate(() => db.getLastDbDiagnostics().code), 'DB_LOCK_WAIT_TIMEOUT', 'successful reads preserve diagnostic evidence');
         assert.deepEqual(await sql(b, 'SELECT * FROM review_log ORDER BY id'), reviews);
       }
       assert.deepEqual(errors, []);

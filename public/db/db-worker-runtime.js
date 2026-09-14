@@ -92,10 +92,17 @@ async function runMigrations() {
     const version = i + 1;
     if (done.has(version)) continue;
 
-    await execMulti('BEGIN;');
+    await execMulti('BEGIN IMMEDIATE;');
     try {
-      await execMulti(MIGRATIONS[i]);
-      await runSingle('INSERT INTO schema_migrations (version) VALUES (?)', [version]);
+      // Another IDB connection may have migrated while this one waited for
+      // SQLite's native lock. Decide under that lock, not from a stale list.
+      const current = await queryRows('SELECT version FROM schema_migrations ORDER BY version');
+      for (const row of current) done.add(row.version);
+      if (!done.has(version)) {
+        await execMulti(MIGRATIONS[i]);
+        await runSingle('INSERT INTO schema_migrations (version) VALUES (?)', [version]);
+        done.add(version);
+      }
       await execMulti('COMMIT;');
     } catch (e) {
       await execMulti('ROLLBACK;').catch(() => {});
@@ -165,7 +172,7 @@ async function initWithIDB() {
   const module = await SQLiteModule();
   const sqlite = Factory(module);
 
-  const vfs = new IDBBatchAtomicVFS('tts-opfs-idb', { durability: 'relaxed' });
+  const vfs = new IDBBatchAtomicVFS('tts-opfs-idb', { durability: 'relaxed', lockTimeoutMillis: 30000 });
   try {
     await vfs.isReady;
     sqlite.vfs_register(vfs, true);
@@ -247,10 +254,12 @@ async function initDB(preferVfs) {
 
 // ── message handler ────────────────────────────────────────────────────────
 
-// Same name excludes legacy tab owners too. Never steal a live physical lock.
+// OPFS uses the historical physical-owner name. IDB coordinates with legacy
+// SQLite connections through their existing VFS locks, never by stealing them.
 const lease = new OperationLease({
   locks: navigator.locks,
   lockName: 'linguistpro-opfs-db-owner-v1',
+  requiresExternalLock: () => selectedVfs !== 'tts-opfs-idb',
   open: async () => {
     setPhase('storage-identity');
     selectedVfs = await storageIdentity(selectedVfs);
@@ -266,8 +275,9 @@ const lease = new OperationLease({
 });
 
 const diagnostics = createRuntimeDiagnostics({ locks: navigator.locks, snapshot: () => ({
-  runtime: 529, phase, elapsedMs: Date.now() - phaseSince,
-  holdsLease: !!lease.release, transactionIdle: lease.opened && !!lease.timer,
+  runtime: 530, phase, elapsedMs: Date.now() - phaseSince,
+  holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
+  coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,
 }) });
 
@@ -278,6 +288,9 @@ self.onmessage = ({ data }) => {
     if (type === 'init') {
       if (preferVfs && selectedVfs && preferVfs !== selectedVfs) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: storage identity mismatch');
       selectedVfs = preferVfs || selectedVfs;
+      // The identity store uses an atomic IDB transaction of its own. Read it
+      // before selecting coordination, not behind an unrelated OPFS owner.
+      selectedVfs = await storageIdentity(selectedVfs);
       await lease.ensureOpen();
       return { vfs: vfsName, vfsKind };
     }

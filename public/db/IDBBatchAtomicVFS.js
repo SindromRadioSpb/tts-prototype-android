@@ -11,6 +11,7 @@ const MAX_TASK_MILLIS = 3000;
  * @property {"default"|"strict"|"relaxed"} [durability]
  * @property {"deferred"|"manual"} [purge]
  * @property {number} [purgeAtLeast]
+ * @property {number} [lockTimeoutMillis]
  */
 
 /** @type {VFSOptions} */
@@ -85,6 +86,11 @@ export class IDBBatchAtomicVFS extends VFS.Base {
     this.#idb = null;
   }
 
+  // Read-only diagnostic state; does not call SQLite or IndexedDB.
+  hasLock() {
+    return [...this.#mapIdToFile.values()].some(file => file.locks.state !== VFS.SQLITE_LOCK_NONE);
+  }
+
   /**
    * @param {string?} name 
    * @param {number} fileId 
@@ -107,6 +113,7 @@ export class IDBBatchAtomicVFS extends VFS.Base {
           isMetadataChanged: true,
           locks: new WebLocks(url.pathname)
         };
+        file.locks.timeoutMillis = this.#options.lockTimeoutMillis || 0;
         this.#mapIdToFile.set(fileId, file);
 
         // Read the first block, which also contains the file metadata.
@@ -431,6 +438,10 @@ export class IDBBatchAtomicVFS extends VFS.Base {
       log(`xUnlock ${file.path} ${flags}`);
       
       try {
+        // Native VFS locking is the authority for IDB connections. Publish
+        // queued block/version writes before the next connection can acquire
+        // SQLite's lock, including relaxed-durability atomic commits.
+        await this.#idb.sync();
         return file.locks.unlock(flags);
       } catch(e) {
         console.error(e);

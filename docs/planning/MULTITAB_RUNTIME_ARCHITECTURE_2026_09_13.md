@@ -150,3 +150,52 @@ counts, этап отвечающего worker-владельца, VFS и дли
 Все 14 образов, 9 контейнеров и 3 тома сохранены; данные/бэкапы не удалялись.
 До push активный образ всё ещё `779d7b28`; кандидат требует проверки опубликованной
 версии и не считается physical-iPhone-проверенным исправлением.
+
+## Follow-up 3.11.537: backend-native IDB coordination
+
+Baseline: `f19ca3e50ae2988a3152b008b52d9099324cec0e` (3.11.536).
+Owner: Chrome iPhone iOS 26.6.2, включая Инкогнито; ошибка сохраняется,
+`DB_LOCK_WAIT_TIMEOUT [browser=AbortError; held=1; holder=unknown; vfs=tts-opfs-idb]`.
+Этот снимок доказывает timeout внешнего lock; он не устанавливает личность
+владельца, не доказывает повреждение БД и не доказывает конкретный WebKit crash.
+
+Найден воспроизводимый архитектурный дефект: IDBBatchAtomicVFS уже координирует
+SQLite-транзакции через xLock/xUnlock (`/app.db-outer`, `/app.db-reserved`), но
+runtime дополнительно требовал OPFS ownership lock. Неотвечающий держатель
+этого дополнительного lock блокировал IDB даже без активной SQLite-транзакции.
+Regression runner сохраняет реальный исходный runtime 3.11.536 через `git show`:
+при удержании только OPFS lock baseline не открывает IDB, исправление открывает
+и читает ту же IDB, не освобождая и не отбирая удерживаемый lock.
+
+Этот раздел уточняет прежний общий контракт короткого физического владения:
+
+- AccessHandlePool и неизвестный первый backend сохраняют внешний OPFS lock.
+- Для сохранённого `tts-opfs-idb` используются нативные транзакционные VFS locks.
+  SQLite/VFS по-прежнему закрываются после операции/транзакции; worker очередь,
+  transaction-idle poison и ограничения поздней записи остаются.
+- Перед xUnlock IDB ожидает завершения queued block/version writes. Настоящее
+  ожидание VFS lock ограничено 30 сек.; активная транзакция не отбирается.
+- Identity читается через собственную атомарную IDB-транзакцию до выбора
+  координации; backend, имя БД и формат страниц не меняются.
+- При параллельном холодном старте список выполненных миграций перепроверяется
+  внутри BEGIN IMMEDIATE. Это устраняет выявленные на 8 клиентах duplicate-column
+  и duplicate-version retries; каждая миграция остаётся отдельной транзакцией.
+
+Проверки:
+
+- `IDB_NATIVE_EXPECT_RED=1 node scripts/multitab/idb-native-coordination-smoke.js`:
+  baseline WebKit — EXPECTED RED (IDB boot blocked by unrelated ownership lock).
+- Этот runner без red: WebKit/Chromium PASS; новый чистый WebKit профиль без
+  preference/identity; удерживаемый OPFS lock; двустороннее исключение реальных
+  транзакций старого и нового runtime; legacy/new COMMIT, ROLLBACK, integrity=ok,
+  непустой review_log неизменён.
+- `operation-lease-smoke`: Chromium 4 клиента, оба backend — PASS; WebKit IDB
+  4 и 8 клиентов — PASS. Gate запрещает скрывать гонки cold-start за retry.
+- Targeted node tests 74/74; i18n 233/233; reader-resume 53/53;
+  studio-media-progress 4/4 — PASS.
+
+Физическое подтверждение на iPhone после выпуска остаётся отдельным gate.
+Обновлять iOS, очищать локальную библиотеку или менять VFS для этого исправления
+не требуется. Известные WebKit issues 239614/309251/316072 проверены как возможные
+объяснения неотвечающего владельца, но не объявлены доказанной причиной этого
+устройства; исправление не зависит от такой гипотезы.
