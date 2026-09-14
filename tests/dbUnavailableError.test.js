@@ -51,13 +51,17 @@ test("classifyWorkerError does NOT wrap ordinary errors", async () => {
   }
 });
 
-test("pagehide queues physical DB closure before a BFCache document can freeze", () => {
+test("back/forward cache terminates the DB worker instead of queueing close behind frozen work", () => {
   const start = localDbSource.indexOf("function _installDbLifecycle()");
   const end = localDbSource.indexOf("export async function releaseDbOwnership", start);
   const lifecycle = localDbSource.slice(start, end);
-  assert.match(lifecycle, /addEventListener\('pagehide',[\s\S]*_call\('close'\)/);
-  assert.doesNotMatch(lifecycle, /\.terminate\(\)/,
-    "BFCache cleanup must preserve the page worker and only release physical DB resources");
+  // Owner iPhone report 3.11.544: a queued close never ran before WebKit froze
+  // the cached document's worker, which kept the library lock.
+  assert.match(lifecycle, /addEventListener\('pagehide', event => \{ if \(event\.persisted\) _suspendForPageCache\(\); \}, \{ capture: true \}\)/);
+  assert.match(lifecycle, /addEventListener\('pageshow', event => \{ if \(event\.persisted\) _resumeFromPageCache\(\); \}, \{ capture: true \}\)/);
+  assert.match(lifecycle, /_worker\.terminate\(\)/);
+  assert.match(lifecycle, /if \(event\.persisted \|\| !_worker \|\| !_initialized\) return;\s*_call\('close'\)/,
+    "a normal unload keeps the cooperative close");
 });
 
 test("Retry cannot terminate a live worker based on a historical lock timeout", () => {

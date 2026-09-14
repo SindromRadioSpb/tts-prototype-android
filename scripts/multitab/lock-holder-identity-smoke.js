@@ -85,19 +85,19 @@ async function main() {
     const waiterRow = relation.waiters.find(row => row.identified && !row.sameClientAsHolder);
     assert.ok(waiterRow, 'waiting worker must be identified as a different client');
     assert.equal(waiterRow.sameDocumentAsHolder, false);
-    assert.equal(holderIdentity.release, '3.11.544');
+    assert.equal(holderIdentity.release, '3.11.545');
     assert.equal(holderIdentity.generation, 1);
     const historyRow = workerId => report.history.find(row => row.workerId === workerId);
     const waiterIdentity = report.locks.clients.find(client => client.client === waiterRow.client).identity;
     const startedAt = identity => historyRow(identity.workerId)?.lifecycle.find(row => row.event === 'page-db-start')?.at;
     assert.ok(startedAt(holderIdentity) < startedAt(waiterIdentity), 'the identified holder is the earlier page holding the open transaction');
-    assert.match(status, new RegExp(`${lockName.replace(/[/.]/g, '\\$&')}: держит ${relation.holder} — worker «other», релиз 3\\.11\\.544`));
+    assert.match(status, new RegExp(`${lockName.replace(/[/.]/g, '\\$&')}: держит ${relation.holder} — worker «other», релиз 3\\.11\\.545`));
 
     const waited = await waiter.evaluate(() => window.waiterInit);
     assert.equal(waited.ok, false, 'the waiter must not bypass a live transaction');
     if (backend === 'AccessHandlePool') {
       assert.equal(waited.code, 'DB_LOCK_WAIT_TIMEOUT');
-      assert.match(waited.message, /holderId=other\/3\.11\.544\/other-document\/gen1\/age\d+s/);
+      assert.match(waited.message, /holderId=other\/3\.11\.545\/other-document\/gen1\/age\d+s/);
     }
     await holder.evaluate(async () => { await db.dbRun('COMMIT'); await db.closeLocalDB(); });
     const recovered = await waiter.evaluate(async () => {

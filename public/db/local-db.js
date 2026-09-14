@@ -38,7 +38,7 @@
 //   importBundle()  — POST /api/library/import/bundle
 
 import '../js/nakdan-derived-core.js';
-import { createDiagnosticJournal } from './diagnostic-journal.js?v=544';
+import { createDiagnosticJournal } from './diagnostic-journal.js?v=545';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
 import '../js/catalog-discovery-core.js?v=485';
@@ -57,6 +57,9 @@ let _initialized = false;
 let _initInFlight = null;
 let _seq    = 0;
 const _pending = new Map();
+// Back/forward cache state (see _suspendForPageCache).
+let _pageCached = false, _resumeWaiters = [], _reopenAfterCache = null;
+let _txOpen = false, _cacheAbortedTransaction = false;
 let _diagnosticWorkerId = null;
 // One document id per module instance; a replacement worker in the same
 // document gets the next generation, so two workers in one page are visible.
@@ -71,7 +74,7 @@ function _startDbDiagnostics() {
     const surface = /library\.html$/.test(location.pathname) ? 'room' : /(?:index\.html|study-studio\.html|\/)$/.test(location.pathname) ? 'studio' : 'other';
     _diagnosticSurface = surface;
     _dbJournal = createDiagnosticJournal({ storage: localStorage, workerId: _diagnosticWorkerId, documentId: _diagnosticDocumentId,
-      generation: _diagnosticGeneration, version: '3.11.544', surface });
+      generation: _diagnosticGeneration, version: '3.11.545', surface });
     _dbJournal.record({ phase: 'browser-preflight', event: 'page-db-start' });
     if (!_diagnosticLifecycle) {
       _diagnosticLifecycle = true;
@@ -119,22 +122,69 @@ function _installDbLifecycle() {
   window.addEventListener('pageshow', () => {
     window.dispatchEvent(new CustomEvent('localdb:refresh'));
   });
-  // iOS may keep the previous document in BFCache while the visible tab has
-  // already navigated from Studio to Room (or back). If that document is
-  // frozen between BEGIN and its next statement, its dedicated worker keeps
-  // the origin Web Lock even though the user can see only one tab. Queue a
-  // close before the document is frozen: OperationLease rolls back an open
-  // transaction and acknowledges only after every physical VFS handle closes.
-  // The worker itself stays alive, so a BFCache pageshow can reopen the same
-  // physical store without reloading or losing the page's draft/media state.
-  window.addEventListener('pagehide', () => {
-    if (!_worker || !_initialized) return;
+  // Normal unload: release physical resources cooperatively. A document that
+  // enters the back/forward cache is handled by _suspendForPageCache instead.
+  window.addEventListener('pagehide', event => {
+    if (event.persisted || !_worker || !_initialized) return;
     _call('close').catch(() => {});
   }, { passive: true });
   if (typeof BroadcastChannel === 'function') {
     _changesChannel = new BroadcastChannel('localdb-commits-v2');
     _changesChannel.onmessage = () => window.dispatchEvent(new CustomEvent('localdb:changed'));
   }
+}
+// Owner iPhone report 3.11.544: WebKit kept a cached document's dedicated
+// worker suspended while it held the library lock (OPFS owner lock, or
+// /app.db-outer plus an IndexedDB connection), so every later document in the
+// tab waited indefinitely. A queued close cannot run before that freeze.
+// Terminate the worker instead: the browser releases its locks and handles,
+// and SQLite/IndexedDB roll back an unfinished transaction.
+function _suspendForPageCache() {
+  _pageCached = true;
+  if (!_worker) return;
+  _cacheAbortedTransaction = _txOpen || [..._pending.values()].some(h => /^\s*(BEGIN|SAVEPOINT)\b/i.test(h.sql || ''));
+  _txOpen = false;
+  const stopped = new DbUnavailableError('DB_PAGE_SUSPENDED', 'Local database work stopped because the page entered the back/forward cache.');
+  const inits = [];
+  for (const h of _pending.values()) {
+    clearTimeout(h.diagnosticTimer);
+    // Open and migrations are idempotent, so an interrupted init is replayed.
+    // SQL is never replayed: it may belong to the rolled-back transaction.
+    if (h.type === 'init') inits.push(h); else h.reject(stopped);
+  }
+  _pending.clear();
+  _reopenAfterCache = { initialized: _initialized, inits };
+  _dbJournal.record({ event: 'worker-terminated', pendingCount: inits.length });
+  try { _worker.terminate(); } catch (_) {}
+  _worker = null;
+  _initialized = false;
+}
+function _resumeFromPageCache() {
+  if (!_pageCached) return;
+  _pageCached = false;
+  const reopen = _reopenAfterCache;
+  _reopenAfterCache = null;
+  if (reopen?.inits.length) {
+    _startDbDiagnostics();
+    _spawnWorker();
+    for (const h of reopen.inits) {
+      const id = ++_seq;
+      _pending.set(id, h);
+      _worker.postMessage({ ...h.message, ..._initDiagnosticOptions(), id });
+    }
+  } else if (reopen?.initialized) {
+    initLocalDB().catch(() => {});
+  }
+  const waiters = _resumeWaiters;
+  _resumeWaiters = [];
+  for (const resume of waiters) resume();
+}
+// ── end page cache lifecycle
+if (typeof window !== 'undefined') {
+  // Capture listeners run before application pagehide/pageshow handlers, so
+  // their DB calls are deferred instead of reaching a worker being frozen.
+  window.addEventListener('pagehide', event => { if (event.persisted) _suspendForPageCache(); }, { capture: true });
+  window.addEventListener('pageshow', event => { if (event.persisted) _resumeFromPageCache(); }, { capture: true });
 }
 export async function releaseDbOwnership() { await closeLocalDB(); }
 export async function closeLocalDB() {
@@ -154,6 +204,7 @@ export async function recoverLocalDB() {
     _worker = null; _initialized = false; _workerCrashed = false; _vfs = null; _vfsKind = null;
   }
   _lastDbError = null;
+  _cacheAbortedTransaction = false;
   if (_initInFlight) await _initInFlight.catch(() => {});
   if (_worker) await closeLocalDB();
   _initialized = false;
@@ -161,6 +212,12 @@ export async function recoverLocalDB() {
   await _call('query', 'SELECT 1 AS ready');
 }
 function _call(type, sql, params, opts) {
+  // A cached document must not reach a worker that is about to be frozen:
+  // calls from pagehide/visibility handlers resume on pageshow.
+  if (_pageCached) return new Promise(resolve => _resumeWaiters.push(resolve)).then(() => _call(type, sql, params, opts));
+  // The reopen after pageshow is an init: it must not clear the abort mark.
+  if (type === 'close') _cacheAbortedTransaction = false;
+  else if (type !== 'init' && _cacheAbortedTransaction) return _rejectAbortedTransaction(type, sql);
   if (['query', 'run', 'exec'].includes(type) && !_initialized) {
     // Startup callers share init, not a growing worker queue behind it. A
     // failed initialization remains failed until an explicit init/recovery.
@@ -171,7 +228,8 @@ function _call(type, sql, params, opts) {
     if (_workerCrashed) { reject(_lastDbError); return; }
     if (!_worker) { reject(new DbUnavailableError('DB_INIT_FAILED', 'Local database is not initialized.')); return; }
     const id = ++_seq;
-    const h = { resolve, reject, startedAt: Date.now() };
+    const message = { id, type, sql, params, ...(opts || {}) };
+    const h = { resolve, reject, startedAt: Date.now(), type, sql, message };
     _pending.set(id, h);
     if (_dbJournal.enabled()) {
       _dbJournal.record({ event: 'rpc-queued', operation: type, requestId: id, pendingCount: _pending.size });
@@ -179,9 +237,20 @@ function _call(type, sql, params, opts) {
         if (_pending.get(id) === h) _dbJournal.record({ event: 'rpc-still-pending', operation: type, requestId: id, oldestPendingMs: Date.now() - h.startedAt, pendingCount: _pending.size });
       }, 8000);
     }
-    try { _worker.postMessage({ id, type, sql, params, ...(opts || {}) }); }
+    try { _worker.postMessage(message); }
     catch (e) { clearTimeout(h.diagnosticTimer); _pending.delete(id); reject(e); }
   });
+}
+// After the page cache rolled back a transaction, its remaining statements
+// must not run as autocommit writes. Its own ROLLBACK completes the abort.
+function _rejectAbortedTransaction(type, sql) {
+  const statement = String(sql || '');
+  if (/^\s*ROLLBACK(\s+TRANSACTION)?\s*;?\s*$/i.test(statement)) {
+    _cacheAbortedTransaction = false;
+    return Promise.resolve(type === 'query' ? [] : type === 'run' ? 0 : {});
+  }
+  if (/^\s*(COMMIT|END)\b/i.test(statement)) _cacheAbortedTransaction = false;
+  return Promise.reject(new DbUnavailableError('DB_TRANSACTION_ABORTED', 'The transaction was rolled back when the page entered the back/forward cache.'));
 }
 
 // Sticky VFS preference: once a VFS has successfully opened the DB, remember
@@ -332,58 +401,69 @@ async function _initializeLocalDB() {
   if (_initialized) return; // idempotent on success
   if (!_worker && typeof _startDbDiagnostics === 'function') _startDbDiagnostics();
   await _preflightSupport();
-  if (!_worker) {
-    if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-    _worker = new Worker('/db/db-worker-runtime.js?v=544', { type: 'module' });
-    _worker.onmessage = ({ data }) => {
-      if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
-      if (data.kind === 'committed') {
-        try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}
-        return;
-      }
-      const h = _pending.get(data.id);
-      if (!h) return;
-      _pending.delete(data.id);
-      clearTimeout(h.diagnosticTimer);
-      _dbJournal.record({ event: data.ok ? 'rpc-completed' : 'rpc-error', requestId: data.id, code: data.code, pendingCount: _pending.size });
-      if (data.ok) {
-        if (data.vfs) _vfs = data.vfs;
-        if (data.vfsKind) _vfsKind = data.vfsKind;
-        _lastDbError = null;
-        h.resolve(data.rows ?? data.changes ?? data);
-      } else {
-        const error = _wrapWorkerError(data.error, data.code);
-        if (data.diagnostics) {
-          error.diagnostics = data.diagnostics;
-          _lastDbDiagnostics = { at: new Date().toISOString(), code: data.code, ...data.diagnostics };
-        }
-        h.reject(error);
-      }
-    };
-    _worker.onerror = (e) => {
-      _dbJournal.record({ event: 'worker-error', code: 'DB_WORKER_CRASHED', pendingCount: _pending.size });
-      _workerCrashed = true;
-      const err = _wrapWorkerError(e?.message || 'Worker crashed', 'DB_WORKER_CRASHED');
-      for (const h of _pending.values()) h.reject(err);
-      _pending.clear();
-    };
-  }
+  if (!_worker) _spawnWorker();
   let preferVfs = null;
   try {
     if (typeof localStorage !== 'undefined') preferVfs = localStorage.getItem(_VFS_PREF_KEY);
   } catch (_) {}
   try {
-    await _call('init', null, null, { preferVfs, diagnosticWorkerId: typeof _diagnosticWorkerId === 'string' ? _diagnosticWorkerId : null,
-      diagnosticDocumentId: typeof _diagnosticDocumentId === 'string' ? _diagnosticDocumentId : null,
-      diagnosticGeneration: typeof _diagnosticGeneration === 'number' ? _diagnosticGeneration : 0,
-      diagnosticSurface: typeof _diagnosticSurface === 'string' ? _diagnosticSurface : 'other',
-      diagnosticEnabled: typeof _dbJournal !== 'undefined' && _dbJournal.enabled() });
+    await _call('init', null, null, { preferVfs, ..._initDiagnosticOptions() });
   } catch (e) {
     _lastDbError = e instanceof DbUnavailableError ? e : new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));
     throw _lastDbError;
   }
   _initialized = true;
   _installDbLifecycle();
+  _rememberVfs();
+}
+
+function _spawnWorker() {
+  if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
+  _worker = new Worker('/db/db-worker-runtime.js?v=545', { type: 'module' });
+  _worker.onmessage = ({ data }) => {
+    if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
+    if (data.kind === 'committed') {
+      try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}
+      return;
+    }
+    const h = _pending.get(data.id);
+    if (!h) return;
+    _pending.delete(data.id);
+    _txOpen = data.inTransaction === true;
+    clearTimeout(h.diagnosticTimer);
+    _dbJournal.record({ event: data.ok ? 'rpc-completed' : 'rpc-error', requestId: data.id, code: data.code, pendingCount: _pending.size });
+    if (data.ok) {
+      if (data.vfs) _vfs = data.vfs;
+      if (data.vfsKind) _vfsKind = data.vfsKind;
+      _lastDbError = null;
+      h.resolve(data.rows ?? data.changes ?? data);
+    } else {
+      const error = _wrapWorkerError(data.error, data.code);
+      if (data.diagnostics) {
+        error.diagnostics = data.diagnostics;
+        _lastDbDiagnostics = { at: new Date().toISOString(), code: data.code, ...data.diagnostics };
+      }
+      h.reject(error);
+    }
+  };
+  _worker.onerror = (e) => {
+    _dbJournal.record({ event: 'worker-error', code: 'DB_WORKER_CRASHED', pendingCount: _pending.size });
+    _workerCrashed = true;
+    const err = _wrapWorkerError(e?.message || 'Worker crashed', 'DB_WORKER_CRASHED');
+    for (const h of _pending.values()) h.reject(err);
+    _pending.clear();
+  };
+}
+
+function _initDiagnosticOptions() {
+  return { diagnosticWorkerId: typeof _diagnosticWorkerId === 'string' ? _diagnosticWorkerId : null,
+    diagnosticDocumentId: typeof _diagnosticDocumentId === 'string' ? _diagnosticDocumentId : null,
+    diagnosticGeneration: typeof _diagnosticGeneration === 'number' ? _diagnosticGeneration : 0,
+    diagnosticSurface: typeof _diagnosticSurface === 'string' ? _diagnosticSurface : 'other',
+    diagnosticEnabled: typeof _dbJournal !== 'undefined' && _dbJournal.enabled() };
+}
+
+function _rememberVfs() {
   // Remember the VFS that actually worked, so a later browser upgrade
   // doesn't silently switch storage backends and orphan the user's data.
   try {
@@ -408,6 +488,12 @@ async function _initializeLocalDB() {
 
 export function isReady() {
   return _initialized;
+}
+// Resolves once a pending (re)initialization has settled, including the
+// reopen after a back/forward-cache pageshow. Callers still check errors.
+export function whenAvailable() {
+  if (_pageCached) return new Promise(resolve => _resumeWaiters.push(resolve)).then(whenAvailable);
+  return _initInFlight ? _initInFlight.then(() => {}, () => {}) : Promise.resolve();
 }
 
 // ── texts ──────────────────────────────────────────────────────────────────

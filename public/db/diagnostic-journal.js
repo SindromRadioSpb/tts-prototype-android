@@ -5,7 +5,7 @@ const phases = /^[a-z][a-z0-9-]{0,63}$/;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // Page lifecycle is kept apart from phase/RPC events: a burst of SQL phases
 // must not evict the pagehide/pageshow facts that explain a lock holder.
-const LIFECYCLE = new Set(['page-db-start', 'worker-created', 'worker-error', 'pagehide', 'pageshow', 'hidden', 'visible']);
+const LIFECYCLE = new Set(['page-db-start', 'worker-created', 'worker-error', 'worker-terminated', 'pagehide', 'pageshow', 'hidden', 'visible']);
 export function safeSnapshot(value = {}) {
   if (!value || typeof value !== 'object') return {};
   const out = {};

@@ -292,7 +292,7 @@ const lease = new OperationLease({
 });
 
 function runtimeSnapshot() { return {
-  runtime: 544, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
+  runtime: 545, workerId, requestId, operation, phase, elapsedMs: Date.now() - phaseSince,
   holdsLease: !!lease.release || !!vfs?.hasLock?.(), transactionIdle: lease.opened && !!lease.timer,
   coordination: selectedVfs === 'tts-opfs-idb' ? 'sqlite-vfs' : 'opfs-owner',
   vfs: selectedVfs,
@@ -312,7 +312,7 @@ self.onmessage = ({ data }) => {
     // holder or waiter even if the worker is later frozen.
     if (diagnosticEnabled && !identityHeld) {
       identityHeld = holdIdentityLock({ locks: navigator.locks, holdMs: diagnosticUntil - Date.now(), name: identityLockName({
-        surface: data.diagnosticSurface, release: '3.11.544', documentId, workerId, generation, createdSec: workerCreatedSec }) });
+        surface: data.diagnosticSurface, release: '3.11.545', documentId, workerId, generation, createdSec: workerCreatedSec }) });
     }
   }
   lease.run(async () => {
@@ -335,7 +335,9 @@ self.onmessage = ({ data }) => {
     if (type === 'exec') { await execMulti(sql); return {}; }
     throw new Error(`Unknown type: ${type}`);
   }, { reset: type === 'close', retryOpen: type === 'init', sql }).then(
-    result => { setPhase('ready'); self.postMessage({ id, ok: true, ...result }); },
+    // inTransaction lets the page mark a transaction that a later worker
+    // termination (back/forward cache) rolls back.
+    result => { setPhase('ready'); self.postMessage({ id, ok: true, ...result, inTransaction: lease.opened && lease.inTransaction() }); },
     async error => {
       let detail = null;
       if (String(error.code || '').startsWith('DB_LOCK_') || error.code === 'DB_STORAGE_CLOSE_FAILED') {
@@ -343,7 +345,8 @@ self.onmessage = ({ data }) => {
       }
       const holder = detail?.peers.find(peer => peer?.holdsLease);
       const suffix = detail ? ` [browser=${error.browserError || 'none'}; held=${detail.locks.held?.length ?? 'unknown'}; holder=${holder?.phase || 'unknown'}; holderId=${holderSummary(detail.locks)}; vfs=${selectedVfs || 'unknown'}]` : '';
-      self.postMessage({ id, ok: false, error: String(error.message || error) + suffix, code: error.code || null, diagnostics: detail });
+      self.postMessage({ id, ok: false, error: String(error.message || error) + suffix, code: error.code || null, diagnostics: detail,
+        inTransaction: lease.opened && lease.inTransaction() });
     }
   );
 };

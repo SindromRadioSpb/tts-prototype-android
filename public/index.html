@@ -16,7 +16,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=544">
+    <link rel="modulepreload" href="/db/local-db.js?v=545">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -10828,7 +10828,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=544';
+  import * as _ldb from '/db/local-db.js?v=545';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -10836,6 +10836,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   // SQLITE_CANTOPEN. Closing our own connection gracefully FIRST removes that race for this side
   // of the navigation.
   window.v3NavAwayWithDbClose = async function (url) {
+    try { if (typeof window.v3FlushPendingProgress === 'function') await window.v3FlushPendingProgress(); } catch (_) {}
     try { if (_ldb && typeof _ldb.closeLocalDB === 'function') await _ldb.closeLocalDB(); } catch (_) {}
     location.href = url;
   };
@@ -13434,7 +13435,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <link rel="stylesheet" href="/css/study-video-source.css?v=520">
 <script src="/js/playback-source.js?v=508"></script>
 <script src="/js/study-video-transfer.js"></script>
-<script src="/js/study-video-source-ui.js?v=544"></script>
+<script src="/js/study-video-source-ui.js?v=545"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
 <script src="/js/learning-material-task.js?v=519"></script>
 <script src="/js/learning-material-task-ui.js?v=521"></script>
@@ -13525,7 +13526,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.544";
+    window.APP_VERSION = "3.11.545";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -13591,6 +13592,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
     async function ensureLocalDB() {
       if (window.__localDBInitPromise) await window.__localDBInitPromise;
+      // A back/forward-cache pageshow reopens the store; wait for that reopen.
+      if (window.__localDB && typeof window.__localDB.whenAvailable === 'function') await window.__localDB.whenAvailable();
       // P0-1/P1-6: surface the typed DB error (DB_OWNED_BY_OTHER_TAB /
       // DB_WORKER_CRASHED) so callers can branch on .code and show the
       // right recovery UI instead of a generic failure.
@@ -23500,6 +23503,21 @@ window.v3FlushProgressForText = v3FlushProgressForText;
 window.v3FlushProgressNow = function () {
   try { v3FlushProgressNow({ keepalive: false }); } catch (_) {}
 };
+
+// Navigation helpers await only debounced positions not yet written: a page
+// entering the back/forward cache stops its DB worker at pagehide.
+function v3FlushPendingProgress() {
+  const writes = [];
+  Object.keys(v3ProgressTimers).forEach((tid) => {
+    if (!v3ProgressTimers[tid]) return;
+    clearTimeout(v3ProgressTimers[tid]);
+    v3ProgressTimers[tid] = null;
+    const latest = v3ProgressLatest[tid];
+    if (latest) writes.push(v3PostProgress(tid, latest.rowIdx, latest.seq, { keepalive: false }));
+  });
+  return Promise.all(writes);
+}
+window.v3FlushPendingProgress = v3FlushPendingProgress;
 
 window.v3SetActiveTextId = function (textId) {
   const next = textId ? String(textId) : null;

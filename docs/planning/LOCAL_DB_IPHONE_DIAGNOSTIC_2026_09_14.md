@@ -1,5 +1,66 @@
 # iPhone local DB: diagnostic handoff 3.11.541
 
+## 3.11.545: root cause proven on the device; cached documents stop their DB worker
+
+Owner reports from 3.11.544 with identity recording (2026-09-14):
+
+- Normal Chrome, AccessHandlePool: `linguistpro-opfs-db-owner-v1` held by C1,
+  the Studio worker of document `a8b0967f` (generation 1). That document
+  started, completed about 50 RPCs, and 1.6 s after start recorded
+  `pagehide persisted=true` with no later `pageshow`. At that moment 9 RPCs
+  were queued: last phase `waiting-lock` for request 52, then pagehide writes
+  58/59 and `close` 60 behind them. The waiter C2 is the next Studio document
+  `aa780091`, started 261 ms later. `holderIsSelf=false`, different documents,
+  one worker per document.
+- Incognito, IDB: `/app.db-outer` held by Room document `87510106`. Its Studio
+  link ran `close`, but already-queued request 230 reopened IndexedDB and began
+  a transaction; then `pagehide persisted=true`. The next Studio waited 214 s
+  in `idb-opening`.
+- Documents whose pagehide had `persisted=false` did not hold the lock later.
+
+Mechanism: WebKit keeps a back/forward-cached document's dedicated worker
+suspended without releasing its Web Locks or storage connections; a `close`
+queued at pagehide cannot run before the freeze. Every later document in the
+tab waits until the cached page is restored or evicted. Chromium does not cache
+such pages and Playwright used no cache, so earlier gates passed. This replaces
+the 3.11.535 design "pagehide queues close; the worker stays alive".
+
+Fix:
+
+- A capture `pagehide(persisted)` listener terminates the page's DB worker. The
+  browser releases its locks and handles; SQLite/IndexedDB roll back unfinished
+  work. In-flight SQL fails with `DB_PAGE_SUSPENDED` and is never replayed; an
+  interrupted boot init is replayed on a fresh worker.
+- Calls issued while cached wait in the page and run after `pageshow(persisted)`,
+  which reopens the store. `ensureLocalDB` waits for that reopen.
+- If a transaction was open (or a BEGIN queued), its later statements fail with
+  `DB_TRANSACTION_ABORTED` until its ROLLBACK/COMMIT, an explicit close or
+  recovery; the reopen does not clear this mark.
+- Normal unload keeps the cooperative close.
+- Studio `v3NavAwayWithDbClose` and the Room Studio link await a debounced
+  working-row write before closing.
+
+Evidence:
+
+- RED: `scripts/multitab/page-cache-lock-release-smoke.js` on 3.11.544 code
+  (Chromium AccessHandlePool) — next document
+  `DB_LOCK_WAIT_TIMEOUT [held=1; holder=unknown; holderId=uninstrumented]`,
+  the device signature; `PAGE_CACHE_EXPECT_RED=1` WebKit IDB — blocked.
+  Unit RED: 6 new tests.
+- GREEN: that smoke on Chromium AccessHandlePool and WebKit IDB — next document
+  reads at once, cached transaction rolled back, late continuation rejected,
+  pagehide write deferred and applied after pageshow, integrity ok, review_log
+  unchanged. `studio-nav-progress-flush-smoke.js` both engines — row selected
+  inside the 350 ms debounce is saved before Studio → Room. Node 199/199;
+  reader-resume 53/53; studio-media-progress 4/4; Studio lifecycle both
+  engines; operation lease; lock identity; IDB failed-sync.
+- Limits: the fixture stops the worker with a busy loop and dispatches real
+  pagehide/pageshow(persisted) events; it does not reproduce WebKit caching
+  itself. A debounced row change made within 350 ms (Studio) / 800 ms (Room)
+  before a plain link navigation is not guaranteed. Suspension of a second
+  LinguistPro tab in the background is not addressed. Physical iPhone
+  acceptance is pending.
+
 ## 3.11.544: lock-holder identity collection (owner-approved)
 
 Owner answers (2026-09-14): exactly one LinguistPro tab in normal Chrome and

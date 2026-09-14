@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=544';
+import * as localDb from '/db/local-db.js?v=545';
 import * as readerCore from '/js/reader-core.js?v=402';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -5004,7 +5004,8 @@ function _roomStudioNavInit() {
       if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
       ev.preventDefault();
       const url = el.getAttribute('href') || '/';
-      (async () => { try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();
+      // Write a debounced working row before leaving: the cached Room stops its DB worker.
+      (async () => { try { if (_progressTimer) await flushReaderProgress(); } catch (_) {} try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();
     });
   };
   wire($('roomStudioLink'));
