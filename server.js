@@ -1100,7 +1100,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/runtime-diagnostics.js",
   "/db/runtime-diagnostics.js?v=544",
   "/db/diagnostic-journal.js?v=545",
-  "/db/diagnostic-page.js?v=545",
+  "/db/diagnostic-page.js?v=546",
   "/db-diagnostics.html",
   "/db/storage-identity.js",
   "/db/AccessHandlePoolVFS.js",

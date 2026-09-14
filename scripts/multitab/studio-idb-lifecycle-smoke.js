@@ -15,7 +15,10 @@ const server = http.createServer((req, res) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   if (url.pathname === '/fixture') { res.setHeader('Content-Type', 'text/html'); res.end('<title>Isolated lifecycle fixture</title>'); return; }
-  const file = path.resolve(root, '.' + url.pathname);
+  // Same split as server.js: compatible shells serve the same files without COEP.
+  const compatible = { '/study-studio.html': '/index.html', '/study-library.html': '/library.html' }[url.pathname];
+  if (compatible) res.removeHeader('Cross-Origin-Embedder-Policy');
+  const file = path.resolve(root, '.' + (compatible || url.pathname));
   if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.statusCode = 404; res.end(); return; }
   res.setHeader('Content-Type', types[path.extname(file)] || 'application/octet-stream');
   fs.createReadStream(file).pipe(res);
@@ -44,7 +47,10 @@ async function main() {
       await db.dbRun("INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,meta_json) VALUES('lifecycle-review','lemma:שלום','review','2026-09-14',3,'fixture','{}')");
       await db.closeLocalDB();
     }, backend);
-    await page.goto(base + '/index.html', { waitUntil: 'load' });
+    // Browsers without iframe credentialless use the compatible shells (compatibleShellRedirect).
+    const shells = await page.evaluate(() => window.crossOriginIsolated === true && !('credentialless' in HTMLIFrameElement.prototype))
+      ? { studio: '/study-studio.html', room: '/study-library.html' } : { studio: '/index.html', room: '/library.html' };
+    await page.goto(base + shells.studio, { waitUntil: 'load' });
     await page.waitForFunction(() => typeof window.refreshStudioReviewStatus === 'function' && !!window.__localDB);
     const reviewBefore = await page.evaluate(async () => {
       await window.__localDBInitPromise;
@@ -88,7 +94,7 @@ async function main() {
     }
     await inspector.close();
     await page.evaluate(() => { void v3NavAwayWithDbClose('/library.html'); });
-    await page.waitForURL('**/library.html');
+    await page.waitForURL(url => new URL(url).pathname === shells.room);
     // The Room's actual import (including its release URL), not another module instance.
     await page.waitForFunction(() => document.body.textContent.includes('Читальный зал'));
     const info = await page.evaluate(async () => {

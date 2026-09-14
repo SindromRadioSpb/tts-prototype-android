@@ -2,6 +2,19 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <script id="compatibleShellRedirect">
+    // YouTube cannot start in this COEP-isolated shell without iframe
+    // credentialless (iOS, Safari, Firefox); media then booted the whole shell
+    // twice. Load the same shell without COEP before any module, worker or DB.
+    (function () {
+      try {
+        var shells = { '/': '/study-studio.html', '/index.html': '/study-studio.html', '/library.html': '/study-library.html' };
+        var target = shells[location.pathname];
+        if (!target || !window.crossOriginIsolated || 'credentialless' in HTMLIFrameElement.prototype) return;
+        location.replace(target + location.search + location.hash);
+      } catch (_) {}
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Читальный зал LinguistPro — библиотека и учебное пространство для чтения на иврите с прогрессом, аудио и морфологией.">
   <title>LinguistPro — Читальный зал</title>
@@ -3168,7 +3181,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.545</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.546</button>
   </div>
 </footer>
 

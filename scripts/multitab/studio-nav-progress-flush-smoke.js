@@ -17,7 +17,10 @@ const server = http.createServer((req, res) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   if (url.pathname === '/fixture') { res.setHeader('Content-Type', 'text/html'); res.end('<title>Navigation progress fixture</title>'); return; }
-  const file = path.resolve(root, '.' + url.pathname);
+  // Same split as server.js: compatible shells serve the same files without COEP.
+  const compatible = { '/study-studio.html': '/index.html', '/study-library.html': '/library.html' }[url.pathname];
+  if (compatible) res.removeHeader('Cross-Origin-Embedder-Policy');
+  const file = path.resolve(root, '.' + (compatible || url.pathname));
   if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.statusCode = 404; res.end(); return; }
   res.setHeader('Content-Type', types[path.extname(file)] || 'application/octet-stream');
   fs.createReadStream(file).pipe(res);
@@ -43,7 +46,10 @@ async function main() {
       await db.setProgress('nav-flush-text', { last_row_idx: 2 });
       await db.closeLocalDB();
     }, backend);
-    await page.goto(base + '/index.html', { waitUntil: 'load' });
+    // Browsers without iframe credentialless use the compatible shells (compatibleShellRedirect).
+    const shells = await page.evaluate(() => window.crossOriginIsolated === true && !('credentialless' in HTMLIFrameElement.prototype))
+      ? { studio: '/study-studio.html', room: '/study-library.html' } : { studio: '/index.html', room: '/library.html' };
+    await page.goto(base + shells.studio, { waitUntil: 'load' });
     await page.waitForFunction(() => typeof window.v3NavAwayWithDbClose === 'function' && typeof window.v3FlushPendingProgress === 'function' && !!window.__localDB);
     const pending = await page.evaluate(async () => {
       await window.__localDBInitPromise;
@@ -54,7 +60,7 @@ async function main() {
       return timerPending;
     });
     assert.equal(pending, true, 'the row write is still debounced when navigation starts');
-    await page.waitForURL('**/library.html');
+    await page.waitForURL(url => new URL(url).pathname === shells.room);
     const saved = await page.evaluate(async () => {
       const db = await import('/db/local-db.js');
       await db.initLocalDB();

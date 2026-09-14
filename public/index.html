@@ -2,6 +2,19 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script id="compatibleShellRedirect">
+      // YouTube cannot start in this COEP-isolated shell without iframe
+      // credentialless (iOS, Safari, Firefox); media then booted the whole shell
+      // twice. Load the same shell without COEP before any module, worker or DB.
+      (function () {
+        try {
+          var shells = { '/': '/study-studio.html', '/index.html': '/study-studio.html', '/library.html': '/study-library.html' };
+          var target = shells[location.pathname];
+          if (!target || !window.crossOriginIsolated || 'credentialless' in HTMLIFrameElement.prototype) return;
+          location.replace(target + location.search + location.hash);
+        } catch (_) {}
+      })();
+    </script>
     <title>TTS & Translator Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -13526,7 +13539,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.545";
+    window.APP_VERSION = "3.11.546";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -51263,7 +51276,7 @@ document.addEventListener("i18n:changed", function () {
       if (localStorage.getItem("v3OnboardingSeenV1")) return false;
       if (window.__localDBFollower) return false;
       // Don't pop onboarding on the typo-test page or other side-pages.
-      if (location.pathname && location.pathname !== "/" && location.pathname !== "/index.html") return false;
+      if (location.pathname && location.pathname !== "/" && location.pathname !== "/index.html" && location.pathname !== "/study-studio.html") return false;
       return true;
     } catch (_) { return false; }
   }

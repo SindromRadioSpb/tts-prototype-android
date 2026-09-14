@@ -37,7 +37,7 @@ async function refresh() {
   const diag = createRuntimeDiagnostics({ snapshot: () => ({ phase: 'diagnostic-page' }), locks: navigator.locks, waitMs: 500 });
   try {
     const [live, estimate] = await Promise.all([diag.capture(), bounded(() => navigator.storage.estimate(), null)]);
-    const report = { reportVersion: 2, appVersion: '3.11.545', at: new Date().toISOString(),
+    const report = { reportVersion: 2, appVersion: '3.11.546', at: new Date().toISOString(),
       browser: navigator.userAgent, secureContext: isSecureContext,
       capabilities: { webLocks: !!navigator.locks, indexedDB: typeof indexedDB !== 'undefined', opfs: !!navigator.storage?.getDirectory, broadcastChannel: typeof BroadcastChannel === 'function' },
       storageEstimate: estimate ? { usage: estimate.usage, quota: estimate.quota } : 'unavailable',

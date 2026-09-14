@@ -1,5 +1,33 @@
 # iPhone local DB: diagnostic handoff 3.11.541
 
+## 3.11.546: compatible shell before boot on browsers without iframe credentialless
+
+Owner acceptance of 3.11.545 (normal Chrome): Studio library, Room, Continue
+and Mediatheque open; no DB lock is held. Remaining symptom: opening a YouTube
+material alternated pages before the player appeared (three owner videos,
+report with eight documents in 60 s). Mechanism (code + frames + journal):
+index.html/library.html are COEP-isolated; StudioYtPlayer requires iframe
+credentialless there; WebKit lacks it, so the Room/Studio booted, rendered the
+reader, then compatibleShell() navigated to /study-library.html or
+/study-studio.html (same files without COEP) and booted again.
+
+Owner decision: load the compatible shell first. A first inline `<head>` script
+(`compatibleShellRedirect`) in both shells replaces `/`, `/index.html`,
+`/library.html` with the study-* shell, keeping search and hash, only when the
+page is crossOriginIsolated and iframe credentialless is missing. Chromium and
+the compatible shells are unchanged; compatibleShell() remains a fallback. No DB
+module, header, backend or data change. Onboarding also shows on
+/study-studio.html. No code uses SharedArrayBuffer/Atomics; the fonts README
+claim is stale.
+
+Evidence: unit 5/5 (RED before). `compatible-shell-redirect-smoke.js`: RED on
+3.11.545 WebKit (isolated Room starts its DB worker); GREEN WebKit (redirect
+before any worker, one DB worker, search/hash kept, no extra history entry,
+Studio too); Chromium no redirect. Studio lifecycle and navigation-progress
+smokes pass in WebKit through compatible shells.
+
+Deferred by owner: Incognito Room crash during canon import (no journal yet).
+
 ## 3.11.545: root cause proven on the device; cached documents stop their DB worker
 
 Owner reports from 3.11.544 with identity recording (2026-09-14):
