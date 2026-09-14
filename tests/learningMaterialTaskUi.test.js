@@ -126,6 +126,7 @@ test('a linked video recommends Gemini before continuing with Google Translate',
   assert.match(withKey.message, /Gemini/);
   assert.equal(UI.geminiRecommendation('gemini', true, { video_id: 'x' }), null);
   assert.equal(UI.geminiRecommendation('google-free', true, null), null);
+  assert.equal(typeof UI.confirmGeminiRecommendation, 'function');
 });
 
 test('a linked video without a Gemini key cannot pretend Google Translate can recognise speech',()=>{

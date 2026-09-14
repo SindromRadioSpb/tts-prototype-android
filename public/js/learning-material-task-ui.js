@@ -289,6 +289,19 @@
     if(!link||provider==='gemini'||(hasKey&&provider!=='google-free'))return null;
     return {canContinue:!!hasKey,message:hasKey?t('geminiRecommended'):t('geminiRequiredForLink')};
   }
+  function confirmGeminiRecommendation(){
+    return new Promise(resolve=>{
+      const d=dialog(t('title'));
+      const notice=element('p',t('geminiRecommended'));notice.className='lmt-provider-recommendation';notice.setAttribute('role','alert');d.append(notice);
+      const actions=element('div');actions.className='study-source-actions';d.append(actions);
+      let settled=false;
+      const finish=value=>{if(settled)return;settled=true;d.close();resolve(value);};
+      button(actions,t('useGemini'),()=>finish('gemini'));
+      button(actions,t('continueGoogle'),()=>finish('google-free'));
+      button(actions,t('openTranslationSettings'),()=>finish('settings'));
+      d.addEventListener('cancel',event=>{event.preventDefault();finish(null);});
+    });
+  }
   async function start(){
     ready();const input=operations.capture(),d=dialog(t('title'));
     const link=input.youtube_source || null;
@@ -345,6 +358,6 @@
   }
   async function list(d){ready();d=d||dialog(t('tasks'));d.replaceChildren(element('h2',t('tasks')));const jobs=await store.list();if(!jobs.length)d.append(element('p',t('empty')));for(const job of jobs){const item=element('p');button(item,job.input.title+' · '+t(job.state),()=>showTask(job,d));d.append(item);}button(d,t('close'),()=>d.close());}
   function labels(){const start=document.getElementById('v3ImportPrepareTask');if(start)start.textContent=t('start');const tasks=document.getElementById('v3LearningTasks');if(tasks)tasks.textContent=t('tasks');}
-  window.LearningMaterialTaskUI={configure:value=>{operations=value;},start,list,labels,stageModel,liveDetail,quoteLine,geminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
+  window.LearningMaterialTaskUI={configure:value=>{operations=value;},start,list,labels,stageModel,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
   document.addEventListener('DOMContentLoaded',labels);document.addEventListener('i18n:changed',labels);
 })();

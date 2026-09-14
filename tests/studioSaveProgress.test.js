@@ -114,11 +114,29 @@ test('a provider-specific table restored from local cache becomes a saveable dra
   const cacheEnd = html.indexOf('// Mark draft:', cacheStart);
   const cacheBranch = html.slice(cacheStart, cacheEnd);
   assert.match(cacheBranch, /cache\.provider === requestedProvider/);
+  assert.match(cacheBranch, /v3TableCacheStorageKey\(requestedProvider\)/,
+    'Google and Gemini variants must occupy independent cache slots');
+  assert.match(cacheBranch, /v3LastGeminiMeta = cache\.tableModelMeta/,
+    'a cache hit must restore the table provenance and media passport');
+  assert.match(cacheBranch, /v3RestoreMediaFromMeta\(v3LastGeminiMeta, currentTableData\)/,
+    'a cached provider variant must retain media playback and timing');
   assert.match(
     cacheBranch,
     /v3SessionMarkDraft\(\)/,
     'restoring a different provider result must not leave the previous saved card terminal',
   );
+});
+
+test('rebuilding an existing Google table recommends Gemini without blocking Google cache restore', () => {
+  const start = html.indexOf('async function translateTable()');
+  const cache = html.indexOf('// 1) local table cache first', start);
+  const preflight = html.slice(start, cache);
+  assert.match(preflight, /requestedProvider === "google-free"/);
+  assert.match(preflight, /confirmGeminiRecommendation/);
+  assert.match(preflight, /choice !== "google-free"/,
+    'the explicit Google choice must continue into the provider-specific cache branch');
+  assert.ok(preflight.indexOf('confirmGeminiRecommendation') < preflight.indexOf('v3ResolveMediaContext'),
+    'the recommendation must appear before cache or provider work starts');
 });
 
 test('media-bound drafts offer a new version, never an update that will be refused', () => {
@@ -139,7 +157,7 @@ test('optional table cache failure is named and does not impersonate card-save f
   assert.match(html, /v3TableCacheWriteOutcome\s*=\s*\{\s*status:\s*"failed"/);
   assert.match(html, /saveMeta\.cacheUnavailableNext/);
   assert.equal(
-    (html.match(/sessionStorage\.setItem\(TABLE_CACHE_KEY/g) || []).length,
+    (html.match(/sessionStorage\.setItem\(v3TableCacheStorageKey\(payload && payload\.provider\)/g) || []).length,
     1,
     'all table-cache writes must flow through the named outcome helper',
   );

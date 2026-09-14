@@ -13437,7 +13437,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-source-ui.js?v=528"></script>
 <script src="/js/youtube-asr.js?v=519"></script>
 <script src="/js/learning-material-task.js?v=519"></script>
-<script src="/js/learning-material-task-ui.js?v=520"></script>
+<script src="/js/learning-material-task-ui.js?v=521"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.531";
+    window.APP_VERSION = "3.11.532";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17666,6 +17666,10 @@ function v3NotesRefreshAllButtons() {
     } catch (_) {}
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+    function v3TableCacheStorageKey(provider) {
+        const id = String(provider || "unknown").trim().toLowerCase().replace(/[^a-z0-9-]/g, "_");
+        return TABLE_CACHE_KEY + ":" + id;
+    }
     // Browser-side cache and recovery identity must move in lockstep with
     // ingest/geminiPolicy.js. A historical table may still be displayed, but an
     // explicit rebuild never treats another model's rows as the current result.
@@ -17682,7 +17686,7 @@ function v3NotesRefreshAllButtons() {
 
     function v3StoreTableCache(payload) {
         try {
-            sessionStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(payload));
+            sessionStorage.setItem(v3TableCacheStorageKey(payload && payload.provider), JSON.stringify(payload));
             v3TableCacheWriteOutcome = {
                 status: "stored", error_code: null, recorded_at: new Date().toISOString()
             };
@@ -22682,6 +22686,15 @@ updatePlaylistButtonUI();
                 const cache = {
                     text: String(currentText || "").trim(),
                     provider: savedProvider || normalizedRequestedProvider || null,
+                    tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
+                    direction: getTableDirection(),
+                    translitProfile: getSelectedTranslitProfile(),
+                    segmentMode: !!v3AudioSegmentsForRequest(),
+                    promptId: savedProvider === "gemini"
+                        ? v3ExpectedGeminiTablePromptId(getTableDirection(), !!v3AudioSegmentsForRequest()) : null,
+                    model: savedProvider === "gemini"
+                        ? (v3LastGeminiMeta && (v3LastGeminiMeta.requestedModel || v3LastGeminiMeta.model) || EXPECTED_GEMINI_STUDIO_MODEL) : null,
+                    tableModelMeta: v3LastGeminiMeta || null,
                     rows: currentTableData,
                     createdAt: new Date().toISOString(),
                     lastDocxFilename: lastDocxFilename || generateDocxFileName()
@@ -36086,6 +36099,27 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         const requestedTranslitProfile = getSelectedTranslitProfile();
         const requestedDirection = getTableDirection();
 
+        // A deliberate rebuild is the moment to recommend the higher-quality provider. This is
+        // advisory: continuing with Google remains a first-class choice and still reaches its
+        // own provider-specific cache. A fresh empty-text build is covered by the video flow.
+        if (requestedProvider === "google-free" && geminiKeyGet() &&
+            Array.isArray(currentTableData) && currentTableData.length > 0 &&
+            window.LearningMaterialTaskUI && LearningMaterialTaskUI.confirmGeminiRecommendation) {
+            const choice = await LearningMaterialTaskUI.confirmGeminiRecommendation();
+            if (choice === "gemini") {
+                const selector = document.getElementById("providerSelect");
+                selector.value = "gemini";
+                selector.dispatchEvent(new Event("change", { bubbles: true }));
+                return translateTable();
+            }
+            if (choice === "settings") {
+                const card = document.getElementById("classicTranslationCard");
+                if (card) { card.open = true; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
+                return;
+            }
+            if (choice !== "google-free") return;
+        }
+
         // W1: resolve once from OPFS canon BEFORE any provider branch. Premium Gemini used to
         // bypass segments by construction; now all providers consume the same proven context.
         const v3ResolvedMediaContext = await v3ResolveMediaContext();
@@ -36101,7 +36135,8 @@ try { v3DashCloseViewMenu(); } catch (_) {}
 
         // 1) local table cache first
         try {
-            const rawCache = sessionStorage.getItem(TABLE_CACHE_KEY);
+            const rawCache = sessionStorage.getItem(v3TableCacheStorageKey(requestedProvider))
+                || sessionStorage.getItem(TABLE_CACHE_KEY);
             if (rawCache) {
                 const cache = JSON.parse(rawCache);
                 if (
@@ -36125,9 +36160,18 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
                     try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
                     currentTableData = cache.rows;
+                    v3LastGeminiMeta = cache.tableModelMeta || {
+                        provider: requestedProvider, fromCache: true, generatedAt: cache.createdAt || null,
+                    };
+                    v3AttachImportSource();
                     lastDocxFilename = cache.lastDocxFilename || generateDocxFileName();
 
                     renderTable(currentTableData);
+                    try { v3RestoreMediaFromMeta(v3LastGeminiMeta, currentTableData); } catch (_) {}
+                    // Migrate the historical single-slot cache into this provider's independent
+                    // slot after a proven hit; the other provider can no longer evict it.
+                    cache.tableModelMeta = v3LastGeminiMeta;
+                    v3StoreTableCache(cache);
                     clearTableStale();
                     tableIsStale = false;
 
@@ -36324,6 +36368,7 @@ try {
                         segmentMode: segModeSent,
                         promptId: v3LastGeminiMeta && v3LastGeminiMeta.promptId || null,
                         model: v3LastGeminiMeta && (v3LastGeminiMeta.requestedModel || v3LastGeminiMeta.model) || EXPECTED_GEMINI_STUDIO_MODEL,
+                        tableModelMeta: v3LastGeminiMeta || null,
                         rows: currentTableData,
                         createdAt: new Date().toISOString(),
                         lastDocxFilename: lastDocxFilename
@@ -36483,7 +36528,11 @@ try {
         tableIsStale = false;
         lastDocxFilename = generateDocxFileName();
         v3NotifyTableCacheOutcome(v3StoreTableCache({
-            text: getText().trim(), provider, rows: currentTableData,
+            text: getText().trim(), provider,
+            tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
+            direction: getTableDirection(), translitProfile: translit_profile,
+            segmentMode: !!v3AudioSegmentsForRequest(), promptId: null, model: null,
+            tableModelMeta: v3LastGeminiMeta || null, rows: currentTableData,
             createdAt: new Date().toISOString(), lastDocxFilename,
         }));
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
@@ -37098,7 +37147,11 @@ try {
         lastDocxFilename = generateDocxFileName();
         v3NotifyTableCacheOutcome(v3StoreTableCache({
             text: getText().trim(), provider: "gemini", rows: currentTableData,
+            tableCacheContract: TABLE_CACHE_CONTRACT_VERSION,
+            direction: getTableDirection(), translitProfile: getSelectedTranslitProfile(),
+            segmentMode: true, promptId: v3ExpectedGeminiTablePromptId(getTableDirection(), true),
             model: v3LastGeminiMeta && (v3LastGeminiMeta.requestedModel || v3LastGeminiMeta.model) || EXPECTED_GEMINI_STUDIO_MODEL,
+            tableModelMeta: v3LastGeminiMeta || null,
             createdAt: new Date().toISOString(), lastDocxFilename: lastDocxFilename,
         }));
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
