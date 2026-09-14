@@ -17,6 +17,13 @@ test("passport: audio | captions | null", () => {
   assert.equal(MH.passport(null), null);
 });
 
+test("YouTube-only media metadata is not mistaken for local playable bytes", () => {
+  assert.equal(MH.hasLocalMediaReference({ durationSec: 900, compatibility: { outcome: "READY" } }), false);
+  assert.equal(MH.hasLocalMediaReference({ opfsPath: "media/source.mp4" }), true);
+  assert.equal(MH.hasLocalMediaReference({ sha256: "a".repeat(64) }), true);
+  assert.equal(MH.hasLocalMediaReference({ sessionOnly: true }), true);
+});
+
 test("isDerivedTimingDrop", () => {
   assert.equal(MH.isDerivedTimingDrop("NO_SEGMENT_MAPPING"), true);
   assert.equal(MH.isDerivedTimingDrop("SEG_MAPPING_LOST"), true);

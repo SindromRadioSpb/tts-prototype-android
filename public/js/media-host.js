@@ -470,6 +470,11 @@
   function playableRows(p, rowCount) {
     return replayCoverage(p, rowCount).playable_rows;
   }
+  function hasLocalMediaReference(media) {
+    if (!media || typeof media !== "object") return false;
+    return !!(media.sha256 || media.media_sha256 || media.opfsPath || media.opfs_path ||
+      media.sessionOnly || media.session_only);
+  }
   function pickExactBindingPassport(prev, exact, rowCount) {
     if (!exact) return prev || null;
     var e = playableRows(exact, rowCount);
@@ -593,6 +598,7 @@
     replayCoverage: replayCoverage,
     rowsNeedReplayAugment: rowsNeedReplayAugment,
     playableRows: playableRows,
+    hasLocalMediaReference: hasLocalMediaReference,
     pickExactBindingPassport: pickExactBindingPassport,
     timingDropExplain: timingDropExplain,
     timingCoverageExplain: timingCoverageExplain,
@@ -721,7 +727,10 @@
       if (!table) return;
       table.querySelectorAll(".smk-row-replay").forEach(function (b) { b.remove(); });
       if (!audio || !audio.timing) return;
-      if (audio.video && !audio.media && opts.onReplayVideo) {
+      // A YouTube-only workspace projection still has a `media` descriptor (duration and
+      // compatibility metadata), but no local bytes. Treating object presence as a local file
+      // sent unsaved Import Center tables down resolveBlob(), which hid every row replay button.
+      if (audio.video && !hasLocalMediaReference(audio.media) && opts.onReplayVideo) {
         if (stillActive(audio)) renderRowReplay(table,audio,()=>Promise.resolve(stillActive(audio)),t,(idx)=>opts.onReplayVideo(idx,audio));
         return;
       }

@@ -1172,7 +1172,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lexical-resolution-service.js?v=5",
   "/js/lexical-resolution-ui.js?v=12",
   "/js/material-actions.js?v=1",
-  "/js/media-host.js?v=530",
+  "/js/media-host.js?v=531",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/i18n/locales/ru.js?v=224",
