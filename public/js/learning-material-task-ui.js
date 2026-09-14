@@ -59,6 +59,24 @@
   function qualityNotes(job){
     const rows=(job&&job.table&&job.table.rows)||[];
     const restored=rows.filter(r=>r&&r.source_recovery),notes=[];
+    const timingCoverage=job?.transcript?.timing?.diagnosis?.coverage;
+    if(timingCoverage&&timingCoverage.playable<timingCoverage.total){
+      const messages={ru:'Воспроизведение доступно для {n} из {total} реплик. Для остальных нужна проверенная разметка времени.',en:'Replay is available for {n} of {total} utterances. The rest need verified timing.',he:'הפעלה זמינה ל־{n} מתוך {total} קטעים. לשאר נדרש תזמון בדוק.'};
+      notes.push(fill(messages[document.documentElement.lang]||messages.ru,{n:timingCoverage.playable,total:timingCoverage.total}));
+    }
+    if(job&&job.transcript&&job.transcript.blind){
+      const timing=job.transcript.timing||{};
+      const text={
+        ru:'Видео и таблица сохранены, но повторение строк недоступно: таймкоды распознавания не прошли проверку. Для синхронизации нужна проверенная разметка времени. Повторное распознавание автоматически не запускается.',
+        en:'Video and table are saved, but row replay is unavailable: recognition timestamps failed validation. Synchronization needs verified timestamps. Recognition will not restart automatically.',
+        he:'הסרטון והטבלה נשמרו, אך הפעלת שורות אינה זמינה: חותמות הזמן לא עברו בדיקה. לסנכרון נדרשים זמנים בדוקים. זיהוי הדיבור לא יופעל שוב אוטומטית.'
+      };
+      notes.push(text[document.documentElement.lang]||text.ru);
+      if(Number.isFinite(timing.medianErrorSec)){
+        const detail={ru:'Проверка: {n} совпавших фрагментов; медианное расхождение {sec} с. Это не рекомендуемое смещение.',en:'Check: {n} matching excerpts; median discrepancy {sec} s. This is not a recommended offset.',he:'בדיקה: {n} קטעים תואמים; הפרש חציוני {sec} שניות. זה אינו היסט מומלץ.'};
+        notes.push(fill(detail[document.documentElement.lang]||detail.ru,{n:timing.matched||0,sec:Math.abs(timing.medianErrorSec)}));
+      }
+    }
     const n=rows.filter(r=>r&&r.niqqud_status==='not_vocalized'&&!r.source_recovery).length;
     if(n)notes.push(fill(t('unvocalizedNote'),{n}));
     if(restored.length)notes.push(fill(t('recoveredNote'),{n:restored.length}));
@@ -260,7 +278,6 @@
     d.append(steps,detail,bar,resumed);
     d.__paintStages=paintStages;d.__job=job;
     // Отозванные часы — факт материала, а не деталь прогона: он виден там же, где итог.
-    if(job.transcript&&job.transcript.blind){const b=element('p',t('blindNote'));b.dataset.code='ASR_CLOCK_UNVERIFIED';d.append(b);}
     for(const note of paidNotes(job)){const q=element('p',note);q.className='lmt-paid-note';d.append(q);}
     for(const note of qualityNotes(job)){const q=element('p',note);q.className='lmt-quality-note';d.append(q);}
     if(job.error){const named=t('mismatch_'+job.error_reason)||(words[document.documentElement.lang]||words.ru)[job.error];const error=element('p',named||t('error'));error.setAttribute('role','alert');d.append(error);const details=element('details');details.append(element('summary',({ru:'Подробности',en:'Details',he:'פרטים'})[document.documentElement.lang]||'Details'),element('code',job.error+(job.error_reason?': '+job.error_reason:'')));d.append(details);}
@@ -276,6 +293,8 @@
     });
     if(job.package){button(actions,t('download'),async()=>{try{await operations.download(job);status.textContent=t('downloaded');}catch(_){status.textContent=t('error');}});}
     if(job.saved_text_id)button(actions,t('open'),async()=>{try{await operations.openMaterial(job);d.close();}catch(_){status.textContent=t('error');}});
+    if(job.saved_text_id&&job.transcript?.timing?.verdict!=='verified'&&window.StudyTimingRepair)button(actions,
+      ({ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[document.documentElement.lang]||'Restore synchronization'),()=>StudyTimingRepair.open(job.saved_text_id));
     if(!runner.isRunning(job.id)){button(actions,t('close'),()=>d.close());button(actions,t('remove'),async()=>{if(!window.confirm(t('removeConfirm')))return;await store.remove(job.id);await list(d);});}
     // Итог объявляется ОДИН раз и только скрытой вкладке (см. applyTitleNotice).
     try{applyTitleNotice(document,job);}catch(_){}
@@ -341,7 +360,8 @@
           tlo:money(e.table.lowUsd),thi:money(e.table.highUsd),
           lo:money(e.estimatedUsd+e.table.lowUsd),hi:money(e.estimatedUsd+e.table.highUsd)})
       : fill(t('price'),{d:clock(e.durationSec),p:money(e.estimatedUsd)});
-    return e.minutes ? base+' · '+fill(t('minutesNote'),{n:e.minutes}) : base;
+    const timing=e.timingQuote?({ru:' · включая проверку времени в начале, середине и конце',en:' · includes timing checks at the start, middle and end',he:' · כולל בדיקת תזמון בהתחלה, באמצע ובסוף'}[document.documentElement.lang]||''):'';
+    return (e.minutes ? base+' · '+fill(t('minutesNote'),{n:e.minutes}) : base)+timing;
   }
   function money(usd){return (usd<0.01?usd.toFixed(4):usd.toFixed(2));}
   function clock(sec){const s=Math.max(0,Math.round(sec||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
@@ -375,7 +395,7 @@
     notes.append(element('p',t('note')+input.provider),element('p',t('cost')));
     if(link)notes.append(element('p',t('linkNote')),element('p',t('captionsFree')));
     d.append(notes);
-    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
+    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
     button(actions,t('close'),()=>d.close());title.focus();
     const recommendation=geminiRecommendation(input.provider,!!(operations.hasGeminiKey&&operations.hasGeminiKey()),link);
     if(recommendation){
@@ -398,7 +418,7 @@
     }
     // Платный шаг не начинается вслепую: пока цена не показана, «Подготовить» недоступно. Смета
     // берётся бесплатным countTokens, поэтому сам показ цены ничего не стоит.
-    let quoted=null,expectedSec=null;
+    let quoted=null,timingQuoted=null,expectedSec=null;
     if(link){
       const price=element('p','');price.setAttribute('role','status');d.insertBefore(price,actions);
       const retry=button(actions,t('retryEstimate'),()=>quote());retry.hidden=true;
@@ -406,7 +426,7 @@
         startButton.disabled=true;retry.hidden=true;price.textContent=t('estimating');delete price.dataset.code;
         try{
           const e=await operations.estimate(input);
-          quoted=e.table||null;expectedSec=e.minutes?e.minutes*60:null;
+          quoted=e.table||null;timingQuoted=e.timingQuote||null;expectedSec=e.minutes?e.minutes*60:null;
           // Обе цены сразу — именно этот показ снимает второй window.confirm посреди прогона.
           price.textContent=quoteLine(e);
           if(e.table&&!d.querySelector('.lmt-price-note')){const n=element('p',t('priceNote'));n.className='lmt-price-note';d.insertBefore(n,actions);}

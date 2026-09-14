@@ -7,6 +7,14 @@ const A = 'iG9CE55wbtY', B = 'M7lc1UVf-VE';
 const audio = { media: { sha256: 'a'.repeat(64) }, segments: [{ start: 1, end: 3, text: 'שלום' }, { start: 5, end: 8, text: 'עולם' }], timing: { entries: [{ o: 0, t: 1, end: 3 }, { o: 1, t: 5, end: 8 }] } };
 const rows = [{ he: 'שלום', ru: 'привет' }, { he: 'עולם', ru: 'мир' }];
 
+test('withdrawn ASR clock keeps YouTube available and names the actual limitation',async()=>{
+  const passport={video:{videoId:A},timing:null,timingDropReason:'ASR_CLOCK_UNVERIFIED'};
+  const view=await P.youtubeView(passport,rows);
+  assert.equal(view.video.videoId,A);
+  assert.equal(view.entries,null);
+  assert.equal(view.reason,'ASR_CLOCK_UNVERIFIED');
+});
+
 test('explicit local selection excludes the legacy YouTube source without changing the passport', async () => {
   const original={...audio,video:{videoId:A}}, before=JSON.stringify(original);
   const local=await P.playbackAudio(original,rows,{},'local');

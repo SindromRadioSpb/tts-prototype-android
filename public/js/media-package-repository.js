@@ -214,6 +214,51 @@
     }
     function clone(v) { return JSON.parse(JSON.stringify(v)); }
 
+    // Atomic timing-only revision + binding + passport update; no sentence or learner writes.
+    async function commitTimingRepair(input) {
+      const binding=await getTextBinding(input.text_id);
+      if(!binding||json(binding)!==input.expected_binding_json)throw createError('TIMING_REPAIR_STALE');
+      const current=await getRevision(binding.revision_id),track=await getTrack(binding.track_id);
+      if(!current||!track||track.role!=='user_corrected'||track.current_revision_id!==current.revision_id||track.draft)throw createError('TIMING_REPAIR_STALE');
+      const segments=clone(input.segments);
+      if(segments.length!==current.segments.length)throw createError('TIMING_REPAIR_TEXT_CHANGED');
+      const identity=s=>{const copy=clone(s);delete copy.start_ms;delete copy.end_ms;copy.quality_flags=(copy.quality_flags||[]).filter(f=>f!=='blind');copy.authority=copy.authority||{};delete copy.authority.timing;return json(copy);};
+      const pkg=await getPackage(binding.package_id);let lastEnd=-1;
+      segments.forEach((s,i)=>{
+        if(identity(s)!==identity(current.segments[i]))throw createError('TIMING_REPAIR_TEXT_CHANGED');
+        if(s.start_ms!=null){
+          if(!Number.isFinite(s.end_ms)||s.end_ms<=s.start_ms||s.start_ms<lastEnd||
+             pkg.duration_ms!=null&&s.end_ms>pkg.duration_ms)throw createError('SEGMENT_TIMING_INVALID');
+          lastEnd=s.end_ms;
+        }
+      });
+      Core.validateSegments(segments);
+      const operations=[{type:'timing-repair',base_revision_id:current.revision_id}];
+      const hash=await Core.revisionHash('user_corrected',segments,operations),ts=now();
+      const revision={revision_id:'rev:'+hash,track_id:track.track_id,parent_revision_id:current.revision_id,
+        revision_no:current.revision_no+1,segments,operations,canonical_sha256:hash,
+        author_kind:input.author_kind||'user',provenance:input.provenance||{},created_at:ts};
+      const nextBinding={...binding,revision_id:revision.revision_id,revision_sha256:hash,mapping:input.mapping||binding.mapping};
+      const sourceMeta=await input.prepareSourceMeta(revision,nextBinding,pkg);
+      return transaction(async()=>{
+        const actualBinding=await getTextBinding(input.text_id),actualTrack=await getTrack(track.track_id);
+        const card=await one('SELECT source_meta_json FROM texts WHERE id=?',[String(input.text_id)]);
+        const rows=await q('SELECT * FROM sentences WHERE text_id=? ORDER BY order_index',[String(input.text_id)]);
+        if(json(actualBinding)!==input.expected_binding_json||!actualTrack||actualTrack.current_revision_id!==current.revision_id||actualTrack.draft||
+           !card||card.source_meta_json!==input.expected_source_meta_json||json(rows)!==input.expected_rows_json)throw createError('TIMING_REPAIR_STALE');
+        await r(`INSERT INTO studio_caption_revisions
+          (revision_id,track_id,parent_revision_id,revision_no,segments_json,operations_json,canonical_sha256,author_kind,provenance_json,created_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?)`,[revision.revision_id,track.track_id,current.revision_id,revision.revision_no,json(segments),json(operations),hash,revision.author_kind,json(revision.provenance),ts]);
+        inject(input.fault_inject,'after_revision_insert');
+        await r('UPDATE studio_caption_tracks SET current_revision_id=?,updated_at=? WHERE track_id=?',[revision.revision_id,ts,track.track_id]);
+        await r('UPDATE studio_text_media_bindings SET revision_id=?,revision_sha256=?,mapping_json=?,updated_at=? WHERE text_id=?',[revision.revision_id,hash,json(nextBinding.mapping),ts,String(input.text_id)]);
+        await r('UPDATE texts SET source_meta_json=? WHERE id=?',[sourceMeta,String(input.text_id)]);
+        if(input.onTimingBinding)await input.onTimingBinding(binding,nextBinding);
+        inject(input.fault_inject,'before_commit');
+        return {revision,binding:nextBinding};
+      });
+    }
+
     async function bindText(binding) {
       binding = binding || {};
       var revision = await getRevision(binding.revision_id), track = await getTrack(binding.track_id);
@@ -338,7 +383,7 @@
       });
     }
 
-    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
+    return { commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

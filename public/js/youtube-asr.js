@@ -11,6 +11,7 @@
 
   const AT = () => (typeof require === 'function' ? require('./asr-transcript.js') : globalThis.AsrTranscript);
   const PS = () => (typeof require === 'function' ? require('./playback-source.js') : globalThis.PlaybackSource);
+  const YT = () => (typeof require === 'function' ? require('./youtube-timing.js') : globalThis.YoutubeTiming);
 
   // Кадры для расшифровки речи не нужны, но совсем отключить их API не даёт. Замер 2026-09-11:
   // fps 0.2 стоит 72 073 токена против 160 681 на том же ролике, метки при этом остаются честными
@@ -103,12 +104,52 @@
     // Окна перекрываются, поэтому платного входа больше, чем у одного прохода ровно на перекрытие.
     const spanSec = wins.reduce((sum, w) => sum + (w.endSec - w.startSec), 0);
     const billedTokens = wins.length && durationSec ? Math.round(inputTokens * (spanSec / durationSec)) : inputTokens;
+    const timingQuote = verificationQuote({video_id:target.video_id,url:target.url,durationSec,inputTokens});
     return {
       video_id: target.video_id, url: target.url, durationSec,
       windows: wins.length || 1, inputTokens, billedTokens,
+      timingQuote,
       estimatedUsd: billedTokens * USD_PER_MTOK_IN / 1e6 +
-        (durationSec || 0) * OUT_TOKENS_PER_SEC * USD_PER_MTOK_OUT / 1e6,
+        (durationSec || 0) * OUT_TOKENS_PER_SEC * USD_PER_MTOK_OUT / 1e6 + timingQuote.estimatedUsd,
     };
+  }
+
+  function verificationQuote(source){
+    const windows=YT().windows(source.durationSec),seconds=windows.reduce((n,w)=>n+w.endSec-w.startSec,0);
+    const tokens=source.durationSec?source.inputTokens*seconds/source.durationSec:0;
+    return {schema:'youtube-timing-quote-v1',video_id:source.video_id,url:source.url,
+      durationSec:source.durationSec,windows,maxCalls:windows.length,
+      estimatedUsd:(tokens*USD_PER_MTOK_IN+seconds*OUT_TOKENS_PER_SEC*USD_PER_MTOK_OUT)/1e6};
+  }
+
+  async function verifySavedTiming(deps,source,timeline,quote,onProgress,onEvidence){
+    const target=canonicalize(source.url),plan=YT().windows(source.durationSec);
+    if(!target||!quote||quote.schema!=='youtube-timing-quote-v1'||quote.video_id!==target.video_id||
+       quote.durationSec!==source.durationSec||quote.maxCalls!==plan.length||JSON.stringify(quote.windows)!==JSON.stringify(plan))fail('TIMING_QUOTE_REQUIRED');
+    const evidence={schema:'youtube-asr-timing-evidence-v2',source:{...target,durationSec:source.durationSec},
+      timeline:timeline.map(s=>({...s})),raw_timeline:deps.rawTimelineEvidence||null,probes:[]};
+    if(deps.savedTimingEvidence){
+      const old=deps.savedTimingEvidence;
+      if(JSON.stringify(old.source)!==JSON.stringify(evidence.source)||JSON.stringify(old.timeline)!==JSON.stringify(evidence.timeline))fail('TIMING_EVIDENCE_MISMATCH');
+      evidence.probes=JSON.parse(JSON.stringify(old.probes||[]));
+      evidence.raw_timeline=old.raw_timeline||null;
+    }
+    if(onEvidence)await onEvidence(evidence);
+    // Each quoted probe has one attempt. A failed/unknown-charge call is retained and never
+    // retried automatically. The caller durably records each completed response.
+    for(let i=0;i<plan.length;i++){
+      if(deps.shouldStop&&await deps.shouldStop())break;
+      const window=plan[i];if(onProgress)onProgress('verifying',{index:i,total:plan.length});
+      if(evidence.probes.some(p=>p.window.startSec===window.startSec&&p.window.endSec===window.endSec))continue;
+      const rec={window,segments:[],state:'pending-charge-unknown'};
+      evidence.probes.push(rec);if(onEvidence)await onEvidence(evidence);
+      try{const result=await callWindow({...deps,noRetry:true},target.url,window,{attempts:0},onProgress);
+        rec.segments=result.segments.map(s=>({startSec:s.start,text:s.text}));rec.raw=result.raw;rec.state='complete';
+      }catch(e){rec.error=String(e.code||e.message).slice(0,80);rec.state='failed-charge-unknown';}
+      if(onEvidence)await onEvidence(evidence);
+      if(rec.error)break;
+    }
+    return {evidence,diagnosis:YT().diagnose(evidence)};
   }
 
   // HTTP 200 ещё не значит «есть транскрипт» (живой прогон владельца 2026-09-11 встал на
@@ -167,11 +208,12 @@
       state.attempts++;
       try {
         const data = await post(deps, 'generateContent', buildRequest(url, win));
+        if(!state.responses)state.responses=[];state.responses.push({window:win,raw:data});
         const unusable = classifyResponse(data);
         if (unusable) fail(unusable);
         const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
         const parsed = AT().parseAsrResponse(parts.map((p) => p.text || '').join(''));
-        return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language, usage: data.usageMetadata || null };
+        return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language, usage: data.usageMetadata || null, raw:data };
       } catch (error) {
         // «Перегружен» — это продолжаемое состояние, а не провал прогона: измерено 5×503 и 1×429
         // за одну сессию. Отвергнутая ссылка не ретраится никогда — ответ не изменится.
@@ -179,7 +221,7 @@
         // обрывало цикл на шаг раньше, и самая длинная пауза — самая полезная при перегрузке —
         // не использовалась никогда (наблюдение 2026-09-11).
         if (error.code === 'TASK_CANCELLED') throw error;
-        if (!retryable(error.code) || attempt >= RETRY_DELAYS_MS.length) throw error;
+        if (deps.noRetry || !retryable(error.code) || attempt >= RETRY_DELAYS_MS.length) throw error;
         // Пауза перед повтором — это состояние прогона, а не тишина: без неё пользователь видит
         // замерший экран и не знает, ждать ему или всё сломалось (наблюдение 2026-09-11).
         if (report) report('retrying', { code: error.code, attempt: attempt + 1,
@@ -279,10 +321,12 @@
         v: 1,
         captions: { origin: 'gemini-url-asr', format: 'asr', language: r.language || 'he', at,
                     asr: { provider: 'gemini-url', model: model || null, windows: r.windows || 1 },
-                    timing: r.timing || null },
+                    timing: r.timing || null,
+                    timing_evidence: r.timing_evidence || null },
         video: { platform: 'youtube', videoId: r.video_id, url: r.url },
         media: { durationSec: r.durationSec == null ? null : r.durationSec },
-        segments: (r.segments || []).map((s, i) => ({ i, start: s.startSec, text: s.text })),
+        segments: (r.segments || []).map((s, i) => ({ i, start: s.startSec, text: s.text,
+          ...(Object.prototype.hasOwnProperty.call(s,'endSec')?{end:s.endSec}:{} ) })),
         timing: null,
         // Отозванные часы названы по имени, а не спрятаны за молчаливым null.
         timingDropReason: r.blind ? 'ASR_CLOCK_UNVERIFIED' : null,
@@ -298,7 +342,14 @@
   }
 
   async function transcribe(deps, url, onPhase, opts) {
+    if(opts&&opts.savedTimingEvidence){
+      const old=opts.savedTimingEvidence,target=canonicalize(url);
+      if(!target||old.source.video_id!==target.video_id)fail('TIMING_EVIDENCE_MISMATCH');
+      const checked=await verifySavedTiming({...deps,savedTimingEvidence:old},old.source,old.timeline,opts.timingQuote,onPhase,opts.onTimingEvidence);
+      return verifiedResult(old.source,old.timeline,checked,0,1,[],[]);
+    }
     const est = await estimate(deps, url);
+    if(opts?.timingQuote&&(opts.timingQuote.video_id!==est.video_id||opts.timingQuote.durationSec!==est.durationSec))fail('TIMING_QUOTE_REQUIRED');
     const wins = planWindows(est.durationSec);
     const state = { attempts: 0 };
     // Payload передаётся КАК ЕСТЬ: прежняя сигнатура заворачивала любой объект в поле index,
@@ -326,12 +377,21 @@
     }
     let rows = segments.map((s) => ({ startSec: s.start, text: s.text }));
     let timing = { verdict: 'inconclusive', medianErrorSec: null, checked: 0, matched: 0 };
+    if(opts&&opts.timingQuote){
+      const checked=await verifySavedTiming({...deps,rawTimelineEvidence:state.responses},{...est},rows,opts.timingQuote,report,opts.onTimingEvidence);
+      return verifiedResult(est,rows,checked,state.attempts,wins.length||1,usage,warnings);
+    }
     const win = (!opts || opts.verifyTiming !== false) ? probeWindow(est.durationSec) : null;
+    // Evidence is diagnostic only. It must never be consumed as playable timing.
+    const timingEvidence = { schema: 'youtube-asr-timing-evidence-v1',
+      source: { video_id: est.video_id, url: est.url, durationSec: est.durationSec },
+      timeline: rows.map(r => ({ ...r })), probeWindow: win, probe: null };
     if (win) {
       report('verifying', { index: null, total });
       try {
         const probe = await callWindow(deps, est.url, win, state, report);
-        const measured = matchAnchors(rows, probe.segments.map((s) => ({ startSec: s.start, text: s.text })));
+        timingEvidence.probe = probe.segments.map((s) => ({ startSec: s.start, text: s.text }));
+        const measured = matchAnchors(rows, timingEvidence.probe);
         timing = Object.assign({ verdict: judgeTiming(measured) }, measured);
       } catch (error) {
         // Провал зонда — это НЕ приговор часам: транскрипт уже добыт и остаётся целым.
@@ -343,11 +403,21 @@
     if (blind) rows = rows.map((r) => ({ startSec: null, text: r.text }));
     return {
       video_id: est.video_id, url: est.url, durationSec: est.durationSec, timing, blind,
+      timing_evidence: timingEvidence,
       segments: rows,
       text: segments.map((s) => s.text).join('\n'),
       attempts: state.attempts, windows: wins.length || 1, usage, recovered: state.recovered || null,
       warnings: Array.from(new Set(warnings)),
     };
+  }
+
+  function verifiedResult(source,rows,checked,attempts,windows,usage,warnings){
+    const diagnosis=checked.diagnosis;
+    return {video_id:source.video_id,url:source.url,durationSec:source.durationSec,
+      timing:{verdict:diagnosis.status==='verified'?'verified':diagnosis.status==='partial'?'partial':'suspect',diagnosis},
+      blind:diagnosis.status==='unavailable',segments:diagnosis.segments,text:rows.map(s=>s.text).join('\n'),
+      timing_evidence:checked.evidence,attempts:attempts+checked.evidence.probes.length,
+      windows,usage,warnings:Array.from(new Set(warnings))};
   }
 
   return {
@@ -356,5 +426,6 @@
     canonicalize, durationFromTokens, planWindows, buildRequest, classifyFailure, retryable,
     matchAnchors, judgeTiming, probeWindow, buildImportMeta, classifyResponse,
     estimateTableRange, tableCostWithinQuote, QUOTE_OVERRUN_TOLERANCE, estimate, transcribe,
+    verificationQuote,verifySavedTiming,
   };
 });

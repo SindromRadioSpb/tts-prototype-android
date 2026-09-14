@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.552";
+const CACHE_VERSION = "v3.11.553";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -79,14 +79,16 @@ const PRECACHE_URLS = [
   "/study-library.html",
   "/css/study-video.css",
   "/css/study-video-source.css?v=520",
-  "/js/playback-source.js?v=508",
+  "/js/playback-source.js?v=553",
+  "/js/youtube-timing.js?v=553",
+  "/js/study-timing-repair.js?v=553",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
-  "/js/study-video-source-ui.js?v=545",
-  "/js/youtube-asr.js?v=519",
+  "/js/study-video-source-ui.js?v=553",
+  "/js/youtube-asr.js?v=553",
   "/js/table-source-recovery.js?v=551",
-  "/js/learning-material-task.js?v=552",
-  "/js/learning-material-task-ui.js?v=551",
+  "/js/learning-material-task.js?v=553",
+  "/js/learning-material-task-ui.js?v=553",
 
   "/css/catalog-discovery.css?v=485",
   "/js/catalog-discovery-core.js?v=485",
@@ -171,7 +173,7 @@ const PRECACHE_URLS = [
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
-  "/js/studio-import.js",
+  "/js/studio-import.js?v=553",
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -208,13 +210,13 @@ const PRECACHE_URLS = [
   "/js/chunk-retry.js?v=519",
   "/js/media-store.js",
   "/js/media-package-core.js",
-  "/js/media-package-repository.js",
+  "/js/media-package-repository.js?v=553",
   "/js/material-revision-core.js",
-  "/js/material-revision-repository.js",
+  "/js/material-revision-repository.js?v=553",
   "/js/portable-learning-package-core.js",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=547",
-  "/js/studio-media-package.js",
+  "/js/studio-media-package.js?v=553",
   "/js/studio-media-editor.js?v=529",
   "/js/studio-material-revision.js",
   "/js/studio-portable-learning-package.js?v=529",
@@ -230,10 +232,10 @@ const PRECACHE_URLS = [
   // Package bytes, file hand-off and browser save remain separate outcomes.
   "/js/share-service.js",
   "/js/material-actions.js?v=1",
-  "/js/studio-media-karaoke.js",
+  "/js/studio-media-karaoke.js?v=553",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=531",
+  "/js/media-host.js?v=553",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=506",

@@ -103,6 +103,7 @@
           entry.t < lastTime || entry.o < lastRow) return null;
       if (entry.o === rowCount && !entry.blind) return null;
       const value = {o:entry.o,t:Math.round(entry.t*1000)/1000};
+      if(entry.end_o!=null){if(!Number.isInteger(entry.end_o)||entry.end_o<=entry.o||entry.end_o>rowCount)return null;value.end_o=entry.end_o;}
       if (entry.blind) value.blind = true;
       if (entry.end != null) {
         if (!Number.isFinite(entry.end) || entry.end <= entry.t) return null;
@@ -130,7 +131,8 @@
     result.timingPolicy = current.timing.status === 'unverified' ? 'same-video-default' : current.timing.status;
     if (current.timing.basis_sha256 && await timingBasis(audio,rows) !== current.timing.basis_sha256) { result.reason = 'PLAYBACK_TIMING_CHANGED'; return result; }
     const entries = safeEntries(audio,(rows||[]).length);
-    if (!entries) { result.reason = 'PLAYBACK_TIMING_MISSING'; return result; }
+    if (!entries) { result.reason = audio && audio.timingDropReason === 'ASR_CLOCK_UNVERIFIED'
+      ? 'ASR_CLOCK_UNVERIFIED' : 'PLAYBACK_TIMING_MISSING'; return result; }
     const offset = current.offset_ms/1000;
     // Do not clip a partial segment to zero: that would assert an unverified new boundary.
     if (entries.some(entry => entry.t + offset < 0)) { result.reason = 'PLAYBACK_OFFSET_OUTSIDE'; return result; }

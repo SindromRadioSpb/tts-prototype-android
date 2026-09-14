@@ -4,6 +4,13 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const SI = require("../public/js/studio-import.js");
 
+test('missing timing never aliases segment zero; untimed rows retain unique text identity',()=>{
+  const audio={segments:[{text:'שלום עולם',caption_segment_id:'a',source_segment_ids:['sa']},{text:'משפט אחר',caption_segment_id:'b',source_segment_ids:['sb']}],timing:null};
+  const row=JSON.parse(SI.rowEditMetaForSave({he:'משפט אחר',source_line_index:null},audio,1))._studio_source;
+  assert.equal(row.caption_segment_id,'b');assert.equal(row.source_line_index,1);
+  assert.equal(SI.rowEditMetaForSave({he:'לא קשור'},audio,0),null);
+});
+
 const T = (lang, kind, name) => ({ languageCode: lang, kind: kind, languageName: name });
 
 test("manual Hebrew wins over everything, alphabet is irrelevant", () => {

@@ -399,6 +399,14 @@
     // The selected immutable revision already owns row mapping and segment ends.
     // Legacy heuristics must not replace that verified projection after restore/open.
     if (hasExactRevisionTiming(audio, list)) return;
+    // Import verdicts are not alignment errors. Preserve the reason on reopen and do not
+    // reconstruct a clock explicitly withdrawn by ASR (diagnostic evidence is not timing).
+    if (audio.timingDropReason === 'ASR_CLOCK_UNVERIFIED' ||
+        audio.captions && audio.captions.timing && audio.captions.timing.verdict === 'suspect') {
+      audio.timing = null;
+      audio.timingDropReason = 'ASR_CLOCK_UNVERIFIED';
+      return;
+    }
     var AT = resolveDeps(deps).AT;
     // Портативный/композитный паспорт хранит timing БУЛЕВОЙ сводкой («у реплик есть метки»),
     // а не {entries} — играть по нему нечем: честно считаем «тайминга нет» и строим заново.
@@ -433,7 +441,10 @@
     if (!Number.isInteger(idx) || idx < 0) return false;
     var map = p.timingMap;
     if (map && map.authority === "studio-exact-binding" && Array.isArray(map.row_caption_segment_ids)) {
-      return !!map.row_caption_segment_ids[idx];
+      var caption=map.row_caption_segment_ids[idx];
+      return !!caption && p.timing.entries.some(function(entry){
+        return !entry.blind && entry.o<=idx && (entry.end_o==null||idx<entry.end_o) && map.row_caption_segment_ids[entry.o]===caption;
+      });
     }
     if (map && (map.source === "aligned-partial-proven" || map.source === "persisted-row-identity") && Array.isArray(map.row_seg_idx)) {
       return Number.isInteger(map.row_seg_idx[idx]);

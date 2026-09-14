@@ -13442,17 +13442,19 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/chunk-retry.js?v=519"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/media-package-core.js"></script>
-<script src="/js/media-package-repository.js"></script>
+<script src="/js/media-package-repository.js?v=553"></script>
 <script src="/js/material-revision-core.js"></script>
-<script src="/js/material-revision-repository.js"></script>
+<script src="/js/material-revision-repository.js?v=553"></script>
 <link rel="stylesheet" href="/css/study-video-source.css?v=520">
-<script src="/js/playback-source.js?v=508"></script>
+<script src="/js/playback-source.js?v=553"></script>
+<script src="/js/youtube-timing.js?v=553"></script>
+<script src="/js/study-timing-repair.js?v=553"></script>
 <script src="/js/study-video-transfer.js"></script>
-<script src="/js/study-video-source-ui.js?v=545"></script>
-<script src="/js/youtube-asr.js?v=519"></script>
+<script src="/js/study-video-source-ui.js?v=553"></script>
+<script src="/js/youtube-asr.js?v=553"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
-<script src="/js/learning-material-task.js?v=552"></script>
-<script src="/js/learning-material-task-ui.js?v=551"></script>
+<script src="/js/learning-material-task.js?v=553"></script>
+<script src="/js/learning-material-task-ui.js?v=553"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13460,7 +13462,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=485"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=547"></script>
-<script src="/js/studio-media-package.js"></script>
+<script src="/js/studio-media-package.js?v=553"></script>
 <script src="/js/studio-media-editor.js?v=529"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=529"></script>
@@ -13472,10 +13474,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
 <script src="/js/text-card-format.js"></script>
 <script src="/js/share-service.js"></script>
-<script src="/js/studio-media-karaoke.js"></script>
+<script src="/js/studio-media-karaoke.js?v=553"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/media-host.js?v=531"></script>
+<script src="/js/media-host.js?v=553"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13502,7 +13504,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js" defer></script>
+<script src="/js/studio-import.js?v=553" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13540,7 +13542,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.552";
+    window.APP_VERSION = "3.11.553";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34579,6 +34581,7 @@ window.LearningMaterialTaskUI.configure({
     if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
     const key = typeof window.geminiKeyGet === 'function' ? window.geminiKeyGet() : '';
     if (!key) { const e = new Error('GEMINI_KEY_REQUIRED'); e.code = 'GEMINI_KEY_REQUIRED'; throw e; }
+    const savedTimingEvidence=(await LearningMaterialTask.createStore().get(id))?.timing_evidence;
     const result = await YoutubeAsr.transcribe({fetch:(u,i)=>fetch(u,i),apiKey:key,
       // Просьба остановиться читается из журнала задачи — единственного места, где она живёт.
       shouldStop: async () => { try { const j = await LearningMaterialTask.createStore().get(id); return !!(j && j.cancel_requested); } catch (_) { return false; } }},
@@ -34587,16 +34590,18 @@ window.LearningMaterialTaskUI.configure({
         // Повтор после перегрузки — отдельное событие: у него своё отображение и свой срок.
         const name = phase === 'retrying' ? 'youtube-asr-retry' : 'youtube-asr-progress';
         window.dispatchEvent(new CustomEvent(name,{detail:{id,phase,at}}));
-      } catch (_) {} });
+      } catch (_) {} },{timingQuote:input.timing_quote,savedTimingEvidence,
+        onTimingEvidence:evidence=>LearningMaterialTask.createStore().update(id,old=>({...old,timing_evidence:evidence}))});
     const meta = YoutubeAsr.buildImportMeta(result, AsrTranscript.ASR_MODEL);
     // Тот же промоушен в корректируемый пакет, что и у субтитр: второго хранилища меток нет.
     const pkg = await window.StudioMediaPackage.createFromImportMeta(meta);
     const projection = window.StudioMediaPackage.buildCompatibilityProjection(pkg.revision,{kind:'captions',media:pkg.input.media});
     meta.media_package_ref = projection.media_package_ref;
     meta.captions = Object.assign({},meta.captions,projection.captions);
+    if (result.blind) meta.captions.timingDropReason = 'ASR_CLOCK_UNVERIFIED';
     meta.textSnapshot = pkg.revision.segments.map(s=>s.text).join('\n');
     return {text:meta.textSnapshot,segments:result.segments,durationSec:result.durationSec,
-      timing:result.timing,blind:result.blind,warnings:result.warnings,windows:result.windows,import_meta:meta};
+      timing:result.timing,timing_evidence:result.timing_evidence,blind:result.blind,warnings:result.warnings,windows:result.windows,import_meta:meta};
   },
   async bindPlaybackSource(job, input) {
     const ldb = await ensureLocalDB();

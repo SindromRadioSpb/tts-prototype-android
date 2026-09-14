@@ -127,7 +127,7 @@
     if(!input||(input.youtube_source&&!link)||(!String(input.source_text||'').trim()&&!link)||!String(input.title||'').trim()||!['gemini','gcp','google-free','madlad'].includes(input.provider))throw new Error('TASK_INPUT_INVALID');
     // Согласованная цена — часть того, на что человек согласился, поэтому живёт в журнале задачи,
     // а не в переменной страницы: иначе возобновление её теряет и маршрут спрашивает заново.
-    const source=safe({source_text:input.source_text||'',youtube_source:link,table_quote:input.table_quote||null,title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
+    const source=safe({source_text:input.source_text||'',youtube_source:link,table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
     return {schema:SCHEMA,id:crypto.randomUUID(),signature:await P().digest(JSON.stringify(source)),input:source,phase:'imported',state:'paused',cancel_requested:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),transcript:null,table:null,saved_text_id:null,playback_bound:null,package:null,stage_times:{},error:null};
   }
   function createStore(){

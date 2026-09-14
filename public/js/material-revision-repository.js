@@ -145,6 +145,24 @@
       });
     }
 
+    // Called inside the timing repair transaction. Reuse immutable row versions verbatim:
+    // changing caption timing must not project or regenerate the learning table.
+    async function rebindTimingWithinTransaction(textId,previous,next) {
+      const material=await getMaterialByText(textId);if(!material)return null;
+      const base=await getCurrentRevision(material.material_id);
+      if(!base||base.bound_caption_revision_id!==previous.revision_id||base.bound_caption_revision_sha256!==previous.revision_sha256)throw error('TABLE_BASE_STALE');
+      const revisionNo=Number((await one('SELECT COALESCE(MAX(revision_no),0)+1 AS n FROM studio_table_revisions WHERE material_id=?',[material.material_id])).n);
+      const mapping=new Map(((next.mapping&&next.mapping.rows)||[]).map(row=>[row.row_index,row]));
+      const snapshot=await Core.createTableSnapshot({rows:base.rows.map((row,i)=>{
+        const m=mapping.get(i);return m?{...row,caption_segment_id:m.caption_segment_id||null,source_segment_ids:m.source_segment_ids||[]}:row;
+      }),provider_context:base.provider_context});
+      if(snapshot.content_sha256!==base.content_sha256)throw error('TIMING_REPAIR_TEXT_CHANGED');
+      const id=await insertRevision(snapshot,{material_id:material.material_id,revision_no:revisionNo,parent_revision_id:base.table_revision_id,
+        bound_caption_revision_id:next.revision_id,bound_caption_revision_sha256:next.revision_sha256,impact:{kind:'timing-only-repair',preserves_rows:true}});
+      await r('UPDATE studio_learning_materials SET current_table_revision_id=?,updated_at=? WHERE material_id=?',[id,now(),material.material_id]);
+      return id;
+    }
+
     function projectionMeta(existingJson, row, materialId, revisionId) {
       const existing = parse(existingJson, {}) || {};
       const edited = { ...(existing.edited || {}) };
@@ -208,7 +226,7 @@
       });
     }
 
-    return { promoteLegacyText, getMaterial, getMaterialByText, getRevision, getCurrentRevision, listHistory, commitRevision };
+    return { rebindTimingWithinTransaction, promoteLegacyText, getMaterial, getMaterialByText, getRevision, getCurrentRevision, listHistory, commitRevision };
   }
 
   return { createRepository };

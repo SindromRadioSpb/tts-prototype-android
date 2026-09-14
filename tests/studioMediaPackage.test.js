@@ -180,6 +180,15 @@ test('compatibility and exact-binding projections never coerce blind null timing
     ] },
   }, { package_id: 'mpkg:blind', media_sha256: SHA });
   assert.deepEqual(passport.timing.entries, [{ o: 1, t: 1.5, end: 2.5 }]);
+  const reversed={...revision,segments:corrected.slice().reverse()};
+  const bound=StudioMediaPackage.buildExactBindingPassport(reversed,{
+    package_id:'mpkg:blind',track_id:'track:blind',revision_id:'rev:blind',revision_sha256:hash,
+    mapping:{rows:[{row_index:0,caption_segment_id:corrected[1].caption_segment_id},{row_index:1,caption_segment_id:corrected[0].caption_segment_id}]}
+  },{package_id:'mpkg:blind',media_sha256:SHA});
+  const MH=require('../public/js/media-host'),K=require('../public/js/studio-media-karaoke');
+  assert.equal(MH.rowReplayAllowed(bound,0),true);assert.equal(MH.rowReplayAllowed(bound,1),false);
+  assert.equal(K._segIdxForRow(bound.timing.entries,1),-1);
+  assert.deepEqual(K.activeSegmentRange(bound.timing.entries,2,2),{idx:0,rowStart:0,rowEnd:1});
 });
 
 test('cloud slim filter removes local track snapshots but leaves an honest package stub', () => {

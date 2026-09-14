@@ -36,6 +36,30 @@ async function rawRevision(sha = 'a'.repeat(64), suffix = '') {
   });
 }
 
+test('timing repair atomically preserves rows and raw history, rejects stale edits, and rolls back failures',async()=>{
+  const h=await harness();h.db.run("CREATE TABLE sentences(id TEXT PRIMARY KEY,text_id TEXT,order_index INTEGER,he_plain TEXT,ru TEXT); INSERT INTO texts VALUES('t','{}'); INSERT INTO sentences VALUES('s','t',0,'שלום','привет');");
+  const raw=await rawRevision(),created=await h.repo.createPackage({media:{sha256:'a'.repeat(64),duration_ms:10000},raw_revision:raw});
+  const rev=await h.repo.getCurrentRevision(created.corrected_track_id);
+  await h.repo.bindText({text_id:'t',package_id:created.package_id,track_id:rev.track_id,revision_id:rev.revision_id,revision_sha256:rev.canonical_sha256});
+  const rows=JSON.stringify(h.rows("SELECT * FROM sentences WHERE text_id='t' ORDER BY order_index"));
+  const input={text_id:'t',expected_binding_json:JSON.stringify(await h.repo.getTextBinding('t')),expected_source_meta_json:'{}',expected_rows_json:rows,
+    segments:rev.segments.map(s=>({...s,start_ms:s.start_ms+100,end_ms:s.end_ms+100})),prepareSourceMeta:async()=>'{"timing_repair":true}'};
+  await assert.rejects(h.repo.commitTimingRepair({...input,fault_inject:'before_commit'}),/FAULT_INJECT/);
+  assert.equal((await h.repo.getTextBinding('t')).revision_id,rev.revision_id);
+  assert.equal((await h.repo.getCurrentRevision(rev.track_id)).revision_id,rev.revision_id);
+  assert.equal(h.rows("SELECT source_meta_json FROM texts WHERE id='t'")[0].source_meta_json,'{}');
+  h.db.run("UPDATE sentences SET ru='изменено' WHERE id='s'");
+  await assert.rejects(h.repo.commitTimingRepair(input),/TIMING_REPAIR_STALE/);
+  h.db.run("UPDATE sentences SET ru='привет' WHERE id='s'");
+  await assert.rejects(h.repo.commitTimingRepair({...input,segments:input.segments.map(s=>({...s,text:'чужой'}))}),/TIMING_REPAIR_TEXT_CHANGED/);
+  const result=await h.repo.commitTimingRepair(input);
+  assert.notEqual(result.revision.revision_id,rev.revision_id);
+  assert.deepEqual((await h.repo.getRevision(rev.revision_id)).segments,rev.segments);
+  assert.equal(JSON.stringify(h.rows("SELECT * FROM sentences WHERE text_id='t' ORDER BY order_index")),rows);
+  assert.equal((await h.repo.getTextBinding('t')).revision_id,result.revision.revision_id);
+  await assert.rejects(h.repo.commitTimingRepair(input),/TIMING_REPAIR_STALE/);
+});
+
 test('workspace catalog makes persisted corrected tracks reopenable without another ASR run', async () => {
   const h = await harness();
   h.db.run("INSERT INTO texts(id,source_meta_json) VALUES ('text-1','{}')");

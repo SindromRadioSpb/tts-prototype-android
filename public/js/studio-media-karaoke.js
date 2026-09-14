@@ -23,6 +23,7 @@
     if (entries[k].end != null && Number.isFinite(Number(entries[k].end)) && t >= Number(entries[k].end)) return null;
     var rowStart = entries[k].o;
     var rowEnd = k + 1 < entries.length ? entries[k + 1].o : Math.max(Number(rowCount) || 0, rowStart + 1);
+    if(Number.isInteger(entries[k].end_o))rowEnd=Math.min(rowEnd,entries[k].end_o);
     return { idx: k, rowStart: rowStart, rowEnd: rowEnd };
   }
 
@@ -122,7 +123,7 @@
     if (!Array.isArray(entries)) return -1;
     var k = -1;
     for (var i = 0; i < entries.length; i++) { if (entries[i].o <= rowIdx) k = i; else break; }
-    return k >= 0 && entries[k].blind ? -1 : k;
+    return k >= 0 && (entries[k].blind || (Number.isInteger(entries[k].end_o)&&rowIdx>=entries[k].end_o)) ? -1 : k;
   }
 
   // W2-S5a: источник времени может быть локальным блобом (S4) ИЛИ внешним медиа-адаптером

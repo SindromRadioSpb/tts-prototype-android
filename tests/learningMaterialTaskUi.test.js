@@ -13,6 +13,15 @@ function load() {
   return window.LearningMaterialTaskUI;
 }
 const UI = load();
+
+test('completed material names unavailable row replay and does not recommend the measured offset',()=>{
+  const notes=UI.qualityNotes({state:'ready',transcript:{blind:true,
+    timing:{verdict:'suspect',matched:17,medianErrorSec:299}}});
+  assert.match(notes[0],/повторение строк недоступно/);
+  assert.match(notes[0],/автоматически не запускается/);
+  assert.match(notes[1],/17.*299/);
+  assert.match(notes[1],/не рекомендуемое смещение/);
+});
 test('switching to Gemini retains the YouTube source after the import handoff is cleared', async () => {
   class Element {
     constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; }

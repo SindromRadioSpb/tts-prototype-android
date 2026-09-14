@@ -4,6 +4,40 @@ const AT=require('../public/js/asr-transcript');
 
 const ID='eLYgTqNFn-s';
 
+test('three-window verification requires a quote and persists pending calls before spending',async()=>{
+  const source={video_id:ID,url:`https://www.youtube.com/watch?v=${ID}`,durationSec:600,inputTokens:50000};
+  const timeline=[{startSec:null,text:'שלום עולם משפט אחד'}];
+  const calls=[];let latest;
+  const deps={apiKey:'k',fetch:async()=>{calls.push(latest.probes.at(-1).state);return {ok:false,status:503,text:async()=>'{}'};}};
+  await assert.rejects(Y.verifySavedTiming(deps,source,timeline,null),/TIMING_QUOTE_REQUIRED/);
+  assert.equal(calls.length,0);
+  const q=Y.verificationQuote(source);
+  const first=await Y.verifySavedTiming(deps,source,timeline,q,null,async e=>{latest=JSON.parse(JSON.stringify(e));});
+  assert.deepEqual(calls,['pending-charge-unknown']);
+  assert.equal(first.evidence.probes[0].state,'failed-charge-unknown');
+  const second=await Y.verifySavedTiming({...deps,savedTimingEvidence:first.evidence,shouldStop:()=>true},source,timeline,q);
+  assert.equal(calls.length,1,'failed/pending calls are not paid again');
+  assert.equal(second.diagnosis.status,'unavailable');
+});
+
+test('quoted creation uses three probes, fixes relative probe clocks, and retains paid raw evidence',async()=>{
+  const T=require('../public/js/youtube-timing'),source={video_id:ID,url:`https://www.youtube.com/watch?v=${ID}`,durationSec:600,inputTokens:50000};
+  const timeline=[],probes=T.windows(600).map((window,w)=>[10,25,40,55].map((v,i)=>{
+    const text=`שלום ${String.fromCharCode(1488+w)}${String.fromCharCode(1488+i)} עולם משפט עכשיו`;
+    timeline.push({start:window.startSec+v,text});return {start:v,text};
+  }));
+  const body=segments=>({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({language:'he',segments:segments.map(s=>({start:Math.floor(s.start/60)+':'+String(s.start%60).padStart(2,'0'),text:s.text}))})}]}}]});
+  const fetch=fakeFetch([{status:200,body:{totalTokens:50000,promptTokensDetails:[{modality:'AUDIO',tokenCount:19200}]}},
+    {status:200,body:body(timeline)},...probes.map(p=>({status:200,body:body(p)}))]);
+  const saved=[];const out=await Y.transcribe({fetch,apiKey:'k'},source.url,null,{timingQuote:Y.verificationQuote(source),onTimingEvidence:async e=>saved.push(JSON.parse(JSON.stringify(e)))});
+  assert.equal(out.timing.verdict,'verified');assert.equal(out.timing.diagnosis.reason,'probe-relative-clock');
+  assert.equal(out.segments[4].startSec,265);assert.equal(fetch.calls.length,5);
+  assert.ok(out.timing_evidence.raw_timeline[0].raw.candidates);assert.equal(out.timing_evidence.probes.length,3);
+  assert.equal(saved[0].timeline.length,12);assert.equal(saved[1].probes[0].state,'pending-charge-unknown');
+  const noCalls=fakeFetch([]);const resumed=await Y.transcribe({fetch:noCalls,apiKey:'k'},source.url,null,{timingQuote:Y.verificationQuote(source),savedTimingEvidence:out.timing_evidence});
+  assert.equal(noCalls.calls.length,0);assert.equal(resumed.timing.verdict,'verified');
+});
+
 test('canonicalize strips the extra parameters the provider rejects with HTTP 400',()=>{
   // Measured 2026-09-11: watch?v=<id>&t=42s&list=… returns 400 INVALID_ARGUMENT.
   for(const url of [`https://www.youtube.com/watch?v=${ID}&t=42s&list=PLxxxx`,`https://youtu.be/${ID}?t=20`,`https://m.youtube.com/watch?v=${ID}`]){
@@ -164,6 +198,14 @@ test('a suspect clock keeps every word and only withdraws the timing',async()=>{
   assert.equal(out.blind,true);
   assert.equal(out.segments.length,3,'text is never dropped because timing is untrustworthy');
   assert.equal(out.segments.every(s=>s.startSec===null),true,'no mark may survive a withdrawn clock');
+  assert.deepEqual(out.timing_evidence.timeline.map(s=>s.startSec),[600,612,620]);
+  assert.deepEqual(out.timing_evidence.probe.map(s=>s.startSec),[400,408]);
+  assert.equal(out.timing_evidence.source.video_id,ID);
+  assert.ok(out.timing_evidence.probeWindow.startSec>0);
+  const meta=Y.buildImportMeta(out,'test');
+  assert.deepEqual(meta.captions.captions.timing_evidence,out.timing_evidence);
+  assert.equal(meta.captions.segments.every(s=>s.start===null),true);
+  assert.equal(fetch.calls.length,3,'preserving evidence adds no provider calls');
 });
 
 test('a failed probe does not destroy an otherwise complete transcript',async()=>{

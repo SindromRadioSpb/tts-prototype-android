@@ -183,6 +183,7 @@
   // sentence ordinal. Provider indices remain cross-checks; the stable id is derived from the
   // physical media hash when the provider did not supply one.
   function finiteIndex(value) {
+    if(value==null||value==='')return null;
     var n = Number(value);
     return Number.isInteger(n) && n >= 0 ? n : null;
   }
@@ -216,6 +217,14 @@
     var segIndex = finiteIndex(provenIndexes[rowIndex]);
     if (segIndex == null) segIndex = finiteIndex(entry && entry.seg);
     var segments = audio && Array.isArray(audio.segments) ? audio.segments : [];
+    if(segIndex==null){
+      // Missing timing is not segment zero. Preserve source identity independently of
+      // the clock, but only for an unambiguous whole-row match (never ordinal guessing).
+      var normalize=function(value){return String(value||'').normalize('NFD').replace(/\p{M}/gu,'').replace(/\s+/g,' ').trim();};
+      var rowText=normalize(r.he||r.he_plain),matches=[];
+      if(rowText)segments.forEach(function(s,i){if(normalize(s&&s.text)===rowText)matches.push(i);});
+      if(matches.length===1)segIndex=matches[0];
+    }
     var segment = segIndex != null ? segments[segIndex] : null;
     var sourceLine = finiteIndex(r.source_line_index);
     if (sourceLine == null) sourceLine = segIndex;

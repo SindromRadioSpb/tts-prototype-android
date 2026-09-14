@@ -169,6 +169,22 @@
     return out;
   }
 
+  function verifiedRowMapping(revision,binding,rows) {
+    var plain=function(s){return String(s||'').normalize('NFD').replace(/[^\p{L}\p{N}]/gu,'');};
+    var segments=revision.segments||[],byId=new Map(segments.map(function(s){return [s.caption_segment_id,s];}));
+    var groups=new Map(),valid=new Map();
+    ((binding.mapping&&binding.mapping.rows)||[]).forEach(function(r){if(!groups.has(r.caption_segment_id))groups.set(r.caption_segment_id,[]);groups.get(r.caption_segment_id).push(r.row_index);});
+    groups.forEach(function(indexes,id){indexes.sort(function(a,b){return a-b;});var s=byId.get(id);
+      if(s&&indexes.every(function(i,k){return rows[i]&&(!k||i===indexes[k-1]+1);})&&plain(indexes.map(function(i){return rows[i].he||rows[i].he_plain;}).join(' '))===plain(s.text))indexes.forEach(function(i){valid.set(i,s);});
+    });
+    var mapped=rows.map(function(row,i){var segment=valid.get(i),value=plain(row.he||row.he_plain);
+      if(!segment&&value){var matches=segments.filter(function(s){return plain(s.text)===value;});if(matches.length===1)segment=matches[0];}
+      return {row_index:i,caption_segment_id:segment?segment.caption_segment_id:null,
+        source_segment_ids:segment?(segment.source_segment_ids||[]).slice():[],source_segment_id:segment&&segment.source_segment_ids&&segment.source_segment_ids[0]||null};
+    });
+    return {schema:'studio-row-source-v2',source:'timing-repair-text-verified',rows:mapped};
+  }
+
   function buildExactBindingPassport(revision, binding, media) {
     if (!revision || !binding || !media) throw new Error('EXACT_BINDING_CONTEXT_REQUIRED');
     if (String(revision.revision_id) !== String(binding.revision_id) || String(revision.track_id) !== String(binding.track_id)) throw new Error('EXACT_BINDING_TARGET_MISMATCH');
@@ -197,6 +213,12 @@
       var entry = { o: rowIndex, t: Number(segment.start_ms) / 1000 };
       if (Number.isFinite(Number(segment.end_ms)) && Number(segment.end_ms) > Number(segment.start_ms)) entry.end = Number(segment.end_ms) / 1000;
       entries.push(entry);
+    });
+    entries.forEach(function(entry,index){
+      var caption=rowCaptionIds[entry.o],endRow=entry.o+1;
+      while(endRow<rowCaptionIds.length&&rowCaptionIds[endRow]===caption)endRow++;
+      var nextRow=index+1<entries.length?entries[index+1].o:rowCaptionIds.length;
+      if(endRow<nextRow)entry.end_o=endRow; // A row boundary, never a fabricated time.
     });
     passport.timing = entries.length ? { entries: entries } : null;
     passport.timingSource = entries.length ? 'studio-exact-binding' : null;
@@ -619,6 +641,7 @@
     reconcileCorrectedPreview: reconcileCorrectedPreview,
     buildCompatibilityProjection: buildCompatibilityProjection,
     buildExactBindingPassport: buildExactBindingPassport,
+    verifiedRowMapping: verifiedRowMapping,
     filterForCloudSlim: filterForCloudSlim,
     buildMediaSaveOutcome: buildMediaSaveOutcome, attachMediaSaveOutcome: attachMediaSaveOutcome,
     withoutDerivedMediaTiming: withoutDerivedMediaTiming,

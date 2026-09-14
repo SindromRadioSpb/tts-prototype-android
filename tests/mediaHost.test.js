@@ -10,6 +10,18 @@ const AT = require("../public/js/asr-transcript.js");
 
 const deps = { AT, appVersion: "test" };
 
+test('ASR clock rejection survives reopening without becoming an alignment failure', () => {
+  for (const diagnosis of [{timingDropReason:'ASR_CLOCK_UNVERIFIED'},
+    {captions:{timing:{verdict:'suspect'}}}]) {
+    const passport={...diagnosis,segments:[{start:1,end:3,text:'שלום עולם'}],
+      timing:{entries:[{o:0,t:1,end:3}]}};
+    MH.restoreForRows(passport,[{he:'שלום עולם'}],deps);
+    assert.equal(passport.timing,null);
+    assert.equal(passport.timingDropReason,'ASR_CLOCK_UNVERIFIED');
+    assert.equal(MH.rowReplayAllowed(passport,0),false);
+  }
+});
+
 test("passport: audio | captions | null", () => {
   assert.equal(MH.passport({ audio: { v: 1 } }).v, 1);
   assert.equal(MH.passport({ captions: { v: 2 } }).v, 2);
@@ -252,7 +264,7 @@ test("exact binding: полная привязка (432/432) выигрывае�
 });
 
 test("exact binding: частичная привязка (8/236) НЕ гасит полный выведенный тайминг", () => {
-  const prev = derivedPassport(228), exact = exactPassport(8, 236, 1);
+  const prev = derivedPassport(228), exact = exactPassport(8, 236, 8);
   const picked = MH.pickExactBindingPassport(prev, exact, 236);
   assert.equal(picked, prev, "выведенный тайминг покрывает 236 строк против 8 — он и остаётся");
   assert.ok(picked.exactBindingSkipped, "отказ обязан быть видим в провенансе (R9)");
