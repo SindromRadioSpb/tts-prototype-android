@@ -194,7 +194,7 @@
       const packageBySha = manifest.media.sha256 ? await one('SELECT * FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL', [manifest.media.sha256]) : null;
       const previousMap = previous && previous.id_map || {}, previousPackageId = previousMap.media_package && previousMap.media_package.local_id;
       const previousPackage = previousPackageId ? await one('SELECT package_id FROM studio_media_packages WHERE package_id=? AND deleted_at IS NULL', [previousPackageId]) : null;
-      const packageId = previousPackage ? String(previousPackage.package_id) : packageById ? derivedPackageId : packageBySha ? String(packageBySha.package_id) : previousPackageId || derivedPackageId;
+      let packageId = previousPackage ? String(previousPackage.package_id) : packageById ? derivedPackageId : packageBySha ? String(packageBySha.package_id) : previousPackageId || derivedPackageId;
       const previousNodes = previousMap.nodes || {};
       const trackIds = {
         [p.raw_track.portable_track_id]: previousNodes[p.raw_track.portable_track_id] && previousNodes[p.raw_track.portable_track_id].local_id || 'track:portable:' + shortHash(p.raw_track.portable_track_id),
@@ -202,6 +202,21 @@
       };
       const revisionIds = {}, tableIds = {}, rowIds = {};
       for (const doc of p.caption_revisions) revisionIds[doc.portable_revision_id] = previousMap.caption_revisions && previousMap.caption_revisions[doc.portable_revision_id] || 'rev:' + shortHash(doc.portable_revision_id);
+      // A native material has no import receipt. Deleting its Library projection
+      // intentionally retains source captions. For remote media there is no file
+      // SHA to find that original package: anchor it in the exact raw revision,
+      // not in a new derived package or in a title/URL heuristic. Subsequent
+      // revision/track checks still reject conflicting ownership and content.
+      if (!previousPackageId && !packageById && !packageBySha) {
+        const raw = p.caption_revisions.find(doc => doc.portable_revision_id === p.raw_track.current_revision_id);
+        const source = raw && await one(`SELECT r.canonical_sha256,t.package_id,t.role,t.language,p.media_sha256
+          FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id
+          JOIN studio_media_packages p ON p.package_id=t.package_id
+          WHERE r.revision_id=? AND p.deleted_at IS NULL`, [revisionIds[raw.portable_revision_id]]);
+        if (source && String(source.canonical_sha256 || '') === String(raw.revision.canonical_sha256 || '')
+          && source.role === p.raw_track.role && String(source.language || '') === String(p.raw_track.language || '')
+          && String(source.media_sha256 || '') === String(manifest.media.sha256 || '')) packageId = String(source.package_id);
+      }
       for (const doc of p.table_revisions) tableIds[doc.portable_table_revision_id] = previousMap.table_revisions && previousMap.table_revisions[doc.portable_table_revision_id] || 'table-portable:' + shortHash(doc.portable_table_revision_id);
       for (const doc of p.table_revisions) for (const row of doc.rows || []) if (!rowIds[row.portable_row_id]) rowIds[row.portable_row_id] = previousMap.rows && previousMap.rows[row.portable_row_id] || 'sentence-portable:' + shortHash(row.portable_row_id);
       const materialId = previousMap.material && previousMap.material.local_id || 'material-portable:' + shortHash(manifest.roots.learning_material);

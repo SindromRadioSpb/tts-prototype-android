@@ -42,6 +42,52 @@ async function harness() {
 async function verified() { return Core.verifyPackageFiles(await Core.buildPackageFiles(fixture(),{mode:'archive'})); }
 function count(h,table){return h.rows(`SELECT COUNT(*) n FROM ${table}`)[0].n;}
 
+test('YouTube archive restores a deleted native material using its surviving caption package', async () => {
+  const input=fixture(); input.package.media_sha256=null; input.package.mime=null; input.package.size_bytes=null;
+  input.playback_source=require('../public/js/playback-source.js').fromLegacy({video:{videoId:'iG9CE55wbtY'}});
+  let v=await Core.verifyPackageFiles(await Core.buildPackageFiles(input,{mode:'archive'}));
+  // Optional owner archive is read locally only; never copied into fixtures.
+  if (process.env.PORTABLE_RESTORE_ARCHIVE) {
+    const zip=await require('jszip').loadAsync(require('node:fs').readFileSync(process.env.PORTABLE_RESTORE_ARCHIVE));
+    const files={}; for(const [name,entry] of Object.entries(zip.files)) if(!entry.dir) files[name]=await entry.async('string');
+    v=await Core.verifyPackageFiles(files);
+  }
+  const h=await harness(),plan=await h.repo.dryRun(v);
+  const first=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  seedLifecycleState(h);
+  const deletion=await h.repo.previewMaterialDelete(first.receipt.id_map.text.local_id);
+  await h.repo.deleteMaterial(first.receipt.id_map.text.local_id,{confirm:true,plan_sha256:deletion.plan_sha256});
+  // Native Studio packages have their original ID and no portable-import receipt.
+  h.db.run('DELETE FROM studio_portable_import_receipts');
+  const old=h.rows('SELECT * FROM studio_media_packages')[0], native={...old,package_id:'native-youtube-package'};
+  const columns=Object.keys(native);
+  h.db.run(`INSERT INTO studio_media_packages(${columns.join(',')}) VALUES(${columns.map(()=>'?').join(',')})`,Object.values(native));
+  h.db.run('UPDATE studio_caption_tracks SET package_id=? WHERE package_id=?',[native.package_id,old.package_id]);
+  h.db.run('DELETE FROM studio_media_packages WHERE package_id=?',[old.package_id]);
+  for (const [table,column,idColumn,id,bad] of [
+    ['studio_media_packages','media_sha256','package_id',native.package_id,'f'.repeat(64)],
+    ['studio_caption_tracks','language','track_id',first.receipt.id_map.nodes[v.payload.raw_track.portable_track_id].local_id,'en'],
+    ['studio_caption_revisions','canonical_sha256','revision_id',first.receipt.id_map.caption_revisions[v.payload.raw_track.current_revision_id],'f'.repeat(64)],
+  ]) {
+    const before=h.rows(`SELECT ${column} value FROM ${table} WHERE ${idColumn}=?`,[id])[0].value;
+    h.db.run(`UPDATE ${table} SET ${column}=? WHERE ${idColumn}=?`,[bad,id]);
+    const blocked=await h.repo.dryRun(v),snapshot=h.db.export();
+    await assert.rejects(h.repo.applyVerified(v,{plan_sha256:blocked.plan_sha256}),/CONFLICT|IMPORT_PLAN_BLOCKED/);
+    assert.deepEqual(h.db.export(),snapshot,'real conflicts must not change the database');
+    h.db.run(`UPDATE ${table} SET ${column}=? WHERE ${idColumn}=?`,[before,id]);
+  }
+  const captions=h.rows('SELECT * FROM studio_caption_revisions'),reviews=h.rows('SELECT * FROM review_log');
+  const restore=await h.repo.dryRun(v);
+  const result=await h.repo.applyVerified(v,{plan_sha256:restore.plan_sha256});
+  assert.equal(result.receipt.id_map.media_package.local_id,native.package_id);
+  assert.equal(count(h,'studio_media_packages'),1);
+  assert.deepEqual(h.rows('SELECT * FROM studio_caption_revisions'),captions);
+  assert.deepEqual(h.rows('SELECT * FROM review_log'),reviews);
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+  assert.equal(count(h,'texts'),1);
+  assert.deepEqual(JSON.parse(h.rows('SELECT source_meta_json FROM texts')[0].source_meta_json).playback_source,v.payload.playback_source);
+});
+
 test('YouTube-only package survives export, clean import and re-export without a local media file', async () => {
   const Playback = require('../public/js/playback-source.js');
   const input = fixture(); input.package.media_sha256 = null; input.package.mime = null; input.package.size_bytes = null;
