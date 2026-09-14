@@ -16,7 +16,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=528">
+    <link rel="modulepreload" href="/db/local-db.js?v=529">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -10828,7 +10828,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=528';
+  import * as _ldb from '/db/local-db.js?v=529';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13324,9 +13324,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=224"></script>
-<script src="/i18n/locales/en.js?v=224"></script>
-<script src="/i18n/locales/he.js?v=224"></script>
+<script src="/i18n/locales/ru.js?v=225"></script>
+<script src="/i18n/locales/en.js?v=225"></script>
+<script src="/i18n/locales/he.js?v=225"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13525,7 +13525,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.534";
+    window.APP_VERSION = "3.11.535";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -20147,7 +20147,7 @@ function setRowButtonLoading(rowIdx, isLoading) {
     v3ApplyRowTtsButtonState(btn, nextState);
 }
 
-function setRowSelectedUI(rowIdx) {
+function setRowSelectedUI(rowIdx, options) {
     const table = document.getElementById("proTable");
     if (!table) return;
 
@@ -20171,9 +20171,14 @@ function setRowSelectedUI(rowIdx) {
     if (tr) tr.classList.add("row-selected");
 
     rowSelectedRowIdx = rowIdx;
-saveLastSelectedRowIdx(rowSelectedRowIdx);
-
-v3DebouncedSaveProgress(rowSelectedRowIdx);
+// A DOM rebuild and a durable Continue restore are presentation, not a new
+// learner decision. In particular, cold boot briefly carries row 0 before the
+// async text_progress read; writing that placeholder used to erase the real
+// cross-session position. Only deliberate row work uses the default writer.
+if (!(options && options.persist === false)) {
+  saveLastSelectedRowIdx(rowSelectedRowIdx);
+  v3DebouncedSaveProgress(rowSelectedRowIdx);
+}
 
 updateRowFocusMode(); // Week 6 guard: keep visual modes consistent after selection change
 
@@ -27123,7 +27128,7 @@ function v3ApplyResumeSelection(token, rowIdx) {
     const max = Array.isArray(currentTableData) ? (currentTableData.length - 1) : -1;
     const clamped = (max >= 0) ? Math.max(0, Math.min(Math.trunc(n), max)) : Math.trunc(n);
 
-    setRowSelectedUI(clamped);
+    setRowSelectedUI(clamped, { persist: false });
 
     // scroll after selection; use rAF once more to avoid rare "no scroll" on heavy DOM
     requestAnimationFrame(() => {
@@ -38437,7 +38442,7 @@ if (rowSelectedRowIdx === null || !Number.isFinite(rowSelectedRowIdx)) {
 
 if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) {
     if (rowSelectedRowIdx >= 0 && rowSelectedRowIdx < __rowCount) {
-        setRowSelectedUI(rowSelectedRowIdx);
+        setRowSelectedUI(rowSelectedRowIdx, { persist: false });
     } else {
         clearRowSelectedUI(); // централизованный сброс + Week 6 guard
     }
@@ -42330,6 +42335,11 @@ try {
         try {
             const rowIdx = Number(btn.getAttribute("data-row-idx"));
             if (!Number.isFinite(rowIdx)) return;
+
+            // Opening a row note is deliberate work on that row just like a
+            // row tap, TTS play or media follow. Keep Continue source-neutral
+            // by writing the same canonical text_progress.last_row_idx.
+            setRowSelectedUI(rowIdx);
 
             const row = Array.isArray(currentTableData) ? currentTableData[rowIdx] : null;
             const textId = row && row._v3_textId ? String(row._v3_textId) : "";

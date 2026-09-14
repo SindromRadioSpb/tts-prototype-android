@@ -93,6 +93,18 @@ function _installDbLifecycle() {
   window.addEventListener('pageshow', () => {
     window.dispatchEvent(new CustomEvent('localdb:refresh'));
   });
+  // iOS may keep the previous document in BFCache while the visible tab has
+  // already navigated from Studio to Room (or back). If that document is
+  // frozen between BEGIN and its next statement, its dedicated worker keeps
+  // the origin Web Lock even though the user can see only one tab. Queue a
+  // close before the document is frozen: OperationLease rolls back an open
+  // transaction and acknowledges only after every physical VFS handle closes.
+  // The worker itself stays alive, so a BFCache pageshow can reopen the same
+  // physical store without reloading or losing the page's draft/media state.
+  window.addEventListener('pagehide', () => {
+    if (!_worker || !_initialized) return;
+    _call('close').catch(() => {});
+  }, { passive: true });
   if (typeof BroadcastChannel === 'function') {
     _changesChannel = new BroadcastChannel('localdb-commits-v2');
     _changesChannel.onmessage = () => window.dispatchEvent(new CustomEvent('localdb:changed'));
@@ -106,9 +118,18 @@ export async function closeLocalDB() {
   // 'close' is acknowledged only after physical resources have been released.
 }
 export async function recoverLocalDB() {
-  if (_workerCrashed) {
+  // A lock-wait timeout means this worker never acquired physical ownership.
+  // Do not queue Retry behind another 30-second close attempt in that same
+  // worker: replace the waiter and start a clean request. This cannot steal a
+  // live lock or switch VFS; the new worker still uses the same Web Lock and
+  // sticky storage identity.
+  const replaceTimedOutWaiter = _lastDbError && _lastDbError.code === 'DB_LOCK_WAIT_TIMEOUT';
+  if (_workerCrashed || replaceTimedOutWaiter) {
+    const resetError = new DbUnavailableError('DB_RECOVERED_WORKER_REPLACED');
+    for (const h of _pending.values()) h.reject(resetError);
+    _pending.clear();
     try { _worker?.terminate(); } catch (_) {}
-    _worker = null; _initialized = false; _workerCrashed = false;
+    _worker = null; _initialized = false; _workerCrashed = false; _vfs = null; _vfsKind = null;
   }
   _lastDbError = null;
   if (_worker) await closeLocalDB();

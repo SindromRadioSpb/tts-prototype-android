@@ -2920,7 +2920,7 @@ window.I18N_LOCALES.en = {
     state: {
       loading: "Loading…",
       publishing: "Preparing the library — fetching the canon…",
-      dbBusy: "The library is open in another tab. If that tab is still loading, this one will connect automatically; otherwise close it and reload.",
+      dbBusy: "The local library is temporarily busy. Press Retry; if an update was just installed, reload the page once.",
       error: "Could not load the library.",
     },
     prov: {

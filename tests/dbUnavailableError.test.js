@@ -8,11 +8,13 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
+const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
 
 const modUrl = pathToFileURL(
   path.join(__dirname, "..", "public", "db", "local-db.js")
 ).href;
+const localDbSource = fs.readFileSync(path.join(__dirname, "..", "public", "db", "local-db.js"), "utf8");
 
 test("DbUnavailableError carries a code", async () => {
   const { DbUnavailableError } = await import(modUrl);
@@ -47,4 +49,22 @@ test("classifyWorkerError does NOT wrap ordinary errors", async () => {
   ]) {
     assert.equal(classifyWorkerError(msg), null, String(msg));
   }
+});
+
+test("pagehide queues physical DB closure before a BFCache document can freeze", () => {
+  const start = localDbSource.indexOf("function _installDbLifecycle()");
+  const end = localDbSource.indexOf("export async function releaseDbOwnership", start);
+  const lifecycle = localDbSource.slice(start, end);
+  assert.match(lifecycle, /addEventListener\('pagehide',[\s\S]*_call\('close'\)/);
+  assert.doesNotMatch(lifecycle, /\.terminate\(\)/,
+    "BFCache cleanup must preserve the page worker and only release physical DB resources");
+});
+
+test("Retry replaces a timed-out waiter instead of queueing another close timeout", () => {
+  const start = localDbSource.indexOf("export async function recoverLocalDB()");
+  const end = localDbSource.indexOf("function _call(", start);
+  const recovery = localDbSource.slice(start, end);
+  assert.match(recovery, /DB_LOCK_WAIT_TIMEOUT/);
+  assert.match(recovery, /_worker\?\.terminate\(\)/);
+  assert.ok(recovery.indexOf("_worker?.terminate()") < recovery.indexOf("await closeLocalDB()"));
 });

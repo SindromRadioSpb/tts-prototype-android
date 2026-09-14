@@ -202,3 +202,21 @@ test('the unrelated TTS credential action is not another generic Save button', (
     assert.notEqual(match[1], { ru: 'Сохранить', en: 'Save', he: 'שמור' }[locale], `${locale}: action names the key`);
   }
 });
+
+test('Studio persists one canonical Continue row for plain and media work', () => {
+  assert.match(html, /function setRowSelectedUI\(rowIdx, options\)[\s\S]*v3DebouncedSaveProgress\(rowSelectedRowIdx\)/,
+    'plain row selection must write text_progress');
+  assert.match(html, /Opening a row note is deliberate work[\s\S]*setRowSelectedUI\(rowIdx\)/,
+    'opening a row note must update the same working position');
+  const mediaFollowStart = html.indexOf('function v3MediaFollowTableRange(range)');
+  const mediaFollowEnd = html.indexOf('\nfunction v3MediaStage()', mediaFollowStart);
+  const mediaFollow = html.slice(mediaFollowStart, mediaFollowEnd);
+  assert.match(mediaFollow, /v3QueueProgress\(v3ActiveTextId, range\.rowStart\)/,
+    'media following must update the same working position');
+  assert.match(html, /else if \(resume\)[\s\S]*getProgress\(textId\)[\s\S]*v3ApplyResumeSelection/,
+    'Continue must restore canonical progress independently of media presence');
+  assert.match(html, /setRowSelectedUI\(clamped, \{ persist: false \}\)/,
+    'Continue restore must not rewrite the durable row while rendering');
+  assert.match(html, /setRowSelectedUI\(rowSelectedRowIdx, \{ persist: false \}\)/,
+    'a cold DOM rebuild must not overwrite durable progress with its placeholder row');
+});
