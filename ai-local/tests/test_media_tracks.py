@@ -11,6 +11,7 @@ from ai_local.media_compat import (
     AUDIO_STREAM_CHOICE_REQUIRED,
     AUDIO_TRANSCODE_REQUIRED,
     BLOCKED,
+    LITE_MAX_BYTES,
     LOSSLESS_REPAIR,
     MAX_BYTES,
     READY,
@@ -566,3 +567,105 @@ def test_media_routes_serve_subtitles_accept_audio_choice_and_expose_hash_header
     exposed = _cors_headers("http://127.0.0.1:3000")["Access-Control-Expose-Headers"]
     assert "X-LP-Subtitle-SHA256" in exposed
     assert "X-LP-Media-SHA256" in exposed
+
+
+def test_light_copy_plan_fits_the_phone_budget_without_upscaling():
+    assert LITE_MAX_BYTES == 400 * 1024 * 1024
+    episode = classify_probe(_normalize_probe(owner_shaped_raw_probe()))
+    lite = episode["lite_plan"]
+    assert lite["mode"] == "lite_transcode"
+    assert lite["height"] == 540  # 44:32 of 1080p does not fit 720p inside 400 MiB
+    assert 1_000_000 < lite["video_bitrate"] < 1_150_000
+    assert lite["audio_bitrate"] == "96k"
+    assert lite["max_output_bytes"] == LITE_MAX_BYTES
+    assert lite["selected_audio_stream"] == 2
+    assert episode["lite_plan_sha256"] and episode["lite_plan_sha256"] != episode["plan_sha256"]
+
+    short = owner_shaped_raw_probe()
+    short["format"]["duration"] = "600"
+    assert classify_probe(_normalize_probe(short))["lite_plan"]["height"] == 720
+
+    small = owner_shaped_raw_probe()
+    small["streams"][0].update(width=640, height=360)
+    assert classify_probe(_normalize_probe(small))["lite_plan"]["height"] == 360
+
+
+def test_light_copy_is_refused_when_the_budget_cannot_carry_watchable_video():
+    three_hours = owner_shaped_raw_probe(size=3 * GIB)
+    three_hours["format"]["duration"] = "10800"
+    report = classify_probe(_normalize_probe(three_hours))
+    assert report["outcome"] != BLOCKED
+    assert report["lite_plan"] is None
+    assert report["lite_plan_sha256"] is None
+    assert report["lite_reason"] == "lite_budget_unreachable"
+
+
+@pytest.mark.asyncio
+@pytest.mark.timeout(180)
+async def test_real_light_copy_stays_inside_its_budget_and_keeps_the_timeline(tmp_path):
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        pytest.skip("Companion FFmpeg runtime is not installed")
+    source = build_multitrack_mkv(tmp_path)
+    report = await probe_media(source)
+    lite_plan = report["lite_plan"]
+    assert lite_plan["height"] == 360
+    output = tmp_path / "output.partial.mp4"
+
+    async def progress(_value):
+        return None
+
+    await prepare_media(source, output, "lite_transcode", asyncio.Event(), progress, plan=lite_plan)
+    after = await probe_media(output)
+    assert after["outcome"] == READY
+    assert output.stat().st_size <= lite_plan["max_output_bytes"]
+    assert after["probe"]["video_streams"][0]["height"] == 360
+    assert [stream["language"] for stream in after["probe"]["audio_streams"]] == ["he"]
+    assert abs(float(after["duration_seconds"]) - float(report["duration_seconds"])) <= 0.15
+
+
+@pytest.mark.asyncio
+async def test_light_copy_is_a_second_verified_rendition_of_the_same_job(tmp_path):
+    report = report_for(owner_shaped_raw_probe())
+
+    async def probe(path):
+        if path.name.startswith("output.partial"):
+            return {"outcome": READY, "duration_seconds": 2672.68}
+        return json.loads(json.dumps(report))
+
+    async def prepare(_source, output, mode, _cancel, _progress, plan=None):
+        output.write_bytes(b"lite-bytes" if mode == "lite_transcode" else b"full-bytes")
+
+    async def prove(_source, _output, source_video_index=None):
+        return {"decoded_frame_hash_equal": True, "timeline_equal": True, "audio_reencoded": True, "verified": True}
+
+    manager = MediaJobManager(tmp_path, probe_fn=probe, prepare_fn=prepare, extract_fn=no_subtitles,
+                              video_proof_fn=prove)
+    job = await manager.create(chunks(b"mkv"), filename="episode.mkv", content_type="video/x-matroska")
+    await manager.wait(job["job_id"])
+    waiting = manager.get(job["job_id"])
+
+    # The light copy is a second rendition of a job that already has a verified full output.
+    with pytest.raises(MediaJobConflict):
+        await manager.prepare(job["job_id"], mode="lite_transcode",
+                              plan_sha256=waiting["report"]["lite_plan_sha256"], rendition="lite")
+
+    await manager.prepare(job["job_id"], mode="audio_transcode", plan_sha256=waiting["report"]["plan_sha256"])
+    await manager.wait(job["job_id"])
+    full = manager.get(job["job_id"])
+    assert full["state"] == "COMPLETE"
+
+    with pytest.raises(MediaJobConflict):
+        await manager.prepare(job["job_id"], mode="lite_transcode", plan_sha256="b" * 64, rendition="lite")
+    await manager.prepare(job["job_id"], mode="lite_transcode",
+                          plan_sha256=full["report"]["lite_plan_sha256"], rendition="lite")
+    await manager.wait(job["job_id"])
+    complete = manager.get(job["job_id"])
+    assert complete["state"] == "COMPLETE"
+    assert complete["output_sha256"] == full["output_sha256"]
+    renditions = complete["renditions"]
+    assert renditions["full"]["sha256"] == full["output_sha256"]
+    assert renditions["lite"]["sha256"] == hashlib.sha256(b"lite-bytes").hexdigest()
+    assert renditions["lite"]["size_bytes"] == len(b"lite-bytes")
+    assert renditions["lite"]["role"] == "lite"
+    assert manager.file_path(job["job_id"]).read_bytes() == b"full-bytes"
+    assert manager.file_path(job["job_id"], rendition="lite").read_bytes() == b"lite-bytes"

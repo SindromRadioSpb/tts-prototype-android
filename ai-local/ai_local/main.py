@@ -225,8 +225,9 @@ class MtJobRequest(BaseModel):
 
 
 class MediaPrepareRequest(BaseModel):
-    mode: str = Field(..., pattern=r"^(lossless_repair|audio_transcode|transcode)$")
+    mode: str = Field(..., pattern=r"^(lossless_repair|audio_transcode|transcode|lite_transcode)$")
     plan_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
+    rendition: str = Field("full", pattern=r"^(full|lite)$")
 
 
 class MediaAudioStreamRequest(BaseModel):
@@ -295,7 +296,9 @@ async def v1_media_job_status(job_id: str):
 @app.post("/v1/media/jobs/{job_id}/prepare", status_code=202, dependencies=[Depends(require_companion_auth)])
 async def v1_media_job_prepare(job_id: str, body: MediaPrepareRequest):
     try:
-        return await media_job_manager.prepare(job_id, mode=body.mode, plan_sha256=body.plan_sha256)
+        return await media_job_manager.prepare(
+            job_id, mode=body.mode, plan_sha256=body.plan_sha256, rendition=body.rendition,
+        )
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc
     except MediaJobConflict as exc:
@@ -311,13 +314,16 @@ async def v1_media_job_cancel(job_id: str):
 
 
 @app.get("/v1/media/jobs/{job_id}/file", dependencies=[Depends(require_companion_auth)])
-async def v1_media_job_file(job_id: str):
+async def v1_media_job_file(job_id: str, rendition: str = "full"):
     try:
-        path = media_job_manager.file_path(job_id)
+        path = media_job_manager.file_path(job_id, rendition)
         manifest = media_job_manager.get(job_id)
+        entry = (manifest.get("renditions") or {}).get(rendition) or {}
+        name = entry.get("name") or manifest.get("output_name") or "mobile-ready.mp4"
+        sha = entry.get("sha256") or manifest.get("output_sha256")
         return FileResponse(
-            path, media_type="video/mp4", filename=manifest.get("output_name") or "mobile-ready.mp4",
-            headers={"X-LP-Media-SHA256": str(manifest.get("output_sha256") or ""), "Cache-Control": "no-store"},
+            path, media_type="video/mp4", filename=name,
+            headers={"X-LP-Media-SHA256": str(sha or ""), "Cache-Control": "no-store"},
         )
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc

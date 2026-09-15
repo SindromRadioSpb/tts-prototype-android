@@ -30,6 +30,13 @@ MAX_BYTES = 3 * 1024 * 1024 * 1024
 MAX_DURATION_SECONDS = 3 * 60 * 60
 MAX_SUBTITLE_TRACKS = 32
 MAX_SUBTITLE_BYTES = 6 * 1024 * 1024
+# Owner decision 2026-09-16: a phone-sized copy of the same material, never above 400 MiB.
+LITE_MAX_BYTES = 400 * 1024 * 1024
+LITE_AUDIO_BPS = 96_000
+LITE_BUDGET_FILL = 0.94
+LITE_FPS_CAP = 30
+# height -> (lowest watchable video bitrate, highest useful video bitrate)
+_LITE_LADDER = ((720, 1_200_000, 2_500_000), (540, 700_000, 1_500_000), (360, 400_000, 900_000))
 
 ProgressFn = Callable[[float], Awaitable[None]]
 
@@ -206,6 +213,44 @@ def _estimated_copy_bytes(video: dict[str, Any], audio: dict[str, Any], duration
     return fallback
 
 
+def _lite_plan(video: dict[str, Any], duration: float, selected_video_stream: int, selected_audio_stream: int) -> dict[str, Any] | None:
+    """Plan a phone-sized copy inside the fixed budget, or nothing when it cannot stay watchable."""
+    source_height = int(video.get("height") or 0)
+    if duration <= 0 or source_height <= 0:
+        return None
+    budget_bps = LITE_MAX_BYTES * 8 * LITE_BUDGET_FILL / duration - LITE_AUDIO_BPS
+    for height, minimum_bps, maximum_bps in _LITE_LADDER:
+        if height > source_height or budget_bps < minimum_bps:
+            continue
+        video_bitrate = int(min(budget_bps, maximum_bps) // 1000 * 1000)
+        return {
+            "mode": "lite_transcode",
+            "container": "mp4",
+            "video_encoder": "libx264",
+            "video_profile": "main",
+            "pixel_format": "yuv420p",
+            "height": height,
+            "fps_cap": LITE_FPS_CAP,
+            "video_bitrate": video_bitrate,
+            "video_preset": "faster",
+            "audio_encoder": "aac",
+            "audio_profile": "lc",
+            "audio_bitrate": "96k",
+            "faststart": True,
+            "original_preserved": True,
+            "selected_video_stream": selected_video_stream,
+            "selected_audio_stream": selected_audio_stream,
+            "max_output_bytes": LITE_MAX_BYTES,
+            "quality_impact": "video_and_audio_reencoded_for_phone",
+            "operations": [
+                "decode selected streams", "keep only the selected audio stream",
+                "scale to %dp without upscaling" % height, "encode H.264 Main yuv420p at %d bit/s" % video_bitrate,
+                "encode AAC 96k", "MP4 faststart",
+            ],
+        }
+    return None
+
+
 def _estimated_audio_transcode_bytes(video: dict[str, Any], duration: float, audio_bps: int, fallback: int) -> int:
     """The picture is copied, so its own bitrate — not the source file size — sets the output size."""
     video_bps = _int_or_none(video.get("bps"))
@@ -292,8 +337,12 @@ def classify_probe(
     selected_video_stream = int(video.get("index") or 0)
     selected_audio_stream = int(audio.get("index") or 0)
     single_audio_operation = ["keep only the selected audio stream"] if multi_audio else []
+    lite_plan = _lite_plan(video, duration, selected_video_stream, selected_audio_stream)
 
     base = {
+        "lite_plan": lite_plan,
+        "lite_plan_sha256": _canonical_sha256(lite_plan) if lite_plan else None,
+        "lite_reason": None if lite_plan else "lite_budget_unreachable",
         "schema": "media-compat-report-v1",
         "target": "lp-ios-android-v1",
         "target_contract": TARGET_CONTRACT,
@@ -784,6 +833,33 @@ async def prepare_media(
             "-c:a", "aac", "-profile:a", "aac_low", "-ar", "48000", "-ac", "2", "-b:a", "160k",
             "-movflags", "+faststart", "-progress", "pipe:1", "-nostats", os.fspath(output),
         ]
+    elif mode == "lite_transcode":
+        source_video = ((source_report.get("probe") or {}).get("video_streams") or [{}])[0]
+        source_fps = _rate(source_video.get("avg_frame_rate") or source_video.get("r_frame_rate")) or 30.0
+        target_fps = min(source_fps, float(plan.get("fps_cap") or LITE_FPS_CAP))
+        height = int(plan.get("height") or 360)
+        bitrate = int(plan.get("video_bitrate") or 0)
+        if bitrate <= 0:
+            raise ValueError("light copy plan has no video bitrate")
+        budget = int(plan.get("max_output_bytes") or LITE_MAX_BYTES)
+        for attempt, factor in enumerate((1.0, 0.85)):
+            attempt_bitrate = int(bitrate * factor)
+            args = [
+                "ffmpeg", "-y", "-v", "error", "-i", os.fspath(source),
+                "-map", video_map, "-map", audio_map, "-map_chapters", "-1",
+                "-vf", "scale=-2:'min(ih,%d)',fps=%.3f,format=yuv420p" % (height, target_fps),
+                "-c:v", "libx264", "-profile:v", "main", "-preset", str(plan.get("video_preset") or "faster"),
+                "-b:v", str(attempt_bitrate), "-maxrate", str(int(attempt_bitrate * 1.45)),
+                "-bufsize", str(attempt_bitrate * 2),
+                "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
+                "-c:a", "aac", "-profile:a", "aac_low", "-ar", "48000", "-ac", "2", "-b:a", "96k",
+                "-movflags", "+faststart", "-progress", "pipe:1", "-nostats", os.fspath(output),
+            ]
+            await _run_ffmpeg_with_progress(args, cancel, progress, duration)
+            if output.stat().st_size <= budget:
+                await progress(0.92)
+                return {"mode": mode, "attempts": attempt + 1, "video_bitrate": attempt_bitrate}
+        raise RuntimeError("LITE_BUDGET_EXCEEDED")
     elif mode == "transcode":
         source_video = ((source_report.get("probe") or {}).get("video_streams") or [{}])[0]
         source_fps = _rate(source_video.get("avg_frame_rate") or source_video.get("r_frame_rate")) or 30.0
@@ -805,6 +881,12 @@ async def prepare_media(
     else:
         raise ValueError("unsupported media preparation mode")
 
+    await _run_ffmpeg_with_progress(args, cancel, progress, duration)
+    await progress(0.92)
+    return {"mode": mode}
+
+
+async def _run_ffmpeg_with_progress(args: list[str], cancel: asyncio.Event, progress: ProgressFn, duration: float) -> None:
     process = await asyncio.create_subprocess_exec(
         *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         creationflags=getattr(__import__("subprocess"), "CREATE_NO_WINDOW", 0),
@@ -837,5 +919,3 @@ async def prepare_media(
     code = await process.wait()
     if code:
         raise RuntimeError(stderr.decode("utf-8", "replace")[-2000:])
-    await progress(0.92)
-    return {"mode": mode}
