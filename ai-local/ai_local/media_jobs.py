@@ -22,6 +22,7 @@ from .media_compat import (
     prepare_media,
     probe_media,
     prove_lossless_equivalence,
+    prove_video_copy_equivalence,
 )
 
 
@@ -81,11 +82,13 @@ class MediaJobManager:
         probe_fn: Callable[[Path], Awaitable[dict[str, Any]]] = probe_media,
         prepare_fn: Callable[..., Awaitable[dict[str, Any] | None]] = prepare_media,
         extract_fn: Callable[..., Awaitable[list[dict[str, Any]]]] = extract_text_subtitles,
+        video_proof_fn: Callable[..., Awaitable[dict[str, Any]]] = prove_video_copy_equivalence,
     ) -> None:
         self.root = Path(root)
         self.probe_fn = probe_fn
         self.prepare_fn = prepare_fn
         self.extract_fn = extract_fn
+        self.video_proof_fn = video_proof_fn
         self._tasks: dict[str, asyncio.Task[Any]] = {}
         self._cancel: dict[str, asyncio.Event] = {}
         self._capacity = asyncio.Semaphore(1)
@@ -326,6 +329,13 @@ class MediaJobManager:
                     if not equivalence.get("verified"):
                         raise MediaJobConflict("lossless equivalence proof failed")
                     verification.update(equivalence)
+                elif mode == "audio_transcode":
+                    picture = await self.video_proof_fn(
+                        source, partial, source_video_index=plan.get("selected_video_stream"),
+                    )
+                    if not picture.get("verified"):
+                        raise MediaJobConflict("copied picture equivalence proof failed")
+                    verification.update(picture)
                 output_sha = _sha256_file(partial)
                 output_bytes = partial.stat().st_size
                 post.update(
@@ -337,7 +347,9 @@ class MediaJobManager:
                 for key in ("audio_selection", "subtitle_tracks", "track_inventory"):
                     if key in source_report:
                         post["source_" + key] = source_report[key]
-                post["timeline_verdict"] = "equivalent" if mode == "lossless_repair" else "explicit-transcode"
+                post["timeline_verdict"] = {
+                    "lossless_repair": "equivalent", "audio_transcode": "picture-equivalent",
+                }.get(mode, "explicit-transcode")
                 os.replace(partial, output)
                 manifest = self.get(job_id)
                 manifest.update(

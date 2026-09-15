@@ -9,11 +9,13 @@ import pytest
 
 from ai_local.media_compat import (
     AUDIO_STREAM_CHOICE_REQUIRED,
+    AUDIO_TRANSCODE_REQUIRED,
     BLOCKED,
     LOSSLESS_REPAIR,
     MAX_BYTES,
     READY,
     TRANSCODE_REQUIRED,
+    prove_video_copy_equivalence,
     _normalize_probe,
     classify_probe,
     extract_text_subtitles,
@@ -103,7 +105,11 @@ def test_owner_shaped_mkv_is_inventoried_and_selects_hebrew_audio_not_the_defaul
     assert '"tags"' not in json.dumps(probe)
 
     report = classify_probe(probe)
-    assert report["outcome"] == TRANSCODE_REQUIRED
+    # Video already satisfies the target contract; only the 5.1 E-AC3 track must be re-encoded.
+    assert report["outcome"] == AUDIO_TRANSCODE_REQUIRED
+    assert report["plan"]["mode"] == "audio_transcode"
+    assert report["plan"]["quality_impact"] == "audio_reencoded_video_copied"
+    assert report["plan"]["video_encoder"] is None
     assert report["audio_selection"] == {
         "index": 2, "type_index": 1, "language": "he", "title": None, "reason": "target_language_tag",
     }
@@ -113,6 +119,33 @@ def test_owner_shaped_mkv_is_inventoried_and_selects_hebrew_audio_not_the_defaul
     assert [track["index"] for track in inventory["audio"]] == [1, 2, 3]
     assert [track["type_index"] for track in inventory["audio"]] == [0, 1, 2]
     assert [track["index"] for track in inventory["subtitles"]] == [4, 5, 6, 7, 8, 9]
+
+
+def test_video_that_misses_the_target_still_requires_a_full_transcode():
+    probe = owner_shaped_raw_probe()
+    probe["streams"][0].update(codec_name="hevc", profile="Main 10", pix_fmt="yuv420p10le")
+    report = classify_probe(_normalize_probe(probe))
+    assert report["outcome"] == TRANSCODE_REQUIRED
+    assert report["plan"]["mode"] == "transcode"
+
+
+def test_audio_transcode_keeps_video_bytes_and_estimates_from_stream_bitrates():
+    report = classify_probe(_normalize_probe(owner_shaped_raw_probe()))
+    plan = report["plan"]
+    assert plan["selected_audio_stream"] == 2
+    assert plan["audio_encoder"] == "aac"
+    assert plan["h264_level"] == "auto"
+    assert plan["operations"] == [
+        "copy the selected video stream",
+        "keep only the selected audio stream",
+        "encode AAC",
+        "set H.264 level metadata to auto",
+        "MP4 faststart remux",
+    ]
+    # 4.79 Mbit/s video plus a 160 kbit/s AAC track over 2672.68 s, not the 2.18 GiB source size.
+    assert 1_550_000_000 < report["estimated_output_bytes"] < 1_750_000_000
+    assert report["estimated_time_seconds"] < 0.2 * report["duration_seconds"]
+    assert report["next_action"] == "review-and-confirm-audio-transcode"
 
 
 def test_multiple_audio_streams_never_classify_ready():
@@ -248,7 +281,7 @@ async def test_real_multitrack_mkv_inventory_extraction_and_selected_audio_outpu
     assert [stream["index"] for stream in probe["video_streams"]] == [0]
     assert [(stream["index"], stream["language"]) for stream in probe["audio_streams"]] == [(1, "ru"), (2, "he"), (3, "en")]
     assert report["audio_selection"]["index"] == 2
-    assert report["outcome"] == TRANSCODE_REQUIRED
+    assert report["outcome"] == AUDIO_TRANSCODE_REQUIRED
     subtitles = probe["subtitle_streams"]
     assert [(stream["index"], stream["language"], stream["title"]) for stream in subtitles] == [
         (4, "ru", None), (5, "he", "Forced"), (6, "he", None), (7, "he", "SDH"), (8, "en", None),
@@ -276,11 +309,21 @@ async def test_real_multitrack_mkv_inventory_extraction_and_selected_audio_outpu
     async def progress(_value):
         return None
 
-    await prepare_media(source, output, "transcode", asyncio.Event(), progress, plan=report["plan"])
+    await prepare_media(source, output, report["plan"]["mode"], asyncio.Event(), progress, plan=report["plan"])
     after = await probe_media(output)
     assert [stream["language"] for stream in after["probe"]["audio_streams"]] == ["he"]
+    assert after["probe"]["audio_streams"][0]["codec_name"] == "aac"
     assert after["probe"]["audio_streams"][0]["channels"] <= 2
     assert after["outcome"] == READY
+    # The picture is copied, so every sampled frame must be bit-identical to the source.
+    proof = await prove_video_copy_equivalence(
+        source, output,
+        source_video_index=report["plan"]["selected_video_stream"],
+    )
+    assert proof["decoded_frame_hash_equal"] is True
+    assert proof["timeline_equal"] is True
+    assert proof["audio_reencoded"] is True
+    assert proof["verified"] is True
 
 
 async def chunks(data):
@@ -382,7 +425,11 @@ async def test_prepare_receives_the_confirmed_plan(tmp_path):
         received["plan"] = plan
         output.write_bytes(b"prepared")
 
-    manager = MediaJobManager(tmp_path, probe_fn=probe, prepare_fn=prepare, extract_fn=no_subtitles)
+    async def prove(_source, _output, source_video_index=None):
+        return {"decoded_frame_hash_equal": True, "timeline_equal": True, "audio_reencoded": True, "verified": True}
+
+    manager = MediaJobManager(tmp_path, probe_fn=probe, prepare_fn=prepare, extract_fn=no_subtitles,
+                              video_proof_fn=prove)
     job = await manager.create(chunks(b"mkv"), filename="episode.mkv", content_type="video/x-matroska")
     await manager.wait(job["job_id"])
     waiting = manager.get(job["job_id"])
@@ -390,6 +437,70 @@ async def test_prepare_receives_the_confirmed_plan(tmp_path):
     await manager.wait(job["job_id"])
     assert received["plan"]["selected_audio_stream"] == 2
     assert manager.get(job["job_id"])["state"] == "COMPLETE"
+
+
+@pytest.mark.asyncio
+async def test_audio_transcode_job_verifies_the_copied_picture(tmp_path):
+    report = report_for(owner_shaped_raw_probe())
+    assert report["plan"]["mode"] == "audio_transcode"
+
+    async def probe(path):
+        if path.name == "output.partial.mp4":
+            return {"outcome": READY}
+        return json.loads(json.dumps(report))
+
+    async def prepare(_source, output, mode, _cancel, _progress, plan=None):
+        assert mode == "audio_transcode"
+        assert plan["selected_audio_stream"] == 2
+        output.write_bytes(b"prepared")
+
+    proofs = {}
+
+    async def prove(source, output, source_video_index=None):
+        proofs["video_index"] = source_video_index
+        return {"decoded_frame_hash_equal": True, "timeline_equal": True, "audio_reencoded": True, "verified": True}
+
+    manager = MediaJobManager(tmp_path, probe_fn=probe, prepare_fn=prepare, extract_fn=no_subtitles,
+                              video_proof_fn=prove)
+    job = await manager.create(chunks(b"mkv"), filename="episode.mkv", content_type="video/x-matroska")
+    await manager.wait(job["job_id"])
+    waiting = manager.get(job["job_id"])
+    await manager.prepare(job["job_id"], mode="audio_transcode", plan_sha256=waiting["report"]["plan_sha256"])
+    await manager.wait(job["job_id"])
+    complete = manager.get(job["job_id"])
+    assert complete["state"] == "COMPLETE"
+    assert proofs["video_index"] == 0
+    assert complete["verification"]["decoded_frame_hash_equal"] is True
+    assert complete["verification"]["audio_reencoded"] is True
+    assert complete["report"]["timeline_verdict"] == "picture-equivalent"
+
+
+@pytest.mark.asyncio
+async def test_audio_transcode_job_fails_when_the_picture_changed(tmp_path):
+    report = report_for(owner_shaped_raw_probe())
+
+    async def probe(path):
+        if path.name == "output.partial.mp4":
+            return {"outcome": READY}
+        return json.loads(json.dumps(report))
+
+    async def prepare(_source, output, _mode, _cancel, _progress, plan=None):
+        output.write_bytes(b"prepared")
+
+    async def prove(_source, _output, source_video_index=None):
+        return {"decoded_frame_hash_equal": False, "timeline_equal": True, "audio_reencoded": True, "verified": False}
+
+    manager = MediaJobManager(tmp_path, probe_fn=probe, prepare_fn=prepare, extract_fn=no_subtitles,
+                              video_proof_fn=prove)
+    job = await manager.create(chunks(b"mkv"), filename="episode.mkv", content_type="video/x-matroska")
+    await manager.wait(job["job_id"])
+    waiting = manager.get(job["job_id"])
+    await manager.prepare(job["job_id"], mode="audio_transcode", plan_sha256=waiting["report"]["plan_sha256"])
+    await manager.wait(job["job_id"])
+    failed = manager.get(job["job_id"])
+    assert failed["state"] == "FAILED"
+    assert failed["error"] == "MEDIA_PREPARE_OR_VERIFY_FAILED"
+    assert not (tmp_path / job["job_id"] / "ready.mp4").exists()
 
 
 @pytest.mark.asyncio

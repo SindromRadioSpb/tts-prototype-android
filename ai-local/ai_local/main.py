@@ -225,7 +225,7 @@ class MtJobRequest(BaseModel):
 
 
 class MediaPrepareRequest(BaseModel):
-    mode: str = Field(..., pattern=r"^(lossless_repair|transcode)$")
+    mode: str = Field(..., pattern=r"^(lossless_repair|audio_transcode|transcode)$")
     plan_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
 
 

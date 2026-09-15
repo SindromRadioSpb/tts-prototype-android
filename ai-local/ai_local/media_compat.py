@@ -21,6 +21,7 @@ from typing import Any, Awaitable, Callable
 READY = "READY"
 LOSSLESS_REPAIR = "LOSSLESS_REPAIR"
 TRANSCODE_REQUIRED = "TRANSCODE_REQUIRED"
+AUDIO_TRANSCODE_REQUIRED = "AUDIO_TRANSCODE_REQUIRED"
 AUDIO_STREAM_CHOICE_REQUIRED = "AUDIO_STREAM_CHOICE_REQUIRED"
 BLOCKED = "BLOCKED"
 TARGET_CONTRACT = "linguistpro-mobile-v1"
@@ -205,6 +206,14 @@ def _estimated_copy_bytes(video: dict[str, Any], audio: dict[str, Any], duration
     return fallback
 
 
+def _estimated_audio_transcode_bytes(video: dict[str, Any], duration: float, audio_bps: int, fallback: int) -> int:
+    """The picture is copied, so its own bitrate — not the source file size — sets the output size."""
+    video_bps = _int_or_none(video.get("bps"))
+    if video_bps and duration > 0:
+        return int((video_bps + audio_bps) * duration / 8 * 1.01) + 1024 * 1024
+    return fallback
+
+
 def classify_probe(
     probe: dict[str, Any],
     *,
@@ -319,7 +328,8 @@ def classify_probe(
         },
     }
 
-    if not (h264 and main_profile and eight_bit_420 and progressive and sdr and audio_ok and dimensions_ok and required_level):
+    video_meets_target = bool(h264 and main_profile and eight_bit_420 and progressive and sdr and dimensions_ok and required_level)
+    if not video_meets_target:
         operations = ["decode selected streams", *single_audio_operation]
         if not sdr:
             operations.append("tone-map HDR to BT.709 SDR")
@@ -353,6 +363,39 @@ def classify_probe(
             "plan_sha256": _canonical_sha256(plan),
             "estimated_output_bytes": min(size, MAX_BYTES),
             "estimated_time_seconds": max(30, round(duration * 0.75)),
+        }
+
+    if not audio_ok:
+        # The picture already satisfies the target, so re-encoding it would only lose quality and
+        # hours of CPU: copy the video stream and re-encode just the selected audio track.
+        plan = {
+            "mode": "audio_transcode",
+            "container": "mp4",
+            "video_encoder": None,
+            "audio_encoder": "aac",
+            "audio_profile": "lc",
+            "audio_bitrate": "160k",
+            "h264_level": "auto",
+            "faststart": True,
+            "original_preserved": True,
+            "selected_video_stream": selected_video_stream,
+            "selected_audio_stream": selected_audio_stream,
+            "quality_impact": "audio_reencoded_video_copied",
+            "operations": [
+                "copy the selected video stream", *single_audio_operation,
+                "encode AAC", "set H.264 level metadata to auto", "MP4 faststart remux",
+            ],
+        }
+        return {
+            **base,
+            "outcome": AUDIO_TRANSCODE_REQUIRED,
+            "verdict": AUDIO_TRANSCODE_REQUIRED,
+            "reason": "audio_codec_or_layout_mismatch",
+            "next_action": "review-and-confirm-audio-transcode",
+            "plan": plan,
+            "plan_sha256": _canonical_sha256(plan),
+            "estimated_output_bytes": _estimated_audio_transcode_bytes(video, duration, 160_000, size),
+            "estimated_time_seconds": max(10, round(duration * 0.06)),
         }
 
     metadata_level_wrong = declared_level <= 0 or declared_level > 41 or declared_level < required_level
@@ -680,6 +723,38 @@ async def prove_lossless_equivalence(
     }
 
 
+async def prove_video_copy_equivalence(
+    source: Path,
+    output: Path,
+    source_video_index: int | None = None,
+) -> dict[str, Any]:
+    """Prove the copied picture and timeline survived a preparation that re-encoded only audio."""
+    source_video = "0:V:0" if source_video_index is None else "0:%d" % int(source_video_index)
+    source_probe, output_probe = await asyncio.gather(probe_media(source), probe_media(output))
+    duration = float(source_probe.get("duration_seconds") or 0)
+    positions = [duration * fraction for fraction in (0.0, 0.25, 0.5, 0.75)]
+    video_args = lambda path, position, stream_map: ["ffmpeg", "-v", "error", "-ss", "%.3f" % position, "-i", os.fspath(path), "-map", stream_map, "-frames:v", "1", "-f", "framemd5", "-"]
+    frame_pairs = await asyncio.gather(*(
+        asyncio.gather(_media_hash(video_args(source, position, source_video)), _media_hash(video_args(output, position, "0:V:0")))
+        for position in positions
+    ))
+    source_codec, output_codec = source_probe.get("codec_summary") or {}, output_probe.get("codec_summary") or {}
+    timeline_equal = (
+        abs(float(source_probe.get("duration_seconds") or 0) - float(output_probe.get("duration_seconds") or 0)) <= 0.1
+        and source_codec.get("width") == output_codec.get("width")
+        and source_codec.get("height") == output_codec.get("height")
+        and source_codec.get("fps") == output_codec.get("fps")
+    )
+    frames_equal = all(pair[0] == pair[1] for pair in frame_pairs)
+    return {
+        "decoded_frame_hash_equal": frames_equal,
+        "timeline_equal": timeline_equal,
+        "audio_reencoded": True,
+        "sample_positions_seconds": [round(value, 3) for value in positions],
+        "verified": frames_equal and timeline_equal,
+    }
+
+
 async def prepare_media(
     source: Path,
     output: Path,
@@ -700,6 +775,14 @@ async def prepare_media(
             "-map", video_map, "-map", audio_map, "-map_chapters", "-1", "-c", "copy",
             "-bsf:v", "h264_metadata=level=auto", "-movflags", "+faststart",
             "-progress", "pipe:1", "-nostats", os.fspath(output),
+        ]
+    elif mode == "audio_transcode":
+        args = [
+            "ffmpeg", "-y", "-v", "error", "-i", os.fspath(source),
+            "-map", video_map, "-map", audio_map, "-map_chapters", "-1",
+            "-c:v", "copy", "-bsf:v", "h264_metadata=level=auto",
+            "-c:a", "aac", "-profile:a", "aac_low", "-ar", "48000", "-ac", "2", "-b:a", "160k",
+            "-movflags", "+faststart", "-progress", "pipe:1", "-nostats", os.fspath(output),
         ]
     elif mode == "transcode":
         source_video = ((source_report.get("probe") or {}).get("video_streams") or [{}])[0]
