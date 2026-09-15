@@ -59,8 +59,14 @@ def _manifest_payload() -> dict[str, object]:
 def inspect_mt_model(root: Path | None = None, *, verify_hash: bool = False) -> MtModelStatus:
     target = expected_mt_model_dir(root)
     manifest_path = target / ACTIVATION_MANIFEST
-    if not target.is_dir() or not manifest_path.is_file():
-        return MtModelStatus(False, False, target, "NOT_INSTALLED")
+    # This runs at import time. A model directory the OS refuses to read is neither installed
+    # nor verified, and reporting that is the only honest answer; raising would stop the whole
+    # companion from starting over an unrelated optional model.
+    try:
+        if not target.is_dir() or not manifest_path.is_file():
+            return MtModelStatus(False, False, target, "NOT_INSTALLED")
+    except OSError:
+        return MtModelStatus(False, False, target, "NOT_ACCESSIBLE")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -70,12 +76,15 @@ def inspect_mt_model(root: Path | None = None, *, verify_hash: bool = False) -> 
         return MtModelStatus(True, False, target, "PIN_MISMATCH")
     for name, expected_size in MT_RUNTIME_FILE_BYTES.items():
         item = target / name
-        if not item.is_file():
-            return MtModelStatus(True, False, target, "RUNTIME_FILE_MISSING")
-        if item.stat().st_size != expected_size:
-            return MtModelStatus(True, False, target, "RUNTIME_FILE_SIZE_MISMATCH")
-        if verify_hash and sha256_file(item) != MT_RUNTIME_FILE_SHA256[name]:
-            return MtModelStatus(True, False, target, "RUNTIME_FILE_HASH_MISMATCH")
+        try:
+            if not item.is_file():
+                return MtModelStatus(True, False, target, "RUNTIME_FILE_MISSING")
+            if item.stat().st_size != expected_size:
+                return MtModelStatus(True, False, target, "RUNTIME_FILE_SIZE_MISMATCH")
+            if verify_hash and sha256_file(item) != MT_RUNTIME_FILE_SHA256[name]:
+                return MtModelStatus(True, False, target, "RUNTIME_FILE_HASH_MISMATCH")
+        except OSError:
+            return MtModelStatus(True, False, target, "NOT_ACCESSIBLE")
     return MtModelStatus(True, True, target)
 
 

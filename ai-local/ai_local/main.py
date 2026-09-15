@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from . import config
@@ -24,7 +24,7 @@ from .mt_model_install import mt_model_install_manager
 from .mt_model_store import inspect_mt_model
 from .companion_model import delete_all_jobs, model_install_manager
 from .companion_preflight import preflight_report
-from .media_jobs import MediaJobConflict, MediaJobManager, MediaJobNotFound
+from .media_jobs import MediaJobConflict, MediaJobManager, MediaJobNotFound, MediaTooLarge
 from .security import (
     loopback_security_middleware,
     require_browser_auth,
@@ -229,6 +229,10 @@ class MediaPrepareRequest(BaseModel):
     plan_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
 
 
+class MediaAudioStreamRequest(BaseModel):
+    stream_index: int = Field(..., ge=0, le=4096)
+
+
 # ---------- endpoints ----------
 
 
@@ -268,15 +272,16 @@ async def v1_media_create_job(request: Request, filename: str = "media"):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail="invalid Content-Length") from exc
     if content_length is not None and content_length > media_job_manager.MAX_BYTES:
-        raise HTTPException(status_code=413, detail="media exceeds 300 MiB")
+        raise HTTPException(status_code=413, detail="media exceeds 3 GiB")
     try:
         return await media_job_manager.create(
             request.stream(), filename=filename,
             content_type=request.headers.get("content-type") or "application/octet-stream",
         )
+    except MediaTooLarge as exc:
+        raise HTTPException(status_code=413, detail=str(exc)) from exc
     except MediaJobConflict as exc:
-        status = 413 if "300 MiB" in str(exc) else 429
-        raise HTTPException(status_code=status, detail=str(exc)) from exc
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
 
 
 @app.get("/v1/media/jobs/{job_id}", dependencies=[Depends(require_companion_auth)])
@@ -310,7 +315,10 @@ async def v1_media_job_file(job_id: str):
     try:
         path = media_job_manager.file_path(job_id)
         manifest = media_job_manager.get(job_id)
-        return FileResponse(path, media_type="video/mp4", filename=manifest.get("output_name") or "mobile-ready.mp4")
+        return FileResponse(
+            path, media_type="video/mp4", filename=manifest.get("output_name") or "mobile-ready.mp4",
+            headers={"X-LP-Media-SHA256": str(manifest.get("output_sha256") or ""), "Cache-Control": "no-store"},
+        )
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc
     except MediaJobConflict as exc:
@@ -331,6 +339,32 @@ async def v1_media_job_report(job_id: str):
         }
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc
+
+
+@app.post("/v1/media/jobs/{job_id}/audio-stream", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_audio_stream(job_id: str, body: MediaAudioStreamRequest):
+    """Re-classify the stored probe for one of its own audio streams; the media is not reread."""
+    try:
+        return await media_job_manager.choose_audio_stream(job_id, body.stream_index)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/v1/media/jobs/{job_id}/subtitles/{stream_index}", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_subtitle(job_id: str, stream_index: int):
+    try:
+        path, track = media_job_manager.subtitle_file(job_id, stream_index)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="subtitle track not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    media_type = "text/vtt; charset=utf-8" if track.get("format") == "vtt" else "application/x-subrip; charset=utf-8"
+    return Response(
+        content=path.read_bytes(), media_type=media_type,
+        headers={"X-LP-Subtitle-SHA256": str(track.get("sha256") or ""), "Cache-Control": "no-store"},
+    )
 
 
 @app.delete("/v1/media/jobs/{job_id}", dependencies=[Depends(require_companion_auth)])

@@ -102,6 +102,7 @@ def _cors_headers(origin: str) -> dict[str, str]:
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Requested-With",
+        "Access-Control-Expose-Headers": "X-LP-Media-SHA256, X-LP-Subtitle-SHA256, Content-Length",
         "Access-Control-Max-Age": "600",
         "Vary": "Origin",
     }
