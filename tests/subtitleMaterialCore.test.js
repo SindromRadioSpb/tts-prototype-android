@@ -1,0 +1,217 @@
+// tests/subtitleMaterialCore.test.js — pure core for materials built from container subtitle tracks.
+// Fixture shapes follow docs/research/studio-subtitle-video-material/2026-09-16 (aggregates only).
+"use strict";
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
+const SMC = require("../public/js/subtitle-material-core.js");
+
+const RLE = "‫";
+const PDF = "‬";
+const he = (text) => RLE + text + PDF;
+
+function cue(start, end, text) {
+  return { start, end, text };
+}
+
+// One Hebrew track: Hebrew speech, then two cues over Arabic speech, then Hebrew speech again.
+const HEBREW_CUES = [
+  cue(4.0, 6.0, he("מה זה?")),
+  cue(6.2, 8.0, he("הגיע משהו.")),
+  cue(10.0, 12.0, he("הוא ברח מעזה")),
+  cue(12.0, 14.0, he("דרך מעבר רפיח.")),
+  cue(20.0, 22.0, he("{\\an8}יפה?")),
+];
+const FORCED_CUES = [
+  cue(10.0, 12.0, he("[בערבית] הוא ברח מעזה")),
+  cue(12.0, 14.0, he("דרך מעבר רפיח.")),
+];
+const SDH_CUES = [
+  cue(3.0, 3.8, he("[מוזיקה מותחת]")),
+  cue(4.0, 6.0, he("מה זה?")),
+  cue(6.2, 8.0, he("הגיע משהו.")),
+];
+const RUSSIAN_CUES = [
+  cue(4.0, 6.0, "Что это?"),
+  cue(6.2, 8.0, "Кое-что получил."),
+  cue(10.0, 14.0, "[Он сбежал из Газы\nчерез Рафах.]"),
+  cue(20.0, 22.0, "Красиво?"),
+];
+
+function tracks() {
+  return [
+    { index: 4, language: "ru", title: null, disposition: {}, cues: RUSSIAN_CUES },
+    { index: 6, language: "he", title: "Forced", disposition: {}, cues: FORCED_CUES },
+    { index: 7, language: "he", title: null, disposition: {}, cues: HEBREW_CUES },
+    { index: 8, language: "he", title: "SDH", disposition: { hearing_impaired: 1 }, cues: SDH_CUES },
+  ];
+}
+
+test("normalizeCueText strips bidi controls, styling tags and keeps bracket marks as metadata", () => {
+  const result = SMC.normalizeCueText(he("{\\an8}<i>שלום</i> [בערבית]"));
+  assert.equal(result.text, "שלום");
+  assert.deepEqual(result.marks, ["בערבית"]);
+  assert.equal(/[‎‏‪-‮⁦-⁩]/.test(result.text), false);
+
+  const dialogue = SMC.normalizeCueText("- כן.\n-בסדר.");
+  assert.equal(dialogue.turns, 2);
+  assert.equal(dialogue.text.includes("\n"), false);
+  assert.equal(SMC.normalizeCueText("  двойной   пробел  ").text, "двойной пробел");
+  assert.deepEqual(SMC.normalizeCueText(null), { text: "", marks: [], turns: 0 });
+});
+
+test("detectScriptLanguage names the dominant script, not a guessed language", () => {
+  assert.equal(SMC.detectScriptLanguage(he("מה זה?")), "he");
+  assert.equal(SMC.detectScriptLanguage("Что это?"), "cyrillic");
+  assert.equal(SMC.detectScriptLanguage("What is it?"), "latin");
+  assert.equal(SMC.detectScriptLanguage("هذا عربي"), "ar");
+  assert.equal(SMC.detectScriptLanguage("123 — 456"), null);
+});
+
+test("classifyTracks marks forced and SDH tracks by flag, title and content", () => {
+  const classified = SMC.classifyTracks(tracks());
+  const byIndex = Object.fromEntries(classified.map((track) => [track.index, track]));
+  assert.equal(byIndex[6].forced, true);
+  assert.equal(byIndex[6].forced_evidence, "title");
+  assert.equal(byIndex[8].sdh, true);
+  assert.equal(byIndex[8].sdh_evidence, "disposition");
+  assert.equal(byIndex[7].forced, false);
+  assert.equal(byIndex[7].sdh, false);
+
+  // A forced track named like an ordinary one is still a time-subset of the full track.
+  const untitled = tracks().map((track) => (track.index === 6 ? { ...track, title: null } : track));
+  const contentBased = SMC.classifyTracks(untitled).find((track) => track.index === 6);
+  assert.equal(contentBased.forced, true);
+  assert.equal(contentBased.forced_evidence, "subset_of_track_7");
+
+  // An SDH track is recognised by its share of sound-description cues.
+  const noFlag = tracks().map((track) => (track.index === 8 ? { ...track, title: null, disposition: {} } : track));
+  const sdhByContent = SMC.classifyTracks(noFlag).find((track) => track.index === 8);
+  assert.equal(sdhByContent.sdh, true);
+  assert.equal(sdhByContent.sdh_evidence, "sound_description_share");
+
+  // An untagged track keeps an honest script-derived language.
+  const untagged = SMC.classifyTracks([{ index: 3, language: null, cues: HEBREW_CUES }])[0];
+  assert.equal(untagged.language, "he");
+  assert.equal(untagged.language_evidence, "script");
+});
+
+test("selectTracks picks the full target track, the translation track and keeps forced as a signal", () => {
+  const plan = SMC.selectTracks({ tracks: tracks(), targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(plan.status, "ok");
+  assert.equal(plan.text_track.index, 7);
+  assert.equal(plan.reasons.text, "target_language_full_track");
+  assert.equal(plan.translation_track.index, 4);
+  assert.equal(plan.reasons.translation, "translation_language_aligned");
+  assert.deepEqual(plan.signal_tracks.map((track) => track.index), [6]);
+
+  const noTranslation = SMC.selectTracks({ tracks: tracks().filter((track) => track.index !== 4), targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(noTranslation.status, "ok");
+  assert.equal(noTranslation.translation_track, null);
+  assert.equal(noTranslation.reasons.translation, "translation_language_missing");
+
+  // A translation track whose cues do not line up is refused instead of silently mismapped.
+  const shifted = tracks().map((track) => (track.index === 4
+    ? { ...track, cues: track.cues.map((item) => cue(item.start + 900, item.end + 900, item.text)) }
+    : track));
+  const refused = SMC.selectTracks({ tracks: shifted, targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(refused.translation_track, null);
+  assert.equal(refused.reasons.translation, "translation_coverage_too_low");
+
+  // Two equally plausible full Hebrew tracks are the one case worth a question.
+  const twin = tracks().concat([{ index: 9, language: "he", title: null, disposition: {}, cues: HEBREW_CUES.slice(0, 4) }]);
+  const ambiguous = SMC.selectTracks({ tracks: twin, targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(ambiguous.status, "needs_choice");
+  assert.deepEqual(ambiguous.choices.map((track) => track.index), [7, 9]);
+
+  const none = SMC.selectTracks({ tracks: [tracks()[0]], targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(none.status, "needs_choice");
+  assert.equal(none.reasons.text, "target_language_missing");
+});
+
+test("alignTranslation maps by time overlap and groups a translation cue covering several rows", () => {
+  const alignment = SMC.alignTranslation(HEBREW_CUES, RUSSIAN_CUES);
+  assert.equal(alignment.coverage, 1);
+  assert.deepEqual(alignment.pairs[0], { text_index: 0, translation_indexes: [0], group_id: null });
+  assert.deepEqual(alignment.pairs[2].translation_indexes, [2]);
+  assert.equal(alignment.pairs[2].group_id, alignment.pairs[3].group_id);
+  assert.notEqual(alignment.pairs[2].group_id, null);
+  assert.equal(alignment.groups.length, 1);
+
+  const partial = SMC.alignTranslation(HEBREW_CUES, RUSSIAN_CUES.slice(0, 2));
+  assert.equal(partial.coverage, 0.4);
+  assert.deepEqual(partial.pairs[4].translation_indexes, []);
+});
+
+test("speechLanguage uses forced overlap and named marks, and stays honest without evidence", () => {
+  const verdicts = SMC.speechLanguage(HEBREW_CUES, {
+    forcedCues: FORCED_CUES,
+    translationCues: RUSSIAN_CUES,
+    targetLanguage: "he",
+  });
+  assert.deepEqual(verdicts.map((item) => item.value), ["target_assumed", "target_assumed", "other", "other", "target_assumed"]);
+  assert.equal(verdicts[2].named, "ar");
+  assert.deepEqual(verdicts[2].evidence, ["forced_track", "language_mark", "translation_brackets"]);
+  assert.equal(verdicts[0].evidence.length, 0);
+
+  // Bracket convention is only trusted when it agrees with the forced track in this same file.
+  const noisyTranslation = RUSSIAN_CUES.map((item, index) => (index === 0 ? cue(item.start, item.end, "[Что это?]") : item));
+  const calibrated = SMC.speechLanguage(HEBREW_CUES, {
+    forcedCues: FORCED_CUES, translationCues: noisyTranslation, targetLanguage: "he",
+  });
+  assert.equal(calibrated.calibration.translation_brackets_trusted, false);
+  assert.equal(calibrated[0].value, "target_assumed");
+
+  // Without a forced track nothing calibrates the bracket convention, so it is not used at all.
+  const withoutForced = SMC.speechLanguage(HEBREW_CUES, { translationCues: RUSSIAN_CUES, targetLanguage: "he" });
+  assert.equal(withoutForced.calibration.translation_brackets_trusted, false);
+  assert.equal(withoutForced[2].value, "target_assumed");
+  assert.equal(withoutForced[3].value, "target_assumed");
+
+  // A cue that names the spoken language itself needs no other evidence.
+  const marked = SMC.speechLanguage([cue(0, 2, he("[בערבית] שלום"))], { targetLanguage: "he" });
+  assert.equal(marked[0].value, "other");
+  assert.equal(marked[0].named, "ar");
+  assert.deepEqual(marked[0].evidence, ["language_mark"]);
+});
+
+test("buildRows merges cues into sentences without crossing a speech-language or pause boundary", () => {
+  const verdicts = SMC.speechLanguage(HEBREW_CUES, { forcedCues: FORCED_CUES, translationCues: RUSSIAN_CUES, targetLanguage: "he" });
+  const rows = SMC.buildRows({
+    textCues: HEBREW_CUES,
+    speechLanguage: verdicts,
+    translation: SMC.alignTranslation(HEBREW_CUES, RUSSIAN_CUES),
+    translationCues: RUSSIAN_CUES,
+  });
+  // A cue that already ends a sentence stays its own row; only an unfinished cue takes the next one.
+  assert.equal(rows.length, 4);
+  assert.deepEqual(rows[0], {
+    index: 0,
+    start: 4.0,
+    end: 6.0,
+    text: "מה זה?",
+    source_cue_indexes: [0],
+    speech_language: "target_assumed",
+    speech_language_named: null,
+    translation: "Что это?",
+    translation_group: null,
+  });
+  assert.deepEqual(rows[1].source_cue_indexes, [1]);
+  assert.equal(rows[1].translation, "Кое-что получил.");
+  // The Arabic-speech cues continue one sentence, so they form a single row with one translation.
+  assert.deepEqual(rows[2].source_cue_indexes, [2, 3]);
+  assert.equal(rows[2].start, 10.0);
+  assert.equal(rows[2].end, 14.0);
+  assert.equal(rows[2].text, "הוא ברח מעזה דרך מעבר רפיח.");
+  assert.equal(rows[2].speech_language, "other");
+  assert.equal(rows[2].speech_language_named, "ar");
+  assert.equal(rows[2].translation, "Он сбежал из Газы через Рафах.");
+  assert.equal(typeof rows[2].translation_group, "string");
+  assert.equal(rows[3].text, "יפה?");
+  assert.equal(rows[3].translation, "Красиво?");
+
+  const longPause = SMC.buildRows({
+    textCues: [cue(0, 1, he("שלום")), cue(30, 31, he("ובוקר טוב"))],
+    speechLanguage: [{ value: "target_assumed" }, { value: "target_assumed" }],
+  });
+  assert.equal(longPause.length, 2);
+});
