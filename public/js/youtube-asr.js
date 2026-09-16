@@ -297,7 +297,10 @@
             return alternate;
           } catch (alternateError) {
             await recovery.recordAlternate(win, 'failed-charge-unknown');
-            if (alternateError.code === 'ASR_OTHER') alternateError.code = 'ASR_OTHER_EXHAUSTED';
+            if (alternateError.code !== 'ASR_BLOCKED') {
+              alternateError.alternate_error_code = alternateError.code;
+              alternateError.code = 'ASR_OTHER_EXHAUSTED';
+            }
             alternateError.failed_window = win;
             throw alternateError;
           }
@@ -495,6 +498,7 @@
       } catch (error) {
         checkpoint.failure = { index, window: win, code: String(error.code || error.message).slice(0, 80),
           status: error.status || null, provider_detail: error.provider_detail || null,
+          alternate_error_code: error.alternate_error_code || null,
           failed_window: error.failed_window || null, raw_response: error.raw_response || null,
           recorded_at: new Date().toISOString() };
         await saveCheckpoint();
