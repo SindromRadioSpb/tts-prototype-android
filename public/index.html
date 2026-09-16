@@ -2401,6 +2401,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .v3-modal button.btn-anki { width: auto; }
         /* W2-S4: Импорт → Аудио — тот же mobile-трап, тот же паттерн исключения */
         .v3-import-audio button, #v3ImportAudioInfo button { width: auto; }
+        #v3ImportSubtitlePlan button { width: auto; }
         /* W2-S5a: Импорт → Субтитры — тот же трап; class-based selector needs !important here
            (unlike the .v3-import-audio rule above, this one isn't guaranteed to be the LAST
            equal-specificity rule in cascade order, so specificity alone can't be relied on). */
@@ -3754,6 +3755,19 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-media-readiness-detail,.v3-media-readiness-estimate,.v3-media-device-result { margin-top:6px; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
 .v3-media-readiness progress { width:100%; margin-top:8px; }
 .v3-media-readiness-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.v3-subtitle-plan { margin-top:10px; padding-top:10px; border-top:1px solid var(--theme-border-soft,#d9dee5); }
+.v3-subtitle-plan[hidden] { display:none; }
+.v3-subtitle-plan strong { display:block; font-size:13px; }
+.v3-subtitle-plan-rows { list-style:none; margin:6px 0 0; padding:0; display:grid; gap:4px; font-size:12px; line-height:1.45; }
+.v3-subtitle-plan-rows li { overflow-wrap:anywhere; }
+.v3-subtitle-plan-rows li[data-state="warn"] { color:#79540a; }
+.v3-subtitle-plan-rows li[data-state="error"] { color:#8e2f23; }
+.v3-subtitle-plan-question { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:8px; font-size:12px; }
+.v3-subtitle-plan-question select { min-height:44px; }
+.v3-subtitle-plan-lite { display:flex; gap:8px; align-items:center; margin-top:8px; font-size:12px; }
+.v3-subtitle-plan-lite input { width:auto; min-width:20px; min-height:20px; }
+.v3-subtitle-plan button { margin-top:8px; min-height:44px; }
+.v3-subtitle-plan-status { margin:6px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
 .v3-prepared-copy { margin-top:10px; padding-top:10px; border-top:1px solid var(--theme-border-soft,#d9dee5); }
 .v3-prepared-copy strong { display:block; font-size:13px; }
 .v3-prepared-copy p { margin:5px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
@@ -13338,9 +13352,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=225"></script>
-<script src="/i18n/locales/en.js?v=225"></script>
-<script src="/i18n/locales/he.js?v=225"></script>
+<script src="/i18n/locales/ru.js?v=226"></script>
+<script src="/i18n/locales/en.js?v=226"></script>
+<script src="/i18n/locales/he.js?v=226"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13431,6 +13445,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-asr-normalizer.js"></script>
 <script src="/js/local-asr-client.js"></script>
 <script src="/js/media-readiness.js"></script>
+<!-- Materials built from container subtitle tracks: pure decisions, then byte orchestration.
+     Both load before studio-import.js, which is their only consumer. -->
+<script src="/js/subtitle-material-core.js?v=558"></script>
+<script src="/js/subtitle-material-import.js?v=558"></script>
 <script src="/js/local-asr-onboarding.js"></script>
 <script src="/js/local-mt-client.js"></script>
 <script src="/js/local-mt-table.js"></script>
@@ -13505,7 +13523,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=553" defer></script>
+<script src="/js/studio-import.js?v=558" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13543,7 +13561,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.557";
+    window.APP_VERSION = "3.11.558";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -51070,6 +51088,24 @@ document.addEventListener("i18n:changed", function () {
                 <p data-i18n="studio.import.mediaPreparedCopyHelp">Переносимый .lplp.zip хранит таблицу и точный SHA-256, но не само медиа. На другое устройство передавайте этот MP4 как файл без сжатия.</p>
                 <button type="button" id="v3ImportPreparedCopySave" class="btn-primary" onclick="StudioImport.savePreparedMedia()"></button>
                 <p id="v3ImportPreparedCopyResult" class="v3-prepared-copy-result" aria-live="polite"></p>
+              </section>
+              <section id="v3ImportSubtitlePlan" class="v3-subtitle-plan" hidden aria-live="polite">
+                <strong data-i18n="studio.import.subtitlePlanTitle">Материал из субтитров</strong>
+                <ul id="v3ImportSubtitlePlanRows" class="v3-subtitle-plan-rows"></ul>
+                <div id="v3ImportSubtitlePlanQuestion" class="v3-subtitle-plan-question" hidden>
+                  <label id="v3ImportSubtitlePlanQuestionLabel" for="v3ImportSubtitlePlanChoice"></label>
+                  <select id="v3ImportSubtitlePlanChoice"></select>
+                  <button type="button" class="btn-secondary" onclick="StudioImport.applySubtitlePlanChoice()"
+                          data-i18n="studio.import.subtitlePlanApplyChoice">Применить выбор</button>
+                </div>
+                <label id="v3ImportSubtitlePlanLiteRow" class="v3-subtitle-plan-lite" hidden>
+                  <input type="checkbox" id="v3ImportSubtitlePlanLite" checked>
+                  <span data-i18n="studio.import.subtitlePlanLiteToggle">Сделать лёгкую копию для телефона</span>
+                </label>
+                <button type="button" id="v3ImportSubtitlePlanBuild" class="btn-primary" hidden
+                        onclick="StudioImport.buildSubtitleMaterial()"
+                        data-i18n="studio.import.subtitlePlanBuild">Создать материал</button>
+                <p id="v3ImportSubtitlePlanStatus" class="v3-subtitle-plan-status" aria-live="polite"></p>
               </section>
               <div id="v3ImportMediaDeviceResult" class="v3-media-device-result" hidden></div>
             </section>

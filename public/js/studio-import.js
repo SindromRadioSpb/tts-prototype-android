@@ -836,8 +836,9 @@
 
   // W2-S4 — Import → Audio (BYOK Gemini ASR). Канон:
   // docs/planning/STUDIO_INGEST_W2_S4_AUDIO_KARAOKE_DESIGN_2026_07_26.md.
-  var MAX_AUDIO_SEC = 3 * 3600;          // решение S12 2026-07-28: 3 часа; байт-кап 300МБ остаётся предохранителем
-  var MAX_AUDIO_BYTES = 300 * 1024 * 1024; // sanity
+  var MAX_AUDIO_SEC = 3 * 3600;          // решение S12 2026-07-28: 3 часа
+  // Потолки размера живут в MediaReadiness: видео идёт в локальный companion (3 ГиБ),
+  // аудио — во внешний ASR под прежним лимитом 300 МиБ.
   var pendingAudio = null; // {file, buf, sha256, mime, durationSec, name, parsed, validation}
   var localAsrClient = null;
   var localAsrRunController = null;
@@ -847,6 +848,10 @@
   // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + optional
   // embedded YouTube player for capability preview. Канон:
   // docs/planning/STUDIO_INGEST_W2_S5A_CAPTIONS_KARAOKE_DESIGN_2026_07_27.md.
+  // S4b — материал из дорожек субтитров контейнера. Решения принимает SubtitleMaterialCore,
+  // байты возит SubtitleMaterialImport; здесь только состояние экрана и вызовы.
+  var pendingSubtitleMaterial = null; // {tracks, failed, plan, choice, stored, storedLite, working}
+
   var pendingCaptions = null; // {parsed, origin, fileName, video}
   var previouslyFocusedElement = null;
   var importInertedElements = [];
@@ -1419,6 +1424,7 @@
       }
       renderAudioMeta();
       renderMediaReadiness();
+      await loadSubtitlePlan();
     } catch (error) {
       if (pendingAudio) {
         if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio.mediaJobId) {
@@ -1537,6 +1543,229 @@
     setStatus("studio.import.mediaTranscriptOnlySelected");
   }
 
+  function setSubtitlePlanStatus(key, params, state) {
+    var node = $("v3ImportSubtitlePlanStatus");
+    if (!node) return;
+    node.textContent = key ? tr(key, params || null) : "";
+    node.dataset.state = state || "";
+  }
+
+  function subtitleTranslationLanguage() {
+    var locale = (typeof window.appGetLocale === "function") ? window.appGetLocale() : "ru";
+    return locale === "en" ? "en" : "ru"; // ивритский интерфейс учит иврит: перевод остаётся русским
+  }
+
+  // Выбор пользователя применяется вычитанием: из кандидатов вопроса остаётся ровно один.
+  function subtitlePlanTracks() {
+    var material = pendingSubtitleMaterial || {};
+    var tracks = material.tracks || [];
+    var choice = material.choice;
+    if (choice && choice.kind === "text" && Array.isArray(choice.candidates)) {
+      tracks = tracks.filter(function (track) {
+        return choice.candidates.indexOf(track.index) < 0 || track.index === choice.index;
+      });
+    }
+    return tracks;
+  }
+
+  async function loadSubtitlePlan() {
+    if (!pendingAudio || !pendingAudio.isVideo) return;
+    if (!window.SubtitleMaterialImport || !window.SubtitleMaterialCore) return;
+    var state = pendingAudio.mediaReadiness || {};
+    if (!window.MediaReadiness.usableSubtitleTracks(state).length) {
+      pendingSubtitleMaterial = null;
+      renderSubtitlePlan();
+      return;
+    }
+    var host = $("v3ImportSubtitlePlan");
+    if (host) host.hidden = false;
+    setSubtitlePlanStatus("studio.import.subtitlePlanTracksLoading");
+    try {
+      var loaded = await window.SubtitleMaterialImport.loadSubtitleTracks({
+        client: localAsrClient, jobId: pendingAudio.mediaJobId, readiness: state,
+      });
+      pendingSubtitleMaterial = { tracks: loaded.tracks, failed: loaded.failed, choice: null, stored: null };
+      setSubtitlePlanStatus(null);
+    } catch (error) {
+      pendingSubtitleMaterial = null;
+      setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
+        { code: (error && error.code) || "SUBTITLE_TRACKS_FAILED" }, "error");
+    }
+    renderSubtitlePlan();
+  }
+
+  function subtitlePlanRowItems(plan) {
+    var items = [];
+    var videoKey = plan.video.action === "transcode" ? "studio.import.subtitlePlanVideoTranscode"
+      : plan.video.action === "copy" ? "studio.import.subtitlePlanVideoCopy"
+      : "studio.import.subtitlePlanVideoReady";
+    items.push({ text: tr(videoKey) });
+    if (plan.audio) {
+      items.push({ text: tr("studio.import.subtitlePlanAudio", { language: plan.audio.language || "?", index: plan.audio.index }) });
+    }
+    if (plan.text) {
+      items.push({ text: tr("studio.import.subtitlePlanText", { index: plan.text.index, count: plan.text.cue_count }) });
+    }
+    if (plan.translation) {
+      items.push({ text: tr("studio.import.subtitlePlanTranslation", {
+        index: plan.translation.index, coverage: Math.round(plan.translation.coverage * 100),
+      }) });
+    } else {
+      items.push({ text: tr("studio.import.subtitlePlanTranslationNone"), state: "warn" });
+    }
+    if (plan.size.estimated_output_bytes) {
+      items.push({ text: tr("studio.import.subtitlePlanSize", {
+        size: window.MediaReadiness.humanBytes(plan.size.estimated_output_bytes),
+        minutes: Math.max(1, Math.ceil((plan.size.estimated_time_seconds || 0) / 60)),
+      }) });
+    }
+    items.push(plan.lite.available
+      ? { text: tr("studio.import.subtitlePlanLite", {
+          height: plan.lite.height, limit: window.MediaReadiness.humanBytes(plan.lite.max_output_bytes),
+        }) }
+      : { text: tr("studio.import.subtitlePlanLiteNone"), state: "warn" });
+    if (plan.status === "blocked") items.push({ text: tr("studio.import.subtitlePlanBlocked"), state: "error" });
+    (pendingSubtitleMaterial.failed || []).forEach(function (entry) {
+      items.push({ text: tr("studio.import.subtitlePlanTrackFailed", { index: entry.index, code: entry.code }), state: "warn" });
+    });
+    return items;
+  }
+
+  function renderSubtitlePlanQuestion(plan) {
+    var box = $("v3ImportSubtitlePlanQuestion"), select = $("v3ImportSubtitlePlanChoice");
+    var label = $("v3ImportSubtitlePlanQuestionLabel");
+    if (!box || !select) return;
+    var question = plan.questions && plan.questions[0];
+    box.hidden = !question;
+    if (!question) return;
+    if (label) label.textContent = tr(question.kind === "audio"
+      ? "studio.import.subtitlePlanAudioQuestion" : "studio.import.subtitlePlanTextQuestion");
+    select.dataset.kind = question.kind;
+    select.dataset.candidates = (question.choices || []).map(function (choice) { return choice.index; }).join(",");
+    select.innerHTML = "";
+    (question.choices || []).forEach(function (choice) {
+      var option = document.createElement("option");
+      option.value = String(choice.index);
+      option.textContent = "#" + choice.index + (choice.language ? " · " + choice.language : "")
+        + (choice.title ? " · " + choice.title : "")
+        + (choice.cue_count != null ? " · " + choice.cue_count : "");
+      select.appendChild(option);
+    });
+  }
+
+  function renderSubtitlePlan() {
+    var host = $("v3ImportSubtitlePlan");
+    if (!host) return;
+    if (!pendingSubtitleMaterial || !window.SubtitleMaterialCore) { host.hidden = true; return; }
+    host.hidden = false;
+    var plan = window.SubtitleMaterialCore.buildMaterialPlan({
+      readiness: (pendingAudio && pendingAudio.mediaReadiness) || {},
+      tracks: subtitlePlanTracks(),
+      targetLanguage: "he",
+      translationLanguage: subtitleTranslationLanguage(),
+    });
+    pendingSubtitleMaterial.plan = plan;
+    var list = $("v3ImportSubtitlePlanRows");
+    if (list) {
+      list.innerHTML = "";
+      subtitlePlanRowItems(plan).forEach(function (item) {
+        var row = document.createElement("li");
+        row.textContent = item.text;
+        if (item.state) row.dataset.state = item.state;
+        list.appendChild(row);
+      });
+    }
+    renderSubtitlePlanQuestion(plan);
+    var liteRow = $("v3ImportSubtitlePlanLiteRow"), liteToggle = $("v3ImportSubtitlePlanLite");
+    if (liteRow) liteRow.hidden = !plan.lite.available;
+    if (liteToggle && liteRow && !liteRow.hidden && liteToggle.dataset.touched !== "1") {
+      // Решение владельца D8: лёгкая копия предлагается включённой, когда полная не помещается в её бюджет.
+      liteToggle.checked = Number(plan.size.estimated_output_bytes || 0) > Number(plan.lite.max_output_bytes || 0);
+      liteToggle.onchange = function () { liteToggle.dataset.touched = "1"; };
+    }
+    var build = $("v3ImportSubtitlePlanBuild");
+    if (build) {
+      build.hidden = plan.status !== "ready" || !!(pendingSubtitleMaterial.stored);
+      build.disabled = !!pendingSubtitleMaterial.working;
+    }
+  }
+
+  async function applySubtitlePlanChoice() {
+    var select = $("v3ImportSubtitlePlanChoice");
+    if (!select || !pendingSubtitleMaterial) return;
+    var index = Number(select.value);
+    if (!Number.isInteger(index)) return;
+    if (select.dataset.kind === "audio") {
+      setBusy(true);
+      try {
+        var job = await localAsrClient.chooseMediaAudioStream(pendingAudio.mediaJobId, index);
+        mediaJobStatus(job);
+        setSubtitlePlanStatus(null);
+      } catch (error) {
+        setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
+          { code: (error && error.code) || "MEDIA_AUDIO_CHOICE_FAILED" }, "error");
+      } finally {
+        setBusy(false);
+      }
+    } else {
+      pendingSubtitleMaterial.choice = {
+        kind: "text", index: index,
+        candidates: String(select.dataset.candidates || "").split(",").map(Number).filter(Number.isInteger),
+      };
+    }
+    renderSubtitlePlan();
+  }
+
+  async function buildSubtitleMaterial() {
+    var material = pendingSubtitleMaterial;
+    if (!material || !material.plan || material.plan.status !== "ready" || material.working) return;
+    var plan = material.plan;
+    material.working = true;
+    setBusy(true);
+    setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
+    renderSubtitlePlan();
+    try {
+      var job = await window.SubtitleMaterialImport.confirmMediaPlan({
+        client: localAsrClient, jobId: pendingAudio.mediaJobId,
+        mode: ((pendingAudio.mediaReadiness || {}).plan || {}).mode,
+        planSha256: plan.plan_sha256, waitOptions: { onStatus: mediaJobStatus },
+      });
+      var stored = await window.SubtitleMaterialImport.storePreparedMedia({
+        client: localAsrClient, jobId: pendingAudio.mediaJobId, job: job,
+        maxBytes: window.MediaReadiness.VIDEO_MAX_BYTES,
+      });
+      material.stored = stored;
+      setSubtitlePlanStatus("studio.import.subtitlePlanStored",
+        { size: window.MediaReadiness.humanBytes(stored.sizeBytes) });
+      var liteToggle = $("v3ImportSubtitlePlanLite");
+      if (liteToggle && liteToggle.checked && plan.lite.available && plan.lite_plan_sha256) {
+        var liteJob = await window.SubtitleMaterialImport.confirmMediaPlan({
+          client: localAsrClient, jobId: pendingAudio.mediaJobId, mode: "lite_transcode",
+          planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: mediaJobStatus },
+        });
+        material.storedLite = await window.SubtitleMaterialImport.storePreparedMedia({
+          client: localAsrClient, jobId: pendingAudio.mediaJobId, job: liteJob, rendition: "lite",
+        });
+        setSubtitlePlanStatus("studio.import.subtitlePlanStoredLite",
+          { size: window.MediaReadiness.humanBytes(material.storedLite.sizeBytes) });
+      }
+      // Каноническим файлом материала становится подготовленная копия, а не исходный контейнер.
+      pendingAudio.mediaReadiness = window.MediaReadiness.acceptPrepared(job);
+      pendingAudio.sha256 = job.output_sha256;
+      pendingAudio.acquiredOpfsPath = stored.opfsPath;
+      pendingAudio.mime = "video/mp4";
+      pendingAudio.name = stored.name || pendingAudio.name;
+      renderMediaReadiness();
+    } catch (error) {
+      setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
+        { code: (error && error.code) || "SUBTITLE_MATERIAL_FAILED" }, "error");
+    } finally {
+      material.working = false;
+      setBusy(false);
+      renderSubtitlePlan();
+    }
+  }
+
   function renderAudioMeta() {
     if (!pendingAudio) return;
     var dur = Number(pendingAudio.durationSec || 0), rounded = Math.round(dur);
@@ -1566,7 +1795,10 @@
     $("v3ImportAudioInfo").hidden = true;
     pendingAudio = null;
     var isVideo = window.MediaReadiness.isVideo(file);
-    if (file.size > MAX_AUDIO_BYTES) { setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge"); return; }
+    if (file.size > window.MediaReadiness.sizeLimitFor(file)) {
+      setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge");
+      return;
+    }
     if (!isVideo && selectedAudioProvider() === "gemini") {
       var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
       if (!key) { setStatus("studio.import.errNoKey"); return; }
@@ -3003,6 +3235,8 @@
                            startMediaPreflight: startMediaPreflight, prepareMedia: prepareMedia, savePreparedMedia: savePreparedMedia,
                            cancelMediaJob: cancelMediaJob, runMediaDeviceGate: runMediaDeviceGate,
                            chooseTranscriptOnly: chooseTranscriptOnly,
+                           applySubtitlePlanChoice: applySubtitlePlanChoice,
+                           buildSubtitleMaterial: buildSubtitleMaterial,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            exportOcrEvidence: exportOcrEvidence,
