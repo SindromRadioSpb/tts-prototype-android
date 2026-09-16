@@ -195,8 +195,8 @@ def test_explicit_audio_selection_is_honoured_or_blocked():
     assert unavailable["reason"] == "selected_audio_stream_unavailable"
 
 
-def test_video_size_boundary_is_700_mib():
-    limit = 700 * 1024 * 1024
+def test_video_size_boundary_is_3_gib():
+    limit = 3 * 1024 * 1024 * 1024
     assert MAX_BYTES == limit
     assert classify_probe(_normalize_probe(owner_shaped_raw_probe(size=limit)))["outcome"] != BLOCKED
     too_large = classify_probe(_normalize_probe(owner_shaped_raw_probe(size=limit + 1)))
@@ -508,8 +508,8 @@ async def test_audio_transcode_job_fails_when_the_picture_changed(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_upload_limit_is_700_mib_and_reports_too_large(tmp_path):
-    assert MediaJobManager.MAX_BYTES == 700 * 1024 * 1024
+async def test_upload_limit_is_3_gib_and_reports_too_large(tmp_path):
+    assert MediaJobManager.MAX_BYTES == 3 * 1024 * 1024 * 1024
     manager = MediaJobManager(tmp_path, extract_fn=no_subtitles)
     manager.MAX_BYTES = 4
     with pytest.raises(MediaTooLarge):

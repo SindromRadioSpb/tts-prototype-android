@@ -4,9 +4,10 @@
   "use strict";
 
   var VIDEO_RE = /\.(mp4|mov|m4v|mkv|webm|avi)$/i;
-  // Owner decision 2026-09-16: a container goes to the local companion (700 MiB), while audio still
-  // travels to a cloud provider under the existing upload ceiling.
-  var VIDEO_MAX_BYTES = 700 * 1024 * 1024;
+  // Owner decision 2026-09-16: a container goes to the local companion (3 GiB), while audio still
+  // travels to a cloud provider under the existing upload ceiling. The phone-sized copy is a
+  // planned output of an accepted job, never a precondition for accepting one.
+  var VIDEO_MAX_BYTES = 3 * 1024 * 1024 * 1024;
   var AUDIO_MAX_BYTES = 300 * 1024 * 1024;
 
   function isVideo(file) {

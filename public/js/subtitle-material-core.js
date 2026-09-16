@@ -28,17 +28,22 @@
   var FORCED_TITLE_RE = /forced|форс|מאולצ/i;
   var SDH_TITLE_RE = /\bsdh\b|\bcc\b|hearing|слабослыш|לקויי שמיעה/i;
   // Spoken-language marks subtitlers write inside brackets, in the three interface languages.
+  // Subtitlers write the mark either adverbially ("по-арабски") or as a bare adjective
+  // ("[арабский]"). Both are the same convention, so both must name the language.
   var LANGUAGE_MARKS = [
-    { code: "ar", re: /בערבית|по-?арабски|на арабском|in arabic|arabic/i },
-    { code: "en", re: /באנגלית|по-?английски|на английском|in english|english/i },
-    { code: "ru", re: /ברוסית|по-?русски|на русском|in russian|russian/i },
-    { code: "fr", re: /בצרפתית|по-?французски|in french|french/i },
-    { code: "de", re: /בגרמנית|по-?немецки|in german|german/i },
-    { code: "es", re: /בספרדית|по-?испански|in spanish|spanish/i },
+    { code: "ar", re: /בערבית|арабск|in arabic|arabic/i },
+    { code: "en", re: /באנגלית|английск|in english|english/i },
+    { code: "ru", re: /ברוסית|русск|in russian|russian/i },
+    { code: "fr", re: /בצרפתית|французск|in french|french/i },
+    { code: "de", re: /בגרמנית|немецк|in german|german/i },
+    { code: "es", re: /בספרדית|испанск|in spanish|spanish/i },
     { code: "am", re: /באמהרית|амхарск|amharic/i },
     { code: "yi", re: /ביידיש|идиш|yiddish/i },
-    { code: "he", re: /בעברית|на иврите|in hebrew|hebrew/i },
+    { code: "he", re: /בעברית|иврит|in hebrew|hebrew/i },
   ];
+  // A mark is a spoken-language signal only when it is the bare name of a language. A sentence
+  // that merely mentions one is translation text and must survive intact.
+  var LANGUAGE_MARKER_MAX_WORDS = 3;
   var SCRIPTS = [
     { code: "he", re: /[֐-׿]/g },
     { code: "ar", re: /[؀-ۿݐ-ݿ]/g },
@@ -48,6 +53,15 @@
 
   function text(value) { return value == null ? "" : String(value); }
   function seconds(value) { var number = Number(value); return Number.isFinite(number) ? number : 0; }
+
+  function isLanguageMarker(value) {
+    var candidate = text(value).trim();
+    if (!candidate || candidate.split(/\s+/).length > LANGUAGE_MARKER_MAX_WORDS) return false;
+    for (var i = 0; i < LANGUAGE_MARKS.length; i++) {
+      if (LANGUAGE_MARKS[i].re.test(candidate)) return true;
+    }
+    return false;
+  }
 
   function normalizeCueText(raw, options) {
     var opts = options || {};
@@ -64,7 +78,12 @@
     var cleaned = joined.replace(MARK_RE, " ").replace(/\s+/g, " ").trim();
     // In a translation track a whole cue is often bracketed to mark foreign speech; the words
     // inside are the translation itself, so the caller can ask to keep them.
-    if (!cleaned && marks.length && opts.keepWholeMarkText) cleaned = marks.join(" ").replace(/\s+/g, " ").trim();
+    if (!cleaned && marks.length && opts.keepWholeMarkText) {
+      // The spoken-language mark is a signal about the scene, not a sentence the learner reads.
+      // A cue that carries nothing else contributes no translation text at all.
+      cleaned = marks.filter(function (mark) { return !isLanguageMarker(mark); })
+        .join(" ").replace(/\s+/g, " ").trim();
+    }
     if (!turns && cleaned) turns = 1;
     return { text: cleaned, marks: marks.filter(Boolean), turns: turns };
   }
@@ -260,7 +279,12 @@
       var evidence = [];
       var overlappingForced = forcedCues.filter(function (forced) { return overlaps(cue, forced); });
       if (overlappingForced.length) evidence.push("forced_track");
-      var markSources = [cue.text].concat(overlappingForced.map(function (forced) { return forced.text; }));
+      // The translation track carries the same convention as the forced track, so its marks name
+      // the spoken language too. Without this a row is honestly "other" but needlessly unnamed.
+      var markSources = [cue.text]
+        .concat(overlappingForced.map(function (forced) { return forced.text; }))
+        .concat(translationCues.filter(function (candidate) { return overlaps(cue, candidate); })
+          .map(function (candidate) { return candidate.text; }));
       var named = namedLanguage(markSources.map(function (value) { return normalizeCueText(value).marks.join(" "); }));
       if (named && named !== (opts.targetLanguage || "he")) evidence.push("language_mark");
       else if (named) named = null;

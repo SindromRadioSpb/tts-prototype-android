@@ -26,9 +26,11 @@ AUDIO_STREAM_CHOICE_REQUIRED = "AUDIO_STREAM_CHOICE_REQUIRED"
 BLOCKED = "BLOCKED"
 TARGET_CONTRACT = "linguistpro-mobile-v1"
 TARGET_LANGUAGE = "he"
-# Owner decision 2026-09-16: bounded local container intake. This covers the
-# prepared owner copy with headroom without accepting multi-gigabyte jobs.
-MAX_BYTES = 700 * 1024 * 1024
+# Owner decision 2026-09-16 (confirmed in session): a whole episode container is the
+# intake unit, so the ceiling is 3 GiB. Shrinking the job is what LITE_MAX_BYTES is for:
+# the phone-sized copy is produced from an accepted source, so a lower intake ceiling
+# would reject the very files the light copy exists to serve.
+MAX_BYTES = 3 * 1024 * 1024 * 1024
 MAX_DURATION_SECONDS = 3 * 60 * 60
 MAX_SUBTITLE_TRACKS = 32
 MAX_SUBTITLE_BYTES = 6 * 1024 * 1024

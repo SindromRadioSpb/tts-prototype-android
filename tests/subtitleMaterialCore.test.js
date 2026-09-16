@@ -211,6 +211,36 @@ test("normalizeCueText strips bidi controls, styling tags and keeps bracket mark
   assert.deepEqual(SMC.normalizeCueText(null), { text: "", marks: [], turns: 0 });
 });
 
+test("whole-cue bracket recovery keeps the translation and drops the spoken-language marker", () => {
+  // Real shape from the owner's Russian track: the subtitler writes the spoken-language marker on
+  // its own bracketed line above the bracketed translation of that same foreign speech. Recovering
+  // the cue text verbatim would paste the marker word into the learning table's translation column.
+  const cue = "[арабский]\n[Прошу Бога защиты от проклятого Сатаны.]";
+  const plain = SMC.normalizeCueText(cue);
+  assert.equal(plain.text, "", "the cue carries no unbracketed text");
+  assert.deepEqual(plain.marks, ["арабский", "Прошу Бога защиты от проклятого Сатаны."]);
+  const recovered = SMC.normalizeCueText(cue, { keepWholeMarkText: true });
+  assert.equal(recovered.text, "Прошу Бога защиты от проклятого Сатаны.",
+    "a bare language name is a signal, never translation text");
+  // A sentence that merely mentions a language is not a marker and must survive intact.
+  const sentence = "[Он говорит по-арабски с сильным акцентом, и это слышно.]";
+  assert.equal(SMC.normalizeCueText(sentence, { keepWholeMarkText: true }).text,
+    "Он говорит по-арабски с сильным акцентом, и это слышно.");
+});
+
+test("a bare Russian language adjective names the spoken language", () => {
+  // The owner's file marks foreign speech as "[арабский]", not "[по-арабски]". Both are the same
+  // convention, so both must name the language instead of leaving the row unnamed.
+  const textCues = [cue(10.0, 12.0, he("הוא ברח מעזה"))];
+  const forced = [cue(10.0, 12.0, he("הוא ברח מעזה"))];
+  const translation = [cue(10.0, 12.0, "[арабский]\n[Он сбежал из Газы.]")];
+  const verdicts = SMC.speechLanguage(textCues, {
+    forcedCues: forced, translationCues: translation, targetLanguage: "he",
+  });
+  assert.equal(verdicts[0].value, "other");
+  assert.equal(verdicts[0].named, "ar");
+});
+
 test("detectScriptLanguage names the dominant script, not a guessed language", () => {
   assert.equal(SMC.detectScriptLanguage(he("מה זה?")), "he");
   assert.equal(SMC.detectScriptLanguage("Что это?"), "cyrillic");
