@@ -274,9 +274,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=229",
-  "/i18n/locales/en.js?v=229",
-  "/i18n/locales/he.js?v=229",
+  "/i18n/locales/ru.js?v=230",
+  "/i18n/locales/en.js?v=230",
+  "/i18n/locales/he.js?v=230",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
