@@ -46,6 +46,67 @@ function tracks() {
   ];
 }
 
+const TABLE_ROWS = [
+  { index: 0, start: 4, end: 6, text: "מה זה?", source_cue_indexes: [0],
+    speech_language: "target_assumed", speech_language_named: null, translation: "Что это?", translation_group: null },
+  { index: 1, start: 10, end: 14, text: "הוא ברח מעזה דרך מעבר רפיח.", source_cue_indexes: [2, 3],
+    speech_language: "other", speech_language_named: "ar", translation: "Он сбежал из Газы через Рафах.", translation_group: "tgroup:2" },
+];
+const TABLE_OPTIONS = {
+  textTrackIndex: 7, textTrackSha256: "a".repeat(64),
+  translationTrackIndex: 4, translationTrackSha256: "b".repeat(64),
+  language: "he", translationLanguage: "ru",
+};
+
+test("buildTableRows fills the studio row shape from subtitles, leaving the free columns empty", () => {
+  const table = SMC.buildTableRows(TABLE_ROWS, TABLE_OPTIONS);
+  assert.equal(table.length, 2);
+  assert.equal(table[0].he, "מה זה?");
+  assert.equal(table[0].ru, "Что это?");
+  // Niqqud and transliteration stay empty on purpose: the product fills them deterministically
+  // and for free, so no paid provider is involved in a subtitle material.
+  assert.deepEqual(
+    [table[0].niqqud, table[0].translit, table[0].translit_sbl, table[0].translit_ru],
+    ["", "", "", ""],
+  );
+  assert.equal(table[0].segment_index, 0);
+  assert.equal(table[0].source_line_index, 0);
+  assert.equal(table[1].segment_index, 1);
+  assert.equal(table[0].translation_provider, "subtitle-track");
+
+  const meta = JSON.parse(table[0].translation_meta_json);
+  assert.equal(meta.provider, "subtitle-track");
+  assert.equal(meta.local_execution, true);
+  assert.equal(meta.paid, false);
+  assert.equal(meta.text_track_index, 7);
+  assert.equal(meta.text_track_sha256, "a".repeat(64));
+  assert.equal(meta.translation_track_index, 4);
+  assert.equal(meta.translation_track_sha256, "b".repeat(64));
+  assert.equal(meta.translation_source, "subtitle-track");
+  assert.deepEqual(meta.source_cue_indexes, [0]);
+  assert.equal(meta.start_ms, 4000);
+  assert.equal(meta.end_ms, 6000);
+  assert.equal(meta.speech_language, "target_assumed");
+  assert.equal(meta.speech_language_named, null);
+});
+
+test("buildTableRows keeps non-target speech and grouped translations honest", () => {
+  const table = SMC.buildTableRows(TABLE_ROWS, TABLE_OPTIONS);
+  const meta = JSON.parse(table[1].translation_meta_json);
+  assert.equal(meta.speech_language, "other");
+  assert.equal(meta.speech_language_named, "ar");
+  assert.equal(meta.translation_group, "tgroup:2");
+  assert.deepEqual(meta.source_cue_indexes, [2, 3]);
+
+  const untranslated = SMC.buildTableRows(
+    [Object.assign({}, TABLE_ROWS[0], { translation: null, translation_group: null })],
+    TABLE_OPTIONS,
+  );
+  assert.equal(untranslated[0].ru, "");
+  assert.equal(untranslated[0].translation_provider, null);
+  assert.equal(JSON.parse(untranslated[0].translation_meta_json).translation_source, "missing");
+});
+
 function readiness(overrides = {}) {
   return {
     outcome: "AUDIO_TRANSCODE_REQUIRED",

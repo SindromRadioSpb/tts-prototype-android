@@ -1191,9 +1191,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=553",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=226",
-  "/i18n/locales/en.js?v=226",
-  "/i18n/locales/he.js?v=226",
+  "/i18n/locales/ru.js?v=227",
+  "/i18n/locales/en.js?v=227",
+  "/i18n/locales/he.js?v=227",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

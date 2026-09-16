@@ -344,6 +344,49 @@
     });
   }
 
+  // Studio table rows from subtitle rows. Niqqud and transliteration stay empty on purpose: the
+  // product already produces them deterministically and for free, so a subtitle material costs
+  // nothing and no model is involved in its translation column.
+  function buildTableRows(rows, options) {
+    var opts = options || {};
+    var generatedAt = opts.generatedAt || new Date().toISOString();
+    return (Array.isArray(rows) ? rows : []).map(function (row, index) {
+      var translation = row && row.translation == null ? "" : String(row.translation);
+      var hasTranslation = !!translation.trim();
+      var meta = {
+        provider: "subtitle-track",
+        local_execution: true,
+        paid: false,
+        text_track_index: opts.textTrackIndex == null ? null : opts.textTrackIndex,
+        text_track_sha256: opts.textTrackSha256 || null,
+        translation_track_index: hasTranslation && opts.translationTrackIndex != null ? opts.translationTrackIndex : null,
+        translation_track_sha256: hasTranslation ? (opts.translationTrackSha256 || null) : null,
+        translation_source: hasTranslation ? "subtitle-track" : "missing",
+        translation_group: (row && row.translation_group) || null,
+        source_cue_indexes: (row && Array.isArray(row.source_cue_indexes) ? row.source_cue_indexes : []).slice(),
+        start_ms: Math.round(seconds(row && row.start) * 1000),
+        end_ms: Math.round(seconds(row && row.end) * 1000),
+        speech_language: (row && row.speech_language) || null,
+        speech_language_named: (row && row.speech_language_named) || null,
+        language: opts.language || null,
+        translation_language: opts.translationLanguage || null,
+        generatedAt: generatedAt,
+      };
+      return {
+        segment_index: index,
+        source_line_index: index,
+        he: String(row && row.text == null ? "" : row.text),
+        niqqud: "",
+        translit: "",
+        translit_sbl: "",
+        translit_ru: "",
+        ru: hasTranslation ? translation : "",
+        translation_provider: hasTranslation ? "subtitle-track" : null,
+        translation_meta_json: JSON.stringify(meta),
+      };
+    });
+  }
+
   // One action per stream for the import screen: what happens to the picture, which audio track
   // is kept, which subtitle track becomes the text, where the translation comes from, and what a
   // phone-sized copy would be. A question appears only for a real ambiguity.
@@ -418,6 +461,7 @@
   var API = {
     CONTROL_CHARS_RE: CONTROL_CHARS_RE,
     buildMaterialPlan: buildMaterialPlan,
+    buildTableRows: buildTableRows,
     normalizeCueText: normalizeCueText,
     detectScriptLanguage: detectScriptLanguage,
     classifyTracks: classifyTracks,

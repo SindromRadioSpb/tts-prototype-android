@@ -1716,6 +1716,78 @@
     renderSubtitlePlan();
   }
 
+  // S4c — из выбранных дорожек собираются строки материала: текст из целевой дорожки, перевод из
+  // дорожки перевода по времени, язык речи по forced-дорожке и пометкам. Ни одного платного вызова.
+  function buildSubtitleTable(plan, stored, job) {
+    var SMC = window.SubtitleMaterialCore;
+    var material = pendingSubtitleMaterial;
+    if (!SMC || !material || !plan || !plan.text) return null;
+    var byIndex = {};
+    subtitlePlanTracks().forEach(function (track) { byIndex[track.index] = track; });
+    var textTrack = byIndex[plan.text.index];
+    if (!textTrack) return null;
+    var translationTrack = plan.translation ? byIndex[plan.translation.index] : null;
+    var forcedCues = [];
+    (plan.signal_track_indexes || []).forEach(function (index) {
+      if (byIndex[index]) forcedCues = forcedCues.concat(byIndex[index].cues || []);
+    });
+    var translationCues = translationTrack ? translationTrack.cues : [];
+    var verdicts = SMC.speechLanguage(textTrack.cues, {
+      forcedCues: forcedCues, translationCues: translationCues, targetLanguage: "he",
+    });
+    var rows = SMC.buildRows({
+      textCues: textTrack.cues, speechLanguage: verdicts,
+      translation: translationCues.length ? SMC.alignTranslation(textTrack.cues, translationCues) : null,
+      translationCues: translationCues,
+    });
+    if (!rows.length) return null;
+    var tableRows = SMC.buildTableRows(rows, {
+      textTrackIndex: textTrack.index, textTrackSha256: textTrack.sha256,
+      translationTrackIndex: translationTrack ? translationTrack.index : null,
+      translationTrackSha256: translationTrack ? translationTrack.sha256 : null,
+      language: "he", translationLanguage: subtitleTranslationLanguage(),
+    });
+    // Сегменты паспорта — это ИМЕННО строки материала: соответствие «строка ↔ сегмент» утверждено
+    // построением, а исходные реплики остаются в неизменной сырой дорожке (rawSource).
+    pendingCaptions = {
+      parsed: {
+        ok: true, format: textTrack.format || "srt", kindHint: "container-track", rolling: false,
+        language: textTrack.language || "he", droppedHeadings: 0, warnings: [],
+        segments: rows.map(function (row, index) { return { i: index, start: row.start, text: row.text }; }),
+      },
+      origin: "container-track",
+      fileName: (stored && stored.name) || pendingAudio.name || null,
+      rawSource: textTrack.raw,
+      media: {
+        opfsPath: stored.opfsPath, sha256: stored.sha256, mime: stored.mimeType || "video/mp4",
+        sizeBytes: stored.sizeBytes, durationSec: pendingAudio.durationSec || null,
+        originalName: stored.name || pendingAudio.name || null,
+        compatibility: window.MediaReadiness.compatibilityEvidence(pendingAudio.mediaReadiness) || undefined,
+        renditions: material.storedLite
+          ? [{ role: "lite", sha256: material.storedLite.sha256, opfsPath: material.storedLite.opfsPath,
+               sizeBytes: material.storedLite.sizeBytes, derived_from_source_sha256: (job && job.source_sha256) || null }]
+          : undefined,
+      },
+    };
+    material.rows = rows;
+    material.tableRows = tableRows;
+    showPreview({
+      kind: "captions", source: (stored && stored.name) || pendingAudio.name || "container",
+      method: "container-subtitle-track", model: null, warnings: [],
+      text: rows.map(function (row) { return row.text; }).join("\n"),
+    });
+    return tableRows;
+  }
+
+  async function applySubtitleMaterial() {
+    var material = pendingSubtitleMaterial;
+    if (!material || !material.tableRows || !material.tableRows.length) return false;
+    if (!await useText()) return false;
+    if (typeof window.v3ApplySubtitleTable !== "function") return false;
+    var applied = window.v3ApplySubtitleTable(material.tableRows);
+    return !!(applied && applied.applied);
+  }
+
   async function buildSubtitleMaterial() {
     var material = pendingSubtitleMaterial;
     if (!material || !material.plan || material.plan.status !== "ready" || material.working) return;
@@ -1756,6 +1828,18 @@
       pendingAudio.mime = "video/mp4";
       pendingAudio.name = stored.name || pendingAudio.name;
       renderMediaReadiness();
+      // Таблица собирается и уезжает в Студию тем же путём, что и обычный импорт: useText()
+      // создаёт медиа-пакет и закрывает диалог, поэтому итог сообщаем тостом, а не строкой в нём.
+      var tableRows = buildSubtitleTable(plan, stored, job);
+      if (tableRows && await applySubtitleMaterial()) {
+        try {
+          if (typeof window.showToast === "function") {
+            window.showToast(tr("studio.import.subtitlePlanTableReady", { rows: tableRows.length }), "success");
+          }
+        } catch (_) {}
+      } else {
+        setSubtitlePlanStatus("studio.import.subtitlePlanFailed", { code: "SUBTITLE_TABLE_NOT_APPLIED" }, "error");
+      }
     } catch (error) {
       setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
         { code: (error && error.code) || "SUBTITLE_MATERIAL_FAILED" }, "error");
@@ -2783,6 +2867,9 @@
                     at: new Date().toISOString(), droppedHeadings: pendingCaptions.parsed.droppedHeadings,
                     warnings: pending.warnings || [], acquisition: pendingCaptions.acquisition || undefined },
         video: pendingCaptions.video || undefined,
+        // S4c: субтитры из контейнера приходят вместе с локальным видео — без media паспорт
+        // остаётся без привязки, и материал теряет плеер (passportToPromotionInput читает media).
+        media: pendingCaptions.media || undefined,
         segments: cEdited ? cl.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
                           : ps.map(function (s, k) { return { i: k, start: s.start, text: cl[k] }; }),
         timing: null,
