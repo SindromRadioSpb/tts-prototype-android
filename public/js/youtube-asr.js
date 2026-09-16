@@ -99,8 +99,8 @@
     };
   }
 
-  async function post(deps, method, body) {
-    const model = AT().ASR_MODEL;
+  async function post(deps, method, body, modelOverride) {
+    const model = modelOverride || AT().ASR_MODEL;
     const resp = await deps.fetch(ENDPOINT + model + ':' + method, {
       method: 'POST',
       headers: { 'x-goog-api-key': String(deps.apiKey), 'Content-Type': 'application/json' },
@@ -232,18 +232,19 @@
     return within(asked.usd, quote.highUsd) && within(asked.rows, quote.highRows);
   }
 
-  async function callWindow(deps, url, win, state, report) {
+  async function callWindow(deps, url, win, state, report, modelOverride) {
     for (let attempt = 0; ; attempt++) {
       if (deps.shouldStop && await deps.shouldStop()) fail('TASK_CANCELLED');
       state.attempts++;
       try {
-        const data = await post(deps, 'generateContent', buildRequest(url, win));
+        const data = await post(deps, 'generateContent', buildRequest(url, win), modelOverride);
         if(!state.responses)state.responses=[];state.responses.push({window:win,raw:data});
         const unusable = classifyResponse(data);
         if (unusable) fail(unusable, null, providerDetail(data), data);
         const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
         const parsed = AT().parseAsrResponse(parts.map((p) => p.text || '').join(''));
-        return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language, usage: data.usageMetadata || null, raw:data };
+        return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language,
+          usage: data.usageMetadata || null, raw:data, model: modelOverride || AT().ASR_MODEL };
       } catch (error) {
         // «Перегружен» — это продолжаемое состояние, а не провал прогона: измерено 5×503 и 1×429
         // за одну сессию. Отвергнутая ссылка не ретраится никогда — ответ не изменится.
@@ -269,12 +270,13 @@
   // OTHER означает неизвестную причину завершения, не подтверждённую блокировку. Делим только
   // проблемный отрезок; настоящие SAFETY/PROHIBITED_CONTENT остаются терминальными.
   const SPLITTABLE = ['ASR_TRUNCATED', 'ASR_EMPTY', 'ASR_BAD_JSON', 'ASR_OTHER'];
+  const OTHER_FALLBACK_MODEL = 'gemini-2.5-flash';
 
   async function transcribeRange(deps, url, win, state, durationSec, report, recovery, skipDirect) {
     const cached = recovery && recovery.get(win);
     if (cached) return cached;
     try {
-      if (skipDirect || (recovery && recovery.isSplit(win))) fail('ASR_OTHER', null, { finish_reason: 'OTHER' });
+      if (skipDirect || (recovery && (recovery.isSplit(win) || recovery.failedOther(win)))) fail('ASR_OTHER', null, { finish_reason: 'OTHER' });
       const result = await callWindow(deps, url, win, state, report);
       if (recovery) await recovery.save(win, result);
       return result;
@@ -283,6 +285,23 @@
       const startSec = win ? win.startSec : 0;
       const endSec = win ? win.endSec : (durationSec || 0);
       if (!SPLITTABLE.includes(error.code) || (endSec - startSec) < SPLIT_MIN_SEC) {
+        if (error.code === 'ASR_OTHER' && deps.allowAlternateModel && recovery && !recovery.alternateAttempted(win)) {
+          // Durable pending receipt precedes the paid call: an interrupted/unknown-charge call
+          // is never retried automatically. The explicit model is cheaper on output than Flash latest.
+          await recovery.markAlternate(win);
+          try {
+            const alternate = await callWindow({ ...deps, noRetry: true }, url, win, state, report, OTHER_FALLBACK_MODEL);
+            alternate.warnings = (alternate.warnings || []).concat('ALTERNATE_ASR_MODEL_USED');
+            await recovery.save(win, alternate);
+            await recovery.recordAlternate(win, 'complete');
+            return alternate;
+          } catch (alternateError) {
+            await recovery.recordAlternate(win, 'failed-charge-unknown');
+            if (alternateError.code === 'ASR_OTHER') alternateError.code = 'ASR_OTHER_EXHAUSTED';
+            alternateError.failed_window = win;
+            throw alternateError;
+          }
+        }
         if (error.code === 'ASR_OTHER') error.code = 'ASR_OTHER_EXHAUSTED';
         if (!error.failed_window) error.failed_window = win;
         throw error;
@@ -406,10 +425,11 @@
       && JSON.stringify(checkpoint.windows) === JSON.stringify(checkpointPlan);
     checkpoint = checkpointMatches ? JSON.parse(JSON.stringify(checkpoint)) : {
       schema: 'youtube-asr-checkpoint-v1', source: checkpointSource,
-      windows: checkpointPlan, completed: [], partial_completed: [], split_ranges: [], failure: null,
+      windows: checkpointPlan, completed: [], partial_completed: [], split_ranges: [], alternate_attempts: [], failure: null,
     };
     if (!Array.isArray(checkpoint.partial_completed)) checkpoint.partial_completed = [];
     if (!Array.isArray(checkpoint.split_ranges)) checkpoint.split_ranges = [];
+    if (!Array.isArray(checkpoint.alternate_attempts)) checkpoint.alternate_attempts = [];
     const saveCheckpoint = async () => {
       if (opts && opts.onAsrCheckpoint) await opts.onAsrCheckpoint(JSON.parse(JSON.stringify(checkpoint)));
     };
@@ -437,6 +457,18 @@
             await saveCheckpoint();
           },
           isSplit: (part) => checkpoint.split_ranges.some((item) => item.index === index && windowKey(item.window) === windowKey(part)),
+          failedOther: (part) => checkpoint.failure && checkpoint.failure.index === index
+            && checkpoint.failure.code === 'ASR_OTHER_EXHAUSTED'
+            && windowKey(checkpoint.failure.failed_window) === windowKey(part),
+          alternateAttempted: (part) => checkpoint.alternate_attempts.some((item) => item.index === index && windowKey(item.window) === windowKey(part)),
+          markAlternate: async (part) => {
+            checkpoint.alternate_attempts.push({ index, window: part, model: OTHER_FALLBACK_MODEL, state: 'pending-charge-unknown' });
+            await saveCheckpoint();
+          },
+          recordAlternate: async (part, state) => {
+            const entry = checkpoint.alternate_attempts.find((item) => item.index === index && windowKey(item.window) === windowKey(part));
+            if (entry) { entry.state = state; await saveCheckpoint(); }
+          },
           markSplit: async (part) => {
             if (recovery.isSplit(part)) return;
             checkpoint.split_ranges.push({ index, window: part });
@@ -445,7 +477,7 @@
         };
         const prior = checkpoint.failure;
         const skipDirect = prior && prior.index === index
-          && (prior.code === 'ASR_OTHER' || (prior.code === 'ASR_BLOCKED'
+          && (prior.code === 'ASR_OTHER' || prior.code === 'ASR_OTHER_EXHAUSTED' || (prior.code === 'ASR_BLOCKED'
             && prior.provider_detail
             && (prior.provider_detail.finish_reason === 'OTHER' || prior.provider_detail.block_reason === 'OTHER')
             && !['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION'].includes(prior.provider_detail.finish_reason)

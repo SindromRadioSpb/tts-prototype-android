@@ -13473,10 +13473,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-timing-repair.js?v=556"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=553"></script>
-<script src="/js/youtube-asr.js?v=563"></script>
+<script src="/js/youtube-asr.js?v=564"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=561"></script>
-<script src="/js/learning-material-task-ui.js?v=563"></script>
+<script src="/js/learning-material-task-ui.js?v=564"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13564,7 +13564,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.563";
+    window.APP_VERSION = "3.11.564";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34606,7 +34606,7 @@ window.LearningMaterialTaskUI.configure({
     const savedTask=await LearningMaterialTask.createStore().get(id);
     const savedTimingEvidence=savedTask?.timing_evidence;
     const savedAsrCheckpoint=savedTask?.asr_checkpoint;
-    const result = await YoutubeAsr.transcribe({fetch:(u,i)=>fetch(u,i),apiKey:key,
+    const result = await YoutubeAsr.transcribe({fetch:(u,i)=>fetch(u,i),apiKey:key,allowAlternateModel:true,
       // Просьба остановиться читается из журнала задачи — единственного места, где она живёт.
       shouldStop: async () => { try { const j = await LearningMaterialTask.createStore().get(id); return !!(j && j.cancel_requested); } catch (_) { return false; } }},
       input.youtube_source.url,

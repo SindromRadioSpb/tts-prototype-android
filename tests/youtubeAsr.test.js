@@ -343,6 +343,37 @@ test('a window that is already short is not split forever',async()=>{
   assert.equal(fetch.calls.length,2,'a one-minute clip has nothing left to halve');
 });
 
+test('a saved OTHER exhaustion tries one explicit alternate model without repeating the paid primary call',async()=>{
+  const short={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*60}]};
+  const saved=[];
+  const first=fakeFetch([{status:200,body:short},{status:200,body:{candidates:[{finishReason:'OTHER'}]}}]);
+  await assert.rejects(Y.transcribe({fetch:first,apiKey:'k'},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))}),
+    e=>e.code==='ASR_OTHER_EXHAUSTED');
+  const resumed=fakeFetch([{status:200,body:short},{status:200,body:asrBody([seg('0:07','שלום עולם')])}]);
+  const out=await Y.transcribe({fetch:resumed,apiKey:'k',allowAlternateModel:true},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,savedAsrCheckpoint:saved.at(-1),onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))});
+  assert.equal(resumed.calls.length,2);
+  assert.match(resumed.calls[1].url,/models\/gemini-2\.5-flash:generateContent/);
+  assert.ok(out.warnings.includes('ALTERNATE_ASR_MODEL_USED'));
+  assert.equal(saved.at(-1).alternate_attempts.length,1);
+});
+
+test('an alternate-model OTHER refusal is recorded and not charged again on resume',async()=>{
+  const short={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*60}]};
+  const saved=[];
+  const first=fakeFetch([{status:200,body:short},{status:200,body:{candidates:[{finishReason:'OTHER'}]}},
+    {status:200,body:{candidates:[{finishReason:'OTHER'}]}}]);
+  await assert.rejects(Y.transcribe({fetch:first,apiKey:'k',allowAlternateModel:true},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))}),
+    e=>e.code==='ASR_OTHER_EXHAUSTED');
+  assert.equal(saved.at(-1).alternate_attempts.length,1);
+  const again=fakeFetch([{status:200,body:short}]);
+  await assert.rejects(Y.transcribe({fetch:again,apiKey:'k',allowAlternateModel:true},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,savedAsrCheckpoint:saved.at(-1)}),e=>e.code==='ASR_OTHER_EXHAUSTED');
+  assert.equal(again.calls.length,1,'only the free quote is repeated');
+});
+
 // ── UI обязан назвать причину, а не показать одну и ту же фразу на всё ──
 test('the task dialog has a named sentence for every failure the route can produce',()=>{
   const fs=require('node:fs');
