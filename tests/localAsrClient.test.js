@@ -132,6 +132,84 @@ test("loopback failure is terminal and does not trigger implicit Gemini fallback
   assert.equal(calls, 1);
 });
 
+function rawResponse(status, body, headers = {}) {
+  const map = new Map(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    headers: { get: (name) => map.has(String(name).toLowerCase()) ? map.get(String(name).toLowerCase()) : null },
+    text: async () => body,
+    json: async () => JSON.parse(body),
+  };
+}
+
+test("media job accepts one probed audio choice and serves subtitle text verified by hash", async () => {
+  const crypto = require("node:crypto");
+  const srt = "1\n00:00:00,500 --> 00:00:01,500\nשלום\n\n";
+  const sha = crypto.createHash("sha256").update(Buffer.from(srt, "utf8")).digest("hex");
+  const calls = [];
+  const client = new C.Client({
+    tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => {
+      calls.push({ url, options });
+      if (url.includes("/subtitles/")) {
+        return rawResponse(200, srt, { "x-lp-subtitle-sha256": sha, "content-type": "application/x-subrip; charset=utf-8" });
+      }
+      return response(200, { job_id: "job-1", state: "WAITING_FOR_DECISION" });
+    },
+  });
+  const chosen = await client.chooseMediaAudioStream("job-1", 3);
+  assert.equal(chosen.state, "WAITING_FOR_DECISION");
+  assert.ok(calls[0].url.endsWith("/v1/media/jobs/job-1/audio-stream"));
+  assert.deepEqual(JSON.parse(calls[0].options.body), { stream_index: 3 });
+
+  const track = await client.mediaSubtitleTrack("job-1", 7);
+  assert.equal(track.text, srt);
+  assert.equal(track.sha256, sha);
+  assert.equal(track.format, "srt");
+  assert.ok(calls[1].url.endsWith("/v1/media/jobs/job-1/subtitles/7"));
+});
+
+test("subtitle text that does not match the companion hash is refused, not imported", async () => {
+  const client = new C.Client({
+    tokenProvider: () => TOKEN,
+    fetchFn: async () => rawResponse(200, "tampered", { "x-lp-subtitle-sha256": "0".repeat(64) }),
+  });
+  await assert.rejects(
+    client.mediaSubtitleTrack("job-1", 7),
+    (error) => error.code === "LOCAL_MEDIA_SUBTITLE_SHA_MISMATCH",
+  );
+});
+
+test("prepared media is handed over as a stream, by rendition, never as one buffered blob", async () => {
+  const calls = [];
+  const client = new C.Client({
+    tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => {
+      calls.push({ url, options });
+      return rawResponse(200, "bytes", { "x-lp-media-sha256": "a".repeat(64) });
+    },
+  });
+  const full = await client.mediaFileResponse("job-1");
+  assert.equal(typeof full.text, "function");
+  assert.equal(full.headers.get("x-lp-media-sha256"), "a".repeat(64));
+  await client.mediaFileResponse("job-1", "lite");
+  assert.ok(calls[0].url.endsWith("/v1/media/jobs/job-1/file"));
+  assert.ok(calls[1].url.endsWith("/v1/media/jobs/job-1/file?rendition=lite"));
+});
+
+test("light copy preparation names its rendition in the confirmed plan call", async () => {
+  const calls = [];
+  const client = new C.Client({
+    tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => { calls.push({ url, options }); return response(202, { state: "TRANSCODING_LITE" }); },
+  });
+  await client.prepareMediaJob("job-1", "lite_transcode", "b".repeat(64), "lite");
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    mode: "lite_transcode", plan_sha256: "b".repeat(64), rendition: "lite",
+  });
+});
+
 test("gate retry names exact physical chunks and never re-uploads source bytes", async () => {
   const calls = [];
   const client = new C.Client({

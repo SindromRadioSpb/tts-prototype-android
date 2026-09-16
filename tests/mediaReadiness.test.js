@@ -106,6 +106,57 @@ test('post-relink device gate names exact-SHA mismatch and never tries playback'
   assert.equal(playbackCalls, 0);
 });
 
+test('companion container evidence survives into readiness and never starts ASR by itself', () => {
+  const state = MediaReadiness.acceptReport({
+    job_id: 'job-1', state: 'WAITING_FOR_DECISION', progress: 0.2,
+    report: {
+      outcome: 'AUDIO_TRANSCODE_REQUIRED', reason: 'audio_codec_or_layout_mismatch',
+      next_action: 'review-and-confirm-audio-transcode',
+      plan: { mode: 'audio_transcode', selected_audio_stream: 2 }, plan_sha256: H('a'),
+      lite_plan: { mode: 'lite_transcode', height: 540 }, lite_plan_sha256: H('b'), lite_reason: null,
+      audio_selection: { index: 2, language: 'he', reason: 'target_language_tag' },
+      audio_choices: [{ index: 1, language: 'ru' }, { index: 2, language: 'he' }],
+      track_inventory: { schema: 'media-track-inventory-v1', audio: [{ index: 2 }], subtitles: [{ index: 7 }] },
+      subtitle_tracks: [{ index: 7, status: 'extracted', format: 'srt', sha256: H('c') }],
+    },
+  });
+  assert.equal(state.outcome, 'AUDIO_TRANSCODE_REQUIRED');
+  assert.equal(state.plan.mode, 'audio_transcode');
+  assert.equal(state.lite_plan.height, 540);
+  assert.equal(state.lite_plan_sha256, H('b'));
+  assert.equal(state.lite_reason, null);
+  assert.equal(state.audio_selection.language, 'he');
+  assert.equal(state.audio_choices.length, 2);
+  assert.equal(state.track_inventory.subtitles[0].index, 7);
+  assert.equal(state.subtitle_tracks[0].sha256, H('c'));
+  assert.equal(MediaReadiness.canStartAsr(state), false);
+  assert.equal(MediaReadiness.canStartAsr({ outcome: 'AUDIO_STREAM_CHOICE_REQUIRED', canonical_sha256: H('a') }), false);
+});
+
+test('only verified text subtitle tracks can become a material', () => {
+  const subtitle_tracks = [
+    { index: 4, status: 'extracted', format: 'srt', sha256: H('a') },
+    { index: 9, status: 'image_based', format: null, sha256: null },
+    { index: 10, status: 'extraction_failed', format: null, sha256: null },
+    { index: 11, status: 'extracted', format: 'srt', sha256: null },
+  ];
+  assert.deepEqual(MediaReadiness.usableSubtitleTracks({ subtitle_tracks }).map((track) => track.index), [4]);
+  assert.deepEqual(MediaReadiness.usableSubtitleTracks({}), []);
+});
+
+test('video carries its own size ceiling, separate from the audio upload limit', () => {
+  assert.equal(MediaReadiness.VIDEO_MAX_BYTES, 3 * 1024 * 1024 * 1024);
+  assert.equal(MediaReadiness.AUDIO_MAX_BYTES, 300 * 1024 * 1024);
+  assert.equal(
+    MediaReadiness.sizeLimitFor({ name: 'episode.mkv', type: 'video/x-matroska' }),
+    MediaReadiness.VIDEO_MAX_BYTES,
+  );
+  assert.equal(
+    MediaReadiness.sizeLimitFor({ name: 'lesson.mp3', type: 'audio/mpeg' }),
+    MediaReadiness.AUDIO_MAX_BYTES,
+  );
+});
+
 test('device receipt names deterministic browser and OS families', () => {
   assert.deepEqual(
     MediaReadiness.devicePlatform('Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.6 Mobile/15E148 Safari/604.1'),

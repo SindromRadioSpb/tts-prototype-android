@@ -4,9 +4,28 @@
   "use strict";
 
   var VIDEO_RE = /\.(mp4|mov|m4v|mkv|webm|avi)$/i;
+  // Owner decision 2026-09-16: a container goes to the local companion (3 GiB), while audio still
+  // travels to a cloud provider under the existing upload ceiling.
+  var VIDEO_MAX_BYTES = 3 * 1024 * 1024 * 1024;
+  var AUDIO_MAX_BYTES = 300 * 1024 * 1024;
 
   function isVideo(file) {
     return !!file && (String(file.type || "").toLowerCase().indexOf("video/") === 0 || VIDEO_RE.test(String(file.name || "")));
+  }
+
+  function sizeLimitFor(file) {
+    return isVideo(file) ? VIDEO_MAX_BYTES : AUDIO_MAX_BYTES;
+  }
+
+  // A material can only be built from a track whose text the companion actually extracted and
+  // hashed; image-based and failed tracks stay visible elsewhere as honest states.
+  function usableSubtitleTracks(state) {
+    var tracks = state && Array.isArray(state.subtitle_tracks) ? state.subtitle_tracks : [];
+    return tracks.filter(function (track) {
+      return track && track.status === "extracted"
+        && (track.format === "srt" || track.format === "vtt")
+        && /^[a-f0-9]{64}$/i.test(String(track.sha256 || ""));
+    });
   }
 
   function initialForFile(file) {
@@ -60,6 +79,15 @@
       next_action: report.next_action || null,
       plan: report.plan || null,
       plan_sha256: report.plan_sha256 || null,
+      // Container evidence and the light-copy plan travel with the state: the import screen shows
+      // them and the material records them, so they must not be re-derived from a second probe.
+      track_inventory: report.track_inventory || null,
+      audio_selection: report.audio_selection || null,
+      audio_choices: Array.isArray(report.audio_choices) ? report.audio_choices : null,
+      subtitle_tracks: Array.isArray(report.subtitle_tracks) ? report.subtitle_tracks : null,
+      lite_plan: report.lite_plan || null,
+      lite_plan_sha256: report.lite_plan_sha256 || null,
+      lite_reason: report.lite_reason || null,
       estimated_output_bytes: report.estimated_output_bytes || null,
       estimated_time_seconds: report.estimated_time_seconds || null,
       disk_free_bytes: report.disk_free_bytes || null,
@@ -235,6 +263,10 @@
   }
 
   var API = {
+    VIDEO_MAX_BYTES: VIDEO_MAX_BYTES,
+    AUDIO_MAX_BYTES: AUDIO_MAX_BYTES,
+    sizeLimitFor: sizeLimitFor,
+    usableSubtitleTracks: usableSubtitleTracks,
     isVideo: isVideo,
     initialForFile: initialForFile,
     canStartAsr: canStartAsr,

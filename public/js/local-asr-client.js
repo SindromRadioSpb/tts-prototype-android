@@ -84,7 +84,18 @@
     this.normalizer = opts.normalizer ||
       (typeof window !== "undefined" && window.LocalAsrNormalizer
         ? window.LocalAsrNormalizer.normalizeLocalAsrResult : null);
+    this.sha256Fn = opts.sha256Fn || null;
     if (!this.fetchFn) throw new Error("LOCAL_ASR_FETCH_UNAVAILABLE");
+  }
+
+  async function sha256Hex(bytes, digestFn) {
+    var digest = digestFn
+      || (typeof crypto !== "undefined" && crypto.subtle
+        ? function (data) { return crypto.subtle.digest("SHA-256", data); }
+        : null);
+    if (!digest) throw LocalAsrError("LOCAL_MEDIA_HASH_UNAVAILABLE", "SHA-256 is unavailable in this browser");
+    var result = await digest(bytes);
+    return Array.from(new Uint8Array(result), function (value) { return value.toString(16).padStart(2, "0"); }).join("");
   }
 
   Client.prototype._request = async function (path, options) {
@@ -184,11 +195,40 @@
     });
   };
   Client.prototype.getMediaJob = function (id) { return this._request("/v1/media/jobs/" + encodeURIComponent(id)); };
-  Client.prototype.prepareMediaJob = function (id, mode, planSha256) {
+  Client.prototype.prepareMediaJob = function (id, mode, planSha256, rendition) {
     return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/prepare", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mode: mode, plan_sha256: planSha256 }),
+      body: JSON.stringify({ mode: mode, plan_sha256: planSha256, rendition: rendition || "full" }),
     });
+  };
+  // The companion re-classifies its stored probe for one of its own audio streams; no re-upload.
+  Client.prototype.chooseMediaAudioStream = function (id, streamIndex) {
+    return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/audio-stream", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ stream_index: streamIndex }),
+    });
+  };
+  // Subtitle text is learning content: it is accepted only when its bytes hash to what the
+  // companion extracted, so a truncated or altered transfer cannot become a material.
+  Client.prototype.mediaSubtitleTrack = async function (id, streamIndex) {
+    var response = await this._rawRequest(
+      "/v1/media/jobs/" + encodeURIComponent(id) + "/subtitles/" + encodeURIComponent(streamIndex),
+    );
+    var text = await response.text();
+    var bytes = new TextEncoder().encode(text);
+    var expected = String((response.headers && response.headers.get("x-lp-subtitle-sha256")) || "").toLowerCase();
+    var actual = await sha256Hex(bytes, this.sha256Fn);
+    if (!/^[a-f0-9]{64}$/.test(expected) || actual !== expected) {
+      throw LocalAsrError("LOCAL_MEDIA_SUBTITLE_SHA_MISMATCH", "Subtitle track failed hash verification",
+        null, { expected_sha256: expected || null, actual_sha256: actual });
+    }
+    var contentType = String((response.headers && response.headers.get("content-type")) || "").toLowerCase();
+    return { text: text, sha256: actual, bytes: bytes.length, format: contentType.indexOf("vtt") >= 0 ? "vtt" : "srt" };
+  };
+  // Returns the live response: prepared video is streamed into OPFS, never buffered whole.
+  Client.prototype.mediaFileResponse = function (id, rendition) {
+    var query = rendition && rendition !== "full" ? "?rendition=" + encodeURIComponent(rendition) : "";
+    return this._rawRequest("/v1/media/jobs/" + encodeURIComponent(id) + "/file" + query);
   };
   Client.prototype.cancelMediaJob = function (id) {
     return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/cancel", { method: "POST" });
