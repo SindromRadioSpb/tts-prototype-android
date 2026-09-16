@@ -41,7 +41,7 @@ def raw_stream(index, codec_type, codec_name, language=None, title=None, **dispo
     return {"index": index, "codec_type": codec_type, "codec_name": codec_name, "tags": tags, "disposition": flags}
 
 
-def owner_shaped_raw_probe(size=2_181_255_313):
+def owner_shaped_raw_probe(size=690 * 1024 * 1024):
     """Stream layout of the owner-supplied MKV recorded in docs/research/studio-subtitle-video-material."""
     video = raw_stream(0, "video", "h264", "heb", default=1)
     video.update(profile="Main", level=40, pix_fmt="yuv420p", width=1920, height=1080,
@@ -195,10 +195,11 @@ def test_explicit_audio_selection_is_honoured_or_blocked():
     assert unavailable["reason"] == "selected_audio_stream_unavailable"
 
 
-def test_video_size_boundary_is_three_gib():
-    assert MAX_BYTES == 3 * GIB
-    assert classify_probe(_normalize_probe(owner_shaped_raw_probe(size=3 * GIB)))["outcome"] != BLOCKED
-    too_large = classify_probe(_normalize_probe(owner_shaped_raw_probe(size=3 * GIB + 1)))
+def test_video_size_boundary_is_700_mib():
+    limit = 700 * 1024 * 1024
+    assert MAX_BYTES == limit
+    assert classify_probe(_normalize_probe(owner_shaped_raw_probe(size=limit)))["outcome"] != BLOCKED
+    too_large = classify_probe(_normalize_probe(owner_shaped_raw_probe(size=limit + 1)))
     assert too_large["outcome"] == BLOCKED
     assert too_large["reason"] == "invalid_or_excessive_size"
 
@@ -501,12 +502,14 @@ async def test_audio_transcode_job_fails_when_the_picture_changed(tmp_path):
     failed = manager.get(job["job_id"])
     assert failed["state"] == "FAILED"
     assert failed["error"] == "MEDIA_PREPARE_OR_VERIFY_FAILED"
+    assert failed["progress"] == 1.0
+    assert failed["error_detail"] == "copied picture equivalence proof failed"
     assert not (tmp_path / job["job_id"] / "ready.mp4").exists()
 
 
 @pytest.mark.asyncio
-async def test_upload_limit_is_three_gib_and_reports_too_large(tmp_path):
-    assert MediaJobManager.MAX_BYTES == 3 * GIB
+async def test_upload_limit_is_700_mib_and_reports_too_large(tmp_path):
+    assert MediaJobManager.MAX_BYTES == 700 * 1024 * 1024
     manager = MediaJobManager(tmp_path, extract_fn=no_subtitles)
     manager.MAX_BYTES = 4
     with pytest.raises(MediaTooLarge):
@@ -591,7 +594,7 @@ def test_light_copy_plan_fits_the_phone_budget_without_upscaling():
 
 
 def test_light_copy_is_refused_when_the_budget_cannot_carry_watchable_video():
-    three_hours = owner_shaped_raw_probe(size=3 * GIB)
+    three_hours = owner_shaped_raw_probe(size=700 * 1024 * 1024)
     three_hours["format"]["duration"] = "10800"
     report = classify_probe(_normalize_probe(three_hours))
     assert report["outcome"] != BLOCKED

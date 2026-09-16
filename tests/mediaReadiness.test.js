@@ -41,6 +41,19 @@ test('repair, transcode and blocked reports never silently start ASR', () => {
   }
 });
 
+test('a failed preparation keeps the companion contract diagnosis', () => {
+  const state = MediaReadiness.acceptReport({
+    job_id: 'job-failed', state: 'FAILED', progress: 1,
+    error: 'MEDIA_PREPARE_OR_VERIFY_FAILED', error_type: 'MediaJobConflict',
+    error_detail: 'prepared media does not satisfy target contract',
+    report: { outcome: 'TRANSCODE_REQUIRED' },
+  });
+  assert.equal(state.state, 'FAILED');
+  assert.equal(state.progress, 1);
+  assert.equal(state.reason, 'prepared media does not satisfy target contract');
+  assert.equal(state.error_type, 'MediaJobConflict');
+});
+
 test('prepared file becomes the single canonical package identity before ASR', () => {
   const state = MediaReadiness.acceptPrepared({
     state: 'COMPLETE', output_sha256: H('b'), output_name: 'lesson-mobile.mp4',
@@ -144,8 +157,8 @@ test('only verified text subtitle tracks can become a material', () => {
   assert.deepEqual(MediaReadiness.usableSubtitleTracks({}), []);
 });
 
-test('video carries its own size ceiling, separate from the audio upload limit', () => {
-  assert.equal(MediaReadiness.VIDEO_MAX_BYTES, 3 * 1024 * 1024 * 1024);
+test('video carries its own 700 MiB ceiling, separate from the audio upload limit', () => {
+  assert.equal(MediaReadiness.VIDEO_MAX_BYTES, 700 * 1024 * 1024);
   assert.equal(MediaReadiness.AUDIO_MAX_BYTES, 300 * 1024 * 1024);
   assert.equal(
     MediaReadiness.sizeLimitFor({ name: 'episode.mkv', type: 'video/x-matroska' }),

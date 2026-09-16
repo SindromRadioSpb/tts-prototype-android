@@ -201,7 +201,7 @@
           await update({phase:'transcribing'});
           const transcript=await operations.transcribe(clone(job.input),job.id);
           if(!transcript||!String(transcript.text||'').trim())throw new Error('TASK_TRANSCRIPT_INCOMPLETE');
-          job=await update({transcript:safe(transcript),phase:'transcribed'});
+          job=await update({transcript:safe(transcript),asr_checkpoint:null,phase:'transcribed'});
         }
         if(await cancelled())return await update({state:'cancelled'});
         const recovered=await recoverSourceTable(job);

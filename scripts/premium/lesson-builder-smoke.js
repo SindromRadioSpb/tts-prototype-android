@@ -275,7 +275,7 @@ function request() { return { sources: [
   ok(room.includes("COUNT(s.id) AS sentence_count") && room.includes("await loadCorpusIndex()") && room.includes("c.segments"), "personal and lazy corpus source catalogs expose sentence counts");
   ok(room.includes("items: all.slice(offset, offset + limit)") && room.includes("total: all.length") && !room.includes("out.length >= 30"),
     "catalog filters before paging and exposes the full eligible result count");
-  ok(room.includes("returnToLesson: true") && room.includes("if (returnRoute === 'lesson-builder') openLessonStudio()"),
+  ok(room.includes("returnToLesson: true") && /if\s*\(returnRoute === 'lesson-builder'\)\s*\{[\s\S]{0,500}?openLessonStudio\(\);\s*return;/.test(room),
     "lesson anchor drill-down closes the loop back from reader to the active lesson");
   ok(ui.includes('e.type==="source_reading"?"reading":e.type'), "draft exercise types render as localized user labels");
   ok(ui.includes("basicWhyJson") && ui.includes("basicWhyAnchors") && ui.includes("basicWhyKey") && ui.includes("basicWhyBudget") &&

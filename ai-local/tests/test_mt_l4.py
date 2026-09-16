@@ -318,14 +318,14 @@ def test_companion_build_runs_frozen_mt_runtime_self_check():
     assert 'Where-Object { $_.Name -eq $InstallerName }' in script
 
 
-def test_companion_beta5_version_is_consistent_across_binary_and_installer():
+def test_companion_beta6_version_is_consistent_across_binary_and_installer():
     root = Path(__file__).resolve().parents[1]
     script = (root / "scripts" / "build_companion.ps1").read_text(encoding="utf-8")
     companion = (root / "ai_local" / "companion.py").read_text(encoding="utf-8")
     installer = (root / "installer" / "LinguistProLocalAsr.iss").read_text(encoding="utf-8-sig")
 
     for source in (script, companion, installer):
-        assert "0.3.0-beta.5" in source
+        assert "0.3.0-beta.6" in source
     assert "0.3.0-beta.4-unsigned-internal.exe" not in script
     assert "0.3.0-beta.4-unsigned-internal" not in installer
 

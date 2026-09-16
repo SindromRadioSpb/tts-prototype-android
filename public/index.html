@@ -13473,10 +13473,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-timing-repair.js?v=556"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/study-video-source-ui.js?v=553"></script>
-<script src="/js/youtube-asr.js?v=554"></script>
+<script src="/js/youtube-asr.js?v=561"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
-<script src="/js/learning-material-task.js?v=553"></script>
-<script src="/js/learning-material-task-ui.js?v=553"></script>
+<script src="/js/learning-material-task.js?v=561"></script>
+<script src="/js/learning-material-task-ui.js?v=561"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13526,7 +13526,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=559" defer></script>
+<script src="/js/studio-import.js?v=561" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13564,7 +13564,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.560";
+    window.APP_VERSION = "3.11.561";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34603,7 +34603,9 @@ window.LearningMaterialTaskUI.configure({
     if (!LOCAL_MODE) throw new Error('TASK_LOCAL_MODE_REQUIRED');
     const key = typeof window.geminiKeyGet === 'function' ? window.geminiKeyGet() : '';
     if (!key) { const e = new Error('GEMINI_KEY_REQUIRED'); e.code = 'GEMINI_KEY_REQUIRED'; throw e; }
-    const savedTimingEvidence=(await LearningMaterialTask.createStore().get(id))?.timing_evidence;
+    const savedTask=await LearningMaterialTask.createStore().get(id);
+    const savedTimingEvidence=savedTask?.timing_evidence;
+    const savedAsrCheckpoint=savedTask?.asr_checkpoint;
     const result = await YoutubeAsr.transcribe({fetch:(u,i)=>fetch(u,i),apiKey:key,
       // Просьба остановиться читается из журнала задачи — единственного места, где она живёт.
       shouldStop: async () => { try { const j = await LearningMaterialTask.createStore().get(id); return !!(j && j.cancel_requested); } catch (_) { return false; } }},
@@ -34612,7 +34614,8 @@ window.LearningMaterialTaskUI.configure({
         // Повтор после перегрузки — отдельное событие: у него своё отображение и свой срок.
         const name = phase === 'retrying' ? 'youtube-asr-retry' : 'youtube-asr-progress';
         window.dispatchEvent(new CustomEvent(name,{detail:{id,phase,at}}));
-      } catch (_) {} },{timingQuote:input.timing_quote,savedTimingEvidence,
+      } catch (_) {} },{timingQuote:input.timing_quote,savedTimingEvidence,savedAsrCheckpoint,
+        onAsrCheckpoint:checkpoint=>LearningMaterialTask.createStore().update(id,old=>({...old,asr_checkpoint:checkpoint})),
         onTimingEvidence:evidence=>LearningMaterialTask.createStore().update(id,old=>({...old,timing_evidence:evidence}))});
     const meta = YoutubeAsr.buildImportMeta(result, AsrTranscript.ASR_MODEL);
     // Тот же промоушен в корректируемый пакет, что и у субтитр: второго хранилища меток нет.

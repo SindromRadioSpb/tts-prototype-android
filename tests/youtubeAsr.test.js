@@ -154,6 +154,29 @@ test('a long video is cut into windows on the provider side and stitched by text
   assert.equal(out.segments.filter(s=>s.text==='משפט השוו').length,1,'the seam must not duplicate speech');
 });
 
+test('a failed long run resumes after the last durable paid window',async()=>{
+  const long={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*2000}]};
+  const saved=[];
+  const first=fakeFetch([{status:200,body:long},
+    {status:200,body:asrBody([seg('0:10','первое окно')])},
+    {status:200,body:{candidates:[],promptFeedback:{blockReason:'SAFETY'}}}]);
+  await assert.rejects(Y.transcribe({fetch:first,apiKey:'k'},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))}),
+    error=>error.code==='ASR_BLOCKED'&&error.provider_detail.block_reason==='SAFETY');
+  const checkpoint=saved.at(-1);
+  assert.equal(checkpoint.completed.length,1);
+  assert.equal(checkpoint.failure.index,1);
+  assert.equal(checkpoint.failure.provider_detail.block_reason,'SAFETY');
+
+  const resumed=fakeFetch([{status:200,body:long},
+    {status:200,body:asrBody([seg('15:00','второе окно')])},
+    {status:200,body:asrBody([seg('30:00','третье окно')])}]);
+  const out=await Y.transcribe({fetch:resumed,apiKey:'k'},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,savedAsrCheckpoint:checkpoint,onAsrCheckpoint:async()=>{}});
+  assert.equal(resumed.calls.length,3,'countTokens plus only the two unfinished paid windows');
+  assert.equal(out.segments.length,3);
+});
+
 // ── независимая проверка часов (R17: генератор не сертифицирует свои метки) ──
 const timeline=[{startSec:600,text:'יש מקרי גירושים בציבור החרדי'},{startSec:612,text:'אני בגיל שמונה עשרה וחצי התארסתי'},{startSec:620,text:'שלושה חודשים אחרי זה התגרשתי'}];
 
@@ -293,6 +316,13 @@ test('the task dialog has a named sentence for every failure the route can produ
     // Границу слева задаём явно: иначе счёт ловит и ключи коротких причин (causeYT_OVERLOADED).
     assert.equal((src.match(new RegExp('[,{]'+code+':',"g"))||[]).length,3,code+' must be phrased in ru, en and he');
   }
+});
+
+test('a terminal provider block cannot offer another paid Continue action',()=>{
+  const fs=require('node:fs');
+  const src=fs.readFileSync(require.resolve('../public/js/learning-material-task-ui.js'),'utf8');
+  assert.match(src,/job\.error!==['"]ASR_BLOCKED['"]/);
+  assert.match(src,/same request is disabled/);
 });
 
 // ── единая смета: одна кнопка не должна ломаться вторым вопросом посреди прогона ──

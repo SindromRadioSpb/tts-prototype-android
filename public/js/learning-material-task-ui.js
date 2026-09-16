@@ -280,10 +280,12 @@
     // Отозванные часы — факт материала, а не деталь прогона: он виден там же, где итог.
     for(const note of paidNotes(job)){const q=element('p',note);q.className='lmt-paid-note';d.append(q);}
     for(const note of qualityNotes(job)){const q=element('p',note);q.className='lmt-quality-note';d.append(q);}
-    if(job.error){const named=t('mismatch_'+job.error_reason)||(words[document.documentElement.lang]||words.ru)[job.error];const error=element('p',named||t('error'));error.setAttribute('role','alert');d.append(error);const details=element('details');details.append(element('summary',({ru:'Подробности',en:'Details',he:'פרטים'})[document.documentElement.lang]||'Details'),element('code',job.error+(job.error_reason?': '+job.error_reason:'')));d.append(details);}
+    if(job.error){const named=t('mismatch_'+job.error_reason)||(words[document.documentElement.lang]||words.ru)[job.error];const error=element('p',named||t('error'));error.setAttribute('role','alert');d.append(error);if(job.error==='ASR_BLOCKED'){const hint=element('p',({ru:'Повтор этого же запроса отключён: он снова потратит квоту и получит тот же отказ. Используйте подготовленную MP4-копию через «С устройства».',en:'Repeating the same request is disabled: it would spend quota again and receive the same refusal. Use the prepared MP4 copy via “From device”.',he:'הפעלה חוזרת של אותה בקשה הושבתה: היא תצרוך שוב מכסה ותקבל אותה סירוב. השתמשו בעותק MP4 המוכן דרך „מהמכשיר”.'}[document.documentElement.lang]||''));hint.className='lmt-quality-note';d.append(hint);}const details=element('details');const failure=job.asr_checkpoint&&job.asr_checkpoint.failure;const provider=failure&&failure.provider_detail;const diagnostic=job.error+(job.error_reason?': '+job.error_reason:'')+(provider&&(provider.block_reason||provider.finish_reason)?' · '+(provider.block_reason||provider.finish_reason):'');details.append(element('summary',({ru:'Подробности',en:'Details',he:'פרטים'})[document.documentElement.lang]||'Details'),element('code',diagnostic));d.append(details);}
     const actions=element('div');actions.className='study-source-actions';d.append(actions);
     if(runner.isRunning(job.id))button(actions,t('cancel'),async()=>{await runner.cancel(job.id);status.textContent=t('stopping');});
-    else if(job.state!=='ready'&&!(job.error==='TASK_SOURCE_MISMATCH'&&job.error_reason))button(actions,t('resume'),()=>execute(job.id,d));
+    // A provider policy/safety block is terminal for this exact URL. Re-running the same paid
+    // request cannot heal it; completed ASR windows remain exportable in the task checkpoint.
+    else if(job.state!=='ready'&&job.error!=='ASR_BLOCKED'&&!(job.error==='TASK_SOURCE_MISMATCH'&&job.error_reason))button(actions,t('resume'),()=>execute(job.id,d));
     if(job.error==='TASK_SOURCE_MISMATCH'&&!runner.isRunning(job.id)){
       if(!job.error_reason||job.error_reason==='table')button(actions,t('reviewSource'),()=>showSourceReview(job.id,d));
     }

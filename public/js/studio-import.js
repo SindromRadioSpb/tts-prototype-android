@@ -1251,7 +1251,7 @@
                  codec.fps ? codec.fps + " fps" : null].filter(Boolean);
     if (detail) detail.textContent = parts.join(" · ") + (state.next_action ? " — " + tr("studio.import.mediaNextAction") + ": " + state.next_action : "");
     if (progress) {
-      progress.hidden = !(state.state && !["COMPLETE", "WAITING_FOR_DECISION", "BLOCKED"].includes(state.state));
+      progress.hidden = !(state.state && !["COMPLETE", "WAITING_FOR_DECISION", "BLOCKED", "FAILED", "CANCELED"].includes(state.state));
       progress.value = Math.round((state.progress || 0) * 100);
     }
     var prepare = $("v3ImportMediaPrepare");
@@ -1430,7 +1430,9 @@
         if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio.mediaJobId) {
           await cleanupCompletedMediaJob(pendingAudio.mediaReadiness || {}, pendingAudio.mediaJobId);
         }
-        pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: error && error.code || "preflight_failed", next_action: "check-local-companion" };
+        pendingAudio.mediaReadiness = error && error.job
+          ? window.MediaReadiness.acceptReport(error.job)
+          : { outcome: "BLOCKED", reason: error && error.code || "preflight_failed", next_action: "check-local-companion" };
         renderMediaReadiness();
       }
       setStatus(error && error.code === "MEDIA_JOB_CANCELED" ? "studio.import.mediaCancelled" : "studio.import.mediaPreflightFailed");
@@ -1475,6 +1477,9 @@
       renderMediaReadiness();
       setStatus("studio.import.mediaPrepared");
     } catch (error) {
+      if (error && error.job && pendingAudio) {
+        pendingAudio.mediaReadiness = window.MediaReadiness.acceptReport(error.job);
+      }
       if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio && pendingAudio.mediaJobId) {
         await cleanupCompletedMediaJob(pendingAudio.mediaReadiness || {}, pendingAudio.mediaJobId);
         pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "MEDIA_JOB_CANCELED", next_action: "repeat-media-preflight" };

@@ -4,9 +4,9 @@
   "use strict";
 
   var VIDEO_RE = /\.(mp4|mov|m4v|mkv|webm|avi)$/i;
-  // Owner decision 2026-09-16: a container goes to the local companion (3 GiB), while audio still
+  // Owner decision 2026-09-16: a container goes to the local companion (700 MiB), while audio still
   // travels to a cloud provider under the existing upload ceiling.
-  var VIDEO_MAX_BYTES = 3 * 1024 * 1024 * 1024;
+  var VIDEO_MAX_BYTES = 700 * 1024 * 1024;
   var AUDIO_MAX_BYTES = 300 * 1024 * 1024;
 
   function isVideo(file) {
@@ -75,7 +75,9 @@
       bind_outcome: sha ? "bound_pending_import" : "pending",
       target_contract: report.target_contract || null,
       codec_summary: report.codec_summary || null,
-      reason: report.reason || null,
+      reason: report.reason || job && (job.error_detail || job.error) || null,
+      error: job && job.error || null,
+      error_type: job && job.error_type || null,
       next_action: report.next_action || null,
       plan: report.plan || null,
       plan_sha256: report.plan_sha256 || null,

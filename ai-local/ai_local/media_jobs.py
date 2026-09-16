@@ -415,7 +415,14 @@ class MediaJobManager:
             except Exception as exc:
                 partial.unlink(missing_ok=True)
                 manifest = self.get(job_id)
-                manifest.update(state="FAILED", error="MEDIA_PREPARE_OR_VERIFY_FAILED", error_type=type(exc).__name__)
+                manifest.update(
+                    state="FAILED", progress=1.0,
+                    error="MEDIA_PREPARE_OR_VERIFY_FAILED", error_type=type(exc).__name__,
+                    # MediaJobConflict messages are bounded contract diagnoses written by us
+                    # (never an ffmpeg command line or a local path), so they are safe and useful
+                    # to return to Studio. Other exceptions keep only their type.
+                    error_detail=str(exc)[:240] if isinstance(exc, MediaJobConflict) else None,
+                )
                 self._write(job_id, manifest)
 
     async def wait(self, job_id: str) -> None:

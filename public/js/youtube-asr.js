@@ -79,7 +79,23 @@
   const OUT_TOKENS_PER_SEC = 7.5;   // замер: 11 754 выходных токена на 1560 с речи
   const RETRY_DELAYS_MS = [4000, 12000, 30000];
 
-  function fail(code, status) { const e = new Error(code); e.code = code; if (status) e.status = status; throw e; }
+  function fail(code, status, detail) {
+    const e = new Error(code); e.code = code;
+    if (status) e.status = status;
+    if (detail) e.provider_detail = detail;
+    throw e;
+  }
+
+  function providerDetail(data) {
+    const cand = ((data && data.candidates) || [])[0] || {};
+    const feedback = data && data.promptFeedback || {};
+    return {
+      block_reason: feedback.blockReason || null,
+      finish_reason: cand.finishReason || null,
+      safety_ratings: cand.safetyRatings || feedback.safetyRatings || null,
+      provider_status: data && data.error && data.error.status || null,
+    };
+  }
 
   async function post(deps, method, body) {
     const model = AT().ASR_MODEL;
@@ -89,7 +105,11 @@
       body: JSON.stringify(body),
     });
     const text = await resp.text();
-    if (!resp.ok) fail(classifyFailure(resp.status), resp.status);
+    if (!resp.ok) {
+      let data = {};
+      try { data = JSON.parse(text || '{}'); } catch (_) {}
+      fail(classifyFailure(resp.status), resp.status, providerDetail(data));
+    }
     return JSON.parse(text || '{}');
   }
 
@@ -211,7 +231,7 @@
         const data = await post(deps, 'generateContent', buildRequest(url, win));
         if(!state.responses)state.responses=[];state.responses.push({window:win,raw:data});
         const unusable = classifyResponse(data);
-        if (unusable) fail(unusable);
+        if (unusable) fail(unusable, null, providerDetail(data));
         const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
         const parsed = AT().parseAsrResponse(parts.map((p) => p.text || '').join(''));
         return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language, usage: data.usageMetadata || null, raw:data };
@@ -357,10 +377,49 @@
     // и структурные отчёты (повтор, дробление) приходили слушателю пустыми.
     const total = wins.length || 1;
     const report = (phase, at) => { if (onPhase) onPhase(phase, at || {}); };
+    const checkpointPlan = wins.length ? wins : [null];
+    const checkpointSource = { video_id: est.video_id, url: est.url, durationSec: est.durationSec };
+    let checkpoint = opts && opts.savedAsrCheckpoint;
+    const checkpointMatches = checkpoint && checkpoint.schema === 'youtube-asr-checkpoint-v1'
+      && JSON.stringify(checkpoint.source) === JSON.stringify(checkpointSource)
+      && JSON.stringify(checkpoint.windows) === JSON.stringify(checkpointPlan);
+    checkpoint = checkpointMatches ? JSON.parse(JSON.stringify(checkpoint)) : {
+      schema: 'youtube-asr-checkpoint-v1', source: checkpointSource,
+      windows: checkpointPlan, completed: [], failure: null,
+    };
+    const saveCheckpoint = async () => {
+      if (opts && opts.onAsrCheckpoint) await opts.onAsrCheckpoint(JSON.parse(JSON.stringify(checkpoint)));
+    };
+    const runWindow = async (win, index) => {
+      const saved = checkpoint.completed.find((entry) => entry.index === index);
+      if (saved) {
+        if (saved.result.raw) {
+          if (!state.responses) state.responses = [];
+          state.responses.push({ window: win, raw: saved.result.raw });
+        }
+        return saved.result;
+      }
+      try {
+        const result = await transcribeRange(deps, est.url, win, state, est.durationSec, report);
+        checkpoint.completed.push({ index, window: win, result: {
+          segments: result.segments, warnings: result.warnings || [],
+          language: result.language || null, usage: result.usage || null, raw: result.raw || null,
+        }});
+        checkpoint.failure = null;
+        await saveCheckpoint();
+        return result;
+      } catch (error) {
+        checkpoint.failure = { index, window: win, code: String(error.code || error.message).slice(0, 80),
+          status: error.status || null, provider_detail: error.provider_detail || null,
+          recorded_at: new Date().toISOString() };
+        await saveCheckpoint();
+        throw error;
+      }
+    };
     let segments, warnings = [], usage = [];
     if (!wins.length) {
       report('transcribing', { index: 0, total });
-      const one = await transcribeRange(deps, est.url, null, state, est.durationSec, report);
+      const one = await runWindow(null, 0);
       segments = one.segments;
       warnings = one.warnings;
       usage = [one.usage];
@@ -368,7 +427,7 @@
       const perWindow = [];
       for (let i = 0; i < wins.length; i++) {
         report('transcribing', { index: i, total });
-        const part = await transcribeRange(deps, est.url, wins[i], state, est.durationSec, report);
+        const part = await runWindow(wins[i], i);
         perWindow.push(part.segments);
         warnings = warnings.concat(part.warnings || []);
         usage.push(part.usage);
