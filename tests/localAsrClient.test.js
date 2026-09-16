@@ -74,6 +74,23 @@ test("client pins every request to canonical loopback and never sends credential
   assert.equal(calls[0].options.headers.authorization, "Bearer " + TOKEN);
 });
 
+test("local niqqud uses paired loopback only and rejects oversized batches", async () => {
+  const calls = [];
+  const client = new C.Client({
+    tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => {
+      calls.push({ url, options });
+      return response(200, { results: ["שָׁלוֹם"], model_version: "local" });
+    },
+  });
+  assert.deepEqual((await client.vocalizeTexts(["שלום"])).results, ["שָׁלוֹם"]);
+  assert.equal(calls[0].url, C.BASE_URL + "/v1/niqqud");
+  assert.equal(calls[0].options.headers.authorization, "Bearer " + TOKEN);
+  assert.deepEqual(JSON.parse(calls[0].options.body), { texts: ["שלום"] });
+  assert.throws(() => client.vocalizeTexts(Array(17).fill("שלום")), (error) => error.code === "LOCAL_NIQQUD_INVALID_INPUT");
+  assert.equal(calls.length, 1);
+});
+
 test("run exposes queue/progress, resolves explicit audio-stream choice and normalizes result", async () => {
   const states = [], calls = [];
   const replies = [

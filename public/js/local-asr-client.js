@@ -132,6 +132,16 @@
   };
 
   Client.prototype.capabilities = function () { return this._request("/v1/capabilities"); };
+  Client.prototype.vocalizeTexts = function (texts) {
+    if (!Array.isArray(texts) || !texts.length || texts.length > 16 ||
+        texts.some(function (text) { return typeof text !== "string" || text.length > 4000; })) {
+      throw LocalAsrError("LOCAL_NIQQUD_INVALID_INPUT", "Invalid local niqqud batch");
+    }
+    return this._request("/v1/niqqud", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: texts }),
+    });
+  };
   Client.prototype.modelStatus = function () { return this._request("/v1/asr/model/status?verify_hash=true"); };
   Client.prototype.preflight = function () { return this._request("/v1/companion/preflight"); };
   Client.prototype.installStatus = function () { return this._request("/v1/asr/model/install-status"); };

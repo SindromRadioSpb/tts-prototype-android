@@ -768,6 +768,14 @@ async def nakdan(body: NakdanRequest):
     return NakdanResponse(results=results, model_version=slot.impl.version if slot.impl else "")
 
 
+@app.post("/v1/niqqud", response_model=NakdanResponse, dependencies=[Depends(require_companion_auth)])
+async def v1_niqqud(body: NakdanRequest):
+    """Paired browser route for local subtitle vocalization; never falls back to cloud."""
+    if len(body.texts) > 16 or any(len(text) > 4000 for text in body.texts) or sum(map(len, body.texts)) > 16000:
+        raise HTTPException(status_code=413, detail="niqqud batch too large")
+    return await nakdan(body)
+
+
 @app.post("/translate", response_model=TranslateResponse)
 async def translate(body: TranslateRequest):
     slot = registry.slot("translator")

@@ -34,7 +34,7 @@ test("normalizer and client load before Studio and are both precached", () => {
   const adapter = html.indexOf('/js/studio-import.js');
   assert.ok(normalizer > 0 && client > normalizer && onboarding > client && adapter > onboarding);
   assert.match(sw, /"\/js\/local-asr-normalizer\.js"/);
-  assert.match(sw, /"\/js\/local-asr-client\.js"/);
+  assert.match(sw, /"\/js\/local-asr-client\.js(?:\?v=\d+)?"/);
   assert.match(sw, /"\/js\/local-asr-onboarding\.js"/);
 });
 

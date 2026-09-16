@@ -16,7 +16,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-APP_VERSION = "0.3.0-beta.6"
+APP_VERSION = "0.3.0-beta.7"
 PRODUCTION_ORIGIN = "https://linguistpro.kolosei.com"
 GUIDE_FILENAMES = {
     "ru": "LOCAL_ASR_COMPANION_GUIDE.md",

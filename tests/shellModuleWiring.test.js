@@ -19,6 +19,8 @@ const PROVIDERS = {
   MediaStreamStore: "media-stream-store.js",
   SubtitleMaterialCore: "subtitle-material-core.js",
   MediaBundleCore: "media-bundle-core.js",
+  SubtitleMaterialVocalization: "subtitle-material-vocalization.js",
+  LocalTranslit: "local-translit-bundle.js",
 };
 
 function consumersOf(global, providerFile) {

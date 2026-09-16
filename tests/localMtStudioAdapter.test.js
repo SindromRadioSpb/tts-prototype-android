@@ -10,7 +10,7 @@ const client = fs.readFileSync(path.join(root, "public", "js", "local-mt-client.
 const onboarding = fs.readFileSync(path.join(root, "public", "js", "local-mt-onboarding.js"), "utf8");
 
 test("Studio loads local MT after the shared pairing client and before inline routing", () => {
-  const asr = html.indexOf('<script src="/js/local-asr-client.js"></script>');
+  const asr = html.search(/<script src="\/js\/local-asr-client\.js(?:\?v=\d+)?"><\/script>/);
   const mt = html.indexOf('<script src="/js/local-mt-client.js"></script>');
   const table = html.indexOf('<script src="/js/local-mt-table.js"></script>');
   const inlineRoute = html.indexOf("async function v3TranslateTableLocalMt");

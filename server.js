@@ -1141,7 +1141,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/portable-learning-package-repository.js?v=547",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
-  "/js/studio-import.js?v=572",
+  "/js/studio-import.js?v=573",
+  "/js/local-asr-client.js?v=573",
+  "/js/local-translit-bundle.js?v=573",
+  "/js/subtitle-material-vocalization.js?v=573",
 
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",

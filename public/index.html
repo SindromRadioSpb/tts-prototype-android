@@ -13443,7 +13443,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
-<script src="/js/local-asr-client.js"></script>
+<script src="/js/local-asr-client.js?v=573"></script>
 <script src="/js/media-readiness.js"></script>
 <!-- Audited incremental SHA-256 runtime served from node_modules by an allowlisted route. The
      store below hashes a 1.6 GB stream chunk by chunk, which crypto.subtle cannot do, so this
@@ -13458,6 +13458,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=559"></script>
 <script src="/js/subtitle-material-import.js?v=558"></script>
+<script src="/js/local-translit-bundle.js?v=573"></script>
+<script src="/js/subtitle-material-vocalization.js?v=573"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
 <script src="/js/media-bundle-core.js?v=560"></script>
 <script src="/js/media-bundle-io.js?v=560"></script>
@@ -13535,7 +13537,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=572" defer></script>
+<script src="/js/studio-import.js?v=573" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13573,7 +13575,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.572";
+    window.APP_VERSION = "3.11.573";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -36123,8 +36125,8 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     }
 
     // S4c — материал из дорожек субтитров. Строки уже собраны (SubtitleMaterialCore.buildTableRows),
-    // перевод взят из дорожки субтитров, никуд и транслитерация остаются пустыми и дозаполняются
-    // штатными бесплатными путями. Точка входа живёт здесь, потому что currentTableData — локальная
+    // перевод взят из дорожки субтитров, никуд и транслитерация подготовлены локально.
+    // Точка входа живёт здесь, потому что currentTableData — локальная
     // переменная этого скрипта, а импорт обязан пройти тем же путём, что и перевод: привязать
     // провенанс импорта и тайминг медиа.
     window.v3ApplySubtitleTable = function (rows) {

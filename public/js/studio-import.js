@@ -1839,6 +1839,17 @@
       // Таблица собирается и уезжает в Студию тем же путём, что и обычный импорт: useText()
       // создаёт медиа-пакет и закрывает диалог, поэтому итог сообщаем тостом, а не строкой в нём.
       var tableRows = buildSubtitleTable(plan, stored, job);
+      if (tableRows && window.SubtitleMaterialVocalization && window.LocalTranslit) {
+        var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
+          client: localAsrClient,
+          transliterate: window.LocalTranslit.transliterateWithProfile,
+        });
+        tableRows = derived.rows;
+        material.tableRows = tableRows;
+        material.vocalizationWarnings = derived.warnings;
+      } else if (tableRows) {
+        throw new Error("LOCAL_VOCALIZATION_UNAVAILABLE");
+      }
       if (tableRows && await applySubtitleMaterial()) {
         try {
           if (typeof window.showToast === "function") {
