@@ -78,7 +78,13 @@
     var captionMeta = passport.captions || {};
     var durationMs = mediaSrc.durationSec == null ? null : ms(mediaSrc.durationSec);
     var sourceSegments = passport.segments;
-    if (!isAudio && passport.rawSource) {
+    // A subtitle material merges container cues into table rows on purpose, so ITS passport
+    // segments are the rows, and row<->segment identity is what makes the saved card bindable
+    // and karaoke honest. Re-parsing rawSource there would restore the unmerged cues, their
+    // count would disagree with the composer lines, and preview reconciliation would collapse
+    // the whole table into a single segment. Every other caption import keeps the historical
+    // behaviour, where the raw file is the more faithful source of timing.
+    if (!isAudio && passport.rawSource && passport.segments_are_final_rows !== true) {
       try { sourceSegments = getCore().parseSubtitles(passport.rawSource, { hint: captionMeta.format }).segments; }
       catch (_) { sourceSegments = passport.segments; }
     }

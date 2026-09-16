@@ -99,7 +99,7 @@ test("B1 carries landmark, contrast, target-size and accessible-name contracts",
 test("Reading Room restores the canonical exact media binding before deriving row timing", () => {
   assert.match(libraryHtml, /<script src="\/js\/media-package-core\.js"><\/script>/);
   assert.match(libraryHtml, /<script src="\/js\/media-package-repository\.js\?v=567"><\/script>/);
-  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js\?v=568"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js\?v=572"><\/script>/);
   assert.match(libraryUi, /StudioMediaPackage\.activateTextBinding\(String\(textId\)\)/);
   assert.match(libraryUi, /MediaHost\.pickExactBindingPassport\(/);
 });
@@ -145,4 +145,16 @@ test("B2-B5 UI exposes return recovery, compact mobile navigation and Room conti
     assert.match(source, /providerTruthLocal:/);
     assert.match(source, /nextAction:\s*\{[\s\S]*learn:/);
   }
+});
+
+test("a subtitle material promotes from its own rows, so the saved card can bind its media", () => {
+  // Measured on the owner's episode: 445 container cues merge into 433 table rows. Promoting from
+  // rawSource restored the 445 cues, reconciliation collapsed the table into ONE segment, and the
+  // save path then refused to bind the media it had just written (NO_EXACT_REVISION).
+  assert.match(studioImport, /segmentsAreFinalRows:\s*true/,
+    "the subtitle passport must declare that its segments are the final rows");
+  assert.match(studioImport, /pendingCaptions\.segmentsAreFinalRows && !cEdited[\s\S]{0,120}segments_are_final_rows = true/,
+    "the flag must reach the import passport, and an edited preview must drop it");
+  assert.match(mediaPackage, /passport\.rawSource && passport\.segments_are_final_rows !== true/,
+    "promotion honours the flag instead of always re-parsing the raw subtitle file");
 });

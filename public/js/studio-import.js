@@ -1763,6 +1763,9 @@
       origin: "container-track",
       fileName: (stored && stored.name) || pendingAudio.name || null,
       rawSource: textTrack.raw,
+      // The raw track keeps the original cues as evidence, but promotion must build the package
+      // from these rows: one row is one segment, which is exactly what the saved card binds to.
+      segmentsAreFinalRows: true,
       media: {
         opfsPath: stored.opfsPath, sha256: stored.sha256, mime: stored.mimeType || "video/mp4",
         sizeBytes: stored.sizeBytes, durationSec: pendingAudio.durationSec || null,
@@ -2883,6 +2886,8 @@
       // L3a: retained only long enough to create the browser-local immutable raw track.
       // It is removed from the compatibility passport before that passport can enter sync/export.
       if (pendingCaptions.rawSource) captionsMetaForImport.rawSource = pendingCaptions.rawSource;
+      // Carried next to rawSource: it decides which of the two the package is promoted from.
+      if (pendingCaptions.segmentsAreFinalRows && !cEdited) captionsMetaForImport.segments_are_final_rows = true;
       if (cEdited) toast("studio.import.audioTimingDropped", "warning");
     }
     var importMeta = {

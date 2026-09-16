@@ -1125,7 +1125,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/youtube-timing.js?v=555",
   "/js/youtube-full-timing.js?v=557",
   "/js/study-timing-repair.js?v=556",
-  "/js/studio-media-package.js?v=568",
+  "/js/studio-media-package.js?v=572",
   "/js/media-package-repository.js?v=567",
   "/js/material-revision-repository.js?v=553",
   "/js/study-video-transfer.js",
@@ -1141,7 +1141,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/portable-learning-package-repository.js?v=547",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
-  "/js/studio-import.js?v=561",
+  "/js/studio-import.js?v=572",
 
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",

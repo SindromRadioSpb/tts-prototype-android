@@ -99,6 +99,33 @@ test('caption rawSource is parsed before fallback segments and keeps subtitle ti
   assert.deepEqual(input.segments.map((segment) => [segment.start_ms, segment.end_ms, segment.text]), [[1000, 2000, 'שלום']]);
 });
 
+test('a passport whose segments are the final rows promotes from the rows, not from rawSource', () => {
+  // Subtitle materials merge cues into rows: on the owner's episode 445 cues became 433 rows.
+  // Promoting from rawSource restored the cues, so the revision no longer had one segment per
+  // composer line, preview reconciliation replaced the layout with a single segment, and the
+  // saved card could not bind the media that had just been written for it.
+  const passport = {
+    kind: 'captions', captions: {
+      captions: { format: 'srt', language: 'he', fileName: 'episode.mkv' },
+      rawSource: '1\n00:00:01,000 --> 00:00:02,000\nשלום\n\n2\n00:00:02,000 --> 00:00:03,000\nעולם\n',
+      segments: [{ i: 0, start: 1, text: 'שלום עולם' }],
+      segments_are_final_rows: true,
+      media: { sha256: SHA, mime: 'video/mp4' },
+    },
+  };
+  const input = StudioMediaPackage.passportToPromotionInput(passport);
+  assert.equal(input.segments.length, 1, 'one row stays one segment');
+  assert.equal(input.segments[0].text, 'שלום עולם');
+  // The raw subtitle file still travels as local-only evidence; only segment derivation changed.
+  assert.equal(input.provenance.source_attachment.format, 'srt');
+  assert.match(input.provenance.source_attachment.text, /שלום/);
+  // Without the flag the historical behaviour is untouched: the raw file wins.
+  const legacy = StudioMediaPackage.passportToPromotionInput({
+    kind: 'captions', captions: Object.assign({}, passport.captions, { segments_are_final_rows: undefined }),
+  });
+  assert.equal(legacy.segments.length, 2);
+});
+
 test('revision projection is hash-labelled and lives at one explicit compatibility home', async () => {
   const raw = await Core.createRawRevision({ media_sha256: SHA, format: 'asr', segments: [{ start_ms: 0, end_ms: 1000, text: 'שלום' }] });
   const corrected = Core.createCorrectedDraft(raw.segments, { id_factory: () => 'cseg:1' });
