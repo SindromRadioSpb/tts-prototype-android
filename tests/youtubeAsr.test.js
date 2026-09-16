@@ -188,7 +188,7 @@ test('legacy OTHER failure resumes by splitting only the failed window and saves
     {verifyTiming:false,onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))}),
     error=>error.code==='ASR_BLOCKED');
   const legacy=saved.at(-1);
-  legacy.failure.provider_detail={finish_reason:'OTHER',block_reason:null};
+  legacy.failure.provider_detail={finish_reason:null,block_reason:'OTHER'};
   delete legacy.partial_completed;
   delete legacy.split_ranges;
   const resumed=fakeFetch([{status:200,body:long},
@@ -310,6 +310,7 @@ test('an answer that ran out of room is named for what it is, not called bad JSO
   assert.equal(Y.classifyResponse(emptyBody),'ASR_TRUNCATED');
   assert.equal(Y.classifyResponse(truncatedBody),'ASR_TRUNCATED');
   assert.equal(Y.classifyResponse(blockedBody),'ASR_BLOCKED');
+  assert.equal(Y.classifyResponse({candidates:[],promptFeedback:{blockReason:'OTHER'}}),'ASR_OTHER');
   assert.equal(Y.classifyResponse({candidates:[{finishReason:'OTHER'}]}),'ASR_OTHER');
   assert.equal(Y.classifyResponse({candidates:[{content:{parts:[{text:'{"language":"he","segments":[]}'}]},finishReason:'STOP'}]}),null);
 });

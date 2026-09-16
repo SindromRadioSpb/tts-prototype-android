@@ -182,7 +182,10 @@
   const SPLIT_MIN_SEC = 120;   // делить короче нечего: половина уже меньше одной реплики-другой
   function classifyResponse(data) {
     const cand = ((data && data.candidates) || [])[0];
-    if (!cand) return (data && data.promptFeedback && data.promptFeedback.blockReason) ? 'ASR_BLOCKED' : 'ASR_EMPTY';
+    if (!cand) {
+      const reason = data && data.promptFeedback && data.promptFeedback.blockReason;
+      return reason === 'OTHER' ? 'ASR_OTHER' : reason ? 'ASR_BLOCKED' : 'ASR_EMPTY';
+    }
     const parts = ((cand.content || {}).parts) || [];
     const text = parts.map((p) => p.text || '').join('').trim();
     if (cand.finishReason && cand.finishReason !== 'STOP') {
@@ -443,8 +446,10 @@
         const prior = checkpoint.failure;
         const skipDirect = prior && prior.index === index
           && (prior.code === 'ASR_OTHER' || (prior.code === 'ASR_BLOCKED'
-            && prior.provider_detail && prior.provider_detail.finish_reason === 'OTHER'
-            && !prior.provider_detail.block_reason));
+            && prior.provider_detail
+            && (prior.provider_detail.finish_reason === 'OTHER' || prior.provider_detail.block_reason === 'OTHER')
+            && !['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION'].includes(prior.provider_detail.finish_reason)
+            && !['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION'].includes(prior.provider_detail.block_reason)));
         const result = await transcribeRange(deps, est.url, win, state, est.durationSec, report, recovery, skipDirect);
         checkpoint.completed.push({ index, window: win, result: {
           segments: result.segments, warnings: result.warnings || [],
