@@ -51,6 +51,21 @@ test('scalar source label inside a real Studio passport is not mistaken for a wr
   assert.equal(input.media.sha256, 'a'.repeat(64));
 });
 
+test('subtitle passport carries the derived video copy without changing the canonical SHA', () => {
+  const liteSha = 'b'.repeat(64);
+  const input = StudioMediaPackage.passportToPromotionInput({
+    kind: 'captions', captions: {
+      captions: { format: 'srt', language: 'he' },
+      segments: [{ start: 1, end: 2, text: 'שלום' }],
+      media: { sha256: SHA, durationSec: 10, renditions: [{ role: 'lite', sha256: liteSha,
+        opfsPath: `media/${liteSha}.mp4`, sizeBytes: 1234 }] },
+    },
+  });
+  assert.equal(input.media.sha256, SHA);
+  assert.equal(input.media.renditions[0].sha256, liteSha);
+  assert.equal(input.media.renditions[0].opfsPath, `media/${liteSha}.mp4`);
+});
+
 test('captions passport with unknown final end remains honest and blocks export later', () => {
   const input = StudioMediaPackage.passportToPromotionInput({
     kind: 'captions', captions: {

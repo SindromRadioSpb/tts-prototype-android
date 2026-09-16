@@ -393,6 +393,30 @@
       return getPackage(packageId);
     }
 
+    // A derived copy has its own hash and path. Keep the canonical package SHA
+    // untouched so existing revisions and exact text bindings stay valid.
+    async function registerRendition(packageId, rendition) {
+      var pkg = await getPackage(packageId); if (!pkg || !pkg.media_sha256) throw createError('PACKAGE_MEDIA_SHA_MISSING');
+      var item = rendition || {}, sha = cleanHash(item.sha256);
+      if (item.role !== 'lite' || !sha || sha === pkg.media_sha256) throw createError('MEDIA_RENDITION_INVALID');
+      if (cleanHash(item.canonical_sha256) !== pkg.media_sha256) throw createError('MEDIA_RENDITION_PARENT_MISMATCH');
+      var path = String(item.opfs_path || '');
+      if (!new RegExp('^media/' + sha + '\\.[a-z0-9]{1,5}$').test(path)) throw createError('MEDIA_RENDITION_PATH_INVALID');
+      var bytes = Number(item.size_bytes), duration = Number(item.duration_ms);
+      if (!Number.isSafeInteger(bytes) || bytes <= 0 || !Number.isFinite(duration) ||
+          !Number.isFinite(pkg.duration_ms) || Math.abs(duration - pkg.duration_ms) > 1000) throw createError('MEDIA_RENDITION_TIMING_INVALID');
+      var external = pkg.external_ref && typeof pkg.external_ref === 'object' ? pkg.external_ref : {};
+      var renditions = external.renditions && typeof external.renditions === 'object' ? external.renditions : {};
+      external.renditions = Object.assign({}, renditions, { lite: {
+        sha256: sha, opfs_path: path, size_bytes: bytes, duration_ms: duration,
+        mime: String(item.mime || 'video/mp4'), original_name: String(item.original_name || ''),
+        derived_from_source_sha256: cleanHash(item.derived_from_source_sha256),
+      } });
+      await r('UPDATE studio_media_packages SET external_ref_json=?,updated_at=? WHERE package_id=?',
+        [json(external), now(), String(packageId)]);
+      return getPackage(packageId);
+    }
+
     async function importSnapshot(snapshot) {
       var pkg = snapshot && snapshot.package;
       if (!pkg || !pkg.package_id || !snapshot.raw_track || !snapshot.raw_revision || !snapshot.corrected_track || !snapshot.corrected_revision) throw createError('PACKAGE_SNAPSHOT_INVALID');
@@ -417,7 +441,7 @@
       });
     }
 
-    return { commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
+    return { commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

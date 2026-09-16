@@ -330,3 +330,27 @@ test('YouTube-only caption binding verifies every saved row without pretending t
   assert.equal((await h.repo.getTextBinding('youtube-card')).mapping.provenance_checked, false,
     'a mismatched row is not inferred from its caption id');
 });
+
+test('lite rendition keeps the canonical media hash and exact binding intact', async () => {
+  const h = await harness();
+  const full = 'a'.repeat(64), lite = 'b'.repeat(64);
+  const created = await h.repo.createPackage({
+    media: { sha256: full, mime: 'video/mp4', duration_ms: 2672680, size_bytes: 1654562649,
+      external_ref: { compatibility: { outcome: 'READY' } } },
+    raw_revision: await rawRevision(full),
+  });
+  const input = { role: 'lite', canonical_sha256: full, sha256: lite,
+    opfs_path: `media/${lite}.mp4`, size_bytes: 379794000, duration_ms: 2672680,
+    mime: 'video/mp4' };
+  await assert.rejects(h.repo.registerRendition(created.package_id, { ...input, canonical_sha256: lite }),
+    /MEDIA_RENDITION_PARENT_MISMATCH/);
+  await assert.rejects(h.repo.registerRendition(created.package_id, { ...input, opfs_path: `media/${full}.mp4` }),
+    /MEDIA_RENDITION_PATH_INVALID/);
+  const updated = await h.repo.registerRendition(created.package_id, input);
+  assert.equal(updated.media_sha256, full);
+  assert.equal(updated.opfs_path, null);
+  assert.equal(updated.external_ref.compatibility.outcome, 'READY');
+  assert.equal(updated.external_ref.renditions.lite.sha256, lite);
+  assert.equal((await h.repo.getCurrentRevision(created.corrected_track_id)).revision_id,
+    created.corrected_revision_id);
+});

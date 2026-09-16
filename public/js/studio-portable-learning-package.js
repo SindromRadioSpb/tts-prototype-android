@@ -122,6 +122,7 @@
       opfs_path:live&&live.opfs_path||row.opfs_path||null,
       original_name:live&&live.original_name||row.original_name||null,
       size_bytes:live&&live.size_bytes!=null?live.size_bytes:row.size_bytes,
+      external_ref:live&&live.external_ref||null,
     };
   }
   async function mediaForText(textId){return enrichMedia(await (await readyRepository()).mediaForText(textId));}
@@ -333,9 +334,18 @@
     if(!io||!bundleCore)fail('BUNDLE_IO_UNAVAILABLE');
     if(typeof window.showSaveFilePicker!=='function'){status.classList.add('p2-portable-error');status.textContent=tr('studio.importCenter.bundlePickerRequired','Streaming file save is required: this browser cannot do it.');return null;}
     const media=await mediaForText(item.text_id);
-    if(!media||!media.opfs_path||!media.media_sha256){status.classList.add('p2-portable-error');status.textContent=tr('studio.importCenter.bundleNoMedia','This material has no local media — the plain archive is available.');return null;}
-    const mediaFile=window.MediaStore&&await window.MediaStore.readMedia(media.opfs_path);
+    if(!media||!media.media_sha256){status.classList.add('p2-portable-error');status.textContent=tr('studio.importCenter.bundleNoMedia','This material has no local media — the plain archive is available.');return null;}
+    const lite=media.external_ref&&media.external_ref.renditions&&media.external_ref.renditions.lite;
+    const fullBytes=Number(media.size_bytes||0), useLite=!!lite;
+    if(!useLite&&fullBytes>400*1024*1024){status.classList.add('p2-portable-error');status.textContent=tr('studio.importCenter.bundleLiteMissing','The light video copy is not linked to this material. Import it again before transfer.');return null;}
+    if(useLite&&(!/^[a-f0-9]{64}$/.test(String(lite.sha256||''))||
+      !new RegExp('^media/'+lite.sha256+'\\.[a-z0-9]{1,5}$').test(String(lite.opfs_path||''))||
+      lite.sha256===media.media_sha256))fail('MEDIA_RENDITION_INVALID');
+    const selected=useLite?lite:{sha256:media.media_sha256,opfs_path:media.opfs_path,size_bytes:media.size_bytes,
+      mime:media.mime,original_name:media.original_name,duration_ms:media.duration_ms};
+    const mediaFile=window.MediaStore&&selected.opfs_path&&await window.MediaStore.readMedia(selected.opfs_path);
     if(!mediaFile)fail('MEDIA_FILE_MISSING');
+    if(Number(selected.size_bytes)!==mediaFile.size)fail('MEDIA_FILE_SIZE_MISMATCH');
     status.classList.remove('p2-portable-error');
     status.textContent=tr('studio.importCenter.bundleWorking','Building the archive with media…');
     const built=await exportMaterial(item.material_id,mode,{no_download:true});
@@ -344,7 +354,10 @@
     const shortRoot=String(built.manifest.content_root_sha256).slice(0,12);
     const manifest=bundleCore.buildBundleManifest({
       package:{name:`linguistpro-learning-${shortRoot}-${mode}.lplp.zip`,size_bytes:packageBytes.byteLength,sha256:packageSha,content_root_sha256:built.manifest.content_root_sha256},
-      media:{name:media.original_name||'media.mp4',size_bytes:Number(media.size_bytes==null?mediaFile.size:media.size_bytes),sha256:media.media_sha256,mime:media.mime||mediaFile.type||'video/mp4',rendition:'full',duration_seconds:media.duration_ms==null?null:Number(media.duration_ms)/1000},
+      media:{name:selected.original_name||media.original_name||'media.mp4',size_bytes:mediaFile.size,sha256:selected.sha256,
+        canonical_sha256:media.media_sha256,mime:selected.mime||media.mime||mediaFile.type||'video/mp4',
+        rendition:useLite?'lite':'full',derived_from_source_sha256:selected.derived_from_source_sha256||null,
+        duration_seconds:selected.duration_ms==null?null:Number(selected.duration_ms)/1000},
       material:{title:item.title||null,text_key:item.portable_text_key||null,material_id:String(item.material_id)},
       app_version:typeof window!=='undefined'&&window.APP_VERSION||null,
     });
@@ -371,14 +384,24 @@
     status.textContent=fill(tr('studio.importCenter.bundleMediaStored','Media stored and verified: {size}.'),{size:formatBytes(stored.sizeBytes)});
     const packageBlob=await io.bundleEntryBlob({file,entry:read.package});
     const plan=await dryRunFile(packageBlob);
+    const packageMediaSha=pending&&pending.verified&&pending.verified.manifest&&pending.verified.manifest.media&&pending.verified.manifest.media.sha256;
+    const expectedMediaSha=read.manifest.media.rendition==='lite'
+      ?read.manifest.media.canonical_sha256:read.manifest.media.sha256;
+    if(!packageMediaSha||packageMediaSha!==expectedMediaSha)fail('BUNDLE_MEDIA_PARENT_MISMATCH');
     if(!plan.can_apply){status.classList.add('p2-portable-error');status.textContent=tr('studio.portable.blocked','Blocked');return {plan,stored,applied:null,relinked:null};}
     const applied=await applyPending(plan.plan_sha256);
     let relinked=null;
     const media=await mediaForReceipt(applied.receipt.receipt_id);
-    if(media&&media.package_id&&window.StudioMediaPackage&&window.StudioMediaPackage.relinkStored){
-      relinked=await window.StudioMediaPackage.relinkStored(media.package_id,stored);
+    if(media&&media.package_id&&window.StudioMediaPackage){
+      if(read.manifest.media.rendition==='lite'&&window.StudioMediaPackage.relinkStoredRendition){
+        relinked=await window.StudioMediaPackage.relinkStoredRendition(media.package_id,stored,
+          read.manifest.media.canonical_sha256,read.manifest.media.duration_seconds*1000,
+          read.manifest.media.derived_from_source_sha256);
+      }else if(read.manifest.media.rendition!=='lite'&&window.StudioMediaPackage.relinkStored){
+        relinked=await window.StudioMediaPackage.relinkStored(media.package_id,stored);
+      }
     }
-    status.innerHTML=`<b>${esc(tr('studio.portable.applied','Imported locally. Durable receipt saved.'))}</b><span>${esc(relinked?tr('studio.importCenter.bundleRelinked','Media relinked by exact SHA-256.'):tr('studio.portable.mediaMissing','Relink the source media after import'))}</span>`;
+    status.innerHTML=`<b>${esc(tr('studio.portable.applied','Imported locally. Durable receipt saved.'))}</b><span>${esc(relinked?(read.manifest.media.rendition==='lite'?tr('studio.importCenter.bundleLiteLinked','Light video copy linked by SHA-256.'):tr('studio.importCenter.bundleRelinked','Media relinked by exact SHA-256.')):tr('studio.portable.mediaMissing','Relink the source media after import'))}</span>`;
     try{if(typeof window.v3LibraryRefresh==='function')window.v3LibraryRefresh();}catch(_){}
     return {plan,stored,applied,relinked};
   }

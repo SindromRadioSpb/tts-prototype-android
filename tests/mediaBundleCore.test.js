@@ -35,7 +35,7 @@ test("the bundle manifest names both payloads with their hashes", () => {
   const manifest = MBC.buildBundleManifest({
     package: { name: "learning.lplp.zip", size_bytes: 1234, sha256: H("a"), content_root_sha256: H("c") },
     media: { name: "episode-phone.mp4", size_bytes: 4096, sha256: H("b"), mime: "video/mp4",
-             rendition: "lite", derived_from_source_sha256: H("d"), duration_seconds: 2672.68 },
+             rendition: "lite", canonical_sha256: H("e"), derived_from_source_sha256: H("d"), duration_seconds: 2672.68 },
     material: { title: "Episode", rows: 167 },
     app_version: "3.11.559",
     created_at: "2026-09-16T05:00:00.000Z",
@@ -45,6 +45,7 @@ test("the bundle manifest names both payloads with their hashes", () => {
   assert.equal(manifest.package.entry, "package/learning.lplp.zip");
   assert.equal(manifest.media.entry, "media/" + H("b") + ".mp4");
   assert.equal(manifest.media.rendition, "lite");
+  assert.equal(manifest.media.canonical_sha256, H("e"));
   assert.equal(manifest.media.derived_from_source_sha256, H("d"));
   assert.deepEqual(manifest.entries, ["manifest.json", manifest.package.entry, manifest.media.entry]);
 

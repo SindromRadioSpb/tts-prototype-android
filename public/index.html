@@ -13352,9 +13352,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=230"></script>
-<script src="/i18n/locales/en.js?v=230"></script>
-<script src="/i18n/locales/he.js?v=230"></script>
+<script src="/i18n/locales/ru.js?v=231"></script>
+<script src="/i18n/locales/en.js?v=231"></script>
+<script src="/i18n/locales/he.js?v=231"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13461,7 +13461,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-translit-bundle.js?v=573"></script>
 <script src="/js/subtitle-material-vocalization.js?v=573"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
-<script src="/js/media-bundle-core.js?v=560"></script>
+<script src="/js/media-bundle-core.js?v=575"></script>
 <script src="/js/media-bundle-io.js?v=560"></script>
 <script src="/js/local-asr-onboarding.js"></script>
 <script src="/js/local-mt-client.js"></script>
@@ -13474,7 +13474,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/chunk-retry.js?v=519"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/media-package-core.js"></script>
-<script src="/js/media-package-repository.js?v=567"></script>
+<script src="/js/media-package-repository.js?v=575"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js?v=553"></script>
 <link rel="stylesheet" href="/css/study-video-source.css?v=520">
@@ -13495,10 +13495,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=485"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=547"></script>
-<script src="/js/studio-media-package.js?v=572"></script>
+<script src="/js/studio-media-package.js?v=575"></script>
 <script src="/js/studio-media-editor.js?v=529"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js?v=560"></script>
+<script src="/js/studio-portable-learning-package.js?v=575"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13510,7 +13510,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-karaoke.js?v=553"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/media-host.js?v=567"></script>
+<script src="/js/media-host.js?v=575"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13575,7 +13575,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.574";
+    window.APP_VERSION = "3.11.575";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

@@ -119,27 +119,27 @@ test("RU EN HE carry exact row-audio action and state keys", () => {
 });
 
 test("current release lock cache-busts changed Room, media host and locale assets exactly", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.574"/);
-  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.574</);
-  assert.match(sw, /const CACHE_VERSION = "v3\.11\.574"/);
-  assert.match(studio, /\/js\/media-host\.js\?v=567/);
-  assert.match(roomHtml, /\/js\/media-host\.js\?v=567/);
+  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.575"/);
+  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.575</);
+  assert.match(sw, /const CACHE_VERSION = "v3\.11\.575"/);
+  assert.match(studio, /\/js\/media-host\.js\?v=575/);
+  assert.match(roomHtml, /\/js\/media-host\.js\?v=575/);
   assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
   assert.match(roomHtml, /\/js\/library-ui\.js\?v=566/);
   for (const url of [
     "/js/library-ui.js?v=566",
     "/js/reader-core.js?v=402",
     "/css/reader-core.css?v=399",
-    "/js/media-host.js?v=567",
-    "/i18n/locales/ru.js?v=230",
-    "/i18n/locales/en.js?v=230",
-    "/i18n/locales/he.js?v=230",
+    "/js/media-host.js?v=575",
+    "/i18n/locales/ru.js?v=231",
+    "/i18n/locales/en.js?v=231",
+    "/i18n/locales/he.js?v=231",
   ]) {
     assert.ok(sw.includes(JSON.stringify(url)), `SW missing ${url}`);
     assert.ok(server.includes(JSON.stringify(url)), `integrity manifest missing ${url}`);
   }
   for (const locale of ["ru", "en", "he"]) {
-    assert.match(studio, new RegExp(`/i18n/locales/${locale}\\.js\\?v=230`));
-    assert.match(roomHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=230`));
+    assert.match(studio, new RegExp(`/i18n/locales/${locale}\\.js\\?v=231`));
+    assert.match(roomHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=231`));
   }
 });

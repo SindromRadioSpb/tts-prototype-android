@@ -98,6 +98,11 @@
     if (!packageName || packageSha == null || packageSize == null) throw fail("BUNDLE_MANIFEST_INVALID", "package descriptor is incomplete");
     if (mediaSha == null || mediaSize == null || !String(media.mime || "").trim()) throw fail("BUNDLE_MANIFEST_INVALID", "media descriptor is incomplete");
     if (RENDITIONS.indexOf(rendition) < 0) throw fail("BUNDLE_MANIFEST_INVALID", "unknown rendition");
+    var canonicalSha = sha(media.canonical_sha256);
+    if (rendition === "lite" && (!canonicalSha || canonicalSha === mediaSha ||
+        !Number.isFinite(Number(media.duration_seconds)) || Number(media.duration_seconds) <= 0)) {
+      throw fail("BUNDLE_MANIFEST_INVALID", "lite parent or duration is missing");
+    }
     if (utf8(packageName).byteLength > MAX_NAME_BYTES) throw fail("BUNDLE_MANIFEST_INVALID", "package name is too long");
     var packageEntry = "package/" + packageName;
     var mediaEntry = "media/" + mediaSha + "." + mediaExtension(media);
@@ -113,6 +118,7 @@
         name: String(media.name || "").trim() || (mediaSha + "." + mediaExtension(media)),
         entry: mediaEntry, size_bytes: mediaSize, sha256: mediaSha,
         mime: String(media.mime), rendition: rendition,
+        canonical_sha256: canonicalSha || (rendition === "full" ? mediaSha : null),
         derived_from_source_sha256: sha(media.derived_from_source_sha256),
         duration_seconds: media.duration_seconds == null ? null : Number(media.duration_seconds),
       },
@@ -273,6 +279,11 @@
     var mediaEntry = byName[source.media && source.media.entry];
     if (!mediaEntry) throw fail("BUNDLE_MEDIA_ENTRY_MISSING", source.media && source.media.entry);
     if (size(mediaEntry.size) !== size(source.media.size_bytes)) throw fail("BUNDLE_MEDIA_SIZE_MISMATCH");
+    if (source.media.rendition === "lite" &&
+        (!sha(source.media.canonical_sha256) || source.media.canonical_sha256 === source.media.sha256 ||
+         !Number.isFinite(Number(source.media.duration_seconds)) || Number(source.media.duration_seconds) <= 0)) {
+      throw fail("BUNDLE_MANIFEST_INVALID", "lite parent or duration is missing");
+    }
     return { manifest: source, package: packageEntry, media: mediaEntry };
   }
 

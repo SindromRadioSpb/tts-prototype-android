@@ -632,7 +632,11 @@
     return media[camel] == null ? media[snake] : media[camel];
   }
   function mediaIdentity(media) {
-    return String(mediaCompat(media, "sha256", "media_sha256") || mediaCompat(media, "opfsPath", "opfs_path") || "session-media");
+    var renditions = media && media.renditions;
+    var lite = Array.isArray(renditions) ? renditions.filter(function (r) { return r && r.role === 'lite'; })[0]
+      : renditions && renditions.lite;
+    return String(mediaCompat(media, "sha256", "media_sha256") || mediaCompat(media, "opfsPath", "opfs_path") || "session-media") +
+      ':' + String(lite && lite.sha256 || '');
   }
 
   // Резолвер блоба: OPFS (MediaStore) или session-блоб поверхности; кэш по identity —
@@ -644,11 +648,12 @@
       resolve: async function (audio) {
         if (!audio || !audio.media) return null;
         var identity = mediaIdentity(audio.media);
-        if (cache && cache.identity === identity) return cache.blob;
+        if (cache && cache.identity === identity && cache.role !== 'lite') return cache.blob;
         var blob = null;
         var sessionOnly = !!mediaCompat(audio.media, "sessionOnly", "session_only");
         var opfsPath = mediaCompat(audio.media, "opfsPath", "opfs_path");
         var MS = typeof window.MediaStore !== "undefined" ? window.MediaStore : null;
+        var role = 'full';
         if (sessionOnly) blob = getSessionBlob() || null;
         else if (MS) {
           if (opfsPath) blob = await MS.readMedia(opfsPath);
@@ -662,8 +667,26 @@
               mediaCompat(audio.media, "mime", "mime"),
               mediaCompat(audio.media, "originalName", "original_name")));
           }
+          // A verified lite rendition keeps the canonical package SHA intact.
+          // It is used only when the full copy is absent on this device.
+          if (!blob && cache && cache.identity === identity && cache.role === 'lite') {
+            blob = cache.blob; role = 'lite';
+          }
+          if (!blob) {
+            var renditions = audio.media.renditions;
+            var lite = Array.isArray(renditions) ? renditions.filter(function (r) { return r && r.role === 'lite'; })[0]
+              : renditions && renditions.lite;
+            var liteSha = String(lite && lite.sha256 || '').toLowerCase();
+            var litePath = String(lite && (lite.opfsPath || lite.opfs_path) || '');
+            if (/^[a-f0-9]{64}$/.test(liteSha) && new RegExp('^media/' + liteSha + '\\.[a-z0-9]{1,5}$').test(litePath)) {
+              var candidate = await MS.readMedia(litePath);
+              if (candidate && candidate.size === Number(lite.sizeBytes == null ? lite.size_bytes : lite.sizeBytes)) {
+                blob = candidate; role = 'lite';
+              }
+            }
+          }
         }
-        if (blob) cache = { identity: identity, blob: blob };
+        if (blob) cache = { identity: identity, blob: blob, role: role };
         return blob;
       },
       clear: function () { cache = null; },

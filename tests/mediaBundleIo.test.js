@@ -27,7 +27,7 @@ async function buildFixture() {
   const mediaBlob = new Blob([mediaBytes.subarray(0, 2048), mediaBytes.subarray(2048)]);
   const manifest = MBC.buildBundleManifest({
     package: { name: "learning.lplp.zip", size_bytes: packageBytes.length, sha256: H("a"), content_root_sha256: H("c") },
-    media: { name: "episode-phone.mp4", size_bytes: mediaBytes.length, sha256: H("b"), mime: "video/mp4", rendition: "lite" },
+    media: { name: "episode-phone.mp4", size_bytes: mediaBytes.length, sha256: H("b"), canonical_sha256: H("e"), mime: "video/mp4", rendition: "lite", duration_seconds: 120 },
     material: { title: "Episode", rows: 3 },
     app_version: "3.11.559",
     created_at: "2026-09-16T05:30:00.000Z",

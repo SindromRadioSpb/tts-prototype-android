@@ -26,6 +26,8 @@
       sessionOnly: media.sessionOnly == null ? !!media.session_only : !!media.sessionOnly,
     };
     if (external && external.compatibility) result.compatibility = copy(external.compatibility);
+    if (external && external.renditions) result.renditions = copy(external.renditions);
+    else if (media.renditions) result.renditions = copy(media.renditions);
     return result;
   }
   function externalPlaybackSource(media) {
@@ -131,6 +133,7 @@
         external_ref: mediaSrc.compatibility
           ? { compatibility: copy(mediaSrc.compatibility), source: passport.video || holder.video || null }
           : (passport.video || holder.video || null),
+        renditions: Array.isArray(mediaSrc.renditions) ? copy(mediaSrc.renditions) : [],
       },
       segments: segments,
       provenance: {
@@ -449,6 +452,17 @@
     });
     var created = await repo.createPackage({ media: input.media, language: input.language, raw_revision: raw,
       raw_author_kind: input.format === 'asr' ? 'provider' : 'import' });
+    for (var rendition of input.media.renditions || []) {
+      if (rendition.role !== 'lite') continue;
+      await repo.registerRendition(created.package_id, {
+        role: 'lite', canonical_sha256: input.media.sha256,
+        sha256: rendition.sha256, opfs_path: rendition.opfsPath || rendition.opfs_path,
+        size_bytes: rendition.sizeBytes == null ? rendition.size_bytes : rendition.sizeBytes,
+        duration_ms: input.media.duration_ms, mime: rendition.mime || 'video/mp4',
+        original_name: rendition.originalName || rendition.original_name || null,
+        derived_from_source_sha256: rendition.derived_from_source_sha256 || null,
+      });
+    }
     var current = await repo.getCurrentRevision(created.corrected_track_id);
     var preview = reconcileCorrectedPreview(current.segments, meta && meta.textSnapshot);
     if (preview.changed) {
@@ -621,6 +635,19 @@
       original_name: stored.name || pkg.original_name,
     });
   }
+  async function relinkStoredRendition(packageId, stored, canonicalSha, durationMs, sourceSha) {
+    var repo = browserRepository(), pkg = await repo.getPackage(packageId);
+    if (!pkg || !pkg.media_sha256 || String(canonicalSha || '').toLowerCase() !== pkg.media_sha256) {
+      throw new Error('MEDIA_RENDITION_PARENT_MISMATCH');
+    }
+    if (!stored || stored.rendition !== 'lite' || !stored.opfsPath) throw new Error('MEDIA_RENDITION_INVALID');
+    return repo.registerRendition(packageId, {
+      role: 'lite', canonical_sha256: canonicalSha, sha256: stored.sha256,
+      opfs_path: stored.opfsPath, size_bytes: stored.sizeBytes,
+      duration_ms: durationMs, mime: stored.mimeType || 'video/mp4',
+      original_name: stored.name || null, derived_from_source_sha256: sourceSha || null,
+    });
+  }
   async function handleSlimImport(event) {
     var file = event && event.target && event.target.files && event.target.files[0];
     if (event && event.target) event.target.value = '';
@@ -688,7 +715,7 @@
     buildSlimPackageFiles: buildSlimPackageFiles, verifySlimPackageFiles: verifySlimPackageFiles,
     verifyRelinkBytes: verifyRelinkBytes, snapshotForExport: snapshotForExport,
     exportSlimZip: exportSlimZip, importSlimZipFile: importSlimZipFile, relinkFile: relinkFile,
-    relinkStored: relinkStored,
+    relinkStored: relinkStored, relinkStoredRendition: relinkStoredRendition,
     handleSlimImport: handleSlimImport,
     formatDeletePreview: formatDeletePreview, deletePackageAndGc: deletePackageAndGc,
     workspaceViewModel: workspaceViewModel, refreshWorkspaceUi: refreshWorkspaceUi,

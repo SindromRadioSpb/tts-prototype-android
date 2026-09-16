@@ -5,6 +5,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 const MH = require("../public/js/media-host.js");
 const AT = require("../public/js/asr-transcript.js");
 
@@ -630,4 +631,24 @@ test('restoring a saved immutable material preserves verified revision timing an
   MH.restoreForRows(audio,[{he:'שלום'},{he:'מיה'},{he:'חדש'}],deps);
   assert.equal(JSON.stringify(audio),before,'derived restoration must not overwrite immutable revision boundaries');
   assert.equal(audio.timing.entries,entries,'resume retains the same entries identity');
+});
+
+test('local playback falls back to a registered lite file without changing the canonical hash', async () => {
+  const full = 'a'.repeat(64), lite = 'b'.repeat(64), reads = [];
+  let fullPresent = false;
+  const browser = { MediaStore: {
+    mediaFileName: sha => `media/${sha}.mp4`,
+    readMedia: async path => { reads.push(path); return path === `media/${full}.mp4` && fullPresent
+      ? new Blob(['full-video']) : path === `media/${lite}.mp4` ? new Blob(['lite']) : null; },
+  } };
+  const sandbox = { window: browser, document: {}, module: { exports: {} }, Blob };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../public/js/media-host.js'), 'utf8'), sandbox);
+  const resolver = sandbox.module.exports.createBlobResolver({});
+  const audio = { media: { sha256: full, mime: 'video/mp4',
+    renditions: { lite: { sha256: lite, opfs_path: `media/${lite}.mp4`, size_bytes: 4 } } } };
+  assert.equal((await resolver.resolve(audio)).size, 4);
+  assert.deepEqual(reads, [`media/${full}.mp4`, `media/${lite}.mp4`]);
+  assert.equal(audio.media.sha256, full);
+  fullPresent = true;
+  assert.equal((await resolver.resolve(audio)).size, 10, 'the full copy takes precedence once present');
 });
