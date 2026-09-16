@@ -56,6 +56,22 @@ test('a resumed task never pays for the same transcript twice',async()=>{
   assert.equal(log.translate,2);
 });
 
+test('explicit translation-provider switch preserves the paid transcript and re-signs only unfinished work',async()=>{
+  const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0};
+  const job=await T.create({...link,provider:'google-free'});await store.add(job);
+  const ops=linkOps(log);ops.translate=async()=>{log.translate++;if(log.translate===1)throw new Error('google unavailable');return {rows:[{he:'שלום עולם',ru:'Привет мир'}]};};
+  const runner=T.createRunner(store,ops);
+  await assert.rejects(runner.run(job.id),/google unavailable/);
+  const changed=await T.switchTranslationProvider(store,job.id,'gemini','gemini-3.8-flash');
+  assert.equal(changed.input.provider,'gemini');
+  assert.equal(changed.transcript.text,'שלום עולם');
+  assert.notEqual(changed.signature,job.signature);
+  await runner.run(job.id);
+  assert.equal(log.transcribe,1);
+  assert.equal((await store.get(job.id)).state,'ready');
+  await assert.rejects(T.switchTranslationProvider(store,job.id,'gemini','gemini-3.8-flash'),/TASK_PROVIDER_CHANGE_BLOCKED/);
+});
+
 test('a text-only task never reaches the transcribe or bind stages',async()=>{
   const store=memory(),log={transcribe:0,translate:0,save:0,bind:0,pkg:0},job=await T.create(input);await store.add(job);
   await T.createRunner(store,linkOps(log)).run(job.id);

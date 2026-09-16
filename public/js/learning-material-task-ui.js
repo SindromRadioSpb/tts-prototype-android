@@ -293,6 +293,16 @@
     // A provider policy/safety block is terminal for this exact URL. Re-running the same paid
     // request cannot heal it; completed ASR windows remain exportable in the task checkpoint.
     else if(job.state!=='ready'&&(job.error!=='ASR_BLOCKED'||recoverableOther)&&(job.error!=='ASR_OTHER_EXHAUSTED'||alternateAvailable)&&!(job.error==='TASK_SOURCE_MISMATCH'&&job.error_reason))button(actions,t('resume'),()=>execute(job.id,d));
+    if(job.error==='TASK_TABLE_INCOMPLETE'&&job.input.provider==='google-free'&&job.transcript&&!job.table
+      &&operations.hasGeminiKey&&operations.hasGeminiKey())button(actions,
+      ({ru:'Перевести через Gemini',en:'Translate with Gemini',he:'תרגום באמצעות Gemini'}[document.documentElement.lang]||'Translate with Gemini'),async()=>{
+        try{
+          await operations.selectGemini();
+          const selected=operations.capture();
+          await LearningMaterialTask.switchTranslationProvider(store,job.id,'gemini',selected.model);
+          await execute(job.id,d);
+        }catch(error){const note=element('p',String(error.code||error.message||error));note.setAttribute('role','alert');d.append(note);}
+      });
     if(job.error==='TASK_SOURCE_MISMATCH'&&!runner.isRunning(job.id)){
       if(!job.error_reason||job.error_reason==='table')button(actions,t('reviewSource'),()=>showSourceReview(job.id,d));
     }

@@ -169,6 +169,19 @@
       remove:id=>transaction('readwrite',(s,h,done)=>{s.delete(id);h.delete(id);done(true);})
     };
   }
+  // An explicit provider change may recover a saved transcript, but cannot rewrite a paid
+  // translation, a saved card, or the video identity. Re-sign the complete input atomically.
+  async function switchTranslationProvider(store,id,provider,model){
+    if(provider!=='gemini'||!String(model||'').trim())throw new Error('TASK_PROVIDER_INVALID');
+    const old=await store.get(id);
+    if(!old||old.state==='running'||!old.transcript||old.table||old.saved_text_id)throw new Error('TASK_PROVIDER_CHANGE_BLOCKED');
+    const source=safe({...old.input,provider,model:String(model)});
+    const signature=await P().digest(JSON.stringify(source));
+    return store.update(id,current=>{
+      if(current.signature!==old.signature||current.state==='running'||!current.transcript||current.table||current.saved_text_id)throw new Error('TASK_SOURCE_MISMATCH');
+      return {...current,input:source,signature,error:null,error_reason:null};
+    });
+  }
   function closeOpen(times,now){const out={...(times||{})};for(const k of Object.keys(out))if(out[k]&&!out[k].endedAt)out[k]={...out[k],endedAt:now};return out;}
   function createRunner(store,operations){
     const active=new Set();
@@ -262,5 +275,5 @@
     }
     return {run,cancel:id=>store.update(id,old=>({...old,cancel_requested:true,state:active.has(id)?'stopping':'cancelled'})),isRunning:id=>active.has(id)};
   }
-  return {SCHEMA,MAX_BYTES,safe,create,createStore,createRunner,effectiveImportMeta,youtubeSource,assertVideoSource,assertSavedRows,verifySource,recoverSourceTable,sourceReview,applySourceReview,sourceDiagnosis};
+  return {SCHEMA,MAX_BYTES,safe,create,createStore,createRunner,switchTranslationProvider,effectiveImportMeta,youtubeSource,assertVideoSource,assertSavedRows,verifySource,recoverSourceTable,sourceReview,applySourceReview,sourceDiagnosis};
 });
