@@ -4074,6 +4074,15 @@ window.I18N_LOCALES.ru = {
   "verificationDetails": "Подробности проверки"
 },
     importCenter: {
+      bundleGenerate: "Архив с медиа",
+      bundleHelp: "Один файл: учебный пакет и подготовленная копия видео. На телефоне импорт сам привяжет медиа по точному SHA-256.",
+      bundleWorking: "Собираем архив с медиа…",
+      bundleReady: "Архив с медиа готов: {size}. Перенесите его файлом без сжатия.",
+      bundleNoMedia: "У этого материала нет локального медиа — доступен обычный архив.",
+      bundlePickerRequired: "Нужно сохранение файла потоком: этот браузер не умеет, архив с медиа не собрать.",
+      bundleImporting: "Переносим медиа из архива…",
+      bundleMediaStored: "Медиа записано и проверено: {size}.",
+      bundleRelinked: "Медиа привязано по точному SHA-256.",
       materialNotHere: "Этой карточки здесь пока нет.",
       materialNotHereHelp: "Ничего не потеряно: откройте её в Библиотеке и подготовьте к переносу, либо выберите материал из списка.",
       stateValue:{projection:{present:"Локальный канон",archived:"В архиве","missing-rebuildable":"Можно восстановить",conflict:"Конфликт"},caption:{"corrected-current":"Актуальная","raw-only":"Только исходная",draft:"Черновик",missing:"Отсутствует"},table:{current:"Актуальная",stale:"Устарела",conflict:"Конфликт",missing:"Отсутствует"},media:{present:"На устройстве",missing:"Отсутствует","sha-mismatch":"Другой файл","unsupported-codec":"Кодек не поддерживается",unverified:"Не требуется"},backup:{current:"Сохранена",stale:"Устарела","generated-unconfirmed":"Создана, не подтверждена",none:"Копии нет"}},

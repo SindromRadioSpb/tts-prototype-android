@@ -1125,7 +1125,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/youtube-timing.js?v=555",
   "/js/youtube-full-timing.js?v=557",
   "/js/study-timing-repair.js?v=556",
-  "/js/studio-media-package.js?v=554",
+  "/js/studio-media-package.js?v=560",
   "/js/media-package-repository.js?v=553",
   "/js/material-revision-repository.js?v=553",
   "/js/study-video-transfer.js",
@@ -1155,7 +1155,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/local-text-familiarity.js?v=485",
   "/js/studio-library-discovery.js?v=486",
   "/index.html",
-  "/js/studio-portable-learning-package.js?v=529",
+  "/js/studio-portable-learning-package.js?v=560",
   "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
@@ -1191,9 +1191,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=553",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=227",
-  "/i18n/locales/en.js?v=227",
-  "/i18n/locales/he.js?v=227",
+  "/i18n/locales/ru.js?v=229",
+  "/i18n/locales/en.js?v=229",
+  "/i18n/locales/he.js?v=229",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

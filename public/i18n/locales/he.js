@@ -4068,6 +4068,15 @@ window.I18N_LOCALES.he = {
   "verificationDetails": "פרטי הבדיקה"
 },
     importCenter: {
+      bundleGenerate: "ארכיון עם מדיה",
+      bundleHelp: "קובץ אחד: חבילת הלימוד והעותק המוכן של הווידאו. בטלפון הייבוא מקשר את המדיה לפי SHA-256 מדויק בעצמו.",
+      bundleWorking: "בונים ארכיון עם מדיה…",
+      bundleReady: "הארכיון עם המדיה מוכן: {size}. העבירו אותו כקובץ ללא דחיסה.",
+      bundleNoMedia: "לחומר הזה אין מדיה מקומית — זמין ארכיון רגיל.",
+      bundlePickerRequired: "נדרשת שמירת קובץ בזרימה: הדפדפן הזה אינו תומך, ולכן לא ניתן לבנות ארכיון עם מדיה.",
+      bundleImporting: "מעבירים את המדיה מתוך הארכיון…",
+      bundleMediaStored: "המדיה נשמרה ואומתה: {size}.",
+      bundleRelinked: "המדיה קושרה לפי SHA-256 מדויק.",
       materialNotHere: "הכרטיס הזה עדיין לא כאן.",
       materialNotHereHelp: "שום דבר לא אבד: פתחו אותו בספרייה והכינו אותו להעברה, או בחרו חומר מהרשימה.",
       stateValue:{projection:{present:"מאגר מקומי קנוני",archived:"בארכיון","missing-rebuildable":"ניתן לשחזור",conflict:"התנגשות"},caption:{"corrected-current":"עדכני","raw-only":"מקור בלבד",draft:"טיוטה",missing:"חסר"},table:{current:"עדכנית",stale:"לא עדכנית",conflict:"התנגשות",missing:"חסרה"},media:{present:"במכשיר",missing:"חסרה","sha-mismatch":"קובץ שונה","unsupported-codec":"המקודד אינו נתמך",unverified:"לא נדרשת"},backup:{current:"נשמר",stale:"לא עדכני","generated-unconfirmed":"נוצר, לא אושר",none:"אין גיבוי"}},

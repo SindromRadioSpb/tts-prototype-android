@@ -586,6 +586,29 @@
     var saved = await window.MediaStore.saveMedia(bytes, path); if (!saved.ok) throw new Error('MEDIA_RELINK_WRITE_FAILED:' + saved.reason);
     return repo.relinkMedia(packageId, { sha256: pkg.media_sha256, mime: file.type || pkg.mime, opfs_path: path, size_bytes: file.size, original_name: file.name });
   }
+  // S5c: медиа уже лежит в OPFS — оно приехало потоком из транспортного архива и проверялось по
+  // SHA-256 ПОКА писалось. Повторное чтение файла целиком здесь свело бы на нет весь смысл потока,
+  // поэтому привязка сверяет записанный хэш с хэшем пакета и обновляет только строку.
+  async function relinkStored(packageId, stored) {
+    var repo = browserRepository(), pkg = await repo.getPackage(packageId);
+    if (!pkg || !pkg.media_sha256) throw new Error('PACKAGE_MEDIA_SHA_MISSING');
+    var actual = String((stored && stored.sha256) || '').toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(actual) || actual !== String(pkg.media_sha256).toLowerCase()) {
+      var mismatch = new Error('MEDIA_SHA_MISMATCH');
+      mismatch.code = 'MEDIA_SHA_MISMATCH';
+      mismatch.expected_sha = String(pkg.media_sha256).toLowerCase();
+      mismatch.actual_sha = actual;
+      mismatch.expected_name = pkg.original_name || null;
+      mismatch.expected_size = pkg.size_bytes == null ? null : Number(pkg.size_bytes);
+      throw mismatch;
+    }
+    if (!stored.opfsPath) throw new Error('MEDIA_RELINK_PATH_MISSING');
+    return repo.relinkMedia(packageId, {
+      sha256: actual, mime: stored.mimeType || pkg.mime, opfs_path: stored.opfsPath,
+      size_bytes: stored.sizeBytes == null ? pkg.size_bytes : Number(stored.sizeBytes),
+      original_name: stored.name || pkg.original_name,
+    });
+  }
   async function handleSlimImport(event) {
     var file = event && event.target && event.target.files && event.target.files[0];
     if (event && event.target) event.target.value = '';
@@ -653,6 +676,7 @@
     buildSlimPackageFiles: buildSlimPackageFiles, verifySlimPackageFiles: verifySlimPackageFiles,
     verifyRelinkBytes: verifyRelinkBytes, snapshotForExport: snapshotForExport,
     exportSlimZip: exportSlimZip, importSlimZipFile: importSlimZipFile, relinkFile: relinkFile,
+    relinkStored: relinkStored,
     handleSlimImport: handleSlimImport,
     formatDeletePreview: formatDeletePreview, deletePackageAndGc: deletePackageAndGc,
     workspaceViewModel: workspaceViewModel, refreshWorkspaceUi: refreshWorkspaceUi,

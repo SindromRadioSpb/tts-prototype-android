@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.559";
+const CACHE_VERSION = "v3.11.560";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -194,6 +194,8 @@ const PRECACHE_URLS = [
   "/js/media-readiness.js",
   "/js/subtitle-material-core.js?v=559",
   "/js/subtitle-material-import.js?v=558",
+  "/js/media-bundle-core.js?v=560",
+  "/js/media-bundle-io.js?v=560",
   "/js/local-asr-onboarding.js",
   "/js/local-mt-client.js",
   "/js/local-mt-table.js",
@@ -219,10 +221,10 @@ const PRECACHE_URLS = [
   "/js/portable-learning-package-core.js",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=547",
-  "/js/studio-media-package.js?v=554",
+  "/js/studio-media-package.js?v=560",
   "/js/studio-media-editor.js?v=529",
   "/js/studio-material-revision.js",
-  "/js/studio-portable-learning-package.js?v=529",
+  "/js/studio-portable-learning-package.js?v=560",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
@@ -272,9 +274,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=227",
-  "/i18n/locales/en.js?v=227",
-  "/i18n/locales/he.js?v=227",
+  "/i18n/locales/ru.js?v=229",
+  "/i18n/locales/en.js?v=229",
+  "/i18n/locales/he.js?v=229",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
