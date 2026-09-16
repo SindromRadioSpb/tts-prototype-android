@@ -22,6 +22,8 @@
   var FORCED_SUBSET_MIN_OVERLAP = 0.9;
   var SDH_MIN_DESCRIPTION_SHARE = 0.15;
   var SDH_CONTENT_MIN_ALIGNMENT = 0.5;
+  // Companion outcome that means the container has no single obvious learning-language audio track.
+  var AUDIO_CHOICE_OUTCOME = "AUDIO_STREAM_CHOICE_REQUIRED";
 
   var FORCED_TITLE_RE = /forced|форс|מאולצ/i;
   var SDH_TITLE_RE = /\bsdh\b|\bcc\b|hearing|слабослыш|לקויי שמיעה/i;
@@ -342,8 +344,80 @@
     });
   }
 
+  // One action per stream for the import screen: what happens to the picture, which audio track
+  // is kept, which subtitle track becomes the text, where the translation comes from, and what a
+  // phone-sized copy would be. A question appears only for a real ambiguity.
+  function buildMaterialPlan(input) {
+    var opts = input || {};
+    var state = opts.readiness || {};
+    var targetLanguage = opts.targetLanguage || "he";
+    var translationLanguage = opts.translationLanguage || null;
+    var selection = selectTracks({
+      tracks: opts.tracks, targetLanguage: targetLanguage, translationLanguage: translationLanguage,
+    });
+    var questions = [];
+    var audioSelection = state.audio_selection || null;
+    var audioUnresolved = state.outcome === AUDIO_CHOICE_OUTCOME || !audioSelection;
+    if (audioUnresolved) {
+      questions.push({ kind: "audio", choices: (state.audio_choices || []).slice() });
+    }
+    var textTrack = selection.text_track;
+    var status = "ready";
+    var reason = null;
+    if (!textTrack) {
+      if (selection.reasons.text === "target_language_ambiguous") {
+        status = "needs_choice";
+        questions.push({
+          kind: "text",
+          choices: (selection.choices || []).map(function (track) {
+            return { index: track.index, language: track.language, title: track.title, cue_count: trackCues(track).length };
+          }),
+        });
+      } else {
+        status = "blocked";
+        reason = selection.reasons.text;
+      }
+    }
+    if (audioUnresolved && status === "ready") status = "needs_choice";
+
+    var mode = (state.plan && state.plan.mode) || null;
+    var litePlan = state.lite_plan || null;
+    var translationTrack = selection.translation_track;
+    return {
+      status: status,
+      reason: reason,
+      video: { action: mode ? (mode === "transcode" ? "transcode" : "copy") : "ready", mode: mode },
+      audio: audioSelection ? Object.assign({}, audioSelection) : null,
+      text: textTrack ? {
+        index: textTrack.index, language: textTrack.language, title: textTrack.title,
+        cue_count: trackCues(textTrack).length, reason: selection.reasons.text,
+      } : null,
+      translation: translationTrack ? {
+        index: translationTrack.index, language: translationTrack.language, title: translationTrack.title,
+        coverage: textTrack ? alignTranslation(trackCues(textTrack), trackCues(translationTrack)).coverage : 0,
+        reason: selection.reasons.translation,
+      } : null,
+      translation_reason: selection.reasons.translation,
+      signal_track_indexes: (selection.signal_tracks || []).map(function (track) { return track.index; }),
+      lite: {
+        available: !!litePlan,
+        height: litePlan ? litePlan.height : null,
+        max_output_bytes: litePlan ? litePlan.max_output_bytes : null,
+        reason: litePlan ? null : (state.lite_reason || null),
+      },
+      size: {
+        estimated_output_bytes: state.estimated_output_bytes == null ? null : state.estimated_output_bytes,
+        estimated_time_seconds: state.estimated_time_seconds == null ? null : state.estimated_time_seconds,
+      },
+      plan_sha256: state.plan_sha256 || null,
+      lite_plan_sha256: state.lite_plan_sha256 || null,
+      questions: questions,
+    };
+  }
+
   var API = {
     CONTROL_CHARS_RE: CONTROL_CHARS_RE,
+    buildMaterialPlan: buildMaterialPlan,
     normalizeCueText: normalizeCueText,
     detectScriptLanguage: detectScriptLanguage,
     classifyTracks: classifyTracks,

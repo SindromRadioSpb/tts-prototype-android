@@ -46,6 +46,97 @@ function tracks() {
   ];
 }
 
+function readiness(overrides = {}) {
+  return {
+    outcome: "AUDIO_TRANSCODE_REQUIRED",
+    plan: { mode: "audio_transcode", selected_audio_stream: 2, selected_video_stream: 0 },
+    plan_sha256: "a".repeat(64),
+    lite_plan: { mode: "lite_transcode", height: 540, max_output_bytes: 419430400 },
+    lite_plan_sha256: "b".repeat(64),
+    lite_reason: null,
+    audio_selection: { index: 2, type_index: 1, language: "he", title: null, reason: "target_language_tag" },
+    audio_choices: [{ index: 1, language: "ru" }, { index: 2, language: "he" }],
+    estimated_output_bytes: 1_670_000_000,
+    estimated_time_seconds: 160,
+    ...overrides,
+  };
+}
+
+test("buildMaterialPlan names one action per stream and asks nothing when the choice is clear", () => {
+  const plan = SMC.buildMaterialPlan({
+    readiness: readiness(), tracks: tracks(), targetLanguage: "he", translationLanguage: "ru",
+  });
+  assert.equal(plan.status, "ready");
+  assert.deepEqual(plan.video, { action: "copy", mode: "audio_transcode" });
+  assert.equal(plan.audio.index, 2);
+  assert.equal(plan.audio.language, "he");
+  assert.equal(plan.audio.reason, "target_language_tag");
+  assert.equal(plan.text.index, 7);
+  assert.equal(plan.text.cue_count, HEBREW_CUES.length);
+  assert.equal(plan.text.reason, "target_language_full_track");
+  assert.equal(plan.translation.index, 4);
+  assert.equal(plan.translation.coverage, 1);
+  assert.deepEqual(plan.signal_track_indexes, [6]);
+  assert.deepEqual(plan.lite, { available: true, height: 540, max_output_bytes: 419430400, reason: null });
+  assert.deepEqual(plan.size, { estimated_output_bytes: 1_670_000_000, estimated_time_seconds: 160 });
+  assert.equal(plan.plan_sha256, "a".repeat(64));
+  assert.equal(plan.lite_plan_sha256, "b".repeat(64));
+  assert.deepEqual(plan.questions, []);
+});
+
+test("buildMaterialPlan turns a real ambiguity into exactly one question and refuses to confirm", () => {
+  const audioChoice = SMC.buildMaterialPlan({
+    readiness: readiness({ outcome: "AUDIO_STREAM_CHOICE_REQUIRED", plan: null, plan_sha256: null, audio_selection: null }),
+    tracks: tracks(), targetLanguage: "he", translationLanguage: "ru",
+  });
+  assert.equal(audioChoice.status, "needs_choice");
+  assert.equal(audioChoice.questions.length, 1);
+  assert.equal(audioChoice.questions[0].kind, "audio");
+  assert.deepEqual(audioChoice.questions[0].choices.map((choice) => choice.index), [1, 2]);
+  assert.equal(audioChoice.plan_sha256, null);
+
+  const twin = tracks().concat([{ index: 9, language: "he", title: null, disposition: {}, cues: HEBREW_CUES.slice(0, 4) }]);
+  const textChoice = SMC.buildMaterialPlan({
+    readiness: readiness(), tracks: twin, targetLanguage: "he", translationLanguage: "ru",
+  });
+  assert.equal(textChoice.status, "needs_choice");
+  assert.equal(textChoice.questions[0].kind, "text");
+  assert.deepEqual(textChoice.questions[0].choices.map((choice) => choice.index), [7, 9]);
+});
+
+test("buildMaterialPlan reports an unbuildable material and an unreachable light copy honestly", () => {
+  const noHebrew = SMC.buildMaterialPlan({
+    readiness: readiness(), tracks: [tracks()[0]], targetLanguage: "he", translationLanguage: "ru",
+  });
+  assert.equal(noHebrew.status, "blocked");
+  assert.equal(noHebrew.text, null);
+  assert.equal(noHebrew.reason, "target_language_missing");
+
+  const noLite = SMC.buildMaterialPlan({
+    readiness: readiness({ lite_plan: null, lite_plan_sha256: null, lite_reason: "lite_budget_unreachable" }),
+    tracks: tracks(), targetLanguage: "he", translationLanguage: "ru",
+  });
+  assert.equal(noLite.status, "ready");
+  assert.deepEqual(noLite.lite, { available: false, height: null, max_output_bytes: null, reason: "lite_budget_unreachable" });
+
+  const noTranslation = SMC.buildMaterialPlan({
+    readiness: readiness(), tracks: tracks().filter((track) => track.index !== 4),
+    targetLanguage: "he", translationLanguage: "ru",
+  });
+  assert.equal(noTranslation.status, "ready");
+  assert.equal(noTranslation.translation, null);
+  assert.equal(noTranslation.translation_reason, "translation_language_missing");
+});
+
+test("buildMaterialPlan maps every companion mode to one honest video action", () => {
+  const copy = SMC.buildMaterialPlan({ readiness: readiness({ plan: { mode: "lossless_repair" } }), tracks: tracks(), targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(copy.video.action, "copy");
+  const full = SMC.buildMaterialPlan({ readiness: readiness({ plan: { mode: "transcode" } }), tracks: tracks(), targetLanguage: "he", translationLanguage: "ru" });
+  assert.equal(full.video.action, "transcode");
+  const ready = SMC.buildMaterialPlan({ readiness: readiness({ outcome: "READY", plan: null, plan_sha256: null }), tracks: tracks(), targetLanguage: "he", translationLanguage: "ru" });
+  assert.deepEqual(ready.video, { action: "ready", mode: null });
+});
+
 test("normalizeCueText strips bidi controls, styling tags and keeps bracket marks as metadata", () => {
   const result = SMC.normalizeCueText(he("{\\an8}<i>שלום</i> [בערבית]"));
   assert.equal(result.text, "שלום");
