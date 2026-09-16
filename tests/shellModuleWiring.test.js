@@ -1,0 +1,63 @@
+"use strict";
+// A module can pass every node test and still be dead in the product: node tests require() it
+// directly, while the browser only ever sees what a shell loads. media-stream-store.js shipped
+// that way -- four consumers called window.MediaStreamStore and no shell ever loaded the file, so
+// every path that writes media bytes failed at the write step with MEDIA_STREAM_STORE_UNAVAILABLE.
+// This gate compares what modules DEMAND of the window against what the shells actually provide.
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const ROOT = path.resolve(__dirname, "..");
+const read = (file) => fs.readFileSync(path.join(ROOT, file), "utf8");
+const JS_DIR = path.join(ROOT, "public", "js");
+
+const SHELLS = ["public/index.html", "public/library.html", "public/mediatheque.html"];
+// global -> the file that defines it
+const PROVIDERS = {
+  MediaStreamStore: "media-stream-store.js",
+  SubtitleMaterialCore: "subtitle-material-core.js",
+  MediaBundleCore: "media-bundle-core.js",
+};
+
+function consumersOf(global, providerFile) {
+  const pattern = new RegExp("window\\." + global + "\\b");
+  return fs.readdirSync(JS_DIR)
+    .filter((name) => name.endsWith(".js") && name !== providerFile)
+    .filter((name) => pattern.test(fs.readFileSync(path.join(JS_DIR, name), "utf8")));
+}
+
+for (const [global, providerFile] of Object.entries(PROVIDERS)) {
+  test(`every shell loading a window.${global} consumer also loads ${providerFile}`, () => {
+    const consumers = consumersOf(global, providerFile);
+    assert.ok(consumers.length > 0, `no consumer of window.${global} found — update this gate`);
+    for (const shell of SHELLS) {
+      let html;
+      try { html = read(shell); } catch (_) { continue; }
+      const loaded = consumers.filter((name) => html.includes("/js/" + name));
+      if (!loaded.length) continue;
+      assert.ok(html.includes("/js/" + providerFile),
+        `${shell} loads ${loaded.join(", ")} but never loads ${providerFile}`);
+    }
+  });
+
+  test(`${providerFile} is requested and precached under one identical key`, () => {
+    const urlOf = (html) => {
+      const match = html.match(new RegExp("/js/" + providerFile.replace(".", "\\.") + "(\\?v=\\d+)?"));
+      return match ? match[0] : null;
+    };
+    const urls = new Set();
+    for (const shell of SHELLS) {
+      let html;
+      try { html = read(shell); } catch (_) { continue; }
+      const url = urlOf(html);
+      if (url) urls.add(url);
+    }
+    assert.equal(urls.size, 1, `shells must request one identical ${providerFile} URL, got ${[...urls].join(" | ")}`);
+    const url = [...urls][0];
+    // A precache key that differs by one character installs a second copy and serves a stale one.
+    assert.ok(read("public/sw.js").includes(JSON.stringify(url)),
+      `the service worker must precache exactly ${url}`);
+  });
+}

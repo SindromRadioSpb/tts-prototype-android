@@ -13445,6 +13445,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-asr-normalizer.js"></script>
 <script src="/js/local-asr-client.js"></script>
 <script src="/js/media-readiness.js"></script>
+<!-- Chunked OPFS writer with incremental SHA-256. Every path that brings media bytes into the
+     browser goes through it (subtitle materials, media bundles, remote acquisition), so it must
+     load before all of them: without the global those paths fail at the write step, and node
+     tests cannot see the gap because they require() the module directly. -->
+<script src="/js/media-stream-store.js?v=570"></script>
 <!-- Materials built from container subtitle tracks: pure decisions, then byte orchestration.
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=559"></script>
@@ -13564,7 +13569,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.569";
+    window.APP_VERSION = "3.11.570";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
