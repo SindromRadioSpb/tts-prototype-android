@@ -18,6 +18,7 @@
     "test:tts-browser-smoke": "node scripts/tts_browser_smoke.js",
     "test:api-smoke": "node scripts/api-smoke.js",
     "test": "node scripts/test-unit.js",
+    "build:local-translit": "esbuild db/premium/translit.js --bundle --format=iife --global-name=LocalTranslit --minify --outfile=public/js/local-translit-bundle.js",
     "smoke:i18n": "node tests/i18n.smoke.js",
     "smoke:studio-ux-maturity": "node --test tests/studioUxMaturity.test.js && node scripts/premium/studio-ux-maturity-browser-smoke.js",
     "smoke:room-ux-maturity:red": "node --test tests/roomUxMaturity.test.js && node scripts/premium/room-ux-maturity-browser-smoke.js --expect-red",
