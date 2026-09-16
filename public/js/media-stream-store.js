@@ -15,6 +15,9 @@
   }
   function header(response, name) { return String(response && response.headers && response.headers.get(name) || "").trim(); }
   function finiteSize(value) {
+    // Local ZIP streams and chunked responses have no Content-Length. Number('')
+    // and Number(null) are zero, which is a real declared size, not "unknown".
+    if (value == null || typeof value === 'string' && value.trim() === '') return null;
     var number = Number(value);
     return Number.isSafeInteger(number) && number >= 0 ? number : null;
   }

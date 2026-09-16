@@ -10,6 +10,16 @@
   function failure(code, detail) { const error = new Error(code + (detail ? ':' + detail : '')); error.code = code; return error; }
   function parse(value, fallback) { if (value == null || value === '') return fallback; if (typeof value !== 'string') return value; try { return JSON.parse(value); } catch (_) { return fallback; } }
   function json(value) { return JSON.stringify(value == null ? null : value); }
+  // Storage metadata only; playback still checks the actual OPFS file before use.
+  function hasStoredMedia(row) {
+    if (!row) return false;
+    if (row.opfs_path) return true;
+    const ref = row.external_ref || parse(row.external_ref_json, null), lite = ref && ref.renditions && ref.renditions.lite;
+    return !!(lite && /^[a-f0-9]{64}$/.test(lite.sha256 || '') && lite.sha256 !== row.media_sha256 &&
+      lite.derived_from_source_sha256 === row.media_sha256 &&
+      new RegExp('^media/' + lite.sha256 + '\\.[a-z0-9]{1,8}$').test(lite.opfs_path || '') &&
+      Number.isSafeInteger(lite.size_bytes) && lite.size_bytes > 0);
+  }
   function timestamp() { return new Date().toISOString(); }
   function shortHash(id) { const match = /([a-f0-9]{64})$/.exec(String(id || '')); if (!match) throw failure('PORTABLE_ID_INVALID', id); return match[1]; }
   function quoteIdentifier(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }
@@ -758,7 +768,7 @@
           caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
           table_current_revision_id:row.current_table_revision_id||null,table_content_sha256:row.table_content_sha256||null,table_mapping_sha256:row.table_mapping_sha256||null,table_bound_caption_revision_id:row.bound_caption_revision_id||null,table_bound_caption_revision_sha256:row.bound_caption_revision_sha256||null,
           mapping_total:Number(mapping.total||0),mapping_mapped:Number(mapping.mapped||0),mapping_invalid:!!bindingConflict,
-          playback_source:playbackForText(row,row.external_ref_json),media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          playback_source:playbackForText(row,row.external_ref_json),media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:hasStoredMedia(row),media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
           import_integrity_state:integrity,import_receipt_id:receipt&&receipt.receipt_id||null,
         };
         item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:portableScope,caption_sha256:item.caption_current_sha256,table_content_sha256:item.table_content_sha256,table_mapping_sha256:item.table_mapping_sha256,media_sha256:item.media_expected_sha256,playback_source:item.playback_source});
@@ -788,7 +798,7 @@
           caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
           table_current_revision_id:null,table_content_sha256:null,table_mapping_sha256:null,table_bound_caption_revision_id:null,table_bound_caption_revision_sha256:null,
           mapping_total:0,mapping_mapped:0,mapping_invalid:false,
-          playback_source:playbackForText(row,row.external_ref_json),media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          playback_source:playbackForText(row,row.external_ref_json),media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:hasStoredMedia(row),media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
           import_integrity_state:'not-promoted',import_receipt_id:null,
         };
         item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:scope,caption_sha256:item.caption_current_sha256,table_content_sha256:null,table_mapping_sha256:null,media_sha256:item.media_expected_sha256,playback_source:item.playback_source});
@@ -824,7 +834,7 @@
     }
 
     async function mediaForText(textId) {
-      return one(`SELECT b.text_id,b.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes,
+      return one(`SELECT b.text_id,b.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes,p.external_ref_json,
         m.material_id,m.portable_text_key
         FROM studio_text_media_bindings b
         JOIN studio_media_packages p ON p.package_id=b.package_id AND p.deleted_at IS NULL
@@ -834,7 +844,7 @@
 
     async function mediaForReceipt(receiptId) {
       const receipt = await getReceipt(receiptId), packageId = receipt && receipt.id_map && receipt.id_map.media_package && receipt.id_map.media_package.local_id;
-      return packageId ? one(`SELECT p.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes
+      return packageId ? one(`SELECT p.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes,p.external_ref_json
         FROM studio_media_packages p WHERE p.package_id=? AND p.deleted_at IS NULL`, [packageId]) : null;
     }
 
@@ -902,5 +912,5 @@
     return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial, listExportReceipts, recordExportGenerated, confirmExportSaved, restoreExportReceipts, lifecycleInventory, materialArchiveGaps, previewMaterialDelete, deleteMaterial, updateMaterialDetails };
   }
 
-  return { createRepository };
+  return { createRepository, hasStoredMedia };
 });

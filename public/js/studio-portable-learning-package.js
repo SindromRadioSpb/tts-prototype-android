@@ -118,7 +118,7 @@
     if(!row)return null;let live=null;
     try{if(typeof window!=='undefined'&&window.StudioMediaPackage&&window.StudioMediaPackage.browserRepository)live=await window.StudioMediaPackage.browserRepository().getPackage(row.package_id);}catch(_){}
     return {...row,
-      media_available:!!(live&&live.opfs_path||row.opfs_path),
+      media_available:(typeof window!=='undefined'?window.PortableLearningPackageRepository:require('./portable-learning-package-repository.js')).hasStoredMedia(live||row),
       opfs_path:live&&live.opfs_path||row.opfs_path||null,
       original_name:live&&live.original_name||row.original_name||null,
       size_bytes:live&&live.size_bytes!=null?live.size_bytes:row.size_bytes,

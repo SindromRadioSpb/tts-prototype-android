@@ -206,6 +206,30 @@ test('Import Center reads verified codec state from existing JSON metadata witho
   assert.equal(h.rows('SELECT json_extract(external_ref_json,\'$.compatibility.outcome\') AS outcome FROM studio_media_packages')[0].outcome,'READY');
 });
 
+test('lite-only imported material is present without replacing its canonical media identity', async () => {
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
+  const result=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const canonical=h.rows('SELECT media_sha256 FROM studio_media_packages')[0].media_sha256;
+  const sha='b'.repeat(64),lite={sha256:sha,opfs_path:`media/${sha}.mp4`,size_bytes:1234,duration_ms:120000,derived_from_source_sha256:canonical};
+  h.db.run('UPDATE studio_media_packages SET opfs_path=NULL,external_ref_json=?',[JSON.stringify({renditions:{lite}})]);
+  const [item]=await h.repo.lifecycleInventory();
+  assert.equal(item.media_present,true);
+  assert.equal(item.media_expected_sha256,canonical);
+  assert.equal(item.media_actual_sha256,canonical);
+  const text=await h.repo.mediaForText(result.receipt.id_map.text.local_id);
+  assert.equal(Repository.hasStoredMedia(text),true);
+  const UI=require('../public/js/studio-portable-learning-package.js');
+  UI.setRepositoryForTests(h.repo);
+  try {
+    assert.equal((await UI.mediaForText(result.receipt.id_map.text.local_id)).media_available,true);
+    assert.equal((await UI.mediaForReceipt(result.receipt.receipt_id)).media_available,true);
+  } finally { UI.setRepositoryForTests(null); }
+  for(const invalid of [{...lite,derived_from_source_sha256:'c'.repeat(64)},{...lite,opfs_path:'media/wrong.mp4'},{...lite,size_bytes:0}]){
+    h.db.run('UPDATE studio_media_packages SET external_ref_json=?',[JSON.stringify({renditions:{lite:invalid}})]);
+    assert.equal((await h.repo.lifecycleInventory())[0].media_present,false);
+  }
+});
+
 test('archive preflight reports a selected caption revision detached from its material package',async()=>{
   const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
   const applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});

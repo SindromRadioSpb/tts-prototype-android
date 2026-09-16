@@ -39,6 +39,32 @@ function hasher() {
   return { init() {}, update(value) { h.update(value); }, digest() { return h.digest('hex'); } };
 }
 
+test('real bundle reader imports a headerless local stream with size and SHA verification', async () => {
+  const IO=require('../public/js/media-bundle-io.js'),Core=require('../public/js/media-bundle-core.js');
+  const payload=Buffer.from('hebrew-video-fixture'),sha=crypto.createHash('sha256').update(payload).digest('hex');
+  const manifest=Core.buildBundleManifest({package:{name:'learning.zip',size_bytes:2,sha256:'a'.repeat(64)},
+    media:{sha256:sha,size_bytes:payload.length,mime:'video/mp4',rendition:'lite',canonical_sha256:'b'.repeat(64),duration_seconds:12}});
+  const chunks=[];
+  await IO.writeBundle({manifest,writable:{async write(chunk){chunks.push(chunk);},async close(){}},
+    sources:{[manifest.package.entry]:new Blob(['PK']),[manifest.media.entry]:new Blob([payload])}});
+  const file=new Blob(chunks),read=await IO.readBundle({file}),root=memoryOpfs();
+  const store={streamToOpfs:options=>Store.streamToOpfs({...options,root,hasherFactory:async()=>hasher()})};
+  const imported=await IO.importBundleMedia({file,read,store});
+  assert.equal(imported.sha256,sha);
+  assert.deepEqual(root.files.get(sha+'.mp4'),payload);
+  assert.equal(root.files.size,1);
+});
+
+test('absent length is unknown but explicit zero and actual truncation still fail',async()=>{
+  const bytes=Buffer.from('abc'),sha=crypto.createHash('sha256').update(bytes).digest('hex');
+  for(const [headers,expectedSize,code] of [[{'content-length':'0'},3,'RESPONSE_SIZE_MISMATCH'],[{},4,'SIZE_MISMATCH']]){
+    const root=memoryOpfs();
+    await assert.rejects(()=>Store.streamToOpfs({response:new Response(new Blob([bytes]).stream(),{headers}),
+      fileName:'fixture.mp4',expectedSha256:sha,expectedSize,root,hasherFactory:async()=>hasher()}),new RegExp(code));
+    assert.equal(root.files.size,0);
+  }
+});
+
 test('streams chunks to partial, verifies worker SHA, then promotes without a full response buffer', async () => {
   const root = memoryOpfs();
   const chunks = [Buffer.from('abc'), Buffer.from('def'), Buffer.from('ghi')];
