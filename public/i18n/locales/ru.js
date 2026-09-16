@@ -695,7 +695,7 @@ window.I18N_LOCALES.ru = {
   tableJob: {
     state: { cache: "Кэш", generate: "Генерация", retry: "Повтор запроса", repair: "Проверка/ремонт JSON", split: "Безопасное разбиение", done: "Готово", stopped: "Остановлено" },
     chunk: "Кусок {chunk}/{chunks}", attempt: "Попытка {attempt}/{attempts}", rows: "Покрыто сегментов: {ready}/{total}", elapsed: "Прошло: {seconds} с", nextAction: "Следующее действие: {action}",
-    actionWait: "дождитесь ответа", actionRepair: "восстанавливаем только пропущенные сегменты", actionRetry: "нажмите «AI Перевод» ещё раз — готовые куски восстановятся локально", actionRetryMissing: "нажмите «AI Перевод» ещё раз — продолжим только с пропусков", actionReview: "проверьте результат и сохраните карточку", coverageIncomplete: "Таблица не завершена: пропущено сегментов {missing} из {total}. Готовые строки сохранены на устройстве.", mediaExact: "Медиа SHA: {sha}", mediaIntended: "Медиа задумано, но точная привязка ещё не доказана", mediaNone: "Медиа не заявлено"
+    actionWait: "дождитесь ответа", actionRepair: "восстанавливаем только пропущенные сегменты", actionRetry: "нажмите «AI Перевод» ещё раз — готовые куски восстановятся локально", actionRetryMissing: "нажмите «AI Перевод» ещё раз — продолжим только с пропусков", actionReview: "проверьте результат и сохраните карточку", coverageIncomplete: "Таблица не завершена: пропущено сегментов {missing} из {total}. Готовые строки сохранены на устройстве.", mediaExact: "Медиа SHA: {sha}", mediaIntended: "Источник медиа найден; связь строк проверится при сохранении", mediaNone: "Медиа не заявлено"
   },
   saveMeta: {
     concurrentChange: "Материал изменён в другой вкладке. Ваш черновик сохранён в этой вкладке. Откройте актуальную версию или сохраните черновик как новый материал.",
@@ -742,6 +742,7 @@ window.I18N_LOCALES.ru = {
     mediaFile: "исходный файл",
     mediaNone: "Медиа не ожидалось для этой карточки",
     mediaBoundVerified: "{name} · SHA {sha} · точная привязка",
+    mediaYoutubeBoundVerified: "YouTube · источник и строки точно связаны · проверенное воспроизведение {playable}/{total}",
     mediaBoundUnverified: "{name} · SHA {sha} · привязка без доказательства строк",
     mediaNotBound: "Медиа не привязано",
     mediaVerifyNext: "Следующее действие: проверьте или перепривяжите исходник через «Транскрипты».",

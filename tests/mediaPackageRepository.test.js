@@ -306,3 +306,27 @@ test('bindText does not judge rows it cannot read, and records that it did not',
   await bind(null);
   assert.equal((await h.repo.getTextBinding('text-1')).mapping, null, 'a bind with no mapping stays exactly as before');
 });
+
+test('YouTube-only caption binding verifies every saved row without pretending to have a local media SHA', async () => {
+  const h = await harness();
+  h.db.run('CREATE TABLE sentences(id TEXT PRIMARY KEY,text_id TEXT,order_index INTEGER,he_plain TEXT)');
+  const video = { platform: 'youtube', videoId: '4N_-A5VHp2I', url: 'https://www.youtube.com/watch?v=4N_-A5VHp2I' };
+  const meta = JSON.stringify({ source: { captions: { video } } });
+  h.db.run('INSERT INTO texts(id,source_meta_json) VALUES (?,?)', ['youtube-card', meta]);
+  h.db.run("INSERT INTO sentences VALUES ('r0','youtube-card',0,'שלום'),('r1','youtube-card',1,'מיה')");
+  const raw = await Core.createRawRevision({ format: 'asr', provider: 'gemini', segments: [
+    { start_ms: 0, end_ms: 1000, text: 'שלום' }, { start_ms: 1100, end_ms: 2200, text: 'מיה' },
+  ] });
+  const pkg = await h.repo.createPackage({ media: { external_ref: video }, raw_revision: raw });
+  const revision = await h.repo.getCurrentRevision(pkg.corrected_track_id);
+  const binding = { text_id: 'youtube-card', package_id: pkg.package_id, track_id: revision.track_id,
+    revision_id: revision.revision_id, revision_sha256: revision.canonical_sha256 };
+  const mapping = { schema: 'studio-row-source-v2', rows: revision.segments.map((s,i) => ({ row_index: i, caption_segment_id: s.caption_segment_id })) };
+  await h.repo.bindText({ ...binding, mapping });
+  assert.equal((await h.repo.getTextBinding('youtube-card')).mapping.provenance_checked, true);
+  assert.equal((await h.repo.getTextBinding('youtube-card')).mapping.provenance_basis, 'youtube-caption-rows');
+  h.db.run("UPDATE sentences SET he_plain='другой текст' WHERE id='r1'");
+  await h.repo.bindText({ ...binding, mapping });
+  assert.equal((await h.repo.getTextBinding('youtube-card')).mapping.provenance_checked, false,
+    'a mismatched row is not inferred from its caption id');
+});

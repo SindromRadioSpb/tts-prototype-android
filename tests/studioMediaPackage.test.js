@@ -344,6 +344,11 @@ test('buildMediaSaveOutcome records the three honest save states', () => {
     provenance_checked: true, reason: null, package_id: 'mpkg:X',
     next_action: null,
   });
+  const youtube = StudioMediaPackage.buildMediaSaveOutcome({
+    binding: { mapping: { provenance_checked: true, provenance_basis: 'youtube-caption-rows' } }, target: ref,
+  });
+  assert.equal(youtube.status, 'bound_verified');
+  assert.equal(youtube.provenance_basis, 'youtube-caption-rows');
 
   const legacy = StudioMediaPackage.buildMediaSaveOutcome({
     binding: { mapping: { provenance_checked: false } }, target: ref,

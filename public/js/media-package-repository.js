@@ -279,7 +279,41 @@
         if (declared.length && (declared.length > 1 || !actual || declared[0] !== actual)) {
           throw createError('BINDING_PROVENANCE_MISMATCH', declared.join(',') + ' vs ' + (actual || 'none'));
         }
-        mapping = Object.assign({}, mapping, { provenance_checked: declared.length > 0 });
+        var youtubeRowsChecked = false;
+        if (!declared.length && !actual && pkg && pkg.external_ref &&
+            pkg.external_ref.platform === 'youtube' && /^[A-Za-z0-9_-]{11}$/.test(String(pkg.external_ref.videoId || ''))) {
+          try {
+            var card = await one('SELECT source_meta_json FROM texts WHERE id=?', [String(binding.text_id)]);
+            var cardMeta = parse(card && card.source_meta_json, {});
+            var sourceVideo = cardMeta && cardMeta.source && cardMeta.source.captions && cardMeta.source.captions.video;
+            var selected = cardMeta && cardMeta.playback_source;
+            var selectedVideo = selected && selected.history && selected.history[selected.revision - 1] && selected.history[selected.revision - 1].source;
+            var videoId = String(pkg.external_ref.videoId);
+            if (sourceVideo && sourceVideo.videoId === videoId &&
+                (!selectedVideo || selectedVideo.video_id === videoId)) {
+              var savedRows = await q('SELECT order_index,he_plain FROM sentences WHERE text_id=? ORDER BY order_index', [String(binding.text_id)]);
+              var links = Array.isArray(mapping.rows) ? mapping.rows : [];
+              var segments = Array.isArray(revision.segments) ? revision.segments : [];
+              var byId = new Map(segments.map(function(s,i){return [String(s.caption_segment_id),i];}));
+              var groups = segments.map(function(){return [];});
+              var normalize = function(value){return String(value || '').normalize('NFD').replace(/[^\p{L}\p{N}]/gu,'');};
+              var previous = -1;
+              youtubeRowsChecked = !!savedRows.length && savedRows.length === links.length && !!segments.length;
+              for (var i = 0; youtubeRowsChecked && i < links.length; i++) {
+                var link = links[i], segmentIndex = byId.get(String(link && link.caption_segment_id || ''));
+                if (!link || Number(link.row_index) !== i || Number(savedRows[i].order_index) !== i ||
+                    segmentIndex == null || segmentIndex < previous) { youtubeRowsChecked = false; break; }
+                previous = segmentIndex;
+                groups[segmentIndex].push(savedRows[i].he_plain);
+              }
+              if (youtubeRowsChecked) youtubeRowsChecked = segments.every(function(segment,i){
+                return groups[i].length > 0 && normalize(groups[i].join(' ')) === normalize(segment.text);
+              });
+            }
+          } catch (_) { youtubeRowsChecked = false; }
+        }
+        mapping = Object.assign({}, mapping, { provenance_checked: declared.length > 0 || youtubeRowsChecked });
+        if (youtubeRowsChecked) mapping.provenance_basis = 'youtube-caption-rows';
       }
       var ts = now();
       await r(`INSERT INTO studio_text_media_bindings

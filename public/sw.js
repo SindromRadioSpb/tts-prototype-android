@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.566";
+const CACHE_VERSION = "v3.11.567";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -215,13 +215,13 @@ const PRECACHE_URLS = [
   "/js/chunk-retry.js?v=519",
   "/js/media-store.js",
   "/js/media-package-core.js",
-  "/js/media-package-repository.js?v=553",
+  "/js/media-package-repository.js?v=567",
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js?v=553",
   "/js/portable-learning-package-core.js",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=547",
-  "/js/studio-media-package.js?v=560",
+  "/js/studio-media-package.js?v=567",
   "/js/studio-media-editor.js?v=529",
   "/js/studio-material-revision.js",
   "/js/studio-portable-learning-package.js?v=560",
@@ -240,7 +240,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js?v=553",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=553",
+  "/js/media-host.js?v=567",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=506",

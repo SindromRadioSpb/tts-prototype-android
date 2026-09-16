@@ -610,6 +610,15 @@ test('P0 replay coverage is one invariant and intentional partial holes do not r
     label: '2/3', complete: false,
   });
   assert.equal(MH.rowsNeedReplayAugment(exact, 3, [0, 2]), false);
+
+  const sparseGemini = {
+    timing: { entries: [{ o: 2, t: 12, end: 14 }, { o: 5, t: 25, end: 27 }] },
+    timingMap: { source: 'segment_index+aligned', row_seg_idx: [0, 1, 2, 2, 3, 4] },
+  };
+  assert.deepEqual(MH.replayCoverage(sparseGemini, 6), {
+    playable_rows: 3, total_rows: 6, blind_rows: 3, ratio: 0.5,
+    label: '3/6', complete: false,
+  }, 'a few trusted timestamps never make every mapped row playable');
 });
 
 test('restoring a saved immutable material preserves verified revision timing and segment ends',()=>{

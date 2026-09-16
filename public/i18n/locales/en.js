@@ -694,7 +694,7 @@ window.I18N_LOCALES.en = {
   tableJob: {
     state: { cache: "Cache", generate: "Generating", retry: "Retrying request", repair: "Checking/repairing JSON", split: "Safe split", done: "Done", stopped: "Stopped" },
     chunk: "Chunk {chunk}/{chunks}", attempt: "Attempt {attempt}/{attempts}", rows: "Segments covered: {ready}/{total}", elapsed: "Elapsed: {seconds}s", nextAction: "Next action: {action}",
-    actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press AI Translate again; completed chunks will restore locally", actionRetryMissing: "press AI Translate again; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media intended, but an exact binding is not proven yet", mediaNone: "No media declared"
+    actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press AI Translate again; completed chunks will restore locally", actionRetryMissing: "press AI Translate again; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media source found; row binding is checked on save", mediaNone: "No media declared"
   },
   saveMeta: {
     concurrentChange: "This material changed in another tab. Your draft remains in this tab. Open the current version or save your draft as a new material.",
@@ -741,6 +741,7 @@ window.I18N_LOCALES.en = {
     mediaFile: "source file",
     mediaNone: "No media was expected for this card",
     mediaBoundVerified: "{name} · SHA {sha} · exact binding",
+    mediaYoutubeBoundVerified: "YouTube · source and rows exactly linked · verified playback {playable}/{total}",
     mediaBoundUnverified: "{name} · SHA {sha} · bound without row proof",
     mediaNotBound: "Media is not bound",
     mediaVerifyNext: "Next action: verify or relink the source through Transcripts.",

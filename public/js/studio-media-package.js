@@ -259,9 +259,11 @@
     var binding = input.binding || null, target = input.target || null;
     var checked = binding && binding.mapping && binding.mapping.provenance_checked;
     if (binding && checked === true) {
-      return { schema: 'studio-media-binding-outcome-v1', status: 'bound_verified',
+      var outcome = { schema: 'studio-media-binding-outcome-v1', status: 'bound_verified',
         provenance_checked: true, reason: null,
         package_id: target && target.package_id || binding.package_id || null, next_action: null };
+      if (binding.mapping.provenance_basis) outcome.provenance_basis = binding.mapping.provenance_basis;
+      return outcome;
     }
     if (binding && checked === false) {
       return { schema: 'studio-media-binding-outcome-v1', status: 'bound_unverified',

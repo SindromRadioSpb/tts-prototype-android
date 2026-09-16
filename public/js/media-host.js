@@ -446,8 +446,13 @@
         return !entry.blind && entry.o<=idx && (entry.end_o==null||idx<entry.end_o) && map.row_caption_segment_ids[entry.o]===caption;
       });
     }
-    if (map && (map.source === "aligned-partial-proven" || map.source === "persisted-row-identity") && Array.isArray(map.row_seg_idx)) {
-      return Number.isInteger(map.row_seg_idx[idx]);
+    if (map && Array.isArray(map.row_seg_idx)) {
+      var segmentIndex = map.row_seg_idx[idx];
+      // A sparse clock is not a clock for every intervening row. Gemini may return
+      // hundreds of text-mapped rows but only a few verified ASR timestamps.
+      return Number.isInteger(segmentIndex) && p.timing.entries.some(function(entry){
+        return !entry.blind && Number.isInteger(entry.o) && map.row_seg_idx[entry.o] === segmentIndex;
+      });
     }
     // Derived timing entries are sparse boundary markers, not one entry per row. With no
     // restrictive exact/partial map, the established renderer contract makes every table row
