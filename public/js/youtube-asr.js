@@ -79,10 +79,11 @@
   const OUT_TOKENS_PER_SEC = 7.5;   // замер: 11 754 выходных токена на 1560 с речи
   const RETRY_DELAYS_MS = [4000, 12000, 30000];
 
-  function fail(code, status, detail) {
+  function fail(code, status, detail, raw) {
     const e = new Error(code); e.code = code;
     if (status) e.status = status;
     if (detail) e.provider_detail = detail;
+    if (raw) e.raw_response = raw;
     throw e;
   }
 
@@ -92,6 +93,7 @@
     return {
       block_reason: feedback.blockReason || null,
       finish_reason: cand.finishReason || null,
+      finish_message: cand.finishMessage ? String(cand.finishMessage).slice(0, 1000) : null,
       safety_ratings: cand.safetyRatings || feedback.safetyRatings || null,
       provider_status: data && data.error && data.error.status || null,
     };
@@ -183,7 +185,11 @@
     if (!cand) return (data && data.promptFeedback && data.promptFeedback.blockReason) ? 'ASR_BLOCKED' : 'ASR_EMPTY';
     const parts = ((cand.content || {}).parts) || [];
     const text = parts.map((p) => p.text || '').join('').trim();
-    if (cand.finishReason && cand.finishReason !== 'STOP') return cand.finishReason === 'MAX_TOKENS' ? 'ASR_TRUNCATED' : 'ASR_BLOCKED';
+    if (cand.finishReason && cand.finishReason !== 'STOP') {
+      if (cand.finishReason === 'MAX_TOKENS') return 'ASR_TRUNCATED';
+      if (cand.finishReason === 'OTHER') return 'ASR_OTHER';
+      return 'ASR_BLOCKED';
+    }
     if (!text) return 'ASR_EMPTY';
     return null;
   }
@@ -231,7 +237,7 @@
         const data = await post(deps, 'generateContent', buildRequest(url, win));
         if(!state.responses)state.responses=[];state.responses.push({window:win,raw:data});
         const unusable = classifyResponse(data);
-        if (unusable) fail(unusable, null, providerDetail(data));
+        if (unusable) fail(unusable, null, providerDetail(data), data);
         const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
         const parsed = AT().parseAsrResponse(parts.map((p) => p.text || '').join(''));
         return { segments: parsed.segments, warnings: parsed.warnings, language: parsed.language, usage: data.usageMetadata || null, raw:data };
@@ -257,22 +263,34 @@
 
   function defaultSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-  // Лечение непригодного ответа — тем же приёмом, что у файлового пути: делим ЗВУК пополам и
-  // режем шов по ТЕКСТУ. Блокировку делением не вылечить, поэтому её не переспрашиваем.
-  const SPLITTABLE = ['ASR_TRUNCATED', 'ASR_EMPTY', 'ASR_BAD_JSON'];
+  // OTHER означает неизвестную причину завершения, не подтверждённую блокировку. Делим только
+  // проблемный отрезок; настоящие SAFETY/PROHIBITED_CONTENT остаются терминальными.
+  const SPLITTABLE = ['ASR_TRUNCATED', 'ASR_EMPTY', 'ASR_BAD_JSON', 'ASR_OTHER'];
 
-  async function transcribeRange(deps, url, win, state, durationSec, report) {
-    try { return await callWindow(deps, url, win, state, report); }
+  async function transcribeRange(deps, url, win, state, durationSec, report, recovery, skipDirect) {
+    const cached = recovery && recovery.get(win);
+    if (cached) return cached;
+    try {
+      if (skipDirect || (recovery && recovery.isSplit(win))) fail('ASR_OTHER', null, { finish_reason: 'OTHER' });
+      const result = await callWindow(deps, url, win, state, report);
+      if (recovery) await recovery.save(win, result);
+      return result;
+    }
     catch (error) {
       const startSec = win ? win.startSec : 0;
       const endSec = win ? win.endSec : (durationSec || 0);
-      if (!SPLITTABLE.includes(error.code) || (endSec - startSec) < SPLIT_MIN_SEC) throw error;
+      if (!SPLITTABLE.includes(error.code) || (endSec - startSec) < SPLIT_MIN_SEC) {
+        if (error.code === 'ASR_OTHER') error.code = 'ASR_OTHER_EXHAUSTED';
+        if (!error.failed_window) error.failed_window = win;
+        throw error;
+      }
       const mid = Math.round((startSec + endSec) / 2);
       state.recovered = 'split';
+      if (recovery && recovery.markSplit) await recovery.markSplit(win);
       if (report) report('splitting', { fromSec: startSec, toSec: endSec });
-      const a = await transcribeRange(deps, url, { startSec: startSec, endSec: mid }, state, durationSec, report);
+      const a = await transcribeRange(deps, url, { startSec: startSec, endSec: mid }, state, durationSec, report, recovery);
       const b = await transcribeRange(deps, url,
-        { startSec: Math.max(startSec, mid - AT().ASR_WINDOW_OVERLAP_SEC), endSec: endSec }, state, durationSec, report);
+        { startSec: Math.max(startSec, mid - AT().ASR_WINDOW_OVERLAP_SEC), endSec: endSec }, state, durationSec, report, recovery);
       return {
         segments: AT().stitchWindowSegments([a.segments, b.segments], [mid]).segments,
         warnings: (a.warnings || []).concat(b.warnings || []),
@@ -385,8 +403,10 @@
       && JSON.stringify(checkpoint.windows) === JSON.stringify(checkpointPlan);
     checkpoint = checkpointMatches ? JSON.parse(JSON.stringify(checkpoint)) : {
       schema: 'youtube-asr-checkpoint-v1', source: checkpointSource,
-      windows: checkpointPlan, completed: [], failure: null,
+      windows: checkpointPlan, completed: [], partial_completed: [], split_ranges: [], failure: null,
     };
+    if (!Array.isArray(checkpoint.partial_completed)) checkpoint.partial_completed = [];
+    if (!Array.isArray(checkpoint.split_ranges)) checkpoint.split_ranges = [];
     const saveCheckpoint = async () => {
       if (opts && opts.onAsrCheckpoint) await opts.onAsrCheckpoint(JSON.parse(JSON.stringify(checkpoint)));
     };
@@ -400,17 +420,45 @@
         return saved.result;
       }
       try {
-        const result = await transcribeRange(deps, est.url, win, state, est.durationSec, report);
+        const windowKey = (part) => JSON.stringify(part);
+        const recovery = {
+          get: (part) => {
+            const entry = checkpoint.partial_completed.find((item) => item.index === index && windowKey(item.window) === windowKey(part));
+            return entry && entry.result;
+          },
+          save: async (part, result) => {
+            checkpoint.partial_completed.push({ index, window: part, result: {
+              segments: result.segments, warnings: result.warnings || [], language: result.language || null,
+              usage: result.usage || null, raw: result.raw || null,
+            }});
+            await saveCheckpoint();
+          },
+          isSplit: (part) => checkpoint.split_ranges.some((item) => item.index === index && windowKey(item.window) === windowKey(part)),
+          markSplit: async (part) => {
+            if (recovery.isSplit(part)) return;
+            checkpoint.split_ranges.push({ index, window: part });
+            await saveCheckpoint();
+          },
+        };
+        const prior = checkpoint.failure;
+        const skipDirect = prior && prior.index === index
+          && (prior.code === 'ASR_OTHER' || (prior.code === 'ASR_BLOCKED'
+            && prior.provider_detail && prior.provider_detail.finish_reason === 'OTHER'
+            && !prior.provider_detail.block_reason));
+        const result = await transcribeRange(deps, est.url, win, state, est.durationSec, report, recovery, skipDirect);
         checkpoint.completed.push({ index, window: win, result: {
           segments: result.segments, warnings: result.warnings || [],
           language: result.language || null, usage: result.usage || null, raw: result.raw || null,
         }});
+        checkpoint.partial_completed = checkpoint.partial_completed.filter((entry) => entry.index !== index);
+        checkpoint.split_ranges = checkpoint.split_ranges.filter((entry) => entry.index !== index);
         checkpoint.failure = null;
         await saveCheckpoint();
         return result;
       } catch (error) {
         checkpoint.failure = { index, window: win, code: String(error.code || error.message).slice(0, 80),
           status: error.status || null, provider_detail: error.provider_detail || null,
+          failed_window: error.failed_window || null, raw_response: error.raw_response || null,
           recorded_at: new Date().toISOString() };
         await saveCheckpoint();
         throw error;

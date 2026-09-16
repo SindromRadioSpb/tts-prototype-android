@@ -177,6 +177,39 @@ test('a failed long run resumes after the last durable paid window',async()=>{
   assert.equal(out.segments.length,3);
 });
 
+test('legacy OTHER failure resumes by splitting only the failed window and saves a successful child',async()=>{
+  const long={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*2000}]};
+  const saved=[];
+  const first=fakeFetch([{status:200,body:long},
+    {status:200,body:asrBody([seg('0:10','ראשון')])},
+    {status:200,body:asrBody([seg('15:00','שני')])},
+    {status:200,body:blockedBody}]);
+  await assert.rejects(Y.transcribe({fetch:first,apiKey:'k'},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))}),
+    error=>error.code==='ASR_BLOCKED');
+  const legacy=saved.at(-1);
+  legacy.failure.provider_detail={finish_reason:'OTHER',block_reason:null};
+  delete legacy.partial_completed;
+  delete legacy.split_ranges;
+  const resumed=fakeFetch([{status:200,body:long},
+    {status:200,body:asrBody([seg('30:10','שלישי')])},
+    {status:400,body:{error:{status:'INVALID_ARGUMENT'}}}]);
+  await assert.rejects(Y.transcribe({fetch:resumed,apiKey:'k'},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,savedAsrCheckpoint:legacy,onAsrCheckpoint:async value=>saved.push(JSON.parse(JSON.stringify(value)))}),
+    error=>error.code==='YT_URL_REJECTED');
+  assert.equal(resumed.calls.length,3,'the old paid top-level window is not repeated');
+  const partial=saved.at(-1);
+  assert.equal(partial.completed.length,2);
+  assert.equal(partial.partial_completed.length,1);
+  assert.equal(partial.split_ranges.length,1);
+  const again=fakeFetch([{status:200,body:long},
+    {status:200,body:asrBody([seg('32:30','רביעי')])}]);
+  const out=await Y.transcribe({fetch:again,apiKey:'k'},`https://youtu.be/${ID}`,null,
+    {verifyTiming:false,savedAsrCheckpoint:partial,onAsrCheckpoint:async()=>{}});
+  assert.equal(again.calls.length,2,'the successful child is not paid for twice');
+  assert.equal(out.segments.length,4);
+});
+
 // ── независимая проверка часов (R17: генератор не сертифицирует свои метки) ──
 const timeline=[{startSec:600,text:'יש מקרי גירושים בציבור החרדי'},{startSec:612,text:'אני בגיל שמונה עשרה וחצי התארסתי'},{startSec:620,text:'שלושה חודשים אחרי זה התגרשתי'}];
 
@@ -277,6 +310,7 @@ test('an answer that ran out of room is named for what it is, not called bad JSO
   assert.equal(Y.classifyResponse(emptyBody),'ASR_TRUNCATED');
   assert.equal(Y.classifyResponse(truncatedBody),'ASR_TRUNCATED');
   assert.equal(Y.classifyResponse(blockedBody),'ASR_BLOCKED');
+  assert.equal(Y.classifyResponse({candidates:[{finishReason:'OTHER'}]}),'ASR_OTHER');
   assert.equal(Y.classifyResponse({candidates:[{content:{parts:[{text:'{"language":"he","segments":[]}'}]},finishReason:'STOP'}]}),null);
 });
 
