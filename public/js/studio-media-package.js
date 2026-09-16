@@ -182,7 +182,11 @@
       return {row_index:i,caption_segment_id:segment?segment.caption_segment_id:null,
         source_segment_ids:segment?(segment.source_segment_ids||[]).slice():[],source_segment_id:segment&&segment.source_segment_ids&&segment.source_segment_ids[0]||null};
     });
-    return {schema:'studio-row-source-v2',source:'timing-repair-text-verified',rows:mapped};
+    var complete=mapped.length===rows.length&&mapped.every(function(item){return !!item.caption_segment_id;});
+    var prior=binding.mapping||{};
+    return {schema:'studio-row-source-v2',source:'timing-repair-text-verified',rows:mapped,
+      provenance_checked:complete&&prior.provenance_checked===true,
+      ...(complete&&prior.provenance_checked===true&&prior.provenance_basis?{provenance_basis:prior.provenance_basis}:{})};
   }
 
   function buildExactBindingPassport(revision, binding, media) {

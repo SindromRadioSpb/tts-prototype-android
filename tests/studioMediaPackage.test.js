@@ -8,6 +8,21 @@ const StudioMediaPackage = require('../public/js/studio-media-package.js');
 const SHA = '094164e9c94ce623df765600bb0bd2f2b1715fb08bd5050ae53de7427eae8b90';
 const INDEX_HTML = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
 
+test('timing-only repair preserves checked YouTube row provenance when all row texts still match', () => {
+  const revision = { segments: [{ caption_segment_id: 'c1', text: 'שלום עולם', source_segment_ids: ['s1'] }] };
+  const binding = { mapping: { provenance_checked: true, provenance_basis: 'youtube-caption-rows', rows: [
+    { row_index: 0, caption_segment_id: 'c1' }, { row_index: 1, caption_segment_id: 'c1' },
+  ] } };
+  const rows = [{ he_plain: 'שלום' }, { he_plain: 'עולם' }];
+  const verified = StudioMediaPackage.verifiedRowMapping(revision, binding, rows);
+  assert.equal(verified.provenance_checked, true);
+  assert.equal(verified.provenance_basis, 'youtube-caption-rows');
+  assert.deepEqual(verified.rows.map(row => row.caption_segment_id), ['c1', 'c1']);
+  const changed = StudioMediaPackage.verifiedRowMapping(revision, binding, [{ he_plain: 'שלום' }, { he_plain: 'אחר' }]);
+  assert.equal(changed.provenance_checked, false);
+  assert.equal(changed.provenance_basis, undefined);
+});
+
 test('legacy audio passport promotes seconds to bounded millisecond raw cues without confusing ordinals', () => {
   const input = StudioMediaPackage.passportToPromotionInput({
     kind: 'audio', method: 'local-faster-whisper',

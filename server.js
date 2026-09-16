@@ -1125,7 +1125,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/youtube-timing.js?v=555",
   "/js/youtube-full-timing.js?v=557",
   "/js/study-timing-repair.js?v=556",
-  "/js/studio-media-package.js?v=567",
+  "/js/studio-media-package.js?v=568",
   "/js/media-package-repository.js?v=567",
   "/js/material-revision-repository.js?v=553",
   "/js/study-video-transfer.js",
