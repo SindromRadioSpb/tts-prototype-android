@@ -13575,7 +13575,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.573";
+    window.APP_VERSION = "3.11.574";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34373,6 +34373,11 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
   }
   const def = v3LoadSaveMetaDefaults();
   const titleGuess = v3GuessTitleFromSourceText(sourceText);
+  // A subtitle material has its own file provenance. Defaults from a previous
+  // text or YouTube card must not become this video's source or topic.
+  const subtitleSource = v3LastGeminiMeta && v3LastGeminiMeta.provider === "subtitle-track"
+    ? String(v3LastGeminiMeta.source && v3LastGeminiMeta.source.source || "").trim()
+    : null;
 
   const titleEl = v3SaveMetaEl("v3SaveMetaTitle");
   const levelEl = v3SaveMetaEl("v3SaveMetaLevel");
@@ -34386,8 +34391,8 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
     const existingTags = v3SaveMetaReadJson(existing && existing.tags_json);
     tagsEl.value = Array.isArray(existingTags) ? existingTags.join(", ") : "";
   }
-  if (sourceEl) sourceEl.value = String(existing && existing.source || def.source || "");
-  if (topicEl) topicEl.value = String(existing && existing.topic || def.topic || "");
+  if (sourceEl) sourceEl.value = String(existing && existing.source || (subtitleSource === null ? def.source : subtitleSource) || "");
+  if (topicEl) topicEl.value = String(existing && existing.topic || (subtitleSource === null ? def.topic : "") || "");
 
   v3SaveMetaSetStatus(v3SaveMetaBoundUpdate ? t("saveMeta.boundVersionNote") : "", false);
   v3SaveMetaShow(true);
