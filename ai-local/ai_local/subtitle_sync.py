@@ -11,6 +11,18 @@ import statistics
 import subprocess
 
 
+def runtime_report():
+    """Exercise the bundled ONNX speech detector without downloading a model."""
+    import numpy as np
+    from faster_whisper.vad import VadOptions, get_speech_timestamps
+
+    speech = get_speech_timestamps(np.zeros(16000, dtype=np.float32), VadOptions())
+    if speech:
+        raise RuntimeError("VAD detected speech in digital silence")
+    return {"status": "ok", "detector": "silero", "sample_rate": 16000,
+            "silence_speech_segments": len(speech)}
+
+
 def _numbers(values):
     return sorted(float(v) for v in values
                   if isinstance(v, (int, float)) and not isinstance(v, bool)

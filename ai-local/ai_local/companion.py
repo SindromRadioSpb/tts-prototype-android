@@ -16,7 +16,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-APP_VERSION = "0.3.0-beta.7"
+APP_VERSION = "0.3.0-beta.8"
 PRODUCTION_ORIGIN = "https://linguistpro.kolosei.com"
 GUIDE_FILENAMES = {
     "ru": "LOCAL_ASR_COMPANION_GUIDE.md",
@@ -560,7 +560,12 @@ def main(argv: list[str] | None = None) -> int:
     group.add_argument("--autostart", action="store_true")
     group.add_argument("--convert-mt-worker", nargs=2, metavar=("SOURCE", "OUTPUT"))
     group.add_argument("--mt-runtime-check", action="store_true")
+    group.add_argument("--subtitle-runtime-check", action="store_true")
     args = parser.parse_args(argv)
+    if args.subtitle_runtime_check:
+        from ai_local.subtitle_sync import runtime_report
+        print(json.dumps(runtime_report(), sort_keys=True))
+        return 0
     if args.mt_runtime_check:
         print(json.dumps(mt_runtime_report(), sort_keys=True))
         return 0

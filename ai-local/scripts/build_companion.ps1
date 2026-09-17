@@ -62,7 +62,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.7-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.8-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -120,6 +120,12 @@ if ($MtRuntimeCheck.status -ne "ok" -or $MtRuntimeCheck.torch -notlike "2.5.1*" 
 }
 
 $SignTool = Get-Command signtool -ErrorAction SilentlyContinue
+$SubtitleRuntimeCheckJson = & $BuiltExe --subtitle-runtime-check
+if ($LASTEXITCODE -ne 0) { throw "Frozen Companion subtitle VAD runtime check failed" }
+$SubtitleRuntimeCheck = $SubtitleRuntimeCheckJson | ConvertFrom-Json
+if ($SubtitleRuntimeCheck.status -ne "ok" -or $SubtitleRuntimeCheck.silence_speech_segments -ne 0) {
+  throw "Frozen Companion subtitle VAD runtime returned invalid evidence"
+}
 $CodeSigningCerts = @(Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue)
 $SigningStatus = if ($SignTool -and $CodeSigningCerts.Count -gt 0) { "AVAILABLE_NOT_APPLIED" } else { "UNSIGNED_INTERNAL_ONLY" }
 
@@ -234,7 +240,8 @@ $BuildReport = [ordered]@{
       ai-local/THIRD_PARTY_NOTICES.md docs/LOCAL_ASR_COMPANION_GUIDE.md `
       docs/LOCAL_ASR_COMPANION_GUIDE.en.md docs/LOCAL_ASR_COMPANION_GUIDE.he.md
   )
-  companion_version = "0.3.0-beta.7"
+  companion_version = "0.3.0-beta.8"
+  subtitle_runtime_check = $SubtitleRuntimeCheck
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
   frozen_smoke = [ordered]@{
