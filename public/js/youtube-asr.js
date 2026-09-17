@@ -272,12 +272,20 @@
   const SPLITTABLE = ['ASR_TRUNCATED', 'ASR_EMPTY', 'ASR_BAD_JSON', 'ASR_OTHER'];
   const OTHER_FALLBACK_MODEL = 'gemini-2.5-flash';
 
+  function normalizeTranscriptWindow(result,win){
+    if(!win||result.clock_mode)return result;
+    const clock=YT().normalizeWindow(result.segments,win);
+    return {...result,segments:clock.segments,clock_mode:clock.kind,
+      warnings:(result.warnings||[]).concat(
+        clock.kind==='ambiguous'||clock.kind==='outside-window'?'ASR_WINDOW_CLOCK_UNVERIFIED':[])};
+  }
+
   async function transcribeRange(deps, url, win, state, durationSec, report, recovery, skipDirect) {
     const cached = recovery && recovery.get(win);
-    if (cached) return cached;
+    if (cached) return normalizeTranscriptWindow(cached,win);
     try {
       if (skipDirect || (recovery && (recovery.isSplit(win) || recovery.failedOther(win)))) fail('ASR_OTHER', null, { finish_reason: 'OTHER' });
-      const result = await callWindow(deps, url, win, state, report);
+      const result = normalizeTranscriptWindow(await callWindow(deps, url, win, state, report),win);
       if (recovery) await recovery.save(win, result);
       return result;
     }
@@ -290,7 +298,7 @@
           // is never retried automatically. The explicit model is cheaper on output than Flash latest.
           await recovery.markAlternate(win);
           try {
-            const alternate = await callWindow({ ...deps, noRetry: true }, url, win, state, report, OTHER_FALLBACK_MODEL);
+            const alternate = normalizeTranscriptWindow(await callWindow({ ...deps, noRetry: true }, url, win, state, report, OTHER_FALLBACK_MODEL),win);
             alternate.warnings = (alternate.warnings || []).concat('ALTERNATE_ASR_MODEL_USED');
             await recovery.save(win, alternate);
             await recovery.recordAlternate(win, 'complete');
@@ -320,7 +328,7 @@
         segments: AT().stitchWindowSegments([a.segments, b.segments], [mid]).segments,
         warnings: (a.warnings || []).concat(b.warnings || []),
         language: a.language || b.language,
-        usage: a.usage,
+        usage: a.usage,clock_mode:'absolute',
       };
     }
   }
@@ -443,7 +451,7 @@
           if (!state.responses) state.responses = [];
           state.responses.push({ window: win, raw: saved.result.raw });
         }
-        return saved.result;
+        return normalizeTranscriptWindow(saved.result,win);
       }
       try {
         const windowKey = (part) => JSON.stringify(part);
@@ -455,7 +463,7 @@
           save: async (part, result) => {
             checkpoint.partial_completed.push({ index, window: part, result: {
               segments: result.segments, warnings: result.warnings || [], language: result.language || null,
-              usage: result.usage || null, raw: result.raw || null,
+              usage: result.usage || null, raw: result.raw || null,clock_mode:result.clock_mode||null,
             }});
             await saveCheckpoint();
           },
@@ -488,7 +496,7 @@
         const result = await transcribeRange(deps, est.url, win, state, est.durationSec, report, recovery, skipDirect);
         checkpoint.completed.push({ index, window: win, result: {
           segments: result.segments, warnings: result.warnings || [],
-          language: result.language || null, usage: result.usage || null, raw: result.raw || null,
+          language: result.language || null, usage: result.usage || null, raw: result.raw || null,clock_mode:result.clock_mode||null,
         }});
         checkpoint.partial_completed = checkpoint.partial_completed.filter((entry) => entry.index !== index);
         checkpoint.split_ranges = checkpoint.split_ranges.filter((entry) => entry.index !== index);

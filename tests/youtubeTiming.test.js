@@ -45,3 +45,20 @@ test('partial recovery preserves existing intervals and rejects new overlaps',()
   recovered[1].text='different';assert.throws(()=>T.mergeRecovered(saved,recovered),/TEXT_CHANGED/);
   assert.equal(saved[1].startSec,null);
 });
+
+test('clipped ASR clocks are normalized per window before stitching',()=>{
+  const relative=T.normalizeWindow([{start:0,text:'first'},{start:5,text:'second'}],{startSec:870,endSec:1800});
+  assert.equal(relative.kind,'clip-relative');assert.deepEqual(relative.segments.map(s=>s.start),[870,875]);
+  const absolute=T.normalizeWindow([{start:1770,text:'first'},{start:1790,text:'second'}],{startSec:1770,endSec:2700});
+  assert.equal(absolute.kind,'absolute');assert.deepEqual(absolute.segments.map(s=>s.start),[1770,1790]);
+  const uncertain=T.normalizeWindow([{start:880,text:'first'}],{startSec:870,endSec:1800});
+  assert.equal(uncertain.kind,'ambiguous');assert.equal(uncertain.segments[0].start,null);
+});
+
+test('one equal start loses only that row after three independent clock probes',()=>{
+  const evidence=fixture();evidence.timeline.push({...evidence.timeline.at(-1),text:'extra',startSec:evidence.timeline.at(-1).startSec});
+  const result=T.diagnose(evidence);
+  assert.equal(result.status,'partial');assert.equal(result.reason,'local-range-invalid');
+  assert.equal(result.coverage.playable,12);assert.equal(result.segments[12].startSec,null);
+  assert.equal(result.segments[6].startSec,evidence.timeline[6].startSec);
+});

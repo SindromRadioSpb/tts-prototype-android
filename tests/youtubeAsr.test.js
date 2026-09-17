@@ -154,6 +154,18 @@ test('a long video is cut into windows on the provider side and stitched by text
   assert.equal(out.segments.filter(s=>s.text==='משפט השוו').length,1,'the seam must not duplicate speech');
 });
 
+test('a long video converts a clip-relative middle window before the text stitch',async()=>{
+  const long={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*2000}]};
+  const fetch=fakeFetch([{status:200,body:long},
+    {status:200,body:asrBody([seg('14:20','первый'),seg('14:50','общая реплика')])},
+    {status:200,body:asrBody([seg('0:20','общая реплика'),seg('0:40','второй')])},
+    {status:200,body:asrBody([seg('30:10','третий')])}]);
+  const out=await Y.transcribe({fetch,apiKey:'k'},`https://youtu.be/${ID}`,null,{verifyTiming:false});
+  assert.equal(out.segments.filter(s=>s.text==='общая реплика').length,1);
+  assert.equal(out.segments.find(s=>s.text==='второй').startSec,910);
+  assert.equal(out.segments.find(s=>s.text==='третий').startSec,1810);
+});
+
 test('a failed long run resumes after the last durable paid window',async()=>{
   const long={...countBody,promptTokensDetails:[{modality:'AUDIO',tokenCount:32*2000}]};
   const saved=[];

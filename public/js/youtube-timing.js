@@ -33,6 +33,20 @@
     const offset=absolute?0:win.startSec;
     return {kind:offset?'clip-relative':'absolute',segments:probe.map(s=>({...s,startSec:s.startSec+offset}))};
   }
+  // Gemini may timestamp a clipped transcription from zero while adjacent clips use the
+  // full video's clock. Normalize each response before the text stitch sees its marks.
+  function normalizeWindow(segments,win){
+    const list=Array.isArray(segments)?segments:[];
+    if(!win||win.startSec===0)return {kind:'absolute',segments:list.map(s=>({...s}))};
+    const marks=list.map(s=>s&&s.start).filter(finite),span=win.endSec-win.startSec;
+    if(!marks.length)return {kind:'missing',segments:list.map(s=>({...s,start:null}))};
+    const absolute=marks.every(t=>t>=win.startSec-2&&t<=win.endSec+2);
+    const relative=marks.every(t=>t>=0&&t<=span+2);
+    const kind=absolute&&!relative?'absolute':relative&&!absolute?'clip-relative':
+      absolute&&relative?'ambiguous':'outside-window';
+    return {kind,segments:list.map(s=>({...s,start:finite(s.start)&&
+      (kind==='absolute'||kind==='clip-relative')?s.start+(kind==='clip-relative'?win.startSec:0):null}))};
+  }
   function diagnose(evidence){
     const timeline=evidence.timeline||[],duration=evidence.source&&evidence.source.durationSec;
     const plan=windows(duration),reports=[],partial=new Map();
@@ -63,11 +77,22 @@
       const shift=Math.abs(offset)<=TOLERANCE?0:offset;
       const candidate=timeline.map((s,i)=>({text:s.text,startSec:finite(s.startSec)?s.startSec-shift:null,
         endSec:finite(s.endSec)?s.endSec-shift:i+1<timeline.length&&finite(timeline[i+1].startSec)?timeline[i+1].startSec-shift:duration}));
-      if(candidate.every((s,i)=>finite(s.startSec)&&finite(s.endSec)&&s.startSec>=0&&s.endSec>s.startSec&&s.endSec<=duration&&(!i||s.startSec>=candidate[i-1].endSec))){
-        segments=candidate;status='verified';correction=shift;reason=shift?'constant-offset':reports.some(r=>r.clock==='clip-relative')?'probe-relative-clock':'clock-consistent';
+      // A few identical second marks or a seam overlap should cost only those rows.
+      // A substantial backwards jump means an entire clip may have the wrong clock.
+      const backwards=candidate.some((s,i)=>i&&finite(s.startSec)&&finite(candidate[i-1].startSec)&&s.startSec<candidate[i-1].startSec-30);
+      if(!backwards){
+        let previousEnd=-1;
+        segments=candidate.map(s=>{
+          if(!finite(s.startSec)||!finite(s.endSec)||s.startSec<0||s.endSec<=s.startSec||
+             s.endSec>duration||s.startSec<previousEnd)return {text:s.text,startSec:null,endSec:null};
+          previousEnd=s.endSec;return s;
+        });
+        const playable=segments.filter(s=>finite(s.startSec)).length;
+        if(playable===candidate.length){status='verified';correction=shift;reason=shift?'constant-offset':reports.some(r=>r.clock==='clip-relative')?'probe-relative-clock':'clock-consistent';}
+        else if(playable){status='partial';reason='local-range-invalid';}
       }else reason='corrected-range-invalid';
     }
-    if(status!=='verified'){
+    if(status==='unavailable'){
       for(const [i,value]of partial)if(value)segments[i]={text:timeline[i].text,...value};
       // Out-of-order anchors are not usable partial playback.
       let end=-1;for(const s of segments){if(s.startSec==null)continue;if(s.startSec<end){s.startSec=null;s.endSec=null;}else end=s.endSec;}
@@ -98,5 +123,5 @@
     }
     return out;
   }
-  return {VERSION,TOLERANCE,windows,anchors,clock,diagnose,fromSubtitles,mergeRecovered};
+  return {VERSION,TOLERANCE,windows,anchors,clock,normalizeWindow,diagnose,fromSubtitles,mergeRecovered};
 });
