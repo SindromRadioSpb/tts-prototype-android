@@ -57,7 +57,10 @@
     return {...ctx,id:String(id),repo,binding,revision,media,rowsSnapshot:JSON.stringify(rows),
       source:local?{kind:'local',sha256:media.media_sha256,durationSec:media.duration_ms/1000}
         :{video_id:video.videoId,url:video.url,durationSec:media.duration_ms/1000},
-      journalKey:String(id)+':'+revision.revision_id+':'+(local?media.media_sha256:video.videoId)};
+      journalKey:String(id)+':'+revision.revision_id+':'+(local?media.media_sha256:video.videoId),
+      // Оплаченные зонды — свойство РОЛИКА, а не ревизии. Ключ с revision_id делал их недостижимыми
+      // после КАЖДОГО успешного ремонта: повтор покупал их заново и мерил уже обеднённый таймлайн.
+      evidenceKey:String(id)+':asr:'+(local?media.media_sha256:video.videoId)};
   }
   function proposed(ctx,times,authority){
     if(times.length!==ctx.revision.segments.length)throw new Error('TIMING_REPAIR_TEXT_CHANGED');
@@ -85,11 +88,18 @@
         const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json),audio=StudioMediaPackage.buildExactBindingPassport(revision,binding,media);
         const projection=StudioMediaPackage.buildCompatibilityProjection(revision,{kind:'captions',media});
         const local=ctx.source.kind==='local',prior=meta.source?.audio||meta.source?.captions||{};
+        const priorEvidence=prior.captions?.timing_evidence||null;
         meta.source={...(meta.source||{}),...projection};
         if(local){
           meta.source.audio={...prior,...audio,captions:{...(prior.captions||{}),...(audio.captions||{})}};
           delete meta.source.captions;
         }else{meta.source.captions=audio;delete meta.source.audio;}
+        // Доказательства зондов — купленный факт, а не производная разметка. Ремонт перезаписывает
+        // паспорт, и раньше вместе с ним исчезали уже оплаченные ответы провайдера.
+        if(priorEvidence){
+          const holder=local?meta.source.audio:meta.source.captions;
+          if(holder)holder.captions={...(holder.captions||{}),timing_evidence:priorEvidence};
+        }
         meta.timing_repair={schema:'timing-repair-v1',previous_revision_id:ctx.revision.revision_id,revision_id:revision.revision_id,
           playable:times.filter(s=>s.startSec!=null).length,total:times.length};
         if(!local)meta.playback_source=PlaybackSource.append(meta.playback_source,{url:ctx.source.url,offset_ms:0},
@@ -109,7 +119,7 @@
     const count=list=>list.filter(s=>s.startSec!=null&&s.endSec!=null).length;
     const initialRows=ctx.rowsSnapshot;
     const base=ctx.revision.segments.map(s=>({text:s.text,startSec:s.start_ms==null?null:s.start_ms/1000,endSec:s.end_ms==null?null:s.end_ms/1000}));
-    let times=copy(base),evidence=null,authority='provider',quote=null,busy=false,stopped=false,finished=false,acceptUnverified=false;
+    let times=copy(base),evidence=null,paid=null,authority='provider',quote=null,busy=false,stopped=false,finished=false,acceptUnverified=false;
     let fullQuote=null,fullEvidence=null,resuming=false;
     const fullKey=!local&&window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
     const matches=e=>!!e?.source&&(local?e.source.kind==='local'&&e.source.sha256===ctx.source.sha256:e.source.video_id===ctx.source.video_id)&&e.source.durationSec===ctx.source.durationSec;
@@ -125,15 +135,19 @@
     }
     try{
       const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json);
-      evidence=recovered(await journal(ctx.journalKey)||meta.source?.captions?.captions?.timing_evidence||null);
-      if(matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(evidence).segments);
-      if(matches(evidence)&&compatible(evidence.proposed)){times=copy(evidence.proposed);
+      // Оплаченные зонды читаются по ключу ролика; предложения человека остаются при своей ревизии.
+      paid=recovered(await journal(ctx.evidenceKey)||meta.source?.captions?.captions?.timing_evidence
+        ||meta.source?.audio?.captions?.timing_evidence||null);
+      evidence=paid;
+      if(matches(paid)&&paid.schema==='youtube-asr-timing-evidence-v2'&&compatible(paid.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(paid).segments);
+      const proposal=await journal(ctx.journalKey);
+      if(matches(proposal)&&compatible(proposal.proposed)){times=copy(proposal.proposed);evidence=proposal;
         // Принятые метки провайдера остаются его метками: согласие не делает человека автором разметки.
-        acceptUnverified=evidence.schema==='timing-asr-unverified-v1';authority=acceptUnverified?'provider-unverified':'user';}
+        acceptUnverified=proposal.schema==='timing-asr-unverified-v1';authority=acceptUnverified?'provider-unverified':'user';}
       if(fullKey){fullEvidence=await journal(fullKey);if(fullEvidence&&matches(fullEvidence)&&compatible(fullEvidence.timeline)&&authority!=='user'){times=YoutubeFullTiming.collect({...fullEvidence,timeline:base}).segments;if(JSON.stringify(times)!==JSON.stringify(base)){evidence=fullEvidence;authority='provider';}}}
     }catch(e){status.textContent=tr('error');status.dataset.code=e.message;}
     // Сырые метки распознавания живут в том же журнале проверки, который их не заверил.
-    const rawSource=matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline)?evidence.timeline:null;
+    const rawSource=matches(paid)&&paid?.schema==='youtube-asr-timing-evidence-v2'&&compatible(paid.timeline)?paid.timeline:null;
     const rawMarks=rawSource?unverifiedMarks(rawSource,ctx.source.durationSec).map((s,i)=>({...s,text:base[i].text})):null;
     const rawGain=rawMarks?count(rawMarks):0;
     const coverage=el('p');coverage.setAttribute('aria-live','polite');d.append(coverage);
@@ -216,10 +230,10 @@
       const work=async lock=>{
         if(!lock)throw new Error('TIMING_REPAIR_BUSY');
         const fresh=await context(ctx.id);if(fresh.rowsSnapshot!==ctx.rowsSnapshot||fresh.card.source_meta_json!==ctx.card.source_meta_json||JSON.stringify(fresh.binding)!==JSON.stringify(ctx.binding))throw new Error('TIMING_REPAIR_STALE');
-        evidence=recovered(await journal(ctx.journalKey)||evidence);stopped=false;stop.disabled=false;
-        const prior=matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline)?evidence:null;
+        paid=recovered(await journal(ctx.evidenceKey)||paid);stopped=false;stop.disabled=false;
+        const prior=matches(paid)&&paid?.schema==='youtube-asr-timing-evidence-v2'&&compatible(paid.timeline)?paid:null;
         const result=await YoutubeAsr.verifySavedTiming({fetch:(u,i)=>fetch(u,i),apiKey:key(),shouldStop:()=>stopped,savedTimingEvidence:prior},ctx.source,prior?prior.timeline:base,quote,
-          (_,at)=>{status.textContent=tr('waiting',{n:(at.index||0)+1,total:at.total});},async value=>{evidence=value;await journal(ctx.journalKey,value);});
+          (_,at)=>{status.textContent=tr('waiting',{n:(at.index||0)+1,total:at.total});},async value=>{paid=evidence=value;await journal(ctx.evidenceKey,value);});
         times=YoutubeTiming.mergeRecovered(base,result.diagnosis.segments);authority='provider';await save();
       };
       try{if(navigator.locks)await navigator.locks.request('linguistpro-timing-verification:'+ctx.id,{ifAvailable:true},work);else await work(true);}finally{quote=null;}

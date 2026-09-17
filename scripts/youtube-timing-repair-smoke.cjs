@@ -17,7 +17,7 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     await ensureLocalDB();document.documentElement.lang='ru';
     const texts=['היום אנחנו לומדים משפט חדש בעברית.','מחר אנחנו נלמד מילים חדשות ביחד.','אחר כך אנחנו נשמע שיחה אחרת.'];
     const job=await LearningMaterialTask.create({title:'Synthetic missing timing',provider:'gemini',youtube_source:{url:'https://www.youtube.com/watch?v=cPooKT5rFxc'}});
-    const meta=YoutubeAsr.buildImportMeta({video_id:'cPooKT5rFxc',url:job.input.youtube_source.url,durationSec:30,blind:true,segments:texts.map(text=>({startSec:null,text})),timing:{verdict:'suspect',matched:17,medianErrorSec:299}},'synthetic');
+    const meta=YoutubeAsr.buildImportMeta({video_id:'cPooKT5rFxc',url:job.input.youtube_source.url,durationSec:30,blind:true,segments:texts.map(text=>({startSec:null,text})),timing:{verdict:'suspect',matched:17,medianErrorSec:299},timing_evidence:{schema:'youtube-asr-timing-evidence-v2',source:{video_id:'cPooKT5rFxc',url:job.input.youtube_source.url,durationSec:30},timeline:texts.map(text=>({text,startSec:null})),probes:[]}},'synthetic');
     const pkg=await StudioMediaPackage.createFromImportMeta(meta),projection=StudioMediaPackage.buildCompatibilityProjection(pkg.revision,{kind:'captions',media:pkg.input.media});
     meta.media_package_ref=projection.media_package_ref;meta.captions={...meta.captions,...projection.captions,timingDropReason:'ASR_CLOCK_UNVERIFIED'};
     job.transcript={text:meta.textSnapshot,import_meta:meta,blind:true,timing:{verdict:'suspect',matched:17,medianErrorSec:299}};
@@ -39,10 +39,10 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     const timeline=ctx.revision.segments.map(s=>({text:s.text,startSec:null,endSec:null}));
     const evidence={schema:'youtube-asr-timing-evidence-v2',source:ctx.source,timeline,probes:YoutubeTiming.windows(30).map((window,i)=>({window,state:'complete',segments:i?[]:[{text:timeline[0].text,startSec:1},{text:'גבול נוסף שאינו משפט זהה',startSec:5}]}))};
     window.recoveryCalls={estimates:0,paid:0};
-    if(mode==='auto'||mode==='full')await StudyTimingRepair.journal(ctx.journalKey,evidence);
+    if(mode==='auto'||mode==='full')await StudyTimingRepair.journal(ctx.evidenceKey,evidence);
     // Часы, которые ни один зонд не заверил, но метки провайдера структурно целы: единственный
     // путь к воспроизведению — ЯВНОЕ принятие непроверенного, и оно обязано себя называть.
-    if(mode==='trust')await StudyTimingRepair.journal(ctx.journalKey,{...evidence,probes:[],
+    if(mode==='trust')await StudyTimingRepair.journal(ctx.evidenceKey,{...evidence,probes:[],
       timeline:[1,8,16].map((startSec,i)=>({text:timeline[i].text,startSec}))});
     if(mode==='paid'){
       localStorage.setItem('v3.geminiApiKey','synthetic');window.geminiKeyGet=()=> 'synthetic';
@@ -115,6 +115,9 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     return {rows:ctx.rowsSnapshot,revision:ctx.revision.revision_id,oldRevisionPreserved:!!(await ctx.repo.getRevision(timingBefore.revision.revision_id)),
       tableChanged:rev.table_revision_id!==tableBefore.table_revision_id,tableContentPreserved:rev.content_sha256===tableBefore.content_sha256,
       tableBinding:rev.bound_caption_revision_id,playable:audio.timing.entries.length,
+      paidEvidenceSurvived:!!(await StudyTimingRepair.journal(ctx.evidenceKey)),
+      passportKeptEvidence:!!(PlaybackSource.parseMeta(ctx.card.source_meta_json).source?.captions?.captions?.timing_evidence
+        ||PlaybackSource.parseMeta(ctx.card.source_meta_json).source?.audio?.captions?.timing_evidence),
       timingAuthority:ctx.revision.segments.filter(x=>x.start_ms!=null).map(x=>x.authority&&x.authority.timing).filter((v,i,a)=>a.indexOf(v)===i),
       textFlags:ctx.revision.segments.map(x=>(x.quality_flags||[]).filter(f=>f!=='blind').join('|')).join(','),
       reviewCount:(await ctx.ldb.dbQuery('SELECT COUNT(*) AS n FROM review_log'))[0].n,archiveRoot:archive.manifest.content_root_sha256,
@@ -122,6 +125,9 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
   },id);
   assert.equal(after.rows,before.rows);assert.notEqual(after.revision,before.revision);assert.ok(after.oldRevisionPreserved);assert.ok(after.tableChanged);assert.ok(after.tableContentPreserved);assert.equal(after.tableBinding,after.revision);assert.equal(after.playable,playableRows);assert.equal(after.reviewCount,0);
   assert.equal(after.textFlags,',,','a timing repair never writes a flag onto the text');
+  if(mode==='auto'||mode==='full'||mode==='trust')
+    assert.ok(after.paidEvidenceSurvived,'probes already paid for stay reachable after a repair, so a retry does not buy them again');
+  assert.ok(after.passportKeptEvidence,'the passport a repair rewrites still carries the answers the run paid for');
   if(mode==='trust')assert.deepEqual(after.timingAuthority,['provider-unverified'],'accepted marks stay provider-authored and say they were never checked');assert.ok(after.archiveHasNewRevision);assert.deepEqual(paid,[]);assert.deepEqual(errors,[]);
   const transfer=await page.evaluate(async id=>{const c=await StudyVideoSourceUI.context(id);return StudyVideoTransfer.put({schema:1,title:'Synthetic partial playback',video_id:'cPooKT5rFxc',rows:c.rows.map(r=>({he:r.he,ru:r.ru})),entries:c.audio.timing.entries});},id);
   const videoPage=await context.newPage();await videoPage.goto(base+'/study-video.html#'+transfer);await videoPage.waitForSelector('#proTable tbody tr');assert.equal(await videoPage.locator('#proTable tbody button').count(),playableRows,'isolated video view must not offer replay on gaps');await videoPage.close();
