@@ -109,3 +109,25 @@ test('an interior probe that disagrees still refuses certification',()=>{
   assert.notEqual(r.status,'verified');
   assert.equal(r.reason,'nonuniform-drift');
 });
+
+// Owner run 2026-09-17 (video eKUFzdGd9r8): the closing ASR window [2670,3411] is 741s long and
+// the model timed its speech 0:00–12:44, so three tail marks overshot the clip by 23s. Voiding
+// the window for that cost 96 of 428 rows their timestamps — 22% of the material went untimed
+// BEFORE any verification could look at it.
+test('a few overshooting tail marks cost their own rows, not the whole ASR window',()=>{
+  const win={startSec:2670,endSec:3411};
+  const marks=[0,4,8,13,14,24,700,730,740,752,757,764];
+  const result=T.normalizeWindow(marks.map(start=>({start,text:'t'+start})),win);
+  assert.equal(result.kind,'clip-relative','the clip clock explains 9 of 12 marks and must be named');
+  assert.deepEqual(result.segments.slice(0,6).map(s=>s.start),[2670,2674,2678,2683,2684,2694]);
+  assert.deepEqual(result.segments.slice(-3).map(s=>s.start),[null,null,null],'marks past the clip end stay untimed');
+  assert.equal(result.segments[8].start,3410,'the last mark inside the clip survives');
+});
+
+test('a window whose marks mostly fall outside it still claims no clock',()=>{
+  const win={startSec:2670,endSec:3411};
+  const scattered=[0,5,4000,4200,4400,4600,4800].map(start=>({start,text:'t'+start}));
+  const result=T.normalizeWindow(scattered,win);
+  assert.equal(result.kind,'outside-window');
+  assert.deepEqual(result.segments.map(s=>s.start),new Array(7).fill(null));
+});

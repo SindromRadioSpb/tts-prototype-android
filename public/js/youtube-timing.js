@@ -48,12 +48,19 @@
     if(!win||win.startSec===0)return {kind:'absolute',segments:list.map(s=>({...s}))};
     const marks=list.map(s=>s&&s.start).filter(finite),span=win.endSec-win.startSec;
     if(!marks.length)return {kind:'missing',segments:list.map(s=>({...s,start:null}))};
-    const absolute=marks.every(t=>t>=win.startSec-2&&t<=win.endSec+2);
-    const relative=marks.every(t=>t>=0&&t<=span+2);
-    const kind=absolute&&!relative?'absolute':relative&&!absolute?'clip-relative':
-      absolute&&relative?'ambiguous':'outside-window';
-    return {kind,segments:list.map(s=>({...s,start:finite(s.start)&&
-      (kind==='absolute'||kind==='clip-relative')?s.start+(kind==='clip-relative'?win.startSec:0):null}))};
+    const fits=(t,lo,hi)=>t>=lo&&t<=hi;
+    const absolute=marks.filter(t=>fits(t,win.startSec-EDGE,win.endSec+EDGE)).length;
+    const relative=marks.filter(t=>fits(t,-EDGE,span+EDGE)).length;
+    // Both clocks explain every mark: they cannot be told apart, so claim neither.
+    if(absolute===marks.length&&relative===marks.length)return {kind:'ambiguous',segments:list.map(s=>({...s,start:null}))};
+    // A clock must explain MOST of the window. Demanding it explain every mark let a handful of
+    // overshooting tail marks erase a whole window of honest timing before anything could check
+    // it — the cost of a stray mark is its own row, and the window still says which clock it used.
+    const kind=absolute>=relative?'absolute':'clip-relative',hits=Math.max(absolute,relative);
+    if(hits*2<=marks.length)return {kind:'outside-window',segments:list.map(s=>({...s,start:null}))};
+    const lo=kind==='absolute'?win.startSec-EDGE:-EDGE,hi=kind==='absolute'?win.endSec+EDGE:span+EDGE;
+    const offset=kind==='clip-relative'?win.startSec:0;
+    return {kind,segments:list.map(s=>({...s,start:finite(s.start)&&fits(s.start,lo,hi)?s.start+offset:null}))};
   }
   function diagnose(evidence){
     const timeline=evidence.timeline||[],duration=evidence.source&&evidence.source.durationSec;
