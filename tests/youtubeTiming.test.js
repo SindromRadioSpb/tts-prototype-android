@@ -62,3 +62,50 @@ test('one equal start loses only that row after three independent clock probes',
   assert.equal(result.coverage.playable,12);assert.equal(result.segments[12].startSec,null);
   assert.equal(result.segments[6].startSec,evidence.timeline[6].startSec);
 });
+
+// Owner run 2026-09-17: a 61-minute video whose ASR clock was right end to end still offered
+// playback on 6 of 990 rows. Two separate defects vetoed it; this fixture is that exact run.
+test('one edge-straddling probe cannot veto a clock pinned at both ends of a real hour-long run',()=>{
+  const evidence=require('./fixtures/youtube-timing-probe-veto.json');
+  const r=T.diagnose(evidence);
+  assert.equal(r.reports[1].clock,'absolute','speech starting 1s before the clip edge is still this clip');
+  assert.equal(r.certifiedWindows,3,'all three checkpoints agree once anchors are read from row starts');
+  assert.deepEqual(r.reports.map(x=>x.delta),[0,0,0]);
+  assert.ok(r.reports.every(x=>x.spread<=2),'the clock holds to two seconds across the hour');
+  assert.equal(r.coverage.total,990);
+  assert.equal(r.coverage.playable,985,'only the rows sharing one second stamp stay unplayable');
+  assert.equal(r.reason,'local-range-invalid','the clock is certified; those five rows have no usable range');
+});
+
+test('speech that straddles a clip edge keeps its probe usable',()=>{
+  const win={startSec:1787,endSec:1877};
+  assert.equal(T.clock([{startSec:1786,text:'a'},{startSec:1800,text:'b'}],win).kind,'absolute');
+  assert.equal(T.clock([{startSec:-1,text:'a'},{startSec:14,text:'b'}],win).kind,'clip-relative');
+  // Tolerance is an edge allowance, not an open door: a mark from elsewhere still voids the probe.
+  assert.equal(T.clock([{startSec:1700,text:'a'},{startSec:1800,text:'b'}],win).kind,'outside-window');
+});
+
+test('a row matched from its first word measures the same boundary as an exact match',()=>{
+  const timeline=[{text:'אחת שתיים שלוש ארבע חמש שש',startSec:10,endSec:18}];
+  // The probe heard the same opening but transcribed the tail differently: same start, other words.
+  const aligned=T.anchors(timeline,[{text:'אחת שתיים שלוש ארבע חמש שבע',startSec:10}]);
+  assert.equal(aligned.length,1);assert.equal(aligned[0].aligned,true);assert.equal(aligned[0].exact,false);
+  // A match that begins mid-row cannot time the row's own start.
+  const inside=T.anchors(timeline,[{text:'שתיים שלוש ארבע חמש',startSec:11}]);
+  assert.equal(inside.length,1);assert.equal(inside[0].aligned,false);
+});
+
+test('a silent interior probe cannot veto a clock the end probes agree on',()=>{
+  const e=fixture();e.probes.splice(1,1);
+  const r=T.diagnose(e);
+  assert.equal(r.status,'verified');
+  assert.equal(r.certifiedWindows,2,'the count of checkpoints that actually certified is reported');
+  assert.equal(r.reports.length,3,'the silent window is still listed');
+});
+
+test('an interior probe that disagrees still refuses certification',()=>{
+  const e=fixture();e.timeline.forEach((s,i)=>{if(i>=4&&i<8){s.startSec+=30;s.endSec+=30;}});
+  const r=T.diagnose(e);
+  assert.notEqual(r.status,'verified');
+  assert.equal(r.reason,'nonuniform-drift');
+});

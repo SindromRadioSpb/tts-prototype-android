@@ -13,12 +13,29 @@
   Object.assign(text.ru,{localIntro:'Прослушайте исходное медиа и исправьте интервалы. Текст и перевод сохранятся, прежняя разметка останется в истории.',listen:'Прослушать интервал',shift:'Сдвиг всех реплик, секунды',shiftApply:'Применить сдвиг',mediaMissing:'Медиа недоступно на этом устройстве. Восстановите файл перед проверкой интервалов.'});
   Object.assign(text.en,{localIntro:'Listen to the source media and correct intervals. Text and translation stay unchanged; previous timing remains in history.',listen:'Listen to interval',shift:'Shift all utterances, seconds',shiftApply:'Apply shift',mediaMissing:'Media is unavailable on this device. Restore the file before checking intervals.'});
   Object.assign(text.he,{localIntro:'האזינו למדיה המקורית ותקנו את הזמנים. הטקסט והתרגום יישמרו והתזמון הקודם יישאר בהיסטוריה.',listen:'האזנה לקטע',shift:'הזזת כל הקטעים בשניות',shiftApply:'החלת ההזזה',mediaMissing:'המדיה אינה זמינה במכשיר זה. שחזרו את הקובץ לפני בדיקת הקטעים.'});
+  Object.assign(text.ru,{trust:'Включить воспроизведение по меткам распознавания',trustNote:'Метки распознавания не сверены с речью: контрольные участки их не подтвердили. Строки получат кнопки и подсветку, но расхождение с речью возможно. Текст и перевод не меняются; проверенную разметку можно получить позже полным проходом.',trustReview:'К сохранению: {n} из {total} строк по непроверенным меткам.',trustConfirm:'Я принимаю непроверенные метки распознавания: подсветка может расходиться с речью.'});
+  Object.assign(text.en,{trust:'Enable playback from recognition timestamps',trustNote:'Recognition timestamps were never confirmed against the speech: the sample windows did not certify them. Rows get buttons and highlighting, but they may drift. Text and translation stay unchanged; verified timing can still be obtained later by a full pass.',trustReview:'Ready to save: {n} of {total} rows from unverified timestamps.',trustConfirm:'I accept unverified recognition timestamps: highlighting may drift from the speech.'});
+  Object.assign(text.he,{trust:'הפעלת ניגון לפי חותמות הזמן של הזיהוי',trustNote:'חותמות הזמן של הזיהוי לא אומתו מול הדיבור: קטעי הבדיקה לא אישרו אותן. השורות יקבלו כפתורים והדגשה, אך ייתכן פער. הטקסט והתרגום אינם משתנים; אפשר לקבל תזמון בדוק בהמשך במעבר מלא.',trustReview:'מוכן לשמירה: {n} מתוך {total} שורות לפי חותמות לא בדוקות.',trustConfirm:'אני מקבל חותמות זמן לא בדוקות: ההדגשה עלולה לסטות מהדיבור.'});
   text.ru.localSaved='Исправленные интервалы сохранены. Откройте карточку заново. Остальные интервалы не отмечаются как проверенные.';
   text.en.localSaved='Corrected intervals saved. Reopen the card. Other intervals are not marked as verified.';
   text.he.localSaved='הקטעים שתוקנו נשמרו. פתחו את הכרטיס מחדש. שאר הקטעים אינם מסומנים כבדוקים.';
   Object.assign(text.ru,{full:'Восстановить все реплики — повторный запрос',fullRun:'Запустить полный проход — до ${price}',fullCost:'Будет заново прослушано всё видео: {n} участков. Бюджет до ${price}. Текст, перевод и уже работающие кнопки сохранятся. Найденная разметка сохранится автоматически.',fullProgress:'Полное восстановление: участок {n} из {total}.',partial:'Синхронизация неполная: {n} из {total} реплик. Без кнопок: {missing}. Доступен полный повторный запрос.',near:'Почти полная синхронизация: {n} из {total}. Без кнопок: {missing}.',complete:'Синхронизация восстановлена для всех {total} реплик.',resume:'Продолжить полный проход',fullInterrupted:'Полный проход прерван. Полученные интервалы сохранены; можно продолжить оставшиеся участки. Неуспешные запросы автоматически не повторяются.'});
   Object.assign(text.en,{full:'Recover all utterances — new request',fullRun:'Run full recovery — up to ${price}',fullCost:'Listen to the whole video again: {n} windows. Budget up to ${price}. Text, translation and existing buttons stay. Recovered timing is saved automatically.',fullProgress:'Full recovery: window {n} of {total}.',partial:'Synchronization incomplete: {n} of {total} utterances. Missing buttons: {missing}. Full recovery is available.',near:'Almost complete: {n} of {total}. Missing buttons: {missing}.',complete:'Synchronization recovered for all {total} utterances.',resume:'Resume full recovery',fullInterrupted:'Full recovery stopped. Results are saved; remaining windows can be resumed. Failed requests are not automatically repeated.'});
   Object.assign(text.he,{full:'שחזור כל הקטעים — בקשה חדשה',fullRun:'הפעלת שחזור מלא — עד ${price}',fullCost:'הסרטון כולו ייבדק מחדש: {n} קטעים. תקציב עד ${price}. הטקסט, התרגום והכפתורים הקיימים יישמרו. התזמון שיימצא יישמר אוטומטית.',fullProgress:'שחזור מלא: קטע {n} מתוך {total}.',partial:'הסנכרון אינו מלא: {n} מתוך {total} קטעים. ללא כפתורים: {missing}. ניתן להפעיל שחזור מלא.',near:'הסנכרון כמעט מלא: {n} מתוך {total}. ללא כפתורים: {missing}.',complete:'הסנכרון שוחזר לכל {total} הקטעים.',resume:'המשך שחזור מלא',fullInterrupted:'השחזור המלא נעצר. התוצאות נשמרו; ניתן להמשיך בקטעים שנותרו. בקשות שנכשלו אינן חוזרות אוטומטית.'});
+  // Часы, которые никто не сверил, — не измерение, а предложение провайдера. Принять его можно
+  // только ЯВНО и только там, где метки СТРУКТУРНО целы: возрастают, лежат внутри
+  // ролика и дают непустой интервал. Ни одна метка не достраивается и ни один порядок не чинится.
+  function unverifiedMarks(timeline,durationSec){
+    const list=Array.isArray(timeline)?timeline:[],num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
+    let previous=-1;
+    return list.map((s,i)=>{
+      const startSec=num(s&&s.startSec);
+      const endSec=num(s&&s.endSec)??(i+1<list.length?num(list[i+1]&&list[i+1].startSec):num(durationSec));
+      const blank={text:s&&s.text,startSec:null,endSec:null};
+      if(startSec==null||endSec==null||startSec<0||endSec<=startSec||endSec>durationSec||startSec<previous)return blank;
+      previous=endSec;return {text:s&&s.text,startSec,endSec};
+    });
+  }
   function journal(key,value){return new Promise((resolve,reject)=>{
     const req=indexedDB.open('linguistpro-timing-repair-v1',1);
     req.onupgradeneeded=()=>req.result.createObjectStore('evidence');req.onerror=()=>reject(req.error);
@@ -47,6 +64,8 @@
     return ctx.revision.segments.map((s,i)=>{
       if(times[i].text!==s.text)throw new Error('TIMING_REPAIR_TEXT_CHANGED');
       const valid=times[i].startSec!=null&&times[i].endSec!=null;
+      // Каждая строка несёт СВОЮ честность в authority.timing: ремонт вправе менять только время,
+      // и пометка о качестве меток живёт там же, где их авторство, а не в опознании текста.
       return {...s,start_ms:valid?Math.round(times[i].startSec*1000):null,end_ms:valid?Math.round(times[i].endSec*1000):null,
         quality_flags:[...(s.quality_flags||[]).filter(f=>f!=='blind'),...(valid?[]:['blind'])],
         authority:{...s.authority,timing:valid?(s.start_ms===Math.round(times[i].startSec*1000)&&s.end_ms===Math.round(times[i].endSec*1000)?s.authority?.timing||authority:authority):'unknown'}};
@@ -90,7 +109,7 @@
     const count=list=>list.filter(s=>s.startSec!=null&&s.endSec!=null).length;
     const initialRows=ctx.rowsSnapshot;
     const base=ctx.revision.segments.map(s=>({text:s.text,startSec:s.start_ms==null?null:s.start_ms/1000,endSec:s.end_ms==null?null:s.end_ms/1000}));
-    let times=copy(base),evidence=null,authority='provider',quote=null,busy=false,stopped=false,finished=false;
+    let times=copy(base),evidence=null,authority='provider',quote=null,busy=false,stopped=false,finished=false,acceptUnverified=false;
     let fullQuote=null,fullEvidence=null,resuming=false;
     const fullKey=!local&&window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
     const matches=e=>!!e?.source&&(local?e.source.kind==='local'&&e.source.sha256===ctx.source.sha256:e.source.video_id===ctx.source.video_id)&&e.source.durationSec===ctx.source.durationSec;
@@ -99,9 +118,15 @@
       const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json);
       evidence=await journal(ctx.journalKey)||meta.source?.captions?.captions?.timing_evidence||null;
       if(matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(evidence).segments);
-      if(matches(evidence)&&compatible(evidence.proposed)){times=copy(evidence.proposed);authority='user';}
+      if(matches(evidence)&&compatible(evidence.proposed)){times=copy(evidence.proposed);
+        // Принятые метки провайдера остаются его метками: согласие не делает человека автором разметки.
+        acceptUnverified=evidence.schema==='timing-asr-unverified-v1';authority=acceptUnverified?'provider-unverified':'user';}
       if(fullKey){fullEvidence=await journal(fullKey);if(fullEvidence&&matches(fullEvidence)&&compatible(fullEvidence.timeline)&&authority!=='user'){times=YoutubeFullTiming.collect({...fullEvidence,timeline:base}).segments;if(JSON.stringify(times)!==JSON.stringify(base)){evidence=fullEvidence;authority='provider';}}}
     }catch(e){status.textContent=tr('error');status.dataset.code=e.message;}
+    // Сырые метки распознавания живут в том же журнале проверки, который их не заверил.
+    const rawSource=matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline)?evidence.timeline:null;
+    const rawMarks=rawSource?unverifiedMarks(rawSource,ctx.source.durationSec).map((s,i)=>({...s,text:base[i].text})):null;
+    const rawGain=rawMarks?count(rawMarks):0;
     const coverage=el('p');coverage.setAttribute('aria-live','polite');d.append(coverage);
     const primary=el('button'),stop=el('button',tr('stop')),close=el('button',tr('close'));primary.className='btn-primary';
     primary.dataset.action='recover';stop.dataset.action='stop';close.dataset.action='close';
@@ -111,13 +136,19 @@
     if(!local){const link=el('a',ctx.source.url);link.href=ctx.source.url;link.target='_blank';link.rel='noopener noreferrer';advanced.append(link);}
     const detail=el('details');detail.append(el('summary',tr('details')));const preview=el('pre');preview.style.cssText='max-height:220px;overflow:auto;white-space:pre-wrap';detail.append(preview);advanced.append(detail);
     const confirmed=el('input');confirmed.type='checkbox';const check=el('label',tr('confirm'));check.prepend(confirmed);const review=el('p',tr('review'));advanced.append(review,check);
+    const trust=el('button',tr('trust'));trust.type='button';trust.dataset.action='trust';advanced.append(trust);
     const changed=()=>JSON.stringify(times)!==JSON.stringify(base);
+    // Принять непроверенное можно только осознанно: та же галочка, что и у ручной правки.
+    const reviewNeeded=()=>authority==='user'||acceptUnverified;
     const resultText=()=>{const n=count(times),total=times.length;return tr(n===total?'complete':n/total>=.95?'near':'partial',{n,total,missing:total-n});};
     const render=()=>{
       const n=count(times);coverage.textContent=tr('coverage',{n,total:times.length});
       preview.textContent=times.map((s,i)=>(i+1)+'. '+(s.startSec==null?'—':s.startSec+'–'+s.endSec)+'  '+s.text).join('\n');
-      stop.hidden=!busy;primary.disabled=busy||(authority==='user'&&changed()&&!confirmed.checked);advanced.hidden=busy||(finished&&changed());
-      check.hidden=review.hidden=authority!=='user'||!changed();
+      stop.hidden=!busy;primary.disabled=busy||(reviewNeeded()&&changed()&&!confirmed.checked);advanced.hidden=busy||(finished&&changed());
+      check.hidden=review.hidden=!reviewNeeded()||!changed();
+      check.lastChild.textContent=tr(acceptUnverified?'trustConfirm':'confirm');
+      review.textContent=acceptUnverified?tr('trustNote'):tr('review');
+      trust.hidden=!rawMarks||busy||finished||rawGain<=count(times);
       primary.textContent=finished?tr('open'):changed()?tr('saveReady',{n}):quote?tr('run',{price:quote.estimatedUsd.toFixed(4)}):tr('auto');
       if(local&&!finished){primary.textContent=tr('save');primary.disabled=busy||!changed()||!confirmed.checked;}
       if(local&&finished)primary.textContent=tr('close');
@@ -132,7 +163,7 @@
     const button=(parent,key,fn)=>{const b=el('button',tr(key));b.type='button';b.onclick=()=>action(fn);parent.append(b);return b;};
     const save=async()=>{
       if(!changed()||!count(times)){status.textContent=tr('noMarks');return;}
-      if(authority==='user'&&!confirmed.checked)throw new Error('TIMING_REVIEW_REQUIRED');
+      if(reviewNeeded()&&!confirmed.checked)throw new Error('TIMING_REVIEW_REQUIRED');
       status.textContent=tr('saving');
       const work=async lock=>{if(!lock)throw new Error('TIMING_REPAIR_BUSY');await apply(ctx,times,evidence,authority);};
       if(navigator.locks)await navigator.locks.request('linguistpro-material-preparation',{ifAvailable:true},work);else await work(true);
@@ -184,6 +215,13 @@
     };
     primary.onclick=()=>{if(finished){d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);return;}return action(()=>changed()?save():local?Promise.resolve():quote?verify():estimate());};
     stop.onclick=()=>{stopped=true;stop.disabled=true;};close.onclick=()=>d.close();d.oncancel=e=>{if(busy){e.preventDefault();stopped=true;}};
+    trust.onclick=()=>action(async()=>{
+      if(!rawMarks)throw new Error('TIMING_REPAIR_UNAVAILABLE');
+      times=copy(rawMarks);acceptUnverified=true;authority='provider-unverified';confirmed.checked=false;quote=null;finished=false;
+      evidence={schema:'timing-asr-unverified-v1',source:ctx.source,proposed:copy(times)};
+      await journal(ctx.journalKey,evidence);
+      status.textContent=tr('trustReview',{n:count(times),total:times.length});
+    });
     const fileLabel=el('label',tr('subtitle')),file=el('input');file.type='file';file.accept='.srt,.vtt';fileLabel.append(file);advanced.append(fileLabel);
     file.onchange=()=>action(async()=>{
       if(!file.files[0])return;
@@ -229,9 +267,9 @@
       });
     }
     button(advanced,'export',()=>{const u=URL.createObjectURL(new Blob([JSON.stringify({source:ctx.source,base_revision_id:ctx.revision.revision_id,evidence,proposed:times},null,2)],{type:'application/json'}));const a=el('a');a.href=u;a.download='timing-review-'+ctx.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
-    if(changed()){status.textContent=authority==='provider'?tr('ready',{n:count(times)}):tr('review');if(authority==='user')advanced.open=true;}
+    if(changed()){status.textContent=acceptUnverified?tr('trustReview',{n:count(times),total:times.length}):authority==='provider'?tr('ready',{n:count(times)}):tr('review');if(reviewNeeded())advanced.open=true;}
     else if(count(base)&&!local){finished=true;status.textContent=resultText();}
     render();return d;
   }
-  window.StudyTimingRepair={open,context,apply,proposed,journal};
+  window.StudyTimingRepair={open,context,apply,proposed,journal,unverifiedMarks};
 })();

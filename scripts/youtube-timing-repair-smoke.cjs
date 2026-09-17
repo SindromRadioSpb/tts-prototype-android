@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
 const {spawn}=require('node:child_process'),{chromium}=require('playwright');
 const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer}=require('./smoke-server-env');
 const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'lp-timing-'));
-const mode=process.argv.includes('--full')?'full':process.argv.includes('--auto')?'auto':process.argv.includes('--paid')?'paid':'manual';
+const mode=process.argv.includes('--full')?'full':process.argv.includes('--auto')?'auto':process.argv.includes('--paid')?'paid':process.argv.includes('--trust')?'trust':'manual';
 const output=path.join(root,'.tmp/election-row-playback/browser-'+mode);fs.mkdirSync(output,{recursive:true});
 const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(dir,0),stdio:['ignore','ignore','pipe','ipc'],windowsHide:true});let browser;
 (async()=>{
@@ -40,6 +40,10 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     const evidence={schema:'youtube-asr-timing-evidence-v2',source:ctx.source,timeline,probes:YoutubeTiming.windows(30).map((window,i)=>({window,state:'complete',segments:i?[]:[{text:timeline[0].text,startSec:1},{text:'גבול נוסף שאינו משפט זהה',startSec:5}]}))};
     window.recoveryCalls={estimates:0,paid:0};
     if(mode==='auto'||mode==='full')await StudyTimingRepair.journal(ctx.journalKey,evidence);
+    // Часы, которые ни один зонд не заверил, но метки провайдера структурно целы: единственный
+    // путь к воспроизведению — ЯВНОЕ принятие непроверенного, и оно обязано себя называть.
+    if(mode==='trust')await StudyTimingRepair.journal(ctx.journalKey,{...evidence,probes:[],
+      timeline:[1,8,16].map((startSec,i)=>({text:timeline[i].text,startSec}))});
     if(mode==='paid'){
       localStorage.setItem('v3.geminiApiKey','synthetic');window.geminiKeyGet=()=> 'synthetic';
       YoutubeAsr.estimate=async()=>{recoveryCalls.estimates++;return {durationSec:30,timingQuote:{estimatedUsd:0.001}};};
@@ -61,6 +65,19 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
   }
   if(mode==='manual')await page.locator('dialog.study-source-dialog input[type=checkbox]').check();
   else assert.equal(await page.locator('dialog input[type=checkbox]').isVisible(),false,'provider evidence does not demand a false listening confirmation');
+  if(mode==='trust'){
+    const trust=page.locator('dialog [data-action=trust]');
+    assert.equal(await trust.isVisible(),false,'accepting unverified marks is never the first thing offered');
+    await page.locator('dialog details[data-section=advanced] > summary').click();
+    assert.equal(await trust.isVisible(),true,'uncertified provider marks stay reachable behind an explicit choice');
+    await trust.click();
+    await page.waitForFunction(()=>document.querySelector('dialog [role=status]')?.textContent.startsWith('Ready to save: 3 of 3'));
+    const box=page.locator('dialog.study-source-dialog input[type=checkbox]');
+    assert.equal(await box.isVisible(),true,'accepting unverified timing is a decision, not a default');
+    assert.equal(await page.locator('dialog [data-action=recover]').isDisabled(),true,'nothing saves before that decision is made');
+    assert.match(await page.locator('dialog label:has(input[type=checkbox])').innerText(),/unverified recognition timestamps/);
+    await box.check();
+  }
   if(mode==='paid'){
     assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:0,paid:0});
     await page.getByRole('button',{name:'Restore automatically',exact:true}).click();
@@ -68,7 +85,8 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:1,paid:0},'show price before spending');
   }
   await page.locator('dialog [data-action=recover]').click();
-  try{await page.waitForFunction(()=>document.querySelector('dialog.study-source-dialog [role=status]')?.textContent.startsWith('Synchronization incomplete'));}
+  const expected=mode==='trust'?'Synchronization recovered for all':'Synchronization incomplete';
+  try{await page.waitForFunction(text=>document.querySelector('dialog.study-source-dialog [role=status]')?.textContent.startsWith(text),expected);}
   catch(e){console.error(await page.locator('dialog.study-source-dialog').innerText());console.error(await page.locator('dialog.study-source-dialog [role=status]').getAttribute('data-code'));throw e;}
   assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:mode==='paid'?1:0,paid:mode==='paid'?1:0});
   if(mode==='full'){
@@ -87,7 +105,8 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     assert.deepEqual(await page.evaluate(()=>fullRecoveryCalls),{estimate:1,paid:1});assert.equal(await full.isVisible(),true,'repeat remains available');
   }
   await page.evaluate(async id=>{document.querySelectorAll('dialog').forEach(d=>d.close());await StudyVideoInlineOpen(id);},id);
-  try{await page.waitForFunction(n=>document.querySelectorAll('#proTable .smk-row-replay').length===n,mode==='full'?3:1,{timeout:10000});}
+  const playableRows=mode==='full'||mode==='trust'?3:1;
+  try{await page.waitForFunction(n=>document.querySelectorAll('#proTable .smk-row-replay').length===n,playableRows,{timeout:10000});}
   catch(e){console.error(JSON.stringify(await page.evaluate(async id=>{const c=await StudyVideoSourceUI.context(id);return {buttons:document.querySelectorAll('.smk-row-replay').length,audio:c.audio,bar:document.querySelector('#v3MediaBar')?.innerText};},id)));throw e;}
   const after=await page.evaluate(async id=>{
     const ctx=await StudyTimingRepair.context(id),mr=MaterialRevisionRepository.createRepository(ctx.ldb,MaterialRevisionCore),rev=await mr.getCurrentRevision(timingMaterial.material_id);
@@ -96,11 +115,15 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     return {rows:ctx.rowsSnapshot,revision:ctx.revision.revision_id,oldRevisionPreserved:!!(await ctx.repo.getRevision(timingBefore.revision.revision_id)),
       tableChanged:rev.table_revision_id!==tableBefore.table_revision_id,tableContentPreserved:rev.content_sha256===tableBefore.content_sha256,
       tableBinding:rev.bound_caption_revision_id,playable:audio.timing.entries.length,
+      timingAuthority:ctx.revision.segments.filter(x=>x.start_ms!=null).map(x=>x.authority&&x.authority.timing).filter((v,i,a)=>a.indexOf(v)===i),
+      textFlags:ctx.revision.segments.map(x=>(x.quality_flags||[]).filter(f=>f!=='blind').join('|')).join(','),
       reviewCount:(await ctx.ldb.dbQuery('SELECT COUNT(*) AS n FROM review_log'))[0].n,archiveRoot:archive.manifest.content_root_sha256,
       archiveHasNewRevision:Object.values(archive.files).some(value=>(typeof value==='string'?value:new TextDecoder().decode(value)).includes(ctx.revision.canonical_sha256))};
   },id);
-  assert.equal(after.rows,before.rows);assert.notEqual(after.revision,before.revision);assert.ok(after.oldRevisionPreserved);assert.ok(after.tableChanged);assert.ok(after.tableContentPreserved);assert.equal(after.tableBinding,after.revision);assert.equal(after.playable,mode==='full'?3:1);assert.equal(after.reviewCount,0);assert.ok(after.archiveHasNewRevision);assert.deepEqual(paid,[]);assert.deepEqual(errors,[]);
+  assert.equal(after.rows,before.rows);assert.notEqual(after.revision,before.revision);assert.ok(after.oldRevisionPreserved);assert.ok(after.tableChanged);assert.ok(after.tableContentPreserved);assert.equal(after.tableBinding,after.revision);assert.equal(after.playable,playableRows);assert.equal(after.reviewCount,0);
+  assert.equal(after.textFlags,',,','a timing repair never writes a flag onto the text');
+  if(mode==='trust')assert.deepEqual(after.timingAuthority,['provider-unverified'],'accepted marks stay provider-authored and say they were never checked');assert.ok(after.archiveHasNewRevision);assert.deepEqual(paid,[]);assert.deepEqual(errors,[]);
   const transfer=await page.evaluate(async id=>{const c=await StudyVideoSourceUI.context(id);return StudyVideoTransfer.put({schema:1,title:'Synthetic partial playback',video_id:'cPooKT5rFxc',rows:c.rows.map(r=>({he:r.he,ru:r.ru})),entries:c.audio.timing.entries});},id);
-  const videoPage=await context.newPage();await videoPage.goto(base+'/study-video.html#'+transfer);await videoPage.waitForSelector('#proTable tbody tr');assert.equal(await videoPage.locator('#proTable tbody button').count(),mode==='full'?3:1,'isolated video view must not offer replay on gaps');await videoPage.close();
+  const videoPage=await context.newPage();await videoPage.goto(base+'/study-video.html#'+transfer);await videoPage.waitForSelector('#proTable tbody tr');assert.equal(await videoPage.locator('#proTable tbody button').count(),playableRows,'isolated video view must not offer replay on gaps');await videoPage.close();
   const receipt={...after,rows:JSON.parse(after.rows).length,paidCalls:paid.length,errors};fs.writeFileSync(path.join(output,'receipt.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify(receipt));
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();child.kill();});
