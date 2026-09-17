@@ -279,8 +279,8 @@ class MediaJobManager:
             if track["sha256"] != subtitle_sha256:
                 raise MediaJobConflict("subtitle verification source changed")
             report = manifest.get("report") or {}
-            audio = report.get("audio_selection") or {}
-            duration = float(report.get("duration_seconds") or 0)
+            audio = report.get("source_audio_selection", report.get("audio_selection")) or {}
+            duration = float(report.get("source_duration_seconds", report.get("duration_seconds")) or 0)
             if not isinstance(audio.get("index"), int) or not math.isfinite(duration) or duration <= 0:
                 raise MediaJobConflict("selected audio is unavailable")
             if len(cue_starts) > 20000 or any(not math.isfinite(t) or t < 0 or t >= duration for t in cue_starts):
@@ -298,7 +298,9 @@ class MediaJobManager:
                 assessment = {"schema": "subtitle-speech-sync-v1", "status": "unverified", "apply_offset_ms": 0,
                               "reason": "local_speech_analysis_unavailable", "error_type": type(exc).__name__}
             current = self.get(job_id)
-            if (current.get("report") or {}).get("audio_selection") != audio or current["state"] != manifest["state"]:
+            current_report = current.get("report") or {}
+            current_audio = current_report.get("source_audio_selection", current_report.get("audio_selection")) or {}
+            if current_audio != audio or current["state"] != manifest["state"]:
                 raise MediaJobConflict("media selection changed during subtitle verification")
             assessment.update(input_sha256=key, source_sha256=inputs["source_sha256"],
                               audio_stream_index=audio["index"], subtitle_sha256=subtitle_sha256)
@@ -310,7 +312,8 @@ class MediaJobManager:
 
     def subtitle_file(self, job_id: str, stream_index: int) -> tuple[Path, dict[str, Any]]:
         manifest = self.get(job_id)
-        tracks = (manifest.get("report") or {}).get("subtitle_tracks") or []
+        report = manifest.get("report") or {}
+        tracks = report.get("source_subtitle_tracks", report.get("subtitle_tracks")) or []
         matches = [track for track in tracks if int(track.get("index", -1)) == int(stream_index)]
         if not matches:
             raise MediaJobNotFound("%s:%s" % (job_id, stream_index))
@@ -424,7 +427,7 @@ class MediaJobManager:
                     output_size_bytes=output_bytes,
                 )
                 source_report = manifest.get("report") or {}
-                for key in ("audio_selection", "subtitle_tracks", "track_inventory"):
+                for key in ("audio_selection", "subtitle_tracks", "track_inventory", "duration_seconds"):
                     if key in source_report:
                         post["source_" + key] = source_report[key]
                 # The light copy is always derived from the source, so the source plan governs it;

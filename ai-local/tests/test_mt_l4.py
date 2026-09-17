@@ -325,7 +325,7 @@ def test_companion_beta6_version_is_consistent_across_binary_and_installer():
     installer = (root / "installer" / "LinguistProLocalAsr.iss").read_text(encoding="utf-8-sig")
 
     for source in (script, companion, installer):
-        assert "0.3.0-beta.8" in source
+        assert "0.3.0-beta.9" in source
     assert "0.3.0-beta.4-unsigned-internal.exe" not in script
     assert "0.3.0-beta.4-unsigned-internal" not in installer
 

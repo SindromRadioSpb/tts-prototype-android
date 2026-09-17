@@ -12,7 +12,8 @@ async def chunks(data):
 
 
 @pytest.mark.asyncio
-async def test_subtitle_sync_binds_evidence_to_source_track_and_selected_audio(tmp_path):
+@pytest.mark.parametrize("prepared", [False, True])
+async def test_subtitle_sync_binds_evidence_to_source_track_and_selected_audio(tmp_path, prepared):
     calls = []
     digest = hashlib.sha256(b"subtitles").hexdigest()
 
@@ -34,6 +35,17 @@ async def test_subtitle_sync_binds_evidence_to_source_track_and_selected_audio(t
     manager = MediaJobManager(tmp_path, probe_fn=probe, extract_fn=extract, subtitle_sync_fn=assess)
     job = await manager.create(chunks(b"video"), filename="lesson.mkv", content_type="video/x-matroska")
     await manager.wait(job["job_id"])
+    if prepared:
+        manifest = manager.get(job["job_id"])
+        report = manifest["report"]
+        report["source_audio_selection"] = report["audio_selection"]
+        report["source_subtitle_tracks"] = report["subtitle_tracks"]
+        report["source_duration_seconds"] = report["duration_seconds"]
+        report["audio_selection"] = {"index": 1, "language": "he"}
+        report["subtitle_tracks"] = []
+        report["duration_seconds"] = 2000.02
+        manifest["state"] = "COMPLETE"
+        manager._write(job["job_id"], manifest)
     result = await manager.assess_subtitle_sync(job["job_id"], 7, digest, [5, 3])
     assert result["audio_stream_index"] == 2
     assert result["source_sha256"] == hashlib.sha256(b"video").hexdigest()

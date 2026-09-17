@@ -62,7 +62,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.8-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.9-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -240,7 +240,7 @@ $BuildReport = [ordered]@{
       ai-local/THIRD_PARTY_NOTICES.md docs/LOCAL_ASR_COMPANION_GUIDE.md `
       docs/LOCAL_ASR_COMPANION_GUIDE.en.md docs/LOCAL_ASR_COMPANION_GUIDE.he.md
   )
-  companion_version = "0.3.0-beta.8"
+  companion_version = "0.3.0-beta.9"
   subtitle_runtime_check = $SubtitleRuntimeCheck
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
