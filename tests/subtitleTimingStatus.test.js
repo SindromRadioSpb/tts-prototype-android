@@ -27,3 +27,21 @@ test('reopening resolves persisted parent revisions read-only and terminates on 
  assert.equal((await Status.forText(repo,'card')).status,'aligned');assert.deepEqual(reads,['copy','raw']);
  copied.parent_revision_id='copy';assert.equal(await Status.forText(repo,'card'),null);
 });
+
+test('reimport reads newer card evidence only for the exact reused immutable projection',async()=>{
+ const {raw,evidence}=fixture('unverified');
+ const copy={revision_id:'copy',canonical_sha256:'d'.repeat(64),parent_revision_id:'raw',operations:[],segments:raw.segments};
+ const passport={projection_of_revision_id:'copy',projection_sha256:copy.canonical_sha256,
+  segments:[{text:'שלום',start:1,end:2}],captions:{origin:'container-track',subtitle_sync:{...evidence,status:'aligned'}}};
+ const repo={getTextBinding:async()=>({revision_id:'copy'}),getRevision:async id=>id==='copy'?copy:raw,
+  getTextSourceMeta:async()=>({source:{captions:passport}})};
+ assert.equal((await Status.forText(repo,'card')).status,'aligned');
+ assert.equal(raw.provenance.captions.subtitle_sync.status,'unverified');
+ for(const change of [p=>p.projection_sha256='e'.repeat(64),p=>p.projection_of_revision_id='old',
+   p=>p.segments[0].end=3,p=>p.segments[0].text='אחר',p=>p.captions.subtitle_sync.audio_stream_index=1]){
+  const altered=JSON.parse(JSON.stringify(passport));change(altered);
+  assert.equal(Status.inspectHistory([copy,raw],altered).status,'unverified');
+ }
+ const manual={...copy,author_kind:'user',provenance:{schema:'timing-repair-v1'}};
+ assert.equal(Status.inspectHistory([manual,raw],passport).status,'manual_changes');
+});

@@ -340,6 +340,10 @@
       if (row) row.mapping = parse(row.mapping_json, null);
       return row;
     }
+    async function getTextSourceMeta(textId) {
+      var row = await one('SELECT source_meta_json FROM texts WHERE id=?', [String(textId)]);
+      return parse(row && row.source_meta_json, null);
+    }
     async function isTextBindingStale(textId) {
       var row = await one(`SELECT b.revision_id AS bound_revision_id,b.revision_sha256,t.current_revision_id,
         r.canonical_sha256 AS current_sha256 FROM studio_text_media_bindings b
@@ -444,7 +448,7 @@
       });
     }
 
-    return { commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
+    return { commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, getTextSourceMeta: getTextSourceMeta, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

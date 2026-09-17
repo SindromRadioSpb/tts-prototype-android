@@ -4,11 +4,11 @@
 })(typeof window==='undefined'?null:window,function(){
   'use strict';
   const hash=value=>/^[a-f0-9]{64}$/.test(String(value||''));
-  function inspectHistory(history){
+  function inspectHistory(history,passport){
     const revisions=Array.isArray(history)?history:[];
     const original=revisions.find(r=>r?.provenance?.captions?.origin==='container-track');
     if(!original)return null;
-    const captions=original.provenance.captions,assessment=captions.subtitle_sync;
+    const captions=original.provenance.captions;let assessment=captions.subtitle_sync;
     const later=revisions.slice(0,revisions.indexOf(original));
     if(later.some(r=>r.provenance?.schema==='timing-repair-v1'&&r.author_kind==='user'))return {status:'manual_changes'};
     const modified=later.filter(r=>(r.operations||[]).length);
@@ -28,6 +28,17 @@
         return {status:'corrected',offset_ms:delta};
       return {status:'unverified'};
     }
+    // A repeated import may reuse immutable revisions while saving newer audio evidence on
+    // this card. Accept it only for the exact bound projection and unchanged segment timeline.
+    const current=revisions[0],projected=passport?.segments,segments=current?.segments;
+    const fresh=passport?.captions?.subtitle_sync;
+    const sameProjection=hash(current?.canonical_sha256)&&
+      passport?.projection_of_revision_id===current.revision_id&&passport.projection_sha256===current.canonical_sha256&&
+      Array.isArray(projected)&&Array.isArray(segments)&&segments.length>0&&projected.length===segments.length&&
+      segments.every((s,i)=>s.text===projected[i].text&&Number.isFinite(projected[i].start)&&Number.isFinite(projected[i].end)&&
+        s.start_ms===Math.round(projected[i].start*1000)&&s.end_ms===Math.round(projected[i].end*1000));
+    if(sameProjection&&passport.captions?.origin==='container-track'&&bound(fresh)&&
+      ['aligned','needs_review'].includes(fresh.status))assessment=fresh;
     if(bound(assessment)&&assessment.status==='aligned'&&assessment.apply_offset_ms===0)return {status:'aligned'};
     if(bound(assessment)&&assessment.status==='needs_review')return {status:'needs_review'};
     return {status:'unverified'};
@@ -41,7 +52,9 @@
       if(revision.provenance?.captions?.origin==='container-track')break;
       id=revision.parent_revision_id;
     }
-    return inspectHistory(history);
+    const meta=typeof repo.getTextSourceMeta==='function'?await repo.getTextSourceMeta(String(textId)):null;
+    const passport=meta?.source?.captions||meta?.source?.audio;
+    return inspectHistory(history,passport);
   }
   return {inspectHistory,forText};
 });
