@@ -60,6 +60,9 @@
       button(actions,label('source'),()=>manage(options.id),'source');
       if(window.StudyTimingRepair)button(actions,{ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[locale()],()=>StudyTimingRepair.open(options.id),'repairTiming');
     }
+    if(options.local&&!youtubeSelected&&window.StudyTimingRepair){
+      button(actions,{ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[locale()],()=>StudyTimingRepair.open(options.id),'repairTiming');
+    }
   }
   function compatibleShell(){
     const url=new URL(location.href);url.pathname=url.pathname.includes('library')?'/study-library.html':'/study-studio.html';
@@ -70,7 +73,7 @@
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')pauseEmbeddedVideo();});
   window.addEventListener('pagehide',pauseEmbeddedVideo);
   document.addEventListener('i18n:changed',()=>{
-    document.querySelectorAll('[data-playback-label]').forEach(node=>{const key=node.dataset.playbackLabel;node.textContent=key==='source'?label(key):playerText[locale()][key];});
+    document.querySelectorAll('[data-playback-label]').forEach(node=>{const key=node.dataset.playbackLabel;node.textContent=key==='source'?label(key):key==='repairTiming'?{ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[locale()]:playerText[locale()][key];});
     document.querySelectorAll('[data-playback-group-label]').forEach(node=>node.setAttribute('aria-label',playerText[locale()][node.dataset.playbackGroupLabel]));
     document.querySelectorAll('[data-playback-reason]').forEach(node=>{if(!node.dataset.youtubeError)node.textContent=playbackNote({playbackReason:node.dataset.playbackReason || null});});
   });

@@ -10,6 +10,12 @@
   Object.assign(text.en,{intro:'Restore playback buttons where timing can be recovered. All text and translations stay. Other rows can remain without buttons.',auto:'Restore automatically',run:'Restore for ≈ ${price}',cost:'Check three video samples and automatically save recovered intervals. Estimated cost: ${price}. Translation is not repeated.',coverage:'Playback buttons: {n} of {total}. Other rows stay without buttons; manual timing is optional.',ready:'Recovered intervals ready: {n}. Save them without new paid requests.',saveReady:'Save recovered buttons ({n})',advanced:'More options',details:'View intervals',waiting:'Checking video automatically: sample {n} of {total}. No input needed.',saving:'Saving recovered intervals…',saved:'Done: playback buttons for {n} of {total} utterances. Other rows remain without buttons.',open:'Open card',noMarks:'No new usable intervals found. The card and existing buttons are preserved. Filling gaps is optional.',estimate:'Estimating cost…',manualError:'Enter an utterance number, start and end in seconds. End must follow start and be within the video.',error:'Recovery did not finish. Results are retained when local storage is available. Reopening uses saved evidence.',review:'Confirm only intervals you entered manually or loaded from a file.',stop:'Stop verification'});
   Object.assign(text.he,{intro:'נשחזר כפתורי ניגון במקום שבו ניתן לזהות תזמון. כל הטקסט והתרגום יישמרו. שאר השורות יכולות להישאר ללא כפתורים.',auto:'שחזור אוטומטי',run:'שחזור תמורת ≈ ${price}',cost:'נבדוק שלושה קטעים מהסרטון ונשמור אוטומטית את התזמון שנמצא. עלות משוערת: ${price}. התרגום לא יחזור.',coverage:'כפתורי ניגון: {n} מתוך {total}. שאר השורות יישמרו ללא כפתורים; אין צורך בתזמון ידני.',ready:'נמצאו {n} קטעים מוכנים. ניתן לשמור ללא בקשות נוספות בתשלום.',saveReady:'שמירת הכפתורים שנמצאו ({n})',advanced:'אפשרויות נוספות',details:'הצגת התזמון',waiting:'בדיקה אוטומטית של הסרטון: קטע {n} מתוך {total}. אין צורך להזין דבר.',saving:'שומרים את התזמון שנמצא…',saved:'הושלם: כפתורי ניגון עבור {n} מתוך {total} קטעים. שאר השורות נשמרו ללא כפתורים.',open:'פתיחת הכרטיס',noMarks:'לא נמצא תזמון חדש מתאים. הכרטיס והכפתורים הקיימים נשמרו. אין חובה למלא את החסר.',estimate:'מחשבים עלות…',manualError:'הזינו מספר קטע וזמני התחלה וסיום בשניות. הסיום חייב להיות אחרי ההתחלה ובתחומי הסרטון.',error:'השחזור לא הושלם. התוצאות נשמרות כאשר האחסון המקומי זמין. פתיחה מחדש תשתמש בנתונים שנשמרו.',review:'אשרו רק תזמון שהזנתם ידנית או טענתם מקובץ.',stop:'עצירת הבדיקה'});
   const tr=(key,values={})=>Object.entries(values).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',String(v)),(text[document.documentElement.lang]||text.ru)[key]||key);
+  Object.assign(text.ru,{localIntro:'Прослушайте исходное медиа и исправьте интервалы. Текст и перевод сохранятся, прежняя разметка останется в истории.',listen:'Прослушать интервал',shift:'Сдвиг всех реплик, секунды',shiftApply:'Применить сдвиг',mediaMissing:'Медиа недоступно на этом устройстве. Восстановите файл перед проверкой интервалов.'});
+  Object.assign(text.en,{localIntro:'Listen to the source media and correct intervals. Text and translation stay unchanged; previous timing remains in history.',listen:'Listen to interval',shift:'Shift all utterances, seconds',shiftApply:'Apply shift',mediaMissing:'Media is unavailable on this device. Restore the file before checking intervals.'});
+  Object.assign(text.he,{localIntro:'האזינו למדיה המקורית ותקנו את הזמנים. הטקסט והתרגום יישמרו והתזמון הקודם יישאר בהיסטוריה.',listen:'האזנה לקטע',shift:'הזזת כל הקטעים בשניות',shiftApply:'החלת ההזזה',mediaMissing:'המדיה אינה זמינה במכשיר זה. שחזרו את הקובץ לפני בדיקת הקטעים.'});
+  text.ru.localSaved='Исправленные интервалы сохранены. Откройте карточку заново. Остальные интервалы не отмечаются как проверенные.';
+  text.en.localSaved='Corrected intervals saved. Reopen the card. Other intervals are not marked as verified.';
+  text.he.localSaved='הקטעים שתוקנו נשמרו. פתחו את הכרטיס מחדש. שאר הקטעים אינם מסומנים כבדוקים.';
   Object.assign(text.ru,{full:'Восстановить все реплики — повторный запрос',fullRun:'Запустить полный проход — до ${price}',fullCost:'Будет заново прослушано всё видео: {n} участков. Бюджет до ${price}. Текст, перевод и уже работающие кнопки сохранятся. Найденная разметка сохранится автоматически.',fullProgress:'Полное восстановление: участок {n} из {total}.',partial:'Синхронизация неполная: {n} из {total} реплик. Без кнопок: {missing}. Доступен полный повторный запрос.',near:'Почти полная синхронизация: {n} из {total}. Без кнопок: {missing}.',complete:'Синхронизация восстановлена для всех {total} реплик.',resume:'Продолжить полный проход',fullInterrupted:'Полный проход прерван. Полученные интервалы сохранены; можно продолжить оставшиеся участки. Неуспешные запросы автоматически не повторяются.'});
   Object.assign(text.en,{full:'Recover all utterances — new request',fullRun:'Run full recovery — up to ${price}',fullCost:'Listen to the whole video again: {n} windows. Budget up to ${price}. Text, translation and existing buttons stay. Recovered timing is saved automatically.',fullProgress:'Full recovery: window {n} of {total}.',partial:'Synchronization incomplete: {n} of {total} utterances. Missing buttons: {missing}. Full recovery is available.',near:'Almost complete: {n} of {total}. Missing buttons: {missing}.',complete:'Synchronization recovered for all {total} utterances.',resume:'Resume full recovery',fullInterrupted:'Full recovery stopped. Results are saved; remaining windows can be resumed. Failed requests are not automatically repeated.'});
   Object.assign(text.he,{full:'שחזור כל הקטעים — בקשה חדשה',fullRun:'הפעלת שחזור מלא — עד ${price}',fullCost:'הסרטון כולו ייבדק מחדש: {n} קטעים. תקציב עד ${price}. הטקסט, התרגום והכפתורים הקיימים יישמרו. התזמון שיימצא יישמר אוטומטית.',fullProgress:'שחזור מלא: קטע {n} מתוך {total}.',partial:'הסנכרון אינו מלא: {n} מתוך {total} קטעים. ללא כפתורים: {missing}. ניתן להפעיל שחזור מלא.',near:'הסנכרון כמעט מלא: {n} מתוך {total}. ללא כפתורים: {missing}.',complete:'הסנכרון שוחזר לכל {total} הקטעים.',resume:'המשך שחזור מלא',fullInterrupted:'השחזור המלא נעצר. התוצאות נשמרו; ניתן להמשיך בקטעים שנותרו. בקשות שנכשלו אינן חוזרות אוטומטית.'});
@@ -27,11 +33,14 @@
     const revision=await repo.getRevision(binding.revision_id),media=await repo.getPackage(binding.package_id);
     const projection=StudioMediaPackage.buildCompatibilityProjection(revision,{kind:'captions',media});
     const selected=ctx.record&&PlaybackSource.selected(ctx.record),video=projection.captions.video;
-    if(!selected?.source||!video||selected.source.video_id!==video.videoId)throw new Error('TIMING_SOURCE_MISMATCH');
+    const local=!video&&/^[a-f0-9]{64}$/.test(String(media.media_sha256||''));
+    if(!(media.duration_ms>0)||!Number.isFinite(media.duration_ms)||
+       !local&&(!selected?.source||!video||selected.source.video_id!==video.videoId))throw new Error('TIMING_SOURCE_MISMATCH');
     const rows=await ctx.ldb.dbQuery('SELECT * FROM sentences WHERE text_id=? ORDER BY order_index',[String(id)]);
     return {...ctx,id:String(id),repo,binding,revision,media,rowsSnapshot:JSON.stringify(rows),
-      source:{video_id:video.videoId,url:video.url,durationSec:media.duration_ms/1000},
-      journalKey:String(id)+':'+revision.revision_id+':'+video.videoId};
+      source:local?{kind:'local',sha256:media.media_sha256,durationSec:media.duration_ms/1000}
+        :{video_id:video.videoId,url:video.url,durationSec:media.duration_ms/1000},
+      journalKey:String(id)+':'+revision.revision_id+':'+(local?media.media_sha256:video.videoId)};
   }
   function proposed(ctx,times,authority){
     if(times.length!==ctx.revision.segments.length)throw new Error('TIMING_REPAIR_TEXT_CHANGED');
@@ -56,11 +65,15 @@
       prepareSourceMeta:async(revision,binding,media)=>{
         const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json),audio=StudioMediaPackage.buildExactBindingPassport(revision,binding,media);
         const projection=StudioMediaPackage.buildCompatibilityProjection(revision,{kind:'captions',media});
+        const local=ctx.source.kind==='local',prior=meta.source?.audio||meta.source?.captions||{};
         meta.source={...(meta.source||{}),...projection};
-        meta.source.captions=audio;delete meta.source.audio;
+        if(local){
+          meta.source.audio={...prior,...audio,captions:{...(prior.captions||{}),...(audio.captions||{})}};
+          delete meta.source.captions;
+        }else{meta.source.captions=audio;delete meta.source.audio;}
         meta.timing_repair={schema:'timing-repair-v1',previous_revision_id:ctx.revision.revision_id,revision_id:revision.revision_id,
           playable:times.filter(s=>s.startSec!=null).length,total:times.length};
-        meta.playback_source=PlaybackSource.append(meta.playback_source,{url:ctx.source.url,offset_ms:0},
+        if(!local)meta.playback_source=PlaybackSource.append(meta.playback_source,{url:ctx.source.url,offset_ms:0},
           {basis_sha256:await PlaybackSource.timingBasis(audio,ctx.rows)});
         return JSON.stringify(meta);
       }});
@@ -72,13 +85,15 @@
     d.addEventListener('close',()=>{d.remove();oldFocus?.focus();});
     const status=el('p');status.setAttribute('role','status');d.append(status);
     let ctx;try{ctx=await context(id);}catch(e){status.textContent=tr('unavailable');status.dataset.code=e.message;const close=el('button',tr('close'));close.onclick=()=>d.close();d.append(close);return d;}
+    const local=ctx.source.kind==='local';
+    if(local)d.querySelector('p').textContent=tr('localIntro');
     const count=list=>list.filter(s=>s.startSec!=null&&s.endSec!=null).length;
     const initialRows=ctx.rowsSnapshot;
     const base=ctx.revision.segments.map(s=>({text:s.text,startSec:s.start_ms==null?null:s.start_ms/1000,endSec:s.end_ms==null?null:s.end_ms/1000}));
     let times=copy(base),evidence=null,authority='provider',quote=null,busy=false,stopped=false,finished=false;
     let fullQuote=null,fullEvidence=null,resuming=false;
-    const fullKey=window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
-    const matches=e=>e?.source?.video_id===ctx.source.video_id&&e.source.durationSec===ctx.source.durationSec;
+    const fullKey=!local&&window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
+    const matches=e=>!!e?.source&&(local?e.source.kind==='local'&&e.source.sha256===ctx.source.sha256:e.source.video_id===ctx.source.video_id)&&e.source.durationSec===ctx.source.durationSec;
     const compatible=list=>list?.length===base.length&&list.every((s,i)=>s.text===base[i].text);
     try{
       const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json);
@@ -93,7 +108,7 @@
     const actions=el('div');actions.className='study-source-actions';actions.append(primary,stop,close);d.append(actions);
     const full=el('button',tr('full')),resume=el('button',tr('resume'));full.dataset.action='full';resume.dataset.action='resumeFull';actions.prepend(full);actions.append(resume);
     const advanced=el('details');advanced.dataset.section='advanced';advanced.append(el('summary',tr('advanced')));d.append(advanced);
-    const link=el('a',ctx.source.url);link.href=ctx.source.url;link.target='_blank';link.rel='noopener noreferrer';advanced.append(link);
+    if(!local){const link=el('a',ctx.source.url);link.href=ctx.source.url;link.target='_blank';link.rel='noopener noreferrer';advanced.append(link);}
     const detail=el('details');detail.append(el('summary',tr('details')));const preview=el('pre');preview.style.cssText='max-height:220px;overflow:auto;white-space:pre-wrap';detail.append(preview);advanced.append(detail);
     const confirmed=el('input');confirmed.type='checkbox';const check=el('label',tr('confirm'));check.prepend(confirmed);const review=el('p',tr('review'));advanced.append(review,check);
     const changed=()=>JSON.stringify(times)!==JSON.stringify(base);
@@ -104,6 +119,8 @@
       stop.hidden=!busy;primary.disabled=busy||(authority==='user'&&changed()&&!confirmed.checked);advanced.hidden=busy||(finished&&changed());
       check.hidden=review.hidden=authority!=='user'||!changed();
       primary.textContent=finished?tr('open'):changed()?tr('saveReady',{n}):quote?tr('run',{price:quote.estimatedUsd.toFixed(4)}):tr('auto');
+      if(local&&!finished){primary.textContent=tr('save');primary.disabled=busy||!changed()||!confirmed.checked;}
+      if(local&&finished)primary.textContent=tr('close');
       close.disabled=busy;d.dataset.running=String(busy);
       full.disabled=resume.disabled=busy;full.hidden=!fullKey;
       full.textContent=fullQuote?tr('fullRun',{price:fullQuote.maxUsd.toFixed(4)}):tr('full');
@@ -119,7 +136,7 @@
       status.textContent=tr('saving');
       const work=async lock=>{if(!lock)throw new Error('TIMING_REPAIR_BUSY');await apply(ctx,times,evidence,authority);};
       if(navigator.locks)await navigator.locks.request('linguistpro-material-preparation',{ifAvailable:true},work);else await work(true);
-      finished=true;status.textContent=resultText();
+      finished=true;status.textContent=local?tr('localSaved'):resultText();
       window.dispatchEvent(new CustomEvent('playback-source-changed',{detail:{textId:ctx.id}}));
     };
     const key=()=>typeof window.geminiKeyGet==='function'?window.geminiKeyGet():localStorage.getItem('v3.geminiApiKey')||'';
@@ -165,13 +182,15 @@
       };
       try{if(navigator.locks)await navigator.locks.request('linguistpro-timing-verification:'+ctx.id,{ifAvailable:true},work);else await work(true);}finally{quote=null;}
     };
-    primary.onclick=()=>{if(finished){d.close();if(typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);return;}return action(()=>changed()?save():quote?verify():estimate());};
+    primary.onclick=()=>{if(finished){d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);return;}return action(()=>changed()?save():local?Promise.resolve():quote?verify():estimate());};
     stop.onclick=()=>{stopped=true;stop.disabled=true;};close.onclick=()=>d.close();d.oncancel=e=>{if(busy){e.preventDefault();stopped=true;}};
     const fileLabel=el('label',tr('subtitle')),file=el('input');file.type='file';file.accept='.srt,.vtt';fileLabel.append(file);advanced.append(fileLabel);
     file.onchange=()=>action(async()=>{
       if(!file.files[0])return;
       const raw=await file.files[0].text(),cues=MediaPackageCore.parseSubtitles(raw).segments;
-      times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.fromSubtitles(base,cues,ctx.source.durationSec));
+      const matched=YoutubeTiming.fromSubtitles(base,cues,ctx.source.durationSec);
+      times=local?base.map((s,i)=>matched[i].startSec==null?{...s}:{...s,startSec:matched[i].startSec,endSec:matched[i].endSec})
+        :YoutubeTiming.mergeRecovered(base,matched);
       evidence={schema:'timing-subtitles-v1',source:ctx.source,raw,proposed:times};authority='user';confirmed.checked=false;quote=null;finished=false;
       await journal(ctx.journalKey,evidence);status.textContent=count(times)?tr('review'):tr('noMarks');
     });
@@ -183,9 +202,35 @@
       times[i]={...times[i],startSec:start,endSec:end};evidence={schema:'timing-manual-v1',source:ctx.source,previous:evidence?.schema==='timing-manual-v1'?evidence.previous:evidence,proposed:copy(times)};authority='user';confirmed.checked=false;quote=null;finished=false;
       await journal(ctx.journalKey,evidence);status.textContent=tr('review');
     });advanced.append(manual);
+    if(local){
+      advanced.open=manual.open=true;
+      let player=null,stopAt=null;
+      try{
+        const blob=await MediaHost.createBlobResolver().resolve(ctx.audio);
+        if(!blob)throw Error('MEDIA_FILE_MISSING');
+        player=el(String(ctx.media.mime||'').startsWith('audio/')?'audio':'video');
+        player.controls=true;player.preload='metadata';player.playsInline=true;player.style.cssText='width:100%;max-height:240px';
+        const url=URL.createObjectURL(blob);player.src=url;manual.prepend(player);
+        player.addEventListener('timeupdate',()=>{if(stopAt!=null&&player.currentTime>=stopAt){player.pause();stopAt=null;}});
+        d.addEventListener('close',()=>{player.pause();player.removeAttribute('src');player.load();URL.revokeObjectURL(url);});
+      }catch(_){manual.prepend(el('p',tr('mediaMissing')));}
+      const loadRow=()=>{const s=times[Number(controls.row.value)-1];controls.start.value=s?.startSec??'';controls.end.value=s?.endSec??'';};
+      controls.row.onchange=loadRow;loadRow();
+      const listen=button(manual,'listen',async()=>{const start=Number(controls.start.value),end=Number(controls.end.value);
+        if(!player||!controls.start.value||!controls.end.value||!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start||end>ctx.source.durationSec)throw Error('SEGMENT_TIMING_INVALID');
+        stopAt=end;player.currentTime=start;await player.play();});listen.disabled=!player;
+      const shiftLabel=el('label',tr('shift')),shift=el('input');shift.type='number';shift.step='0.001';shift.value='0';shiftLabel.append(shift);manual.append(shiftLabel);
+      button(manual,'shiftApply',async()=>{
+        const delta=Number(shift.value);if(!shift.value||!Number.isFinite(delta))throw Error('SEGMENT_TIMING_INVALID');
+        const next=times.map(s=>({...s,startSec:s.startSec==null?null:s.startSec+delta,endSec:s.endSec==null?null:s.endSec+delta}));
+        if(next.some(s=>s.startSec!=null&&(s.startSec<0||s.endSec<=s.startSec||s.endSec>ctx.source.durationSec)))throw Error('SEGMENT_TIMING_INVALID');
+        times=next;evidence={schema:'timing-manual-v1',source:ctx.source,previous:evidence,proposed:copy(times)};
+        authority='user';confirmed.checked=false;finished=false;loadRow();await journal(ctx.journalKey,evidence);status.textContent=tr('review');
+      });
+    }
     button(advanced,'export',()=>{const u=URL.createObjectURL(new Blob([JSON.stringify({source:ctx.source,base_revision_id:ctx.revision.revision_id,evidence,proposed:times},null,2)],{type:'application/json'}));const a=el('a');a.href=u;a.download='timing-review-'+ctx.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
     if(changed()){status.textContent=authority==='provider'?tr('ready',{n:count(times)}):tr('review');if(authority==='user')advanced.open=true;}
-    else if(count(base)){finished=true;status.textContent=resultText();}
+    else if(count(base)&&!local){finished=true;status.textContent=resultText();}
     render();return d;
   }
   window.StudyTimingRepair={open,context,apply,proposed,journal};
