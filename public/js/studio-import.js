@@ -1806,13 +1806,17 @@
     var textTrack = byIndex[plan.text.index];
     if (!textTrack) return null;
     var translationTrack = plan.translation ? byIndex[plan.translation.index] : null;
-    var forcedCues = [];
+    var forcedCues = [], languageCues = [];
+    var classifiedSignals = SMC.classifyTracks(subtitlePlanTracks());
     (plan.signal_track_indexes || []).forEach(function (index) {
-      if (byIndex[index]) forcedCues = forcedCues.concat(byIndex[index].cues || []);
+      var signal = classifiedSignals.find(function (track) { return track.index === index; });
+      if (!signal || !byIndex[index]) return;
+      if (signal.forced) forcedCues = forcedCues.concat(byIndex[index].cues || []);
+      if (signal.sdh) languageCues = languageCues.concat(byIndex[index].cues || []);
     });
     var translationCues = translationTrack ? translationTrack.cues : [];
     var verdicts = SMC.speechLanguage(textTrack.cues, {
-      forcedCues: forcedCues, translationCues: translationCues, targetLanguage: "he",
+      forcedCues: forcedCues, languageCues: languageCues, translationCues: translationCues, targetLanguage: "he",
     });
     setSubtitlePlanStatus("studio.import.subtitleSyncChecking");
     material.timingAssessment = await window.SubtitleMaterialImport.assessSubtitleSync({

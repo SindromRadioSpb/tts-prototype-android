@@ -99,14 +99,15 @@
     return bestCount > 0 ? best : null;
   }
 
-  function namedLanguage(values) {
+  function namedLanguages(values) {
+    var result = [];
     for (var i = 0; i < values.length; i++) {
       var candidate = text(values[i]);
       for (var k = 0; k < LANGUAGE_MARKS.length; k++) {
-        if (LANGUAGE_MARKS[k].re.test(candidate)) return LANGUAGE_MARKS[k].code;
+        if (LANGUAGE_MARKS[k].re.test(candidate) && result.indexOf(LANGUAGE_MARKS[k].code) < 0) result.push(LANGUAGE_MARKS[k].code);
       }
     }
-    return null;
+    return result;
   }
 
   function overlapShare(a, b) {
@@ -228,7 +229,7 @@
     if (Number.isInteger(chosen.text)) {
       textCandidates = textCandidates.filter(function (track) { return track.index === chosen.text; });
     }
-    var signalTracks = classified.filter(function (track) { return track.language === targetLanguage && track.forced; });
+    var signalTracks = classified.filter(function (track) { return track.language === targetLanguage && (track.forced || track.sdh); });
     if (textCandidates.length !== 1) {
       reasons.text = textCandidates.length ? "target_language_ambiguous" : "target_language_missing";
       reasons.translation = "text_track_unresolved";
@@ -272,6 +273,7 @@
     var opts = options || {};
     var cues = Array.isArray(textCues) ? textCues : [];
     var forcedCues = Array.isArray(opts.forcedCues) ? opts.forcedCues : [];
+    var languageCues = Array.isArray(opts.languageCues) ? opts.languageCues : [];
     var translationCues = Array.isArray(opts.translationCues) ? opts.translationCues : [];
     var bracketed = translationCues.filter(function (cue) {
       var normalized = normalizeCueText(cue.text);
@@ -291,17 +293,22 @@
       // the spoken language too. Without this a row is honestly "other" but needlessly unnamed.
       var markSources = [cue.text]
         .concat(overlappingForced.map(function (forced) { return forced.text; }))
+        .concat(languageCues.filter(function (candidate) { return overlaps(cue, candidate); })
+          .map(function (candidate) { return candidate.text; }))
         .concat(translationCues.filter(function (candidate) { return overlaps(cue, candidate); })
           .map(function (candidate) { return candidate.text; }));
-      var named = namedLanguage(markSources.map(function (value) { return normalizeCueText(value).marks.join(" "); }));
+      var languages = namedLanguages(markSources.map(function (value) { return normalizeCueText(value).marks.join(" "); }));
+      var named = languages.length === 1 ? languages[0] : null;
       if (named && named !== (opts.targetLanguage || "he")) evidence.push("language_mark");
       else if (named) named = null;
       if (bracketsTrusted && bracketed.some(function (candidate) { return overlaps(cue, candidate); })) {
         evidence.push("translation_brackets");
       }
+      var contradictory = languages.length > 1 || (languages.indexOf(opts.targetLanguage || "he") >= 0 && evidence.length > 0);
+      if (contradictory) evidence.push("conflicting_language_evidence");
       return {
-        value: evidence.length ? "other" : "target_assumed",
-        named: named || null,
+        value: contradictory ? "unknown" : evidence.length ? "other" : "target_assumed",
+        named: contradictory ? null : named || null,
         evidence: evidence,
       };
     });

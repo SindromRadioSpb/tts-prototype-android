@@ -58,7 +58,7 @@ test("explicit subtitle choices retain forced signals and choose the requested t
   assert.equal(result.translation.index, 10);
   assert.equal(result.text.reason, "user_selected_track");
   assert.equal(result.translation.reason, "user_selected_track");
-  assert.deepEqual(result.signal_track_indexes, [6]);
+  assert.deepEqual(result.signal_track_indexes, [6, 8]);
   assert.equal(inventory.length, 6);
 });
 
@@ -81,6 +81,31 @@ const TABLE_ROWS = [
   { index: 1, start: 10, end: 14, text: "הוא ברח מעזה דרך מעבר רפיח.", source_cue_indexes: [2, 3],
     speech_language: "other", speech_language_named: "ar", translation: "Он сбежал из Газы через Рафах.", translation_group: "tgroup:2" },
 ];
+
+test("SDH language marks contribute only where aligned; ordinary SDH dialogue is not foreign speech", () => {
+  const text = [cue(0, 2, "שלום"), cue(3, 5, "כן"), cue(6, 8, "בוא")];
+  const result = SMC.speechLanguage(text, { targetLanguage: "he", languageCues: [
+    cue(0, 2, "[בערבית] שלום"),
+    cue(3, 5, "[מוזיקה] כן"),
+    cue(6, 8, "בוא"),
+    cue(100, 102, "[באנגלית] שלום"),
+  ] });
+  assert.deepEqual(result.map(v => v.value), ["other", "target_assumed", "target_assumed"]);
+  assert.equal(result[0].named, "ar");
+  assert.deepEqual(result[0].evidence, ["language_mark"]);
+  assert.equal(result.calibration.translation_brackets_trusted, false);
+});
+
+test("conflicting spoken-language evidence stays unknown instead of claiming a language", () => {
+  const text = [cue(0, 2, "[בעברית] שלום"), cue(3, 5, "[בערבית] כן"), cue(6, 8, "[בעברית] בוא")];
+  const result = SMC.speechLanguage(text, {targetLanguage: "he",
+    forcedCues: [cue(0, 2, "שלום")], languageCues: [cue(3, 5, "[באנגלית] כן")]});
+  assert.deepEqual(result.map(v => v.value), ["unknown", "unknown", "target_assumed"]);
+  for (const verdict of result.slice(0, 2)) {
+    assert.equal(verdict.named, null);
+    assert.ok(verdict.evidence.includes("conflicting_language_evidence"));
+  }
+});
 const TABLE_OPTIONS = {
   textTrackIndex: 7, textTrackSha256: "a".repeat(64),
   translationTrackIndex: 4, translationTrackSha256: "b".repeat(64),
@@ -166,7 +191,7 @@ test("buildMaterialPlan names one action per stream and asks nothing when the ch
   assert.equal(plan.text.reason, "target_language_full_track");
   assert.equal(plan.translation.index, 4);
   assert.equal(plan.translation.coverage, 1);
-  assert.deepEqual(plan.signal_track_indexes, [6]);
+  assert.deepEqual(plan.signal_track_indexes, [6, 8]);
   assert.deepEqual(plan.lite, { available: true, height: 540, max_output_bytes: 419430400, reason: null });
   assert.deepEqual(plan.size, { estimated_output_bytes: 1_670_000_000, estimated_time_seconds: 160 });
   assert.equal(plan.plan_sha256, "a".repeat(64));
@@ -313,7 +338,7 @@ test("selectTracks picks the full target track, the translation track and keeps 
   assert.equal(plan.reasons.text, "target_language_full_track");
   assert.equal(plan.translation_track.index, 4);
   assert.equal(plan.reasons.translation, "translation_language_aligned");
-  assert.deepEqual(plan.signal_tracks.map((track) => track.index), [6]);
+  assert.deepEqual(plan.signal_tracks.map((track) => track.index), [6, 8]);
 
   const noTranslation = SMC.selectTracks({ tracks: tracks().filter((track) => track.index !== 4), targetLanguage: "he", translationLanguage: "ru" });
   assert.equal(noTranslation.status, "ok");
