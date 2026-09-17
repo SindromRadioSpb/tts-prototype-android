@@ -12,6 +12,22 @@
     const span=Math.min(90,Math.floor(duration/3));
     return [0,Math.round((duration-span)/2),duration-span].map(startSec=>({startSec,endSec:startSec+span}));
   }
+  // Часы дрейфуют ПО ОКНАМ распознавания: каждое окно модель озвучивает по своим часам и может
+  // уехать независимо от соседей. План проверки повторяет геометрию производства — по зонду на окно,
+  // а у последнего слушаются ОБА конца: смещение, измеренное только в его начале, молча
+  // накрыло бы весь хвост, а внутренний дрейф остался бы невидимым.
+  function spanPlan(duration,asrWindows){
+    if(!finite(duration)||duration<=0)return null;
+    const list=Array.isArray(asrWindows)?asrWindows.filter(w=>w&&finite(w.startSec)&&finite(w.endSec)):[];
+    if(list.length<2)return null;
+    const reach=Math.min(90,Math.floor(duration/3));
+    const tail={startSec:Math.max(0,duration-reach),endSec:duration};
+    return list.map((w,i)=>{
+      const probes=[{startSec:w.startSec,endSec:Math.min(w.startSec+reach,duration)}];
+      if(i===list.length-1&&tail.startSec>w.startSec+reach)probes.push(tail);
+      return {startSec:w.startSec,endSec:i+1<list.length?list[i+1].startSec:duration,probes};
+    });
+  }
   function anchors(timeline,probe){
     const rows=timeline.map(s=>words(s.text));const out=[];
     for(let p=0;p<probe.length;p++){
@@ -64,7 +80,9 @@
   }
   function diagnose(evidence){
     const timeline=evidence.timeline||[],duration=evidence.source&&evidence.source.durationSec;
-    const plan=windows(duration),reports=[],partial=new Map();
+    const spans=Array.isArray(evidence.spans)&&evidence.spans.length?evidence.spans:null;
+    const plan=spans?spans.flatMap(s=>s.probes||[]):windows(duration),reports=[],partial=new Map();
+    const certifies=r=>r.timed>=MIN_ANCHORS&&r.spread<=TOLERANCE;
     for(const expected of plan){
       const record=(evidence.probes||[]).find(p=>p.window.startSec===expected.startSec&&p.window.endSec===expected.endSec);
       const converted=record?clock(record.segments||[],expected):{kind:'missing',segments:[]};
@@ -86,7 +104,6 @@
     // uniform drift has nowhere to hide. An interior probe that came back silent — a failed
     // call, music, no uniquely matching speech — asserts nothing and cannot veto the edges.
     // A probe that CONTRADICTS still refuses, with fewer anchors than proof needs (R11).
-    const certifies=r=>r.timed>=MIN_ANCHORS&&r.spread<=TOLERANCE;
     const unusable=r=>['invalid','ambiguous','outside-window','missing'].includes(r.clock);
     const deltas=reports.filter(certifies).map(r=>r.delta).filter(finite),offset=median(deltas);
     const conflicts=r=>r.timed>0&&(r.spread>TOLERANCE||finite(r.delta)&&finite(offset)&&Math.abs(r.delta-offset)>TOLERANCE);
@@ -97,7 +114,49 @@
       reports.some(conflicts)||enough&&!consistent?'nonuniform-drift':
       !ends.every(certifies)?'insufficient-anchors':'consistent';
     let segments=timeline.map(s=>({text:s.text,startSec:null,endSec:null})),status='unavailable',correction=null;
-    if(consistent&&(plan.length===3||Math.abs(offset)<=TOLERANCE)){
+    // ОДНО сбитое окно раньше отнимало кнопки у всего материала: приговор выносился ролику, а
+    // метки рождались по окнам. Теперь судится окно — заверенное играет и правится на СВОЁ
+    // измеренное смещение, отозванное молчит, а соседи не страдают за него.
+    const verdicts=spans?spans.map(span=>{
+      const own=(span.probes||[]).map(p=>reports.find(r=>r.window.startSec===p.startSec&&r.window.endSec===p.endSec)).filter(Boolean);
+      const deltas=own.filter(certifies).map(r=>r.delta).filter(finite),base=median(deltas);
+      // Зонд, который ИЗМЕРИЛ и не согласен со своим окном, отзывает окно целиком: опровержение
+      // дешевле доказательства. Своё смещение окна — не глобальная медиана по ролику (R11).
+      const disputed=own.some(r=>r.timed>0&&(r.spread>TOLERANCE||finite(r.delta)&&finite(base)&&Math.abs(r.delta-base)>TOLERANCE));
+      const certified=deltas.length>0&&!disputed;
+      return {startSec:span.startSec,endSec:span.endSec,certified,probes:own.length,
+        anchors:own.reduce((n,r)=>n+r.timed,0),correctionSec:certified?base:null,
+        reason:certified?null:disputed?'window-drift':'insufficient-anchors'};
+    }):null;
+    if(verdicts){
+      const spanOf=t=>verdicts.find(v=>t>=v.startSec&&t<v.endSec)||verdicts[verdicts.length-1];
+      const shifted=timeline.map(s=>{const v=finite(s.startSec)?spanOf(s.startSec):null;
+        return v&&v.certified?s.startSec-(v.correctionSec||0):null;});
+      const candidate=timeline.map((s,i)=>{
+        if(shifted[i]==null)return {text:s.text,startSec:null,endSec:null};
+        const own=spanOf(s.startSec);
+        let end=finite(s.endSec)?s.endSec-(own.correctionSec||0):null;
+        if(end==null)for(let j=i+1;j<timeline.length;j++)if(shifted[j]!=null){end=shifted[j];break;}
+        return {text:s.text,startSec:shifted[i],endSec:end==null?duration:end};
+      });
+      let previousEnd=-1;
+      segments=candidate.map(s=>{
+        if(!finite(s.startSec)||!finite(s.endSec)||s.startSec<0||s.endSec<=s.startSec||
+           s.endSec>duration||s.startSec<previousEnd)return {text:s.text,startSec:null,endSec:null};
+        previousEnd=s.endSec;return s;
+      });
+      const playable=segments.filter(s=>finite(s.startSec)).length;
+      // Общая поправка — утверждение про ВЕСЬ ролик. Оно истинно, только если все заверенные окна
+      // сошлись на одной; иначе правда живёт в spans, и объявлять общий сдвиг (хоть бы и нулевой)
+      // значило бы выдать верное для большинства окон за верное для материала.
+      const shifts=[...new Set(verdicts.filter(v=>v.certified).map(v=>v.correctionSec||0))];
+      const whole=verdicts.every(v=>v.certified),uniform=whole&&shifts.length===1;
+      status=playable===timeline.length?'verified':playable?'partial':'unavailable';
+      reason=uniform?(shifts[0]?'constant-offset':'clock-consistent'):
+        whole?'per-window-offset':verdicts.some(v=>v.certified)?'window-clock-unverified':'insufficient-anchors';
+      correction=uniform?shifts[0]:null;
+    }
+    else if(consistent&&(plan.length===3||Math.abs(offset)<=TOLERANCE)){
       const shift=Math.abs(offset)<=TOLERANCE?0:offset;
       const candidate=timeline.map((s,i)=>({text:s.text,startSec:finite(s.startSec)?s.startSec-shift:null,
         endSec:finite(s.endSec)?s.endSec-shift:i+1<timeline.length&&finite(timeline[i+1].startSec)?timeline[i+1].startSec-shift:duration}));
@@ -122,8 +181,9 @@
       let end=-1;for(const s of segments){if(s.startSec==null)continue;if(s.startSec<end){s.startSec=null;s.endSec=null;}else end=s.endSec;}
       if(segments.some(s=>s.startSec!=null))status='partial';
     }
-    return {schema:VERSION,status,reason,correctionSec:correction,reports,segments,
-      certifiedWindows:reports.filter(certifies).length,plannedWindows:plan.length,
+    return {schema:VERSION,status,reason,correctionSec:correction,reports,segments,spans:verdicts,
+      certifiedWindows:verdicts?verdicts.filter(v=>v.certified).length:reports.filter(certifies).length,
+      plannedWindows:verdicts?verdicts.length:plan.length,
       coverage:{playable:segments.filter(s=>s.startSec!=null).length,total:segments.length}};
   }
   function fromSubtitles(timeline,cues,duration){
@@ -148,5 +208,5 @@
     }
     return out;
   }
-  return {VERSION,TOLERANCE,windows,anchors,clock,normalizeWindow,diagnose,fromSubtitles,mergeRecovered};
+  return {VERSION,TOLERANCE,windows,spanPlan,anchors,clock,normalizeWindow,diagnose,fromSubtitles,mergeRecovered};
 });

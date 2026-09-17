@@ -470,3 +470,27 @@ test('a run with no stop signal is unaffected',async()=>{
   const out=await Y.transcribe({fetch,apiKey:'k',sleep:async()=>{},shouldStop:()=>false},`https://youtu.be/${ID}`,null,{verifyTiming:false});
   assert.equal(out.segments.length,1);
 });
+
+test('verification buys one probe per recognition window, and the closing window is heard at both ends',()=>{
+  const plan=Y.verificationPlan(3411);
+  assert.deepEqual(Y.planWindows(3411).map(w=>w.startSec),[0,870,1770,2670],'recognition geometry');
+  assert.equal(plan.spans.length,4,'one verdict per recognition window');
+  assert.deepEqual(plan.windows.map(w=>w.startSec),[0,870,1770,2670,3321]);
+  // A video recognized in one pass has no per-window geometry to follow.
+  const single=Y.verificationPlan(600);
+  assert.equal(single.spans,null);
+  assert.deepEqual(single.windows.length,3);
+});
+
+test('a quote priced for the old three-point plan still runs on its own geometry',async()=>{
+  const source={video_id:'cPooKT5rFxc',url:'https://www.youtube.com/watch?v=cPooKT5rFxc',durationSec:3411};
+  const legacy={schema:'youtube-timing-quote-v1',video_id:source.video_id,url:source.url,durationSec:3411,
+    windows:[{startSec:0,endSec:90},{startSec:1661,endSec:1751},{startSec:3321,endSec:3411}],maxCalls:3};
+  const calls=[];
+  const deps={fetch:async(url,init)=>{calls.push(JSON.parse(init.body).contents[0].parts[0].file_data.video_metadata);
+    return {ok:true,text:async()=>JSON.stringify({candidates:[{finishReason:'STOP',
+      content:{parts:[{text:JSON.stringify({language:'he',segments:[{start:'0:05',text:'שלום עולם משפט ייחודי עכשיו'}]})}]}}]})};}};
+  const result=await Y.verifySavedTiming(deps,source,[{startSec:5,text:'שלום עולם משפט ייחודי עכשיו'}],legacy,null,async()=>{});
+  assert.equal(calls.length,3,'never more calls than the quote named');
+  assert.equal(result.evidence.spans,undefined,'an old quote is judged as one video, the way it was priced');
+});

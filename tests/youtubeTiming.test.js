@@ -131,3 +131,59 @@ test('a window whose marks mostly fall outside it still claims no clock',()=>{
   assert.equal(result.kind,'outside-window');
   assert.deepEqual(result.segments.map(s=>s.start),new Array(7).fill(null));
 });
+
+// Per-window verdicts (owner decision 2026-09-18). Recognition timestamps drift PER ASR WINDOW —
+// video eKUFzdGd9r8 was exact for 2700s and 27s late in its closing window — but the verdict used
+// to cover the whole video, so one drifted window cost every row its playback.
+function windowFixture(offsets){
+  const duration=3411,asr=[{startSec:0,endSec:900},{startSec:870,endSec:1800},
+    {startSec:1770,endSec:2700},{startSec:2670,endSec:3411}];
+  const spans=T.spanPlan(duration,asr),timeline=[],probes=[];
+  spans.forEach((span,w)=>{
+    const drift=offsets[w]||0;
+    span.probes.forEach((probe,p)=>{
+      const heard=[6,25,44,63].map((v,i)=>({startSec:probe.startSec+v,
+        text:`שלום ${String.fromCharCode(1488+w)}${String.fromCharCode(1488+p)}${String.fromCharCode(1488+i)} עולם משפט עכשיו`}));
+      probes.push({window:probe,state:'complete',segments:heard});
+      // The row carries the model's own mark, which is the truth plus this window's drift.
+      heard.forEach(s=>timeline.push({text:s.text,startSec:s.startSec+drift,endSec:s.startSec+drift+8}));
+    });
+  });
+  timeline.sort((a,b)=>a.startSec-b.startSec);
+  return {schema:'youtube-asr-timing-evidence-v2',source:{video_id:'eKUFzdGd9r8',
+    url:'https://www.youtube.com/watch?v=eKUFzdGd9r8',durationSec:duration},spans,timeline,probes};
+}
+
+test('the probe plan follows the windows recognition actually produced',()=>{
+  const asr=[{startSec:0,endSec:900},{startSec:870,endSec:1800},{startSec:1770,endSec:2700},{startSec:2670,endSec:3411}];
+  const spans=T.spanPlan(3411,asr);
+  assert.equal(spans.length,4,'one verdict per window the model timed on its own clock');
+  assert.deepEqual(spans.map(s=>[s.startSec,s.endSec]),[[0,870],[870,1770],[1770,2670],[2670,3411]]);
+  assert.deepEqual(spans[0].probes,[{startSec:0,endSec:90}]);
+  // The closing window is listened to at BOTH ends: an offset measured only at its start would
+  // be carried across the whole tail and internal drift would never surface.
+  assert.deepEqual(spans[3].probes,[{startSec:2670,endSec:2760},{startSec:3321,endSec:3411}]);
+  assert.equal(T.spanPlan(600,[{startSec:0,endSec:600}]),null,'a single recognition pass keeps the three-point plan');
+});
+
+test('a window drifting on its own clock is corrected by its own measurement',()=>{
+  const evidence=windowFixture([0,0,0,27]),r=T.diagnose(evidence);
+  assert.equal(r.coverage.playable,r.coverage.total,'the sound rows keep playing and the late window is put back in time');
+  assert.deepEqual(r.spans.map(s=>s.correctionSec),[0,0,0,27]);
+  assert.deepEqual(r.spans.map(s=>s.certified),[true,true,true,true]);
+  // The late window is moved by ITS OWN measurement; the untouched windows keep their own marks.
+  assert.equal(r.segments.at(-1).startSec,evidence.timeline.at(-1).startSec-27);
+  assert.equal(r.segments[0].startSec,evidence.timeline[0].startSec);
+  assert.equal(r.correctionSec,null,'no single global shift is claimed for a video that never had one');
+});
+
+test('a window whose two ends disagree loses only its own rows',()=>{
+  const evidence=windowFixture([0,0,0,0]);
+  // Same closing window, but the model drifted INSIDE it: its start reads true, its tail is 40s late.
+  evidence.timeline.forEach(s=>{if(s.startSec>=3321){s.startSec+=40;s.endSec+=40;}});
+  const r=T.diagnose(evidence);
+  assert.equal(r.spans[3].certified,false);
+  assert.deepEqual(r.spans.slice(0,3).map(s=>s.certified),[true,true,true]);
+  assert.ok(r.coverage.playable>=12,'the first three windows keep every row they earned');
+  assert.ok(r.segments.slice(-4).every(s=>s.startSec==null),'no row of a self-contradicting window plays');
+});

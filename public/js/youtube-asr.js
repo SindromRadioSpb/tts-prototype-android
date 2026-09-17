@@ -136,25 +136,43 @@
     };
   }
 
+  // Проверка повторяет геометрию ПРОИЗВОДСТВА меток: по зонду на окно распознавания, потому что
+  // часы каждого окна модель ведёт отдельно. Для одного прохода геометрии нет — остаётся прежний
+  // план из трёх точек.
+  function verificationPlan(durationSec){
+    const spans=YT().spanPlan(durationSec,planWindows(durationSec));
+    return spans?{spans,windows:spans.flatMap(s=>s.probes)}:{spans:null,windows:YT().windows(durationSec)};
+  }
   function verificationQuote(source){
-    const windows=YT().windows(source.durationSec),seconds=windows.reduce((n,w)=>n+w.endSec-w.startSec,0);
+    const plan=verificationPlan(source.durationSec),windows=plan.windows;
+    const seconds=windows.reduce((n,w)=>n+w.endSec-w.startSec,0);
     const tokens=source.durationSec?source.inputTokens*seconds/source.durationSec:0;
     return {schema:'youtube-timing-quote-v1',video_id:source.video_id,url:source.url,
       durationSec:source.durationSec,windows,maxCalls:windows.length,
+      ...(plan.spans?{spans:plan.spans}:{}),
       estimatedUsd:(tokens*USD_PER_MTOK_IN+seconds*OUT_TOKENS_PER_SEC*USD_PER_MTOK_OUT)/1e6};
   }
 
   async function verifySavedTiming(deps,source,timeline,quote,onProgress,onEvidence){
-    const target=canonicalize(source.url),plan=YT().windows(source.durationSec);
+    const target=canonicalize(source.url),current=verificationPlan(source.durationSec);
+    // Смета И ЕСТЬ план: она названа до траты и ограничивает её. Журнал, снятый по прежнему плану,
+    // продолжает жить по нему — новая геометрия не превращается в молчаливую доплату за старый прогон.
+    const plan=quote&&Array.isArray(quote.windows)?quote.windows:current.windows;
+    const spans=quote&&Array.isArray(quote.spans)&&quote.spans.length?quote.spans:
+      JSON.stringify(plan)===JSON.stringify(current.windows)?current.spans:null;
     if(!target||!quote||quote.schema!=='youtube-timing-quote-v1'||quote.video_id!==target.video_id||
-       quote.durationSec!==source.durationSec||quote.maxCalls!==plan.length||JSON.stringify(quote.windows)!==JSON.stringify(plan))fail('TIMING_QUOTE_REQUIRED');
+       quote.durationSec!==source.durationSec||quote.maxCalls!==plan.length||!plan.length||
+       plan.some(w=>!w||!(w.endSec>w.startSec)||w.startSec<0||w.endSec>source.durationSec))fail('TIMING_QUOTE_REQUIRED');
     const evidence={schema:'youtube-asr-timing-evidence-v2',source:{...target,durationSec:source.durationSec},
-      timeline:timeline.map(s=>({...s})),raw_timeline:deps.rawTimelineEvidence||null,probes:[]};
+      timeline:timeline.map(s=>({...s})),raw_timeline:deps.rawTimelineEvidence||null,
+      ...(spans?{spans}:{}),probes:[]};
     if(deps.savedTimingEvidence){
       const old=deps.savedTimingEvidence;
       if(JSON.stringify(old.source)!==JSON.stringify(evidence.source)||JSON.stringify(old.timeline)!==JSON.stringify(evidence.timeline))fail('TIMING_EVIDENCE_MISMATCH');
       evidence.probes=JSON.parse(JSON.stringify(old.probes||[]));
       evidence.raw_timeline=old.raw_timeline||null;
+      // План задаёт СМЕТА, которую подтверждают сейчас, а не история журнала: уже оплаченные
+      // зонды из него переиспользуются по совпадению окна, докупаются только недостающие.
     }
     if(onEvidence)await onEvidence(evidence);
     // Each quoted probe has one attempt. A failed/unknown-charge call is retained and never
@@ -580,7 +598,7 @@
   return {
     FPS, AUDIO_TOKENS_PER_SEC, SINGLE_CALL_MAX_SEC, RETRY_DELAYS_MS,
     PROBE_SEC, ANCHOR_MAX_ERROR_SEC,
-    canonicalize, durationFromTokens, planWindows, buildRequest, classifyFailure, retryable,
+    canonicalize, durationFromTokens, planWindows, verificationPlan, buildRequest, classifyFailure, retryable,
     matchAnchors, judgeTiming, probeWindow, buildImportMeta, classifyResponse,
     estimateTableRange, tableCostWithinQuote, QUOTE_OVERRUN_TOLERANCE, estimate, transcribe,
     verificationQuote,verifySavedTiming,
