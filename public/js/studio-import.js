@@ -1562,17 +1562,86 @@
     return locale === "en" ? "en" : "ru"; // ивритский интерфейс учит иврит: перевод остаётся русским
   }
 
-  // Выбор пользователя применяется вычитанием: из кандидатов вопроса остаётся ровно один.
+  // Keep all tracks: forced/SDH classification needs the original inventory.
   function subtitlePlanTracks() {
+    return (pendingSubtitleMaterial || {}).tracks || [];
+  }
+
+  function subtitlePlanChoices() {
     var material = pendingSubtitleMaterial || {};
-    var tracks = material.tracks || [];
-    var choice = material.choice;
-    if (choice && choice.kind === "text" && Array.isArray(choice.candidates)) {
-      tracks = tracks.filter(function (track) {
-        return choice.candidates.indexOf(track.index) < 0 || track.index === choice.index;
+    return material.trackChoices || (material.choice ? { text: material.choice.index } : {});
+  }
+
+  function renderSubtitlePlanEditor(plan) {
+    var material = pendingSubtitleMaterial;
+    var locked = !!(material.working || material.preparationPlan || material.applied);
+    var button = $("v3ImportSubtitlePlanEdit"), editor = $("v3ImportSubtitlePlanEditor");
+    if (!button || !editor) return;
+    button.disabled = locked;
+    button.setAttribute("aria-expanded", String(!!material.editing && !locked));
+    editor.hidden = !material.editing || locked;
+    if (editor.hidden) return;
+    var state = (pendingAudio && pendingAudio.mediaReadiness) || {};
+    var classified = window.SubtitleMaterialCore.classifyTracks(material.tracks);
+    var sources = {
+      Audio: (state.track_inventory || {}).audio || state.audio_choices || [],
+      Text: classified.filter(function (t) { return t.language === "he" && !t.forced && !t.sdh; }),
+      Translation: classified.filter(function (t) { return t.language === subtitleTranslationLanguage() && !t.forced && !t.sdh; }),
+    };
+    ["Audio", "Text", "Translation"].forEach(function (kind) {
+      var select = $("v3ImportSubtitleEdit" + kind);
+      if (!select) return;
+      select.innerHTML = "";
+      var auto = document.createElement("option");
+      auto.value = ""; auto.textContent = tr("studio.import.subtitlePlanAutomatic");
+      // Audio selection is resolved by Companion; keep its current choice as the default.
+      if (kind !== "Audio") select.appendChild(auto);
+      sources[kind].forEach(function (track) {
+        var option = document.createElement("option");
+        option.value = String(track.index);
+        option.textContent = "#" + track.index + " · " + (track.language || "?")
+          + (track.title ? " · " + track.title : "") + (track.codec_name ? " · " + track.codec_name : "");
+        select.appendChild(option);
       });
+      var value = kind === "Audio" ? plan.audio && plan.audio.index : subtitlePlanChoices()[kind.toLowerCase()];
+      select.value = value == null ? "" : String(value);
+      select.disabled = !sources[kind].length;
+    });
+  }
+
+  function toggleSubtitlePlanEditor() {
+    var material = pendingSubtitleMaterial;
+    if (!material || material.working || material.preparationPlan || material.applied) return;
+    material.editing = !material.editing;
+    renderSubtitlePlan();
+  }
+
+  async function applySubtitlePlanEdits() {
+    var material = pendingSubtitleMaterial;
+    if (!material || material.working || material.preparationPlan || material.applied) return;
+    var audio = $("v3ImportSubtitleEditAudio").value;
+    var choices = {};
+    ["Text", "Translation"].forEach(function (kind) {
+      var value = $("v3ImportSubtitleEdit" + kind).value;
+      if (value !== "" && Number.isInteger(Number(value))) choices[kind.toLowerCase()] = Number(value);
+    });
+    material.working = true;
+    setBusy(true);
+    try {
+      if (audio !== "" && (!material.plan.audio || Number(audio) !== material.plan.audio.index)) {
+        mediaJobStatus(await localAsrClient.chooseMediaAudioStream(pendingAudio.mediaJobId, Number(audio)));
+      }
+      material.trackChoices = choices;
+      material.choice = null;
+      material.editing = false;
+      setSubtitlePlanStatus(null);
+    } catch (error) {
+      setSubtitlePlanStatus("studio.import.subtitlePlanFailed", { code: error.code || "MEDIA_AUDIO_CHOICE_FAILED" }, "error");
+    } finally {
+      material.working = false;
+      setBusy(false);
+      renderSubtitlePlan();
     }
-    return tracks;
   }
 
   async function loadSubtitlePlan() {
@@ -1670,6 +1739,7 @@
       tracks: subtitlePlanTracks(),
       targetLanguage: "he",
       translationLanguage: subtitleTranslationLanguage(),
+      trackChoices: subtitlePlanChoices(),
     });
     pendingSubtitleMaterial.plan = plan;
     var list = $("v3ImportSubtitlePlanRows");
@@ -1683,6 +1753,7 @@
       });
     }
     renderSubtitlePlanQuestion(plan);
+    renderSubtitlePlanEditor(plan);
     var liteRow = $("v3ImportSubtitlePlanLiteRow"), liteToggle = $("v3ImportSubtitlePlanLite");
     if (liteRow) liteRow.hidden = !plan.lite.available;
     if (liteToggle && liteRow && !liteRow.hidden && liteToggle.dataset.touched !== "1") {
@@ -1699,7 +1770,7 @@
 
   async function applySubtitlePlanChoice() {
     var select = $("v3ImportSubtitlePlanChoice");
-    if (!select || !pendingSubtitleMaterial) return;
+    if (!select || !pendingSubtitleMaterial || pendingSubtitleMaterial.working || pendingSubtitleMaterial.preparationPlan) return;
     var index = Number(select.value);
     if (!Number.isInteger(index)) return;
     if (select.dataset.kind === "audio") {
@@ -1719,6 +1790,7 @@
         kind: "text", index: index,
         candidates: String(select.dataset.candidates || "").split(",").map(Number).filter(Number.isInteger),
       };
+      pendingSubtitleMaterial.trackChoices = Object.assign({}, subtitlePlanChoices(), { text: index });
     }
     renderSubtitlePlan();
   }
@@ -3398,6 +3470,8 @@
                            cancelMediaJob: cancelMediaJob, runMediaDeviceGate: runMediaDeviceGate,
                            chooseTranscriptOnly: chooseTranscriptOnly,
                            applySubtitlePlanChoice: applySubtitlePlanChoice,
+                           toggleSubtitlePlanEditor: toggleSubtitlePlanEditor,
+                           applySubtitlePlanEdits: applySubtitlePlanEdits,
                            buildSubtitleMaterial: buildSubtitleMaterial,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,

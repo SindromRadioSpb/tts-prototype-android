@@ -223,6 +223,11 @@
     var textCandidates = classified.filter(function (track) {
       return track.language === targetLanguage && !track.forced && !track.sdh;
     });
+    // Explicit choices narrow eligible tracks, never the inventory used to classify signals.
+    var chosen = opts.trackChoices || {};
+    if (Number.isInteger(chosen.text)) {
+      textCandidates = textCandidates.filter(function (track) { return track.index === chosen.text; });
+    }
     var signalTracks = classified.filter(function (track) { return track.language === targetLanguage && track.forced; });
     if (textCandidates.length !== 1) {
       reasons.text = textCandidates.length ? "target_language_ambiguous" : "target_language_missing";
@@ -234,11 +239,14 @@
       };
     }
     var textTrack = textCandidates[0];
-    reasons.text = "target_language_full_track";
+    reasons.text = Number.isInteger(chosen.text) ? "user_selected_track" : "target_language_full_track";
     var translationTrack = null;
     var candidates = translationLanguage
       ? classified.filter(function (track) { return track.language === translationLanguage && !track.forced && !track.sdh; })
       : [];
+    if (Number.isInteger(chosen.translation)) {
+      candidates = candidates.filter(function (track) { return track.index === chosen.translation; });
+    }
     if (!candidates.length) {
       reasons.translation = "translation_language_missing";
     } else {
@@ -249,7 +257,7 @@
       });
       if (best && best.coverage >= TRANSLATION_MIN_COVERAGE) {
         translationTrack = best.track;
-        reasons.translation = "translation_language_aligned";
+        reasons.translation = Number.isInteger(chosen.translation) ? "user_selected_track" : "translation_language_aligned";
       } else {
         reasons.translation = "translation_coverage_too_low";
       }
@@ -421,6 +429,7 @@
     var translationLanguage = opts.translationLanguage || null;
     var selection = selectTracks({
       tracks: opts.tracks, targetLanguage: targetLanguage, translationLanguage: translationLanguage,
+      trackChoices: opts.trackChoices,
     });
     var questions = [];
     var audioSelection = state.audio_selection || null;

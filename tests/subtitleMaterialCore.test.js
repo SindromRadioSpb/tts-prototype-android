@@ -46,6 +46,35 @@ function tracks() {
   ];
 }
 
+test("explicit subtitle choices retain forced signals and choose the requested translation", () => {
+  const inventory = tracks().concat([
+    { index: 9, language: "he", cues: HEBREW_CUES },
+    { index: 10, language: "ru", cues: RUSSIAN_CUES },
+  ]);
+  const result = SMC.buildMaterialPlan({ readiness: readiness(), tracks: inventory,
+    targetLanguage: "he", translationLanguage: "ru", trackChoices: { text: 9, translation: 10 } });
+  assert.equal(result.status, "ready");
+  assert.equal(result.text.index, 9);
+  assert.equal(result.translation.index, 10);
+  assert.equal(result.text.reason, "user_selected_track");
+  assert.equal(result.translation.reason, "user_selected_track");
+  assert.deepEqual(result.signal_track_indexes, [6]);
+  assert.equal(inventory.length, 6);
+});
+
+test("explicit choices cannot silently substitute another track or bypass coverage", () => {
+  const input = { readiness: readiness(), tracks: tracks(), targetLanguage: "he", translationLanguage: "ru" };
+  for (const index of [4, 6, 8, 99]) {
+    const result = SMC.buildMaterialPlan({ ...input, trackChoices: { text: index } });
+    assert.equal(result.status, "blocked");
+    assert.equal(result.text, null);
+  }
+  assert.equal(SMC.buildMaterialPlan({ ...input, trackChoices: { translation: 99 } }).translation, null);
+  const sparse = tracks().concat([{ index: 10, language: "ru", cues: [RUSSIAN_CUES[0]] }]);
+  const result = SMC.buildMaterialPlan({ ...input, tracks: sparse, trackChoices: { translation: 10 } });
+  assert.equal(result.translation, null);
+});
+
 const TABLE_ROWS = [
   { index: 0, start: 4, end: 6, text: "מה זה?", source_cue_indexes: [0],
     speech_language: "target_assumed", speech_language_named: null, translation: "Что это?", translation_group: null },
