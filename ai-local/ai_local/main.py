@@ -234,6 +234,12 @@ class MediaAudioStreamRequest(BaseModel):
     stream_index: int = Field(..., ge=0, le=4096)
 
 
+class SubtitleSyncRequest(BaseModel):
+    stream_index: int = Field(..., ge=0, le=4096)
+    subtitle_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
+    cue_starts: list[float] = Field(..., max_length=20000)
+
+
 # ---------- endpoints ----------
 
 
@@ -299,6 +305,17 @@ async def v1_media_job_prepare(job_id: str, body: MediaPrepareRequest):
         return await media_job_manager.prepare(
             job_id, mode=body.mode, plan_sha256=body.plan_sha256, rendition=body.rendition,
         )
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/v1/media/jobs/{job_id}/subtitle-sync", dependencies=[Depends(require_companion_auth)])
+async def v1_media_subtitle_sync(job_id: str, body: SubtitleSyncRequest):
+    try:
+        return await media_job_manager.assess_subtitle_sync(
+            job_id, body.stream_index, body.subtitle_sha256, body.cue_starts)
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc
     except MediaJobConflict as exc:

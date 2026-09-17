@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -24,6 +25,7 @@ from .media_compat import (
     prove_lossless_equivalence,
     prove_video_copy_equivalence,
 )
+from .subtitle_sync import assess_media
 
 
 class MediaJobError(RuntimeError):
@@ -83,12 +85,14 @@ class MediaJobManager:
         prepare_fn: Callable[..., Awaitable[dict[str, Any] | None]] = prepare_media,
         extract_fn: Callable[..., Awaitable[list[dict[str, Any]]]] = extract_text_subtitles,
         video_proof_fn: Callable[..., Awaitable[dict[str, Any]]] = prove_video_copy_equivalence,
+        subtitle_sync_fn: Callable[..., dict[str, Any]] = assess_media,
     ) -> None:
         self.root = Path(root)
         self.probe_fn = probe_fn
         self.prepare_fn = prepare_fn
         self.extract_fn = extract_fn
         self.video_proof_fn = video_proof_fn
+        self.subtitle_sync_fn = subtitle_sync_fn
         self._tasks: dict[str, asyncio.Task[Any]] = {}
         self._cancel: dict[str, asyncio.Event] = {}
         self._capacity = asyncio.Semaphore(1)
@@ -264,6 +268,45 @@ class MediaJobManager:
         manifest["report"] = updated
         self._settle(job_id, manifest)
         return self.get(job_id)
+
+    async def assess_subtitle_sync(self, job_id: str, stream_index: int, subtitle_sha256: str,
+                                   cue_starts: list[float]) -> dict[str, Any]:
+        async with self._capacity:
+            manifest = self.get(job_id)
+            if manifest["state"] not in {"WAITING_FOR_DECISION", "COMPLETE"}:
+                raise MediaJobConflict("media job is not ready for subtitle verification")
+            _, track = self.subtitle_file(job_id, stream_index)
+            if track["sha256"] != subtitle_sha256:
+                raise MediaJobConflict("subtitle verification source changed")
+            report = manifest.get("report") or {}
+            audio = report.get("audio_selection") or {}
+            duration = float(report.get("duration_seconds") or 0)
+            if not isinstance(audio.get("index"), int) or not math.isfinite(duration) or duration <= 0:
+                raise MediaJobConflict("selected audio is unavailable")
+            if len(cue_starts) > 20000 or any(not math.isfinite(t) or t < 0 or t >= duration for t in cue_starts):
+                raise MediaJobConflict("invalid subtitle verification intervals")
+            inputs = {"method": "silero-onset-grid-v1", "source_sha256": manifest["source_sha256"], "audio_stream_index": audio["index"],
+                      "subtitle_sha256": subtitle_sha256, "cue_starts": sorted(set(cue_starts))}
+            key = hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest()
+            previous = manifest.get("subtitle_sync") or {}
+            if previous.get("input_sha256") == key:
+                return previous
+            try:
+                assessment = await asyncio.to_thread(self.subtitle_sync_fn, self._dir(job_id)/"source.media",
+                                                     audio["index"], inputs["cue_starts"], duration)
+            except Exception as exc:
+                assessment = {"schema": "subtitle-speech-sync-v1", "status": "unverified", "apply_offset_ms": 0,
+                              "reason": "local_speech_analysis_unavailable", "error_type": type(exc).__name__}
+            current = self.get(job_id)
+            if (current.get("report") or {}).get("audio_selection") != audio or current["state"] != manifest["state"]:
+                raise MediaJobConflict("media selection changed during subtitle verification")
+            assessment.update(input_sha256=key, source_sha256=inputs["source_sha256"],
+                              audio_stream_index=audio["index"], subtitle_sha256=subtitle_sha256)
+            # A missing local runtime may be repaired; do not durably cache its failure.
+            if assessment.get("reason") != "local_speech_analysis_unavailable":
+                current["subtitle_sync"] = assessment
+                self._write(job_id, current)
+            return assessment
 
     def subtitle_file(self, job_id: str, stream_index: int) -> tuple[Path, dict[str, Any]]:
         manifest = self.get(job_id)

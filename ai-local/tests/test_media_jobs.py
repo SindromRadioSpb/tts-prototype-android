@@ -12,6 +12,41 @@ async def chunks(data):
 
 
 @pytest.mark.asyncio
+async def test_subtitle_sync_binds_evidence_to_source_track_and_selected_audio(tmp_path):
+    calls = []
+    digest = hashlib.sha256(b"subtitles").hexdigest()
+
+    async def probe(_path):
+        return {"outcome": "LOSSLESS_REPAIR", "plan": {"mode": "lossless_repair"},
+                "plan_sha256": "a"*64, "duration_seconds": 2000,
+                "audio_selection": {"index": 2, "language": "he"},
+                "probe": {"subtitle_streams": [{"index": 7}]}}
+
+    async def extract(_source, _streams, directory, _cancel):
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory/"7.srt").write_bytes(b"subtitles")
+        return [{"index": 7, "file": "7.srt", "status": "extracted", "sha256": digest}]
+
+    def assess(source, audio, cues, duration):
+        calls.append((source.name, audio, cues, duration))
+        return {"status": "aligned", "apply_offset_ms": 0}
+
+    manager = MediaJobManager(tmp_path, probe_fn=probe, extract_fn=extract, subtitle_sync_fn=assess)
+    job = await manager.create(chunks(b"video"), filename="lesson.mkv", content_type="video/x-matroska")
+    await manager.wait(job["job_id"])
+    result = await manager.assess_subtitle_sync(job["job_id"], 7, digest, [5, 3])
+    assert result["audio_stream_index"] == 2
+    assert result["source_sha256"] == hashlib.sha256(b"video").hexdigest()
+    assert calls == [("source.media", 2, [3, 5], 2000)]
+    assert await manager.assess_subtitle_sync(job["job_id"], 7, digest, [3, 5]) == result
+    assert len(calls) == 1
+    with pytest.raises(MediaJobConflict):
+        await manager.assess_subtitle_sync(job["job_id"], 7, "f"*64, [3, 5])
+    with pytest.raises(MediaJobConflict):
+        await manager.assess_subtitle_sync(job["job_id"], 7, digest, [float("nan")])
+
+
+@pytest.mark.asyncio
 async def test_job_hashes_upload_and_waits_for_explicit_prepare(tmp_path):
     payload = b"actual-media-bytes"
 
