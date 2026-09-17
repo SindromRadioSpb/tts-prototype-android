@@ -43,6 +43,31 @@
       const op=value===undefined?store.get(key):store.put(copy(value),key);let result;
       op.onsuccess=()=>{result=op.result;};tx.oncomplete=()=>{db.close();resolve(result);};tx.onerror=()=>{db.close();reject(tx.error);};};
   });}
+  function journalScan(prefix){return new Promise((resolve,reject)=>{
+    const req=indexedDB.open('linguistpro-timing-repair-v1',1);
+    req.onupgradeneeded=()=>req.result.createObjectStore('evidence');req.onerror=()=>reject(req.error);
+    req.onsuccess=()=>{const db=req.result,tx=db.transaction('evidence','readonly');const out=[];
+      const cursor=tx.objectStore('evidence').openCursor();
+      cursor.onsuccess=()=>{const c=cursor.result;if(!c)return;
+        if(String(c.key).startsWith(prefix))out.push({key:String(c.key),value:c.value});c.continue();};
+      tx.oncomplete=()=>{db.close();resolve(out);};tx.onerror=()=>{db.close();reject(tx.error);};};
+  });}
+  // Ремонты до 3.11.594 клали оплаченные зонды под ключ СВОЕЙ ревизии, и каждый следующий
+  // ремонт делал предыдущие недостижимыми. Они куплены и принадлежат ролику, поэтому
+  // собираются воедино: самый полный таймлайн плюс все различные зонды. Иначе владелец
+  // платит за них второй раз за чужую ошибку.
+  async function adoptLegacyEvidence(id,evidenceKey,videoKey){
+    let entries=[];try{entries=await journalScan(String(id)+':');}catch(_){return null;}
+    const own=entries.filter(e=>e.key!==evidenceKey&&e.key.endsWith(':'+videoKey)
+      &&e.value&&e.value.schema==='youtube-asr-timing-evidence-v2'&&Array.isArray(e.value.probes)&&Array.isArray(e.value.timeline));
+    if(!own.length)return null;
+    const marks=v=>(v.timeline||[]).filter(s=>s&&s.startSec!=null).length;
+    const best=own.reduce((a,b)=>marks(b.value)>marks(a.value)?b:a);
+    const probes=[];
+    for(const e of own)for(const probe of e.value.probes||[])
+      if(probe&&probe.window&&!probes.some(x=>x.window.startSec===probe.window.startSec&&x.window.endSec===probe.window.endSec))probes.push(probe);
+    return {...best.value,probes};
+  }
   async function context(id){
     const ctx=await StudyVideoSourceUI.context(id),repo=StudioMediaPackage.browserRepository();
     if(PlaybackSource.isPublished(PlaybackSource.parseMeta(ctx.card.source_meta_json)))throw new Error('TIMING_REPAIR_READ_ONLY');
@@ -136,7 +161,10 @@
     try{
       const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json);
       // Оплаченные зонды читаются по ключу ролика; предложения человека остаются при своей ревизии.
-      paid=recovered(await journal(ctx.evidenceKey)||meta.source?.captions?.captions?.timing_evidence
+      const stored=await journal(ctx.evidenceKey);
+      const adopted=stored?null:await adoptLegacyEvidence(ctx.id,ctx.evidenceKey,local?ctx.source.sha256:ctx.source.video_id);
+      if(adopted)await journal(ctx.evidenceKey,adopted);
+      paid=recovered(stored||adopted||meta.source?.captions?.captions?.timing_evidence
         ||meta.source?.audio?.captions?.timing_evidence||null);
       evidence=paid;
       if(matches(paid)&&paid.schema==='youtube-asr-timing-evidence-v2'&&compatible(paid.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(paid).segments);
@@ -301,5 +329,5 @@
     }
     render();return d;
   }
-  window.StudyTimingRepair={open,context,apply,proposed,journal,unverifiedMarks};
+  window.StudyTimingRepair={open,context,apply,proposed,journal,journalScan,unverifiedMarks};
 })();

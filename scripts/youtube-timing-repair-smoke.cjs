@@ -39,7 +39,9 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
     const timeline=ctx.revision.segments.map(s=>({text:s.text,startSec:null,endSec:null}));
     const evidence={schema:'youtube-asr-timing-evidence-v2',source:ctx.source,timeline,probes:YoutubeTiming.windows(30).map((window,i)=>({window,state:'complete',segments:i?[]:[{text:timeline[0].text,startSec:1},{text:'גבול נוסף שאינו משפט זהה',startSec:5}]}))};
     window.recoveryCalls={estimates:0,paid:0};
-    if(mode==='auto'||mode==='full')await StudyTimingRepair.journal(ctx.evidenceKey,evidence);
+    // A repair before 3.11.594 filed its paid probes under the key of the revision it replaced.
+    // They must still be found, or the owner pays a second time for somebody else's mistake.
+    if(mode==='auto'||mode==='full')await StudyTimingRepair.journal(ctx.journalKey,evidence);
     // Часы, которые ни один зонд не заверил, но метки провайдера структурно целы: единственный
     // путь к воспроизведению — ЯВНОЕ принятие непроверенного, и оно обязано себя называть.
     if(mode==='trust')await StudyTimingRepair.journal(ctx.evidenceKey,{...evidence,probes:[],
@@ -116,6 +118,7 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
       tableChanged:rev.table_revision_id!==tableBefore.table_revision_id,tableContentPreserved:rev.content_sha256===tableBefore.content_sha256,
       tableBinding:rev.bound_caption_revision_id,playable:audio.timing.entries.length,
       paidEvidenceSurvived:!!(await StudyTimingRepair.journal(ctx.evidenceKey)),
+      legacyKeysLeft:(await StudyTimingRepair.journalScan(String(id)+':')).filter(e=>e.value&&e.value.schema==='youtube-asr-timing-evidence-v2').length,
       passportKeptEvidence:!!(PlaybackSource.parseMeta(ctx.card.source_meta_json).source?.captions?.captions?.timing_evidence
         ||PlaybackSource.parseMeta(ctx.card.source_meta_json).source?.audio?.captions?.timing_evidence),
       timingAuthority:ctx.revision.segments.filter(x=>x.start_ms!=null).map(x=>x.authority&&x.authority.timing).filter((v,i,a)=>a.indexOf(v)===i),
@@ -128,6 +131,8 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
   if(mode==='auto'||mode==='full'||mode==='trust')
     assert.ok(after.paidEvidenceSurvived,'probes already paid for stay reachable after a repair, so a retry does not buy them again');
   assert.ok(after.passportKeptEvidence,'the passport a repair rewrites still carries the answers the run paid for');
+  if(mode==='auto'||mode==='full')
+    assert.ok(after.legacyKeysLeft>=2,'the orphaned journal is adopted, not moved: the original stays where it was');
   if(mode==='trust')assert.deepEqual(after.timingAuthority,['provider-unverified'],'accepted marks stay provider-authored and say they were never checked');assert.ok(after.archiveHasNewRevision);assert.deepEqual(paid,[]);assert.deepEqual(errors,[]);
   const transfer=await page.evaluate(async id=>{const c=await StudyVideoSourceUI.context(id);return StudyVideoTransfer.put({schema:1,title:'Synthetic partial playback',video_id:'cPooKT5rFxc',rows:c.rows.map(r=>({he:r.he,ru:r.ru})),entries:c.audio.timing.entries});},id);
   const videoPage=await context.newPage();await videoPage.goto(base+'/study-video.html#'+transfer);await videoPage.waitForSelector('#proTable tbody tr');assert.equal(await videoPage.locator('#proTable tbody button').count(),playableRows,'isolated video view must not offer replay on gaps');await videoPage.close();
