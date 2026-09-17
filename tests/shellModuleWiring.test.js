@@ -16,6 +16,7 @@ const JS_DIR = path.join(ROOT, "public", "js");
 const SHELLS = ["public/index.html", "public/library.html", "public/mediatheque.html"];
 // global -> the file that defines it
 const PROVIDERS = {
+  SubtitleTimingStatus: "subtitle-timing-status.js",
   MediaStreamStore: "media-stream-store.js",
   SubtitleMaterialCore: "subtitle-material-core.js",
   MediaBundleCore: "media-bundle-core.js",

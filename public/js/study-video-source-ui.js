@@ -32,6 +32,22 @@
     he:'YouTube · חותמות הזמן של התמלול לא עברו בדיקה. הסרטון והטבלה נשמרו; הפעלת שורות מושבתת. נדרשות חותמות זמן בדוקות. שינוי הקישור או ההיסט לא ישחזר זמנים חסרים.'
   };
   function playbackNote(audio){const t=playerText[locale()];if(audio.playbackReason==='ASR_CLOCK_UNVERIFIED')return clockNotes[locale()];return audio.playbackReason?(audio.playbackReason==='PLAYBACK_TIMING_CHANGED'?t.changed:t.pending):t.ready;}
+  const subtitleTimingNotes={
+    ru:{unverified:'Тайминг из субтитров; по звуку не проверен.',aligned:'Тайминг проверен по активности речи в контрольных участках.',corrected:'Автоматически применён проверенный общий сдвиг.',needs_review:'Есть признаки сдвига или дрейфа. Исходные интервалы сохранены.',manual_changes:'Есть ручные поправки. Остальные интервалы отдельно не проверялись.'},
+    en:{unverified:'Subtitle timing has not been checked against the audio.',aligned:'Timing checked against speech activity in sampled sections.',corrected:'A verified global offset was applied automatically.',needs_review:'Possible offset or drift detected. Original intervals retained.',manual_changes:'Manual timing edits exist. Other intervals have not been checked separately.'},
+    he:{unverified:'התזמון נלקח מהכתוביות ולא נבדק מול השמע.',aligned:'התזמון נבדק מול פעילות דיבור בקטעים שנדגמו.',corrected:'היסט כללי שנבדק הוחל אוטומטית.',needs_review:'זוהה חשד להיסט או לסחיפה. הזמנים המקוריים נשמרו.',manual_changes:'יש תיקוני תזמון ידניים. שאר הקטעים לא נבדקו בנפרד.'}
+  };
+  async function showSubtitleTiming(bar,actions,id){
+    if(!window.SubtitleTimingStatus||!window.StudioMediaPackage)return;
+    try{
+      const state=await SubtitleTimingStatus.forText(await StudioMediaPackage.browserRepository(),id);
+      if(!state||bar.querySelector('.playback-source-actions')!==actions)return;
+      const note=document.createElement('p');note.dataset.subtitleTimingStatus=state.status;
+      note.style.cssText='flex-basis:100%;margin:4px 0;overflow-wrap:anywhere';
+      note.textContent=subtitleTimingNotes[locale()][state.status]||subtitleTimingNotes[locale()].unverified;
+      actions.append(note);
+    }catch(_){/* A status lookup must not interrupt playback. */}
+  }
   function playerError(node,error){if(!node)return;node.dataset.youtubeError=String(error.ytCode || error || '');node.textContent=[101,150].includes(Number(error.ytCode || error))?playerText[locale()].denied:playerText[locale()].failed;}
   function watchPlayer(adapter,node,audio){adapter.addEventListener('error',e=>playerError(node,e));adapter.addEventListener('blocked',()=>{node.textContent=playerText[locale()].blocked;});adapter.addEventListener('play',()=>{delete node.dataset.youtubeError;node.textContent=playbackNote(audio);});}
   async function replayRow(index,node,stillActive){
@@ -63,6 +79,7 @@
     if(options.local&&!youtubeSelected&&window.StudyTimingRepair){
       button(actions,{ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[locale()],()=>StudyTimingRepair.open(options.id),'repairTiming');
     }
+    if(options.local&&!youtubeSelected)showSubtitleTiming(bar,actions,options.id);
   }
   function compatibleShell(){
     const url=new URL(location.href);url.pathname=url.pathname.includes('library')?'/study-library.html':'/study-studio.html';
@@ -73,6 +90,7 @@
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')pauseEmbeddedVideo();});
   window.addEventListener('pagehide',pauseEmbeddedVideo);
   document.addEventListener('i18n:changed',()=>{
+    document.querySelectorAll('[data-subtitle-timing-status]').forEach(node=>{node.textContent=subtitleTimingNotes[locale()][node.dataset.subtitleTimingStatus]||subtitleTimingNotes[locale()].unverified;});
     document.querySelectorAll('[data-playback-label]').forEach(node=>{const key=node.dataset.playbackLabel;node.textContent=key==='source'?label(key):key==='repairTiming'?{ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[locale()]:playerText[locale()][key];});
     document.querySelectorAll('[data-playback-group-label]').forEach(node=>node.setAttribute('aria-label',playerText[locale()][node.dataset.playbackGroupLabel]));
     document.querySelectorAll('[data-playback-reason]').forEach(node=>{if(!node.dataset.youtubeError)node.textContent=playbackNote({playbackReason:node.dataset.playbackReason || null});});
