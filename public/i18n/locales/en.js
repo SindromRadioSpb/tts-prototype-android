@@ -3746,7 +3746,7 @@ window.I18N_LOCALES.en = {
       subtitlePlanBlocked: "This file has no usable Hebrew subtitle track.",
       subtitlePlanTrackFailed: "Track {index} failed verification: {code}",
       subtitlePlanTracksLoading: "Reading subtitle tracks…",
-      subtitlePlanWorking: "Preparing the material…",
+      subtitlePlanWorking: "Preparing the material. Wait for the table to open, then save the card.",
       mediaCompanionBusy: "The Companion queue is full. Finish or cancel the previous video preparation in its open tab, then select the file again.",
       subtitleSyncChecking: "Checking subtitle timing against speech activity on this computer…",
       subtitleSyncAligned: "Speech activity showed no significant timing offset.",

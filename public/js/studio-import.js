@@ -1885,6 +1885,19 @@
     return !!(applied && applied.applied);
   }
 
+  function showSubtitleSaveStep() {
+    if (typeof window.setTimeout !== "function") return;
+    // close() restores the old focus asynchronously. Wait for the table state to render,
+    // then point to the existing persistent next-step action without saving on behalf of the user.
+    window.setTimeout(function () {
+      var next = $("classicNextStep");
+      var action = $("classicNextActionBtn");
+      if (!next || !action || action.dataset.action !== "save" || action.disabled) return;
+      next.scrollIntoView({ block: "center" });
+      action.focus({ preventScroll: true });
+    }, 150);
+  }
+
   async function buildSubtitleMaterial() {
     var material = pendingSubtitleMaterial;
     if (!material || !material.plan || material.plan.status !== "ready" || material.working) return;
@@ -1917,6 +1930,7 @@
         { size: window.MediaReadiness.humanBytes(stored.sizeBytes) });
       var liteToggle = $("v3ImportSubtitlePlanLite");
       if (!material.storedLite && liteToggle && liteToggle.checked && plan.lite.available && plan.lite_plan_sha256) {
+        setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
         var liteJob = material.preparedLiteJob || await window.SubtitleMaterialImport.confirmMediaPlan({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, mode: "lite_transcode",
           planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: mediaJobStatus },
@@ -1938,6 +1952,7 @@
       // Таблица собирается и уезжает в Студию тем же путём, что и обычный импорт: useText()
       // создаёт медиа-пакет и закрывает диалог, поэтому итог сообщаем тостом, а не строкой в нём.
       var tableRows = await buildSubtitleTable(plan, stored, job);
+      setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
       if (tableRows && window.SubtitleMaterialVocalization && window.LocalTranslit) {
         var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
           client: localAsrClient,
@@ -1951,6 +1966,7 @@
       }
       if (tableRows && await applySubtitleMaterial()) {
         material.applied = true;
+        showSubtitleSaveStep();
         try {
           if (typeof window.showToast === "function") {
             var syncStatus = (material.timingAssessment || {}).status;
@@ -2590,7 +2606,10 @@
         $("v3ImportProv").appendChild(hint);
       }
     } catch (_) {}
-    $("v3ImportPreviewWrap").hidden = false;
+    // The subtitle plan is still assembling its table. Its generic draft actions would
+    // compete with the running job and can land an incomplete card.
+    $("v3ImportPreviewWrap").hidden = !!(pendingSubtitleMaterial && pendingSubtitleMaterial.working &&
+      p.kind === "captions" && p.method === "container-subtitle-track");
     var exportOcrButton = $("v3ImportExportOcrBtn");
     if (exportOcrButton) exportOcrButton.hidden = !(Array.isArray(p.pages) && p.pages.length && (p.kind === "pdf" || p.kind === "image"));
     if ((p.kind === "pdf" || p.kind === "image") && writeOcrDraft(window.localStorage, p, p.text, Date.now())) {

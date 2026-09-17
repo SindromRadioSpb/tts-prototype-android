@@ -3760,7 +3760,7 @@ window.I18N_LOCALES.ru = {
       subtitlePlanBlocked: "В этом файле нет пригодной ивритской дорожки субтитров.",
       subtitlePlanTrackFailed: "Дорожка {index} не прошла проверку: {code}",
       subtitlePlanTracksLoading: "Читаем дорожки субтитров…",
-      subtitlePlanWorking: "Готовим материал…",
+      subtitlePlanWorking: "Готовим материал. Дождитесь открытия таблицы; затем сохраните карточку.",
       subtitleSyncChecking: "Проверяем время субтитров по активности речи на компьютере…",
       subtitleSyncAligned: "По активности речи заметного сдвига не обнаружено.",
       subtitleSyncCorrected: "Малый сдвиг исправлен; исходные времена сохранены в истории.",

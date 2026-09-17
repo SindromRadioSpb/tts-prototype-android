@@ -3756,7 +3756,7 @@ window.I18N_LOCALES.he = {
       subtitlePlanBlocked: "בקובץ הזה אין רצועת כתוביות בעברית שניתן להשתמש בה.",
       subtitlePlanTrackFailed: "רצועה {index} לא עברה אימות: {code}",
       subtitlePlanTracksLoading: "קוראים את רצועות הכתוביות…",
-      subtitlePlanWorking: "מכינים את החומר…",
+      subtitlePlanWorking: "מכינים את החומר. המתינו לפתיחת הטבלה, ואז שמרו את הכרטיס.",
       mediaCompanionBusy: "התור של Companion מלא. סיימו או בטלו את הכנת הסרטון הקודם בלשונית הפתוחה, ואז בחרו שוב את הקובץ.",
       subtitleSyncChecking: "בודקים את תזמון הכתוביות מול פעילות הדיבור במחשב…",
       subtitleSyncAligned: "לא נמצאה סטייה משמעותית בתזמון ביחס לפעילות הדיבור.",
