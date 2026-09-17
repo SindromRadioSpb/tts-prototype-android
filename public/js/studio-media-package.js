@@ -445,6 +445,17 @@
 
   async function createFromImportMeta(meta) {
     var input = passportToPromotionInput(meta), Core = getCore(), repo = browserRepository();
+    var captionEvidence = input.provenance && input.provenance.captions || {};
+    var sync = captionEvidence.subtitle_sync, shift = sync && sync.apply_offset_ms;
+    var canShift = sync && sync.schema === 'subtitle-speech-sync-v1' && sync.status === 'correctable' && Number.isInteger(shift) && Math.abs(shift) > 300 && Math.abs(shift) <= 1500 &&
+      Number.isInteger(sync.audio_stream_index) && sync.audio_stream_index === captionEvidence.audio_stream_index &&
+      /^[a-f0-9]{64}$/.test(String(sync.input_sha256 || '')) &&
+      /^[a-f0-9]{64}$/.test(String(sync.subtitle_sha256 || '')) && sync.subtitle_sha256 === captionEvidence.subtitle_track_sha256 &&
+      /^[a-f0-9]{64}$/.test(String(sync.source_sha256 || '')) && sync.source_sha256 === captionEvidence.source_sha256 &&
+      Number.isFinite(input.media.duration_ms) && input.media.duration_ms > 0 &&
+      input.segments.every(function(s){return Number.isFinite(s.start_ms) && Number.isFinite(s.end_ms) &&
+        s.end_ms > s.start_ms && s.start_ms + shift >= 0 && s.end_ms + shift <= input.media.duration_ms;});
+    // Re-import must not rewrite an existing corrected/user-edited revision.
     var raw = await Core.createRawRevision({
       media_sha256: input.media.sha256, format: input.format, language: input.language,
       provider: input.provider, model: input.model, model_revision: input.model_revision,
@@ -463,7 +474,17 @@
         derived_from_source_sha256: rendition.derived_from_source_sha256 || null,
       });
     }
-    var current = await repo.getCurrentRevision(created.corrected_track_id);
+    var current = await repo.getCurrentRevision(created.corrected_track_id), timingApplied = false;
+    if (canShift && created.reused === false && current.revision_id === created.corrected_revision_id) {
+      var change = Core.applyOperation('user_corrected', current.segments, {type:'offset', delta_ms:shift});
+      change.segments.forEach(function(segment){
+        segment.authority = Object.assign({}, segment.authority, {timing:'derived'});
+      });
+      await repo.saveDraft(created.corrected_track_id, current.revision_id, change.segments, [change.operation]);
+      current = await repo.commitDraft(created.corrected_track_id, {author_kind:'import',
+        provenance:{surface:'subtitle-speech-sync',subtitle_sync:copy(sync),preserves_raw:true}});
+      timingApplied = true;
+    }
     var preview = reconcileCorrectedPreview(current.segments, meta && meta.textSnapshot);
     if (preview.changed) {
       await repo.saveDraft(created.corrected_track_id, current.revision_id, preview.segments, preview.operations);
@@ -475,7 +496,8 @@
       revision_sha256: current.canonical_sha256, projection_sha256: current.canonical_sha256,
       local_only: true,
     };
-    return { ref: ref, package: created, revision: Object.assign({ package_id: created.package_id }, current), input: input };
+    return { ref: ref, package: created, revision: Object.assign({ package_id: created.package_id }, current), input: input,
+      timing_correction_applied: timingApplied };
   }
 
   async function promoteLegacy(sourceMeta) {

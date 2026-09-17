@@ -98,8 +98,8 @@ test("B1 carries landmark, contrast, target-size and accessible-name contracts",
 
 test("Reading Room restores the canonical exact media binding before deriving row timing", () => {
   assert.match(libraryHtml, /<script src="\/js\/media-package-core\.js"><\/script>/);
-  assert.match(libraryHtml, /<script src="\/js\/media-package-repository\.js\?v=575"><\/script>/);
-  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js\?v=575"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/media-package-repository\.js\?v=577"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js\?v=577"><\/script>/);
   assert.match(libraryUi, /StudioMediaPackage\.activateTextBinding\(String\(textId\)\)/);
   assert.match(libraryUi, /MediaHost\.pickExactBindingPassport\(/);
 });
@@ -157,4 +157,8 @@ test("a subtitle material promotes from its own rows, so the saved card can bind
     "the flag must reach the import passport, and an edited preview must drop it");
   assert.match(mediaPackage, /passport\.rawSource && passport\.segments_are_final_rows !== true/,
     "promotion honours the flag instead of always re-parsing the raw subtitle file");
+  assert.match(studioImport, /start: row\.start, end: row\.end, text: row\.text/,
+    "container row ends must survive creation of pending captions");
+  assert.match(studioImport, /start: s\.start, end: s\.end, text: cl\[k\]/,
+    "the import passport must retain ends, including silence before the next subtitle");
 });

@@ -140,7 +140,7 @@
       if (!raw || raw.role !== 'raw_original' || !Array.isArray(raw.segments)) throw createError('RAW_REVISION_REQUIRED');
       var sha = cleanHash(media.sha256), packageId = sha ? 'mpkg:' + sha : 'mpkg:unbound:' + raw.track_fingerprint;
       var existing = await one('SELECT package_id FROM studio_media_packages WHERE package_id = ? AND deleted_at IS NULL LIMIT 1', [packageId]);
-      if (existing) return packageResult(existing.package_id);
+      if (existing) return Object.assign(await packageResult(existing.package_id), { reused: true });
       var rawTrackId = 'track:raw:' + raw.track_fingerprint;
       var correctedTrackId = 'track:corrected:' + raw.track_fingerprint;
       var correctedSegments = Core.createCorrectedDraft(raw.segments, { id_factory: (function () { var n = 0; return function () { return 'cseg:' + raw.track_fingerprint.slice(0, 20) + ':' + n++; }; })() });
@@ -149,6 +149,9 @@
       var correctedRevisionId = 'rev:' + correctedHash;
       var ts = now();
       return transaction(async function () {
+        // Another import may have created this package while its revision hash was computed.
+        var concurrent = await one('SELECT package_id FROM studio_media_packages WHERE package_id = ? AND deleted_at IS NULL LIMIT 1', [packageId]);
+        if (concurrent) return Object.assign(await packageResult(concurrent.package_id), { reused: true });
         await r(`INSERT INTO studio_media_packages
           (package_id,media_sha256,mime,duration_ms,original_name,opfs_path,size_bytes,external_ref_json,created_at,updated_at,deleted_at)
           VALUES (?,?,?,?,?,?,?,?,?,?,NULL)`, [packageId, sha, media.mime || null, media.duration_ms == null ? null : Math.round(Number(media.duration_ms)), media.original_name || null, media.opfs_path || null, media.size_bytes == null ? null : Number(media.size_bytes), json(media.external_ref || null), ts, ts]);
@@ -169,7 +172,7 @@
           VALUES (?,?,?,1,?,?,?,?,?,?)`, [correctedRevisionId, correctedTrackId, rawRevisionId, json(correctedSegments), json([]), correctedHash, 'import', json({ copied_from_raw_revision_id: rawRevisionId }), ts]);
         await r('UPDATE studio_caption_tracks SET current_revision_id = ?, updated_at = ? WHERE track_id = ?', [correctedRevisionId, ts, correctedTrackId]);
         inject(input.fault_inject, 'after_corrected_revision'); inject(input.fault_inject, 'before_commit');
-        return { package_id: packageId, raw_track_id: rawTrackId, corrected_track_id: correctedTrackId, raw_revision_id: rawRevisionId, corrected_revision_id: correctedRevisionId };
+        return { package_id: packageId, raw_track_id: rawTrackId, corrected_track_id: correctedTrackId, raw_revision_id: rawRevisionId, corrected_revision_id: correctedRevisionId, reused: false };
       });
     }
 

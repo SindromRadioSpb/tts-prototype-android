@@ -26,7 +26,7 @@ async function harness() {
     dbRun: async (sql, params) => { const stmt = db.prepare(sql); stmt.run(params || []); stmt.free(); return { changes: db.getRowsModified() }; },
     execRaw: async (sql) => { db.run(sql); },
   };
-  return { db, rows, repo: Repository.createRepository(adapter, Core) };
+  return { db, rows, adapter, repo: Repository.createRepository(adapter, Core) };
 }
 
 async function rawRevision(sha = 'a'.repeat(64), suffix = '') {
@@ -35,6 +35,70 @@ async function rawRevision(sha = 'a'.repeat(64), suffix = '') {
     segments: [{ start_ms: 0, end_ms: 1000, text: 'שלום' }, { start_ms: 1100, end_ms: 2200, text: 'מיה' + suffix }],
   });
 }
+
+test('subtitle speech correction creates a separate revision and duplicate import preserves it',async()=>{
+  const h=await harness(),Studio=require('../public/js/studio-media-package.js');
+  const evidence={schema:'subtitle-speech-sync-v1',status:'correctable',apply_offset_ms:750,
+    input_sha256:'c'.repeat(64),subtitle_sha256:'d'.repeat(64),source_sha256:'e'.repeat(64),audio_stream_index:2};
+  const meta={kind:'captions',textSnapshot:'שלום\nעולם',captions:{segments_are_final_rows:true,
+    captions:{format:'srt',language:'he',subtitle_sync:evidence,subtitle_track_sha256:'d'.repeat(64),source_sha256:'e'.repeat(64),audio_stream_index:2},
+    segments:[{i:0,start:1,end:2,text:'שלום'},{i:1,start:3,end:4,text:'עולם'}],
+    media:{sha256:'a'.repeat(64),mime:'video/mp4',durationSec:120}}};
+  Studio.setRepositoryForTests(h.repo);
+  try{
+    const first=await Studio.createFromImportMeta(meta);
+    const raw=await h.repo.getRevision(first.package.raw_revision_id);
+    assert.equal(raw.segments[0].start_ms,1000);
+    assert.equal(raw.segments[0].end_ms,2000, 'silence before the next cue must not extend this cue');
+    assert.equal(first.revision.segments[0].start_ms,1750);
+    assert.equal(first.revision.segments[0].authority.timing,'derived');
+    assert.equal(first.revision.segments[1].end_ms,4750);
+    assert.equal(first.revision.provenance.subtitle_sync.input_sha256,evidence.input_sha256);
+    const count=h.rows('SELECT count(*) n FROM studio_caption_revisions')[0].n;
+    const again=await Studio.createFromImportMeta(meta);
+    assert.equal(again.revision.revision_id,first.revision.revision_id);
+    assert.equal(h.rows('SELECT count(*) n FROM studio_caption_revisions')[0].n,count);
+    assert.deepEqual((await h.repo.getRevision(first.package.raw_revision_id)).segments,raw.segments);
+    const change=Core.applyOperation('user_corrected',again.revision.segments,{type:'edit_timing',
+      caption_segment_id:again.revision.segments[0].caption_segment_id,start_ms:1800,end_ms:2700});
+    await h.repo.saveDraft(again.ref.track_id,again.ref.revision_id,change.segments,[change.operation]);
+    const manual=await h.repo.commitDraft(again.ref.track_id,{author_kind:'user'});
+    assert.equal((await Studio.createFromImportMeta(meta)).revision.revision_id,manual.revision_id,
+      'a later manual timing correction must survive import of the same source');
+  }finally{Studio.setRepositoryForTests(null);}
+});
+
+test('a package created while the revision hash is computed is returned as reused', async () => {
+  const h = await harness(), raw = await rawRevision();
+  const input = { media: { sha256: 'a'.repeat(64) }, raw_revision: raw };
+  const competing = Repository.createRepository(h.adapter, { ...Core, revisionHash: async (...args) => {
+    await h.repo.createPackage(input);
+    return Core.revisionHash(...args);
+  } });
+  assert.equal((await competing.createPackage(input)).reused, true);
+  assert.equal(h.rows('SELECT count(*) n FROM studio_caption_revisions')[0].n, 2);
+});
+
+test('subtitle correction rejects stale audio identity and unsafe intervals', async () => {
+  const Studio = require('../public/js/studio-media-package.js');
+  for (const change of [{ audio_stream_index: 3 }, { source_sha256: 'f'.repeat(64) },
+    { subtitle_sha256: 'f'.repeat(64) }, { apply_offset_ms: -1500 },
+    { apply_offset_ms: 1600 }, { schema: 'unknown' }, { status: 'needs_review' }]) {
+    const h = await harness();
+    const sync = { schema: 'subtitle-speech-sync-v1', status: 'correctable', apply_offset_ms: 750,
+      audio_stream_index: 2, input_sha256: 'c'.repeat(64), source_sha256: 'd'.repeat(64), subtitle_sha256: 'e'.repeat(64), ...change };
+    Studio.setRepositoryForTests(h.repo);
+    try {
+      const result = await Studio.createFromImportMeta({ kind: 'captions', textSnapshot: 'שלום', captions: {
+        segments_are_final_rows: true, segments: [{ start: 1, end: 2, text: 'שלום' }],
+        media: { sha256: 'a'.repeat(64), durationSec: 120 }, captions: { format: 'srt', subtitle_sync: sync,
+          audio_stream_index: 2, source_sha256: 'd'.repeat(64), subtitle_track_sha256: 'e'.repeat(64) } } });
+      assert.equal(result.timing_correction_applied, false);
+      assert.equal(result.revision.segments[0].start_ms, 1000);
+      assert.equal(h.rows('SELECT count(*) n FROM studio_caption_revisions')[0].n, 2);
+    } finally { Studio.setRepositoryForTests(null); }
+  }
+});
 
 test('timing repair atomically preserves rows and raw history, rejects stale edits, and rolls back failures',async()=>{
   const h=await harness();h.db.run("CREATE TABLE sentences(id TEXT PRIMARY KEY,text_id TEXT,order_index INTEGER,he_plain TEXT,ru TEXT); INSERT INTO texts VALUES('t','{}'); INSERT INTO sentences VALUES('s','t',0,'שלום','привет');");
@@ -142,6 +206,8 @@ test('package creation is idempotent and raw revision has no mutation API', asyn
   const first = await h.repo.createPackage({ media: { sha256: 'a'.repeat(64), mime: 'audio/mpeg', duration_ms: 2200, original_name: 'mia.mp3', opfs_path: 'media/' + 'a'.repeat(64) + '.mp3' }, raw_revision: raw });
   const second = await h.repo.createPackage({ media: { sha256: 'a'.repeat(64), mime: 'audio/mpeg' }, raw_revision: raw });
   assert.equal(second.package_id, first.package_id);
+  assert.equal(first.reused, false);
+  assert.equal(second.reused, true);
   assert.equal(h.rows('SELECT COUNT(*) AS n FROM studio_media_packages')[0].n, 1);
   assert.equal(h.rows('SELECT COUNT(*) AS n FROM studio_caption_tracks')[0].n, 2);
   assert.equal(h.rows('SELECT COUNT(*) AS n FROM studio_caption_revisions')[0].n, 2);

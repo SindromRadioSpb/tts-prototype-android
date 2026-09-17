@@ -1125,8 +1125,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/youtube-timing.js?v=555",
   "/js/youtube-full-timing.js?v=557",
   "/js/study-timing-repair.js?v=556",
-  "/js/studio-media-package.js?v=575",
-  "/js/media-package-repository.js?v=575",
+  "/js/studio-media-package.js?v=577",
+  "/js/media-package-repository.js?v=577",
   "/js/media-bundle-core.js?v=575",
   "/js/media-stream-store.js?v=576",
   "/js/material-revision-repository.js?v=553",
@@ -1143,8 +1143,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/portable-learning-package-repository.js?v=576",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
-  "/js/studio-import.js?v=573",
-  "/js/local-asr-client.js?v=573",
+  "/js/studio-import.js?v=577",
+  "/js/local-asr-client.js?v=577",
+  "/js/subtitle-material-import.js?v=577",
+  "/js/media-readiness.js?v=577",
   "/js/local-translit-bundle.js?v=573",
   "/js/subtitle-material-vocalization.js?v=573",
 
@@ -1196,9 +1198,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=575",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/i18n/locales/ru.js?v=231",
-  "/i18n/locales/en.js?v=231",
-  "/i18n/locales/he.js?v=231",
+  "/i18n/locales/ru.js?v=232",
+  "/i18n/locales/en.js?v=232",
+  "/i18n/locales/he.js?v=232",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

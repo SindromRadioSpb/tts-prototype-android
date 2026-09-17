@@ -235,6 +235,12 @@
     var contentType = String((response.headers && response.headers.get("content-type")) || "").toLowerCase();
     return { text: text, sha256: actual, bytes: bytes.length, format: contentType.indexOf("vtt") >= 0 ? "vtt" : "srt" };
   };
+  Client.prototype.mediaSubtitleSync = function (id, streamIndex, subtitleSha256, cueStarts) {
+    return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/subtitle-sync", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ stream_index: streamIndex, subtitle_sha256: subtitleSha256, cue_starts: cueStarts }),
+    });
+  };
   // Returns the live response: prepared video is streamed into OPFS, never buffered whole.
   Client.prototype.mediaFileResponse = function (id, rendition) {
     var query = rendition && rendition !== "full" ? "?rendition=" + encodeURIComponent(rendition) : "";

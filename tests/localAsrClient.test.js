@@ -17,6 +17,15 @@ function response(status, body) {
   return { ok: status >= 200 && status < 300, status, json: async () => body };
 }
 
+test("subtitle speech assessment sends verified cue identity only to the paired loopback endpoint", async () => {
+  const calls = [];
+  const client = new C.Client({ tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => { calls.push({ url, options }); return response(200, { status: "aligned" }); } });
+  await client.mediaSubtitleSync("job/1", 7, "a".repeat(64), [1, 5]);
+  assert.match(calls[0].url, /^http:\/\/127\.0\.0\.1:8799\/v1\/media\/jobs\/job%2F1\/subtitle-sync$/);
+  assert.deepEqual(JSON.parse(calls[0].options.body), { stream_index: 7, subtitle_sha256: "a".repeat(64), cue_starts: [1, 5] });
+});
+
 test("experimental local ASR is strictly default-off and pairing token is session-scoped", () => {
   const local = store(), session = store();
   assert.equal(C.isExperimentalEnabled(local), false);

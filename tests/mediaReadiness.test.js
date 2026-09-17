@@ -4,6 +4,16 @@ const MediaReadiness = require('../public/js/media-readiness.js');
 
 const H = (char) => char.repeat(64);
 
+test('audio conversion and track choice are actionable preflight states, not blocked video', () => {
+  for (const [outcome, key] of [['AUDIO_TRANSCODE_REQUIRED', 'mediaAudioTranscodeRequired'],
+    ['AUDIO_CHOICE_REQUIRED', 'mediaAudioChoiceRequired']]) {
+    const state = MediaReadiness.acceptReport({job_id:'fixture',state:'WAITING_FOR_DECISION',report:{outcome}});
+    assert.equal(MediaReadiness.statusKey(state),key);
+    assert.equal(MediaReadiness.canStartAsr(state),false, 'preparation is still required before recognition');
+  }
+  assert.equal(MediaReadiness.statusKey({outcome:'BLOCKED'}),'mediaBlocked');
+});
+
 test('video selection is unresolved and blocks ASR until exact media is ready', () => {
   const selected = MediaReadiness.initialForFile({ name: 'lesson.mp4', type: 'video/mp4' });
   assert.equal(selected.outcome, 'PROBING');

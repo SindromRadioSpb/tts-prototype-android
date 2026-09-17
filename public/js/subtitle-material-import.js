@@ -179,7 +179,40 @@
     };
   }
 
+  // Only the paired local companion may assess speech. Older companions and ambiguous
+  // evidence leave the original subtitle times intact; no provider fallback is allowed.
+  async function assessSubtitleSync(options) {
+    var opts = options || {}, track = opts.track || {};
+    function unverified(reason) {
+      return { schema: "subtitle-speech-sync-v1", status: "unverified", apply_offset_ms: 0, reason: reason };
+    }
+    if (!opts.client || typeof opts.client.mediaSubtitleSync !== "function") return unverified("companion_update_required");
+    if (!SHA_RE.test(String(track.sha256 || "")) || !SHA_RE.test(String(opts.sourceSha256 || "")) ||
+        !Number.isInteger(opts.audioStreamIndex)) return unverified("source_identity_missing");
+    var starts = (opts.cues || track.cues || []).map(function (cue) { return cue.start; });
+    if (!starts.length || starts.some(function (value) { return !Number.isFinite(value) || value < 0; })) {
+      return unverified("invalid_cue_times");
+    }
+    var result;
+    try {
+      result = await opts.client.mediaSubtitleSync(opts.jobId, track.index, track.sha256, starts);
+    } catch (_) { return unverified("local_speech_analysis_unavailable"); }
+    if (!result || result.schema !== "subtitle-speech-sync-v1" ||
+        ["aligned", "correctable", "needs_review", "unverified"].indexOf(result.status) < 0 ||
+        result.source_sha256 !== opts.sourceSha256 || result.subtitle_sha256 !== track.sha256 ||
+        result.audio_stream_index !== opts.audioStreamIndex || !SHA_RE.test(String(result.input_sha256 || ""))) {
+      return unverified("assessment_identity_mismatch");
+    }
+    var offset = result.apply_offset_ms;
+    if (!Number.isInteger(offset) ||
+        (result.status === "correctable" ? Math.abs(offset) <= 300 || Math.abs(offset) > 1500 : offset !== 0)) {
+      return unverified("unsafe_timing_correction");
+    }
+    return result;
+  }
+
   var API = {
+    assessSubtitleSync: assessSubtitleSync,
     loadSubtitleTracks: loadSubtitleTracks,
     confirmMediaPlan: confirmMediaPlan,
     storePreparedMedia: storePreparedMedia,

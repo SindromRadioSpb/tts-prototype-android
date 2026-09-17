@@ -1103,6 +1103,9 @@
     if (vb) vb.disabled = b;
     var f = $("v3ImportFile");
     if (f) f.disabled = b;
+    var audioPicker = $("v3ImportAudioPicker"), audioInput = $("v3ImportAudio");
+    if (audioPicker) audioPicker.disabled = b;
+    if (audioInput) audioInput.disabled = b;
     var ab = $("v3ImportAudioGo");
     if (ab) ab.disabled = b;
     var ap = $("v3ImportAudioProvider");
@@ -1239,11 +1242,7 @@
     panel.hidden = !isVideo;
     if (!isVideo || !state) return;
     var badge = $("v3ImportMediaBadge"), detail = $("v3ImportMediaDetail"), progress = $("v3ImportMediaProgress");
-    var outcomeKey = {
-      PROBING: "studio.import.mediaProbing", READY: "studio.import.mediaReady", DEVICE_READY: "studio.import.mediaDeviceReady",
-      LOSSLESS_REPAIR: "studio.import.mediaLosslessRepair", TRANSCODE_REQUIRED: "studio.import.mediaTranscodeRequired",
-      BLOCKED: "studio.import.mediaBlocked", TRANSCRIPT_ONLY: "studio.import.mediaTranscriptOnly",
-    }[state.outcome] || "studio.import.mediaBlocked";
+    var outcomeKey = "studio.import." + window.MediaReadiness.statusKey(state);
     if (badge) { badge.textContent = tr(outcomeKey); badge.dataset.outcome = state.outcome || "BLOCKED"; }
     var codec = state.codec_summary || {};
     var parts = [codec.video_codec, codec.profile, codec.declared_level ? "L" + (codec.declared_level / 10).toFixed(1) : null,
@@ -1256,7 +1255,8 @@
     }
     var prepare = $("v3ImportMediaPrepare");
     if (prepare) {
-      prepare.hidden = !["LOSSLESS_REPAIR", "TRANSCODE_REQUIRED"].includes(state.outcome);
+      prepare.hidden = window.MediaReadiness.usableSubtitleTracks(state).length > 0 ||
+        !["LOSSLESS_REPAIR", "TRANSCODE_REQUIRED", "AUDIO_TRANSCODE_REQUIRED"].includes(state.outcome);
       prepare.disabled = !state.disk_sufficient;
       prepare.textContent = state.outcome === "LOSSLESS_REPAIR" ? tr("studio.import.mediaRepairBtn") : tr("studio.import.mediaConvertBtn");
     }
@@ -1273,6 +1273,7 @@
     if (technical) {
       var plan = state.plan || {}, operations = plan.operations || [];
       technical.textContent = parts.join(" · ")
+        + (state.error || state.reason ? "\n" + String(state.error || state.reason) : "")
         + (plan.quality_impact ? "\n" + tr("studio.import.mediaQualityImpact") + ": " + plan.quality_impact : "")
         + (operations.length ? "\n" + operations.join(" → ") : "");
     }
@@ -1430,12 +1431,13 @@
         if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio.mediaJobId) {
           await cleanupCompletedMediaJob(pendingAudio.mediaReadiness || {}, pendingAudio.mediaJobId);
         }
-        pendingAudio.mediaReadiness = error && error.job
+        pendingAudio.mediaReadiness = error && error.job && error.job.job_id
           ? window.MediaReadiness.acceptReport(error.job)
           : { outcome: "BLOCKED", reason: error && error.code || "preflight_failed", next_action: "check-local-companion" };
         renderMediaReadiness();
       }
-      setStatus(error && error.code === "MEDIA_JOB_CANCELED" ? "studio.import.mediaCancelled" : "studio.import.mediaPreflightFailed");
+      setStatus(error && error.code === "MEDIA_JOB_CANCELED" ? "studio.import.mediaCancelled"
+        : error && error.status === 429 ? "studio.import.mediaCompanionBusy" : "studio.import.mediaPreflightFailed");
     } finally {
       mediaJobController = null;
       setBusy(false);
@@ -1690,7 +1692,7 @@
     }
     var build = $("v3ImportSubtitlePlanBuild");
     if (build) {
-      build.hidden = plan.status !== "ready" || !!(pendingSubtitleMaterial.stored);
+      build.hidden = plan.status !== "ready" || pendingSubtitleMaterial.applied === true;
       build.disabled = !!pendingSubtitleMaterial.working;
     }
   }
@@ -1723,7 +1725,7 @@
 
   // S4c — из выбранных дорожек собираются строки материала: текст из целевой дорожки, перевод из
   // дорожки перевода по времени, язык речи по forced-дорожке и пометкам. Ни одного платного вызова.
-  function buildSubtitleTable(plan, stored, job) {
+  async function buildSubtitleTable(plan, stored, job) {
     var SMC = window.SubtitleMaterialCore;
     var material = pendingSubtitleMaterial;
     if (!SMC || !material || !plan || !plan.text) return null;
@@ -1739,6 +1741,12 @@
     var translationCues = translationTrack ? translationTrack.cues : [];
     var verdicts = SMC.speechLanguage(textTrack.cues, {
       forcedCues: forcedCues, translationCues: translationCues, targetLanguage: "he",
+    });
+    setSubtitlePlanStatus("studio.import.subtitleSyncChecking");
+    material.timingAssessment = await window.SubtitleMaterialImport.assessSubtitleSync({
+      client: localAsrClient, jobId: pendingAudio.mediaJobId, track: textTrack,
+      sourceSha256: job.source_sha256, audioStreamIndex: plan.audio && plan.audio.index,
+      cues: textTrack.cues.filter(function (_, i) { return verdicts[i] && verdicts[i].value !== "other"; }),
     });
     var rows = SMC.buildRows({
       textCues: textTrack.cues, speechLanguage: verdicts,
@@ -1758,9 +1766,13 @@
       parsed: {
         ok: true, format: textTrack.format || "srt", kindHint: "container-track", rolling: false,
         language: textTrack.language || "he", droppedHeadings: 0, warnings: [],
-        segments: rows.map(function (row, index) { return { i: index, start: row.start, text: row.text }; }),
+        segments: rows.map(function (row, index) { return { i: index, start: row.start, end: row.end, text: row.text }; }),
       },
       origin: "container-track",
+      subtitleSync: material.timingAssessment,
+      subtitleTrackSha256: textTrack.sha256,
+      sourceSha256: job.source_sha256,
+      audioStreamIndex: plan.audio && plan.audio.index,
       fileName: (stored && stored.name) || pendingAudio.name || null,
       rawSource: textTrack.raw,
       // The raw track keeps the original cues as evidence, but promotion must build the package
@@ -1799,18 +1811,20 @@
   async function buildSubtitleMaterial() {
     var material = pendingSubtitleMaterial;
     if (!material || !material.plan || material.plan.status !== "ready" || material.working) return;
-    var plan = material.plan;
+    var plan = material.preparationPlan || material.plan;
+    material.preparationPlan = plan;
     material.working = true;
     setBusy(true);
     setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
     renderSubtitlePlan();
     try {
-      var job = await window.SubtitleMaterialImport.confirmMediaPlan({
+      var job = material.preparedJob || await window.SubtitleMaterialImport.confirmMediaPlan({
         client: localAsrClient, jobId: pendingAudio.mediaJobId,
         mode: ((pendingAudio.mediaReadiness || {}).plan || {}).mode,
         planSha256: plan.plan_sha256, waitOptions: { onStatus: mediaJobStatus },
       });
-      var stored = await window.SubtitleMaterialImport.storePreparedMedia({
+      material.preparedJob = job;
+      var stored = material.stored || await window.SubtitleMaterialImport.storePreparedMedia({
         client: localAsrClient, jobId: pendingAudio.mediaJobId, job: job,
         maxBytes: window.MediaReadiness.VIDEO_MAX_BYTES,
       });
@@ -1818,11 +1832,12 @@
       setSubtitlePlanStatus("studio.import.subtitlePlanStored",
         { size: window.MediaReadiness.humanBytes(stored.sizeBytes) });
       var liteToggle = $("v3ImportSubtitlePlanLite");
-      if (liteToggle && liteToggle.checked && plan.lite.available && plan.lite_plan_sha256) {
-        var liteJob = await window.SubtitleMaterialImport.confirmMediaPlan({
+      if (!material.storedLite && liteToggle && liteToggle.checked && plan.lite.available && plan.lite_plan_sha256) {
+        var liteJob = material.preparedLiteJob || await window.SubtitleMaterialImport.confirmMediaPlan({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, mode: "lite_transcode",
           planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: mediaJobStatus },
         });
+        material.preparedLiteJob = liteJob;
         material.storedLite = await window.SubtitleMaterialImport.storePreparedMedia({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, job: liteJob, rendition: "lite",
         });
@@ -1838,7 +1853,7 @@
       renderMediaReadiness();
       // Таблица собирается и уезжает в Студию тем же путём, что и обычный импорт: useText()
       // создаёт медиа-пакет и закрывает диалог, поэтому итог сообщаем тостом, а не строкой в нём.
-      var tableRows = buildSubtitleTable(plan, stored, job);
+      var tableRows = await buildSubtitleTable(plan, stored, job);
       if (tableRows && window.SubtitleMaterialVocalization && window.LocalTranslit) {
         var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
           client: localAsrClient,
@@ -1851,9 +1866,15 @@
         throw new Error("LOCAL_VOCALIZATION_UNAVAILABLE");
       }
       if (tableRows && await applySubtitleMaterial()) {
+        material.applied = true;
         try {
           if (typeof window.showToast === "function") {
-            window.showToast(tr("studio.import.subtitlePlanTableReady", { rows: tableRows.length }), "success");
+            var syncStatus = (material.timingAssessment || {}).status;
+            var syncKey = material.timingCorrectionApplied ? "subtitleSyncCorrected"
+              : syncStatus === "aligned" ? "subtitleSyncAligned"
+              : syncStatus === "needs_review" ? "subtitleSyncReview" : "subtitleSyncUnverified";
+            window.showToast(tr("studio.import.subtitlePlanTableReady", { rows: tableRows.length }) + " " +
+              tr("studio.import." + syncKey), syncStatus === "needs_review" ? "warning" : "success");
           }
         } catch (_) {}
       } else {
@@ -1895,13 +1916,23 @@
 
   async function acceptAudioFile(file, sourceHandle) {
     if (!file) return;
-    $("v3ImportAudioInfo").hidden = true;
-    pendingAudio = null;
     var isVideo = window.MediaReadiness.isVideo(file);
     if (file.size > window.MediaReadiness.sizeLimitFor(file)) {
       setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge");
       return;
     }
+    // Replacing a preflight must release its queue slot. Keep its files; cancellation is not deletion.
+    if (pendingAudio && pendingAudio.mediaJobId && localAsrClient &&
+        pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.state === "WAITING_FOR_DECISION") {
+      try {
+        var previousJob = await localAsrClient.getMediaJob(pendingAudio.mediaJobId);
+        if (previousJob.state === "WAITING_FOR_DECISION") await localAsrClient.cancelMediaJob(previousJob.job_id);
+      } catch (error) {
+        if (!error || error.status !== 404) { setStatus("studio.import.mediaPreflightFailed"); return; }
+      }
+    }
+    $("v3ImportAudioInfo").hidden = true;
+    pendingAudio = null;
     if (!isVideo && selectedAudioProvider() === "gemini") {
       var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
       if (!key) { setStatus("studio.import.errNoKey"); return; }
@@ -1942,16 +1973,19 @@
   }
 
   async function chooseAudioFile() {
+    var selectedHandle = null;
     if (typeof window.showOpenFilePicker === "function") {
       try {
         var handles = await window.showOpenFilePicker({ id: "linguistpro-studio-media", multiple: false, startIn: "videos" });
         var handle = handles && handles[0];
-        if (handle && typeof handle.getFile === "function") return acceptAudioFile(await handle.getFile(), handle);
-        return;
+        if (handle && typeof handle.getFile === "function") selectedHandle = handle;
+        else return;
       } catch (error) {
         if (error && error.name === "AbortError") return;
       }
     }
+    // A processing error must not open a second picker and enqueue the same file again.
+    if (selectedHandle) return acceptAudioFile(await selectedHandle.getFile(), selectedHandle);
     var input = $("v3ImportAudio");
     if (input) input.click();
   }
@@ -2884,13 +2918,17 @@
                                 : (pendingCaptions.parsed.format === "vtt" || pendingCaptions.parsed.format === "srt" ? "vtt-plain" : "none"),
                     language: pendingCaptions.parsed.language, fileName: pendingCaptions.fileName,
                     at: new Date().toISOString(), droppedHeadings: pendingCaptions.parsed.droppedHeadings,
-                    warnings: pending.warnings || [], acquisition: pendingCaptions.acquisition || undefined },
+                    warnings: pending.warnings || [], acquisition: pendingCaptions.acquisition || undefined,
+                    subtitle_sync: pendingCaptions.subtitleSync || undefined,
+                    subtitle_track_sha256: pendingCaptions.subtitleTrackSha256 || undefined,
+                    source_sha256: pendingCaptions.sourceSha256 || undefined,
+                    audio_stream_index: pendingCaptions.audioStreamIndex },
         video: pendingCaptions.video || undefined,
         // S4c: субтитры из контейнера приходят вместе с локальным видео — без media паспорт
         // остаётся без привязки, и материал теряет плеер (passportToPromotionInput читает media).
         media: pendingCaptions.media || undefined,
         segments: cEdited ? cl.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
-                          : ps.map(function (s, k) { return { i: k, start: s.start, text: cl[k] }; }),
+                          : ps.map(function (s, k) { return { i: k, start: s.start, end: s.end, text: cl[k] }; }),
         timing: null,
         timingDropReason: cEdited ? "PREVIEW_EDITED" : null,
       };
@@ -2919,6 +2957,7 @@
     if ((audioMetaForImport || captionsMetaForImport) && window.StudioMediaPackage) {
       try {
         mediaPackage = await window.StudioMediaPackage.createFromImportMeta(importMeta);
+        if (pendingSubtitleMaterial) pendingSubtitleMaterial.timingCorrectionApplied = mediaPackage.timing_correction_applied === true;
         var projection = window.StudioMediaPackage.buildCompatibilityProjection(mediaPackage.revision, {
           kind: mediaPackage.input.kind, media: mediaPackage.input.media,
         });

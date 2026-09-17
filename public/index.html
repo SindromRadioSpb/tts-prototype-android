@@ -13352,9 +13352,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=231"></script>
-<script src="/i18n/locales/en.js?v=231"></script>
-<script src="/i18n/locales/he.js?v=231"></script>
+<script src="/i18n/locales/ru.js?v=232"></script>
+<script src="/i18n/locales/en.js?v=232"></script>
+<script src="/i18n/locales/he.js?v=232"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13443,8 +13443,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
-<script src="/js/local-asr-client.js?v=573"></script>
-<script src="/js/media-readiness.js"></script>
+<script src="/js/local-asr-client.js?v=577"></script>
+<script src="/js/media-readiness.js?v=577"></script>
 <!-- Audited incremental SHA-256 runtime served from node_modules by an allowlisted route. The
      store below hashes a 1.6 GB stream chunk by chunk, which crypto.subtle cannot do, so this
      must load first or every media write fails with HASH_RUNTIME_UNAVAILABLE. -->
@@ -13457,7 +13457,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- Materials built from container subtitle tracks: pure decisions, then byte orchestration.
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=559"></script>
-<script src="/js/subtitle-material-import.js?v=558"></script>
+<script src="/js/subtitle-material-import.js?v=577"></script>
 <script src="/js/local-translit-bundle.js?v=573"></script>
 <script src="/js/subtitle-material-vocalization.js?v=573"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
@@ -13474,7 +13474,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/chunk-retry.js?v=519"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/media-package-core.js"></script>
-<script src="/js/media-package-repository.js?v=575"></script>
+<script src="/js/media-package-repository.js?v=577"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js?v=553"></script>
 <link rel="stylesheet" href="/css/study-video-source.css?v=520">
@@ -13495,7 +13495,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=485"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
-<script src="/js/studio-media-package.js?v=575"></script>
+<script src="/js/studio-media-package.js?v=577"></script>
 <script src="/js/studio-media-editor.js?v=529"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=576"></script>
@@ -13537,7 +13537,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=573" defer></script>
+<script src="/js/studio-import.js?v=577" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13575,7 +13575,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.576";
+    window.APP_VERSION = "3.11.577";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

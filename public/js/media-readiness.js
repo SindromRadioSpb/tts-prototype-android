@@ -43,6 +43,15 @@
       && /^[a-f0-9]{64}$/i.test(String(state.canonical_sha256 || ""));
   }
 
+  function statusKey(state) {
+    return {
+      PROBING: "mediaProbing", READY: "mediaReady", DEVICE_READY: "mediaDeviceReady",
+      LOSSLESS_REPAIR: "mediaLosslessRepair", TRANSCODE_REQUIRED: "mediaTranscodeRequired",
+      AUDIO_TRANSCODE_REQUIRED: "mediaAudioTranscodeRequired", AUDIO_CHOICE_REQUIRED: "mediaAudioChoiceRequired",
+      BLOCKED: "mediaBlocked", TRANSCRIPT_ONLY: "mediaTranscriptOnly",
+    }[state && state.outcome] || "mediaBlocked";
+  }
+
   function deviceAsrPolicy(userAgent, localEnabled) {
     var ua = String(userAgent || "");
     // iPadOS can request the desktop site and identify as Macintosh, but keeps
@@ -273,6 +282,7 @@
     isVideo: isVideo,
     initialForFile: initialForFile,
     canStartAsr: canStartAsr,
+    statusKey: statusKey,
     deviceAsrPolicy: deviceAsrPolicy,
     acceptDeviceReady: acceptDeviceReady,
     acceptReport: acceptReport,
