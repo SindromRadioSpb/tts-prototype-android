@@ -39,6 +39,29 @@ function hasher() {
   return { init() {}, update(value) { h.update(value); }, digest() { return h.digest('hex'); } };
 }
 
+test('reimport verifies existing bytes and reuses them even without space for another copy', async () => {
+  const root=memoryOpfs(), bytes=Buffer.from('verified video');
+  const sha=crypto.createHash('sha256').update(bytes).digest('hex');
+  root.files.set('existing.mp4',bytes);
+  let canceled=false;
+  const response=new Response(new ReadableStream({cancel(){canceled=true;}}));
+  const out=await Store.streamToOpfs({response,fileName:'existing.mp4',expectedSha256:sha,
+    expectedSize:bytes.length,root,storageEstimate:{quota:bytes.length,usage:bytes.length},hasherFactory:async()=>hasher()});
+  assert.equal(out.reused,true);
+  assert.equal(canceled,true);
+  assert.equal(root.files.size,1);
+  assert.deepEqual(root.files.get('existing.mp4'),bytes);
+});
+
+test('same name and size never bypass hash verification; failed replacement preserves existing file', async () => {
+  const root=memoryOpfs();root.files.set('existing.mp4',Buffer.from('bad'));
+  await assert.rejects(()=>Store.streamToOpfs({response:new Response('bad'),fileName:'existing.mp4',
+    expectedSha256:crypto.createHash('sha256').update('new').digest('hex'),expectedSize:3,
+    root,hasherFactory:async()=>hasher()}),/HASH_MISMATCH/);
+  assert.equal(root.files.get('existing.mp4').toString(),'bad');
+  assert.equal(root.files.size,1);
+});
+
 test('real bundle reader imports a headerless local stream with size and SHA verification', async () => {
   const IO=require('../public/js/media-bundle-io.js'),Core=require('../public/js/media-bundle-core.js');
   const payload=Buffer.from('hebrew-video-fixture'),sha=crypto.createHash('sha256').update(payload).digest('hex');

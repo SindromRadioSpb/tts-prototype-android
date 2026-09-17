@@ -790,7 +790,15 @@ async def v1_niqqud(body: NakdanRequest):
     """Paired browser route for local subtitle vocalization; never falls back to cloud."""
     if len(body.texts) > 16 or any(len(text) > 4000 for text in body.texts) or sum(map(len, body.texts)) > 16000:
         raise HTTPException(status_code=413, detail="niqqud batch too large")
-    return await nakdan(body)
+    try:
+        return await nakdan(body)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # A handled response passes through the paired CORS middleware. Unhandled model
+        # failures otherwise become opaque browser network errors, hiding the retry path.
+        log.error("paired niqqud failed: %s", type(exc).__name__)
+        raise HTTPException(status_code=503, detail="LOCAL_NIQQUD_MODEL_UNAVAILABLE") from exc
 
 
 @app.post("/translate", response_model=TranslateResponse)

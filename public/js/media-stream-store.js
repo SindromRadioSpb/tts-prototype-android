@@ -83,10 +83,31 @@
     if (declaredSize != null && declaredSize > maxBytes) throw failure("SIZE_LIMIT");
     var expectedSha = String(options.expectedSha256 || header(response, "x-lp-media-sha256") || "").toLowerCase();
     if (!/^[a-f0-9]{64}$/.test(expectedSha)) throw failure("EXPECTED_HASH_INVALID");
-    await ensureCapacity(declaredSize, options.storageEstimate);
-
     var root = options.root || await defaultRoot();
     var dir = await root.getDirectoryHandle(DIR, { create: true });
+    // A filename is not evidence: verify existing bytes before avoiding a duplicate write.
+    var existing = null;
+    try { existing = await (await dir.getFileHandle(finalName)).getFile(); }
+    catch (error) { if (!error || error.name !== "NotFoundError") throw error; }
+    if (existing && existing.size <= maxBytes && (declaredSize == null || existing.size === declaredSize)) {
+      var existingHasher = await (options.hasherFactory || defaultHasherFactory)();
+      if (existingHasher.init) existingHasher.init();
+      var existingReader = existing.stream().getReader();
+      try {
+        while (true) {
+          if (options.signal && options.signal.aborted) throw failure("STREAM_ABORTED");
+          var piece = await existingReader.read();
+          if (piece.done) break;
+          existingHasher.update(piece.value);
+        }
+      } finally { existingReader.releaseLock(); }
+      if (String(existingHasher.digest("hex")).toLowerCase() === expectedSha) {
+        try { await response.body.cancel(); } catch (_) {}
+        return { ok: true, reused: true, opfsPath: DIR + "/" + finalName, sha256: expectedSha,
+          sizeBytes: existing.size, mimeType: header(response, "content-type") || options.mimeType || "application/octet-stream" };
+      }
+    }
+    await ensureCapacity(declaredSize, options.storageEstimate);
     var partialName = "." + finalName + "." + Math.random().toString(36).slice(2) + ".partial";
     var partial = await dir.getFileHandle(partialName, { create: true });
     var writable = await partial.createWritable();

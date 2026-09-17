@@ -1881,8 +1881,12 @@
         setSubtitlePlanStatus("studio.import.subtitlePlanFailed", { code: "SUBTITLE_TABLE_NOT_APPLIED" }, "error");
       }
     } catch (error) {
-      setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
-        { code: (error && error.code) || "SUBTITLE_MATERIAL_FAILED" }, "error");
+      if (error && (error.name === "QuotaExceededError" || error.code === "OPFS_QUOTA_LOW")) {
+        setSubtitlePlanStatus("studio.import.subtitlePlanStorageFull", {}, "error");
+      } else {
+        setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
+          { code: (error && error.code) || "SUBTITLE_MATERIAL_FAILED" }, "error");
+      }
     } finally {
       material.working = false;
       setBusy(false);

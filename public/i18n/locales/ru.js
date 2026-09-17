@@ -3764,6 +3764,7 @@ window.I18N_LOCALES.ru = {
       subtitlePlanStored: "Видео сохранено в браузере: {size}",
       subtitlePlanStoredLite: "Лёгкая копия сохранена: {size}",
       subtitlePlanFailed: "Не удалось подготовить материал: {code}",
+      subtitlePlanStorageFull: "Браузеру не хватило места для записи медиа. Освободите место в его хранилище или используйте обычное окно браузера и повторите. Подготовленные файлы остаются в Companion.",
       mediaTranscriptOnly: "Только расшифровка — playback не подготовлен",
       mediaNextAction: "Следующее действие",
       mediaDiskEstimate: "Оценка места для нового файла",

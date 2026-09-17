@@ -3751,6 +3751,7 @@ window.I18N_LOCALES.en = {
       subtitlePlanStored: "Video stored in this browser: {size}",
       subtitlePlanStoredLite: "Light copy stored: {size}",
       subtitlePlanFailed: "Could not prepare the material: {code}",
+      subtitlePlanStorageFull: "The browser could not store the media. Free up browser storage or use a regular browser window and retry. Prepared files remain in Companion.",
       mediaTranscriptOnly: "Transcript only — playback is not prepared",
       mediaNextAction: "Next action",
       mediaDiskEstimate: "Estimated space for the new file",
