@@ -494,3 +494,27 @@ test('a quote priced for the old three-point plan still runs on its own geometry
   assert.equal(calls.length,3,'never more calls than the quote named');
   assert.equal(result.evidence.spans,undefined,'an old quote is judged as one video, the way it was priced');
 });
+
+test('a timeline is rebuilt from the paid responses, restoring marks the old window rule erased',()=>{
+  const durationSec=3411,wins=Y.planWindows(durationSec);
+  // The closing window is 741s long and the model timed its speech past that; the last mark
+  // used to void the whole window, taking every row of it untimed.
+  // Gemini reports marks as "M:SS" strings, and each window on its own clock.
+  const mmss=t=>Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+  const raw=wins.map((window,i)=>{
+    const relative=i===wins.length-1;
+    // Marks sitting at a window's own start read the same on both clocks; place them where the
+    // two hypotheses actually differ, which is what a real window of speech looks like.
+    const segments=[0,20,40].map((v,k)=>({start:mmss(relative?v:window.startSec+400+v),
+      text:`שלום ${String.fromCharCode(1488+i)}${String.fromCharCode(1488+k)} עולם משפט עכשיו`}));
+    if(relative)segments.push({start:mmss(window.endSec-window.startSec+23),text:'גלישה מעבר לקצה הקטע כאן'});
+    return {window,raw:{candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({language:'he',segments})}]}}]}};
+  });
+  const rows=Y.restitchFromRaw(raw,durationSec);
+  assert.equal(rows.length,wins.length*3+1);
+  const closing=rows.slice(-4);
+  assert.deepEqual(closing.map(r=>r.startSec),[2670,2690,2710,null],'the clip clock is applied and only the overshoot stays untimed');
+  assert.equal(rows.filter(r=>r.startSec!=null).length,rows.length-1);
+  assert.equal(Y.restitchFromRaw([],durationSec),null,'no stored responses, no rebuilt timeline');
+  assert.equal(Y.restitchFromRaw(raw.slice(0,2),durationSec),null,'a partial journal is not a transcript');
+});

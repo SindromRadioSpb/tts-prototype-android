@@ -114,9 +114,18 @@
     const fullKey=!local&&window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
     const matches=e=>!!e?.source&&(local?e.source.kind==='local'&&e.source.sha256===ctx.source.sha256:e.source.video_id===ctx.source.video_id)&&e.source.durationSec===ctx.source.durationSec;
     const compatible=list=>list?.length===base.length&&list.every((s,i)=>s.text===base[i].text);
+    // Метки, стёртые прежним правилом окна, лежат в УЖЕ ОПЛАЧЕННОМ ответе провайдера. Пересборка
+    // таймлайна из него не стоит ни одного запроса; текст обязан совпасть построчно, иначе это
+    // был бы другой материал, а не тот же с возвращённым временем.
+    const timed=list=>(list||[]).filter(s=>s&&s.startSec!=null).length;
+    function recovered(e){
+      if(local||!e||!e.raw_timeline||!matches(e)||typeof window.YoutubeAsr?.restitchFromRaw!=='function')return e;
+      let rebuilt=null;try{rebuilt=YoutubeAsr.restitchFromRaw(e.raw_timeline,ctx.source.durationSec);}catch(_){return e;}
+      return rebuilt&&compatible(rebuilt)&&timed(rebuilt)>timed(e.timeline)?{...e,timeline:rebuilt}:e;
+    }
     try{
       const meta=PlaybackSource.parseMeta(ctx.card.source_meta_json);
-      evidence=await journal(ctx.journalKey)||meta.source?.captions?.captions?.timing_evidence||null;
+      evidence=recovered(await journal(ctx.journalKey)||meta.source?.captions?.captions?.timing_evidence||null);
       if(matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(evidence).segments);
       if(matches(evidence)&&compatible(evidence.proposed)){times=copy(evidence.proposed);
         // Принятые метки провайдера остаются его метками: согласие не делает человека автором разметки.
@@ -130,7 +139,8 @@
     const coverage=el('p');coverage.setAttribute('aria-live','polite');d.append(coverage);
     const primary=el('button'),stop=el('button',tr('stop')),close=el('button',tr('close'));primary.className='btn-primary';
     primary.dataset.action='recover';stop.dataset.action='stop';close.dataset.action='close';
-    const actions=el('div');actions.className='study-source-actions';actions.append(primary,stop,close);d.append(actions);
+    const openCard=el('button',tr('open'));openCard.type='button';openCard.dataset.action='open';
+    const actions=el('div');actions.className='study-source-actions';actions.append(primary,openCard,stop,close);d.append(actions);
     const full=el('button',tr('full')),resume=el('button',tr('resume'));full.dataset.action='full';resume.dataset.action='resumeFull';actions.prepend(full);actions.append(resume);
     const advanced=el('details');advanced.dataset.section='advanced';advanced.append(el('summary',tr('advanced')));d.append(advanced);
     if(!local){const link=el('a',ctx.source.url);link.href=ctx.source.url;link.target='_blank';link.rel='noopener noreferrer';advanced.append(link);}
@@ -149,6 +159,7 @@
       check.lastChild.textContent=tr(acceptUnverified?'trustConfirm':'confirm');
       review.textContent=acceptUnverified?tr('trustNote'):tr('review');
       trust.hidden=!rawMarks||busy||finished||rawGain<=count(times);
+      openCard.hidden=local||busy||finished||!count(base)||changed();
       primary.textContent=finished?tr('open'):changed()?tr('saveReady',{n}):quote?tr('run',{price:quote.estimatedUsd.toFixed(4)}):tr('auto');
       if(local&&!finished){primary.textContent=tr('save');primary.disabled=busy||!changed()||!confirmed.checked;}
       if(local&&finished)primary.textContent=tr('close');
@@ -205,7 +216,7 @@
       const work=async lock=>{
         if(!lock)throw new Error('TIMING_REPAIR_BUSY');
         const fresh=await context(ctx.id);if(fresh.rowsSnapshot!==ctx.rowsSnapshot||fresh.card.source_meta_json!==ctx.card.source_meta_json||JSON.stringify(fresh.binding)!==JSON.stringify(ctx.binding))throw new Error('TIMING_REPAIR_STALE');
-        evidence=await journal(ctx.journalKey)||evidence;stopped=false;stop.disabled=false;
+        evidence=recovered(await journal(ctx.journalKey)||evidence);stopped=false;stop.disabled=false;
         const prior=matches(evidence)&&evidence.schema==='youtube-asr-timing-evidence-v2'&&compatible(evidence.timeline)?evidence:null;
         const result=await YoutubeAsr.verifySavedTiming({fetch:(u,i)=>fetch(u,i),apiKey:key(),shouldStop:()=>stopped,savedTimingEvidence:prior},ctx.source,prior?prior.timeline:base,quote,
           (_,at)=>{status.textContent=tr('waiting',{n:(at.index||0)+1,total:at.total});},async value=>{evidence=value;await journal(ctx.journalKey,value);});
@@ -214,6 +225,7 @@
       try{if(navigator.locks)await navigator.locks.request('linguistpro-timing-verification:'+ctx.id,{ifAvailable:true},work);else await work(true);}finally{quote=null;}
     };
     primary.onclick=()=>{if(finished){d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);return;}return action(()=>changed()?save():local?Promise.resolve():quote?verify():estimate());};
+    openCard.onclick=()=>{d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);};
     stop.onclick=()=>{stopped=true;stop.disabled=true;};close.onclick=()=>d.close();d.oncancel=e=>{if(busy){e.preventDefault();stopped=true;}};
     trust.onclick=()=>action(async()=>{
       if(!rawMarks)throw new Error('TIMING_REPAIR_UNAVAILABLE');
@@ -268,7 +280,11 @@
     }
     button(advanced,'export',()=>{const u=URL.createObjectURL(new Blob([JSON.stringify({source:ctx.source,base_revision_id:ctx.revision.revision_id,evidence,proposed:times},null,2)],{type:'application/json'}));const a=el('a');a.href=u;a.download='timing-review-'+ctx.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
     if(changed()){status.textContent=acceptUnverified?tr('trustReview',{n:count(times),total:times.length}):authority==='provider'?tr('ready',{n:count(times)}):tr('review');if(reviewNeeded())advanced.open=true;}
-    else if(count(base)&&!local){finished=true;status.textContent=resultText();}
+    else if(count(base)&&!local){
+      // «Готово» — это ПОЛНОЕ покрытие. Одна работающая кнопка из четырёхсот не повод прятать
+      // дешёвую повторную проверку за самым дорогим действием на экране.
+      finished=count(base)===base.length;status.textContent=resultText();
+    }
     render();return d;
   }
   window.StudyTimingRepair={open,context,apply,proposed,journal,unverifiedMarks};

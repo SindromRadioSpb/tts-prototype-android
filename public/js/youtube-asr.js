@@ -298,6 +298,25 @@
         clock.kind==='ambiguous'||clock.kind==='outside-window'?'ASR_WINDOW_CLOCK_UNVERIFIED':[])};
   }
 
+  // Ответы провайдера сохранены целиком, поэтому пересборка таймлайна не стоит ни одного запроса:
+  // метки, стёртые прежней нормализацией окна, возвращаются из УЖЕ ОПЛАЧЕННОГО ответа. Шов
+  // режется по ТЕКСТУ тем же кодом, что и в живом прогоне, иначе это была бы вторая истина о материале.
+  function restitchFromRaw(rawTimeline,durationSec){
+    const list=Array.isArray(rawTimeline)?rawTimeline:[],wins=planWindows(durationSec);
+    if(!wins.length||list.length!==wins.length)return null;
+    const perWindow=[];
+    for(let i=0;i<list.length;i++){
+      const entry=list[i];
+      if(!entry||!entry.raw||JSON.stringify(entry.window)!==JSON.stringify(wins[i]))return null;
+      if(classifyResponse(entry.raw))return null;
+      const parts=(((entry.raw.candidates||[])[0]||{}).content||{}).parts||[];
+      let parsed;try{parsed=AT().parseAsrResponse(parts.filter(x=>!x.thought).map(x=>x.text||'').join(''));}catch(_){return null;}
+      if(!parsed||!Array.isArray(parsed.segments)||!parsed.segments.length)return null;
+      perWindow.push(normalizeTranscriptWindow({segments:parsed.segments},entry.window).segments);
+    }
+    const stitched=AT().stitchWindowSegments(perWindow,AT().asrSeams(wins)).segments;
+    return stitched.map(s=>({startSec:s.start==null?null:s.start,text:s.text}));
+  }
   async function transcribeRange(deps, url, win, state, durationSec, report, recovery, skipDirect) {
     const cached = recovery && recovery.get(win);
     if (cached) return normalizeTranscriptWindow(cached,win);
@@ -598,7 +617,7 @@
   return {
     FPS, AUDIO_TOKENS_PER_SEC, SINGLE_CALL_MAX_SEC, RETRY_DELAYS_MS,
     PROBE_SEC, ANCHOR_MAX_ERROR_SEC,
-    canonicalize, durationFromTokens, planWindows, verificationPlan, buildRequest, classifyFailure, retryable,
+    canonicalize, durationFromTokens, planWindows, verificationPlan, restitchFromRaw, buildRequest, classifyFailure, retryable,
     matchAnchors, judgeTiming, probeWindow, buildImportMeta, classifyResponse,
     estimateTableRange, tableCostWithinQuote, QUOTE_OVERRUN_TOLERANCE, estimate, transcribe,
     verificationQuote,verifySavedTiming,
