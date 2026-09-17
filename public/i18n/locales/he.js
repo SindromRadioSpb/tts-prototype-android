@@ -3761,6 +3761,7 @@ window.I18N_LOCALES.he = {
       subtitlePlanStored: "הווידאו נשמר בדפדפן הזה: {size}",
       subtitlePlanStoredLite: "העותק הקל נשמר: {size}",
       subtitlePlanFailed: "לא ניתן היה להכין את החומר: {code}",
+      storageQuotaWithSizes: "אין מספיק מקום. לשמירה ולבדיקה נדרשים {required}; פנויים כ־{available}. פנו מקום ונסו שוב.",
       subtitlePlanStorageFull: "אין לדפדפן מספיק מקום לשמירת המדיה. פנו מקום באחסון הדפדפן או השתמשו בחלון רגיל ונסו שוב. הקבצים שהוכנו נשארים ב־Companion.",
       mediaTranscriptOnly: "תמלול בלבד — ההפעלה אינה מוכנה",
       mediaNextAction: "הפעולה הבאה",

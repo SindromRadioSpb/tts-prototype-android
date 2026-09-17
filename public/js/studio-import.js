@@ -1772,6 +1772,7 @@
       subtitleSync: material.timingAssessment,
       subtitleTrackSha256: textTrack.sha256,
       sourceSha256: job.source_sha256,
+      materialImportKey: material.importKey,
       audioStreamIndex: plan.audio && plan.audio.index,
       fileName: (stored && stored.name) || pendingAudio.name || null,
       rawSource: textTrack.raw,
@@ -1818,6 +1819,13 @@
     setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
     renderSubtitlePlan();
     try {
+      var sourceJob=material.preparedJob||await localAsrClient.getMediaJob(pendingAudio.mediaJobId);
+      material.importKey=await window.SubtitleMaterialImport.materialImportKey({sourceSha256:sourceJob.source_sha256,
+        plan:plan,tracks:material.tracks,lite:!!($("v3ImportSubtitlePlanLite")&&$("v3ImportSubtitlePlanLite").checked)});
+      if(material.importKey&&typeof window.ensureLocalDB==='function'&&typeof window.v3LibraryOpenText==='function'){
+        var existingText=await window.SubtitleMaterialImport.findSavedMaterial(await window.ensureLocalDB(),material.importKey);
+        if(existingText){await window.v3LibraryOpenText(existingText);material.applied=true;close();return;}
+      }
       var job = material.preparedJob || await window.SubtitleMaterialImport.confirmMediaPlan({
         client: localAsrClient, jobId: pendingAudio.mediaJobId,
         mode: ((pendingAudio.mediaReadiness || {}).plan || {}).mode,
@@ -1882,7 +1890,9 @@
       }
     } catch (error) {
       if (error && (error.name === "QuotaExceededError" || error.code === "OPFS_QUOTA_LOW")) {
-        setSubtitlePlanStatus("studio.import.subtitlePlanStorageFull", {}, "error");
+        if(Number.isFinite(error.requiredBytes)&&Number.isFinite(error.availableBytes)){
+          setSubtitlePlanStatus("studio.import.storageQuotaWithSizes", {required:window.MediaReadiness.humanBytes(error.requiredBytes),available:window.MediaReadiness.humanBytes(error.availableBytes)}, "error");
+        }else setSubtitlePlanStatus("studio.import.subtitlePlanStorageFull", {}, "error");
       } else {
         setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
           { code: (error && error.code) || "SUBTITLE_MATERIAL_FAILED" }, "error");
@@ -2926,6 +2936,7 @@
                     subtitle_sync: pendingCaptions.subtitleSync || undefined,
                     subtitle_track_sha256: pendingCaptions.subtitleTrackSha256 || undefined,
                     source_sha256: pendingCaptions.sourceSha256 || undefined,
+                    material_import_key: pendingCaptions.materialImportKey || undefined,
                     audio_stream_index: pendingCaptions.audioStreamIndex },
         video: pendingCaptions.video || undefined,
         // S4c: субтитры из контейнера приходят вместе с локальным видео — без media паспорт

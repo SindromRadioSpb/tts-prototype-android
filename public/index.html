@@ -13353,9 +13353,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=233"></script>
-<script src="/i18n/locales/en.js?v=233"></script>
-<script src="/i18n/locales/he.js?v=233"></script>
+<script src="/i18n/locales/ru.js?v=234"></script>
+<script src="/i18n/locales/en.js?v=234"></script>
+<script src="/i18n/locales/he.js?v=234"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13454,11 +13454,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      browser goes through it (subtitle materials, media bundles, remote acquisition), so it must
      load before all of them: without the global those paths fail at the write step, and node
      tests cannot see the gap because they require() the module directly. -->
-<script src="/js/media-stream-store.js?v=579"></script>
+<script src="/js/media-stream-store.js?v=584"></script>
 <!-- Materials built from container subtitle tracks: pure decisions, then byte orchestration.
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=559"></script>
-<script src="/js/subtitle-material-import.js?v=577"></script>
+<script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/local-translit-bundle.js?v=573"></script>
 <script src="/js/subtitle-material-vocalization.js?v=573"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
@@ -13501,7 +13501,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-package.js?v=577"></script>
 <script src="/js/studio-media-editor.js?v=529"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js?v=576"></script>
+<script src="/js/studio-portable-learning-package.js?v=584"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13540,7 +13540,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=583" defer></script>
+<script src="/js/studio-import.js?v=584" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13578,7 +13578,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.583";
+    window.APP_VERSION = "3.11.584";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

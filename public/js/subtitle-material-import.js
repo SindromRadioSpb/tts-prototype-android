@@ -211,7 +211,35 @@
     return result;
   }
 
+  async function materialImportKey(options) {
+    var opts=options||{},plan=opts.plan||{},tracks=opts.tracks||[];
+    if(!SHA_RE.test(String(opts.sourceSha256||'')))return null;
+    function track(index){var t=tracks.find(function(t){return t.index===index;});return t&&SHA_RE.test(String(t.sha256||''))?[t.index,t.sha256]:null;}
+    var text=track(plan.text&&plan.text.index),translation=plan.translation?track(plan.translation.index):null;
+    if(!text||(plan.translation&&!translation)||!Number.isInteger(plan.audio&&plan.audio.index))return null;
+    var signals=(plan.signal_track_indexes||[]).slice().sort(function(a,b){return a-b;}).map(track);
+    if(signals.some(function(t){return !t;}))return null;
+    var identity=JSON.stringify({schema:'subtitle-material-import-v1',source:opts.sourceSha256,audio:plan.audio.index,
+      text:text,translation:translation,signals:signals,media:plan.plan_sha256||null,lite:opts.lite?plan.lite_plan_sha256||true:false});
+    var digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(identity));
+    return Array.from(new Uint8Array(digest)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  }
+
+  async function findSavedMaterial(db,key) {
+    if(!SHA_RE.test(String(key||'')))return null;
+    var candidates=await db.dbQuery('SELECT id, source_meta_json FROM texts WHERE source_meta_json LIKE ? ORDER BY is_archived, created_at', ['%'+key+'%']);
+    for(var candidate of candidates){
+      try{
+        var meta=JSON.parse(candidate.source_meta_json),source=meta.source||{};
+        if([source.captions,source.audio].some(function(passport){return passport&&passport.captions&&passport.captions.material_import_key===key;}))return String(candidate.id);
+      }catch(_){}
+    }
+    return null;
+  }
+
   var API = {
+    materialImportKey: materialImportKey,
+    findSavedMaterial: findSavedMaterial,
     assessSubtitleSync: assessSubtitleSync,
     loadSubtitleTracks: loadSubtitleTracks,
     confirmMediaPlan: confirmMediaPlan,

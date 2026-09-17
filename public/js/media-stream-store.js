@@ -40,7 +40,11 @@
     if (!estimate || !Number.isFinite(estimate.quota) || !Number.isFinite(estimate.usage)) return;
     // Cross-browser promotion copies partial -> final when FileSystemHandle.move is absent.
     var required = expectedSize * 2 + QUOTA_MARGIN_BYTES;
-    if (estimate.quota - estimate.usage < required) throw failure("OPFS_QUOTA_LOW");
+    if (estimate.quota - estimate.usage < required) {
+      var error=failure("OPFS_QUOTA_LOW");
+      error.requiredBytes=required;error.availableBytes=Math.max(0,estimate.quota-estimate.usage);
+      throw error;
+    }
   }
   async function checkCapacity(expectedSize) {
     var size = finiteSize(expectedSize);

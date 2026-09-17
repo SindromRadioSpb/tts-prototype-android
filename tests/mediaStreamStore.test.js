@@ -53,6 +53,17 @@ test('reimport verifies existing bytes and reuses them even without space for an
   assert.deepEqual(root.files.get('existing.mp4'),bytes);
 });
 
+test('quota preflight reports required and available bytes before creating partial media',async()=>{
+ const root=memoryOpfs();
+ await assert.rejects(()=>Store.streamToOpfs({response:new Response('abc'),fileName:'quota.mp4',expectedSize:3,
+  expectedSha256:crypto.createHash('sha256').update('abc').digest('hex'),root,
+  storageEstimate:{quota:100,usage:90},hasherFactory:async()=>hasher()}),error=>{
+   assert.equal(error.code,'OPFS_QUOTA_LOW');assert.equal(error.availableBytes,10);
+   assert.equal(error.requiredBytes,6+32*1024*1024);return true;
+  });
+ assert.equal(root.files.size,0);
+});
+
 test('same name and size never bypass hash verification; failed replacement preserves existing file', async () => {
   const root=memoryOpfs();root.files.set('existing.mp4',Buffer.from('bad'));
   await assert.rejects(()=>Store.streamToOpfs({response:new Response('bad'),fileName:'existing.mp4',

@@ -143,6 +143,9 @@
   function fill(template,values){return String(template).replace(/\{(\w+)\}/g,(_,key)=>values[key]==null?'':String(values[key]));}
   function formatPortableError(error,file,expected){
     const code=error&&error.code||error&&error.message||'UNKNOWN_ERROR';
+    if(code==='OPFS_QUOTA_LOW'&&Number.isFinite(error.requiredBytes)&&Number.isFinite(error.availableBytes)){
+      return fill(tr('studio.import.storageQuotaWithSizes','Not enough storage. Saving and verification require {required}; approximately {available} is available. Free up space and retry.'),{required:formatBytes(error.requiredBytes),available:formatBytes(error.availableBytes)});
+    }
     if(String(code).includes('MEDIA_SHA_MISMATCH')){
       const expectedName=error.expected_name||expected&&expected.original_name||'media';
       return [

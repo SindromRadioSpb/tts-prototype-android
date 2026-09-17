@@ -17,7 +17,7 @@ test('retry after local vocalization failure preserves prepared and stored video
   const context = {
     pendingSubtitleMaterial: material,
     pendingAudio: { mediaJobId: 'job', mediaReadiness: { plan: { mode: 'audio_transcode' } } },
-    localAsrClient: {}, mediaJobStatus() {}, setBusy() {}, setSubtitlePlanStatus() {},
+    localAsrClient: { getMediaJob:async()=>({}) }, mediaJobStatus() {}, setBusy() {}, setSubtitlePlanStatus() {},
     renderSubtitlePlan() {}, renderMediaReadiness() {}, $: () => ({ checked: true }),
     buildSubtitleTable: async () => { material.tableRows = rows; return rows; },
     applySubtitleMaterial: async () => { calls.push('apply'); return true; },
@@ -26,6 +26,7 @@ test('retry after local vocalization failure preserves prepared and stored video
         acceptPrepared: () => ({ outcome: 'READY' }) },
       LocalTranslit: { transliterateWithProfile() {} },
       SubtitleMaterialImport: {
+        materialImportKey:async()=>null,
         confirmMediaPlan: async opts => { calls.push('prepare:' + (opts.rendition || 'full'));
           return { state: 'COMPLETE', output_sha256: 'c'.repeat(64) }; },
         storePreparedMedia: async opts => { calls.push('store:' + (opts.rendition || 'full'));
