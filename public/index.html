@@ -11012,6 +11012,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </script>
 
 <link rel="stylesheet" href="/css/catalog-discovery.css?v=485">
+<style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
 </head>
 <body>
 
@@ -13483,6 +13484,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/youtube-full-timing.js?v=557"></script>
 <script src="/js/study-timing-repair.js?v=580"></script>
 <script src="/js/study-video-transfer.js"></script>
+<script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=581"></script>
 <script src="/js/study-video-source-ui.js?v=581"></script>
 <script src="/js/youtube-asr.js?v=578"></script>
@@ -13576,7 +13578,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.581";
+    window.APP_VERSION = "3.11.582";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -15164,7 +15166,7 @@ function v3IdeRenderTable(rows, textId) {
             <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
           </div>
         </td>` : ''}
-        ${showHe ? `<td class="rtl rtl-he">${he}</td>` : ''}
+        ${showHe ? `<td class="rtl rtl-he">${he}${window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||''}</td>` : ''}
         ${showNiq ? `<td class="rtl rtl-he-niqqud">${niqqud}</td>` : ''}
         ${showTr ? `<td>${translit}</td>` : ''}
         ${showRu ? `<td>${ru}</td>` : ''}
@@ -38548,7 +38550,8 @@ try {
         else if (k === "ru") value = ru;
 
         // Content cell: plain text only (buttons are in dedicated action column)
-        html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
+        const speechBadge = k === 'he' ? (window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||'') : '';
+        html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + speechBadge + '</td>';
     });
 
     html += '</tr>';

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.581";
+const CACHE_VERSION = "v3.11.582";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -85,6 +85,7 @@ const PRECACHE_URLS = [
   "/js/study-timing-repair.js?v=580",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
+  "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=581",
   "/js/study-video-source-ui.js?v=581",
   "/js/youtube-asr.js?v=578",
@@ -115,7 +116,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=566",
+  "/js/library-ui.js?v=582",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -123,7 +124,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=402",
+  "/js/reader-core.js?v=582",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=396",
   "/css/lexical-resolution.css?v=6",

@@ -3051,6 +3051,7 @@
 .room-mediatheque-entry{margin:12px 0}.room-mediatheque-entry a{display:inline-flex;align-items:center;min-height:44px;padding:8px 18px;border:1px solid currentColor;border-radius:12px;font-weight:650;text-decoration:none}
 </style>
 <link rel="stylesheet" href="/css/catalog-discovery.css?v=485">
+<style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
 </head>
 <body>
 <!-- No-flash theme: apply the shared Studio theme choice (appTheme_v1) before paint. -->
@@ -3181,7 +3182,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.581</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.582</button>
   </div>
 </footer>
 
@@ -3455,6 +3456,7 @@
 <script src="/js/youtube-full-timing.js?v=557"></script>
 <script src="/js/study-timing-repair.js?v=580"></script>
 <script src="/js/study-video-transfer.js"></script>
+<script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=581"></script>
 <script src="/js/study-video-source-ui.js?v=581"></script>
 <script src="/js/portable-learning-package-core.js"></script>
@@ -3477,6 +3479,6 @@
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=485"></script>
-<script type="module" src="/js/library-ui.js?v=566"></script>
+<script type="module" src="/js/library-ui.js?v=582"></script>
 </body>
 </html>

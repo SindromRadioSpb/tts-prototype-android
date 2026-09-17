@@ -543,7 +543,8 @@ export function buildBilingualTableHtml(rows, config) {
         ? ' data-niqqud-authority="derived" title="' + escapeHtml(t("room.nakdan.derivedCell")) + ' · ' + escapeHtml(row.niqqud_provenance || "DICTA_NAKDAN") + '"'
         : "";
       const derivedBadge = machineNiqqud ? '<span class="niqqud-derived-badge" aria-label="' + escapeHtml(t("room.nakdan.derivedCell")) + '">⁕</span>' : "";
-      html += '<td data-col="' + k + '"' + tdClass + derivedAttrs + ">" + escapeHtml(value) + derivedBadge + "</td>";
+      const speechBadge = k === 'he' && typeof window !== 'undefined' ? (window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||'') : '';
+      html += '<td data-col="' + k + '"' + tdClass + derivedAttrs + ">" + escapeHtml(value) + derivedBadge + speechBadge + "</td>";
     });
     html += "</tr>";
   });
