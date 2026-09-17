@@ -17,6 +17,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
    box=document.createElement('div');box.id='subtitle-badge-fixture';
    box.style.cssText='position:fixed;inset:40px 8px auto;z-index:2147483647;background:white;color:#17232b;padding:8px;overflow:auto;max-height:80vh';
    box.append(studio);box.insertAdjacentHTML('beforeend',room);document.body.append(box);
+   ReaderMorph.attach(box,{getRow:index=>rows[index],cellSelector:'tbody td[data-col="he"],tbody td[data-col="niqqud"]'});
    return {badges:box.querySelectorAll('[data-speech-language="other"]').length,unchanged:JSON.stringify(rows)===before,
     cellText:[...box.querySelectorAll('td[data-col="he"]')].map(cell=>cell.textContent)};
   },locale);

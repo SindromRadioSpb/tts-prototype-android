@@ -1006,12 +1006,14 @@
       var vocalized = typeof opts.getVocalizedText === "function" ? opts.getVocalizedText(row) : row.he_niqqud;
       var value = col === (opts.plainColumn || "he") ? String(plain || "") : String(vocalized || "");
       if (typeof opts.shouldWrap === "function" && !opts.shouldWrap(row, td, col, value)) continue;
+      var speechBadge = td.querySelector('.subtitle-speech-badge');
       if (col === (opts.plainColumn || "he")) {
         var aligned = alignSurfaceNiqqud(String(plain || ""), String(vocalized || ""));
         td.innerHTML = wrapCellHtml(String(plain || ""), aligned, opts);
       } else { // niqqud cell — tokens are self-vocalized
         td.innerHTML = wrapCellHtml(String(vocalized || ""), null, opts);
       }
+      if (speechBadge) td.appendChild(speechBadge);
       td.setAttribute(WRAP_FLAG, "1");
     }
   }

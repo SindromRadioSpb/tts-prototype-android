@@ -1746,7 +1746,7 @@
     material.timingAssessment = await window.SubtitleMaterialImport.assessSubtitleSync({
       client: localAsrClient, jobId: pendingAudio.mediaJobId, track: textTrack,
       sourceSha256: job.source_sha256, audioStreamIndex: plan.audio && plan.audio.index,
-      cues: textTrack.cues.filter(function (_, i) { return verdicts[i] && verdicts[i].value !== "other"; }),
+      cues: textTrack.cues.filter(function (_, i) { return verdicts[i] && ["target", "target_assumed"].includes(verdicts[i].value); }),
     });
     var rows = SMC.buildRows({
       textCues: textTrack.cues, speechLanguage: verdicts,
