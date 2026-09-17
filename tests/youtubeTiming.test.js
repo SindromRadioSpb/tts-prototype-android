@@ -141,7 +141,8 @@ function windowFixture(offsets){
   const spans=T.spanPlan(duration,asr),timeline=[],probes=[];
   spans.forEach((span,w)=>{
     const drift=offsets[w]||0;
-    span.probes.forEach((probe,p)=>{
+    // Only the probes a run always buys; the conditional second look is bought later, if at all.
+    span.probes.filter(x=>x.when==='always').forEach((probe,p)=>{
       const heard=[6,25,44,63].map((v,i)=>({startSec:probe.startSec+v,
         text:`שלום ${String.fromCharCode(1488+w)}${String.fromCharCode(1488+p)}${String.fromCharCode(1488+i)} עולם משפט עכשיו`}));
       probes.push({window:probe,state:'complete',segments:heard});
@@ -159,10 +160,11 @@ test('the probe plan follows the windows recognition actually produced',()=>{
   const spans=T.spanPlan(3411,asr);
   assert.equal(spans.length,4,'one verdict per window the model timed on its own clock');
   assert.deepEqual(spans.map(s=>[s.startSec,s.endSec]),[[0,870],[870,1770],[1770,2670],[2670,3411]]);
-  assert.deepEqual(spans[0].probes,[{startSec:0,endSec:90}]);
+  const always=i=>spans[i].probes.filter(p=>p.when==='always').map(p=>[p.startSec,p.endSec]);
+  assert.deepEqual(always(0),[[0,90]]);
   // The closing window is listened to at BOTH ends: an offset measured only at its start would
   // be carried across the whole tail and internal drift would never surface.
-  assert.deepEqual(spans[3].probes,[{startSec:2670,endSec:2760},{startSec:3321,endSec:3411}]);
+  assert.deepEqual(always(3),[[2670,2760],[3321,3411]]);
   assert.equal(T.spanPlan(600,[{startSec:0,endSec:600}]),null,'a single recognition pass keeps the three-point plan');
 });
 
@@ -186,4 +188,26 @@ test('a window whose two ends disagree loses only its own rows',()=>{
   assert.deepEqual(r.spans.slice(0,3).map(s=>s.certified),[true,true,true]);
   assert.ok(r.coverage.playable>=12,'the first three windows keep every row they earned');
   assert.ok(r.segments.slice(-4).every(s=>s.startSec==null),'no row of a self-contradicting window plays');
+});
+
+test('a window short of anchors keeps a second place to listen, a drifting one does not',()=>{
+  const asr=[{startSec:0,endSec:900},{startSec:870,endSec:1800},{startSec:1770,endSec:2700},{startSec:2670,endSec:3411}];
+  const spans=T.spanPlan(3411,asr);
+  // Every span names where it listens first, and where it would listen again if that came back thin.
+  assert.deepEqual(spans.map(s=>s.probes.map(p=>p.when)),
+    [['always','if-short'],['always','if-short'],['always','if-short'],['always','always','if-short']]);
+  assert.deepEqual(spans[2].probes.map(p=>p.startSec),[1770,2175]);
+  assert.ok(spans[2].probes.every(p=>p.startSec>=spans[2].startSec&&p.endSec<=spans[2].endSec),
+    'a second look at a window stays inside that window');
+});
+
+test('one anchor is not a measurement, and a second listen is what that window is owed',()=>{
+  const evidence=windowFixture([0,0,0,0]);
+  // The third window came back with a single usable anchor: nothing is disproved, nothing is proved.
+  const thin=evidence.probes.find(p=>p.window.startSec===1770);
+  thin.segments=thin.segments.slice(0,1);
+  const r=T.diagnose(evidence);
+  assert.equal(r.spans[2].certified,false);
+  assert.equal(r.spans[2].reason,'insufficient-anchors','a thin window asks for another listen, not a verdict');
+  assert.notEqual(r.spans[3].reason,'insufficient-anchors','a window that measured fine is not dragged down');
 });

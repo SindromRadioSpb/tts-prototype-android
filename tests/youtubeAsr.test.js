@@ -475,7 +475,10 @@ test('verification buys one probe per recognition window, and the closing window
   const plan=Y.verificationPlan(3411);
   assert.deepEqual(Y.planWindows(3411).map(w=>w.startSec),[0,870,1770,2670],'recognition geometry');
   assert.equal(plan.spans.length,4,'one verdict per recognition window');
-  assert.deepEqual(plan.windows.map(w=>w.startSec),[0,870,1770,2670,3321]);
+  assert.deepEqual(plan.windows.filter(w=>w.when==='always').map(w=>w.startSec),[0,870,1770,2670,3321]);
+  // The quote names the ceiling, including the second listen a thin window may be owed; a run
+  // that needs none of them simply spends less than it was allowed to.
+  assert.deepEqual(plan.windows.filter(w=>w.when==='if-short').map(w=>w.startSec),[390,1275,2175,2996]);
   // A video recognized in one pass has no per-window geometry to follow.
   const single=Y.verificationPlan(600);
   assert.equal(single.spans,null);
@@ -487,11 +490,11 @@ test('a quote priced for the old three-point plan still runs on its own geometry
   const legacy={schema:'youtube-timing-quote-v1',video_id:source.video_id,url:source.url,durationSec:3411,
     windows:[{startSec:0,endSec:90},{startSec:1661,endSec:1751},{startSec:3321,endSec:3411}],maxCalls:3};
   const calls=[];
-  const deps={fetch:async(url,init)=>{calls.push(JSON.parse(init.body).contents[0].parts[0].file_data.video_metadata);
+  const deps={fetch:async(url,init)=>{calls.push(JSON.parse(init.body).contents[0].parts[0].video_metadata.start_offset);
     return {ok:true,text:async()=>JSON.stringify({candidates:[{finishReason:'STOP',
       content:{parts:[{text:JSON.stringify({language:'he',segments:[{start:'0:05',text:'שלום עולם משפט ייחודי עכשיו'}]})}]}}]})};}};
   const result=await Y.verifySavedTiming(deps,source,[{startSec:5,text:'שלום עולם משפט ייחודי עכשיו'}],legacy,null,async()=>{});
-  assert.equal(calls.length,3,'never more calls than the quote named');
+  assert.deepEqual(calls,['0s','1661s','3321s'],'exactly the windows the old quote named, and no others');
   assert.equal(result.evidence.spans,undefined,'an old quote is judged as one video, the way it was priced');
 });
 
@@ -517,4 +520,32 @@ test('a timeline is rebuilt from the paid responses, restoring marks the old win
   assert.equal(rows.filter(r=>r.startSec!=null).length,rows.length-1);
   assert.equal(Y.restitchFromRaw([],durationSec),null,'no stored responses, no rebuilt timeline');
   assert.equal(Y.restitchFromRaw(raw.slice(0,2),durationSec),null,'a partial journal is not a transcript');
+});
+
+test('a second listen is bought only by the window that had nothing to measure',async()=>{
+  const durationSec=3411,source={video_id:'cPooKT5rFxc',url:'https://www.youtube.com/watch?v=cPooKT5rFxc',durationSec};
+  const plan=Y.verificationPlan(durationSec);
+  const at=Object.fromEntries(plan.windows.map((w,i)=>[w.startSec,i]));
+  const line=(w,i)=>`שלום q${at[w]}${String.fromCharCode(1488+i)} עולם משפט עכשיו`;
+  const clock=t=>Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+  const heard=w=>[6,25,44,63].map((v,i)=>({start:clock(w+v),text:line(w,i)}));
+  // The transcript covers the whole video, so every place we might listen has rows to match.
+  const timeline=plan.windows.flatMap(w=>[6,25,44,63].map((v,i)=>({startSec:w.startSec+v,text:line(w.startSec,i)})))
+    .sort((a,b)=>a.startSec-b.startSec);
+  const asked=[];
+  const deps={fetch:async(url,init)=>{
+    const w=Number(String(JSON.parse(init.body).contents[0].parts[0].video_metadata.start_offset).replace('s',''));
+    asked.push(w);
+    // The window at 1770 came back with one anchor: nothing proved, nothing disproved.
+    const segments=w===1770?heard(w).slice(0,1):heard(w);
+    return {ok:true,text:async()=>JSON.stringify({candidates:[{finishReason:'STOP',
+      content:{parts:[{text:JSON.stringify({language:'he',segments})}]}}]})};
+  }};
+  const quote=Y.verificationQuote({video_id:source.video_id,url:source.url,durationSec,inputTokens:1000});
+  const out=await Y.verifySavedTiming(deps,source,timeline,quote,null,async()=>{});
+  assert.deepEqual(asked.filter(a=>[0,870,1770,2670,3321].includes(a)),[0,870,1770,2670,3321],'every window is heard once');
+  assert.deepEqual(asked.filter(a=>[390,1275,2175,2996].includes(a)),[2175],'only the thin window pays for a second look');
+  assert.ok(asked.length<quote.maxCalls,'a run needing few second looks spends less than its ceiling');
+  assert.equal(out.diagnosis.spans[2].certified,true,'the second listen is what lets that window be judged at all');
+  assert.equal(out.diagnosis.coverage.playable,out.diagnosis.coverage.total);
 });

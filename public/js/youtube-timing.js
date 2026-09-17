@@ -21,11 +21,18 @@
     const list=Array.isArray(asrWindows)?asrWindows.filter(w=>w&&finite(w.startSec)&&finite(w.endSec)):[];
     if(list.length<2)return null;
     const reach=Math.min(90,Math.floor(duration/3));
-    const tail={startSec:Math.max(0,duration-reach),endSec:duration};
+    const tail={startSec:Math.max(0,duration-reach),endSec:duration,when:'always'};
     return list.map((w,i)=>{
-      const probes=[{startSec:w.startSec,endSec:Math.min(w.startSec+reach,duration)}];
-      if(i===list.length-1&&tail.startSec>w.startSec+reach)probes.push(tail);
-      return {startSec:w.startSec,endSec:i+1<list.length?list[i+1].startSec:duration,probes};
+      const endSec=i+1<list.length?list[i+1].startSec:duration;
+      const probes=[{startSec:w.startSec,endSec:Math.min(w.startSec+reach,duration),when:'always'}];
+      if(i===list.length-1&&tail.startSec>w.startSec+reach)probes.push({...tail});
+      // Мало якорей — не приговор окну, а неудачное место прослушивания: там могла быть музыка
+      // или речь без уникальных совпадений. У окна остаётся ВТОРОЕ место, и оно покупается
+      // только если первое вернулось пустым. Окно, которое СЕБЕ ПРОТИВОРЕЧИТ, второго не просит.
+      const mid=Math.round(w.startSec+(endSec-w.startSec-reach)/2);
+      if(mid>w.startSec+reach&&mid+reach<=endSec&&!probes.some(p=>p.startSec===mid))
+        probes.push({startSec:mid,endSec:mid+reach,when:'if-short'});
+      return {startSec:w.startSec,endSec,probes};
     });
   }
   function anchors(timeline,probe){

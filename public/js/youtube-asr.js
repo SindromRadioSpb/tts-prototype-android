@@ -177,10 +177,9 @@
     if(onEvidence)await onEvidence(evidence);
     // Each quoted probe has one attempt. A failed/unknown-charge call is retained and never
     // retried automatically. The caller durably records each completed response.
-    for(let i=0;i<plan.length;i++){
-      if(deps.shouldStop&&await deps.shouldStop())break;
-      const window=plan[i];if(onProgress)onProgress('verifying',{index:i,total:plan.length});
-      if(evidence.probes.some(p=>p.window.startSec===window.startSec&&p.window.endSec===window.endSec))continue;
+    const runProbe=async source=>{
+      const window={startSec:source.startSec,endSec:source.endSec};
+      if(evidence.probes.some(p=>p.window.startSec===window.startSec&&p.window.endSec===window.endSec))return true;
       const rec={window,segments:[],state:'pending-charge-unknown'};
       evidence.probes.push(rec);if(onEvidence)await onEvidence(evidence);
       const attemptState={attempts:0};
@@ -188,7 +187,28 @@
         rec.segments=result.segments.map(s=>({startSec:s.start,text:s.text}));rec.raw=result.raw;rec.state='complete';
       }catch(e){rec.error=String(e.code||e.message).slice(0,80);rec.state='failed-charge-unknown';if(attemptState.responses)rec.responses=attemptState.responses;}
       if(onEvidence)await onEvidence(evidence);
-      if(rec.error)break;
+      return !rec.error;
+    };
+    const first=plan.filter(w=>w.when!=='if-short');
+    let listened=0,stopped=false;
+    for(const window of first){
+      if(deps.shouldStop&&await deps.shouldStop()){stopped=true;break;}
+      if(onProgress)onProgress('verifying',{index:listened++,total:plan.length});
+      if(!await runProbe(window)){stopped=true;break;}
+    }
+    // Второй взгляд покупается ТОЛЬКО окну, которому нечем было измерить: тонкий зонд мог попасть
+    // на музыку или речь без уникальных совпадений. Окно, которое СЕБЕ ПРОТИВОРЕЧИТ, второго не
+    // просит — там уже всё измерено, и платить за подтверждение известного было бы нечестно.
+    if(spans&&!stopped){
+      for(const verdict of YT().diagnose(evidence).spans||[]){
+        if(verdict.reason!=='insufficient-anchors'||stopped)continue;
+        const own=spans.find(x=>x.startSec===verdict.startSec&&x.endSec===verdict.endSec);
+        for(const probe of ((own&&own.probes)||[]).filter(x=>x.when==='if-short')){
+          if(deps.shouldStop&&await deps.shouldStop()){stopped=true;break;}
+          if(onProgress)onProgress('verifying',{index:listened++,total:plan.length});
+          if(!await runProbe(probe)){stopped=true;break;}
+        }
+      }
     }
     return {evidence,diagnosis:YT().diagnose(evidence)};
   }

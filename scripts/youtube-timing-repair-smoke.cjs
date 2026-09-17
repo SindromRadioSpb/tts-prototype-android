@@ -81,7 +81,7 @@ const child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:s
   if(mode==='paid'){
     assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:0,paid:0});
     await page.getByRole('button',{name:'Restore automatically',exact:true}).click();
-    await page.getByRole('button',{name:/Restore for ≈/}).waitFor();
+    await page.getByRole('button',{name:/Restore — up to/}).waitFor();
     assert.deepEqual(await page.evaluate(()=>recoveryCalls),{estimates:1,paid:0},'show price before spending');
   }
   await page.locator('dialog [data-action=recover]').click();
