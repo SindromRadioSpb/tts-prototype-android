@@ -13356,9 +13356,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=237"></script>
-<script src="/i18n/locales/en.js?v=237"></script>
-<script src="/i18n/locales/he.js?v=237"></script>
+<script src="/i18n/locales/ru.js?v=238"></script>
+<script src="/i18n/locales/en.js?v=238"></script>
+<script src="/i18n/locales/he.js?v=238"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13581,7 +13581,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.598";
+    window.APP_VERSION = "3.11.599";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -25262,6 +25262,20 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
       audio.columnGaps = gaps;
       if (typeof showToast === "function" && gapRows.length) {
         showToast(t("studio.import.warnColumns", { count: gapRows.length }), "warning");
+      }
+    }
+    // The model returned a different row skeleton than it was given. Where the pieces still
+    // reproduced the input they were re-joined; where they did not, the model's rows stand
+    // and the user is told, because the skeleton is what notes, word status and SRS hang on.
+    if (resWarnings.includes("SEG_ROWS_RESTITCHED")) {
+      audio.tableWarnings = resWarnings;
+      const joined = (res && Array.isArray(res.restitched)) ? res.restitched : [];
+      const refused = (res && Array.isArray(res.restitchRefused)) ? res.restitchRefused : [];
+      audio.restitched = joined.slice();
+      audio.restitchRefused = refused.slice();
+      if (typeof showToast === "function") {
+        showToast(t(refused.length ? "studio.import.warnRestitchRefused" : "studio.import.warnRestitched",
+          { count: refused.length || joined.length }), "warning");
       }
     }
     window.v3ActiveMediaAudio = audio;
@@ -37094,6 +37108,11 @@ try {
         const accum = [];
         const chunkMeta = [];
         const repairMeta = [];
+        // Segments whose rows the model split and we re-joined, and chunks whose split could
+        // not be re-joined because the join did not reproduce the input. Both are reported;
+        // neither is repaired by paying for another request.
+        const restitchedGlobal = [];
+        const restitchRefused = [];
         // This segmented path has an exact completeness denominator: source segments. The old
         // heuristic expRows (573 for 545 segments owner-live) was useful for price only and made
         // a complete/cached resume look unfinished. HUD now reports proven segment coverage.
@@ -37217,7 +37236,21 @@ try {
                         mediaIntended: jobMediaIntended });
                     return;
                 }
-                const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
+                // The skeleton belongs to the input, not to the model: a chunk handed N
+                // segments must come back as N rows. When it splits one, the pieces are
+                // re-joined, and the join is accepted only if it reproduces the input text.
+                // A refused join keeps the model's rows — guessing would be worse — and is
+                // reported instead. This seam also covers the oversize-chunk child split
+                // above, whose combined rows arrive here as this chunk's result.
+                const stitch = TableChunks.restitchChunkRows(res.rows || [], chunks[k].segs);
+                if (stitch.ok) {
+                    stitch.merged.forEach((i) => restitchedGlobal.push(i + chunks[k].base));
+                } else if ((res.rows || []).length !== chunks[k].segs.length) {
+                    restitchRefused.push({ base: chunks[k].base, reason: stitch.reason,
+                        got: (res.rows || []).length, want: chunks[k].segs.length });
+                }
+                const rows = TableChunks.offsetRows(
+                    stitch.ok ? stitch.rows : (res.rows || []), chunks[k].base);
                 accum.push(...rows);
                 // SEG_MAPPING_LOST (per-chunk warning): that chunk's rows came back without
                 // segment_index (server-side). The independent global coverage oracle below
@@ -37323,9 +37356,13 @@ try {
         const buildWarnings = [];
         if (missingGlobal.length) buildWarnings.push("SEG_COVERAGE_PARTIAL");
         if (columnGaps.rows.length) buildWarnings.push("SEG_COLUMNS_PARTIAL");
+        if (restitchedGlobal.length || restitchRefused.length) buildWarnings.push("SEG_ROWS_RESTITCHED");
         v3LastGeminiMeta.column_gaps = columnGaps;
+        v3LastGeminiMeta.restitched_segments = restitchedGlobal.slice();
+        v3LastGeminiMeta.restitch_refused = restitchRefused.slice();
         v3AttachAudioTiming({ rows: currentTableData, warnings: buildWarnings,
-            columnGaps: columnGaps }, true);
+            columnGaps: columnGaps, restitched: restitchedGlobal.slice(),
+            restitchRefused: restitchRefused.slice() }, true);
         if (missingGlobal.length) {
             tableIsStale = true;
             if (jobJournal && window.TableJob) {

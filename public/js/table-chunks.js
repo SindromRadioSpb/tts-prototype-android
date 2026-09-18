@@ -56,6 +56,62 @@
     return out;
   }
 
+  // The chunk's row skeleton belongs to the INPUT, not to the model. A chunk handed N
+  // segments must come back as N rows; when it splits one segment across several rows, the
+  // pieces are re-joined here. offsetRows() would otherwise shift whatever index the model
+  // invented, and coverageForRows() drops every index past the segment count, so extra rows
+  // used to slip through unnoticed (owner-live: 10 segments in, 17 rows out).
+  //
+  // The join is structural and refuses rather than guesses: the pieces' letters must
+  // reproduce the input segment exactly. Niqqud, spacing and punctuation are normalised away
+  // (the model re-spells freely), but a changed or missing WORD fails the join, and the
+  // caller then keeps the model's rows and says the skeleton changed.
+  function restitchChunkRows(rows, segs) {
+    var list = Array.isArray(rows) ? rows : [];
+    var input = Array.isArray(segs) ? segs : [];
+    if (!input.length) return { ok: false, reason: "NO_SEGMENTS" };
+    var hebrew = function (row) {
+      var r = row || {};
+      return String((r.he != null ? r.he : r.he_plain) || "");
+    };
+    var norm = function (value) {
+      return String(value == null ? "" : value)
+        .replace(/[֑-ׇ]/g, "")
+        .replace(/\s+/g, "")
+        .replace(/[!-/:-@[-`{-~«»‐-‧‰-⁞]/g, "");
+    };
+    var DERIVED = ["ru", "niqqud", "he_niqqud", "translit", "transliteration", "translit_ru"];
+    var out = [], merged = [], cursor = 0;
+    for (var s = 0; s < input.length; s++) {
+      var seg = input[s] || {};
+      var index = Number.isInteger(seg.i) ? seg.i : s;
+      var target = norm(seg.text);
+      var taken = [], acc = "";
+      while (cursor < list.length && acc.length < target.length) {
+        acc += norm(hebrew(list[cursor]));
+        taken.push(list[cursor]);
+        cursor++;
+      }
+      if (acc !== target) return { ok: false, reason: "ROW_TEXT_MISMATCH", at: index };
+      var row = Object.assign({}, taken[0] || {});
+      row.segment_index = index;
+      row.he = String(seg.text == null ? "" : seg.text);
+      if (taken.length > 1) {
+        if ("he_plain" in row) row.he_plain = row.he;
+        DERIVED.forEach(function (field) {
+          var pieces = taken.map(function (r) { return String((r && r[field]) || "").trim(); })
+                            .filter(Boolean);
+          if (pieces.length) row[field] = pieces.join(" ");
+        });
+        merged.push(index);
+      }
+      out.push(row);
+    }
+    // Rows the input never accounted for mean the join did not really describe this chunk.
+    if (cursor < list.length) return { ok: false, reason: "ROW_TEXT_MISMATCH_TRAILING" };
+    return { ok: true, rows: out, merged: merged };
+  }
+
   // A chunk can answer every segment and still return rows whose DERIVED columns are empty
   // (owner-live incident 2026-09-18: nine rows in one chunk kept Hebrew and translation but
   // lost niqqud and translit). coverageForRows sees those rows as covered, so the build used
@@ -205,6 +261,7 @@
   var API = { CHUNK_SIZE: CHUNK_SIZE, buildChunks: buildChunks, offsetRows: offsetRows,
               coverageForChunk: coverageForChunk, aggregateMissing: aggregateMissing,
               coverageForRows: coverageForRows, derivedColumnGaps: derivedColumnGaps,
+              restitchChunkRows: restitchChunkRows,
               buildRepairChunks: buildRepairChunks,
               restoreRepairRows: restoreRepairRows, mergeRepairRows: mergeRepairRows,
               estimatePlainRows: estimatePlainRows,

@@ -3827,6 +3827,8 @@ window.I18N_LOCALES.en = {
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       warnCoverage: "The model skipped some segments — check the table for completeness",
       warnColumns: "Niqqud and translit did not come back for {count} row(s) — the other columns are intact",
+      warnRestitched: "The model re-split {count} row(s) — they were joined back to the source text",
+      warnRestitchRefused: "{count} chunk(s) came back with a different row split that did not match the source — their rows were left as returned",
       // S12.5 T4 — honest ASR run summary in the preview (R11: a run that lost 47% of the
       // timeline once looked like a success) + explicit confirmation past 5% loss.
       asrSummaryChunks: "Chunks {ok}/{total}",
