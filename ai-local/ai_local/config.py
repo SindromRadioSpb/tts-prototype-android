@@ -27,6 +27,11 @@ def _default_state_dir() -> Path:
         return Path(local_app_data) / "LinguistPro" / "ai-local"
     return HERE / ".state"
 
+# Compatible-copy encoder. "off" (default) keeps libx264, so the produced artifact stays
+# comparable on any machine with ffmpeg. "auto" uses h264_nvenc when this machine can
+# actually run it and falls back to libx264 otherwise, naming the reason in the report.
+MEDIA_HW_ENCODER = os.environ.get("AI_LOCAL_MEDIA_HW_ENCODER", "off").strip().lower()
+
 HOST = os.environ.get("AI_LOCAL_HOST", "127.0.0.1")
 # Default 8799 (NOT 8765 — AnkiConnect's well-known port, which this project uses;
 # a sidecar on 8765 collides with it). Override with AI_LOCAL_PORT.

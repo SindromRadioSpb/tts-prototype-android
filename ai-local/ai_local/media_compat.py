@@ -17,6 +17,8 @@ import struct
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
+from . import config
+
 
 READY = "READY"
 LOSSLESS_REPAIR = "LOSSLESS_REPAIR"
@@ -74,6 +76,63 @@ _LANGUAGE_CODES = {
     "vie": "vi", "tgl": "tl", "urd": "ur", "ben": "bn", "tam": "ta",
 }
 _DESCRIPTIVE_AUDIO_TITLE = re.compile(r"comment|коммент|описани|audio.?description|\bAD\b|תיאור|פרשנות", re.IGNORECASE)
+
+
+_NVENC_PROBE_CACHE: bool | None = None
+
+_CPU_VIDEO_ARGS = ["-c:v", "libx264", "-profile:v", "main", "-preset", "medium", "-crf", "20"]
+_GPU_VIDEO_ARGS = ["-c:v", "h264_nvenc", "-profile:v", "main", "-preset", "p5", "-rc", "vbr", "-cq", "22"]
+
+
+def _probe_nvenc() -> bool:
+    """Is h264_nvenc actually usable here, not merely compiled in?
+
+    Presence in `ffmpeg -encoders` proves the build supports NVENC, not that this machine has a
+    driver and a free session, so the probe encodes one synthetic frame. The answer is cached
+    for the process: it cannot change without a driver reload, and the media path must not pay
+    for it per job.
+    """
+    global _NVENC_PROBE_CACHE
+    if _NVENC_PROBE_CACHE is not None:
+        return _NVENC_PROBE_CACHE
+    import subprocess
+
+    try:
+        proc = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-v", "error", "-f", "lavfi",
+             "-i", "color=c=black:s=320x240:d=0.1", "-c:v", "h264_nvenc",
+             "-frames:v", "1", "-f", "null", "-"],
+            capture_output=True, timeout=30,
+        )
+        _NVENC_PROBE_CACHE = proc.returncode == 0
+    except Exception:
+        _NVENC_PROBE_CACHE = False
+    return _NVENC_PROBE_CACHE
+
+
+def select_video_encoder(mode: Any, probe: Callable[[], bool] | None = None) -> dict[str, Any]:
+    """Which H.264 encoder this copy should use, and the flags that encoder accepts.
+
+    Opting in is explicit (AI_LOCAL_MEDIA_HW_ENCODER=auto) so the default artifact stays
+    byte-comparable on any machine with ffmpeg. A machine that cannot honour the request falls
+    back to libx264 rather than failing the job, and names the reason: the plan reports the
+    encoder that actually ran, because a silently different encoder is a different artifact.
+
+    The two encoders do NOT share quality flags - h264_nvenc rejects -crf and x264 preset names
+    - so the whole argument list travels with the choice instead of being templated.
+    """
+    requested = str(mode or "").strip().lower()
+    if requested != "auto":
+        return {"encoder": "libx264", "quality_args": list(_CPU_VIDEO_ARGS), "fallback_reason": None}
+    try:
+        usable = bool((probe or _probe_nvenc)())
+    except Exception as exc:
+        return {"encoder": "libx264", "quality_args": list(_CPU_VIDEO_ARGS),
+                "fallback_reason": "NVENC_PROBE_FAILED: %s" % exc}
+    if not usable:
+        return {"encoder": "libx264", "quality_args": list(_CPU_VIDEO_ARGS),
+                "fallback_reason": "NVENC_UNAVAILABLE"}
+    return {"encoder": "h264_nvenc", "quality_args": list(_GPU_VIDEO_ARGS), "fallback_reason": None}
 
 
 def _canonical_sha256(value: Any) -> str:
@@ -387,10 +446,14 @@ def classify_probe(
         if not sdr:
             operations.append("tone-map HDR to BT.709 SDR")
         operations.extend(["encode H.264 Main yuv420p", "encode AAC", "MP4 faststart"])
+        # The report must name the encoder that will actually run, not the one this branch
+        # used to assume: same input, same process, so the same answer as the executor.
+        _plan_video_choice = select_video_encoder(config.MEDIA_HW_ENCODER)
         plan = {
             "mode": "transcode",
             "container": "mp4",
-            "video_encoder": "libx264",
+            "video_encoder": _plan_video_choice["encoder"],
+            "video_encoder_fallback": _plan_video_choice["fallback_reason"],
             "video_profile": "main",
             "pixel_format": "yuv420p",
             "max_geometry": "1920x1080@30-or-1280x720@60",
@@ -872,12 +935,16 @@ async def prepare_media(
         target_fps = min(source_fps, max_fps)
         hdr = str(source_video.get("color_transfer") or "").lower() in {"smpte2084", "arib-std-b67"} or str(source_video.get("color_primaries") or "").lower() == "bt2020"
         scale = "scale='min(iw,1920)':'min(ih,1080)':force_original_aspect_ratio=decrease,fps=" + ("%.3f" % target_fps) + ",format=yuv420p"
+        # The lite path stays on libx264 deliberately: it targets a byte budget with -b:v, and
+        # mixing that with an encoder tuned by -cq needs its own measurement. Only the
+        # compatible-copy transcode - the step the owner measured - takes the option.
+        _video_choice = select_video_encoder(config.MEDIA_HW_ENCODER)
         video_filter = ("zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv," + scale) if hdr else scale
         args = [
             "ffmpeg", "-y", "-v", "error", "-i", os.fspath(source),
             "-map", video_map, "-map", audio_map, "-map_chapters", "-1",
             "-vf", video_filter,
-            "-c:v", "libx264", "-profile:v", "main", "-preset", "medium", "-crf", "20",
+            *_video_choice["quality_args"],
             "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
             "-c:a", "aac", "-profile:a", "aac_low", "-ar", "48000", "-ac", "2", "-b:a", "160k",
             "-movflags", "+faststart", "-progress", "pipe:1", "-nostats", os.fspath(output),
