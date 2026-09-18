@@ -153,6 +153,15 @@
     // таймлайна из него не стоит ни одного запроса; текст обязан совпасть построчно, иначе это
     // был бы другой материал, а не тот же с возвращённым временем.
     const timed=list=>(list||[]).filter(s=>s&&s.startSec!=null).length;
+  // Журнал мог быть снят по прежней геометрии проверки, и тогда его собственные зонды
+    // оказываются вне плана и не участвуют в вердикте. Они УЖЕ ОПЛАЧЕНЫ: судить их надо по
+    // нынешнему плану — это ничего не покупает, но перестаёт выбрасывать ответы, за которые заплачено.
+    // Что именно ПОКУПАТЬ, по-прежнему решает смета, а не этот перештамп.
+    function regeometry(e){
+      if(local||!e||e.schema!=='youtube-asr-timing-evidence-v2'||typeof window.YoutubeAsr?.verificationPlan!=='function')return e;
+      let spans=null;try{spans=YoutubeAsr.verificationPlan(ctx.source.durationSec).spans;}catch(_){return e;}
+      return spans&&spans.length?{...e,spans}:e;
+    }
     function recovered(e){
       if(local||!e||!e.raw_timeline||!matches(e)||typeof window.YoutubeAsr?.restitchFromRaw!=='function')return e;
       let rebuilt=null;try{rebuilt=YoutubeAsr.restitchFromRaw(e.raw_timeline,ctx.source.durationSec);}catch(_){return e;}
@@ -164,8 +173,8 @@
       const stored=await journal(ctx.evidenceKey);
       const adopted=stored?null:await adoptLegacyEvidence(ctx.id,ctx.evidenceKey,local?ctx.source.sha256:ctx.source.video_id);
       if(adopted)await journal(ctx.evidenceKey,adopted);
-      paid=recovered(stored||adopted||meta.source?.captions?.captions?.timing_evidence
-        ||meta.source?.audio?.captions?.timing_evidence||null);
+      paid=regeometry(recovered(stored||adopted||meta.source?.captions?.captions?.timing_evidence
+        ||meta.source?.audio?.captions?.timing_evidence||null));
       evidence=paid;
       if(matches(paid)&&paid.schema==='youtube-asr-timing-evidence-v2'&&compatible(paid.timeline))times=YoutubeTiming.mergeRecovered(base,YoutubeTiming.diagnose(paid).segments);
       const proposal=await journal(ctx.journalKey);
@@ -258,7 +267,7 @@
       const work=async lock=>{
         if(!lock)throw new Error('TIMING_REPAIR_BUSY');
         const fresh=await context(ctx.id);if(fresh.rowsSnapshot!==ctx.rowsSnapshot||fresh.card.source_meta_json!==ctx.card.source_meta_json||JSON.stringify(fresh.binding)!==JSON.stringify(ctx.binding))throw new Error('TIMING_REPAIR_STALE');
-        paid=recovered(await journal(ctx.evidenceKey)||paid);stopped=false;stop.disabled=false;
+        paid=regeometry(recovered(await journal(ctx.evidenceKey)||paid));stopped=false;stop.disabled=false;
         const prior=matches(paid)&&paid?.schema==='youtube-asr-timing-evidence-v2'&&compatible(paid.timeline)?paid:null;
         const result=await YoutubeAsr.verifySavedTiming({fetch:(u,i)=>fetch(u,i),apiKey:key(),shouldStop:()=>stopped,savedTimingEvidence:prior},ctx.source,prior?prior.timeline:base,quote,
           (_,at)=>{status.textContent=tr('waiting',{n:(at.index||0)+1,total:at.total});},async value=>{paid=evidence=value;await journal(ctx.evidenceKey,value);});
