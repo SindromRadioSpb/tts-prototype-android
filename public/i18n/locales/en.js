@@ -3826,6 +3826,7 @@ window.I18N_LOCALES.en = {
       errAsrUnreliable: "The model returned an unreadable response for part of the recording. Press “Transcribe” again — recognition will continue from where it stopped.",
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       warnCoverage: "The model skipped some segments — check the table for completeness",
+      warnColumns: "Niqqud and translit did not come back for {count} row(s) — the other columns are intact",
       // S12.5 T4 — honest ASR run summary in the preview (R11: a run that lost 47% of the
       // timeline once looked like a success) + explicit confirmation past 5% loss.
       asrSummaryChunks: "Chunks {ok}/{total}",

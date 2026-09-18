@@ -13356,9 +13356,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=236"></script>
-<script src="/i18n/locales/en.js?v=236"></script>
-<script src="/i18n/locales/he.js?v=236"></script>
+<script src="/i18n/locales/ru.js?v=237"></script>
+<script src="/i18n/locales/en.js?v=237"></script>
+<script src="/i18n/locales/he.js?v=237"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13581,7 +13581,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.597";
+    window.APP_VERSION = "3.11.598";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -25251,6 +25251,18 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
     if (resWarnings.includes("SEG_COVERAGE_PARTIAL")) {
       audio.tableWarnings = resWarnings;
       if (typeof showToast === "function") showToast(t("studio.import.warnCoverage"), "warning");
+    }
+    // Every row landed, but some of them came back without their derived columns. Say how
+    // many and which ones: a silent hole in niqqud/translit is indistinguishable from a
+    // word that genuinely has none, and the user cannot ask for what they cannot see.
+    if (resWarnings.includes("SEG_COLUMNS_PARTIAL")) {
+      audio.tableWarnings = resWarnings;
+      const gaps = (res && res.columnGaps) || null;
+      const gapRows = (gaps && Array.isArray(gaps.rows)) ? gaps.rows : [];
+      audio.columnGaps = gaps;
+      if (typeof showToast === "function" && gapRows.length) {
+        showToast(t("studio.import.warnColumns", { count: gapRows.length }), "warning");
+      }
     }
     window.v3ActiveMediaAudio = audio;
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh(); // Task 10
@@ -37304,8 +37316,16 @@ try {
             if (pass && v3IsDerivedTimingDrop(pass.timingDropReason)) pass.timingDropReason = null;
         }
         currentTableData = accum.slice();
-        v3AttachAudioTiming({ rows: currentTableData,
-            warnings: missingGlobal.length ? ["SEG_COVERAGE_PARTIAL"] : [] }, true);
+        // A chunk can answer every segment and still hand back rows with empty derived
+        // columns. That is a different hole from a missing row, so it gets its own oracle
+        // and its own named warning — rendering it silently is what this replaces.
+        const columnGaps = TableChunks.derivedColumnGaps(accum);
+        const buildWarnings = [];
+        if (missingGlobal.length) buildWarnings.push("SEG_COVERAGE_PARTIAL");
+        if (columnGaps.rows.length) buildWarnings.push("SEG_COLUMNS_PARTIAL");
+        v3LastGeminiMeta.column_gaps = columnGaps;
+        v3AttachAudioTiming({ rows: currentTableData, warnings: buildWarnings,
+            columnGaps: columnGaps }, true);
         if (missingGlobal.length) {
             tableIsStale = true;
             if (jobJournal && window.TableJob) {

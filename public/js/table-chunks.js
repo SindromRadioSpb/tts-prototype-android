@@ -56,6 +56,30 @@
     return out;
   }
 
+  // A chunk can answer every segment and still return rows whose DERIVED columns are empty
+  // (owner-live incident 2026-09-18: nine rows in one chunk kept Hebrew and translation but
+  // lost niqqud and translit). coverageForRows sees those rows as covered, so the build used
+  // to report success and paint the holes silently. This oracle names them instead.
+  //
+  // Aliases matter: the table renders `row.he_niqqud || row.niqqud` and
+  // `row.translit || row.transliteration`, so reading only the primary names would invent
+  // gaps. A row carrying no Hebrew of its own is owed nothing and is never counted.
+  function derivedColumnGaps(rows) {
+    var niqqud = [], translit = [], both = [];
+    var text = function (value) { return String(value == null ? "" : value).trim(); };
+    (rows || []).forEach(function (row, position) {
+      var r = row || {};
+      var index = Number.isInteger(r.segment_index) ? r.segment_index : position;
+      if (!/[א-ת]/.test(text(r.he) || text(r.he_plain))) return;
+      var missingNiqqud = !text(r.he_niqqud) && !text(r.niqqud);
+      var missingTranslit = !text(r.translit) && !text(r.transliteration);
+      if (missingNiqqud) niqqud.push(index);
+      if (missingTranslit) translit.push(index);
+      if (missingNiqqud || missingTranslit) both.push(index);
+    });
+    return { niqqud: niqqud, translit: translit, rows: both };
+  }
+
   function coverageForRows(rows, segmentCount) {
     var total = Math.max(0, Number(segmentCount) || 0), seen = new Set();
     (rows || []).forEach(function (row) {
@@ -180,7 +204,8 @@
 
   var API = { CHUNK_SIZE: CHUNK_SIZE, buildChunks: buildChunks, offsetRows: offsetRows,
               coverageForChunk: coverageForChunk, aggregateMissing: aggregateMissing,
-              coverageForRows: coverageForRows, buildRepairChunks: buildRepairChunks,
+              coverageForRows: coverageForRows, derivedColumnGaps: derivedColumnGaps,
+              buildRepairChunks: buildRepairChunks,
               restoreRepairRows: restoreRepairRows, mergeRepairRows: mergeRepairRows,
               estimatePlainRows: estimatePlainRows,
               SINGLE_REQUEST_SAFE_SEGMENTS: SINGLE_REQUEST_SAFE_SEGMENTS,
