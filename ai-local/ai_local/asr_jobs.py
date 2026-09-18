@@ -22,6 +22,7 @@ from .asr_constants import (
     ASR_CANCEL_TERMINAL_TIMEOUT_SEC,
     ASR_JOB_TTL_SEC,
     ASR_MAX_SOURCE_BYTES,
+    ASR_MAX_SOURCE_MIB,
     model_identity,
 )
 from .asr_worker import asr_worker
@@ -52,6 +53,17 @@ RESULT_NAME = "result.json"
 
 class JobCapacityError(RuntimeError):
     pass
+
+
+class SourceTooLarge(ValueError):
+    """The upload is bigger than the configured ceiling.
+
+    A distinct type so the HTTP layer can answer 413 without matching on wording, and a
+    message built from the constant so it always states the limit actually enforced.
+    """
+
+    def __init__(self, message: str | None = None) -> None:
+        super().__init__(message or f"source exceeds {ASR_MAX_SOURCE_MIB} MiB")
 
 
 class JobNotFound(KeyError):
@@ -296,7 +308,7 @@ class AsrJobManager:
                 raise ValueError("source length must not be negative")
             if content_length > ASR_MAX_SOURCE_BYTES:
                 self.release_reservation(reservation)
-                raise ValueError("source exceeds 300 MiB")
+                raise SourceTooLarge()
         job_id = str(uuid.uuid4())
         path = self.job_dir(job_id)
         path.mkdir(parents=True, exist_ok=False)
@@ -310,7 +322,7 @@ class AsrJobManager:
                         continue
                     size += len(chunk)
                     if size > ASR_MAX_SOURCE_BYTES:
-                        raise ValueError("source exceeds 300 MiB")
+                        raise SourceTooLarge()
                     digest.update(chunk)
                     output.write(chunk)
                 output.flush()

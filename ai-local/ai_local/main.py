@@ -14,7 +14,7 @@ from .lifecycle import ensure_loaded, eager_load, shutdown_slot, try_unload, use
 from .logging_setup import configure_logging
 from .monitor import start_monitor, stop_monitor
 from .asr_constants import ASR_MODEL_IDLE_TIMEOUT_SEC, ASR_PROTOCOL_VERSION, model_identity
-from .asr_jobs import JobCapacityError, JobNotFound, asr_job_manager
+from .asr_jobs import JobCapacityError, JobNotFound, SourceTooLarge, asr_job_manager
 from .asr_worker import asr_worker
 from .gpu_scheduler import heavy_gpu_scheduler
 from .model_store import inspect_model
@@ -646,7 +646,10 @@ async def v1_asr_create_job(request: Request):
             reservation=reservation,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=413 if "300 MiB" in str(exc) else 400, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=413 if isinstance(exc, SourceTooLarge) else 400,
+            detail=str(exc),
+        ) from exc
 
 
 @app.get("/v1/asr/jobs/{job_id}", dependencies=[Depends(require_browser_auth)])

@@ -3794,6 +3794,7 @@ window.I18N_LOCALES.en = {
       mediaTranscriptOnlyBtn: "Transcribe only, without prepared video",
       mediaTranscriptOnlySelected: "Transcript-only was selected explicitly: the material remains not_bound / playback not prepared.",
       localAsrUnavailable: "Local companion is unavailable or rejected the request; there is no automatic Gemini fallback.",
+      localAsrSourceTooLarge: "The file is larger than the local ASR limit — prepare a lighter copy.",
       localAsrOom: "The NVIDIA GPU ran out of memory. The Local worker was reset; no Gemini request was made.",
       localAsrDiskLow: "There is not enough local disk space for this Local job or model operation.",
       localAsrModelIntegrity: "The pinned model failed its revision/SHA-256 check. Local processing was blocked.",

@@ -856,6 +856,7 @@
                           importSessionResetPatch: importSessionResetPatch,
                           saveMetaSourcePrefill: saveMetaSourcePrefill,
                           materialOwnSource: materialOwnSource,
+                          localAsrFailure: localAsrFailure,
                           writeDownrIntent: writeDownrIntent, readDownrIntent: readDownrIntent,
                           discardDownrIntent: discardDownrIntent,
                           buildOcrDraft: buildOcrDraft, writeOcrDraft: writeOcrDraft,
@@ -1006,6 +1007,14 @@
     }
     if (/PORT_CONFLICT/i.test(detail)) {
       return { reason: "PORT_CONFLICT", key: "studio.import.localAsrPortConflict" };
+    }
+    // A companion that answers 413 with "source exceeds N MiB" has not gone missing — it has
+    // stated the ceiling it enforced. Collapsing that into "companion unavailable" hid both
+    // the cause and the remedy, and sent the diagnosis after a service that was up and idle.
+    // Its own words travel with the verdict so the limit shown is the limit applied.
+    if ((error && error.code === "LOCAL_ASR_HTTP_413") || /SOURCE_TOO_LARGE|exceeds\s+\d+\s*MiB/i.test(detail)) {
+      var said = String((job && job.error_detail) || (error && error.message) || detail || "").trim();
+      return { reason: "SOURCE_TOO_LARGE", key: "studio.import.localAsrSourceTooLarge", detail: said };
     }
     return { reason: (job && job.error_code) || (error && error.code) || "LOCAL_ASR_FAILED", key: "studio.import.localAsrUnavailable" };
   }
@@ -2320,7 +2329,7 @@
       pendingAudio.localFallbackReason = failure.reason;
       if (error && error.code === "LOCAL_ASR_CANCELED") setStatus("studio.import.localAsrCanceled");
       else if (error && error.code === "LOCAL_ASR_AUDIO_STREAM_REQUIRED") setStatus("studio.import.localAsrStreamRequired");
-      else setStatus(failure.key);
+      else setStatus(failure.key, failure.detail);
     } finally {
       localAsrRunController = null;
       setBusy(false);
@@ -3545,6 +3554,7 @@
                            importSessionResetPatch: importSessionResetPatch,
                            saveMetaSourcePrefill: saveMetaSourcePrefill,
                            materialOwnSource: materialOwnSource,
+                           localAsrFailure: localAsrFailure,
                            mediaSegmentsForPromotion: mediaSegmentsForPromotion,
                            // Рендер сводки прогона — тем же путём, что рисует превью. Экспортируется,
                            // чтобы обязательная 380px-проверка вёрстки (правило проекта) снимала

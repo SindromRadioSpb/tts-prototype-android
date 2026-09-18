@@ -55,7 +55,12 @@ ASR_REQUIRED_FREE_VRAM_MIB = ASR_PEAK_VRAM_DELTA_MIB + ASR_VRAM_SAFETY_RESERVE_M
 ASR_MODEL_IDLE_TIMEOUT_SEC = 300
 ASR_JOB_TTL_SEC = 24 * 60 * 60
 ASR_CANCEL_TERMINAL_TIMEOUT_SEC = 15
-ASR_MAX_SOURCE_BYTES = 300 * 1024 * 1024
+# Raised 300 -> 700 MiB (owner request 2026-09-18): the mandatory pre-ASR compatibility
+# copy of a 1080p source lands well over 300 MiB, so the old ceiling refused files that
+# the same pipeline had just produced. Keep the MiB figure here and derive everything
+# else from it, so the enforced limit and the refusal text cannot drift apart.
+ASR_MAX_SOURCE_MIB = 700
+ASR_MAX_SOURCE_BYTES = ASR_MAX_SOURCE_MIB * 1024 * 1024
 ASR_MAX_DURATION_SEC = 3 * 60 * 60
 
 

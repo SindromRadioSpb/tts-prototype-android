@@ -3808,6 +3808,7 @@ window.I18N_LOCALES.ru = {
       mediaTranscriptOnlyBtn: "Только расшифровать, без готового видео",
       mediaTranscriptOnlySelected: "Режим transcript-only выбран явно: материал останется not_bound / playback not prepared.",
       localAsrUnavailable: "Local companion недоступен или отклонил запрос; автоматического перехода в Gemini нет.",
+      localAsrSourceTooLarge: "Файл больше предела локального ASR — подготовьте копию полегче.",
       localAsrOom: "Память NVIDIA GPU закончилась. Local worker сброшен; запросов к Gemini не было.",
       localAsrDiskLow: "Недостаточно места на локальном диске для Local job или операции с моделью.",
       localAsrModelIntegrity: "Pinned-модель не прошла проверку revision/SHA-256. Локальная обработка заблокирована.",
