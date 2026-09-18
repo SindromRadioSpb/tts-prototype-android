@@ -3808,6 +3808,7 @@ window.I18N_LOCALES.ru = {
       mediaTranscriptOnlyBtn: "Только расшифровать, без готового видео",
       mediaTranscriptOnlySelected: "Режим transcript-only выбран явно: материал останется not_bound / playback not prepared.",
       localAsrUnavailable: "Local companion недоступен или отклонил запрос; автоматического перехода в Gemini нет.",
+      dismissBlocked: "Идёт работа — окно не закрывается по клику мимо. Используйте «Закрыть» или отмените задание.",
       localAsrSourceTooLarge: "Файл больше предела локального ASR — подготовьте копию полегче.",
       localAsrOom: "Память NVIDIA GPU закончилась. Local worker сброшен; запросов к Gemini не было.",
       localAsrDiskLow: "Недостаточно места на локальном диске для Local job или операции с моделью.",

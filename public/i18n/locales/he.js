@@ -3804,6 +3804,7 @@ window.I18N_LOCALES.he = {
       mediaTranscriptOnlyBtn: "תמלול בלבד, ללא וידאו מוכן",
       mediaTranscriptOnlySelected: "מצב transcript-only נבחר במפורש: החומר נשאר not_bound / playback not prepared.",
       localAsrUnavailable: "ה-companion המקומי אינו זמין או דחה את הבקשה; אין מעבר אוטומטי ל-Gemini.",
+      dismissBlocked: "העבודה מתבצעת — לחיצה מחוץ לחלון לא תסגור אותו. השתמשו ב«סגור» או בטלו את המשימה.",
       localAsrSourceTooLarge: "הקובץ גדול ממגבלת ה-ASR המקומי — הכינו עותק קל יותר.",
       localAsrOom: "זיכרון ה-NVIDIA GPU אזל. ה-worker המקומי אופס; לא נשלחה בקשה ל-Gemini.",
       localAsrDiskLow: "אין די מקום בדיסק המקומי למשימה או לפעולת המודל.",

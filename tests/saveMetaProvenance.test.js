@@ -106,6 +106,37 @@ test("own provenance is reported as a fact the topic prefill can use", () => {
   assert.equal(SI.materialOwnSource(null, { kind: "text", source: "leftover.mp4" }), "");
 });
 
+test("an internal marker is not provenance, however firmly the media is bound", () => {
+  // Owner-live 2026-09-18: a saved card was offered "workspace-revision" as its source. The
+  // rule accepted importMeta.source on the strength of a bound media_package_ref alone, so a
+  // synthetic marker travelled into the user's library as if it were a filename. Provenance
+  // is a media FILE name; anything else must fall back to the remembered default.
+  const marker = { kind: "audio", source: "workspace-revision",
+                   media_package_ref: { package_id: "mpkg:a608b7ef", revision_id: "rev:1" } };
+  assert.equal(SI.materialOwnSource(null, marker), "");
+  assert.equal(
+    SI.saveMetaSourcePrefill({ existingSource: null, geminiMeta: null, importMeta: marker,
+                               stickyDefault: "новости" }),
+    "новости",
+    "the user's remembered default is better than a technical token"
+  );
+});
+
+test("a real media filename still wins, extension and all", () => {
+  const mk = (name) => ({ source: name, media_package_ref: { package_id: "mpkg:x", revision_id: "r" } });
+  assert.equal(SI.materialOwnSource(null, mk("interview-1080-mobile-ready.mp4")),
+               "interview-1080-mobile-ready.mp4");
+  assert.equal(SI.materialOwnSource(null, mk("שיחה.mkv")), "שיחה.mkv", "non-latin names too");
+  assert.equal(SI.materialOwnSource(null, mk("lecture.m4a")), "lecture.m4a");
+});
+
+test("a name without a media extension is not mistaken for a file", () => {
+  const mk = (name) => ({ source: name, media_package_ref: { package_id: "mpkg:x", revision_id: "r" } });
+  assert.equal(SI.materialOwnSource(null, mk("workspace")), "");
+  assert.equal(SI.materialOwnSource(null, mk("notes.txt")), "", "not a media file");
+  assert.equal(SI.materialOwnSource(null, mk("")), "");
+});
+
 test("the save dialog routes its source prefill through the shared rule", () => {
   // Guards against the inline dialog quietly growing a second, divergent copy of the rule.
   assert.match(html, /saveMetaSourcePrefill\(/,

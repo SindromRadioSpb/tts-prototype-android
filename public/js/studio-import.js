@@ -312,9 +312,20 @@
     }
     var im = importMeta || null;
     if (im && im.media_package_ref && im.media_package_ref.package_id) {
-      return String(im.source == null ? "" : im.source).trim();
+      var named = String(im.source == null ? "" : im.source).trim();
+      // Bound media proves the meta describes THIS text; it does not prove that `source` is a
+      // file name. It can be an internal marker such as "workspace-revision", and offering
+      // that as provenance writes a technical token into the user's library — worse than the
+      // remembered default it replaced. Provenance is a media FILE, extension included.
+      if (looksLikeMediaFileName(named)) return named;
     }
     return "";
+  }
+
+  var MEDIA_FILE_NAME = /\.(mp4|m4v|mkv|mov|webm|avi|ts|m4a|mp3|aac|wav|flac|ogg|opus|wma)$/i;
+
+  function looksLikeMediaFileName(value) {
+    return MEDIA_FILE_NAME.test(String(value == null ? "" : value).trim());
   }
 
   // A validated ASR preview deliberately nulls a non-monotonic mark instead of pretending that
@@ -857,6 +868,8 @@
                           saveMetaSourcePrefill: saveMetaSourcePrefill,
                           materialOwnSource: materialOwnSource,
                           localAsrFailure: localAsrFailure,
+                          isBusy: isBusy,
+                          closeFromBackdrop: closeFromBackdrop,
                           writeDownrIntent: writeDownrIntent, readDownrIntent: readDownrIntent,
                           discardDownrIntent: discardDownrIntent,
                           buildOcrDraft: buildOcrDraft, writeOcrDraft: writeOcrDraft,
@@ -1139,7 +1152,11 @@
     if (el) el.textContent = msgKey ? (tr(msgKey) + (extra ? " " + extra : "")) : "";
   }
 
+  // True while this dialog is holding work a stray click must not discard.
+  var dialogBusy = false;
+
   function setBusy(b) {
+    dialogBusy = !!b;
     var btn = $("v3ImportUrlBtn");
     if (btn) btn.disabled = b;
     var vb = $("v3ImportVideoBtn");
@@ -2879,6 +2896,17 @@
       if (selectedTab) selectedTab.focus({ preventScroll: true });
     }, 0);
   }
+  function isBusy() { return !!dialogBusy; }
+
+  // The backdrop used to call close() directly, so a click that merely missed the panel
+  // ran the same teardown as an intentional cancel - and close() aborts the local ASR run
+  // and the media job it was holding. A stray click is now refused while work is in
+  // flight and says so; the Close button and the explicit cancel actions are unchanged.
+  function closeFromBackdrop() {
+    if (isBusy()) { setStatus("studio.import.dismissBlocked"); return; }
+    close();
+  }
+
   function close() {
     var m = $("v3ImportModal");
     var wasOpen = !!(m && !m.classList.contains("hidden"));
@@ -3555,6 +3583,8 @@
                            saveMetaSourcePrefill: saveMetaSourcePrefill,
                            materialOwnSource: materialOwnSource,
                            localAsrFailure: localAsrFailure,
+                           isBusy: isBusy,
+                           closeFromBackdrop: closeFromBackdrop,
                            mediaSegmentsForPromotion: mediaSegmentsForPromotion,
                            // Рендер сводки прогона — тем же путём, что рисует превью. Экспортируется,
                            // чтобы обязательная 380px-проверка вёрстки (правило проекта) снимала
