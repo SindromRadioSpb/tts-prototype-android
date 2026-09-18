@@ -155,9 +155,11 @@ test("B+C: row identity separates ASR source segment from premium sentence ordin
 });
 
 test("B+C: imported media starts a new draft and media SHA is strict", () => {
+  // `source` joined `title` in the reset: a new import must not inherit the previous
+  // material's provenance in the draft header (see tests/saveMetaProvenance.test.js).
   assert.deepEqual(SI.importSessionResetPatch(), {
     mode: "draft", textId: null, baseTextId: null, resumeSentenceId: null,
-    title: null, openMode: null,
+    title: null, source: null, openMode: null,
   });
   const sha = "B".repeat(64);
   assert.equal(SI.mediaSourceSha({ audio: { media: { sha256: sha } } }), sha.toLowerCase());

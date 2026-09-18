@@ -281,8 +281,40 @@
   }
 
   function importSessionResetPatch() {
+    // `source` is reset for the same reason as `title`: it describes the PREVIOUS material.
+    // Carrying it over made the draft header credit a new import to an unrelated file.
     return { mode: "draft", textId: null, baseTextId: null, resumeSentenceId: null,
-             title: null, openMode: null };
+             title: null, source: null, openMode: null };
+  }
+
+  // Which source string the save dialog should offer. The sticky default (the user's last
+  // typed source) exists for hand-written texts; a material that carries its OWN file
+  // provenance must never inherit it. This rule used to live inline in the dialog and was
+  // keyed to provider === "subtitle-track", so every other media import — a local-companion
+  // ASR run, say — silently kept the previous material's filename.
+  function saveMetaSourcePrefill(input) {
+    var o = input || {};
+    var existing = String(o.existingSource == null ? "" : o.existingSource).trim();
+    if (existing) return existing;
+    var own = materialOwnSource(o.geminiMeta, o.importMeta);
+    if (own) return own;
+    return String(o.stickyDefault == null ? "" : o.stickyDefault).trim();
+  }
+
+  // A material's own provenance, or "" when it has none. Bound media is the proof that the
+  // meta describes THIS text: a loose import meta left over from an earlier run must not be
+  // allowed to overrule the user's remembered default.
+  function materialOwnSource(geminiMeta, importMeta) {
+    var g = geminiMeta || null;
+    if (g && g.provider === "subtitle-track") {
+      var sub = String((g.source && g.source.source) || "").trim();
+      if (sub) return sub;
+    }
+    var im = importMeta || null;
+    if (im && im.media_package_ref && im.media_package_ref.package_id) {
+      return String(im.source == null ? "" : im.source).trim();
+    }
+    return "";
   }
 
   // A validated ASR preview deliberately nulls a non-monotonic mark instead of pretending that
@@ -822,6 +854,8 @@
                           mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
                           restorePortableRowIdentity: restorePortableRowIdentity,
                           importSessionResetPatch: importSessionResetPatch,
+                          saveMetaSourcePrefill: saveMetaSourcePrefill,
+                          materialOwnSource: materialOwnSource,
                           writeDownrIntent: writeDownrIntent, readDownrIntent: readDownrIntent,
                           discardDownrIntent: discardDownrIntent,
                           buildOcrDraft: buildOcrDraft, writeOcrDraft: writeOcrDraft,
@@ -3509,6 +3543,8 @@
                            mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
                            restorePortableRowIdentity: restorePortableRowIdentity,
                            importSessionResetPatch: importSessionResetPatch,
+                           saveMetaSourcePrefill: saveMetaSourcePrefill,
+                           materialOwnSource: materialOwnSource,
                            mediaSegmentsForPromotion: mediaSegmentsForPromotion,
                            // Рендер сводки прогона — тем же путём, что рисует превью. Экспортируется,
                            // чтобы обязательная 380px-проверка вёрстки (правило проекта) снимала

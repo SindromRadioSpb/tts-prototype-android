@@ -13543,7 +13543,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=587" defer></script>
+<script src="/js/studio-import.js?v=597" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13581,7 +13581,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.596";
+    window.APP_VERSION = "3.11.597";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34379,11 +34379,11 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
   }
   const def = v3LoadSaveMetaDefaults();
   const titleGuess = v3GuessTitleFromSourceText(sourceText);
-  // A subtitle material has its own file provenance. Defaults from a previous
-  // text or YouTube card must not become this video's source or topic.
-  const subtitleSource = v3LastGeminiMeta && v3LastGeminiMeta.provider === "subtitle-track"
-    ? String(v3LastGeminiMeta.source && v3LastGeminiMeta.source.source || "").trim()
-    : null;
+  // A material that arrived with its own file has its own provenance. Defaults remembered
+  // from a previous text or YouTube card must not become this one's source or topic. The
+  // rule lives in StudioImport so the dialog cannot drift from it (it once covered only
+  // provider === "subtitle-track", which silently excluded every other media import).
+  const ownSource = window.StudioImport.materialOwnSource(v3LastGeminiMeta, window.v3LastImportMeta);
 
   const titleEl = v3SaveMetaEl("v3SaveMetaTitle");
   const levelEl = v3SaveMetaEl("v3SaveMetaLevel");
@@ -34397,8 +34397,10 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
     const existingTags = v3SaveMetaReadJson(existing && existing.tags_json);
     tagsEl.value = Array.isArray(existingTags) ? existingTags.join(", ") : "";
   }
-  if (sourceEl) sourceEl.value = String(existing && existing.source || (subtitleSource === null ? def.source : subtitleSource) || "");
-  if (topicEl) topicEl.value = String(existing && existing.topic || (subtitleSource === null ? def.topic : "") || "");
+  if (sourceEl) sourceEl.value = window.StudioImport.saveMetaSourcePrefill({
+    existingSource: existing && existing.source, geminiMeta: v3LastGeminiMeta,
+    importMeta: window.v3LastImportMeta, stickyDefault: def.source });
+  if (topicEl) topicEl.value = String(existing && existing.topic || (ownSource ? "" : def.topic) || "");
 
   v3SaveMetaSetStatus(v3SaveMetaBoundUpdate ? t("saveMeta.boundVersionNote") : "", false);
   v3SaveMetaShow(true);

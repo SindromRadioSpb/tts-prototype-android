@@ -1145,7 +1145,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/portable-learning-package-repository.js?v=576",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
-  "/js/studio-import.js?v=587",
+  "/js/studio-import.js?v=597",
   "/js/local-asr-client.js?v=577",
   "/js/subtitle-material-core.js?v=586",
   "/js/subtitle-material-import.js?v=584",
