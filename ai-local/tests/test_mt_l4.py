@@ -318,16 +318,36 @@ def test_companion_build_runs_frozen_mt_runtime_self_check():
     assert 'Where-Object { $_.Name -eq $InstallerName }' in script
 
 
-def test_companion_beta6_version_is_consistent_across_binary_and_installer():
+def test_companion_version_has_exactly_one_source_and_no_copy_to_drift():
+    """0.3.0-beta.10 shipped a window that said beta.9: three literals, one un-bumped.
+
+    A text gate over three copies is what failed then - it was simply not run. So the copies
+    are gone instead: the window reads ai_local.version, and the installer and artifact name
+    are defines the build fills in from the same module.
+    """
+    from ai_local import companion, version
+
     root = Path(__file__).resolve().parents[1]
     script = (root / "scripts" / "build_companion.ps1").read_text(encoding="utf-8")
-    companion = (root / "ai_local" / "companion.py").read_text(encoding="utf-8")
     installer = (root / "installer" / "LinguistProLocalAsr.iss").read_text(encoding="utf-8-sig")
+    companion_source = (root / "ai_local" / "companion.py").read_text(encoding="utf-8")
 
-    for source in (script, companion, installer):
-        assert "0.3.0-beta.9" in source
-    assert "0.3.0-beta.4-unsigned-internal.exe" not in script
-    assert "0.3.0-beta.4-unsigned-internal" not in installer
+    assert companion.APP_VERSION == version.COMPANION_VERSION
+    assert version.COMPANION_ARTIFACT_NAME.count(version.COMPANION_VERSION) == 1
+    assert version.file_version("0.3.0-beta.11") == "0.3.0.11"
+    assert version.file_version("1.2.3") == "1.2.3.0"
+    with pytest.raises(ValueError):
+        version.file_version("not-a-version")
+
+    # No second literal anywhere that could disagree with it again.
+    assert 'APP_VERSION = COMPANION_VERSION' in companion_source
+    for source in (script, installer, companion_source):
+        assert version.COMPANION_VERSION not in source
+    assert "#ifndef MyAppVersion" in installer
+    assert "{#MyAppVersion}-unsigned-internal" in installer
+    assert "COMPANION_VERSION" in script and "/DMyAppVersion=" in script
+    # ... and the frozen binary, not the source, is what the build believes.
+    assert "--app-version" in script and "--app-version" in companion_source
 
 
 def test_companion_builder_proves_frozen_media_readiness_contract():

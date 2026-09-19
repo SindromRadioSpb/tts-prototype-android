@@ -72,7 +72,7 @@ async def test_job_hashes_upload_and_waits_for_explicit_prepare(tmp_path):
             "estimated_output_bytes": len(payload),
         }
 
-    async def prepare(source, output, mode, _cancel, _progress, plan=None):
+    async def prepare(source, output, mode, _cancel, _progress, plan=None, video_encoder=None):
         assert mode == "lossless_repair"
         output.write_bytes(source.read_bytes() + b"-fixed")
 

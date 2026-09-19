@@ -1,5 +1,13 @@
-#define MyAppName "LinguistPro Local AI Companion"
-#define MyAppVersion "0.3.0-beta.10"
+﻿#define MyAppName "LinguistPro Local AI Companion"
+; The version is passed in by scripts/build_companion.ps1 from ai_local/version.py, the one
+; place it is written. Compiling this file by hand still works, and then it says so: an
+; installer named "unset" is a visible mistake, unlike a stale number that looks plausible.
+#ifndef MyAppVersion
+  #define MyAppVersion "unset-compile-via-build_companion.ps1"
+#endif
+#ifndef MyAppFileVersion
+  #define MyAppFileVersion "0.0.0.0"
+#endif
 #define MyAppExeName "LinguistProLocalAsrCompanion.exe"
 
 [Setup]
@@ -13,14 +21,14 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\artifacts
-OutputBaseFilename=LinguistProLocalAsrCompanion-0.3.0-beta.10-unsigned-internal
+OutputBaseFilename=LinguistProLocalAsrCompanion-{#MyAppVersion}-unsigned-internal
 Compression=lzma2/fast
 SolidCompression=yes
 WizardStyle=modern
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExeName}
 InfoBeforeFile=..\THIRD_PARTY_NOTICES.md
-VersionInfoVersion=0.3.0.2
+VersionInfoVersion={#MyAppFileVersion}
 VersionInfoDescription=Unsigned internal Local ASR, MADLAD and Media Readiness beta Companion
 RestartApplications=no
 

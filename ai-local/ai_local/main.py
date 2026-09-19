@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 
-from . import config
+from . import companion_settings, config
 from .lifecycle import ensure_loaded, eager_load, shutdown_slot, try_unload, use_model
 from .logging_setup import configure_logging
 from .monitor import start_monitor, stop_monitor
@@ -228,6 +228,9 @@ class MediaPrepareRequest(BaseModel):
     mode: str = Field(..., pattern=r"^(lossless_repair|audio_transcode|transcode|lite_transcode)$")
     plan_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
     rendition: str = Field("full", pattern=r"^(full|lite)$")
+    # Omitted means "whatever this Companion is set to"; naming one is an explicit choice for
+    # this conversion only and is still checked against what the confirmed plan offered.
+    video_encoder: str | None = Field(None, pattern=r"^(cpu|gpu)$")
 
 
 class MediaAudioStreamRequest(BaseModel):
@@ -267,6 +270,11 @@ async def v1_capabilities():
             "target_contract": "linguistpro-mobile-v1",
             "max_bytes": media_job_manager.MAX_BYTES,
             "automatic_prepare": False,
+            # Whether a browser may choose the encoder per conversion, and what this Companion
+            # would do when it does not. Whether the GPU is actually usable is answered per
+            # file by the media analysis, which proves it by encoding a frame.
+            "video_encoder_choice": True,
+            "video_encoder_default": companion_settings.resolve("media_hw_encoder"),
         },
     }
 
@@ -304,6 +312,7 @@ async def v1_media_job_prepare(job_id: str, body: MediaPrepareRequest):
     try:
         return await media_job_manager.prepare(
             job_id, mode=body.mode, plan_sha256=body.plan_sha256, rendition=body.rendition,
+            video_encoder=body.video_encoder,
         )
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc

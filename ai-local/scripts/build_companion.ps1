@@ -25,6 +25,22 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to prepare build pip tooling" }
 & $VenvPython -m pip install "$AiLocalRoot[runtime]" "pyinstaller>=6.10,<7" `
   "nvidia-cudnn-cu12==9.10.2.21" "nvidia-cublas-cu12==12.1.3.1"
 if ($LASTEXITCODE -ne 0) { throw "Failed to install pinned Companion build dependencies" }
+# The package version in pyproject.toml does not change between betas, so pip can consider a
+# months-old copy in site-packages "already satisfied" and PyInstaller would freeze that copy.
+# Reinstalling the source tree without touching dependencies costs seconds and removes the
+# question of which ai_local ended up inside the artifact.
+& $VenvPython -m pip install --force-reinstall --no-deps "$AiLocalRoot"
+if ($LASTEXITCODE -ne 0) { throw "Failed to refresh the ai_local source package in the build venv" }
+
+# One version string for the window, the installer and the artifact name: ai_local/version.py.
+$VersionModule = Join-Path $AiLocalRoot "ai_local/version.py"
+$VersionSource = Get-Content -LiteralPath $VersionModule -Raw
+if ($VersionSource -notmatch '(?m)^COMPANION_VERSION\s*=\s*"([^"]+)"') {
+  throw "COMPANION_VERSION could not be read from ai_local/version.py"
+}
+$CompanionVersion = $Matches[1]
+$CompanionFileVersion = & $VenvPython -c "from ai_local.version import COMPANION_FILE_VERSION; print(COMPANION_FILE_VERSION)"
+if ($LASTEXITCODE -ne 0 -or -not $CompanionFileVersion) { throw "Companion file version could not be derived" }
 
 function Resolve-ExactFfmpegBinary([string]$Name) {
   $Candidates = @(
@@ -62,7 +78,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.10-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-$CompanionVersion-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -108,6 +124,19 @@ if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed; no installer may be produc
 
 $BuiltExe = Join-Path $DistRoot "LinguistProLocalAsrCompanion\LinguistProLocalAsrCompanion.exe"
 if (-not (Test-Path -LiteralPath $BuiltExe)) { throw "Frozen Companion executable was not produced" }
+# Ask the frozen binary which version it is. Reading the source again would only prove the
+# source agrees with itself; this is what the installed window will actually show, and the
+# installer is named after it.
+$FrozenVersionJson = & $BuiltExe --app-version
+if ($LASTEXITCODE -ne 0) { throw "Frozen Companion did not report its version" }
+try {
+  $FrozenVersion = ($FrozenVersionJson | ConvertFrom-Json).companion_version
+} catch {
+  throw "Frozen Companion version self-report returned invalid JSON"
+}
+if ($FrozenVersion -ne $CompanionVersion) {
+  throw "Frozen Companion reports $FrozenVersion while the installer would be named $CompanionVersion"
+}
 $MtRuntimeCheckJson = & $BuiltExe --mt-runtime-check
 if ($LASTEXITCODE -ne 0) { throw "Frozen Companion MT runtime self-check failed" }
 try {
@@ -240,7 +269,8 @@ $BuildReport = [ordered]@{
       ai-local/THIRD_PARTY_NOTICES.md docs/LOCAL_ASR_COMPANION_GUIDE.md `
       docs/LOCAL_ASR_COMPANION_GUIDE.en.md docs/LOCAL_ASR_COMPANION_GUIDE.he.md
   )
-  companion_version = "0.3.0-beta.10"
+  companion_version = $CompanionVersion
+  companion_version_frozen_selfreport = $FrozenVersion
   subtitle_runtime_check = $SubtitleRuntimeCheck
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
@@ -292,7 +322,8 @@ if (-not $SkipInstaller) {
   ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) })
   if (-not $IsccCandidates) { throw "Inno Setup 6 is required to build the installable artifact" }
   $Iscc = $IsccCandidates | Select-Object -First 1
-  & $Iscc (Join-Path $AiLocalRoot "installer\LinguistProLocalAsr.iss")
+  & $Iscc "/DMyAppVersion=$CompanionVersion" "/DMyAppFileVersion=$CompanionFileVersion" `
+    (Join-Path $AiLocalRoot "installer/LinguistProLocalAsr.iss")
   if ($LASTEXITCODE -ne 0) { throw "Inno Setup compiler failed" }
   if (-not (Test-Path -LiteralPath $PreviousInstaller)) { throw "Inno Setup did not produce the expected installer" }
 }

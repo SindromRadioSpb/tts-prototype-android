@@ -17,8 +17,6 @@ import struct
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
-from . import config
-
 
 READY = "READY"
 LOSSLESS_REPAIR = "LOSSLESS_REPAIR"
@@ -82,6 +80,12 @@ _NVENC_PROBE_CACHE: bool | None = None
 
 _CPU_VIDEO_ARGS = ["-c:v", "libx264", "-profile:v", "main", "-preset", "medium", "-crf", "20"]
 _GPU_VIDEO_ARGS = ["-c:v", "h264_nvenc", "-profile:v", "main", "-preset", "p5", "-rc", "vbr", "-cq", "22"]
+# The two encoders do NOT share quality flags, so each choice carries its whole argument
+# list and its own human summary of what that list means.
+VIDEO_ENCODER_CHOICES: dict[str, dict[str, Any]] = {
+    "cpu": {"encoder": "libx264", "args": _CPU_VIDEO_ARGS, "quality": "crf 20 · preset medium"},
+    "gpu": {"encoder": "h264_nvenc", "args": _GPU_VIDEO_ARGS, "quality": "cq 22 · preset p5"},
+}
 
 
 def _probe_nvenc() -> bool:
@@ -95,7 +99,7 @@ def _probe_nvenc() -> bool:
     global _NVENC_PROBE_CACHE
     if _NVENC_PROBE_CACHE is not None:
         return _NVENC_PROBE_CACHE
-    import subprocess
+    import subprocess  # noqa: PLC0415 - kept local: the sync probe is the non-async fallback
 
     try:
         proc = subprocess.run(
@@ -110,29 +114,99 @@ def _probe_nvenc() -> bool:
     return _NVENC_PROBE_CACHE
 
 
+_NVENC_PROBE_ARGS = [
+    "ffmpeg", "-hide_banner", "-v", "error", "-f", "lavfi",
+    "-i", "color=c=black:s=320x240:d=0.1", "-c:v", "h264_nvenc",
+    "-frames:v", "1", "-f", "null", "-",
+]
+
+
+async def nvenc_available() -> bool:
+    """The same one-frame proof as :func:`_probe_nvenc`, off the event loop.
+
+    The media analysis needs the answer to tell Studio whether the GPU may be offered at all,
+    and that analysis runs inside the server's loop: a blocking probe there would stall every
+    other request. Both entry points share one cache, because the answer cannot change without
+    a driver reload.
+    """
+    global _NVENC_PROBE_CACHE
+    if _NVENC_PROBE_CACHE is not None:
+        return _NVENC_PROBE_CACHE
+    try:
+        code, _stdout, _stderr = await _run_capture(_NVENC_PROBE_ARGS)
+        _NVENC_PROBE_CACHE = code == 0
+    except Exception:
+        _NVENC_PROBE_CACHE = False
+    return _NVENC_PROBE_CACHE
+
+
+def gpu_encoder_available_blocking() -> bool:
+    """The frame proof for callers outside the event loop, such as the Companion window."""
+    return _probe_nvenc()
+
+
+def _cpu_choice(fallback_reason: str | None = None) -> dict[str, Any]:
+    return {"choice": "cpu", "encoder": VIDEO_ENCODER_CHOICES["cpu"]["encoder"],
+            "quality_args": list(_CPU_VIDEO_ARGS), "fallback_reason": fallback_reason}
+
+
 def select_video_encoder(mode: Any, probe: Callable[[], bool] | None = None) -> dict[str, Any]:
-    """Which H.264 encoder this copy should use, and the flags that encoder accepts.
+    """Which H.264 encoder this copy should use by default, and the flags it accepts.
 
-    Opting in is explicit (AI_LOCAL_MEDIA_HW_ENCODER=auto) so the default artifact stays
-    byte-comparable on any machine with ffmpeg. A machine that cannot honour the request falls
-    back to libx264 rather than failing the job, and names the reason: the plan reports the
-    encoder that actually ran, because a silently different encoder is a different artifact.
-
-    The two encoders do NOT share quality flags - h264_nvenc rejects -crf and x264 preset names
-    - so the whole argument list travels with the choice instead of being templated.
+    The default is the Companion setting, not a per-request choice: "off" keeps the artifact
+    byte-comparable on any machine with ffmpeg, "auto" uses h264_nvenc where it actually runs.
+    A machine that cannot honour "auto" falls back to libx264 rather than failing the job, and
+    names the reason: the plan reports the encoder that actually ran, because a silently
+    different encoder is a different artifact.
     """
     requested = str(mode or "").strip().lower()
     if requested != "auto":
-        return {"encoder": "libx264", "quality_args": list(_CPU_VIDEO_ARGS), "fallback_reason": None}
+        return _cpu_choice()
+    return select_requested_video_encoder("gpu", probe=probe)
+
+
+def select_requested_video_encoder(
+    requested: Any, probe: Callable[[], bool] | None = None, *, default_mode: Any = None,
+) -> dict[str, Any]:
+    """Resolve one explicit browser choice ("cpu"/"gpu"), or the Companion default when none.
+
+    Asking for the GPU is not the same as having one, so "gpu" is still proved by encoding a
+    frame before the job commits to it; a machine that cannot honour the request falls back and
+    says so, rather than failing a conversion the owner already waited for.
+    """
+    choice = str(requested or "").strip().lower()
+    if choice not in VIDEO_ENCODER_CHOICES:
+        if default_mode is None:
+            from . import companion_settings
+
+            default_mode = companion_settings.media_hw_encoder()
+        return select_video_encoder(default_mode, probe=probe)
+    if choice == "cpu":
+        return _cpu_choice()
     try:
         usable = bool((probe or _probe_nvenc)())
     except Exception as exc:
-        return {"encoder": "libx264", "quality_args": list(_CPU_VIDEO_ARGS),
-                "fallback_reason": "NVENC_PROBE_FAILED: %s" % exc}
+        return _cpu_choice("NVENC_PROBE_FAILED: %s" % exc)
     if not usable:
-        return {"encoder": "libx264", "quality_args": list(_CPU_VIDEO_ARGS),
-                "fallback_reason": "NVENC_UNAVAILABLE"}
-    return {"encoder": "h264_nvenc", "quality_args": list(_GPU_VIDEO_ARGS), "fallback_reason": None}
+        return _cpu_choice("NVENC_UNAVAILABLE")
+    return {"choice": "gpu", "encoder": VIDEO_ENCODER_CHOICES["gpu"]["encoder"],
+            "quality_args": list(_GPU_VIDEO_ARGS), "fallback_reason": None}
+
+
+def video_encoder_options(gpu_available: bool | None) -> list[dict[str, Any]]:
+    """What Studio may offer for this machine, with unavailability named rather than hidden.
+
+    ``gpu_available`` is the answer of the frame probe carried from the media analysis; None
+    means this build never asked, which the browser must show as "unknown", not as "yes".
+    """
+    return [
+        {"value": "cpu", "encoder": VIDEO_ENCODER_CHOICES["cpu"]["encoder"],
+         "quality": VIDEO_ENCODER_CHOICES["cpu"]["quality"], "available": True, "reason": None},
+        {"value": "gpu", "encoder": VIDEO_ENCODER_CHOICES["gpu"]["encoder"],
+         "quality": VIDEO_ENCODER_CHOICES["gpu"]["quality"],
+         "available": bool(gpu_available) if gpu_available is not None else None,
+         "reason": None if gpu_available else ("NVENC_UNAVAILABLE" if gpu_available is not None else "NOT_PROBED")},
+    ]
 
 
 def _canonical_sha256(value: Any) -> str:
@@ -327,8 +401,14 @@ def classify_probe(
     *,
     selected_audio_stream_index: int | None = None,
     target_language: str = TARGET_LANGUAGE,
+    gpu_encoder_available: bool | None = None,
 ) -> dict[str, Any]:
-    """Classify normalized ffprobe data into exactly one deterministic outcome."""
+    """Classify normalized ffprobe data into exactly one deterministic outcome.
+
+    ``gpu_encoder_available`` is the frame-probe answer from the caller that already ran it
+    asynchronously. Passing it keeps this function free of subprocesses and lets a second
+    classification of the same stored probe reuse the first answer instead of re-proving it.
+    """
     fmt = probe.get("format") or {}
     videos = list(probe.get("video_streams") or [])
     audios = list(probe.get("audio_streams") or [])
@@ -448,12 +528,19 @@ def classify_probe(
         operations.extend(["encode H.264 Main yuv420p", "encode AAC", "MP4 faststart"])
         # The report must name the encoder that will actually run, not the one this branch
         # used to assume: same input, same process, so the same answer as the executor.
-        _plan_video_choice = select_video_encoder(config.MEDIA_HW_ENCODER)
+        # The choice offered to Studio travels with the plan, so picking the GPU cannot mean
+        # picking one this machine never proved it can run.
+        _plan_video_choice = select_requested_video_encoder(
+            None,
+            probe=(lambda: bool(gpu_encoder_available)) if gpu_encoder_available is not None else None,
+        )
         plan = {
             "mode": "transcode",
             "container": "mp4",
             "video_encoder": _plan_video_choice["encoder"],
             "video_encoder_fallback": _plan_video_choice["fallback_reason"],
+            "video_encoder_choice": _plan_video_choice["choice"],
+            "video_encoder_options": video_encoder_options(gpu_encoder_available),
             "video_profile": "main",
             "pixel_format": "yuv420p",
             "max_geometry": "1920x1080@30-or-1280x720@60",
@@ -465,8 +552,10 @@ def classify_probe(
             "selected_audio_stream": selected_audio_stream,
             "quality_impact": "video_and_audio_reencoded",
             "operations": operations,
-            "video_crf": 20,
-            "video_preset": "medium",
+            # Quality settings belong to the encoder that will run: h264_nvenc has no -crf and
+            # no "medium" preset, so naming x264's numbers unconditionally would describe an
+            # encode that is not the one about to happen.
+            "video_quality": VIDEO_ENCODER_CHOICES[_plan_video_choice["choice"]]["quality"],
             "audio_bitrate": "160k",
         }
         return {
@@ -718,7 +807,12 @@ async def probe_media(path: Path) -> dict[str, Any]:
     normalized["bounded_decode"] = decode_ok
     if not decode_ok:
         normalized["probe_error"] = "BOUNDED_DECODE_FAILED"
-    result = classify_probe(normalized)
+    # Ask once, here, whether this machine can really encode on the GPU: the plan needs the
+    # answer to offer the choice, and a second classification of the same stored probe must
+    # reuse it rather than re-proving it.
+    gpu_encoder_available = await nvenc_available()
+    result = classify_probe(normalized, gpu_encoder_available=gpu_encoder_available)
+    result["gpu_encoder_available"] = gpu_encoder_available
     result["probe"] = normalized
     versions = await asyncio.gather(
         _run_capture(["ffprobe", "-version"]), _run_capture(["ffmpeg", "-version"]),
@@ -878,8 +972,14 @@ async def prepare_media(
     cancel: asyncio.Event,
     progress: ProgressFn,
     plan: dict[str, Any] | None = None,
+    video_encoder: str | None = None,
 ) -> dict[str, Any]:
-    """Run one explicitly selected plan into a new partial output path."""
+    """Run one explicitly selected plan into a new partial output path.
+
+    ``video_encoder`` is the browser's explicit "cpu"/"gpu" pick for this conversion; None
+    means the Companion setting decides. Either way the returned receipt names the encoder
+    that actually ran, so the caller can record it instead of assuming it.
+    """
     plan = plan or {}
     video_map = "0:V:0" if plan.get("selected_video_stream") is None else "0:%d" % int(plan["selected_video_stream"])
     audio_map = "0:a:0" if plan.get("selected_audio_stream") is None else "0:%d" % int(plan["selected_audio_stream"])
@@ -938,7 +1038,7 @@ async def prepare_media(
         # The lite path stays on libx264 deliberately: it targets a byte budget with -b:v, and
         # mixing that with an encoder tuned by -cq needs its own measurement. Only the
         # compatible-copy transcode - the step the owner measured - takes the option.
-        _video_choice = select_video_encoder(config.MEDIA_HW_ENCODER)
+        _video_choice = select_requested_video_encoder(video_encoder)
         video_filter = ("zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv," + scale) if hdr else scale
         args = [
             "ffmpeg", "-y", "-v", "error", "-i", os.fspath(source),
@@ -954,6 +1054,15 @@ async def prepare_media(
 
     await _run_ffmpeg_with_progress(args, cancel, progress, duration)
     await progress(0.92)
+    if mode == "transcode":
+        # Name what ran, including a fallback the owner did not ask for: this receipt is the
+        # only place the finished copy can say which encoder produced it.
+        return {"mode": mode, "encoding": {
+            "requested": str(video_encoder or "").strip().lower() or "companion_default",
+            "choice": _video_choice["choice"], "encoder": _video_choice["encoder"],
+            "quality": VIDEO_ENCODER_CHOICES[_video_choice["choice"]]["quality"],
+            "fallback_reason": _video_choice["fallback_reason"],
+        }}
     return {"mode": mode}
 
 

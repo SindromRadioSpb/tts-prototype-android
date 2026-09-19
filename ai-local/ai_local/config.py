@@ -27,10 +27,10 @@ def _default_state_dir() -> Path:
         return Path(local_app_data) / "LinguistPro" / "ai-local"
     return HERE / ".state"
 
-# Compatible-copy encoder. "off" (default) keeps libx264, so the produced artifact stays
-# comparable on any machine with ffmpeg. "auto" uses h264_nvenc when this machine can
-# actually run it and falls back to libx264 otherwise, naming the reason in the report.
-MEDIA_HW_ENCODER = os.environ.get("AI_LOCAL_MEDIA_HW_ENCODER", "off").strip().lower()
+# The compatible-copy encoder is NOT read here. An installed application with an autostart
+# entry inherits its environment from whichever process spawned it, so a module constant
+# captured at import time answers "what did my parent have", not "what did the owner
+# choose". It lives in ai_local.companion_settings, read from the state directory per job.
 
 HOST = os.environ.get("AI_LOCAL_HOST", "127.0.0.1")
 # Default 8799 (NOT 8765 — AnkiConnect's well-known port, which this project uses;

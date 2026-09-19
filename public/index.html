@@ -3754,6 +3754,12 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-media-readiness-contract { font:700 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; color:var(--theme-text-secondary,#5b6873); }
 .v3-media-readiness-detail,.v3-media-readiness-estimate,.v3-media-device-result { margin-top:6px; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
 .v3-media-readiness progress { width:100%; margin-top:8px; }
+/* The encoder row wraps on a phone instead of squeezing the select to nothing; [hidden] is
+   restated because the author display:flex here would otherwise beat the UA rule. */
+.v3-media-readiness-encoder { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px; font-size:12px; }
+.v3-media-readiness-encoder[hidden] { display:none; }
+.v3-media-readiness-encoder select { max-width:100%; font-size:12px; padding:2px 4px; }
+.v3-media-readiness-encoder .v3-import-hint { margin:0; flex-basis:100%; }
 .v3-media-readiness-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .v3-subtitle-plan { margin-top:10px; padding-top:10px; border-top:1px solid var(--theme-border-soft,#d9dee5); }
 .v3-subtitle-plan[hidden] { display:none; }
@@ -13356,9 +13362,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=240"></script>
-<script src="/i18n/locales/en.js?v=240"></script>
-<script src="/i18n/locales/he.js?v=240"></script>
+<script src="/i18n/locales/ru.js?v=241"></script>
+<script src="/i18n/locales/en.js?v=241"></script>
+<script src="/i18n/locales/he.js?v=241"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13447,8 +13453,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
-<script src="/js/local-asr-client.js?v=577"></script>
-<script src="/js/media-readiness.js?v=577"></script>
+<script src="/js/local-asr-client.js?v=602"></script>
+<script src="/js/media-readiness.js?v=602"></script>
 <!-- Audited incremental SHA-256 runtime served from node_modules by an allowlisted route. The
      store below hashes a 1.6 GB stream chunk by chunk, which crypto.subtle cannot do, so this
      must load first or every media write fails with HASH_RUNTIME_UNAVAILABLE. -->
@@ -13543,7 +13549,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=601" defer></script>
+<script src="/js/studio-import.js?v=602" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13581,7 +13587,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.601";
+    window.APP_VERSION = "3.11.602";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -51194,6 +51200,15 @@ document.addEventListener("i18n:changed", function () {
               </div>
               <div id="v3ImportMediaDetail" class="v3-media-readiness-detail"></div>
               <div id="v3ImportMediaEstimate" class="v3-media-readiness-estimate" hidden></div>
+              <!-- The encoder was invisible here: the companion report carried the field and the
+                   dialog never showed it. The row appears only when this machine actually proved
+                   it can offer a second encoder; otherwise the technical details still name the
+                   one that will run. -->
+              <div id="v3ImportMediaEncoderRow" class="v3-media-readiness-encoder" hidden>
+                <label for="v3ImportMediaEncoder" data-i18n="studio.import.mediaEncoderLabel">Кодировать видео на</label>
+                <select id="v3ImportMediaEncoder" onchange="StudioImport.onMediaEncoderChanged()"></select>
+                <span id="v3ImportMediaEncoderNote" class="v3-import-hint"></span>
+              </div>
               <details>
                 <summary data-i18n="studio.import.mediaTechnicalSummary">Технические детали</summary>
                 <pre id="v3ImportMediaTechnical" class="v3-media-readiness-detail" style="white-space:pre-wrap;margin-bottom:0"></pre>

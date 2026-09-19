@@ -101,13 +101,23 @@ test("Local ASR help is allowlisted, localized, and available in the offline she
 });
 
 test("Companion presents pairing as a primary task and bundles the same help canon", () => {
+  // 2026-09-19: the window is bilingual, so its strings live in ai_local/companion_i18n.py.
+  // The rule is unchanged - pairing stays a primary task and the help canon stays bundled -
+  // but it is now checked where the text actually is, in both languages.
   const companion = fs.readFileSync(path.join(root, "ai-local/ai_local/companion.py"), "utf8");
+  const strings = fs.readFileSync(path.join(root, "ai-local/ai_local/companion_i18n.py"), "utf8");
   const build = fs.readFileSync(path.join(root, "ai-local/scripts/build_companion.ps1"), "utf8");
   const installer = fs.readFileSync(path.join(root, "ai-local/installer/LinguistProLocalAsr.iss"), "utf8");
-  assert.match(companion, /Connect LinguistPro in Chrome/);
-  assert.match(companion, /Copy token for browser/);
-  assert.doesNotMatch(companion, /Chrome\/Edge/);
-  assert.match(companion, /Help \/ Справка/);
+  for (const key of ["pairing.frame", "pairing.steps", "pairing.copy", "support.help"]) {
+    assert.match(companion, new RegExp('self\\.t\\("' + key.replace(".", "\\.") + '"'), key + " must be shown");
+    assert.match(strings, new RegExp('"' + key.replace(".", "\\.") + '":'), key + " must be defined");
+  }
+  assert.match(strings, /Connect LinguistPro in Chrome/);
+  assert.match(strings, /Подключите LinguistPro в Chrome/);
+  assert.match(strings, /Copy token for browser/);
+  assert.match(strings, /Скопировать токен для браузера/);
+  assert.doesNotMatch(strings, /Chrome\/Edge/);
+  assert.match(strings, /Help \/ Справка/);
   assert.match(build, /LOCAL_ASR_COMPANION_GUIDE\.md/);
   assert.match(installer, /Local ASR help \(RU\)/);
 });

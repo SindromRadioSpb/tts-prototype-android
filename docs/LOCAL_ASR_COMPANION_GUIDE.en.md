@@ -49,6 +49,18 @@ Installation is per-user and does not require manual Python, venv, or Uvicorn se
 Click **Run preflight** in the Local ASR web screen. It checks Windows 11, NVIDIA/CUDA and free VRAM, disk space, local port `127.0.0.1:8799`, and bundled FFmpeg/FFprobe. Resolve a reported check before continuing. Local ASR never silently changes its model, compute/decode, VAD, or timestamp policy.
 
 
+## Companion settings
+
+The **Settings** block in the Companion window:
+
+- **Language** — English or Russian. It applies immediately, is stored for this Windows account, and the Help button opens the guide in the language you chose.
+- **Video conversion** — on the processor (`libx264`, the same file on any computer) or on the NVIDIA graphics card (`h264_nvenc`, faster, a somewhat larger file). The Companion checks whether the card really encodes on this machine and prints the result under the switch.
+
+Both settings live in `%LOCALAPPDATA%\LinguistPro\LocalASR\state\settings.json` and take effect without restarting the service. The `AI_LOCAL_MEDIA_HW_ENCODER` environment variable is honoured only while the window has never made a choice: an installed application with an autostart entry inherits its environment from whichever process spawned it, so the environment cannot be the channel that turns an option on.
+
+For a single file the choice can be overridden in Studio: **Add material → From device →** the "Encode the video on" row. It appears only when the video is really re-encoded and this computer has proved both encoders. The technical details always name the encoder — before the conversion and after it — together with the fallback reason if the card was asked for and did not run.
+
+
 ## Install the model
 
 The model downloads only after confirmation. The download is about **1.62 GB** and additional free space is needed for verification and safe activation.

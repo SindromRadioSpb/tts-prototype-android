@@ -48,6 +48,10 @@ class MediaTooLarge(MediaJobConflict):
 _REPORT_CARRY_KEYS = (
     "probe", "ffprobe_version", "ffmpeg_version", "code_version", "source_sha256", "source_size_bytes",
     "source_name", "output_sha256", "output_size_bytes", "disk_free_bytes", "subtitle_tracks",
+    # Whether this machine proved it can encode on the GPU is evidence about the machine, not
+    # about the chosen audio stream: re-classifying the stored probe must not silently drop it
+    # and offer a narrower choice than the first analysis did.
+    "gpu_encoder_available",
 )
 _DISK_MARGIN_BYTES = 256 * 1024 * 1024
 
@@ -260,7 +264,8 @@ class MediaJobManager:
         available = {int(stream["index"]) for stream in probe.get("audio_streams") or [] if stream.get("index") is not None}
         if int(stream_index) not in available:
             raise MediaJobConflict("audio stream is not one of the probed choices")
-        updated = classify_probe(probe, selected_audio_stream_index=int(stream_index))
+        updated = classify_probe(probe, selected_audio_stream_index=int(stream_index),
+                                 gpu_encoder_available=report.get("gpu_encoder_available"))
         for key in _REPORT_CARRY_KEYS:
             if key in report:
                 updated[key] = report[key]
@@ -326,7 +331,8 @@ class MediaJobManager:
             raise MediaJobConflict("subtitle track failed verification")
         return path, dict(track)
 
-    async def prepare(self, job_id: str, *, mode: str, plan_sha256: str, rendition: str = "full") -> dict[str, Any]:
+    async def prepare(self, job_id: str, *, mode: str, plan_sha256: str, rendition: str = "full",
+                      video_encoder: str | None = None) -> dict[str, Any]:
         manifest = self.get(job_id)
         report = manifest.get("report") or {}
         if rendition == "lite":
@@ -345,12 +351,24 @@ class MediaJobManager:
             raise MediaJobConflict("unknown rendition")
         if not plan or plan_sha256 != expected_sha or mode != plan.get("mode"):
             raise MediaJobConflict("media plan changed; review the current plan")
+        # An encoder may be chosen only from the ones the confirmed plan offered for this
+        # machine: a browser must not be able to request hardware the analysis never proved.
+        if video_encoder is not None:
+            offered = {
+                str(option.get("value")): option
+                for option in (plan.get("video_encoder_options") or [])
+                if option.get("available")
+            }
+            if video_encoder not in offered:
+                raise MediaJobConflict("video encoder is not one of the offered choices")
         manifest.update(state=state, progress=0.21)
         self._write(job_id, manifest)
-        self._tasks[job_id] = asyncio.create_task(self._prepare(job_id, mode, dict(plan), rendition))
+        self._tasks[job_id] = asyncio.create_task(
+            self._prepare(job_id, mode, dict(plan), rendition, video_encoder))
         return manifest
 
-    async def _prepare(self, job_id: str, mode: str, plan: dict[str, Any], rendition: str = "full") -> None:
+    async def _prepare(self, job_id: str, mode: str, plan: dict[str, Any], rendition: str = "full",
+                       video_encoder: str | None = None) -> None:
         async with self._capacity:
             job_dir = self._dir(job_id)
             source = job_dir / "source.media"
@@ -364,7 +382,8 @@ class MediaJobManager:
                 self._write(job_id, manifest)
 
             try:
-                result = await self.prepare_fn(source, partial, mode, self._cancel[job_id], progress, plan=plan)
+                result = await self.prepare_fn(source, partial, mode, self._cancel[job_id], progress,
+                                               plan=plan, video_encoder=video_encoder)
                 if self._cancel[job_id].is_set():
                     raise asyncio.CancelledError
                 manifest = self.get(job_id)
@@ -437,6 +456,10 @@ class MediaJobManager:
                 post["timeline_verdict"] = {
                     "lossless_repair": "equivalent", "audio_transcode": "picture-equivalent",
                 }.get(mode, "explicit-transcode")
+                # The finished report is the only place the copy can still say which encoder
+                # produced it: the analysis plan it was chosen from is replaced by this probe.
+                if isinstance(result, dict) and isinstance(result.get("encoding"), dict):
+                    post["encoding"] = result["encoding"]
                 os.replace(partial, output)
                 manifest = self.get(job_id)
                 renditions = dict(manifest.get("renditions") or {})

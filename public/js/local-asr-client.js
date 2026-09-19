@@ -205,10 +205,15 @@
     });
   };
   Client.prototype.getMediaJob = function (id) { return this._request("/v1/media/jobs/" + encodeURIComponent(id)); };
-  Client.prototype.prepareMediaJob = function (id, mode, planSha256, rendition) {
+  // videoEncoder is an explicit "cpu"/"gpu" pick for this one conversion; omitting it leaves
+  // the decision to the companion's own setting. The companion still checks the pick against
+  // what the confirmed plan offered for that machine.
+  Client.prototype.prepareMediaJob = function (id, mode, planSha256, rendition, videoEncoder) {
+    var body = { mode: mode, plan_sha256: planSha256, rendition: rendition || "full" };
+    if (videoEncoder === "cpu" || videoEncoder === "gpu") body.video_encoder = videoEncoder;
     return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/prepare", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mode: mode, plan_sha256: planSha256, rendition: rendition || "full" }),
+      body: JSON.stringify(body),
     });
   };
   // The companion re-classifies its stored probe for one of its own audio streams; no re-upload.

@@ -423,7 +423,7 @@ async def test_prepare_receives_the_confirmed_plan(tmp_path):
 
     received = {}
 
-    async def prepare(_source, output, _mode, _cancel, _progress, plan=None):
+    async def prepare(_source, output, _mode, _cancel, _progress, plan=None, video_encoder=None):
         received["plan"] = plan
         output.write_bytes(b"prepared")
 
@@ -451,7 +451,7 @@ async def test_audio_transcode_job_verifies_the_copied_picture(tmp_path):
             return {"outcome": READY}
         return json.loads(json.dumps(report))
 
-    async def prepare(_source, output, mode, _cancel, _progress, plan=None):
+    async def prepare(_source, output, mode, _cancel, _progress, plan=None, video_encoder=None):
         assert mode == "audio_transcode"
         assert plan["selected_audio_stream"] == 2
         output.write_bytes(b"prepared")
@@ -486,7 +486,7 @@ async def test_audio_transcode_job_fails_when_the_picture_changed(tmp_path):
             return {"outcome": READY}
         return json.loads(json.dumps(report))
 
-    async def prepare(_source, output, _mode, _cancel, _progress, plan=None):
+    async def prepare(_source, output, _mode, _cancel, _progress, plan=None, video_encoder=None):
         output.write_bytes(b"prepared")
 
     async def prove(_source, _output, source_video_index=None):
@@ -635,7 +635,7 @@ async def test_light_copy_is_a_second_verified_rendition_of_the_same_job(tmp_pat
             return {"outcome": READY, "duration_seconds": 2672.68}
         return json.loads(json.dumps(report))
 
-    async def prepare(_source, output, mode, _cancel, _progress, plan=None):
+    async def prepare(_source, output, mode, _cancel, _progress, plan=None, video_encoder=None):
         output.write_bytes(b"lite-bytes" if mode == "lite_transcode" else b"full-bytes")
 
     async def prove(_source, _output, source_video_index=None):

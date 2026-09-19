@@ -97,6 +97,10 @@
       audio_selection: report.audio_selection || null,
       audio_choices: Array.isArray(report.audio_choices) ? report.audio_choices : null,
       subtitle_tracks: Array.isArray(report.subtitle_tracks) ? report.subtitle_tracks : null,
+      // Which encoder this machine may use, and - once a copy exists - which one made it.
+      // Studio showed neither, so the only way to learn what a conversion had run on was to
+      // read the companion API by hand.
+      encoding: report.encoding || null,
       lite_plan: report.lite_plan || null,
       lite_plan_sha256: report.lite_plan_sha256 || null,
       lite_reason: report.lite_reason || null,
@@ -110,6 +114,38 @@
       verification: job && job.verification || null,
       cleanup_receipt: job && job.cleanup_receipt || null,
     };
+  }
+
+  // The encoder the finished copy was made with, or the one the plan would use if it ran now.
+  // "planned" is a promise about a conversion that has not happened yet; "actual" is a receipt.
+  function encoderSummary(state) {
+    var encoding = state && state.encoding;
+    if (encoding && encoding.encoder) {
+      return {
+        stage: "actual", choice: encoding.choice || null, encoder: encoding.encoder,
+        quality: encoding.quality || null, requested: encoding.requested || null,
+        fallback_reason: encoding.fallback_reason || null,
+      };
+    }
+    var plan = state && state.plan;
+    if (!plan || !plan.video_encoder) return null;
+    return {
+      stage: "planned", choice: plan.video_encoder_choice || null, encoder: plan.video_encoder,
+      quality: plan.video_quality || null, requested: null,
+      fallback_reason: plan.video_encoder_fallback || null,
+    };
+  }
+
+  // Only what this machine proved it can do. An option with available !== true is shown as
+  // unavailable rather than hidden, so "my GPU is idle again" has an answer on the screen.
+  function encoderOptions(state) {
+    var plan = state && state.plan;
+    var options = plan && Array.isArray(plan.video_encoder_options) ? plan.video_encoder_options : [];
+    return options.filter(function (option) { return option && (option.value === "cpu" || option.value === "gpu"); });
+  }
+
+  function selectableEncoders(state) {
+    return encoderOptions(state).filter(function (option) { return option.available === true; });
   }
 
   function acceptPrepared(job) {
@@ -289,6 +325,9 @@
     acceptPrepared: acceptPrepared,
     transcriptOnly: transcriptOnly,
     compatibilityEvidence: compatibilityEvidence,
+    encoderSummary: encoderSummary,
+    encoderOptions: encoderOptions,
+    selectableEncoders: selectableEncoders,
     humanBytes: humanBytes,
     devicePlatform: devicePlatform,
     actualFilePlaySeek: actualFilePlaySeek,

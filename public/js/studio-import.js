@@ -1329,12 +1329,14 @@
           + (state.estimated_time_seconds ? " · ~" + Math.ceil(state.estimated_time_seconds / 60) + " " + tr("studio.import.minShort") : "") : "";
       estimate.dataset.sufficient = state.disk_sufficient ? "true" : "false";
     }
+    renderMediaEncoderChoice(state);
     var technical = $("v3ImportMediaTechnical");
     if (technical) {
       var plan = state.plan || {}, operations = plan.operations || [];
       technical.textContent = parts.join(" · ")
         + (state.error || state.reason ? "\n" + String(state.error || state.reason) : "")
         + (plan.quality_impact ? "\n" + tr("studio.import.mediaQualityImpact") + ": " + plan.quality_impact : "")
+        + mediaEncoderTechnicalLine(state)
         + (operations.length ? "\n" + operations.join(" → ") : "");
     }
     var device = $("v3ImportMediaDeviceGate");
@@ -1350,6 +1352,64 @@
     if (transcriptOnly) transcriptOnly.hidden = !["LOSSLESS_REPAIR", "TRANSCODE_REQUIRED", "BLOCKED"].includes(state.outcome);
     renderPreparedCopy();
     updateAudioActionLabel();
+  }
+
+  // Which encoder ran, or would run. Shown whether or not a choice is offered: on a machine
+  // with no usable GPU there is nothing to pick, and "what did this conversion use" is still
+  // a fair question - the answer used to live only in the companion API.
+  function mediaEncoderTechnicalLine(state) {
+    var summary = window.MediaReadiness.encoderSummary(state);
+    if (!summary) return "";
+    var label = tr(summary.stage === "actual" ? "studio.import.mediaEncoderUsed" : "studio.import.mediaEncoderPlanned");
+    var line = "\n" + label + ": " + summary.encoder + (summary.quality ? " · " + summary.quality : "");
+    if (summary.fallback_reason) line += "\n" + tr("studio.import.mediaEncoderFallback") + ": " + summary.fallback_reason;
+    return line;
+  }
+
+  function mediaEncoderOptionLabel(option) {
+    var name = tr(option.value === "gpu" ? "studio.import.mediaEncoderGpu" : "studio.import.mediaEncoderCpu");
+    if (option.available === true) return name;
+    return name + " — " + tr(option.available === false
+      ? "studio.import.mediaEncoderUnavailable"
+      : "studio.import.mediaEncoderUnknown");
+  }
+
+  function renderMediaEncoderChoice(state) {
+    var row = $("v3ImportMediaEncoderRow"), select = $("v3ImportMediaEncoder"), note = $("v3ImportMediaEncoderNote");
+    if (!row || !select) return;
+    var options = window.MediaReadiness.encoderOptions(state);
+    var selectable = window.MediaReadiness.selectableEncoders(state);
+    // Offer the choice only where the conversion re-encodes the picture, where this machine
+    // proved more than one encoder, and while the job is still waiting for a decision: after
+    // the conversion starts, the encoder is a fact, not a setting.
+    var offered = state.outcome === "TRANSCODE_REQUIRED" && selectable.length > 1
+      && (!state.state || state.state === "WAITING_FOR_DECISION");
+    row.hidden = !offered;
+    if (!offered || !pendingAudio) return;
+    var planned = (state.plan && state.plan.video_encoder_choice) || "cpu";
+    var wanted = pendingAudio.mediaEncoderChoice || planned;
+    if (!selectable.some(function (option) { return option.value === wanted; })) wanted = planned;
+    pendingAudio.mediaEncoderChoice = wanted;
+    select.innerHTML = "";
+    options.forEach(function (option) {
+      var node = document.createElement("option");
+      node.value = option.value;
+      node.textContent = mediaEncoderOptionLabel(option);
+      node.disabled = option.available !== true;
+      select.appendChild(node);
+    });
+    select.value = wanted;
+    if (note) {
+      var chosen = options.filter(function (option) { return option.value === wanted; })[0];
+      note.textContent = chosen ? chosen.encoder + (chosen.quality ? " · " + chosen.quality : "") : "";
+    }
+  }
+
+  function onMediaEncoderChanged() {
+    var select = $("v3ImportMediaEncoder");
+    if (!select || !pendingAudio) return;
+    pendingAudio.mediaEncoderChoice = select.value === "gpu" ? "gpu" : "cpu";
+    renderMediaReadiness();
   }
 
   function renderPreparedCopy() {
@@ -1512,7 +1572,11 @@
     mediaJobController = new AbortController();
     setBusy(true);
     try {
-      var queued = await localAsrClient.prepareMediaJob(pendingAudio.mediaJobId, mode, state.plan_sha256);
+      // Only a picture re-encode has an encoder to choose; a copy or an audio-only re-encode
+      // must not carry one, or the companion would refuse a plan that offered nothing.
+      var chosenEncoder = mode === "transcode" ? pendingAudio.mediaEncoderChoice : null;
+      var queued = await localAsrClient.prepareMediaJob(
+        pendingAudio.mediaJobId, mode, state.plan_sha256, "full", chosenEncoder);
       var job = await localAsrClient.waitForMediaJob(pendingAudio.mediaJobId, { signal: mediaJobController.signal, onStatus: mediaJobStatus }, queued);
       var blob = await localAsrClient.mediaFile(pendingAudio.mediaJobId);
       var ready = window.MediaReadiness.acceptPrepared(job);
@@ -3561,6 +3625,7 @@
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,
                            deleteLocalAsrJob: deleteLocalAsrJob,
                            startMediaPreflight: startMediaPreflight, prepareMedia: prepareMedia, savePreparedMedia: savePreparedMedia,
+                           onMediaEncoderChanged: onMediaEncoderChanged, mediaEncoderTechnicalLine: mediaEncoderTechnicalLine,
                            cancelMediaJob: cancelMediaJob, runMediaDeviceGate: runMediaDeviceGate,
                            chooseTranscriptOnly: chooseTranscriptOnly,
                            applySubtitlePlanChoice: applySubtitlePlanChoice,
