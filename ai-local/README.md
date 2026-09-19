@@ -36,21 +36,36 @@ and do not publicly host or broadly distribute it without a separate owner decis
 authorized the `0.3.0-beta.5` Media Readiness rebuild for the same out-of-band owner/trusted-user
 cohort on 2026-08-08; this does not authorize public hosting or general distribution.
 
-For the subtitle-video flow, the current local build is
-`ai-local/artifacts/LinguistProLocalAsrCompanion-0.3.0-beta.7-unsigned-internal.exe` (1,867,151,601
-bytes; SHA-256 `0796ef407f3ce06e01e22d4fa707615d4074c4add759c4d6386a0a0c07ef37c2`).
-Its frozen start/health/Media Readiness/delete/stop smokes passed. It has not yet been tested as
-an installed upgrade on the owner's machine. The prior beta.5 artifact remains available.
+The current local build is
+`ai-local/artifacts/LinguistProLocalAsrCompanion-0.3.0-beta.11-unsigned-internal.exe` (1,867,185,058
+bytes; SHA-256 `1a720a46b49b38f22fdb8146bb676894121056a7a25a7cf9f2352c20976876f7`).
+It adds the stored Companion settings (window language, compatible-copy encoder), and it is the
+first build whose version cannot drift: the window reads `ai_local/version.py`, the build fills the
+installer defines from that module, and it asks the frozen binary for its own version before
+packaging. Its frozen version/MT/subtitle self-checks and start/health/Media Readiness/delete/stop
+smokes passed; it has not yet been tested as an installed upgrade on the owner's machine. The prior
+beta.9/beta.10 artifacts remain available.
+
+Version numbers live in exactly one place. `0.3.0-beta.10` shipped a binary whose window said
+`0.3.0-beta.9` because the string existed three times and one copy was not bumped; the text gate
+over those three copies was red and simply had not been run. Bump `COMPANION_VERSION` in
+`ai-local/ai_local/version.py` and nothing else.
+
 The copy in the owner Downloads release folder is a derived distribution copy, not a second source of truth.
 `ai-local/artifacts/` remains intentionally Git-ignored because the unsigned installer is 1.87 GB
 and public remote hosting is not authorised. Reproduce it from exact source commit
-`07ea93229fe6dead86a0fad7e97096ea3cf0ebd9` with `scripts/build_companion.ps1`, then require the
+`db7912aaedfac67e84e89cf04b50f859634bfd55` with `scripts/build_companion.ps1`, then require the
 recorded byte count and SHA-256 before replacing the canonical local artifact or making a new
 distribution copy.
 
 The installed GUI provides start/stop/restart, session pairing, nine-check Windows/GPU/CUDA/
-runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmup, job cleanup and
-redacted diagnostic export. It binds only `127.0.0.1:8799` and stores model/jobs/state only under
+runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmup, job cleanup,
+redacted diagnostic export, and a **Settings** block: window language (English/Russian) and the
+compatible-copy encoder (processor `libx264` or NVIDIA `h264_nvenc`, with the frame probe's verdict
+printed under the switch). Both are stored in
+`%LOCALAPPDATA%\LinguistPro\LocalASR\state\settings.json` and read per job, because an installed
+application with an autostart entry inherits its environment from whichever process spawned it -
+`AI_LOCAL_MEDIA_HW_ENCODER` is honoured only while no choice has been stored. It binds only `127.0.0.1:8799` and stores model/jobs/state only under
 `%LOCALAPPDATA%\LinguistPro\LocalASR`. Uninstall removes that exact managed tree.
 
 Pairing requires no file search or command line: open **Windows Start → LinguistPro → LinguistPro
