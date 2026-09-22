@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Пульс LinguistPro</title>
+  <link rel="stylesheet" href="/css/pulse.css?v=603">
+</head>
+<body>
+  <main class="pulse-shell">
+    <header class="pulse-head">
+      <div>
+        <p class="eyebrow">Закрытая панель владельца</p>
+        <h1>Пульс LinguistPro</h1>
+        <p class="lead">Посещения и разрешённые продуктовые события — без учебных текстов, заметок и пользовательского ввода.</p>
+      </div>
+      <div class="pulse-status" id="pulseStatus" data-state="loading"><span></span><b>Загрузка</b></div>
+    </header>
+
+    <section class="pulse-section" aria-labelledby="trafficTitle">
+      <div class="section-title">
+        <div><p class="eyebrow">Посещаемость</p><h2 id="trafficTitle">Счётчик активности</h2></div>
+        <button id="pulseRefresh" type="button">Обновить</button>
+      </div>
+      <div class="counter" id="visitCounter" aria-live="polite" aria-busy="true">
+        <div class="counter-mark" aria-hidden="true">↗</div>
+        <div class="counter-row"><span>Сегодня</span><strong data-period="today">—</strong></div>
+        <div class="counter-row"><span>7 дней</span><strong data-period="days7">—</strong></div>
+        <div class="counter-row"><span>30 дней</span><strong data-period="days30">—</strong></div>
+        <div class="counter-row counter-total"><span>За всё время</span><strong data-period="all">—</strong></div>
+      </div>
+      <p class="metric-note" id="metricNote">Проверяем источник данных…</p>
+    </section>
+
+    <section class="pulse-grid" aria-label="Принципы Product Pulse">
+      <article><span>01</span><h3>Первый-party контракт</h3><p>Сервер принимает только семь известных событий и ограниченный список свойств.</p></article>
+      <article><span>02</span><h3>Нет учебного содержимого</h3><p>Тексты, переводы, аудио, заметки, имена файлов и ввод пользователя запрещены схемой.</p></article>
+      <article><span>03</span><h3>Честная деградация</h3><p>Если Umami недоступен, панель показывает недоступность, а не подменяет отсутствие данных нулём.</p></article>
+    </section>
+  </main>
+  <script src="/js/pulse.js?v=604"></script>
+</body>
+</html>

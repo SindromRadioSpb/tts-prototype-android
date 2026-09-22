@@ -11,6 +11,8 @@ const { execFile } = require("child_process");
 const http = require("http");
 const archiver = require("archiver");
 const AdmZip = require("adm-zip");
+const { normalizeEvent, anonymousEventKey } = require("./product-pulse/contract");
+const { createUmamiClient } = require("./product-pulse/umami");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const {
@@ -182,6 +184,7 @@ async function v3TrackEventSafe(event) {
 // --------------------------------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
+const productPulseUmami = createUmamiClient();
 
 // Don't advertise the framework — drops the `X-Powered-By: Express` header.
 app.disable("x-powered-by");
@@ -553,6 +556,22 @@ function requireAgentAccessBoundary(req, res, next) {
 // the product entry point itself remains absent unless B2 is explicitly enabled.
 app.get(AGENT_ACCESS_SHELL_PATH, requireAgentAccessBoundary, (_req, _res, next) => next());
 
+// Product Pulse is an owner-only operational surface. Gate the HTML before
+// express.static so knowing the path never grants access to the dashboard.
+app.get("/pulse.html", async (req, res, next) => {
+  if (process.env.NODE_ENV === "test" && req.query.preview === "1" && ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(String(req.ip || ""))) {
+    res.set("Cache-Control", "no-store");
+    return next();
+  }
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  if (String(auth.user.role || "").toLowerCase() !== "owner") {
+    return res.status(404).json({ ok: false, error: "not_found" });
+  }
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 // Static assets with PWA-aware Cache-Control. Three tiers:
 //   1. Long-immutable (1 year) for content-stable assets — fonts, raster
 //      icons. Vendored and don't change across normal deploys.
@@ -646,6 +665,7 @@ app.use(express.static(path.join(__dirname, "public"), {
       res.setHeader("Cache-Control", "public, max-age=86400, must-revalidate");
     } else if (
       lower.endsWith("index.html") ||
+      lower.endsWith("pulse.html") ||
       lower.endsWith("manifest.json") ||
       lower.endsWith("sw.js")
     ) {
@@ -1201,6 +1221,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=575",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
+  "/js/product-telemetry.js?v=603",
   "/i18n/locales/ru.js?v=241",
   "/i18n/locales/en.js?v=241",
   "/i18n/locales/he.js?v=241",
@@ -2465,6 +2486,79 @@ app.get("/api/auth/me", async (req, res) => {
     csrf: auth.session.csrf,
     consents: consents.current,
   });
+});
+
+// Privacy-first Product Pulse. This endpoint accepts only the versioned
+// allowlist in product-pulse/contract.js. It never accepts user ids, text,
+// URLs, notes, filenames or arbitrary event properties. Analytics failure is
+// deliberately non-blocking for the product.
+const rlProductPulse = makeRateLimiter({ windowMs: 60_000, max: 120, name: "product-pulse" });
+const productPulseSeen = new Map();
+function productPulseRemember(key, now = Date.now()) {
+  const ttl = 24 * 60 * 60 * 1000;
+  if (productPulseSeen.size > 10000) {
+    for (const [item, seenAt] of productPulseSeen) if (now - seenAt > ttl) productPulseSeen.delete(item);
+  }
+  if (productPulseSeen.has(key)) return false;
+  productPulseSeen.set(key, now);
+  return true;
+}
+app.post("/api/product-pulse/v1/events", rlProductPulse, async (req, res) => {
+  const normalized = normalizeEvent(req.body, Date.now());
+  if (!normalized.ok) return res.status(400).json({ ok: false, error: normalized.error });
+  if (!productPulseRemember(anonymousEventKey(normalized.event))) {
+    return res.status(202).json({ ok: true, accepted: false, duplicate: true });
+  }
+  try {
+    const result = await productPulseUmami.send(normalized.event);
+    return res.status(202).json({ ok: true, accepted: !!result.accepted, reason: result.reason || undefined });
+  } catch (error) {
+    console.warn("[product-pulse] delivery failed:", error && error.message ? error.message : error);
+    return res.status(202).json({ ok: true, accepted: false, reason: "delivery_unavailable" });
+  }
+});
+
+app.get("/api/product-pulse/v1/dashboard", async (req, res) => {
+  if (process.env.NODE_ENV === "test" && req.query.preview === "1" && ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(String(req.ip || ""))) {
+    return res.json({
+      ok: true, source: "preview", freshness: "fixture", generated_at: new Date().toISOString(),
+      definition: "Посещение — агрегат Umami; события — только разрешённые Product Pulse события.",
+      periods: {
+        today: { visits: 31 }, days7: { visits: 202 }, days30: { visits: 785 }, all: { visits: 12603 },
+      },
+    });
+  }
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (String(auth.user.role || "").toLowerCase() !== "owner") {
+    return res.status(404).json({ ok: false, error: "not_found" });
+  }
+  res.set("Cache-Control", "private, no-store");
+  if (!productPulseUmami.configured()) {
+    return res.status(503).json({ ok: false, error: "PRODUCT_PULSE_NOT_CONFIGURED", source: "umami" });
+  }
+  const now = Date.now();
+  const date = new Date(now);
+  const utcStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  const ranges = { today: utcStart, days7: now - 7 * 86400000, days30: now - 30 * 86400000, all: 0 };
+  try {
+    const entries = await Promise.all(Object.entries(ranges).map(async ([key, startAt]) => [key, await productPulseUmami.stats(startAt, now)]));
+    const periods = Object.fromEntries(entries.map(([key, value]) => [key, {
+      visits: Number(value && value.visits || 0),
+      visitors: Number(value && value.visitors || 0),
+      events: Number(value && value.pageviews || 0),
+    }]));
+    return res.json({
+      ok: true,
+      source: "umami",
+      freshness: "live_aggregate",
+      generated_at: new Date(now).toISOString(),
+      definition: "Посещение — агрегат Umami; события — только разрешённые Product Pulse события.",
+      periods,
+    });
+  } catch (error) {
+    console.warn("[product-pulse] dashboard failed:", error && error.message ? error.message : error);
+    return res.status(502).json({ ok: false, error: "PRODUCT_PULSE_SOURCE_UNAVAILABLE", source: "umami" });
+  }
 });
 
 app.post("/api/auth/logout", async (req, res) => {
