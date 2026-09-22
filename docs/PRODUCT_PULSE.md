@@ -1,6 +1,6 @@
 # Product Pulse — privacy-first продуктовая аналитика
 
-Статус: contract revision 1.1 / wire schema 2, релиз 3.11.606. Сверка: 2026-09-22.
+Статус: contract revision 1.2 / wire schema 2, релиз 3.11.607. Сверка: 2026-09-22.
 Privacy-first контракт — канон; self-hosted Umami 3.0.3 — основной backend.
 PostHog не подключён и не получает параллельный поток. Новых подписок нет.
 Это измерение использования и технических исходов, не усвоения языка.
@@ -10,7 +10,9 @@ PostHog не подключён и не получает параллельны�
 `product-pulse/contract.js` задаёт events, required_properties, optional_properties,
 forbidden_combinations, trigger, contract_revision, introduced_in, owner, metric,
 retention_class и status. Валидатор, owner endpoint и UI используют этот манифест.
-`tests/productPulseV2.test.js` проверяет event-specific matrix и parity.
+`tests/productPulseV2.test.js` проверяет event-specific matrix и parity. Revision 1.2
+аддитивен: ранее допустимый payload schema 2 остаётся допустимым; новые свойства
+optional для прежних событий и обязательны только для новых material-событий.
 
 Статусы: automatic / integrated / reserved / deprecated. Резерв отдельных
 поверхностей также виден в манифесте и панели; integrated не означает все поверхности.
@@ -22,11 +24,13 @@ retention_class и status. Валидатор, owner endpoint и UI исполь
 {
   "schema_version": 2,
   "event_id": "bf6ea3de-8c76-4eef-9663-8b505c32631c",
-  "event_name": "study_engaged",
+  "event_name": "material_engaged",
   "occurred_at": "2026-09-22T10:00:00.000Z",
   "session_id": "366d21e9-38c2-4a30-bb8e-f6765463d753",
-  "app_version": "3.11.606",
-  "properties": {"surface": "reading_room", "duration_bucket": "30_sec_2_min"}
+  "app_version": "3.11.607",
+  "properties": {"surface": "reading_room", "entry_point": "mediatheque",
+    "material_collection": "public_study_songs", "material_media": "audio",
+    "duration_bucket": "30_sec_2_min"}
 }
 ```
 
@@ -57,9 +61,16 @@ UI-списком. Текущие точки:
 
 - app_open: после конфигурации sender, один раз на документ поверхности.
   Только это событие создаёт pageview и named event.
-- material_open: Читальный зал, успешный readerCore.openText с непустыми строками
-  и актуальным open epoch. Передаётся media_kind=text как открытие текста;
-  прикреплённые медиа не угадываются по содержимому.
+- material_open: Студия Classic/IDE после успешной загрузки непустых строк и
+  отрисовки канонической таблицы; Читальный зал — успешный readerCore.openText
+  с непустыми строками и актуальным open epoch. `media_kind=text` обозначает
+  контейнер таблицы, а `material_media` отдельно показывает none/audio/video/
+  audio_video/unknown без asset key, URL или имени файла.
+- material_started: первое trusted учебное действие после конкретного
+  подтверждённого material_open; один раз на открытие материала.
+- material_engaged: 30 секунд visible+focused активного времени после
+  material_started с idle cutoff 15 секунд; один раз на открытие материала.
+  Несколько материалов в одном документе создают отдельные материальные эпизоды.
 - study_started: первое trusted pointerdown/keydown внутри учебной области
   (таблица, ввод текста, тренировка, media), visible + focus. Настройки/навигация
   вне этих областей не считаются занятием.
@@ -89,6 +100,13 @@ Offline/config failure/ранние события до готовности sen
 очереди повторов и отправки накопленного содержимого нет.
 Синтетические DOM events не создают started. Проверки работают на изолированных fixtures.
 
+Материальный контекст имеет только закрытые enum. `surface` — где фактически
+работают (`studio`/`reading_room`); `entry_point` — как вошли
+(`studio_library`/`reading_room`/`mediatheque`). Поэтому выбор в Медиатеке
+измеряется как entry_point=mediatheque, surface=reading_room. `material_collection`
+различает my_texts, ben_yehuda, два задачника, public/group песни и закрытые
+other/unknown классы. Сырые corpus slug/id, title и query не отправляются.
+
 ## 4. Исключения и доставка
 
 `GET /api/product-pulse/v1/config` сообщает только collect/schema_version,
@@ -113,7 +131,7 @@ User-Agent транспорта фиксирован `LinguistPro-Product-Pulse/
 
 Owner-only /pulse.html: polling 60 секунд на видимой странице, без WebSocket.
 Read cache 30 секунд, общий in-flight на период, максимум 3 чтения Umami,
-timeout каждого read 5 секунд, login 3 секунды. Секреты остаются на сервере.
+timeout каждого read 3,5 секунды, login/send 3 секунды. Секреты остаются на сервере.
 
 Периоды today (00:00 UTC), 7d, 30d. Previous — предшествующий период
 равной длительности; не предыдущие календарные сутки при неполном today.
@@ -124,7 +142,8 @@ UI и API разделяют loading, available zero, available, unavailable, pa
 - Usage — named event counts (Umami metrics/expanded поле pageviews в контексте
   custom event является числом этого события). Список берётся из манифеста.
 - Ratios — отношения **событий**, не cohort conversion людей. Знаменатели:
-  started/app_open, engaged/started, completed/material_open; numerator и
+  started/app_open, engaged/started, а completion — только
+  completed/reading_room material_open; открытия Студии не занижают Room completion. Numerator и
   denominator явно возвращаются. Нулевой/недоступный denominator даёт «—».
   Повторения и границы периодов могут дать >100%; это не скрывается.
 - Сейчас — distinct Umami session_id с started либо engaged за последние
@@ -132,6 +151,10 @@ UI и API разделяют loading, available zero, available, unavailable, pa
 - Reliability — operation/result/app_version; Umami агрегирует app_version
   с фильтром enum path. Максимум 100 версий на ячейку: достижение лимита
   помечается partial. Произвольные версии и ответы источника не отражаются в UI.
+- Работа с материалами — material_open/material_started/material_engaged по
+  surface, entry_point и material_collection; дополнительно открытия по
+  material_media. Engaged/open имеет явный знаменатель. Старые material_open
+  без новых optional-свойств дают partial coverage, а не подставляются в unknown.
 - Visits: distinct visit_id среди pageviews; visitors: distinct session_id
   среди pageviews; pageviews создаются только app_open. Их нельзя складывать
   с named events. В установленной Umami visit_id строится из session_id и
@@ -193,8 +216,9 @@ POST events — rate limit 120/min; operation_result принимается то
 HTML — owner only (non-owner 404, anonymous 401). Preview — только
 NODE_ENV=test AND loopback; X-Forwarded-For проверяется через req.ip.
 
-Gates: productPulse*.test.js, scripts/product-pulse-smoke.js (изолированная
+Gates: productPulse*.test.js, включая cross-surface coverage, scripts/product-pulse-smoke.js (изолированная
 БД, owner/non-owner API, fake Umami, UI 380/768/1440, focus/palette/zero/outage),
 полный CI subset. Automated, production, owner-live, physical-device и AT
 evidence не взаимозаменяемы. Реестр исполнения:
-[implementation packet](planning/PRODUCT_PULSE_MATURITY_IMPLEMENTATION_2026_09_22.md).
+[implementation packet](planning/PRODUCT_PULSE_MATURITY_IMPLEMENTATION_2026_09_22.md),
+[cross-surface packet](planning/PRODUCT_PULSE_CROSS_SURFACE_COVERAGE_2026_09_22.md).

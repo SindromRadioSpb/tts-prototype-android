@@ -89,7 +89,7 @@ function createUmamiClient(getConfig = () => configFromEnv()) {
     const query = new URLSearchParams({ startAt: String(startAt), endAt: String(endAt), tag: "eq.pulse-v2", ...filters });
     return fetchJson(`${config.baseUrl}/api/websites/${encodeURIComponent(config.websiteId)}/${path}?${query}`, {
       headers: { Accept: "application/json", Authorization: `Bearer ${token}`, "User-Agent": "LinguistPro-Product-Pulse/1" },
-    }, 5000);
+    }, 3500);
   }
 
   return { send, stats, read, configured: () => { const c = getConfig(); return c.enabled && !!safeBaseUrl(c.baseUrl); } };

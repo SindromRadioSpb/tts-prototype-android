@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Пульс LinguistPro</title>
-  <link rel="stylesheet" href="/css/pulse.css?v=606">
+  <link rel="stylesheet" href="/css/pulse.css?v=607">
 </head>
 <body>
   <main class="pulse-shell">
@@ -34,6 +34,7 @@
 
     <section class="contract-section" aria-labelledby="recentTitle"><h2 id="recentTitle">Сейчас: последние 5 минут</h2><p>Недавние сигналы начала и вовлечения. Это не счётчик присутствия; два показателя нельзя складывать.</p><div class="metric-grid" id="recentMetrics" aria-live="polite">Загрузка…</div></section>
     <section class="contract-section" aria-labelledby="usageTitle"><h2 id="usageTitle">Использование</h2><p>Количество событий за выбранный период. Сравнение — предыдущий период равной длительности. Owner и тесты исключаются с schema v2; старые данные не подмешиваются.</p><div class="metric-grid" id="usageMetrics">Загрузка…</div><div class="metric-grid" id="ratioMetrics"></div></section>
+    <section class="contract-section" aria-labelledby="materialUsageTitle"><h2 id="materialUsageTitle">Работа с материалами</h2><p>Подтверждённые открытия, первое действие и 30 секунд активного вовлечения — отдельно по фактической поверхности, входному маршруту и privacy-safe классу корпуса. Медиатека считается маршрутом входа, а работа после перехода — Читальным залом.</p><div id="materialBreakdowns" class="breakdown-grid" aria-live="polite">Загрузка…</div><div id="materialMedia"></div></section>
     <section class="contract-section" aria-labelledby="reliabilityTitle"><h2 id="reliabilityTitle">Надёжность операций</h2><p>Серверные запросы TTS и сборки таблицы: success — HTTP 2xx, failure — другой статус, cancelled — соединение закрыто до ответа. Повторный запрос считается новой попыткой.</p><div class="table-scroll"><table><thead><tr><th>Операция</th><th>Версия</th><th>Результат</th><th>Запросы</th><th>Состояние</th></tr></thead><tbody id="reliabilityRows"></tbody></table></div><p id="deliveryNote"></p></section>
     <section class="contract-section" aria-labelledby="limitsTitle"><h2 id="limitsTitle">Границы измерения</h2><div id="sourceLimits" class="metric-grid"></div><details><summary>Определения посещаемости и свежесть</summary><div id="trafficDefinitions"></div></details></section>
 
@@ -81,6 +82,6 @@
       <article><span>03</span><h3>Версия вместо дрейфа</h3><p>Совместимые дополнения проходят review; несовместимое изменение получает новую schema_version и период миграции.</p></article>
     </section>
   </main>
-  <script src="/js/pulse.js?v=606"></script>
+  <script src="/js/pulse.js?v=607"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 # Product Pulse maturity — implementation packet
 
 База: `3332685ac26103cb4d1610745b28e81a57fe93ae`, production 3.11.605.
-Дата: 2026-09-22. Статус: implementation + automated gates PASS, ожидается production deploy 3.11.606. Production evidence фиксируется отдельно после push; эта запись не подменяет его.
+Дата: 2026-09-22. Статус: released 3.11.606; production и owner-live evidence зафиксированы отдельно. Последующее cross-surface расширение ведётся отдельным packet.
 
 ## Recon
 
@@ -47,10 +47,10 @@ Google Search Console и Bing Webmaster Tools подключены владел�
 - Aggregation: usage/recent/reliability, previous-period counts и event ratios, source states и определения. D7/D30, deployment timeline, SEO и uptime read integration явно не измеряются/не подключены.
 - Umami 3.0.3 source inspected at upstream tag commit `2a71cc721bf99874fa773e681ea14e9bf826da1e`; production read endpoints metrics/expanded и event-data/values возвращают 200. Secrets не выводились.
 - Retention 90 дней: отдельный scope-ограниченный скрипт, cron 04:20 UTC. Dry-run expired=0, первый transaction DELETE 0 x4; ни одной строки не удалено. Docker Umami logs ограничены 3x10MB; это не временной TTL.
-- Cleanup: owner разрешил только build cache; повторная инвентаризация уже показала cache=0 и 72%/11GB свободно, поэтому агент ничего не очищал. Активный image + 2 rollback, 12 containers / 4 volumes сохранены.
+- Cleanup: до сборки build cache был пуст. После deploy новая сборка создала 2.302 GB неиспользуемого cache; по явному разрешению выполнен только `docker builder prune -af`. Образы, 12 running containers, 4 volumes, БД и backups не удалялись; после очистки 9.3 GB свободно, disk_warn=false.
 - Automated: `npm test` **1869/1869**, i18n **233/233**. API smoke, ingest, learner-ingest **24/24**, FSRS **140/140**, memory-canon **90/90** PASS. Дополнительный live-shape regression: Umami PostgreSQL SUM возвращается строкой; принимаются только точные safe integers, malformed/missing не становятся нулём.
 - `node scripts/product-pulse-smoke.js`: owner 200, non-owner 404, anonymous 401, loopback test preview + non-loopback rejection, manifest/UI parity; UI 380/768/1440; keyboard focus, palette contrast, zero/partial/outage. Screenshots reviewed in `.tmp/product-pulse-smoke/` (не owner/physical/AT evidence).
 - Real browser fetch captured in disposable fixture: v2 accepted by canonical validator, trusted action, no learning text/URL; fake Umami proves 1 pageview only for app_open + named event per manifest event, read cache/concurrency and no secrets.
 - Owner-live baseline: существующая production-панель доступна, manifest 7/5 отображается из GET contract, dashboard показывает baseline 1. Навигация отдельной вкладки прямо на API была blocked_by_client; не обходилась. Owner learning UI/DB не открывались и не изменялись.
 - Версии APP_VERSION/SW/Room footer = 3.11.606; изменённые telemetry/pulse/library-ui query pins согласованы с SW/integrity. Version-lock тесты обновлены, прочие assets не переверсионировались.
-- Release gates готовы к одному scoped commit/push. После deploy нужны ancestry, 3 no-cache health, served integrity/SW, active image, owner panel refresh. Физическое устройство и AT в этой сессии не проверяются.
+- Release 3.11.606: commit `e88f121772f59c277abc5f9ff3647ac5febaae5e`; ancestry, active image, три no-cache health, 112 served integrity assets, SW и owner panel подтверждены. Физическое устройство и AT в этой сессии не проверялись.

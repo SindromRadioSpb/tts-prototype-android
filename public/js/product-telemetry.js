@@ -9,6 +9,11 @@
   var engaged = false;
   var foregroundMs = 0;
   var activeSince = 0;
+  var materialContext = null;
+  var materialStarted = false;
+  var materialEngaged = false;
+  var materialForegroundMs = 0;
+  var materialActiveSince = 0;
   var lastAction = 0;
   var ready = false;
   var disabled = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || navigator.webdriver;
@@ -45,6 +50,37 @@
     if (ms < 1800000) return "15_30_min";
     return "30_min_plus";
   }
+  function materialEntryPoint() {
+    if (surface() === "studio") return "studio_library";
+    if (surface() !== "reading_room") return null;
+    try { return new URLSearchParams(location.search || "").get("from") === "mediatheque" ? "mediatheque" : "reading_room"; }
+    catch (_) { return "reading_room"; }
+  }
+  function sourceMeta(text) {
+    if (!text || typeof text !== "object") return {};
+    var raw = text.source_meta_json || text.sourceMetaJson || text.source_meta || {};
+    if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch (_) { return {}; } }
+    return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  }
+  function materialCollection(text) {
+    var meta = sourceMeta(text), slug = meta.public_corpus && String(meta.public_corpus.slug || ""), group = meta.group_corpus && String(meta.group_corpus.corpus_id || "");
+    if (slug === "materials-science-year1-problem-book-2") return "materials_science_pb2";
+    if (slug === "study-songs") return "public_study_songs";
+    if (slug === "physics-year1-problems") return "physics_year1";
+    if (slug) return "other_public_corpus";
+    if (group === "study-songs-pilot" || (meta.group_corpus && String(meta.group_corpus.slug || "") === "study-songs")) return "group_study_songs";
+    if (group) return "other_group_corpus";
+    if (meta.corpus && typeof meta.corpus === "object") return "ben_yehuda";
+    return "my_texts";
+  }
+  function materialMedia(facts) {
+    var audio = !!(facts && facts.hasAudio), video = !!(facts && facts.hasVideo);
+    return audio && video ? "audio_video" : video ? "video" : audio ? "audio" : facts && facts.known === false ? "unknown" : "none";
+  }
+  function eventProperties(name, properties) {
+    var contextual = ["material_open", "material_started", "material_engaged", "study_completed", "audio_engaged"].indexOf(name) >= 0;
+    return Object.assign({}, contextual && materialContext ? materialContext : {}, properties || {});
+  }
   function payload(name, properties) {
     return {
       schema_version: 2,
@@ -53,7 +89,7 @@
       occurred_at: new Date().toISOString(),
       session_id: sid,
       app_version: APP_VERSION,
-      properties: Object.assign({ surface: surface() }, properties || {}),
+      properties: Object.assign({ surface: surface() }, eventProperties(name, properties)),
     };
   }
   function emit(name, properties) {
@@ -68,6 +104,18 @@
     } catch (_) { return Promise.resolve(false); }
   }
   function foreground() { return document.visibilityState === "visible" && document.hasFocus(); }
+  function confirmMaterialOpen(descriptor) {
+    var actualSurface = surface(), entry = materialEntryPoint();
+    if (!["studio", "reading_room"].includes(actualSurface) || !entry) return Promise.resolve(false);
+    materialContext = {
+      surface: actualSurface,
+      entry_point: entry,
+      material_collection: materialCollection(descriptor && descriptor.text),
+      material_media: materialMedia(descriptor && descriptor.media),
+    };
+    materialStarted = false; materialEngaged = false; materialForegroundMs = 0; materialActiveSince = 0;
+    return emit("material_open", { media_kind: "text" });
+  }
   function markInteraction(event) {
     if (!ready || disabled || !foreground() || !event || !event.isTrusted) return;
     var target = event.target;
@@ -78,25 +126,36 @@
       started = true;
       emit("study_started");
     }
+    if (materialContext && !materialStarted) {
+      materialStarted = true; materialActiveSince = lastAction;
+      emit("material_started");
+    }
     checkEngagement();
   }
   function tick() {
     var now = Date.now();
     if (started && activeSince && foreground()) foregroundMs += Math.max(0, Math.min(now, lastAction + 15000) - activeSince);
+    if (materialStarted && materialActiveSince && foreground()) materialForegroundMs += Math.max(0, Math.min(now, lastAction + 15000) - materialActiveSince);
     activeSince = foreground() && started ? now : 0;
+    materialActiveSince = foreground() && materialStarted ? now : 0;
   }
   function checkEngagement() {
     tick();
-    if (!started) return;
-    if (engaged) return;
-    var total = foregroundMs;
-    if (total < 30000) return;
-    engaged = true;
-    emit("study_engaged", { duration_bucket: durationBucket(total) });
+    if (started && !engaged && foregroundMs >= 30000) {
+      engaged = true;
+      emit("study_engaged", { duration_bucket: durationBucket(foregroundMs) });
+    }
+    checkMaterialEngagement();
+  }
+  function checkMaterialEngagement() {
+    if (!materialStarted || materialEngaged || materialForegroundMs < 30000) return;
+    materialEngaged = true;
+    emit("material_engaged", { duration_bucket: durationBucket(materialForegroundMs) });
   }
   function onVisibility() {
     // Discard the fractional interval on blur/hide; never credit hidden time.
     activeSince = foreground() && started ? Date.now() : 0;
+    materialActiveSince = foreground() && materialStarted ? Date.now() : 0;
   }
   document.addEventListener("visibilitychange", onVisibility, { passive: true });
   root.addEventListener("blur", onVisibility, { passive: true });
@@ -138,5 +197,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
   else boot();
 
-  root.ProductTelemetry = Object.freeze({ emit: emit, surface: surface });
+  root.ProductTelemetry = Object.freeze({ emit: emit, surface: surface, confirmMaterialOpen: confirmMaterialOpen });
 })(window);

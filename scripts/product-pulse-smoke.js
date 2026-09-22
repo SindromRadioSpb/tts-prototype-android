@@ -35,14 +35,17 @@ async function main(){
     await page.route("**/api/product-pulse/v1/dashboard*",route=>route.fulfill(mode==="outage"?{status:502,contentType:"application/json",body:'{"error":"unavailable"}'}:{status:200,contentType:"application/json",body:JSON.stringify(mode==="partial"?partial:zero)}));
     const out=path.resolve(".tmp/product-pulse-smoke");fs.mkdirSync(out,{recursive:true});
     for(const width of [380,768,1440]){
-      await page.setViewportSize({width,height:900});await page.goto(base+"/pulse.html?preview=1");await page.waitForFunction(()=>document.querySelectorAll(".event-card").length===7&&document.querySelector("#pulseStatus b").textContent==="Источник доступен");
-      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,"horizontal overflow "+width);
-      assert.equal(await page.locator("#usageMetrics .metric-card").count(),7);
+      await page.setViewportSize({width,height:900});await page.goto(base+"/pulse.html?preview=1");await page.waitForFunction(n=>document.querySelectorAll(".event-card").length===n&&document.querySelector("#pulseStatus b").textContent==="Источник доступен",contractManifest().events.length);
+      const overflow=await page.evaluate(()=>({ok:document.documentElement.scrollWidth<=innerWidth,scrollWidth:document.documentElement.scrollWidth,innerWidth,wide:Array.from(document.querySelectorAll("body *")).map(e=>({tag:e.tagName,id:e.id,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right})).filter(x=>x.right>innerWidth+1||x.width>innerWidth+1).slice(0,8)}));
+      assert.equal(overflow.ok,true,"horizontal overflow "+width+" "+JSON.stringify(overflow));
+      assert.equal(await page.locator("#usageMetrics .metric-card").count(),contractManifest().events.length);
+      assert.equal(await page.locator("#materialBreakdowns .breakdown").count(),3);
       assert.deepEqual(await page.locator("#eventList .event-name").allTextContents(),contractManifest().events.map(e=>e.name));
       assert.deepEqual(await page.locator("#propertyList code").allTextContents(),contractManifest().properties.map(p=>p.name));
       assert.equal(await page.locator("#usageMetrics .metric-card").first().getAttribute("data-state"),"available zero");
       await page.screenshot({path:path.join(out,"pulse-"+width+".png"),fullPage:true});
       await page.screenshot({path:path.join(out,"pulse-"+width+"-viewport.png")});
+      await page.locator('section[aria-labelledby="materialUsageTitle"]').screenshot({path:path.join(out,"pulse-materials-"+width+".png")});
     }
     await page.keyboard.press("Tab");const focus=await page.evaluate(()=>({tag:document.activeElement.tagName,outline:getComputedStyle(document.activeElement).outlineWidth}));assert.ok(["SELECT","BUTTON"].includes(focus.tag));assert.notEqual(focus.outline,"0px");
     mode="partial";await page.locator("#pulseRefresh").click();await page.waitForFunction(()=>document.querySelector("#pulseStatus b").textContent==="Частичные данные");assert.equal(await page.locator('[data-metric="visits"]').innerText(),"—");
@@ -58,7 +61,7 @@ async function main(){
     await sender.route("https://pulse.test/**",async route=>{
       const pathname=new URL(route.request().url()).pathname;
       if(pathname==="/api/product-pulse/v1/events") { wire.push(JSON.parse(route.request().postData()));return route.fulfill({status:202,body:'{"ok":true}'}); }
-      if(pathname==="/api/client-config")return route.fulfill({contentType:"application/json",body:'{"version":"3.11.606"}'});
+      if(pathname==="/api/client-config")return route.fulfill({contentType:"application/json",body:'{"version":"3.11.607"}'});
       if(pathname==="/api/product-pulse/v1/config")return route.fulfill({contentType:"application/json",body:'{"collect":true}'});
       if(pathname==="/sender.js")return route.fulfill({contentType:"application/javascript",body:fs.readFileSync("public/js/product-telemetry.js","utf8")});
       return route.fulfill({contentType:"text/html",body:'<textarea id="inputText">private fixture content</textarea><script src="/sender.js"></script>'});

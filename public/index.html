@@ -13587,7 +13587,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.606";
+    window.APP_VERSION = "3.11.607";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14803,6 +14803,18 @@ function v3IdeRenderCenterEmpty(opts) {
     '</div>';
 }
 
+function v3ProductPulseMediaFacts(rows) {
+  let audio = null, hasVideo = false, hasAudio = false;
+  try { audio = typeof v3MediaCurrentAudio === "function" ? v3MediaCurrentAudio() : window.v3ActiveMediaAudio; } catch (_) { audio = window.v3ActiveMediaAudio; }
+  try {
+    const mime = String(audio && audio.media && audio.media.mime || "").toLowerCase();
+    hasVideo = mime.startsWith("video/") || !!(audio && audio.video && audio.video.videoId);
+    hasAudio = mime.startsWith("audio/") || (!!(audio && audio.media) && !hasVideo);
+  } catch (_) {}
+  hasAudio = hasAudio || (Array.isArray(rows) && rows.some(row => !!(row && (row.audio_asset_key || row.audioAssetKey || row._v3_audioAssetKey))));
+  return { known: true, hasAudio, hasVideo };
+}
+
 async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex) {
   const header = document.getElementById("v3IdeCenterHeader");
   const content = document.getElementById("v3IdeCenterContent");
@@ -14979,6 +14991,9 @@ if (header) {
 
     // Render table in center panel
     v3IdeRenderTable(rows, textId);
+    if (Array.isArray(rows) && rows.length) {
+      try { window.ProductTelemetry?.confirmMaterialOpen({ text: t, media: v3ProductPulseMediaFacts(rows) }); } catch (_) {}
+    }
 
     // Jump to specific row if requested
     if (jumpToSentenceId || jumpToOrderIndex !== undefined) {
@@ -27466,6 +27481,9 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
     // Resolve the playback source against THIS rendered table, after the reset above.
     // Earlier restore passes can still see the preceding card's currentTableData.
     try { await v3MediaBarRefresh({ id: textId, card: text, rows: currentTableData, audio: window.v3ActiveMediaAudio }); } catch (_) {}
+    if (Array.isArray(currentTableData) && currentTableData.length) {
+      try { window.ProductTelemetry?.confirmMaterialOpen({ text, media: v3ProductPulseMediaFacts(currentTableData) }); } catch (_) {}
+    }
 
     // Immutable learning-material rows reject legacy sentence writes by design.
     // Do not issue hundreds of doomed updateSentence calls. Mutable legacy cards
@@ -51768,6 +51786,6 @@ document.addEventListener("i18n:changed", function () {
   })();
 </script>
 
-<script src="/js/product-telemetry.js?v=606"></script>
+<script src="/js/product-telemetry.js?v=607"></script>
 </body>
 </html>

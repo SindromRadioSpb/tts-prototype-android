@@ -8107,6 +8107,22 @@ async function loadContextOverlay(textId, text) {
   } catch (_) { /* offline / no sidecar → live path (honest un-baked semantics) */ }
 }
 
+function productPulseRoomMediaFacts(textRow, rows) {
+  let passport = null, hasVideo = false, hasAudio = false;
+  try { passport = window.MediaHost && window.MediaHost.passportFromTextRow(textRow); } catch (_) {}
+  try {
+    const mime = String(passport && passport.media && passport.media.mime || '').toLowerCase();
+    hasVideo = mime.startsWith('video/') || !!(passport && passport.video && passport.video.videoId);
+    hasAudio = mime.startsWith('audio/') || (!!(passport && passport.media) && !hasVideo);
+  } catch (_) {}
+  try {
+    const record = window.PlaybackSource && window.PlaybackSource.fromText(textRow, passport);
+    hasVideo = hasVideo || !!(record && window.PlaybackSource.selected(record).source);
+  } catch (_) {}
+  hasAudio = hasAudio || (Array.isArray(rows) && rows.some(row => !!(row && (row.audio_asset_key || row.audioAssetKey || row._v3_audioAssetKey))));
+  return { known: true, hasAudio, hasVideo };
+}
+
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
@@ -8164,7 +8180,7 @@ async function openReader(textId, title, opts) {
   if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
   readerRows = res && res.ok ? res.rows : [];
   if (res && res.ok && readerRows.length) {
-    try { window.ProductTelemetry?.emit('material_open', { surface: 'reading_room', media_kind: 'text' }); } catch (_) {}
+    try { window.ProductTelemetry?.confirmMaterialOpen({ text: res.text, media: productPulseRoomMediaFacts(res.text, readerRows) }); } catch (_) {}
   }
   readerTextTitle = title || (res && res.text && res.text.title) || '';
   if (titleEl && !title) {
