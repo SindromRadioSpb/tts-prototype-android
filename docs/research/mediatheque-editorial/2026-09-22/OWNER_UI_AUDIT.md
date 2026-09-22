@@ -38,4 +38,3 @@ Additional return-path/shell regression: 41/41 passed. The first broad browser r
 - 12 fresh guest browser checks passed, including matching embedded YouTube source, Room return, empty collection explanation and mobile overflow. Embedding is verified; external YouTube playback/network availability is not a physical-device acceptance claim.
 - Existing owner Chrome tab updated through the visible Update button; observed one episode, 11 topic cards from Map, 22 collections, and the sample inside its collection. Tab left on that collection.
 - Initial live attempt overlapped the container swap (mixed 611/612) and is not acceptance. A subsequent runner assertion incorrectly expected top-level Collections to retain channel scope; it was corrected to the existing intended reset-to-all behavior. Final verification passed.
-
