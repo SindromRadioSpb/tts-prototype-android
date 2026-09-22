@@ -24,8 +24,10 @@ Avoid a marketing hero, decorative channel logos, and equally large empty cover 
 - [x] Compact layout, available-first browsing and honest compact empty cards.
 - [x] Publisher field dependencies and editor tool hierarchy.
 - [x] Isolated browser flows, RU/EN/HE at 380/820/1366px, screenshots, focus/dark mode, relevant regression and release contracts.
-- [ ] Scoped commit/push, deploy and verify production and existing owner tab read-only.
+- [x] Scoped commit/push, production 3.11.613 / eb4e5670 deployed and verified; owner tab updated and checked without uploading or publishing content.
 
 Automated, production, owner browser and physical-device evidence remain separate. No physical-device or assistive-technology claim.
 
 Validation: 49/49 targeted unit/shell, 233/233 i18n, 99/99 broad browser regression, 42/42 publisher flow including channel-dependent collection selection. Responsive layout screenshots reviewed; final mobile editor disclosure and keyboard checks included in the layout rerun.
+
+Production: 16 asset hashes match committed bytes, three repeated health/config checks, catalogue JSON exactly unchanged, 14 live guest browser checks. Owner tab confirms ready-first channels, grouped collections and four-step source form; upload cancelled and editor exited. Final layout gate: 45/45.

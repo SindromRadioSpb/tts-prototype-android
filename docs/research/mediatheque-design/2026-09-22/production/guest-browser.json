@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "mode": "fresh guest Chromium; production HTTP; no owner learner actions",
+  "checks": [
+    "all 11 published topics visible to guest",
+    "available channel is first",
+    "C14 shows 3 collections",
+    "C14 has one playable episode",
+    "top-level collections navigation resets channel scope",
+    "all 22 published collections visible",
+    "empty collection explains unpublished episodes",
+    "mobile has no horizontal overflow",
+    "public catalogue contains only sample episode",
+    "compact first episode position",
+    "Reader back destination is Mediatheque as soon as reader is visible",
+    "published episode opens embedded matching YouTube source",
+    "Reader returns to Mediatheque",
+    "zero uncaught page errors"
+  ],
+  "errors": []
+}

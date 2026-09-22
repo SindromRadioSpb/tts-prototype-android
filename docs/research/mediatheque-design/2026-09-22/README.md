@@ -19,4 +19,8 @@ Baseline: production 3.11.612, commit 2c508350. Scope: approved visual/interacti
 
 Reproduce with `node scripts/premium/mediatheque-design-smoke.cjs`; publication and broad regression use the existing `mediatheque-publisher-smoke.cjs` / `mediatheque-browser-smoke.cjs` with `MEDIATHEQUE_EVIDENCE_DIR` pointing to separate output directories. All use temporary local databases/profiles. No physical-device or assistive-technology acceptance is claimed.
 
-Production and owner-tab verification follows deployment; no source archive is republished by this design pass.
+## Production verification
+
+Version 3.11.613 deployed from `eb4e567040f6363edb1c15cfd5db1e9e4f739847`. `production/http-evidence.json` records 16 assets matching committed bytes, three coherent health/config probes, finished deployment/image identity and exact unchanged catalogue JSON. `production/guest-browser.json`: 14 live checks, including compact positioning, all published topics/collections, ready-first channel, matching YouTube embed and reader return.
+
+The existing owner tab was updated through the visible Update action. Confirmed 11 topics, 22 collections, C14 first, four publication steps and conditional source inputs. The form was cancelled without file upload or submission; draft revision remains 6. Editor exited; tab left on Topics. No source archive was republished. Production catalogue screenshot was reviewed.

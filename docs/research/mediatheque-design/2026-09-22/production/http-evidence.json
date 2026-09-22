@@ -1,0 +1,101 @@
+{
+  "version": "3.11.613",
+  "sourceCommit": "eb4e567040f6363edb1c15cfd5db1e9e4f739847",
+  "at": "2026-09-22T15:32:16.595Z",
+  "checks": [
+    {
+      "url": "/mediatheque.html",
+      "sha256": "123fb94bac08b122657b6c2d5cd0f73e1cd58fd80721a785dcef4d059dfd3de8"
+    },
+    {
+      "url": "/css/mediatheque.css?v=6",
+      "sha256": "8349effc345af0321afc382cf7180f074e7e2ad09b263dda23deec113178976a"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=19",
+      "sha256": "9e4dcf56e63ae484aba4c3bdfef352ef4fa0cfc7a442fa063595808fafcc47ca"
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "sha256": "301f90178a18c6ea23b05603299a85bc9fd9f30104a0fd4554ae92c4d51fda32"
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "sha256": "d8d2ec312d21b8191f52aeb0d5635f6886afe2efa64ebe772ef9f7ab593c47bb"
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "sha256": "ef2e4a81ec0bb8a2a2676e0c8c77d4006c73adb21a7dd1a3d4eb302dd0cb7f34"
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "sha256": "4c0aefa9b1c7a4c5db030e0f7595d9eb358f5d5ac7f6e4a5cca345ad85f31b9a"
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "sha256": "88b3ec51ebf9c3c7a312d144809bf4b73708e67eccc60ce4e6c402e831bc7abe"
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "sha256": "757ee04103168073347cd26bb0552e00a2638195bf2396742c21043f2e5388dc"
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "sha256": "d8a429d04cb153658882b04163ddf3a419be9328bc5507840534c3a5b81d68b1"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "72ad5ac3d950210b659247280eeeff3a555932b8d85591f73d95280abd425833"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "28766d941dd62d0a8baa8ec9b2f657dea1a2874ca4f5d71ba8609c9ba5e1536e"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=244",
+      "sha256": "2e97ad27f502e11cc9d852ad13d5f26daced225337fac4c0b607b5bdfc645c52"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=244",
+      "sha256": "d373903ee2db41b9cffb40f2e4130dc66b6322af1999087c9b747fb48b4a9dc7"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=244",
+      "sha256": "32df773e813653a8cf886124e81ab2192e60a35b6c6e201db37f85110c6514e3"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "304a71273f5f71c780de7b534150ab29f3fc7d2ca45cb05683663ae9e72b170f"
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "version": "3.11.613"
+    },
+    {
+      "ok": true,
+      "version": "3.11.613"
+    },
+    {
+      "ok": true,
+      "version": "3.11.613"
+    }
+  ],
+  "catalogueUnchanged": true,
+  "items": 1,
+  "topics": 11,
+  "collections": 22,
+  "imageId": "sha256:f9340d02df41e3fc54d85c8217c95c3a7ba8e11c9edde3381ba6a1f7fc35732a",
+  "deploymentStatus": "finished",
+  "ownerTab": {
+    "client": "mediatheque-ui.js?v=19",
+    "topics": 11,
+    "collections": 22,
+    "readyChannelFirst": "C14",
+    "publicationSteps": 4,
+    "youtubeMediaToggle": "PASS",
+    "formCancelledWithoutUpload": true,
+    "draftRevision": 6
+  }
+}
