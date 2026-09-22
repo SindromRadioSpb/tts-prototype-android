@@ -1009,12 +1009,20 @@
   // R11: тексты сохраняются ВСЕГДА; тайминг — только честный. Невалидный/немонотонный start → null.
   // timingOk = валидных ≥2 И ≥80% сегментов. Поздний первый сегмент (>60с) — warning, не провал
   // (легитимно: музыкальное интро).
+  // Инвариант Студии «один сегмент = одна строка композера». Субтитры держат его в
+  // captions-parse.cleanText; ASR (локальный faster-whisper, 2026-09-22) прислал сегмент из трёх
+  // физических строк — 719 сегментов стали 721 строкой, и превью схлопнуло весь трек в один
+  // сегмент без таймингов. Перенос внутри одного сегмента — оформление, а не граница реплики.
+  function singleLineText(value) {
+    return String(value == null ? "" : value).replace(/\s*[\r\n\u2028\u2029]+\s*/g, " ").trim();
+  }
+
   function validateSegments(segments, durationSec) {
     var input = Array.isArray(segments) ? segments : [];
     var dur = Math.max(0, Number(durationSec) || 0);
     var out = [], warnings = [], lastT = -Infinity, valid = 0;
     for (var k = 0; k < input.length; k++) {
-      var text = String((input[k] && input[k].text) || "").trim();
+      var text = singleLineText(input[k] && input[k].text);
       var t = input[k] && typeof input[k].start === "number" && isFinite(input[k].start) ? input[k].start : null;
       if (t !== null) {
         if (t < 0) t = 0;
@@ -1477,7 +1485,7 @@
   var API = {
     ASR_MODEL: ASR_MODEL, ASR_PROMPT: ASR_PROMPT,
     secondsFromTimestamp: secondsFromTimestamp, parseAsrResponse: parseAsrResponse,
-    validateSegments: validateSegments, buildRowTiming: buildRowTiming,
+    validateSegments: validateSegments, singleLineText: singleLineText, buildRowTiming: buildRowTiming,
     buildPartialProvenTiming: buildPartialProvenTiming,
     validateRowSegMapping: validateRowSegMapping, timingLooksDegenerate: timingLooksDegenerate,
     premiumRowLineIdx: premiumRowLineIdx,

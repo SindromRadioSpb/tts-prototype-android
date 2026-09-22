@@ -281,6 +281,29 @@ test('preview correction retains IDs when cue count matches and preserves text w
   assert.deepEqual(changedCount.segments[0].source_segment_ids, ['s1', 's2']);
 });
 
+test('promotion input keeps each media segment on one line on every import path', () => {
+  const input = StudioMediaPackage.passportToPromotionInput({ audio: {
+    media: { sha256: SHA, mime: 'video/mp4', durationSec: 10 }, asr: { language: 'he' },
+    segments: [{ start: 0, end: 2, text: 'אחד' }, { start: 2, end: 5, text: 'שתיים \nשלוש' }],
+  } });
+  assert.deepEqual(input.segments.map((s) => s.text), ['אחד', 'שתיים שלוש']);
+});
+
+test('preview that differs only by line breaks inside a segment keeps every timed segment', () => {
+  const seg = (id, start, text) => ({ caption_segment_id: id, source_segment_ids: ['s' + id], start_ms: start, end_ms: start + 900, text, speaker: null, authority: { text: 'provider', timing: 'provider', speaker: 'unknown' }, quality_flags: [] });
+  const segments = [seg('c1', 0, 'אחד'), seg('c2', 1000, 'שתיים \nשלוש'), seg('c3', 2000, 'ארבע')];
+  const preview = StudioMediaPackage.reconcileCorrectedPreview(segments, 'אחד\nשתיים שלוש\nארבע');
+  assert.deepEqual(preview.segments.map((s) => s.caption_segment_id), ['c1', 'c2', 'c3']);
+  assert.equal(preview.segments[1].text, 'שתיים שלוש');
+  assert.equal(preview.segments[1].start_ms, 1000);
+  // 2026-09-22: the composer exposed the embedded break as extra lines (719 segments -> 721
+  // lines) and the whole 61-minute track was collapsed into one segment. That is not a re-layout.
+  const legacy = StudioMediaPackage.reconcileCorrectedPreview(segments, 'אחד\nשתיים\nשלוש\nארבע');
+  assert.equal(legacy.segments.length, 3, 'embedded breaks must never collapse the whole track into one segment');
+  assert.equal(legacy.segments[1].text, 'שתיים שלוש');
+  assert.equal(legacy.segments[1].start_ms, 1000);
+});
+
 test('workspace view model exposes honest lifecycle state without copying transcript content', () => {
   const model = StudioMediaPackage.workspaceViewModel({
     package_id: 'mpkg:1', corrected_track_id: 'track:1', current_revision_id: 'rev:2',

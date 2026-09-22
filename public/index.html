@@ -13507,7 +13507,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=485"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
-<script src="/js/studio-media-package.js?v=577"></script>
+<script src="/js/studio-media-package.js?v=615"></script>
 <script src="/js/studio-media-editor.js?v=529"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=584"></script>
@@ -13549,7 +13549,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=602" defer></script>
+<script src="/js/studio-import.js?v=615" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13587,7 +13587,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.614";
+    window.APP_VERSION = "3.11.615";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -36068,8 +36068,14 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             await addRef(window.v3LastMediaPackageRef);
             await addRef(v3LastGeminiMeta && v3LastGeminiMeta.source && v3LastGeminiMeta.source.media_package_ref);
             await addRef(window.v3LastImportMeta && window.v3LastImportMeta.media_package_ref);
+            // 2026-09-22: the failure branch below erases the ambient refs, so a later pass
+            // (the save itself) used to see "no media ever intended" and saved a video card as
+            // plain text without a word. The lost intent outlives the refs until entity change.
             const mediaIntended = seenRefs.size > 0 || !!v3MediaPassport(window.v3LastImportMeta) ||
-                !!v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+                !!v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source) || !!window.v3MediaIntentLost;
+            const intendedPackageId = (window.v3LastMediaPackageRef && window.v3LastMediaPackageRef.package_id) ||
+                (window.v3LastImportMeta && window.v3LastImportMeta.media_package_ref &&
+                 window.v3LastImportMeta.media_package_ref.package_id) || null;
             for (const row of await repo.listWorkspaces({ limit: 50 })) {
                 await addRef({ package_id: row.package_id, revision_id: row.current_revision_id });
             }
@@ -36102,6 +36108,10 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 // also prevents a late no-workspace refresh from erasing the passport
                 // v3LibraryOpenText just restored during cold reload.
                 window.v3ActiveMediaAudio = savedPassportExact ? savedPassport : null;
+                if (mediaIntended && !savedPassportExact && !window.v3MediaIntentLost) {
+                    window.v3MediaIntentLost = { reason: resolved.reason, package_id: intendedPackageId,
+                        at: new Date().toISOString() };
+                }
                 if (!savedPassportExact) window.v3LastMediaPackageRef = null;
                 if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
                 return null;
@@ -36133,6 +36143,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 if (previousAudio.timingSource) passport.timingSource = previousAudio.timingSource;
             }
             const ref = projection.media_package_ref;
+            window.v3MediaIntentLost = null;
             window.v3LastImportMeta = restored;
             window.v3ActiveMediaAudio = passport;
             window.v3LastMediaPackageRef = Object.assign({}, ref);

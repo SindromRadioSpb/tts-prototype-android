@@ -244,3 +244,14 @@ test("L3a: save consumes proven row_seg_idx when karaoke entries use the real {o
   assert.deepEqual(src.source_segment_ids, ["raw-0"]);
   assert.equal(src.source_line_index, 0);
 });
+
+test("ASR promotion stores each segment as a single line so the corrected track equals the composer", () => {
+  const source = [
+    { id: "a", start: 0, end: 2, text: "שורה אחת" },
+    { id: "b", start: 2, end: 6, text: "חלק ראשון \nחלק שני" },
+  ];
+  const validated = [{ i: 0, start: 0, text: "שורה אחת" }, { i: 1, start: 2, text: "חלק ראשון חלק שני" }];
+  const promoted = SI.mediaSegmentsForPromotion(source, validated);
+  assert.equal(promoted[1].text, "חלק ראשון חלק שני");
+  assert.equal(promoted[1].start, 2);
+});

@@ -108,7 +108,9 @@
       return {
         start_ms: start,
         end_ms: end,
-        text: String(segment.text == null ? '' : segment.text),
+        // One segment is one composer line on every promotion path (local ASR, YouTube ASR,
+        // captions); an embedded break would desynchronize the package from the table.
+        text: String(segment.text == null ? '' : segment.text).replace(/\s*[\r\n]+\s*/g, ' ').trim(),
         speaker: segment.speaker == null ? null : String(segment.speaker),
         source_line_index: finiteIndex(segment.source_line_index, finiteIndex(segment.i, index)),
         quality_flags: flags,
@@ -353,7 +355,8 @@
   }
   function clearActiveWorkspace() {
     activeWorkspaceRef = null; activeWorkspaceOptions = {}; workspaceRefreshSerial++;
-    if (typeof window !== 'undefined') window.v3LastMediaPackageRef = null;
+    // Entity change/clear ends the media intent too (see v3MediaIntentLost in index.html).
+    if (typeof window !== 'undefined') { window.v3LastMediaPackageRef = null; window.v3MediaIntentLost = null; }
     refreshWorkspaceUi();
   }
   async function activatePackage(packageId, options) {
@@ -430,6 +433,15 @@
     var lines = String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n')
       .map(function (line) { return line.trim(); }).filter(Boolean);
     if (!lines.length || next.map(function (s) { return s.text; }).join('\n') === lines.join('\n')) return { segments: next, operations: operations, changed: false };
+    // 2026-09-22: one ASR segment carried embedded line breaks, the composer showed 721 lines for
+    // 719 segments, and replace_text_layout below collapsed a 61-minute track into ONE untimed
+    // segment the table could never bind to. Breaks inside a segment are layout, not a re-cut:
+    // when the preview equals the segments' single-line texts, only those segments are edited.
+    var single = function (value) { return String(value == null ? '' : value).replace(/\s*[\r\n\u2028\u2029]+\s*/g, ' ').trim(); };
+    var flatLines = next.map(function (s) { return single(s.text); });
+    var physical = [];
+    next.forEach(function (s) { String(s.text == null ? '' : s.text).split(/[\r\n\u2028\u2029]+/).forEach(function (part) { part = part.trim(); if (part) physical.push(part); }); });
+    if (lines.length !== next.length && physical.join('\n') === lines.join('\n')) lines = flatLines;
     if (lines.length === next.length) {
       lines.forEach(function (line, index) {
         if (line === next[index].text) return;

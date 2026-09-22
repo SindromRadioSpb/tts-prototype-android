@@ -346,7 +346,9 @@
       if (blind && flags.indexOf("blind") < 0) flags.push("blind");
       return {
         i: index, id: raw.id || raw.source_segment_id || undefined,
-        start: start, end: end, text: String(raw.text == null ? "" : raw.text),
+        // Same single-line text as the preview: a raw segment with an embedded break would
+        // make the corrected track disagree with the composer line by line.
+        start: start, end: end, text: String(raw.text == null ? "" : raw.text).replace(/\s*[\r\n\u2028\u2029]+\s*/g, " ").trim(),
         speaker: raw.speaker == null ? null : String(raw.speaker),
         quality_flags: flags, blind: blind,
       };

@@ -1649,3 +1649,17 @@ test("(S12.7) весь тайминг внутри сжатого диапазо
   const t = A.buildRowTiming(segs, [0, 1, 2], [{ fromSec: 870, toSec: 1800 }]);
   assert.equal(t, null, "две честные записи не набрались — это отказ, а не пустое караоке");
 });
+
+test("validateSegments keeps one ASR segment on one composer line (2026-09-22 collapse incident)", () => {
+  // A local faster-whisper segment arrived as three physical lines. The composer counts
+  // lines, so 719 segments became 721 lines and the whole media track was collapsed.
+  const v = A.validateSegments([
+    { start: 0, text: "תודה רבה." },
+    { start: 5, text: "דורים עלינו. תתרחקו, תברחו משם, בסדר? \nדורים עלינו, תברחו משם, בסדר? \r\nדורים עלינו." },
+    { start: 9, text: "סוף" },
+  ], 20);
+  assert.equal(v.segments.length, 3);
+  assert.equal(v.segments[1].text, "דורים עלינו. תתרחקו, תברחו משם, בסדר? דורים עלינו, תברחו משם, בסדר? דורים עלינו.");
+  assert.equal(v.segments.map((s) => s.text).join("\n").split("\n").length, 3);
+  assert.equal(A.singleLineText("  א \n\n ב  "), "א ב");
+});
