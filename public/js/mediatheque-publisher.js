@@ -1,4 +1,7 @@
 // Guided archive publication over the existing publication domain.
+export function publisherStep(t,esc,current) {
+  return `<ol class="ml-publisher-steps" aria-label="${esc(t('publicationSteps'))}">${['sourceStep','detailsStep','materialStep','structureStep'].map((key,i)=>`<li ${i+1===current?'aria-current="step"':''}><span aria-hidden="true">${i+1}</span>${esc(t(key))}</li>`).join('')}</ol>`;
+}
 export function openPublisher(ctx) {
   const {api,t,esc,showDialog,formActions,C}=ctx;
   let work=null, copied=null, rights=null, receipt=null, detail=null, corpus=null, destination=null;
@@ -13,18 +16,21 @@ export function openPublisher(ctx) {
     const response=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'Content-Type':type,'X-LP-CSRF':localStorage.getItem('cloud.csrf')||''},body:file,signal:AbortSignal.timeout(300000)});
     const out=await response.json();if(!response.ok||!out.ok)throw new Error(out.error||'MATERIAL_ARCHIVE_INVALID');return out;
   }
-  showDialog(t('publisherTitle'),`<p>${esc(t('publisherIntro'))}</p>
+  showDialog(t('publisherTitle'),`${publisherStep(t,esc,1)}<p>${esc(t('publisherIntro'))}</p>
     <label>${esc(t('learningArchive'))}<input name="archive" type="file" accept=".zip" required></label>
     <label>${esc(t('playbackSource'))}<select name="mode"><option value="youtube">YouTube</option><option value="media">${esc(t('attachedMedia'))}</option></select></label>
-    <label>${esc(t('youtubeLink'))}<input name="youtube" type="url" placeholder="https://www.youtube.com/watch?v=…" dir="ltr"></label>
-    <label>${esc(t('separateMedia'))}<input name="media" type="file" accept="video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4"></label>
+    <label data-publisher-youtube>${esc(t('youtubeLink'))}<input name="youtube" type="url" placeholder="https://www.youtube.com/watch?v=…" dir="ltr"></label>
+    <label data-publisher-media hidden>${esc(t('separateMedia'))}<input name="media" type="file" accept="video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4"></label>
     ${formActions(t('checkArchive'))}`,async data=>{
-      const mode=data.get('mode'),url=data.get('youtube').trim();
+      const mode=data.get('mode'),url=mode==='youtube'?data.get('youtube').trim():'';
       work=await upload('/api/publication/mediatheque/archive?'+new URLSearchParams({mode,youtube:url}),data.get('archive'),'application/zip');
       if(mode==='media'&&!work.hasMedia){const media=data.get('media');if(!media?.size)throw new Error('MATERIAL_MEDIA_REQUIRED');await upload('/api/publication/mediatheque/archive/'+work.token+'/media',media,'application/octet-stream');work.hasMedia=true;}
       if(mode==='youtube'&&!work.videoId)throw new Error('PLAYBACK_SOURCE_INVALID');
       await metadata();
     });
+  const modeSelect=document.querySelector('#ml-form [name=mode]');
+  const syncMode=()=>{const media=modeSelect.value==='media';document.querySelector('[data-publisher-media]').hidden=!media;document.querySelector('[data-publisher-youtube]').hidden=media;document.querySelector('#ml-form [name=youtube]').disabled=media;document.querySelector('#ml-form [name=media]').disabled=!media;};
+  modeSelect.addEventListener('change',syncMode);syncMode();
   async function metadata(){
     const d=ctx.structure();
     let channel=null,series=null;
@@ -32,13 +38,13 @@ export function openPublisher(ctx) {
     const category=d.categories.find(c=>channel&&(c.id===channel.id||C.normalize(c.title)===C.normalize(channel.title)));
     const collection=d.collections.find(c=>series&&(c.id===series.id||(c.categoryId===category?.id&&C.normalize(c.title)===C.normalize(series.title))));
     const options=(xs,selected)=>'<option value="">'+esc(t('none'))+'</option>'+xs.map(x=>`<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.title)}</option>`).join('');
-    showDialog(t('publisherDetails'),`<p>${esc(t('archiveChecked',{count:work.rowCount}))} · ${work.videoId?'YouTube':esc(t('attachedMedia'))}</p>
+    showDialog(t('publisherDetails'),`${publisherStep(t,esc,2)}<p class="ml-archive-summary">${esc(t('archiveChecked',{count:work.rowCount}))} · ${work.videoId?'YouTube':esc(t('attachedMedia'))}</p>
       <label>${esc(t('name'))}<input name="title" maxlength="200" required value="${esc(work.title)}" dir="auto"></label>
       <label>${esc(t('description'))}<textarea name="description" maxlength="2000"></textarea></label>
       <label>${esc(t('collectionTopic'))}<select name="category">${options(d.categories,category?.id)}</select></label>
-      <label>${esc(t('newChannel'))}<input name="newCategory" maxlength="200" dir="auto" value="${esc(category?'':channel?.title||'')}"></label>
+      <details class="ml-publisher-create" data-create="channel" ${!category&&channel?'open':''}><summary>${esc(t('newChannel'))}</summary><label><span class="sr-only">${esc(t('newChannel'))}</span><input name="newCategory" maxlength="200" dir="auto" value="${esc(category?'':channel?.title||'')}"></label></details>
       <label>${esc(t('collection'))}<select name="collection">${options(d.collections,collection?.id)}</select></label>
-      <label>${esc(t('newSeries'))}<input name="newCollection" maxlength="200" dir="auto" value="${esc(collection?'':series?.title||'')}"></label>
+      <details class="ml-publisher-create" data-create="series" ${!collection&&series?'open':''}><summary>${esc(t('newSeries'))}</summary><label><span class="sr-only">${esc(t('newSeries'))}</span><input name="newCollection" maxlength="200" dir="auto" value="${esc(collection?'':series?.title||'')}"></label></details>
       <label class="ml-checkbox"><input type="checkbox" name="rights" required>${esc(t('publicationRights'))}</label>
       <label class="ml-checkbox"><input type="checkbox" name="download">${esc(t('allowPackageDownload'))}</label>
       ${formActions(t('preparePublication'))}`,async data=>{
@@ -73,7 +79,7 @@ export function openPublisher(ctx) {
         const validation=await api(base+'/draft:validate',{expectedVersion:rights.draft_version});
         if(!validation.ready)throw new Error(validation.blockers[0]?.code||'SOURCE_SNAPSHOT_INVALID');
         const ready=(await api(base)).corpus;
-        showDialog(t('previewTitle'),`<p>${esc(t('publicationPreviewHelp'))}</p><h3 dir="auto">${esc(destination.creator)}</h3><ul>${ready.items.map(i=>`<li dir="auto">${esc(i.title)}</li>`).join('')}</ul><p>${esc(t('publicationStorageHelp'))}</p>${formActions(t('publish'))}`,async()=>{
+        showDialog(t('previewTitle'),`${publisherStep(t,esc,3)}<p>${esc(t('publicationPreviewHelp'))}</p><h3 dir="auto">${esc(destination.creator)}</h3><ul>${ready.items.map(i=>`<li dir="auto">${esc(i.title)}</li>`).join('')}</ul><p>${esc(t('publicationStorageHelp'))}</p>${formActions(t('publish'))}`,async()=>{
           if(!receipt)receipt=await once('publish',base+':publish',{expectedVersion:rights.draft_version});
           await ctx.reloadPublic();
           const items=ctx.publicItems().filter(i=>i.ref.slug===corpus.slug);
@@ -88,5 +94,18 @@ export function openPublisher(ctx) {
           ctx.finish(); // Structure has its own existing preview/publish, never publishes unrelated draft edits.
         });
       });
+    const form=document.querySelector('#ml-form'),categorySelect=form.elements.category,collectionSelect=form.elements.collection;
+    const syncDestination=()=>{
+      const newCategory=form.elements.newCategory.value.trim();
+      categorySelect.disabled=!!newCategory;
+      const selected=collectionSelect.value;
+      const candidates=d.collections.filter(c=>!c.categoryId||(!newCategory&&c.categoryId===categorySelect.value));
+      collectionSelect.innerHTML=options(candidates,selected);
+      collectionSelect.disabled=!!form.elements.newCollection.value.trim();
+    };
+    categorySelect.addEventListener('change',syncDestination);
+    form.elements.newCategory.addEventListener('input',syncDestination);
+    form.elements.newCollection.addEventListener('input',syncDestination);
+    syncDestination();
   }
 }

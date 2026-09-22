@@ -26,10 +26,10 @@ async function main(){
   await page.reload();await page.locator('[data-action=publish-material]').click();
   await page.locator('[name=archive]').setInputFiles(file);await page.locator('#ml-form button[type=submit]').click();
   await page.locator('[name=title]').waitFor();check('archive verified through authenticated upload route',true);
-  await page.locator('[name=newCategory]').fill('כאן 11 — тестовый канал');await page.locator('[name=newCollection]').fill('אויבים — тестовая серия');
+  if(!await page.locator('[name=newCategory]').isVisible())await page.locator('[data-create=channel] summary').click();await page.locator('[name=newCategory]').fill('כאן 11 — тестовый канал');if(!await page.locator('[name=newCollection]').isVisible())await page.locator('[data-create=series] summary').click();await page.locator('[name=newCollection]').fill('אויבים — тестовая серия');
   await page.locator('[name=rights]').check();await page.locator('#ml-form button[type=submit]').click();
   await page.getByText('Будет опубликована новая редакция канала',{exact:false}).waitFor({timeout:20000});
-  await page.screenshot({path:path.join(out,'publication-preview.png')});
+  await page.screenshot({animations:'disabled',path:path.join(out,'publication-preview.png')});
   await page.locator('#ml-form button[type=submit]').click();
   await page.getByRole('heading',{name:'Опубликовать структуру',exact:true}).waitFor({timeout:20000});
   await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
@@ -39,17 +39,23 @@ async function main(){
   check('guest sees published channel',await reader.locator('.ml-channel-card').count()===1);
   check('guest cannot see editor actions',await reader.locator('[data-action=publish-material]').count()===0);
   for(const lang of ['ru','en','he'])for(const width of [380,820,1366]){
-    await reader.setViewportSize({width,height:900});await reader.evaluate(l=>window.appSetLocale(l),lang);await reader.screenshot({path:path.join(out,`channels-${lang}-${width}.png`)});
+    await reader.setViewportSize({width,height:900});await reader.evaluate(l=>window.appSetLocale(l),lang);await reader.screenshot({animations:'disabled',path:path.join(out,`channels-${lang}-${width}.png`)});
     check(`${lang} ${width} no horizontal overflow`,await reader.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     check(`${lang} ${width} no missing translations`,!(await reader.locator('body').innerText()).includes('mediatheque.'));
   }
   await reader.locator('.ml-channel-card').focus();check('channel card has keyboard focus',await reader.locator('.ml-channel-card').evaluate(n=>n===document.activeElement));
-  await reader.locator('#ml-theme').click();await reader.screenshot({path:path.join(out,'channels-dark-he.png')});await reader.locator('#ml-theme').click();
+  await reader.locator('#ml-theme').click();await reader.screenshot({animations:'disabled',path:path.join(out,'channels-dark-he.png')});await reader.locator('#ml-theme').click();
   await reader.locator('.ml-channel-card').click();await reader.locator('.ml-channel-series').waitFor();check('channel opens linked series',true);
-  await reader.evaluate(()=>scrollTo(0,0));await reader.screenshot({path:path.join(out,'channel-series-he-desktop.png')});
+  await reader.evaluate(()=>scrollTo(0,0));await reader.screenshot({animations:'disabled',path:path.join(out,'channel-series-he-desktop.png')});
   await reader.locator('.ml-channel-series .ml-collection a[data-nav]').first().click();await reader.locator('.ml-item').waitFor();check('series opens its episode',await reader.locator('.ml-item').count()===1);
   const api=await reader.evaluate(async()=>await(await fetch('/api/mediatheque')).json());check('only one public material',api.items.length===1);
-  await page.locator('[data-action=organize]').click();await page.locator('[data-action=research-reserve]').click();await page.locator('#ml-research-search').fill('Calcalist');check('research search finds candidate',await page.locator('#ml-research-candidate option').count()===1);await page.locator('[data-action=cancel-dialog]').click();
+  await page.locator('[data-action=organize]').click();await page.locator('.ml-editor-tools summary').click();await page.locator('[data-action=research-reserve]').click();await page.locator('#ml-research-search').fill('Calcalist');check('research search finds candidate',await page.locator('#ml-research-candidate option').count()===1);await page.locator('[data-action=cancel-dialog]').click();
+  await page.evaluate(async()=>{
+    const d=await(await fetch('/api/publication/mediatheque')).json(),C=window.MediathequeCore;
+    let structure=C.command(d.structure,{type:'category.create',id:'other-channel',title:'Другой канал'});
+    structure=C.command(structure,{type:'collection.create',id:'other-series',title:'Чужая серия',categoryId:'other-channel'});
+    const r=await fetch('/api/publication/mediatheque/draft',{method:'POST',headers:{'Content-Type':'application/json','X-LP-CSRF':localStorage.getItem('cloud.csrf'),'X-Idempotency-Key':crypto.randomUUID()},body:JSON.stringify({expectedVersion:d.revision,structure})});if(!r.ok)throw Error('fixture draft save failed');
+  });
   // A real tiny MP4 exercises stream delivery and the Room player, not only metadata.
   const mediaFile=path.join(temp,'synthetic.mp4');
   const ff=spawnSync('ffmpeg',['-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=blue:s=320x180:r=25','-t','3','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',mediaFile],{windowsHide:true});
@@ -58,7 +64,11 @@ async function main(){
   let local=fixture(),old=local.package.media_sha256;local=JSON.parse(JSON.stringify(local).replaceAll(old,hash));local.package.size_bytes=media.length;local.package.duration_ms=3000;
   const localZip=path.join(temp,'media.lplp.zip');fs.writeFileSync(localZip,await Portable.zipFiles(await Core.buildPackageFiles(local,{mode:'snapshot'}),'nodebuffer'));
   await page.locator('[data-action=publish-material]').click();await page.locator('[name=archive]').setInputFiles(localZip);await page.locator('[name=mode]').selectOption('media');await page.locator('[name=media]').setInputFiles(mediaFile);await page.locator('#ml-form button[type=submit]').click();
-  await page.locator('[name=title]').waitFor();await page.locator('[name=title]').fill('Медиафайл — проверка');await page.locator('[name=category]').selectOption({label:'כאן 11 — тестовый канал'});await page.locator('[name=newCollection]').fill('Медиа');await page.locator('[name=rights]').check();await page.locator('#ml-form button[type=submit]').click();
+  await page.locator('[name=title]').waitFor();await page.locator('[name=title]').fill('Медиафайл — проверка');await page.locator('[name=category]').selectOption({label:'Другой канал'});
+  check('collection options follow selected channel',(await page.locator('[name=collection]').innerText()).includes('Чужая серия')&&!(await page.locator('[name=collection]').innerText()).includes('тестовая серия'));
+  await page.locator('[name=collection]').selectOption('other-series');await page.locator('[name=category]').selectOption({label:'כאן 11 — тестовый канал'});
+  check('changing channel clears incompatible collection',await page.locator('[name=collection]').inputValue()===''&&!(await page.locator('[name=collection]').innerText()).includes('Чужая серия'));
+  await page.screenshot({animations:'disabled',path:path.join(out,'publisher-channel-selection.png')});if(!await page.locator('[name=newCollection]').isVisible())await page.locator('[data-create=series] summary').click();await page.locator('[name=newCollection]').fill('Медиа');check('new series disables existing-series selection',await page.locator('[name=collection]').isDisabled());await page.locator('[name=rights]').check();await page.locator('#ml-form button[type=submit]').click();
   await page.getByText('Будет опубликована новая редакция канала',{exact:false}).waitFor();await page.locator('#ml-form button[type=submit]').click();await page.getByRole('heading',{name:'Опубликовать структуру',exact:true}).waitFor();await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
   check('second material publishes through a new edition of the existing channel',true);
   await reader.goto(base+'/mediatheque.html?space=public&section=catalog');await reader.locator('.ml-item').filter({hasText:'Медиафайл — проверка'}).locator('.ml-open').click();
@@ -66,7 +76,7 @@ async function main(){
   await player.evaluate(video=>video.play());await reader.waitForFunction(()=>{const v=document.querySelector('video[src*="/api/public-corpora/"]');return v?.currentTime>0.2;});
   check('Room plays the published MP4 over the authorized public asset URL',true);
   const range=await player.evaluate(async video=>{const r=await fetch(video.getAttribute('src'),{headers:{Range:'bytes=0-31'}});return {status:r.status,length:(await r.arrayBuffer()).byteLength};});check('public video supports HTTP byte ranges',range.status===206&&range.length===32);
-  await reader.screenshot({path:path.join(out,'room-public-media.png')});
+  await reader.screenshot({animations:'disabled',path:path.join(out,'room-public-media.png')});
   await page.locator('[data-action=organize]').click();
   await page.locator('[data-action=new-category]').first().click();await page.locator('[name=title]').fill('Канал без выпусков');await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
   await page.locator('[data-action=new-collection]').first().click();await page.locator('[name=title]').fill('Серия без выпусков');await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
@@ -78,9 +88,9 @@ async function main(){
   check('empty topic explains missing episodes without claiming search failure',await reader.locator('.ml-empty').innerText().then(x=>x.includes('Выпуски пока не опубликованы')&&!x.includes('Ничего не найдено')));
   await reader.locator('[data-action=section][data-section=collections]').click();
   check('guest sees published empty collection',await reader.locator('.ml-collection').filter({hasText:'Серия без выпусков'}).count()===1);
-  for(const lang of ['ru','en','he']){await reader.setViewportSize({width:380,height:844});await reader.evaluate(l=>window.appSetLocale(l),lang);await reader.screenshot({path:path.join(out,'empty-collections-'+lang+'.png')});check('empty collections '+lang+' fit mobile',await reader.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+  for(const lang of ['ru','en','he']){await reader.setViewportSize({width:380,height:844});await reader.evaluate(l=>window.appSetLocale(l),lang);await reader.screenshot({animations:'disabled',path:path.join(out,'empty-collections-'+lang+'.png')});check('empty collections '+lang+' fit mobile',await reader.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
   check('zero page errors',evidence.errors.length===0);evidence.status='PASS';
- }catch(e){evidence.status='FAIL';evidence.error=e.stack;if(page){evidence.formError=await page.locator('#ml-form-error').textContent().catch(()=>null);await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});}throw e;}
+ }catch(e){evidence.status='FAIL';evidence.error=e.stack;if(page){evidence.formError=await page.locator('#ml-form-error').textContent().catch(()=>null);await page.screenshot({animations:'disabled',path:path.join(out,'failure.png')}).catch(()=>{});}throw e;}
  finally{fs.writeFileSync(path.join(out,'evidence.json'),JSON.stringify(evidence,null,2));fs.writeFileSync(path.join(temp,'server.log'),log);if(browser)await browser.close();server.kill();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

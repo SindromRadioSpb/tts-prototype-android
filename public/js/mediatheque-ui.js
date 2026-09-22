@@ -1,7 +1,7 @@
 import * as localDb from '/db/local-db.js?v=545';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import { openPublisher } from './mediatheque-publisher.js';
+import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 const C = globalThis.MediathequeCore;
 const $ = id => document.getElementById(id);
 const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -277,15 +277,23 @@ function materialsHtml(items, layout = 'cards') { return `<div class="ml-materia
 function sectionHead(title, section, filters = {}) {
   return `<div class="ml-section-head"><h2>${esc(title)}</h2><a data-nav href="${esc(makeHref({ section, filters: C.filters(filters) }))}">${esc(t('seeAll'))}</a></div>`;
 }
+function descriptionHtml(description) {
+  if (!description) return '';
+  try {
+    const url=new URL(description.trim());
+    if(url.protocol==='https:'&&['www.youtube.com','youtube.com','youtu.be'].includes(url.hostname)) return `<p class="ml-source-link"><a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer">${esc(t('youtubeOriginal'))}<span aria-hidden="true"> ↗</span></a></p>`;
+  } catch (_) {}
+  return `<p class="ml-tree-description" dir="auto">${esc(description)}</p>`;
+}
 function collectionHtml(c, index) {
   const items = c.items.map(k => state.prepared.byKey.get(k)).filter(Boolean), available = items.filter(i => i.available);
   const summary = C.durationSummary(items), resume = available.filter(i=>i.progressKnown && i.progress === 'in_progress').sort((a,b)=>(Date.parse(b.openedAt)||0)-(Date.parse(a.openedAt)||0))[0];
   const parts = available.slice(0, 3);
-  return `<article class="ml-collection" ${organizeMode() ? `draggable="true" data-drag-type="collection" data-drag-id="${esc(c.id)}"` : ''}>
+  return `<article class="ml-collection" data-ready="${available.length > 0}" ${organizeMode() ? `draggable="true" data-drag-type="collection" data-drag-id="${esc(c.id)}"` : ''}>
     <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ collection: c.id }) }))}"><div class="ml-collection-art" data-parts="${parts.length}">${parts.length ? parts.map(i => cover(i, false)).join('') : '<span class="ml-collection-empty" aria-hidden="true">▤</span>'}</div>
     <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: items.length }))}${state.space === 'public' && !items.length ? ' · ' + esc(t('noPublishedEpisodes')) : summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
     ${c.categoryId ? `<a class="ml-series-source" data-nav dir="auto" href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.categoryId})}))}">${esc(structure().categories.find(x=>x.id===c.categoryId)?.title || '')}</a>` : ''}
-    ${c.description ? `<p dir="auto">${esc(c.description)}</p>` : ''}
+    ${descriptionHtml(c.description)}
     ${resume ? `<div class="ml-collection-resume"><a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}</a><span dir="auto">${esc(resume.title)}</span></div>` : ''}
     ${canEdit() ? `<div class="ml-actions">${structureActions('collection', c.id)}${organizeMode() ? orderButtons('collection', c.id, index > 0, index < structure().collections.length - 1) : ''}</div>` : ''}</article>`;
 }
@@ -296,7 +304,7 @@ function categoryCount(id) {
 function channelCollections(category) {
   if (!category) return '';
   const ids = C.descendants(structure(), category.id);
-  const series = structure().collections.filter(c=>ids.has(c.categoryId));
+  const series = browseOrder(structure().collections.filter(c=>ids.has(c.categoryId)), collectionReady);
   return series.length ? `<section class="ml-channel-series">${sectionHead(t('channelSeries'),'collections',{category:category.id})}<div class="ml-collections">${series.slice(0,12).map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
 }
 function collectionContextHtml(collection) {
@@ -306,16 +314,25 @@ function collectionContextHtml(collection) {
     ${resume ? `<a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}: <span dir="auto">${esc(resume.title)}</span></a>` : ''}</div>`;
 }
 function topicsOverview() {
-  const roots = structure().categories.filter(c => !c.parentId);
+  const roots = browseOrder(structure().categories.filter(c => !c.parentId), c => categoryCount(c.id) > 0);
   return state.space==='public' ? channelGrid(roots.slice(0,12)) : `<div class="ml-topics-grid">${roots.map(c => `<a class="ml-topic-link" data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}"><span dir="auto">${esc(c.title)}</span><small>${categoryCount(c.id)}</small></a>`).join('')}</div>`;
 }
+function collectionReady(c) { return c.items.some(k=>state.prepared.byKey.get(k)?.available); }
+function browseOrder(items, ready) { return state.space === 'public' && !organizeMode() ? items.slice().sort((a,b)=>Number(ready(b))-Number(ready(a))) : items; }
+function browseGroups(items, ready, renderGroup) {
+  if (state.space !== 'public' || organizeMode()) return renderGroup(items);
+  return [true,false].map(available=>{
+    const group=items.filter(i=>ready(i)===available);
+    return group.length ? `<div class="ml-browse-group" data-ready="${available}"><h3 class="ml-group-title">${esc(t(available?'readyToStudy':'awaitingEpisodes'))}<span>${group.length}</span></h3>${renderGroup(group)}</div>` : '';
+  }).join('');
+}
 function channelGrid(channels) {
-  return `<div class="ml-channel-grid">${channels.map(c=>{
+  return browseGroups(channels, c=>categoryCount(c.id)>0, group=>`<div class="ml-channel-grid">${group.map(c=>{
     const sample=topicSamples.get(c.id);
     const series=structure().collections.filter(s=>s.categoryId===c.id);
-    return `<a class="ml-channel-card" data-nav href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.id})}))}">
+    return `<a class="ml-channel-card" data-ready="${categoryCount(c.id)>0}" data-nav href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.id})}))}">
       ${sample?cover(sample,false):''}<div class="ml-channel-copy"><h3 dir="auto">${esc(c.title)}</h3><p>${esc(t('materialCount',{count:categoryCount(c.id)}))} · ${esc(t('seriesCount',{count:series.length}))}</p>${series.length?`<span dir="auto">${esc(series.slice(0,3).map(s=>s.title).join(' · '))}</span>`:''}</div></a>`;
-  }).join('')}</div>`;
+  }).join('')}</div>`);
 }
 function homeHtml() {
   const d = structure(), p = state.prepared, all = p.items.filter(i => i.available);
@@ -427,15 +444,15 @@ function catalogHtml() {
       <div class="ml-result-head"><div><h2 dir="auto">${esc(context?.title || t('allMaterials'))}</h2><small>${esc(t('materialCount', { count: results.length }))}${category ? ' · ' + esc(t('includesSubcategories')) : ''}</small></div>
         <div class="ml-result-controls"><select id="ml-sort" aria-label="${esc(t('sortLabel'))}">${C.SORTS.map(s => option(s, t('sort.' + s), f.sort)).join('')}</select>
         <div class="ml-layout-toggle" role="group" aria-label="${esc(t('layout'))}">${['cards','list'].map(l => button('layout', t(l), `data-layout="${l}" aria-pressed="${f.layout === l}"`)).join('')}</div></div></div>
-      ${context?.description ? `<p class="ml-tree-description">${esc(context.description)}</p>` : ''}
-      ${collection ? collectionContextHtml(collection) : ''}${channelCollections(category)}
+      ${descriptionHtml(context?.description)}
+      ${collection ? collectionContextHtml(collection) : ''}
       ${canEdit() && context ? `<div class="ml-toolbar">${structureActions(collection ? 'collection' : 'category', context.id)}${organizeMode() ? button('assign', t('addSelectedHere'), state.selected.size ? '' : 'disabled') : ''}</div>` : ''}
       ${filtersHtml()}${activeFiltersHtml()}
       <div class="ml-view-controls">${d.views.length ? `<label class="ml-view-select"><span>${esc(t('savedViews'))}</span><select id="ml-view-select" aria-label="${esc(t('savedViews'))}">${option('', t('currentView'), state.viewId)}${d.views.map(v => option(v.id, v.title, state.viewId)).join('')}</select></label>` : ''}
       ${canEdit() ? button('save-view', t('saveView')) : ''}</div>
       ${state.viewId && d.views.some(v=>v.id === state.viewId) ? `<div class="ml-view-state"><span>${esc(t(C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? 'viewUnchanged' : 'viewModified'))}</span>${button('view-rules',t('viewRules'),`data-id="${esc(state.viewId)}"`)}${!C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? button('use-view',t('resetView'),`data-id="${esc(state.viewId)}"`) : ''}</div>` : ''}
       ${matches.length ? `<div class="ml-navmatches">${matches.map(m => `<a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ [m.type]: m.id }) }))}"><small>${esc(t(m.type))}</small><span dir="auto">${esc(m.path)}</span></a>`).join('')}</div>` : ''}
-      ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : emptyCatalogHtml(context)}
+      ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : emptyCatalogHtml(context)}${channelCollections(category)}
       ${pages > 1 ? `<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page', t('previous'), state.page > 1 ? '' : 'disabled')}<span>${state.page} / ${pages}</span>${button('next-page', t('next'), state.page < pages ? '' : 'disabled')}</nav>` : ''}
     </section></div>`;
 }
@@ -451,7 +468,7 @@ function topicsHtml() {
   const d = structure(), tokens = C.normalize(state.topicSearch).split(/\s+/).filter(Boolean), visibleIds = new Set();
   for (const c of d.categories) if (tokens.every(x => C.normalize(c.title + ' ' + c.description).includes(x))) C.categoryPath(d,c.id).forEach(p => visibleIds.add(p.id));
   if(state.space==='public'&&!organizeMode()) {
-    const channels=d.categories.filter(c=>visibleIds.has(c.id)&&(!c.parentId||tokens.length));
+    const channels=browseOrder(d.categories.filter(c=>visibleIds.has(c.id)&&(!c.parentId||tokens.length)),c=>categoryCount(c.id)>0);
     const pages=Math.max(1,Math.ceil(channels.length/36));state.page=Math.max(1,Math.min(state.page,pages));
     return `<section><div class="ml-section-head"><div><h2>${esc(t('publicChannels'))}</h2><p>${esc(t('publicChannelsHelp'))}</p></div></div><input class="ml-topic-search" id="ml-topic-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('findTopic'))}" aria-label="${esc(t('findTopic'))}">${channels.length?channelGrid(channels.slice((state.page-1)*36,state.page*36)):`<div class="ml-empty"><p>${esc(t('noTopics'))}</p></div>`}${pager(pages)}</section>`;
   }
@@ -474,9 +491,9 @@ function collectionsHtml() {
   if(state.space==='public'&&!organizeMode()) {
     const ids=state.filters.category?C.descendants(d,state.filters.category):null;
     const tokens=C.normalize(state.topicSearch).split(/\s+/).filter(Boolean);
-    const series=d.collections.filter(c=>(!ids||ids.has(c.categoryId))&&tokens.every(w=>C.normalize(c.title+' '+c.description+' '+(d.categories.find(t=>t.id===c.categoryId)?.title||'')).includes(w)));
+    const series=browseOrder(d.collections.filter(c=>(!ids||ids.has(c.categoryId))&&tokens.every(w=>C.normalize(c.title+' '+c.description+' '+(d.categories.find(t=>t.id===c.categoryId)?.title||'')).includes(w))),collectionReady);
     const pages=Math.max(1,Math.ceil(series.length/24));state.page=Math.max(1,Math.min(state.page,pages));
-    return `<section><div class="ml-section-head"><h2 dir="auto">${esc(d.categories.find(c=>c.id===state.filters.category)?.title||t('collections'))}</h2></div><input class="ml-topic-search" id="ml-collection-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('search'))}" aria-label="${esc(t('search'))}"><div class="ml-collections">${series.slice((state.page-1)*24,state.page*24).map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>${!series.length?`<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`:''}${pager(pages)}</section>`;
+    return `<section><div class="ml-section-head"><h2 dir="auto">${esc(d.categories.find(c=>c.id===state.filters.category)?.title||t('collections'))}</h2></div><input class="ml-topic-search" id="ml-collection-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('search'))}" aria-label="${esc(t('search'))}">${browseGroups(series.slice((state.page-1)*24,state.page*24),collectionReady,group=>`<div class="ml-collections">${group.map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>`)}${!series.length?`<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`:''}${pager(pages)}</section>`;
   }
   return `<section class="ml-section"><div class="ml-section-head"><div><h2>${esc(t('collections'))}</h2><p>${esc(t('collectionsHelp'))}</p></div>${canEdit() ? button('new-collection', t('newCollection')) : ''}</div>
     <div class="ml-collections">${d.collections.map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>
@@ -487,8 +504,8 @@ function collectionsHtml() {
 function toolbarHtml() {
   if (!organizeMode()) return '';
   return `<div class="ml-toolbar">${button('new-category', t('newCategory'))}${button('new-collection', t('newCollection'))}${button('edit-home', t('editHome'))}
-    ${button('template', t('template'))}${state.space === 'public' ? button('editorial-template', t('editorialTemplate'))+button('research-reserve',t('researchReserve')) : ''}${button('undo', t('undo'), documentState().canUndo ? '' : 'disabled')}
-    ${state.space === 'personal' ? button('export', t('export')) + button('import', t('import')) : button('preview', t('preview'), '', 'ml-primary') + button('history', t('history'))}</div>`;
+    ${state.space === 'public' ? `<details class="ml-editor-tools"><summary>${esc(t('editorTools'))}</summary><div class="ml-actions">${button('template',t('template'))}${button('editorial-template',t('editorialTemplate'))}${button('research-reserve',t('researchReserve'))}${button('history',t('history'))}</div></details>` : button('template',t('template'))}${button('undo', t('undo'), documentState().canUndo ? '' : 'disabled')}
+    ${state.space === 'personal' ? button('export', t('export')) + button('import', t('import')) : ''}</div>`;
 }
 function render() {
   const focus = document.activeElement, selector = focusSelector(focus), start = focus?.selectionStart, end = focus?.selectionEnd;
@@ -499,16 +516,16 @@ function render() {
   $('ml-root').classList.toggle('ml-has-selection', organizeMode() && state.selected.size > 0);
   $('ml-root').innerHTML = `<div class="ml-heading"><div class="ml-heading-copy"><h1>${esc(t('title'))}</h1><p>${esc(d.home.title || t(state.space === 'public' ? 'publicSubtitle' : 'personalSubtitle'))}</p></div>
     <div class="ml-actions">${canEdit() && !organizeMode() && documentState().canUndo ? button('undo', t('undo')) : ''}${state.preview ? '' : state.space === 'personal' && state.localReady ? button('organize', t(state.editing ? 'finishEditing' : 'organize'))
-      : state.owner ? button('organize', t(state.editing ? 'finishEditing' : 'editPublic')) : ''}
+      : state.owner ? button('organize', t(state.editing ? 'closeEditor' : 'editPublic')) : ''}
       ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : state.owner && !state.preview ? button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}</div></div>
-    <div class="ml-space" role="group" aria-label="${esc(t('space'))}">${button('space', t('public'), 'data-space="public" aria-pressed="' + (state.space === 'public') + '"')}${button('space', t('personal'), 'data-space="personal" aria-pressed="' + (state.space === 'personal') + '"')}</div>
+
     ${state.preview ? `<div class="ml-banner"><div><strong>${esc(t('previewTitle'))}</strong><p>${esc(t('previewHelp'))}</p></div><div class="ml-actions">${button('publish', t('publish'), '', 'ml-primary')}${button('exit-preview', t('backToDraft'))}</div></div>`
       : state.editing && state.space === 'public' ? `<div class="ml-banner"><span>${esc(t('draftNotice'))} · ${esc(t('revision', { count: state.draft?.revision || 0 }))}</span>${button('preview', t('preview'))}</div>` : ''}
     ${state.publicError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.publicError)}</span>${button('retry', t('retry'))}</div>` : ''}
     ${state.localError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.localError)}</span>${button('retry-local', t('retry'))}</div>` : ''}
     ${updateWorker || updateRequired ? `<div class="ml-banner"><span>${esc(t('updateAvailable'))}</span>${button('update-app',t('updateNow'))}</div>` : ''}
-    <div class="ml-searchbar"><label class="ml-search"><span class="sr-only">${esc(t('search'))}</span><input type="search" id="ml-search" value="${esc(state.filters.q)}" placeholder="${esc(t('searchPlaceholder'))}"></label>
-    ${state.section !== 'catalog' ? button('search-submit', t('search')) : ''}</div>
+    <div class="ml-discovery"><div class="ml-space" role="group" aria-label="${esc(t('space'))}">${button('space', t('public'), 'data-space="public" aria-pressed="' + (state.space === 'public') + '"')}${button('space', t('personal'), 'data-space="personal" aria-pressed="' + (state.space === 'personal') + '"')}</div><div class="ml-searchbar"><label class="ml-search"><span class="sr-only">${esc(t('search'))}</span><input type="search" id="ml-search" value="${esc(state.filters.q)}" placeholder="${esc(t('searchPlaceholder'))}"></label>
+    ${state.section !== 'catalog' ? button('search-submit', t('search')) : ''}</div></div>
     <nav class="ml-tabs" aria-label="${esc(t('navigation'))}">${['home','catalog','topics','collections'].map(s => button('section', t(s === 'catalog' ? 'allMaterials' : s), `data-section="${s}" ${state.section === s ? 'aria-current="page"' : ''}`)).join('')}</nav>
     ${toolbarHtml()}<div id="ml-content" tabindex="-1">${!active ? `<p class="ml-loading">${esc(t(state.localError || state.publicError ? 'retryHelp' : 'loading'))}</p>`
       : state.section === 'home' ? `${d.home.description ? `<p class="ml-home-description">${esc(d.home.description)}</p>` : ''}${homeHtml()}`
@@ -716,9 +733,9 @@ async function historyDialog() {
     await api('/api/publication/mediatheque/rollback', { editionId: data.get('editionId'), expectedVersion: state.draft.revision, expectedEdition: state.draft.edition_id }); await loadPublic(); state.draft = await api('/api/publication/mediatheque'); closeDialog(); render(); announce(t('editionRestored'));
   });
 }
-function publishDialog() {
+function publishDialog(intro = '') {
   const d = state.draft.structure, expectedVersion = state.draft.revision, expectedEdition = state.draft.edition_id;
-  showDialog(t('publishTitle'), `<p>${esc(t('publishHelp'))}</p>${changePreviewHtml(state.published.structure,d)}${formActions(t('publish'))}`, async () => {
+  showDialog(t('publishTitle'), `${intro}<p>${esc(t('publishHelp'))}</p>${changePreviewHtml(state.published.structure,d)}${formActions(t('publish'))}`, async () => {
     await api('/api/publication/mediatheque/publish', { expectedVersion, expectedEdition }); await loadPublic(); state.preview = false; state.editing = false; state.draft = null; closeDialog(); render(); announce(t('published'));
   });
 }
@@ -745,7 +762,7 @@ async function onAction(action, node) {
     return openPublisher({api,t,esc,showDialog,formActions,C,structure,save,
       reloadPublic:async()=>{await loadPublic();rebuild();},publicItems:()=>state.publicItems,
       reloadDraft:async()=>{state.draft=await api('/api/publication/mediatheque');},
-      finish:()=>{closeDialog();render();publishDialog();}});
+      finish:()=>{closeDialog();render();publishDialog(publisherStep(t,esc,4));}});
   }
   if (action === 'update-app') {
     if ($('ml-dialog').open || state.busy) return;
