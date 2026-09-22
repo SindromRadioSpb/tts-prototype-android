@@ -1129,9 +1129,13 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
-  "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=16",
+  "/css/mediatheque.css?v=5",
+  "/js/mediatheque-ui.js?v=17",
   "/js/mediatheque-core.js",
+  "/js/mediatheque-editorial-core.js",
+  "/js/mediatheque-publisher.js",
+  "/data/mediatheque/editorial-seed-v1.json",
+  "/data/mediatheque/research-reserve-v1.json",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
 
@@ -1198,7 +1202,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=415",
   "/js/publication-center.js?v=520",
-  "/js/public-corpus-adapter.js?v=485",
+  "/js/public-corpus-adapter.js?v=486",
   "/js/reader-morph.js?v=583",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=416",
@@ -1221,13 +1225,13 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lexical-resolution-service.js?v=5",
   "/js/lexical-resolution-ui.js?v=12",
   "/js/material-actions.js?v=1",
-  "/js/media-host.js?v=575",
+  "/js/media-host.js?v=576",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=610",
-  "/i18n/locales/ru.js?v=241",
-  "/i18n/locales/en.js?v=241",
-  "/i18n/locales/he.js?v=241",
+  "/i18n/locales/ru.js?v=242",
+  "/i18n/locales/en.js?v=242",
+  "/i18n/locales/he.js?v=242",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4092,6 +4096,30 @@ app.get("/api/publication/corpora", rlPublicationRead, (req, res) => publication
   async (repo, actor) => ({ schema_version: "publication_center.1.0.0", corpora: await repo.listPublisherCorpora(actor) })));
 app.get('/api/publication/mediatheque', rlPublicationRead, (req, res) => publicationRead(req, res,
   (repo, actor) => repo.getMediathequeDraft(actor)));
+// Authorize before accepting potentially large editor uploads. No anonymous staging.
+async function authorizeMediathequeUpload(req,res,next) {
+  const auth=await requireUser(req,res); if(!auth)return;
+  if(!requireCsrf(req,res,auth))return;
+  const actor=publicationActor(auth);
+  if(String(actor.role).toLowerCase()!=='owner')return res.status(403).json({ok:false,error:'PUBLISHER_FORBIDDEN'});
+  if(req.get('Sec-Fetch-Site')==='cross-site')return res.status(403).json({ok:false,error:'BAD_ORIGIN'});
+  if(req.get('Origin')!==req.protocol+'://'+req.get('Host'))return res.status(403).json({ok:false,error:'BAD_ORIGIN'});
+  req.publicationUploadActor=actor;next();
+}
+app.post('/api/publication/mediatheque/archive',rlPublicationWrite,authorizeMediathequeUpload,
+  express.raw({type:'application/zip',limit:'512mb'}),async(req,res)=>{
+    try { res.set('Cache-Control','no-store');return res.json({ok:true,...await getPublicationRepo().prepareMediathequeArchive(req.publicationUploadActor,req.body,{youtubeUrl:req.query.youtube||'',mode:req.query.mode||'youtube'})}); }
+    catch(error){return res.status(error.status||400).json({ok:false,error:String(error.code||'MATERIAL_ARCHIVE_INVALID')});}
+  });
+app.post('/api/publication/mediatheque/archive/:token/media',rlPublicationWrite,authorizeMediathequeUpload,
+  express.raw({type:'application/octet-stream',limit:'512mb'}),async(req,res)=>{
+    try {return res.json({ok:true,...await getPublicationRepo().attachMediathequeMedia(req.publicationUploadActor,req.params.token,req.body)});}
+    catch(error){return res.status(error.status||400).json({ok:false,error:String(error.code||'MATERIAL_MEDIA_MISMATCH')});}
+  });
+app.post('/api/publication/corpora/:corpusId/draft/material-archive',rlPublicationWrite,requireStrictSameOriginJson,
+  (req,res)=>publicationWrite(req,res,'archive_copied',(repo,actor,opts)=>repo.copyMediathequeArchive(actor,req.params.corpusId,req.body||{},opts)));
+app.post('/api/publication/corpora/:corpusId/draft/material-rights',rlPublicationWrite,requireStrictSameOriginJson,
+  (req,res)=>publicationWrite(req,res,'material_rights',(repo,actor,opts)=>repo.recordMaterialRights(actor,req.params.corpusId,req.body||{},opts)));
 for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', 'undoMediathequeDraft'], ['publish', 'publishMediatheque'], ['rollback', 'rollbackMediatheque']]) {
   app.post('/api/publication/mediatheque/' + operation, rlPublicationWrite, requireStrictSameOriginJson,
     (req, res) => publicationWrite(req, res, 'mediatheque_' + operation, (repo, actor, opts) => repo[method](actor, req.body || {}, opts)));

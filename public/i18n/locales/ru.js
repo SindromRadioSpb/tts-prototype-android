@@ -4711,3 +4711,45 @@ window.I18N_LOCALES.ru.studio.importCenter.materialActions = {
   "archiveFilter": "Архив",
   "savedRefreshFailed": "Изменение сохранено, но список не удалось обновить. Закройте Импорт-центр и откройте его снова."
 };
+
+Object.assign(window.I18N_LOCALES.ru.mediatheque, {
+  "editorialTemplate": "Каналы и серии из исследования",
+  "collectionTopic": "Тема / канал",
+  "channelSeries": "Подборки канала",
+  "addPublicMaterial": "Добавить материал",
+  "publisherTitle": "Добавить в общедоступные",
+  "publisherIntro": "Загрузите учебный ZIP. Для YouTube видео остаётся на YouTube; на сервере сохраняется учебный материал. Лимит файла — 512 МБ.",
+  "learningArchive": "Учебный архив ZIP",
+  "playbackSource": "Источник воспроизведения",
+  "attachedMedia": "Медиа из архива или отдельного файла",
+  "youtubeLink": "YouTube-ссылка (если её нет в архиве)",
+  "separateMedia": "Отдельный медиафайл (для режима с медиа)",
+  "checkArchive": "Проверить архив",
+  "publisherDetails": "Название и место в Медиатеке",
+  "archiveChecked": "Архив проверен: {count} строк",
+  "none": "Не выбрано",
+  "newChannel": "Или создать тему / канал",
+  "newSeries": "Или создать подборку",
+  "publicationRights": "Подтверждаю право разместить учебный материал и выбранное медиа в открытом доступе.",
+  "allowPackageDownload": "Разрешить скачивание опубликованного учебного пакета",
+  "preparePublication": "Подготовить предпросмотр",
+  "publicationPreviewHelp": "Будет опубликована новая редакция канала со всеми перечисленными материалами. Затем подтвердите обновление структуры Медиатеки.",
+  "publicationStorageHelp": "YouTube-видео не копируются на сервер. При выборе медиа сервер хранит и раздаёт загруженный файл.",
+  "archiveSourceMismatch": "Ссылка YouTube не соответствует источнику архива. Проверьте выбранный выпуск.",
+  "archiveMediaMismatch": "Медиафайл не соответствует контрольной сумме архива.",
+  "archiveMediaRequired": "Для этого архива выберите соответствующий медиафайл.",
+  "archiveTopicMismatch": "Выбранная подборка относится к другой теме.",
+  "archiveInvalid": "Не удалось проверить учебный архив или источник. Нужен экспорт учебного пакета LinguistPro (ZIP или lpmedia.zip)."
+});
+window.I18N_LOCALES.ru.mediatheque.changeFields.categoryId = "Тема / канал";
+
+Object.assign(window.I18N_LOCALES.ru.mediatheque, {
+  "seriesCount": "Подборок: {count}",
+  "publicChannels": "Каналы и темы",
+  "publicChannelsHelp": "Выберите канал, затем серию или отдельный выпуск для изучения.",
+  "researchReserve": "Исследование: 500 каналов",
+  "researchReserveHelp": "По умолчанию — Recommended-50 из исследования 14 сентября. Поиск охватывает все 500 кандидатов. Перед добавлением выпусков проверьте язык и источник. Пустая тема видна только редактору.",
+  "openResearchSource": "Найти канал на YouTube"
+});
+
+window.I18N_LOCALES.ru.mediatheque.archiveAlreadyAdded="Этот архив уже добавлен в канал. Найдите материал в Медиатеке и добавьте его в нужную подборку.";

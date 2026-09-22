@@ -647,6 +647,10 @@
     return {
       resolve: async function (audio) {
         if (!audio || !audio.media) return null;
+        // Same-origin, permission-checked publication assets stream with HTTP ranges.
+        // Do not buffer a complete public movie in a mobile browser.
+        if (/^\/api\/public-corpora\/[a-z0-9-]+\/assets\/[a-f0-9]{64}$/.test(audio.media.publicStreamUrl || ''))
+          return { publicStreamUrl: audio.media.publicStreamUrl, type: audio.media.mime };
         var identity = mediaIdentity(audio.media);
         if (cache && cache.identity === identity && cache.role !== 'lite') return cache.blob;
         var blob = null;
@@ -736,10 +740,10 @@
         player.replaceWith(replacement); player = replacement;
       }
       player.setAttribute("aria-label", t(ariaKey));
-      var id = mediaIdentity(audio.media) + ":" + desiredTag;
+      var id = mediaIdentity(audio.media) + ":" + desiredTag + ':' + (blob.publicStreamUrl || '');
       if (identity !== id || !player.getAttribute("src")) {
         if (url) { try { URL.revokeObjectURL(url); } catch (_) {} }
-        url = URL.createObjectURL(blob); identity = id;
+        url = /^\/api\/public-corpora\/[a-z0-9-]+\/assets\/[a-f0-9]{64}$/.test(blob.publicStreamUrl || '') ? blob.publicStreamUrl : URL.createObjectURL(blob); identity = id;
         player.src = url;
       }
       stage.hidden = false;

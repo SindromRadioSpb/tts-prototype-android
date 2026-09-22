@@ -1,0 +1,454 @@
+{
+  "schema": "mediatheque-editorial-seed-v1",
+  "date": "2026-09-22",
+  "channels": [
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131",
+      "title": "כאן 11 - תאגיד השידור הישראלי",
+      "url": "https://www.youtube.com/@KAN11"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e31314e455753",
+      "title": "כאן | חדשות - תאגיד השידור הישראלי",
+      "url": "https://www.youtube.com/@KAN11NEWS"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404331346e657773",
+      "title": "C14",
+      "url": "https://www.youtube.com/@C14news"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f403030315f696c",
+      "title": "פרויקט 001",
+      "url": "https://www.youtube.com/@001_il"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f4053686f6d6572736166",
+      "title": "גדי טאוב: שומר סף",
+      "url": "https://www.youtube.com/@Shomersaf"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f40796573",
+      "title": "yes tv (יס)",
+      "url": "https://www.youtube.com/@yes"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f40616b696269676d616e",
+      "title": "אידיוטים שימושיים - עקיבא ביגמן",
+      "url": "https://www.youtube.com/@akibigman"
+    },
+    {
+      "id": "yt_77772e796f75747562652e636f6d2f406b616e2e6469676974616c2e6f66666963616c",
+      "title": "כאן | דיגיטל - תאגיד השידור הישראלי",
+      "url": "https://www.youtube.com/@kan.digital.offical"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404e6577733133",
+      "title": "חדשות 13",
+      "url": "https://www.youtube.com/@News13"
+    },
+    {
+      "id": "yt_4437253945254437253933254437253935254437253931254437254138254437254141",
+      "title": "חרדית מדוברת",
+      "url": "https://www.youtube.com/@%D7%97%D7%A8%D7%93%D7%99%D7%AA%D7%9E%D7%93%D7%95%D7%91%D7%A8%D7%AA"
+    },
+    {
+      "id": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f407265736865747476",
+      "title": "רשת 13",
+      "url": "https://www.youtube.com/@reshettv"
+    }
+  ],
+  "collections": [
+    {
+      "id": "series_c14_five_year",
+      "title": "תוכנית חומש",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404331346e657773",
+      "sourceUrl": "https://www.youtube.com/playlist?list=PL8E54R76rowDtQESYPqhis-w6eFiCed7D"
+    },
+    {
+      "id": "series_c14_judea",
+      "title": "7.10 — גרסת יו״ש",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404331346e657773"
+    },
+    {
+      "id": "series_c14_south",
+      "title": "הדרום הפרוע",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404331346e657773",
+      "sourceUrl": "https://www.youtube.com/playlist?list=PL8E54R76rowC7vgiKuV2jfjeF3M-sbqcE"
+    },
+    {
+      "id": "series_crossroads",
+      "title": "הצומת",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f403030315f696c"
+    },
+    {
+      "id": "series_gatekeeper",
+      "title": "שומר סף",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f4053686f6d6572736166"
+    },
+    {
+      "id": "series_incoming_call",
+      "title": "שיחה נכנסת",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f40796573"
+    },
+    {
+      "id": "series_interviews_sharon",
+      "title": "שיחות עם פרופ׳ משה שרון",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f40616b696269676d616e"
+    },
+    {
+      "id": "series_kan_archive",
+      "title": "מארכיון הטלוויזיה הישראלית",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_kan_connection",
+      "title": "תרגיל בחיבור",
+      "categoryId": "yt_77772e796f75747562652e636f6d2f406b616e2e6469676974616c2e6f66666963616c"
+    },
+    {
+      "id": "series_kan_day",
+      "title": "היום שלא נגמר",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_kan_enemies_5",
+      "title": "אויבים · עונה 5",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131",
+      "sourceUrl": "https://www.youtube.com/playlist?list=PLACmvHcJM5hc"
+    },
+    {
+      "id": "series_kan_hidden",
+      "title": "בהסתורה",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131",
+      "sourceUrl": "https://www.youtube.com/playlist?list=PLLttfoK87AdVR7-cie-X399xtRyciGliu"
+    },
+    {
+      "id": "series_kan_kfar_aza",
+      "title": "כפר עזה — 95% גן עדן",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_kan_meeting_10",
+      "title": "פגישה עם רוני קובן · עונה 10",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_kan_meeting_9",
+      "title": "פגישה עם רוני קובן · עונה 9",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_kan_news_elections",
+      "title": "תקופת המנדט",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e31314e455753"
+    },
+    {
+      "id": "series_kan_news_reports",
+      "title": "כתבות מהשטח",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e31314e455753"
+    },
+    {
+      "id": "series_kan_question_answer",
+      "title": "שאלה תשובה",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_kan_questions",
+      "title": "סליחה על השאלה",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404b414e3131"
+    },
+    {
+      "id": "series_personal_stories_2f404e6577733133",
+      "title": "סיפורים אישיים",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f404e6577733133"
+    },
+    {
+      "id": "series_personal_stories_4138254437254141",
+      "title": "סיפורים אישיים",
+      "categoryId": "yt_4437253945254437253933254437253935254437253931254437254138254437254141"
+    },
+    {
+      "id": "series_reshet_vort",
+      "title": "ווארט",
+      "categoryId": "yt_68747470733a2f2f7777772e796f75747562652e636f6d2f407265736865747476"
+    }
+  ],
+  "videos": [
+    {
+      "videoId": "82JY5QIeEwM",
+      "collectionId": "series_c14_five_year",
+      "title": "תוכנית חומש I פרק ראשון"
+    },
+    {
+      "videoId": "v6PVBbZrjUk",
+      "collectionId": "series_c14_five_year",
+      "title": "תוכנית חומש I פרק שני"
+    },
+    {
+      "videoId": "yAeNOD8Vfzc",
+      "collectionId": "series_c14_five_year",
+      "title": "תוכנית חומש I פרק שלישי"
+    },
+    {
+      "videoId": "hJvH3L4VOP8",
+      "collectionId": "series_c14_judea",
+      "title": "7.10 - גרסת יו\"ש: צבא האויב שקם מתחת לאף שלנו | פרק 1"
+    },
+    {
+      "videoId": "FJ8n3TRrvS4",
+      "collectionId": "series_c14_judea",
+      "title": "7.10 - גרסת יו\"ש: צבא האויב שקם מתחת לאף שלנו | פרק 2"
+    },
+    {
+      "videoId": "SFGeAigUqpQ",
+      "collectionId": "series_c14_judea",
+      "title": "7.10 - גרסת יו״ש: הרשות הפלשתינית לא שונה מחמאס | פרק 3"
+    },
+    {
+      "videoId": "KdQYwbVZW-Q",
+      "collectionId": "series_c14_south",
+      "title": "הדרום הפרוע: מחדל המשילות בנגב | חלק א'"
+    },
+    {
+      "videoId": "lmVm-eqQtGc",
+      "collectionId": "series_c14_south",
+      "title": "הדרום הפרוע: מחדל המשילות בנגב | חלק ג"
+    },
+    {
+      "videoId": "4N_-A5VHp2I",
+      "collectionId": "series_crossroads",
+      "title": "הצומת | הכותרת לא רלוונטית, פשוט תקשיבו לאיש - אבידע בכר"
+    },
+    {
+      "videoId": "YqcQ4raoOLM",
+      "collectionId": "series_crossroads",
+      "title": "הצומת | הגי׳האד השקט, מלחמה בלי גבולות – ד״ר מרדכי קידר (חלק א׳)"
+    },
+    {
+      "videoId": "V2hPVipyWN0",
+      "collectionId": "series_crossroads",
+      "title": "הצומת | כשהכסף מדבר והערכים נעלמים - ד״ר מרדכי קידר (חלק ב׳)"
+    },
+    {
+      "videoId": "tKdDjbOkBmw",
+      "collectionId": "series_gatekeeper",
+      "title": "המזרח התיכון למד לכבד את ישראל. שומר סף 397 עם ברוך ידיד. (אזהרת צפייה - תיאורים קשים)"
+    },
+    {
+      "videoId": "NE2DjMDQeYs",
+      "collectionId": "series_gatekeeper",
+      "title": "מהו הרכב האוכלוסיה בעזה? שומר סף 297 עם ד\"ר מוטי קידר, חי מול קהל בלוד"
+    },
+    {
+      "videoId": "njtNjn4ya2U",
+      "collectionId": "series_incoming_call",
+      "title": "בדידות בערב החג | שיחה נכנסת - הפרק המלא"
+    },
+    {
+      "videoId": "dH_OkB7Uym4",
+      "collectionId": "series_incoming_call",
+      "title": "מרסלה והמתמחה | שיחה נכנסת - הפרק המלא"
+    },
+    {
+      "videoId": "IWy0iHFdw80",
+      "collectionId": "series_interviews_sharon",
+      "title": "פרק #21: \"אנחנו לא מתמודדים רק מול ארגון טרור, אלא מול דת ותרבות שלמה\" - פרופ' משה שרון, חלק 1/3"
+    },
+    {
+      "videoId": "7qh3Q-FuwQE",
+      "collectionId": "series_interviews_sharon",
+      "title": "פרק #22: \"אין דבר יותר מזיק מהמילים שלום עכשיו צריך להוציא אותן מהלקסיקון\" – פרופ' משה שרון חלק 2/3"
+    },
+    {
+      "videoId": "Az6l5mv21JQ",
+      "collectionId": "series_interviews_sharon",
+      "title": "פרק #23: \"הפתח הוא בדיוק כמו החמאס, אין הבדל ביניהם. זוהי אנטישמיות מזוקקת\" – פרופ' משה שרון חלק 3/3"
+    },
+    {
+      "videoId": "VIAVBDHfdhc",
+      "collectionId": "series_kan_archive",
+      "title": "מוקד עם בן גוריון (1970) - מארכיון הטלוויזיה הישראלית | כאן 11 לשעבר רשות השידור"
+    },
+    {
+      "videoId": "6wwokv4ODjo",
+      "collectionId": "series_kan_connection",
+      "title": "\"למה אני צריך לממן אותך?\" | תרגיל בחיבור: חרדי וחילוני"
+    },
+    {
+      "videoId": "3DyWmEZj5ww",
+      "collectionId": "series_kan_connection",
+      "title": "\"זה שאנחנו לומדים תורה זה כיפת ברזל\" | תרגיל בחיבור: חרדי ומילואימניק"
+    },
+    {
+      "videoId": "y5yyuy19TL8",
+      "collectionId": "series_kan_day",
+      "title": "היום שלא נגמר | פרק 1 - 06:00 - 07:15"
+    },
+    {
+      "videoId": "sYd4zgR7f6w",
+      "collectionId": "series_kan_enemies_5",
+      "title": "אויבים עונה 5 | פרק 5 ואחרון לעונה - עלי חמינאי - מהשבעה באוקטובר ועד חיסולו"
+    },
+    {
+      "videoId": "qaZ2zkI_X-U",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 1 - רוחל'ה"
+    },
+    {
+      "videoId": "lfecFGSQLaQ",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 2 - שרה"
+    },
+    {
+      "videoId": "cQcvn1qxZe0",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 3 - מיכל ופנחס-מנחם"
+    },
+    {
+      "videoId": "_n0a5FuiV2g",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 4 - משה אזולאי"
+    },
+    {
+      "videoId": "2FyrBWBWSaI",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 5 - הנרי"
+    },
+    {
+      "videoId": "7lM4l5t41us",
+      "collectionId": "series_kan_hidden",
+      "title": "ערב עם שי שטרן 6 | שאלון עם אבי תפילנסקי יוצר ״בהסתורה״"
+    },
+    {
+      "videoId": "nyoVFi9O7as",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 7 - גיטי"
+    },
+    {
+      "videoId": "oVy7-aZ-G_Y",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 8 - דונלד"
+    },
+    {
+      "videoId": "W15rdGHTVYk",
+      "collectionId": "series_kan_hidden",
+      "title": "בהסתורה | פרק 9 ואחרון - יוסי זוכמיר"
+    },
+    {
+      "videoId": "VBNxvU5hw0w",
+      "collectionId": "series_kan_kfar_aza",
+      "title": "סדרה תיעודית חדשה | כפר עזה - 95% גן עדן | פרק 1 - חורבן"
+    },
+    {
+      "videoId": "HJ_67BZMZkg",
+      "collectionId": "series_kan_meeting_10",
+      "title": "פגישה עם רוני קובן עונה 10 | יורם ארבל"
+    },
+    {
+      "videoId": "eLKIuifDClw",
+      "collectionId": "series_kan_meeting_10",
+      "title": "פגישה עם רוני קובן עונה 10 | הילה קורח"
+    },
+    {
+      "videoId": "wSrwBrWHxH8",
+      "collectionId": "series_kan_meeting_10",
+      "title": "פגישה עם רוני קובן עונה 10 | חגי לוי - פרק אחרון לעונה"
+    },
+    {
+      "videoId": "sJd84-Cg2OI",
+      "collectionId": "series_kan_meeting_9",
+      "title": "פגישה עם רוני קובן עונה 9 | יאיר גולן"
+    },
+    {
+      "videoId": "bYkOcZDBncw",
+      "collectionId": "series_kan_meeting_9",
+      "title": "פגישה עם רוני קובן עונה 9 | צבי יחזקאלי"
+    },
+    {
+      "videoId": "80UiN8kj6z0",
+      "collectionId": "series_kan_meeting_9",
+      "title": "פגישה עם רוני קובן עונה 9 | יורם כהן"
+    },
+    {
+      "videoId": "aKWUlRjulWs",
+      "collectionId": "series_kan_meeting_9",
+      "title": "פגישה עם רוני קובן עונה 9 | מיכאל שמש"
+    },
+    {
+      "videoId": "rVW2Sus6Bko",
+      "collectionId": "series_kan_news_elections",
+      "title": "\"אין לי כיום למי להצביע\": הדתיים הלאומיים מחפשים בית פוליטי | תקופת המנדט"
+    },
+    {
+      "videoId": "8WGXmkrCSOk",
+      "collectionId": "series_kan_news_elections",
+      "title": "\"מנסור עבאס יותר ציוני מסמוטריץ'?\" המחנה הליברלי בין ייאוש לקלפי | תקופת המנדט"
+    },
+    {
+      "videoId": "edUpnLjYc54",
+      "collectionId": "series_kan_news_elections",
+      "title": "\"בתור תושב צפון - אני חייב תודה לממשלה\": צעירי הצפון בין הבית לקלפי | תקופת המנדט"
+    },
+    {
+      "videoId": "cPooKT5rFxc",
+      "collectionId": "series_kan_news_elections",
+      "title": "הביטחון מעל הכול: למי יצביעו בעוטף אחרי 7 באוקטובר? | תקופת המנדט"
+    },
+    {
+      "videoId": "YVa0CsON4UM",
+      "collectionId": "series_kan_news_elections",
+      "title": "\"אנחנו לא כמו החרדים, אנחנו רוצים להיות חלק\": איך יצביעו הצעירים הערבים? | תקופת המנדט"
+    },
+    {
+      "videoId": "0h7uhp2l-lo",
+      "collectionId": "series_kan_news_elections",
+      "title": "\"הקדוש ברוך הוא אומר לך למי להצביע\": בבני ברק מתכוננים ליום הבוחר"
+    },
+    {
+      "videoId": "sZyF-g06PmQ",
+      "collectionId": "series_kan_news_reports",
+      "title": "הסתיר שהוא קצין ונאלץ להתאסלם בשבי: סיפור ההישרדות המדהים של מקסים הרקין"
+    },
+    {
+      "videoId": "MlX2x9QJIMk",
+      "collectionId": "series_kan_news_reports",
+      "title": "הדור החדש של קריית שמונה: המשפחות שעוברות לעיר הצפונית דווקא עכשיו"
+    },
+    {
+      "videoId": "_QBdko9mDsA",
+      "collectionId": "series_kan_question_answer",
+      "title": "שאלה תשובה - ממלחמה להחלמה | הסופרת הדסה בן ארי והתסריטאי עדן גוריון"
+    },
+    {
+      "videoId": "PngchpnAS5E",
+      "collectionId": "series_kan_questions",
+      "title": "סליחה על השאלה עונה 4 | שורדי נובה"
+    },
+    {
+      "videoId": "eLYgTqNFn-s",
+      "collectionId": "series_kan_questions",
+      "title": "סליחה על השאלה עונה 3 💙 | חרדים"
+    },
+    {
+      "videoId": "xjYYXmtelnk",
+      "collectionId": "series_kan_questions",
+      "title": "סליחה על השאלה עונה 3 💙 | אנשים שחיו ברחוב"
+    },
+    {
+      "videoId": "oiimWM0j7dQ",
+      "collectionId": "series_personal_stories_2f404e6577733133",
+      "title": "\"כל דקה בלעדיהם משהו בי מת\": ירדן ביבס על השבי - והגעגוע לשירי, אריאל וכפיר"
+    },
+    {
+      "videoId": "wJgtBgZvQnU",
+      "collectionId": "series_personal_stories_4138254437254141",
+      "title": "כשאבא הפסיק להאמין | עם יוכי תפילינסקי-בלוך"
+    },
+    {
+      "videoId": "6151nkvX3Ic",
+      "collectionId": "series_reshet_vort",
+      "title": "ווארט - דוקו ריאליטי על עולם השידוכים במגזר החרדי | פרק הבכורה"
+    }
+  ]
+}

@@ -72,6 +72,15 @@
         snapshot_sha256: work.item.snapshot_sha256,
       };
       sourceText.source_meta = meta;
+      // Public stream URLs are reconstructed from the current authorized edition,
+      // never trusted from an uploaded archive or a stored external URL.
+      const original = meta.publication_media;
+      if (meta.source?.audio?.media) delete meta.source.audio.media.publicStreamUrl;
+      if (original && streamable.has(original.sha256) && meta.source?.audio?.media) {
+        const asset = work.assets.find(a=>a.asset_key===original.sha256 && a.stream);
+        meta.source.audio.media.publicStreamUrl = '/api/public-corpora/' + encodeURIComponent(work.corpus.slug) + '/assets/' + asset.asset_key;
+        meta.source.audio.media.mime = asset.mime;
+      }
       delete sourceText.source_meta_json;
       // The published catalogue title is the learner-facing identity. Source
       // snapshots may carry operator labels such as "Position 101"; those stay

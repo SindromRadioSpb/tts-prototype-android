@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.610";
+const CACHE_VERSION = "v3.11.611";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -68,9 +68,13 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
   "/mediatheque.html",
-  "/css/mediatheque.css?v=4",
-  "/js/mediatheque-ui.js?v=16",
+  "/css/mediatheque.css?v=5",
+  "/js/mediatheque-ui.js?v=17",
   "/js/mediatheque-core.js",
+  "/js/mediatheque-editorial-core.js",
+  "/js/mediatheque-publisher.js",
+  "/data/mediatheque/editorial-seed-v1.json",
+  "/data/mediatheque/research-reserve-v1.json",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
   "/js/product-telemetry.js?v=610",
@@ -162,7 +166,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   "/js/publication-center.js?v=520",
-  "/js/public-corpus-adapter.js?v=485",
+  "/js/public-corpus-adapter.js?v=486",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
@@ -247,7 +251,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js?v=553",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=575",
+  "/js/media-host.js?v=576",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=506",
@@ -281,9 +285,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=241",
-  "/i18n/locales/en.js?v=241",
-  "/i18n/locales/he.js?v=241",
+  "/i18n/locales/ru.js?v=242",
+  "/i18n/locales/en.js?v=242",
+  "/i18n/locales/he.js?v=242",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

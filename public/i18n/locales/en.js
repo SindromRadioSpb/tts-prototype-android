@@ -4696,3 +4696,45 @@ window.I18N_LOCALES.en.studio.importCenter.materialActions = {
   "archiveFilter": "Archived",
   "savedRefreshFailed": "The change was saved, but the list could not refresh. Close Import Center and open it again."
 };
+
+Object.assign(window.I18N_LOCALES.en.mediatheque, {
+  "editorialTemplate": "Research channels and series",
+  "collectionTopic": "Topic / channel",
+  "channelSeries": "Channel collections",
+  "addPublicMaterial": "Add material",
+  "publisherTitle": "Add to public library",
+  "publisherIntro": "Upload a learning ZIP. YouTube video stays on YouTube; the server stores the learning material. File limit: 512 MB.",
+  "learningArchive": "Learning archive ZIP",
+  "playbackSource": "Playback source",
+  "attachedMedia": "Bundled or separate media",
+  "youtubeLink": "YouTube link (if missing from archive)",
+  "separateMedia": "Separate media file (media mode)",
+  "checkArchive": "Check archive",
+  "publisherDetails": "Title and library placement",
+  "archiveChecked": "Archive verified: {count} rows",
+  "none": "Not selected",
+  "newChannel": "Or create a topic / channel",
+  "newSeries": "Or create a collection",
+  "publicationRights": "I confirm the right to publish this learning material and the selected media publicly.",
+  "allowPackageDownload": "Allow downloading the published learning package",
+  "preparePublication": "Prepare preview",
+  "publicationPreviewHelp": "A new channel edition will publish all materials listed below. Then confirm the library structure update.",
+  "publicationStorageHelp": "YouTube videos are not copied to the server. In media mode, the server stores and streams the uploaded file.",
+  "archiveSourceMismatch": "The YouTube link does not match the archive source. Check the episode.",
+  "archiveMediaMismatch": "The media file does not match the archive checksum.",
+  "archiveMediaRequired": "Select the matching media file for this archive.",
+  "archiveTopicMismatch": "The selected collection belongs to another topic.",
+  "archiveInvalid": "Could not verify the learning archive or source. Use a LinguistPro learning package export (ZIP or lpmedia.zip)."
+});
+window.I18N_LOCALES.en.mediatheque.changeFields.categoryId = "Topic / channel";
+
+Object.assign(window.I18N_LOCALES.en.mediatheque, {
+  "seriesCount": "Collections: {count}",
+  "publicChannels": "Channels and topics",
+  "publicChannelsHelp": "Choose a channel, then a series or an episode to study.",
+  "researchReserve": "Research: 500 channels",
+  "researchReserveHelp": "Recommended 50 from the September 14 research are shown first. Search covers all 500 candidates. Verify language and source before adding episodes. Empty topics are only visible to the editor.",
+  "openResearchSource": "Find channel on YouTube"
+});
+
+window.I18N_LOCALES.en.mediatheque.archiveAlreadyAdded="This archive is already in the channel. Find the material in the library and add it to the desired collection.";

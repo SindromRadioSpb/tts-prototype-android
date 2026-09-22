@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-22",
+  "scope": "isolated local verification; no production or owner-state writes",
+  "unit": {
+    "passed": 109,
+    "failed": 0,
+    "command": "node --test tests/mediatheque*.test.js tests/mediaHost.test.js tests/publicationDomain.test.js tests/publicCorpusAdapter.test.js tests/roomUxVf4ResidualA11y.test.js tests/shellIntegrityPrecacheParity.test.js tests/shellModuleWiring.test.js"
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "publisherBrowser": {
+    "passed": 33,
+    "failed": 0,
+    "evidence": "publisher-browser/evidence.json"
+  },
+  "regressionBrowser": {
+    "passed": 99,
+    "failed": 0,
+    "evidence": "browser/evidence.json"
+  },
+  "visualInspection": [
+    "publisher-browser/channels-ru-380.png",
+    "publisher-browser/channels-ru-1366.png",
+    "publisher-browser/channels-dark-he.png",
+    "publisher-browser/channel-series-he-desktop.png",
+    "publisher-browser/room-public-media.png"
+  ],
+  "ownerArchives": {
+    "mode": "read-only verification",
+    "count": 3
+  },
+  "notClaimed": [
+    "production deployment",
+    "mass import of Telegram archives",
+    "physical device acceptance",
+    "assistive technology acceptance"
+  ]
+}

@@ -1,0 +1,4005 @@
+{
+  "date": "2026-09-14",
+  "candidates": [
+    {
+      "name": "כאן 11 - תאגיד השידור הישראלי",
+      "order": 1,
+      "category": "Новости и общество",
+      "fit": "новости / культура / интервью",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%9B%D7%90%D7%9F+11+-+%D7%AA%D7%90%D7%92%D7%99%D7%93+%D7%94%D7%A9%D7%99%D7%93%D7%95%D7%A8+%D7%94%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99"
+    },
+    {
+      "name": "ילדות ישראלית",
+      "order": 2,
+      "category": "Образование",
+      "fit": "образование / children",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%99%D7%9C%D7%93%D7%95%D7%AA+%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99%D7%AA"
+    },
+    {
+      "name": "רשת 13",
+      "order": 3,
+      "category": "Развлечения",
+      "fit": "entertainment / reality / интервью",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A8%D7%A9%D7%AA+13"
+    },
+    {
+      "name": "יובל המבולבל",
+      "order": 4,
+      "category": "Развлечения",
+      "fit": "entertainment / children",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%99%D7%95%D7%91%D7%9C+%D7%94%D7%9E%D7%91%D7%95%D7%9C%D7%91%D7%9C"
+    },
+    {
+      "name": "ערוץ קופיקו",
+      "order": 5,
+      "category": "Люди и блоги",
+      "fit": "kids / dialogue",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%A8%D7%95%D7%A5+%D7%A7%D7%95%D7%A4%D7%99%D7%A7%D7%95"
+    },
+    {
+      "name": "אלי אליהו - הערוץ הרשמי",
+      "order": 6,
+      "category": "Люди и блоги",
+      "fit": "people / entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%9C%D7%99+%D7%90%D7%9C%D7%99%D7%94%D7%95+-+%D7%94%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%A8%D7%A9%D7%9E%D7%99"
+    },
+    {
+      "name": "רז ספני - בלאגן TV",
+      "order": 7,
+      "category": "Люди и блоги",
+      "fit": "влоги / молодёжная речь",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A8%D7%96+%D7%A1%D7%A4%D7%A0%D7%99+-+%D7%91%D7%9C%D7%90%D7%92%D7%9F+TV"
+    },
+    {
+      "name": "ערוץ זום",
+      "order": 8,
+      "category": "Развлечения",
+      "fit": "entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%A8%D7%95%D7%A5+%D7%96%D7%95%D7%9D"
+    },
+    {
+      "name": "לורן אליהו - Loren Eliyahu",
+      "order": 9,
+      "category": "Люди и блоги",
+      "fit": "people / lifestyle",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%9C%D7%95%D7%A8%D7%9F+%D7%90%D7%9C%D7%99%D7%94%D7%95+-+Loren+Eliyahu"
+    },
+    {
+      "name": "ONE - הערוץ הרשמי",
+      "order": 10,
+      "category": "Спорт",
+      "fit": "спорт / интервью",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=ONE+-+%D7%94%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%A8%D7%A9%D7%9E%D7%99"
+    },
+    {
+      "name": "זיגי",
+      "order": 11,
+      "category": "Люди и блоги",
+      "fit": "entertainment / youth",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%96%D7%99%D7%92%D7%99"
+    },
+    {
+      "name": "ערוץ הבידור",
+      "order": 12,
+      "category": "Развлечения",
+      "fit": "entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%91%D7%99%D7%93%D7%95%D7%A8"
+    },
+    {
+      "name": "Hasasagim - הסס״גים",
+      "order": 13,
+      "category": "Развлечения",
+      "fit": "entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Hasasagim+-+%D7%94%D7%A1%D7%A1%D7%B4%D7%92%D7%99%D7%9D"
+    },
+    {
+      "name": "רומיגמי- מועדון האוריגמי לילדים",
+      "order": 14,
+      "category": "Практика и стиль",
+      "fit": "how-to / дети",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A8%D7%95%D7%9E%D7%99%D7%92%D7%9E%D7%99-+%D7%9E%D7%95%D7%A2%D7%93%D7%95%D7%9F+%D7%94%D7%90%D7%95%D7%A8%D7%99%D7%92%D7%9E%D7%99+%D7%9C%D7%99%D7%9C%D7%93%D7%99%D7%9D"
+    },
+    {
+      "name": "הדרדסים • עברית",
+      "order": 15,
+      "category": "Развлечения",
+      "fit": "animation / children",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%93%D7%A8%D7%93%D7%A1%D7%99%D7%9D+%E2%80%A2+%D7%A2%D7%91%D7%A8%D7%99%D7%AA"
+    },
+    {
+      "name": "החדשות",
+      "order": 16,
+      "category": "Новости и общество",
+      "fit": "новости",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%97%D7%93%D7%A9%D7%95%D7%AA"
+    },
+    {
+      "name": "Calcalist | כלכליסט",
+      "order": 17,
+      "category": "Новости и общество",
+      "fit": "экономика / business / tech",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Calcalist+%7C+%D7%9B%D7%9C%D7%9B%D7%9C%D7%99%D7%A1%D7%98"
+    },
+    {
+      "name": "משחקי השף",
+      "order": 18,
+      "category": "Развлечения",
+      "fit": "кулинария / reality / dialogue",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%9E%D7%A9%D7%97%D7%A7%D7%99+%D7%94%D7%A9%D7%A3"
+    },
+    {
+      "name": "אנדרדוס - העמוד הרשמי",
+      "order": 19,
+      "category": "Юмор",
+      "fit": "юмор / sketches",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%A0%D7%93%D7%A8%D7%93%D7%95%D7%A1+-+%D7%94%D7%A2%D7%9E%D7%95%D7%93+%D7%94%D7%A8%D7%A9%D7%9E%D7%99"
+    },
+    {
+      "name": "שחר חן פודיק - Foodik",
+      "order": 20,
+      "category": "Люди и блоги",
+      "fit": "кулинария",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A9%D7%97%D7%A8+%D7%97%D7%9F+%D7%A4%D7%95%D7%93%D7%99%D7%A7+-+Foodik"
+    },
+    {
+      "name": "גיא פינס העמוד הרשמי Guy Pines",
+      "order": 21,
+      "category": "Люди и блоги",
+      "fit": "культура / celebrity interviews",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%92%D7%99%D7%90+%D7%A4%D7%99%D7%A0%D7%A1+%D7%94%D7%A2%D7%9E%D7%95%D7%93+%D7%94%D7%A8%D7%A9%D7%9E%D7%99+Guy+Pines"
+    },
+    {
+      "name": "הדרך הקלה",
+      "order": 22,
+      "category": "Образование",
+      "fit": "образование / how-to",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%93%D7%A8%D7%9A+%D7%94%D7%A7%D7%9C%D7%94"
+    },
+    {
+      "name": "ליאור שליין Lior Schleien",
+      "order": 23,
+      "category": "Юмор",
+      "fit": "сатира / общество",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%9C%D7%99%D7%90%D7%95%D7%A8+%D7%A9%D7%9C%D7%99%D7%99%D7%9F+Lior+Schleien"
+    },
+    {
+      "name": "Yohay Sponder - יוחאי ספונדר",
+      "order": 24,
+      "category": "Юмор",
+      "fit": "stand-up / slang",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Yohay+Sponder+-+%D7%99%D7%95%D7%97%D7%90%D7%99+%D7%A1%D7%A4%D7%95%D7%A0%D7%93%D7%A8"
+    },
+    {
+      "name": "Afiki Tikshoret אפיקי תקשורת",
+      "order": 25,
+      "category": "Люди и блоги",
+      "fit": "people / media",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Afiki+Tikshoret+%D7%90%D7%A4%D7%99%D7%A7%D7%99+%D7%AA%D7%A7%D7%A9%D7%95%D7%A8%D7%AA"
+    },
+    {
+      "name": "רוי בוי - הערוץ הרשמי",
+      "order": 26,
+      "category": "Люди и блоги",
+      "fit": "entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A8%D7%95%D7%99+%D7%91%D7%95%D7%99+-+%D7%94%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%A8%D7%A9%D7%9E%D7%99"
+    },
+    {
+      "name": "אסף מור יוסף - Asaf Mor Yosef",
+      "order": 27,
+      "category": "Развлечения",
+      "fit": "юмор / entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%A1%D7%A3+%D7%9E%D7%95%D7%A8+%D7%99%D7%95%D7%A1%D7%A3+-+Asaf+Mor+Yosef"
+    },
+    {
+      "name": "הכל הולך",
+      "order": 28,
+      "category": "Развлечения",
+      "fit": "entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%9B%D7%9C+%D7%94%D7%95%D7%9C%D7%9A"
+    },
+    {
+      "name": "המירוץ למיליון",
+      "order": 29,
+      "category": "Развлечения",
+      "fit": "reality / travel / dialogue",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%9E%D7%99%D7%A8%D7%95%D7%A5+%D7%9C%D7%9E%D7%99%D7%9C%D7%99%D7%95%D7%9F"
+    },
+    {
+      "name": "סקיבידי - סרטונים ישראליים",
+      "order": 30,
+      "category": "Люди и блоги",
+      "fit": "viral / people",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A1%D7%A7%D7%99%D7%91%D7%99%D7%93%D7%99+-+%D7%A1%D7%A8%D7%98%D7%95%D7%A0%D7%99%D7%9D+%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99%D7%99%D7%9D"
+    },
+    {
+      "name": "WatchMojo Israel",
+      "order": 31,
+      "category": "Развлечения",
+      "fit": "pop-culture / narration",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=WatchMojo+Israel"
+    },
+    {
+      "name": "המטבח הקסום",
+      "order": 32,
+      "category": "Люди и блоги",
+      "fit": "кулинария",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%9E%D7%98%D7%91%D7%97+%D7%94%D7%A7%D7%A1%D7%95%D7%9D"
+    },
+    {
+      "name": "דין ודברים",
+      "order": 33,
+      "category": "Юмор",
+      "fit": "юмор / dialogue",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%93%D7%99%D7%9F+%D7%95%D7%93%D7%91%D7%A8%D7%99%D7%9D"
+    },
+    {
+      "name": "טל פרי",
+      "order": 34,
+      "category": "Люди и блоги",
+      "fit": "people / lifestyle",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%98%D7%9C+%D7%A4%D7%A8%D7%99"
+    },
+    {
+      "name": "Skills Hebrew",
+      "order": 35,
+      "category": "Практика и стиль",
+      "fit": "язык / education",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Skills+Hebrew"
+    },
+    {
+      "name": "רחלי בר Nail Artist",
+      "order": 36,
+      "category": "Практика и стиль",
+      "fit": "beauty / how-to",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A8%D7%97%D7%9C%D7%99+%D7%91%D7%A8+Nail+Artist"
+    },
+    {
+      "name": "אלון ציונוף",
+      "order": 37,
+      "category": "Развлечения",
+      "fit": "entertainment",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%9C%D7%95%D7%9F+%D7%A6%D7%99%D7%95%D7%A0%D7%95%D7%A3"
+    },
+    {
+      "name": "EyalGolanOfficial",
+      "order": 38,
+      "category": "Музыка",
+      "fit": "music",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=EyalGolanOfficial"
+    },
+    {
+      "name": "MasterOhad",
+      "order": 39,
+      "category": "Без достаточно точной категории",
+      "fit": "требует уточнения подтипа",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=MasterOhad"
+    },
+    {
+      "name": "מוזיקה ישראלית",
+      "order": 40,
+      "category": "Музыка",
+      "fit": "music",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%9E%D7%95%D7%96%D7%99%D7%A7%D7%94+%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99%D7%AA"
+    },
+    {
+      "name": "משה פרץ",
+      "order": 41,
+      "category": "Музыка",
+      "fit": "music",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%9E%D7%A9%D7%94+%D7%A4%D7%A8%D7%A5"
+    },
+    {
+      "name": "Multi DO Hebrew",
+      "order": 42,
+      "category": "Без достаточно точной категории",
+      "fit": "short-form / требует QA",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Multi+DO+Hebrew"
+    },
+    {
+      "name": "Idan Raichel - עידן רייכל",
+      "order": 43,
+      "category": "Музыка",
+      "fit": "music / culture",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Idan+Raichel+-+%D7%A2%D7%99%D7%93%D7%9F+%D7%A8%D7%99%D7%99%D7%9B%D7%9C"
+    },
+    {
+      "name": "Shahar Livne- שחר ליבנה",
+      "order": 44,
+      "category": "Игры",
+      "fit": "gaming / slang",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Shahar+Livne-+%D7%A9%D7%97%D7%A8+%D7%9C%D7%99%D7%91%D7%A0%D7%94"
+    },
+    {
+      "name": "חן בסט - chen best",
+      "order": 45,
+      "category": "Игры",
+      "fit": "gaming / slang",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%97%D7%9F+%D7%91%D7%A1%D7%98+-+chen+best"
+    },
+    {
+      "name": "המקצוענים - ערוץ הוידאו הרשמי!",
+      "order": 46,
+      "category": "Без достаточно точной категории",
+      "fit": "practical / how-to",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%9E%D7%A7%D7%A6%D7%95%D7%A2%D7%A0%D7%99%D7%9D+-+%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%95%D7%99%D7%93%D7%90%D7%95+%D7%94%D7%A8%D7%A9%D7%9E%D7%99%21"
+    },
+    {
+      "name": "נפתלי נפתלייב",
+      "order": 47,
+      "category": "Без достаточно точной категории",
+      "fit": "требует content QA",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A0%D7%A4%D7%AA%D7%9C%D7%99+%D7%A0%D7%A4%D7%AA%D7%9C%D7%99%D7%99%D7%91"
+    },
+    {
+      "name": "שלום לוי",
+      "order": 48,
+      "category": "Без достаточно точной категории",
+      "fit": "требует content QA",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A9%D7%9C%D7%95%D7%9D+%D7%9C%D7%95%D7%99"
+    },
+    {
+      "name": "עידן מדיה",
+      "order": 49,
+      "category": "Музыка",
+      "fit": "music",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%99%D7%93%D7%9F+%D7%9E%D7%93%D7%99%D7%94"
+    },
+    {
+      "name": "אילן עברי - לוחם הביטוח",
+      "order": 50,
+      "category": "Без достаточно точной категории",
+      "fit": "practical / finance-insurance",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%99%D7%9C%D7%9F+%D7%A2%D7%91%D7%A8%D7%99+-+%D7%9C%D7%95%D7%97%D7%9D+%D7%94%D7%91%D7%99%D7%98%D7%95%D7%97"
+    },
+    {
+      "name": "TIKTORIKI",
+      "order": null,
+      "category": "Юмор",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TIKTORIKI"
+    },
+    {
+      "name": "TuTiTuTV",
+      "order": null,
+      "category": "Образование",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TuTiTuTV"
+    },
+    {
+      "name": "Jomaa",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Jomaa"
+    },
+    {
+      "name": "Yn_ Rt",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yn_+Rt"
+    },
+    {
+      "name": "Abo rany",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Abo+rany"
+    },
+    {
+      "name": "Bemax - ビマックス",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Bemax+-+%E3%83%93%E3%83%9E%E3%83%83%E3%82%AF%E3%82%B9"
+    },
+    {
+      "name": "Vasilisa Kiss Family",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Vasilisa+Kiss+Family"
+    },
+    {
+      "name": "TikToMania",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TikToMania"
+    },
+    {
+      "name": "Bemax",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Bemax"
+    },
+    {
+      "name": "baker nassar",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=baker+nassar"
+    },
+    {
+      "name": "Viendo Restaurant",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Viendo+Restaurant"
+    },
+    {
+      "name": "Максим Кац",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9C%D0%B0%D0%BA%D1%81%D0%B8%D0%BC+%D0%9A%D0%B0%D1%86"
+    },
+    {
+      "name": "Marcio Tour Guide Israel",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Marcio+Tour+Guide+Israel"
+    },
+    {
+      "name": "NARVZN",
+      "order": null,
+      "category": "Спорт",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=NARVZN"
+    },
+    {
+      "name": "Tamar | תמר",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Tamar+%7C+%D7%AA%D7%9E%D7%A8"
+    },
+    {
+      "name": "GLOBIKI",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=GLOBIKI"
+    },
+    {
+      "name": "Zahal Youtube",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Zahal+Youtube"
+    },
+    {
+      "name": "מאשה והדוב",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%9E%D7%90%D7%A9%D7%94+%D7%95%D7%94%D7%93%D7%95%D7%91"
+    },
+    {
+      "name": "Visit Israel",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Visit+Israel"
+    },
+    {
+      "name": "Dildora Niyozova",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dildora+Niyozova"
+    },
+    {
+      "name": "PalestineTV تلفزيون فلسطين",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=PalestineTV+%D8%AA%D9%84%D9%81%D8%B2%D9%8A%D9%88%D9%86+%D9%81%D9%84%D8%B3%D8%B7%D9%8A%D9%86"
+    },
+    {
+      "name": "Disney Channel Israel",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Disney+Channel+Israel"
+    },
+    {
+      "name": "Истории без сахара. Погребижская.",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%98%D1%81%D1%82%D0%BE%D1%80%D0%B8%D0%B8+%D0%B1%D0%B5%D0%B7+%D1%81%D0%B0%D1%85%D0%B0%D1%80%D0%B0.+%D0%9F%D0%BE%D0%B3%D1%80%D0%B5%D0%B1%D0%B8%D0%B6%D1%81%D0%BA%D0%B0%D1%8F."
+    },
+    {
+      "name": "THE REGAL",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=THE+REGAL"
+    },
+    {
+      "name": "BFGLOBAL",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BFGLOBAL"
+    },
+    {
+      "name": "Штукенция",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A8%D1%82%D1%83%D0%BA%D0%B5%D0%BD%D1%86%D0%B8%D1%8F"
+    },
+    {
+      "name": "TuTiTu italiano",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TuTiTu+italiano"
+    },
+    {
+      "name": "عدي ستار",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%B9%D8%AF%D9%8A+%D8%B3%D8%AA%D8%A7%D8%B1"
+    },
+    {
+      "name": "Dudu Outmezgine",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dudu+Outmezgine"
+    },
+    {
+      "name": "Israel Defense Forces",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Israel+Defense+Forces"
+    },
+    {
+      "name": "עידן עמדי Idan Amedi",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%99%D7%93%D7%9F+%D7%A2%D7%9E%D7%93%D7%99+Idan+Amedi"
+    },
+    {
+      "name": "abo_rany",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=abo_rany"
+    },
+    {
+      "name": "Bacari suelto en Israel",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Bacari+suelto+en+Israel"
+    },
+    {
+      "name": "Сергей Ауслендер",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B9+%D0%90%D1%83%D1%81%D0%BB%D0%B5%D0%BD%D0%B4%D0%B5%D1%80"
+    },
+    {
+      "name": "𝗘𝗠𝗔𝗡 𝗟𝗨𝗟𝗨 - ايمان لولو",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%94%F0%9D%97%A1+%F0%9D%97%9F%F0%9D%97%A8%F0%9D%97%9F%F0%9D%97%A8+-+%D8%A7%D9%8A%D9%85%D8%A7%D9%86+%D9%84%D9%88%D9%84%D9%88"
+    },
+    {
+      "name": "AI_Cartoon_Animation",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AI_Cartoon_Animation"
+    },
+    {
+      "name": "Reddit Biker™",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Reddit+Biker%E2%84%A2"
+    },
+    {
+      "name": "Голубой Амогус",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%93%D0%BE%D0%BB%D1%83%D0%B1%D0%BE%D0%B9+%D0%90%D0%BC%D0%BE%D0%B3%D1%83%D1%81"
+    },
+    {
+      "name": "Emanuel Roro",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Emanuel+Roro"
+    },
+    {
+      "name": "deema cam",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=deema+cam"
+    },
+    {
+      "name": "TuTiTu français",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TuTiTu+fran%C3%A7ais"
+    },
+    {
+      "name": "Vision Motivation",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Vision+Motivation"
+    },
+    {
+      "name": "Matan Animation Studios",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Matan+Animation+Studios"
+    },
+    {
+      "name": "X-Faktor O'zbekiston",
+      "order": null,
+      "category": "Спорт",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=X-Faktor+O%27zbekiston"
+    },
+    {
+      "name": "Omiki Official",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Omiki+Official"
+    },
+    {
+      "name": "Олег Новиков влог",
+      "order": null,
+      "category": "Животные",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9E%D0%BB%D0%B5%D0%B3+%D0%9D%D0%BE%D0%B2%D0%B8%D0%BA%D0%BE%D0%B2+%D0%B2%D0%BB%D0%BE%D0%B3"
+    },
+    {
+      "name": "Cold Approach",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Cold+Approach"
+    },
+    {
+      "name": "Saleh Zighari",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Saleh+Zighari"
+    },
+    {
+      "name": "Charter Group Birdcams ציפורים אונליין קבוצת צ'רטר",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Charter+Group+Birdcams+%D7%A6%D7%99%D7%A4%D7%95%D7%A8%D7%99%D7%9D+%D7%90%D7%95%D7%A0%D7%9C%D7%99%D7%99%D7%9F+%D7%A7%D7%91%D7%95%D7%A6%D7%AA+%D7%A6%27%D7%A8%D7%98%D7%A8"
+    },
+    {
+      "name": "Rin Penrose Ch. and Snebby",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Rin+Penrose+Ch.+and+Snebby"
+    },
+    {
+      "name": "shlomishabatofficiaI",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=shlomishabatofficiaI"
+    },
+    {
+      "name": "Yair Sasson Art",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yair+Sasson+Art"
+    },
+    {
+      "name": "נופיקי כוכבת הילדים",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%A0%D7%95%D7%A4%D7%99%D7%A7%D7%99+%D7%9B%D7%95%D7%9B%D7%91%D7%AA+%D7%94%D7%99%D7%9C%D7%93%D7%99%D7%9D"
+    },
+    {
+      "name": "KobiPeretzOfficial",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=KobiPeretzOfficial"
+    },
+    {
+      "name": "התקווה6 \\ Hatikva6",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%AA%D7%A7%D7%95%D7%95%D7%946+%5C+Hatikva6"
+    },
+    {
+      "name": "hosam b8",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=hosam+b8"
+    },
+    {
+      "name": "TV7 Israel News",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TV7+Israel+News"
+    },
+    {
+      "name": "TheJester",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TheJester"
+    },
+    {
+      "name": "Hananya Naftali",
+      "order": null,
+      "category": "НКО и общественные инициативы",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Hananya+Naftali"
+    },
+    {
+      "name": "Borgore",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Borgore"
+    },
+    {
+      "name": "עילי בוטנר - Elai Botner",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%99%D7%9C%D7%99+%D7%91%D7%95%D7%98%D7%A0%D7%A8+-+Elai+Botner"
+    },
+    {
+      "name": "חריף",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%97%D7%A8%D7%99%D7%A3"
+    },
+    {
+      "name": "English Maria",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=English+Maria"
+    },
+    {
+      "name": "Hazar - هازار",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Hazar+-+%D9%87%D8%A7%D8%B2%D8%A7%D8%B1"
+    },
+    {
+      "name": "Blastoyz",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Blastoyz"
+    },
+    {
+      "name": "Keren_Pevzner",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Keren_Pevzner"
+    },
+    {
+      "name": "Epic Shane Animations",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Epic+Shane+Animations"
+    },
+    {
+      "name": "STMEGI TV Первый еврейский",
+      "order": null,
+      "category": "НКО и общественные инициативы",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=STMEGI+TV+%D0%9F%D0%B5%D1%80%D0%B2%D1%8B%D0%B9+%D0%B5%D0%B2%D1%80%D0%B5%D0%B9%D1%81%D0%BA%D0%B8%D0%B9"
+    },
+    {
+      "name": "קוגומלו - המאסטר של הילדים",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%A7%D7%95%D7%92%D7%95%D7%9E%D7%9C%D7%95+-+%D7%94%D7%9E%D7%90%D7%A1%D7%98%D7%A8+%D7%A9%D7%9C+%D7%94%D7%99%D7%9C%D7%93%D7%99%D7%9D"
+    },
+    {
+      "name": "All Israel News",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=All+Israel+News"
+    },
+    {
+      "name": "JailSpeak",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=JailSpeak"
+    },
+    {
+      "name": "Полина Грин",
+      "order": null,
+      "category": "Образование",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9F%D0%BE%D0%BB%D0%B8%D0%BD%D0%B0+%D0%93%D1%80%D0%B8%D0%BD"
+    },
+    {
+      "name": "Israel Amor",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Israel+Amor"
+    },
+    {
+      "name": "TAMER DEMİR",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TAMER+DEM%C4%B0R"
+    },
+    {
+      "name": "TuTiTu Deutsch",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TuTiTu+Deutsch"
+    },
+    {
+      "name": "Нарезочки от Орче",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9D%D0%B0%D1%80%D0%B5%D0%B7%D0%BE%D1%87%D0%BA%D0%B8+%D0%BE%D1%82+%D0%9E%D1%80%D1%87%D0%B5"
+    },
+    {
+      "name": "Offer Nissim Official",
+      "order": null,
+      "category": "Музыка",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Offer+Nissim+Official"
+    },
+    {
+      "name": "Radio Nahariya",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Radio+Nahariya"
+    },
+    {
+      "name": "BabyTV Français",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BabyTV+Fran%C3%A7ais"
+    },
+    {
+      "name": "Объектив",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9E%D0%B1%D1%8A%D0%B5%D0%BA%D1%82%D0%B8%D0%B2"
+    },
+    {
+      "name": "Ishay Levi Official ישי לוי הערוץ הרשמי",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=Ishay+Levi+Official+%D7%99%D7%A9%D7%99+%D7%9C%D7%95%D7%99+%D7%94%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%A8%D7%A9%D7%9E%D7%99"
+    },
+    {
+      "name": "Osnat stilinski",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Osnat+stilinski"
+    },
+    {
+      "name": "Ethan Land",
+      "order": null,
+      "category": "Игры",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ethan+Land"
+    },
+    {
+      "name": "AI animal shenanigans",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AI+animal+shenanigans"
+    },
+    {
+      "name": "У тети Сони",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A3+%D1%82%D0%B5%D1%82%D0%B8+%D0%A1%D0%BE%D0%BD%D0%B8"
+    },
+    {
+      "name": "It's on my MIND",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=It%27s+on+my+MIND"
+    },
+    {
+      "name": "ابو كريم Abu kareem",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D8%A8%D9%88+%D9%83%D8%B1%D9%8A%D9%85+Abu+kareem"
+    },
+    {
+      "name": "שקד קוממי הערוץ הרשמי",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A9%D7%A7%D7%93+%D7%A7%D7%95%D7%9E%D7%9E%D7%99+%D7%94%D7%A2%D7%A8%D7%95%D7%A5+%D7%94%D7%A8%D7%A9%D7%9E%D7%99"
+    },
+    {
+      "name": "AI Cartoon Animation2",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AI+Cartoon+Animation2"
+    },
+    {
+      "name": "LickNRiff - Free Guitar Education",
+      "order": null,
+      "category": "Образование",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=LickNRiff+-+Free+Guitar+Education"
+    },
+    {
+      "name": "Biba",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Biba"
+    },
+    {
+      "name": "Миша Шнайдерман",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "требуется редакционная классификация",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9C%D0%B8%D1%88%D0%B0+%D0%A8%D0%BD%D0%B0%D0%B9%D0%B4%D0%B5%D1%80%D0%BC%D0%B0%D0%BD"
+    },
+    {
+      "name": "Israel Avia",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Israel+Avia"
+    },
+    {
+      "name": "straussgroup",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=straussgroup"
+    },
+    {
+      "name": "Gastón y Oxana en Israel",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Gast%C3%B3n+y+Oxana+en+Israel"
+    },
+    {
+      "name": "SKAZI ASHER SWISSA",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=SKAZI+ASHER+SWISSA"
+    },
+    {
+      "name": "Eliya Bonen",
+      "order": null,
+      "category": "Спорт",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Eliya+Bonen"
+    },
+    {
+      "name": "feedfancier Animations",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=feedfancier+Animations"
+    },
+    {
+      "name": "Noor & Nada نور وندى",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Noor+%26+Nada+%D9%86%D9%88%D8%B1+%D9%88%D9%86%D8%AF%D9%89"
+    },
+    {
+      "name": "הדג נחש",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%93%D7%92+%D7%A0%D7%97%D7%A9"
+    },
+    {
+      "name": "travelingisrael.com",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=travelingisrael.com"
+    },
+    {
+      "name": "Rabino Shalom Arush | Breslev Español",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Rabino+Shalom+Arush+%7C+Breslev+Espa%C3%B1ol"
+    },
+    {
+      "name": "Sheinkin40",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sheinkin40"
+    },
+    {
+      "name": "Dvir Keller 💀",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dvir+Keller+%F0%9F%92%80"
+    },
+    {
+      "name": "ГВОЗДИ",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%93%D0%92%D0%9E%D0%97%D0%94%D0%98"
+    },
+    {
+      "name": "LARISA OTMAN",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=LARISA+OTMAN"
+    },
+    {
+      "name": "Старатели",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A1%D1%82%D0%B0%D1%80%D0%B0%D1%82%D0%B5%D0%BB%D0%B8"
+    },
+    {
+      "name": "Lmfootball",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Lmfootball"
+    },
+    {
+      "name": "harelgg46",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=harelgg46"
+    },
+    {
+      "name": "Yuval Salomon",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yuval+Salomon"
+    },
+    {
+      "name": "Yuval Noah Harari",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yuval+Noah+Harari"
+    },
+    {
+      "name": "AL-RAYAN موقع الريان",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=AL-RAYAN+%D9%85%D9%88%D9%82%D8%B9+%D8%A7%D9%84%D8%B1%D9%8A%D8%A7%D9%86"
+    },
+    {
+      "name": "Раяна Асланбекова - Официальный канал артиста",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A0%D0%B0%D1%8F%D0%BD%D0%B0+%D0%90%D1%81%D0%BB%D0%B0%D0%BD%D0%B1%D0%B5%D0%BA%D0%BE%D0%B2%D0%B0+-+%D0%9E%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9+%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB+%D0%B0%D1%80%D1%82%D0%B8%D1%81%D1%82%D0%B0"
+    },
+    {
+      "name": "YovelBenAkiva l MakeupArtist💄",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=YovelBenAkiva+l+MakeupArtist%F0%9F%92%84"
+    },
+    {
+      "name": "Royal Grindi",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Royal+Grindi"
+    },
+    {
+      "name": "هدى تيوب - huda tube",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%87%D8%AF%D9%89+%D8%AA%D9%8A%D9%88%D8%A8+-+huda+tube"
+    },
+    {
+      "name": "Captain Boeing",
+      "order": null,
+      "category": "Авто",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Captain+Boeing"
+    },
+    {
+      "name": "stas1973",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=stas1973"
+    },
+    {
+      "name": "Alexander Waldman Нейтральная полоса",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Alexander+Waldman+%D0%9D%D0%B5%D0%B9%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F+%D0%BF%D0%BE%D0%BB%D0%BE%D1%81%D0%B0"
+    },
+    {
+      "name": "Григорий ТАМАР",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D0%B8%D0%B9+%D0%A2%D0%90%D0%9C%D0%90%D0%A0"
+    },
+    {
+      "name": "Лев Логачев",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9B%D0%B5%D0%B2+%D0%9B%D0%BE%D0%B3%D0%B0%D1%87%D0%B5%D0%B2"
+    },
+    {
+      "name": "Djamal 360",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Djamal+360"
+    },
+    {
+      "name": "Лучшее радио Израиль",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9B%D1%83%D1%87%D1%88%D0%B5%D0%B5+%D1%80%D0%B0%D0%B4%D0%B8%D0%BE+%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8C"
+    },
+    {
+      "name": "ПриветТачка Pro",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%D0%A2%D0%B0%D1%87%D0%BA%D0%B0+Pro"
+    },
+    {
+      "name": "nnsport",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=nnsport"
+    },
+    {
+      "name": "Viva Israel",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Viva+Israel"
+    },
+    {
+      "name": "chardonneret حسون",
+      "order": null,
+      "category": "Животные",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=chardonneret+%D8%AD%D8%B3%D9%88%D9%86"
+    },
+    {
+      "name": "Match Masters",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Match+Masters"
+    },
+    {
+      "name": "Ido Portal",
+      "order": null,
+      "category": "Спорт",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ido+Portal"
+    },
+    {
+      "name": "Олег Новиков",
+      "order": null,
+      "category": "Животные",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9E%D0%BB%D0%B5%D0%B3+%D0%9D%D0%BE%D0%B2%D0%B8%D0%BA%D0%BE%D0%B2"
+    },
+    {
+      "name": "GiggityBros",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=GiggityBros"
+    },
+    {
+      "name": "ТВ7 Новости Израиля",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A2%D0%927+%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D1%82%D0%B8+%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8F"
+    },
+    {
+      "name": "State of Israel",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=State+of+Israel"
+    },
+    {
+      "name": "Adventures of Akita Athena - Dog walk",
+      "order": null,
+      "category": "Животные",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Adventures+of+Akita+Athena+-+Dog+walk"
+    },
+    {
+      "name": "Assi Deluxe",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Assi+Deluxe"
+    },
+    {
+      "name": "Александр Лазарев",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80+%D0%9B%D0%B0%D0%B7%D0%B0%D1%80%D0%B5%D0%B2"
+    },
+    {
+      "name": "Angel Pet",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Angel+Pet"
+    },
+    {
+      "name": "MrSchweppes",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MrSchweppes"
+    },
+    {
+      "name": "JudeoHistoria",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=JudeoHistoria"
+    },
+    {
+      "name": "Bori-Lili Land",
+      "order": null,
+      "category": "Животные",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Bori-Lili+Land"
+    },
+    {
+      "name": "MG Israel",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MG+Israel"
+    },
+    {
+      "name": "AdirTV",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AdirTV"
+    },
+    {
+      "name": "Beautiful.co.il",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Beautiful.co.il"
+    },
+    {
+      "name": "Hannah Ziad",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Hannah+Ziad"
+    },
+    {
+      "name": "Tom Bar Amar",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Tom+Bar+Amar"
+    },
+    {
+      "name": "הראל אסף - Harel Asaf",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%94%D7%A8%D7%90%D7%9C+%D7%90%D7%A1%D7%A3+-+Harel+Asaf"
+    },
+    {
+      "name": "יובליה",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%99%D7%95%D7%91%D7%9C%D7%99%D7%94"
+    },
+    {
+      "name": "Rav Ron Chaya - Myleava",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Rav+Ron+Chaya+-+Myleava"
+    },
+    {
+      "name": "ghost_gaming",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=ghost_gaming"
+    },
+    {
+      "name": "Правда и Факты",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9F%D1%80%D0%B0%D0%B2%D0%B4%D0%B0+%D0%B8+%D0%A4%D0%B0%D0%BA%D1%82%D1%8B"
+    },
+    {
+      "name": "Ольга Лет",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9E%D0%BB%D1%8C%D0%B3%D0%B0+%D0%9B%D0%B5%D1%82"
+    },
+    {
+      "name": "اياد ابو الاسمر iyad abo alasmr",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D9%8A%D8%A7%D8%AF+%D8%A7%D8%A8%D9%88+%D8%A7%D9%84%D8%A7%D8%B3%D9%85%D8%B1+iyad+abo+alasmr"
+    },
+    {
+      "name": "Javlon Shodmonov",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Javlon+Shodmonov"
+    },
+    {
+      "name": "Еврейская Диаспора Азербайджана. Роман Цыпин",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%95%D0%B2%D1%80%D0%B5%D0%B9%D1%81%D0%BA%D0%B0%D1%8F+%D0%94%D0%B8%D0%B0%D1%81%D0%BF%D0%BE%D1%80%D0%B0+%D0%90%D0%B7%D0%B5%D1%80%D0%B1%D0%B0%D0%B9%D0%B4%D0%B6%D0%B0%D0%BD%D0%B0.+%D0%A0%D0%BE%D0%BC%D0%B0%D0%BD+%D0%A6%D1%8B%D0%BF%D0%B8%D0%BD"
+    },
+    {
+      "name": "Ирина Хлыстова | Поздравления для Вас",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%98%D1%80%D0%B8%D0%BD%D0%B0+%D0%A5%D0%BB%D1%8B%D1%81%D1%82%D0%BE%D0%B2%D0%B0+%7C+%D0%9F%D0%BE%D0%B7%D0%B4%D1%80%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F+%D0%B4%D0%BB%D1%8F+%D0%92%D0%B0%D1%81"
+    },
+    {
+      "name": "Niki Livshits",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Niki+Livshits"
+    },
+    {
+      "name": "wolf creation",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=wolf+creation"
+    },
+    {
+      "name": "Ариэль Маром Духовный",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%90%D1%80%D0%B8%D1%8D%D0%BB%D1%8C+%D0%9C%D0%B0%D1%80%D0%BE%D0%BC+%D0%94%D1%83%D1%85%D0%BE%D0%B2%D0%BD%D1%8B%D0%B9"
+    },
+    {
+      "name": "Benjamin Netanyahu - בנימין נתניהו",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Benjamin+Netanyahu+-+%D7%91%D7%A0%D7%99%D7%9E%D7%99%D7%9F+%D7%A0%D7%AA%D7%A0%D7%99%D7%94%D7%95"
+    },
+    {
+      "name": "Arie en Israel",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Arie+en+Israel"
+    },
+    {
+      "name": "Roba",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Roba"
+    },
+    {
+      "name": "Zainaser TV",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Zainaser+TV"
+    },
+    {
+      "name": "Яна Фомичёва",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%AF%D0%BD%D0%B0+%D0%A4%D0%BE%D0%BC%D0%B8%D1%87%D1%91%D0%B2%D0%B0"
+    },
+    {
+      "name": "PATRICK",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=PATRICK"
+    },
+    {
+      "name": "Mayven",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mayven"
+    },
+    {
+      "name": "FCMakes",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=FCMakes"
+    },
+    {
+      "name": "Visit la Palestine",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Visit+la+Palestine"
+    },
+    {
+      "name": "Insightful Nomad",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Insightful+Nomad"
+    },
+    {
+      "name": "ЕСЕНИЯ ЗНАКИ СУДЬБЫ",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%95%D0%A1%D0%95%D0%9D%D0%98%D0%AF+%D0%97%D0%9D%D0%90%D0%9A%D0%98+%D0%A1%D0%A3%D0%94%D0%AC%D0%91%D0%AB"
+    },
+    {
+      "name": "WondererMC",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=WondererMC"
+    },
+    {
+      "name": "ExplorHits",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=ExplorHits"
+    },
+    {
+      "name": "قاوش Qawesh l",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%82%D8%A7%D9%88%D8%B4+Qawesh+l"
+    },
+    {
+      "name": "Израиль Новости",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8C+%D0%9D%D0%BE%D0%B2%D0%BE%D1%81%D1%82%D0%B8"
+    },
+    {
+      "name": "katrina kaif",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=katrina+kaif"
+    },
+    {
+      "name": "LookBehind You",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=LookBehind+You"
+    },
+    {
+      "name": "Мои Переводы. (My Translations.)",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9C%D0%BE%D0%B8+%D0%9F%D0%B5%D1%80%D0%B5%D0%B2%D0%BE%D0%B4%D1%8B.+%28My+Translations.%29"
+    },
+    {
+      "name": "Stas Como estas",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Stas+Como+estas"
+    },
+    {
+      "name": "صابر كُلاّب saber kullab",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%B5%D8%A7%D8%A8%D8%B1+%D9%83%D9%8F%D9%84%D8%A7%D9%91%D8%A8+saber+kullab"
+    },
+    {
+      "name": "Dr Michael Vo",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dr+Michael+Vo"
+    },
+    {
+      "name": "Bdb AllPac",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Bdb+AllPac"
+    },
+    {
+      "name": "asalafanclub",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=asalafanclub"
+    },
+    {
+      "name": "Berg",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Berg"
+    },
+    {
+      "name": "Юлия Сваровски | Forever Beauty & Energy",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%AE%D0%BB%D0%B8%D1%8F+%D0%A1%D0%B2%D0%B0%D1%80%D0%BE%D0%B2%D1%81%D0%BA%D0%B8+%7C+Forever+Beauty+%26+Energy"
+    },
+    {
+      "name": "Opel Israel - רכבי אופל",
+      "order": null,
+      "category": "Авто",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Opel+Israel+-+%D7%A8%D7%9B%D7%91%D7%99+%D7%90%D7%95%D7%A4%D7%9C"
+    },
+    {
+      "name": "BOREX",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BOREX"
+    },
+    {
+      "name": "ПЕРВОЕ РАДИО 89.1FM",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9F%D0%95%D0%A0%D0%92%D0%9E%D0%95+%D0%A0%D0%90%D0%94%D0%98%D0%9E+89.1FM"
+    },
+    {
+      "name": "Pure Football",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Pure+Football"
+    },
+    {
+      "name": "WOW Games",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=WOW+Games"
+    },
+    {
+      "name": "KuKaReKu",
+      "order": null,
+      "category": "Юмор",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=KuKaReKu"
+    },
+    {
+      "name": "IsraelTB Noticias",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=IsraelTB+Noticias"
+    },
+    {
+      "name": "Omran Khalaf عمران خلف",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Omran+Khalaf+%D8%B9%D9%85%D8%B1%D8%A7%D9%86+%D8%AE%D9%84%D9%81"
+    },
+    {
+      "name": "Maxim Gustarev",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Maxim+Gustarev"
+    },
+    {
+      "name": "Dvora Elyashar",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dvora+Elyashar"
+    },
+    {
+      "name": "Havarad Odin",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Havarad+Odin"
+    },
+    {
+      "name": "Nasser Allaham - ناصر اللحام",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Nasser+Allaham+-+%D9%86%D8%A7%D8%B5%D8%B1+%D8%A7%D9%84%D9%84%D8%AD%D8%A7%D9%85"
+    },
+    {
+      "name": "MizrahitZeLahitPage",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MizrahitZeLahitPage"
+    },
+    {
+      "name": "באייר ישראל Bayer IL",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%91%D7%90%D7%99%D7%99%D7%A8+%D7%99%D7%A9%D7%A8%D7%90%D7%9C+Bayer+IL"
+    },
+    {
+      "name": "Винтошпунт",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%92%D0%B8%D0%BD%D1%82%D0%BE%D1%88%D0%BF%D1%83%D0%BD%D1%82"
+    },
+    {
+      "name": "Gennadi Master",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Gennadi+Master"
+    },
+    {
+      "name": "Политолог Аббас Галлямов",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9F%D0%BE%D0%BB%D0%B8%D1%82%D0%BE%D0%BB%D0%BE%D0%B3+%D0%90%D0%B1%D0%B1%D0%B0%D1%81+%D0%93%D0%B0%D0%BB%D0%BB%D1%8F%D0%BC%D0%BE%D0%B2"
+    },
+    {
+      "name": "From my kitchen to yours من مطبخي الى مطبخكم",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=From+my+kitchen+to+yours+%D9%85%D9%86+%D9%85%D8%B7%D8%A8%D8%AE%D9%8A+%D8%A7%D9%84%D9%89+%D9%85%D8%B7%D8%A8%D8%AE%D9%83%D9%85"
+    },
+    {
+      "name": "lennonSystems",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=lennonSystems"
+    },
+    {
+      "name": "Israel con Gini",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Israel+con+Gini"
+    },
+    {
+      "name": "TURBO V",
+      "order": null,
+      "category": "Авто",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TURBO+V"
+    },
+    {
+      "name": "The Darzis",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=The+Darzis"
+    },
+    {
+      "name": "LUTRA Music",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=LUTRA+Music"
+    },
+    {
+      "name": "HANITAI",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=HANITAI"
+    },
+    {
+      "name": "Было дело",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%91%D1%8B%D0%BB%D0%BE+%D0%B4%D0%B5%D0%BB%D0%BE"
+    },
+    {
+      "name": "Екатерина Прохорцева. Холистическая психология",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B0+%D0%9F%D1%80%D0%BE%D1%85%D0%BE%D1%80%D1%86%D0%B5%D0%B2%D0%B0.+%D0%A5%D0%BE%D0%BB%D0%B8%D1%81%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F"
+    },
+    {
+      "name": "Евгений Тайц",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9+%D0%A2%D0%B0%D0%B9%D1%86"
+    },
+    {
+      "name": "weather | trend",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=weather+%7C+trend"
+    },
+    {
+      "name": "ניר לג׳נד - Nir Legend",
+      "order": null,
+      "category": "Игры",
+      "fit": "Игры",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A0%D7%99%D7%A8+%D7%9C%D7%92%D7%B3%D7%A0%D7%93+-+Nir+Legend"
+    },
+    {
+      "name": "Momd1234",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Momd1234"
+    },
+    {
+      "name": "Buygore",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Buygore"
+    },
+    {
+      "name": "OriVoicesStuff",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=OriVoicesStuff"
+    },
+    {
+      "name": "Len Hummel",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Len+Hummel"
+    },
+    {
+      "name": "BINJA",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BINJA"
+    },
+    {
+      "name": "彡:BŁŌB:彡",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%E5%BD%A1%3AB%C5%81%C5%8CB%3A%E5%BD%A1"
+    },
+    {
+      "name": "Елена Михайловна",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%95%D0%BB%D0%B5%D0%BD%D0%B0+%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%BD%D0%B0"
+    },
+    {
+      "name": "Turkish تركي",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Turkish+%D8%AA%D8%B1%D9%83%D9%8A"
+    },
+    {
+      "name": "Adir Elad",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Adir+Elad"
+    },
+    {
+      "name": "اياد ابو الاسمر 3",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D9%8A%D8%A7%D8%AF+%D8%A7%D8%A8%D9%88+%D8%A7%D9%84%D8%A7%D8%B3%D9%85%D8%B1+3"
+    },
+    {
+      "name": "MissJohnnyJackson",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MissJohnnyJackson"
+    },
+    {
+      "name": "اياد ابو الاسمر",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D9%8A%D8%A7%D8%AF+%D8%A7%D8%A8%D9%88+%D8%A7%D9%84%D8%A7%D8%B3%D9%85%D8%B1"
+    },
+    {
+      "name": "Навигатор по Израилю - Евгений Пугач",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9D%D0%B0%D0%B2%D0%B8%D0%B3%D0%B0%D1%82%D0%BE%D1%80+%D0%BF%D0%BE+%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8E+-+%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9+%D0%9F%D1%83%D0%B3%D0%B0%D1%87"
+    },
+    {
+      "name": "Ra Djan",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ra+Djan"
+    },
+    {
+      "name": "Doctor Who Infinity",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Doctor+Who+Infinity"
+    },
+    {
+      "name": "David Tomparkers",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=David+Tomparkers"
+    },
+    {
+      "name": "وصفات ميساء حسين",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%88%D8%B5%D9%81%D8%A7%D8%AA+%D9%85%D9%8A%D8%B3%D8%A7%D8%A1+%D8%AD%D8%B3%D9%8A%D9%86"
+    },
+    {
+      "name": "XtreemeUser",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=XtreemeUser"
+    },
+    {
+      "name": "LanYarD",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=LanYarD"
+    },
+    {
+      "name": "Ape Samaje",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ape+Samaje"
+    },
+    {
+      "name": "Gonish",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Gonish"
+    },
+    {
+      "name": "Adnan Barq",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Adnan+Barq"
+    },
+    {
+      "name": "evensosan",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=evensosan"
+    },
+    {
+      "name": "GalyTSL",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=GalyTSL"
+    },
+    {
+      "name": "ד״ר מיליונדי - רופא , טייס וראפר בדימוס",
+      "order": null,
+      "category": "Музыка",
+      "fit": "Музыка",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%93%D7%B4%D7%A8+%D7%9E%D7%99%D7%9C%D7%99%D7%95%D7%A0%D7%93%D7%99+-+%D7%A8%D7%95%D7%A4%D7%90+%2C+%D7%98%D7%99%D7%99%D7%A1+%D7%95%D7%A8%D7%90%D7%A4%D7%A8+%D7%91%D7%93%D7%99%D7%9E%D7%95%D7%A1"
+    },
+    {
+      "name": "Эмиль Шлеймович",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%AD%D0%BC%D0%B8%D0%BB%D1%8C+%D0%A8%D0%BB%D0%B5%D0%B9%D0%BC%D0%BE%D0%B2%D0%B8%D1%87"
+    },
+    {
+      "name": "RAD - Your Network's Edge",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=RAD+-+Your+Network%27s+Edge"
+    },
+    {
+      "name": "DariaKatkova",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=DariaKatkova"
+    },
+    {
+      "name": "Binge Watchers",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Binge+Watchers"
+    },
+    {
+      "name": "ICEteam",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=ICEteam"
+    },
+    {
+      "name": "adamyes",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=adamyes"
+    },
+    {
+      "name": "Izrealia",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Izrealia"
+    },
+    {
+      "name": "Dmitry Raizu",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dmitry+Raizu"
+    },
+    {
+      "name": "Ima Latina en Israel",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ima+Latina+en+Israel"
+    },
+    {
+      "name": "DarBassam داربسام",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=DarBassam+%D8%AF%D8%A7%D8%B1%D8%A8%D8%B3%D8%A7%D9%85"
+    },
+    {
+      "name": "Moran Nagar MORINIO",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Moran+Nagar+MORINIO"
+    },
+    {
+      "name": "Itai Rosen",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Itai+Rosen"
+    },
+    {
+      "name": "Tanya Vas (Talinka)",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Tanya+Vas+%28Talinka%29"
+    },
+    {
+      "name": "أحداث عالمية Tornado",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A3%D8%AD%D8%AF%D8%A7%D8%AB+%D8%B9%D8%A7%D9%84%D9%85%D9%8A%D8%A9+Tornado"
+    },
+    {
+      "name": "Hixiz_",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Hixiz_"
+    },
+    {
+      "name": "Orr",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Orr"
+    },
+    {
+      "name": "whatsapp status",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=whatsapp+status"
+    },
+    {
+      "name": "Grace Bride",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Grace+Bride"
+    },
+    {
+      "name": "Genadi Valdberg",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Genadi+Valdberg"
+    },
+    {
+      "name": "Barak Grossberg",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Barak+Grossberg"
+    },
+    {
+      "name": "digitLIX",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=digitLIX"
+    },
+    {
+      "name": "James Conrad",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=James+Conrad"
+    },
+    {
+      "name": "GoTo (CAR2GO)",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=GoTo+%28CAR2GO%29"
+    },
+    {
+      "name": "MpPsy",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MpPsy"
+    },
+    {
+      "name": "فلسطين تك / Flstin Tech",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%81%D9%84%D8%B3%D8%B7%D9%8A%D9%86+%D8%AA%D9%83+%2F+Flstin+Tech"
+    },
+    {
+      "name": "Fadi Flashi Vlogs",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Fadi+Flashi+Vlogs"
+    },
+    {
+      "name": "Andrey Bagdasaryan",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Andrey+Bagdasaryan"
+    },
+    {
+      "name": "Юля Life vlog",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%AE%D0%BB%D1%8F+Life+vlog"
+    },
+    {
+      "name": "Mary Sharm",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mary+Sharm"
+    },
+    {
+      "name": "Israel é bom sim!",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Israel+%C3%A9+bom+sim%21"
+    },
+    {
+      "name": "MissLera&Paramedic",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MissLera%26Paramedic"
+    },
+    {
+      "name": "fatpotato",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=fatpotato"
+    },
+    {
+      "name": "Interesting Cool Useful",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Interesting+Cool+Useful"
+    },
+    {
+      "name": "Yifat App",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yifat+App"
+    },
+    {
+      "name": "Andrei Lucaci",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Andrei+Lucaci"
+    },
+    {
+      "name": "Kabbalistic Village Music",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Kabbalistic+Village+Music"
+    },
+    {
+      "name": "אברימי רוט Avremi Roth",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%91%D7%A8%D7%99%D7%9E%D7%99+%D7%A8%D7%95%D7%98+Avremi+Roth"
+    },
+    {
+      "name": "Yanny",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yanny"
+    },
+    {
+      "name": "GameRunX",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=GameRunX"
+    },
+    {
+      "name": "Lera9742",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Lera9742"
+    },
+    {
+      "name": "Марк Каценельсон - Sapir medical clinic (Израиль)",
+      "order": null,
+      "category": "НКО и общественные инициативы",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9C%D0%B0%D1%80%D0%BA+%D0%9A%D0%B0%D1%86%D0%B5%D0%BD%D0%B5%D0%BB%D1%8C%D1%81%D0%BE%D0%BD+-+Sapir+medical+clinic+%28%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8C%29"
+    },
+    {
+      "name": "YASAS.P Pontian & Greek music",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=YASAS.P+Pontian+%26+Greek+music"
+    },
+    {
+      "name": "Eli Cohen",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Eli+Cohen"
+    },
+    {
+      "name": "pokon5",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=pokon5"
+    },
+    {
+      "name": "Leader",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Leader"
+    },
+    {
+      "name": "Your Thoughts - أفكارك",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=Your+Thoughts+-+%D8%A3%D9%81%D9%83%D8%A7%D8%B1%D9%83"
+    },
+    {
+      "name": "FirstWin",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=FirstWin"
+    },
+    {
+      "name": "Sarine Technologies",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sarine+Technologies"
+    },
+    {
+      "name": "סוליו אלפא קיור פלוס by SOLIO",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%A1%D7%95%D7%9C%D7%99%D7%95+%D7%90%D7%9C%D7%A4%D7%90+%D7%A7%D7%99%D7%95%D7%A8+%D7%A4%D7%9C%D7%95%D7%A1+by+SOLIO"
+    },
+    {
+      "name": "Osama khalid",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Osama+khalid"
+    },
+    {
+      "name": "Getenet Teshome",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Getenet+Teshome"
+    },
+    {
+      "name": "Orel",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Orel"
+    },
+    {
+      "name": "mcyoni93",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=mcyoni93"
+    },
+    {
+      "name": "Виктория Дов",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%92%D0%B8%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D1%8F+%D0%94%D0%BE%D0%B2"
+    },
+    {
+      "name": "Tulip xo",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Tulip+xo"
+    },
+    {
+      "name": "Evque",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Evque"
+    },
+    {
+      "name": "Ang buhay ko sa Israel",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ang+buhay+ko+sa+Israel"
+    },
+    {
+      "name": "Erel H",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Erel+H"
+    },
+    {
+      "name": "Max Nov",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Max+Nov"
+    },
+    {
+      "name": "Amin Mohsin",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Amin+Mohsin"
+    },
+    {
+      "name": "Mustang De Man",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mustang+De+Man"
+    },
+    {
+      "name": "مكتبة المحتوى",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%85%D9%83%D8%AA%D8%A8%D8%A9+%D8%A7%D9%84%D9%85%D8%AD%D8%AA%D9%88%D9%89"
+    },
+    {
+      "name": "David Star",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=David+Star"
+    },
+    {
+      "name": "ФЕДОР ШАУРМА",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A4%D0%95%D0%94%D0%9E%D0%A0+%D0%A8%D0%90%D0%A3%D0%A0%D0%9C%D0%90"
+    },
+    {
+      "name": "EpicAMV",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=EpicAMV"
+    },
+    {
+      "name": "FAVOR TV",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=FAVOR+TV"
+    },
+    {
+      "name": "Marine Guy",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Marine+Guy"
+    },
+    {
+      "name": "Nir Hoffman",
+      "order": null,
+      "category": "Спорт",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Nir+Hoffman"
+    },
+    {
+      "name": "videoartsv",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=videoartsv"
+    },
+    {
+      "name": "abo basheer / ابو بشير",
+      "order": null,
+      "category": "Спорт",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=abo+basheer+%2F+%D8%A7%D8%A8%D9%88+%D8%A8%D8%B4%D9%8A%D8%B1"
+    },
+    {
+      "name": "ابو كريم عزالدين نعمه",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D8%A8%D9%88+%D9%83%D8%B1%D9%8A%D9%85+%D8%B9%D8%B2%D8%A7%D9%84%D8%AF%D9%8A%D9%86+%D9%86%D8%B9%D9%85%D9%87"
+    },
+    {
+      "name": "Yann Selka",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yann+Selka"
+    },
+    {
+      "name": "JimShapedCoding",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=JimShapedCoding"
+    },
+    {
+      "name": "אלום קריסטל",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%9C%D7%95%D7%9D+%D7%A7%D7%A8%D7%99%D7%A1%D7%98%D7%9C"
+    },
+    {
+      "name": "Nadaviral",
+      "order": null,
+      "category": "Юмор",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Nadaviral"
+    },
+    {
+      "name": "ايمان الغزاوية",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D9%8A%D9%85%D8%A7%D9%86+%D8%A7%D9%84%D8%BA%D8%B2%D8%A7%D9%88%D9%8A%D8%A9"
+    },
+    {
+      "name": "ShareLive",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=ShareLive"
+    },
+    {
+      "name": "MasterMiaoMiao",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MasterMiaoMiao"
+    },
+    {
+      "name": "SW -ParkouRandoMan",
+      "order": null,
+      "category": "Спорт",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=SW+-ParkouRandoMan"
+    },
+    {
+      "name": "قنا دينية",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%82%D9%86%D8%A7+%D8%AF%D9%8A%D9%86%D9%8A%D8%A9"
+    },
+    {
+      "name": "James Mate Official",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=James+Mate+Official"
+    },
+    {
+      "name": "Yona Elfassi",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yona+Elfassi"
+    },
+    {
+      "name": "دحية روووعة",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%AF%D8%AD%D9%8A%D8%A9+%D8%B1%D9%88%D9%88%D9%88%D8%B9%D8%A9"
+    },
+    {
+      "name": "Sarita Lama Tamang",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sarita+Lama+Tamang"
+    },
+    {
+      "name": "KeryLad",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=KeryLad"
+    },
+    {
+      "name": "SonicBomber",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=SonicBomber"
+    },
+    {
+      "name": "الجنرال فايز الدويري",
+      "order": null,
+      "category": "Новости и общество",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D9%84%D8%AC%D9%86%D8%B1%D8%A7%D9%84+%D9%81%D8%A7%D9%8A%D8%B2+%D8%A7%D9%84%D8%AF%D9%88%D9%8A%D8%B1%D9%8A"
+    },
+    {
+      "name": "Mona Shabib 🇵🇸",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mona+Shabib+%F0%9F%87%B5%F0%9F%87%B8"
+    },
+    {
+      "name": "Tay",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Tay"
+    },
+    {
+      "name": "AbbVie Israel",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AbbVie+Israel"
+    },
+    {
+      "name": "Ольга",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9E%D0%BB%D1%8C%D0%B3%D0%B0"
+    },
+    {
+      "name": "Юлия Шварц",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%AE%D0%BB%D0%B8%D1%8F+%D0%A8%D0%B2%D0%B0%D1%80%D1%86"
+    },
+    {
+      "name": "Moran Sharon Wollach",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Moran+Sharon+Wollach"
+    },
+    {
+      "name": "Tossler",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Tossler"
+    },
+    {
+      "name": "Yannis",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yannis"
+    },
+    {
+      "name": "Shay Wize",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Shay+Wize"
+    },
+    {
+      "name": "Антон Панов",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%90%D0%BD%D1%82%D0%BE%D0%BD+%D0%9F%D0%B0%D0%BD%D0%BE%D0%B2"
+    },
+    {
+      "name": "EverythingTV",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=EverythingTV"
+    },
+    {
+      "name": "Kayreku",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Kayreku"
+    },
+    {
+      "name": "Mashke L'Chaim",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mashke+L%27Chaim"
+    },
+    {
+      "name": "TheCreeperGuy777",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TheCreeperGuy777"
+    },
+    {
+      "name": "Ionatan Muchnik",
+      "order": null,
+      "category": "Путешествия и события",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ionatan+Muchnik"
+    },
+    {
+      "name": "אשובה תנועה לתשובה מאהבה",
+      "order": null,
+      "category": "Образование",
+      "fit": "Образование",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%A9%D7%95%D7%91%D7%94+%D7%AA%D7%A0%D7%95%D7%A2%D7%94+%D7%9C%D7%AA%D7%A9%D7%95%D7%91%D7%94+%D7%9E%D7%90%D7%94%D7%91%D7%94"
+    },
+    {
+      "name": "armysimp",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=armysimp"
+    },
+    {
+      "name": "MysticPaws",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MysticPaws"
+    },
+    {
+      "name": "Bolter21Mapping",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Bolter21Mapping"
+    },
+    {
+      "name": "ЛиЦа Израиля&Faces of Israel",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%9B%D0%B8%D0%A6%D0%B0+%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8F%26Faces+of+Israel"
+    },
+    {
+      "name": "Sheyk",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sheyk"
+    },
+    {
+      "name": "IdanSentai.Crafts",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=IdanSentai.Crafts"
+    },
+    {
+      "name": "Max",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Max"
+    },
+    {
+      "name": "PS_SALEH",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=PS_SALEH"
+    },
+    {
+      "name": "INFINITY MUSIC",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=INFINITY+MUSIC"
+    },
+    {
+      "name": "rasta frequency תדר הראסטה",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=rasta+frequency+%D7%AA%D7%93%D7%A8+%D7%94%D7%A8%D7%90%D7%A1%D7%98%D7%94"
+    },
+    {
+      "name": "Lol E Pop",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Lol+E+Pop"
+    },
+    {
+      "name": "AD Blader",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AD+Blader"
+    },
+    {
+      "name": "Goddess TV",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Goddess+TV"
+    },
+    {
+      "name": "CHAMPIONTIPS",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=CHAMPIONTIPS"
+    },
+    {
+      "name": "BRG Music",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BRG+Music"
+    },
+    {
+      "name": "RoboToon",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=RoboToon"
+    },
+    {
+      "name": "7sukuyomi",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=7sukuyomi"
+    },
+    {
+      "name": "JustPierre",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=JustPierre"
+    },
+    {
+      "name": "SIMON PETER",
+      "order": null,
+      "category": "Образование",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=SIMON+PETER"
+    },
+    {
+      "name": "xD",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=xD"
+    },
+    {
+      "name": "Радужный мир",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D0%A0%D0%B0%D0%B4%D1%83%D0%B6%D0%BD%D1%8B%D0%B9+%D0%BC%D0%B8%D1%80"
+    },
+    {
+      "name": "Planet 6 TV",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Planet+6+TV"
+    },
+    {
+      "name": "ortal cohen",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=ortal+cohen"
+    },
+    {
+      "name": "قرآن كريم. 🤍",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%82%D8%B1%D8%A2%D9%86+%D9%83%D8%B1%D9%8A%D9%85.+%F0%9F%A4%8D"
+    },
+    {
+      "name": "NetaGamesMan",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=NetaGamesMan"
+    },
+    {
+      "name": "Amit Mazor",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Amit+Mazor"
+    },
+    {
+      "name": "Persival",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Persival"
+    },
+    {
+      "name": "BebaBoba Nicky Bres",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BebaBoba+Nicky+Bres"
+    },
+    {
+      "name": "Sanity Box",
+      "order": null,
+      "category": "Юмор",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sanity+Box"
+    },
+    {
+      "name": "YoCo Fishing",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=YoCo+Fishing"
+    },
+    {
+      "name": "y.o top game",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=y.o+top+game"
+    },
+    {
+      "name": "Too reaction",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Too+reaction"
+    },
+    {
+      "name": "Maor Gold",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Maor+Gold"
+    },
+    {
+      "name": "Slavik Miler Fitness",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Slavik+Miler+Fitness"
+    },
+    {
+      "name": "Kallyz Brand",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Kallyz+Brand"
+    },
+    {
+      "name": "NegevMas Media Max",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=NegevMas+Media+Max"
+    },
+    {
+      "name": "TrueYahli",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TrueYahli"
+    },
+    {
+      "name": "UrTech Therapist",
+      "order": null,
+      "category": "Наука и технологии",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=UrTech+Therapist"
+    },
+    {
+      "name": "FantaXcola",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=FantaXcola"
+    },
+    {
+      "name": "Zohar",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Zohar"
+    },
+    {
+      "name": "Liel Animations",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Liel+Animations"
+    },
+    {
+      "name": "Home Chef Mum & Dad",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Home+Chef+Mum+%26+Dad"
+    },
+    {
+      "name": "Microzz",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Microzz"
+    },
+    {
+      "name": "YuvalFN",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=YuvalFN"
+    },
+    {
+      "name": "SatlaGamer",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=SatlaGamer"
+    },
+    {
+      "name": "Alessidu",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Alessidu"
+    },
+    {
+      "name": "Maya Malka",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Maya+Malka"
+    },
+    {
+      "name": "Assault M16",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Assault+M16"
+    },
+    {
+      "name": "Alkofiya",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Alkofiya"
+    },
+    {
+      "name": "GagaGucc",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=GagaGucc"
+    },
+    {
+      "name": "Ameer",
+      "order": null,
+      "category": "Авто",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ameer"
+    },
+    {
+      "name": "Gofa",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Gofa"
+    },
+    {
+      "name": "Sweaty Pika",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sweaty+Pika"
+    },
+    {
+      "name": "Minoral Games",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Minoral+Games"
+    },
+    {
+      "name": "Ariel's Here",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ariel%27s+Here"
+    },
+    {
+      "name": "Chri$ zX",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Chri%24+zX"
+    },
+    {
+      "name": "Mohammed Alhaj",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mohammed+Alhaj"
+    },
+    {
+      "name": "TopCraft",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TopCraft"
+    },
+    {
+      "name": "Yahel Tov",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Yahel+Tov"
+    },
+    {
+      "name": "احمد ابو تركي قران quran",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%A7%D8%AD%D9%85%D8%AF+%D8%A7%D8%A8%D9%88+%D8%AA%D8%B1%D9%83%D9%8A+%D9%82%D8%B1%D8%A7%D9%86+quran"
+    },
+    {
+      "name": "رضاك ربي غايتي",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D8%B1%D8%B6%D8%A7%D9%83+%D8%B1%D8%A8%D9%8A+%D8%BA%D8%A7%D9%8A%D8%AA%D9%8A"
+    },
+    {
+      "name": "Adam Artz",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Adam+Artz"
+    },
+    {
+      "name": "3lackSun",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=3lackSun"
+    },
+    {
+      "name": "Slumpi",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Slumpi"
+    },
+    {
+      "name": "ASLN",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=ASLN"
+    },
+    {
+      "name": "TheGachaSimp",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=TheGachaSimp"
+    },
+    {
+      "name": "Un-box with me",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Un-box+with+me"
+    },
+    {
+      "name": "Triple_D",
+      "order": null,
+      "category": "Кино и анимация",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Triple_D"
+    },
+    {
+      "name": "AdamEdits",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AdamEdits"
+    },
+    {
+      "name": "Xuph",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Xuph"
+    },
+    {
+      "name": "Luxoos",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Luxoos"
+    },
+    {
+      "name": "Aviad Sverdloff",
+      "order": null,
+      "category": "Юмор",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Aviad+Sverdloff"
+    },
+    {
+      "name": "Solero",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Solero"
+    },
+    {
+      "name": "Raaaninn",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Raaaninn"
+    },
+    {
+      "name": "Swisa",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Swisa"
+    },
+    {
+      "name": "StupidOK",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=StupidOK"
+    },
+    {
+      "name": "محمد وادي Mohamad wadi",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Likely non-Hebrew / multilingual",
+      "url": "https://www.youtube.com/results?search_query=%D9%85%D8%AD%D9%85%D8%AF+%D9%88%D8%A7%D8%AF%D9%8A+Mohamad+wadi"
+    },
+    {
+      "name": "Sploberrie",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sploberrie"
+    },
+    {
+      "name": "SScreenGlitch",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=SScreenGlitch"
+    },
+    {
+      "name": "Dan Azulai",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Dan+Azulai"
+    },
+    {
+      "name": "Sago🎼🎶",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Sago%F0%9F%8E%BC%F0%9F%8E%B6"
+    },
+    {
+      "name": "graffffff",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=graffffff"
+    },
+    {
+      "name": "Eran Gabay",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Eran+Gabay"
+    },
+    {
+      "name": "JERUSALEM — Capital of Israel",
+      "order": null,
+      "category": "Музыка",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=JERUSALEM+%E2%80%94+Capital+of+Israel"
+    },
+    {
+      "name": "Antonios1198",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Antonios1198"
+    },
+    {
+      "name": "LIOR-MR",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=LIOR-MR"
+    },
+    {
+      "name": "AmeerSirhan99",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=AmeerSirhan99"
+    },
+    {
+      "name": "Harmony Vibes Flow",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Harmony+Vibes+Flow"
+    },
+    {
+      "name": "MsZilla",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MsZilla"
+    },
+    {
+      "name": "mohammed nabahin",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=mohammed+nabahin"
+    },
+    {
+      "name": "Ahmed Qeshta Dev",
+      "order": null,
+      "category": "Юмор",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Ahmed+Qeshta+Dev"
+    },
+    {
+      "name": "Autism Is Awesome",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Autism+Is+Awesome"
+    },
+    {
+      "name": "אמה לייף🍞👑",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "Развлечения",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%90%D7%9E%D7%94+%D7%9C%D7%99%D7%99%D7%A3%F0%9F%8D%9E%F0%9F%91%91"
+    },
+    {
+      "name": "Nat Shorts",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Nat+Shorts"
+    },
+    {
+      "name": "Mr. T",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Mr.+T"
+    },
+    {
+      "name": "Magnus",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Magnus"
+    },
+    {
+      "name": "MakeMySims",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=MakeMySims"
+    },
+    {
+      "name": "Grandfather",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Grandfather"
+    },
+    {
+      "name": "mohamad KING.A.M",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=mohamad+KING.A.M"
+    },
+    {
+      "name": "Brand_design",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Brand_design"
+    },
+    {
+      "name": "Anaelle Dagan",
+      "order": null,
+      "category": "Практика и стиль",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Anaelle+Dagan"
+    },
+    {
+      "name": "HyperTV",
+      "order": null,
+      "category": "Развлечения",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=HyperTV"
+    },
+    {
+      "name": "game zap",
+      "order": null,
+      "category": "Люди и блоги",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=game+zap"
+    },
+    {
+      "name": "Oucu",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Oucu"
+    },
+    {
+      "name": "B B",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=B+B"
+    },
+    {
+      "name": "BeastSmoke",
+      "order": null,
+      "category": "Без достаточно точной категории",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BeastSmoke"
+    },
+    {
+      "name": "BurntToasTJ",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BurntToasTJ"
+    },
+    {
+      "name": "BitKit",
+      "order": null,
+      "category": "Игры",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=BitKit"
+    },
+    {
+      "name": "Super Kora",
+      "order": null,
+      "category": "Спорт",
+      "fit": "не оценено",
+      "language": "Language QA required",
+      "url": "https://www.youtube.com/results?search_query=Super+Kora"
+    },
+    {
+      "name": "עומר",
+      "order": null,
+      "category": "Образование",
+      "fit": "Образование",
+      "language": "Hebrew-first baseline",
+      "url": "https://www.youtube.com/results?search_query=%D7%A2%D7%95%D7%9E%D7%A8"
+    }
+  ]
+}

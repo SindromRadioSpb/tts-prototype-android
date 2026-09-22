@@ -65,14 +65,16 @@
     members(d.saved); if (options.publicOnly && d.saved.length) fail('MEDIATHEQUE_PRIVATE_REFERENCE');
     const ids = new Set();
     const entities = (xs, max, type) => list(xs, max).forEach(e => {
-      exact(e, type === 'category' ? ['id', 'title', 'description', 'parentId', 'items'] : ['id', 'title', 'description', 'pinned', 'items']);
+      exact(e, type === 'category' ? ['id', 'title', 'description', 'parentId', 'items'] : ['id', 'title', 'description', 'pinned', 'items', 'categoryId']);
       identifier(e.id); if (ids.has(e.id)) fail(); ids.add(e.id);
       string(e.title, 200); string(e.description, 2000, false); members(e.items);
       if (type === 'category' && e.parentId !== null) identifier(e.parentId);
       if (type === 'collection' && typeof e.pinned !== 'boolean') fail();
+      if (type === 'collection' && e.categoryId != null) identifier(e.categoryId);
     });
     entities(d.categories, LIMITS.categories, 'category'); entities(d.collections, LIMITS.collections, 'collection');
     const parents = new Map(d.categories.map(c => [c.id, c.parentId]));
+    for (const c of d.collections) if (c.categoryId && !parents.has(c.categoryId)) fail('MEDIATHEQUE_PARENT_MISSING');
     for (const c of d.categories) {
       const seen = new Set([c.id]); let p = c.parentId;
       while (p !== null) {
@@ -138,6 +140,7 @@
         if (cmd.children !== 'lift' && cmd.children !== 'subtree') fail();
         const removed = cmd.children === 'subtree' ? descendants(d, e.id) : new Set([e.id]);
         d.categories = d.categories.filter(c => !removed.has(c.id));
+        for (const c of d.collections) if (removed.has(c.categoryId)) c.categoryId = null;
         for (const c of d.categories) if (c.parentId === e.id) c.parentId = e.parentId;
         removed.forEach(id => remapViews('category', id, null)); break;
       }
@@ -146,11 +149,13 @@
         if (descendants(d, from.id).has(to.id)) fail('MEDIATHEQUE_CYCLE');
         to.items = unique(to.items.concat(from.items));
         for (const c of d.categories) if (c.parentId === from.id) c.parentId = to.id;
+        for (const c of d.collections) if (c.categoryId === from.id) c.categoryId = to.id;
         d.categories = d.categories.filter(c => c.id !== from.id); remapViews('category', from.id, to.id); break;
       }
-      case 'collection.create': d.collections.push({ id: cmd.id, title: cmd.title, description: cmd.description || '', pinned: false, items: [] }); break;
+      case 'collection.create': d.collections.push({ id: cmd.id, title: cmd.title, description: cmd.description || '', pinned: false, items: [], ...(cmd.categoryId !== undefined ? { categoryId: cmd.categoryId || null } : {}) }); break;
       case 'collection.update': {
-        const e = get('collections', cmd.id); e.title = cmd.title; e.description = cmd.description || ''; e.pinned = cmd.pinned === true; break;
+        const e = get('collections', cmd.id); e.title = cmd.title; e.description = cmd.description || ''; e.pinned = cmd.pinned === true;
+        if (cmd.categoryId !== undefined) e.categoryId = cmd.categoryId || null; break;
       }
       case 'collection.remove': get('collections', cmd.id); d.collections = d.collections.filter(c => c.id !== cmd.id); remapViews('collection', cmd.id, null); break;
       case 'collection.order': d.collections = reorder(d.collections, cmd.ids); break;
@@ -215,10 +220,10 @@
   }
   function query(d, prepared, rawFilters = {}) {
     const f = filters(rawFilters), categoryIds = f.category ? descendants(d, f.category) : null;
-    const included = categoryIds ? new Set(d.categories.filter(c => categoryIds.has(c.id)).flatMap(c => c.items)) : null;
+    const included = categoryIds ? new Set([...d.categories.filter(c => categoryIds.has(c.id)).flatMap(c => c.items), ...d.collections.filter(c => categoryIds.has(c.categoryId)).flatMap(c => c.items)]) : null;
     const collection = f.collection ? d.collections.find(c => c.id === f.collection) : null;
     const collectionKeys = f.collection ? new Set(collection ? collection.items : []) : null;
-    const categorized = f.uncategorized ? new Set(d.categories.flatMap(c => c.items)) : null;
+    const categorized = f.uncategorized ? new Set([...d.categories.flatMap(c => c.items), ...d.collections.filter(c => c.categoryId).flatMap(c => c.items)]) : null;
     const tokens = normalize(f.q).split(/\s+/).filter(Boolean), tags = f.tags.map(normalize);
     let items = prepared.items.filter(i => (!included || included.has(i.key)) && (!collectionKeys || collectionKeys.has(i.key))
       && (!categorized || !categorized.has(i.key)) && (!f.kind || i.kind === f.kind) && (!f.source || i.source === f.source)

@@ -16,6 +16,7 @@ const CatalogDiscovery = require("../public/js/catalog-discovery-core.js");
 const PlaybackSource = require('../public/js/playback-source.js');
 const Mediatheque = require('../public/js/mediatheque-core.js');
 const MediathequeMetadata = require('../public/js/mediatheque-metadata.js');
+const MaterialArchive = require('../publication/materialArchive');
 
 const PERMISSIONS = Object.freeze([
   ["PUBLIC_READ", "public_read_allowed"],
@@ -29,6 +30,7 @@ const FORBIDDEN_KEYS = new Set([
   "mentor_memory", "mentor_history", "telegram_identity", "telegram_preferences",
   "absolute_path", "browser_profile_id", "session", "sessions", "consent_records",
   "opfspath", "opfs_path", "sessiononly", "learning_material_task", "apikey", "geminiapikey", "access_token", "pairing_token",
+  "publicstreamurl",
 ]);
 
 function fail(code, status) {
@@ -38,6 +40,7 @@ function fail(code, status) {
   throw error;
 }
 function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
+function assetFileName(asset) { return asset.asset_key + ({'video/mp4':'.mp4','video/webm':'.webm','video/quicktime':'.mov','audio/mp4':'.m4a'}[asset.mime] || '.mp3'); }
 function id(prefix) { return prefix + crypto.randomBytes(12).toString("hex"); }
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -184,7 +187,7 @@ function createPublicationRepo(options = {}) {
   function sourcePath(relative) {
     const rel = String(relative || "").replace(/\\/g, "/");
     if (!rel || rel.startsWith("/") || rel.includes("../") || rel.includes("\0")) fail("SOURCE_SNAPSHOT_INVALID", 400);
-    const roots = [path.resolve(dataDir, "group-corpora"), path.resolve(dataDir, "audio-cache")];
+    const roots = [path.resolve(dataDir, "group-corpora"), path.resolve(dataDir, "audio-cache"), path.resolve(dataDir, "publication-imports")];
     const absolute = path.resolve(dataDir, rel);
     if (!roots.some(root => absolute === root || absolute.startsWith(root + path.sep))) fail("SOURCE_SNAPSHOT_INVALID", 400);
     return absolute;
@@ -220,6 +223,11 @@ function createPublicationRepo(options = {}) {
       else Object.values(value).forEach(collect);
     })(snapshot);
     const assets = [];
+    const media = snapshot?.library?.texts?.[0]?.source_meta?.publication_media;
+    if (media && /^[a-f0-9]{64}$/.test(media.sha256) && ['video/mp4','video/webm','video/quicktime','audio/mpeg','audio/mp4'].includes(media.mime)) {
+      const relativePath = path.posix.join('publication-imports','media',media.sha256);
+      assets.push({asset_key:media.sha256,relative_path:relativePath,bytes:media.bytes,sha256:media.sha256,mime:media.mime});
+    }
     for (const key of [...referenced].sort()) {
       const relativePath = path.posix.join("audio-cache", key + ".mp3");
       const absolute = sourcePath(relativePath);
@@ -417,7 +425,7 @@ function createPublicationRepo(options = {}) {
     });
   }
 
-  async function applyRightsPreset(actor, corpusId, input, opts) {
+  async function applyRightsPreset(actor, corpusId, input, opts, editorial = false) {
     if (String(actor && actor.role).toLowerCase() !== "owner") fail("PUBLISHER_FORBIDDEN", 403);
     const itemIds = Array.isArray(input && input.itemIds) ? [...new Set(input.itemIds.map(value => cleanId(value, "PUBLICATION_INPUT_INVALID")))] : [];
     const preset = input && input.preset || {};
@@ -425,7 +433,7 @@ function createPublicationRepo(options = {}) {
     const dateMatch = basis.match(/(\d{4})_(\d{2})_(\d{2})$/);
     const basisDate = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}` : "";
     if (!itemIds.length || itemIds.length > 1000 || !/^OWNER_ATTESTATION_(?:[A-Z0-9]+_)*\d{4}_\d{2}_\d{2}$/.test(basis) || preset.asserted_at !== basisDate
-        || preset.public_read_allowed !== true || preset.public_stream_allowed !== true || preset.package_download_allowed !== true)
+        || preset.public_read_allowed !== true || (editorial ? typeof preset.public_stream_allowed !== 'boolean' || typeof preset.package_download_allowed !== 'boolean' : preset.public_stream_allowed !== true || preset.package_download_allowed !== true))
       fail("RIGHTS_PRESET_INVALID", 400);
     const expectedVersion = Number(input && input.expectedVersion);
     const request = { corpusId, itemIds, expectedVersion, preset };
@@ -484,7 +492,7 @@ function createPublicationRepo(options = {}) {
           const assets = [];
           if (streamAllowed || downloadAllowed) {
             for (const asset of checkedItem.available_assets) {
-              const fileName = asset.asset_key + ".mp3";
+              const fileName = assetFileName(asset);
               let record = stagedAssetByKey.get(asset.asset_key);
               if (!record) {
                 const staged = path.join(stageAbs, "audio", fileName);
@@ -529,7 +537,7 @@ function createPublicationRepo(options = {}) {
         for (const item of manifestItems) archive.addFile(`works/${item.public_work_id}.json`, Buffer.from(item.snapshot_json, "utf8"));
         for (const asset of stagedAssets) {
           if (!asset.package_download_allowed) continue;
-          archive.addLocalFile(path.join(stageAbs, "audio", asset.asset_key + ".mp3"), "audio", asset.asset_key + ".mp3");
+          archive.addLocalFile(path.join(stageAbs, "audio", assetFileName(asset)), "audio", assetFileName(asset));
         }
         archive.addFile("metadata/missing_audio.json", Buffer.from(canonicalJson({
           schema_version: "published_corpus_missing_audio.1.0.0",
@@ -721,6 +729,8 @@ function createPublicationRepo(options = {}) {
       if (Array.isArray(value)) value.forEach(collect);
       else Object.values(value).forEach(collect);
     })(snapshot);
+    const media = snapshot?.library?.texts?.[0]?.source_meta?.publication_media;
+    if (media && /^[a-f0-9]{64}$/.test(media.sha256)) referenced.add(media.sha256);
     let assets = [];
     if (item.public_stream_allowed === 1 && referenced.size) {
       const keys = [...referenced].sort();
@@ -806,6 +816,49 @@ function createPublicationRepo(options = {}) {
   function mediathequeOwner(actor) {
     if (String(actor && actor.role).toLowerCase() !== 'owner') fail('PUBLISHER_FORBIDDEN', 403);
     return actorId(actor);
+  }
+  async function prepareMediathequeArchive(actor, bytes, input = {}) {
+    mediathequeOwner(actor);
+    const parsed = await MaterialArchive.inspectArchive(bytes,input);
+    const token = id('import_');
+    const dir = sourcePath('publication-imports');
+    await fs.promises.mkdir(path.join(dir,'media'),{recursive:true});
+    await fs.promises.mkdir(path.join(dir,'packages'),{recursive:true});
+    const packageSha=MaterialArchive.sha(parsed.packageBytes);
+    await fs.promises.writeFile(path.join(dir,'packages',packageSha+'.zip'),parsed.packageBytes,{flag:'wx'}).catch(error=>{if(error.code!=='EEXIST')throw error;});
+    if(parsed.media) {
+      await fs.promises.writeFile(path.join(dir,'media',parsed.media.sha256),parsed.media.bytes,{flag:'wx'}).catch(error=>{if(error.code!=='EEXIST')throw error;});
+      parsed.snapshot.library.texts[0].source_meta.publication_media={sha256:parsed.media.sha256,mime:parsed.media.mime,bytes:parsed.media.bytes.length};
+    }
+    const prepared={actorId:actorId(actor),createdAt:now(),snapshot:parsed.snapshot,contentRoot:parsed.contentRoot,packageSha,expectedMedia:parsed.expectedMedia};
+    await fs.promises.writeFile(path.join(dir,token+'.json'),JSON.stringify(prepared),{flag:'wx'});
+    return {token,title:parsed.title,rowCount:parsed.rowCount,videoId:parsed.videoId,hasMedia:!!parsed.media,expectedMedia:parsed.expectedMedia,contentRoot:parsed.contentRoot};
+  }
+  async function preparedMediathequeArchive(actor, token) {
+    mediathequeOwner(actor); if(!/^import_[a-f0-9]{24}$/.test(token||''))fail('PUBLICATION_INPUT_INVALID',400);
+    const prepared=parseJson(await fs.promises.readFile(sourcePath('publication-imports/'+token+'.json'),'utf8').catch(()=>fail('SOURCE_SNAPSHOT_INVALID',400)));
+    if(prepared.actorId!==actorId(actor))fail('PUBLISHER_FORBIDDEN',403);
+    return prepared;
+  }
+  async function attachMediathequeMedia(actor, token, bytes) {
+    const prepared=await preparedMediathequeArchive(actor,token), expected=prepared.expectedMedia;
+    if(!Buffer.isBuffer(bytes)||bytes.length>512*1024*1024||MaterialArchive.sha(bytes)!==expected.sha256)fail('MATERIAL_MEDIA_MISMATCH',400);
+    if(!['video/mp4','video/webm','video/quicktime','audio/mpeg','audio/mp4'].includes(expected.mime))fail('PUBLICATION_INPUT_INVALID',400);
+    await fs.promises.writeFile(sourcePath('publication-imports/media/'+expected.sha256),bytes,{flag:'wx'}).catch(error=>{if(error.code!=='EEXIST')throw error;});
+    prepared.snapshot.library.texts[0].source_meta.publication_media={sha256:expected.sha256,mime:expected.mime,bytes:bytes.length};
+    await fs.promises.writeFile(sourcePath('publication-imports/'+token+'.json'),JSON.stringify(prepared));
+    return {hasMedia:true};
+  }
+  async function copyMediathequeArchive(actor, corpusId, input, opts) {
+    const prepared=await preparedMediathequeArchive(actor,input.token);
+    const snapshot=prepared.snapshot,text=snapshot.library.texts[0],meta=text.source_meta;
+    const video=meta.playback_source&&PlaybackSource.selected(meta.playback_source).source;
+    if(!video&&!meta.publication_media)fail('MATERIAL_MEDIA_REQUIRED',400);
+    text.title=cleanText(input.title||text.title,500,true);
+    text.topic=cleanText(input.description,4000);
+    if(meta.source.audio.video)meta.source.audio.video.author=cleanText(input.creator,200);
+    return copyMyTextItems(actor,corpusId,{expectedVersion:input.expectedVersion,items:[{sourceWorkId:'archive_'+prepared.contentRoot,title:text.title,creator:input.creator,
+      expectedAudioCount:meta.publication_media?1:0,snapshot}]},opts);
   }
   async function getMediathequeDraft(actor) {
     mediathequeOwner(actor);
@@ -907,6 +960,8 @@ function createPublicationRepo(options = {}) {
     listPublicCorpora, getPublicCorpus, getPublicLearningIndex, prewarmPublicLearningIndexes, getPublicWork, getPublicAsset, getPublicPackage,
     withdraw, restore, rollback,
     getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, publishMediatheque, rollbackMediatheque,
+    prepareMediathequeArchive, attachMediathequeMedia, copyMediathequeArchive,
+    recordMaterialRights: (actor,corpusId,input,opts)=>applyRightsPreset(actor,corpusId,input,opts,true),
   };
 }
 

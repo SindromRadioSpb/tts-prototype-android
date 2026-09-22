@@ -4705,3 +4705,45 @@ window.I18N_LOCALES.he.studio.importCenter.materialActions = {
   "archiveFilter": "ארכיון",
   "savedRefreshFailed": "השינוי נשמר, אך הרשימה לא התרעננה. סגרו את מרכז הייבוא ופתחו אותו שוב."
 };
+
+Object.assign(window.I18N_LOCALES.he.mediatheque, {
+  "editorialTemplate": "ערוצים וסדרות מהמחקר",
+  "collectionTopic": "נושא / ערוץ",
+  "channelSeries": "אוספים בערוץ",
+  "addPublicMaterial": "הוספת חומר",
+  "publisherTitle": "הוספה לספרייה הציבורית",
+  "publisherIntro": "העלו ארכיון לימודי. סרטוני YouTube נשארים ב־YouTube; חומר הלימוד נשמר בשרת. מגבלת קובץ: 512 MB.",
+  "learningArchive": "ארכיון לימודי ZIP",
+  "playbackSource": "מקור הניגון",
+  "attachedMedia": "מדיה בארכיון או בקובץ נפרד",
+  "youtubeLink": "קישור YouTube (אם חסר בארכיון)",
+  "separateMedia": "קובץ מדיה נפרד (במצב מדיה)",
+  "checkArchive": "בדיקת הארכיון",
+  "publisherDetails": "שם ומיקום בספרייה",
+  "archiveChecked": "הארכיון אומת: {count} שורות",
+  "none": "לא נבחר",
+  "newChannel": "או יצירת נושא / ערוץ",
+  "newSeries": "או יצירת אוסף",
+  "publicationRights": "אני מאשר/ת שיש לי זכות לפרסם את חומר הלימוד והמדיה שנבחרה לציבור.",
+  "allowPackageDownload": "לאפשר הורדה של חבילת הלימוד שפורסמה",
+  "preparePublication": "הכנת תצוגה מקדימה",
+  "publicationPreviewHelp": "תפורסם מהדורה חדשה של הערוץ עם כל החומרים המפורטים. לאחר מכן יש לאשר את עדכון מבנה הספרייה.",
+  "publicationStorageHelp": "סרטוני YouTube אינם מועתקים לשרת. במצב מדיה הקובץ שהועלה נשמר ומוזרם מהשרת.",
+  "archiveSourceMismatch": "קישור YouTube אינו תואם למקור הארכיון. בדקו את הפרק.",
+  "archiveMediaMismatch": "קובץ המדיה אינו תואם לחתימת הארכיון.",
+  "archiveMediaRequired": "בחרו את קובץ המדיה התואם לארכיון.",
+  "archiveTopicMismatch": "האוסף שנבחר שייך לנושא אחר.",
+  "archiveInvalid": "לא ניתן לאמת את הארכיון או המקור. נדרש ייצוא חבילת לימוד של LinguistPro (ZIP או lpmedia.zip)."
+});
+window.I18N_LOCALES.he.mediatheque.changeFields.categoryId = "נושא / ערוץ";
+
+Object.assign(window.I18N_LOCALES.he.mediatheque, {
+  "seriesCount": "אוספים: {count}",
+  "publicChannels": "ערוצים ונושאים",
+  "publicChannelsHelp": "בחרו ערוץ, ואחריו סדרה או פרק ללימוד.",
+  "researchReserve": "מחקר: 500 ערוצים",
+  "researchReserveHelp": "תחילה מוצגים 50 המומלצים ממחקר 14 בספטמבר. החיפוש כולל 500 מועמדים. יש לבדוק שפה ומקור לפני הוספת פרקים. נושא ריק מוצג רק לעורך.",
+  "openResearchSource": "חיפוש הערוץ ב־YouTube"
+});
+
+window.I18N_LOCALES.he.mediatheque.archiveAlreadyAdded="הארכיון כבר נוסף לערוץ. מצאו את החומר בספרייה והוסיפו אותו לאוסף הרצוי.";

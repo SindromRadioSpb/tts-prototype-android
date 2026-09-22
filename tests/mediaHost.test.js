@@ -11,6 +11,16 @@ const AT = require("../public/js/asr-transcript.js");
 
 const deps = { AT, appVersion: "test" };
 
+test('authorized same-origin public media streams without reading OPFS or buffering a blob',async()=>{
+  let reads=0;
+  const sandbox={window:{MediaStore:{mediaFileName:()=>'',readMedia:async()=>{reads++;return null;}}},document:{},module:{exports:{}},Blob};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../public/js/media-host.js'),'utf8'),sandbox);
+  const resolver=sandbox.module.exports.createBlobResolver({}),url='/api/public-corpora/channel-one/assets/'+'a'.repeat(64);
+  const result=await resolver.resolve({media:{sha256:'a'.repeat(64),mime:'video/mp4',publicStreamUrl:url}});
+  assert.equal(result.publicStreamUrl,url);assert.equal(result.type,'video/mp4');assert.equal(reads,0);
+  assert.equal(await resolver.resolve({media:{publicStreamUrl:'https://external.example/video.mp4'}}),null);
+});
+
 test('ASR clock rejection survives reopening without becoming an alignment failure', () => {
   for (const diagnosis of [{timingDropReason:'ASR_CLOCK_UNVERIFIED'},
     {captions:{timing:{verdict:'suspect'}}}]) {

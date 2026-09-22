@@ -1,0 +1,38 @@
+[
+  {
+    "channel": "KAN11",
+    "page": "https://www.youtube.com/@KAN11/playlists",
+    "title": "אויבים עונה 5 | פרקים מלאים",
+    "id": "PLACmvHcJM5hc",
+    "url": "https://www.youtube.com/playlist?list=PLACmvHcJM5hc",
+    "checkedAt": "2026-09-22T14:12:57.348Z",
+    "evidence": "public channel playlist page ytInitialData"
+  },
+  {
+    "channel": "KAN11",
+    "page": "https://www.youtube.com/@KAN11/playlists",
+    "title": "בהסתורה | פרקים מלאים",
+    "id": "PLLttfoK87AdVR7-cie-X399xtRyciGliu",
+    "url": "https://www.youtube.com/playlist?list=PLLttfoK87AdVR7-cie-X399xtRyciGliu",
+    "checkedAt": "2026-09-22T14:12:57.349Z",
+    "evidence": "public channel playlist page ytInitialData"
+  },
+  {
+    "channel": "C14news",
+    "page": "https://www.youtube.com/@C14news/playlists",
+    "title": "הדרום הפרוע",
+    "id": "PL8E54R76rowC7vgiKuV2jfjeF3M-sbqcE",
+    "url": "https://www.youtube.com/playlist?list=PL8E54R76rowC7vgiKuV2jfjeF3M-sbqcE",
+    "checkedAt": "2026-09-22T14:12:57.596Z",
+    "evidence": "public channel playlist page ytInitialData"
+  },
+  {
+    "channel": "C14news",
+    "page": "https://www.youtube.com/@C14news/playlists",
+    "title": "תוכנית חומש",
+    "id": "PL8E54R76rowDtQESYPqhis-w6eFiCed7D",
+    "url": "https://www.youtube.com/playlist?list=PL8E54R76rowDtQESYPqhis-w6eFiCed7D",
+    "checkedAt": "2026-09-22T14:12:57.596Z",
+    "evidence": "public channel playlist page ytInitialData"
+  }
+]

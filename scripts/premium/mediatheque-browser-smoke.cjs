@@ -16,7 +16,7 @@ fs.mkdirSync(OUT,{recursive:true});
 async function ready(page){await page.locator('#ml-root[aria-busy="false"]').waitFor({timeout:60000});}
 async function act(page,action){await page.locator('[data-action="'+action+'"]').first().click();}
 async function submit(page){await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden',timeout:10000});}
-async function structure(page){return page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return db.getMediathequeStructure();});}
+async function structure(page){return page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');return db.getMediathequeStructure();});}
 async function shot(page,name){await page.locator('#ml-status:empty').waitFor({state:'attached',timeout:13000});await page.screenshot({path:path.join(OUT,name+'.png')});const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);check(name+' no horizontal overflow',!overflow);evidence.screenshots.push(name+'.png');}
 async function post(page,url,body,headers={}){return page.evaluate(async({url,body,headers})=>{const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-LP-CSRF':localStorage.getItem('cloud.csrf')||'','X-Idempotency-Key':crypto.randomUUID(),...headers},body:JSON.stringify(body)});return {status:response.status,...await response.json()};},{url,body,headers});}
 async function publishFixture(page){
@@ -28,7 +28,7 @@ async function publishFixture(page){
 }
 async function personal(page){
  await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);
- const before=await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');
+ const before=await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');
   for(let n=0;n<45;n++){const id='ml-fixture-'+String(n).padStart(2,'0');await db.createText({id,text_key:id,title:n===0?'שָׁלוֹם — Жизнь в Израиле':n===1?'Интервью о космосе':'Учебный материал '+String(n).padStart(2,'0'),source:'Тестовый источник',tags_json:JSON.stringify(n===1?['космос']:['иврит']),source_meta_json:n<3?JSON.stringify({source:{audio:{video:{videoId:'iG9CE55wbtY',author:'Тестовый источник'},durationSec:480}}}):'{}'});await db.addSentence(id,{id:'row-'+n,order_index:0,he_plain:'שלום עולם',ru:'Привет, мир'});}
   await db.dbRun("INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,channel,latency_ms,meta_json) VALUES('ml-proof','lemma:proof','review',datetime('now'),3,'fixture','lab',123,'{}')",[]);
   return db.dbQuery('SELECT * FROM review_log ORDER BY id',[]);
@@ -64,7 +64,7 @@ async function personal(page){
  await page.locator('[data-action=layout][data-layout=list]').click();await page.locator('.ml-item .ml-open').click();await page.locator('#roomReader').waitFor({timeout:60000});await page.waitForFunction(()=>document.querySelector('#roomReader')?.innerText.includes('שלום'),null,{timeout:60000});check('material opens original Hebrew rows in Room reader',true);
  const after=await page.evaluate(()=>window.__localDB.dbQuery('SELECT * FROM review_log ORDER BY id',[]));check('organization and reader navigation preserve review_log exactly',JSON.stringify(before)===JSON.stringify(after));
  await page.locator('#readerBack').click();await ready(page);check('reader returns to exact personal search and list view',await page.locator('#ml-search').inputValue()==='космос'&&await page.locator('.ml-materials[data-layout=list]').count()===1&&await page.locator('.ml-item').count()===1);
- await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);check('original 45 materials remain after all organizational edits',await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.dbQuery("SELECT COUNT(*) n FROM texts WHERE id LIKE 'ml-fixture-%'",[]))[0].n===45;}));
+ await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);check('original 45 materials remain after all organizational edits',await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');return (await db.dbQuery("SELECT COUNT(*) n FROM texts WHERE id LIKE 'ml-fixture-%'",[]))[0].n===45;}));
 }
 async function stageTwo(page) {
  await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);
@@ -93,6 +93,8 @@ async function stageTwo(page) {
  await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-form[data-conflict=true]').waitFor();
  check('two-tab conflict preserves entered form and prevents stale overwrite',await page.locator('[name=title]').inputValue()==='Мой несохранённый ввод'&&await page.locator('#ml-form button[type=submit]').isDisabled());
  await act(page,'refresh-structure');check('conflict recovery exposes committed other-tab change',(await structure(page)).structure.categories.some(c=>c.title==='Из другой вкладки'));await act(page,'undo');await other.close();
+ // Closing the second DB client schedules a visible-library refresh; wait for its paint.
+ await page.waitForTimeout(300);
  await act(page,'organize');
  const card=page.locator('.ml-item').nth(12),anchor=card.locator('.ml-open');await anchor.scrollIntoViewIfNeeded();
  const position=await card.evaluate(n=>({key:n.dataset.key,top:n.getBoundingClientRect().top}));await anchor.click();await page.locator('#roomReader').waitFor({timeout:60000});await page.locator('#readerBack').click();await ready(page);
@@ -123,7 +125,7 @@ async function editorial(page,guest){
  await act(guest,'add-item');await guest.locator('[name=newType]').selectOption('category');await guest.locator('[name=newTitle]').fill('Личная тема публичного видео');await submit(guest);
  check('public video can create a private category without editorial writes',(await structure(guest)).structure.categories[0].items.length===1);
  await guest.locator('[data-action=space][data-space=personal]').click();await guest.locator('[data-action=section][data-section=collections]').click();check('public reference saved in visitor personal collection',await guest.locator('.ml-collection').count()===1);
- const saved=await structure(guest);check('saving public reference does not clone material content',await guest.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return (await db.dbQuery('SELECT COUNT(*) n FROM texts',[]))[0].n===0;}));
+ const saved=await structure(guest);check('saving public reference does not clone material content',await guest.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');return (await db.dbQuery('SELECT COUNT(*) n FROM texts',[]))[0].n===0;}));
  const withdrawal=await post(page,`/api/publication/corpora/${corpusId}:withdraw`,{reason:'SYNTHETIC_TEST_WITHDRAWAL'});assert.ok(withdrawal.ok,JSON.stringify(withdrawal));
  await guest.reload();await ready(guest);await guest.locator('.ml-collection a').first().click();check('withdrawn public material remains an honest unavailable personal reference',(await guest.locator('.ml-item').innerText()).includes('недоступ'));
  check('withdrawal does not rewrite private collection',JSON.stringify((await structure(guest)).structure)===JSON.stringify(saved.structure));
@@ -132,7 +134,7 @@ async function offline(browser){
  const context=await browser.newContext({viewport:{width:1280,height:900}}),page=await context.newPage();
  page.on('pageerror',e=>evidence.errors.push(e.message));
  await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);
- await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');await db.createText({id:'offline-proof',text_key:'offline-proof',title:'Офлайн-материал'});await db.addSentence('offline-proof',{id:'offline-row',order_index:0,he_plain:'שלום',ru:'Привет'});});
+ await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');await db.createText({id:'offline-proof',text_key:'offline-proof',title:'Офлайн-материал'});await db.addSentence('offline-proof',{id:'offline-row',order_index:0,he_plain:'שלום',ru:'Привет'});});
  await page.waitForFunction(()=>navigator.serviceWorker.controller,null,{timeout:90000});
  await context.setOffline(true);await page.reload();await ready(page);await page.locator('.ml-item').waitFor();
  check('fresh service-worker installation supports offline personal catalogue',await page.locator('.ml-item').innerText().then(t=>t.includes('Офлайн-материал')));
@@ -149,7 +151,7 @@ async function offline(browser){
 async function scaleBrowser(browser) {
  const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),page=await context.newPage();
  page.on('pageerror',e=>evidence.errors.push(e.message));await page.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(page);
- await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');await db.dbRun("WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM seq WHERE n<5000) INSERT INTO texts(id,text_key,title,source,source_text,source_meta_json,created_at,updated_at) SELECT 'scale-'||printf('%05d',n),'scale-'||n,'Материал '||printf('%05d',n),'Источник '||(n%250),'שלום','{}',datetime('now'),datetime('now') FROM seq",[]);});
+ await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');await db.dbRun("WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM seq WHERE n<5000) INSERT INTO texts(id,text_key,title,source,source_text,source_meta_json,created_at,updated_at) SELECT 'scale-'||printf('%05d',n),'scale-'||n,'Материал '||printf('%05d',n),'Источник '||(n%250),'שלום','{}',datetime('now'),datetime('now') FROM seq",[]);});
  const start=Date.now();await page.reload();await ready(page);const loadMs=Date.now()-start;
  check('5000-material OPFS library loads within 15 seconds and keeps bounded DOM',loadMs<15000&&await page.locator('.ml-item').count()===36);
  const searchStart=Date.now();await page.locator('#ml-search').fill('04999');await page.waitForFunction(()=>document.querySelectorAll('.ml-item').length===1);const searchMs=Date.now()-searchStart;
@@ -160,12 +162,12 @@ async function management(browser) {
  const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),page=await context.newPage();
  page.on('pageerror',e=>evidence.errors.push(e.message));
  await page.goto(BASE+'/mediatheque.html?space=personal&section=topics');await ready(page);
- await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');
+ await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');
   await db.createText({id:'management-video',text_key:'management-video',title:'Видео для проверки управления',source_meta_json:JSON.stringify({source:{audio:{video:{videoId:'iG9CE55wbtY'},durationSec:480}}})});
   await db.addSentence('management-video',{id:'management-row',order_index:0,he_plain:'שלום',ru:'Привет'});
   await db.dbRun("INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,channel,latency_ms,meta_json) VALUES('management-review','lemma:proof','review',datetime('now'),3,'fixture','lab',123,'{}')",[]);
  });
- const contents=()=>page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return JSON.stringify(await Promise.all(['texts','sentences','review_log'].map(table=>db.dbQuery('SELECT * FROM '+table+' ORDER BY id',[]))));});
+ const contents=()=>page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545');return JSON.stringify(await Promise.all(['texts','sentences','review_log'].map(table=>db.dbQuery('SELECT * FROM '+table+' ORDER BY id',[]))));});
  const before=await contents();await page.reload();await ready(page);
  await act(page,'new-category');await page.locator('[name=title]').fill('7.10 Чёрная Суббота');await submit(page);
  const root=(await structure(page)).structure.categories[0].id;
@@ -206,7 +208,7 @@ async function management(browser) {
 async function collectionPresentation(browser) {
  const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),page=await context.newPage();
  page.on('pageerror',e=>evidence.errors.push(e.message));await page.goto(BASE+'/mediatheque.html?space=personal&section=collections');await ready(page);
- await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520'),C=window.MediathequeCore;let d=C.empty();
+ await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=545'),C=window.MediathequeCore;let d=C.empty();
   for(let n=0;n<3;n++){await db.createText({id:'cover-'+n,text_key:'cover-'+n,title:'Материал '+(n+1)});}
   for(let count=0;count<=3;count++){d=C.command(d,{type:'collection.create',id:'cover-list-'+count,title:'Подборка '+count});if(count)d=C.command(d,{type:'items.add',target:'collection',id:'cover-list-'+count,references:Array.from({length:count},(_,n)=>({kind:'personal',textKey:'cover-'+n}))});}
   await db.saveMediathequeStructure(d,0);

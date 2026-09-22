@@ -1,5 +1,7 @@
 import * as localDb from '/db/local-db.js?v=545';
 import './mediatheque-core.js';
+import './mediatheque-editorial-core.js';
+import { openPublisher } from './mediatheque-publisher.js';
 const C = globalThis.MediathequeCore;
 const $ = id => document.getElementById(id);
 const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -13,7 +15,7 @@ const state = { space: 'public', section: 'home', filters: C.filters(), personal
 let toastTimer, searchTimer, lastDialogFocus = null, loadEpoch = 0, dialogAction = null, dialogRevision = null;
 let searchRouteStarted = false;
 let filterDraft = null, topicParent = '', topicQuery = '';
-let projectionInputs = [], topicCounts = new Map();
+let projectionInputs = [], topicCounts = new Map(), topicSamples = new Map();
 let updateWorker = null, updateRequired = false, updateRequested = false, updateReloading = false;
 const wasControlled = !!navigator.serviceWorker?.controller;
 function focusSelector(node) {
@@ -62,16 +64,22 @@ function errorText(error) {
   if (/UNAVAILABLE|REFERENCE_MISSING/.test(code)) return t('referenceUnavailable');
   if (/CYCLE|DEPTH|PARENT/.test(code)) return t('invalidTree');
   if (code === 'DESTINATION_REQUIRED') return t('destinationRequired');
+  if (code === 'SOURCE_ALREADY_COPIED') return t('archiveAlreadyAdded');
+  if (/MATERIAL_SOURCE_MISMATCH/.test(code)) return t('archiveSourceMismatch');
+  if (/MATERIAL_MEDIA_MISMATCH/.test(code)) return t('archiveMediaMismatch');
+  if (/MATERIAL_MEDIA_REQUIRED/.test(code)) return t('archiveMediaRequired');
+  if (/MATERIAL_TOPIC_MISMATCH/.test(code)) return t('archiveTopicMismatch');
+  if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid');
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF/.test(code)) return t('signInOwner');
   return t('failed');
 }
-async function api(path, body) {
+async function api(path, body, idempotencyKey) {
   const headers = { Accept: 'application/json' };
   if (body !== undefined) {
-    headers['Content-Type'] = 'application/json'; headers['X-Idempotency-Key'] = uid();
+    headers['Content-Type'] = 'application/json'; headers['X-Idempotency-Key'] = idempotencyKey || uid();
     try { headers['X-LP-CSRF'] = localStorage.getItem('cloud.csrf') || ''; } catch (_) {}
   }
-  const response = await fetch(path, { signal: AbortSignal.timeout(15000), method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers,
+  const response = await fetch(path, { signal: AbortSignal.timeout(path.includes(':publish') ? 300000 : 30000), method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers,
     body: body === undefined ? undefined : JSON.stringify(body) });
   const json = await response.json().catch(() => ({}));
   if (!response.ok || !json.ok) { const e = new Error(json.error || 'HTTP_' + response.status); e.code = e.message; throw e; }
@@ -167,12 +175,13 @@ function rebuild() {
   }
   state.prepared = C.prepare(d, items);
   const keysByTopic = new Map(d.categories.map(c=>[c.id,new Set()])), parents = new Map(d.categories.map(c=>[c.id,c.parentId]));
-  for (const category of d.categories) for (const key of category.items) {
+  for (const category of [...d.categories, ...d.collections.filter(c=>c.categoryId).map(c=>({id:c.categoryId,items:c.items}))]) for (const key of category.items) {
     if (!state.prepared.byKey.get(key)?.available) continue;
     let id = category.id;
     while (id && keysByTopic.has(id)) { keysByTopic.get(id).add(key); id = parents.get(id); }
   }
   topicCounts = new Map(Array.from(keysByTopic,([id,keys])=>[id,keys.size]));
+  topicSamples = new Map(Array.from(keysByTopic,([id,keys])=>[id,state.prepared.byKey.get(keys.values().next().value)]));
 }
 async function loadLocal() {
   try {
@@ -275,12 +284,20 @@ function collectionHtml(c, index) {
   return `<article class="ml-collection" ${organizeMode() ? `draggable="true" data-drag-type="collection" data-drag-id="${esc(c.id)}"` : ''}>
     <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ collection: c.id }) }))}"><div class="ml-collection-art" data-parts="${parts.length}">${parts.length ? parts.map(i => cover(i, false)).join('') : '<span class="ml-collection-empty" aria-hidden="true">▤</span>'}</div>
     <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: items.length }))}${summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
+    ${c.categoryId ? `<a class="ml-series-source" data-nav dir="auto" href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.categoryId})}))}">${esc(structure().categories.find(x=>x.id===c.categoryId)?.title || '')}</a>` : ''}
     ${c.description ? `<p dir="auto">${esc(c.description)}</p>` : ''}
     ${resume ? `<div class="ml-collection-resume"><a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}</a><span dir="auto">${esc(resume.title)}</span></div>` : ''}
     ${canEdit() ? `<div class="ml-actions">${structureActions('collection', c.id)}${organizeMode() ? orderButtons('collection', c.id, index > 0, index < structure().collections.length - 1) : ''}</div>` : ''}</article>`;
 }
 function categoryCount(id) {
   return topicCounts.get(id) || 0;
+}
+function visibleCollection(c) { return state.space === 'personal' || organizeMode() || c.items.some(k=>state.prepared.byKey.get(k)?.available); }
+function channelCollections(category) {
+  if (!category) return '';
+  const ids = C.descendants(structure(), category.id);
+  const series = structure().collections.filter(c=>ids.has(c.categoryId) && visibleCollection(c));
+  return series.length ? `<section class="ml-channel-series">${sectionHead(t('channelSeries'),'collections',{category:category.id})}<div class="ml-collections">${series.slice(0,12).map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
 }
 function collectionContextHtml(collection) {
   const items = collection.items.map(key=>state.prepared.byKey.get(key)).filter(Boolean), summary=C.durationSummary(items);
@@ -290,7 +307,15 @@ function collectionContextHtml(collection) {
 }
 function topicsOverview() {
   const roots = structure().categories.filter(c => !c.parentId && (state.space === 'personal' || organizeMode() || categoryCount(c.id) > 0));
-  return `<div class="ml-topics-grid">${roots.map(c => `<a class="ml-topic-link" data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}"><span dir="auto">${esc(c.title)}</span><small>${categoryCount(c.id)}</small></a>`).join('')}</div>`;
+  return state.space==='public' ? channelGrid(roots.slice(0,12)) : `<div class="ml-topics-grid">${roots.map(c => `<a class="ml-topic-link" data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}"><span dir="auto">${esc(c.title)}</span><small>${categoryCount(c.id)}</small></a>`).join('')}</div>`;
+}
+function channelGrid(channels) {
+  return `<div class="ml-channel-grid">${channels.map(c=>{
+    const sample=topicSamples.get(c.id);
+    const series=structure().collections.filter(s=>s.categoryId===c.id&&visibleCollection(s));
+    return `<a class="ml-channel-card" data-nav href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.id})}))}">
+      ${sample?cover(sample,false):''}<div class="ml-channel-copy"><h3 dir="auto">${esc(c.title)}</h3><p>${esc(t('materialCount',{count:categoryCount(c.id)}))} · ${esc(t('seriesCount',{count:series.length}))}</p>${series.length?`<span dir="auto">${esc(series.slice(0,3).map(s=>s.title).join(' · '))}</span>`:''}</div></a>`;
+  }).join('')}</div>`;
 }
 function homeHtml() {
   const d = structure(), p = state.prepared, all = p.items.filter(i => i.available);
@@ -303,7 +328,7 @@ function homeHtml() {
       const items = C.query(d, p, { progress: 'in_progress', sort: 'opened_desc' }).filter(i => i.available && i.key !== feature?.key).slice(0, 3);
       if (items.length) html += `<section class="ml-section ml-continue">${sectionHead(t('continueHeading'), 'catalog', { progress: 'in_progress', sort: 'opened_desc' })}<p class="ml-section-note">${esc(t('continueHelp'))}</p>${materialsHtml(items)}</section>`;
     } else if (section === 'pinned') {
-      const pinned = d.collections.filter(c => c.pinned);
+      const pinned = d.collections.filter(c => c.pinned && visibleCollection(c));
       if (pinned.length) html += `<section class="ml-section">${sectionHead(t('pinnedHeading'), 'collections')}<div class="ml-collections">${pinned.slice(0, 6).map(c => collectionHtml(c, d.collections.indexOf(c))).join('')}</div></section>`;
     } else if (section === 'recent' && all.length) {
       const items = C.query(d, p, { sort: 'added_desc' }).filter(i => i.available && i.key !== feature?.key).slice(0, 6);
@@ -403,7 +428,7 @@ function catalogHtml() {
         <div class="ml-result-controls"><select id="ml-sort" aria-label="${esc(t('sortLabel'))}">${C.SORTS.map(s => option(s, t('sort.' + s), f.sort)).join('')}</select>
         <div class="ml-layout-toggle" role="group" aria-label="${esc(t('layout'))}">${['cards','list'].map(l => button('layout', t(l), `data-layout="${l}" aria-pressed="${f.layout === l}"`)).join('')}</div></div></div>
       ${context?.description ? `<p class="ml-tree-description">${esc(context.description)}</p>` : ''}
-      ${collection ? collectionContextHtml(collection) : ''}
+      ${collection ? collectionContextHtml(collection) : ''}${channelCollections(category)}
       ${canEdit() && context ? `<div class="ml-toolbar">${structureActions(collection ? 'collection' : 'category', context.id)}${organizeMode() ? button('assign', t('addSelectedHere'), state.selected.size ? '' : 'disabled') : ''}</div>` : ''}
       ${filtersHtml()}${activeFiltersHtml()}
       <div class="ml-view-controls">${d.views.length ? `<label class="ml-view-select"><span>${esc(t('savedViews'))}</span><select id="ml-view-select" aria-label="${esc(t('savedViews'))}">${option('', t('currentView'), state.viewId)}${d.views.map(v => option(v.id, v.title, state.viewId)).join('')}</select></label>` : ''}
@@ -414,9 +439,17 @@ function catalogHtml() {
       ${pages > 1 ? `<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page', t('previous'), state.page > 1 ? '' : 'disabled')}<span>${state.page} / ${pages}</span>${button('next-page', t('next'), state.page < pages ? '' : 'disabled')}</nav>` : ''}
     </section></div>`;
 }
+function pager(pages) {
+  return pages>1?`<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page',t('previous'),state.page>1?'':'disabled')}<span>${state.page} / ${pages}</span>${button('next-page',t('next'),state.page<pages?'':'disabled')}</nav>`:'';
+}
 function topicsHtml() {
   const d = structure(), tokens = C.normalize(state.topicSearch).split(/\s+/).filter(Boolean), visibleIds = new Set();
   for (const c of d.categories) if (tokens.every(x => C.normalize(c.title + ' ' + c.description).includes(x))) C.categoryPath(d,c.id).forEach(p => visibleIds.add(p.id));
+  if(state.space==='public'&&!organizeMode()) {
+    const channels=d.categories.filter(c=>visibleIds.has(c.id)&&categoryCount(c.id)>0&&(!c.parentId||tokens.length));
+    const pages=Math.max(1,Math.ceil(channels.length/36));state.page=Math.max(1,Math.min(state.page,pages));
+    return `<section><div class="ml-section-head"><div><h2>${esc(t('publicChannels'))}</h2><p>${esc(t('publicChannelsHelp'))}</p></div></div><input class="ml-topic-search" id="ml-topic-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('findTopic'))}" aria-label="${esc(t('findTopic'))}">${channels.length?channelGrid(channels.slice((state.page-1)*36,state.page*36)):`<div class="ml-empty"><p>${esc(t('noTopics'))}</p></div>`}${pager(pages)}</section>`;
+  }
   const level = parentId => d.categories.filter(c => c.parentId === parentId && visibleIds.has(c.id)).map((c) => {
     const siblings = d.categories.filter(x => x.parentId === parentId), index = siblings.indexOf(c), children = d.categories.filter(x => x.parentId === c.id);
     const count = categoryCount(c.id);
@@ -433,16 +466,23 @@ function topicsHtml() {
 }
 function collectionsHtml() {
   const d = structure();
+  if(state.space==='public'&&!organizeMode()) {
+    const ids=state.filters.category?C.descendants(d,state.filters.category):null;
+    const tokens=C.normalize(state.topicSearch).split(/\s+/).filter(Boolean);
+    const series=d.collections.filter(c=>visibleCollection(c)&&(!ids||ids.has(c.categoryId))&&tokens.every(w=>C.normalize(c.title+' '+c.description+' '+(d.categories.find(t=>t.id===c.categoryId)?.title||'')).includes(w)));
+    const pages=Math.max(1,Math.ceil(series.length/24));state.page=Math.max(1,Math.min(state.page,pages));
+    return `<section><div class="ml-section-head"><h2 dir="auto">${esc(d.categories.find(c=>c.id===state.filters.category)?.title||t('collections'))}</h2></div><input class="ml-topic-search" id="ml-collection-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('search'))}" aria-label="${esc(t('search'))}"><div class="ml-collections">${series.slice((state.page-1)*24,state.page*24).map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>${!series.length?`<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`:''}${pager(pages)}</section>`;
+  }
   return `<section class="ml-section"><div class="ml-section-head"><div><h2>${esc(t('collections'))}</h2><p>${esc(t('collectionsHelp'))}</p></div>${canEdit() ? button('new-collection', t('newCollection')) : ''}</div>
-    <div class="ml-collections">${d.collections.map(collectionHtml).join('')}</div>
-    ${d.collections.length ? '' : `<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`}</section>
+    <div class="ml-collections">${d.collections.filter(visibleCollection).map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>
+    ${d.collections.some(visibleCollection) ? '' : `<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`}</section>
     ${d.views.length ? `<section><h2>${esc(t('savedViews'))}</h2>${d.views.map(v => `<div class="ml-view-row"><div><a href="${esc(makeHref({ section: 'catalog', filters: v.filters, viewId: v.id }))}" data-action="use-view" data-id="${esc(v.id)}">${esc(v.title)}</a><p>${esc(t('dynamicView'))}</p></div>
       <div class="ml-actions">${button('view-rules',t('viewRules'),`data-id="${esc(v.id)}"`)}${canEdit() ? button('delete-view', t('delete'), `data-id="${esc(v.id)}"`, 'ml-quiet') : ''}</div></div>`).join('')}</section>` : ''}`;
 }
 function toolbarHtml() {
   if (!organizeMode()) return '';
   return `<div class="ml-toolbar">${button('new-category', t('newCategory'))}${button('new-collection', t('newCollection'))}${button('edit-home', t('editHome'))}
-    ${button('template', t('template'))}${button('undo', t('undo'), documentState().canUndo ? '' : 'disabled')}
+    ${button('template', t('template'))}${state.space === 'public' ? button('editorial-template', t('editorialTemplate'))+button('research-reserve',t('researchReserve')) : ''}${button('undo', t('undo'), documentState().canUndo ? '' : 'disabled')}
     ${state.space === 'personal' ? button('export', t('export')) + button('import', t('import')) : button('preview', t('preview'), '', 'ml-primary') + button('history', t('history'))}</div>`;
 }
 function render() {
@@ -450,11 +490,12 @@ function render() {
   rebuild(); const d = structure();
   const active = state.space === 'personal' ? state.localReady : state.publicReady;
   $('ml-root').setAttribute('aria-busy', String(state.loading));
+  $('ml-root').dataset.space=state.space;
   $('ml-root').classList.toggle('ml-has-selection', organizeMode() && state.selected.size > 0);
   $('ml-root').innerHTML = `<div class="ml-heading"><div class="ml-heading-copy"><h1>${esc(t('title'))}</h1><p>${esc(d.home.title || t(state.space === 'public' ? 'publicSubtitle' : 'personalSubtitle'))}</p></div>
     <div class="ml-actions">${canEdit() && !organizeMode() && documentState().canUndo ? button('undo', t('undo')) : ''}${state.preview ? '' : state.space === 'personal' && state.localReady ? button('organize', t(state.editing ? 'finishEditing' : 'organize'))
       : state.owner ? button('organize', t(state.editing ? 'finishEditing' : 'editPublic')) : ''}
-      ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : ''}</div></div>
+      ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : state.owner && !state.preview ? button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}</div></div>
     <div class="ml-space" role="group" aria-label="${esc(t('space'))}">${button('space', t('public'), 'data-space="public" aria-pressed="' + (state.space === 'public') + '"')}${button('space', t('personal'), 'data-space="personal" aria-pressed="' + (state.space === 'personal') + '"')}</div>
     ${state.preview ? `<div class="ml-banner"><div><strong>${esc(t('previewTitle'))}</strong><p>${esc(t('previewHelp'))}</p></div><div class="ml-actions">${button('publish', t('publish'), '', 'ml-primary')}${button('exit-preview', t('backToDraft'))}</div></div>`
       : state.editing && state.space === 'public' ? `<div class="ml-banner"><span>${esc(t('draftNotice'))} · ${esc(t('revision', { count: state.draft?.revision || 0 }))}</span>${button('preview', t('preview'))}</div>` : ''}
@@ -495,7 +536,7 @@ function changePreviewHtml(before, after) {
   if (!changes.length) return `<p>${esc(t('noChanges'))}</p>`;
   const titleFor = key => state.prepared.byKey.get(key)?.title || t('referenceUnavailable');
   const valueFor = (field, value, document) => {
-    if (field === 'parentId') return document.categories.find(c => c.id === value)?.title || t('rootCategory');
+    if (field === 'parentId' || field === 'categoryId') return document.categories.find(c => c.id === value)?.title || t('rootCategory');
     if (field === 'featured') return value ? titleFor(value) : t('none');
     if (field === 'filters') return filterSummary(value, document);
     if (field === 'sections') return value.map(s => t('section.' + s)).join(', ');
@@ -547,12 +588,13 @@ function editCollection(id) {
   const c = structure().collections.find(x => x.id === id);
   showDialog(t(c ? 'editCollection' : 'newCollection'), `<label>${esc(t('name'))}<input name="title" maxlength="200" required value="${esc(c?.title || '')}"></label>
     <label>${esc(t('description'))}<textarea name="description" maxlength="2000">${esc(c?.description || '')}</textarea></label>
+    <label>${esc(t('collectionTopic'))}<select name="categoryId">${categoryOptions(c?.categoryId || state.filters.category)}</select></label>
     <label class="ml-checkbox"><input type="checkbox" name="pinned" ${c?.pinned ? 'checked' : ''}>${esc(t('pinHome'))}</label>
     ${c ? button('delete-collection', t('delete'), `data-id="${esc(c.id)}"`, 'ml-danger') : ''}${formActions()}`,
   async data => {
     const id = c?.id || uid(); let d = structure();
     if (!c) d = C.command(d, { type: 'collection.create', id, title: data.get('title').trim(), description: data.get('description').trim() });
-    d = C.command(d, { type: 'collection.update', id, title: data.get('title').trim(), description: data.get('description').trim(), pinned: data.has('pinned') });
+    d = C.command(d, { type: 'collection.update', id, title: data.get('title').trim(), description: data.get('description').trim(), pinned: data.has('pinned'), categoryId: data.get('categoryId') || null });
     await formSave(d);
   });
 }
@@ -693,6 +735,13 @@ async function onAction(action, node) {
   if (state.busy && action !== 'cancel-dialog') return;
   const id = node.dataset.id;
   if (action === 'cancel-dialog') return closeDialog();
+  if (action === 'publish-material' && state.owner && state.space === 'public') {
+    state.draft = await api('/api/publication/mediatheque'); state.editing = true; render();
+    return openPublisher({api,t,esc,showDialog,formActions,C,structure,save,
+      reloadPublic:async()=>{await loadPublic();rebuild();},publicItems:()=>state.publicItems,
+      reloadDraft:async()=>{state.draft=await api('/api/publication/mediatheque');},
+      finish:()=>{closeDialog();render();publishDialog();}});
+  }
   if (action === 'update-app') {
     if ($('ml-dialog').open || state.busy) return;
     rememberLocation();
@@ -744,6 +793,24 @@ async function onAction(action, node) {
   if (action === 'edit-home') return editHome();
   if (action === 'feature') { const items = selectedMaterials(); if (items.length === 1) return editHome(items[0].ref); return; }
   if (action === 'template') return templateDialog();
+  if(action==='research-reserve'&&state.space==='public') {
+    const response=await fetch('/data/mediatheque/research-reserve-v1.json');if(!response.ok)throw new Error('MEDIATHEQUE_INVALID');
+    const {candidates}=await response.json();
+    const choices=q=>candidates.map((c,index)=>({c,index})).filter(({c})=>!q?c.order:C.normalize(c.name+' '+c.category+' '+c.fit).includes(C.normalize(q))).slice(0,100).map(({c,index})=>`<option value="${index}" dir="auto">${esc(c.name+' — '+c.category)}</option>`).join('');
+    showDialog(t('researchReserve'),`<p>${esc(t('researchReserveHelp'))}</p><label>${esc(t('search'))}<input id="ml-research-search" type="search"></label><label>${esc(t('collectionTopic'))}<select name="candidate" id="ml-research-candidate" size="8" required>${choices('')}</select></label><a id="ml-research-source" target="_blank" rel="noopener noreferrer">${esc(t('openResearchSource'))}</a>${formActions(t('newCategory'))}`,async data=>{
+      const candidate=candidates[Number(data.get('candidate'))];if(!candidate)throw new Error('MEDIATHEQUE_INVALID');
+      const d=structure();if(d.categories.some(c=>C.normalize(c.title)===C.normalize(candidate.name)))return closeDialog();
+      await formSave(C.command(d,{type:'category.create',id:uid(),title:candidate.name,description:''}));
+    });
+    const select=$('ml-research-candidate'),update=()=>{$('ml-research-source').href=candidates[Number(select.value)]?.url||'https://www.youtube.com/';};
+    $('ml-research-search').addEventListener('input',event=>{select.innerHTML=choices(event.target.value);select.selectedIndex=0;update();});select.addEventListener('change',update);select.selectedIndex=0;update();return;
+  }
+  if (action === 'editorial-template' && state.space === 'public') {
+    const response = await fetch('/data/mediatheque/editorial-seed-v1.json');
+    if (!response.ok) throw new Error('MEDIATHEQUE_INVALID');
+    const seed = await response.json();
+    return previewStructure(globalThis.MediathequeEditorial.applySeed(structure(),seed,state.publicItems),t('editorialTemplate'),t('applyChanges'));
+  }
   if (action === 'import' && state.space === 'personal') return importDialog();
   if (action === 'export' && state.space === 'personal') {
     const blob = new Blob([JSON.stringify(C.exportStructure(structure()), null, 2)], { type: 'application/json' }), url = URL.createObjectURL(blob);
@@ -790,7 +857,7 @@ document.addEventListener('input', event => {
   if (event.target.id === 'ml-picker-search') { topicQuery = event.target.value; $('ml-topic-picker').innerHTML = topicPickerHtml(); }
   if (event.target.dataset.filter === 'source') { const q = C.normalize(event.target.value); $(event.target.getAttribute('list')).innerHTML = Array.from(new Set(state.prepared.items.map(i=>i.source).filter(Boolean))).filter(s=>C.normalize(s).includes(q)).slice(0,80).map(s=>`<option value="${esc(s)}"></option>`).join(''); }
   if (event.target.id === 'ml-search') { clearTimeout(searchTimer); searchTimer = setTimeout(() => { rememberLocation(); state.filters.q = $('ml-search').value; state.section = 'catalog'; state.page = 1; state.selected.clear(); persist(searchRouteStarted ? 'replace' : 'push'); searchRouteStarted = true; render(); }, 200); }
-  if (event.target.id === 'ml-topic-search') { state.topicSearch = event.target.value; render(); }
+  if (['ml-topic-search','ml-collection-search'].includes(event.target.id)) { state.topicSearch = event.target.value; state.page=1; render(); }
 });
 document.addEventListener('change', event => {
   const node = event.target;
