@@ -11,7 +11,7 @@ const { execFile } = require("child_process");
 const http = require("http");
 const archiver = require("archiver");
 const AdmZip = require("adm-zip");
-const { normalizeEvent, anonymousEventKey } = require("./product-pulse/contract");
+const { normalizeEvent, anonymousEventKey, contractManifest } = require("./product-pulse/contract");
 const { createUmamiClient } = require("./product-pulse/umami");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
@@ -1221,7 +1221,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=575",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/js/product-telemetry.js?v=604",
+  "/js/product-telemetry.js?v=605",
   "/i18n/locales/ru.js?v=241",
   "/i18n/locales/en.js?v=241",
   "/i18n/locales/he.js?v=241",
@@ -2516,6 +2516,18 @@ app.post("/api/product-pulse/v1/events", rlProductPulse, async (req, res) => {
     console.warn("[product-pulse] delivery failed:", error && error.message ? error.message : error);
     return res.status(202).json({ ok: true, accepted: false, reason: "delivery_unavailable" });
   }
+});
+
+app.get("/api/product-pulse/v1/contract", async (req, res) => {
+  if (process.env.NODE_ENV === "test" && req.query.preview === "1" && ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(String(req.ip || ""))) {
+    return res.json({ ok: true, contract: contractManifest() });
+  }
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (String(auth.user.role || "").toLowerCase() !== "owner") {
+    return res.status(404).json({ ok: false, error: "not_found" });
+  }
+  res.set("Cache-Control", "private, no-store");
+  return res.json({ ok: true, contract: contractManifest() });
 });
 
 app.get("/api/product-pulse/v1/dashboard", async (req, res) => {

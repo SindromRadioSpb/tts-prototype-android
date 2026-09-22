@@ -92,6 +92,20 @@ This document describes all environment variables and configuration options for 
 
 **CLI fallback:** `scripts/research/create_cohort.js` still works as the operator-side fallback (e.g. if the in-UI form is broken or if you prefer a scripted workflow). Both paths share the same `research/storage.createCohort()` and produce identical `cohort_meta.json`.
 
+### Product Pulse / self-hosted Umami
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PRODUCT_PULSE_ENABLED` | `0` | Explicit gate; analytics delivery stays disabled unless this is truthy and both Umami location fields are present. |
+| `UMAMI_BASE_URL` | — | HTTPS origin of the self-hosted Umami instance; plain HTTP is accepted only for loopback development. |
+| `UMAMI_WEBSITE_ID` | — | Umami website UUID used for ingest and owner dashboard reads. |
+| `UMAMI_API_TOKEN` | — | Preferred server-side read token when supported; never exposed to the browser. |
+| `UMAMI_USERNAME` | — | Server-side Umami login fallback for dashboard reads. |
+| `UMAMI_PASSWORD` | — | Server-side Umami password fallback; keep only in secret environment storage. |
+| `PRODUCT_PULSE_HOSTNAME` | `linguistpro.kolosei.com` | Canonical hostname written to Umami events. |
+
+The browser sends only the allowlisted contract to the same-origin endpoint. It never receives Umami credentials. Deployment details are in `deploy/umami/README.md`; the canonical data contract is `docs/PRODUCT_PULSE.md`.
+
 ### OSF Integration (preregistration + replication package)
 
 | Variable | Default | Description |

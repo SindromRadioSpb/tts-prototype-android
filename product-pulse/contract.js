@@ -3,19 +3,118 @@
 const crypto = require("crypto");
 
 const SCHEMA_VERSION = 1;
-const EVENT_NAMES = new Set([
-  "app_open",
-  "material_open",
-  "study_started",
-  "study_engaged",
-  "study_completed",
-  "audio_engaged",
-  "operation_result",
+
+// This manifest is the single machine-readable description of the public
+// Product Pulse contract. The validator, owner panel and contract endpoint all
+// derive from it so a new allowlisted event cannot remain undocumented.
+const EVENT_DEFINITIONS = Object.freeze([
+  Object.freeze({
+    name: "app_open",
+    title: "Открытие приложения",
+    definition: "Оболочка LinguistPro загрузилась в текущей вкладке.",
+    collection: "automatic",
+    trigger: "Один раз при запуске каждой поддерживаемой поверхности во вкладке.",
+    properties_used: Object.freeze(["surface"]),
+  }),
+  Object.freeze({
+    name: "material_open",
+    title: "Открытие материала",
+    definition: "Пользователь открыл учебный материал, без передачи его названия или содержимого.",
+    collection: "integration",
+    trigger: "Разрешено контрактом; точка отправки ещё не подключена.",
+    properties_used: Object.freeze(["surface", "media_kind"]),
+  }),
+  Object.freeze({
+    name: "study_started",
+    title: "Начало занятия",
+    definition: "После открытия поверхности произошло первое содержательное действие пользователя.",
+    collection: "automatic",
+    trigger: "Первое нажатие клавиши или указателя в сессии вкладки.",
+    properties_used: Object.freeze(["surface"]),
+  }),
+  Object.freeze({
+    name: "study_engaged",
+    title: "Вовлечённое занятие",
+    definition: "Сессия достигла порога активной работы после начала занятия.",
+    collection: "automatic",
+    trigger: "Не менее 30 секунд на видимой странице после первого действия.",
+    properties_used: Object.freeze(["surface", "duration_bucket"]),
+  }),
+  Object.freeze({
+    name: "study_completed",
+    title: "Завершение занятия",
+    definition: "Конкретный учебный сценарий дошёл до заранее определённой точки завершения.",
+    collection: "integration",
+    trigger: "Разрешено контрактом; сценарии завершения ещё не подключены.",
+    properties_used: Object.freeze(["surface", "duration_bucket"]),
+  }),
+  Object.freeze({
+    name: "audio_engaged",
+    title: "Осмысленное аудио",
+    definition: "Аудио или видео действительно воспроизводилось, а не только получило нажатие Play.",
+    collection: "automatic",
+    trigger: "Один раз на media-элемент после не менее 8 секунд фактического воспроизведения.",
+    properties_used: Object.freeze(["surface", "media_kind"]),
+  }),
+  Object.freeze({
+    name: "operation_result",
+    title: "Результат операции",
+    definition: "Разрешённая техническая операция завершилась успехом, ошибкой или отменой.",
+    collection: "integration",
+    trigger: "Разрешено контрактом; продуктовые операции ещё не подключены.",
+    properties_used: Object.freeze(["surface", "operation", "result", "duration_bucket"]),
+  }),
 ]);
-const SURFACES = new Set(["studio", "reading_room", "mediatheque", "study_video", "unknown"]);
-const RESULTS = new Set(["success", "failure", "cancelled"]);
-const DURATION_BUCKETS = new Set(["lt_30_sec", "30_sec_2_min", "2_5_min", "5_15_min", "15_30_min", "30_min_plus"]);
-const ALLOWED_PROPERTY_KEYS = new Set(["surface", "result", "duration_bucket", "operation", "media_kind"]);
+
+const PROPERTY_DEFINITIONS = Object.freeze([
+  Object.freeze({
+    name: "surface",
+    required: true,
+    definition: "Поверхность приложения; неизвестное значение нормализуется только как unknown.",
+    values: Object.freeze(["studio", "reading_room", "mediatheque", "study_video", "unknown"]),
+  }),
+  Object.freeze({
+    name: "result",
+    required: false,
+    definition: "Итог разрешённой технической операции.",
+    values: Object.freeze(["success", "failure", "cancelled"]),
+  }),
+  Object.freeze({
+    name: "duration_bucket",
+    required: false,
+    definition: "Грубый диапазон длительности вместо точного времени.",
+    values: Object.freeze(["lt_30_sec", "30_sec_2_min", "2_5_min", "5_15_min", "15_30_min", "30_min_plus"]),
+  }),
+  Object.freeze({
+    name: "operation",
+    required: false,
+    definition: "Стабильный технический код операции, без текста пользователя.",
+    format: "token: 1-40 chars, a-z 0-9 _ . -",
+  }),
+  Object.freeze({
+    name: "media_kind",
+    required: false,
+    definition: "Стабильный технический тип медиа, например audio или video.",
+    format: "token: 1-40 chars, a-z 0-9 _ . -",
+  }),
+]);
+
+const EVENT_NAMES = new Set(EVENT_DEFINITIONS.map((item) => item.name));
+const SURFACES = new Set(PROPERTY_DEFINITIONS.find((item) => item.name === "surface").values);
+const RESULTS = new Set(PROPERTY_DEFINITIONS.find((item) => item.name === "result").values);
+const DURATION_BUCKETS = new Set(PROPERTY_DEFINITIONS.find((item) => item.name === "duration_bucket").values);
+const ALLOWED_PROPERTY_KEYS = new Set(PROPERTY_DEFINITIONS.map((item) => item.name));
+
+function contractManifest() {
+  return {
+    schema_version: SCHEMA_VERSION,
+    stability: "additive changes require review; incompatible changes require a new schema version",
+    envelope: ["schema_version", "event_id", "event_name", "occurred_at", "session_id", "app_version", "properties"],
+    events: EVENT_DEFINITIONS,
+    properties: PROPERTY_DEFINITIONS,
+    forbidden: ["идентичность пользователя", "учебное содержимое", "заметки", "переводы", "имена файлов", "полные URL", "свободный ввод"],
+  };
+}
 
 function cleanToken(value, maxLength) {
   const text = String(value == null ? "" : value).trim();
@@ -91,6 +190,9 @@ module.exports = {
   SCHEMA_VERSION,
   EVENT_NAMES,
   ALLOWED_PROPERTY_KEYS,
+  EVENT_DEFINITIONS,
+  PROPERTY_DEFINITIONS,
+  contractManifest,
   normalizeEvent,
   anonymousEventKey,
 };

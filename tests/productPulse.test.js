@@ -2,7 +2,13 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { normalizeEvent, anonymousEventKey } = require("../product-pulse/contract");
+const {
+  normalizeEvent,
+  anonymousEventKey,
+  contractManifest,
+  EVENT_NAMES,
+  ALLOWED_PROPERTY_KEYS,
+} = require("../product-pulse/contract");
 const { configFromEnv, safeBaseUrl, buildSendPayloads } = require("../product-pulse/umami");
 
 function validEvent(overrides = {}) {
@@ -12,7 +18,7 @@ function validEvent(overrides = {}) {
     event_name: "study_engaged",
     occurred_at: "2026-09-22T10:00:00.000Z",
     session_id: "session-456",
-    app_version: "3.11.604",
+    app_version: "3.11.605",
     properties: { surface: "reading_room", duration_bucket: "5_15_min" },
     ...overrides,
   };
@@ -22,6 +28,22 @@ test("Product Pulse accepts only the canonical privacy-safe event shape", () => 
   const result = normalizeEvent(validEvent(), Date.parse("2026-09-22T10:01:00Z"));
   assert.equal(result.ok, true);
   assert.deepEqual(result.event.properties, { surface: "reading_room", duration_bucket: "5_15_min" });
+});
+
+test("machine-readable manifest and validator expose one canonical allowlist", () => {
+  const manifest = contractManifest();
+  assert.equal(manifest.schema_version, 1);
+  assert.deepEqual(manifest.events.map((item) => item.name), [...EVENT_NAMES]);
+  assert.deepEqual(manifest.properties.map((item) => item.name), [...ALLOWED_PROPERTY_KEYS]);
+  assert.deepEqual(
+    manifest.events.filter((item) => item.collection === "automatic").map((item) => item.name),
+    ["app_open", "study_started", "study_engaged", "audio_engaged"],
+  );
+  for (const event of manifest.events) {
+    assert.ok(event.definition);
+    assert.ok(event.trigger);
+    assert.ok(event.properties_used.every((key) => ALLOWED_PROPERTY_KEYS.has(key)));
+  }
 });
 
 test("Product Pulse rejects arbitrary properties and user content", () => {

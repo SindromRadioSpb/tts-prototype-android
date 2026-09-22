@@ -67,6 +67,10 @@
       started = true;
       emit("study_started");
     }
+    checkEngagement();
+  }
+  function checkEngagement() {
+    if (!started) return;
     if (engaged) return;
     var total = foregroundMs + (activeSince ? Date.now() - activeSince : 0);
     if (total < 30000) return;
@@ -94,7 +98,7 @@
       }
     }, 10000);
   }, true);
-  setInterval(markInteraction, 15000);
+  setInterval(checkEngagement, 15000);
 
   function boot() {
     if (opened) return;

@@ -19,6 +19,7 @@
 - `CONTRACTS_SEARCH.md` — качественный rows search: нормализация иврита, авто-детект языка, snippet+highlight.
 - `CONTRACTS_SRS.md` — SRS engine: карточки, очередь "Сегодня", события review.
 - `CONTRACTS_ANALYTICS.md` — Analytics PRO: time-spent (без listeners), cohort, события.
+- `PRODUCT_PULSE.md` — first-party серверная продуктовая аналитика: wire contract, семь событий, пять свойств, Umami и правила расширения.
 - `DB_SCHEMA.md` — целевая схема БД и инварианты.
 - `SMOKE-CHECK.md` — проверки + триггеры по зонам изменений.
 

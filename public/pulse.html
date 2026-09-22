@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Пульс LinguistPro</title>
-  <link rel="stylesheet" href="/css/pulse.css?v=603">
+  <link rel="stylesheet" href="/css/pulse.css?v=605">
 </head>
 <body>
   <main class="pulse-shell">
@@ -33,12 +33,50 @@
       <p class="metric-note" id="metricNote">Проверяем источник данных…</p>
     </section>
 
-    <section class="pulse-grid" aria-label="Принципы Product Pulse">
-      <article><span>01</span><h3>Первый-party контракт</h3><p>Сервер принимает только семь известных событий и ограниченный список свойств.</p></article>
-      <article><span>02</span><h3>Нет учебного содержимого</h3><p>Тексты, переводы, аудио, заметки, имена файлов и ввод пользователя запрещены схемой.</p></article>
-      <article><span>03</span><h3>Честная деградация</h3><p>Если Umami недоступен, панель показывает недоступность, а не подменяет отсутствие данных нулём.</p></article>
+    <section class="reading-guide" aria-labelledby="readingGuideTitle">
+      <div><p class="eyebrow">Как читать панель</p><h2 id="readingGuideTitle">Что означают цифры</h2></div>
+      <dl>
+        <div><dt>Посещение ≠ человек онлайн</dt><dd>Это агрегат Umami за период, а не счётчик одновременных пользователей.</dd></div>
+        <div><dt>«Сегодня» — UTC</dt><dd>Сутки начинаются в 00:00 UTC; панель обновляет доступный агрегат раз в минуту.</dd></div>
+        <div><dt>Событие ≠ учебный результат</dt><dd>Сигнал подтверждает использование функции, но сам по себе не доказывает улучшение знаний.</dd></div>
+      </dl>
+    </section>
+
+    <section class="contract-section" aria-labelledby="contractTitle">
+      <div class="contract-head">
+        <div>
+          <p class="eyebrow">Канонический контракт</p>
+          <h2 id="contractTitle">Product Pulse v<span id="contractVersion">—</span></h2>
+          <p>Список ниже приходит из того же серверного манифеста, который задаёт allowlist валидатора. Статус «подключено» означает фактическую автоматическую отправку; «точка интеграции» — событие уже разрешено, но ещё не подключено к продуктовому сценарию.</p>
+        </div>
+        <span class="contract-state" id="contractState">Загрузка контракта</span>
+      </div>
+      <div class="event-list" id="eventList" aria-live="polite"></div>
+      <p class="contract-note">В схеме v1 сервер применяет общий allowlist пяти свойств. Списки на карточках показывают смысловую комбинацию для события; правила обязательных и необязательных свойств для каждого события запланированы как явная версионированная миграция, а не скрытое ужесточение v1.</p>
+
+      <details class="property-contract">
+        <summary>Разрешённые свойства и системная оболочка</summary>
+        <div class="property-layout">
+          <div>
+            <h3>Свойства</h3>
+            <div id="propertyList" class="property-list"></div>
+          </div>
+          <div>
+            <h3>Системные поля</h3>
+            <p id="envelopeFields" class="code-list">—</p>
+            <h3>Запрещено</h3>
+            <p id="forbiddenFields">—</p>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="pulse-grid" aria-label="Принципы развития Product Pulse">
+      <article><span>01</span><h3>Один источник правды</h3><p>Новое событие сначала добавляется в версионированный манифест, затем — в отправитель, отчёты и тесты.</p></article>
+      <article><span>02</span><h3>Без свободных полей</h3><p>Расширение требует цели метрики, определения, точки отправки и privacy-review. Произвольные свойства сервер отклоняет.</p></article>
+      <article><span>03</span><h3>Версия вместо дрейфа</h3><p>Совместимые дополнения проходят review; несовместимое изменение получает новую schema_version и период миграции.</p></article>
     </section>
   </main>
-  <script src="/js/pulse.js?v=604"></script>
+  <script src="/js/pulse.js?v=605"></script>
 </body>
 </html>
