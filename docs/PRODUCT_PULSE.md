@@ -1,6 +1,6 @@
 # Product Pulse — privacy-first продуктовая аналитика
 
-Статус: contract revision 1.2 / wire schema 2, релиз 3.11.608. Сверка: 2026-09-22.
+Статус: contract revision 1.2 / wire schema 2, релиз 3.11.609. Сверка: 2026-09-22.
 Privacy-first контракт — канон; self-hosted Umami 3.0.3 — основной backend.
 PostHog не подключён и не получает параллельный поток. Новых подписок нет.
 Это измерение использования и технических исходов, не усвоения языка.
@@ -27,7 +27,7 @@ optional для прежних событий и обязательны толь
   "event_name": "material_engaged",
   "occurred_at": "2026-09-22T10:00:00.000Z",
   "session_id": "366d21e9-38c2-4a30-bb8e-f6765463d753",
-  "app_version": "3.11.608",
+  "app_version": "3.11.609",
   "properties": {"surface": "reading_room", "entry_point": "mediatheque",
     "material_collection": "public_study_songs", "material_media": "audio",
     "duration_bucket": "30_sec_2_min"}
@@ -110,7 +110,11 @@ other/unknown классы. Сырые corpus slug/id, title и query не от�
 ## 4. Исключения и доставка
 
 `GET /api/product-pulse/v1/config` сообщает только collect/schema_version,
-с private,no-store. Owner по authenticated role исключён на сервере до доставки.
+с private,no-store. С релиза 3.11.609 реальные действия владельца, включая ручные
+проверки с ПК и телефона, учитываются на общих основаниях по решению владельца
+от 2026-09-22. До этого authenticated owner исключался: старые пропущенные события
+не восстанавливаются. Сравнение периодов через эту границу имеет разный состав
+выборки; рост сам по себе не доказывает привлечение новых учеников.
 Test NODE_ENV и явный `X-Product-Pulse-Exclude: 1` также исключаются.
 Browser sender выключен на loopback и navigator.webdriver. Для synthetic
 production API probes заголовок исключения обязателен. Это сигнал opt-out,
@@ -118,7 +122,9 @@ production API probes заголовок исключения обязателе
 
 Primary read API фильтрует `tag=eq.pulse-v2`. Исторический v1 baseline (на recon:
 app_open=1, visits=1, visitors=1, pageviews=1) не считается чистой выборкой.
-Неавторизованные owner-действия без owner-cookie распознать невозможно.
+Роль/account ID не передаются в Umami: отделить owner от учеников задним числом
+невозможно. Недействительная cookie или ошибка проверки сессии отключает сбор
+для этого запроса; неавторизованные посещения без cookie допускаются.
 
 Umami получает фиксированный hostname, surface path и title=LinguistPro,
 случайный ID, секунды occurred_at, named event и только разрешённые data.
@@ -221,4 +227,5 @@ Gates: productPulse*.test.js, включая cross-surface coverage, scripts/pro
 полный CI subset. Automated, production, owner-live, physical-device и AT
 evidence не взаимозаменяемы. Реестр исполнения:
 [implementation packet](planning/PRODUCT_PULSE_MATURITY_IMPLEMENTATION_2026_09_22.md),
-[cross-surface packet](planning/PRODUCT_PULSE_CROSS_SURFACE_COVERAGE_2026_09_22.md).
+[cross-surface packet](planning/PRODUCT_PULSE_CROSS_SURFACE_COVERAGE_2026_09_22.md),
+[постоянное включение владельца](planning/PRODUCT_PULSE_OWNER_COLLECTION_2026_09_22.md).

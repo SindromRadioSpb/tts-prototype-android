@@ -1192,7 +1192,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=608",
+  "/js/library-ui.js?v=609",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1224,7 +1224,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=575",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/js/product-telemetry.js?v=608",
+  "/js/product-telemetry.js?v=609",
   "/i18n/locales/ru.js?v=241",
   "/i18n/locales/en.js?v=241",
   "/i18n/locales/he.js?v=241",
@@ -2502,7 +2502,9 @@ async function productPulseExcluded(req) {
   const cookie = getSessionCookie(req);
   if (!cookie) return false;
   // If session lookup fails, fail closed for analytics only.
-  try { const auth = await identityRepo.validateSession(cookie); return !auth || String(auth.user.role).toLowerCase() === "owner"; }
+  // Real owner activity is included by the owner's 2026-09-22 decision.
+  // The role is relevant to reading the dashboard, not collecting usage.
+  try { const auth = await identityRepo.validateSession(cookie); return !auth; }
   catch (_) { return true; }
 }
 app.get("/api/product-pulse/v1/config", async (req, res) => {
