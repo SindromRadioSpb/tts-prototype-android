@@ -1,6 +1,7 @@
 # Product Pulse — включение реальной активности владельца
 
-Дата: 2026-09-22. База: 5d678e9b / 3.11.608. Статус: implementation.
+Дата: 2026-09-22. База: 5d678e9b / 3.11.608.
+Статус: 3.11.610 released; сбор и рост подтверждены; полный owner-live matrix частичен.
 
 Решение владельца: реальные действия owner с ПК/Android включаются в основную
 статистику постоянно, включая период после проверки. Откат фильтра и удаление
@@ -57,3 +58,50 @@ ingest 22; learner-ingest 24/24; FSRS 140/140; memory-canon 90/90 — PASS.
 Перед второй сборкой по прежнему разрешению удалён только unused build cache
 (Docker reported 2,302 GB; после очистки 76%, 8,9 GB free, cache=0).
 14 образов, 12 контейнеров, 4 volumes сохранены; новых image deletions нет.
+
+## Production evidence 2026-09-22, 11:05–11:15 UTC
+
+- Runtime commit `8a66e16cc1799d8496a7cf1d16966b3295677eab` включает
+  `bc0c9d8d`; main/origin main совпадают. Активный app image имеет tag runtime commit.
+- Served 3.11.610: 112 shellIntegrity assets сверены с committed bytes, отдельно
+  SW/pulse JS/CSS; APP_VERSION, CACHE_VERSION, Room footer согласованы.
+- После сборки health показывал disk_warn=true (84%). Inventory → только
+  разрешённый unused builder prune. После: cache=0, 15 images, 12 containers,
+  4 volumes; 7,9 GB free. Три no-cache health: DB/migrations ready,
+  disk_pct_used=79, disk_warn=false. Дополнительные образы не удалялись.
+
+## Owner-live evidence (реальный Chrome, не Android)
+
+Реальные действия интерфейса; без ручных POST/вызовов telemetry emit. До hotfix
+все v2 usage=0. После, видимо на owner /pulse.html (7 дней UTC):
+
+| Сигнал | До | После |
+| --- | ---: | ---: |
+| app_open | 0 | 6 |
+| material_open | 0 | 4 |
+| material_started | 0 | 3 |
+| material_engaged | 0 | 2 |
+| study_started | 0 | 3 |
+| study_engaged | 0 | 2 |
+| study_completed / audio_engaged / operation_result | 0 | 0 |
+
+Delivery: 20 подтверждённых named events, unavailable=0; Umami pageviews=6.
+Это проверочные открытия/документы, не шесть людей. Данные owner остаются;
+специальной послетестовой очистки не проводилось.
+
+Подтверждены Studio restore из Library (my_texts): open+started; Room
+Бен-Иегуда: open+started+engaged; Медиатека → Room/public_study_songs:
+open+started+engaged с entry_point=mediatheque. Read-агрегат и видимая панель
+показывают эти разрезы. 30s engagement проверен с доверенными UI-действиями
+при фокусе, не одним ожиданием. Оценки SRS/заметки/«Прочитано» не нажимались,
+новые платные запросы не запускались; независимый review_log diff не снимался.
+
+Границы acceptance: повторный explicit Library-open и engagement в Studio
+не завершены — контроль больших вкладок терял browser debugger attachment;
+переоткрытие вкладки восстановило загрузку, но не устойчивый walkthrough.
+Все шесть корпусов, IDE, HTML-media/audio, completion и платные operation outcomes
+не объявляются полностью проверенными owner-live; contract/integration gates зелёные.
+Физический Android и AT отдельно не проверены. Следующий контроль владельца:
+применить обновление до 3.11.610, заново открыть поверхность/материал, совершить
+учебные действия; затем дождаться cache ≤30s + polling 60s и сравнить прирост.
+Не восстанавливать потерянные события искусственно; D7/D30 по-прежнему не измеряется.
