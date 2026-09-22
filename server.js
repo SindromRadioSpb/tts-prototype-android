@@ -1129,7 +1129,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
-  "/css/mediatheque.css?v=6",
+  "/css/mediatheque.css?v=7",
   "/js/mediatheque-ui.js?v=19",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
