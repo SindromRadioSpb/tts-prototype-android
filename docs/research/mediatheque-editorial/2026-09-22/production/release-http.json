@@ -1,0 +1,115 @@
+{
+  "version": "3.11.611",
+  "verifiedAt": "2026-09-22T14:34:17.512Z",
+  "checks": [
+    {
+      "url": "/mediatheque.html",
+      "sha256": "606acb1d0e6e0de769a7064bb3fa9f9ae504a7ea25296eb99ec729141bba0cdc"
+    },
+    {
+      "url": "/css/mediatheque.css?v=5",
+      "sha256": "1fe8207e7512228fae60ca57b6a4617957b6f9178be212959b99928c47df119f"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=17",
+      "sha256": "c928381dfc66b96227f137275ea1beddfb99fe8a506afb73c90a3d3118cfe944"
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "sha256": "301f90178a18c6ea23b05603299a85bc9fd9f30104a0fd4554ae92c4d51fda32"
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "sha256": "d8d2ec312d21b8191f52aeb0d5635f6886afe2efa64ebe772ef9f7ab593c47bb"
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "sha256": "d28876c7e40a9deb0d1de155930ec59667025826f8771e73f1db7a0560bb48ee"
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "sha256": "4c0aefa9b1c7a4c5db030e0f7595d9eb358f5d5ac7f6e4a5cca345ad85f31b9a"
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "sha256": "88b3ec51ebf9c3c7a312d144809bf4b73708e67eccc60ce4e6c402e831bc7abe"
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "sha256": "757ee04103168073347cd26bb0552e00a2638195bf2396742c21043f2e5388dc"
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "sha256": "027bda72dc1fadf6ab2d119a91573305707bf8f5635e6b600e234e580a451228"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "c41b7149351423d6b99ae8942446706f1ec776967ebec4658d9a56184d4267a0"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "2f801d91e95003c544221319556a2a2dba8c3a7bba728ddeaa433f78a46f886f"
+    },
+    {
+      "url": "/js/public-corpus-adapter.js?v=486",
+      "sha256": "f0a507e265f3f03fa90879c69c77451ac22fa6168a9f4d62178cc7ae85b52483"
+    },
+    {
+      "url": "/js/media-host.js?v=576",
+      "sha256": "e78a8b5cb312176da95913f5942ee5fdb9f388d9982d5f82e67b2a4c3cf87f41"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=242",
+      "sha256": "d731ee9b4df5180a0df5e9cd1b18af31a9a250eb2d4c84eb9650b0fc93f54d51"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=242",
+      "sha256": "b630e86fd0e3076122b354e53e799ec373b59ea05ce87464cfbcca8beaf5b1cc"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=242",
+      "sha256": "678c21c6e269984b4521c47ddb36ff25bc2247b335322156e9733c8b4fd608a5"
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 35,
+      "now": "2026-09-22T14:34:10.249Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 84,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 36,
+      "now": "2026-09-22T14:34:11.573Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 84,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 38,
+      "now": "2026-09-22T14:34:12.727Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 84,
+      "disk_warn": true
+    }
+  ]
+}

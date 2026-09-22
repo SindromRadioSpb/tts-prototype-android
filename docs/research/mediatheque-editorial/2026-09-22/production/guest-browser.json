@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "scope": "live public site; fresh isolated profile; no owner state or editorial writes",
+  "checks": [
+    "bounded catalog and editor actions hidden for guest",
+    "ru 380 layout and translations",
+    "ru 1366 layout and translations",
+    "en 380 layout and translations",
+    "en 1366 layout and translations",
+    "he 380 layout and translations",
+    "he 1366 layout and translations",
+    "empty editorial channels are hidden from guests"
+  ],
+  "errors": []
+}
