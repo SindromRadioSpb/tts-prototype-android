@@ -67,6 +67,6 @@ Production 3.11.611: reproduced 211 text-only items, hidden empty topics/collect
 - [x] Publisher browser: 39/39; responsive screenshots reviewed.
 - [x] Fix rapid Reader return race: route established before visible reader; affected shell/Room tests 41/41.
 - [x] Broad Mediatheque regression: 99/99 after the return fix, including offline/SW/5000-item library.
-- [ ] Deploy approved fix; verify live assets, catalogue, Room corpus preservation and owner navigation.
+- [x] Production 3.11.612 / 2c508350 deployed: 17 assets, 3 repeated health/config probes, 12 live guest checks; owner Map/Topics/Collections verified. All 211 text corpus records preserved via exact public API comparison.
 
 This supersedes the earlier decision to hide published empty scaffolding. Unpublished drafts remain private.

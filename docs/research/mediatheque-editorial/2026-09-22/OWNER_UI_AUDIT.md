@@ -28,4 +28,14 @@ Opened Edit showcase → Configure home, saved the existing settings and exited 
 
 Additional return-path/shell regression: 41/41 passed. The first broad browser run exposed the rapid-back race described above; the corrected rerun passed 99/99, including exact return position/focus, offline/SW lifecycle and 5000-item library. The unpublished-episodes label is limited to public collections.
 
-Deployment and final live verification are recorded after the release gate.
+## Production result
+
+3.11.612 deployed from `2c5083503bf53e327f76304a4baa8afc2fe361e9`; deployment finished. Evidence: `owner-audit-production/http-evidence.json` and `guest-browser.json`.
+
+- 17 served assets verified, including committed Reader module and SW bytes; three coherent no-cache health/config probes.
+- Public catalogue: one video, 11 topics, 22 collections, sample assigned to C14 and תוכנית חומש.
+- Exact before/after public corpus API comparison: 60 + 74 + 77 items and editions unchanged.
+- 12 fresh guest browser checks passed, including matching embedded YouTube source, Room return, empty collection explanation and mobile overflow. Embedding is verified; external YouTube playback/network availability is not a physical-device acceptance claim.
+- Existing owner Chrome tab updated through the visible Update button; observed one episode, 11 topic cards from Map, 22 collections, and the sample inside its collection. Tab left on that collection.
+- Initial live attempt overlapped the container swap (mixed 611/612) and is not acceptance. A subsequent runner assertion incorrectly expected top-level Collections to retain channel scope; it was corrected to the existing intended reset-to-all behavior. Final verification passed.
+

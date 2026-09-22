@@ -1,0 +1,125 @@
+{
+  "version": "3.11.612",
+  "at": "2026-09-22T15:06:39.816Z",
+  "checks": [
+    {
+      "url": "/mediatheque.html",
+      "sha256": "99bf2511d162a7332263656c8060fc93314beb1b3a044436495ac7216f83019e"
+    },
+    {
+      "url": "/css/mediatheque.css?v=5",
+      "sha256": "1fe8207e7512228fae60ca57b6a4617957b6f9178be212959b99928c47df119f"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=18",
+      "sha256": "0848260036839283cfcbcbc1fd4bdd1ff37a896860a024af90b26472aeca5502"
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "sha256": "301f90178a18c6ea23b05603299a85bc9fd9f30104a0fd4554ae92c4d51fda32"
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "sha256": "d8d2ec312d21b8191f52aeb0d5635f6886afe2efa64ebe772ef9f7ab593c47bb"
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "sha256": "d28876c7e40a9deb0d1de155930ec59667025826f8771e73f1db7a0560bb48ee"
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "sha256": "4c0aefa9b1c7a4c5db030e0f7595d9eb358f5d5ac7f6e4a5cca345ad85f31b9a"
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "sha256": "88b3ec51ebf9c3c7a312d144809bf4b73708e67eccc60ce4e6c402e831bc7abe"
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "sha256": "757ee04103168073347cd26bb0552e00a2638195bf2396742c21043f2e5388dc"
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "sha256": "d8a429d04cb153658882b04163ddf3a419be9328bc5507840534c3a5b81d68b1"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "0e0729559d6d284ff9403567a94692687c31da319ca933be458f3d3a56795b76"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "7047ab87d7592a51fab217a59c9836b29e11c6906ee745b166b74288d182b17b"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=243",
+      "sha256": "363049af7f42c1ae36743dfa29be889cd3caf340e3d073ea3cb14642b46f0362"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=243",
+      "sha256": "6f572172909d81754bd157706523140afa02bc797766a0ffbaa0afad24b1726a"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=243",
+      "sha256": "cc11067c72e574c360a42f52996d019d566513d939843a5ea3c638077bd251d9"
+    },
+    {
+      "url": "/js/library-ui.js?v=611",
+      "sha256": "4b60bf2d1cd049b9f781f476424d59b622ef45945f7fbc6d1ab8f779d2438bc8"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "a03fb4e714a4e7963888f805e34403ffb43e988caf7ee9a9884773d923c1d14b"
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "dbReady": true,
+      "migrationsReady": true
+    },
+    {
+      "ok": true,
+      "dbReady": true,
+      "migrationsReady": true
+    },
+    {
+      "ok": true,
+      "dbReady": true,
+      "migrationsReady": true
+    }
+  ],
+  "public": {
+    "revision": 5,
+    "topics": 11,
+    "collections": 22,
+    "items": 1,
+    "videoId": "82JY5QIeEwM"
+  },
+  "preserved": [
+    {
+      "slug": "materials-science-year1-problem-book-2",
+      "count": 60,
+      "identical": true
+    },
+    {
+      "slug": "physics-year1-problems",
+      "count": 74,
+      "identical": true
+    },
+    {
+      "slug": "study-songs",
+      "count": 77,
+      "identical": true
+    }
+  ],
+  "deployedCommit": "2c5083503bf53e327f76304a4baa8afc2fe361e9",
+  "imageId": "sha256:8a850c17857d2ea7f1d7dfaabbd622dfea47fcbe619b8f3df62267778b7c5854",
+  "ownerUi": {
+    "catalogItems": 1,
+    "mapTopics": 11,
+    "collections": 22,
+    "sampleTitle": "Пятилетний план-1",
+    "sampleCollection": "תוכנית חומש",
+    "updatedOpenTab": true
+  }
+}
