@@ -1130,7 +1130,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/css/mediatheque.css?v=5",
-  "/js/mediatheque-ui.js?v=17",
+  "/js/mediatheque-ui.js?v=18",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1196,7 +1196,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=610",
+  "/js/library-ui.js?v=611",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1229,9 +1229,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=610",
-  "/i18n/locales/ru.js?v=242",
-  "/i18n/locales/en.js?v=242",
-  "/i18n/locales/he.js?v=242",
+  "/i18n/locales/ru.js?v=243",
+  "/i18n/locales/en.js?v=243",
+  "/i18n/locales/he.js?v=243",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

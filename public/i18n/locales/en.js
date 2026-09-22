@@ -4731,6 +4731,8 @@ window.I18N_LOCALES.en.mediatheque.changeFields.categoryId = "Topic / channel";
 Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "seriesCount": "Collections: {count}",
   "publicChannels": "Channels and topics",
+  "noPublishedEpisodes": "No episodes published yet",
+  "noPublishedEpisodesHelp": "Topics and collections are ready. Learning materials will appear after an editor publishes them.",
   "publicChannelsHelp": "Choose a channel, then a series or an episode to study.",
   "researchReserve": "Research: 500 channels",
   "researchReserveHelp": "Recommended 50 from the September 14 research are shown first. Search covers all 500 candidates. Verify language and source before adding episodes. Empty topics are only visible to the editor.",

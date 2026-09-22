@@ -15,7 +15,7 @@
       'videoId',CASE WHEN json_type(${source}, '$.playback_source') IS NOT NULL
         THEN ${at(source, 'playback_source.history[#-1].source.video_id')}
         ELSE ${fields(['source.audio.video.videoId', 'source.captions.video.videoId', 'audio.video.videoId'])} END,
-      'mime',SUBSTR(${fields(['source.audio.media.mime', 'source.captions.media.mime', 'audio.media.mime'])},1,100),
+      'mime',SUBSTR(${fields(['publication_media.mime', 'source.audio.media.mime', 'source.captions.media.mime', 'audio.media.mime'])},1,100),
       'durationSeconds',${fields(['source.audio.durationSec', 'source.audio.media.durationSec', 'source.audio.media.duration_seconds', 'source.captions.media.durationSec', 'source.captions.durationSec', 'source.youtube.duration_seconds', 'youtube.duration_seconds'])},
       'source',SUBSTR(${fields(['source.audio.video.author', 'source.audio.video.channelTitle', 'source.captions.video.author', 'source.captions.video.channelTitle', 'source.youtube.author', 'youtube.author', 'author'])},1,200),
       'language',SUBSTR(${fields(['source.audio.language', 'source.captions.captions.language', 'source.captions.language', 'source.language', 'language'])},1,40),

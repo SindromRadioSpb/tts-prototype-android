@@ -283,7 +283,7 @@ function collectionHtml(c, index) {
   const parts = available.slice(0, 3);
   return `<article class="ml-collection" ${organizeMode() ? `draggable="true" data-drag-type="collection" data-drag-id="${esc(c.id)}"` : ''}>
     <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ collection: c.id }) }))}"><div class="ml-collection-art" data-parts="${parts.length}">${parts.length ? parts.map(i => cover(i, false)).join('') : '<span class="ml-collection-empty" aria-hidden="true">▤</span>'}</div>
-    <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: items.length }))}${summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
+    <h3 dir="auto">${esc(c.title)}</h3><small>${esc(t('materialCount', { count: items.length }))}${state.space === 'public' && !items.length ? ' · ' + esc(t('noPublishedEpisodes')) : summary.known ? ' · ' + esc(duration(summary.seconds)) + (summary.unknown || summary.unavailable ? ' + ' + esc(t('unknownDurationPart')) : '') : ' · ' + esc(t('durationUnknown'))}</small></a>
     ${c.categoryId ? `<a class="ml-series-source" data-nav dir="auto" href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.categoryId})}))}">${esc(structure().categories.find(x=>x.id===c.categoryId)?.title || '')}</a>` : ''}
     ${c.description ? `<p dir="auto">${esc(c.description)}</p>` : ''}
     ${resume ? `<div class="ml-collection-resume"><a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}</a><span dir="auto">${esc(resume.title)}</span></div>` : ''}
@@ -292,11 +292,11 @@ function collectionHtml(c, index) {
 function categoryCount(id) {
   return topicCounts.get(id) || 0;
 }
-function visibleCollection(c) { return state.space === 'personal' || organizeMode() || c.items.some(k=>state.prepared.byKey.get(k)?.available); }
+// Published structure is browsable before its first episode is published.
 function channelCollections(category) {
   if (!category) return '';
   const ids = C.descendants(structure(), category.id);
-  const series = structure().collections.filter(c=>ids.has(c.categoryId) && visibleCollection(c));
+  const series = structure().collections.filter(c=>ids.has(c.categoryId));
   return series.length ? `<section class="ml-channel-series">${sectionHead(t('channelSeries'),'collections',{category:category.id})}<div class="ml-collections">${series.slice(0,12).map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
 }
 function collectionContextHtml(collection) {
@@ -306,13 +306,13 @@ function collectionContextHtml(collection) {
     ${resume ? `<a class="ml-textlink" href="${esc(materialHref(resume))}">${esc(t('continueAction'))}: <span dir="auto">${esc(resume.title)}</span></a>` : ''}</div>`;
 }
 function topicsOverview() {
-  const roots = structure().categories.filter(c => !c.parentId && (state.space === 'personal' || organizeMode() || categoryCount(c.id) > 0));
+  const roots = structure().categories.filter(c => !c.parentId);
   return state.space==='public' ? channelGrid(roots.slice(0,12)) : `<div class="ml-topics-grid">${roots.map(c => `<a class="ml-topic-link" data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}"><span dir="auto">${esc(c.title)}</span><small>${categoryCount(c.id)}</small></a>`).join('')}</div>`;
 }
 function channelGrid(channels) {
   return `<div class="ml-channel-grid">${channels.map(c=>{
     const sample=topicSamples.get(c.id);
-    const series=structure().collections.filter(s=>s.categoryId===c.id&&visibleCollection(s));
+    const series=structure().collections.filter(s=>s.categoryId===c.id);
     return `<a class="ml-channel-card" data-nav href="${esc(makeHref({section:'catalog',filters:C.filters({category:c.id})}))}">
       ${sample?cover(sample,false):''}<div class="ml-channel-copy"><h3 dir="auto">${esc(c.title)}</h3><p>${esc(t('materialCount',{count:categoryCount(c.id)}))} · ${esc(t('seriesCount',{count:series.length}))}</p>${series.length?`<span dir="auto">${esc(series.slice(0,3).map(s=>s.title).join(' · '))}</span>`:''}</div></a>`;
   }).join('')}</div>`;
@@ -328,7 +328,7 @@ function homeHtml() {
       const items = C.query(d, p, { progress: 'in_progress', sort: 'opened_desc' }).filter(i => i.available && i.key !== feature?.key).slice(0, 3);
       if (items.length) html += `<section class="ml-section ml-continue">${sectionHead(t('continueHeading'), 'catalog', { progress: 'in_progress', sort: 'opened_desc' })}<p class="ml-section-note">${esc(t('continueHelp'))}</p>${materialsHtml(items)}</section>`;
     } else if (section === 'pinned') {
-      const pinned = d.collections.filter(c => c.pinned && visibleCollection(c));
+      const pinned = d.collections.filter(c => c.pinned);
       if (pinned.length) html += `<section class="ml-section">${sectionHead(t('pinnedHeading'), 'collections')}<div class="ml-collections">${pinned.slice(0, 6).map(c => collectionHtml(c, d.collections.indexOf(c))).join('')}</div></section>`;
     } else if (section === 'recent' && all.length) {
       const items = C.query(d, p, { sort: 'added_desc' }).filter(i => i.available && i.key !== feature?.key).slice(0, 6);
@@ -435,9 +435,14 @@ function catalogHtml() {
       ${canEdit() ? button('save-view', t('saveView')) : ''}</div>
       ${state.viewId && d.views.some(v=>v.id === state.viewId) ? `<div class="ml-view-state"><span>${esc(t(C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? 'viewUnchanged' : 'viewModified'))}</span>${button('view-rules',t('viewRules'),`data-id="${esc(state.viewId)}"`)}${!C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? button('use-view',t('resetView'),`data-id="${esc(state.viewId)}"`) : ''}</div>` : ''}
       ${matches.length ? `<div class="ml-navmatches">${matches.map(m => `<a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ [m.type]: m.id }) }))}"><small>${esc(t(m.type))}</small><span dir="auto">${esc(m.path)}</span></a>`).join('')}</div>` : ''}
-      ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : `<div class="ml-empty"><h2>${esc(t('noResults'))}</h2><p>${esc(t('noResultsBody'))}</p>${button('search-all', t('searchAll'))}${button('reset-filters', t('reset'), '', 'ml-quiet')}</div>`}
+      ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : emptyCatalogHtml(context)}
       ${pages > 1 ? `<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page', t('previous'), state.page > 1 ? '' : 'disabled')}<span>${state.page} / ${pages}</span>${button('next-page', t('next'), state.page < pages ? '' : 'disabled')}</nav>` : ''}
     </section></div>`;
+}
+function emptyCatalogHtml(context) {
+  const scoped = C.query(structure(), state.prepared, C.filters({category:state.filters.category,collection:state.filters.collection}));
+  if (state.space === 'public' && scoped.length === 0) return `<div class="ml-empty"><h2>${esc(t('noPublishedEpisodes'))}</h2><p>${esc(t('noPublishedEpisodesHelp'))}</p>${state.owner && !state.preview ? button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}${context ? button('search-all',t('searchAll')) : ''}</div>`;
+  return `<div class="ml-empty"><h2>${esc(t('noResults'))}</h2><p>${esc(t('noResultsBody'))}</p>${button('search-all',t('searchAll'))}${button('reset-filters',t('reset'),'','ml-quiet')}</div>`;
 }
 function pager(pages) {
   return pages>1?`<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page',t('previous'),state.page>1?'':'disabled')}<span>${state.page} / ${pages}</span>${button('next-page',t('next'),state.page<pages?'':'disabled')}</nav>`:'';
@@ -446,7 +451,7 @@ function topicsHtml() {
   const d = structure(), tokens = C.normalize(state.topicSearch).split(/\s+/).filter(Boolean), visibleIds = new Set();
   for (const c of d.categories) if (tokens.every(x => C.normalize(c.title + ' ' + c.description).includes(x))) C.categoryPath(d,c.id).forEach(p => visibleIds.add(p.id));
   if(state.space==='public'&&!organizeMode()) {
-    const channels=d.categories.filter(c=>visibleIds.has(c.id)&&categoryCount(c.id)>0&&(!c.parentId||tokens.length));
+    const channels=d.categories.filter(c=>visibleIds.has(c.id)&&(!c.parentId||tokens.length));
     const pages=Math.max(1,Math.ceil(channels.length/36));state.page=Math.max(1,Math.min(state.page,pages));
     return `<section><div class="ml-section-head"><div><h2>${esc(t('publicChannels'))}</h2><p>${esc(t('publicChannelsHelp'))}</p></div></div><input class="ml-topic-search" id="ml-topic-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('findTopic'))}" aria-label="${esc(t('findTopic'))}">${channels.length?channelGrid(channels.slice((state.page-1)*36,state.page*36)):`<div class="ml-empty"><p>${esc(t('noTopics'))}</p></div>`}${pager(pages)}</section>`;
   }
@@ -469,13 +474,13 @@ function collectionsHtml() {
   if(state.space==='public'&&!organizeMode()) {
     const ids=state.filters.category?C.descendants(d,state.filters.category):null;
     const tokens=C.normalize(state.topicSearch).split(/\s+/).filter(Boolean);
-    const series=d.collections.filter(c=>visibleCollection(c)&&(!ids||ids.has(c.categoryId))&&tokens.every(w=>C.normalize(c.title+' '+c.description+' '+(d.categories.find(t=>t.id===c.categoryId)?.title||'')).includes(w)));
+    const series=d.collections.filter(c=>(!ids||ids.has(c.categoryId))&&tokens.every(w=>C.normalize(c.title+' '+c.description+' '+(d.categories.find(t=>t.id===c.categoryId)?.title||'')).includes(w)));
     const pages=Math.max(1,Math.ceil(series.length/24));state.page=Math.max(1,Math.min(state.page,pages));
     return `<section><div class="ml-section-head"><h2 dir="auto">${esc(d.categories.find(c=>c.id===state.filters.category)?.title||t('collections'))}</h2></div><input class="ml-topic-search" id="ml-collection-search" value="${esc(state.topicSearch)}" placeholder="${esc(t('search'))}" aria-label="${esc(t('search'))}"><div class="ml-collections">${series.slice((state.page-1)*24,state.page*24).map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>${!series.length?`<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`:''}${pager(pages)}</section>`;
   }
   return `<section class="ml-section"><div class="ml-section-head"><div><h2>${esc(t('collections'))}</h2><p>${esc(t('collectionsHelp'))}</p></div>${canEdit() ? button('new-collection', t('newCollection')) : ''}</div>
-    <div class="ml-collections">${d.collections.filter(visibleCollection).map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>
-    ${d.collections.some(visibleCollection) ? '' : `<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`}</section>
+    <div class="ml-collections">${d.collections.map(c=>collectionHtml(c,d.collections.indexOf(c))).join('')}</div>
+    ${d.collections.length ? '' : `<div class="ml-empty"><p>${esc(t('noCollections'))}</p></div>`}</section>
     ${d.views.length ? `<section><h2>${esc(t('savedViews'))}</h2>${d.views.map(v => `<div class="ml-view-row"><div><a href="${esc(makeHref({ section: 'catalog', filters: v.filters, viewId: v.id }))}" data-action="use-view" data-id="${esc(v.id)}">${esc(v.title)}</a><p>${esc(t('dynamicView'))}</p></div>
       <div class="ml-actions">${button('view-rules',t('viewRules'),`data-id="${esc(v.id)}"`)}${canEdit() ? button('delete-view', t('delete'), `data-id="${esc(v.id)}"`, 'ml-quiet') : ''}</div></div>`).join('')}</section>` : ''}`;
 }

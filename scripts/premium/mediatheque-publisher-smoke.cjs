@@ -5,7 +5,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const fixture=require('../../tests/helpers/mediathequeArchiveFixture.cjs');
 const Core=require('../../public/js/portable-learning-package-core'),Portable=require('../../public/js/studio-portable-learning-package'),Playback=require('../../public/js/playback-source');
 const root=path.resolve(__dirname,'../..'),temp=fs.mkdtempSync(path.join(root,'.tmp/editorial-browser-'));
-const out=path.join(root,'docs/research/mediatheque-editorial/2026-09-22/publisher-browser');fs.mkdirSync(out,{recursive:true});
+const out=path.resolve(root,process.env.MEDIATHEQUE_EVIDENCE_DIR||'docs/research/mediatheque-editorial/2026-09-22/publisher-browser');fs.mkdirSync(out,{recursive:true});
 const port=3345,base='http://127.0.0.1:'+port,secret='editorial-synthetic-'+Date.now();
 const evidence={mode:'isolated synthetic owner and source archive',checks:[],errors:[]};
 const check=(label,value)=>{assert.ok(value,label);evidence.checks.push(label);console.log('PASS',label);};
@@ -67,6 +67,18 @@ async function main(){
   check('Room plays the published MP4 over the authorized public asset URL',true);
   const range=await player.evaluate(async video=>{const r=await fetch(video.getAttribute('src'),{headers:{Range:'bytes=0-31'}});return {status:r.status,length:(await r.arrayBuffer()).byteLength};});check('public video supports HTTP byte ranges',range.status===206&&range.length===32);
   await reader.screenshot({path:path.join(out,'room-public-media.png')});
+  await page.locator('[data-action=organize]').click();
+  await page.locator('[data-action=new-category]').first().click();await page.locator('[name=title]').fill('Канал без выпусков');await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
+  await page.locator('[data-action=new-collection]').first().click();await page.locator('[name=title]').fill('Серия без выпусков');await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
+  await page.locator('[data-action=preview]').first().click();await page.locator('[data-action=publish]').click();await page.locator('#ml-form button[type=submit]').click();await page.locator('#ml-dialog').waitFor({state:'hidden'});
+  await reader.goto(base+'/mediatheque.html?space=public&section=topics');await reader.locator('.ml-channel-card').first().waitFor();
+  await reader.evaluate(()=>window.appSetLocale('ru'));
+  check('guest sees published empty topic',await reader.locator('.ml-channel-card').filter({hasText:'Канал без выпусков'}).count()===1);
+  await reader.locator('.ml-channel-card').filter({hasText:'Канал без выпусков'}).click();
+  check('empty topic explains missing episodes without claiming search failure',await reader.locator('.ml-empty').innerText().then(x=>x.includes('Выпуски пока не опубликованы')&&!x.includes('Ничего не найдено')));
+  await reader.locator('[data-action=section][data-section=collections]').click();
+  check('guest sees published empty collection',await reader.locator('.ml-collection').filter({hasText:'Серия без выпусков'}).count()===1);
+  for(const lang of ['ru','en','he']){await reader.setViewportSize({width:380,height:844});await reader.evaluate(l=>window.appSetLocale(l),lang);await reader.screenshot({path:path.join(out,'empty-collections-'+lang+'.png')});check('empty collections '+lang+' fit mobile',await reader.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
   check('zero page errors',evidence.errors.length===0);evidence.status='PASS';
  }catch(e){evidence.status='FAIL';evidence.error=e.stack;if(page){evidence.formError=await page.locator('#ml-form-error').textContent().catch(()=>null);await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});}throw e;}
  finally{fs.writeFileSync(path.join(out,'evidence.json'),JSON.stringify(evidence,null,2));fs.writeFileSync(path.join(temp,'server.log'),log);if(browser)await browser.close();server.kill();}

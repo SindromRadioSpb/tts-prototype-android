@@ -24,10 +24,20 @@ test('verified archive preserves rows and exact caption binding; mismatched vide
   await assert.rejects(Archive.inspectArchive(Buffer.from('not zip')));
 });
 const sql=(db,s)=>new Promise((resolve,reject)=>db.exec(s,e=>e?reject(e):resolve()));
+test('text-only public corpora stay readable in the Room but do not enter Mediatheque',async t=>{
+  const {repo,owner}=await setup(t),opts=name=>({idempotencyKey:'text-only-'+name});
+  const corpus=await repo.createCorpus(owner,{slug:'text-only',title:'Text exercises'},opts('create'));
+  const copied=await repo.copyMyTextItems(owner,corpus.corpus_id,{expectedVersion:1,items:[{sourceWorkId:'exercise',title:'Exercise',expectedAudioCount:0,snapshot:{library:{texts:[{text_key:'exercise',rows:[{order_index:0,hebrew_plain:'שלום',russian:'Привет'}]}],audio_assets:[]}}}]},opts('copy'));
+  const rights=await repo.recordMaterialRights(owner,corpus.corpus_id,{itemIds:copied.items.map(i=>i.item_id),expectedVersion:copied.draft_version,preset:{public_read_allowed:true,public_stream_allowed:false,package_download_allowed:false,basis:'OWNER_ATTESTATION_MEDIA_2026_09_22',asserted_at:'2026-09-22'}},opts('rights'));
+  await repo.publish(owner,corpus.corpus_id,{expectedVersion:rights.draft_version},opts('publish'));
+  const published=await repo.getPublicCorpus('text-only');assert.equal(published.items.length,1);
+  assert.ok(await repo.getPublicWork('text-only',published.items[0].public_work_id));
+  assert.equal((await repo.getPublicMediatheque()).items.length,0);
+});
 async function setup(t){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'lp-editorial-'));
   const db=await new Promise((resolve,reject)=>{const d=new sqlite3.Database(':memory:',e=>e?reject(e):resolve(d));});
-  for(const m of ['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql'])await sql(db,fs.readFileSync(path.join(__dirname,'../migrations',m),'utf8'));
+  for(const m of ['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql','067_mediatheque_structure.sql'])await sql(db,fs.readFileSync(path.join(__dirname,'../migrations',m),'utf8'));
   await sql(db,"INSERT INTO users(id,role,display_name) VALUES('owner','owner','Owner'),('other','owner','Other')");
   t.after(async()=>{await new Promise(r=>db.close(r));fs.rmSync(dir,{recursive:true,force:true});});
   return {repo:createPublicationRepo({db,dataDir:dir}),owner:{id:'owner',role:'owner'},dir};
@@ -48,6 +58,9 @@ for(const mode of ['youtube','media'])test(mode+' archive uses canonical publica
   const receipt=await repo.publish(owner,corpus.corpus_id,{expectedVersion:rights.draft_version},opts('publish'));
   assert.ok(receipt.edition_id);
   const published=await repo.getPublicCorpus('editorial-'+mode);
+  const catalogue=await repo.getPublicMediatheque();
+  assert.equal(catalogue.items.length,1);
+  assert.equal(catalogue.items[0].media.kind,'video');
   const payload=await repo.getPublicWork('editorial-'+mode,published.items[0].public_work_id);
   assert.equal(payload.assets.length,media?1:0);
   assert.equal(payload.item.package_download_allowed,0);

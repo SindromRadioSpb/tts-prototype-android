@@ -8143,7 +8143,7 @@ async function openReader(textId, title, opts) {
   if (openEpoch !== readerOpenEpoch) return;
   const back = $('readerBack'); if (back) back.disabled = false;
   captureReaderReturnContext();
-  setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : null);
+  setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : opts && opts.returnToMediatheque ? 'mediatheque' : null);
   if (content) content.hidden = true;
   reader.hidden = false;
   cancelCompassBuildSchedule();
@@ -14369,7 +14369,7 @@ async function boot() {
       const myTextId = new URLSearchParams(location.search).get('my_text');
       if (myTextId) {
         const row = await localDb.getTextByIdLite(myTextId);
-        if (row) { await openReader(row.id, row.title, { resume: true }); if (mediathequeReturnHref()) setReaderReturnRoute('mediatheque'); }
+        if (row) await openReader(row.id, row.title, { resume: true, returnToMediatheque: !!mediathequeReturnHref() });
         else roomToast(tt('mediatheque.missingPersonal', 'Личный материал не найден в этом браузере'));
       }
     } catch (_) { roomToast(tt('mediatheque.localFailed', 'Не удалось открыть личную библиотеку')); }
@@ -14388,8 +14388,7 @@ async function boot() {
             const publicCatalog = await ensurePublicCatalog(publicSlug);
             const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
             if (publicWork && (!qp.get('public_snapshot') || qp.get('public_snapshot') === publicWork.snapshot_sha256)) {
-              await openPublicCorpusWork(publicSlug, publicWork, { resume: true });
-              if (mediathequeReturnHref()) setReaderReturnRoute('mediatheque');
+              await openPublicCorpusWork(publicSlug, publicWork, { resume: true, returnToMediatheque: !!mediathequeReturnHref() });
               if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
                 const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);
                 await renderReaderTaskLearningSupport(publicSlug, publicWorkId, readerOpenEpoch);

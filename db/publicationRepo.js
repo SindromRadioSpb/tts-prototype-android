@@ -885,7 +885,7 @@ function createPublicationRepo(options = {}) {
       return { ...row, tags: Array.isArray(tags) ? tags.filter(t => typeof t === 'string').map(t => t.slice(0,80)).slice(0,30) : [],
         media: MediathequeMetadata.normalize(media_projection),
         ref: { kind: 'public', slug: row.slug, workId: row.public_work_id, snapshotHash: row.snapshot_sha256 } };
-    });
+    }).filter(item => item.media.kind !== 'text');
   }
   async function getPublicMediatheque() {
     const row = await dbGet(database, `SELECT e.* FROM publication_mediatheque_pointer p

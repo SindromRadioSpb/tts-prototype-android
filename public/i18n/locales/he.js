@@ -4740,6 +4740,8 @@ window.I18N_LOCALES.he.mediatheque.changeFields.categoryId = "נושא / ערו�
 Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "seriesCount": "אוספים: {count}",
   "publicChannels": "ערוצים ונושאים",
+  "noPublishedEpisodes": "עדיין לא פורסמו פרקים",
+  "noPublishedEpisodesHelp": "הנושאים והאוספים כבר נוצרו. חומרי הלימוד יופיעו לאחר פרסום בידי העורך.",
   "publicChannelsHelp": "בחרו ערוץ, ואחריו סדרה או פרק ללימוד.",
   "researchReserve": "מחקר: 500 ערוצים",
   "researchReserveHelp": "תחילה מוצגים 50 המומלצים ממחקר 14 בספטמבר. החיפוש כולל 500 מועמדים. יש לבדוק שפה ומקור לפני הוספת פרקים. נושא ריק מוצג רק לעורך.",

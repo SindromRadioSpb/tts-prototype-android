@@ -54,3 +54,19 @@
 Следующий этап: production-выкладка и применение заготовки публичной структуры. Реальные архивы не публиковались массово: варианты Google/Gemini и помеченные «переделать» требуют редакторского выбора. Опубликованные версии/owner-live/device/AT в текущем локальном evidence не заявлены.
 
 Итоговый publisher-browser: 33 PASS; regression-browser: 99 PASS; unit/domain/shell: 109 PASS; i18n: 233 PASS. Отчёт и сценарий редактора: `docs/research/mediatheque-editorial/2026-09-22/EDITORIAL_DECISIONS.md`.
+
+
+## Owner UI audit — 2026-09-22, follow-up
+
+Production 3.11.611: reproduced 211 text-only items, hidden empty topics/collections despite sidebar links. User clarified that published channel/series scaffolding must remain visible and text-only exercise/song corpora must stay outside Mediatheque.
+
+- [x] Owner Chrome: actual ZIP + YouTube passed verification (270 rows); published «Пятилетний план-1» to C14 / תוכנית חומש through both UI review steps. Home settings saved with existing values; no learner actions.
+- [x] Fix public catalogue eligibility (media metadata only), leave Room publication and corpus rights intact.
+- [x] Expose published empty topics/collections; distinguish not-yet-published episodes from search mismatch.
+- [x] Unit/domain: 109 passed initially; release-pin test updated and passed 7/7. i18n 233/233.
+- [x] Publisher browser: 39/39; responsive screenshots reviewed.
+- [x] Fix rapid Reader return race: route established before visible reader; affected shell/Room tests 41/41.
+- [x] Broad Mediatheque regression: 99/99 after the return fix, including offline/SW/5000-item library.
+- [ ] Deploy approved fix; verify live assets, catalogue, Room corpus preservation and owner navigation.
+
+This supersedes the earlier decision to hide published empty scaffolding. Unpublished drafts remain private.

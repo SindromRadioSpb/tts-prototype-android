@@ -4746,6 +4746,8 @@ window.I18N_LOCALES.ru.mediatheque.changeFields.categoryId = "Тема / кан�
 Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "seriesCount": "Подборок: {count}",
   "publicChannels": "Каналы и темы",
+  "noPublishedEpisodes": "Выпуски пока не опубликованы",
+  "noPublishedEpisodesHelp": "Темы и подборки уже созданы. Учебные материалы появятся после публикации редактором.",
   "publicChannelsHelp": "Выберите канал, затем серию или отдельный выпуск для изучения.",
   "researchReserve": "Исследование: 500 каналов",
   "researchReserveHelp": "По умолчанию — Recommended-50 из исследования 14 сентября. Поиск охватывает все 500 кандидатов. Перед добавлением выпусков проверьте язык и источник. Пустая тема видна только редактору.",
