@@ -65,26 +65,13 @@ function createUmamiClient(getConfig = () => configFromEnv()) {
     const config = getConfig();
     config.baseUrl = safeBaseUrl(config.baseUrl);
     if (!config.enabled || !config.baseUrl) return { accepted: false, reason: "not_configured" };
-    await fetchJson(`${config.baseUrl}/api/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "User-Agent": "LinguistPro-Product-Pulse/1" },
-      body: JSON.stringify({
-        type: "event",
-        payload: {
-          website: config.websiteId,
-          hostname: config.hostname,
-          url: `/${event.properties.surface}`,
-          title: "LinguistPro",
-          id: event.session_id,
-          name: event.event_name,
-          data: {
-            schema_version: event.schema_version,
-            app_version: event.app_version,
-            ...event.properties,
-          },
-        },
-      }),
-    });
+    for (const body of buildSendPayloads(config, event)) {
+      await fetchJson(`${config.baseUrl}/api/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "User-Agent": "LinguistPro-Product-Pulse/1" },
+        body: JSON.stringify(body),
+      });
+    }
     return { accepted: true };
   }
 
@@ -102,4 +89,29 @@ function createUmamiClient(getConfig = () => configFromEnv()) {
   return { send, stats, configured: () => configFromEnv().enabled };
 }
 
-module.exports = { configFromEnv, safeBaseUrl, createUmamiClient };
+function buildSendPayloads(config, event) {
+  const common = {
+    website: config.websiteId,
+    hostname: config.hostname,
+    url: `/${event.properties.surface}`,
+    title: "LinguistPro",
+    id: event.session_id,
+  };
+  const eventPayload = {
+    type: "event",
+    payload: {
+      ...common,
+      name: event.event_name,
+      data: {
+        schema_version: event.schema_version,
+        app_version: event.app_version,
+        ...event.properties,
+      },
+    },
+  };
+  return event.event_name === "app_open"
+    ? [{ type: "event", payload: common }, eventPayload]
+    : [eventPayload];
+}
+
+module.exports = { configFromEnv, safeBaseUrl, createUmamiClient, buildSendPayloads };

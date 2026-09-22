@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { normalizeEvent, anonymousEventKey } = require("../product-pulse/contract");
-const { configFromEnv, safeBaseUrl } = require("../product-pulse/umami");
+const { configFromEnv, safeBaseUrl, buildSendPayloads } = require("../product-pulse/umami");
 
 function validEvent(overrides = {}) {
   return {
@@ -12,7 +12,7 @@ function validEvent(overrides = {}) {
     event_name: "study_engaged",
     occurred_at: "2026-09-22T10:00:00.000Z",
     session_id: "session-456",
-    app_version: "3.11.603",
+    app_version: "3.11.604",
     properties: { surface: "reading_room", duration_bucket: "5_15_min" },
     ...overrides,
   };
@@ -52,4 +52,20 @@ test("Umami base URL requires HTTPS except for loopback development", () => {
   assert.equal(safeBaseUrl("https://analytics.example/"), "https://analytics.example");
   assert.equal(safeBaseUrl("http://127.0.0.1:3001/"), "http://127.0.0.1:3001");
   assert.equal(safeBaseUrl("http://analytics.example"), "");
+});
+
+test("app_open creates both a visit pageview and the canonical named event", () => {
+  const event = normalizeEvent(validEvent({ event_name: "app_open", properties: { surface: "studio" } }), Date.parse("2026-09-22T10:01:00Z")).event;
+  const payloads = buildSendPayloads({ websiteId: "site-id", hostname: "linguistpro.kolosei.com" }, event);
+  assert.equal(payloads.length, 2);
+  assert.equal(payloads[0].payload.name, undefined);
+  assert.equal(payloads[1].payload.name, "app_open");
+  assert.equal(payloads[0].payload.id, event.session_id);
+});
+
+test("non-open product events stay named events without extra pageviews", () => {
+  const event = normalizeEvent(validEvent(), Date.parse("2026-09-22T10:01:00Z")).event;
+  const payloads = buildSendPayloads({ websiteId: "site-id", hostname: "linguistpro.kolosei.com" }, event);
+  assert.equal(payloads.length, 1);
+  assert.equal(payloads[0].payload.name, "study_engaged");
 });

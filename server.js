@@ -1221,7 +1221,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=575",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/js/product-telemetry.js?v=603",
+  "/js/product-telemetry.js?v=604",
   "/i18n/locales/ru.js?v=241",
   "/i18n/locales/en.js?v=241",
   "/i18n/locales/he.js?v=241",
