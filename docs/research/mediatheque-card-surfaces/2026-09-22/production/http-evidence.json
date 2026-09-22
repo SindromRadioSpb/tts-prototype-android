@@ -1,0 +1,153 @@
+{
+  "version": "3.11.614",
+  "sourceCommit": "09b175160fbdde6a87ce5f5d84983597fefa7cea",
+  "at": "2026-09-22T15:52:10.115Z",
+  "checks": [
+    {
+      "url": "/mediatheque.html",
+      "sha256": "3599bd47711bc75c9a62aa86c2953e97e60bd102a780d2c327a7328dc1c49ff4"
+    },
+    {
+      "url": "/css/mediatheque.css?v=7",
+      "sha256": "ac786793a5c9cfce45380594f69099506b8e98be728b68473bff97b6dff63e3d"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=19",
+      "sha256": "9e4dcf56e63ae484aba4c3bdfef352ef4fa0cfc7a442fa063595808fafcc47ca"
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "sha256": "301f90178a18c6ea23b05603299a85bc9fd9f30104a0fd4554ae92c4d51fda32"
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "sha256": "d8d2ec312d21b8191f52aeb0d5635f6886afe2efa64ebe772ef9f7ab593c47bb"
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "sha256": "ef2e4a81ec0bb8a2a2676e0c8c77d4006c73adb21a7dd1a3d4eb302dd0cb7f34"
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "sha256": "4c0aefa9b1c7a4c5db030e0f7595d9eb358f5d5ac7f6e4a5cca345ad85f31b9a"
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "sha256": "88b3ec51ebf9c3c7a312d144809bf4b73708e67eccc60ce4e6c402e831bc7abe"
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "sha256": "757ee04103168073347cd26bb0552e00a2638195bf2396742c21043f2e5388dc"
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "sha256": "d8a429d04cb153658882b04163ddf3a419be9328bc5507840534c3a5b81d68b1"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "9e29e8927ad672dc6aa09ce586f29c9361f1ee82363ad98344b2b4e7f0f89435"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "00e0e74f1efe476ae0da38a66922dc649be9002a0a385414471dca298c867d84"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=244",
+      "sha256": "2e97ad27f502e11cc9d852ad13d5f26daced225337fac4c0b607b5bdfc645c52"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=244",
+      "sha256": "d373903ee2db41b9cffb40f2e4130dc66b6322af1999087c9b747fb48b4a9dc7"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=244",
+      "sha256": "32df773e813653a8cf886124e81ab2192e60a35b6c6e201db37f85110c6514e3"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "40cad168e99ed0c38f6221265b7e14d851d7918c047b7d08aae212444a4fdefb"
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "version": "3.11.614"
+    },
+    {
+      "ok": true,
+      "version": "3.11.614"
+    },
+    {
+      "ok": true,
+      "version": "3.11.614"
+    }
+  ],
+  "catalogueUnchanged": true,
+  "items": 1,
+  "topics": 11,
+  "collections": 22,
+  "imageId": "sha256:b8fbf285ad2f101784568874452d2884bad7c868b72ab0c7f93405ef977ae247",
+  "cleanup": {
+    "diskBeforePct": 100,
+    "diskAfterPct": 72,
+    "availableGiB": 11,
+    "diskWarn": false,
+    "retainedImages": [
+      "b8fbf285ad2f",
+      "f9340d02df41",
+      "8a850c17857d"
+    ],
+    "containers": 12,
+    "volumes": 4
+  },
+  "ownerTab": {
+    "css": "/css/mediatheque.css?v=7",
+    "topics": 11,
+    "collections": 22,
+    "rightAligned": true,
+    "topicSurfaces": true,
+    "visuallyReviewed": true,
+    "actions": "Update, navigation and scroll only; no material edits or study actions"
+  },
+  "postCleanupHealth": [
+    {
+      "ok": true,
+      "uptimeSec": 197,
+      "now": "2026-09-22T15:53:29.042Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 72,
+      "disk_warn": false
+    },
+    {
+      "ok": true,
+      "uptimeSec": 197,
+      "now": "2026-09-22T15:53:29.268Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 72,
+      "disk_warn": false
+    },
+    {
+      "ok": true,
+      "uptimeSec": 197,
+      "now": "2026-09-22T15:53:29.349Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 72,
+      "disk_warn": false
+    }
+  ]
+}
