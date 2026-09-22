@@ -1,7 +1,7 @@
 # Product Pulse — cross-surface material coverage
 
 Дата: 2026-09-22. База анализа: `e88f121772f59c277abc5f9ff3647ac5febaae5e` / 3.11.606.
-Статус: реализовано для 3.11.607; automated gates выполняются, production release ещё не подтверждён.
+Статус: реализовано для 3.11.608; production и owner-live gates выполняются.
 
 ## Подтверждённый разрыв
 
@@ -75,10 +75,16 @@ funnel. Это исключает скрытую смену единицы из�
 
 ## Automated evidence до публикации
 
-- Product Pulse unit/contract/privacy/integration: 25/25 PASS.
-- Полный `npm test`: 1874/1874 PASS.
+- Product Pulse unit/contract/privacy/integration: 26/26 PASS, включая network-only
+  границу owner-shell в Service Worker.
+- Полный `npm test`: 1875/1875 PASS.
 - Product Pulse browser/API smoke: owner/non-owner/anonymous/loopback-preview,
   manifest parity, zero/partial/outage, 380/768/1440, keyboard focus и contrast — PASS.
 - i18n: 233/233; learner ingest: 24/24; FSRS: 140/140; memory canon: 90/90 — PASS.
 - API smoke и ingest smoke — PASS; `git diff --check` — PASS.
 - Production deploy, served integrity и owner-live read-only остаются post-push gates.
+
+Owner-live на промежуточном 3.11.607 обнаружил старый `/pulse.html` из runtime-cache
+Service Worker при уже новом API/JS. Данные не раскрылись, но shell был несогласован с
+контрактом. Релиз 3.11.608 делает `/pulse.html` строго network-only до server auth и
+инвалидирует старые versioned caches; это обязательный release blocker, а не косметика.

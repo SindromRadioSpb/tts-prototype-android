@@ -22,3 +22,11 @@ test("revision 1.2 models material route, collection and media without identifie
   for(const key of ["entry_point","material_collection","material_media"])assert.ok(props.includes(key));
   for(const forbidden of ["material_id","text_id","note_id","url","query","title"])assert.equal(props.includes(forbidden),false);
 });
+
+test("owner-only Pulse shell is network-only and cannot be served from Service Worker cache",()=>{
+  const sw=fs.readFileSync("public/sw.js","utf8"),guard='if (url.pathname === "/pulse.html") return;';
+  assert.ok(sw.includes(guard));
+  assert.ok(sw.indexOf(guard)<sw.indexOf("event.respondWith(staleWhileRevalidate(req))"));
+  const precache=sw.slice(sw.indexOf("const PRECACHE_URLS = ["),sw.indexOf("self.addEventListener(\"install\""));
+  assert.equal(precache.includes('"/pulse.html"'),false);
+});

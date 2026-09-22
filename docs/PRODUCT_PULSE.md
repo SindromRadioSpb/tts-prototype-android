@@ -1,6 +1,6 @@
 # Product Pulse — privacy-first продуктовая аналитика
 
-Статус: contract revision 1.2 / wire schema 2, релиз 3.11.607. Сверка: 2026-09-22.
+Статус: contract revision 1.2 / wire schema 2, релиз 3.11.608. Сверка: 2026-09-22.
 Privacy-first контракт — канон; self-hosted Umami 3.0.3 — основной backend.
 PostHog не подключён и не получает параллельный поток. Новых подписок нет.
 Это измерение использования и технических исходов, не усвоения языка.
@@ -27,7 +27,7 @@ optional для прежних событий и обязательны толь
   "event_name": "material_engaged",
   "occurred_at": "2026-09-22T10:00:00.000Z",
   "session_id": "366d21e9-38c2-4a30-bb8e-f6765463d753",
-  "app_version": "3.11.607",
+  "app_version": "3.11.608",
   "properties": {"surface": "reading_room", "entry_point": "mediatheque",
     "material_collection": "public_study_songs", "material_media": "audio",
     "duration_bucket": "30_sec_2_min"}

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.607";
+const CACHE_VERSION = "v3.11.608";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -73,7 +73,7 @@ const PRECACHE_URLS = [
   "/js/mediatheque-core.js",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
-  "/js/product-telemetry.js?v=607",
+  "/js/product-telemetry.js?v=608",
 
   "/study-video.html",
   "/study-studio.html",
@@ -117,7 +117,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=607",
+  "/js/library-ui.js?v=608",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -443,6 +443,10 @@ self.addEventListener("fetch", (event) => {
   // fresh consent shell with stale JS/CSS: that can leave newly introduced
   // controls visible but inert during a one-time OAuth ceremony.
   if (url.pathname === "/agent-access.html" || url.pathname === "/js/agent-access.js" || url.pathname === "/css/agent-access.css") return;
+
+  // Product Pulse is an owner-only operational shell. Never let CacheStorage
+  // bypass the server-side auth boundary or serve an old contract after deploy.
+  if (url.pathname === "/pulse.html") return;
 
   // /api/client-config — network-first with timeout, fall back to cache.
   if (CONFIG_URL_RE.test(url.pathname + url.search)) {
