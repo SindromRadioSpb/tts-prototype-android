@@ -11,7 +11,7 @@ async function main() {
     let body = ""; for await (const chunk of req) body += chunk;
     res.setHeader("Content-Type", "application/json");
     if (outage) { res.statusCode = 503; return res.end('{}'); }
-    if (req.url === "/api/send") { received.push(JSON.parse(body)); return res.end('{}'); }
+    if (req.url === "/api/send") { received.push(JSON.parse(body)); return res.end('{"sessionId":"fixture-session","visitId":"fixture-visit"}'); }
     if (req.url === "/api/auth/login") return res.end('{"token":"disposable-token"}');
     res.end(req.url.includes("/stats?") ? '{"visits":0,"visitors":0,"pageviews":0}' : '[]');
   });
@@ -41,7 +41,7 @@ async function main() {
     assert.equal((await config({})).collect, true, "anonymous visitor must collect");
     assert.equal((await config({ cookie, "X-Product-Pulse-Exclude": "1" })).collect, false);
     const makeEvent = surface => ({ schema_version: 2, event_id: randomUUID(), session_id: randomUUID(),
-      event_name: "app_open", app_version: "3.11.609", occurred_at: new Date().toISOString(), properties: { surface } });
+      event_name: "app_open", app_version: "3.11.610", occurred_at: new Date().toISOString(), properties: { surface } });
     const send = (event, extra = {}) => fetch(base + "/api/product-pulse/v1/events", { method: "POST",
       headers: { cookie, "Content-Type": "application/json", ...extra }, body: JSON.stringify(event) }).then(r => r.json());
     for (const surface of ["studio", "reading_room", "mediatheque"]) {

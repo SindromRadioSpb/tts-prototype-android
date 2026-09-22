@@ -78,7 +78,7 @@ test("deterministic local fake Umami authenticates, sends only app_open pageview
   const http=require("node:http"),received=[];
   const server=http.createServer(async(req,res)=>{let body="";for await(const part of req)body+=part;res.setHeader("Content-Type","application/json");
     if(req.url==="/api/auth/login")return res.end(JSON.stringify({token:"fixture-secret-token"}));
-    if(req.url==="/api/send"){received.push(JSON.parse(body));return res.end("{}");}
+    if(req.url==="/api/send"){assert.equal(req.headers["user-agent"],"Mozilla/5.0 (LinguistPro Product Pulse)");received.push(JSON.parse(body));return res.end('{"sessionId":"fixture-session","visitId":"fixture-visit"}');}
     assert.equal(req.headers.authorization,"Bearer fixture-secret-token");assert.ok(req.url.includes("tag=eq.pulse-v2"));res.end(req.url.includes("/stats?")?'{"visits":0,"visitors":0,"pageviews":0}':"[]");
   });
   await new Promise(r=>server.listen(0,"127.0.0.1",r));
@@ -86,6 +86,25 @@ test("deterministic local fake Umami authenticates, sends only app_open pageview
     for(const def of manifest.events)await c.send(validFor(def));
     assert.equal(received.length,manifest.events.length+1);assert.equal(received.filter(b=>!b.payload.name).length,1);
     const data=await createDashboard(c,{now:()=>now})();assert.equal(data.state,"available");assert.equal(JSON.stringify(data).includes("fixture-secret"),false);
+  }finally{await new Promise(r=>server.close(r));}
+});
+
+test("Umami HTTP 200 bot drops and malformed receipts are not delivery",async()=>{
+  const http=require("node:http"); let receipt={beep:"boop"};
+  const server=http.createServer((_req,res)=>{res.setHeader("Content-Type","application/json");res.end(JSON.stringify(receipt));});
+  await new Promise(r=>server.listen(0,"127.0.0.1",r));
+  try {
+    const c=createUmamiClient(()=>({enabled:true,baseUrl:"http://127.0.0.1:"+server.address().port,websiteId:"site",hostname:"app.test"}));
+    for(const invalid of [{beep:"boop"},{},null,{sessionId:"s"},{sessionId:"s",visitId:""},{sessionId:42,visitId:"v"}]){
+      receipt=invalid;
+      await assert.rejects(c.send(event()),/UMAMI_SEND_NOT_CONFIRMED/);
+      const delivery=createDelivery(c);
+      assert.equal((await delivery.deliver(event())).reason,"delivery_unavailable");
+      assert.equal(delivery.counters.delivered,0);
+      assert.equal(delivery.counters.unavailable,1);
+    }
+    receipt={sessionId:"s",visitId:"v",cache:"private-receipt-token"};
+    assert.deepEqual(await c.send(event()),{accepted:true});
   }finally{await new Promise(r=>server.close(r));}
 });
 test("real Umami PostgreSQL expanded SUM strings are exact counts; malformed numbers fail closed",async()=>{

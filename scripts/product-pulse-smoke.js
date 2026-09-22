@@ -61,7 +61,7 @@ async function main(){
     await sender.route("https://pulse.test/**",async route=>{
       const pathname=new URL(route.request().url()).pathname;
       if(pathname==="/api/product-pulse/v1/events") { wire.push(JSON.parse(route.request().postData()));return route.fulfill({status:202,body:'{"ok":true}'}); }
-      if(pathname==="/api/client-config")return route.fulfill({contentType:"application/json",body:'{"version":"3.11.609"}'});
+      if(pathname==="/api/client-config")return route.fulfill({contentType:"application/json",body:'{"version":"3.11.610"}'});
       if(pathname==="/api/product-pulse/v1/config")return route.fulfill({contentType:"application/json",body:'{"collect":true}'});
       if(pathname==="/sender.js")return route.fulfill({contentType:"application/javascript",body:fs.readFileSync("public/js/product-telemetry.js","utf8")});
       return route.fulfill({contentType:"text/html",body:'<textarea id="inputText">private fixture content</textarea><script src="/sender.js"></script>'});

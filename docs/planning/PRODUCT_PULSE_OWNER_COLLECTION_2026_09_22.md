@@ -36,3 +36,24 @@ disk_warn=false, 73%. Production/owner-live evidence добавляется по
 scripts/product-pulse-owner-smoke.js PASS — настоящий production-mode
 HTTP API + disposable DB + fake Umami; owner collect=true, доставка трёх surfaces,
 dedupe, opt-out, read auth и изоляция downstream outage.
+
+3.11.609 / bc0c9d8d deployed. Owner-live: сервер отчитался о пяти доставках,
+но Umami/panel оставались нулевыми. Дополнительный транспортный дефект:
+установленный isbot отвергает фиксированный `LinguistPro-Product-Pulse/1`;
+Umami send route возвращает HTTP 200 beep:boop без записи. Проверено read-only
+на фактическом compiled module: старый UA isbot=true, новый фиксированный
+`Mozilla/5.0 (LinguistPro Product Pulse)` isbot=false. Глобальный bot-check
+не отключается, реальный UA пользователя не передаётся.
+Сверенный upstream: https://github.com/umami-software/umami/blob/v3.0.3/src/app/api/send/route.ts
+(bot check возвращает beep:boop; receipt выдаётся после saveEvent).
+
+Расширение маршрута, hotfix 3.11.610: совместимый фиксированный UA, проверка
+sessionId/visitId receipt вместо одного HTTP status; regression на silent drop.
+Owner inclusion остаётся постоянным. До подтверждённого роста end-to-end
+acceptance не закрыт; прежний delivery counter не считать доказательством записи.
+
+Hotfix gates: npm test 1876/1876; Pulse owner/API/UI/wire smoke; API smoke;
+ingest 22; learner-ingest 24/24; FSRS 140/140; memory-canon 90/90 — PASS.
+Перед второй сборкой по прежнему разрешению удалён только unused build cache
+(Docker reported 2,302 GB; после очистки 76%, 8,9 GB free, cache=0).
+14 образов, 12 контейнеров, 4 volumes сохранены; новых image deletions нет.

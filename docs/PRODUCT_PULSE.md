@@ -1,6 +1,6 @@
 # Product Pulse — privacy-first продуктовая аналитика
 
-Статус: contract revision 1.2 / wire schema 2, релиз 3.11.609. Сверка: 2026-09-22.
+Статус: contract revision 1.2 / wire schema 2, релиз 3.11.610. Сверка: 2026-09-22.
 Privacy-first контракт — канон; self-hosted Umami 3.0.3 — основной backend.
 PostHog не подключён и не получает параллельный поток. Новых подписок нет.
 Это измерение использования и технических исходов, не усвоения языка.
@@ -130,8 +130,13 @@ Umami получает фиксированный hostname, surface path и titl
 случайный ID, секунды occurred_at, named event и только разрешённые data.
 У operation_result path детерминирован из двух enum:
 `/pulse-v2/operations/{operation}/{result}`. Настоящего URL/referrer/query нет.
-User-Agent транспорта фиксирован `LinguistPro-Product-Pulse/1`; IP и UA
-пользовательского запроса не проксируются.
+User-Agent отправки с 3.11.610 фиксирован `Mozilla/5.0 (LinguistPro Product Pulse)`;
+IP и UA пользовательского запроса не проксируются. Это обезличенный транспорт,
+а не измерение браузера/ОС/устройства ученика. Общий bot-check Umami включён.
+Предыдущий `LinguistPro-Product-Pulse/1` попадал под isbot в установленной Umami
+3.0.3: HTTP 200 `{beep:"boop"}` не означал запись. Теперь delivery требует
+непустые sessionId и visitId в ответе; молчаливый drop считается unavailable.
+Счётчик delivered до 3.11.610 не доказывает сохранение, потерянное не восполняется.
 
 ## 5. Панель и определения
 

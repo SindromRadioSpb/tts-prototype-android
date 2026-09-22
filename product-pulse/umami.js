@@ -1,5 +1,9 @@
 "use strict";
 
+// Fixed transport identity, never the user's UA. Umami 3.0.3's isbot rejects
+// bare Product/1 agents with HTTP 200 {beep:"boop"} and stores nothing.
+const SEND_USER_AGENT = "Mozilla/5.0 (LinguistPro Product Pulse)";
+
 function boolEnv(value) {
   return ["1", "true", "yes", "on"].includes(String(value || "").trim().toLowerCase());
 }
@@ -69,11 +73,16 @@ function createUmamiClient(getConfig = () => configFromEnv()) {
     config.baseUrl = safeBaseUrl(config.baseUrl);
     if (!config.enabled || !config.baseUrl) return { accepted: false, reason: "not_configured" };
     for (const body of buildSendPayloads(config, event)) {
-      await fetchJson(`${config.baseUrl}/api/send`, {
+      const receipt = await fetchJson(`${config.baseUrl}/api/send`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "User-Agent": "LinguistPro-Product-Pulse/1" },
+        headers: { "Content-Type": "application/json", "User-Agent": SEND_USER_AGENT },
         body: JSON.stringify(body),
       });
+      // HTTP success alone does not prove storage. Do not log the cache token.
+      if (!receipt || typeof receipt.sessionId !== "string" || !receipt.sessionId ||
+          typeof receipt.visitId !== "string" || !receipt.visitId || receipt.beep) {
+        throw new Error("UMAMI_SEND_NOT_CONFIRMED");
+      }
     }
     return { accepted: true };
   }
