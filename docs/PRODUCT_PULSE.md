@@ -1,108 +1,200 @@
-# Product Pulse — first-party продуктовая аналитика
+# Product Pulse — privacy-first продуктовая аналитика
 
-Статус: действующий контракт v1. Последняя сверка с кодом: 2026-09-22.
+Статус: contract revision 1.1 / wire schema 2, релиз 3.11.606. Сверка: 2026-09-22.
+Privacy-first контракт — канон; self-hosted Umami 3.0.3 — основной backend.
+PostHog не подключён и не получает параллельный поток. Новых подписок нет.
+Это измерение использования и технических исходов, не усвоения языка.
 
-Product Pulse отвечает на ограниченный набор операционных вопросов: открывают ли LinguistPro, начинают ли работу, достигают ли порога вовлечения, используют ли аудио и успешно ли завершаются выбранные продуктовые операции. Это отдельный серверный контур и не замена локальной Analytics PRO из `CONTRACTS_ANALYTICS.md`.
+## 1. Единый контракт
 
-## 1. Источники правды
+`product-pulse/contract.js` задаёт events, required_properties, optional_properties,
+forbidden_combinations, trigger, contract_revision, introduced_in, owner, metric,
+retention_class и status. Валидатор, owner endpoint и UI используют этот манифест.
+`tests/productPulseV2.test.js` проверяет event-specific matrix и parity.
 
-- `product-pulse/contract.js` — машинно-читаемый манифест, allowlist и валидатор.
-- `GET /api/product-pulse/v1/contract` — owner-only проекция того же манифеста для панели.
-- `public/js/product-telemetry.js` — общий браузерный отправитель.
-- `product-pulse/umami.js` — доставка разрешённых данных в self-hosted Umami.
-- `GET /api/product-pulse/v1/dashboard` — owner-only агрегаты посещений.
-- `public/pulse.html` — закрытая панель владельца.
+Статусы: automatic / integrated / reserved / deprecated. Резерв отдельных
+поверхностей также виден в манифесте и панели; integrated не означает все поверхности.
 
-Документация и UI не должны поддерживать отдельный ручной список событий: они получают его из манифеста. Тест обязан подтверждать равенство манифеста и валидатора.
+## 2. Версионирование и граница данных
 
-## 2. Wire envelope v1
-
+Новый sender использует schema_version=2:
 ```json
 {
-  "schema_version": 1,
-  "event_id": "random-per-event-token",
+  "schema_version": 2,
+  "event_id": "bf6ea3de-8c76-4eef-9663-8b505c32631c",
   "event_name": "study_engaged",
   "occurred_at": "2026-09-22T10:00:00.000Z",
-  "session_id": "random-per-tab-session-token",
-  "app_version": "3.11.605",
-  "properties": {
-    "surface": "reading_room",
-    "duration_bucket": "30_sec_2_min"
-  }
+  "session_id": "366d21e9-38c2-4a30-bb8e-f6765463d753",
+  "app_version": "3.11.606",
+  "properties": {"surface": "reading_room", "duration_bucket": "30_sec_2_min"}
 }
 ```
 
-Ограничения:
+- Envelope имеет только семь перечисленных ключей. Идентификаторы — UUID v4,
+  версия — числовой semver либо unknown, время — canonical UTC ISO.
+- Допустимое время: до 24 часов назад, до 5 минут вперёд.
+- Properties — только плоские enum-значения из манифеста; неизвестные поля,
+  произвольные строки, URL/query, local material/text/note IDs, содержимое,
+  вложенные объекты и массивы отклоняются. Проверка действует также на envelope.
+- Нельзя доказать отсутствие намеренного кодирования содержимого в UUID;
+  штатный sender генерирует их независимо от данных через Web Crypto.
+- Замороженный v1 validator сохранён в `legacy-contract.js`: до
+  **2026-09-29 00:00 UTC** прежний допустимый payload получает 202 с
+  `accepted:false, reason:legacy_transition` и НЕ доставляется в Umami.
+  После срока — 400 SCHEMA_VERSION_EXPIRED. Семантика schema_version=1
+  не ужесточается незаметно; legacy поток отделён от зрелых метрик.
+- API path /v1 остаётся адресом сервиса; wire schema явно указана внутри.
+- Dedupe: SHA-256(session_id:event_id), 24 часа, максимум 20 000 записей
+  процесса. Максимум 8 одновременных доставок. Перезапуск сбрасывает dedupe.
+  Доставка at-most-once в пределах процесса; повтор после downstream failure
+  не выполняется. 202 — продукт не блокируется, а не гарантия хранения.
+  Две отправки app_open (pageview + named event) не атомарны.
 
-- `event_id` и `session_id`: безопасный token до 80 символов;
-- `app_version`: безопасный token до 32 символов либо `unknown`;
-- `occurred_at`: ISO timestamp не дальше 24 часов от времени приёма;
-- неизвестное событие или свойство отклоняется с HTTP 400;
-- сбой аналитики не блокирует приложение: принятый запрос получает HTTP 202, даже если downstream временно недоступен;
-- dedupe строится по SHA-256 от `session_id:event_id`; исходные идентификаторы в dedupe-key не раскрываются.
+## 3. Реальные точки отправки
 
-## 3. Семь событий
+Точный перечень событий и свойств формируется машинным манифестом, не отдельным
+UI-списком. Текущие точки:
 
-| Событие | Определение | Текущий статус | Используемые свойства |
-|---|---|---|---|
-| `app_open` | Оболочка загрузилась в текущей вкладке | автоматически при запуске поверхности | `surface` |
-| `material_open` | Открыт учебный материал без названия или содержимого | точка интеграции, emit пока не подключён | `surface`, `media_kind` |
-| `study_started` | После открытия произошло первое содержательное действие | автоматически при первом `pointerdown` или `keydown` | `surface` |
-| `study_engaged` | Начатая сессия достигла порога вовлечения | автоматически после 30 секунд на видимой странице | `surface`, `duration_bucket` |
-| `study_completed` | Сценарий дошёл до явно определённой точки завершения | точка интеграции, emit пока не подключён | `surface`, `duration_bucket` |
-| `audio_engaged` | Медиа действительно воспроизводилось | автоматически один раз на элемент после не менее 8 секунд воспроизведения | `surface`, `media_kind` |
-| `operation_result` | Разрешённая операция завершилась успехом, ошибкой или отменой | точка интеграции, emit пока не подключён | `surface`, `operation`, `result`, `duration_bucket` |
+- app_open: после конфигурации sender, один раз на документ поверхности.
+  Только это событие создаёт pageview и named event.
+- material_open: Читальный зал, успешный readerCore.openText с непустыми строками
+  и актуальным open epoch. Передаётся media_kind=text как открытие текста;
+  прикреплённые медиа не угадываются по содержимому.
+- study_started: первое trusted pointerdown/keydown внутри учебной области
+  (таблица, ввод текста, тренировка, media), visible + focus. Настройки/навигация
+  вне этих областей не считаются занятием.
+- study_engaged: 30 секунд после начала, visible + focus, максимум 15 секунд
+  после последнего учебного действия. Время до первого действия, hidden и idle
+  не засчитываются. Нет утверждения, что это всё время чтения.
+- study_completed: только успешный setTextFinished из end-of-text карточки
+  «Прочитано» в Читальном зале. Ошибка записи не создаёт completion.
+  Отметка с полки не является прохождением занятия; она не инструментирована.
+  Studio / study_video / mediatheque остаются reserved с причинами в манифесте.
+- audio_engaged: ≥8 секунд подтверждённого продвижения HTML audio/video
+  на видимой сфокусированной странице. Seek/pause/waiting не дают кредит;
+  повтор того же источника на том же элементе не создаёт второй факт.
+  YouTube iframe не покрыт; это не универсальный счётчик всего аудио продукта.
+- operation_result: серверный finish/close ровно один раз для POST /api/tts,
+  /api/translate-table и /api/translate-table-v2. Два enum operation:
+  tts / translate_table. HTTP 2xx=success, иной HTTP=failure, преждевременный
+  close=cancelled. Это запрос/попытка, а не вся задача/весь материал;
+  batch/job/import и client-side validation пока не покрыты.
+  Для серверного факта surface=unknown, session_id — случайный per-request
+  UUID; он не используется для пользовательских conversion/retention.
 
-`properties_used` в манифесте описывает смысловую комбинацию. Валидатор v1 пока применяет общий allowlist свойств, а не отдельную матрицу на каждое событие. Переход к event-specific required/optional rules должен быть сделан как явная совместимая миграция либо как schema v2 — не незаметным ужесточением v1.
+Sender: свежий случайный session_id при каждой загрузке документа; записывается
+в sessionStorage, но не переиспользуется. Дублированные вкладки и навигации
+получают разные ключи. Same-document SPA не начинает новую сессию.
+Offline/config failure/ранние события до готовности sender пропускаются;
+очереди повторов и отправки накопленного содержимого нет.
+Синтетические DOM events не создают started. Проверки работают на изолированных fixtures.
 
-## 4. Пять свойств
+## 4. Исключения и доставка
 
-| Свойство | Обязательность | Разрешённые значения / формат |
-|---|---|---|
-| `surface` | всегда присутствует после нормализации | `studio`, `reading_room`, `mediatheque`, `study_video`, `unknown` |
-| `result` | опционально | `success`, `failure`, `cancelled` |
-| `duration_bucket` | опционально | `lt_30_sec`, `30_sec_2_min`, `2_5_min`, `5_15_min`, `15_30_min`, `30_min_plus` |
-| `operation` | опционально | token 1–40: латиница, цифры, `_`, `.`, `-` |
-| `media_kind` | опционально | token 1–40: латиница, цифры, `_`, `.`, `-` |
+`GET /api/product-pulse/v1/config` сообщает только collect/schema_version,
+с private,no-store. Owner по authenticated role исключён на сервере до доставки.
+Test NODE_ENV и явный `X-Product-Pulse-Exclude: 1` также исключаются.
+Browser sender выключен на loopback и navigator.webdriver. Для synthetic
+production API probes заголовок исключения обязателен. Это сигнал opt-out,
+не средство аутентификации; он только убирает событие.
 
-Запрещены user id, email, IP как свойство события, учебные тексты, переводы, заметки, имена файлов, полные URL, поисковые строки и любой свободный пользовательский ввод. Технические HTTP-логи инфраструктуры и first-party session token не следует называть полной анонимностью; это псевдонимная минимальная телеметрия.
+Primary read API фильтрует `tag=eq.pulse-v2`. Исторический v1 baseline (на recon:
+app_open=1, visits=1, visitors=1, pageviews=1) не считается чистой выборкой.
+Неавторизованные owner-действия без owner-cookie распознать невозможно.
 
-## 5. Семантика панели
+Umami получает фиксированный hostname, surface path и title=LinguistPro,
+случайный ID, секунды occurred_at, named event и только разрешённые data.
+У operation_result path детерминирован из двух enum:
+`/pulse-v2/operations/{operation}/{result}`. Настоящего URL/referrer/query нет.
+User-Agent транспорта фиксирован `LinguistPro-Product-Pulse/1`; IP и UA
+пользовательского запроса не проксируются.
 
-- «Посещение» — агрегат Umami, а не уникальный человек и не онлайн-присутствие.
-- Период «Сегодня» начинается в 00:00 UTC.
-- Панель опрашивает источник раз в 60 секунд; `generated_at` показывает время сформированного ответа, а не время последнего действия пользователя.
-- Ноль допустим только как полученный агрегат. При недоступном источнике показывается недоступность, а не подставной ноль.
-- Продуктовое событие доказывает только зафиксированное действие. Оно не доказывает усвоение языка.
-- `app_open` отправляется в Umami как pageview для посещаемости и как named event для продуктовой семантики. Остальные события не создают дополнительные pageview.
+## 5. Панель и определения
 
-## 6. Как расширять без дрейфа
+Owner-only /pulse.html: polling 60 секунд на видимой странице, без WebSocket.
+Read cache 30 секунд, общий in-flight на период, максимум 3 чтения Umami,
+timeout каждого read 5 секунд, login 3 секунды. Секреты остаются на сервере.
 
-Каждое новое событие или свойство проходит один change-set:
+Периоды today (00:00 UTC), 7d, 30d. Previous — предшествующий период
+равной длительности; не предыдущие календарные сутки при неполном today.
+UI и API разделяют loading, available zero, available, unavailable, partial.
+Ноль только из валидного полученного агрегата; отсутствующие поля не приводятся
+к нулю. При outage прошлые числовые значения скрываются.
 
-1. Сформулировать продуктовый вопрос и решение, которое изменится от метрики. Метрика «на всякий случай» не принимается.
-2. Задать стабильное имя, точное условие отправки, единицу дедупликации, допустимые свойства и явно запрещённые данные.
-3. Обновить манифест и валидатор; добавить positive/negative/privacy tests.
-4. Подключить emit ровно в одном каноническом success-point, а не в клике до результата.
-5. Добавить агрегат и объяснение свежести/знаменателя в панели.
-6. Проверить privacy policy и срок хранения; несовместимое изменение получает новую `schema_version`.
-7. После production deploy подтвердить endpoint контракта, фактическое событие и отсутствие запрещённых полей.
+- Usage — named event counts (Umami metrics/expanded поле pageviews в контексте
+  custom event является числом этого события). Список берётся из манифеста.
+- Ratios — отношения **событий**, не cohort conversion людей. Знаменатели:
+  started/app_open, engaged/started, completed/material_open; numerator и
+  denominator явно возвращаются. Нулевой/недоступный denominator даёт «—».
+  Повторения и границы периодов могут дать >100%; это не скрывается.
+- Сейчас — distinct Umami session_id с started либо engaged за последние
+  5 минут. Это недавние сигналы, не присутствие/heartbeat; множества пересекаются.
+- Reliability — operation/result/app_version; Umami агрегирует app_version
+  с фильтром enum path. Максимум 100 версий на ячейку: достижение лимита
+  помечается partial. Произвольные версии и ответы источника не отражаются в UI.
+- Visits: distinct visit_id среди pageviews; visitors: distinct session_id
+  среди pageviews; pageviews создаются только app_open. Их нельзя складывать
+  с named events. В установленной Umami visit_id строится из session_id и
+  часовой соли без x-umami-cache; это не универсальная «сессия 30 минут».
+- Retention D7/D30: **не измеряется**, стабильного ключа возвращения нет.
+- Release: версия в reliability доступна; deployment timeline не подключён.
+  Сравнение периодов не доказывает причинный эффект релиза.
+- UptimeRobot указан в ops-runbook как внешний монитор. Read-интеграция
+  отсутствует; панель не выдаёт собственный /healthz за внешнюю доступность.
+- SEO: Google/Bing подключены владельцем 2026-09-22, выгрузок нет
+  (owner-reported). Это будущий отдельный источник с lag/timezone/denominator;
+  показы и клики не суммируются с visits. OAuth/подписки не добавлены.
 
-Событие считается зрелым только когда одновременно определены: owner, definition, trigger, allowed properties, dedupe semantics, downstream metric, freshness, retention и test evidence.
+Для метрик указаны definition, source, observed_at, UTC, границы периода,
+freshness, denominator (null для счётчиков), state. Счётчики delivery
+показываются отдельно как данные только с последнего старта процесса.
 
-## 7. API и доступ
+## 6. Privacy и retention
 
-| Endpoint | Доступ | Назначение |
-|---|---|---|
-| `POST /api/product-pulse/v1/events` | first-party клиент, rate limit 120/min | строгий приём одного события |
-| `GET /api/product-pulse/v1/contract` | только `owner` | манифест схемы для панели и диагностики |
-| `GET /api/product-pulse/v1/dashboard` | только `owner` | агрегаты Umami за today/7d/30d/all |
-| `/pulse.html` | только `owner`, `noindex` | визуальная панель |
+Сверка исходников именно Umami tag v3.0.3:
+[src/app/api/send/route.ts](https://github.com/umami-software/umami/blob/v3.0.3/src/app/api/send/route.ts),
+[src/lib/detect.ts](https://github.com/umami-software/umami/blob/v3.0.3/src/lib/detect.ts).
+Umami получает сетевой адрес серверного транспорта через инфраструктуру и
+может вычислить географию этого адреса. Он не является географией ученика.
+Custom distinct_id хранится в Umami session; это псевдонимная телеметрия,
+не доказанная полная анонимность. Browser/os/device не отражают устройство
+ученика при нашем фиксированном серверном UA.
 
-Preview `?preview=1` разрешён только в `NODE_ENV=test` с loopback IP.
+Фактический recon: Umami DISABLE_BOT_CHECK=false, SKIP_LOCATION_HEADERS=false,
+custom CLIENT_IP_HEADER отсутствует; собственный cron retention отсутствовал.
+Traefik args не включают access log; Umami container logs json-file,
+max-size=10m, max-file=3. Это размерная ротация логов, не гарантия TTL по дням.
 
-## 8. Конфигурация и эксплуатация
+Политика Product Pulse: raw events/properties — **90 дней**, ежедневный purge
+в 04:20 UTC (максимальная задержка до суток). Скрипт
+`scripts/product-pulse-retention.sh` поставлен в /opt, расписание
+/etc/cron.d/linguistpro-product-pulse-retention. Scope — только явно указанный
+Umami website. Сначала event_data, затем website_event, session_data и
+старые неиспользуемые session; transaction + lock/statement timeouts.
+Первый dry-run и apply: expired=0, DELETE 0; учебные данные не затронуты.
 
-Product Pulse включается только при одновременном наличии `PRODUCT_PULSE_ENABLED=1`, `UMAMI_BASE_URL` и `UMAMI_WEBSITE_ID`. Read-доступ к Umami использует `UMAMI_API_TOKEN` либо `UMAMI_USERNAME` + `UMAMI_PASSWORD`; секреты живут только в environment. `UMAMI_BASE_URL` обязан быть HTTPS, кроме loopback development.
+Процедура обслуживания: перед заменой container/website сверить inventory,
+запустить --dry-run, проверить scope; затем cron --apply. Проверять journal
+`linguistpro-pulse-retention` и сухой count старше 90 дней. При отказе purge
+срок не считается соблюдённым: исправить расписание, не скрывать просрочку.
+Откат приложения не удаляет независимое расписание retention.
 
-Umami — основной backend. PostHog не получает постоянную параллельную копию событий; сравнительный пилот требует отдельного ограниченного плана, privacy-review и срока отключения.
+Ротация ключа сессии — каждый документ. Индивидуальное удаление через account
+ID невозможно, связи нет; очистка sessionStorage не стирает уже принятые
+события. До TTL можно удалить данные website через админский Umami workflow
+только с явным указанием объёма; это не штатный диагностический шаг.
+Backup retention Umami требует отдельного контроля при добавлении backup:
+не обещать удаление из копий, которые не были инвентаризированы.
+
+## 7. Доступ и проверки
+
+POST events — rate limit 120/min; operation_result принимается только от
+серверной точки, браузерная попытка отклоняется. GET contract/dashboard и
+HTML — owner only (non-owner 404, anonymous 401). Preview — только
+NODE_ENV=test AND loopback; X-Forwarded-For проверяется через req.ip.
+
+Gates: productPulse*.test.js, scripts/product-pulse-smoke.js (изолированная
+БД, owner/non-owner API, fake Umami, UI 380/768/1440, focus/palette/zero/outage),
+полный CI subset. Automated, production, owner-live, physical-device и AT
+evidence не взаимозаменяемы. Реестр исполнения:
+[implementation packet](planning/PRODUCT_PULSE_MATURITY_IMPLEMENTATION_2026_09_22.md).

@@ -8,7 +8,7 @@ const {
   contractManifest,
   EVENT_NAMES,
   ALLOWED_PROPERTY_KEYS,
-} = require("../product-pulse/contract");
+} = require("../product-pulse/legacy-contract");
 const { configFromEnv, safeBaseUrl, buildSendPayloads } = require("../product-pulse/umami");
 
 function validEvent(overrides = {}) {

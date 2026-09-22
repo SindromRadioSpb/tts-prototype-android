@@ -1,111 +1,85 @@
 (function () {
   "use strict";
-  var status = document.getElementById("pulseStatus");
-  var counter = document.getElementById("visitCounter");
-  var note = document.getElementById("metricNote");
-  var button = document.getElementById("pulseRefresh");
-  var contractVersion = document.getElementById("contractVersion");
-  var contractState = document.getElementById("contractState");
-  var eventList = document.getElementById("eventList");
-  var propertyList = document.getElementById("propertyList");
-  var envelopeFields = document.getElementById("envelopeFields");
-  var forbiddenFields = document.getElementById("forbiddenFields");
-  var formatter = new Intl.NumberFormat("ru-RU");
-
-  function setStatus(state, label) {
-    status.dataset.state = state;
-    status.querySelector("b").textContent = label;
+  var $ = function(id) { return document.getElementById(id); };
+  var labels = { available: "Доступно", "available zero": "Доступно: 0", unavailable: "Недоступно", partial: "Частичные данные", loading: "Загрузка" };
+  var fmt = new Intl.NumberFormat("ru-RU");
+  var busy = false, generation = 0;
+  function add(parent, tag, text, cls) {
+    var node = document.createElement(tag); node.textContent = text;
+    if (cls) node.className = cls; parent.appendChild(node); return node;
+  }
+  function value(m) { return m && Number.isFinite(m.value) ? fmt.format(m.value) : "—"; }
+  function status(state, text) { $("pulseStatus").dataset.state = state; $("pulseStatus").querySelector("b").textContent = text; }
+  function cards(id, rows) {
+    var host = $(id); host.textContent = "";
+    rows.forEach(function(m) {
+      var card = add(host, "article", "", "metric-card"); card.dataset.state = m.state;
+      add(card, "h3", m.title || m.name); add(card, "strong", value(m), "metric-value");
+      add(card, "small", labels[m.state] || m.state);
+      if (Object.hasOwn(m, "previous")) add(card, "p", "Предыдущий период: " + (Number.isFinite(m.previous) ? fmt.format(m.previous) : "—"));
+      var detail = m.source ? add(card, "details", "") : card;
+      if (m.source) add(detail, "summary", "Определение и источник");
+      add(detail, "p", m.definition);
+      if (m.denominator) add(card, "p", "Знаменатель: " + m.denominator.event + " = " + (m.denominator.value == null ? "—" : m.denominator.value) + ". Значение в %.");
+      if (m.source) add(detail, "small", m.source + " · UTC · " + m.start_at + " — " + m.end_at + " · снимок " + m.observed_at + " · кэш ≤30 с, опрос 60 с");
+    });
   }
   function render(data) {
-    ["today", "days7", "days30", "all"].forEach(function (period) {
-      var node = counter.querySelector('[data-period="' + period + '"]');
-      var value = data.periods && data.periods[period] && data.periods[period].visits;
-      node.textContent = Number.isFinite(value) ? formatter.format(value) : "—";
-    });
-    counter.setAttribute("aria-busy", "false");
-    note.textContent = data.definition + " Обновлено: " + new Date(data.generated_at).toLocaleString("ru-RU") + ".";
-    setStatus("ready", "Umami подключён");
-  }
-  function appendTextElement(parent, tagName, className, value) {
-    var node = document.createElement(tagName);
-    if (className) node.className = className;
-    node.textContent = value;
-    parent.appendChild(node);
-    return node;
+    (data.traffic || []).forEach(function(m) { var n = $("visitCounter").querySelector('[data-metric="' + m.name + '"]'); if(n) n.textContent = value(m); });
+    $("visitCounter").setAttribute("aria-busy", "false");
+    $("metricNote").textContent = (data.source === "preview" ? "Тестовый источник. " : "Umami · только schema v2. ") + "UTC · " + data.start_at + " — " + data.end_at + ". Снимок: " + data.generated_at + ". Кэш ≤30 с, опрос 60 с. Пропущенные offline/outage события не восстанавливаются.";
+    cards("usageMetrics", data.usage || []); cards("ratioMetrics", data.ratios || []);
+    cards("recentMetrics", (data.recent || []).map(function(m) { return Object.assign({},m,{title:m.name === "study_started" ? "Начали недавно" : "Достигли вовлечения недавно"}); }));
+    cards("trafficDefinitions", data.traffic || []);
+    cards("sourceLimits", ["retention","releases","acquisition","uptime"].map(function(k,i) { return Object.assign({title:["Возврат","Релизы","SEO","Внешняя доступность"][i]},data[k]); }));
+    var host = $("reliabilityRows"); host.textContent = "";
+    (data.reliability || []).forEach(function(m) { var tr = add(host,"tr",""); [m.operation,m.app_version || "—",m.result,value(m),labels[m.state]].forEach(function(v) { add(tr,"td",v); }); });
+    var d = data.delivery_since_process_start;
+    $("deliveryNote").textContent = "Источник Umami; период и свежесть указаны выше. Доля успеха рассчитывается только среди всех исходов одной операции и версии. " + (d ? "После старта процесса: доставлено " + d.delivered + ", недоступно " + d.unavailable + ", перегрузка " + d.saturated + ". Это не статистика всего периода." : "");
+    status(data.state === "available" ? "ready" : "error", data.state === "available" ? "Источник доступен" : labels[data.state]);
   }
   function renderContract(data) {
-    var contract = data && data.contract;
-    if (!contract || !Array.isArray(contract.events) || !Array.isArray(contract.properties)) {
-      throw new Error("CONTRACT_INVALID");
-    }
-    contractVersion.textContent = String(contract.schema_version);
-    contractState.textContent = contract.events.length + " событий · " + contract.properties.length + " свойств";
-    contractState.dataset.state = "ready";
-    eventList.textContent = "";
-    contract.events.forEach(function (item, index) {
-      var card = document.createElement("article");
-      card.className = "event-card";
-      var top = document.createElement("div");
-      top.className = "event-top";
-      appendTextElement(top, "span", "event-number", String(index + 1).padStart(2, "0"));
-      appendTextElement(top, "code", "event-name", item.name);
-      var badge = appendTextElement(top, "span", "event-badge", item.collection === "automatic" ? "Подключено" : "Точка интеграции");
-      badge.dataset.collection = item.collection;
-      card.appendChild(top);
-      appendTextElement(card, "h3", "", item.title);
-      appendTextElement(card, "p", "", item.definition);
-      appendTextElement(card, "p", "event-trigger", item.trigger);
-      appendTextElement(card, "p", "event-properties", "Смысловые свойства: " + (item.properties_used || []).join(", "));
-      eventList.appendChild(card);
+    var c = data.contract;
+    if (!c || !Array.isArray(c.events) || !Array.isArray(c.properties)) throw new Error("CONTRACT_INVALID");
+    $("contractVersion").textContent = c.contract_revision + " · schema " + c.schema_version;
+    $("contractState").textContent = c.events.length + " событий · " + c.properties.length + " свойств";
+    $("contractState").dataset.state = "ready";
+    $("transitionNote").textContent = "v1 принимается до " + c.transition.accept_until + " с прежней валидацией, но не доставляется в основную статистику. v2: строгие правила каждого события, только enum-свойства.";
+    $("eventList").textContent = "";
+    c.events.forEach(function(e,i) {
+      var card=add($("eventList"),"article","","event-card"), top=add(card,"div","","event-top");
+      add(top,"span",String(i+1).padStart(2,"0"),"event-number"); add(top,"code",e.name,"event-name");
+      add(top,"span",{automatic:"Автоматически",integrated:"Подключено",reserved:"Резерв",deprecated:"Устарело"}[e.status],"event-badge");
+      add(card,"h3",e.title); add(card,"p",e.definition);
+      add(card,"p","Обязательные: "+e.required_properties.join(", ")+". Необязательные: "+(e.optional_properties.join(", ")||"нет"),"event-properties");
+      add(card,"p","Запрещённые сочетания: "+JSON.stringify(e.forbidden_combinations),"event-properties");
+      add(card,"p","Owner: "+e.owner+" · metric: "+e.metric+" · retention: "+e.retention_class+" · introduced: "+e.introduced_in,"event-properties");
+      Object.keys(e.reserved_surfaces||{}).forEach(function(s){add(card,"p",s+" · reserved: "+e.reserved_surfaces[s],"event-trigger");});
     });
-
-    propertyList.textContent = "";
-    contract.properties.forEach(function (item) {
-      var row = document.createElement("div");
-      appendTextElement(row, "code", "", item.name);
-      appendTextElement(row, "p", "", item.definition);
-      var constraint = item.values ? item.values.join(" · ") : item.format;
-      appendTextElement(row, "small", "", (item.required ? "Обязательное" : "Опциональное") + " · " + constraint);
-      propertyList.appendChild(row);
-    });
-    envelopeFields.textContent = (contract.envelope || []).join(" · ");
-    forbiddenFields.textContent = (contract.forbidden || []).join(" · ");
+    $("propertyList").textContent="";
+    c.properties.forEach(function(p){var row=add($("propertyList"),"div","");add(row,"code",p.name);add(row,"p",p.definition);add(row,"small",p.values.join(" · "));});
+    $("envelopeFields").textContent=c.envelope.join(" · "); $("forbiddenFields").textContent=c.forbidden.join(" · ");
   }
-  function requestJson(url) {
-    return fetch(url, { credentials: "same-origin", cache: "no-store" }).then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (body) {
-        if (!response.ok) throw new Error(body.error || "SOURCE_UNAVAILABLE");
-        return body;
-      });
-    });
+  function request(url) {
+    return fetch(url,{credentials:"same-origin",cache:"no-store",signal:AbortSignal.timeout(30000)}).then(function(r){if(!r.ok)throw new Error("SOURCE_UNAVAILABLE");return r.json();});
   }
-  function loadDashboard(preview) {
-    return requestJson("/api/product-pulse/v1/dashboard" + preview)
-      .then(render)
-      .catch(function (error) {
-        counter.setAttribute("aria-busy", "false");
-        note.textContent = error.message === "PRODUCT_PULSE_NOT_CONFIGURED"
-          ? "Umami ещё не настроен. Значения не заменены нулями."
-          : "Источник аналитики временно недоступен. Последние значения не выдаются за актуальные.";
-        setStatus("error", error.message === "PRODUCT_PULSE_NOT_CONFIGURED" ? "Не настроено" : "Источник недоступен");
-      });
-  }
-  function loadContract(preview) {
-    return requestJson("/api/product-pulse/v1/contract" + preview)
-      .then(renderContract)
-      .catch(function () {
-        contractState.textContent = "Контракт недоступен";
-        contractState.dataset.state = "error";
-      });
+  function unavailable() {
+    $("visitCounter").querySelectorAll("strong").forEach(function(n){n.textContent="—";});
+    $("visitCounter").setAttribute("aria-busy","false");
+    ["usageMetrics","ratioMetrics","recentMetrics","trafficDefinitions"].forEach(function(id){cards(id,[{title:"Источник недоступен",state:"unavailable",definition:"Значения прошлого ответа скрыты. Это не ноль."}]);});
+    $("reliabilityRows").textContent=""; $("deliveryNote").textContent="Источник недоступен.";
+    $("metricNote").textContent="Источник аналитики недоступен. Значения не заменены нулями.";
+    status("error","Источник недоступен");
   }
   function load() {
-    button.disabled = true;
-    setStatus("loading", "Обновление");
-    var preview = new URLSearchParams(location.search).get("preview") === "1" ? "?preview=1" : "";
-    Promise.all([loadDashboard(preview), loadContract(preview)])
-      .finally(function () { button.disabled = false; });
+    if(busy)return; busy=true; var token=++generation;
+    $("pulseRefresh").disabled=true; $("pulsePeriod").disabled=true; status("loading","Обновление");
+    var preview=new URLSearchParams(location.search).get("preview")==="1"?"preview=1&":"";
+    Promise.all([
+      request("/api/product-pulse/v1/dashboard?"+preview+"period="+$("pulsePeriod").value).then(function(d){if(token===generation)render(d);}).catch(unavailable),
+      request("/api/product-pulse/v1/contract?"+preview).then(renderContract).catch(function(){$("contractState").textContent="Контракт недоступен";$("contractState").dataset.state="error";})
+    ]).finally(function(){busy=false;$("pulseRefresh").disabled=false;$("pulsePeriod").disabled=false;});
   }
-  button.addEventListener("click", load);
-  load();
-  setInterval(load, 60000);
+  $("pulseRefresh").addEventListener("click",load); $("pulsePeriod").addEventListener("change",load);
+  load(); setInterval(function(){if(document.visibilityState==="visible")load();},60000);
 })();

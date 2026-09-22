@@ -13,6 +13,8 @@ const archiver = require("archiver");
 const AdmZip = require("adm-zip");
 const { normalizeEvent, anonymousEventKey, contractManifest } = require("./product-pulse/contract");
 const { createUmamiClient } = require("./product-pulse/umami");
+const { createDelivery, operationMiddleware } = require("./product-pulse/runtime");
+const { createDashboard } = require("./product-pulse/dashboard");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const {
@@ -185,6 +187,7 @@ async function v3TrackEventSafe(event) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 const productPulseUmami = createUmamiClient();
+const productPulseDashboard = createDashboard(productPulseUmami);
 
 // Don't advertise the framework — drops the `X-Powered-By: Express` header.
 app.disable("x-powered-by");
@@ -1189,7 +1192,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=582",
+  "/js/library-ui.js?v=606",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1221,7 +1224,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-host.js?v=575",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
-  "/js/product-telemetry.js?v=605",
+  "/js/product-telemetry.js?v=606",
   "/i18n/locales/ru.js?v=241",
   "/i18n/locales/en.js?v=241",
   "/i18n/locales/he.js?v=241",
@@ -2493,25 +2496,30 @@ app.get("/api/auth/me", async (req, res) => {
 // URLs, notes, filenames or arbitrary event properties. Analytics failure is
 // deliberately non-blocking for the product.
 const rlProductPulse = makeRateLimiter({ windowMs: 60_000, max: 120, name: "product-pulse" });
-const productPulseSeen = new Map();
-function productPulseRemember(key, now = Date.now()) {
-  const ttl = 24 * 60 * 60 * 1000;
-  if (productPulseSeen.size > 10000) {
-    for (const [item, seenAt] of productPulseSeen) if (now - seenAt > ttl) productPulseSeen.delete(item);
-  }
-  if (productPulseSeen.has(key)) return false;
-  productPulseSeen.set(key, now);
-  return true;
+const productPulseDelivery = createDelivery(productPulseUmami);
+async function productPulseExcluded(req) {
+  if (process.env.NODE_ENV === "test" || req.get("X-Product-Pulse-Exclude") === "1") return true;
+  const cookie = getSessionCookie(req);
+  if (!cookie) return false;
+  // If session lookup fails, fail closed for analytics only.
+  try { const auth = await identityRepo.validateSession(cookie); return !auth || String(auth.user.role).toLowerCase() === "owner"; }
+  catch (_) { return true; }
 }
+app.get("/api/product-pulse/v1/config", async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  res.json({ collect: productPulseUmami.configured() && !(await productPulseExcluded(req)), schema_version: 2 });
+});
+app.use(operationMiddleware({ deliver: productPulseDelivery.deliver, excluded: productPulseExcluded, version: RESOLVED_APP_VERSION }));
 app.post("/api/product-pulse/v1/events", rlProductPulse, async (req, res) => {
   const normalized = normalizeEvent(req.body, Date.now());
   if (!normalized.ok) return res.status(400).json({ ok: false, error: normalized.error });
-  if (!productPulseRemember(anonymousEventKey(normalized.event))) {
-    return res.status(202).json({ ok: true, accepted: false, duplicate: true });
-  }
+  if (normalized.legacy) return res.status(202).json({ ok: true, accepted: false, reason: "legacy_transition" });
+  if (await productPulseExcluded(req)) return res.status(202).json({ ok: true, accepted: false, reason: "excluded" });
+  // Operation outcomes are emitted only by the canonical server response hook.
+  if (normalized.event.event_name === "operation_result") return res.status(400).json({ ok: false, error: "SERVER_EVENT_ONLY" });
   try {
-    const result = await productPulseUmami.send(normalized.event);
-    return res.status(202).json({ ok: true, accepted: !!result.accepted, reason: result.reason || undefined });
+    const result = await productPulseDelivery.deliver(normalized.event);
+    return res.status(202).json({ ok: true, ...result });
   } catch (error) {
     console.warn("[product-pulse] delivery failed:", error && error.message ? error.message : error);
     return res.status(202).json({ ok: true, accepted: false, reason: "delivery_unavailable" });
@@ -2519,6 +2527,7 @@ app.post("/api/product-pulse/v1/events", rlProductPulse, async (req, res) => {
 });
 
 app.get("/api/product-pulse/v1/contract", async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
   if (process.env.NODE_ENV === "test" && req.query.preview === "1" && ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(String(req.ip || ""))) {
     return res.json({ ok: true, contract: contractManifest() });
   }
@@ -2531,14 +2540,10 @@ app.get("/api/product-pulse/v1/contract", async (req, res) => {
 });
 
 app.get("/api/product-pulse/v1/dashboard", async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
   if (process.env.NODE_ENV === "test" && req.query.preview === "1" && ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(String(req.ip || ""))) {
-    return res.json({
-      ok: true, source: "preview", freshness: "fixture", generated_at: new Date().toISOString(),
-      definition: "Посещение — агрегат Umami; события — только разрешённые Product Pulse события.",
-      periods: {
-        today: { visits: 31 }, days7: { visits: 202 }, days30: { visits: 785 }, all: { visits: 12603 },
-      },
-    });
+    const fixture = createDashboard({ stats: async () => ({ visits: 0, visitors: 0, pageviews: 0 }), read: async () => [] });
+    return res.json({ ...await fixture(), source: "preview", freshness: "fixture" });
   }
   const auth = await requireUser(req, res); if (!auth) return;
   if (String(auth.user.role || "").toLowerCase() !== "owner") {
@@ -2548,26 +2553,11 @@ app.get("/api/product-pulse/v1/dashboard", async (req, res) => {
   if (!productPulseUmami.configured()) {
     return res.status(503).json({ ok: false, error: "PRODUCT_PULSE_NOT_CONFIGURED", source: "umami" });
   }
-  const now = Date.now();
-  const date = new Date(now);
-  const utcStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-  const ranges = { today: utcStart, days7: now - 7 * 86400000, days30: now - 30 * 86400000, all: 0 };
   try {
-    const entries = await Promise.all(Object.entries(ranges).map(async ([key, startAt]) => [key, await productPulseUmami.stats(startAt, now)]));
-    const periods = Object.fromEntries(entries.map(([key, value]) => [key, {
-      visits: Number(value && value.visits || 0),
-      visitors: Number(value && value.visitors || 0),
-      events: Number(value && value.pageviews || 0),
-    }]));
-    return res.json({
-      ok: true,
-      source: "umami",
-      freshness: "live_aggregate",
-      generated_at: new Date(now).toISOString(),
-      definition: "Посещение — агрегат Umami; события — только разрешённые Product Pulse события.",
-      periods,
-    });
+    const data = await productPulseDashboard(String(req.query.period || "days7"));
+    return res.json({ ...data, delivery_since_process_start: { ...productPulseDelivery.counters } });
   } catch (error) {
+    if (error.message === "PERIOD_INVALID") return res.status(400).json({ ok: false, error: "PERIOD_INVALID" });
     console.warn("[product-pulse] dashboard failed:", error && error.message ? error.message : error);
     return res.status(502).json({ ok: false, error: "PRODUCT_PULSE_SOURCE_UNAVAILABLE", source: "umami" });
   }

@@ -45,12 +45,14 @@ async function fetchJson(url, options = {}, timeoutMs = 3000) {
 function createUmamiClient(getConfig = () => configFromEnv()) {
   let cachedToken = "";
   let tokenExpiresAt = 0;
+  let tokenPending;
 
   async function authToken(config) {
     if (config.token) return config.token;
     if (cachedToken && Date.now() < tokenExpiresAt) return cachedToken;
     if (!config.username || !config.password) throw new Error("UMAMI_READ_AUTH_NOT_CONFIGURED");
-    const body = await fetchJson(`${config.baseUrl}/api/auth/login`, {
+    if (tokenPending) return tokenPending;
+    tokenPending = (async () => { const body = await fetchJson(`${config.baseUrl}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "User-Agent": "LinguistPro-Product-Pulse/1" },
       body: JSON.stringify({ username: config.username, password: config.password }),
@@ -58,7 +60,8 @@ function createUmamiClient(getConfig = () => configFromEnv()) {
     if (!body || !body.token) throw new Error("UMAMI_AUTH_INVALID_RESPONSE");
     cachedToken = String(body.token);
     tokenExpiresAt = Date.now() + 10 * 60 * 1000;
-    return cachedToken;
+    return cachedToken; })().finally(() => { tokenPending = null; });
+    return tokenPending;
   }
 
   async function send(event) {
@@ -76,26 +79,31 @@ function createUmamiClient(getConfig = () => configFromEnv()) {
   }
 
   async function stats(startAt, endAt = Date.now()) {
+    return read("stats", startAt, endAt);
+  }
+  async function read(path, startAt, endAt = Date.now(), filters = {}) {
     const config = getConfig();
     config.baseUrl = safeBaseUrl(config.baseUrl);
     if (!config.enabled || !config.baseUrl) throw new Error("UMAMI_NOT_CONFIGURED");
     const token = await authToken(config);
-    const query = new URLSearchParams({ startAt: String(startAt), endAt: String(endAt) });
-    return fetchJson(`${config.baseUrl}/api/websites/${encodeURIComponent(config.websiteId)}/stats?${query}`, {
+    const query = new URLSearchParams({ startAt: String(startAt), endAt: String(endAt), tag: "eq.pulse-v2", ...filters });
+    return fetchJson(`${config.baseUrl}/api/websites/${encodeURIComponent(config.websiteId)}/${path}?${query}`, {
       headers: { Accept: "application/json", Authorization: `Bearer ${token}`, "User-Agent": "LinguistPro-Product-Pulse/1" },
     }, 5000);
   }
 
-  return { send, stats, configured: () => configFromEnv().enabled };
+  return { send, stats, read, configured: () => { const c = getConfig(); return c.enabled && !!safeBaseUrl(c.baseUrl); } };
 }
 
 function buildSendPayloads(config, event) {
   const common = {
     website: config.websiteId,
     hostname: config.hostname,
-    url: `/${event.properties.surface}`,
+    url: event.event_name === "operation_result" ? `/pulse-v2/operations/${event.properties.operation}/${event.properties.result}` : `/${event.properties.surface}`,
     title: "LinguistPro",
     id: event.session_id,
+    tag: "pulse-v2",
+    timestamp: Math.floor(Date.parse(event.occurred_at) / 1000),
   };
   const eventPayload = {
     type: "event",

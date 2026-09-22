@@ -6363,7 +6363,10 @@ async function renderEndOfTextCard(tid) {
     mark.type = 'button';
     mark.addEventListener('click', async () => {
       mark.disabled = true;
-      try { await localDb.setTextFinished(tid); } catch (_) {}
+      try {
+        await localDb.setTextFinished(tid);
+        try { window.ProductTelemetry?.emit('study_completed', { surface: 'reading_room' }); } catch (_) {}
+      } catch (_) { mark.disabled = false; return; }
       try { completeReadingCalibration(tid).catch(() => {}); } catch (_) {}
       invalidateFinishedSet();
       try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано')); } catch (_) {}
@@ -8160,6 +8163,9 @@ async function openReader(textId, title, opts) {
   });
   if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
   readerRows = res && res.ok ? res.rows : [];
+  if (res && res.ok && readerRows.length) {
+    try { window.ProductTelemetry?.emit('material_open', { surface: 'reading_room', media_kind: 'text' }); } catch (_) {}
+  }
   readerTextTitle = title || (res && res.text && res.text.title) || '';
   if (titleEl && !title) {
     titleEl.textContent = readerTextTitle;

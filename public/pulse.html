@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Пульс LinguistPro</title>
-  <link rel="stylesheet" href="/css/pulse.css?v=605">
+  <link rel="stylesheet" href="/css/pulse.css?v=606">
 </head>
 <body>
   <main class="pulse-shell">
@@ -20,18 +20,22 @@
 
     <section class="pulse-section" aria-labelledby="trafficTitle">
       <div class="section-title">
-        <div><p class="eyebrow">Посещаемость</p><h2 id="trafficTitle">Счётчик активности</h2></div>
+        <div><p class="eyebrow">Посещаемость</p><h2 id="trafficTitle">Измеренные открытия</h2><label for="pulsePeriod">Период (UTC)</label><select id="pulsePeriod"><option value="today">Сегодня</option><option value="days7" selected>7 дней</option><option value="days30">30 дней</option></select></div>
         <button id="pulseRefresh" type="button">Обновить</button>
       </div>
       <div class="counter" id="visitCounter" aria-live="polite" aria-busy="true">
         <div class="counter-mark" aria-hidden="true">↗</div>
-        <div class="counter-row"><span>Сегодня</span><strong data-period="today">—</strong></div>
-        <div class="counter-row"><span>7 дней</span><strong data-period="days7">—</strong></div>
-        <div class="counter-row"><span>30 дней</span><strong data-period="days30">—</strong></div>
-        <div class="counter-row counter-total"><span>За всё время</span><strong data-period="all">—</strong></div>
+        <div class="counter-row"><span>Посещения Umami</span><strong data-metric="visits">—</strong></div>
+        <div class="counter-row"><span>Сессии с открытием</span><strong data-metric="visitors">—</strong></div>
+        <div class="counter-row counter-total"><span>Pageviews</span><strong data-metric="pageviews">—</strong></div>
       </div>
       <p class="metric-note" id="metricNote">Проверяем источник данных…</p>
     </section>
+
+    <section class="contract-section" aria-labelledby="recentTitle"><h2 id="recentTitle">Сейчас: последние 5 минут</h2><p>Недавние сигналы начала и вовлечения. Это не счётчик присутствия; два показателя нельзя складывать.</p><div class="metric-grid" id="recentMetrics" aria-live="polite">Загрузка…</div></section>
+    <section class="contract-section" aria-labelledby="usageTitle"><h2 id="usageTitle">Использование</h2><p>Количество событий за выбранный период. Сравнение — предыдущий период равной длительности. Owner и тесты исключаются с schema v2; старые данные не подмешиваются.</p><div class="metric-grid" id="usageMetrics">Загрузка…</div><div class="metric-grid" id="ratioMetrics"></div></section>
+    <section class="contract-section" aria-labelledby="reliabilityTitle"><h2 id="reliabilityTitle">Надёжность операций</h2><p>Серверные запросы TTS и сборки таблицы: success — HTTP 2xx, failure — другой статус, cancelled — соединение закрыто до ответа. Повторный запрос считается новой попыткой.</p><div class="table-scroll"><table><thead><tr><th>Операция</th><th>Версия</th><th>Результат</th><th>Запросы</th><th>Состояние</th></tr></thead><tbody id="reliabilityRows"></tbody></table></div><p id="deliveryNote"></p></section>
+    <section class="contract-section" aria-labelledby="limitsTitle"><h2 id="limitsTitle">Границы измерения</h2><div id="sourceLimits" class="metric-grid"></div><details><summary>Определения посещаемости и свежесть</summary><div id="trafficDefinitions"></div></details></section>
 
     <section class="reading-guide" aria-labelledby="readingGuideTitle">
       <div><p class="eyebrow">Как читать панель</p><h2 id="readingGuideTitle">Что означают цифры</h2></div>
@@ -46,13 +50,13 @@
       <div class="contract-head">
         <div>
           <p class="eyebrow">Канонический контракт</p>
-          <h2 id="contractTitle">Product Pulse v<span id="contractVersion">—</span></h2>
-          <p>Список ниже приходит из того же серверного манифеста, который задаёт allowlist валидатора. Статус «подключено» означает фактическую автоматическую отправку; «точка интеграции» — событие уже разрешено, но ещё не подключено к продуктовому сценарию.</p>
+          <h2 id="contractTitle">Product Pulse <span id="contractVersion">—</span></h2>
+          <p>Единый серверный манифест задаёт правила приёма и карточки панели. Статусы и неподключённые поверхности перечислены явно.</p>
         </div>
         <span class="contract-state" id="contractState">Загрузка контракта</span>
       </div>
       <div class="event-list" id="eventList" aria-live="polite"></div>
-      <p class="contract-note">В схеме v1 сервер применяет общий allowlist пяти свойств. Списки на карточках показывают смысловую комбинацию для события; правила обязательных и необязательных свойств для каждого события запланированы как явная версионированная миграция, а не скрытое ужесточение v1.</p>
+      <p class="contract-note" id="transitionNote">Загрузка правил совместимости…</p>
 
       <details class="property-contract">
         <summary>Разрешённые свойства и системная оболочка</summary>
@@ -77,6 +81,6 @@
       <article><span>03</span><h3>Версия вместо дрейфа</h3><p>Совместимые дополнения проходят review; несовместимое изменение получает новую schema_version и период миграции.</p></article>
     </section>
   </main>
-  <script src="/js/pulse.js?v=605"></script>
+  <script src="/js/pulse.js?v=606"></script>
 </body>
 </html>
