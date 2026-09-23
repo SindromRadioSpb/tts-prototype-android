@@ -21,7 +21,7 @@ async function fixture() {
   fs.mkdirSync(dataDir, { recursive: true });
   const dbPath = path.join(dataDir, "app.db"), db = await open(dbPath);
   await exec(db, "PRAGMA foreign_keys=ON");
-  for (const migration of ["020_identity.sql", "056_group_song_corpus_p0.sql", "057_group_corpus_audio_revisions.sql", "058_group_corpus_catalog_metadata.sql", "063_publication_domain.sql"])
+  for (const migration of ["020_identity.sql", "056_group_song_corpus_p0.sql", "057_group_corpus_audio_revisions.sql", "058_group_corpus_catalog_metadata.sql", "063_publication_domain.sql", "068_mediatheque_material_purge.sql"])
     await exec(db, fs.readFileSync(path.join(ROOT, "migrations", migration), "utf8"));
   await run(db, "INSERT INTO users(id,role,display_name) VALUES(?,?,?)", ["materials-owner", "owner", "Materials owner"]);
   await close(db);

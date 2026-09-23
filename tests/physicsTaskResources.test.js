@@ -50,7 +50,7 @@ async function fixture() {
   const db = await open(path.join(dataDir, "app.db"));
   await exec(db, "PRAGMA foreign_keys=ON");
   await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "020_identity.sql"), "utf8"));
-  await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "063_publication_domain.sql"), "utf8"));
+  await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "063_publication_domain.sql"), "utf8")); await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "068_mediatheque_material_purge.sql"), "utf8"));
   await exec(db, fs.readFileSync(UP, "utf8"));
   const now = "2026-08-26T00:00:00.000Z";
   await run(db, "INSERT INTO users(id,role,display_name) VALUES('owner-a','owner','Owner')");
@@ -112,7 +112,7 @@ test("064 supports up, down and reapply with immutable child truth", async () =>
   try {
     await exec(db, "PRAGMA foreign_keys=ON");
     await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "020_identity.sql"), "utf8"));
-    await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "063_publication_domain.sql"), "utf8"));
+    await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "063_publication_domain.sql"), "utf8")); await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "068_mediatheque_material_purge.sql"), "utf8"));
     await exec(db, fs.readFileSync(UP, "utf8"));
     assert.ok(await get(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='physics_task_resources'"));
     await exec(db, fs.readFileSync(DOWN, "utf8"));

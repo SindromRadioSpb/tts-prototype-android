@@ -37,7 +37,7 @@ test('text-only public corpora stay readable in the Room but do not enter Mediat
 async function setup(t){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'lp-editorial-'));
   const db=await new Promise((resolve,reject)=>{const d=new sqlite3.Database(':memory:',e=>e?reject(e):resolve(d));});
-  for(const m of ['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql','067_mediatheque_structure.sql'])await sql(db,fs.readFileSync(path.join(__dirname,'../migrations',m),'utf8'));
+  for(const m of ['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql','067_mediatheque_structure.sql','068_mediatheque_material_purge.sql'])await sql(db,fs.readFileSync(path.join(__dirname,'../migrations',m),'utf8'));
   await sql(db,"INSERT INTO users(id,role,display_name) VALUES('owner','owner','Owner'),('other','owner','Other')");
   t.after(async()=>{await new Promise(r=>db.close(r));fs.rmSync(dir,{recursive:true,force:true});});
   return {repo:createPublicationRepo({db,dataDir:dir}),owner:{id:'owner',role:'owner'},dir};

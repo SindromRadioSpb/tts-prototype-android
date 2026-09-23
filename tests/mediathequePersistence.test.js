@@ -43,7 +43,7 @@ test('interrupted statement rolls back structure and undo; lost acknowledgement 
 
 test('public editorial drafts, atomic publication, rollback and owner-only authorization', async t => {
   const db = new sqlite3.Database(':memory:'); t.after(() => new Promise(r => db.close(r)));
-  for (const file of ['020_identity.sql', '063_publication_domain.sql', '067_mediatheque_structure.sql'])
+  for (const file of ['020_identity.sql', '063_publication_domain.sql', '067_mediatheque_structure.sql', '068_mediatheque_material_purge.sql'])
     await exec(db, fs.readFileSync(path.join(ROOT, 'migrations', file), 'utf8'));
   await exec(db, "INSERT INTO users(id,role) VALUES('owner','owner'),('member','member');");
   const { createPublicationRepo } = require('../db/publicationRepo');

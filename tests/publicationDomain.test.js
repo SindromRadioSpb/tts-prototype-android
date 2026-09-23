@@ -42,6 +42,7 @@ async function buildFixture({ missingSecondAudio = false, sharedAudio = false } 
   for (const migration of ["020_identity.sql", "056_group_song_corpus_p0.sql", "057_group_corpus_audio_revisions.sql", "058_group_corpus_catalog_metadata.sql"])
     await exec(db, fs.readFileSync(path.join(ROOT, "migrations", migration), "utf8"));
   await exec(db, fs.readFileSync(UP, "utf8"));
+  await exec(db, fs.readFileSync(path.join(ROOT, "migrations", "068_mediatheque_material_purge.sql"), "utf8"));
 
   const owner = { id: "owner-a", role: "owner" };
   const publisherA = { id: "publisher-a", role: "member" };
