@@ -1,5 +1,5 @@
 import * as localDb from '/db/local-db.js?v=545';
-import './mediatheque-core.js';
+import './mediatheque-core.js?v=21';
 import './mediatheque-editorial-core.js';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 const C = globalThis.MediathequeCore;
