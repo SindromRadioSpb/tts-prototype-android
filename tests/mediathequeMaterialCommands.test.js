@@ -158,3 +158,11 @@ test('archive download is owner-only and names a missing archive honestly',async
   assert.ok(fs.existsSync(out.absolute_path));assert.match(out.filename,/\.lplp\.zip$/);assert.equal(out.mime,'application/zip');
   await assert.rejects(h.repo.mediathequeMaterialArchive(h.owner,{...a.item.ref,part:'media'}),/MATERIAL_ARCHIVE_UNAVAILABLE/);
 });
+test('server wires owner-guarded material routes and exposes their error codes',()=>{
+  const src=fs.readFileSync(path.join(__dirname,'..','server.js'),'utf8');
+  assert.ok(src.includes("app.post('/api/publication/mediatheque/materials\\\\:delete', rlPublicationWrite, requireStrictSameOriginJson,"));
+  assert.ok(src.includes("app.post('/api/publication/mediatheque/materials\\\\:update', rlPublicationWrite, requireStrictSameOriginJson,"));
+  assert.ok(src.includes("app.get('/api/publication/mediatheque/materials/archive', rlPublicationRead,"));
+  assert.ok(!/materials\\\\:delete[^\n]*faultAfter/.test(src));
+  for(const code of ['MATERIAL_NOT_MANAGED','MATERIAL_NOT_FOUND','MATERIAL_CHANGED','MATERIAL_ARCHIVE_UNAVAILABLE','EDITION_PURGED'])assert.ok(src.includes('"'+code+'"'),code);
+});

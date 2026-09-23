@@ -4065,6 +4065,7 @@ function publicationError(res, error) {
     "RIGHTS_REVIEW_REQUIRED", "PUBLIC_READ_NOT_ALLOWED", "IDEMPOTENCY_KEY_REQUIRED",
     "IDEMPOTENCY_CONFLICT", "EDITION_HASH_MISMATCH", "PUBLICATION_ASSET_INVALID",
     "MEDIATHEQUE_INVALID", "MEDIATHEQUE_CONFLICT", "MEDIATHEQUE_PRIVATE_REFERENCE", "MEDIATHEQUE_REFERENCE_UNAVAILABLE",
+    "MATERIAL_NOT_MANAGED", "MATERIAL_NOT_FOUND", "MATERIAL_CHANGED", "MATERIAL_ARCHIVE_UNAVAILABLE", "EDITION_PURGED",
   ]);
   const status = Number(error && error.status) || (code === "PUBLISHER_FORBIDDEN" ? 403 : 500);
   return res.status(status).json({ ok: false, error: safe.has(code) ? code : "PUBLICATION_FAILED" });
@@ -4124,6 +4125,23 @@ for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', '
   app.post('/api/publication/mediatheque/' + operation, rlPublicationWrite, requireStrictSameOriginJson,
     (req, res) => publicationWrite(req, res, 'mediatheque_' + operation, (repo, actor, opts) => repo[method](actor, req.body || {}, opts)));
 }
+// Mediatheque material commands: owner-only on the server, not merely hidden in the UI.
+app.post('/api/publication/mediatheque/materials\\:delete', rlPublicationWrite, requireStrictSameOriginJson,
+  (req, res) => publicationWrite(req, res, 'mediatheque_material_delete',
+    (repo, actor, opts) => repo.deleteMediathequeMaterials(actor, { items: (req.body && req.body.items) || [] }, opts)));
+app.post('/api/publication/mediatheque/materials\\:update', rlPublicationWrite, requireStrictSameOriginJson,
+  (req, res) => publicationWrite(req, res, 'mediatheque_material_update', (repo, actor, opts) => repo.updateMediathequeMaterial(actor, req.body || {}, opts)));
+app.get('/api/publication/mediatheque/materials/archive', rlPublicationRead, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  res.set('Cache-Control', 'private, no-store, max-age=0');
+  try {
+    const file = await getPublicationRepo().mediathequeMaterialArchive(publicationActor(auth),
+      { slug: String(req.query.slug || ''), workId: String(req.query.workId || ''), part: String(req.query.part || 'package') });
+    identityRepo.audit('publication_mediatheque_material_archive', auth.user.id, { slug: String(req.query.slug || '') }, req.ip);
+    if (req.method === 'HEAD') return res.status(200).end();
+    res.type(file.mime); return res.download(file.absolute_path, file.filename);
+  } catch (error) { return publicationError(res, error); }
+});
 app.get("/api/publication/corpora/:corpusId", rlPublicationRead, (req, res) => publicationRead(req, res,
   async (repo, actor) => ({ schema_version: "publication_center_detail.1.0.0", corpus: await repo.getPublisherCorpus(actor, req.params.corpusId) })));
 
