@@ -12,7 +12,7 @@ const state = { space: 'public', section: 'home', filters: C.filters(), personal
   published: { revision: 0, structure: C.empty(), items: [] }, draft: null, local: [], localReady: false, publicReady: false,
   localError: '', publicError: '', owner: false, editing: false, preview: false, selected: new Set(), page: 1, busy: false,
   filterOpen: false, topicSearch: '', expanded: new Set(), viewId: '', publicItems: [], localItems: [], prepared: C.prepare(C.empty(), []), publicKnown: false, loading: true };
-let toastTimer, searchTimer, lastDialogFocus = null, loadEpoch = 0, dialogAction = null, dialogRevision = null;
+let toastTimer, searchTimer, lastDialogFocus = null, loadEpoch = 0, dialogAction = null, dialogRevision = null, dialogCancel = null;
 let searchRouteStarted = false;
 let filterDraft = null, topicParent = '', topicQuery = '';
 let projectionInputs = [], topicCounts = new Map(), topicSamples = new Map();
@@ -604,12 +604,13 @@ function render() {
   if (selector) { const next = document.querySelector(selector); if (next) { next.focus({ preventScroll: true }); if (typeof start === 'number' && next.setSelectionRange) try { next.setSelectionRange(start, end); } catch (_) {} } }
 }
 
-function closeDialog() { $('ml-dialog').close(); dialogAction = null; dialogRevision = null; $('ml-dialog').classList.remove('ml-filter-dialog'); lastDialogFocus?.focus?.({ preventScroll: true }); }
-function showDialog(title, html, action) {
+// Отмена (кнопка, крестик, Esc) — не то же, что успешная отправка: только она зовёт onCancel.
+function closeDialog() { const cancel = dialogCancel; dialogCancel = null; $('ml-dialog').close(); dialogAction = null; dialogRevision = null; if (cancel) Promise.resolve().then(cancel).catch(() => {}); $('ml-dialog').classList.remove('ml-filter-dialog'); lastDialogFocus?.focus?.({ preventScroll: true }); }
+function showDialog(title, html, action, onCancel) {
   if (!$('ml-dialog').open) lastDialogFocus = document.activeElement;
   $('ml-dialog-title').textContent = title;
   $('ml-dialog-body').innerHTML = `<form class="ml-form" id="ml-form">${html}<p id="ml-form-error" class="ml-form-error" role="alert" hidden></p></form>`;
-  dialogAction = action;
+  dialogAction = action; dialogCancel = typeof onCancel === 'function' ? onCancel : null;
   dialogRevision = documentState().revision;
   if (!$('ml-dialog').open) $('ml-dialog').showModal();
   $('ml-dialog').querySelector('input:not([type=hidden]),select,textarea,button[type=submit]')?.focus();
@@ -1023,8 +1024,10 @@ $('ml-dialog').addEventListener('submit', async event => {
   event.preventDefault(); if (!dialogAction || state.busy) return;
   const action = dialogAction, data = new FormData(event.target); state.busy = true;
   const submit = event.target.querySelector('button[type=submit]'); if (submit) submit.disabled = true;
+  const cancelHook = dialogCancel; dialogCancel = null;
   try { await action(data); }
   catch (e) {
+    if (!dialogCancel && $('ml-dialog').open) dialogCancel = cancelHook;
     if (/CONFLICT/.test(e.message) && !/DRAFT_VERSION_CONFLICT/.test(e.message)) {
       const error = $('ml-form-error'); error.hidden = false; event.target.dataset.conflict = 'true';
       error.innerHTML = `${esc(t('conflictKeep'))}<span class="ml-actions">${button('copy-input',t('copyInput'))}${button('refresh-structure',t('refreshStructure'))}</span>`;

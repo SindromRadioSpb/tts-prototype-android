@@ -1130,7 +1130,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/css/mediatheque.css?v=7",
-  "/js/mediatheque-ui.js?v=22",
+  "/js/mediatheque-ui.js?v=23",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -4129,6 +4129,9 @@ for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', '
 app.post('/api/publication/mediatheque/materials\\:delete', rlPublicationWrite, requireStrictSameOriginJson,
   (req, res) => publicationWrite(req, res, 'mediatheque_material_delete',
     (repo, actor, opts) => repo.deleteMediathequeMaterials(actor, { items: (req.body && req.body.items) || [] }, opts)));
+app.post('/api/publication/mediatheque/materials\\:discard-pending', rlPublicationWrite, requireStrictSameOriginJson,
+  (req, res) => publicationWrite(req, res, 'mediatheque_pending_discard', (repo, actor, opts) =>
+    repo.discardMediathequePendingImport(actor, { slug: req.body && req.body.slug, sourceWorkId: req.body && req.body.sourceWorkId }, opts)));
 app.post('/api/publication/mediatheque/materials\\:update', rlPublicationWrite, requireStrictSameOriginJson,
   (req, res) => publicationWrite(req, res, 'mediatheque_material_update', (repo, actor, opts) => {
     const { faultAfter, ...body } = req.body || {}; // test-only hook never reaches the repo from HTTP

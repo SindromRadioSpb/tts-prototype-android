@@ -251,3 +251,55 @@ test('re-import into a topic whose last material was deleted publishes the corpu
   const [corpus]=await all(h.db,"SELECT status,current_edition_id FROM published_corpora WHERE slug=?",[slug]);
   assert.equal(corpus.status,'PUBLISHED');assert.ok(corpus.current_edition_id);
 });
+// Прод 2026-09-23: «Отмена» в последнем окне «Добавить материал» оставила архив в неопубликованном
+// черновике нового корпуса; повторный импорт отвечал «уже добавлен», а материала нигде не было видно.
+async function stageArchive(h,title,key,slugValue){
+  const prepared=await h.repo.prepareMediathequeArchive(h.owner,await archiveBytes(title),{mode:'youtube'});
+  const o=n=>({idempotencyKey:key+'-'+n});
+  let corpus=(await h.repo.listPublisherCorpora(h.owner)).find(c=>c.slug===slugValue);
+  if(!corpus)corpus=await h.repo.createCorpus(h.owner,{slug:slugValue,title:'Channel'},o('create'));
+  let detail=await h.repo.getPublisherCorpus(h.owner,corpus.corpus_id);
+  if(!detail.draft){await h.repo.createRevisionDraft(h.owner,corpus.corpus_id,o('rev'));detail=await h.repo.getPublisherCorpus(h.owner,corpus.corpus_id);}
+  const copied=await h.repo.copyMediathequeArchive(h.owner,corpus.corpus_id,{token:prepared.token,title,creator:'Channel',expectedVersion:detail.draft.version},o('copy'));
+  const rights=await h.repo.recordMaterialRights(h.owner,corpus.corpus_id,{itemIds:copied.items.map(i=>i.item_id),expectedVersion:copied.draft_version,preset:{public_read_allowed:true,public_stream_allowed:true,package_download_allowed:true,basis:'OWNER_ATTESTATION_2026_09_23',asserted_at:'2026-09-23'}},o('rights'));
+  return {corpus,copied,rights,sourceWorkId:copied.items[0].source_work_id};
+}
+test('cancelled first import in a new topic is discarded and the archive can be imported again',async t=>{
+  const h=await setup(t),topic='media-'+'3'.repeat(20);
+  const staged=await stageArchive(h,'Pending title','p1',topic);// «Отмена» до публикации
+  await assert.rejects(h.repo.discardMediathequePendingImport({id:'member',role:'user'},{slug:topic,sourceWorkId:staged.sourceWorkId},{idempotencyKey:'x'}),/PUBLISHER_FORBIDDEN/);
+  const out=await h.repo.discardMediathequePendingImport(h.owner,{slug:topic,sourceWorkId:staged.sourceWorkId},{idempotencyKey:'d1'});
+  assert.equal(out.discarded,true);
+  const again=await stageArchive(h,'Renamed title','p2',topic);
+  await h.repo.publish(h.owner,again.corpus.corpus_id,{expectedVersion:again.rights.draft_version},{idempotencyKey:'p2-publish'});
+  assert.deepEqual((await h.repo.getPublicMediatheque()).items.map(i=>i.title),['Renamed title']);
+});
+test('pending import next to published materials: discard keeps them; a published archive stays "already added"',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Live','live');
+  const staged=await stageArchive(h,'Pending','p',slug);
+  await h.repo.discardMediathequePendingImport(h.owner,{slug,sourceWorkId:staged.sourceWorkId},{idempotencyKey:'d'});
+  assert.deepEqual((await h.repo.getPublicMediatheque()).items.map(i=>i.title),['Live']);
+  assert.equal((await all(h.db,"SELECT COUNT(*) n FROM publication_drafts WHERE state='ACTIVE'"))[0].n,0);
+  const liveSource=(await all(h.db,"SELECT di.source_work_id FROM publication_draft_items di WHERE di.title='Live' LIMIT 1"))[0].source_work_id;
+  await assert.rejects(h.repo.discardMediathequePendingImport(h.owner,{slug,sourceWorkId:liveSource},{idempotencyKey:'d2'}),/SOURCE_ALREADY_COPIED/);
+  assert.equal(a.item.title,'Live');
+});
+test('discard refuses a draft that carries anything besides the one pending archive',async t=>{
+  const h=await setup(t);await publishArchive(h,'Live','live');
+  const one=await stageArchive(h,'First pending','p1',slug);
+  const prepared=await h.repo.prepareMediathequeArchive(h.owner,await archiveBytes('Second pending'),{mode:'youtube'});
+  const detail=await h.repo.getPublisherCorpus(h.owner,one.corpus.corpus_id);
+  await h.repo.copyMediathequeArchive(h.owner,one.corpus.corpus_id,{token:prepared.token,title:'Second pending',creator:'C',expectedVersion:detail.draft.version},{idempotencyKey:'p2c'});
+  await assert.rejects(h.repo.discardMediathequePendingImport(h.owner,{slug,sourceWorkId:one.sourceWorkId},{idempotencyKey:'d'}),/DRAFT_VERSION_CONFLICT/);
+  assert.equal((await all(h.db,"SELECT COUNT(*) n FROM publication_drafts WHERE state='ACTIVE'"))[0].n,1);
+});
+test('publisher wizard discards its own pending import on cancel and on a re-import of the same archive',()=>{
+  const pub=fs.readFileSync(path.join(__dirname,'..','public/js/mediatheque-publisher.js'),'utf8');
+  const ui=fs.readFileSync(path.join(__dirname,'..','public/js/mediatheque-ui.js'),'utf8');
+  assert.ok(!pub.includes("throw new Error('SOURCE_ALREADY_COPIED')"),'re-import no longer dead-ends on a pending archive');
+  assert.equal((pub.match(/materials:discard-pending/g)||[]).length,1);
+  assert.equal((pub.match(/discardPending\(/g)||[]).length>=3,true,'defined once, used on cancel and on re-import');
+  assert.match(ui,/function showDialog\(title, html, action, onCancel\)/);
+  const server=fs.readFileSync(path.join(__dirname,'..','server.js'),'utf8');
+  assert.ok(server.includes("app.post('/api/publication/mediatheque/materials\\\\:discard-pending', rlPublicationWrite, requireStrictSameOriginJson,"));
+});

@@ -794,12 +794,12 @@ function createPublicationRepo(options = {}) {
   async function createRevisionDraft(actor, corpusId, opts, excludeWorkId = null) {
     return withIdempotency(actor, "CREATE_REVISION_DRAFT", opts, excludeWorkId ? { corpusId, excludeWorkId } : { corpusId }, async key => {
       const corpus = await corpusForActor(actor, corpusId);
-      // Корпус, опустевший удалением последнего материала (все элементы последней редакции
-      // вычищены), начинает пустую ревизию: иначе в тему нельзя добавить материал заново.
+      // Корпус без редакций (первый импорт отменён) или опустевший удалением последнего
+      // материала (все элементы последней редакции вычищены) начинает пустую ревизию.
       // Обычный отзыв по-прежнему требует «Восстановить», а не пустой черновик поверх материалов.
       if (!corpus.current_edition_id) {
         const latest = await dbGet(database, "SELECT edition_id FROM published_corpus_editions WHERE corpus_id=? ORDER BY edition_number DESC LIMIT 1", [corpus.corpus_id]);
-        const emptied = latest && !await dbGet(database, `SELECT 1 ok FROM published_corpus_edition_items ei WHERE ei.edition_id=? AND NOT EXISTS
+        const emptied = !latest || !await dbGet(database, `SELECT 1 ok FROM published_corpus_edition_items ei WHERE ei.edition_id=? AND NOT EXISTS
           (SELECT 1 FROM published_corpus_edition_purges p WHERE p.edition_id=ei.edition_id AND p.public_work_id=ei.public_work_id)`, [latest.edition_id]);
         if (!emptied) fail("CORPUS_NOT_FOUND", 404);
       }
@@ -1117,6 +1117,32 @@ function createPublicationRepo(options = {}) {
     await dropMediathequeWork(actor, { slug: corpus.slug, workId }, { idempotencyKey: k("structure") });
     return { slug: corpus.slug, workId, title: cleaned.title, corpus_archived: archived, cleanup_pending: cleaned.pending };
   }
+  // «Добавить материал» копирует архив в черновик корпуса и пишет права ДО последнего окна.
+  // Отменённый импорт закрывает этот черновик, если в нём нет ничего, кроме этого архива;
+  // иначе архив остаётся в невидимом черновике и блокирует повторный импорт.
+  async function discardMediathequePendingImport(actor, input, opts = {}) {
+    mediathequeOwner(actor);
+    const slug = cleanSlug(input && input.slug), source = String(input && input.sourceWorkId || "");
+    if (!/^archive_[a-f0-9]{64}$/.test(source)) fail("PUBLICATION_INPUT_INVALID", 400);
+    if (!MANAGED_SLUG.test(slug)) fail("MATERIAL_NOT_MANAGED", 409);
+    return withIdempotency(actor, "DISCARD_PENDING_IMPORT", opts, { slug, source }, async () => {
+      const corpus = await dbGet(database, "SELECT * FROM published_corpora WHERE slug=?", [slug]);
+      if (!corpus) fail("MATERIAL_NOT_FOUND", 404);
+      const target = publicWorkIdOf({ source_domain: "MY_TEXTS", source_corpus_id: null, source_work_id: source });
+      const live = new Map(corpus.current_edition_id ? (await dbAll(database,
+        "SELECT public_work_id,snapshot_sha256 FROM published_corpus_edition_items WHERE edition_id=?", [corpus.current_edition_id])).map(r => [r.public_work_id, r.snapshot_sha256]) : []);
+      if (live.has(target)) fail("SOURCE_ALREADY_COPIED", 409);
+      const draft = await dbGet(database, "SELECT * FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id]);
+      if (!draft) return { corpus_id: corpus.corpus_id, discarded: false };
+      const items = await dbAll(database, "SELECT * FROM publication_draft_items WHERE draft_id=?", [draft.draft_id]);
+      const extras = items.filter(item => !live.has(publicWorkIdOf(item)));
+      const unchangedLive = [...live].every(([work, sha]) => items.some(item => publicWorkIdOf(item) === work && item.snapshot_sha256 === sha));
+      if ((draft.based_on_edition_id || null) !== (corpus.current_edition_id || null) || !unchangedLive
+          || extras.length !== 1 || extras[0].source_work_id !== source || items.length !== live.size + 1) fail("DRAFT_VERSION_CONFLICT", 409);
+      await dbRun(database, "UPDATE publication_drafts SET state='ARCHIVED',updated_by=?,updated_at=? WHERE draft_id=? AND state='ACTIVE'", [actorId(actor), now(), draft.draft_id]);
+      return { corpus_id: corpus.corpus_id, discarded: true };
+    });
+  }
   async function deleteMediathequeMaterials(actor, input, opts = {}) {
     mediathequeOwner(actor);
     const base = idemKey(opts.idempotencyKey), items = Array.isArray(input && input.items) ? input.items : [];
@@ -1217,7 +1243,7 @@ function createPublicationRepo(options = {}) {
     getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, publishMediatheque, rollbackMediatheque,
     prepareMediathequeArchive, attachMediathequeMedia, copyMediathequeArchive,
     recordMaterialRights: (actor,corpusId,input,opts)=>applyRightsPreset(actor,corpusId,input,opts,true),
-    deleteMediathequeMaterials, updateMediathequeMaterial, mediathequeMaterialArchive,
+    deleteMediathequeMaterials, discardMediathequePendingImport, updateMediathequeMaterial, mediathequeMaterialArchive,
   };
 }
 

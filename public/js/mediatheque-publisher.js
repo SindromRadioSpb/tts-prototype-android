@@ -11,6 +11,12 @@ export function openPublisher(ctx) {
     if(!keys.has(name))keys.set(name,crypto.randomUUID());
     const out=await api(path,body,keys.get(name));steps.set(name,out);return out;
   }
+  // Отменённый до публикации импорт не должен оставаться в невидимом черновике корпуса.
+  async function discardPending(strict){
+    if(!corpus||!work)return;
+    try{await api('/api/publication/mediatheque/materials:discard-pending',{slug:corpus.slug,sourceWorkId:'archive_'+work.contentRoot});}
+    catch(e){if(strict)throw e;}
+  }
   async function upload(path,file,type){
     if(!file?.size||file.size>512*1024*1024)throw new Error('MATERIAL_ARCHIVE_INVALID');
     const response=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'Content-Type':type,'X-LP-CSRF':localStorage.getItem('cloud.csrf')||''},body:file,signal:AbortSignal.timeout(300000)});
@@ -72,7 +78,12 @@ export function openPublisher(ctx) {
         const base='/api/publication/corpora/'+corpus.corpus_id;
         if(!detail){detail=(await api(base)).corpus;if(!detail.draft){await once('revision',base+'/draft:new-revision',{});detail=(await api(base)).corpus;}}
         if(!copied){
-          if(detail.items.some(i=>i.source_work_id==='archive_'+work.contentRoot))throw new Error('SOURCE_ALREADY_COPIED');
+          if(detail.items.some(i=>i.source_work_id==='archive_'+work.contentRoot)){
+            // Прежний импорт этого архива отменён до публикации: сбрасываем его и начинаем заново.
+            await discardPending(true);
+            detail=(await api(base)).corpus;
+            if(!detail.draft){await api(base+'/draft:new-revision',{});detail=(await api(base)).corpus;}
+          }
           copied=await once('copy',base+'/draft/material-archive',{token:work.token,title:destination.title,description:destination.description,creator:destination.creator,expectedVersion:detail.draft.version});
         }
         if(!rights){const date=new Date().toISOString().slice(0,10);rights=await once('rights',base+'/draft/material-rights',{itemIds:copied.items.map(i=>i.item_id),expectedVersion:copied.draft_version,preset:{public_read_allowed:true,public_stream_allowed:true,package_download_allowed:destination.download,basis:'OWNER_ATTESTATION_MEDIA_'+date.replaceAll('-','_'),asserted_at:date}});}
@@ -92,8 +103,8 @@ export function openPublisher(ctx) {
           if(destination.collection)next=C.command(next,{type:'items.add',target:'collection',id:destination.collection,references:[item.ref]},{publicOnly:true});
           await ctx.save(next);
           ctx.finish(); // Structure has its own existing preview/publish, never publishes unrelated draft edits.
-        });
-      });
+        },()=>{if(!receipt)discardPending(false);});
+      },()=>{if(copied&&!receipt)discardPending(false);});
     const form=document.querySelector('#ml-form'),categorySelect=form.elements.category,collectionSelect=form.elements.collection;
     const syncDestination=()=>{
       const newCategory=form.elements.newCategory.value.trim();
