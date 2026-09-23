@@ -43,19 +43,19 @@
       home: { title: '', description: '', featured: null, sections: SECTIONS.slice() } };
   }
   function filters(raw = {}) {
-    exact(raw, ['q', 'category', 'collection', 'kind', 'source', 'genre', 'language', 'maxDuration', 'progress', 'translation', 'captions', 'uncategorized', 'tags', 'sort', 'layout']);
+    exact(raw, ['q', 'category', 'collection', 'kind', 'source', 'genre', 'language', 'maxDuration', 'progress', 'translation', 'captions', 'uncategorized', 'hidden', 'tags', 'sort', 'layout']);
     const out = { q: '', category: '', collection: '', kind: '', source: '', genre: '', language: '', maxDuration: null,
-      progress: '', translation: false, captions: false, uncategorized: false, tags: [], sort: 'position', layout: 'cards', ...clone(raw) };
+      progress: '', translation: false, captions: false, uncategorized: false, hidden: false, tags: [], sort: 'position', layout: 'cards', ...clone(raw) };
     ['q', 'category', 'collection', 'source', 'genre', 'language'].forEach(k => string(out[k], k === 'q' ? 500 : 200, false));
     if (!['', 'video', 'audio', 'text'].includes(out.kind) || !['', 'not_started', 'in_progress', 'finished'].includes(out.progress)
       || !SORTS.includes(out.sort) || !['cards', 'list'].includes(out.layout)) fail();
     if (out.maxDuration !== null && (!Number.isFinite(out.maxDuration) || out.maxDuration <= 0 || out.maxDuration > 86400)) fail();
-    ['translation', 'captions', 'uncategorized'].forEach(k => { if (typeof out[k] !== 'boolean') fail(); });
+    ['translation', 'captions', 'uncategorized', 'hidden'].forEach(k => { if (typeof out[k] !== 'boolean') fail(); });
     list(out.tags, 30).forEach(t => string(t, 80)); out.tags = unique(out.tags);
     return out;
   }
   function validate(raw, options = {}) {
-    exact(raw, ['schema', 'references', 'saved', 'categories', 'collections', 'views', 'annotations', 'home']);
+    exact(raw, ['schema', 'references', 'saved', 'categories', 'collections', 'views', 'annotations', 'home', 'hidden']);
     if (raw.schema !== SCHEMA || JSON.stringify(raw).length > LIMITS.bytes) fail();
     const d = clone(raw), refs = new Set();
     list(d.references, LIMITS.references).forEach(r => {
@@ -96,6 +96,13 @@
     exact(d.home, ['title', 'description', 'featured', 'sections']); string(d.home.title, 200, false); string(d.home.description, 2000, false);
     if (d.home.featured !== null && !refs.has(d.home.featured)) fail('MEDIATHEQUE_REFERENCE_MISSING');
     keyList(d.home.sections, SECTIONS.length); if (d.home.sections.some(s => !SECTIONS.includes(s))) fail();
+    // Скрытие — только личное пространство: материал уходит из Медиатеки, оставаясь в Библиотеке.
+    if (d.hidden !== undefined) {
+      keyList(d.hidden);
+      if (options.publicOnly && d.hidden.length) fail('MEDIATHEQUE_PRIVATE_REFERENCE');
+      if (d.hidden.some(k => !k.startsWith('my/'))) fail();
+      if (!d.hidden.length) delete d.hidden;
+    }
     return d;
   }
   function descendants(d, id) {
@@ -202,8 +209,43 @@
       case 'home.update':
         if (cmd.reference) register([cmd.reference]);
         d.home = { title: cmd.title || '', description: cmd.description || '', featured: cmd.reference ? refKey(cmd.reference) : null, sections: cmd.sections }; break;
+      case 'items.hide': {
+        if (options.publicOnly) fail('MEDIATHEQUE_PRIVATE_REFERENCE');
+        keyList(cmd.keys); if (cmd.keys.some(k => !k.startsWith('my/'))) fail();
+        const keys = new Set(cmd.keys);
+        for (const c of [...d.categories, ...d.collections]) c.items = c.items.filter(k => !keys.has(k));
+        if (keys.has(d.home.featured)) d.home.featured = null;
+        d.hidden = unique([...(d.hidden || []), ...cmd.keys]); break;
+      }
+      case 'items.unhide': {
+        if (options.publicOnly) fail('MEDIATHEQUE_PRIVATE_REFERENCE');
+        keyList(cmd.keys); const keys = new Set(cmd.keys);
+        d.hidden = (d.hidden || []).filter(k => !keys.has(k)); break;
+      }
       default: fail();
     }
+    return validate(d, options);
+  }
+  // Публичная ссылка следует за текущей версией своего slug+workId: правка карточки меняет
+  // snapshotHash, но не должна выбрасывать материал из тем, подборок и с главной.
+  function followCurrent(raw, current, options = {}) {
+    const d = validate(raw, options), latest = new Map();
+    for (const r of current || []) { const s = reference(r); if (s.kind === 'public') latest.set(s.slug + ' ' + s.workId, s); }
+    const rename = new Map();
+    for (const r of d.references) if (r.kind === 'public') {
+      const next = latest.get(r.slug + ' ' + r.workId);
+      if (next && next.snapshotHash !== r.snapshotHash) rename.set(refKey(r), next);
+    }
+    if (!rename.size) return d;
+    const map = k => rename.has(k) ? refKey(rename.get(k)) : k, fix = xs => unique(xs.map(map)), seen = new Set();
+    d.references = d.references.map(r => rename.get(refKey(r)) || r).filter(r => { const k = refKey(r); if (seen.has(k)) return false; seen.add(k); return true; });
+    d.saved = fix(d.saved);
+    for (const c of [...d.categories, ...d.collections]) c.items = fix(c.items);
+    const annotations = new Map();
+    for (const a of d.annotations) { const k = map(a.key); if (!annotations.has(k)) annotations.set(k, { ...a, key: k }); }
+    d.annotations = Array.from(annotations.values());
+    if (d.home.featured) d.home.featured = map(d.home.featured);
+    if (d.hidden) d.hidden = fix(d.hidden);
     return validate(d, options);
   }
   function prepare(d, materials) {
@@ -308,5 +350,5 @@
     return validate(value.structure, options);
   }
   return Object.freeze({ SCHEMA, LIMITS, SORTS, SECTIONS, empty, validate, reference, refKey, filters, normalize, descendants, categoryPath,
-    command, prepare, query, navigationMatches, exportStructure, importStructure, sameFilters, durationSummary, structureChanges });
+    command, followCurrent, prepare, query, navigationMatches, exportStructure, importStructure, sameFilters, durationSummary, structureChanges });
 });

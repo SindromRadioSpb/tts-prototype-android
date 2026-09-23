@@ -92,3 +92,33 @@ test('10,000 material search remains deterministic and category descendants are 
   assert.equal(C.query(d, p, { category: 'science' }).length, 750);
   assert.equal(C.query(d, p, { source: 'KAN' }).length, 5000);
 });
+test('hidden personal materials leave every placement, survive export/import and never enter public structure', () => {
+  let d = C.command(tree(), { type: 'items.add', target: 'category', id: 'science', references: [my] });
+  d = C.command(d, { type: 'home.update', title: '', description: '', reference: my, sections: C.SECTIONS.slice() });
+  d = C.command(d, { type: 'items.hide', keys: [myKey] });
+  assert.deepEqual(d.hidden, [myKey]);
+  assert.equal(d.categories.find(c => c.id === 'science').items.includes(myKey), false);
+  assert.equal(d.home.featured, null);
+  const round = C.importStructure(JSON.parse(JSON.stringify(C.exportStructure(d))));
+  assert.deepEqual(round.hidden, [myKey]);
+  d = C.command(d, { type: 'items.unhide', keys: [myKey] });
+  assert.equal('hidden' in d, false);
+  assert.throws(() => C.command(C.empty(), { type: 'items.hide', keys: [myKey] }, { publicOnly: true }));
+  assert.throws(() => C.validate({ ...C.empty(), hidden: [myKey] }, { publicOnly: true }), /MEDIATHEQUE_PRIVATE_REFERENCE/);
+  assert.throws(() => C.command(C.empty(), { type: 'items.hide', keys: [pubKey] }));
+  assert.deepEqual(C.validate(C.empty()), C.empty());
+  assert.equal(C.filters().hidden, false);
+});
+test('public references follow the current version of the same work and collapse duplicates', () => {
+  const old = pub, next = { ...pub, snapshotHash: 'b'.repeat(64) }, gone = { ...pub, workId: 'pw_gone' };
+  let d = C.command(tree(), { type: 'items.add', target: 'category', id: 'science', references: [old, gone] }, { publicOnly: true });
+  d = C.command(d, { type: 'items.add', target: 'collection', id: 'kan', references: [old, next] }, { publicOnly: true });
+  d = C.command(d, { type: 'annotation.set', references: [old], tags: ['a'] }, { publicOnly: true });
+  const out = C.followCurrent(d, [next, gone], { publicOnly: true });
+  const nextKey = C.refKey(next);
+  assert.deepEqual(out.categories.find(c => c.id === 'science').items, [nextKey, C.refKey(gone)]);
+  assert.deepEqual(out.collections.find(c => c.id === 'kan').items, [nextKey]);
+  assert.deepEqual(out.annotations.map(a => a.key), [nextKey]);
+  assert.equal(out.references.filter(r => r.workId === 'pw_1').length, 1);
+  assert.deepEqual(C.followCurrent(d, [], { publicOnly: true }), d);
+});
