@@ -87,3 +87,19 @@ test('bundled media is verified and omitted in YouTube mode without altering the
   const remote=await Archive.inspectArchive(bundle,{mode:'youtube',youtubeUrl:'https://youtu.be/sYd4zgR7f6w'});
   assert.equal(remote.media,null);assert.equal(remote.videoId,'sYd4zgR7f6w');assert.equal(Archive.sha(bytes),before);
 });
+test('archive playback basis is rebound to the timing the published card actually receives',async()=>{
+  // Экспорт хранит отпечаток разметки в форме Библиотеки; публикация пересобирает разметку из
+  // ревизии архива (концы, склейки). Без перепривязки публичная карточка сразу теряет все ▶.
+  const input=fixture();
+  input.playback_source=Playback.append(null,{url:'https://www.youtube.com/watch?v=sYd4zgR7f6w',offset_ms:1200,confirmed:true},{basis_sha256:'f'.repeat(64)});
+  const bytes=Buffer.from(await Portable.zipFiles(await Core.buildPackageFiles(input,{mode:'snapshot'}),'nodebuffer'));
+  const out=await Archive.inspectArchive(bytes,{mode:'youtube'}),text=out.snapshot.library.texts[0],meta=text.source_meta;
+  const view=await Playback.youtubeView(meta.source.audio,text.rows,meta.playback_source);
+  assert.equal(view.reason,null);assert.ok(view.entries.length);
+  const current=Playback.selected(meta.playback_source);
+  assert.equal(current.offset_ms,1200);assert.equal(current.source.video_id,'sYd4zgR7f6w');
+  assert.equal(current.timing.status,'unverified');
+  assert.deepEqual(meta.publication_archive.original_playback,input.playback_source);
+  const fresh=await Archive.inspectArchive(await archive(),{mode:'youtube'});
+  assert.equal(fresh.snapshot.library.texts[0].source_meta.playback_source.revision,1);
+});

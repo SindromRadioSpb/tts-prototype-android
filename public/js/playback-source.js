@@ -127,6 +127,17 @@
     if (!basis) return true;
     return await timingBasis(audio, rows) === basis || await timingBasis(audio, rows, { startsOnly: true }) === basis;
   }
+  // Новая карточка из архива получает разметку, пересобранную из ревизии архива: та же
+  // ревизия, другая форма записи (концы, склейки строк без конца). Отпечаток источника
+  // перепривязывается к этой форме; подтверждение владельца на неё не переносится.
+  async function rebindBasis(record, audio, rows, options) {
+    if (!record) return record;
+    const current = selected(record);
+    if (!current.source || !current.timing.basis_sha256 || await basisMatches(audio, rows, current.timing.basis_sha256)) return record;
+    const basis = await timingBasis(audio, rows);
+    if (!basis || record.history.length >= MAX_REVISIONS) return record;
+    return append(record, { url: current.source.url, offset_ms: current.offset_ms }, { basis_sha256: basis, now: options && options.now });
+  }
   async function youtubeView(audio, rows, record) {
     const binding = record || fromLegacy(audio);
     if (!binding) return {video:null,entries:null,reason:'PLAYBACK_SOURCE_MISSING',revision:0};
@@ -185,5 +196,5 @@
     };
   }
   return {SCHEMA,MAX_REVISIONS,parseVideoId,canonicalUrl,validate,selected,append,fromLegacy,fromText,fromPackageReference,
-    parseMeta,isPublished,timingBasis,basisMatches,youtubeView,playbackAudio,safeEntries,digest,createRepository};
+    parseMeta,isPublished,timingBasis,basisMatches,rebindBasis,youtubeView,playbackAudio,safeEntries,digest,createRepository};
 });

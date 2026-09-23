@@ -36,12 +36,14 @@ async function inspectArchive(bytes, options={}) {
   if(options.youtubeUrl&&!suppliedId)fail('PLAYBACK_SOURCE_INVALID');
   const selected=originalPlayback&&Playback.selected(originalPlayback);
   if(suppliedId&&selected?.source&&selected.source.video_id!==suppliedId)fail('MATERIAL_SOURCE_MISMATCH');
-  const playback=options.mode==='media'?null:originalPlayback||(suppliedId?Playback.append(null,{url:options.youtubeUrl}):null);
+  let playback=options.mode==='media'?null:originalPlayback||(suppliedId?Playback.append(null,{url:options.youtubeUrl}):null);
   if(media&&m.media.sha256&&media.canonicalSha!==m.media.sha256)fail('MATERIAL_MEDIA_MISMATCH');
   const revision={...caption.revision,revision_id:caption.portable_revision_id,track_id:p.corrected_track.portable_track_id};
   const binding={package_id:m.roots.media_package,track_id:revision.track_id,revision_id:revision.revision_id,revision_sha256:revision.canonical_sha256,
     mapping:{rows:table.rows.map((r,i)=>({row_index:i,caption_segment_id:r.caption_segment_id}))}};
   const passport=Projection.buildExactBindingPassport(revision,binding,{package_id:binding.package_id,...p.media_ref});
+  // Отпечаток в архиве снят с разметки Библиотеки, а карточка получит проекцию ревизии архива.
+  playback=await Playback.rebindBasis(playback,passport,table.rows);
   const sourceMeta={source:{audio:passport},publication_archive:{content_root_sha256:m.content_root_sha256,package_sha256:sha(packageBytes),caption_revision_sha256:revision.canonical_sha256,original_playback:originalPlayback}};
   if(playback)sourceMeta.playback_source=playback;
   if(playback&&Playback.selected(playback).source)passport.video={videoId:Playback.selected(playback).source.video_id,url:Playback.selected(playback).source.url};
