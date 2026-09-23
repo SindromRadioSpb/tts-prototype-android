@@ -4766,3 +4766,35 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
 });
 
 window.I18N_LOCALES.ru.mediatheque.archiveAlreadyAdded="Этот архив уже добавлен в канал. Найдите материал в Медиатеке и добавьте его в нужную подборку.";
+// Mediatheque material commands (2026-09-23)
+Object.assign(window.I18N_LOCALES.ru.mediatheque, {
+  "deleteMaterial": "Удалить",
+  "deleteMaterialHelp": "«{title}» будет удалён с сервера вместе с файлами. У зрителей он исчезнет сразу. Это необратимо.",
+  "deleteMaterialPlaces": "Сейчас стоит: {places}",
+  "deleteMaterialDevices": "Копии, уже сохранённые на устройствах учеников, сервер стереть не может.",
+  "deleteForever": "Удалить навсегда",
+  "deleteSelected": "Удалить",
+  "deleteSelectedHelp": "Будут удалены с сервера ({count}):",
+  "deleteSkipped": "Будут пропущены — ими управляют в Центре публикаций:",
+  "deleteReport": "Удалено: {deleted}. Не удалось: {failed}.",
+  "deleteCleanupPending": "Часть файлов не стёрта. Повторите удаление, чтобы дочистить.",
+  "downloadArchive": "Скачать архив",
+  "downloadBeforeDelete": "Скачать архив перед удалением",
+  "archiveUnavailable": "Для этого материала исходный архив на сервере не хранится.",
+  "editMaterial": "Изменить карточку",
+  "materialTitle": "Название",
+  "materialDescription": "Описание",
+  "materialCreator": "Автор или источник",
+  "materialTags": "Теги через запятую",
+  "materialDownload": "Разрешить скачивание",
+  "materialNotManaged": "Материал принадлежит собранию «{corpus}»; им управляют в Центре публикаций.",
+  "materialNotFound": "Материал уже удалён или заменён. Обновите страницу.",
+  "materialChanged": "Карточку уже изменили. Обновите страницу и повторите.",
+  "editionPurged": "Эта редакция содержит удалённый материал и недоступна.",
+  "hideFromMediatheque": "Удалить из Медиатеки",
+  "hideHelp": "Материал исчезнет из Медиатеки. В Библиотеке он останется; вернуть можно через фильтр «Скрытые».",
+  "hiddenFilter": "Скрытые",
+  "unhide": "Вернуть в Медиатеку",
+  "hiddenDone": "Скрыто из Медиатеки",
+  "unhiddenDone": "Возвращено в Медиатеку"
+});

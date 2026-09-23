@@ -4751,3 +4751,35 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
 });
 
 window.I18N_LOCALES.en.mediatheque.archiveAlreadyAdded="This archive is already in the channel. Find the material in the library and add it to the desired collection.";
+// Mediatheque material commands (2026-09-23)
+Object.assign(window.I18N_LOCALES.en.mediatheque, {
+  "deleteMaterial": "Delete",
+  "deleteMaterialHelp": "“{title}” will be deleted from the server together with its files. Viewers lose it immediately. This cannot be undone.",
+  "deleteMaterialPlaces": "Currently placed in: {places}",
+  "deleteMaterialDevices": "Copies already saved on learners’ devices cannot be erased by the server.",
+  "deleteForever": "Delete permanently",
+  "deleteSelected": "Delete",
+  "deleteSelectedHelp": "Will be deleted from the server ({count}):",
+  "deleteSkipped": "Will be skipped — managed in the Publication Center:",
+  "deleteReport": "Deleted: {deleted}. Failed: {failed}.",
+  "deleteCleanupPending": "Some files were not erased. Delete again to finish the cleanup.",
+  "downloadArchive": "Download archive",
+  "downloadBeforeDelete": "Download the archive before deleting",
+  "archiveUnavailable": "The original archive for this material is not stored on the server.",
+  "editMaterial": "Edit card",
+  "materialTitle": "Title",
+  "materialDescription": "Description",
+  "materialCreator": "Author or source",
+  "materialTags": "Tags, comma-separated",
+  "materialDownload": "Allow download",
+  "materialNotManaged": "This material belongs to the collection “{corpus}” and is managed in the Publication Center.",
+  "materialNotFound": "The material was already deleted or replaced. Refresh the page.",
+  "materialChanged": "The card was already changed. Refresh the page and try again.",
+  "editionPurged": "This edition contains a deleted material and is unavailable.",
+  "hideFromMediatheque": "Remove from Mediatheque",
+  "hideHelp": "The material disappears from the Mediatheque but stays in your Library. Bring it back with the “Hidden” filter.",
+  "hiddenFilter": "Hidden",
+  "unhide": "Return to Mediatheque",
+  "hiddenDone": "Hidden from the Mediatheque",
+  "unhiddenDone": "Returned to the Mediatheque"
+});

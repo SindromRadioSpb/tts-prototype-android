@@ -69,6 +69,11 @@ function errorText(error) {
   if (/MATERIAL_MEDIA_MISMATCH/.test(code)) return t('archiveMediaMismatch');
   if (/MATERIAL_MEDIA_REQUIRED/.test(code)) return t('archiveMediaRequired');
   if (/MATERIAL_TOPIC_MISMATCH/.test(code)) return t('archiveTopicMismatch');
+  if (/MATERIAL_NOT_MANAGED/.test(code)) return t('materialNotManaged', { corpus: '' });
+  if (/MATERIAL_NOT_FOUND/.test(code)) return t('materialNotFound');
+  if (/MATERIAL_CHANGED/.test(code)) return t('materialChanged');
+  if (/MATERIAL_ARCHIVE_UNAVAILABLE/.test(code)) return t('archiveUnavailable');
+  if (/EDITION_PURGED/.test(code)) return t('editionPurged');
   if (/MATERIAL_ARCHIVE_NO_MATERIAL/.test(code)) return t('archiveNoMaterial');
   if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid');
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF/.test(code)) return t('signInOwner');
@@ -145,12 +150,14 @@ function personalMaterial(row) {
     progressKnown: true, hasTranslation: !!row.has_translation, available: true };
 }
 function rebuild() {
-  const inputs = [structure(), state.localItems, state.published.items, state.space, state.preview, state.editing, state.localReady];
+  const inputs = [structure(), state.localItems, state.published.items, state.space, state.preview, state.editing, state.localReady, state.filters.hidden];
   if (inputs.every((v,i) => v === projectionInputs[i])) return;
   projectionInputs = inputs;
   const localByKey = new Map(state.localItems.map(i => [C.refKey(i.ref), i]));
+  // Правка карточки меняет snapshotHash; прогресс ученика принадлежит slug+workId.
+  const localByWork = new Map(state.localItems.filter(i => i.ref.kind === 'public').map(i => [i.ref.slug + '\u0000' + i.ref.workId, i]));
   state.publicItems = (state.published.items || []).map(row => {
-    const local = state.preview ? null : localByKey.get(C.refKey(row.ref));
+    const local = state.preview ? null : localByWork.get(row.ref.slug + '\u0000' + row.ref.workId);
     return { ref: row.ref, title: row.title, description: row.topic || '', tags: row.tags || [], ...row.media,
       source: row.media?.source || row.creator || row.corpus_title || row.slug, corpusTitle: row.corpus_title,
       addedAt: row.published_at, position: row.position_no, hasTranslation: !!row.has_translation,
@@ -159,6 +166,10 @@ function rebuild() {
   });
   const pubByKey = new Map(state.publicItems.map(i => [C.refKey(i.ref), i]));
   let items = state.space === 'public' ? state.publicItems.slice() : state.localItems.filter(i => i.ref.kind === 'personal');
+  if (state.space === 'personal') {
+    const hidden = new Set(structure().hidden || []);
+    items = items.filter(i => state.filters.hidden ? hidden.has(C.refKey(i.ref)) : !hidden.has(C.refKey(i.ref)));
+  }
   const d = structure(), included = new Set(items.map(i => C.refKey(i.ref)));
   const needed = state.space === 'personal' ? new Set([...d.saved, ...d.categories.flatMap(c => c.items), ...d.collections.flatMap(c => c.items), ...d.annotations.map(a => a.key), ...(d.home.featured ? [d.home.featured] : [])])
     : state.editing ? new Set(d.references.map(C.refKey)) : new Set();
@@ -230,6 +241,29 @@ async function refreshStructure() {
   else if (state.editing) state.draft = await api('/api/publication/mediatheque');
   render();
 }
+const managed = item => item?.ref?.kind === 'public' && /^media-[a-f0-9]{20}$/.test(item.ref.slug);
+function placesOf(item) {
+  const d = state.editing && state.draft ? state.draft.structure : state.published.structure, same = k => k === item.key;
+  const places = [...d.categories.filter(c => c.items.some(same)).map(c => C.categoryPath(d, c.id).map(x => x.title).join(' / ')),
+    ...d.collections.filter(c => c.items.some(same)).map(c => c.title), ...(d.home.featured === item.key ? [t('section.pinned')] : [])];
+  return places.length ? places.join(', ') : t('none');
+}
+function archiveHref(item, part = 'package') {
+  return '/api/publication/mediatheque/materials/archive?' + new URLSearchParams({ slug: item.ref.slug, workId: item.ref.workId, part });
+}
+async function reloadAfterMaterialChange() {
+  await loadPublic(); if (state.editing) state.draft = await api('/api/publication/mediatheque');
+  projectionInputs = []; rebuild(); render();
+}
+async function deleteMaterials(items) {
+  const result = await api('/api/publication/mediatheque/materials:delete', { items: items.map(i => ({ slug: i.ref.slug, workId: i.ref.workId })) });
+  const titles = new Map(items.map(i => [i.ref.workId, i.title]));
+  closeDialog(); for (const done of result.deleted) for (const key of Array.from(state.selected)) if (key.includes('/' + encodeURIComponent(done.workId) + '/')) state.selected.delete(key);
+  await reloadAfterMaterialChange();
+  const failures = result.failed.map(f => (titles.get(f.workId) || f.workId) + ' — ' + errorText({ code: f.code })).join('; ');
+  announce(t('deleteReport', { deleted: result.deleted.length, failed: result.failed.length }) + (failures ? ' ' + failures : '')
+    + (result.cleanup_pending.length ? ' ' + t('deleteCleanupPending') : ''), result.failed.length > 0);
+}
 function selectedMaterials() { return Array.from(state.selected).map(k => state.prepared.byKey.get(k)).filter(Boolean); }
 function duration(value) {
   if (value == null || !Number.isFinite(value)) return t('durationUnknown');
@@ -271,6 +305,12 @@ function itemHtml(item) {
     <div class="ml-item-footer">${href ? `<a class="ml-open" href="${esc(href)}">${esc(action)}</a>` : ''}
       ${!state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'personal' && item.ref.kind === 'public' ? button('forget-reference', t('forgetReference'), `data-key="${esc(item.key)}"`) : ''}
+      ${manage && state.space === 'public' && item.ref.kind === 'public' ? (managed(item)
+        ? button('edit-material', t('editMaterial'), `data-key="${esc(item.key)}"`) + button('download-material', t('downloadArchive'), `data-key="${esc(item.key)}"`)
+          + button('delete-material', t('deleteMaterial'), `data-key="${esc(item.key)}"`, 'ml-danger')
+        : `<span class="ml-hint" dir="auto">${esc(t('materialNotManaged', { corpus: item.corpusTitle || item.ref.slug }))}</span>`) : ''}
+      ${manage && state.space === 'personal' && item.ref.kind === 'personal' ? ((structure().hidden || []).includes(item.key)
+        ? button('unhide-item', t('unhide'), `data-key="${esc(item.key)}"`) : button('hide-item', t('hideFromMediatheque'), `data-key="${esc(item.key)}"`, 'ml-quiet')) : ''}
       ${order ? orderButtons('item', item.key, index > 0, index < target.items.length - 1) : ''}
     </div></article>`;
 }
@@ -376,7 +416,7 @@ function filtersHtml(panel = false) {
     <label>${esc(t('duration'))}<select id="ml-filter-duration" data-filter="maxDuration">${option('', t('any'), f.maxDuration ?? '')}${[300,600,1200,3600].map(n => option(n, t('upToMinutes', { count: n / 60 }), f.maxDuration)).join('')}</select></label>
     ${filterSelect('progress', t('studyStatus'), ['not_started', 'in_progress', 'finished'].map(p => [p, t('progress.' + p)]))}
     <label>${esc(t('tags'))}<input id="ml-filter-tags" data-filter="tags" value="${esc(f.tags.join(', '))}" placeholder="${esc(t('tagsHint'))}"></label>
-    <div>${[['translation', 'withTranslation'], ['captions', 'withCaptions'], ['uncategorized', 'uncategorized']].map(([key,label]) => `<label class="ml-checkbox"><input type="checkbox" data-filter="${key}" ${f[key] ? 'checked' : ''}>${esc(t(label))}</label>`).join('')}</div>
+    <div>${[['translation', 'withTranslation'], ['captions', 'withCaptions'], ['uncategorized', 'uncategorized'], ...(state.space === 'personal' ? [['hidden', 'hiddenFilter']] : [])].map(([key,label]) => `<label class="ml-checkbox"><input type="checkbox" data-filter="${key}" ${f[key] ? 'checked' : ''}>${esc(t(label))}</label>`).join('')}</div>
     </div>`;
   return panel ? fields.replaceAll('id="ml-filter-','id="ml-panel-filter-').replaceAll('id="ml-sources"','id="ml-panel-sources"').replaceAll('list="ml-sources"','list="ml-panel-sources"') : `<div class="ml-mobile-filters">${button('open-filters',t('topicsAndFilters'))}</div><details class="ml-filters" id="ml-filters" ${state.filterOpen ? 'open' : ''}><summary>${esc(t('filters'))}</summary>${fields}</details>`;
 }
@@ -410,10 +450,10 @@ function openFilters() {
 }
 function activeFiltersHtml() {
   const f = state.filters, chips = [];
-  for (const field of ['q','kind','source','genre','language','maxDuration','progress','translation','captions','uncategorized','tags']) {
+  for (const field of ['q','kind','source','genre','language','maxDuration','progress','translation','captions','uncategorized','hidden','tags']) {
     const value = f[field]; if (!value || (Array.isArray(value) && !value.length)) continue;
     const label = field === 'kind' ? t('kind.' + value) : field === 'progress' ? t('progress.' + value) : field === 'maxDuration' ? t('upToMinutes', { count: value / 60 })
-      : typeof value === 'boolean' ? t(field === 'translation' ? 'withTranslation' : field === 'captions' ? 'withCaptions' : 'uncategorized') : Array.isArray(value) ? value.join(', ') : value;
+      : typeof value === 'boolean' ? t(field === 'translation' ? 'withTranslation' : field === 'captions' ? 'withCaptions' : field === 'hidden' ? 'hiddenFilter' : 'uncategorized') : Array.isArray(value) ? value.join(', ') : value;
     chips.push(button('clear-filter', label + ' ×', `data-field="${field}" aria-label="${esc(t('removeFilter', { value: label }))}"`));
   }
   return chips.length ? `<div class="ml-active-filters">${chips.join('')}${button('reset-filters', t('reset'), '', 'ml-quiet')}</div>` : '';
@@ -425,6 +465,7 @@ function bulkHtml(items) {
     <strong>${esc(t('selectedCount', { count: n }))}</strong>${button('assign', t('distribute'), n ? '' : 'disabled')}${button('tags', t('tags'), n ? '' : 'disabled')}
     ${button('feature', t('featureAction'), n === 1 ? '' : 'disabled')}
     ${state.filters.category || state.filters.collection ? button('remove-items', t('removeFromHere'), n ? '' : 'disabled') : ''}
+    ${state.space === 'public' ? button('delete-selected', t('deleteSelected'), n ? '' : 'disabled', 'ml-danger') : button('hide-selected', t('hideFromMediatheque'), n ? '' : 'disabled')}
     ${n ? button('clear-selection', t('clearSelection'), '', 'ml-quiet') : ''}</div>`;
 }
 function catalogHtml() {
@@ -803,6 +844,48 @@ async function onAction(action, node) {
   if (action === 'exit-preview') { state.preview = false; render(); return; }
   if (action === 'publish' && state.owner && state.preview) return publishDialog();
   if (!canEdit()) return;
+  if (action === 'delete-material') {
+    const item = state.prepared.byKey.get(node.dataset.key); if (!managed(item)) return;
+    return showDialog(t('deleteMaterial'), `<p dir="auto">${esc(t('deleteMaterialHelp', { title: item.title }))}</p>
+      <p dir="auto">${esc(t('deleteMaterialPlaces', { places: placesOf(item) }))}</p><p>${esc(t('deleteMaterialDevices'))}</p>
+      <p><a class="ml-textlink" href="${esc(archiveHref(item))}" download>${esc(t('downloadBeforeDelete'))}</a></p>${formActions(t('deleteForever'), true)}`,
+      () => deleteMaterials([item]));
+  }
+  if (action === 'delete-selected') {
+    const items = selectedMaterials(), ok = items.filter(managed), skip = items.filter(i => !managed(i));
+    return showDialog(t('deleteSelected'), `<p>${esc(t('deleteSelectedHelp', { count: ok.length }))}</p><ul>${ok.map(i => `<li dir="auto">${esc(i.title)}</li>`).join('')}</ul>
+      ${skip.length ? `<p>${esc(t('deleteSkipped'))}</p><ul>${skip.map(i => `<li dir="auto">${esc(i.title)}</li>`).join('')}</ul>` : ''}
+      <p>${esc(t('deleteMaterialDevices'))}</p>${formActions(t('deleteForever'), true)}`, () => ok.length ? deleteMaterials(ok) : closeDialog());
+  }
+  if (action === 'download-material') {
+    const item = state.prepared.byKey.get(node.dataset.key); if (!managed(item)) return;
+    const probe = await fetch(archiveHref(item), { method: 'HEAD', credentials: 'same-origin', cache: 'no-store' }).catch(() => null);
+    if (!probe || !probe.ok) return announce(t('archiveUnavailable'), true);
+    location.assign(archiveHref(item)); return;
+  }
+  if (action === 'edit-material') {
+    const item = state.prepared.byKey.get(node.dataset.key); if (!managed(item)) return;
+    const row = state.published.items.find(i => i.ref.slug === item.ref.slug && i.ref.workId === item.ref.workId) || {};
+    return showDialog(t('editMaterial'), `<label>${esc(t('materialTitle'))}<input name="title" maxlength="500" required value="${esc(row.title || item.title)}"></label>
+      <label>${esc(t('materialDescription'))}<textarea name="description" maxlength="4000">${esc(row.topic || '')}</textarea></label>
+      <label>${esc(t('materialCreator'))}<input name="creator" maxlength="200" value="${esc(row.creator || '')}"></label>
+      <label>${esc(t('materialTags'))}<input name="tags" value="${esc((row.tags || []).join(', '))}"></label>
+      <label class="ml-checkbox"><input type="checkbox" name="download" ${row.download_allowed === 0 ? '' : 'checked'}>${esc(t('materialDownload'))}</label>${formActions(t('save'))}`,
+      async data => {
+        await api('/api/publication/mediatheque/materials:update', { slug: item.ref.slug, workId: item.ref.workId, expectedSnapshotHash: row.ref ? row.ref.snapshotHash : item.ref.snapshotHash,
+          fields: { title: String(data.get('title') || '').trim(), description: String(data.get('description') || '').trim(), creator: String(data.get('creator') || '').trim(),
+            tags: String(data.get('tags') || '').split(',').map(s => s.trim()).filter(Boolean), download: data.has('download') } });
+        closeDialog(); await reloadAfterMaterialChange(); announce(t('saved'));
+      });
+  }
+  if (action === 'hide-item') return showDialog(t('hideFromMediatheque'), `<p>${esc(t('hideHelp'))}</p>${formActions(t('hideFromMediatheque'))}`,
+    () => formSave(C.command(structure(), { type: 'items.hide', keys: [node.dataset.key] }), t('hiddenDone')));
+  if (action === 'hide-selected') {
+    const keys = Array.from(state.selected).filter(k => k.startsWith('my/')); if (!keys.length) return;
+    return showDialog(t('hideFromMediatheque'), `<p>${esc(t('hideHelp'))}</p>${formActions(t('hideFromMediatheque'))}`,
+      () => formSave(C.command(structure(), { type: 'items.hide', keys }), t('hiddenDone')));
+  }
+  if (action === 'unhide-item') return mutate({ type: 'items.unhide', keys: [node.dataset.key] }, t('unhiddenDone'));
   if (action === 'new-category' || action === 'edit-category') return editCategory(id, node.dataset.parent);
   if (action === 'delete-category') return deleteCategory(id);
   if (action === 'merge-category') return mergeCategory(id);

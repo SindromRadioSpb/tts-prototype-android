@@ -877,7 +877,7 @@ function createPublicationRepo(options = {}) {
   async function mediathequeCatalog() {
     const source = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].source_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].source_meta_json'),'{}')`;
     const table = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta_json'),'{}')`;
-    const rows = await dbAll(database, `SELECT c.slug,c.title corpus_title,e.published_at,ei.public_work_id,ei.snapshot_sha256,ei.title,ei.creator,ei.position_no,
+    const rows = await dbAll(database, `SELECT c.slug,c.title corpus_title,e.published_at,ei.public_work_id,ei.snapshot_sha256,ei.title,ei.creator,ei.position_no,ei.package_download_allowed download_allowed,
       SUBSTR(COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].topic'),''),1,256) topic,
       COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].tags'),json_extract(ei.snapshot_json,'$.library.texts[0].tags_json'),'[]') tags_json,
       ${MediathequeMetadata.projectionSql(source, table)} media_projection,

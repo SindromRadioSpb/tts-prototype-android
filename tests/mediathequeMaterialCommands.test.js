@@ -166,3 +166,20 @@ test('server wires owner-guarded material routes and exposes their error codes',
   assert.ok(!/materials\\\\:delete[^\n]*faultAfter/.test(src));
   for(const code of ['MATERIAL_NOT_MANAGED','MATERIAL_NOT_FOUND','MATERIAL_CHANGED','MATERIAL_ARCHIVE_UNAVAILABLE','EDITION_PURGED'])assert.ok(src.includes('"'+code+'"'),code);
 });
+test('catalog tells the editor whether package download is allowed',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Episode','a');
+  assert.equal(a.item.download_allowed,1);
+  await h.repo.updateMediathequeMaterial(h.owner,{...a.item.ref,expectedSnapshotHash:a.item.ref.snapshotHash,fields:{title:'Episode',description:'',creator:'C',tags:[],download:false}},{idempotencyKey:'dl'});
+  assert.equal((await h.repo.getPublicMediatheque()).items[0].download_allowed,0);
+});
+test('mediatheque UI wires material commands and every new string exists in ru/en/he',()=>{
+  const ui=fs.readFileSync(path.join(__dirname,'..','public/js/mediatheque-ui.js'),'utf8');
+  for(const a of ['delete-material','delete-selected','edit-material','download-material','hide-item','hide-selected','unhide-item'])assert.ok(ui.includes("'"+a+"'"),a);
+  assert.ok(ui.includes('/api/publication/mediatheque/materials:delete'));assert.ok(ui.includes('/api/publication/mediatheque/materials:update'));
+  const saved=global.window;global.window={};
+  try{
+    for(const l of ['ru','en','he'])require('../public/i18n/locales/'+l+'.js');
+    const keys=['deleteMaterial','deleteMaterialHelp','deleteMaterialPlaces','deleteMaterialDevices','deleteForever','deleteSelected','deleteSelectedHelp','deleteSkipped','deleteReport','deleteCleanupPending','downloadArchive','downloadBeforeDelete','archiveUnavailable','editMaterial','materialTitle','materialDescription','materialCreator','materialTags','materialDownload','materialNotManaged','materialNotFound','materialChanged','editionPurged','hideFromMediatheque','hideHelp','hiddenFilter','unhide','hiddenDone','unhiddenDone'];
+    for(const l of ['ru','en','he'])for(const k of keys)assert.ok(window.I18N_LOCALES[l].mediatheque[k],l+'.'+k);
+  }finally{global.window=saved;}
+});

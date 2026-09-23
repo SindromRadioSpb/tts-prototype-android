@@ -4760,3 +4760,35 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
 });
 
 window.I18N_LOCALES.he.mediatheque.archiveAlreadyAdded="הארכיון כבר נוסף לערוץ. מצאו את החומר בספרייה והוסיפו אותו לאוסף הרצוי.";
+// Mediatheque material commands (2026-09-23)
+Object.assign(window.I18N_LOCALES.he.mediatheque, {
+  "deleteMaterial": "מחיקה",
+  "deleteMaterialHelp": "„{title}” יימחק מהשרת יחד עם הקבצים. הצופים יאבדו אותו מיד. לא ניתן לבטל.",
+  "deleteMaterialPlaces": "ממוקם כעת ב: {places}",
+  "deleteMaterialDevices": "השרת אינו יכול למחוק עותקים שכבר נשמרו במכשירי הלומדים.",
+  "deleteForever": "מחיקה לצמיתות",
+  "deleteSelected": "מחיקה",
+  "deleteSelectedHelp": "יימחקו מהשרת ({count}):",
+  "deleteSkipped": "ידולגו — מנוהלים במרכז הפרסום:",
+  "deleteReport": "נמחקו: {deleted}. נכשלו: {failed}.",
+  "deleteCleanupPending": "חלק מהקבצים לא נמחקו. מחקו שוב כדי להשלים את הניקוי.",
+  "downloadArchive": "הורדת ארכיון",
+  "downloadBeforeDelete": "הורדת הארכיון לפני מחיקה",
+  "archiveUnavailable": "הארכיון המקורי של חומר זה אינו שמור בשרת.",
+  "editMaterial": "עריכת כרטיס",
+  "materialTitle": "כותרת",
+  "materialDescription": "תיאור",
+  "materialCreator": "יוצר או מקור",
+  "materialTags": "תגיות מופרדות בפסיק",
+  "materialDownload": "לאפשר הורדה",
+  "materialNotManaged": "החומר שייך לאוסף „{corpus}” ומנוהל במרכז הפרסום.",
+  "materialNotFound": "החומר כבר נמחק או הוחלף. רעננו את הדף.",
+  "materialChanged": "הכרטיס כבר שונה. רעננו את הדף ונסו שוב.",
+  "editionPurged": "מהדורה זו מכילה חומר שנמחק ואינה זמינה.",
+  "hideFromMediatheque": "הסרה מהמדיה־טק",
+  "hideHelp": "החומר ייעלם מהמדיה־טק אך יישאר בספרייה. אפשר להחזיר אותו דרך המסנן „מוסתרים”.",
+  "hiddenFilter": "מוסתרים",
+  "unhide": "החזרה למדיה־טק",
+  "hiddenDone": "הוסתר מהמדיה־טק",
+  "unhiddenDone": "הוחזר למדיה־טק"
+});
